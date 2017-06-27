@@ -37,7 +37,7 @@ def data_add(input, alt_aln_method, accession, dbaction, hp, evm, hdp):
 	if alt_aln_method != 'genebuild':		
 		# Get the Entrez (GenBank) file
 		dbControls.data.update_transcript_info_record(accession, hdp)
-		entry = dbControls.data.in_entries(accession.split('.')[0], 'transcript_id')
+		entry = dbControls.data.in_entries(accession.split('.')[0], 'transcript_info')
 		return entry
 			
 	# Ensembl databases
@@ -91,8 +91,8 @@ def data_add(input, alt_aln_method, accession, dbaction, hp, evm, hdp):
 						# Set the description to hgnc_gene_info
 						data = ''
 						data_added = 'false'
-						data_added = data.add_entry(accession, desc, 'transcript_id')
+						data_added = data.add_entry(accession, desc, 'transcript_info')
 						if data_added == 'true':
-							entry = data.in_entries(accession, 'transcript_id')
+							entry = data.in_entries(accession, 'transcript_info')
 							return entry
 

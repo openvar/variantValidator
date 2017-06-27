@@ -551,12 +551,8 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 				hgvs_c.posedit.pos.end.base = hgvs_c.posedit.pos.start.base + len(hgvs_c.posedit.edit.ref) - 1
 		
 		# Check again before continuing
-		try: 
-			hn.normalize(hgvs_c)
-		except hgvs.exceptions.HGVSError as e:
-			error = str(e)
-			if re.search('intronic variant', error):
-				pass		
+		if re.search('\d+\+', str(hgvs_c.posedit.pos)) or re.search('\d+\-', str(hgvs_c.posedit.pos)) or re.search('\*\d+\+', str(hgvs_c.posedit.pos)) or re.search('\*\d+\-', str(hgvs_c.posedit.pos)):
+			pass		
 
 		else:		
 			# For non-intronic sequence
@@ -840,12 +836,8 @@ def myvm_t_to_g(hgvs_c, alt_chr, vm, hn, hdp, primary_assembly):
 				hgvs_c.posedit.pos.end.base = hgvs_c.posedit.pos.start.base + len(hgvs_c.posedit.edit.ref) - 1
 
 		# Check again before continuing
-		try: 
-			hn.normalize(hgvs_c)
-		except hgvs.exceptions.HGVSError as e:
-			error = str(e)
-			if re.search('intronic variant', error):
-				pass
+		if re.search('\d+\+', str(hgvs_c.posedit.pos)) or re.search('\d+\-', str(hgvs_c.posedit.pos)) or re.search('\*\d+\+', str(hgvs_c.posedit.pos)) or re.search('\*\d+\-', str(hgvs_c.posedit.pos)):
+			pass
 
 		else:		
 			# For non-intronic sequence
