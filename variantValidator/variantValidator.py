@@ -4824,7 +4824,7 @@ def gene2transcripts(query):
 	input = input.upper()
 	# Quick check for blank form
 	if input == '':
-		caution = ['Please enter HGNC gene name or transcript identifier (NM_, NR_, or ENST)']
+		caution = {'error' : 'Please enter HGNC gene name or transcript identifier (NM_, NR_, or ENST)'}
 		return caution
 	else:
 		caution = ''
@@ -4834,7 +4834,7 @@ def gene2transcripts(query):
 				tx_info = hdp.get_tx_identity_info(hgnc)
 				hgnc = tx_info[6] 
 			except hgvs.exceptions.HGVSError as e:
-				caution = [str(e)]
+				caution = {'error' : str(e)}
 				return caution		
 		# Look up current name
 		current = variantanalyser.functions.hgnc_rest(path = "/search/prev_symbol/" + hgnc)
@@ -4869,7 +4869,7 @@ def gene2transcripts(query):
 		if len(tx_for_gene) == 0:
 			tx_for_gene = hdp.get_tx_for_gene(previous_sym)
 		if len(tx_for_gene) == 0:
-			tx_for_gene = ['Unable to retrieve data from the UTA, please contact admin']
+			tx_for_gene = {'error' : 'Unable to retrieve data from the UTA, please contact admin'}
 		
 		# Loop through each transcript and get the relevant transcript description
 		genes_and_tx = []
@@ -4892,5 +4892,31 @@ def gene2transcripts(query):
 						recovered_dict[tx] = ''
 						genes_and_tx.append([tx, tx_description, 'not applicable', 'not applicable'])	 		
  		
+ 		cp_genes_and_tx = copy.deepcopy(genes_and_tx)
+ 		genes_and_tx = []
+ 		for tx in cp_genes_and_tx:
+ 			tx_d = {'reference' : tx[0],
+ 					'description' : tx[1],
+ 					'coding_start' : tx[2],
+ 					'coding_end' : tx[3]}
+ 			genes_and_tx.append(tx_d)		
+ 			
+ 		
  		# Return data table
- 		return genes_and_tx
+ 		g2d_data = {'current_symbol' : current_sym,
+ 					'previous_symbol' : previous_sym,
+ 					'current_name' : gene_name,
+ 					'previous_name' : previous_name,
+ 					'transcripts' :  genes_and_tx,
+ 					'error' : ''}  
+ 		
+ 		return g2d_data
+ 		
+ 		
+ 		
+ 		
+ 		
+ 		
+ 		
+ 		
+ 		
