@@ -31,7 +31,7 @@ import sys
 from Bio.Seq import Seq
 
 # Import variantanalyser
-# import variantanalyser
+import variantanalyser
 
 # Set debug mode
 VALIDATOR_DEBUG = os.environ.get('VALIDATOR_DEBUG')
@@ -580,7 +580,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 				astr = re.compile('\*')
 				if astr.search(str(input_parses.posedit)):
 					input_parses_copy = copy.deepcopy(input_parses)
-					input_parses_copy.posedit.type = "c"
+					input_parses_copy.type = "c"
 					# Map to n. position
 					# Create easy variant mapper (over variant mapper) and splign locked evm
 					evm = hgvs.assemblymapper.AssemblyMapper(hdp, assembly_name=primary_assembly, alt_aln_method='splign', normalize=True, replace_reference=True)
@@ -3776,77 +3776,83 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								refseq = valstr(hgvs_refseq)
 								hgvs_refseq_ac = hgvs_refseq.ac
 						else:
-							# RETRIEVE THE REQUIRED INFORMATION FROM GENBANK database
-							refseqgene_data = variantanalyser.g_to_g.chr_to_rsg(hgvs_genomic, hn, vr)
+							try:
+								# RETRIEVE THE REQUIRED INFORMATION FROM GENBANK database
+								refseqgene_data = variantanalyser.g_to_g.chr_to_rsg(hgvs_genomic, hn, vr)
 			
-							# Log the RefSeq Gene as unavailable
-							hgvs_refseq = 'RefSeqGene record not available'
-							refseq = 'RefSeqGene record not available'
-							hgvs_refseq_ac = 'RefSeqGene record not available'
+								# Log the RefSeq Gene as unavailable
+								hgvs_refseq = 'RefSeqGene record not available'
+								refseq = 'RefSeqGene record not available'
+								hgvs_refseq_ac = 'RefSeqGene record not available'
 			
-							if len(refseqgene_data) > 1:
-								for data in refseqgene_data:
-									if hgnc == data['gene'] and data['valid'] == 'true':
-										refseq = data['hgvs_refseqgene']
-										hgvs_refseq = hp.parse_hgvs_variant(refseq)
-										refseq = valstr(hgvs_refseq)
-										hgvs_refseq_ac = hgvs_refseq.ac
-										break
+								if len(refseqgene_data) > 1:
+									for data in refseqgene_data:
+										if hgnc == data['gene'] and data['valid'] == 'true':
+											refseq = data['hgvs_refseqgene']
+											hgvs_refseq = hp.parse_hgvs_variant(refseq)
+											refseq = valstr(hgvs_refseq)
+											hgvs_refseq_ac = hgvs_refseq.ac
+											break
 
-							elif len(refseqgene_data) == 1:
-								for data in refseqgene_data:
-									if data['valid'] == 'true':
-										refseq = data['hgvs_refseqgene']
-										hgvs_refseq = hp.parse_hgvs_variant(refseq)
-										refseq = valstr(hgvs_refseq)
-										hgvs_refseq_ac = hgvs_refseq.ac
-										break
+								elif len(refseqgene_data) == 1:
+									for data in refseqgene_data:
+										if data['valid'] == 'true':
+											refseq = data['hgvs_refseqgene']
+											hgvs_refseq = hp.parse_hgvs_variant(refseq)
+											refseq = valstr(hgvs_refseq)
+											hgvs_refseq_ac = hgvs_refseq.ac
+											break
 		
-							else:
-								if alt_aln_method == 'GRCh37':
-									evm38 = variantanalyser.myVariantmapper(hdp, assembly_name='GRCh38', alt_aln_method=alt_aln_method)
-									hgvs_38 = evm38.c_to_g(hgvs_coding)
-									refseqgene_data = variantanalyser.g_to_g.chr_to_rsg(hgvs_38, hn, vr)															
-									if len(refseqgene_data) > 1:
-										for data in refseqgene_data:
-											if hgnc == data['gene'] and data['valid'] == 'true':
-												refseq = data['hgvs_refseqgene']
-												hgvs_refseq = hp.parse_hgvs_variant(refseq)
-												refseq = valstr(hgvs_refseq)
-												hgvs_refseq_ac = hgvs_refseq.ac
-												break
+								else:
+									if alt_aln_method == 'GRCh37':
+										evm38 = variantanalyser.myVariantmapper(hdp, assembly_name='GRCh38', alt_aln_method=alt_aln_method)
+										hgvs_38 = evm38.c_to_g(hgvs_coding)
+										refseqgene_data = variantanalyser.g_to_g.chr_to_rsg(hgvs_38, hn, vr)															
+										if len(refseqgene_data) > 1:
+											for data in refseqgene_data:
+												if hgnc == data['gene'] and data['valid'] == 'true':
+													refseq = data['hgvs_refseqgene']
+													hgvs_refseq = hp.parse_hgvs_variant(refseq)
+													refseq = valstr(hgvs_refseq)
+													hgvs_refseq_ac = hgvs_refseq.ac
+													break
 
-									if len(refseqgene_data) == 1:
-										for data in refseqgene_data:
-											if data['valid'] == 'true':
-												refseq = data['hgvs_refseqgene']
-												hgvs_refseq = hp.parse_hgvs_variant(refseq)
-												refseq = valstr(hgvs_refseq)
-												hgvs_refseq_ac = hgvs_refseq.ac
-												break
+										if len(refseqgene_data) == 1:
+											for data in refseqgene_data:
+												if data['valid'] == 'true':
+													refseq = data['hgvs_refseqgene']
+													hgvs_refseq = hp.parse_hgvs_variant(refseq)
+													refseq = valstr(hgvs_refseq)
+													hgvs_refseq_ac = hgvs_refseq.ac
+													break
 
-								if alt_aln_method == 'GRCh38':
-									evm38 = variantanalyser.myVariantmapper(hdp, assembly_name='GRCh37', alt_aln_method=alt_aln_method)
-									hgvs_37 = evm37.c_to_g(hgvs_coding)
-									refseqgene_data = variantanalyser.g_to_g.chr_to_rsg(hgvs_37, hn, vr)															
-									if len(refseqgene_data) > 1:
-										for data in refseqgene_data:
-											if hgnc == data['gene'] and data['valid'] == 'true':
-												refseq = data['hgvs_refseqgene']
-												hgvs_refseq = hp.parse_hgvs_variant(refseq)
-												refseq = valstr(hgvs_refseq)
-												hgvs_refseq_ac = hgvs_refseq.ac
-												break
+									if alt_aln_method == 'GRCh38':
+										evm38 = variantanalyser.myVariantmapper(hdp, assembly_name='GRCh37', alt_aln_method=alt_aln_method)
+										hgvs_37 = evm37.c_to_g(hgvs_coding)
+										refseqgene_data = variantanalyser.g_to_g.chr_to_rsg(hgvs_37, hn, vr)															
+										if len(refseqgene_data) > 1:
+											for data in refseqgene_data:
+												if hgnc == data['gene'] and data['valid'] == 'true':
+													refseq = data['hgvs_refseqgene']
+													hgvs_refseq = hp.parse_hgvs_variant(refseq)
+													refseq = valstr(hgvs_refseq)
+													hgvs_refseq_ac = hgvs_refseq.ac
+													break
 
-									if len(refseqgene_data) == 1:									
-										for data in refseqgene_data:
-											if hgnc == data['gene'] and data['valid'] == 'true':
-												refseq = data['hgvs_refseqgene']
-												hgvs_refseq = hp.parse_hgvs_variant(refseq)
-												refseq = valstr(hgvs_refseq)
-												hgvs_refseq_ac = hgvs_refseq.ac
-												break
-
+										if len(refseqgene_data) == 1:									
+											for data in refseqgene_data:
+												if hgnc == data['gene'] and data['valid'] == 'true':
+													refseq = data['hgvs_refseqgene']
+													hgvs_refseq = hp.parse_hgvs_variant(refseq)
+													refseq = valstr(hgvs_refseq)
+													hgvs_refseq_ac = hgvs_refseq.ac
+													break
+							except KeyError as e:	
+								error = str(e)
+								hgvs_refseq = 'RefSeqGene record not available'
+								refseq = 'RefSeqGene record not available'
+								hgvs_refseq_ac = 'RefSeqGene record not available'
+							
 						# Predicted effect on protein
 						# Translation of inversions currently supported by hgvs - So let's tackle it manually
 						inversion = re.compile('inv')
@@ -3961,7 +3967,14 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												continue
 		
 						else: 
-							hgvs_protein = variantanalyser.functions.protein(variant, evm, hp)
+							try:
+								hgvs_protein = variantanalyser.functions.protein(variant, evm, hp)
+							except IndexError as e:
+								error = str(e)
+								if re.search('string index out of range', error) and re.search('dup', variant):
+									hgvs_ins = hp.parse_hgvs_variant(variant)
+									inst = hgvs_ins.ac + ':c.' + str(hgvs_ins.posedit.pos.start.base - 1) + '_' + str(hgvs_ins.posedit.pos.start.base) + 'ins' + hgvs_ins.posedit.edit.ref
+									hgvs_protein = variantanalyser.functions.protein(inst, evm, hp)
 							protein = str(hgvs_protein)
 
 						# Gene orientation wrt genome
@@ -4049,8 +4062,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					te = traceback.format_exc()
 					tbk = [str(exc_type), str(exc_value), str(te)]
 					er = '\n'.join(tbk)
-					raise variantValidatorException('Validation error')
 					print str(er)
+					raise variantValidatorException('Validation error')
 				else:	
 					import warnings
 					import traceback
@@ -4207,7 +4220,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						multi_list = []
 						mapping_options = hdp.get_tx_mapping_options(hgvs_coding.ac)	
 						for alt_chr in mapping_options:
-							if (re.match('NC_', alt_chr[1]) or re.match('NT_', alt_chr[1])) and alt_chr[2] == alt_aln_method:
+							if (re.match('NC_', alt_chr[1]) or re.match('NT_', alt_chr[1]) or re.match('NW_', alt_chr[1])) and alt_chr[2] == alt_aln_method:
 								multi_list.append(alt_chr[1])
 						for alt_chr in multi_list:
 							try:
@@ -4797,10 +4810,87 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 			# tr = ''.join(traceback.format_stack())
 			tbk = [str(exc_type), str(exc_value), str(te)]
 			er = '\n'.join(tbk)
+			print str(er)
 		# Report and raise error
 		error = [{'validation_warnings': 'Validation error'}]
 		raise variantValidatorException('Validation error')
- 		if VALIDATOR_DEBUG is not None:
- 			print str(er)
  		# Return
- 		return error
+ 		return
+ 		
+# Generates a list of transcript (UTA supported) and transcript names from a gene symbol or RefSeq transcript ID
+def gene2transcripts(query):
+	caution = ''
+	input = query
+	input = input.upper()
+	# Quick check for blank form
+	if input == '':
+		caution = ['Please enter HGNC gene name or transcript identifier (NM_, NR_, or ENST)']
+		return caution
+	else:
+		caution = ''
+		hgnc = input
+		if re.match('NM_', hgnc) or re.match('NR_', hgnc): #  or re.match('ENST', hgnc):
+			try:
+				tx_info = hdp.get_tx_identity_info(hgnc)
+				hgnc = tx_info[6] 
+			except hgvs.exceptions.HGVSError as e:
+				caution = [str(e)]
+				return caution		
+		# Look up current name
+		current = variantanalyser.functions.hgnc_rest(path = "/search/prev_symbol/" + hgnc)
+		# Look for historic names
+		# If historic names = 0
+		if str(current['record']['response']['numFound']) == '0':
+			current_sym = hgnc
+		else:
+			current_sym = current['record']['response']['docs'][0]['symbol']
+		# Look up previous symbols and gene name
+		previous = variantanalyser.functions.hgnc_rest(path = "/fetch/symbol/" + current_sym)
+		try:
+			previous_sym = previous['record']['response']['docs'][0]['prev_symbol'][0]
+		except:
+			previous_sym = current_sym
+	
+		# Get gene name
+		try:
+			gene_name = previous['record']['response']['docs'][0]['name']
+		except:
+			caution = current_sym + ' is not a valid HGNC gene symbol'
+			gene_name = 'Not found in the HGNC database of human gene names www.genenames.org'  
+		
+		# Look up previous name
+		try:
+			previous_name = previous['record']['response']['docs'][0]['prev_name'][0]
+		except:
+			previous_name = gene_name		
+
+		# Get transcripts
+		tx_for_gene = hdp.get_tx_for_gene(current_sym)
+		if len(tx_for_gene) == 0:
+			tx_for_gene = hdp.get_tx_for_gene(previous_sym)
+		if len(tx_for_gene) == 0:
+			tx_for_gene = ['Unable to retrieve data from the UTA, please contact admin']
+		
+		# Loop through each transcript and get the relevant transcript description
+		genes_and_tx = []
+		recovered_dict = {}
+		for line in tx_for_gene:
+			if  re.match('^NM_', line[3]) or re.match('^NR_', line[3]):
+				# Transcript ID
+				tx = line[3]
+				tx_description = variantanalyser.dbControls.data.get_transcript_description(tx)
+				# Check for duplicates
+				if tx in recovered_dict.keys():
+					continue
+				else:	
+					try:
+						# Add to recovered_dict
+						recovered_dict[tx] = ''
+						genes_and_tx.append([tx, tx_description, line[1] + 1, line[2]])
+					except:
+						# Add to recovered_dict
+						recovered_dict[tx] = ''
+						genes_and_tx.append([tx, tx_description, 'not applicable', 'not applicable'])	 		
+ 		
+ 		# Return data table
+ 		return genes_and_tx
