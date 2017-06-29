@@ -3228,6 +3228,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									hgvs_refreshed_variant = no_norm_evm.n_to_c(hgvs_refreshed_variant)
 								else:
 									pass
+								# Quick check to make sure the coding variant has not changed
+								if str(hgvs_refreshed_variant.posedit.edit) != str(hgvs_coding.posedit.edit):
+									# Try the next available genomic option
+									continue
 								# Update hgvs_genomic
 								hgvs_genomic = variantanalyser.functions.myevm_t_to_g(hgvs_refreshed_variant, no_norm_evm, hdp, primary_assembly)
 								# print 'un-normalized genomic = ' + str(hgvs_genomic)				
