@@ -3229,7 +3229,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								else:
 									pass
 								# Quick check to make sure the coding variant has not changed
-								if str(hgvs_refreshed_variant.posedit.edit) != str(hgvs_coding.posedit.edit):
+								to_test = hn.normalize(hgvs_refreshed_variant)
+								if str(to_test.posedit.edit) != str(hgvs_coding.posedit.edit):
 									# Try the next available genomic option
 									continue
 								# Update hgvs_genomic
@@ -4711,8 +4712,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											hgvs_refreshed_variant = no_norm_evm.n_to_c(hgvs_refreshed_variant)
 										else:
 											pass
+										# Quick check to make sure the coding variant has not changed
+										to_test = hn.normalize(hgvs_refreshed_variant)
+										if str(to_test.posedit.edit) != str(hgvs_coding.posedit.edit):
+											# Try the next available genomic option
+											continue
 										# Update hgvs_genomic
-										hgvs_not_delins = variantanalyser.functions.myvm_t_to_g(hgvs_refreshed_variant, alt_chr, vm, hn, hdp, primary_assembly)
+										hgvs_alt_genomic = variantanalyser.functions.myvm_t_to_g(hgvs_refreshed_variant, alt_chr, vm, hn, hdp, primary_assembly)
 				
 									# If it is intronic, these vairables will not have been set
 									else:
