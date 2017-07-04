@@ -3235,6 +3235,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								# Update hgvs_genomic
 								hgvs_genomic = variantanalyser.functions.myevm_t_to_g(hgvs_refreshed_variant, no_norm_evm, hdp, primary_assembly)
 								# print 'un-normalized genomic = ' + str(hgvs_genomic)				
+								
+								# Genomic gap warning
+								if disparity_deletion_in[0] == 'chromosome':
+									auto_info = auto_info + "Prior to 3' normalization, Transcript variant " + str(hgvs_refreshed_variant) + ' aligns across a ' + str(disparity_deletion_in[1]) + '-bp gap in genomic sequence ' + str(stored_hgvs_not_delins.ac) + ' between positions ' + str(hgvs_genomic.posedit.pos.start.base) + '_' + str(hgvs_genomic.posedit.pos.end.base) + '\n'
+							
 							
 							# If it is intronic, these vairables will not have been set
 							else:
@@ -3244,7 +3249,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							# Break if gap has been detected
 							if disparity_deletion_in[0] != 'false':
 								break
-								
+
+						# Warn user about gapping								
+						if auto_info != '':
+							auto_info = str(auto_info.replace('\n', ': '))
+							validation['warnings'] = validation['warnings'] + ': ' + str(auto_info)
+													
 						# Normailse hgvs_genomic
 						try:
 							hgvs_genomic = hn.normalize(hgvs_genomic)
@@ -4210,7 +4220,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					# Create VCF
 					if genomic_variant != '':					
 						# TO BATCH AND API AND VALIDATOR
-						vcf_dict = variantanalyser.hgvs2vcf.hgvs2vcf(hgvs_genomic_variant)
+						vcf_dict = variantanalyser.hgvs2vcf.report_hgvs2vcf(hgvs_genomic_variant)
 						vcf_chr = vcf_dict['chr']	
 						vcf_pos = vcf_dict['pos']				
 						vcf_ref = vcf_dict['ref']
@@ -4754,11 +4764,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						if multi_g != []:
 							multi_g.sort()
 							multi_gens = []				
-							multi_gen_vars = '|'.join(multi_g)
+							multi_gen_vars = multi_g #'|'.join(multi_g)
 						else:
-							multi_gen_vars = ''		
+							multi_gen_vars = []		
+					
 					else:
-						multi_gen_vars = ''													
+						multi_gen_vars = []													
 					
 					# Warn not directly mapped to specified genome build		
 					if genomic_variant != '':
@@ -4774,6 +4785,14 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							else:	
 								warnings = warnings + ': ' + str(hgvs_coding) + ' can not be mapped directly to genome build ' + primary_assembly + '. See alt_genomic_loci for aligned genomic positions'
 
+					warn_list = warnings.split(': ')
+					warnings_out = []
+					for warning in warn_list:
+						warning.strip()
+						if warning == '':
+							continue
+						warnings_out.append(warning)
+					
 					# Populate the dictionary
 					dict_out['submitted_variant'] = submitted
 					dict_out['HGVS_genomic_variant'] = 	genomic_variant 
@@ -4784,7 +4803,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					dict_out['RefSeqGene_context_intronic_sequence'] = RefSeqGene_context_transcript_variant
 					dict_out['HGVS_RefSeqGene_variant']	= refseqgene_variant
 					dict_out['HGVS_predicted_protein_consequence'] = pedicted_protein_variant
-					dict_out['validation_warnings'] = warnings
+					dict_out['validation_warnings'] = warnings_out
 					dict_out['HGVS_LRG_transcript_variant'] = lrg_transcript_variant
 					dict_out['HGVS_LRG_variant'] = lrg_variant
 					dict_out['alt_genomic_loci'] = multi_gen_vars
