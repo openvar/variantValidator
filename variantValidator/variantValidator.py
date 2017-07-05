@@ -30,8 +30,16 @@ import sys
 # Import Biopython
 from Bio.Seq import Seq
 
-# Import variantanalyser
+# Import variantanalyser and peripheral VV modules
+import ref_seq_type
 import variantanalyser
+from variantanalyser import functions as va_func
+from variantanalyser import dbControls as va_dbCrl
+from variantanalyser import hgvs2vcf as va_H2V
+from variantanalyser import batch as va_btch
+from variantanalyser import liftover as va_lo
+from variantanalyser import g_to_g as va_g2g
+from variantanalyser import supported_chromosome_builds as va_scb 
 
 # Set debug mode
 VALIDATOR_DEBUG = os.environ.get('VALIDATOR_DEBUG')
@@ -51,6 +59,18 @@ vr = hgvs.validator.Validator(hdp)
 vm = hgvs.variantmapper.VariantMapper(hdp)
 # Create seqfetcher object
 sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
+# create normalizers
+hn = hgvs.normalizer.Normalizer(hdp,
+		cross_boundaries=False,
+		shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
+		alt_aln_method='splign'
+		)
+reverse_normalize = hgvs.normalizer.Normalizer(hdp, 
+		cross_boundaries=False, 
+		shuffle_direction=5, 
+		alt_aln_method='splign'
+		)
+
 
 # Error types
 class variantValidatorException(Exception):
@@ -99,9 +119,6 @@ def locate_dbs():
 # Validator code
 def validator(batch_variant, selected_assembly, select_transcripts):	
 
-	# Import variantanalyser
- 	import variantanalyser
-	
 	# Set pre defined variables
 	gene_symbols = ''
 	alt_aln_method = 'splign'
@@ -142,7 +159,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 				if symbol == '':
 					continue
 				else:
-					query = variantanalyser.dbControls.data.get_transcribed_span_for_gene(symbol, selected_assembly)
+					query = va_dbCrl.data.get_transcribed_span_for_gene(symbol, selected_assembly)
 					input_genes[symbol] = query	
 		else:
 			pass
@@ -221,7 +238,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							chr_num = chr_num.upper()
 							chr_num = chr_num.strip()
 							chr_num = chr_num.replace('CHR', '')
-							accession = variantanalyser.supported_chromosome_builds.to_accession(chr_num, primary_assembly)	
+							accession = va_scb.to_accession(chr_num, primary_assembly)	
 						else:
 							accession = input_list[0]	
 						if re.search('>', pre_input):
@@ -246,7 +263,6 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								alt = required_base + old_alt
 								positionAndEdit = str(position) + ref + '>' + alt
 						# Assign reference sequence type
-						import ref_seq_type
 						ref_type = ref_seq_type.ref_type_assign(accession)
 						input = str(accession) + ref_type + str(positionAndEdit)
 						automap = 'Non-HGVS compliant variant description ' + input + ' automapped to ' + input + ': '
@@ -262,7 +278,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							pre_input = copy.deepcopy(input)
 							input_list = input.split(':')
 							query_a_symbol = input_list[0]
-							is_it_a_gene = variantanalyser.dbControls.data.get_current_hgnc_symbol(query_a_symbol, primary_assembly)
+							is_it_a_gene = va_dbCrl.data.get_current_hgnc_symbol(query_a_symbol, primary_assembly)
 							if is_it_a_gene == 'none':
 								pos_ref_alt = str(input_list[1]) 
 								positionAndEdit = input_list[1]
@@ -270,7 +286,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								chr_num = chr_num.upper()
 								chr_num = chr_num.strip()
 								chr_num = chr_num.replace('CHR', '')
-								accession = variantanalyser.supported_chromosome_builds.to_accession(chr_num, primary_assembly)	
+								accession = va_scb.to_accession(chr_num, primary_assembly)	
 								input = str(accession) + ':' + str(positionAndEdit)
 								caution = 'Non-HGVS compliant variant description ' + input + ' automapped to ' + input + ':'
 								validation['warnings'] = validation['warnings'] + ': ' + caution							
@@ -285,9 +301,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						pre_input = copy.deepcopy(input)
 						query_a_symbol = pre_input.split(':')[0]
 						tx_edit = pre_input.split(':')[1]
-						is_it_a_gene = variantanalyser.dbControls.data.get_current_hgnc_symbol(query_a_symbol, primary_assembly)
+						is_it_a_gene = va_dbCrl.data.get_current_hgnc_symbol(query_a_symbol, primary_assembly)
 						if is_it_a_gene != 'none':
-							uta_symbol = variantanalyser.dbControls.data.get_uta_symbol(is_it_a_gene)
+							uta_symbol = va_dbCrl.data.get_uta_symbol(is_it_a_gene)
 							available_transcripts = hdp.get_tx_for_gene(uta_symbol)
 							select_from_these_transcripts = {}
 							for tx in available_transcripts:
@@ -320,9 +336,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						if re.match('^NG_', input):
 							refSeqGeneID = input.split(':')[0]
 							tx_edit = input.split(':')[1]
-							gene_symbol = variantanalyser.dbControls.data.get_gene_symbol_from_refSeqGeneID(refSeqGeneID)
+							gene_symbol = va_dbCrl.data.get_gene_symbol_from_refSeqGeneID(refSeqGeneID)
 							if gene_symbol != 'none':
-								uta_symbol = variantanalyser.dbControls.data.get_uta_symbol(gene_symbol)
+								uta_symbol = va_dbCrl.data.get_uta_symbol(gene_symbol)
 								available_transcripts = hdp.get_tx_for_gene(uta_symbol)
 								select_from_these_transcripts = {}
 								for tx in available_transcripts:
@@ -424,12 +440,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								continue
 
 							# Use normalizer to make the correct variant description
-							hn = hgvs.normalizer.Normalizer(hdp,
-							cross_boundaries=False,
-							shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
-							alt_aln_method=alt_aln_method
-							)
-		
+# 							hn = hgvs.normalizer.Normalizer(hdp,
+# 							cross_boundaries=False,
+# 							shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
+# 							alt_aln_method=alt_aln_method
+# 							)
+# 		
 							try:
 								not_delins = str(hn.normalize(hgvs_not_delins))
 							except hgvs.exceptions.HGVSError as e:
@@ -503,7 +519,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 				# Identifies variant type
 				# Returns a dictionary containing the formated input string and the variant type
 				# Accepts c, g, n, r currently
-				formatted = variantanalyser.functions.user_input(input)
+				formatted = va_func.user_input(input)
 
 				# Validator specific variables, note, not all will be necessary for batch, but keep to ensure that batch works
 				vars = []
@@ -654,11 +670,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							replace_reference=True
 							)
 					# create normalizer
-					hn = hgvs.normalizer.Normalizer(hdp,
-							cross_boundaries=False,
-							shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
-							alt_aln_method=alt_aln_method
-							)
+# 					hn = hgvs.normalizer.Normalizer(hdp,
+# 							cross_boundaries=False,
+# 							shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
+# 							alt_aln_method=alt_aln_method
+# 							)
 					# Setup a reverse normalize instance and non-normalize evm
 					no_norm_evm = hgvs.assemblymapper.AssemblyMapper(hdp,
 							assembly_name=primary_assembly, 
@@ -666,11 +682,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							normalize=False, 
 							replace_reference=True
 							)
-					reverse_normalize = hgvs.normalizer.Normalizer(hdp, 
-							cross_boundaries=False, 
-							shuffle_direction=5, 
-							alt_aln_method=alt_aln_method
-							)							
+# 					reverse_normalize = hgvs.normalizer.Normalizer(hdp, 
+# 							cross_boundaries=False, 
+# 							shuffle_direction=5, 
+# 							alt_aln_method=alt_aln_method
+# 							)							
 
 				# Will extract any genomic variants and append to list		
 				elif is_mapable == 'false' and type == ':g.':
@@ -680,15 +696,14 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					evm = hgvs.assemblymapper.AssemblyMapper(hdp, assembly_name=primary_assembly, alt_aln_method=alt_aln_method, normalize=True, replace_reference=True)
 
 					# Create normalizer instance for primary/which will be target_assembly
-					hn = hgvs.normalizer.Normalizer(hdp,
-							cross_boundaries=False,
-							shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
-							alt_aln_method=alt_aln_method
-							)		
+# 					hn = hgvs.normalizer.Normalizer(hdp,
+# 							cross_boundaries=False,
+# 							shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
+# 							alt_aln_method=alt_aln_method
+# 							)		
 					# Liftover
-					import variantanalyser.liftover
 					hgvs_variant = hp.parse_hgvs_variant(variant)
-					target_hgvs_variant = variantanalyser.liftover.hgvs_liftover(hgvs_variant, primary_assembly=historic_assembly, target_assembly=primary_assembly, hn=hn)
+					target_hgvs_variant = va_lo.hgvs_liftover(hgvs_variant, primary_assembly=historic_assembly, target_assembly=primary_assembly, hn=hn)
 					# Check liftover has completed
 					if str(target_hgvs_variant) != str(hgvs_variant):
 						try:
@@ -726,7 +741,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						pass
 					elif re.match('^LRG_\d+:g.', str(input_parses)) or re.match('^LRG_\d+:p.', str(input_parses)) or re.match('^LRG_\d+:c.', str(input_parses)) or re.match('^LRG_\d+:n.', str(input_parses)):
 						lrg_reference, variation = str(input_parses).split(':')
-						refseqgene_reference = variantanalyser.dbControls.data.get_RefSeqGeneID_from_lrgID(lrg_reference)
+						refseqgene_reference = va_dbCrl.data.get_RefSeqGeneID_from_lrgID(lrg_reference)
 						if refseqgene_reference != 'none':
 							input_parses.ac = refseqgene_reference
 							variant = str(input_parses)
@@ -738,7 +753,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							validation['warnings'] = validation['warnings'] + ': ' + str(caution)
 					elif re.match('^LRG_\d+t\d+:c.', str(input_parses)) or re.match('^LRG_\d+t\d+:n.', str(input_parses)) or re.match('^LRG_\d+t\d+:p.', str(input_parses)) or  re.match('^LRG_\d+t\d+:g.', str(input_parses)):		
 						lrg_reference, variation = str(input_parses).split(':')
-						refseqtranscript_reference = variantanalyser.dbControls.data.get_RefSeqTranscriptID_from_lrgTranscriptID(lrg_reference)
+						refseqtranscript_reference = va_dbCrl.data.get_RefSeqTranscriptID_from_lrgTranscriptID(lrg_reference)
 						if refseqtranscript_reference != 'none':
 							input_parses.ac = refseqtranscript_reference
 							variant = str(input_parses)
@@ -840,7 +855,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						if re.search('n.1-', str(input_parses)):
 							input_parses = evm.n_to_c(input_parses)
 							error = 'Using a transcript reference sequence to specify an intergenic variant position that lies 5' + "'" + ' to the transcript reference sequence is not HGVS compliant. Instead use '
-							genomic_position = variantanalyser.functions.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
+							genomic_position = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
 							error = error + str(genomic_position)
 							validation['warnings'] = validation['warnings'] + ': ' + str(error)
 							continue
@@ -855,11 +870,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						min_evm = hgvs.assemblymapper.AssemblyMapper(hdp, assembly_name=primary_assembly, alt_aln_method=alt_aln_method, normalize=False, replace_reference=False)
 						# Have to use this method due to potential multi chromosome error, note, normalizes but does not replace sequence
 						try:
-							output = variantanalyser.functions.noreplace_myevm_t_to_g(input_parses, min_evm, hdp, primary_assembly)
+							output = va_func.noreplace_myevm_t_to_g(input_parses, min_evm, hdp, primary_assembly)
 						except hgvs.exceptions.HGVSDataNotAvailableError as e:
 							tx_ac = input_parses.ac
 							try:
-								gene_symbol = variantanalyser.dbControls.data.get_gene_symbol_from_transcriptID(tx_ac)
+								gene_symbol = va_dbCrl.data.get_gene_symbol_from_transcriptID(tx_ac)
 							except:
 								gene_symbol = 'none'	
 							if gene_symbol == 'none':
@@ -971,7 +986,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
 					if re.search('n.1-', str(input_parses)):
 						error = 'Using a transcript reference sequence to specify an intergenic variant position that lies 5' + "'" + ' to the transcript reference sequence is not HGVS compliant. Instead use '
-						genomic_position = variantanalyser.functions.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
+						genomic_position = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
 						error = error + str(genomic_position)
 						validation['warnings'] = validation['warnings'] + ': ' + str(error)
 						continue
@@ -983,11 +998,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						min_evm = hgvs.assemblymapper.AssemblyMapper(hdp, assembly_name=primary_assembly, alt_aln_method=alt_aln_method, normalize=False, replace_reference=False)
 						# Have to use this method due to potential multi chromosome error, note, normalizes but does not replace sequence
 						try:
-							output = variantanalyser.functions.noreplace_myevm_t_to_g(input_parses, min_evm, hdp, primary_assembly)
+							output = va_func.noreplace_myevm_t_to_g(input_parses, min_evm, hdp, primary_assembly)
 						except hgvs.exceptions.HGVSDataNotAvailableError as e:
 							tx_ac = input_parses.ac
 							try:
-								gene_symbol = variantanalyser.dbControls.data.get_gene_symbol_from_transcriptID(tx_ac)
+								gene_symbol = va_dbCrl.data.get_gene_symbol_from_transcriptID(tx_ac)
 							except:
 								gene_symbol = 'none'	
 							if gene_symbol == 'none':
@@ -1077,7 +1092,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 				if type == ':p.':		
 					error = 'false'
 					# Try to validate the variant
-					error = variantanalyser.functions.validate(variant, hp, vr)
+					error = va_func.validate(variant, hp, vr)
 					if error != 'false':	
 						validation['warnings'] = validation['warnings'] + ': ' + str(error)
 						continue
@@ -1091,7 +1106,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							accession = hgvs_object.ac
 							# Look for the accession in our database
 							# Connect to database and send request
-							record = variantanalyser.functions.entrez_efetch(db="nuccore", id=accession, rettype="gb", retmode="text")
+							record = va_func.entrez_efetch(db="nuccore", id=accession, rettype="gb", retmode="text")
 							try:
 								description = record.description
 							except:
@@ -1114,7 +1129,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					# Change to coding variant
 					type =':c.'
 					# Change input to reflect!
-					hgvs_c = variantanalyser.functions.hgvs_r_to_c(input)
+					hgvs_c = va_func.hgvs_r_to_c(input)
 					input = str(hgvs_c)
 					variant = str(hgvs_c)
 
@@ -1152,7 +1167,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 				else:
 					# Map to genomic position
 					if type != ':g.':
-						genomic_position = variantanalyser.functions.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
+						genomic_position = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
 					else:
 						genomic_position = input_parses	
 					# Select the genomic positions
@@ -1198,8 +1213,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
 					# ACCESS THE GENE INFORMATION RECORDS ON THE UTA DATABASE 
 					# Refseq accession
-					tx_for_gene = variantanalyser.functions.tx_for_gene(hgnc, hdp)
-					refseq_ac = variantanalyser.functions.ng_extract(tx_for_gene)
+					tx_for_gene = va_func.tx_for_gene(hgnc, hdp)
+					refseq_ac = va_func.ng_extract(tx_for_gene)
 
 					# Additional gene info
 					gene_info = hdp.get_gene_info(hgnc)
@@ -1219,7 +1234,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						accession = hgvs_object.ac
 						# Look for the accession in our database
 						# Connect to database and send request
-						entry = variantanalyser.dbControls.data.in_entries(accession.split(',')[0], 'transcript_info')
+						entry = va_dbCrl.data.in_entries(accession.split(',')[0], 'transcript_info')
 
 						# Analyse the returned data and take the necessary actions
 						# If the error key exists
@@ -1235,7 +1250,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							# If the current entry is too old
 							if entry['expiry'] == 'true':
 								dbaction = 'update'
-								entry = variantanalyser.batch.data_add(input=input, alt_aln_method=alt_aln_method, accession=accession, dbaction=dbaction, hp=hp, evm=evm, hdp=hdp)
+								entry = va_btch.data_add(input=input, alt_aln_method=alt_aln_method, accession=accession, dbaction=dbaction, hp=hp, evm=evm, hdp=hdp)
 								hgnc_gene_info = entry['description']
 							else:
 								hgnc_gene_info = entry['description']
@@ -1243,7 +1258,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						elif 'none' in entry:
 							dbaction = 'insert'
 							try:
-								entry = variantanalyser.batch.data_add(input=input, alt_aln_method=alt_aln_method, accession=accession, dbaction=dbaction, hp=hp, evm=evm, hdp=hdp)
+								entry = va_btch.data_add(input=input, alt_aln_method=alt_aln_method, accession=accession, dbaction=dbaction, hp=hp, evm=evm, hdp=hdp)
 							except:
 								error = 'Unable to assign transcript identity records to ' + accession + ', potentially an obsolete record :'
 								validation['warnings'] = validation['warnings'] + ': ' + str(error)
@@ -1264,7 +1279,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						accession = hgvs_object.ac
 						# Look for the accession in our database
 						# Connect to database and send request
-						entry = variantanalyser.dbControls.data.in_entries(accession.split(',')[0], 'transcript_info')
+						entry = va_dbCrl.data.in_entries(accession.split(',')[0], 'transcript_info')
 		
 						# Analyse the returned data and take the necessary actions
 						# If the error key exists
@@ -1280,7 +1295,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							# If the current entry is too old
 							if entry['expiry'] == 'true':
 								dbaction = 'update'
-								entry = variantanalyser.batch.data_add(input=input, alt_aln_method=alt_aln_method, accession=accession, dbaction=dbaction, hp=hp, evm=evm, hdp=hdp)
+								entry = va_btch.data_add(input=input, alt_aln_method=alt_aln_method, accession=accession, dbaction=dbaction, hp=hp, evm=evm, hdp=hdp)
 								hgnc_gene_info = entry['description']
 							else:
 								hgnc_gene_info = entry['description']
@@ -1288,7 +1303,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						elif 'none' in entry:
 							dbaction = 'insert'
 							try:
-								entry = variantanalyser.batch.data_add(input=input, alt_aln_method=alt_aln_method, accession=accession, dbaction=dbaction, hp=hp, evm=evm, hdp=hdp)
+								entry = va_btch.data_add(input=input, alt_aln_method=alt_aln_method, accession=accession, dbaction=dbaction, hp=hp, evm=evm, hdp=hdp)
 							except:
 								error = 'Unable to assign transcript identity records to ' + accession + ', potentially an obsolete record :'
 								validation['warnings'] = validation['warnings'] + ': ' + str(error)
@@ -1333,7 +1348,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 	
 					# Collect rel_var
 					# rel_var is a keyworded list of relevant transcripts with associated coding variants 
-					rel_var = variantanalyser.functions.relevant_transcripts(hgvs_genomic, evm, hdp, alt_aln_method)
+					rel_var = va_func.relevant_transcripts(hgvs_genomic, evm, hdp, alt_aln_method)
 					
 					# Double check rel_vars have not been missed when mapping from a RefSeqGene
 					if len(rel_var) != 0 and re.match('NG_', str(hgvs_genomic.ac)):
@@ -1341,21 +1356,21 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						for found in rel_var:			
 							hgvs_coding_variant = hp.parse_hgvs_variant(rel_var[0])
 							try:
-								hgvs_genomic = variantanalyser.functions.myevm_t_to_g(hgvs_coding_variant, evm, hdp, primary_assembly='GRCh37')	
+								hgvs_genomic = va_func.myevm_t_to_g(hgvs_coding_variant, evm, hdp, primary_assembly='GRCh37')	
 							except hgvs.exceptions.HGVSDataNotAvailableError as e:
 								try_rel_var = []
 							else:
-								try_rel_var = variantanalyser.functions.relevant_transcripts(hgvs_genomic, evm, hdp, alt_aln_method)	
+								try_rel_var = va_func.relevant_transcripts(hgvs_genomic, evm, hdp, alt_aln_method)	
 							if len(try_rel_var) > len(rel_var) and len(try_rel_var) > alt_rel_var:
 								alt_rel_var = try_rel_var
 							# Re set
 							try_rel_var = []		
 							try:
-								hgvs_genomic = variantanalyser.functions.myevm_t_to_g(hgvs_coding_variant, evm, hdp, primary_assembly='GRCh38')	
+								hgvs_genomic = va_func.myevm_t_to_g(hgvs_coding_variant, evm, hdp, primary_assembly='GRCh38')	
 							except hgvs.exceptions.HGVSDataNotAvailableError as e:
 								try_rel_var = []
 							else:
-								try_rel_var = variantanalyser.functions.relevant_transcripts(hgvs_genomic, evm, hdp, alt_aln_method)	
+								try_rel_var = va_func.relevant_transcripts(hgvs_genomic, evm, hdp, alt_aln_method)	
 							if len(try_rel_var) > len(rel_var) and len(try_rel_var) > alt_rel_var:
 								alt_rel_var = try_rel_var
 						# re-set rel_var
@@ -1364,10 +1379,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 				
 					# Tripple check this assumption by querying the gene position database
 					if len(rel_var) == 0:
-						vcf_dict = variantanalyser.hgvs2vcf.hgvs2vcf(hgvs_genomic)
+						vcf_dict = va_H2V.hgvs2vcf(hgvs_genomic)
 						not_di = str(hgvs_genomic.ac) + ':g.' + str(vcf_dict['pos']) + '_' + str(int(vcf_dict['pos']) + (len(vcf_dict['ref']) -1)) + 'del' + vcf_dict['ref'] + 'ins' + vcf_dict['alt'] 
 						hgvs_not_di = hp.parse_hgvs_variant(not_di)
-						rel_var = variantanalyser.functions.relevant_transcripts(hgvs_not_di, evm, hdp, alt_aln_method)					
+						rel_var = va_func.relevant_transcripts(hgvs_not_di, evm, hdp, alt_aln_method)					
 
 					# list return statements
 					if len(rel_var) == 0:
@@ -1378,7 +1393,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							# parse
 							hgvs_refseqgene = hp.parse_hgvs_variant(variant)
 							# Convert to chromosomal position
-							refseqgene_data = variantanalyser.g_to_g.rsg_to_chr(hgvs_refseqgene, primary_assembly, hn, vr)
+							refseqgene_data = va_g2g.rsg_to_chr(hgvs_refseqgene, primary_assembly, hn, vr)
 							# There should only ever be one description returned
 							refseqgene_data = refseqgene_data[0]
 
@@ -1398,8 +1413,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
 						# Chromosome build is not supported or intergenic??? 
 						else:
-							import variantanalyser.supported_chromosome_builds
-							sfm = variantanalyser.supported_chromosome_builds.supported_for_mapping(hgvs_genomic.ac, primary_assembly)
+							sfm = va_scb.supported_for_mapping(hgvs_genomic.ac, primary_assembly)
 							if sfm == 'true':
 								try:
 									vr.validate(hgvs_genomic)
@@ -1409,7 +1423,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									continue
 								else:
 									# Map to RefSeqGene if available
-									refseqgene_data = variantanalyser.g_to_g.chr_to_rsg(hgvs_genomic, hn, vr)
+									refseqgene_data = va_g2g.chr_to_rsg(hgvs_genomic, hn, vr)
 									rsg_data = ''
 									# Example {'gene': 'NTHL1', 'hgvs_refseqgene': 'NG_008412.1:g.3455_3464delCAAACACACA', 'valid': 'true'}
 									for data in refseqgene_data:
@@ -1445,7 +1459,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 						
 						# VCF
-						vcf_dict = variantanalyser.hgvs2vcf.hgvs2vcf(reverse_normalized_hgvs_genomic)
+						vcf_dict = va_H2V.hgvs2vcf(reverse_normalized_hgvs_genomic)
 						chr = vcf_dict['chr']	
 						pos = vcf_dict['pos']				
 						ref = vcf_dict['ref']
@@ -1484,7 +1498,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							# print stored_hgvs_not_delins
 
 							# Get orientation of the gene wrt genome and a list of exons mapped to the genome
-							ori = variantanalyser.functions.tx_exons(tx_ac=saved_hgvs_coding.ac, alt_ac=hgvs_genomic_5pr.ac, alt_aln_method=alt_aln_method, hdp=hdp)
+							ori = va_func.tx_exons(tx_ac=saved_hgvs_coding.ac, alt_ac=hgvs_genomic_5pr.ac, alt_aln_method=alt_aln_method, hdp=hdp)
 							orientation = int(ori[0]['alt_strand'])
 							intronic_variant = 'false'
 
@@ -1645,7 +1659,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										else:
 											test_tx_var = rn_tx_hgvs_not_delins	
 										# re-make genomic and tx
-										hgvs_not_delins = variantanalyser.functions.myevm_t_to_g(test_tx_var, no_norm_evm, hdp, primary_assembly)
+										hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, no_norm_evm, hdp, primary_assembly)
 										rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins, str(saved_hgvs_coding.ac))
 									elif re.search('\+', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
 										# move tx start base to previous available non-offset base
@@ -1656,7 +1670,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										else:
 											test_tx_var = rn_tx_hgvs_not_delins	
 										# re-make genomic and tx
-										hgvs_not_delins = variantanalyser.functions.myevm_t_to_g(test_tx_var, no_norm_evm, hdp, primary_assembly)
+										hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, no_norm_evm, hdp, primary_assembly)
 										rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins, str(saved_hgvs_coding.ac))
 										rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0							
 									else:
@@ -1688,7 +1702,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										else:
 											test_tx_var = rn_tx_hgvs_not_delins	
 										# re-make genomic and tx
-										hgvs_not_delins = variantanalyser.functions.myevm_t_to_g(test_tx_var, no_norm_evm, hdp, primary_assembly)
+										hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, no_norm_evm, hdp, primary_assembly)
 										rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins, str(saved_hgvs_coding.ac))
 									elif re.search('\-', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
 										# move tx start base to previous available non-offset base
@@ -1700,7 +1714,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										else:
 											test_tx_var = rn_tx_hgvs_not_delins	
 										# re-make genomic and tx
-										hgvs_not_delins = variantanalyser.functions.myevm_t_to_g(test_tx_var, no_norm_evm, hdp, primary_assembly)
+										hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, no_norm_evm, hdp, primary_assembly)
 										rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins, str(saved_hgvs_coding.ac))
 										rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0							
 									else:
@@ -1758,7 +1772,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
 										else:
 											c = tx_hgvs_not_delins	
-										g = variantanalyser.functions.myevm_t_to_g(c, no_norm_evm, hdp, primary_assembly)
+										g = va_func.myevm_t_to_g(c, no_norm_evm, hdp, primary_assembly)
 										c = no_norm_evm.g_to_t(g, str(c.ac))
 										if re.match('NM_', str(tx_hgvs_not_delins.ac)):
 											tx_hgvs_not_delins = no_norm_evm.c_to_n(c)
@@ -1789,7 +1803,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
 											else:
 												c = tx_hgvs_not_delins	
-											g = variantanalyser.functions.myevm_t_to_g(c, no_norm_evm, hdp, primary_assembly)
+											g = va_func.myevm_t_to_g(c, no_norm_evm, hdp, primary_assembly)
 											c = no_norm_evm.g_to_t(g, str(c.ac))
 											if re.match('NM_', str(tx_hgvs_not_delins.ac)):
 												tx_hgvs_not_delins = no_norm_evm.c_to_n(c)
@@ -1822,7 +1836,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
 											else:
 												c = tx_hgvs_not_delins	
-											g = variantanalyser.functions.myevm_t_to_g(c, no_norm_evm, hdp, primary_assembly)
+											g = va_func.myevm_t_to_g(c, no_norm_evm, hdp, primary_assembly)
 											c = no_norm_evm.g_to_t(g, str(c.ac))
 											if re.match('NM_', str(tx_hgvs_not_delins.ac)):
 												tx_hgvs_not_delins = no_norm_evm.c_to_n(c)
@@ -1857,7 +1871,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
 											else:
 												c = tx_hgvs_not_delins	
-											g = variantanalyser.functions.myevm_t_to_g(c, no_norm_evm, hdp, primary_assembly)
+											g = va_func.myevm_t_to_g(c, no_norm_evm, hdp, primary_assembly)
 											c = no_norm_evm.g_to_t(g, str(c.ac))
 											if re.match('NM_', str(tx_hgvs_not_delins.ac)):
 												tx_hgvs_not_delins = no_norm_evm.c_to_n(c)
@@ -1895,7 +1909,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
 											else:
 												c = tx_hgvs_not_delins	
-											g = variantanalyser.functions.myevm_t_to_g(c, no_norm_evm, hdp, primary_assembly)
+											g = va_func.myevm_t_to_g(c, no_norm_evm, hdp, primary_assembly)
 											c = no_norm_evm.g_to_t(g, str(c.ac))
 											if re.match('NM_', str(tx_hgvs_not_delins.ac)):
 												tx_hgvs_not_delins = no_norm_evm.c_to_n(c)
@@ -2017,11 +2031,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					# Se rec_var to '' so it can be updated later
 					rec_var = ''
 					try:
-						to_g = variantanalyser.functions.myevm_t_to_g(obj, evm, hdp, primary_assembly)
+						to_g = va_func.myevm_t_to_g(obj, evm, hdp, primary_assembly)
 						genomic_ac = to_g.ac
 					except hgvs.exceptions.HGVSDataNotAvailableError as e:
 						try:
-							gene_symbol = variantanalyser.dbControls.data.get_gene_symbol_from_transcriptID(tx_ac)
+							gene_symbol = va_dbCrl.data.get_gene_symbol_from_transcriptID(tx_ac)
 						except:
 							gene_symbol = 'none'	
 						if gene_symbol == 'none':
@@ -2032,7 +2046,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						continue
 
 					# Get orientation of the gene wrt genome and a list of exons mapped to the genome
-					ori = variantanalyser.functions.tx_exons(tx_ac=tx_ac, alt_ac=genomic_ac, alt_aln_method=alt_aln_method, hdp=hdp)
+					ori = va_func.tx_exons(tx_ac=tx_ac, alt_ac=genomic_ac, alt_aln_method=alt_aln_method, hdp=hdp)
 					orientation = int(ori[0]['alt_strand'])
 					intronic_variant = 'false'					
 					
@@ -2045,7 +2059,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
 					geno = re.compile(':g.')
 					if plus.search(input) or minus.search(input):
-						to_g = variantanalyser.functions.genomic(variant, evm, hp, hdp, primary_assembly)
+						to_g = va_func.genomic(variant, evm, hp, hdp, primary_assembly)
 						es = re.compile('error')
 						if es.search(str(to_g)):
 							if alt_aln_method != 'genebuild':
@@ -2065,11 +2079,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						else:
 							# Normalise the g variant
 							to_g = hn.normalize(to_g)
-							variant = str(variantanalyser.functions.myevm_g_to_t(hdp, evm, to_g, tx_ac))
+							variant = str(va_func.myevm_g_to_t(hdp, evm, to_g, tx_ac))
 							tx_ac = ''
 					elif geno.search(input):
 						if plus.search(variant) or minus.search(variant):
-							to_g = variantanalyser.functions.genomic(variant, evm, hp, hdp, primary_assembly)
+							to_g = va_func.genomic(variant, evm, hp, hdp, primary_assembly)
 							es = re.compile('error')
 							if es.search(str(to_g)):
 								if alt_aln_method != 'genebuild':
@@ -2089,7 +2103,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						else:
 							# Normalise the g variant
 							to_g = hp.parse_hgvs_variant(to_g)
-							variant = str(variantanalyser.functions.myevm_g_to_t(hdp, evm, to_g, tx_ac))
+							variant = str(va_func.myevm_g_to_t(hdp, evm, to_g, tx_ac))
 							tx_ac = ''	
 
 					else:	
@@ -2120,7 +2134,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						if boundary == 'false':
 							cross_variant = 'false'
 		
-							error = variantanalyser.functions.validate(variant, hp=hp, vr=vr)
+							error = va_func.validate(variant, hp=hp, vr=vr)
 							if error == 'false':
 								valid = 'true'
 							else:
@@ -2164,12 +2178,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							# RNA
 							if pat_r.search(trapped_input):
 
-								coding = variantanalyser.functions.coding(variant, hp)
+								coding = va_func.coding(variant, hp)
 								trans_acc = coding.ac
 								# c to Genome coordinates - Map the variant to the genome
-								pre_var = variantanalyser.functions.genomic(variant, evm, hp, hdp, primary_assembly)
+								pre_var = va_func.genomic(variant, evm, hp, hdp, primary_assembly)
 								# genome back to C coordinates
-								post_var = variantanalyser.functions.myevm_g_to_t(hdp, evm, pre_var, trans_acc)
+								post_var = va_func.myevm_g_to_t(hdp, evm, pre_var, trans_acc)
 						
 								test = hp.parse_hgvs_variant(input)
 								if post_var.posedit.pos.start.base != test.posedit.pos.start.base or post_var.posedit.pos.end.base != test.posedit.pos.end.base:
@@ -2203,7 +2217,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
 										else:
 										# Get hgnc Gene name from command
-											data = variantanalyser.functions.hgnc_rest(path = "/search/prev_symbol/" + tx_id_info[6])
+											data = va_func.hgnc_rest(path = "/search/prev_symbol/" + tx_id_info[6])
 											if data['error'] != 'false':
 												reason = 'Cannot currently display the required information:'
 												error =  decoded['error']
@@ -2233,7 +2247,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 													rel_var.append(accessions)
 												else:
 												# Get hgnc Gene name from command
-													data = variantanalyser.functions.hgnc_rest(path = "/search/prev_symbol/" + tx_id_info[6])
+													data = va_func.hgnc_rest(path = "/search/prev_symbol/" + tx_id_info[6])
 													if data['error'] != 'false':
 														reason = 'Cannot currently display the required information:'
 														error =  decoded['error']
@@ -2257,12 +2271,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 		
 							# Coding
 							else:
-								coding = variantanalyser.functions.coding(variant, hp)
+								coding = va_func.coding(variant, hp)
 								trans_acc = coding.ac
 								# c to Genome coordinates - Map the variant to the genome
 								pre_var = hp.parse_hgvs_variant(variant)
 								try:
-									pre_var = variantanalyser.functions.myevm_t_to_g(pre_var, evm, hdp, primary_assembly)
+									pre_var = va_func.myevm_t_to_g(pre_var, evm, hdp, primary_assembly)
 								except:
 									e = sys.exc_info()[1]
 									error = str(e)
@@ -2277,7 +2291,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									pass
 								# genome back to C coordinates
 								try:
-									post_var = variantanalyser.functions.myevm_g_to_t(hdp, evm, pre_var, trans_acc)
+									post_var = va_func.myevm_g_to_t(hdp, evm, pre_var, trans_acc)
 								except hgvs.exceptions.HGVSError as error:
 									validation['warnings'] = validation['warnings'] + ': ' +str(error)
 									continue
@@ -2307,7 +2321,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											rel_var.append(accessions)
 										else:
 										# Get hgnc Gene name from command
-											data = variantanalyser.functions.hgnc_rest(path = "/search/prev_symbol/" + tx_id_info[6])
+											data = va_func.hgnc_rest(path = "/search/prev_symbol/" + tx_id_info[6])
 											if data['error'] != 'false':
 												reason = 'Cannot currently display the required information:'
 												error =  decoded['error']
@@ -2338,7 +2352,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 													rel_var.append(accessions)
 												else:
 												# Get hgnc Gene name from command
-													data = variantanalyser.functions.hgnc_rest(path = "/search/prev_symbol/" + tx_id_info[6])
+													data = va_func.hgnc_rest(path = "/search/prev_symbol/" + tx_id_info[6])
 													if data['error'] != 'false':
 														reason = 'Cannot currently display the required information:'
 														error =  decoded['error']
@@ -2363,12 +2377,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 	
 						else:
 							if pat_r.search(trapped_input):
-								coding = variantanalyser.functions.coding(variant, hp)
+								coding = va_func.coding(variant, hp)
 								trans_acc = coding.ac
 								# c to Genome coordinates - Map the variant to the genome
-								pre_var = variantanalyser.functions.genomic(variant, evm, hp, hdp, primary_assembly)
+								pre_var = va_func.genomic(variant, evm, hp, hdp, primary_assembly)
 								# genome back to C coordinates
-								post_var = variantanalyser.functions.myevm_g_to_t(hdp, evm, pre_var, trans_acc)
+								post_var = va_func.myevm_g_to_t(hdp, evm, pre_var, trans_acc)
 						
 								test = hp.parse_hgvs_variant(input)
 								if post_var.posedit.pos.start.base != test.posedit.pos.start.base or post_var.posedit.pos.end.base != test.posedit.pos.end.base:
@@ -2401,7 +2415,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											rel_var.append(accessions)
 										else:
 										# Get hgnc Gene name from command
-											data = variantanalyser.functions.hgnc_rest(path = "/search/prev_symbol/" + tx_id_info[6])
+											data = va_func.hgnc_rest(path = "/search/prev_symbol/" + tx_id_info[6])
 											if data['error'] != 'false':
 												reason = 'Cannot currently display the required information:'
 												error =  decoded['error']
@@ -2425,12 +2439,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									batch_list.append(query)
 		
 							else:
-								coding = variantanalyser.functions.coding(variant, hp)
+								coding = va_func.coding(variant, hp)
 								trans_acc = coding.ac
 								# c to Genome coordinates - Map the variant to the genome
-								pre_var = variantanalyser.functions.genomic(variant, evm, hp, hdp, primary_assembly)
+								pre_var = va_func.genomic(variant, evm, hp, hdp, primary_assembly)
 								# genome back to C coordinates
-								post_var = variantanalyser.functions.myevm_g_to_t(hdp, evm, pre_var, trans_acc)
+								post_var = va_func.myevm_g_to_t(hdp, evm, pre_var, trans_acc)
 						
 								test = hp.parse_hgvs_variant(input)
 								if post_var.posedit.pos.start.base != test.posedit.pos.start.base or post_var.posedit.pos.end.base != test.posedit.pos.end.base:
@@ -2457,7 +2471,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											rel_var.append(accessions)
 										else:
 										# Get hgnc Gene name from command
-											data = variantanalyser.functions.hgnc_rest(path = "/search/prev_symbol/" + tx_id_info[6])
+											data = va_func.hgnc_rest(path = "/search/prev_symbol/" + tx_id_info[6])
 											if data['error'] != 'false':
 												reason = 'Cannot currently display the required information:'
 												error =  decoded['error']
@@ -2485,12 +2499,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					elif pat_r.search(trapped_input):
 						# set input hgvs object
 						hgvs_rna_input = hp.parse_hgvs_variant(trapped_input) # Traps the hgvs variant of r. for further use
-						inp = str(variantanalyser.functions.hgvs_r_to_c(hgvs_rna_input))
+						inp = str(va_func.hgvs_r_to_c(hgvs_rna_input))
 						# Regex
 						plus = re.compile("\d\+\d") 	# finds digit + digit
 						minus = re.compile("\d\-\d")	# finds digit - digit
 						if plus.search(input) or minus.search(input):
-							to_g = variantanalyser.functions.genomic(inp, evm, hp, hdp, primary_assembly)
+							to_g = va_func.genomic(inp, evm, hp, hdp, primary_assembly)
 							es = re.compile('error')
 							if es.search(str(to_g)):
 								if alt_aln_method != 'genebuild':
@@ -2509,9 +2523,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 	
 							else:
 								#Set variants pre and post genomic norm
-								hgvs_inp = variantanalyser.functions.myevm_g_to_t(hdp, evm,to_g, tx_ac=obj.ac)
+								hgvs_inp = va_func.myevm_g_to_t(hdp, evm,to_g, tx_ac=obj.ac)
 								to_g = hn.normalize(to_g)
-								hgvs_otp = variantanalyser.functions.myevm_g_to_t(hdp, evm,to_g, tx_ac=obj.ac)					
+								hgvs_otp = va_func.myevm_g_to_t(hdp, evm,to_g, tx_ac=obj.ac)					
 								tx_ac = ''
 						else:	
 							# Set variants pre and post RNA norm
@@ -2556,7 +2570,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									rel_var.append(accessions)
 								else:
 								# Get hgnc Gene name from command
-									data = variantanalyser.functions.hgnc_rest(path = "/search/prev_symbol/" + tx_id_info[6])
+									data = va_func.hgnc_rest(path = "/search/prev_symbol/" + tx_id_info[6])
 									if data['error'] != 'false':
 										reason = 'Cannot currently display the required information:'
 										error =  decoded['error']
@@ -2609,7 +2623,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									rel_var.append(accessions)
 								else:
 								# Get hgnc Gene name from command
-									data = variantanalyser.functions.hgnc_rest(path = "/search/prev_symbol/" + tx_id_info[6])
+									data = va_func.hgnc_rest(path = "/search/prev_symbol/" + tx_id_info[6])
 									if data['error'] != 'false':
 										reason = 'Cannot currently display the required information:'
 										error =  decoded['error']
@@ -2638,7 +2652,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					post_valid = hp.parse_hgvs_variant(variant)
 					if valid == 'false':
 						error = 'false'
-						genomic_validation = str(variantanalyser.functions.genomic(input, evm, hp, hdp, primary_assembly))
+						genomic_validation = str(va_func.genomic(input, evm, hp, hdp, primary_assembly))
 						del_end = re.compile('\ddel$')
 						delins = re.compile('delins')
 						inv = re.compile('inv')
@@ -2655,7 +2669,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							pass
 	
 						# Apply validation to intronic variant descriptions (should be valid but make sure)			
-						error = variantanalyser.functions.validate(genomic_validation, hp=hp, vr=vr)
+						error = va_func.validate(genomic_validation, hp=hp, vr=vr)
 						if error == 'false':
 							valid = 'true'
 						else:
@@ -2685,7 +2699,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						##############################
 	
 						# Coding sequence - BASED ON NORMALIZED VARIANT IF EXONIC
-						hgvs_coding = variantanalyser.functions.coding(variant, hp)
+						hgvs_coding = va_func.coding(variant, hp)
 						boundary = re.compile('exon-intron boundary')
 						spanning = re.compile('exon/intron')
 						try:
@@ -2711,18 +2725,18 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 	
 						# RNA sequence
 						hgvs_rna = copy.deepcopy(hgvs_coding)
-						hgvs_rna = variantanalyser.functions.hgvs_c_to_r(hgvs_rna)
+						hgvs_rna = va_func.hgvs_c_to_r(hgvs_rna)
 						rna = str(hgvs_rna)
 	
 						# Genomic sequence
 						try:
-							hgvs_genomic = variantanalyser.functions.myevm_t_to_g(hgvs_coding, evm, hdp, primary_assembly)
+							hgvs_genomic = va_func.myevm_t_to_g(hgvs_coding, evm, hdp, primary_assembly)
 						except hgvs.exceptions.HGVSError as e:
 							error = str(e)
 						if error == 'false':
-							hgvs_genomic = variantanalyser.functions.genomic(variant, evm, hp, hdp, primary_assembly)
+							hgvs_genomic = va_func.genomic(variant, evm, hp, hdp, primary_assembly)
 						elif boundary.search(str(error)) or spanning.search(str(error)):
-							hgvs_genomic = variantanalyser.functions.myevm_t_to_g(hgvs_coding, evm, hdp, primary_assembly)
+							hgvs_genomic = va_func.myevm_t_to_g(hgvs_coding, evm, hdp, primary_assembly)
 						else:
 							ens = re.compile('ENS')
 							ref = re.compile('NM')
@@ -2761,7 +2775,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						# print 'chromosome_normalized_hgvs_coding'
 						# print chromosome_normalized_hgvs_coding
 
-						most_3pr_hgvs_genomic = variantanalyser.functions.myevm_t_to_g(chromosome_normalized_hgvs_coding, no_norm_evm, hdp, primary_assembly)
+						most_3pr_hgvs_genomic = va_func.myevm_t_to_g(chromosome_normalized_hgvs_coding, no_norm_evm, hdp, primary_assembly)
 						hgvs_genomic_possibilities.append(most_3pr_hgvs_genomic)
 
 						# Set variables for problem specific warnings
@@ -2824,7 +2838,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							stored_hgvs_genomic_5pr = copy.deepcopy(hgvs_genomic_5pr)
 				
 							# Create VCF
-							vcf_dict = variantanalyser.hgvs2vcf.hgvs2vcf(reverse_normalized_hgvs_genomic)
+							vcf_dict = va_H2V.hgvs2vcf(reverse_normalized_hgvs_genomic)
 							chr = vcf_dict['chr']	
 							pos = vcf_dict['pos']				
 							ref = vcf_dict['ref']
@@ -2996,7 +3010,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										else:
 											test_tx_var = rn_tx_hgvs_not_delins	
 										# re-make genomic and tx
-										hgvs_not_delins = variantanalyser.functions.myevm_t_to_g(test_tx_var, no_norm_evm, hdp, primary_assembly)
+										hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, no_norm_evm, hdp, primary_assembly)
 										rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins, str(saved_hgvs_coding.ac))
 										# tx_hgvs_not_delins = rn_tx_hgvs_not_delins
 									elif re.search('\+', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
@@ -3008,7 +3022,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										else:
 											test_tx_var = rn_tx_hgvs_not_delins	
 										# re-make genomic and tx
-										hgvs_not_delins = variantanalyser.functions.myevm_t_to_g(test_tx_var, no_norm_evm, hdp, primary_assembly)
+										hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, no_norm_evm, hdp, primary_assembly)
 										rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins, str(saved_hgvs_coding.ac))
 										rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0							
 									else:
@@ -3039,7 +3053,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										else:
 											test_tx_var = rn_tx_hgvs_not_delins	
 										# re-make genomic and tx
-										hgvs_not_delins = variantanalyser.functions.myevm_t_to_g(test_tx_var, no_norm_evm, hdp, primary_assembly)
+										hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, no_norm_evm, hdp, primary_assembly)
 										rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins, str(saved_hgvs_coding.ac))
 									elif re.search('\-', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
 										# move tx start base to previous available non-offset base
@@ -3051,7 +3065,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										else:
 											test_tx_var = rn_tx_hgvs_not_delins	
 										# re-make genomic and tx
-										hgvs_not_delins = variantanalyser.functions.myevm_t_to_g(test_tx_var, no_norm_evm, hdp, primary_assembly)
+										hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, no_norm_evm, hdp, primary_assembly)
 										rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins, str(saved_hgvs_coding.ac))
 										rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0							
 									else:
@@ -3234,7 +3248,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									# Try the next available genomic option
 									continue
 								# Update hgvs_genomic
-								hgvs_genomic = variantanalyser.functions.myevm_t_to_g(hgvs_refreshed_variant, no_norm_evm, hdp, primary_assembly)
+								hgvs_genomic = va_func.myevm_t_to_g(hgvs_refreshed_variant, no_norm_evm, hdp, primary_assembly)
 								# print 'un-normalized genomic = ' + str(hgvs_genomic)				
 								
 								# Genomic gap warning
@@ -3296,7 +3310,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 	
 						# Create vcf
-						vcf_dict = variantanalyser.hgvs2vcf.hgvs2vcf(reverse_normalized_hgvs_genomic)
+						vcf_dict = va_H2V.hgvs2vcf(reverse_normalized_hgvs_genomic)
 						chr = vcf_dict['chr']	
 						pos = vcf_dict['pos']				
 						ref = vcf_dict['ref']
@@ -3320,7 +3334,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						saved_hgvs_coding = copy.deepcopy(hgvs_coding)
 
 						# Get orientation of the gene wrt genome and a list of exons mapped to the genome
-						ori = variantanalyser.functions.tx_exons(tx_ac=saved_hgvs_coding.ac, alt_ac=hgvs_genomic_5pr.ac, alt_aln_method=alt_aln_method, hdp=hdp)
+						ori = va_func.tx_exons(tx_ac=saved_hgvs_coding.ac, alt_ac=hgvs_genomic_5pr.ac, alt_aln_method=alt_aln_method, hdp=hdp)
 						orientation = int(ori[0]['alt_strand'])
 	
 						# Look for normalized variant options that do not match hgvs_coding
@@ -3449,7 +3463,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									else:
 										test_tx_var = rn_tx_hgvs_not_delins	
 									# re-make genomic and tx
-									hgvs_not_delins = variantanalyser.functions.myevm_t_to_g(test_tx_var, no_norm_evm, hdp, primary_assembly)
+									hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, no_norm_evm, hdp, primary_assembly)
 									rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins, str(saved_hgvs_coding.ac))
 								elif re.search('\+', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
 									rn_tx_hgvs_not_delins.posedit.edit.ref = ''
@@ -3460,7 +3474,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									else:
 										test_tx_var = rn_tx_hgvs_not_delins	
 									# re-make genomic and tx
-									hgvs_not_delins = variantanalyser.functions.myevm_t_to_g(test_tx_var, no_norm_evm, hdp, primary_assembly)
+									hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, no_norm_evm, hdp, primary_assembly)
 									rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins, str(saved_hgvs_coding.ac))
 									rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0							
 								else:
@@ -3493,7 +3507,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									else:
 										test_tx_var = rn_tx_hgvs_not_delins	
 									# re-make genomic and tx
-									hgvs_not_delins = variantanalyser.functions.myevm_t_to_g(test_tx_var, no_norm_evm, hdp, primary_assembly)
+									hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, no_norm_evm, hdp, primary_assembly)
 									rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins, str(saved_hgvs_coding.ac))
 								elif re.search('\-', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
 									# move tx start base to previous available non-offset base
@@ -3505,7 +3519,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									else:
 										test_tx_var = rn_tx_hgvs_not_delins	
 									# re-make genomic and tx
-									hgvs_not_delins = variantanalyser.functions.myevm_t_to_g(test_tx_var, no_norm_evm, hdp, primary_assembly)
+									hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, no_norm_evm, hdp, primary_assembly)
 									rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins, str(saved_hgvs_coding.ac))
 									rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0							
 								else:
@@ -3559,7 +3573,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
 									else:
 										c = tx_hgvs_not_delins	
-									g = variantanalyser.functions.myevm_t_to_g(c, no_norm_evm, hdp, primary_assembly)
+									g = va_func.myevm_t_to_g(c, no_norm_evm, hdp, primary_assembly)
 									c = no_norm_evm.g_to_t(g, str(c.ac))
 									if re.match('NM_', str(tx_hgvs_not_delins.ac)):
 										tx_hgvs_not_delins = no_norm_evm.c_to_n(c)
@@ -3591,7 +3605,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
 										else:
 											c = tx_hgvs_not_delins	
-										g = variantanalyser.functions.myevm_t_to_g(c, no_norm_evm, hdp, primary_assembly)
+										g = va_func.myevm_t_to_g(c, no_norm_evm, hdp, primary_assembly)
 										c = no_norm_evm.g_to_t(g, str(c.ac))
 										if re.match('NM_', str(tx_hgvs_not_delins.ac)):
 											tx_hgvs_not_delins = no_norm_evm.c_to_n(c)
@@ -3623,7 +3637,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
 										else:
 											c = tx_hgvs_not_delins	
-										g = variantanalyser.functions.myevm_t_to_g(c, no_norm_evm, hdp, primary_assembly)
+										g = va_func.myevm_t_to_g(c, no_norm_evm, hdp, primary_assembly)
 										c = no_norm_evm.g_to_t(g, str(c.ac))
 										if re.match('NM_', str(tx_hgvs_not_delins.ac)):
 											tx_hgvs_not_delins = no_norm_evm.c_to_n(c)
@@ -3657,7 +3671,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
 										else:
 											c = tx_hgvs_not_delins	
-										g = variantanalyser.functions.myevm_t_to_g(c, no_norm_evm, hdp, primary_assembly)
+										g = va_func.myevm_t_to_g(c, no_norm_evm, hdp, primary_assembly)
 										c = no_norm_evm.g_to_t(g, str(c.ac))
 										if re.match('NM_', str(tx_hgvs_not_delins.ac)):
 											tx_hgvs_not_delins = no_norm_evm.c_to_n(c)
@@ -3694,7 +3708,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
 										else:
 											c = tx_hgvs_not_delins	
-										g = variantanalyser.functions.myevm_t_to_g(c, no_norm_evm, hdp, primary_assembly)
+										g = va_func.myevm_t_to_g(c, no_norm_evm, hdp, primary_assembly)
 										c = no_norm_evm.g_to_t(g, str(c.ac))
 										if re.match('NM_', str(tx_hgvs_not_delins.ac)):
 											tx_hgvs_not_delins = no_norm_evm.c_to_n(c)
@@ -3763,7 +3777,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							refseqgene_ac = ''	
 						# Setup gap amended RefSeqGene coding variant
 						if amend_RefSeqGene == 'true':
-							refseqgene_info = variantanalyser.dbControls.data.get_refseqgene_info(refseqgene_ac, primary_assembly)
+							refseqgene_info = va_dbCrl.data.get_refseqgene_info(refseqgene_ac, primary_assembly)
 							# If the RefSeqGene is an exact match to the selected genome build - map from gap corrected HGVS coding
 							if refseqgene_info[0] != 'none':
 								reverse_normalize_hgvs_genomic = reverse_normalize.normalize(hgvs_genomic)
@@ -3772,7 +3786,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								refseqgene_coding_variant = hgvs_coding		
 						else:
 							refseqgene_coding_variant = hgvs_coding	
-						ref_g_dict = variantanalyser.functions.refseq(str(refseqgene_coding_variant), vm, refseqgene_ac, hp, evm, hdp, primary_assembly)
+						ref_g_dict = va_func.refseq(str(refseqgene_coding_variant), vm, refseqgene_ac, hp, evm, hdp, primary_assembly)
 						if ref_g_dict['error'] == 'false':
 							hgvs_refseq = ref_g_dict['ref_g']	
 							# Normalise the hgvs RefSeq variant
@@ -3793,7 +3807,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						else:
 							try:
 								# RETRIEVE THE REQUIRED INFORMATION FROM GENBANK database
-								refseqgene_data = variantanalyser.g_to_g.chr_to_rsg(hgvs_genomic, hn, vr)
+								refseqgene_data = va_g2g.chr_to_rsg(hgvs_genomic, hn, vr)
 			
 								# Log the RefSeq Gene as unavailable
 								hgvs_refseq = 'RefSeqGene record not available'
@@ -3822,7 +3836,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									if alt_aln_method == 'GRCh37':
 										evm38 = variantanalyser.myVariantmapper(hdp, assembly_name='GRCh38', alt_aln_method=alt_aln_method)
 										hgvs_38 = evm38.c_to_g(hgvs_coding)
-										refseqgene_data = variantanalyser.g_to_g.chr_to_rsg(hgvs_38, hn, vr)															
+										refseqgene_data = va_g2g.chr_to_rsg(hgvs_38, hn, vr)															
 										if len(refseqgene_data) > 1:
 											for data in refseqgene_data:
 												if hgnc == data['gene'] and data['valid'] == 'true':
@@ -3844,7 +3858,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									if alt_aln_method == 'GRCh38':
 										evm38 = variantanalyser.myVariantmapper(hdp, assembly_name='GRCh37', alt_aln_method=alt_aln_method)
 										hgvs_37 = evm37.c_to_g(hgvs_coding)
-										refseqgene_data = variantanalyser.g_to_g.chr_to_rsg(hgvs_37, hn, vr)															
+										refseqgene_data = va_g2g.chr_to_rsg(hgvs_37, hn, vr)															
 										if len(refseqgene_data) > 1:
 											for data in refseqgene_data:
 												if hgnc == data['gene'] and data['valid'] == 'true':
@@ -3876,7 +3890,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
 							# TO BATCH
 							if re.search(':n.', variant):
-								hgvs_protein = variantanalyser.functions.protein(variant, evm, hp)
+								hgvs_protein = va_func.protein(variant, evm, hp)
 								protein = str(hgvs_protein)
 							else:
 								# Convert positions to n. position
@@ -3905,7 +3919,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									protein = str(hgvs_protein) 
 								else:
 									# Need to obtain the cds_start
-									inf = variantanalyser.functions.tx_identity_info(variant, hdp)
+									inf = va_func.tx_identity_info(variant, hdp)
 									cds_start = inf[3]
 
 									# Extract the reference coding sequence from the UTA database
@@ -3983,17 +3997,17 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 		
 						else: 
 							try:
-								hgvs_protein = variantanalyser.functions.protein(variant, evm, hp)
+								hgvs_protein = va_func.protein(variant, evm, hp)
 							except IndexError as e:
 								error = str(e)
 								if re.search('string index out of range', error) and re.search('dup', variant):
 									hgvs_ins = hp.parse_hgvs_variant(variant)
 									inst = hgvs_ins.ac + ':c.' + str(hgvs_ins.posedit.pos.start.base - 1) + '_' + str(hgvs_ins.posedit.pos.start.base) + 'ins' + hgvs_ins.posedit.edit.ref
-									hgvs_protein = variantanalyser.functions.protein(inst, evm, hp)
+									hgvs_protein = va_func.protein(inst, evm, hp)
 							protein = str(hgvs_protein)
 
 						# Gene orientation wrt genome
-						ori = variantanalyser.functions.tx_exons(tx_ac=hgvs_coding.ac, alt_ac=hgvs_genomic.ac, alt_aln_method=alt_aln_method, hdp=hdp)
+						ori = va_func.tx_exons(tx_ac=hgvs_coding.ac, alt_ac=hgvs_genomic.ac, alt_aln_method=alt_aln_method, hdp=hdp)
 						ori = int(ori[0]['alt_strand'])
 			
 						# Look for normalized variant options that do not match hgvs_coding
@@ -4137,7 +4151,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						lrg_variant = ''	
 					else:
 						hgvs_refseqgene_variant = hp.parse_hgvs_variant(refseqgene_variant)
-						rsg_ac = variantanalyser.dbControls.data.get_lrgID_from_RefSeqGeneID(str(hgvs_refseqgene_variant.ac))
+						rsg_ac = va_dbCrl.data.get_lrgID_from_RefSeqGeneID(str(hgvs_refseqgene_variant.ac))
 						if rsg_ac[0] == 'none':
 							lrg_variant = ''
 						else:
@@ -4164,7 +4178,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
 						# Handle LRG	
 						lrg_status = 'public'
-						lrg_transcript = variantanalyser.dbControls.data.get_lrgTranscriptID_from_RefSeqTranscriptID(transcript_accession)
+						lrg_transcript = va_dbCrl.data.get_lrgTranscriptID_from_RefSeqTranscriptID(transcript_accession)
 						if lrg_transcript == 'none':
 							lrg_transcript_variant = ''
 						else:
@@ -4209,7 +4223,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					# Gene
 					if transcript_accession != '':
 						try:
-							gene_symbol = variantanalyser.dbControls.data.get_gene_symbol_from_transcriptID(transcript_accession)
+							gene_symbol = va_dbCrl.data.get_gene_symbol_from_transcriptID(transcript_accession)
 						except:
 							gene_symbol = 'Unable to verify gene symbol for ' + str(transcript_accession)
 					else:
@@ -4221,7 +4235,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					# Create VCF
 					if genomic_variant != '':					
 						# TO BATCH AND API AND VALIDATOR
-						vcf_dict = variantanalyser.hgvs2vcf.report_hgvs2vcf(hgvs_genomic_variant)
+						vcf_dict = va_H2V.report_hgvs2vcf(hgvs_genomic_variant)
 						vcf_chr = vcf_dict['chr']	
 						vcf_pos = vcf_dict['pos']				
 						vcf_ref = vcf_dict['ref']
@@ -4240,9 +4254,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						for alt_chr in multi_list:
 							try:
 								# Re set ori
-								ori = variantanalyser.functions.tx_exons(tx_ac=hgvs_coding.ac, alt_ac=alt_chr, alt_aln_method=alt_aln_method, hdp=hdp)
+								ori = va_func.tx_exons(tx_ac=hgvs_coding.ac, alt_ac=alt_chr, alt_aln_method=alt_aln_method, hdp=hdp)
 								orientation = int(ori[0]['alt_strand'])								
-								hgvs_alt_genomic = variantanalyser.functions.myvm_t_to_g(hgvs_coding, alt_chr, vm, hn, hdp, primary_assembly)
+								hgvs_alt_genomic = va_func.myvm_t_to_g(hgvs_coding, alt_chr, vm, hn, hdp, primary_assembly)
 								
 								# genomic_possibilities
 								# 1. take the simple 3 pr normalized hgvs_genomic
@@ -4265,7 +4279,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										if re.match('Normalization of intronic variants is not supported', error) or re.match('Unsupported normalization of variants spanning the exon-intron boundary', error):
 											chromosome_normalized_hgvs_coding = hgvs_coding
 			
-								most_3pr_hgvs_genomic = variantanalyser.functions.myvm_t_to_g(chromosome_normalized_hgvs_coding, alt_chr, vm, hn, hdp, primary_assembly)
+								most_3pr_hgvs_genomic = va_func.myvm_t_to_g(chromosome_normalized_hgvs_coding, alt_chr, vm, hn, hdp, primary_assembly)
 								hgvs_genomic_possibilities.append(most_3pr_hgvs_genomic)
 
 								# Set variables for problem specific warnings
@@ -4326,7 +4340,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									stored_hgvs_genomic_5pr = copy.deepcopy(hgvs_genomic_5pr)
 				
 									# Make VCF
-									vcf_dict = variantanalyser.hgvs2vcf.hgvs2vcf(reverse_normalized_hgvs_genomic)
+									vcf_dict = va_H2V.hgvs2vcf(reverse_normalized_hgvs_genomic)
 									chr = vcf_dict['chr']	
 									pos = vcf_dict['pos']				
 									ref = vcf_dict['ref']
@@ -4488,7 +4502,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												else:
 													test_tx_var = rn_tx_hgvs_not_delins	
 												# re-make genomic and tx
-												hgvs_not_delins = variantanalyser.functions.myvm_t_to_g(test_tx_var, alt_chr, vm, hn, hdp, primary_assembly)
+												hgvs_not_delins = va_func.myvm_t_to_g(test_tx_var, alt_chr, vm, hn, hdp, primary_assembly)
 												rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins, str(saved_hgvs_coding.ac))
 											elif re.search('\+', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
 												# move tx start base to previous available non-offset base
@@ -4499,7 +4513,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												else:
 													test_tx_var = rn_tx_hgvs_not_delins	
 												# re-make genomic and tx
-												hgvs_not_delins = variantanalyser.functions.myvm_t_to_g(test_tx_var, alt_chr, vm, hn, hdp, primary_assembly)
+												hgvs_not_delins = va_func.myvm_t_to_g(test_tx_var, alt_chr, vm, hn, hdp, primary_assembly)
 												rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins, str(saved_hgvs_coding.ac))
 												rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0							
 											else:
@@ -4531,7 +4545,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												else:
 													test_tx_var = rn_tx_hgvs_not_delins	
 												# re-make genomic and tx
-												hgvs_not_delins = variantanalyser.functions.myvm_t_to_g(test_tx_var, alt_chr, vm, hn, hdp, primary_assembly)
+												hgvs_not_delins = va_func.myvm_t_to_g(test_tx_var, alt_chr, vm, hn, hdp, primary_assembly)
 												rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins, str(saved_hgvs_coding.ac))
 											elif re.search('\-', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
 												# move tx start base to previous available non-offset base
@@ -4543,8 +4557,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												else:
 													test_tx_var = rn_tx_hgvs_not_delins	
 												# re-make genomic and tx
-												# hgvs_not_delins = variantanalyser.functions.myevm_t_to_g(test_tx_var, no_norm_evm, hdp, primary_assembly)
-												hgvs_not_delins = variantanalyser.functions.myvm_t_to_g(test_tx_var, alt_chr, vm, hn, hdp, primary_assembly)
+												# hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, no_norm_evm, hdp, primary_assembly)
+												hgvs_not_delins = va_func.myvm_t_to_g(test_tx_var, alt_chr, vm, hn, hdp, primary_assembly)
 												rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins, str(saved_hgvs_coding.ac))
 												rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0							
 											else:
@@ -4718,7 +4732,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											# Try the next available genomic option
 											continue
 										# Update hgvs_genomic
-										hgvs_alt_genomic = variantanalyser.functions.myvm_t_to_g(hgvs_refreshed_variant, alt_chr, vm, hn, hdp, primary_assembly)
+										hgvs_alt_genomic = va_func.myvm_t_to_g(hgvs_refreshed_variant, alt_chr, vm, hn, hdp, primary_assembly)
 				
 									# If it is intronic, these vairables will not have been set
 									else:
@@ -4783,7 +4797,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						if not re.match('NC_', str(hgvs_genomic.ac)):
 							warnings = warnings + ': ' + str(hgvs_coding) + ' can not be mapped directly to genome build ' + primary_assembly + '. See Alternative genomic loci for aligned genomic positions' 
 							caution = 'can not be mapped directly to genome build'
-						chr_num = variantanalyser.supported_chromosome_builds.supported_for_mapping(str(hgvs_genomic.ac), primary_assembly)
+						chr_num = va_scb.supported_for_mapping(str(hgvs_genomic.ac), primary_assembly)
 						if chr_num ==  'false':
 							already_seen = 'can not be mapped directly to genome build'
 							if re.search(already_seen, caution):
@@ -4866,7 +4880,7 @@ def gene2transcripts(query):
 				caution = {'error' : str(e)}
 				return caution		
 		# Look up current name
-		current = variantanalyser.functions.hgnc_rest(path = "/search/prev_symbol/" + hgnc)
+		current = va_func.hgnc_rest(path = "/search/prev_symbol/" + hgnc)
 		# Look for historic names
 		# If historic names = 0
 		if str(current['record']['response']['numFound']) == '0':
@@ -4874,7 +4888,7 @@ def gene2transcripts(query):
 		else:
 			current_sym = current['record']['response']['docs'][0]['symbol']
 		# Look up previous symbols and gene name
-		previous = variantanalyser.functions.hgnc_rest(path = "/fetch/symbol/" + current_sym)
+		previous = va_func.hgnc_rest(path = "/fetch/symbol/" + current_sym)
 		try:
 			previous_sym = previous['record']['response']['docs'][0]['prev_symbol'][0]
 		except:
@@ -4907,7 +4921,7 @@ def gene2transcripts(query):
 			if  re.match('^NM_', line[3]) or re.match('^NR_', line[3]):
 				# Transcript ID
 				tx = line[3]
-				tx_description = variantanalyser.dbControls.data.get_transcript_description(tx)
+				tx_description = va_dbCrl.data.get_transcript_description(tx)
 				# Check for duplicates
 				if tx in recovered_dict.keys():
 					continue
