@@ -1,5 +1,4 @@
-#from mysql.connector import MySQLConnection, Error
-#from dbconfig import read_db_config
+
 import os
 import dbConnection
 
@@ -7,10 +6,6 @@ import dbConnection
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
 def insert(entry, data, table):	
-	# Configure database and connect to database
-	# db_config = read_db_config()
-	# 'Database insert...'
-	#try:
 	conn = dbConnection.get_connection().get_connection() # MySQLConnection(**db_config)
 	cursor = conn.cursor()
 	# MySQL queries
@@ -48,99 +43,49 @@ def insert(entry, data, table):
 	# Query report
 	if cursor.lastrowid:
 		success = 'true'
-		# print('connection established.')
 	else:
 		success = 'Unknown error'
-		# print('connection failed.')
 
 	# Commit and close connection
 	conn.commit()
-	
-	#except Error as e:
-		#error = str(e)
-		#success = e		
-		#me = open(os.path.join(ROOT, 'mysql_error.txt'), 'a')
-		#me.write(error + '\n')
-		#me.write(str(query) + '\n')		
-		#me.close()		
-		# print error
-
-	#finally:
 	cursor.close()
 	conn.close()
-	# conn.close()
-	# print('Connection closed.')
 	return success
 	
 def insert_refSeqGene_data(rsg_data):
 	query = "INSERT INTO refSeqGene_loci(refSeqGeneID, refSeqChromosomeID, genomeBuild, startPos, endPos, orientation, totalLength, chrPos, rsgPos, entrezID, hgncSymbol, updated) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())"
-	# Configure database and connect to database
-	# db_config = read_db_config()
-	# 'Database insert...'
-#try:
 	conn = dbConnection.get_connection().get_connection()
 	cursor = conn.cursor()
 	cursor.execute(query, (rsg_data[0], rsg_data[1], rsg_data[2], rsg_data[3], rsg_data[4], rsg_data[5], rsg_data[6], rsg_data[7], rsg_data[8], rsg_data[9], rsg_data[10]))
 	# Query report
 	if cursor.lastrowid:
 		success = 'true'
-		# print('connection established.')
 	else:
 		success = 'Unknown error'
-		# print('connection failed.')
 
 	# Commit and close connection
 	conn.commit()
-
-#except Error as e:
-	#error = str(e)
-	#success = e		
-	#me = open(os.path.join(ROOT, 'mysql_error.txt'), 'a')
-	#me.write(error + '\n')
-	#me.write(str(query) + '\n')		
-	#me.close()		
-	# print error
-
-#finally:
 	cursor.close()
 	conn.close()
-	# conn.close()
 	return success
 
 def insert_transcript_loci(add_data, primary_assembly):
 	data = add_data
 	table = 'genePos' + str(primary_assembly.replace('GRCh', ''))
 	query = "INSERT INTO " +  table + "(hgncID, symbol, name, prevSymbol, reference, assembly, chr, start, end, refSeqTranscriptID, refSeqGeneID, updated) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, NOW())"
-
-	# Configure database and connect to database
-	# db_config = read_db_config()
-	# 'Database insert...'
-#try:
 	conn = dbConnection.get_connection().get_connection()
 	cursor = conn.cursor()
 	cursor.execute(query, (data['hgncID'], data['symbol'], data['name'], data['prevSymbol'], data['reference'], data['assembly'], data['chr'], data['start'], data['end'], data['refSeqTranscriptID'], data['refSeqGeneID']))			
 	# Query report
 	if cursor.lastrowid:
 		success = 'true'
-		# print('connection established.')
 	else:
 		success = 'Unknown error'
 
 	# Commit and close connection
 	conn.commit()
-		
-#except Error as e:
-#	error = str(e)
-#	success = e		
-#	me = open(os.path.join(ROOT, 'mysql_error.txt'), 'a')
-#	me.write(error + '\n')
-#	me.write(str(query) + '\n')		
-#	me.close()		
-
-#finally:
 	cursor.close()
 	conn.close()
-	# conn.close()
 	return success
 
 def insert_RefSeqGeneID_from_lrgID(lrg_rs_lookup):
@@ -151,7 +96,6 @@ def insert_RefSeqGeneID_from_lrgID(lrg_rs_lookup):
 	# Query report
 	if cursor.lastrowid:
 		success = 'true'
-		# print('connection established.')
 	else:
 		success = 'Unknown error'
 
@@ -169,7 +113,6 @@ def insert_LRG_transcript_data(lrgtx_to_rstID):
 	# Query report
 	if cursor.lastrowid:
 		success = 'true'
-		# print('connection established.')
 	else:
 		success = 'Unknown error'
 

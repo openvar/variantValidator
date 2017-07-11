@@ -1,10 +1,25 @@
 # -*- coding: utf-8 -*-
 
+# import database modules
+import dbquery
+import dbinsert
+import dbupdate
+import dbfetchone
+import dbfetchall
+
+# import from 1 level above
+import os
+import sys
+import re
+parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+os.sys.path.insert(0,parentdir)
+import functions	
+
 # Retrieve transcript information
 def in_entries(entry, table): 
 	
 	# Use dbquery.py to connect to mysql and return the necessary data
-	import dbquery
+	# import dbquery
 	
 	# GeneNamesLoci
 	if table == 'genePos37' or table == 'genePos38':
@@ -119,31 +134,31 @@ def in_entries(entry, table):
 
 # Add new entry  	
 def add_entry(entry, data, table):
-	import dbinsert
+	# import dbinsert
 	success = dbinsert.insert(entry, data, table)
 	return success
     
 def insert_transcript_loci(add_data, primary_assembly):
-	import dbinsert
+	# import dbinsert
 	success = dbinsert.insert_transcript_loci(add_data, primary_assembly)
 	return success
 
 
 # Update entries
 def update_entry(entry, data, table):
-	import dbupdate
+	# import dbupdate
 	success = dbupdate.update(entry, data, table)
 	return success
 
 def update_transcript_info_record(accession, hdp):
 	accession = accession.split('.')[0] # list[3].split('.')[0]
 		
-	# import from 1 level above
-	import os
-	import sys
-	parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-	os.sys.path.insert(0,parentdir)
-	import functions	
+# 	import from 1 level above
+# 	import os
+# 	import sys
+# 	parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# 	os.sys.path.insert(0,parentdir)
+# 	import functions	
 	
 	# Search Entrez for corresponding record
 	record = functions.entrez_efetch(db="nucleotide", id=accession, rettype="gb", retmode="text")
@@ -151,7 +166,7 @@ def update_transcript_info_record(accession, hdp):
 	description = record.description
 	variant = '0'
 	
-	import re
+	# import re
 	if re.search('transcript variant', description):				
 		tv = re.search('transcript variant \w+', description)
 		tv = str(tv.group(0))
@@ -197,27 +212,27 @@ def update_transcript_info_record(accession, hdp):
 
 def update_refSeqGene_loci(rsg_data):
 	# First query the database
-	import dbfetchone
+	# import dbfetchone
 	entry_exists = dbfetchone.get_refSeqGene_data_by_refSeqGeneID(rsg_data[0], rsg_data[2])
  	if entry_exists[0] == 'none':
- 		import dbinsert
+ 		# import dbinsert
  		dbinsert.insert_refSeqGene_data(rsg_data)
 	else:
-		import dbupdate
+		# import dbupdate
 		dbupdate.update_refSeqGene_data(rsg_data)
 	return
 
 def update__transcript_loci(update_data, primary_assembly):
-	import dbupdate
+	# import dbupdate
 	success = dbupdate.update_transcript_loci(update_data, primary_assembly)
 	return success	
 
 def update_lrg_rs_lookup(lrg_rs_lookup):
 	# First query the database
-	import dbfetchone
+	# import dbfetchone
 	rsgID = dbfetchone.get_RefSeqGeneID_from_lrgID(lrg_rs_lookup[0])
  	if rsgID == 'none':
- 		import dbinsert
+ 		# import dbinsert
  		dbinsert.insert_RefSeqGeneID_from_lrgID(lrg_rs_lookup)
 		return
 	else:
@@ -225,10 +240,10 @@ def update_lrg_rs_lookup(lrg_rs_lookup):
 
 def update_lrgt_rst(lrgtx_to_rstID):
 	# First query the database
-	import dbfetchone
+	# import dbfetchone
 	rstID = dbfetchone.get_RefSeqTranscriptID_from_lrgTranscriptID(lrgtx_to_rstID[0])
  	if rstID == 'none':
- 		import dbinsert
+ 		# import dbinsert
  		dbinsert.insert_LRG_transcript_data(lrgtx_to_rstID)
 		return
 	else:
@@ -236,55 +251,55 @@ def update_lrgt_rst(lrgtx_to_rstID):
 
 # Direct methods (GET)
 def get_transcript_info_for_gene(gene_symbol):
-	import dbfetchall
+	# import dbfetchall
 	rows = dbfetchall.get_transcript_info_for_gene(gene_symbol)
 	return rows
 	
 def get_uta_symbol(gene_symbol):
 	# returns the UTA gene symbol when HGNC gene symbol is input
-	import dbfetchone
+	# import dbfetchone
 	utaSymbol = str(dbfetchone.get_utaSymbol(gene_symbol)[0])
 	return utaSymbol
 
 def get_hgnc_symbol(gene_symbol):
 	# returns the HGNC gene symbol when UTA gene symbol is input
-	import dbfetchone
+	# import dbfetchone
 	hgncSymbol = str(dbfetchone.get_hgncSymbol(gene_symbol)[0])
 	return hgncSymbol
 
 def get_current_hgnc_symbol(gene_symbol, primary_assembly):
 	# returns current HGNC gene symbol when previous gene symbol is input
-	import dbfetchone
+	# import dbfetchone
 	hgncSymbol = dbfetchone.get_current_hgnc_symbol(gene_symbol, primary_assembly)
 	return hgncSymbol
 	
 def get_transcript_description(transcript_id):
 	# returns the transcript description for a given transcript
-	import dbfetchone
+	# import dbfetchone
 	tx_description = dbfetchone.get_transcript_description(transcript_id)			
 	return tx_description
 
 def get_gene_symbol_from_transcriptID(transcript_id):
 	# returns gene symbol for a given transcript ID
-	import dbfetchone
+	# import dbfetchone
 	gene_symbol = dbfetchone.get_gene_symbol_from_transcriptID(transcript_id)
 	return gene_symbol
 
 def get_gene_symbol_from_refSeqGeneID(refSeqGeneID):
 	# Returns the databases most up-to-date gene symbol for a given NG_ ID
-	import dbfetchone
+	# import dbfetchone
 	gene_symbol = dbfetchone.get_gene_symbol_from_refSeqGeneID(refSeqGeneID)
 	return gene_symbol
 
 def get_transcribed_span_for_transcript(transcript_id, primary_assembly):
 	# Returns the chromosome and span for the selected transcript
-	import dbfetchone
+	# import dbfetchone
 	span = dbfetchone.get_transcribed_span_for_transcript(transcript_id, primary_assembly)
 	return span
 
 def get_transcribed_span_for_gene(gene_symbol, primary_assembly):
 	# Returns the chromosome and span for the selected gene_symbol
-	import dbfetchall
+	# import dbfetchall
 	span = dbfetchall.get_transcribed_span_for_gene(gene_symbol, primary_assembly)
 	span_out = {}
 	chr = span[0][0]
@@ -306,39 +321,39 @@ def get_transcribed_span_for_gene(gene_symbol, primary_assembly):
 
 def get_g_to_g_info():
 	# Recovers the g_to_g data table
-	import dbfetchall
+	# import dbfetchall
 	table = dbfetchall.get_g_to_g_info()
 	return table
 
 def get_all_transcriptID():
 	# Returns a list of transcript IDs in our database
-	import dbfetchall	
+	# import dbfetchall	
 	table = dbfetchall.get_all_transcriptID()
 	return table
 
 def get_RefSeqGeneID_from_lrgID(lrgID):
 	# Get the relevant RefSeqGeneID for a given LRG ID
-	import dbfetchone
+	# import dbfetchone
 	rsgID = dbfetchone.get_RefSeqGeneID_from_lrgID(lrgID)
 	return rsgID
 
 def get_RefSeqTranscriptID_from_lrgTranscriptID(lrg_txID):
-	import dbfetchone
+	# import dbfetchone
 	rstID = dbfetchone.get_RefSeqTranscriptID_from_lrgTranscriptID(lrg_txID)
 	return rstID
 
 def get_lrgTranscriptID_from_RefSeqTranscriptID(rstID):
-	import dbfetchone
+	# import dbfetchone
 	lrg_tx = dbfetchone.get_lrgTranscriptID_from_RefSeqTranscriptID(rstID)
 	return lrg_tx
 	
 def get_lrgID_from_RefSeqGeneID(rsgID):	
-	import dbfetchone
+	# import dbfetchone
 	lrgID = dbfetchone.get_lrgID_from_RefSeqGeneID(rsgID)
 	return lrgID	
 
 def get_refseqgene_info(refseqgene_id, primary_assembly):
-	import dbfetchone
+	# import dbfetchone
 	refseqgene_info = dbfetchone.get_refseqgene_info(refseqgene_id, primary_assembly)
 	return refseqgene_info
 

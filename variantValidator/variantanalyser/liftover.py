@@ -5,7 +5,6 @@ import hgvs
 import hgvs.posedit
 import hgvs.edit
 
-
 # Assembly data
 current_assemblies = {
 	"hg19" : "GRCh37_p13",

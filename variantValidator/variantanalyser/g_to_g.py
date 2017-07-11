@@ -3,15 +3,12 @@ import re
 import functions
 import hgvs
 import hgvs.parser
-import hgvs.normalizer
-import hgvs.validator
 import hgvs.exceptions
 import dbControls
 import dbControls.data as database_data
 
 hp = hgvs.parser.Parser()
 alt_aln_method = 'splign'
-
 
 # From the hgvs parser import, create an instance of hgvs.parser.Parser
 hp = hgvs.parser.Parser() 			
@@ -32,32 +29,9 @@ def chr_to_rsg(hgvs_genomic, hn, vr):
 	chr_end_pos = int(hgvs_genomic.posedit.pos.end.base)
 	# edit
 	chr_edit = hgvs_genomic.posedit.edit
-	# Open the database
-#	fo = open(os.path.join(FILE_ROOT, 'rsg_chr_db.txt'), 'r')
-	
+
 	# Pre set variable, note there could be several
 	rsg_data_set = []
-	
-	# Loop through the array
-#	for line in fo:
-#		line.strip()
-#		data = line.split('\t')
-#		# Logic to identify the correct RefSeqGene
-#		# # print str(data)
-#		rsg_data = {}
-#		if chr_ac == data[1] and chr_start_pos >= int(data[3]) and chr_end_pos <= int(data[4]):
-#			# NG_021430.1	NC_000023.11	GRCh38	72039409	72046974	+	7566	72039409-72046974	1-7566	441502	RPS26P11
-#			rsg_data['rsg_ac'] = data[0]
-#			rsg_data['chr_ac'] = data[1]
-#			rsg_data['rsg_start'] = data[3]
-#			rsg_data['rsg_end'] = data[4]
-#			rsg_data['ori'] = data[5]
-#			rsg_data['gene'] = data[11].strip()
-#			rsg_data_set.append(rsg_data)
-#			# print 'bing'
-#			# print rsg_data
-#		else:
-#			continue
 	
 	# Recover table from MySql
 	all_info = database_data.get_g_to_g_info()
@@ -189,7 +163,6 @@ def chr_to_rsg(hgvs_genomic, hn, vr):
 
 # Covert RefSeqGene HGVS description to Chromosomal
 def rsg_to_chr(hgvs_refseqgene, primary_assembly, hn, vr):
-	# print 'rsg_to_chr triggered'
 	# normalize
 	try:
 		hgvs_refseqgene = hn.normalize(hgvs_refseqgene)
@@ -203,29 +176,9 @@ def rsg_to_chr(hgvs_refseqgene, primary_assembly, hn, vr):
 	rsg_end_pos = int(hgvs_refseqgene.posedit.pos.end.base)
 	# edit
 	rsg_edit = hgvs_refseqgene.posedit.edit
-	# Open the database
-#	fo = open(os.path.join(FILE_ROOT, 'rsg_chr_db.txt'), 'r')
 	
 	# Pre set variable, note there could be several
 	chr_data_set = []
-	
-	# Loop through the array
-#	for line in fo:
-#		line.strip()
-#		data = line.split('\t')
-#		# Logic to identify the correct RefSeqGene
-#		chr_data = {}
-#		if rsg_ac == data[0] and primary_assembly == data[2]:
-#			# Set the values of the data dictionary
-#			chr_data['rsg_ac'] = data[0]
-#			chr_data['chr_ac'] = data[1]
-#			chr_data['rsg_start'] = data[3]
-#			chr_data['rsg_end'] = data[4]
-#			chr_data['ori'] = data[5]
-#			chr_data['gene'] = data[11].strip()
-#			chr_data_set.append(chr_data)
-#		else:
-#			continue
 	# Recover table from MySql
 	all_info = database_data.get_g_to_g_info()
 	for line in all_info:
@@ -340,59 +293,3 @@ def rsg_to_chr(hgvs_refseqgene, primary_assembly, hn, vr):
 	# Return the required data. This is a dictionary containing the rsg description, validation status and gene ID
 	return descriptions			
 					
-						
-# Code
-# genomic = 'NC_000016.9:g.2097268_2098011del'
-# genomic = 'NC_000017.10:g.48275352_48275363delAAAAinsGGAA'
-# genomic = 'NC_000017.10:g.48275352G>A' 
-# genomic = 'NC_000017.10:g.48275352_48275353insGGAA'
-# genomic = 'NC_000016.9:g.2099407_2099416del'
-# genomic = 'NC_000017.10:g.48275352_48275363del'
-# hgvs_genomic = hp.parse_hgvs_variant(genomic)
-# descriptions = chr_to_rsg(hgvs_genomic)
-
-# for description in descriptions:
-# 	# print description
-
-# hgvs_genomic = hn.normalize(hgvs_genomic)
-# # print str(hgvs_genomic)
-		
-
-#refseqgene = descriptions[0]['hgvs_refseqgene']
-#hgvs_refseqgene = hp.parse_hgvs_variant(refseqgene)
-#primary_assembly = 'GRCh37'
-#descriptions = rsg_to_chr(hgvs_refseqgene, primary_assembly)
-
-#for description in descriptions:
-#	# print description
-
-#hgvs_refseqgene = hn.normalize(hgvs_refseqgene)
-## print str(hgvs_refseqgene)
-	
-#import hgvs
-#import hgvs
-#import hgvs.parser
-#import hgvs.dataproviders.uta		
-#import hgvs.variantmapper
-#import hgvs.validator	
-#import hgvs.normalizer
-#primary_assembly = 'GRCh37'
-#uta_current_version = 'uta_20160930'
-#local_db_url = 'postgresql://uta_admin:uta_admin@127.0.0.1/uta/' + uta_current_version
-#hdp = hgvs.dataproviders.uta.connect(db_url=local_db_url, pooling=False, application_name=None)
-#hp = hgvs.parser.Parser()
-#vr = hgvs.validator.Validator(hdp)
-#hn = hgvs.normalizer.Normalizer(hdp,
-#        	cross_boundaries=False,
-##        	shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
-# #       	alt_aln_method=alt_aln_method
-#        	)
-#hgvs_genomic = hp.parse_hgvs_variant('NC_000016.9:g.2099407_2099416del')
-#hgvs_refSeqGene = chr_to_rsg(hgvs_genomic, hn, vr)
-## print hgvs_refSeqGene	
-#refSeqGene = 'NG_005895.1:g.5101_5110delGTGTTTGTGT'
-## primary_assembly = 'GRCh38'
-#hgvs_refSeqGene = hp.parse_hgvs_variant(refSeqGene)
-#hgvs_chr = rsg_to_chr(hgvs_refSeqGene, primary_assembly, hn, vr)
-## print hgvs_chr	
-	

@@ -1,17 +1,10 @@
-#from mysql.connector import MySQLConnection, Error
-#from dbconfig import read_db_config
 import dbConnection
 
 def execute(query):	
-	# configure the database
-	# db_config = read_db_config()
-	#try:
 	conn = dbConnection.get_connection().get_connection()
 	cursor = conn.cursor(buffered=True)
 	cursor.execute(query)
 
-	# print ('Connection established.')
-	# Blank list for row
 	row = []
 	row = cursor.fetchone()
 
@@ -20,23 +13,11 @@ def execute(query):
 	else:
 		# print('No Data...')
 		row = ['none', 'No data']
-		
-	#except Error as e:
-		# print ('Connection failed.')
-	#	row = ['error', e]
-		# print e
-
-	#finally:
-	# conn.close()
 	cursor.close()
 	conn.close()
-	# print ('Connection closed...')
-	# print str(row)
 	return row
 
-
 # Methods
-
 def get_utaSymbol(gene_symbol):
 	#""" Connect to MySQL database """
 	query = "SELECT utaSymbol FROM transcript_info WHERE hgncSymbol = '%s'" %(gene_symbol)

@@ -26,6 +26,7 @@ from contextlib import closing
 import copy
 import os
 import sys
+from operator import itemgetter
 
 # Import Biopython
 from Bio.Seq import Seq
@@ -46,7 +47,6 @@ VALIDATOR_DEBUG = os.environ.get('VALIDATOR_DEBUG')
 if VALIDATOR_DEBUG is not None:
 	# Logging
 	import logging
-	import sys
 	logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 # PRE COMPILE VARIABLES
@@ -78,7 +78,7 @@ class variantValidatorException(Exception):
 
 # method for final validation and stringifying parsed hgvs variants prior to # # # printing/passing to html
 def valstr(hgvs_variant):
-	import re
+	# import re
 	if re.search('del', str(hgvs_variant.posedit.edit)) or re.search('dup', str(hgvs_variant.posedit.edit)):
 		if len(hgvs_variant.posedit.edit.ref) <= 4:
 			pass
@@ -4109,7 +4109,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 		######################
 
 		# order the rows
-		from operator import itemgetter
+		# from operator import itemgetter
 		by_order = sorted(batch_list, key=itemgetter('order'))
 
 		for valid in by_order:  

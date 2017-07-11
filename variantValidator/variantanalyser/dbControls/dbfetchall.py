@@ -1,10 +1,6 @@
-#from mysql.connector import MySQLConnection, Error
-#from dbconfig import read_db_config
 import dbConnection
 
 def execute(query):
-	# db_config = read_db_config()
-	# try:
 	conn = dbConnection.get_connection().get_connection()# MySQLConnection(**db_config)
 	cursor = conn.cursor()
 	cursor.execute(query)
@@ -15,16 +11,9 @@ def execute(query):
 	if rows != []:
 		pass
 	else:
-		# print('No Data...')
 		rows = ['none', 'No data']
-	#except Error as e:
-		# print ('Connection failed.')
-		#rows = ['error', e]
-		# print e
-	#finally:
 	cursor.close()
 	conn.close()
-	# print ('Connection closed...')
 	return rows
 
 # Methods
