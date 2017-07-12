@@ -3834,7 +3834,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 		
 								else:
 									if alt_aln_method == 'GRCh37':
-										evm38 = variantanalyser.myVariantmapper(hdp, assembly_name='GRCh38', alt_aln_method=alt_aln_method)
+										evm38 = hgvs.assemblymapper.AssemblyMapper(hdp, assembly_name='GRCh38', alt_aln_method=alt_aln_method)
 										hgvs_38 = evm38.c_to_g(hgvs_coding)
 										refseqgene_data = va_g2g.chr_to_rsg(hgvs_38, hn, vr)															
 										if len(refseqgene_data) > 1:
@@ -3856,7 +3856,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 													break
 
 									if alt_aln_method == 'GRCh38':
-										evm38 = variantanalyser.myVariantmapper(hdp, assembly_name='GRCh37', alt_aln_method=alt_aln_method)
+										evm38 = hgvs.assemblymapper.AssemblyMapper(hdp, assembly_name='GRCh37', alt_aln_method=alt_aln_method)
 										hgvs_37 = evm37.c_to_g(hgvs_coding)
 										refseqgene_data = va_g2g.chr_to_rsg(hgvs_37, hn, vr)															
 										if len(refseqgene_data) > 1:
