@@ -9,19 +9,20 @@ import supported_chromosome_builds
 # Import Biopython modules
 from Bio.Seq import Seq
 
+# Set variables
+hdp = hgvs.dataproviders.uta.connect(pooling=True)
+
+# Reverse normalizer (5 prime)
+reverse_normalize = hgvs.normalizer.Normalizer(hdp, 
+		cross_boundaries=False, 
+		shuffle_direction=5, 
+		alt_aln_method='splign'
+		)
+
+# SeqFetcher
+sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
+
 def hgvs2vcf(hgvs_genomic):		
-	# Set variables
-	hdp = hgvs.dataproviders.uta.connect(pooling=True)
-
-	# Reverse normalizer (5 prime)
-	reverse_normalize = hgvs.normalizer.Normalizer(hdp, 
-			cross_boundaries=False, 
-			shuffle_direction=5, 
-			alt_aln_method='splign'
-			)
-
-	# SeqFetcher
-	sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
 
 	hgvs_genomic_variant = hgvs_genomic					
 	# Reverse normalize hgvs_genomic_variant: NOTE will replace ref
