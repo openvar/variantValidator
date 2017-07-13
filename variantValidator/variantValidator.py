@@ -4139,6 +4139,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					# genomic accession
 					if genomic_variant != '':
 						hgvs_genomic_variant = hp.parse_hgvs_variant(genomic_variant)
+						genomic_variant = valstr(hgvs_genomic_variant)
 						genomic_accession = hgvs_genomic_variant.ac
 					else:
 						genomic_accession = ''	
@@ -4242,6 +4243,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						vcf_alt = vcf_dict['alt']										
 
 					# Multiple genomic variants
+					multi_gen_vars = []
 					if tx_variant != '':
 						hgvs_coding = hp.parse_hgvs_variant(str(tx_variant))
 						multi_g = []
@@ -4782,8 +4784,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								error = str(te) 
 								continue
 						if multi_g != []:
-							multi_g.sort()
-							multi_gens = []				
+							multi_g.sort()				
 							multi_gen_vars = multi_g #'|'.join(multi_g)
 						else:
 							multi_gen_vars = []		
