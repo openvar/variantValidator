@@ -131,12 +131,15 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
 		# Create a dictionary of transcript ID : ''
 		if select_transcripts != 'all':
-			# TO BATCH
 			select_transcripts_list = select_transcripts.split('|')
 			select_transcripts_dict = {}
 			select_transcripts_dict_plus_version = {}
 			for id in select_transcripts_list:
 				id = id.strip()
+				if re.match('LRG', id):
+					id = va_dbCrl.data.get_RefSeqTranscriptID_from_lrgTranscriptID(id)
+					if id == 'none':
+						continue
 				select_transcripts_dict_plus_version[id] = ''
 				id = id.split('.')[0]
 				select_transcripts_dict[id] = ''	
@@ -233,7 +236,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						input_list = input.split(':')
 						pos_ref_alt = str(input_list[1]) 
 						positionAndEdit = input_list[1]
-						if not re.match('N[CGTWMRP]_', input):
+						if not re.match('N[CGTWMRP]_', input) and not re.match('LRG_', input):
 							chr_num = str(input_list[0])
 							chr_num = chr_num.upper()
 							chr_num = chr_num.strip()
@@ -264,6 +267,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								positionAndEdit = str(position) + ref + '>' + alt
 						# Assign reference sequence type
 						ref_type = ref_seq_type.ref_type_assign(accession)
+						if re.match('LRG_', accession):
+							if ref_type == ':g.':
+								accession = va_dbCrl.data.get_RefSeqGeneID_from_lrgID(accesion)
+							else:
+								accession = va_dbCrl.data.get_RefSeqTranscriptID_from_lrgTranscriptID(accession)
+						else:
+							accession = accession
 						input = str(accession) + ref_type + str(positionAndEdit)
 						automap = 'Non-HGVS compliant variant description ' + input + ' automapped to ' + input + ': '
 						validation['warnings'] = validation['warnings'] + ': ' + automap
@@ -439,13 +449,6 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								validation['warnings'] = validation['warnings'] + ': ' + error
 								continue
 
-							# Use normalizer to make the correct variant description
-# 							hn = hgvs.normalizer.Normalizer(hdp,
-# 							cross_boundaries=False,
-# 							shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
-# 							alt_aln_method=alt_aln_method
-# 							)
-# 		
 							try:
 								not_delins = str(hn.normalize(hgvs_not_delins))
 							except hgvs.exceptions.HGVSError as e:
@@ -4935,7 +4938,13 @@ def gene2transcripts(query):
 						# Add to recovered_dict
 						recovered_dict[tx] = ''
 						genes_and_tx.append([tx, tx_description, 'not applicable', 'not applicable'])	 		
- 		
+					# LRG information
+					lrg_transcript = va_dbCrl.data.get_lrgTranscriptID_from_RefSeqTranscriptID(tx)
+					if lrg_transcript == 'none':
+						pass
+					else:		
+						genes_and_tx.append([lrg_transcript, tx_description, line[1] + 1, line[2]]) 		
+
  		cp_genes_and_tx = copy.deepcopy(genes_and_tx)
  		genes_and_tx = []
  		for tx in cp_genes_and_tx:
