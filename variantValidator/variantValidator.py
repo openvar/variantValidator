@@ -1355,37 +1355,26 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					
 					# Double check rel_vars have not been missed when mapping from a RefSeqGene
 					if len(rel_var) != 0 and re.match('NG_', str(hgvs_genomic.ac)):
-						alt_rel_var = []
-						for found in rel_var:			
-							hgvs_coding_variant = hp.parse_hgvs_variant(rel_var[0])
+						for var in rel_var:
+							hgvs_coding_variant = hp.parse_hgvs_variant(var)
 							try:
-								hgvs_genomic = va_func.myevm_t_to_g(hgvs_coding_variant, evm, hdp, primary_assembly='GRCh37')	
-							except hgvs.exceptions.HGVSDataNotAvailableError as e:
+								hgvs_genomic = variantanalyser.functions.myevm_t_to_g(hgvs_coding_variant, evm, hdp, primary_assembly)	
+							except hgvs.exceptions.HGVSError as e:
 								try_rel_var = []
 							else:
-								try_rel_var = va_func.relevant_transcripts(hgvs_genomic, evm, hdp, alt_aln_method)	
-							if len(try_rel_var) > len(rel_var) and len(try_rel_var) > alt_rel_var:
-								alt_rel_var = try_rel_var
-							# Re set
-							try_rel_var = []		
-							try:
-								hgvs_genomic = va_func.myevm_t_to_g(hgvs_coding_variant, evm, hdp, primary_assembly='GRCh38')	
-							except hgvs.exceptions.HGVSDataNotAvailableError as e:
-								try_rel_var = []
+								try_rel_var = variantanalyser.functions.relevant_transcripts(hgvs_genomic, evm, hdp, alt_aln_method)	
+							if len(try_rel_var) > len(rel_var):
+								rel_var = try_rel_var
+								break
 							else:
-								try_rel_var = va_func.relevant_transcripts(hgvs_genomic, evm, hdp, alt_aln_method)	
-							if len(try_rel_var) > len(rel_var) and len(try_rel_var) > alt_rel_var:
-								alt_rel_var = try_rel_var
-						# re-set rel_var
-						rel_var = alt_rel_var					
+								continue				
 
-				
-					# Tripple check this assumption by querying the gene position database
-					if len(rel_var) == 0:
-						vcf_dict = va_H2V.hgvs2vcf(hgvs_genomic)
-						not_di = str(hgvs_genomic.ac) + ':g.' + str(vcf_dict['pos']) + '_' + str(int(vcf_dict['pos']) + (len(vcf_dict['ref']) -1)) + 'del' + vcf_dict['ref'] + 'ins' + vcf_dict['alt'] 
-						hgvs_not_di = hp.parse_hgvs_variant(not_di)
-						rel_var = va_func.relevant_transcripts(hgvs_not_di, evm, hdp, alt_aln_method)					
+# 					Tripple check this assumption by querying the gene position database
+# 					if len(rel_var) == 0:
+# 						vcf_dict = va_H2V.hgvs2vcf(hgvs_genomic)
+# 						not_di = str(hgvs_genomic.ac) + ':g.' + str(vcf_dict['pos']) + '_' + str(int(vcf_dict['pos']) + (len(vcf_dict['ref']) -1)) + 'del' + vcf_dict['ref'] + 'ins' + vcf_dict['alt'] 
+# 						hgvs_not_di = hp.parse_hgvs_variant(not_di)
+# 						rel_var = va_func.relevant_transcripts(hgvs_not_di, evm, hdp, alt_aln_method)					
 
 					# list return statements
 					if len(rel_var) == 0:
@@ -1547,7 +1536,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								intron_test = hn.normalize(hgvs_seek_var)	
 							except hgvs.exceptions.HGVSUnsupportedOperationError as e:
 								error = str(e)
-								if re.match('Normalization of intronic variants is not supported', error):
+								if re.match('Normalization of intronic variants is not supported', error) or re.match('Unsupported normalization of variants spanning the exon-intron boundary', error):
 									# Double check to see whether the variant is actually intronic?
 									for exon in ori:
 										genomic_start = int(exon['alt_start_i'])
@@ -1638,7 +1627,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									else:
 										pass	
 				
-									tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins, saved_hgvs_coding.ac)
+									try:
+										tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins, saved_hgvs_coding.ac)
+									except hgvs.exceptions.HGVSInvalidIntervalError:
+										tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_genomic_5pr, saved_hgvs_coding.ac) 
+									
 									# Create normalized version of tx_hgvs_not_delins
 									rn_tx_hgvs_not_delins = copy.deepcopy(tx_hgvs_not_delins)
 									# Check for +ve base and adjust
@@ -1988,20 +1981,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						if auto_info != '':
 							automap = auto_info + '\n' + automap
 
-						#
 						rel_var = copy.deepcopy(nw_rel_var)
-						# print rel_var
 						
 						# Set the values and append to batch_list
 						for c_description in rel_var:
-# 							if select_transcripts != 'all':
-# 								hgvs_c_description = hp.parse_hgvs_variant(c_description)
-# 								tx_ac = hgvs_c_description.ac
-# 								if tx_ac.split('.')[0] in select_transcripts_dict.keys():
-# 									pass
-# 								# If not get rid of it!
-# 								else:
-# 									continue
+							print valstr(c_description)
 							query = {'quibble' : str(c_description), 'id' : validation['id'], 'warnings' : validation['warnings'], 'description' : '', 'coding' : '', 'coding_g' : '', 'genomic_r' : '', 'genomic_g' : '', 'protein' : '', 'write' : 'true', 'primary_assembly' : primary_assembly, 'order' : ordering}
 							batch_list.append(query)		
 		
@@ -2766,7 +2750,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							except hgvs.exceptions.HGVSUnsupportedOperationError as e:
 								error = str(e)
 								if re.match('Normalization of intronic variants is not supported', error):
-									chromosome_normalized_hgvs_coding = hgvs_coding	
+									chromosome_normalized_hgvs_coding = hgvs_coding
+								elif re.match('Unsupported normalization of variants spanning the exon-intron boundary', error):
+									chromosome_normalized_hgvs_coding = hgvs_coding		
 						else:
 							try:	
 								chromosome_normalized_hgvs_coding = hn.normalize(hgvs_coding)	
@@ -2774,8 +2760,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								error = str(e)
 								if re.match('Normalization of intronic variants is not supported', error):
 									chromosome_normalized_hgvs_coding = hgvs_coding
+								elif re.match('Unsupported normalization of variants spanning the exon-intron boundary', error):
+									chromosome_normalized_hgvs_coding = hgvs_coding	
 			
-						# print 'chromosome_normalized_hgvs_coding'
+						# print hgvs_coding
 						# print chromosome_normalized_hgvs_coding
 
 						most_3pr_hgvs_genomic = va_func.myevm_t_to_g(chromosome_normalized_hgvs_coding, no_norm_evm, hdp, primary_assembly)
@@ -2868,8 +2856,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							# print '-'.join(v)
 
 							# Save a copy of current hgvs_coding
-							saved_hgvs_coding = no_norm_evm.g_to_t(stored_hgvs_not_delins, hgvs_coding.ac)
-		
+							try:
+								saved_hgvs_coding = no_norm_evm.g_to_t(stored_hgvs_not_delins, hgvs_coding.ac)
+							except hgvs.exceptions.HGVSInvalidIntervalError:
+								saved_hgvs_coding = no_norm_evm.g_to_n(reverse_normalized_hgvs_genomic, hgvs_coding.ac) 
+
 							# TO BATCH AND API
 							# Detect intronic variation using normalization
 							intronic_variant = 'false'
@@ -2916,7 +2907,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								intron_test = hn.normalize(hgvs_seek_var)	
 							except hgvs.exceptions.HGVSUnsupportedOperationError as e:
 								error = str(e)
-								if re.match('Normalization of intronic variants is not supported', error):
+								if re.match('Normalization of intronic variants is not supported', error) or re.match('Unsupported normalization of variants spanning the exon-intron boundary', error):
 									# Double check to see whether the variant is actually intronic?
 									for exon in ori:
 										genomic_start = int(exon['alt_start_i'])
@@ -2988,7 +2979,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] # + ref_bases[1:]							
 									else:
 										pass						
-									tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins, saved_hgvs_coding.ac)
+									try:
+										tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins, saved_hgvs_coding.ac)
+									except hgvs.exceptions.HGVSInvalidIntervalError:
+										tx_hgvs_not_delins = no_norm_evm.g_to_n(reverse_normalized_hgvs_genomic, saved_hgvs_coding.ac)
 									# Create normalized version of tx_hgvs_not_delins
 									rn_tx_hgvs_not_delins = copy.deepcopy(tx_hgvs_not_delins)
 									# Check for +1 base and adjust
@@ -3246,7 +3240,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								else:
 									pass
 								# Quick check to make sure the coding variant has not changed
-								to_test = hn.normalize(hgvs_refreshed_variant)
+								try:
+									to_test = hn.normalize(hgvs_refreshed_variant)
+								except:
+									to_test = hgvs_refreshed_variant
 								if str(to_test.posedit.edit) != str(hgvs_coding.posedit.edit):
 									# Try the next available genomic option
 									continue
@@ -4177,6 +4174,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						tx_variant = tx_variant.replace(')', '')
 					
 						# transcript accession
+						hgvs_tx_variant = hp.parse_hgvs_variant(tx_variant)
+						tx_variant = valstr(hgvs_tx_variant)
 						hgvs_transcript_variant = hp.parse_hgvs_variant(tx_variant)
 						transcript_accession = hgvs_transcript_variant.ac	
 
@@ -4778,7 +4777,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											hgvs_alt_genomic = hn.normalize(hgvs_alt_genomic)
 
 								# Refresh the :g. variant
-								multi_g.append(str(hgvs_alt_genomic))
+								multi_g.append(valstr(hgvs_alt_genomic))
 							except:
 								import os
 								import traceback

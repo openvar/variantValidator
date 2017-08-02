@@ -342,42 +342,50 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 			pass		
 
 		else:		
-			# For non-intronic sequence
-			hgvs_t = copy.deepcopy(hgvs_c)
-			if hgvs_c.posedit.edit.type == 'dup':
-				# hgvs_t = reverse_normalize.normalize(hgvs_t)
-				pre_base = sf.fetch_seq(str(hgvs_t.ac),hgvs_t.posedit.pos.start.base-2,hgvs_t.posedit.pos.start.base-1)
-				post_base = sf.fetch_seq(str(hgvs_t.ac),hgvs_t.posedit.pos.end.base,hgvs_t.posedit.pos.end.base+1)
-				alt = pre_base + hgvs_t.posedit.edit.ref + hgvs_t.posedit.edit.ref + post_base				
-				ref = pre_base + hgvs_t.posedit.edit.ref + post_base
-				dup_to_delins = hgvs_t.ac + ':' + hgvs_t.type + '.' + str(hgvs_t.posedit.pos.start.base - 1) + '_' + str((hgvs_t.posedit.pos.start.base + len(ref)) -2) + 'del' + ref + 'ins' + alt
-				hgvs_t = hp.parse_hgvs_variant(dup_to_delins)
-			elif hgvs_c.posedit.edit.type == 'ins':	
-				pass
-			else:	
-				if str(hgvs_t.posedit.edit.alt) == 'None':
-					hgvs_t.posedit.edit.alt = ''	
-				pre_base = sf.fetch_seq(str(hgvs_t.ac),hgvs_t.posedit.pos.start.base-2,hgvs_t.posedit.pos.start.base-1)
-				post_base = sf.fetch_seq(str(hgvs_t.ac),hgvs_t.posedit.pos.end.base,hgvs_t.posedit.pos.end.base+1)
-				hgvs_t.posedit.edit.ref = pre_base + hgvs_t.posedit.edit.ref + post_base
-				hgvs_t.posedit.edit.alt = pre_base + hgvs_t.posedit.edit.alt + post_base
-				hgvs_t.posedit.pos.start.base = hgvs_t.posedit.pos.start.base - 1
-				start = hgvs_t.posedit.pos.start.base
-				hgvs_t.posedit.pos.start.base = start + 1
-				hgvs_t.posedit.pos.end.base = hgvs_t.posedit.pos.end.base + 1
-				end = hgvs_t.posedit.pos.end.base
-				hgvs_t.posedit.pos.start.base = start
-				hgvs_t.posedit.pos.end.base = end
-				hgvs_str = hgvs_t.ac + ':' + hgvs_t.type + '.' + str(start) + '_' + str(end) + str(hgvs_t.posedit.edit)
-				hgvs_t = hp.parse_hgvs_variant(hgvs_str)
-			hgvs_c = copy.deepcopy(hgvs_t)
+			try:	
+				# For non-intronic sequence
+				hgvs_t = copy.deepcopy(hgvs_c)
+				if hgvs_c.posedit.edit.type == 'dup':
+					# hgvs_t = reverse_normalize.normalize(hgvs_t)
+					pre_base = sf.fetch_seq(str(hgvs_t.ac),hgvs_t.posedit.pos.start.base-2,hgvs_t.posedit.pos.start.base-1)
+					post_base = sf.fetch_seq(str(hgvs_t.ac),hgvs_t.posedit.pos.end.base,hgvs_t.posedit.pos.end.base+1)
+					alt = pre_base + hgvs_t.posedit.edit.ref + hgvs_t.posedit.edit.ref + post_base				
+					ref = pre_base + hgvs_t.posedit.edit.ref + post_base
+					dup_to_delins = hgvs_t.ac + ':' + hgvs_t.type + '.' + str(hgvs_t.posedit.pos.start.base - 1) + '_' + str((hgvs_t.posedit.pos.start.base + len(ref)) -2) + 'del' + ref + 'ins' + alt
+					hgvs_t = hp.parse_hgvs_variant(dup_to_delins)
+				elif hgvs_c.posedit.edit.type == 'ins':	
+					pass
+				else:	
+					if str(hgvs_t.posedit.edit.alt) == 'None':
+						hgvs_t.posedit.edit.alt = ''	
+					pre_base = sf.fetch_seq(str(hgvs_t.ac),hgvs_t.posedit.pos.start.base-2,hgvs_t.posedit.pos.start.base-1)
+					post_base = sf.fetch_seq(str(hgvs_t.ac),hgvs_t.posedit.pos.end.base,hgvs_t.posedit.pos.end.base+1)
+					hgvs_t.posedit.edit.ref = pre_base + hgvs_t.posedit.edit.ref + post_base
+					hgvs_t.posedit.edit.alt = pre_base + hgvs_t.posedit.edit.alt + post_base
+					hgvs_t.posedit.pos.start.base = hgvs_t.posedit.pos.start.base - 1
+					start = hgvs_t.posedit.pos.start.base
+					hgvs_t.posedit.pos.start.base = start + 1
+					hgvs_t.posedit.pos.end.base = hgvs_t.posedit.pos.end.base + 1
+					end = hgvs_t.posedit.pos.end.base
+					hgvs_t.posedit.pos.start.base = start
+					hgvs_t.posedit.pos.end.base = end
+					hgvs_str = hgvs_t.ac + ':' + hgvs_t.type + '.' + str(start) + '_' + str(end) + str(hgvs_t.posedit.edit)
+					hgvs_t = hp.parse_hgvs_variant(hgvs_str)
+				hgvs_c = copy.deepcopy(hgvs_t)
 			
-			# Set expanded out test to true
-			expand_out = 'true'
+				# Set expanded out test to true
+				expand_out = 'true'
+
+			except Exception:
+				hgvs_c = hgvs_c			
 			
 		if re.match('NM_', str(hgvs_c.ac)):
-			hgvs_c = no_norm_evm.n_to_c(hgvs_c)
-		
+			try:
+				hgvs_c = no_norm_evm.n_to_c(hgvs_c)
+			except hgvs.exceptions.HGVSError as e:
+				hgvs_c = copy.deepcopy(stored_hgvs_c)				
+				
+							
 		# Ensure the altered c. variant has not crossed intro exon boundaries
 		hgvs_check_boundaries = copy.deepcopy(hgvs_c)
 		try:
@@ -461,7 +469,8 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 		hgvs_genomic.posedit.pos.start.base = hgvs_genomic.posedit.pos.start.base + 1
 		hgvs_genomic.posedit.pos.end.base = hgvs_genomic.posedit.pos.end.base - 1
 		hgvs_genomic.posedit.edit.ref = hgvs_genomic.posedit.edit.ref[1:-1]
-		hgvs_genomic.posedit.edit.alt = hgvs_genomic.posedit.edit.alt[1:-1] 
+		if hgvs_genomic.posedit.edit.alt is not None:
+			hgvs_genomic.posedit.edit.alt = hgvs_genomic.posedit.edit.alt[1:-1] 
 	else:
 		pass		
 		
@@ -531,41 +540,48 @@ def myvm_t_to_g(hgvs_c, alt_chr, vm, hn, hdp, primary_assembly):
 			pass
 
 		else:		
-			# For non-intronic sequence
-			hgvs_t = copy.deepcopy(hgvs_c)
-			if hgvs_c.posedit.edit.type == 'dup':
-				# hgvs_t = reverse_normalize.normalize(hgvs_t)
-				pre_base = sf.fetch_seq(str(hgvs_t.ac),hgvs_t.posedit.pos.start.base-2,hgvs_t.posedit.pos.start.base-1)
-				post_base = sf.fetch_seq(str(hgvs_t.ac),hgvs_t.posedit.pos.end.base,hgvs_t.posedit.pos.end.base+1)
-				alt = pre_base + hgvs_t.posedit.edit.ref + hgvs_t.posedit.edit.ref + post_base				
-				ref = pre_base + hgvs_t.posedit.edit.ref + post_base
-				dup_to_delins = hgvs_t.ac + ':' + hgvs_t.type + '.' + str(hgvs_t.posedit.pos.start.base - 1) + '_' + str((hgvs_t.posedit.pos.start.base + len(ref)) -2) + 'del' + ref + 'ins' + alt
-				hgvs_t = hp.parse_hgvs_variant(dup_to_delins)
-			elif hgvs_c.posedit.edit.type == 'ins':	
-				pass
-			else:	
-				if str(hgvs_t.posedit.edit.alt) == 'None':
-					hgvs_t.posedit.edit.alt = ''	
-				pre_base = sf.fetch_seq(str(hgvs_t.ac),hgvs_t.posedit.pos.start.base-2,hgvs_t.posedit.pos.start.base-1)
-				post_base = sf.fetch_seq(str(hgvs_t.ac),hgvs_t.posedit.pos.end.base,hgvs_t.posedit.pos.end.base+1)
-				hgvs_t.posedit.edit.ref = pre_base + hgvs_t.posedit.edit.ref + post_base
-				hgvs_t.posedit.edit.alt = pre_base + hgvs_t.posedit.edit.alt + post_base
-				hgvs_t.posedit.pos.start.base = hgvs_t.posedit.pos.start.base - 1
-				start = hgvs_t.posedit.pos.start.base
-				hgvs_t.posedit.pos.start.base = start + 1
-				hgvs_t.posedit.pos.end.base = hgvs_t.posedit.pos.end.base + 1
-				end = hgvs_t.posedit.pos.end.base
-				hgvs_t.posedit.pos.start.base = start
-				hgvs_t.posedit.pos.end.base = end
-				hgvs_str = hgvs_t.ac + ':' + hgvs_t.type + '.' + str(start) + '_' + str(end) + str(hgvs_t.posedit.edit)
-				hgvs_t = hp.parse_hgvs_variant(hgvs_str)
-			hgvs_c = copy.deepcopy(hgvs_t)
+			try:
+				# For non-intronic sequence
+				hgvs_t = copy.deepcopy(hgvs_c)
+				if hgvs_c.posedit.edit.type == 'dup':
+					# hgvs_t = reverse_normalize.normalize(hgvs_t)
+					pre_base = sf.fetch_seq(str(hgvs_t.ac),hgvs_t.posedit.pos.start.base-2,hgvs_t.posedit.pos.start.base-1)
+					post_base = sf.fetch_seq(str(hgvs_t.ac),hgvs_t.posedit.pos.end.base,hgvs_t.posedit.pos.end.base+1)
+					alt = pre_base + hgvs_t.posedit.edit.ref + hgvs_t.posedit.edit.ref + post_base				
+					ref = pre_base + hgvs_t.posedit.edit.ref + post_base
+					dup_to_delins = hgvs_t.ac + ':' + hgvs_t.type + '.' + str(hgvs_t.posedit.pos.start.base - 1) + '_' + str((hgvs_t.posedit.pos.start.base + len(ref)) -2) + 'del' + ref + 'ins' + alt
+					hgvs_t = hp.parse_hgvs_variant(dup_to_delins)
+				elif hgvs_c.posedit.edit.type == 'ins':	
+					pass
+				else:	
+					if str(hgvs_t.posedit.edit.alt) == 'None':
+						hgvs_t.posedit.edit.alt = ''	
+					pre_base = sf.fetch_seq(str(hgvs_t.ac),hgvs_t.posedit.pos.start.base-2,hgvs_t.posedit.pos.start.base-1)
+					post_base = sf.fetch_seq(str(hgvs_t.ac),hgvs_t.posedit.pos.end.base,hgvs_t.posedit.pos.end.base+1)
+					hgvs_t.posedit.edit.ref = pre_base + hgvs_t.posedit.edit.ref + post_base
+					hgvs_t.posedit.edit.alt = pre_base + hgvs_t.posedit.edit.alt + post_base
+					hgvs_t.posedit.pos.start.base = hgvs_t.posedit.pos.start.base - 1
+					start = hgvs_t.posedit.pos.start.base
+					hgvs_t.posedit.pos.start.base = start + 1
+					hgvs_t.posedit.pos.end.base = hgvs_t.posedit.pos.end.base + 1
+					end = hgvs_t.posedit.pos.end.base
+					hgvs_t.posedit.pos.start.base = start
+					hgvs_t.posedit.pos.end.base = end
+					hgvs_str = hgvs_t.ac + ':' + hgvs_t.type + '.' + str(start) + '_' + str(end) + str(hgvs_t.posedit.edit)
+					hgvs_t = hp.parse_hgvs_variant(hgvs_str)
+				hgvs_c = copy.deepcopy(hgvs_t)
 			
-			# Set expanded out test to true
-			expand_out = 'true'
+				# Set expanded out test to true
+				expand_out = 'true'
 			
+			except Exception:
+				hgvs_c = hgvs_c		
+		
 		if re.match('NM_', str(hgvs_c.ac)):
-			hgvs_c = no_norm_evm.n_to_c(hgvs_c)
+			try:
+				hgvs_c = no_norm_evm.n_to_c(hgvs_c)
+			except hgvs.exceptions.HGVSError as e:
+				hgvs_c = copy.deepcopy(stored_hgvs_c)
 		
 		# Ensure the altered c. variant has not crossed intro exon boundaries
 		hgvs_check_boundaries = copy.deepcopy(hgvs_c)
@@ -593,7 +609,8 @@ def myvm_t_to_g(hgvs_c, alt_chr, vm, hn, hdp, primary_assembly):
 		hgvs_genomic.posedit.pos.start.base = hgvs_genomic.posedit.pos.start.base + 1
 		hgvs_genomic.posedit.pos.end.base = hgvs_genomic.posedit.pos.end.base - 1
 		hgvs_genomic.posedit.edit.ref = hgvs_genomic.posedit.edit.ref[1:-1]
-		hgvs_genomic.posedit.edit.alt = hgvs_genomic.posedit.edit.alt[1:-1] 
+		if hgvs_genomic.posedit.edit.alt is not None:
+			hgvs_genomic.posedit.edit.alt = hgvs_genomic.posedit.edit.alt[1:-1]  
 	else:
 		pass
 
