@@ -30,18 +30,13 @@ def hgvs2vcf(hgvs_genomic):
 	hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
 	# Chr
-	if re.match('NC_', reverse_normalized_hgvs_genomic.ac):
-		chr = supported_chromosome_builds.to_chr_num(reverse_normalized_hgvs_genomic.ac)
-		if chr is not None:
-			pass
-		else:
-			chr = reverse_normalized_hgvs_genomic.ac		
+	chr = supported_chromosome_builds.to_chr_num(reverse_normalized_hgvs_genomic.ac)
+	if chr is not None:
+		pass
 	else:
-		chr = reverse_normalized_hgvs_genomic.ac	
-	# Create seqfetcher object
-	# sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
-
-	# TO BATCH AND API AND VALIDATOR
+		chr = reverse_normalized_hgvs_genomic.ac		
+	
+	
 	if re.search('[GATC]+\=', str(reverse_normalized_hgvs_genomic.posedit)):
 		pos = str(reverse_normalized_hgvs_genomic.posedit.pos.start)
 		ref = reverse_normalized_hgvs_genomic.posedit.edit.ref
@@ -190,16 +185,27 @@ def report_hgvs2vcf(hgvs_genomic):
 	hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
 	# Chr
-	if re.match('NC_', reverse_normalized_hgvs_genomic.ac):
-		chr = supported_chromosome_builds.to_chr_num(reverse_normalized_hgvs_genomic.ac)
-		if chr is not None:
-			pass
-		else:
-			chr = reverse_normalized_hgvs_genomic.ac		
+	chr = supported_chromosome_builds.to_chr_num(reverse_normalized_hgvs_genomic.ac)
+	if chr is not None:
+		pass
 	else:
-		chr = reverse_normalized_hgvs_genomic.ac	
-	# Create seqfetcher object
-	# sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
+		chr = reverse_normalized_hgvs_genomic.ac
+
+	# UCSC Chr
+	ucsc_chr = supported_chromosome_builds.to_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac)
+	if ucsc_chr is not None:
+		pass
+	else:
+		ucsc_chr = reverse_normalized_hgvs_genomic.ac
+
+	# GRC Chr
+	grc_chr = supported_chromosome_builds.to_chr_num_grc(reverse_normalized_hgvs_genomic.ac)
+	if grc_chr is not None:
+		pass
+	else:
+		grc_chr = reverse_normalized_hgvs_genomic.ac			
+				
+
 
 	# TO BATCH AND API AND VALIDATOR
 	if re.search('[GATC]+\=', str(reverse_normalized_hgvs_genomic.posedit)):
@@ -309,6 +315,8 @@ def report_hgvs2vcf(hgvs_genomic):
 		alt = vcf_ref_seq + dup_seq
 	else:
 		chr = ''
+		ucsc_chr = ''
+		grc_chr = ''
 		ref = ''
 		alt = ''
 		pos = ''
@@ -326,5 +334,5 @@ def report_hgvs2vcf(hgvs_genomic):
 # 				alt = prev + alt
 	
 	# Dictionary the VCF
-	vcf_dict = {'chr' : chr, 'pos' : pos, 'ref' : ref, 'alt' : alt}
+	vcf_dict = {'pos' : pos, 'ref' : ref, 'alt' : alt, 'ucsc_chr' : ucsc_chr, 'grc_chr' : grc_chr}
 	return vcf_dict		

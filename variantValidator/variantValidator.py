@@ -72,6 +72,10 @@ reverse_normalize = hgvs.normalizer.Normalizer(hdp,
 		)
 
 
+# Set current genome builds
+genome_builds = ['GRCh37', 'hg19', 'GRCh38']
+
+
 # Error types
 class variantValidatorException(Exception):
 	pass
@@ -282,7 +286,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 				
 
 				# Ambiguous chr reference 
-				if re.search('\w+\:[gcnmrp].', input) and not re.match('N[CGTWMR]_', input):
+				if re.search('\w+\:[gcnmrp].', input) and not re.match('N[CGTWMRP]_', input):
 					if not re.match('LRG_', input) and not re.match('ENS', input):
 						try:
 							pre_input = copy.deepcopy(input)
@@ -4146,6 +4150,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					
 					# RefSeqGene variation
 					refseqgene_variant = valid['genomic_r']
+					refseqgene_variant = refseqgene_variant.strip()
 					if re.search('RefSeqGene', refseqgene_variant) or refseqgene_variant == '':
 						warnings = warnings + ': ' + refseqgene_variant 
 						refseqgene_variant = ''
@@ -4237,9 +4242,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					
 					# Create VCF
 					if genomic_variant != '':					
-						# TO BATCH AND API AND VALIDATOR
 						vcf_dict = va_H2V.report_hgvs2vcf(hgvs_genomic_variant)
-						vcf_chr = vcf_dict['chr']	
+						vcf_ucsc_chr = vcf_dict['ucsc_chr']	
+						vcf_grc_chr = vcf_dict['grc_chr']	
 						vcf_pos = vcf_dict['pos']				
 						vcf_ref = vcf_dict['ref']
 						vcf_alt = vcf_dict['alt']										
@@ -4777,7 +4782,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											hgvs_alt_genomic = hn.normalize(hgvs_alt_genomic)
 
 								# Refresh the :g. variant
-								multi_g.append(valstr(hgvs_alt_genomic))
+								multi_g.append(hgvs_alt_genomic)
 							except:
 								import os
 								import traceback
@@ -4794,6 +4799,88 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					else:
 						multi_gen_vars = []													
 					
+					
+					# Dictionaries of genomic loci
+					alt_genomic_dicts = []
+					primary_genomic_dicts = {}
+					
+					# Add VCF to alts
+					if len(multi_gen_vars) != 0:
+						for alt_gen_var in multi_gen_vars:
+							vcf_dict = va_H2V.report_hgvs2vcf(alt_gen_var) 
+							for build in genome_builds:	
+								test = va_scb.supported_for_mapping(alt_gen_var.ac, build)
+								if test == 'true':
+									# Identify primary assembly positions
+									if re.match('NC_', alt_gen_var.ac):
+										if re.match('GRC', build):
+											primary_genomic_dicts[build] = {'HGVS_genomic_description' : valstr(alt_gen_var),									
+															'vcf' : {'chr' : vcf_dict['grc_chr'],
+																		'pos' : vcf_dict['pos'],
+																		'ref' : vcf_dict['ref'],
+																		'alt' : vcf_dict['alt']
+																		}
+																	}
+																
+										else:
+											primary_genomic_dicts[build] = {'HGVS_genomic_description' : valstr(alt_gen_var),									
+															'vcf' : {'chr' : vcf_dict['ucsc_chr'],
+																		'pos' : vcf_dict['pos'],
+																		'ref' : vcf_dict['ref'],
+																		'alt' : vcf_dict['alt']
+																		}
+																	}
+										if build =='GRCh38':
+											primary_genomic_dicts['hg38'] = {'HGVS_genomic_description' : valstr(alt_gen_var),									
+														'vcf' : {'chr' : vcf_dict['ucsc_chr'],
+																	'pos' : vcf_dict['pos'],
+																	'ref' : vcf_dict['ref'],
+																	'alt' : vcf_dict['alt']
+																	}
+																}
+																															
+										continue
+
+									else:
+										if re.match('GRC', build):
+											dict = {build : {	'HGVS_genomic_description' : valstr(alt_gen_var),									
+															'vcf' : {'chr' : vcf_dict['grc_chr'],
+																		'pos' : vcf_dict['pos'],
+																		'ref' : vcf_dict['ref'],
+																		'alt' : vcf_dict['alt']
+																		}
+																	}
+																}
+										else:
+											dict = {build : {	'HGVS_genomic_description' : valstr(alt_gen_var),									
+															'vcf' : {'chr' : vcf_dict['ucsc_chr'],
+																		'pos' : vcf_dict['pos'],
+																		'ref' : vcf_dict['ref'],
+																		'alt' : vcf_dict['alt']
+																		}
+																	}
+																}									
+										# Append
+										alt_genomic_dicts.append(dict)
+
+										if build =='GRCh38':
+											dict = {'hg38' : {	'HGVS_genomic_description' : valstr(alt_gen_var),									
+															'vcf' : {'chr' : vcf_dict['ucsc_chr'],
+																		'pos' : vcf_dict['pos'],
+																		'ref' : vcf_dict['ref'],
+																		'alt' : vcf_dict['alt']
+																		}
+																	}
+																}												
+											# Append
+											alt_genomic_dicts.append(dict)										
+											continue								
+								else:
+									# May need to account for ALT NC_
+									pass
+								
+																				
+							
 					# Warn not directly mapped to specified genome build		
 					if genomic_variant != '':
 						caution = ''
@@ -4818,7 +4905,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					
 					# Populate the dictionary
 					dict_out['submitted_variant'] = submitted
-					dict_out['HGVS_genomic_variant'] = 	genomic_variant 
+					# dict_out['HGVS_genomic_variant'] = 	genomic_variant 
 					dict_out['gene_symbol'] = gene_symbol
 					dict_out['transcript_description'] = transcript_description
 					dict_out['HGVS_transcript_variant'] = tx_variant
@@ -4829,12 +4916,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					dict_out['validation_warnings'] = warnings_out
 					dict_out['HGVS_LRG_transcript_variant'] = lrg_transcript_variant
 					dict_out['HGVS_LRG_variant'] = lrg_variant
-					dict_out['alt_genomic_loci'] = multi_gen_vars
+					dict_out['alt_genomic_loci'] = alt_genomic_dicts
+					dict_out['primary_assembly_loci'] = primary_genomic_dicts
 					# vcf
-					try:
-						dict_out['vcf'] = {'chr' : vcf_chr, 'pos' : vcf_pos, 'ref': vcf_ref, 'alt' : vcf_alt}
-					except:
-						dict_out['vcf'] = {'chr' : '', 'pos' : '', 'ref': '', 'alt' : ''}	 	
+					#try:
+					#	dict_out['vcf'] = {'ucsc_chr' : vcf_ucsc_chr, 'grc_chr' : vcf_grc_chr, 'pos' : vcf_pos, 'ref': vcf_ref, 'alt' : vcf_alt}
+					#except:
+					#	dict_out['vcf'] = {'chr' : '', 'pos' : '', 'ref': '', 'alt' : ''}	 	
 					
 					# Append to a list for return	
 					batch_out.append(dict_out)
