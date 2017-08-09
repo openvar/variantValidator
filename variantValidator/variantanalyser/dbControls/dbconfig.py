@@ -1,9 +1,8 @@
 from configparser import ConfigParser
 import os
 
-# Set up paths
-CONF_ROOT = os.path.dirname(os.path.abspath(__file__))
-
+# Get the conf_root from the os
+CONF_ROOT = os.environ.get('CONF_ROOT')
 def read_db_config(filename=os.path.join(CONF_ROOT, 'config.ini'), section='mysql'):
     """ Read database configuration file and return a dictionary object
     :param filename: name of the configuration file

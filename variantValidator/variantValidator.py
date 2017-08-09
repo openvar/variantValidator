@@ -1,8 +1,3 @@
-# curl examples
-# http://127.0.0.1:5000/GRCh37/'Chr16:2099572TC>T' -d "transcript_ids=The Giraffe Was Ere"
-# http://127.0.0.1:5000/GRCh37/'Chr16:2099572TC>T'/'NM_000548.3'
-# http://127.0.0.1:5000/GRCh37/'Chr16:2099572TC>T'/'NM_001318829.1'
-# http://127.0.0.1:5000/GRCh37/'Chr16:2099572TC>T'/'all'
 
 # IMPORT HGVS MODULES
 import hgvs
@@ -107,15 +102,16 @@ def ref_type_assign(accession):
 	return ref_type		
 
 # Check environ variables
-def locate_dbs():
+def my_config():
 	HGVS_SEQREPO_DIR = os.environ.get('HGVS_SEQREPO_DIR')
 	UTA_DB_URL = os.environ.get('UTA_DB_URL')
 	VALIDATOR_DB_URL = os.environ.get('VALIDATOR_DB_URL')
-	
+	ENTREZ_ID = os.environ.get('ENTREZ_ID')
 	locate = {
 			'HGVS_SEQREPO_DIR' : HGVS_SEQREPO_DIR,
 			'UTA_DB_URL' : UTA_DB_URL,
-			'VALIDATOR_DB_URL' : VALIDATOR_DB_URL
+			'VALIDATOR_DB_URL' : VALIDATOR_DB_URL,
+			'ENTREZ_ID' : ENTREZ_ID
 			}
 	
 	return locate

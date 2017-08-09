@@ -320,18 +320,6 @@ def report_hgvs2vcf(hgvs_genomic):
 		ref = ''
 		alt = ''
 		pos = ''
-		
-	
-# 	ensure a 3' as possible
-# 	if chr != '' and pos != '' and ref != '' and alt != '':
-# 		if len(ref) > 1:
-# 			rsb = list(str(ref))
-# 			if rsb[0] == rsb[1] and reverse_normalized_hgvs_genomic.posedit.edit.type == 'identity':
-# 				pos = int(pos) - 1
-# 				prev = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),pos-1,pos)
-# 				pos = str(pos)				
-# 				ref = prev + ref
-# 				alt = prev + alt
 	
 	# Dictionary the VCF
 	vcf_dict = {'pos' : pos, 'ref' : ref, 'alt' : alt, 'ucsc_chr' : ucsc_chr, 'grc_chr' : grc_chr}

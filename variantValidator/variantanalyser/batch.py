@@ -9,7 +9,7 @@ import sys
 import requests
 
 # Set up paths
-BATCH_ROOT = os.path.dirname(os.path.abspath(__file__))
+# BATCH_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 # IMPORT HGVS MODULES
 import hgvs.exceptions
@@ -31,11 +31,6 @@ import functions
 
 # function for adding information to database
 def data_add(input, alt_aln_method, accession, dbaction, hp, evm, hdp):
-	
-	# Import validator functions
-# 	import dbControls.data
-# 	import functions
-	
 	# Add accurate transcript descriptions to the database
 	# RefSeq databases		
 	# Get the Entrez (GenBank) file

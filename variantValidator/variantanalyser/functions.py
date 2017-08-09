@@ -2,6 +2,20 @@
 
 # Module containing functions that use hgvs to return variant data
 
+# Config Section Mapping function
+def ConfigSectionMap(section):
+    dict1 = {}
+    options = Config.options(section)
+    for option in options:
+        try:
+            dict1[option] = Config.get(section, option)
+            if dict1[option] == -1:
+                DebugPrint("skip: %s" % option)
+        except:
+            print("exception on %s!" % option)
+            dict1[option] = None
+    return dict1
+
 # IMPORT REQUIRED PYTHON MODULES
 import re
 import os
@@ -10,8 +24,15 @@ import copy
 import requests
 
 # Set up paths
-FUNCTIONS_ROOT = os.path.dirname(os.path.abspath(__file__))
-
+# FUNCTIONS_ROOT = os.path.dirname(os.path.abspath(__file__))
+ENTREZ_ID = os.environ.get('ENTREZ_ID')
+if ENTREZ_ID is None:	
+	from configparser import ConfigParser
+	CONF_ROOT = os.environ.get('CONF_ROOT')
+	Config = ConfigParser()
+	Config.read(os.path.join(CONF_ROOT, 'config.ini'))
+	ENTREZ_ID = ConfigSectionMap("EntrezID")['entrezid']
+	
 # IMPORT HGVS MODULES and create instances
 import hgvs
 import hgvs.exceptions
@@ -919,7 +940,7 @@ def hgnc_rest(path):
 def entrez_efetch(db, id, rettype, retmode):			
 	# IMPORT Bio modules
 	#from Bio import Entrez
-	Entrez.email = 'admin@variantvalidator.org'
+	Entrez.email = ENTREZ_ID
 	#from Bio import SeqIO
 	handle = Entrez.efetch(db=db, id=id, rettype=rettype, retmode=retmode)
 	# Get record
@@ -934,7 +955,7 @@ def entrez_efetch(db, id, rettype, retmode):
 def entrez_read(db, id,retmode):	
 	# IMPORT Bio modules
 	#from Bio import Entrez
-	Entrez.email = 'admin@variantvalidator.org'
+	Entrez.email = ENTREZ_ID
 	#from Bio import SeqIO
 	handle = Entrez.efetch(db=db, id=id, retmode=retmode)
 	# Get record

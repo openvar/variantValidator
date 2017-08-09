@@ -7,13 +7,18 @@ import dbupdate
 import dbfetchone
 import dbfetchall
 
-# import from 1 level above
+# Import python modules
 import os
 import sys
 import re
-parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-os.sys.path.insert(0,parentdir)
-import functions	
+
+# Needs functions from variantanalyser - directory above, unless in a single directory
+try:
+	import variantanalyser.functions
+except ImportError:	
+	parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+	os.sys.path.insert(0,parentdir)
+	import functions	
 
 # Retrieve transcript information
 def in_entries(entry, table): 

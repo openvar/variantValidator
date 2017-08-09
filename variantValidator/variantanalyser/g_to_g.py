@@ -15,7 +15,7 @@ hp = hgvs.parser.Parser()
 
 # Set file root
 # Set up os paths data and log folders 
-FILE_ROOT = os.path.dirname(os.path.abspath(__file__))
+# FILE_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 # Covert chromosomal HGVS description to RefSeqGene
 def chr_to_rsg(hgvs_genomic, hn, vr):
