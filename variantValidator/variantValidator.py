@@ -1989,8 +1989,41 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									gapped_transcripts = gapped_transcripts + str(hgvs_refreshed_variant.ac) + ' '	
 									# print hgvs_refreshed_variant
 								else:
-									# Keep the same by re-setting rel_var
-									hgvs_refreshed_variant = saved_hgvs_coding
+									# Try the push
+									hgvs_stash = copy.deepcopy(stash_hgvs_not_delins)
+									stash_ac = hgvs_stash.ac
+									# Make a hard left and hard right not delins g.
+									stash_dict_right = variantanalyser.hgvs2vcf.hard_right_hgvs2vcf(hgvs_stash)
+									stash_pos_right = int(stash_dict_right['pos'])
+									stash_ref_right = stash_dict_right['ref']
+									stash_alt_right = stash_dict_right['alt'] 
+									stash_end_right = str(stash_pos_right + len(stash_ref_right) -1)
+									stash_hgvs_not_delins_right = hp.parse_hgvs_variant(stash_ac + ':' +  hgvs_stash.type + '.' +  str(stash_pos_right) + '_' + stash_end_right + 'del' + stash_ref_right + 'ins' + stash_alt_right)		
+									stash_dict_left = variantanalyser.hgvs2vcf.hard_left_hgvs2vcf(hgvs_stash)
+									stash_pos_left = int(stash_dict_left['pos'])
+									stash_ref_left = stash_dict_left['ref']
+									stash_alt_left = stash_dict_left['alt'] 
+									stash_end_left = str(stash_pos_left + len(stash_ref_left) -1)
+									stash_hgvs_not_delins_left = hp.parse_hgvs_variant(stash_ac + ':' +  hgvs_stash.type + '.' +  str(stash_pos_left) + '_' + stash_end_left + 'del' + stash_ref_left + 'ins' + stash_alt_left)		
+									# Map in-situ to the transcript left and right
+									tx_hard_right = vm.g_to_t(stash_hgvs_not_delins_right, saved_hgvs_coding.ac)
+									tx_hard_left = vm.g_to_t(stash_hgvs_not_delins_left, saved_hgvs_coding.ac)
+									# The Logic - Currently limited to genome gaps
+									if len(stash_hgvs_not_delins_right.posedit.edit.ref) < len(tx_hard_right.posedit.edit.ref):
+										tx_hard_right = hn.normalize(tx_hard_right)
+										gap_position = ''
+										gapped_alignment_warning = str(hgvs_genomic_5pr) + ' may be an artefact of aligning the transcripts listed below with genome build ' + primary_assembly
+										hgvs_refreshed_variant = tx_hard_right
+										gapped_transcripts = gapped_transcripts + str(tx_hard_right.ac) + ' '								
+									elif len(stash_hgvs_not_delins_left.posedit.edit.ref) < len(tx_hard_left.posedit.edit.ref):
+										tx_hard_left = hn.normalize(tx_hard_left)
+										gap_position = ''
+										gapped_alignment_warning = str(hgvs_genomic_5pr) + ' may be an artefact of aligning the transcripts listed below with genome build ' + primary_assembly
+										hgvs_refreshed_variant = tx_hard_left
+										gapped_transcripts = gapped_transcripts + str(tx_hard_left.ac) + ' '				
+									else:
+										# Keep the same by re-setting rel_var
+										hgvs_refreshed_variant = saved_hgvs_coding
 				
 								# Edit the output
 								if re.match('NM_', str(hgvs_refreshed_variant.ac)) and not re.search('c', str(hgvs_refreshed_variant.type)):
