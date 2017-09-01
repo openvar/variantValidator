@@ -1,0 +1,7 @@
+#!/bin/bash
+# Tool for deploying the batchValidator source code. All files will be copied
+# to Python site-packages, replacing any modified code. 
+
+# To run this # tool, type './setup' at the command line.
+
+rsync -rv .// /local/python/2.7.12/lib/python2.7/site-packages/variantValidator/ --delete

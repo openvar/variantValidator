@@ -226,8 +226,17 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					input = '%s:%s%s>%s' %(vcf_elements[0],vcf_elements[1],vcf_elements[2],vcf_elements[3])
 				elif re.search('-\d+-[GATC]+-', input):
 					pre_input = copy.deepcopy(input)
-					vcf_elements = pre_input.split('-')
-					input = '%s:%s%s>%s' %(vcf_elements[0],vcf_elements[1],vcf_elements[2],'del')		
+					vcf_elements = pre_input.split('-')		
+					validation['warnings'] = 'Not stating ALT bases is ambiguous because VCF specification 4.0 would treat ' + pre_input + ' as a deletion whereas VCF specification 4.1 onwards would treat ' + pre_input + ' as ALT = REF'
+					validation['warnings'] = validation['warnings'] + ': VariantValidator has output both alternatives'
+					validation['write'] = 'false'
+					input_A = '%s:%s%s>%s' %(vcf_elements[0],vcf_elements[1],vcf_elements[2],'del')
+					input_B = '%s:%s%s>%s' %(vcf_elements[0],vcf_elements[1],vcf_elements[2],vcf_elements[2])
+					query = {'quibble' : input_A, 'id' : validation['id'], 'warnings' : validation['warnings'], 'description' : '', 'coding' : '', 'coding_g' : '', 'genomic_r' : '', 'genomic_g' : '', 'protein' : '', 'write' : 'true', 'primary_assembly' : primary_assembly, 'order' : ordering}
+					batch_list.append(query)
+					query = {'quibble' : input_B, 'id' : validation['id'], 'warnings' : validation['warnings'], 'description' : '', 'coding' : '', 'coding_g' : '', 'genomic_r' : '', 'genomic_g' : '', 'protein' : '', 'write' : 'true', 'primary_assembly' : primary_assembly, 'order' : ordering}
+					batch_list.append(query)
+					continue
 				elif re.search('-\d+--[GATC]+', input):	
 					pre_input = copy.deepcopy(input)
 					vcf_elements = pre_input.split('-')
@@ -1540,7 +1549,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								else:		
 									seek_var = valstr(hgvs_seek_var)
 									seek_ac = str(hgvs_seek_var.ac)
-								if (hgvs_seek_var.posedit.pos.start.base + hgvs_seek_var.posedit.pos.start.offset) > (saved_hgvs_coding.posedit.pos.start.base +  saved_hgvs_coding.posedit.pos.start.offset) and (hgvs_seek_var.posedit.pos.end.base + hgvs_seek_var.posedit.pos.end.offset) > (saved_hgvs_coding.posedit.pos.end.base +  saved_hgvs_coding.posedit.pos.end.offset) and rec_var != 'false':
+								if (hgvs_seek_var.posedit.pos.start.base + hgvs_seek_var.posedit.pos.start.offset) > (saved_hgvs_coding.posedit.pos.start.base +  saved_hgvs_coding.posedit.pos.start.offset) and (hgvs_seek_var.posedit.pos.end.base + hgvs_seek_var.posedit.pos.end.offset) > (saved_hgvs_coding.posedit.pos.end.base +  saved_hgvs_coding.posedit.pos.end.offset):
 									pass
 								else:
 									hgvs_seek_var = saved_hgvs_coding			
@@ -1617,45 +1626,48 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									hgvs_not_delins = copy.deepcopy(stored_hgvs_not_delins)
 									# This test will only occur in dup of single base, insertion or substitution
 									if not re.search('_', str(hgvs_not_delins.posedit.pos)):
-										# For gap in chr, map to t. - but becaouse we have pushed to 5 prime by norm, add 1 to end pos
-										plussed_hgvs_not_delins = copy.deepcopy(hgvs_not_delins)
-										plussed_hgvs_not_delins.posedit.pos.end.base = plussed_hgvs_not_delins.posedit.pos.end.base + 1
-										plussed_hgvs_not_delins.posedit.edit.ref = ''
-										transcript_variant = no_norm_evm.g_to_t(plussed_hgvs_not_delins, str(saved_hgvs_coding.ac))
-										if ((transcript_variant.posedit.pos.end.base - transcript_variant.posedit.pos.start.base) > (hgvs_genomic_5pr.posedit.pos.end.base - hgvs_genomic_5pr.posedit.pos.start.base)):
-											if re.search('dup', str(hgvs_genomic_5pr.posedit.edit)):
-												hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-												start = hgvs_not_delins.posedit.pos.start.base - 1
-												end = hgvs_not_delins.posedit.pos.end.base
-												ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
-												hgvs_not_delins.posedit.edit.ref = ref_bases
-												hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] + ref_bases[1:]
-											elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
-												hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-											elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and not re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
-												hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-												start = hgvs_not_delins.posedit.pos.start.base - 1
-												end = hgvs_not_delins.posedit.pos.end.base
-												ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
-												hgvs_not_delins.posedit.edit.ref = ref_bases
-												hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] + ref_bases[1:]						
+										if re.search('dup', hgvs_genomic_5pr.posedit.edit.type) or re.search('ins', hgvs_genomic_5pr.posedit.edit.type):
+											# For gap in chr, map to t. - but becaouse we have pushed to 5 prime by norm, add 1 to end pos
+											plussed_hgvs_not_delins = copy.deepcopy(hgvs_not_delins)
+											plussed_hgvs_not_delins.posedit.pos.end.base = plussed_hgvs_not_delins.posedit.pos.end.base + 1
+											plussed_hgvs_not_delins.posedit.edit.ref = ''
+											transcript_variant = no_norm_evm.g_to_t(plussed_hgvs_not_delins, str(saved_hgvs_coding.ac))
+											if ((transcript_variant.posedit.pos.end.base - transcript_variant.posedit.pos.start.base) > (hgvs_genomic_5pr.posedit.pos.end.base - hgvs_genomic_5pr.posedit.pos.start.base)):
+												if re.search('dup', str(hgvs_genomic_5pr.posedit.edit)):
+													hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
+													start = hgvs_not_delins.posedit.pos.start.base - 1
+													end = hgvs_not_delins.posedit.pos.end.base
+													ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
+													hgvs_not_delins.posedit.edit.ref = ref_bases
+													hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] + ref_bases[1:]
+												elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
+													hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
+												elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and not re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
+													hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
+													start = hgvs_not_delins.posedit.pos.start.base - 1
+													end = hgvs_not_delins.posedit.pos.end.base
+													ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
+													hgvs_not_delins.posedit.edit.ref = ref_bases
+													hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] + ref_bases[1:]						
+											else:
+												if re.search('dup', str(hgvs_genomic_5pr.posedit.edit)):
+													hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
+													start = hgvs_not_delins.posedit.pos.start.base - 1
+													end = hgvs_not_delins.posedit.pos.end.base
+													ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
+													hgvs_not_delins.posedit.edit.ref = ref_bases
+													hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] + ref_bases[1:]
+												elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
+													hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
+												elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and not re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
+													hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
+													start = hgvs_not_delins.posedit.pos.start.base - 1
+													end = hgvs_not_delins.posedit.pos.end.base
+													ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
+													hgvs_not_delins.posedit.edit.ref = ref_bases
+													hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] # + ref_bases[1:]						
 										else:
-											if re.search('dup', str(hgvs_genomic_5pr.posedit.edit)):
-												hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-												start = hgvs_not_delins.posedit.pos.start.base - 1
-												end = hgvs_not_delins.posedit.pos.end.base
-												ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
-												hgvs_not_delins.posedit.edit.ref = ref_bases
-												hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] + ref_bases[1:]
-											elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
-												hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-											elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and not re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
-												hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-												start = hgvs_not_delins.posedit.pos.start.base - 1
-												end = hgvs_not_delins.posedit.pos.end.base
-												ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
-												hgvs_not_delins.posedit.edit.ref = ref_bases
-												hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] # + ref_bases[1:]						
+											pass
 									else:
 										pass	
 				
@@ -2865,23 +2877,26 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							hgvs_stash = no_norm_evm.c_to_n(hgvs_stash)
 						except:
 							pass	
-						stash_ac = hgvs_stash.ac
-						stash_dict = va_H2V.hard_right_hgvs2vcf(hgvs_stash)
-						stash_pos = int(stash_dict['pos'])
-						stash_ref = stash_dict['ref']
-						stash_alt = stash_dict['alt'] 
-						# Generate an end position
-						stash_end = str(stash_pos + len(stash_ref) -1)
-						# make a not real deletion insertion
-						stash_hgvs_not_delins = hp.parse_hgvs_variant(stash_ac + ':' +  hgvs_stash.type + '.' +  str(stash_pos) + '_' + stash_end + 'del' + stash_ref + 'ins' + stash_alt)			
 						try:
-							stash_hgvs_not_delins = no_norm_evm.n_to_c(stash_hgvs_not_delins)
+							stash_ac = hgvs_stash.ac
+							stash_dict = va_H2V.hard_right_hgvs2vcf(hgvs_stash)
+							stash_pos = int(stash_dict['pos'])
+							stash_ref = stash_dict['ref']
+							stash_alt = stash_dict['alt'] 
+							# Generate an end position
+							stash_end = str(stash_pos + len(stash_ref) -1)
+							# make a not real deletion insertion
+							stash_hgvs_not_delins = hp.parse_hgvs_variant(stash_ac + ':' +  hgvs_stash.type + '.' +  str(stash_pos) + '_' + stash_end + 'del' + stash_ref + 'ins' + stash_alt)			
+							try:
+								stash_hgvs_not_delins = no_norm_evm.n_to_c(stash_hgvs_not_delins)
+							except:
+								pass	
+							# Store a tx copy for later use	
+							stash_tx_right = copy.deepcopy(stash_hgvs_not_delins)			
+							stash_genomic = vm.t_to_g(stash_hgvs_not_delins, hgvs_genomic.ac)
+							hgvs_genomic_possibilities.append(stash_genomic)
 						except:
-							pass	
-						# Store a tx copy for later use	
-						stash_tx_right = copy.deepcopy(stash_hgvs_not_delins)			
-						stash_genomic = vm.t_to_g(stash_hgvs_not_delins, hgvs_genomic.ac)
-						hgvs_genomic_possibilities.append(stash_genomic)
+							pass
 
 						# Then to the left
 						hgvs_stash = copy.deepcopy(hgvs_coding)
@@ -2889,23 +2904,26 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							hgvs_stash = no_norm_evm.c_to_n(hgvs_stash)
 						except:
 							pass	
-						stash_ac = hgvs_stash.ac
-						stash_dict = va_H2V.hard_left_hgvs2vcf(hgvs_stash)
-						stash_pos = int(stash_dict['pos'])
-						stash_ref = stash_dict['ref']
-						stash_alt = stash_dict['alt'] 
-						# Generate an end position
-						stash_end = str(stash_pos + len(stash_ref) -1)
-						# make a not real deletion insertion
-						stash_hgvs_not_delins = hp.parse_hgvs_variant(stash_ac + ':' +  hgvs_stash.type + '.' +  str(stash_pos) + '_' + stash_end + 'del' + stash_ref + 'ins' + stash_alt)			
 						try:
-							stash_hgvs_not_delins = no_norm_evm.n_to_c(stash_hgvs_not_delins)
+							stash_ac = hgvs_stash.ac
+							stash_dict = va_H2V.hard_left_hgvs2vcf(hgvs_stash)
+							stash_pos = int(stash_dict['pos'])
+							stash_ref = stash_dict['ref']
+							stash_alt = stash_dict['alt'] 
+							# Generate an end position
+							stash_end = str(stash_pos + len(stash_ref) -1)
+							# make a not real deletion insertion
+							stash_hgvs_not_delins = hp.parse_hgvs_variant(stash_ac + ':' +  hgvs_stash.type + '.' +  str(stash_pos) + '_' + stash_end + 'del' + stash_ref + 'ins' + stash_alt)			
+							try:
+								stash_hgvs_not_delins = no_norm_evm.n_to_c(stash_hgvs_not_delins)
+							except:
+								pass	
+							# Store a tx copy for later use			
+							stash_tx_left = copy.deepcopy(stash_hgvs_not_delins)
+							stash_genomic = vm.t_to_g(stash_hgvs_not_delins, hgvs_genomic.ac)
+							hgvs_genomic_possibilities.append(stash_genomic)
 						except:
-							pass	
-						# Store a tx copy for later use			
-						stash_tx_left = copy.deepcopy(stash_hgvs_not_delins)
-						stash_genomic = vm.t_to_g(stash_hgvs_not_delins, hgvs_genomic.ac)
-						hgvs_genomic_possibilities.append(stash_genomic)
+							pass
 
 						# Set variables for problem specific warnings
 						gapped_alignment_warning = ''
@@ -3076,45 +3094,48 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									hgvs_not_delins = copy.deepcopy(stored_hgvs_not_delins)
 									# This test will only occur in dup of single base, insertion or substitution
 									if not re.search('_', str(hgvs_not_delins.posedit.pos)):
-										# For gap in chr, map to t. - but becaouse we have pushed to 5 prime by norm, add 1 to end pos
-										plussed_hgvs_not_delins = copy.deepcopy(hgvs_not_delins)
-										plussed_hgvs_not_delins.posedit.pos.end.base = plussed_hgvs_not_delins.posedit.pos.end.base + 1
-										plussed_hgvs_not_delins.posedit.edit.ref = ''
-										transcript_variant = no_norm_evm.g_to_t(plussed_hgvs_not_delins, str(saved_hgvs_coding.ac))
-										if ((transcript_variant.posedit.pos.end.base - transcript_variant.posedit.pos.start.base) > (hgvs_genomic_5pr.posedit.pos.end.base - hgvs_genomic_5pr.posedit.pos.start.base)):
-											if re.search('dup', str(hgvs_genomic_5pr.posedit.edit)):
-												hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-												start = hgvs_not_delins.posedit.pos.start.base - 1
-												end = hgvs_not_delins.posedit.pos.end.base
-												ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
-												hgvs_not_delins.posedit.edit.ref = ref_bases
-												hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] + ref_bases[1:]
-											elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
-												hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-											elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and not re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
-												hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-												start = hgvs_not_delins.posedit.pos.start.base - 1
-												end = hgvs_not_delins.posedit.pos.end.base
-												ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
-												hgvs_not_delins.posedit.edit.ref = ref_bases
-												hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] + ref_bases[1:]						
+										if re.search('dup', hgvs_genomic_5pr.posedit.edit.type) or re.search('ins', hgvs_genomic_5pr.posedit.edit.type):
+											# For gap in chr, map to t. - but becaouse we have pushed to 5 prime by norm, add 1 to end pos
+											plussed_hgvs_not_delins = copy.deepcopy(hgvs_not_delins)
+											plussed_hgvs_not_delins.posedit.pos.end.base = plussed_hgvs_not_delins.posedit.pos.end.base + 1
+											plussed_hgvs_not_delins.posedit.edit.ref = ''
+											transcript_variant = no_norm_evm.g_to_t(plussed_hgvs_not_delins, str(saved_hgvs_coding.ac))
+											if ((transcript_variant.posedit.pos.end.base - transcript_variant.posedit.pos.start.base) > (hgvs_genomic_5pr.posedit.pos.end.base - hgvs_genomic_5pr.posedit.pos.start.base)):
+												if re.search('dup', str(hgvs_genomic_5pr.posedit.edit)):
+													hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
+													start = hgvs_not_delins.posedit.pos.start.base - 1
+													end = hgvs_not_delins.posedit.pos.end.base
+													ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
+													hgvs_not_delins.posedit.edit.ref = ref_bases
+													hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] + ref_bases[1:]
+												elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
+													hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
+												elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and not re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
+													hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
+													start = hgvs_not_delins.posedit.pos.start.base - 1
+													end = hgvs_not_delins.posedit.pos.end.base
+													ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
+													hgvs_not_delins.posedit.edit.ref = ref_bases
+													hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] + ref_bases[1:]						
+											else:
+												if re.search('dup', str(hgvs_genomic_5pr.posedit.edit)):
+													hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
+													start = hgvs_not_delins.posedit.pos.start.base - 1
+													end = hgvs_not_delins.posedit.pos.end.base
+													ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
+													hgvs_not_delins.posedit.edit.ref = ref_bases
+													hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] # + ref_bases[1:]
+												elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
+													hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
+												elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and not re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
+													hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
+													start = hgvs_not_delins.posedit.pos.start.base - 1
+													end = hgvs_not_delins.posedit.pos.end.base
+													ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
+													hgvs_not_delins.posedit.edit.ref = ref_bases
+													hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] # + ref_bases[1:]							
 										else:
-											if re.search('dup', str(hgvs_genomic_5pr.posedit.edit)):
-												hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-												start = hgvs_not_delins.posedit.pos.start.base - 1
-												end = hgvs_not_delins.posedit.pos.end.base
-												ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
-												hgvs_not_delins.posedit.edit.ref = ref_bases
-												hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] # + ref_bases[1:]
-											elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
-												hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-											elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and not re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
-												hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-												start = hgvs_not_delins.posedit.pos.start.base - 1
-												end = hgvs_not_delins.posedit.pos.end.base
-												ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
-												hgvs_not_delins.posedit.edit.ref = ref_bases
-												hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] # + ref_bases[1:]							
+											pass
 									else:
 										pass						
 									try:
@@ -3539,45 +3560,48 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								hgvs_not_delins = copy.deepcopy(stored_hgvs_not_delins)
 								# This test will only occur in dup of single base, insertion or substitution
 								if not re.search('_', str(hgvs_not_delins.posedit.pos)):
-									# For gap in chr, map to t. - but becaouse we have pushed to 5 prime by norm, add 1 to end pos
-									plussed_hgvs_not_delins = copy.deepcopy(hgvs_not_delins)
-									plussed_hgvs_not_delins.posedit.pos.end.base = plussed_hgvs_not_delins.posedit.pos.end.base + 1
-									plussed_hgvs_not_delins.posedit.edit.ref = ''
-									transcript_variant = no_norm_evm.g_to_t(plussed_hgvs_not_delins, str(saved_hgvs_coding.ac))
-									if ((transcript_variant.posedit.pos.end.base - transcript_variant.posedit.pos.start.base) > (hgvs_genomic_5pr.posedit.pos.end.base - hgvs_genomic_5pr.posedit.pos.start.base)):
-										if re.search('dup', str(hgvs_genomic_5pr.posedit.edit)):
-											hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-											start = hgvs_not_delins.posedit.pos.start.base - 1
-											end = hgvs_not_delins.posedit.pos.end.base
-											ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
-											hgvs_not_delins.posedit.edit.ref = ref_bases
-											hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] + ref_bases[1:]
-										elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
-											hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-										elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and not re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
-											hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-											start = hgvs_not_delins.posedit.pos.start.base - 1
-											end = hgvs_not_delins.posedit.pos.end.base
-											ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
-											hgvs_not_delins.posedit.edit.ref = ref_bases
-											hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] + ref_bases[1:]						
+									if re.search('dup', hgvs_genomic_5pr.posedit.edit.type) or re.search('ins', hgvs_genomic_5pr.posedit.edit.type):
+										# For gap in chr, map to t. - but becaouse we have pushed to 5 prime by norm, add 1 to end pos
+										plussed_hgvs_not_delins = copy.deepcopy(hgvs_not_delins)
+										plussed_hgvs_not_delins.posedit.pos.end.base = plussed_hgvs_not_delins.posedit.pos.end.base + 1
+										plussed_hgvs_not_delins.posedit.edit.ref = ''
+										transcript_variant = no_norm_evm.g_to_t(plussed_hgvs_not_delins, str(saved_hgvs_coding.ac))
+										if ((transcript_variant.posedit.pos.end.base - transcript_variant.posedit.pos.start.base) > (hgvs_genomic_5pr.posedit.pos.end.base - hgvs_genomic_5pr.posedit.pos.start.base)):
+											if re.search('dup', str(hgvs_genomic_5pr.posedit.edit)):
+												hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
+												start = hgvs_not_delins.posedit.pos.start.base - 1
+												end = hgvs_not_delins.posedit.pos.end.base
+												ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
+												hgvs_not_delins.posedit.edit.ref = ref_bases
+												hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] + ref_bases[1:]
+											elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
+												hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
+											elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and not re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
+												hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
+												start = hgvs_not_delins.posedit.pos.start.base - 1
+												end = hgvs_not_delins.posedit.pos.end.base
+												ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
+												hgvs_not_delins.posedit.edit.ref = ref_bases
+												hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] + ref_bases[1:]						
+										else:
+											if re.search('dup', str(hgvs_genomic_5pr.posedit.edit)):
+												hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
+												start = hgvs_not_delins.posedit.pos.start.base - 1
+												end = hgvs_not_delins.posedit.pos.end.base
+												ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
+												hgvs_not_delins.posedit.edit.ref = ref_bases
+												hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] + ref_bases[1:]
+											elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
+												hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
+											elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and not re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
+												hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
+												start = hgvs_not_delins.posedit.pos.start.base - 1
+												end = hgvs_not_delins.posedit.pos.end.base
+												ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
+												hgvs_not_delins.posedit.edit.ref = ref_bases
+												hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] # + ref_bases[1:]						
 									else:
-										if re.search('dup', str(hgvs_genomic_5pr.posedit.edit)):
-											hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-											start = hgvs_not_delins.posedit.pos.start.base - 1
-											end = hgvs_not_delins.posedit.pos.end.base
-											ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
-											hgvs_not_delins.posedit.edit.ref = ref_bases
-											hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] + ref_bases[1:]
-										elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
-											hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-										elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and not re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
-											hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-											start = hgvs_not_delins.posedit.pos.start.base - 1
-											end = hgvs_not_delins.posedit.pos.end.base
-											ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
-											hgvs_not_delins.posedit.edit.ref = ref_bases
-											hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] # + ref_bases[1:]						
+										pass
 								else:
 									pass						
 								tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins, saved_hgvs_coding.ac)
@@ -4430,10 +4454,16 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								hgvs_genomic_possibilities.append(most_3pr_hgvs_genomic)
 
 								# Use stashed variants to extend list	
-								stash_genomic_right = vm.t_to_g(stash_tx_right, hgvs_alt_genomic.ac)
-								hgvs_genomic_possibilities.append(stash_genomic_right)
-								stash_genomic_left = vm.t_to_g(stash_tx_left, hgvs_alt_genomic.ac)
-								hgvs_genomic_possibilities.append(stash_genomic_left)
+								try:
+									stash_genomic_right = vm.t_to_g(stash_tx_right, hgvs_alt_genomic.ac)
+									hgvs_genomic_possibilities.append(stash_genomic_right)
+								except:
+									pass
+								try:
+									stash_genomic_left = vm.t_to_g(stash_tx_left, hgvs_alt_genomic.ac)
+									hgvs_genomic_possibilities.append(stash_genomic_left)
+								except:
+									pass	
 
 								# Set variables for problem specific warnings
 								gapped_alignment_warning = ''
@@ -4589,45 +4619,48 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											hgvs_not_delins = copy.deepcopy(stored_hgvs_not_delins)
 											# This test will only occur in dup of single base, insertion or substitution
 											if not re.search('_', str(hgvs_not_delins.posedit.pos)):
-												# For gap in chr, map to t. - but becaouse we have pushed to 5 prime by norm, add 1 to end pos
-												plussed_hgvs_not_delins = copy.deepcopy(hgvs_not_delins)
-												plussed_hgvs_not_delins.posedit.pos.end.base = plussed_hgvs_not_delins.posedit.pos.end.base + 1
-												plussed_hgvs_not_delins.posedit.edit.ref = ''
-												transcript_variant = no_norm_evm.g_to_t(plussed_hgvs_not_delins, str(saved_hgvs_coding.ac))
-												if ((transcript_variant.posedit.pos.end.base - transcript_variant.posedit.pos.start.base) > (hgvs_genomic_5pr.posedit.pos.end.base - hgvs_genomic_5pr.posedit.pos.start.base)):
-													if re.search('dup', str(hgvs_genomic_5pr.posedit.edit)):
-														hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-														start = hgvs_not_delins.posedit.pos.start.base - 1
-														end = hgvs_not_delins.posedit.pos.end.base
-														ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
-														hgvs_not_delins.posedit.edit.ref = ref_bases
-														hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] + ref_bases[1:]
-													elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
-														hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-													elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and not re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
-														hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-														start = hgvs_not_delins.posedit.pos.start.base - 1
-														end = hgvs_not_delins.posedit.pos.end.base
-														ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
-														hgvs_not_delins.posedit.edit.ref = ref_bases
-														hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] + ref_bases[1:]						
+												if re.search('dup', hgvs_genomic_5pr.posedit.edit.type) or re.search('ins', hgvs_genomic_5pr.posedit.edit.type):
+													# For gap in chr, map to t. - but becaouse we have pushed to 5 prime by norm, add 1 to end pos
+													plussed_hgvs_not_delins = copy.deepcopy(hgvs_not_delins)
+													plussed_hgvs_not_delins.posedit.pos.end.base = plussed_hgvs_not_delins.posedit.pos.end.base + 1
+													plussed_hgvs_not_delins.posedit.edit.ref = ''
+													transcript_variant = no_norm_evm.g_to_t(plussed_hgvs_not_delins, str(saved_hgvs_coding.ac))
+													if ((transcript_variant.posedit.pos.end.base - transcript_variant.posedit.pos.start.base) > (hgvs_genomic_5pr.posedit.pos.end.base - hgvs_genomic_5pr.posedit.pos.start.base)):
+														if re.search('dup', str(hgvs_genomic_5pr.posedit.edit)):
+															hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
+															start = hgvs_not_delins.posedit.pos.start.base - 1
+															end = hgvs_not_delins.posedit.pos.end.base
+															ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
+															hgvs_not_delins.posedit.edit.ref = ref_bases
+															hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] + ref_bases[1:]
+														elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
+															hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
+														elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and not re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
+															hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
+															start = hgvs_not_delins.posedit.pos.start.base - 1
+															end = hgvs_not_delins.posedit.pos.end.base
+															ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
+															hgvs_not_delins.posedit.edit.ref = ref_bases
+															hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] + ref_bases[1:]						
+													else:
+														if re.search('dup', str(hgvs_genomic_5pr.posedit.edit)):
+															hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
+															start = hgvs_not_delins.posedit.pos.start.base - 1
+															end = hgvs_not_delins.posedit.pos.end.base
+															ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
+															hgvs_not_delins.posedit.edit.ref = ref_bases
+															hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] # + ref_bases[1:]
+														elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
+															hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
+														elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and not re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
+															hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
+															start = hgvs_not_delins.posedit.pos.start.base - 1
+															end = hgvs_not_delins.posedit.pos.end.base
+															ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
+															hgvs_not_delins.posedit.edit.ref = ref_bases
+															hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] # + ref_bases[1:]							
 												else:
-													if re.search('dup', str(hgvs_genomic_5pr.posedit.edit)):
-														hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-														start = hgvs_not_delins.posedit.pos.start.base - 1
-														end = hgvs_not_delins.posedit.pos.end.base
-														ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
-														hgvs_not_delins.posedit.edit.ref = ref_bases
-														hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] # + ref_bases[1:]
-													elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
-														hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-													elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and not re.search('del', str(hgvs_genomic_5pr.posedit.edit)):
-														hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-														start = hgvs_not_delins.posedit.pos.start.base - 1
-														end = hgvs_not_delins.posedit.pos.end.base
-														ref_bases = sf.fetch_seq(str(hgvs_not_delins.ac),start,end)
-														hgvs_not_delins.posedit.edit.ref = ref_bases
-														hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[1:] # + ref_bases[1:]							
+													pass
 											else:
 												pass						
 											tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins, saved_hgvs_coding.ac)

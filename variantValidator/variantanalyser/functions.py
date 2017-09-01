@@ -179,7 +179,7 @@ def refseq(variant, vm, refseq_ac, hp, evm, hdp, primary_assembly):
 	end_i = var_g.posedit.pos.end.base
 	alt_ac = var_g.ac
 	alt_aln_method = 'splign'
-	transcripts = hdp.get_tx_for_region(alt_ac,alt_aln_method,start_i,end_i)
+	transcripts = hdp.get_tx_for_region(alt_ac,alt_aln_method,start_i-1,end_i)
 	# Take the first transcript
 #	gbtrs = re.compile('^NM_')
 	for trans in transcripts:
