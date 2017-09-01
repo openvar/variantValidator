@@ -768,6 +768,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							input_parses.ac = refseqgene_reference
 							variant = str(input_parses)
 							input = str(input_parses)
+							stash_input = input
 							if caution == '':
 								caution = lrg_reference + ':' + variation + ' automapped to ' + refseqgene_reference + ':' + variation
 							else:
@@ -780,6 +781,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							input_parses.ac = refseqtranscript_reference
 							variant = str(input_parses)
 							input = str(input_parses)
+							stash_input = input
 							if caution == '':
 								caution = lrg_reference + ':' + variation + ' automapped to ' + refseqtranscript_reference + ':' + variation
 							else:
@@ -1377,11 +1379,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						for var in rel_var:
 							hgvs_coding_variant = hp.parse_hgvs_variant(var)
 							try:
-								hgvs_genomic = variantanalyser.functions.myevm_t_to_g(hgvs_coding_variant, evm, hdp, primary_assembly)	
+								hgvs_genomic = va_func.myevm_t_to_g(hgvs_coding_variant, evm, hdp, primary_assembly)	
 							except hgvs.exceptions.HGVSError as e:
 								try_rel_var = []
 							else:
-								try_rel_var = variantanalyser.functions.relevant_transcripts(hgvs_genomic, evm, hdp, alt_aln_method)	
+								try_rel_var = va_func.relevant_transcripts(hgvs_genomic, evm, hdp, alt_aln_method)	
 							if len(try_rel_var) > len(rel_var):
 								rel_var = try_rel_var
 								break
@@ -1487,6 +1489,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						stash_alt = vcf_dict['alt']		
 						stash_end = end
 						# Re-Analyse genomic positions
+						if re.match('NG_', str(stash_input)):
+							c = hp.parse_hgvs_variant(rel_var[0])
+							stash_input = va_func.myevm_t_to_g(c, no_norm_evm, hdp, primary_assembly)
 						if re.match('NC_', str(stash_input)):
 							try:
 								hgvs_stash = hp.parse_hgvs_variant(stash_input)

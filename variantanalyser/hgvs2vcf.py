@@ -173,18 +173,6 @@ def hgvs2vcf(hgvs_genomic):
 	return vcf_dict		
 	
 def report_hgvs2vcf(hgvs_genomic):		
-	# Set variables
-	hdp = hgvs.dataproviders.uta.connect(pooling=True)
-
-	# Reverse normalizer (5 prime)
-	reverse_normalize = hgvs.normalizer.Normalizer(hdp, 
-			cross_boundaries=False, 
-			shuffle_direction=5, 
-			alt_aln_method='splign'
-			)
-
-	# SeqFetcher
-	sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
 
 	hgvs_genomic_variant = hgvs_genomic					
 	# Reverse normalize hgvs_genomic_variant: NOTE will replace ref
@@ -333,11 +321,6 @@ def report_hgvs2vcf(hgvs_genomic):
 	return vcf_dict		
 	
 def pos_lock_hgvs2vcf(hgvs_genomic):		
-	# Set variables
-	hdp = hgvs.dataproviders.uta.connect(pooling=True)
-
-	# SeqFetcher
-	sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
 					
 	# DO NOT Reverse normalize
 	reverse_normalized_hgvs_genomic = hgvs_genomic
@@ -352,8 +335,6 @@ def pos_lock_hgvs2vcf(hgvs_genomic):
 			chr = reverse_normalized_hgvs_genomic.ac		
 	else:
 		chr = reverse_normalized_hgvs_genomic.ac	
-	# Create seqfetcher object
-	# sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
 
 	# TO BATCH AND API AND VALIDATOR
 	if re.search('[GATC]+\=', str(reverse_normalized_hgvs_genomic.posedit)):
@@ -487,8 +468,6 @@ def hard_right_hgvs2vcf(hgvs_genomic):
 			chr = normalized_hgvs_genomic.ac		
 	else:
 		chr = normalized_hgvs_genomic.ac	
-	# Create seqfetcher object
-	# sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
 
 	# TO BATCH AND API AND VALIDATOR
 	if re.search('[GATC]+\=', str(normalized_hgvs_genomic.posedit)):
@@ -638,10 +617,7 @@ def hard_left_hgvs2vcf(hgvs_genomic):
 			chr = reverse_normalized_hgvs_genomic.ac		
 	else:
 		chr = reverse_normalized_hgvs_genomic.ac	
-	# Create seqfetcher object
-	# sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
 
-	# TO BATCH AND API AND VALIDATOR
 	if re.search('[GATC]+\=', str(reverse_normalized_hgvs_genomic.posedit)):
 		pos = str(reverse_normalized_hgvs_genomic.posedit.pos.start)
 		ref = reverse_normalized_hgvs_genomic.posedit.edit.ref
