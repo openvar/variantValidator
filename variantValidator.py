@@ -26,6 +26,17 @@ from operator import itemgetter
 # Import Biopython
 from Bio.Seq import Seq
 
+# Set debug mode
+VALIDATOR_DEBUG = os.environ.get('VALIDATOR_DEBUG')
+if VALIDATOR_DEBUG is not None:
+	# Logging
+	import logging
+	logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+
+# Ensure configuration is on the OS
+if os.environ.get('CONF_ROOT') is None:
+	import configuration
+
 # Import variantanalyser and peripheral VV modules
 import ref_seq_type
 import variantanalyser
@@ -36,13 +47,6 @@ from variantanalyser import batch as va_btch
 from variantanalyser import liftover as va_lo
 from variantanalyser import g_to_g as va_g2g
 from variantanalyser import supported_chromosome_builds as va_scb 
-
-# Set debug mode
-VALIDATOR_DEBUG = os.environ.get('VALIDATOR_DEBUG')
-if VALIDATOR_DEBUG is not None:
-	# Logging
-	import logging
-	logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 # PRE COMPILE VARIABLES
 hdp = hgvs.dataproviders.uta.connect(pooling=True)
@@ -65,7 +69,6 @@ reverse_normalize = hgvs.normalizer.Normalizer(hdp,
 		shuffle_direction=5, 
 		alt_aln_method='splign'
 		)
-
 
 # Set current genome builds
 genome_builds = ['GRCh37', 'hg19', 'GRCh38']
@@ -2897,9 +2900,14 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							except:
 								pass	
 							# Store a tx copy for later use	
-							stash_tx_right = copy.deepcopy(stash_hgvs_not_delins)			
-							stash_genomic = vm.t_to_g(stash_hgvs_not_delins, hgvs_genomic.ac)
-							hgvs_genomic_possibilities.append(stash_genomic)
+							# TO INTERACTIVE
+							test_stash_tx_right = copy.deepcopy(stash_hgvs_not_delins)
+							stash_genomic = vm.t_to_g(test_stash_hgvs_not_delins, hgvs_genomic.ac)
+							if test_stash_tx_right.posedit.edit.type == 'identity' and stash_genomic.posedit.edit.type == 'identity':
+								pass
+							else:
+								stash_tx_right = test_stash_tx_right
+								hgvs_genomic_possibilities.append(stash_genomic)
 						except:
 							pass
 
@@ -2924,9 +2932,14 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							except:
 								pass	
 							# Store a tx copy for later use			
-							stash_tx_left = copy.deepcopy(stash_hgvs_not_delins)
-							stash_genomic = vm.t_to_g(stash_hgvs_not_delins, hgvs_genomic.ac)
-							hgvs_genomic_possibilities.append(stash_genomic)
+							# TO INTERACTIVE
+							test_stash_tx_left = copy.deepcopy(stash_hgvs_not_delins)
+							stash_genomic = vm.t_to_g(test_stash_hgvs_not_delins, hgvs_genomic.ac)
+							if test_stash_tx_left.posedit.edit.type == 'identity' and stash_genomic.posedit.edit.type == 'identity':
+								pass
+							else:
+								stash_tx_left = test_stash_tx_left
+								hgvs_genomic_possibilities.append(stash_genomic)
 						except:
 							pass
 
@@ -3007,15 +3020,6 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							# Store a not real deletion insertion to test for gapping
 							stored_hgvs_not_delins = hp.parse_hgvs_variant(str(hgvs_genomic_5pr.ac) + ':' +  hgvs_genomic_5pr.type + '.' +  pos + '_' + end + 'del' + ref + 'ins' + alt)
 							v = [chr, pos,ref,alt]
-
-							# print 'stored_hgvs_not_delins = ' + str(stored_hgvs_not_delins)
-				
-				
-							# print 'hash'
-							v = [chr, pos,ref,alt]
-				
-				
-							# print '-'.join(v)
 
 							# Save a copy of current hgvs_coding
 							try:
@@ -4548,7 +4552,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
 									# Save a copy of current hgvs_coding
 									saved_hgvs_coding = no_norm_evm.g_to_t(stored_hgvs_not_delins, hgvs_coding.ac)
-		
+
 									# Detect intronic variation using normalization
 									intronic_variant = 'false'
 									# Look for normalized variant options that do not match hgvs_coding
@@ -4976,6 +4980,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								exc_type, exc_value, last_traceback = sys.exc_info()
 								te = traceback.format_exc()
 								error = str(te) 
+								print error
 								continue
 						if multi_g != []:
 							multi_g.sort()				
