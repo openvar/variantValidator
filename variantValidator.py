@@ -1227,6 +1227,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						tx_id_info = hdp.get_tx_identity_info(str(hgvs_vt.ac))
 					except hgvs.exceptions.HGVSError as e:
 						error = str(e)
+						if VALIDATOR_DEBUG is not None:
+							import warnings
+							warnings.warn(error)
 					if error != 'false':
 						error = 'Please inform UTA admin of the following error: ' + str(error)
 						issue_link = "https://bitbucket.org/biocommons/uta/issues?status=new&status=open"
@@ -4271,13 +4274,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 				else:	
 					import warnings
 					import traceback
-					warnings.warn('Validation error')
 					error = 'Validation error'
 					validation['warnings'] = str(error)
-					#exc_type, exc_value, last_traceback = sys.exc_info()
-					#te = traceback.format_exc()
-					#tbk = [str(exc_type), str(exc_value), str(te)]
-					#er = '\n'.join(tbk)
+					exc_type, exc_value, last_traceback = sys.exc_info()
+					te = traceback.format_exc()
+					tbk = [str(exc_type), str(exc_value), str(te)]
+					er = str('\n'.join(tbk))
+					warnings.warn(er)
 					continue
 
 		# Outside the for loop		
@@ -4975,13 +4978,18 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								# Refresh the :g. variant
 								multi_g.append(hgvs_alt_genomic)
 							except:
-								import os
-								import traceback
-								exc_type, exc_value, last_traceback = sys.exc_info()
-								te = traceback.format_exc()
-								error = str(te) 
-								print error
-								continue
+								if VALIDATOR_DEBUG is not None:
+									import os
+									import traceback
+									exc_type, exc_value, last_traceback = sys.exc_info()
+									te = traceback.format_exc()
+									error = str(te) 
+									# print error
+									import warnings
+									warnings.warn(error)
+									continue
+								else:
+									continue	
 						if multi_g != []:
 							multi_g.sort()				
 							multi_gen_vars = multi_g #'|'.join(multi_g)

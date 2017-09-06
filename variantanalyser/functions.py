@@ -36,7 +36,7 @@ if ENTREZ_ID is None:
 # IMPORT HGVS MODULES and create instances
 import hgvs
 import hgvs.exceptions
-import hgvs.dataproviders
+from hgvs.dataproviders import uta, seqfetcher
 import hgvs.normalizer
 import hgvs.validator
 import hgvs.parser
