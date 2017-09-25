@@ -486,6 +486,8 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 				hgvs_genomic = hn.normalize(hgvs_genomic)
 				
 	# Remove identity bases
+	if hgvs_c == stored_hgvs_c:
+		expanded_out = 'false'
 	elif expand_out == 'true' and len(hgvs_genomic.posedit.edit.ref) >= 3:
 		hgvs_genomic.posedit.pos.start.base = hgvs_genomic.posedit.pos.start.base + 1
 		hgvs_genomic.posedit.pos.end.base = hgvs_genomic.posedit.pos.end.base - 1
@@ -626,6 +628,8 @@ def myvm_t_to_g(hgvs_c, alt_chr, vm, hn, hdp, primary_assembly):
 				hgvs_genomic = hn.normalize(hgvs_genomic)
 
 	# Remove identity bases
+	if hgvs_c == stored_hgvs_c:
+		expanded_out = 'false'
 	elif expand_out == 'true' and len(hgvs_genomic.posedit.edit.ref) >= 3:
 		hgvs_genomic.posedit.pos.start.base = hgvs_genomic.posedit.pos.start.base + 1
 		hgvs_genomic.posedit.pos.end.base = hgvs_genomic.posedit.pos.end.base - 1

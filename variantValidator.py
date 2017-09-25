@@ -2903,11 +2903,17 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							except:
 								pass	
 							# Store a tx copy for later use	
-							# TO INTERACTIVE
 							test_stash_tx_right = copy.deepcopy(stash_hgvs_not_delins)
-							stash_genomic = vm.t_to_g(test_stash_hgvs_not_delins, hgvs_genomic.ac)
-							if test_stash_tx_right.posedit.edit.type == 'identity' and stash_genomic.posedit.edit.type == 'identity':
-								pass
+							stash_genomic = vm.t_to_g(test_stash_tx_right, hgvs_genomic.ac)
+							# Stash the outputs if required
+							# test variants = NC_000006.11:g.90403795G= (causes double identity)
+							# 				  NC_000002.11:g.73675227_73675228insCTC (? incorrect assumed insertion position)
+							#				  NC_000003.11:g.14561629_14561630GC= NC_000003.11:g.14561629_14561630insG (Odd gap position)
+							#if test_stash_tx_right.posedit.edit.type == 'identity' and stash_genomic.posedit.edit.type == 'identity':
+								#pass				
+							if len(test_stash_tx_right.posedit.edit.ref) == len(stash_genomic.posedit.edit.ref): 
+								stash_tx_right = ''
+								hgvs_genomic_possibilities.append('')
 							else:
 								stash_tx_right = test_stash_tx_right
 								hgvs_genomic_possibilities.append(stash_genomic)
@@ -2935,14 +2941,21 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							except:
 								pass	
 							# Store a tx copy for later use			
-							# TO INTERACTIVE
 							test_stash_tx_left = copy.deepcopy(stash_hgvs_not_delins)
-							stash_genomic = vm.t_to_g(test_stash_hgvs_not_delins, hgvs_genomic.ac)
-							if test_stash_tx_left.posedit.edit.type == 'identity' and stash_genomic.posedit.edit.type == 'identity':
-								pass
+							stash_genomic = vm.t_to_g(test_stash_tx_left, hgvs_genomic.ac)
+							# Stash the outputs if required
+							# test variants = NC_000006.11:g.90403795G= (causes double identity)
+							# 				  NC_000002.11:g.73675227_73675228insCTC (? incorrect assumed insertion position)
+							#				  NC_000003.11:g.14561629_14561630GC= NC_000003.11:g.14561629_14561630insG (Odd gap position)
+							#if test_stash_tx_left.posedit.edit.type == 'identity' and stash_genomic.posedit.edit.type == 'identity':
+								#pass
+							if len(test_stash_tx_left.posedit.edit.ref) == len(stash_genomic.posedit.edit.ref): 
+								stash_tx_left = test_stash_tx_left = ''
+								hgvs_genomic_possibilities.append('')
 							else:
 								stash_tx_left = test_stash_tx_left
 								hgvs_genomic_possibilities.append(stash_genomic)
+
 						except:
 							pass
 
@@ -2957,9 +2970,15 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						# print hgvs_genomic_possibilities
 						
 						# Loop through to see if a gap can be located
-						possibility_counter = 0						
+						# Set the variables required for corrective normalization
+						possibility_counter = 0			
+						suppress_c_normalization = 'false' # Applies to boundary crossing normalization					
 						for possibility in hgvs_genomic_possibilities:
 							possibility_counter = possibility_counter + 1
+							# Loop out stash possibilities which will not spot gaps so are empty
+							if possibility == '':
+								continue
+
 							# Use VCF generation code to push hgvs_genomic as for 5 prime as possible to uncover gaps
 							hgvs_genomic_variant = possibility
 							stored_hgvs_genomic_variant = copy.deepcopy(hgvs_genomic_variant)					
@@ -3259,7 +3278,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						
 								# GAP IN THE TRANSCRIPT	DISPARITY DETECTED	
 								if disparity_deletion_in[0] == 'transcript':			
-						
+									# Suppress intron boundary crossing due to non-intron intron based c. seq annotations 
+									suppress_c_normalization = 'true'
 									amend_RefSeqGene = 'true'
 									# ANY VARIANT WHOLLY WITHIN THE GAP
 									if (re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)) or re.search('\-', str(tx_hgvs_not_delins.posedit.pos.start))) and (re.search('\+', str(tx_hgvs_not_delins.posedit.pos.end)) or re.search('\-', str(tx_hgvs_not_delins.posedit.pos.end))):
@@ -4189,6 +4209,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						ori = int(ori[0]['alt_strand'])
 			
 						# Look for normalized variant options that do not match hgvs_coding
+						# boundary crossing normalization
 						if ori == -1:
 							# position genomic at its most 5 prime position
 							try:
@@ -4208,7 +4229,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								hgvs_seek_var = saved_hgvs_coding
 								seek_var = valstr(hgvs_seek_var)
 								seek_ac = str(hgvs_seek_var.ac)
-							elif intronic_variant != 'true':
+ 							elif suppress_c_normalization == 'true':
 								rec_var = 'false'
 								hgvs_seek_var = saved_hgvs_coding
 								seek_var = valstr(hgvs_seek_var)
@@ -4240,7 +4261,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								hgvs_seek_var = saved_hgvs_coding
 								seek_var = valstr(hgvs_seek_var)
 								seek_ac = str(hgvs_seek_var.ac)
-							elif intronic_variant != 'true':
+							elif suppress_c_normalization == 'true':
 								rec_var = 'false'
 								hgvs_seek_var = saved_hgvs_coding
 								seek_var = valstr(hgvs_seek_var)
@@ -4470,12 +4491,15 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									stash_genomic_right = vm.t_to_g(stash_tx_right, hgvs_alt_genomic.ac)
 									hgvs_genomic_possibilities.append(stash_genomic_right)
 								except:
-									pass
-								try:
+									# TO API
+									stash_genomic_right = ''
+									hgvs_genomic_possibilities.append('')
+								try:	
 									stash_genomic_left = vm.t_to_g(stash_tx_left, hgvs_alt_genomic.ac)
 									hgvs_genomic_possibilities.append(stash_genomic_left)
 								except:
-									pass	
+									stash_genomic_left = ''
+									hgvs_genomic_possibilities.append('')		
 
 								# Set variables for problem specific warnings
 								gapped_alignment_warning = ''
@@ -4489,6 +4513,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								possibility_counter = 0								
 								for possibility in hgvs_genomic_possibilities:
 									possibility_counter = possibility_counter + 1
+									# Loop out stash possibilities which will not spot gaps so are empty
+									if possibility == '':
+										continue
+
 									# Use VCF generation code to push hgvs_genomic as for 5 prime as possible to uncover gaps
 									hgvs_genomic_variant = possibility
 									stored_hgvs_genomic_variant = copy.deepcopy(hgvs_genomic_variant)					

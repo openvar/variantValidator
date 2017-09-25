@@ -138,7 +138,7 @@ def hgvs2vcf(hgvs_genomic):
 	
 	# Duplications								
 	elif (re.search('dup', str(reverse_normalized_hgvs_genomic.posedit))):
-		end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base - 1) #
+		end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base) #
 		start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
 		adj_start = start - 2 #
 		start = start - 1 #
@@ -297,7 +297,7 @@ def report_hgvs2vcf(hgvs_genomic):
 	
 	# Duplications								
 	elif (re.search('dup', str(reverse_normalized_hgvs_genomic.posedit))):
-		end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base - 1) #
+		end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base) #
 		start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
 		adj_start = start - 2 #
 		start = start - 1 #
@@ -431,7 +431,7 @@ def pos_lock_hgvs2vcf(hgvs_genomic):
 	
 	# Duplications								
 	elif (re.search('dup', str(reverse_normalized_hgvs_genomic.posedit))):
-		end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base - 1) #
+		end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base) #
 		start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
 		adj_start = start - 2 #
 		start = start - 1 #
@@ -563,7 +563,7 @@ def hard_right_hgvs2vcf(hgvs_genomic):
 	
 	# Duplications								
 	elif (re.search('dup', str(normalized_hgvs_genomic.posedit))):
-		end = int(normalized_hgvs_genomic.posedit.pos.end.base - 1) #
+		end = int(normalized_hgvs_genomic.posedit.pos.end.base) #
 		start = int(normalized_hgvs_genomic.posedit.pos.start.base)
 		adj_start = start - 2 #
 		start = start - 1 #
@@ -712,7 +712,7 @@ def hard_left_hgvs2vcf(hgvs_genomic):
 	
 	# Duplications								
 	elif (re.search('dup', str(reverse_normalized_hgvs_genomic.posedit))):
-		end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base - 1) #
+		end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base) #
 		start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
 		adj_start = start - 2 #
 		start = start - 1 #
