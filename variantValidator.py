@@ -5184,6 +5184,8 @@ def gene2transcripts(query):
 	caution = ''
 	input = query
 	input = input.upper()
+	if re.search('\d+ORF\d+', input):
+		input = input.replace('ORF', 'orf')
 	# Quick check for blank form
 	if input == '':
 		caution = {'error' : 'Please enter HGNC gene name or transcript identifier (NM_, NR_, or ENST)'}
@@ -5292,11 +5294,83 @@ def gene2transcripts(query):
  		
  		return g2d_data
  		
- 		
- 		
- 		
- 		
- 		
- 		
- 		
- 		
+# Fetch reference sequence from a HGVS variant description	
+def hgvs2ref(query):
+	# Dictionary to store the data
+	reference = {'variant' : query,
+				'start_position' : '',
+				'end_position' : '',
+				'warning' : '', 
+				'sequence' : '',
+				'error' : ''}
+	# Step 1: parse the query. Dictionary the parse error if parsing fails
+	try:
+		input_hgvs_query = hp.parse_hgvs_variant(query)
+	except Exception as e:
+		reference['error'] = str(e)
+	# Step 2: If the variant is a c., it needs to transferred to n.
+	try:
+		hgvs_query = vm.c_to_n(input_hgvs_query)
+	except:
+		hgvs_query = input_hgvs_query	
+	
+	# For transcript reference sequences
+	if hgvs_query.type == 'c' or hgvs_query.type == 'n':
+		# Step 4: Check for intronic sequence
+		if hgvs_query.posedit.pos.start.offset != 0 and hgvs_query.posedit.pos.end.offset != 0:
+			reference['warning'] = 'Intronic sequence variation: Use genomic reference sequence'
+		elif hgvs_query.posedit.pos.start.offset != 0 or hgvs_query.posedit.pos.end.offset != 0:	
+			reference['warning'] = 'Partial intronic sequence variation: Returning exonic sequence only'
+			# Step 3: split the variant description into the parts required for seqfetching
+			accession = hgvs_query.ac
+			start = hgvs_query.posedit.pos.start.base - 1
+			end = hgvs_query.posedit.pos.end.base	
+		
+			# Step 5: try and fetch the sequence using SeqFetcher. Dictionary an error if this fails
+			try:
+				sequence = sf.fetch_seq(accession,start,end)
+			except Exception as e:
+				reference['error'] = str(e)
+			else:
+				reference['start_position'] = str(input_hgvs_query.posedit.pos.start.base)
+				reference['end_position'] = str(input_hgvs_query.posedit.pos.end.base)
+				reference['sequence'] = sequence
+		else:
+			# Step 3: split the variant description into the parts required for seqfetching
+			accession = hgvs_query.ac
+			start = hgvs_query.posedit.pos.start.base - 1
+			end = hgvs_query.posedit.pos.end.base	
+		
+			# Step 5: try and fetch the sequence using SeqFetcher. Dictionary an error if this fails
+			try:
+				sequence = sf.fetch_seq(accession,start,end)
+			except Exception as e:
+				reference['error'] = str(e)
+			else:
+				reference['start_position'] = str(input_hgvs_query.posedit.pos.start.base)
+				reference['end_position'] = str(input_hgvs_query.posedit.pos.end.base)
+				reference['sequence'] = sequence									
+
+	# Genomic reference sequence
+	elif hgvs_query.type == 'g' or hgvs_query.type == 'p':
+			# Step 3: split the variant description into the parts required for seqfetching
+			accession = hgvs_query.ac
+			start = hgvs_query.posedit.pos.start.base - 1
+			end = hgvs_query.posedit.pos.end.base	
+		
+			# Step 5: try and fetch the sequence using SeqFetcher. Dictionary an error if this fails
+			try:
+				sequence = sf.fetch_seq(accession,start,end)
+			except Exception as e:
+				reference['error'] = str(e)
+			else:
+				reference['start_position'] = str(input_hgvs_query.posedit.pos.start.base)
+				reference['end_position'] = str(input_hgvs_query.posedit.pos.end.base)
+				reference['sequence'] = sequence		
+
+
+	# Return the resulting reference sequence or error message
+	return reference
+
+
+
