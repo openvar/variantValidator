@@ -27,7 +27,7 @@ except ImportError:
 
 # Import validator functions
 import dbControls.data
-import functions
+# import functions
 
 # function for adding information to database
 def data_add(input, alt_aln_method, accession, dbaction, hp, evm, hdp):

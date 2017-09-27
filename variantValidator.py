@@ -5198,16 +5198,28 @@ def gene2transcripts(query):
 			except hgvs.exceptions.HGVSError as e:
 				caution = {'error' : str(e)}
 				return caution		
-		# Look up current name
-		current = va_func.hgnc_rest(path = "/search/prev_symbol/" + hgnc)
-		# Look for historic names
-		# If historic names = 0
-		if str(current['record']['response']['numFound']) == '0':
+
+		# First perform a search against the input gene symbol or the symbol inferred from UTA
+		initial = variantanalyser.functions.hgnc_rest(path = "/fetch/symbol/" + hgnc)
+		# Check for a record
+		if str(initial['record']['response']['numFound']) != '0':
 			current_sym = hgnc
-		else:
-			current_sym = current['record']['response']['docs'][0]['symbol']
-		# Look up previous symbols and gene name
-		previous = va_func.hgnc_rest(path = "/fetch/symbol/" + current_sym)
+			previous = initial
+		# No record found, is it a previous symbol?
+		else:	
+			# Look up current name
+			current = variantanalyser.functions.hgnc_rest(path = "/search/prev_symbol/" + hgnc)
+			# Look for historic names
+			# If historic names = 0
+			if str(current['record']['response']['numFound']) == '0':
+				current_sym = hgnc
+			else:
+				current_sym = current['record']['response']['docs'][0]['symbol']
+			# Look up previous symbols and gene name
+			# Re-set the previous variable
+			previous = variantanalyser.functions.hgnc_rest(path = "/fetch/symbol/" + current_sym)
+		
+		# Extract the relevant data
 		try:
 			previous_sym = previous['record']['response']['docs'][0]['prev_symbol'][0]
 		except:

@@ -14,7 +14,7 @@ import re
 
 # Needs functions from variantanalyser - directory above, unless in a single directory
 try:
-	import variantanalyser.functions
+	import variantanalyser.functions as functions
 except ImportError:	
 	parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 	os.sys.path.insert(0,parentdir)
@@ -157,15 +157,8 @@ def update_entry(entry, data, table):
 
 def update_transcript_info_record(accession, hdp):
 	accession = accession.split('.')[0] # list[3].split('.')[0]
-		
-# 	import from 1 level above
-# 	import os
-# 	import sys
-# 	parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-# 	os.sys.path.insert(0,parentdir)
-# 	import functions	
-	
-	# Search Entrez for corresponding record
+
+	# Search Entrez for corresponding record for the RefSeq ID
 	record = functions.entrez_efetch(db="nucleotide", id=accession, rettype="gb", retmode="text")
 	version = record.id 
 	description = record.description
@@ -190,16 +183,24 @@ def update_transcript_info_record(accession, hdp):
 		uta_info = hdp.get_tx_identity_info(version)
 	
 	uta_symbol = str(uta_info[6])	
-	# Search hgnc rest to see if symbol is out of date
-	rest_data = functions.hgnc_rest(path = "/search/prev_symbol/" + uta_symbol)
-	# If the name is correct no record will be found
-	if rest_data['error'] == 'false':
-		if int(rest_data['record']['response']['numFound']) == 0:
-			hgnc_symbol = uta_info[6]
+
+	# First perform a search against the input gene symbol or the symbol inferred from UTA
+	initial = functions.hgnc_rest(path = "/fetch/symbol/" + uta_symbol)
+	# Check for a record
+	if str(initial['record']['response']['numFound']) != '0':
+		hgnc_symbol = uta_symbol
+	# No record found, is it a previous symbol?
+	else:	
+		# Search hgnc rest to see if symbol is out of date
+		rest_data = functions.hgnc_rest(path = "/search/prev_symbol/" + uta_symbol)
+		# If the name is correct no record will be found
+		if rest_data['error'] == 'false':
+			if int(rest_data['record']['response']['numFound']) == 0:
+				hgnc_symbol = uta_info[6]
+			else:
+				hgnc_symbol = rest_data['record']['response']['docs'][0]['symbol']
 		else:
-			hgnc_symbol = rest_data['record']['response']['docs'][0]['symbol']
-	else:
-		hgnc_symbol = 'unassigned'
+			hgnc_symbol = 'unassigned'
 			
 	# Query information
 	query_info = [accession, description, variant, version, hgnc_symbol, uta_symbol]
