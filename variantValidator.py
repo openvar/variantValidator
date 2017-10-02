@@ -1,4 +1,3 @@
-
 # IMPORT HGVS MODULES
 import hgvs
 import hgvs.parser
@@ -22,6 +21,7 @@ import copy
 import os
 import sys
 from operator import itemgetter
+import warnings as warner
 
 # Import Biopython
 from Bio.Seq import Seq
@@ -295,8 +295,6 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							accession = accession
 						input = str(accession) + ref_type + str(positionAndEdit)
 						stash_input = input
-						#automap = 'Non-HGVS compliant variant description ' + input + ' automapped to ' + input + ': '
-						#validation['warnings'] = validation['warnings'] + ': ' + automap
 					except:
 						pass	
 				
@@ -465,10 +463,26 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							try:
 								hgvs_not_delins = hp.parse_hgvs_variant(not_delins)
 							except hgvs.exceptions.HGVSError as e:
-								error = str(e)
-								issue_link = ''
-								validation['warnings'] = validation['warnings'] + ': ' + error
-								continue
+								# Sort out multiple ALTS from VCF inputs
+								print not_delins
+								if re.search("([GATCgatc]+)>([GATCgatc]+),([GATCgatc]+)", not_delins):
+									header,alts = not_delins.split('>')
+									# Split up the alts into a list
+									alt_list = alts.split(',')
+									# Assemble and re-submit									
+									for alt in alt_list:
+										validation['warnings'] = 'Multiple ALT sequences detected: auto-submitting all possible combinations'
+										validation['write'] = 'false'
+										refreshed_description = header + '>' + alt
+										query = {'quibble' : refreshed_description, 'id' : validation['id'], 'warnings' : validation['warnings'], 'description' : '', 'coding' : '', 'coding_g' : '', 'genomic_r' : '', 'genomic_g' : '', 'protein' : '', 'write' : 'true', 'primary_assembly' : primary_assembly, 'order' : ordering}
+										batch_list.append(query)
+									continue
+								else:									
+									error = str(e)
+									issue_link = ''
+									validation['warnings'] = validation['warnings'] + ': ' + error
+									continue
+
 							# Re-Stash the input as an HGVS
 							stash_input = copy.copy(hgvs_not_delins)
 							try:
@@ -1228,8 +1242,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					except hgvs.exceptions.HGVSError as e:
 						error = str(e)
 						if VALIDATOR_DEBUG is not None:
-							import warnings
-							warnings.warn(error)
+							warner.warn(error)
 					if error != 'false':
 						error = 'Please inform UTA admin of the following error: ' + str(error)
 						issue_link = "https://bitbucket.org/biocommons/uta/issues?status=new&status=open"
@@ -4239,8 +4252,14 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								hgvs_coding = hgvs_seek_var
 								coding = valstr(hgvs_coding)
 								validation['warnings'] = validation['warnings'] + ': ' + automap
+								rng = hn.normalize(query_genomic)
+								c_for_p = vm.g_to_t(rng, hgvs_coding.ac)
+								hgvs_protein = evm.c_to_p(c_for_p)
+								protein = str(hgvs_protein)
 							else:
-								coding = valstr(hgvs_coding)					
+								# Double check protein position by normalize genomic, and normalize back to c. for normalize or not to normalize issue
+								coding = valstr(hgvs_coding)
+
 
 						elif ori != -1:
 							# position genomic at its most 3 prime position
@@ -4272,7 +4291,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								coding = valstr(hgvs_coding)
 								validation['warnings'] = validation['warnings'] + ': ' + automap
 							else:
+								# Double check protein position by reverse_norm genomic, and normalize back to c. for normalize or not to normalize issue
 								coding = valstr(hgvs_coding)
+								rng = reverse_normalize.normalize(query_genomic)
+								c_for_p = vm.g_to_t(rng, hgvs_coding.ac)
+								hgvs_protein = evm.c_to_p(c_for_p)
+								protein = str(hgvs_protein)								
 
  				# Set the data 
 				validation['description'] = hgnc_gene_info
@@ -4293,7 +4317,6 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					print str(er)
 					raise variantValidatorException('Validation error')
 				else:	
-					import warnings
 					import traceback
 					error = 'Validation error'
 					validation['warnings'] = str(error)
@@ -4301,7 +4324,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					te = traceback.format_exc()
 					tbk = [str(exc_type), str(exc_value), str(te)]
 					er = str('\n'.join(tbk))
-					warnings.warn(er)
+					warner.warn(er)
 					continue
 
 		# Outside the for loop		
@@ -4958,7 +4981,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										else:
 											pass
 										# Quick check to make sure the coding variant has not changed
-										to_test = hn.normalize(hgvs_refreshed_variant)
+										try:
+											to_test = hn.normalize(hgvs_refreshed_variant)
+										except:
+											to_test = hgvs_refreshed_variant	
 										if str(to_test.posedit.edit) != str(hgvs_coding.posedit.edit):
 											# Try the next available genomic option
 											continue
@@ -5012,9 +5038,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									exc_type, exc_value, last_traceback = sys.exc_info()
 									te = traceback.format_exc()
 									error = str(te) 
-									# print error
-									import warnings
-									warnings.warn(error)
+									warner.warn(error)
 									continue
 								else:
 									continue	
