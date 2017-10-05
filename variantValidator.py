@@ -31,7 +31,11 @@ VALIDATOR_DEBUG = os.environ.get('VALIDATOR_DEBUG')
 if VALIDATOR_DEBUG is not None:
 	# Logging
 	import logging
-	logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+	if VALIDATOR_DEBUG == 'log_to_logger':
+		logging.getLogger()
+		logging.info('Logging to log file')
+	else:	
+		logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 # Ensure configuration is on the OS
 if os.environ.get('CONF_ROOT') is None:
@@ -942,6 +946,18 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								error = 'Interval start position ' + str(input_parses.posedit.pos.start) + ' > interval end position ' + str(input_parses.posedit.pos.end)
 								validation['warnings'] = validation['warnings'] + ': ' + str(error)
 								continue
+							else:
+								error = str(e)
+								validation['warnings'] = validation['warnings'] + ': ' + str(error)
+								continue					
+
+						try:
+							evm.g_to_t(output, input_parses.ac)
+						except hgvs.exceptions.HGVSError as e:
+							error = str(e)			
+							validation['warnings'] = validation['warnings'] + ': ' + str(error)
+							continue
+
 						try: 
 							vr.validate(output)
 						except hgvs.exceptions.HGVSError as e:
@@ -1243,6 +1259,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						error = str(e)
 						if VALIDATOR_DEBUG is not None:
 							warner.warn(error)
+							logging.warn(error)
 					if error != 'false':
 						error = 'Please inform UTA admin of the following error: ' + str(error)
 						issue_link = "https://bitbucket.org/biocommons/uta/issues?status=new&status=open"
@@ -4294,10 +4311,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								# Double check protein position by reverse_norm genomic, and normalize back to c. for normalize or not to normalize issue
 								coding = valstr(hgvs_coding)
 								rng = reverse_normalize.normalize(query_genomic)
-								c_for_p = vm.g_to_t(rng, hgvs_coding.ac)
-								hgvs_protein = evm.c_to_p(c_for_p)
-								protein = str(hgvs_protein)								
-
+								try:
+									c_for_p = vm.g_to_t(rng, hgvs_coding.ac)
+									hgvs_protein = evm.c_to_p(c_for_p)
+									protein = str(hgvs_protein)								
+								except:
+									pass
+								
  				# Set the data 
 				validation['description'] = hgnc_gene_info
 				validation['coding'] = str(hgvs_coding)
@@ -4325,6 +4345,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					tbk = [str(exc_type), str(exc_value), str(te)]
 					er = str('\n'.join(tbk))
 					warner.warn(er)
+					logging.warn(er)
 					continue
 
 		# Outside the for loop		
@@ -5039,6 +5060,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									te = traceback.format_exc()
 									error = str(te) 
 									warner.warn(error)
+									logging.warn(error)
 									continue
 								else:
 									continue	
@@ -5320,6 +5342,8 @@ def gene2transcripts(query):
  		
 # Fetch reference sequence from a HGVS variant description	
 def hgvs2ref(query):
+	if VALIDATOR_DEBUG is not None:
+		logging.info('Fetching reference sequence for ' + query)
 	# Dictionary to store the data
 	reference = {'variant' : query,
 				'start_position' : '',
@@ -5355,6 +5379,14 @@ def hgvs2ref(query):
 				sequence = sf.fetch_seq(accession,start,end)
 			except Exception as e:
 				reference['error'] = str(e)
+				if VALIDATOR_DEBUG is not None:
+					import traceback
+					exc_type, exc_value, last_traceback = sys.exc_info()
+					te = traceback.format_exc()
+					# tr = ''.join(traceback.format_stack())
+					tbk = [str(exc_type), str(exc_value), str(te)]
+					er = '\n'.join(tbk)
+					logging.info(er)	
 			else:
 				reference['start_position'] = str(input_hgvs_query.posedit.pos.start.base)
 				reference['end_position'] = str(input_hgvs_query.posedit.pos.end.base)
@@ -5370,6 +5402,14 @@ def hgvs2ref(query):
 				sequence = sf.fetch_seq(accession,start,end)
 			except Exception as e:
 				reference['error'] = str(e)
+				if VALIDATOR_DEBUG is not None:
+					import traceback
+					exc_type, exc_value, last_traceback = sys.exc_info()
+					te = traceback.format_exc()
+					# tr = ''.join(traceback.format_stack())
+					tbk = [str(exc_type), str(exc_value), str(te)]
+					er = '\n'.join(tbk)
+					logging.info(er)	
 			else:
 				reference['start_position'] = str(input_hgvs_query.posedit.pos.start.base)
 				reference['end_position'] = str(input_hgvs_query.posedit.pos.end.base)
@@ -5377,20 +5417,28 @@ def hgvs2ref(query):
 
 	# Genomic reference sequence
 	elif hgvs_query.type == 'g' or hgvs_query.type == 'p':
-			# Step 3: split the variant description into the parts required for seqfetching
-			accession = hgvs_query.ac
-			start = hgvs_query.posedit.pos.start.base - 1
-			end = hgvs_query.posedit.pos.end.base	
+		# Step 3: split the variant description into the parts required for seqfetching
+		accession = hgvs_query.ac
+		start = hgvs_query.posedit.pos.start.base - 1
+		end = hgvs_query.posedit.pos.end.base	
 		
-			# Step 5: try and fetch the sequence using SeqFetcher. Dictionary an error if this fails
-			try:
-				sequence = sf.fetch_seq(accession,start,end)
-			except Exception as e:
-				reference['error'] = str(e)
-			else:
-				reference['start_position'] = str(input_hgvs_query.posedit.pos.start.base)
-				reference['end_position'] = str(input_hgvs_query.posedit.pos.end.base)
-				reference['sequence'] = sequence		
+		# Step 5: try and fetch the sequence using SeqFetcher. Dictionary an error if this fails
+		try:
+			sequence = sf.fetch_seq(accession,start,end)
+		except Exception as e:
+			reference['error'] = str(e)
+			if VALIDATOR_DEBUG is not None:
+				import traceback
+				exc_type, exc_value, last_traceback = sys.exc_info()
+				te = traceback.format_exc()
+				# tr = ''.join(traceback.format_stack())
+				tbk = [str(exc_type), str(exc_value), str(te)]
+				er = '\n'.join(tbk)
+				logging.info(er)	
+		else:
+			reference['start_position'] = str(input_hgvs_query.posedit.pos.start.base)
+			reference['end_position'] = str(input_hgvs_query.posedit.pos.end.base)
+			reference['sequence'] = sequence		
 
 
 	# Return the resulting reference sequence or error message
