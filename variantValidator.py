@@ -125,7 +125,9 @@ def my_config():
 
 # Validator code
 def validator(batch_variant, selected_assembly, select_transcripts):	
-
+	if VALIDATOR_DEBUG is not None:
+		logging.info(batch_variant + ' : ' + selected_assembly)
+	
 	# Set pre defined variables
 	gene_symbols = ''
 	alt_aln_method = 'splign'
@@ -264,7 +266,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							chr_num = chr_num.upper()
 							chr_num = chr_num.strip()
 							chr_num = chr_num.replace('CHR', '')
-							accession = va_scb.to_accession(chr_num, primary_assembly)	
+							# Use selected assembly
+							accession = va_scb.to_accession(chr_num, selected_assembly)	
 						else:
 							accession = input_list[0]	
 						if re.search('>', pre_input):
@@ -318,11 +321,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								chr_num = chr_num.upper()
 								chr_num = chr_num.strip()
 								chr_num = chr_num.replace('CHR', '')
-								accession = va_scb.to_accession(chr_num, primary_assembly)	
+								# Use selected assembly
+								accession = va_scb.to_accession(chr_num, selected_assembly)	
 								input = str(accession) + ':' + str(positionAndEdit)
-								stash_input = input
-								#caution = 'Non-HGVS compliant variant description ' + input + ' automapped to ' + input + ':'
-								#validation['warnings'] = validation['warnings'] + ': ' + caution							
+								stash_input = input						
 							else:
 								pass
 						except:
@@ -411,7 +413,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					try:
 						# If the length of either side of the substitution delimer (>) is >1
 						matches = not_sub_find.search(not_sub)
-						if len(matches.group(1)) > 1 or len(matches.group(2)) > 1:
+						if len(matches.group(1)) > 1 or len(matches.group(2)) > 1 or re.search("([GATCgatc]+)>([GATCgatc]+),([GATCgatc]+)", input): 
 							# Search for and remove range
 							range = re.compile("([0-9]+)_([0-9]+)")
 							if range.search(not_sub):
@@ -467,6 +469,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							try:
 								hgvs_not_delins = hp.parse_hgvs_variant(not_delins)
 							except hgvs.exceptions.HGVSError as e:
+								print 'ni wom'
+								print input
+								print e
 								# Sort out multiple ALTS from VCF inputs
 								print not_delins
 								if re.search("([GATCgatc]+)>([GATCgatc]+),([GATCgatc]+)", not_delins):
@@ -997,7 +1002,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								error = 'Interval start position ' + str(input_parses.posedit.pos.start) + ' > interval end position ' + str(input_parses.posedit.pos.end)
 								validation['warnings'] = validation['warnings'] + ': ' + str(error)
 								continue
-
+							# Boundary issue
+							if re.search('Variant coordinate is out of the bound of CDS region', error):
+								validation['warnings'] = validation['warnings'] + ': ' + str(error)
+								continue
+								
 						except hgvs.exceptions.HGVSDataNotAvailableError as e:
 							error = e
 							validation['warnings'] = validation['warnings'] + ': ' + str(error)
@@ -1125,6 +1134,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								error = 'Interval start position ' + str(input_parses.posedit.pos.start) + ' > interval end position ' + str(input_parses.posedit.pos.end)
 								validation['warnings'] = validation['warnings'] + ': ' + str(error)
 								continue
+							# Boundary issue
+							if re.search('Variant coordinate is out of the bound of CDS region', error):
+								validation['warnings'] = validation['warnings'] + ': ' + str(error)
+								continue
 						except hgvs.exceptions.HGVSDataNotAvailableError as e:
 								error = e
 								validation['warnings'] = validation['warnings'] + ': ' + str(error)
@@ -1140,10 +1153,33 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 		
 
 				# Mitochondrial variants
-				if type == ':m.':
-					error='Mitochondrial variation is not currently supported'
-					validation['warnings'] = validation['warnings'] + ': ' + str(error)
-					continue
+				if type == ':m.' or re.match('NC_012920.1', str(input_parses.ac)) or re.match('NC_001807.4', str(input_parses.ac)):
+					hgvs_mito = copy.deepcopy(input_parses)
+					if (re.match('NC_012920.1', str(hgvs_mito.ac)) and hgvs_mito.type == 'm') or (re.match('NC_001807.4', str(hgvs_mito.ac)) and hgvs_mito.type == 'm'):
+						hgvs_mito.type = 'g'		
+						caution = ''
+					try:
+						vr.validate(hgvs_mito)
+					except hgvs.exceptions.HGVSError as e:
+						error = caution + ': ' + str(e)
+						validation['warnings'] = validation['warnings'] + ': ' + str(error)
+						continue
+					except KeyError as e:
+						error = caution + ': Currently unable to validate ' + hgvs_mito.ac + ' sequence variation' 
+						validation['warnings'] = validation['warnings'] + ': ' + str(error)
+						continue
+					else:	
+						# Any transcripts?
+						rel_var = variantanalyser.functions.relevant_transcripts(hgvs_mito, evm, hdp, alt_aln_method)
+						hgvs_genomic = copy.deepcopy(hgvs_mito)
+						if len(rel_var) == 0:						
+							validation['genomic_g']	= valstr(hgvs_mito)
+							validation['description'] = 'Homo sapiens mitochondrion, complete genome' 
+							continue									
+						# Currently we are not expecting this path to be activated because not m. transcripts seem to be NM_
+						# This route may throw up errors in the future
+						else:
+							pass
 
 				# handle :p.
 				if type == ':p.':		
@@ -1259,7 +1295,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						error = str(e)
 						if VALIDATOR_DEBUG is not None:
 							warner.warn(error)
-							logging.warn(error)
+							logging.info(error)
 					if error != 'false':
 						error = 'Please inform UTA admin of the following error: ' + str(error)
 						issue_link = "https://bitbucket.org/biocommons/uta/issues?status=new&status=open"
@@ -4330,12 +4366,15 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 			except:
 				if VALIDATOR_DEBUG is not None:
 					import traceback
+					error = 'Validation error'
+					validation['warnings'] = str(error)
 					exc_type, exc_value, last_traceback = sys.exc_info()
 					te = traceback.format_exc()
 					tbk = [str(exc_type), str(exc_value), str(te)]
-					er = '\n'.join(tbk)
-					print str(er)
-					raise variantValidatorException('Validation error')
+					er = str('\n'.join(tbk))
+					warner.warn(er)
+					logging.info(er)
+					continue
 				else:	
 					import traceback
 					error = 'Validation error'
@@ -4345,7 +4384,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					tbk = [str(exc_type), str(exc_value), str(te)]
 					er = str('\n'.join(tbk))
 					warner.warn(er)
-					logging.warn(er)
+					logging.info(er)
 					continue
 
 		# Outside the for loop		
@@ -5021,7 +5060,6 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									if disparity_deletion_in[0] != 'false':
 										break		
 
-								# TO BATCH AND API
 								# Normailse hgvs_genomic
 								try:
 									hgvs_alt_genomic = hn.normalize(hgvs_alt_genomic)
@@ -5060,7 +5098,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									te = traceback.format_exc()
 									error = str(te) 
 									warner.warn(error)
-									logging.warn(error)
+									logging.info(error)
 									continue
 								else:
 									continue	
@@ -5068,11 +5106,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							multi_g.sort()				
 							multi_gen_vars = multi_g #'|'.join(multi_g)
 						else:
-							multi_gen_vars = []		
-					
-					else:
-						multi_gen_vars = []													
-					
+							multi_gen_vars = []	
+					else:												
+						# HGVS genomic in the absence of a transcript variant
+						if genomic_variant != '':
+							multi_gen_vars = [hgvs_genomic_variant]							
+						else:
+							multi_gen_vars = []						
 					
 					# Dictionaries of genomic loci
 					alt_genomic_dicts = []
@@ -5173,6 +5213,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					warnings_out = []
 					for warning in warn_list:
 						warning.strip()
+						warning = warning.replace("'", "")
 						if warning == '':
 							continue
 						warnings_out.append(warning)
@@ -5219,6 +5260,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 			tbk = [str(exc_type), str(exc_value), str(te)]
 			er = '\n'.join(tbk)
 			print str(er)
+			logging.info=(er)
 		# Report and raise error
 		error = [{'validation_warnings': 'Validation error'}]
 		raise variantValidatorException('Validation error')
@@ -5368,7 +5410,8 @@ def hgvs2ref(query):
 		if hgvs_query.posedit.pos.start.offset != 0 and hgvs_query.posedit.pos.end.offset != 0:
 			reference['warning'] = 'Intronic sequence variation: Use genomic reference sequence'
 		elif hgvs_query.posedit.pos.start.offset != 0 or hgvs_query.posedit.pos.end.offset != 0:	
-			reference['warning'] = 'Partial intronic sequence variation: Returning exonic sequence only'
+			reference['warning'] = 'Partial intronic sequence variation: Returning exonic and/or UTR sequence only'
+				
 			# Step 3: split the variant description into the parts required for seqfetching
 			accession = hgvs_query.ac
 			start = hgvs_query.posedit.pos.start.base - 1
@@ -5388,6 +5431,7 @@ def hgvs2ref(query):
 					er = '\n'.join(tbk)
 					logging.info(er)	
 			else:
+				reference['warning'] = 'Returning exonic and/or UTR sequence only'
 				reference['start_position'] = str(input_hgvs_query.posedit.pos.start.base)
 				reference['end_position'] = str(input_hgvs_query.posedit.pos.end.base)
 				reference['sequence'] = sequence
