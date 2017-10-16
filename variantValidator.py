@@ -1,3 +1,68 @@
+# -*- coding: utf-8 -*-
+"""
+VarinatValidator.py
+
+Top level VariantValidator functions
+
+This API is configured by reading the configuration information in the config.ini file
+located in the configuration module contained the the root variantValidator directory. 
+These configurations can be over-ridden by setting environment variables, see 
+README.txt 
+
+This version of the VariantValidator API 0.1.0 contains the following functions:
+
+1 my_config
+my_config is a simple function that allows the user to detrmine wheter VariantValidator is 
+correctly configured, i.e. is the tool searching in the correct locations for its data? 
+The function also returns version information
+
+# Example
+my_config()
+
+
+2. validator
+validator is the primary VariantValidator function which validates sequence variation 
+descriptions. validator uses sub functions in the variantanalyser module
+contained the the root variantValidator directory, and functions priovided by the 
+hgvs Python package (https://github.com/biocommons/hgvs/) to "manipulate biological 
+sequence variants according to Human Genome Variation Society recommendations"
+
+# Example
+variant = ' NM_000088.3:c.589G>T'
+selected_assembly = 'GRCh37' # or GRCh37, hg19, hg38
+select_transcripts = 'all' # Or a pipe delimited, white-space-less, string of transcript
+IDs validation = validator(variant, selected_assembly, select_transcripts)
+
+# Accepted input formats
+NM_000088.3:c.589G>T
+NC_000017.10:g.48275363C>A
+NG_007400.1:g.8638G>T
+LRG_1:g.8638G>T
+LRG_1t1:c.589G>T
+17-50198002-C-A (GRCh38)
+chr17:50198002C>A (GRCh38)
+
+
+3. gene2transcripts
+This function is similar to the Gene to Transcripts function 
+https://variantvalidator.org/ref_finder/ except the data is returned within a structured 
+python object
+
+# HGNC example
+variantValidator.validator.gene2transcripts ('HTT')
+# RefSeq Transcript example
+variantValidator.validator.gene2transcripts (' NM_002111.8')
+
+
+4. hgvs2ref
+This function retuns the reference sequence with respect to HGVS variation descriptions
+The function will only return REFERENCE SEQUENCE i.e. if a c. descriptions overlaps an 
+intron/exon boundary, only the exonic sequence will be returned
+
+# Example
+hgvs2ref('NM_000088.3:c.589_594del')
+"""
+
 # IMPORT HGVS MODULES
 import hgvs
 import hgvs.parser
@@ -40,6 +105,31 @@ if VALIDATOR_DEBUG is not None:
 # Ensure configuration is on the OS
 if os.environ.get('CONF_ROOT') is None:
 	import configuration
+	CONF_ROOT = os.environ.get('CONF_ROOT')	
+else:
+	CONF_ROOT = os.environ.get('CONF_ROOT')	
+
+# Config Section Mapping function
+def ConfigSectionMap(section):
+    dict1 = {}
+    options = Config.options(section)
+    for option in options:
+        try:
+            dict1[option] = Config.get(section, option)
+            if dict1[option] == -1:
+                DebugPrint("skip: %s" % option)
+        except:
+            print("exception on %s!" % option)
+            dict1[option] = None
+    return dict1
+
+# Set the version from the config.ini
+from configparser import ConfigParser
+Config = ConfigParser()
+Config.read(os.path.join(CONF_ROOT, 'config.ini'))
+__version__ = ConfigSectionMap("variantValidator")['version']
+if re.match("^\d+\.\d+\.\d+$", __version__) is not None:
+	_is_released_version = True
 
 # Import variantanalyser and peripheral VV modules
 import ref_seq_type
@@ -108,17 +198,23 @@ def ref_type_assign(accession):
 		ref_type = ':p.'	
 	return ref_type		
 
-# Check environ variables
+# Check configuration variables
 def my_config():
 	HGVS_SEQREPO_DIR = os.environ.get('HGVS_SEQREPO_DIR')
 	UTA_DB_URL = os.environ.get('UTA_DB_URL')
 	VALIDATOR_DB_URL = os.environ.get('VALIDATOR_DB_URL')
 	ENTREZ_ID = os.environ.get('ENTREZ_ID')
+	VERSION = __version__,
+	VERSION = str(VERSION[0])
+	hgvs_version = hgvs.__version__ ,
+	hgvs_version = str(hgvs_version[0])
 	locate = {
-			'HGVS_SEQREPO_DIR' : HGVS_SEQREPO_DIR,
-			'UTA_DB_URL' : UTA_DB_URL,
-			'VALIDATOR_DB_URL' : VALIDATOR_DB_URL,
-			'ENTREZ_ID' : ENTREZ_ID
+			'SeqRepo_Directory' : HGVS_SEQREPO_DIR,
+			'UTA_URL' : UTA_DB_URL,
+			'variantValidator_data_URL' : VALIDATOR_DB_URL,
+			'ENTREZ_ID' : ENTREZ_ID,
+			'variantValidator_Version' : VERSION,
+			'hgvs_version' : hgvs_version
 			}
 	
 	return locate
@@ -129,10 +225,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 		logging.info(batch_variant + ' : ' + selected_assembly)
 	
 	# Set pre defined variables
-	gene_symbols = ''
 	alt_aln_method = 'splign'
 	# SeqFetcher
-	sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
+	# sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
 	
 	try:	
 		# Validation
@@ -156,25 +251,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 		input_genes = {}
 
 		# Remove genes if transcripts selected
-		if select_transcripts != 'all':
-			gene_symbols = ''
-		else:
-			pass	
+		# if select_transcripts != 'all':
 
-		if gene_symbols != '':
-			# List the genes
-			gene_symbols = gene_symbols.strip()
-			genes_list = gene_symbols.split()
-			# Extract the required data
-			for symbol in genes_list:
-				symbol = symbol.strip()
-				if symbol == '':
-					continue
-				else:
-					query = va_dbCrl.data.get_transcribed_span_for_gene(symbol, selected_assembly)
-					input_genes[symbol] = query	
-		else:
-			pass
 
 		# split the batch queries into a list 
 		batch_queries = batch_variant.split()
@@ -255,7 +333,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 				# API type non-HGVS
 				# Chr16:2099572TC>T
 				if re.search('\w+\:', input) and not re.search('\w+\:[gcnmrp].', input):
-					sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
+					# sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
 					try:
 						pre_input = copy.deepcopy(input)
 						input_list = input.split(':')
@@ -313,7 +391,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							pre_input = copy.deepcopy(input)
 							input_list = input.split(':')
 							query_a_symbol = input_list[0]
-							is_it_a_gene = va_dbCrl.data.get_current_hgnc_symbol(query_a_symbol, primary_assembly)
+							is_it_a_gene = va_dbCrl.get_hgncSymbol(query_a_symbol)
 							if is_it_a_gene == 'none':
 								pos_ref_alt = str(input_list[1]) 
 								positionAndEdit = input_list[1]
@@ -336,7 +414,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						pre_input = copy.deepcopy(input)
 						query_a_symbol = pre_input.split(':')[0]
 						tx_edit = pre_input.split(':')[1]
-						is_it_a_gene = va_dbCrl.data.get_current_hgnc_symbol(query_a_symbol, primary_assembly)
+						is_it_a_gene = va_dbCrl.data.get_hgncSymbol(query_a_symbol)
 						if is_it_a_gene != 'none':
 							uta_symbol = va_dbCrl.data.get_uta_symbol(is_it_a_gene)
 							available_transcripts = hdp.get_tx_for_gene(uta_symbol)
@@ -717,12 +795,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							normalize=True, 
 							replace_reference=True
 							)
-					# create normalizer
-# 					hn = hgvs.normalizer.Normalizer(hdp,
-# 							cross_boundaries=False,
-# 							shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
-# 							alt_aln_method=alt_aln_method
-# 							)
+
 					# Setup a reverse normalize instance and non-normalize evm
 					no_norm_evm = hgvs.assemblymapper.AssemblyMapper(hdp,
 							assembly_name=primary_assembly, 
@@ -730,11 +803,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							normalize=False, 
 							replace_reference=True
 							)
-# 					reverse_normalize = hgvs.normalizer.Normalizer(hdp, 
-# 							cross_boundaries=False, 
-# 							shuffle_direction=5, 
-# 							alt_aln_method=alt_aln_method
-# 							)							
+							
 
 				# Will extract any genomic variants and append to list		
 				elif is_mapable == 'false' and type == ':g.':
@@ -742,13 +811,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					primary_assembly = 'GRCh37'
 					# Create easy variant mapper (over variant mapper) and splign locked evm
 					evm = hgvs.assemblymapper.AssemblyMapper(hdp, assembly_name=primary_assembly, alt_aln_method=alt_aln_method, normalize=True, replace_reference=True)
-
-					# Create normalizer instance for primary/which will be target_assembly
-# 					hn = hgvs.normalizer.Normalizer(hdp,
-# 							cross_boundaries=False,
-# 							shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
-# 							alt_aln_method=alt_aln_method
-# 							)		
+	
 					# Liftover
 					hgvs_variant = hp.parse_hgvs_variant(variant)
 					target_hgvs_variant = va_lo.hgvs_liftover(hgvs_variant, primary_assembly=historic_assembly, target_assembly=primary_assembly, hn=hn)
@@ -2897,7 +2960,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						except hgvs.exceptions.HGVSError as e:
 							error = str(e)
 						if error == 'false':
-							hgvs_genomic = va_func.genomic(variant, evm, hp, hdp, primary_assembly)
+							hgvs_genomic = va_func.myevm_t_to_g(hgvs_coding, evm, hdp, primary_assembly)
 						elif boundary.search(str(error)) or spanning.search(str(error)):
 							hgvs_genomic = va_func.myevm_t_to_g(hgvs_coding, evm, hdp, primary_assembly)
 						else:
@@ -2938,16 +3001,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									chromosome_normalized_hgvs_coding = hgvs_coding
 								elif re.match('Unsupported normalization of variants spanning the exon-intron boundary', error):
 									chromosome_normalized_hgvs_coding = hgvs_coding	
-			
-						# print hgvs_coding
-						# print chromosome_normalized_hgvs_coding
 
 						most_3pr_hgvs_genomic = va_func.myevm_t_to_g(chromosome_normalized_hgvs_coding, no_norm_evm, hdp, primary_assembly)
 						hgvs_genomic_possibilities.append(most_3pr_hgvs_genomic)
 
 						# Push from side to side to try pick up odd placements
 						# MAKE A NO NORM HGVS2VCF
-
 						# First to the right
 						hgvs_stash = copy.deepcopy(hgvs_coding)
 						try:
@@ -4151,8 +4210,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						inversion = re.compile('inv')
 						if inversion.search(variant):
 							# SeqFetcher
-							sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
-							# TO BATCH
+							# sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
 							if re.search(':n.', variant):
 								hgvs_protein = va_func.protein(variant, evm, hp)
 								protein = str(hgvs_protein)
@@ -4174,7 +4232,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									p = evm.c_to_p(cod)
 									ass_prot = p.ac	
 					
-								# Intronic inversions go down as uncertain
+								# UTR and Intronic inversions go down as uncertain
 								int_pl = re.compile('\+')
 								int_mi = re.compile('\-')
 								if int_pl.search(variant) or int_mi.search(variant) or re.search('\*', variant):
@@ -5431,7 +5489,6 @@ def hgvs2ref(query):
 					er = '\n'.join(tbk)
 					logging.info(er)	
 			else:
-				reference['warning'] = 'Returning exonic and/or UTR sequence only'
 				reference['start_position'] = str(input_hgvs_query.posedit.pos.start.base)
 				reference['end_position'] = str(input_hgvs_query.posedit.pos.end.base)
 				reference['sequence'] = sequence
@@ -5488,5 +5545,7 @@ def hgvs2ref(query):
 	# Return the resulting reference sequence or error message
 	return reference
 
+# <LICENSE>
 
+# </LICENSE>
 

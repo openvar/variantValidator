@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='VariantValidator',
-    version=open('VERSION.txt').read(),
+    version='0.1.0',
     description='API for accurate, mapping and formatting of sequence variants using HGVS nomenclature',
     long_description=open('README.txt').read(),
     url='',
@@ -25,7 +25,7 @@ setup(
         'Topic :: Software Development :: Build Tools',
 
         # License
-        # 'License :: OSI Approved :: MIT License',
+        license=open('LICENSE.txt').read(),
 
         # Specify the Python versions
         'Programming Language :: Python :: 2.7',

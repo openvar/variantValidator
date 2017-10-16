@@ -1,3 +1,27 @@
+# -*- coding: utf-8 -*-
+"""
+hgvs2vcf.py
+ 
+A variety of functions that convert parder hgvs objects into VCF component parts
+Each function has a slightly difference emphasis
+
+1. hgvs2vcf
+Simple conversionwhich ensures identity is as 5 prime as possible by adding an extra 5
+prime base. Necessary for most gap handling situations
+
+2. report_hgvs2vcf
+Used to report the Most true representation of the VCF i.e. 5 prime normalized but no 
+additional bases added. NOTE: no gap handling capabilities
+
+3. pos_lock_hgvs2vcf
+No normalization at all. No additional bases added. Simply returns an in-situ VCF
+
+4. hard_right_hgvs2vcf and hard_left_hgvs2vcf
+Designed specifically for gap handling. 
+hard left pushes as 5 prime as possible and adds additional bases
+hard right pushes as 3 prime as possible and adds additional bases
+"""
+
 # Import  modules
 import re
 import copy
@@ -202,7 +226,6 @@ def report_hgvs2vcf(hgvs_genomic):
 				
 
 
-	# TO BATCH AND API AND VALIDATOR
 	if re.search('[GATC]+\=', str(reverse_normalized_hgvs_genomic.posedit)):
 		pos = str(reverse_normalized_hgvs_genomic.posedit.pos.start)
 		ref = reverse_normalized_hgvs_genomic.posedit.edit.ref
@@ -322,7 +345,6 @@ def report_hgvs2vcf(hgvs_genomic):
 	
 def pos_lock_hgvs2vcf(hgvs_genomic):		
 					
-	# DO NOT Reverse normalize
 	reverse_normalized_hgvs_genomic = hgvs_genomic
 	hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
@@ -469,7 +491,6 @@ def hard_right_hgvs2vcf(hgvs_genomic):
 	else:
 		chr = normalized_hgvs_genomic.ac	
 
-	# TO BATCH AND API AND VALIDATOR
 	if re.search('[GATC]+\=', str(normalized_hgvs_genomic.posedit)):
 		pos = str(normalized_hgvs_genomic.posedit.pos.start)
 		ref = normalized_hgvs_genomic.posedit.edit.ref
@@ -590,14 +611,7 @@ def hard_right_hgvs2vcf(hgvs_genomic):
 		post = sf.fetch_seq(str(normalized_hgvs_genomic.ac),pre_end_pos-1,end_pos)
 		ref = ref + post
 		alt = alt + post
-# 		Add another pre-base
-# 		pre_pos = int(pos) - 1
-# 		pre_pos 
-# 		prev = sf.fetch_seq(str(normalized_hgvs_genomic.ac),pre_pos-1,pre_pos)
-# 		pos = str(pre_pos)				
-# 		ref = prev + ref
-# 		alt = prev + alt
-	
+
 	# Dictionary the VCF
 	vcf_dict = {'chr' : chr, 'pos' : pos, 'ref' : ref, 'alt' : alt}
 	return vcf_dict	
@@ -731,14 +745,6 @@ def hard_left_hgvs2vcf(hgvs_genomic):
 		
 	# ADD SURROUNDING BASES
 	if chr != '' and pos != '' and ref != '' and alt != '':
-#       Add 2 post bases
-# 		pos = int(pos)
-# 		pre_end_pos = pos + len(ref)
-# 		end_pos = pre_end_pos + 1
-# 		post = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),pre_end_pos-1,end_pos)
-# 		ref = ref + post
-# 		alt = alt + post
-		# Add another pre-base
 		pre_pos = int(pos) - 1
 		pre_pos 
 		prev = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),pre_pos-1,pre_pos)
@@ -749,3 +755,7 @@ def hard_left_hgvs2vcf(hgvs_genomic):
 	# Dictionary the VCF
 	vcf_dict = {'chr' : chr, 'pos' : pos, 'ref' : ref, 'alt' : alt}
 	return vcf_dict			
+
+# <LICENSE>
+
+# </LICENSE>

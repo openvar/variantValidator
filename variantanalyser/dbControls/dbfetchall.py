@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+
+"""
+dbfetchall.py
+
+Functions which make MySQL fetchall queries
+"""
+
 import dbConnection
 
 def execute(query):
@@ -19,20 +27,20 @@ def execute(query):
 # Methods
 
 def get_transcript_info_for_gene(gene_symbol):
-	#""" Connect to MySQL database """
 	query = "SELECT refSeqID, description, transcriptVariant, currentVersion, hgncSymbol, utaSymbol, updated, IF(updated < NOW() - INTERVAL 3 MONTH , 'true', 'false') FROM transcript_info WHERE hgncSymbol = '%s'" %(gene_symbol)
 	rows = execute(query)
 	return rows
 
-def get_transcribed_span_for_gene(gene_symbol, primary_assembly):
-	#""" Connect to MySQL database """
-	table = 'genePos' + primary_assembly.replace('GRCh', '')
-	query = "SELECT chr, start, end FROM " + table + " WHERE symbol = '%s'" %(gene_symbol) 
-	rows = execute(query)
-	return rows
+"""
+Marked for removal
+"""
+# def get_transcribed_span_for_gene(gene_symbol, primary_assembly):
+# 	table = 'genePos' + primary_assembly.replace('GRCh', '')
+# 	query = "SELECT chr, start, end FROM " + table + " WHERE symbol = '%s'" %(gene_symbol) 
+# 	rows = execute(query)
+# 	return rows
 
 def get_g_to_g_info():
-	#""" Connect to MySQL database """
 	query = "SELECT refSeqGeneID, refSeqChromosomeID, startPos, endPos, orientation, hgncSymbol, genomeBuild FROM refSeqGene_loci"
 	table = execute(query)
 	return table
@@ -45,4 +53,6 @@ def get_all_transcriptID():
 if __name__ == '__main__':
 	query_with_fetchall()
 	
-	
+# <LICENSE>
+
+# </LICENSE>	

@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+"""
+supported chromosome builds.py
+ 
+Contains the necessary functions for matching RefSeq accessions with chromosome numbers
+or alt loci names based on genome builds 
+"""
+
 # Python modules
 import re
 
@@ -3988,4 +3996,6 @@ def to_chr_num_grc(accession):
 	chr_num = chr_num_convert.get(accession)
 	return chr_num	
 	
-	
+# <LICENSE>
+
+# </LICENSE>	

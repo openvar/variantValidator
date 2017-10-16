@@ -1,3 +1,14 @@
+# -*- coding: utf-8 -*-
+"""
+ref_seq_type.py
+
+Simple function that assignes the correct reference sequence type (c., n., p., g.) to
+reference sequences
+
+# Example
+ref_type_assign(accession)
+"""
+
 # Defining reference sequence type from accession
 import re
 import variantanalyser
@@ -24,3 +35,7 @@ def ref_type_assign(accession):
 		else:
 			ref_type = ':g.'	
 	return ref_type
+	
+# <LICENSE>
+
+# </LICENSE>

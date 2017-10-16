@@ -1,5 +1,12 @@
+# -*- coding: utf-8 -*-
+
+"""
+dbconnect.py
+
+Connects to MySQL and returns a connection pool
+"""
+
 import mysql.connector
-#from mysql.connector import MySQLConnection, Error
 from mysql.connector.pooling import MySQLConnectionPool
 import dbconfig
 from dbconfig import read_db_config
@@ -29,3 +36,7 @@ def get_connection():
     return _connection_pool
 
 __all__ = [ 'getConnection' ]
+
+# <LICENSE>
+
+# </LICENSE>

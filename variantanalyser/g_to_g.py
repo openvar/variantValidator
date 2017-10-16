@@ -1,8 +1,23 @@
+# -*- coding: utf-8 -*-
+"""
+g_to_g.py
+ 
+1. chr_to_rsg
+maps genomic variants directly to RefSeqGene variants for RefSeqGenes that perfectly align 
+with the genome
+
+2. rsg_to_chr
+maps RefSeqGene variants directly to genomic variants for RefSeqGenes that perfectly align 
+with the genome
+"""
+
 import os
 import re
 import functions
 import hgvs
 import hgvs.parser
+import hgvs.normalizer
+import hgvs.validator
 import hgvs.exceptions
 import dbControls
 import dbControls.data as database_data
@@ -10,12 +25,13 @@ import dbControls.data as database_data
 hp = hgvs.parser.Parser()
 alt_aln_method = 'splign'
 
+
 # From the hgvs parser import, create an instance of hgvs.parser.Parser
 hp = hgvs.parser.Parser() 			
 
 # Set file root
 # Set up os paths data and log folders 
-# FILE_ROOT = os.path.dirname(os.path.abspath(__file__))
+FILE_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 # Covert chromosomal HGVS description to RefSeqGene
 def chr_to_rsg(hgvs_genomic, hn, vr):
@@ -30,15 +46,15 @@ def chr_to_rsg(hgvs_genomic, hn, vr):
 	# edit
 	chr_edit = hgvs_genomic.posedit.edit
 
+	
 	# Pre set variable, note there could be several
 	rsg_data_set = []
+	
 	
 	# Recover table from MySql
 	all_info = database_data.get_g_to_g_info()
 	for line in all_info:
-		# # print line
 		# Logic to identify the correct RefSeqGene
-		# # print str(data)
 		rsg_data = {}
 		if chr_ac == line[1] and chr_start_pos >= int(line[2]) and chr_end_pos <= int(line[3]):
 		#query = "SELECT refSeqGeneID, refSeqChromosomeID, startPos, endPos, orientation, hgncSymbol FROM refSeqGene_loci"
@@ -65,7 +81,6 @@ def chr_to_rsg(hgvs_genomic, hn, vr):
 		# String the description
 		if ori == '+':
 			rsg_description = rsg_ac + ':g.' + str(chr_start_pos - int(rsg_start)+1) + '_' + str(chr_end_pos - int(rsg_start)+1) + str(chr_edit)
-			# # print '\n\n' + rsg_description + '\n\n'
 			hgvs_refseqgene = hp.parse_hgvs_variant(rsg_description)
 			try:
 				hgvs_refseqgene = hn.normalize(hgvs_refseqgene)
@@ -81,10 +96,6 @@ def chr_to_rsg(hgvs_genomic, hn, vr):
 				if re.search('does not agree with reference sequence', error):
 					match = re.findall('\(([GATC]+)\)', error)
 					new_ref = match[1]
-					#if re.search('=', str(hgvs_refseqgene.posedit.edit)):
-					#	hgvs_refseqgene.posedit.edit.ref = new_ref
-					#	hgvs_refseqgene.posedit.edit.alt = new_ref
-					#else: 
 					hgvs_refseqgene.posedit.edit.ref = new_ref
 					error = 'true'	
 				else:
@@ -145,10 +156,6 @@ def chr_to_rsg(hgvs_genomic, hn, vr):
 				if re.search('does not agree with reference sequence', error):
 					match = re.findall('\(([GATC]+)\)', error)
 					new_ref = match[1]
-					#if re.search('=', str(hgvs_refseqgene.posedit.edit)):
-					#	hgvs_refseqgene.posedit.edit.ref = new_ref
-					#	hgvs_refseqgene.posedit.edit.alt = new_ref
-					#else: 
 					hgvs_refseqgene.posedit.edit.ref = new_ref
 					error = 'true'	
 				else:
@@ -176,9 +183,10 @@ def rsg_to_chr(hgvs_refseqgene, primary_assembly, hn, vr):
 	rsg_end_pos = int(hgvs_refseqgene.posedit.pos.end.base)
 	# edit
 	rsg_edit = hgvs_refseqgene.posedit.edit
-	
+
 	# Pre set variable, note there could be several
 	chr_data_set = []
+
 	# Recover table from MySql
 	all_info = database_data.get_g_to_g_info()
 	for line in all_info:
@@ -219,10 +227,6 @@ def rsg_to_chr(hgvs_refseqgene, primary_assembly, hn, vr):
 				if re.search('does not agree with reference sequence', error):
 					match = re.findall('\(([GATC]+)\)', error)
 					new_ref = match[1]
-					#if re.search('=', str(hgvs_genomic.posedit.edit)):
-					#	hgvs_genomic.posedit.edit.ref = new_ref
-					#	hgvs_genomic.posedit.edit.alt = new_ref
-					#else: 
 					hgvs_genomic.posedit.edit.ref = new_ref
 					error = 'true'	
 				else:
@@ -279,10 +283,6 @@ def rsg_to_chr(hgvs_refseqgene, primary_assembly, hn, vr):
 				if re.search('does not agree with reference sequence', error):
 					match = re.findall('\(([GATC]+)\)', error)
 					new_ref = match[1]
-					#if re.search('=', str(hgvs_genomic.posedit.edit)):
-					#	hgvs_genomic.posedit.edit.ref = new_ref
-					#	hgvs_genomic.posedit.edit.alt = new_ref
-					#else: 
 					hgvs_genomic.posedit.edit.ref = new_ref
 					error = 'true'
 				data = {'hgvs_genomic' : str(hgvs_genomic), 'gene' : gene, 'valid' : str(error)}
@@ -293,3 +293,6 @@ def rsg_to_chr(hgvs_refseqgene, primary_assembly, hn, vr):
 	# Return the required data. This is a dictionary containing the rsg description, validation status and gene ID
 	return descriptions			
 					
+# <LICENSE>
+
+# </LICENSE>

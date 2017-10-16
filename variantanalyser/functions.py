@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
-
-# Module containing functions that use hgvs to return variant data
+"""
+functions.py
+ 
+Module containing VariantValidator sub-functions. The majoirty of these functions require
+hgvs Python package top-level functions or sub-functions contained in uta.py and 
+seqfetcher.py 
+"""
 
 # Config Section Mapping function
 def ConfigSectionMap(section):
@@ -76,11 +81,15 @@ try:
 except ImportError:
  	from urllib.parse import urlparse
 
-# usr_input function: collect the input from the form and convert to a hgvs readable string
-	# Removes gene name (if given)
-	# Identifies variant type
-	# Returns a dictionary containing the formated input string and the variant type
-	# Accepts c, g, n, r currently. And now P also 15.07.15
+"""
+usr_input
+collect the input from the form and convert to a hgvs readable string
+	Removes brackets and contained information -if given
+	Identifies variant type (p. c. etc)
+	Returns a dictionary containing a formated input string which is optimal for hgvs 
+	parsing and the variant type
+	Accepts c, g, n, r currently. And now P also 15.07.15
+"""
 def user_input(input):
 	raw_variant = input.strip()
 	
@@ -152,8 +161,10 @@ def user_input(input):
 		formatted = 'invalid'
 		return formatted
 		
-
-# Maps the r variant to the c variant
+"""
+r_to_c
+parses r. variant strings into hgvs object and maps to the c. equivalent. 
+""" 
 def r_to_c(variant, evm, hp):
 	# convert the input string into a hgvs object by parsing
 	var_r = hp.parse_hgvs_variant(variant)	
@@ -163,11 +174,12 @@ def r_to_c(variant, evm, hp):
 	c_from_r = {'variant' : variant, 'type' : ':c.'}
 	return c_from_r
 	
-	
-# Return an hgvs object containing the genomic sequence variant relative to the refseq acession
-# This approach is required to handle alt_aln_method other than splign
-# Return an hgvs object containing the genomic sequence variant relative to the refseq acession
-# This approach is required to handle alt_aln_method other than splign
+"""	
+Maps transcript variant descriptions onto specified RefSeqGene reference sequences
+Return an hgvs object containing the genomic sequence variant relative to the RefSeqGene 
+acession
+refseq_ac = RefSeqGene ac
+"""
 def refseq(variant, vm, refseq_ac, hp, evm, hdp, primary_assembly):
 	vr = hgvs.validator.Validator(hdp)
 	# parse the variant into hgvs object
@@ -181,9 +193,7 @@ def refseq(variant, vm, refseq_ac, hp, evm, hdp, primary_assembly):
 	alt_aln_method = 'splign'
 	transcripts = hdp.get_tx_for_region(alt_ac,alt_aln_method,start_i-1,end_i)
 	# Take the first transcript
-#	gbtrs = re.compile('^NM_')
 	for trans in transcripts:
-#		if gbtrs.search(trans[0]):
 		tx_ac = trans[0]
 		try:
 			ref_c = vm.g_to_t(var_g, tx_ac, alt_aln_method='splign')
@@ -213,7 +223,11 @@ def refseq(variant, vm, refseq_ac, hp, evm, hdp, primary_assembly):
 	return ref_g_dict
 	
 
-# Maps genomic coordinates to coding if the c accession is known
+"""
+Parses genomic variant strings into hgvs objects
+Maps genomic hgvs object into a coding hgvs object if the c accession string is provided
+returns a c. variant description string
+"""
 def g_to_c(var_g, tx_ac, hp, evm):
 	pat_g = re.compile("\:g\.") 		# Pattern looks for :g.
 	# If the :g. pattern is present in the input variant
@@ -225,7 +239,11 @@ def g_to_c(var_g, tx_ac, hp, evm):
 		return var_c
 		
 
-# Maps genomic coordinates to coding if the c accession is known
+"""
+Parses genomic variant strings into hgvs objects
+Maps genomic hgvs object into a non-coding hgvs object if the n accession string is provided
+returns a n. variant description string
+"""
 def g_to_n(var_g, tx_ac, hp, evm):
 	pat_g = re.compile("\:g\.") 		# Pattern looks for :g.
 	# If the :g. pattern is present in the input variant
@@ -237,7 +255,10 @@ def g_to_n(var_g, tx_ac, hp, evm):
 		return var_n
 
 
-# Return an hgvs object containing the coding sequence variant
+"""
+Ensures variant strings are transcript c. or n.
+returns parsed hgvs c. or n. object
+"""
 def coding(variant, hp):
 	# If the :c. pattern is present in the input variant
 	if re.search(':c.', variant) or re.search(':n.', variant): 
@@ -246,7 +267,11 @@ def coding(variant, hp):
 		return var_c
 		
 
-# Return an hgvs object containing the genomic sequence variant
+"""
+Mapping transcript to genomic position
+Ensures variant strings are transcript c. or n.
+returns parsed hgvs g. object
+"""
 def genomic(variant, evm, hp, hdp, primary_assembly):
 	# Set regular expressions for if statements
 	pat_g = re.compile("\:g\.")			# Pattern looks for :g.
@@ -271,7 +296,11 @@ def genomic(variant, evm, hp, hdp, primary_assembly):
 		var_g = hp.parse_hgvs_variant(variant)
 		return var_g
 
-# Return an hgvs object containing the genomic sequence variant
+"""
+Mapping transcript to protein prediction
+Ensures variant strings are transcript c.
+returns parsed hgvs p. object
+"""
 def protein(variant, evm, hp):
 	variant = str(variant)
 	# Set regular expressions for if statements
@@ -283,7 +312,6 @@ def protein(variant, evm, hp):
 		var_c = hp.parse_hgvs_variant(variant)		
 		# map to the genomic sequence
 		var_p = evm.c_to_p(var_c)	# genomic level variant
-		# # # # print var_p		
 		return var_p
 	if re.search(':n.', variant):
 		var_p = hp.parse_hgvs_variant(variant)
@@ -292,28 +320,38 @@ def protein(variant, evm, hp):
 		return var_p
 	
 
+"""
+Marked for removal
+"""
 # Return an hgvs object containing the rna sequence variant
-def rna(variant, evm, hp):
-	# Set regular expressions for if statements
-	pat_c = re.compile("\:c\.") 		# Pattern looks for :c. Note (gene) has been removed
-	# If the :c. pattern is present in the input variant
-	if  pat_c.search(variant): 
-		# convert the input string into a hgvs object
-		var_c = hp.parse_hgvs_variant(variant)
-		# map to the genomic sequence
-		var_r = evm.c_to_n(var_c)	# rna level variant
-		return var_r
+# def rna(variant, evm, hp):
+# 	Set regular expressions for if statements
+# 	pat_c = re.compile("\:c\.") 		# Pattern looks for :c. Note (gene) has been removed
+# 	If the :c. pattern is present in the input variant
+# 	if  pat_c.search(variant): 
+# 		convert the input string into a hgvs object
+# 		var_c = hp.parse_hgvs_variant(variant)
+# 		map to the genomic sequence
+# 		var_r = evm.c_to_n(var_c)	# rna level variant
+# 		return var_r
+
+"""
+Marked for removal
+"""
+# def hgvs_rna(variant, hp):
+# 	# Set regular expressions for if statements
+# 	pat_r = re.compile("\:n\.") 		# Pattern looks for :n. Note (gene) has been removed
+# 	# If the :r. pattern is present in the input variant
+# 	if  pat_r.search(variant): 
+# 		# convert the input string into a hgvs object
+# 		var_r = hp.parse_hgvs_variant(variant)
+# 		return var_r
 
 
-def hgvs_rna(variant, hp):
-	# Set regular expressions for if statements
-	pat_r = re.compile("\:n\.") 		# Pattern looks for :n. Note (gene) has been removed
-	# If the :r. pattern is present in the input variant
-	if  pat_r.search(variant): 
-		# convert the input string into a hgvs object
-		var_r = hp.parse_hgvs_variant(variant)
-		return var_r
-
+"""
+Ensures variant strings are g.
+returns parsed hgvs g. object
+"""
 def hgvs_genomic(variant, hp):
 	# Set regular expressions for if statements
 	pat_g = re.compile("\:g\.") 		# Pattern looks for :g. Note (gene) has been removed
@@ -324,7 +362,22 @@ def hgvs_genomic(variant, hp):
 		return var_g
 
 
-# Replacement for straightforward c_to_g takes into account mappings to multiple chromosomes
+"""
+Enhanced transcript to genome position mapping function using evm
+Deals with mapping from transcript positions that do not exist in the genomic sequence
+i.e. the stated position aligns to a genomic gap!
+Trys to ensure that a genomic position is always returned even if the c. or n. transcript
+will not map to the specified genome build primary assembly.
+Deals with transcript mapping to several genomic assemblies
+Order 
+Map to a single NC_ for the specified genome build primary assembly
+Map to a single NC_ for an alternate genome build primary assembly
+Map to an NT_ from the specified genome build
+Map to an NT_ from an alternative genome build
+Map to an NW_ from the specified genome build
+Map to an NW_ from an alternative genome buildRequires parsed c. or n. object
+returns parsed hgvs g. object
+"""
 def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 
 # 	create no_norm_evm
@@ -341,10 +394,7 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 	# Set expansion variable
 	expand_out = 'false'
 	if hgvs_c.posedit.edit.type == 'identity' or hgvs_c.posedit.edit.type == 'del' or hgvs_c.posedit.edit.type =='delins' or hgvs_c.posedit.edit.type == 'dup' or hgvs_c.posedit.edit.type == 'sub' or hgvs_c.posedit.edit.type == 'ins':
-		
-		# print 'in to function'
-		# print hgvs_c
-		
+				
 		# if NM_ need the n. position
 		if re.match('NM_', str(hgvs_c.ac)):
 			hgvs_c = no_norm_evm.c_to_n(hgvs_c)
@@ -416,25 +466,20 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 			if re.search('spanning the exon-intron boundary', error):
 				hgvs_c = copy.deepcopy(stored_hgvs_c)
 			else:
-				print 'boundary scan other error'			 	
-				print error
 				hgvs_c = copy.deepcopy(stored_hgvs_c)
 				
-	# # # print 'End test\n\n\n'
 	try:
 		hgvs_genomic = no_norm_evm.t_to_g(hgvs_c)
+		hn.normalize(hgvs_genomic) # Check the validity of the mapping
 		# This will fail on multiple refs for NC_
 	except hgvs.exceptions.HGVSError as e:
 
 		# Recover all available mapping options from UTA
 		mapping_options = hdp.get_tx_mapping_options(hgvs_c.ac)	
-		# print mapping_options
 		for option in mapping_options:
-			# # print mapping_options
 			if re.match('NC_', option[1]):
 				chr_num = supported_chromosome_builds.supported_for_mapping(str(option[1]), primary_assembly)
 				if chr_num != 'false':
-					# # # print '\n\nfound you mr ' + primary_assembly + '!!!\n\n' 
 					try:
 						hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
 						break
@@ -442,7 +487,7 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 						continue
 
 		try:
-			hgvs_genomic
+			hn.normalize(hgvs_genomic)
 		except:	
 			for option in mapping_options:
 				if re.match('NC_', option[1]):
@@ -452,7 +497,7 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 					except:
 						continue
 			try:
-				hgvs_genomic
+				hn.normalize(hgvs_genomic)
 			except:
 				for option in mapping_options:
 					if re.match('NT_', option[1]):
@@ -462,7 +507,7 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 						except:
 							continue
 				try:
-					hgvs_genomic
+					hn.normalize(hgvs_genomic)
 				except:							
 					for option in mapping_options:
 						if re.match('NW_', option[1]):
@@ -471,9 +516,7 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 								break
 							except:
 								continue
-# 		else:
-# 			hgvs_genomic = vm.t_to_g(hgvs_c, chr_accession)		
-	 
+		 
 	if hgvs_genomic.posedit.edit.type == 'ins':
 		try:
 			hgvs_genomic = hn.normalize(hgvs_genomic)
@@ -499,34 +542,87 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 		
 	return hgvs_genomic
 
-# Replacement for straightforward c_to_g takes into account mappings to multiple chromosomes
+"""
+USE WITH MAPPER THAT DOES NOT REPLACE THE REFERENCE GENOMIC BASES AND DOED NOT NORMALIZE
+
+Enhanced transcript to genome position mapping function using evm
+Trys to ensure that a genomic position is always returned even if the c. or n. transcript
+will not map to the specified genome build primary assembly.
+Deals with transcript mapping to several genomic assemblies
+Order 
+Map to a single NC_ (or ALT) for the specified genome build
+returns parsed hgvs g. object
+"""
 def noreplace_myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 	try:
 		hgvs_genomic = evm.t_to_g(hgvs_c)
 		# This will fail on multiple refs for NC_
 	except hgvs.exceptions.HGVSError:
-		hgnc_symbol = hdp.get_tx_identity_info(hgvs_c.ac)[6]
-		# Search for current symbol
-		current = hgnc_rest(path = "/search/prev_symbol/" + hgnc_symbol)
-		if int(current['record']['response']['numFound']) == 0:
-			pass
-		else:
-			hgnc_symbol = current['record']['response']['docs'][0]['symbol']
-		# Get chromosome location from database
-		if primary_assembly == 'GRCh37':
-			table = 'genePos37'
-		if primary_assembly == 'GRCh38':
-			table = 'genePos38'
-		symbol = 'sym:' + hgnc_symbol
-		gene_data = dbControls.data.in_entries(symbol, table)
-		specified_chr = gene_data['chr']
-		# Get the alternative accession
-		chr_accession = supported_chromosome_builds.to_accession(str(specified_chr), primary_assembly)
-		hgvs_genomic = vm.t_to_g(hgvs_c, chr_accession)		
+		# Recover all available mapping options from UTA
+		mapping_options = hdp.get_tx_mapping_options(hgvs_c.ac)	
+		for option in mapping_options:
+			if re.match('NC_', option[1]):
+				chr_num = supported_chromosome_builds.supported_for_mapping(str(option[1]), primary_assembly)
+				if chr_num != 'false':
+					try:
+						hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
+						break
+					except Exception as e:
+						continue
+		try:
+			hgvs_genomic
+		except:
+			for option in mapping_options:
+				if re.match('NC_', option[1]):
+					chr_num = supported_chromosome_builds.supported_for_mapping(str(option[1]), primary_assembly)
+					try:
+						hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
+						break
+					except Exception as e:
+						continue
+
+			try:
+				hgvs_genomic
+			except:
+				for option in mapping_options:
+					if re.match('NT_', option[1]):
+						chr_num = supported_chromosome_builds.supported_for_mapping(str(option[1]), primary_assembly)
+						if chr_num != 'false':
+							try:
+								hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
+								break
+							except Exception as e:
+								continue
+				try:
+					hgvs_genomic
+				except:							
+					for option in mapping_options:
+						if re.match('NW_', option[1]):
+							chr_num = supported_chromosome_builds.supported_for_mapping(str(option[1]), primary_assembly)
+							if chr_num != 'false':
+								try:
+									hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
+									break
+								except Exception as e:
+									continue
+					# All have failed, likely a variant description error
+					try:
+						hgvs_genomic
+					except:
+						for option in mapping_options:
+							if re.match('NC_', option[1]):
+								chr_num = supported_chromosome_builds.supported_for_mapping(str(option[1]), primary_assembly)
+								# Do not trap the error
+								hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
+								break
 	return hgvs_genomic
 
-
-# VM method
+"""
+Enhanced transcript to genome position on a specified genomic reference using vm
+Deals with mapping from transcript positions that do not exist in the genomic sequence
+i.e. the stated position aligns to a genomic gap!
+returns parsed hgvs g. object
+"""
 def myvm_t_to_g(hgvs_c, alt_chr, vm, hn, hdp, primary_assembly):
 
 	# create no_norm_evm
@@ -640,12 +736,19 @@ def myvm_t_to_g(hgvs_c, alt_chr, vm, hn, hdp, primary_assembly):
 		pass
 
 	return hgvs_genomic
+	
 
-# Replacement for straightforward g_to_c/n takes into account mappings to multiple chromosomes
+"""
+Simple hgvs g. to c. or n. mapping
+returns parsed hgvs c. or n. object
+"""
 def myevm_g_to_t(hdp, evm, hgvs_genomic, alt_ac):
 	hgvs_t = evm.g_to_t(hgvs_genomic, alt_ac)					
 	return hgvs_t
 	
+"""
+parse p. strings into hgvs p. objects
+"""
 def hgvs_protein(variant, hp):
 	# Set regular expressions for if statements
 	pat_p = re.compile("\:p\.") 		# Pattern looks for :g. Note (gene) has been removed
@@ -655,7 +758,9 @@ def hgvs_protein(variant, hp):
 		var_p = hp.parse_hgvs_variant(variant)
 		return var_p
 
-# hgvs_r_to_c
+"""
+Convert r. into c.
+"""
 def hgvs_r_to_c(hgvs_object):
 	hgvs_object.type = 'c'
 	edit = str(hgvs_object.posedit.edit)
@@ -671,7 +776,9 @@ def hgvs_r_to_c(hgvs_object):
 	hgvs_object.posedit.edit = edit
 	return hgvs_object
 
-# hgvs_c_to_r
+"""
+Convert c. into r.
+"""
 def hgvs_c_to_r(hgvs_object):
 	hgvs_object.type = 'r'
 	edit = str(hgvs_object.posedit.edit)
@@ -680,8 +787,11 @@ def hgvs_c_to_r(hgvs_object):
 	hgvs_object.posedit.edit = edit
 	return hgvs_object	
 
-
-# Return the identity information for the transcript variant (see uta.py)
+"""
+Input c. r. n. variant string
+Use uta.py (hdp) to return the identity information for the transcript variant 
+see hgvs.dataproviders.uta.py for details
+"""
 def tx_identity_info(variant, hdp):
 	# Set regular expressions for if statements
 	pat_c = re.compile("\:c\.") 		# Pattern looks for :c. Note (gene) has been removed
@@ -718,21 +828,31 @@ def tx_identity_info(variant, hdp):
 		# NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
 		return tx_id_info
 		
-# Alternative to the above but accepts the accession directly. Try to incorporate
+"""
+Input c. r. nd accession string
+Use uta.py (hdp) to return the identity information for the transcript variant 
+see hgvs.dataproviders.uta.py for details
+"""
 def tx_id_info(alt_ac, hdp):
 	tx_id_info = hdp.get_tx_identity_info(alt_ac)
 	# NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
 	return tx_id_info
 
 	
-# Return tx information for a named hgnc gene (see uta.py)
+"""
+Use uta.py (hdp) to return the transcript information for a specified gene (HGNC SYMBOL)
+see hgvs.dataproviders.uta.py for details
+"""
 def tx_for_gene(hgnc, hdp):
 	# Interface with the UTA database via get_tx_for_gene in uta.py
 	tx_for_gene = hdp.get_tx_for_gene(hgnc)
 	return tx_for_gene 
 	
 
-# Extract Genomic refseq ID from tx_for_gene dictionary 
+"""
+Extract RefSeqGene Accession from transcript information
+see hgvs.dataproviders.uta.py for details
+"""
 def ng_extract(tx_for_gene):
 	# Set regular expressions for if statements
 	pat_NG = re.compile("^NG_")			# Pattern looks for NG_ at beginning of a string
@@ -744,25 +864,33 @@ def ng_extract(tx_for_gene):
 			gene_ac = list[4]
 			return gene_ac
 	
-# Get genomic co-ordinates for variant start position
-def int_start(var_g):
-	start = var_g.posedit.pos.start
-	# Stringify to get start co-ords
-	start = str(start)
-	# Make into an integer
-	int_start = int(start)
-	return int_start
+"""
+marked for removal
+"""
+# def int_start(var_g):
+# 	start = var_g.posedit.pos.start
+# 	# Stringify to get start co-ords
+# 	start = str(start)
+# 	# Make into an integer
+# 	int_start = int(start)
+# 	return int_start
 
-# Get genomic co-ordinates for variant end position
-def int_end(var_g):
-	end = var_g.posedit.pos.end
-	# Stringify to get start co-ords
-	end = str(end)
-	# Make into an integer
-	int_end = int(end)
-	return int_end
+"""
+marked for removal
+"""
+# def int_end(var_g):
+# 	end = var_g.posedit.pos.end
+# 	# Stringify to get start co-ords
+# 	end = str(end)
+# 	# Make into an integer
+# 	int_end = int(end)
+# 	return int_end
 	
-# Returns exon table of tx_acession exons aligned to the genomic refseq ID
+"""
+Returns exon information for a given transcript
+e.g. how the exons align to the genomic reference
+see hgvs.dataproviders.uta.py for details
+"""
 def tx_exons(tx_ac, alt_ac, alt_aln_method, hdp):
 	
 	# Interface with the UTA database via get_tx_exons in uta.py
@@ -784,7 +912,9 @@ def tx_exons(tx_ac, alt_ac, alt_aln_method, hdp):
 	else:
 		return tx_exons
 
-# Return relevant transcripts 
+"""
+Automatically maps genomic positions onto all overlapping transcripts
+"""
 def relevant_transcripts(hgvs_genomic, evm, hdp, alt_aln_method):
 	# Pass relevant transcripts for the input variant to rts
 	rts = evm.relevant_transcripts(hgvs_genomic)
@@ -859,7 +989,9 @@ def relevant_transcripts(hgvs_genomic, evm, hdp, alt_aln_method):
 	return code_var
 
 
-# Validate the						
+"""
+Take HGVS string, parse into hgvs object and validate
+"""					
 def validate(input, hp, vr):
 	hgvs_input = hp.parse_hgvs_variant(input)
 	g = re.compile(":g.")
@@ -897,20 +1029,26 @@ def validate(input, hp, vr):
 		error = 'false'
 		return error 
 
-# Extract accession sequences
-def sequence_extractor(ac, hdp):
-	ac_seq = hdp.get_tx_seq(ac)
-	return ac_seq
+"""
+marked for removal
+"""
+# def sequence_extractor(ac, hdp):
+# 	ac_seq = hdp.get_tx_seq(ac)
+# 	return ac_seq
 
-# Update reference. Should only be used when evm has supplied the variant 
-def ref_replace(e, hgvs_variant):
-	error = str(e)
-	match = re.findall('\(([GATC]+)\)', error)
-	new_ref = match[1] 
-	hgvs_variant.posedit.edit.ref = new_ref
-	return hgvs_variant	
+"""
+marked for removal
+""" 
+# def ref_replace(e, hgvs_variant):
+# 	error = str(e)
+# 	match = re.findall('\(([GATC]+)\)', error)
+# 	new_ref = match[1] 
+# 	hgvs_variant.posedit.edit.ref = new_ref
+# 	return hgvs_variant	
 	
-# Search the hgnc database with rest	
+"""
+Search HGNC rest
+"""	
 def hgnc_rest(path):	
 	data = {
 		'record' : '',
@@ -940,7 +1078,9 @@ def hgnc_rest(path):
 	return data
 	
 	
-# Search Entrez databases with efetch and SeqIO
+"""
+Search Entrez databases with efetch and SeqIO
+"""
 def entrez_efetch(db, id, rettype, retmode):			
 	# IMPORT Bio modules
 	#from Bio import Entrez
@@ -955,7 +1095,9 @@ def entrez_efetch(db, id, rettype, retmode):
 	return record
 	
 	
-# search Entrez databases with efetch and read
+"""
+search Entrez databases with efetch and read
+"""
 def entrez_read(db, id,retmode):	
 	# IMPORT Bio modules
 	#from Bio import Entrez
@@ -969,6 +1111,9 @@ def entrez_read(db, id,retmode):
 	handle.close()
 	return record
 	
+"""
+Simple reverse complement function for nucleotide sequences
+"""
 def revcomp(bases):
 	l2 = []
 	l = list(bases)
@@ -986,3 +1131,7 @@ def revcomp(bases):
 	revcomp = ''.join(l2)
 	revcomp = revcomp[::-1]
 	return revcomp
+	
+# <LICENSE>
+
+# </LICENSE>	

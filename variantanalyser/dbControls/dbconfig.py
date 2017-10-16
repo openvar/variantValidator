@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+
+"""
+dbconfig.py
+
+Configures the MySQL connection using the config.ini or environment variables
+"""
+
 from configparser import ConfigParser
 import os
 
@@ -23,3 +31,7 @@ def read_db_config(filename=os.path.join(CONF_ROOT, 'config.ini'), section='mysq
     	raise Exception('{0} not found in the {1} file'.format(section, filename))
     
     return db
+    
+# <LICENSE>
+
+# </LICENSE>

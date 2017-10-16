@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+liftover.py
+ 
+Can be used to liftover genomic positions between builds 
+"""
+
 from pyliftover import LiftOver
 import re
 import copy
@@ -194,7 +201,9 @@ def hgvs_liftover(hgvs_variant, primary_assembly, target_assembly, hn):
 	target_hgvs_variant = hn.normalize(target_hgvs_variant)
 	return target_hgvs_variant		
 		
-		
+# <LICENSE>
+
+# </LICENSE>		
 		
 		
 		

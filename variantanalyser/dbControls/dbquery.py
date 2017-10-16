@@ -1,18 +1,27 @@
+# -*- coding: utf-8 -*-
+
+"""
+dbquery.py
+
+Functions which fetch data from transcript_info
+"""
+
 import dbConnection
 
 def query_with_fetchone(entry, table):
 	# """ Connect to MySQL database """
 	
 	# MySQL queries
-	if table == 'genePos37' or table == 'genePos38':
-		import re
-		if re.search('HGNC:', entry):			
-			query = "SELECT hgncID, symbol, name, prevSymbol, reference, assembly, chr, start, end, refSeqTranscriptID, refSeqGeneID FROM " + table + " WHERE hgncID = '%s'" %(entry)
-		if re.search('sym:', entry):
-			symbol = entry.replace('sym:', '')
-			query = "SELECT hgncID, symbol, name, prevSymbol, reference, assembly, chr, start, end, refSeqTranscriptID, refSeqGeneID FROM " + table + " WHERE symbol LIKE '%s' OR prevSymbol LIKE '|%s|'" %(symbol, symbol)
-	if table == 'transcript_id':
-		query = "SELECT accession, description, updated, IF(updated < NOW() - INTERVAL 3 MONTH , 'true', 'false') FROM transcript_id WHERE accession = '%s'" %(entry)
+
+# 	if table == 'genePos37' or table == 'genePos38':
+# 		import re
+# 		if re.search('HGNC:', entry):			
+# 			query = "SELECT hgncID, symbol, name, prevSymbol, reference, assembly, chr, start, end, refSeqTranscriptID, refSeqGeneID FROM " + table + " WHERE hgncID = '%s'" %(entry)
+# 		if re.search('sym:', entry):
+# 			symbol = entry.replace('sym:', '')
+# 			query = "SELECT hgncID, symbol, name, prevSymbol, reference, assembly, chr, start, end, refSeqTranscriptID, refSeqGeneID FROM " + table + " WHERE symbol LIKE '%s' OR prevSymbol LIKE '|%s|'" %(symbol, symbol)
+# 	if table == 'transcript_id':
+# 		query = "SELECT accession, description, updated, IF(updated < NOW() - INTERVAL 3 MONTH , 'true', 'false') FROM transcript_id WHERE accession = '%s'" %(entry)
 	
 	if table == 'transcript_info':
 		query = "SELECT refSeqID, description, transcriptVariant, currentVersion, hgncSymbol, utaSymbol, updated, IF(updated < NOW() - INTERVAL 3 MONTH , 'true', 'false') FROM transcript_info WHERE refSeqID = '%s'" %(entry)
@@ -37,3 +46,7 @@ def query_with_fetchone(entry, table):
 
 if __name__ == '__main__':
 	query_with_fetchone()
+	
+# <LICENSE>
+
+# </LICENSE>	
