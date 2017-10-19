@@ -394,7 +394,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							pre_input = copy.deepcopy(input)
 							input_list = input.split(':')
 							query_a_symbol = input_list[0]
-							is_it_a_gene = va_dbCrl.get_hgncSymbol(query_a_symbol)
+							is_it_a_gene = va_dbCrl.get_hgnc_symbol(query_a_symbol)
 							if is_it_a_gene == 'none':
 								pos_ref_alt = str(input_list[1]) 
 								positionAndEdit = input_list[1]
@@ -420,7 +420,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						pre_input = copy.deepcopy(input)
 						query_a_symbol = pre_input.split(':')[0]
 						tx_edit = pre_input.split(':')[1]
-						is_it_a_gene = va_dbCrl.data.get_hgncSymbol(query_a_symbol)
+						is_it_a_gene = va_dbCrl.data.get_hgnc_symbol(query_a_symbol)
 						if is_it_a_gene != 'none':
 							uta_symbol = va_dbCrl.data.get_uta_symbol(is_it_a_gene)
 							available_transcripts = hdp.get_tx_for_gene(uta_symbol)
