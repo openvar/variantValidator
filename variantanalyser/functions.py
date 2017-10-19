@@ -41,6 +41,7 @@ if ENTREZ_ID is None:
 # IMPORT HGVS MODULES and create instances
 import hgvs
 import hgvs.exceptions
+from hgvs.exceptions import HGVSError, HGVSDataNotAvailableError, HGVSUnsupportedOperationError
 from hgvs.dataproviders import uta, seqfetcher
 import hgvs.normalizer
 import hgvs.validator
@@ -476,6 +477,8 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 
 		# Recover all available mapping options from UTA
 		mapping_options = hdp.get_tx_mapping_options(hgvs_c.ac)	
+		if mapping_options == []:
+			raise HGVSDataNotAvailableError("no g. mapping options available")
 		for option in mapping_options:
 			if re.match('NC_', option[1]):
 				chr_num = supported_chromosome_builds.supported_for_mapping(str(option[1]), primary_assembly)
@@ -560,6 +563,8 @@ def noreplace_myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 	except hgvs.exceptions.HGVSError:
 		# Recover all available mapping options from UTA
 		mapping_options = hdp.get_tx_mapping_options(hgvs_c.ac)	
+		if mapping_options == []:
+			raise HGVSDataNotAvailableError("no g. mapping options available")
 		for option in mapping_options:
 			if re.match('NC_', option[1]):
 				chr_num = supported_chromosome_builds.supported_for_mapping(str(option[1]), primary_assembly)
