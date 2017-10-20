@@ -343,7 +343,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							chr_num = str(input_list[0])
 							chr_num = chr_num.upper()
 							chr_num = chr_num.strip()
-							chr_num = chr_num.replace('CHR', '')
+							if re.match('CHR', chr_num):
+								chr_num = chr_num.replace('CHR', '')
 							# Use selected assembly
 							accession = va_scb.to_accession(chr_num, selected_assembly)	
 							if accession is None:
@@ -401,8 +402,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								chr_num = str(input_list[0])
 								chr_num = chr_num.upper()
 								chr_num = chr_num.strip()
-								chr_num = chr_num.replace('CHR', '')
-								# Use selected assembly
+								if re.match('CHR', chr_num):
+									chr_num = chr_num.replace('CHR', '')								# Use selected assembly
 								accession = va_scb.to_accession(chr_num, selected_assembly)	
 								if accession is None:
 									validation['warnings'] = validation['warnings'] + ': ' + chr_num + ' is not part of genome build ' + selected_assembly
