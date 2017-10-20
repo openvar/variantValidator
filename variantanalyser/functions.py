@@ -559,8 +559,9 @@ returns parsed hgvs g. object
 def noreplace_myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 	try:
 		hgvs_genomic = evm.t_to_g(hgvs_c)
+		hn.normalize(hgvs_genomic)
 		# This will fail on multiple refs for NC_
-	except hgvs.exceptions.HGVSError:
+	except hgvs.exceptions.HGVSError as e:
 		# Recover all available mapping options from UTA
 		mapping_options = hdp.get_tx_mapping_options(hgvs_c.ac)	
 		if mapping_options == []:
@@ -575,7 +576,7 @@ def noreplace_myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 					except Exception as e:
 						continue
 		try:
-			hgvs_genomic
+			hn.normalize(hgvs_genomic)
 		except:
 			for option in mapping_options:
 				if re.match('NC_', option[1]):
@@ -587,7 +588,7 @@ def noreplace_myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 						continue
 
 			try:
-				hgvs_genomic
+				hn.normalize(hgvs_genomic)
 			except:
 				for option in mapping_options:
 					if re.match('NT_', option[1]):
@@ -599,7 +600,7 @@ def noreplace_myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 							except Exception as e:
 								continue
 				try:
-					hgvs_genomic
+					hn.normalize(hgvs_genomic)
 				except:							
 					for option in mapping_options:
 						if re.match('NW_', option[1]):
@@ -612,7 +613,7 @@ def noreplace_myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 									continue
 					# All have failed, likely a variant description error
 					try:
-						hgvs_genomic
+						hn.normalize(hgvs_genomic)
 					except:
 						for option in mapping_options:
 							if re.match('NC_', option[1]):
