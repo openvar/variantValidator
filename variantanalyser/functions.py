@@ -41,12 +41,18 @@ if ENTREZ_ID is None:
 # IMPORT HGVS MODULES and create instances
 import hgvs
 import hgvs.exceptions
-from hgvs.exceptions import HGVSError, HGVSDataNotAvailableError, HGVSUnsupportedOperationError
 from hgvs.dataproviders import uta, seqfetcher
 import hgvs.normalizer
 import hgvs.validator
 import hgvs.parser
 import hgvs.variantmapper
+
+# Error types
+from hgvs.exceptions import HGVSError, HGVSDataNotAvailableError, HGVSUnsupportedOperationError
+class mergeHGVSerror(Exception):
+	pass
+class alleleVariantError(Exception):
+	pass	
 
 # Connect to UTA
 hdp = hgvs.dataproviders.uta.connect(pooling=True)
@@ -55,6 +61,27 @@ hn = hgvs.normalizer.Normalizer(hdp,
 		cross_boundaries=False,
 		shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
 		alt_aln_method='splign'
+		)	
+reverse_hn = hgvs.normalizer.Normalizer(hdp,
+		cross_boundaries=False,
+		shuffle_direction=5,
+		alt_aln_method='splign'
+		)
+
+
+
+# Create normalizer
+merge_normalizer = hgvs.normalizer.Normalizer(hdp,
+		cross_boundaries=False,
+		shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
+		alt_aln_method='splign',
+		validate=False
+		)
+reverse_merge_normalizer = hgvs.normalizer.Normalizer(hdp,
+		cross_boundaries=False,
+		shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
+		alt_aln_method='splign',
+		validate=False
 		)	
 
 # Validator
@@ -69,6 +96,8 @@ sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
 # variantanalyser modules
 import dbControls
 import supported_chromosome_builds
+import hgvs2vcf
+import pseudo_vcf2hgvs
 
 # BioPython
 from Bio import Entrez
@@ -982,11 +1011,6 @@ def relevant_transcripts(hgvs_genomic, evm, hdp, alt_aln_method):
 			if antisense == 'false':
 				pass
 			else:
-				reverse_hn = hgvs.normalizer.Normalizer(hdp,
-				cross_boundaries=False,
-				shuffle_direction=5,
-				alt_aln_method=alt_aln_method
-				)
 				# Reverse normalize hgvs_genomic
 				rev_hgvs_genomic = reverse_hn.normalize(hgvs_genomic)
 				# map back to coding
@@ -1137,6 +1161,381 @@ def revcomp(bases):
 	revcomp = ''.join(l2)
 	revcomp = revcomp[::-1]
 	return revcomp
+	
+
+
+
+"""
+Function designed to merge multiple HGVS variants (hgvs objects) into a single delins 
+using 3 prime normalization
+"""
+def merge_hgvs_3pr(hgvs_variant_list):
+	# Ensure c. is mapped to the 
+	h_list = []
+	
+	# Sanity check and format the submitted variants
+	for hgvs_v in hgvs_variant_list:
+		# For testing include parser
+		try:
+			hgvs_v = hp.parse_hgvs_variant(hgvs_v)
+		except:
+			pass		
+		# Validate
+		vr.validate(hgvs_v) # Let hgvs errors deal with invalid variants and not hgvs objects
+		if hgvs_v.type == 'c':
+			try:
+				hgvs_v = vm.c_to_n(hgvs_v)
+				h_list.append(hgvs_v)
+			except:
+				raise mergeHGVSerror("Unable to map from c. position to absolute position")	
+	if h_list != []:
+		hgvs_variant_list = copy.deepcopy(h_list)
+	
+	# Define accession and start/end positions
+	accession = None
+	merge_start_pos = None
+	merge_end_pos = None
+	type = None
+	full_list = []
+	
+	# Loop through the submitted variants and gather the required info 
+	for hgvs_v in hgvs_variant_list:
+		# No intronic positions
+		try:
+			if hgvs_v.posedit.pos.start.offset != 0:
+				raise mergeHGVSerror("Base-offset position submitted")
+			if hgvs_v.posedit.pos.end.offset != 0:
+				raise mergeHGVSerror("Base-offset position submitted")
+		except AttributeError:
+			pass
+
+		# Normalize the variant (allow cross intron) which also adds the reference sequence (?)
+		hgvs_v = hn.normalize(hgvs_v)
+		
+		# Set the accession and ensure that multiple reference sequences have not been queried
+		if accession is None:
+			accession = hgvs_v.ac
+			type = hgvs_v.type
+		else:	
+			if hgvs_v.ac != accession:
+				raise mergeHGVSerror("More than one reference sequence submitted")
+			else:
+				pass	
+
+		# Set initial start and end positions		
+		if merge_start_pos is None:
+			merge_start_pos = hgvs_v.posedit.pos.start.base
+			merge_end_pos = hgvs_v.posedit.pos.end.base
+			# Append to the final list of variants
+			full_list.append(hgvs_v)
+			continue
+		# Ensure variants are in the correct order and not overlapping
+		else:
+			# ! hgvs_v.posedit.pos.start.base !>
+			if hgvs_v.posedit.pos.start.base <= merge_end_pos:
+				raise mergeHGVSerror("Submitted variants are out of order or their ranges overlap")
+			else:
+				# Create a fake variant to handle the missing sequence
+				ins_seq = sf.fetch_seq(hgvs_v.ac,merge_end_pos,hgvs_v.posedit.pos.start.base-1)
+				gapping = hgvs_v.ac + ':' + hgvs_v.type + '.' + str(merge_end_pos+1) + '_' + str(hgvs_v.posedit.pos.start.base-1) + 'delins' + ins_seq
+				hgvs_gapping = hp.parse_hgvs_variant(gapping)
+				full_list.append(hgvs_gapping)
+				# update end_pos
+				merge_end_pos = hgvs_v.posedit.pos.end.base
+				# Append to the final list of variants
+				full_list.append(hgvs_v)				
+
+	# Generate the alt sequence
+	alt_sequence = ''
+	for hgvs_v in full_list:
+		ref_alt = hgvs2vcf.hgvs_ref_alt(hgvs_v)
+		alt_sequence = alt_sequence + ref_alt['alt']
+	
+	# Fetch the reference sequence and copy it for the basis of the alt sequence
+	reference_sequence = sf.fetch_seq(accession,merge_start_pos-1,merge_end_pos)
+	# Generate an hgvs_delins
+	if alt_sequence == '':
+		delins = accession + ':' + type + '.' + str(merge_start_pos) + '_' + str(merge_end_pos) + 'del' + reference_sequence
+	else:
+		delins = accession + ':' + type + '.' + str(merge_start_pos) + '_' + str(merge_end_pos) + 'del' + reference_sequence + 'ins' + alt_sequence	
+	hgvs_delins = hp.parse_hgvs_variant(delins)
+	try:
+		hgvs_delins = vm.n_to_c(hgvs_delins)
+	except:
+		pass
+	# Normalize (allow variants crossing into different exons)
+	try:
+		hgvs_delins = hn.normalize(hgvs_delins)
+	except HGVSUnsupportedOperationError:
+		pass
+	return hgvs_delins
+
+"""
+Function designed to merge multiple HGVS variants (hgvs objects) into a single delins 
+using 5 prime normalization
+"""
+def merge_hgvs_5pr(hgvs_variant_list):
+	# Ensure c. is mapped to the 
+	h_list = []
+	
+	# Sanity check and format the submitted variants
+	for hgvs_v in hgvs_variant_list:
+		# For testing include parser
+		try:
+			hgvs_v = hp.parse_hgvs_variant(hgvs_v)
+		except:
+			pass
+		
+		# Validate
+		vr.validate(hgvs_v) # Let hgvs errors deal with invalid variants and not hgvs objects
+		if hgvs_v.type == 'c':
+			try:
+				hgvs_v = vm.c_to_n(hgvs_v)
+				h_list.append(hgvs_v)
+			except:
+				raise mergeHGVSerror("Unable to map from c. position to absolute position")	
+	if h_list != []:
+		hgvs_variant_list = copy.deepcopy(h_list)
+	
+	# Define accession and start/end positions
+	accession = None
+	merge_start_pos = None
+	merge_end_pos = None
+	type = None
+	full_list = []
+	
+	# Loop through the submitted variants and gather the required info 
+	for hgvs_v in hgvs_variant_list:
+		try:
+			# No intronic positions
+			if hgvs_v.posedit.pos.start.offset != 0:
+				raise mergeHGVSerror("Base-offset position submitted")
+			if hgvs_v.posedit.pos.end.offset != 0:
+				raise mergeHGVSerror("Base-offset position submitted")
+		except AttributeError:
+			pass
+		
+		# Normalize the variant (allow cross intron) which also adds the reference sequence (?)
+		hgvs_v = reverse_hn.normalize(hgvs_v)
+		
+		# Set the accession and ensure that multiple reference sequences have not been queried
+		if accession is None:
+			accession = hgvs_v.ac
+			type = hgvs_v.type
+		else:	
+			if hgvs_v.ac != accession:
+				raise mergeHGVSerror("More than one reference sequence submitted")
+			else:
+				pass	
+
+		# Set initial start and end positions		
+		if merge_start_pos is None:
+			merge_start_pos = hgvs_v.posedit.pos.start.base
+			merge_end_pos = hgvs_v.posedit.pos.end.base
+			# Append to the final list of variants
+			full_list.append(hgvs_v)
+			continue
+		# Ensure variants are in the correct order and not overlapping
+		else:
+			# ! hgvs_v.posedit.pos.start.base !>
+			if hgvs_v.posedit.pos.start.base <= merge_end_pos:
+				raise mergeHGVSerror("Submitted variants are out of order or their ranges overlap")
+			else:
+				# Create a fake variant to handle the missing sequence
+				ins_seq = sf.fetch_seq(hgvs_v.ac,merge_end_pos,hgvs_v.posedit.pos.start.base-1)
+				gapping = hgvs_v.ac + ':' + hgvs_v.type + '.' + str(merge_end_pos+1) + '_' + str(hgvs_v.posedit.pos.start.base-1) + 'delins' + ins_seq
+				hgvs_gapping = hp.parse_hgvs_variant(gapping)
+				full_list.append(hgvs_gapping)
+				# update end_pos
+				merge_end_pos = hgvs_v.posedit.pos.end.base
+				# Append to the final list of variants
+				full_list.append(hgvs_v)				
+
+	# Generate the alt sequence
+	alt_sequence = ''
+	for hgvs_v in full_list:
+		ref_alt = hgvs2vcf.hgvs_ref_alt(hgvs_v)
+		alt_sequence = alt_sequence + ref_alt['alt']
+	
+	# Fetch the reference sequence and copy it for the basis of the alt sequence
+	reference_sequence = sf.fetch_seq(accession,merge_start_pos-1,merge_end_pos)
+	
+	# Generate an hgvs_delins
+	if alt_sequence == '':
+		delins = accession + ':' + type + '.' + str(merge_start_pos) + '_' + str(merge_end_pos) + 'del' + reference_sequence
+	else:
+		delins = accession + ':' + type + '.' + str(merge_start_pos) + '_' + str(merge_end_pos) + 'del' + reference_sequence + 'ins' + alt_sequence		
+	hgvs_delins = hp.parse_hgvs_variant(delins)
+	try:
+		hgvs_delins = vm.n_to_c(hgvs_delins)
+	except:
+		pass
+	# Normalize (allow variants crossing into different exons)
+	try:
+		hgvs_delins = reverse_hn.normalize(hgvs_delins)
+	except HGVSUnsupportedOperationError:
+		pass
+	return hgvs_delins			
+				
+
+"""
+Function designed to merge multiple pseudo VCF variants (strings) into a single HGVS delins 
+using 5 prime normalization then return a 3 prime normalized final HGVS object
+"""
+def merge_pseudo_vcf(vcf_list, genome_build):
+	hgvs_list = []
+	# Convert pseudo_vcf list into a HGVS list
+	for call in vcf_list:
+		hgvs = pseudo_vcf2hgvs.pvcf_to_hgvs(call, genome_build, normalization_direction=5)
+		hgvs_list.append(hgvs)
+	# Merge
+	hgvs_delins = merge_hgvs_5pr(hgvs_list)	
+	# normalize 3 prime
+	hgvs_delins = hn.normalize(hgvs_delins)
+	# return
+	return hgvs_delins
+
+"""
+HGVS cis allele handling function which takes a single HGVS allele description and 
+separates each allele into a list of HGVS variants
+"""
+def hgvs_alleles(variant_description):
+	try:
+		# Split up the description
+		accession, remainder = variant_description.split(':')
+		# Branch
+		if re.search('[gcn]\.\d+\[', remainder):
+			# NM_004006.2:c.2376[G>C];[(G>C)]
+			#if re.search('\(', remainder):
+			#	raise alleleVariantError('Unsupported format ' + remainder)
+			# NM_004006.2:c.2376[G>C];[G>C]
+			type, remainder = remainder.split('.')
+			pos = re.match('\d+', remainder)
+			pos = pos.group(0)
+			remainder = remainder.replace(pos,'')
+			remainder = remainder[1:-1]
+			alleles = remainder.split('];[')
+			my_alleles = []
+			for posedit in alleles:
+				if re.search('\(', posedit):
+					# NM_004006.2:c.2376[G>C];[(G>C)]
+					continue
+				posedit_list = [posedit]
+				current_allele = []
+				for pe in posedit_list:
+					vrt = accession + ':' + type + '.' + str(pos) + pe
+					current_allele.append(vrt)
+				my_alleles.append(current_allele)
+		else:
+			type, remainder = remainder.split('.')
+			if re.search('\(;\)', remainder) and re.search('\];', remainder):
+				# NM_004006.2:c.[296T>G];[476T>C](;)1083A>C(;)1406del
+				pre_alleles = remainder.split('(;)')
+				pre_merges = []
+				alleles = []
+				for allele in pre_alleles:
+					if re.match('\[', allele):
+						pre_merges.append(allele)
+					else:
+						alleles.append(allele)	
+				# Extract descriptions
+				my_alleles = []
+				# First alleles
+				for posedits in alleles:
+					posedit_list = posedits.split(';')
+					current_allele = []
+					for pe in posedit_list:
+						vrt = accession + ':' + type + '.' + pe
+						current_allele.append(vrt)
+					my_alleles.append(current_allele)
+
+				# Then Merges
+				alleles = []
+				remainder = ';'.join(pre_merges)
+				remainder = remainder[1:-1] # removes the first [ and the last ]
+				alleles = remainder.split('];[')
+				# now separate out the variants in each allele§
+				for posedits in alleles:
+					posedit_list = posedits.split(';')
+					current_allele = []
+					for pe in posedit_list:
+						vrt = accession + ':' + type + '.' + pe
+						current_allele.append(vrt)
+					my_alleles.append(current_allele)
+				# Now merge the alleles into a single variant
+				merged_alleles = []
+				for each_allele in my_alleles:
+					if re.search('\?', str(each_allele)):
+						# NM_004006.2:c.[2376G>C];[?]
+						continue					
+					merge = []
+					allele = str(merge_hgvs_3pr(each_allele))
+					merge.append(allele)
+					merged_alleles.append(merge)
+				my_alleles = merged_alleles				
+				
+			elif re.search('\(;\)', remainder):	
+				# If statement for uncertainties
+				# NM_004006.2:c.[296T>G;476C>T];[476C>T](;)1083A>C
+				if re.search('\[', remainder):
+					raise alleleVariantError('Unsupported format ' + type + '.' + remainder)
+				# NM_004006.2:c.2376G>C(;)3103del
+				# NM_000548.3:c.3623_3647del(;)3745_3756dup
+				alleles = remainder.split('(;)')
+				# now separate out the variants in each allele§
+				my_alleles = []
+				for posedits in alleles:
+					posedit_list = posedits.split(';')
+					current_allele = []
+					for pe in posedit_list:
+						vrt = accession + ':' + type + '.' + pe
+						current_allele.append(vrt)
+					my_alleles.append(current_allele)
+			else:
+				# If statement for uncertainties
+				if re.search('\(', remainder):
+					raise alleleVariantError('Unsupported format ' + type + '.' + remainder)
+				# NM_004006.2:c.[2376G>C];[3103del]
+				# NM_004006.2:c.[2376G>C];[3103del]
+				# NM_004006.2:c.[296T>G;476C>T;1083A>C];[296T>G;1083A>C]
+				# NM_000548.3:c.[4358_4359del;4361_4372del]
+				remainder = remainder[1:-1] # removes the first [ and the last ]
+				alleles = remainder.split('];[')
+				# now separate out the variants in each allele§
+				my_alleles = []
+				for posedits in alleles:
+					posedit_list = posedits.split(';')
+					current_allele = []
+					for pe in posedit_list:
+						vrt = accession + ':' + type + '.' + pe
+						current_allele.append(vrt)
+					my_alleles.append(current_allele)
+				# Now merge the alleles into a single variant
+				merged_alleles = []
+				for each_allele in my_alleles:
+					if re.search('\?', str(each_allele)):
+						# NM_004006.2:c.[2376G>C];[?]
+						continue					
+					merge = []
+					allele = str(merge_hgvs_3pr(each_allele))
+					merge.append(allele)
+					merged_alleles.append(merge)
+				my_alleles = merged_alleles				
+
+		# Extract alleles into strings
+		allele_strings = []
+		for alleles_l in my_alleles:
+			for allele in alleles_l:
+				allele_strings.append(allele)
+		my_alleles = allele_strings
+		
+		# return
+		return my_alleles
+	except Exception as e:
+		import traceback
+		exc_type, exc_value, last_traceback = sys.exc_info()
+		te = traceback.format_exc()
+		raise alleleVariantError(str(e))
 	
 # <LICENSE>
 

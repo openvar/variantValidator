@@ -8,6 +8,7 @@ from g_to_g import *
 import dbControls
 import hgvs2vcf
 from batch import *
+import pseudo_vcf2hgvs
 
 # <LICENSE>
 

@@ -177,13 +177,13 @@ def valstr(hgvs_variant):
 	# import re
 	if re.search('del', str(hgvs_variant.posedit.edit)) or re.search('dup', str(hgvs_variant.posedit.edit)):
 		if len(hgvs_variant.posedit.edit.ref) <= 4:
-			pass
+			hgvs_variant.posedit.edit.ref = ''
+			#pass
 		else:	
 			hgvs_variant.posedit.edit.ref = ''
 		hgvs_variant = str(hgvs_variant)
 	else:
 		hgvs_variant = str(hgvs_variant)
-	
 	return hgvs_variant
 
 # Defining reference sequence type from accession
@@ -220,9 +220,11 @@ def my_config():
 	return locate
 
 # Validator code
-def validator(batch_variant, selected_assembly, select_transcripts):	
+def validator(batch_variant, selected_assembly, select_transcripts):	 
 	if VALIDATOR_DEBUG is not None:
 		logging.info(batch_variant + ' : ' + selected_assembly)
+		# Take start time
+		start_time = time.time()
 	
 	# Set pre defined variables
 	alt_aln_method = 'splign'
@@ -554,11 +556,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							try:
 								hgvs_not_delins = hp.parse_hgvs_variant(not_delins)
 							except hgvs.exceptions.HGVSError as e:
-								print 'ni wom'
-								print input
-								print e
 								# Sort out multiple ALTS from VCF inputs
-								print not_delins
 								if re.search("([GATCgatc]+)>([GATCgatc]+),([GATCgatc]+)", not_delins):
 									header,alts = not_delins.split('>')
 									# Split up the alts into a list
@@ -646,6 +644,58 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					transy = transy.replace(')', '')
 					input = transy
 			
+				# Extract variants from HGVS allele descriptions
+				# http://varnomen.hgvs.org/recommendations/DNA/variant/alleles/
+				if (re.search(':[gcnr].\[', input) and re.search('\;', input)) or (re.search(':[gcrn].\d+\[', input) and re.search('\;', input)) or (re.search('\(\;\)', input)):
+					# handle LRG inputs
+					if re.match('^LRG', input):
+						if re.match('^LRG\d+', input):
+							string, remainder = input.split(':')
+							reference = string.replace('LRG', 'LRG_')	
+							input = reference + ':' + remainder
+							caution = string + ' updated to ' + reference
+						if not re.match('^LRG_\d+', input):
+							pass
+						elif re.match('^LRG_\d+:g.', input) or re.match('^LRG_\d+:p.', input) or re.match('^LRG_\d+:c.', input) or re.match('^LRG_\d+:n.', input):
+							lrg_reference, variation = input.split(':')
+							refseqgene_reference = va_dbCrl.data.get_RefSeqGeneID_from_lrgID(lrg_reference)
+							if refseqgene_reference != 'none':
+								input = refseqgene_reference + ':' + variation
+								if caution == '':
+									caution = lrg_reference + ':' + variation + ' automapped to ' + refseqgene_reference + ':' + variation
+								else:
+									caution = caution + ': ' +	lrg_reference + ':' + variation + ' automapped to ' + refseqgene_reference + ':' + variation
+								validation['warnings'] = validation['warnings'] + ': ' + str(caution)
+						elif re.match('^LRG_\d+t\d+:c.', input) or re.match('^LRG_\d+t\d+:n.', input) or re.match('^LRG_\d+t\d+:p.', input) or  re.match('^LRG_\d+t\d+:g.', input):		
+							lrg_reference, variation = input.split(':')
+							refseqtranscript_reference = va_dbCrl.data.get_RefSeqTranscriptID_from_lrgTranscriptID(lrg_reference)
+							if refseqtranscript_reference != 'none':
+								input = refseqtranscript_reference + ':' + variation
+								if caution == '':
+									caution = lrg_reference + ':' + variation + ' automapped to ' + refseqtranscript_reference + ':' + variation
+								else:
+									caution = caution + ': ' + lrg_reference + ':' + variation + ' automapped to ' + refseqtranscript_reference + ':' + variation
+								validation['warnings'] = validation['warnings'] + ': ' + str(caution)
+						else:
+							pass
+					try:
+						# Submit to allele extraction function
+						alleles = va_func.hgvs_alleles(input)
+						validation['warnings'] = validation['warnings'] + ': ' + 'Automap has extracted possible variant descriptions'
+						for allele in alleles:		
+							query = {'quibble' : allele, 'id' : validation['id'], 'warnings' : validation['warnings'], 'description' : '', 'coding' : '', 'coding_g' : '', 'genomic_r' : '', 'genomic_g' : '', 'protein' : '', 'write' : 'true', 'primary_assembly' : primary_assembly, 'order' : ordering}
+							coding = 'intergenic'
+							batch_list.append(query)
+						validation['write'] = 'false'
+						continue
+					except alleleVariantError as e:
+						error = str(e)
+						if re.search('Cannot validate sequence of an intronic variant', error):
+							validation['warnings'] = validation['warnings'] + ': ' + 'Intronic positions not supported for HGVS Allele descriptions'
+							continue	
+						else:
+							raise variantValidatorException(error)							
+
 				# INITIAL USER INPUT FORMATTING
 				# Removes whitespace from the ends of the string
 				# Removes anything in brackets
@@ -920,6 +970,31 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					validation['warnings'] = validation['warnings'] + ': ' + error
 					continue
 					
+				# Extract variants from HGVS allele descriptions
+				# http://varnomen.hgvs.org/recommendations/DNA/variant/alleles/
+				print 'BING'
+				if (re.search(':[gcnr].\[', input) and re.search('\;', input)) or (re.search(':[gcrn].\d+\[', input) and re.search('\;', input)) or (re.search('\(\;\)', input)):
+					print 'BONG'
+					try:
+						print 'Bingly'
+						# Submit to allele extraction function
+						alleles = va_func.hgvs_alleles(input)
+						validation['warnings'] = validation['warnings'] + ': ' + 'Automap has extracted possible variant descriptions'
+						for allele in alleles:		
+							query = {'quibble' : allele, 'id' : validation['id'], 'warnings' : validation['warnings'], 'description' : '', 'coding' : '', 'coding_g' : '', 'genomic_r' : '', 'genomic_g' : '', 'protein' : '', 'write' : 'true', 'primary_assembly' : primary_assembly, 'order' : ordering}
+							coding = 'intergenic'
+							batch_list.append(query)
+						validation['write'] = 'false'
+						continue
+					except alleleVariantError as e:
+						print 'bungly'
+						error = str(e)
+						if re.search('Cannot validate sequence of an intronic variant', error):
+							validation['warnings'] = validation['warnings'] + ': ' + 'Intronic positions not supported for HGVS Allele descriptions'
+							continue	
+						else:
+							raise variantValidatorException(error)							
+				print 'boo'			
 				# Primary validation of the input
 				# re-make input_parses
 				input_parses = hp.parse_hgvs_variant(input)
@@ -2765,7 +2840,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						else:	
 							# Set variants pre and post RNA norm
 							hgvs_inp = hp.parse_hgvs_variant(inp)
-							hgvs_otp = hn.normalize(hgvs_inp)
+							try:
+								hgvs_otp = hn.normalize(hgvs_inp)
+							except hgvs.exceptions.HGVSError as e:
+								hgvs_otp = hgvs_inp
 							tx_ac = ''
 	
 						# Set remaining variables	
@@ -5312,7 +5390,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					continue
 			else:
 				continue
-	
+
+		if VALIDATOR_DEBUG is not None:
+			# Measure time elapsed
+			time_now = time.time()
+			elapsed_time = time_now - start_time
+			print 'validation time = ' + str(elapsed_time)
+			
 		# Exit the script
 		return batch_out
 
@@ -5553,6 +5637,7 @@ def hgvs2ref(query):
 
 	# Return the resulting reference sequence or error message
 	return reference
+
 
 # <LICENSE>
 

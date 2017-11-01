@@ -64,7 +64,7 @@ def get_refSeqGene_data_by_refSeqGeneID(refSeqGeneID, genomeBuild):
 	return refSeqGene_data
 
 def get_gene_symbol_from_refSeqGeneID(refSeqGeneID):
-	refseqgene_id = refSeqGeneID.split('.')[0]
+	refseqgene_id = refSeqGeneID #.split('.')[0]
 	query = "SELECT hgncSymbol FROM refSeqGene_loci WHERE refSeqGeneID = '%s'" %(refseqgene_id)
 	gene_symbol = str(execute(query)[0])
 	return gene_symbol	

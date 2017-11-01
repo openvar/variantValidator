@@ -27,7 +27,11 @@ try:
 except ImportError:	
 	parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 	os.sys.path.insert(0,parentdir)
-	import functions	
+	import functions
+except AttributeError:	
+	parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+	os.sys.path.insert(0,parentdir)
+	import functions			
 
 # Retrieve transcript information
 def in_entries(entry, table): 

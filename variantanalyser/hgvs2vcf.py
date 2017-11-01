@@ -43,7 +43,7 @@ reverse_normalize = hgvs.normalizer.Normalizer(hdp,
 		alt_aln_method='splign'
 		)
 
-# normalizer (5 prime)
+# normalizer (3 prime)
 normalize = hgvs.normalizer.Normalizer(hdp, 
 		cross_boundaries=False, 
 		shuffle_direction=3, 
@@ -193,7 +193,7 @@ def hgvs2vcf(hgvs_genomic):
 				alt = prev + alt
 	
 	# Dictionary the VCF
-	vcf_dict = {'chr' : chr, 'pos' : pos, 'ref' : ref, 'alt' : alt}
+	vcf_dict = {'chr' : chr, 'pos' : pos, 'ref' : ref, 'alt' : alt, 'normalized_hgvs' : reverse_normalized_hgvs_genomic}
 	return vcf_dict		
 	
 def report_hgvs2vcf(hgvs_genomic):		
@@ -340,7 +340,7 @@ def report_hgvs2vcf(hgvs_genomic):
 		pos = ''
 	
 	# Dictionary the VCF
-	vcf_dict = {'pos' : pos, 'ref' : ref, 'alt' : alt, 'ucsc_chr' : ucsc_chr, 'grc_chr' : grc_chr}
+	vcf_dict = {'pos' : pos, 'ref' : ref, 'alt' : alt, 'ucsc_chr' : ucsc_chr, 'grc_chr' : grc_chr, 'normalized_hgvs' : reverse_normalized_hgvs_genomic}
 	return vcf_dict		
 	
 def pos_lock_hgvs2vcf(hgvs_genomic):		
@@ -470,7 +470,7 @@ def pos_lock_hgvs2vcf(hgvs_genomic):
 		alt = ''
 		pos = ''
 		
-	vcf_dict = {'chr' : chr, 'pos' : pos, 'ref' : ref, 'alt' : alt}
+	vcf_dict = {'chr' : chr, 'pos' : pos, 'ref' : ref, 'alt' : alt, 'normalized_hgvs' : reverse_normalized_hgvs_genomic}
 	return vcf_dict	
 
 
@@ -613,7 +613,7 @@ def hard_right_hgvs2vcf(hgvs_genomic):
 		alt = alt + post
 
 	# Dictionary the VCF
-	vcf_dict = {'chr' : chr, 'pos' : pos, 'ref' : ref, 'alt' : alt}
+	vcf_dict = {'chr' : chr, 'pos' : pos, 'ref' : ref, 'alt' : alt, 'normalized_hgvs' : normalized_hgvs_genomic}
 	return vcf_dict	
 
 def hard_left_hgvs2vcf(hgvs_genomic):		
@@ -753,8 +753,60 @@ def hard_left_hgvs2vcf(hgvs_genomic):
 		alt = prev + alt
 	
 	# Dictionary the VCF
-	vcf_dict = {'chr' : chr, 'pos' : pos, 'ref' : ref, 'alt' : alt}
+	vcf_dict = {'chr' : chr, 'pos' : pos, 'ref' : ref, 'alt' : alt, 'normalized_hgvs' : reverse_normalized_hgvs_genomic}
 	return vcf_dict			
+
+
+def hgvs_ref_alt(hgvs_variant):		
+					
+	if re.search('[GATC]+\=', str(hgvs_variant.posedit)):
+		ref = hgvs_variant.posedit.edit.ref
+		alt = hgvs_variant.posedit.edit.ref
+
+	# Insertions	
+	elif (re.search('ins', str(hgvs_variant.posedit)) and not re.search('del', str(hgvs_variant.posedit))):						
+		end = int(hgvs_variant.posedit.pos.end.base)
+		start = int(hgvs_variant.posedit.pos.start.base) 
+		alt_start = start - 1 #
+		# Recover sequences
+		ref_seq = sf.fetch_seq(str(hgvs_variant.ac),alt_start,end)
+		ins_seq = hgvs_variant.posedit.edit.alt
+		# Assemble  
+		ref = ref_seq
+		alt = ref_seq[:1] + ins_seq + ref_seq[-1:]						
+
+	# Substitutions
+	elif re.search('>', str(hgvs_variant.posedit)):
+		ref = hgvs_variant.posedit.edit.ref
+		alt = hgvs_variant.posedit.edit.alt
+
+	# Deletions
+	elif re.search('del', str(hgvs_variant.posedit)) and not re.search('ins', str(hgvs_variant.posedit)):						
+		ref = hgvs_variant.posedit.edit.ref
+		alt = ''
+
+	# inv
+	elif re.search('inv', str(hgvs_variant.posedit)):						
+		ref = hgvs_variant.posedit
+		my_seq = Seq(ref)
+		alt = str(my_seq.reverse_complement()) 
+	
+	# Delins
+	elif (re.search('del', str(hgvs_variant.posedit)) and re.search('ins', str(hgvs_variant.posedit))):
+		ref = hgvs_variant.posedit.edit.ref
+		alt = hgvs_variant.posedit.edit.alt		
+	
+	# Duplications								
+	elif (re.search('dup', str(hgvs_variant.posedit))):
+		ref = hgvs_variant.posedit.edit.ref
+		alt = hgvs_variant.posedit.edit.ref + hgvs_variant.posedit.edit.ref
+	else:
+		ref = ''
+		alt = ''
+		
+	ref_alt_dict = {'ref' : ref, 'alt' : alt}
+	return ref_alt_dict
+
 
 # <LICENSE>
 
