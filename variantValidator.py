@@ -972,11 +972,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					
 				# Extract variants from HGVS allele descriptions
 				# http://varnomen.hgvs.org/recommendations/DNA/variant/alleles/
-				print 'BING'
 				if (re.search(':[gcnr].\[', input) and re.search('\;', input)) or (re.search(':[gcrn].\d+\[', input) and re.search('\;', input)) or (re.search('\(\;\)', input)):
-					print 'BONG'
 					try:
-						print 'Bingly'
 						# Submit to allele extraction function
 						alleles = va_func.hgvs_alleles(input)
 						validation['warnings'] = validation['warnings'] + ': ' + 'Automap has extracted possible variant descriptions'
@@ -987,14 +984,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						validation['write'] = 'false'
 						continue
 					except alleleVariantError as e:
-						print 'bungly'
 						error = str(e)
 						if re.search('Cannot validate sequence of an intronic variant', error):
 							validation['warnings'] = validation['warnings'] + ': ' + 'Intronic positions not supported for HGVS Allele descriptions'
 							continue	
 						else:
 							raise variantValidatorException(error)							
-				print 'boo'			
 				# Primary validation of the input
 				# re-make input_parses
 				input_parses = hp.parse_hgvs_variant(input)

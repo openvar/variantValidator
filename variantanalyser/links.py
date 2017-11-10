@@ -13,10 +13,10 @@ seqfetcher.py
 
 # IMPORT REQUIRED PYTHON MODULES
 import re
-# import textwrap
 
-# Biotools modules
-import biotools.translate
+# BioPython modules
+from Bio.Seq import Seq
+from Bio.Alphabet import IUPAC
 
 """
 Function which predicts the protein effect of c. inversions
@@ -121,8 +121,9 @@ def translate(ed_seq, cds_start):
 	if (met == 'ATG') or (met == 'atg'):
 		# Remove the 5 prime UTR
 		sequence = ed_seq[cds_start:]
+		coding_dna = Seq(str(sequence), IUPAC.unambiguous_dna)
 		# Translate
-		trans = biotools.translate.translate(sequence)
+		trans = coding_dna.translate()
 		aain = list(trans)
 		aaout = []
 		count = 0
@@ -140,6 +141,7 @@ def translate(ed_seq, cds_start):
 	else:
 		translation = 'error'
 		return translation  
+
 	
 	
 """
