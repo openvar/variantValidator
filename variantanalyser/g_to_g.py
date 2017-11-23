@@ -124,7 +124,7 @@ def chr_to_rsg(hgvs_genomic, hn, vr):
 				bases = re.search(r"((inv[GATCUgatcu]+))", str(chr_edit))
 				bases = bases.group(1)
 				chr_edit = 'inv' + str(chr_edit).replace(bases, '')
-			if re.search('>', str(chr_edit)):
+			if re.search('>', str(chr_edit)) or re.search('=', str(chr_edit)):
 				chr_edit = str(chr_edit)
 				chr_edit = chr_edit.replace('A>', 't>')
 				chr_edit = chr_edit.replace('T>', 'a>')
@@ -256,7 +256,7 @@ def rsg_to_chr(hgvs_refseqgene, primary_assembly, hn, vr):
 				bases = re.search(r"((inv[GATCUgatcu]+))", str(rsg_edit))
 				bases = bases.group(1)
 				rsg_edit = 'inv' + str(rsg_edit).replace(bases, '')
-			if re.search('>', str(rsg_edit)):
+			if re.search('>', str(rsg_edit)) or re.search('=', str(rsg_edit)):
 				rsg_edit = str(rsg_edit)
 				rsg_edit = rsg_edit.replace('A>', 't>')
 				rsg_edit = rsg_edit.replace('T>', 'a>')
