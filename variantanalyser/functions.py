@@ -548,6 +548,19 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 								break
 							except:
 								continue
+
+					# Only a RefSeqGene available
+					try:
+						hn.normalize(hgvs_genomic)
+					except:							
+						for option in mapping_options:
+							if re.match('NG_', option[1]):
+								try:
+									hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
+									break
+								except:
+									continue
+
 		 
 	if hgvs_genomic.posedit.edit.type == 'ins':
 		try:
@@ -650,6 +663,19 @@ def noreplace_myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 								# Do not trap the error
 								hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
 								break
+
+					# Only a RefSeqGene available
+					try:
+						hn.normalize(hgvs_genomic)
+					except:							
+						for option in mapping_options:
+							if re.match('NG_', option[1]):
+								try:
+									hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
+									break
+								except:
+									continue
+
 	return hgvs_genomic
 
 """
