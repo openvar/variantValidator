@@ -264,6 +264,16 @@ def update_lrgt_rst(lrgtx_to_rstID):
 	else:
 		return
 
+def update_lrg_p_rs_p_lookup(lrg_p, rs_p):
+	# First query the database
+	rspID = dbfetchone.get_RefSeqProteinID_from_lrgProteinID(lrg_p)
+ 	if rspID == 'none':
+ 		# import dbinsert
+ 		dbinsert.insert_LRG_protein_data(lrg_p, rs_p)
+		return
+	else:
+		return		
+
 # Direct methods (GET)
 def get_transcript_info_for_gene(gene_symbol):
 	rows = dbfetchall.get_transcript_info_for_gene(gene_symbol)
@@ -359,6 +369,10 @@ def get_RefSeqTranscriptID_from_lrgTranscriptID(lrg_txID):
 def get_lrgTranscriptID_from_RefSeqTranscriptID(rstID):
 	lrg_tx = dbfetchone.get_lrgTranscriptID_from_RefSeqTranscriptID(rstID)
 	return lrg_tx
+	
+def get_lrgProteinID_from_RefSeqProteinID(rs_p):
+	lrg_p = dbfetchone.get_lrgProteinID_from_RefSeqProteinID(rs_p)
+	return lrg_p	
 	
 def get_lrgID_from_RefSeqGeneID(rsgID):	
 	lrgID = dbfetchone.get_lrgID_from_RefSeqGeneID(rsgID)

@@ -4644,7 +4644,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						RefSeqGene_context_transcript_variant = ''
 					
 					# Protein description
-					pedicted_protein_variant = valid['protein']
+					predicted_protein_variant = valid['protein']
+					rs_p,pred_prot_posedit = predicted_protein_variant.split(':')
+					lrg_p = va_dbCrl.data.get_lrgProteinID_from_RefSeqProteinID(rs_p)
+					if re.match('LRG',lrg_p):
+						predicted_protein_variant = rs_p + '(' + lrg_p + '):' + pred_prot_posedit	  
 					
 					# Gene
 					if transcript_accession != '':
@@ -5367,7 +5371,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					dict_out['genome_context_intronic_sequence'] = genome_context_transcript_variant
 					dict_out['RefSeqGene_context_intronic_sequence'] = RefSeqGene_context_transcript_variant
 					dict_out['HGVS_RefSeqGene_variant']	= refseqgene_variant
-					dict_out['HGVS_predicted_protein_consequence'] = pedicted_protein_variant
+					dict_out['HGVS_predicted_protein_consequence'] = predicted_protein_variant
 					dict_out['validation_warnings'] = warnings_out
 					dict_out['HGVS_LRG_transcript_variant'] = lrg_transcript_variant
 					dict_out['HGVS_LRG_variant'] = lrg_variant
@@ -5632,6 +5636,18 @@ def hgvs2ref(query):
 
 	# Return the resulting reference sequence or error message
 	return reference
+
+def update_vv_data():
+	import sys
+	import logging
+	logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+	# import update modules
+	import mysql_refSeqGene_noMissmatch
+	import compile_lrg_data
+	# Update refSeqGene Primary assembly alignment data
+	mysql_refSeqGene_noMissmatch.update()
+	# Update LRG records
+	compile_lrg_data.update()
 
 
 # <LICENSE>

@@ -653,16 +653,6 @@ def noreplace_myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 									break
 								except Exception as e:
 									continue
-					# All have failed, likely a variant description error
-					try:
-						hn.normalize(hgvs_genomic)
-					except:
-						for option in mapping_options:
-							if re.match('NC_', option[1]):
-								chr_num = supported_chromosome_builds.supported_for_mapping(str(option[1]), primary_assembly)
-								# Do not trap the error
-								hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
-								break
 
 					# Only a RefSeqGene available
 					try:

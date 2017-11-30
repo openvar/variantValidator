@@ -131,7 +131,24 @@ def insert_LRG_transcript_data(lrgtx_to_rstID):
 	conn.commit()
 	cursor.close()
 	conn.close()
-	return success		
+	return success
+
+def insert_LRG_protein_data(lrg_p, rs_p):
+	query = "INSERT INTO LRG_proteins(LRGproteinID, RefSeqProteinID) VALUES(%s,%s)"
+	conn = dbConnection.get_connection().get_connection()
+	cursor = conn.cursor()
+	cursor.execute(query, (lrg_p, rs_p))			
+	# Query report
+	if cursor.lastrowid:
+		success = 'true'
+	else:
+		success = 'Unknown error'
+
+	# Commit and close connection
+	conn.commit()
+	cursor.close()
+	conn.close()
+	return success				
 
 if __name__ == '__main__':
 	insert()

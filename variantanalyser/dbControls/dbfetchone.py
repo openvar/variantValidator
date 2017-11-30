@@ -109,6 +109,18 @@ def get_refseqgene_info(refseqgene_id, primary_assembly):
 	refseqgene_info = execute(query)
 	return refseqgene_info	
 	
+def get_RefSeqProteinID_from_lrgProteinID(lrg_p):
+	query = "SELECT RefSeqProteinID FROM LRG_proteins WHERE LRGproteinID = '%s'" %(lrg_p)
+	rspID = execute(query)
+	rspID = rspID[0]
+	return rspID
+
+def get_lrgProteinID_from_RefSeqProteinID(rs_p):
+	query = "SELECT LRGproteinID FROM LRG_proteins WHERE  RefSeqProteinID = '%s'" %(rs_p)
+	lrpID = execute(query)
+	lrpID = lrpID[0]
+	return lrpID	
+	
 if __name__ == '__main__':
 	query_with_fetchone()
 	
