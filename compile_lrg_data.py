@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
+
 import urllib2
 import re
-# import untangle
 import variantanalyser
 import variantanalyser.dbControls
 import variantanalyser.dbControls.data as data
@@ -102,7 +103,9 @@ def update():
 	print 'LRG lookup tables updated'
 	return			
 		
+# <LICENSE>
 
+# </LICENSE>	
 	
 
 

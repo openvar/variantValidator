@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import re
 import os
 import urllib2
@@ -246,7 +248,9 @@ def update():
 	return
 
 
+# <LICENSE>
 
+# </LICENSE>	
 
 
 

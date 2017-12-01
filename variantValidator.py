@@ -4416,6 +4416,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 			
 						# Look for normalized variant options that do not match hgvs_coding
 						# boundary crossing normalization
+						# Re-Save the required variants
+						hgvs_seek_var = copy.deepcopy(hgvs_coding)
+						saved_hgvs_coding = copy.deepcopy(hgvs_coding)
 						if ori == -1:
 							# position genomic at its most 5 prime position
 							try:
@@ -4572,7 +4575,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					if re.search('RefSeqGene', refseqgene_variant) or refseqgene_variant == '':
 						warnings = warnings + ': ' + refseqgene_variant 
 						refseqgene_variant = ''
-						lrg_variant = ''	
+						lrg_variant = ''
+						hgvs_refseqgene_variant = 'false'	
 					else:
 						hgvs_refseqgene_variant = hp.parse_hgvs_variant(refseqgene_variant)
 						rsg_ac = va_dbCrl.data.get_lrgID_from_RefSeqGeneID(str(hgvs_refseqgene_variant.ac))
@@ -4609,6 +4613,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							lrg_transcript_variant = ''
 						else:
 							hgvs_lrg_t = copy.deepcopy(hgvs_transcript_variant)
+							if hgvs_refseqgene_variant != 'false':
+								if hgvs_lrg_t.posedit.edit != hgvs_refseqgene_variant.posedit.edit:
+									hgvs_lrg_t.posedit.edit = hgvs_refseqgene_variant.posedit.edit
 							hgvs_lrg_t.ac = lrg_transcript
 							lrg_transcript_variant = str(hgvs_lrg_t)
 					else:
