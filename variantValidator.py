@@ -4652,10 +4652,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					
 					# Protein description
 					predicted_protein_variant = valid['protein']
-					rs_p,pred_prot_posedit = predicted_protein_variant.split(':')
-					lrg_p = va_dbCrl.data.get_lrgProteinID_from_RefSeqProteinID(rs_p)
-					if re.match('LRG',lrg_p):
-						predicted_protein_variant = rs_p + '(' + lrg_p + '):' + pred_prot_posedit	  
+					if re.match('NP_', predicted_protein_variant):
+						rs_p,pred_prot_posedit = predicted_protein_variant.split(':')
+						lrg_p = va_dbCrl.data.get_lrgProteinID_from_RefSeqProteinID(rs_p)
+						if re.match('LRG',lrg_p):
+							predicted_protein_variant = rs_p + '(' + lrg_p + '):' + pred_prot_posedit	  
 					
 					# Gene
 					if transcript_accession != '':
