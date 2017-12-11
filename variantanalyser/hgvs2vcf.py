@@ -130,13 +130,14 @@ def hgvs2vcf(hgvs_genomic):
 		# Recover sequences
 		hgvs_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),start,end)
 		vcf_del_seq	= sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),adj_start,end)
+		bs	= sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),adj_start-1, adj_start)
 		# Assemble  
-		pos = str(start)
-		ref = vcf_del_seq
+		pos = str(start-1)
+		ref = bs + vcf_del_seq
 		alt = ins_seq
 		if re.search('inv', str(reverse_normalized_hgvs_genomic.posedit)):
 			my_seq = Seq(vcf_del_seq)
-			alt = str(my_seq.reverse_complement()) 
+			alt = bs + str(my_seq.reverse_complement())
 	
 	# Delins
 	elif (re.search('del', str(reverse_normalized_hgvs_genomic.posedit)) and re.search('ins', str(reverse_normalized_hgvs_genomic.posedit))):
@@ -288,13 +289,14 @@ def report_hgvs2vcf(hgvs_genomic):
 		# Recover sequences
 		hgvs_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),start,end)
 		vcf_del_seq	= sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),adj_start,end)
+		bs	= sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),adj_start-1, adj_start)
 		# Assemble  
-		pos = str(start)
-		ref = vcf_del_seq
+		pos = str(start-1)
+		ref = bs + vcf_del_seq
 		alt = ins_seq
 		if re.search('inv', str(reverse_normalized_hgvs_genomic.posedit)):
 			my_seq = Seq(vcf_del_seq)
-			alt = str(my_seq.reverse_complement()) 
+			alt = bs + str(my_seq.reverse_complement())
 	
 	# Delins
 	elif (re.search('del', str(reverse_normalized_hgvs_genomic.posedit)) and re.search('ins', str(reverse_normalized_hgvs_genomic.posedit))):
@@ -421,13 +423,14 @@ def pos_lock_hgvs2vcf(hgvs_genomic):
 		# Recover sequences
 		hgvs_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),start,end)
 		vcf_del_seq	= sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),adj_start,end)
+		bs	= sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),adj_start-1, adj_start)
 		# Assemble  
-		pos = str(start)
-		ref = vcf_del_seq
+		pos = str(start-1)
+		ref = bs + vcf_del_seq
 		alt = ins_seq
 		if re.search('inv', str(reverse_normalized_hgvs_genomic.posedit)):
 			my_seq = Seq(vcf_del_seq)
-			alt = str(my_seq.reverse_complement()) 
+			alt = bs + str(my_seq.reverse_complement())
 	
 	# Delins
 	elif (re.search('del', str(reverse_normalized_hgvs_genomic.posedit)) and re.search('ins', str(reverse_normalized_hgvs_genomic.posedit))):
@@ -537,28 +540,29 @@ def hard_right_hgvs2vcf(hgvs_genomic):
 		alt = pre_base
 	
 	# inv
-	elif re.search('inv', str(normalized_hgvs_genomic.posedit)):						
-		end = int(normalized_hgvs_genomic.posedit.pos.end.base)
-		start = int(normalized_hgvs_genomic.posedit.pos.start.base)
+	elif re.search('inv', str(reverse_normalized_hgvs_genomic.posedit)):						
+		end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
+		start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
 		adj_start = start -1
 		start = start
 		try:
-			ins_seq = normalized_hgvs_genomic.posedit.edit.alt
+			ins_seq = reverse_normalized_hgvs_genomic.posedit.edit.alt
 		except:
 			ins_seq = ''
 		else:
 			if str(ins_seq) == 'None':
 				ins_seq = ''		
 		# Recover sequences
-		hgvs_del_seq = sf.fetch_seq(str(normalized_hgvs_genomic.ac),start,end)
-		vcf_del_seq	= sf.fetch_seq(str(normalized_hgvs_genomic.ac),adj_start,end)
+		hgvs_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),start,end)
+		vcf_del_seq	= sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),adj_start,end)
+		bs	= sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),adj_start-1, adj_start)
 		# Assemble  
-		pos = str(start)
-		ref = vcf_del_seq
+		pos = str(start-1)
+		ref = bs + vcf_del_seq
 		alt = ins_seq
-		if re.search('inv', str(normalized_hgvs_genomic.posedit)):
+		if re.search('inv', str(reverse_normalized_hgvs_genomic.posedit)):
 			my_seq = Seq(vcf_del_seq)
-			alt = str(my_seq.reverse_complement()) 
+			alt = bs + str(my_seq.reverse_complement())
 	
 	# Delins
 	elif (re.search('del', str(normalized_hgvs_genomic.posedit)) and re.search('ins', str(normalized_hgvs_genomic.posedit))):
@@ -694,13 +698,14 @@ def hard_left_hgvs2vcf(hgvs_genomic):
 		# Recover sequences
 		hgvs_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),start,end)
 		vcf_del_seq	= sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),adj_start,end)
+		bs	= sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),adj_start-1, adj_start)
 		# Assemble  
-		pos = str(start)
-		ref = vcf_del_seq
+		pos = str(start-1)
+		ref = bs + vcf_del_seq
 		alt = ins_seq
 		if re.search('inv', str(reverse_normalized_hgvs_genomic.posedit)):
 			my_seq = Seq(vcf_del_seq)
-			alt = str(my_seq.reverse_complement()) 
+			alt = bs + str(my_seq.reverse_complement())
 	
 	# Delins
 	elif (re.search('del', str(reverse_normalized_hgvs_genomic.posedit)) and re.search('ins', str(reverse_normalized_hgvs_genomic.posedit))):
