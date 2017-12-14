@@ -3073,6 +3073,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								if re.match('Normalization of intronic variants is not supported', error):
 									chromosome_normalized_hgvs_coding = hgvs_coding
 								elif re.match('Unsupported normalization of variants spanning the exon-intron boundary', error):
+									chromosome_normalized_hgvs_coding = hgvs_coding	
+								else:
 									chromosome_normalized_hgvs_coding = hgvs_coding		
 						else:
 							try:	
@@ -3082,6 +3084,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								if re.match('Normalization of intronic variants is not supported', error):
 									chromosome_normalized_hgvs_coding = hgvs_coding
 								elif re.match('Unsupported normalization of variants spanning the exon-intron boundary', error):
+									chromosome_normalized_hgvs_coding = hgvs_coding
+								else:
 									chromosome_normalized_hgvs_coding = hgvs_coding	
 
 						most_3pr_hgvs_genomic = va_func.myevm_t_to_g(chromosome_normalized_hgvs_coding, no_norm_evm, hdp, primary_assembly)
@@ -4368,9 +4372,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=ass_prot, type='p', posedit='(=)')
 											protein = str(hgvs_protein)
 										else:
-											#if pro_inv_info['terminate'] == 'true':
-											#	end = 'Ter' + str(pro_inv_info['ter_pos'])
-											#	pro_inv_info['prot_ins_seq'].replace('*', end) 
+											if pro_inv_info['terminate'] == 'true':
+												end = 'Ter' + str(pro_inv_info['ter_pos'])
+												pro_inv_info['prot_ins_seq'].replace('*', end) 
 											# Complete variant description
 											iv = hgvs.location.Interval(start=pro_inv_info['edit_start'], end=pro_inv_info['edit_end'])
 											# Note for hgvs to continue working, we need to take the format delXXXinsyyy
