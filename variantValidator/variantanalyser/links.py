@@ -154,7 +154,7 @@ def one_to_three(seq):
     'K' :'Lys' , 'L' :'Leu', 'M' :'Met', 'N' :'Asn' ,
     'P' :'Pro', 'Q' :'Gln' , 'R' :'Arg' , 'S' :'Ser',
     'T' :'Thr', 'V' :'Val' , 'W' :'Trp', 'Y' :'Tyr',
-    '*': '*'}
+    '*': 'Ter'}
 	
 	oned = list(seq)
 	out = []

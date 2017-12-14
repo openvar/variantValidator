@@ -4368,9 +4368,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=ass_prot, type='p', posedit='(=)')
 											protein = str(hgvs_protein)
 										else:
-											if pro_inv_info['terminate'] == 'true':
-												end = 'Ter' + str(pro_inv_info['ter_pos'])
-												pro_inv_info['prot_ins_seq'].replace('*', end) 
+											#if pro_inv_info['terminate'] == 'true':
+											#	end = 'Ter' + str(pro_inv_info['ter_pos'])
+											#	pro_inv_info['prot_ins_seq'].replace('*', end) 
 											# Complete variant description
 											iv = hgvs.location.Interval(start=pro_inv_info['edit_start'], end=pro_inv_info['edit_end'])
 											# Note for hgvs to continue working, we need to take the format delXXXinsyyy
