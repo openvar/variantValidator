@@ -132,13 +132,16 @@ def hgvs2vcf(hgvs_genomic):
 		vcf_del_seq	= sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),adj_start,end)
 		bs	= sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),adj_start-1, adj_start)
 		# Assemble  
-		pos = str(start-1)
-		ref = bs + vcf_del_seq
+		pos = str(start)
+		# pos = str(start-1)
+		# ref = bs + vcf_del_seq
+		ref = vcf_del_seq
 		alt = ins_seq
 		if re.search('inv', str(reverse_normalized_hgvs_genomic.posedit)):
 			my_seq = Seq(vcf_del_seq)
-			alt = bs + str(my_seq.reverse_complement())
-	
+			# alt = bs + str(my_seq.reverse_complement())
+			alt = str(my_seq.reverse_complement())
+				
 	# Delins
 	elif (re.search('del', str(reverse_normalized_hgvs_genomic.posedit)) and re.search('ins', str(reverse_normalized_hgvs_genomic.posedit))):
 		end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
@@ -291,13 +294,16 @@ def report_hgvs2vcf(hgvs_genomic):
 		vcf_del_seq	= sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),adj_start,end)
 		bs	= sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),adj_start-1, adj_start)
 		# Assemble  
-		pos = str(start-1)
-		ref = bs + vcf_del_seq
+		pos = str(start)
+		# pos = str(start-1)
+		# ref = bs + vcf_del_seq
+		ref = vcf_del_seq
 		alt = ins_seq
 		if re.search('inv', str(reverse_normalized_hgvs_genomic.posedit)):
 			my_seq = Seq(vcf_del_seq)
-			alt = bs + str(my_seq.reverse_complement())
-	
+			# alt = bs + str(my_seq.reverse_complement())
+			alt = str(my_seq.reverse_complement())
+				
 	# Delins
 	elif (re.search('del', str(reverse_normalized_hgvs_genomic.posedit)) and re.search('ins', str(reverse_normalized_hgvs_genomic.posedit))):
 		end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
@@ -425,12 +431,15 @@ def pos_lock_hgvs2vcf(hgvs_genomic):
 		vcf_del_seq	= sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),adj_start,end)
 		bs	= sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),adj_start-1, adj_start)
 		# Assemble  
-		pos = str(start-1)
-		ref = bs + vcf_del_seq
+		pos = str(start)
+		# pos = str(start-1)
+		# ref = bs + vcf_del_seq
+		ref = vcf_del_seq
 		alt = ins_seq
 		if re.search('inv', str(reverse_normalized_hgvs_genomic.posedit)):
 			my_seq = Seq(vcf_del_seq)
-			alt = bs + str(my_seq.reverse_complement())
+			# alt = bs + str(my_seq.reverse_complement())
+			alt = str(my_seq.reverse_complement())
 	
 	# Delins
 	elif (re.search('del', str(reverse_normalized_hgvs_genomic.posedit)) and re.search('ins', str(reverse_normalized_hgvs_genomic.posedit))):
@@ -557,12 +566,15 @@ def hard_right_hgvs2vcf(hgvs_genomic):
 		vcf_del_seq	= sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),adj_start,end)
 		bs	= sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),adj_start-1, adj_start)
 		# Assemble  
-		pos = str(start-1)
-		ref = bs + vcf_del_seq
+		pos = str(start)
+		# pos = str(start-1)
+		# ref = bs + vcf_del_seq
+		ref = vcf_del_seq
 		alt = ins_seq
 		if re.search('inv', str(reverse_normalized_hgvs_genomic.posedit)):
 			my_seq = Seq(vcf_del_seq)
-			alt = bs + str(my_seq.reverse_complement())
+			# alt = bs + str(my_seq.reverse_complement())
+			alt = str(my_seq.reverse_complement())
 	
 	# Delins
 	elif (re.search('del', str(normalized_hgvs_genomic.posedit)) and re.search('ins', str(normalized_hgvs_genomic.posedit))):
@@ -700,12 +712,15 @@ def hard_left_hgvs2vcf(hgvs_genomic):
 		vcf_del_seq	= sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),adj_start,end)
 		bs	= sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),adj_start-1, adj_start)
 		# Assemble  
-		pos = str(start-1)
-		ref = bs + vcf_del_seq
+		pos = str(start)
+		# pos = str(start-1)
+		# ref = bs + vcf_del_seq
+		ref = vcf_del_seq
 		alt = ins_seq
 		if re.search('inv', str(reverse_normalized_hgvs_genomic.posedit)):
 			my_seq = Seq(vcf_del_seq)
-			alt = bs + str(my_seq.reverse_complement())
+			# alt = bs + str(my_seq.reverse_complement())
+			alt = str(my_seq.reverse_complement())
 	
 	# Delins
 	elif (re.search('del', str(reverse_normalized_hgvs_genomic.posedit)) and re.search('ins', str(reverse_normalized_hgvs_genomic.posedit))):

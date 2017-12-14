@@ -33,13 +33,45 @@ Projection of sequence variations between reference sequences takes account of d
 
 For sequence variations falling within the open reading frames of genes, VariantValidator automatically projects sequence variants via the transcript reference sequence onto genome builds GRCh38, GRCh37, hg38 and hg19 (HGVS format and VCF components), including projection onto relevant Alternative genomic reference sequences, the composition of which varies between patched GRC genome builds and static hg genome builds
 
+REQUIREMENTS
+MySQL
+validator MySQL database
+User account for the database. 
+Default:
+user = vvadmin  
+password = var1ant
+
+OPTIMAL PERFORMANCE REQUIREMENTS
+PostgreSQL version 9.5 or higher (version 10 not supported)
+sqlite3 >= 3.8.0
+
+For optimal performance, we recommend local installations of the Universal Transcript Archive (UTA) and SeqRepo. Database information http://dl.biocommons.org/ 
+
+Install UTA 
+Instructions at https://github.com/biocommons/uta/
+Restore the database http://dl.biocommons.org/uta
+gzip -cdq <CURRENT UTA SCHEMA>.pgd.gz | psql -U uta_admin -v ON_ERROR_STOP=0 -d uta –Eae
+
+Install SeqRepo
+pip install biocommons.seqrepo
+Pull the current SeqRepo database http://dl.biocommons.org/seqrepo
+seqrepo --root-directory <PATH TO>/seqrepo pull -i <CURRENT SEQREPO DATABASE>
+
+NOTE FOR MULTITHREADED APPLICATIONS
+
+Connections to SQLite3 need to be modified within SeqRepo. You must have a thread-safe installation of SQLite3. 
+
+Example
+sqlite3.connect(self._db_path, check_same_thread=False)
 
 INSTALLATION
-pip install --upgrade setuptools
-pip install VariantValidator.variantValidator (to be confirmed)
+pip install --upgrade setuptools, pip
+pip install variantValidator_0.1.0.tar.gz
+
+REQUIRED ALTERATIONS TO DEPENDENCIES
+The following alteration must be made to the hgvs Python package https://github.com/biocommons/hgvs/ 
 
 CONFIGURATION
-
 A config.ini file is located 
 <PATH TO>/variantValidator/configuration 
 within which URLs for the required databases can be set
@@ -70,40 +102,13 @@ VALIDATOR_DB_URL = 'mysqlx://vvadmin:var1ant@127.0.0.1/validator'
 os.environ['VALIDATOR_DB_URL'] = VALIDATOR_DB_URL
 os.environ ['ENTREZ_ID'] = '<YOUR VariantValidator ACCOUNT EMAIL ADDRESS>'
 
-
 # optional
 os.environ['VALIDATOR_DEBUG'] = 'TRUE'
-
-
-REQUIRED ALTERATIONS TO DEPENDENCIES
-The following alteration must be made to the hgvs Python package https://github.com/biocommons/hgvs/ 
 
 To file <PATH TO>/hgvs/_data/defaults.ini
 Edit the following line as below
 [formatting]
 max_ref_length = 1000000
-
-RECOMMENDED
-
-For optimal performance, we recommend local installations of the Universal Transcript Archive (UTA) and SeqRepo. Database information http://dl.biocommons.org/ 
-
-Install UTA 
-Instructions at https://github.com/biocommons/uta/
-Restore the database http://dl.biocommons.org/uta
-gzip -cdq <CURRENT UTA SCHEMA>.pgd.gz | psql -U uta_admin -v ON_ERROR_STOP=0 -d uta –Eae
-
-Install SeqRepo
-pip install biocommons.seqrepo
-Pull the current SeqRepo database http://dl.biocommons.org/seqrepo
-seqrepo --root-directory <PATH TO>/seqrepo pull -i <CURRENT SEQREPO DATABASE>
-
-
-NOTE FOR MULTITHREADED APPLICATIONS
-
-Connections to SQLite3 need to be modified within SeqRepo. You must have a thread-safe installation of SQLite3. 
-
-Example
-sqlite3.connect(self._db_path, check_same_thread=False)
 
 TOP LEVEL FUNCTIONS
 

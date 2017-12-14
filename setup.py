@@ -11,7 +11,9 @@ setup(
     url='',
     author='Peter J. Causey-Freeman',
     author_email='pjf9@leicester.ac.uk',
+	package_data={"variantValidator": ["configuration/*.ini"],},
     packages=find_packages(),
+    include_package_data=True,
     license='University of Leicester VariantValidator License (LICENSE.txt)',
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
