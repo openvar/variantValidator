@@ -321,10 +321,12 @@ def report_hgvs2vcf(hgvs_genomic):
 		hgvs_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),start,end)
 		vcf_del_seq	= sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),adj_start,end)
 		# Assemble  
-		pos = str(start)
-		ref = vcf_del_seq
-		alt = vcf_del_seq[:1] + ins_seq			
-	
+		#pos = str(start)
+		#ref = vcf_del_seq
+		#alt = vcf_del_seq[:1] + ins_seq			
+		pos = str(start+1)
+		ref = vcf_del_seq[1:]
+		alt = ins_seq				
 	
 	# Duplications								
 	elif (re.search('dup', str(reverse_normalized_hgvs_genomic.posedit))):
