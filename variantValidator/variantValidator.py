@@ -990,6 +990,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							continue	
 						else:
 							raise variantValidatorException(error)							
+
 				# Primary validation of the input
 				# re-make input_parses
 				input_parses = hp.parse_hgvs_variant(input)
@@ -1054,8 +1055,30 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
 						# Re-map input_parses back to c. variant					
 						input_parses = evm.n_to_c(input_parses)			
+						
+						# Can we go c-g-c
+						try:
+							to_genome = evm.c_to_g(input_parses)
+							to_tx = evm.g_to_c(to_genome, input_parses.ac)
+						except hgvs.exceptions.HGVSInvalidIntervalError as e:
+							error = str(e)
+							validation['warnings'] = validation['warnings'] + ': ' + str(error) + ' ' + input_parses.ac
+							continue								
 
 					elif re.search('\d\-', str(input_parses)) or re.search('\d\+', str(input_parses)):  
+						# Quick look at syntax validation
+						try:
+							vr.validate(input_parses)
+						except hgvs.exceptions.HGVSInvalidVariantError as e:
+							error = str(e)
+							if re.search('bounds of transcript', error):
+								validation['warnings'] = validation['warnings'] + ': ' + str(error)
+								continue
+							elif re.search('insertion length must be 1', error):
+								validation['warnings'] = validation['warnings'] + ': ' + str(error)
+								continue									
+								
+								
 						# Create a specific minimal evm with no normalizer and no replace_reference
 						min_evm = hgvs.assemblymapper.AssemblyMapper(hdp, assembly_name=primary_assembly, alt_aln_method=alt_aln_method, normalize=False, replace_reference=False)
 						# Have to use this method due to potential multi chromosome error, note, normalizes but does not replace sequence
@@ -1200,6 +1223,18 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						pass
 
 					if re.search('\d\-', str(input_parses)) or re.search('\d\+', str(input_parses)):  
+						# Quick look at syntax validation
+						try:
+							vr.validate(input_parses)
+						except hgvs.exceptions.HGVSInvalidVariantError as e:
+							error = str(e)
+							if re.search('bounds of transcript', error):
+								validation['warnings'] = validation['warnings'] + ': ' + str(error)
+								continue
+							elif re.search('insertion length must be 1', error):
+								validation['warnings'] = validation['warnings'] + ': ' + str(error)
+								continue									
+							
 						# Create a specific minimal evm with no normalizer and no replace_reference
 						min_evm = hgvs.assemblymapper.AssemblyMapper(hdp, assembly_name=primary_assembly, alt_aln_method=alt_aln_method, normalize=False, replace_reference=False)
 						# Have to use this method due to potential multi chromosome error, note, normalizes but does not replace sequence
