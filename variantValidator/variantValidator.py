@@ -1057,13 +1057,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						input_parses = evm.n_to_c(input_parses)			
 						
 						# Can we go c-g-c
-						try:
-							to_genome = evm.c_to_g(input_parses)
-							to_tx = evm.g_to_c(to_genome, input_parses.ac)
-						except hgvs.exceptions.HGVSInvalidIntervalError as e:
-							error = str(e)
-							validation['warnings'] = validation['warnings'] + ': ' + str(error) + ' ' + input_parses.ac
-							continue								
+# 						try:
+# 							to_genome = evm.c_to_g(input_parses)
+# 							to_tx = evm.g_to_c(to_genome, input_parses.ac)
+# 						except hgvs.exceptions.HGVSInvalidIntervalError as e:
+# 							error = str(e)
+# 							validation['warnings'] = validation['warnings'] + ': ' + str(error) + ' ' + input_parses.ac
+# 							continue								
 
 					elif re.search('\d\-', str(input_parses)) or re.search('\d\+', str(input_parses)):  
 						# Quick look at syntax validation
