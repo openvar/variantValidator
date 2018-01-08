@@ -91,6 +91,10 @@ import warnings as warner
 # Import Biopython
 from Bio.Seq import Seq
 
+# Custom errors
+class alleleVariantError(Exception):
+	pass
+
 # Set debug mode
 VALIDATOR_DEBUG = os.environ.get('VALIDATOR_DEBUG')
 if VALIDATOR_DEBUG is not None:
@@ -4445,6 +4449,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								error = str(e)
 								if re.search('string index out of range', error) and re.search('dup', variant):
 									hgvs_ins = hp.parse_hgvs_variant(variant)
+									hgvs_ins = hn.normalize(hgvs_ins)
 									inst = hgvs_ins.ac + ':c.' + str(hgvs_ins.posedit.pos.start.base - 1) + '_' + str(hgvs_ins.posedit.pos.start.base) + 'ins' + hgvs_ins.posedit.edit.ref
 									hgvs_protein = va_func.protein(inst, evm, hp)
 							protein = str(hgvs_protein)

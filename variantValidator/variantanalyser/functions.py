@@ -68,8 +68,6 @@ reverse_hn = hgvs.normalizer.Normalizer(hdp,
 		alt_aln_method='splign'
 		)
 
-
-
 # Create normalizer
 merge_normalizer = hgvs.normalizer.Normalizer(hdp,
 		cross_boundaries=False,
@@ -92,6 +90,21 @@ hp = hgvs.parser.Parser()
 vm = hgvs.variantmapper.VariantMapper(hdp, replace_reference=True) #, normalize=False)
 # SeqFetcher
 sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
+
+# create no_norm_evm
+no_norm_evm_38 = hgvs.assemblymapper.AssemblyMapper(hdp,
+		assembly_name='GRCh38', 
+		alt_aln_method='splign', 
+		normalize=False, 
+		replace_reference=True
+		)
+
+no_norm_evm_37 = hgvs.assemblymapper.AssemblyMapper(hdp,
+		assembly_name='GRCh37', 
+		alt_aln_method='splign', 
+		normalize=False, 
+		replace_reference=True
+		)
 
 # variantanalyser modules
 import dbControls
@@ -410,17 +423,23 @@ returns parsed hgvs g. object
 """
 def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 
-# 	create no_norm_evm
- 	no_norm_evm = hgvs.assemblymapper.AssemblyMapper(hdp,
- 			assembly_name=primary_assembly, 
- 			alt_aln_method='splign', 
- 			normalize=False, 
- 			replace_reference=True
- 			)
-		
+	# create no_norm_evm
+	if primary_assembly == 'GRCh38':
+		no_norm_evm = no_norm_evm_38
+	elif primary_assembly == 'GRCh37':
+		no_norm_evm = no_norm_evm_37		
+
+	# Validator
+	vr = hgvs.validator.Validator(hdp)			
+	
 	# store the input
 	stored_hgvs_c = copy.deepcopy(hgvs_c)
 	
+	# Test mapping options
+	# mapping_options = hdp.get_tx_mapping_options(hgvs_c.ac)
+
+	# identity sub del delins ins dup inv
+	# Working
 	# Set expansion variable
 	expand_out = 'false'
 	if hgvs_c.posedit.edit.type == 'identity' or hgvs_c.posedit.edit.type == 'del' or hgvs_c.posedit.edit.type =='delins' or hgvs_c.posedit.edit.type == 'dup' or hgvs_c.posedit.edit.type == 'sub' or hgvs_c.posedit.edit.type == 'ins':
@@ -428,6 +447,7 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 		# if NM_ need the n. position
 		if re.match('NM_', str(hgvs_c.ac)):
 			hgvs_c = no_norm_evm.c_to_n(hgvs_c)
+
 		# Check for intronic
 		try: 
 			hn.normalize(hgvs_c)
@@ -435,17 +455,18 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 			error = str(e)
 			if re.search('intronic variant', error):
 				pass
-			elif re.search('Length implied by coordinates must equal sequence deletion length', error) and hgvs_c.type == 'n':
+			elif re.search('Length implied by coordinates must equal sequence deletion length', error) and re.match('NR_', hgvs_c.ac):
 				hgvs_c.posedit.pos.end.base = hgvs_c.posedit.pos.start.base + len(hgvs_c.posedit.edit.ref) - 1
 		
 		# Check again before continuing
 		if re.search('\d+\+', str(hgvs_c.posedit.pos)) or re.search('\d+\-', str(hgvs_c.posedit.pos)) or re.search('\*\d+\+', str(hgvs_c.posedit.pos)) or re.search('\*\d+\-', str(hgvs_c.posedit.pos)):
-			pass		
-
+			pass
+		
 		else:		
-			try:	
+			try:
 				# For non-intronic sequence
 				hgvs_t = copy.deepcopy(hgvs_c)
+
 				if hgvs_c.posedit.edit.type == 'dup':
 					# hgvs_t = reverse_normalize.normalize(hgvs_t)
 					pre_base = sf.fetch_seq(str(hgvs_t.ac),hgvs_t.posedit.pos.start.base-2,hgvs_t.posedit.pos.start.base-1)
@@ -476,17 +497,15 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 			
 				# Set expanded out test to true
 				expand_out = 'true'
-
 			except Exception:
-				hgvs_c = hgvs_c			
-			
+				hgvs_c = hgvs_c	
+		
 		if re.match('NM_', str(hgvs_c.ac)):
 			try:
 				hgvs_c = no_norm_evm.n_to_c(hgvs_c)
 			except hgvs.exceptions.HGVSError as e:
-				hgvs_c = copy.deepcopy(stored_hgvs_c)				
-				
-							
+				hgvs_c = copy.deepcopy(stored_hgvs_c)
+		
 		# Ensure the altered c. variant has not crossed intro exon boundaries
 		hgvs_check_boundaries = copy.deepcopy(hgvs_c)
 		try:
@@ -495,9 +514,6 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 			error = str(e) 
 			if re.search('spanning the exon-intron boundary', error):
 				hgvs_c = copy.deepcopy(stored_hgvs_c)
-			else:
-				hgvs_c = copy.deepcopy(stored_hgvs_c)
-				
 	try:
 		hgvs_genomic = no_norm_evm.t_to_g(hgvs_c)
 		hn.normalize(hgvs_genomic) # Check the validity of the mapping
@@ -515,7 +531,8 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 					try:
 						hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
 						break
-					except:
+					except Exception as e:
+						print str(e) + ' ' + str(option)
 						continue
 
 		try:
@@ -526,7 +543,8 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 					try:
 						hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
 						break
-					except:
+					except Exception as e:
+						print str(e) + ' ' + str(option)
 						continue
 			try:
 				hn.normalize(hgvs_genomic)
@@ -536,7 +554,8 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 						try:
 							hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
 							break
-						except:
+						except Exception as e:
+							print str(e) + ' ' + str(option)
 							continue
 				try:
 					hn.normalize(hgvs_genomic)
@@ -546,9 +565,9 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 							try:
 								hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
 								break
-							except:
+							except Exception as e:
+								print str(e) + ' ' + str(option)
 								continue
-
 					# Only a RefSeqGene available
 					try:
 						hn.normalize(hgvs_genomic)
@@ -558,10 +577,10 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 								try:
 									hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
 									break
-								except:
+								except Exception as e:
+									print str(e) + ' ' + str(option)
 									continue
-
-		 
+									 
 	if hgvs_genomic.posedit.edit.type == 'ins':
 		try:
 			hgvs_genomic = hn.normalize(hgvs_genomic)
@@ -572,6 +591,7 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 				hgvs_genomic.posedit.edit.ref = ref
 				hgvs_genomic.posedit.edit.alt = ref[0:1] + hgvs_genomic.posedit.edit.alt + ref[-1:]
 				hgvs_genomic = hn.normalize(hgvs_genomic)
+
 				
 	# Remove identity bases
 	if hgvs_c == stored_hgvs_c:
@@ -677,12 +697,10 @@ returns parsed hgvs g. object
 def myvm_t_to_g(hgvs_c, alt_chr, vm, hn, hdp, primary_assembly):
 
 	# create no_norm_evm
-	no_norm_evm = hgvs.assemblymapper.AssemblyMapper(hdp,
-			assembly_name=primary_assembly, 
-			alt_aln_method='splign', 
-			normalize=False, 
-			replace_reference=True
-			)		
+	if primary_assembly == 'GRCh38':
+		no_norm_evm = no_norm_evm_38
+	elif primary_assembly == 'GRCh37':
+		no_norm_evm = no_norm_evm_37	
 	
 	# store the input
 	stored_hgvs_c = copy.deepcopy(hgvs_c)
