@@ -1198,7 +1198,6 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						
 						# Intronic positions in UTRs
 						if re.search('\d\-\d', str(input_parses)) or re.search('\d\+\d', str(input_parses)):
-							print 'Got ya'	
 							# Can we go c-g-c
 							try:
 	 							to_genome = evm.c_to_g(input_parses)
@@ -1207,8 +1206,6 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 	 							error = str(e)
 	 							validation['warnings'] = validation['warnings'] + ': ' + str(error) + ' ' + input_parses.ac
 	 							continue
-	 					else:
-	 						print 'Missed ya'														
 												
 					elif re.search('\d\-', str(input_parses)) or re.search('\d\+', str(input_parses)):  
 						# Can we still identify a genomic position?
@@ -1777,7 +1774,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						continue
 					else:
 						pass
-		
+					
+					# Normalize the genomic variant
+					hgvs_genomic = hn.normalize(g_query)
+							
 					"""
 					Marked for removal
 					"""
@@ -1796,9 +1796,6 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					"""
 					Initial simple projection from the provided g. position all overlapping
 					transcripts
-					
-					Note - g. description is as the user specified and has not been 
-					normalized at this stage
 					"""
 					rel_var = va_func.relevant_transcripts(hgvs_genomic, evm, hdp, alt_aln_method)
 					
