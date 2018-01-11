@@ -1430,7 +1430,7 @@ def merge_pseudo_vcf(vcf_list, genome_build):
 	return hgvs_delins
 
 """
-HGVS cis allele handling function which takes a single HGVS allele description and 
+HGVS allele handling function which takes a single HGVS allele description and 
 separates each allele into a list of HGVS variants
 """
 def hgvs_alleles(variant_description):
