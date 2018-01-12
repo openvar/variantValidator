@@ -91,8 +91,12 @@ import warnings as warner
 # Import Biopython
 from Bio.Seq import Seq
 
-# Custom errors
+# Custom Exceptions
 class alleleVariantError(Exception):
+	pass
+
+# Error types
+class variantValidatorError(Exception):
 	pass
 
 # Set debug mode
@@ -171,13 +175,6 @@ reverse_normalize = hgvs.normalizer.Normalizer(hdp,
 # Set current genome builds
 genome_builds = ['GRCh37', 'hg19', 'GRCh38']
 
-
-# Error types
-class variantValidatorException(Exception):
-	pass
-
-class variantValidatorException(Exception):
-	pass
 
 # method for final validation and stringifying parsed hgvs variants prior to printing/passing to html
 def valstr(hgvs_variant):
@@ -773,7 +770,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							validation['warnings'] = validation['warnings'] + ': ' + 'Intronic positions not supported for HGVS Allele descriptions'
 							continue	
 						else:
-							raise variantValidatorException(error)							
+							raise variantValidatorError(error)							
 
 				# Validator specific variables, note, not all will be necessary for batch, but keep to ensure that batch works
 				vars = []
@@ -1111,7 +1108,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 # 							validation['warnings'] = validation['warnings'] + ': ' + 'Intronic positions not supported for HGVS Allele descriptions'
 # 							continue	
 # 						else:
-# 							raise variantValidatorException(error)							
+# 							raise variantValidatorError(error)							
 
 				# Primary validation of the input
 				"""
@@ -5634,7 +5631,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 			logging.info=(er)
 		# Report and raise error
 		error = [{'validation_warnings': 'Validation error'}]
-		raise variantValidatorException('Validation error')
+		raise variantValidatorError('Validation error')
  		# Return
  		return
  		
