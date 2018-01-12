@@ -1211,9 +1211,19 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								continue
 							elif re.search('insertion length must be 1', error):
 								validation['warnings'] = validation['warnings'] + ': ' + str(error)
-								continue									
-								
-								
+								continue	
+							elif re.search('base start position must be <= end position', error):
+								correction = copy.deepcopy(input_parses)
+								st = input_parses.posedit.pos.start
+								ed = input_parses.posedit.pos.end
+								correction.posedit.pos.start = ed
+								correction.posedit.pos.end = st
+								error = error + ': Did you mean ' + str(correction) + '?' 
+								# error = 'Interval start position ' + str(input_parses.posedit.pos.start) + ' > interval end position ' + str(input_parses.posedit.pos.end)
+								validation['warnings'] = validation['warnings'] + ': ' + str(error)
+								continue
+										
+									
 						# Create a specific minimal evm with no normalizer and no replace_reference
 						# min_evm = hgvs.assemblymapper.AssemblyMapper(hdp, assembly_name=primary_assembly, alt_aln_method=alt_aln_method, normalize=False, replace_reference=False)
 						# Have to use this method due to potential multi chromosome error, note, normalizes but does not replace sequence
@@ -1236,7 +1246,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							if re.search('> end', error):
 								error = 'Interval start position ' + str(input_parses.posedit.pos.start) + ' > interval end position ' + str(input_parses.posedit.pos.end)
 								validation['warnings'] = validation['warnings'] + ': ' + str(error)
-								continue
+								continue		
 						except hgvs.exceptions.HGVSInvalidVariantError as e:
 							error = str(e)
 							if re.search('base start position must be <= end position', error):
@@ -1369,6 +1379,16 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							elif re.search('insertion length must be 1', error):
 								validation['warnings'] = validation['warnings'] + ': ' + str(error)
 								continue									
+							elif re.search('base start position must be <= end position', error):
+								correction = copy.deepcopy(input_parses)
+								st = input_parses.posedit.pos.start
+								ed = input_parses.posedit.pos.end
+								correction.posedit.pos.start = ed
+								correction.posedit.pos.end = st
+								error = error + ': Did you mean ' + str(correction) + '?' 
+								# error = 'Interval start position ' + str(input_parses.posedit.pos.start) + ' > interval end position ' + str(input_parses.posedit.pos.end)
+								validation['warnings'] = validation['warnings'] + ': ' + str(error)
+								continue
 							
 						# Create a specific minimal evm with no normalizer and no replace_reference
 						# min_evm = hgvs.assemblymapper.AssemblyMapper(hdp, assembly_name=primary_assembly, alt_aln_method=alt_aln_method, normalize=False, replace_reference=False)
