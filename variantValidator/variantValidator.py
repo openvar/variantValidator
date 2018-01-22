@@ -5573,12 +5573,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 																				
 							
 					# Warn not directly mapped to specified genome build		
-					if genomic_variant != '':
+					if genomic_accession != '':
 						caution = ''
-						if not re.match('NC_', str(hgvs_genomic_variant.ac)):
+						if not re.match('NC_', str(genomic_accession)):
 							warnings = warnings + ': ' + str(hgvs_coding) + ' can not be mapped directly to genome build ' + primary_assembly + '. See Alternative genomic loci for aligned genomic positions' 
 							caution = 'can not be mapped directly to genome build'
-						chr_num = va_scb.supported_for_mapping(str(hgvs_genomic_variant.ac), primary_assembly)
+						chr_num = va_scb.supported_for_mapping(str(genomic_accession), primary_assembly)
 						if chr_num ==  'false':
 							already_seen = 'can not be mapped directly to genome build'
 							if re.search(already_seen, caution):
