@@ -593,18 +593,134 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 				hgvs_genomic = hn.normalize(hgvs_genomic)
 
 				
+	# CASCADING STATEMENTS WHICH CAPTURE t to g MAPPING OPTIONS
 	# Remove identity bases
 	if hgvs_c == stored_hgvs_c:
 		expanded_out = 'false'
-	elif expand_out == 'true' and len(hgvs_genomic.posedit.edit.ref) >= 3:
+	# Correct expansion ref + 2
+	elif expand_out == 'true' and (	len(hgvs_genomic.posedit.edit.ref) == (len(stored_hgvs_c.posedit.edit.ref) + 2)	):#>= 3:
 		hgvs_genomic.posedit.pos.start.base = hgvs_genomic.posedit.pos.start.base + 1
 		hgvs_genomic.posedit.pos.end.base = hgvs_genomic.posedit.pos.end.base - 1
 		hgvs_genomic.posedit.edit.ref = hgvs_genomic.posedit.edit.ref[1:-1]
 		if hgvs_genomic.posedit.edit.alt is not None:
 			hgvs_genomic.posedit.edit.alt = hgvs_genomic.posedit.edit.alt[1:-1] 
-	else:
-		pass		
+	elif expand_out == 'true' and (	len(hgvs_genomic.posedit.edit.ref) != (len(stored_hgvs_c.posedit.edit.ref) + 2)	):#>= 3:
+		if expand_out == 'true' and len(hgvs_genomic.posedit.edit.ref) == 2:
+			gn = hn.normalize(hgvs_genomic)
+			pass 
 		
+		# Likely if the start or end position aligns to a gap in the genomic sequence
+		# Logic
+		# We have checked that the variant does not cross boundaries, or is intronic
+		# So is likely mapping to a genomic gap
+		elif expand_out == 'true' and len(hgvs_genomic.posedit.edit.ref) <= 1:
+			# Incorrect expansion, likely < ref + 2
+			genomic_gap_variant = vm.t_to_g(stored_hgvs_c, hgvs_genomic.ac)
+		  	try:
+  				hn.normalize(genomic_gap_variant)
+  			except Exception as e:
+  				if str(e) == 'base start position must be <= end position':
+					gap_start = genomic_gap_variant.posedit.pos.end.base
+					gap_end	= genomic_gap_variant.posedit.pos.start.base	
+					genomic_gap_variant.posedit.pos.start.base = gap_start
+					genomic_gap_variant.posedit.pos.end.base = gap_end
+				# Remove alt
+				try:
+					genomic_gap_variant.posedit.edit.alt = ''
+				except Exception as e:
+					if str(e) == "'Dup' object has no attribute 'alt'":
+						pass	
+				# Should be a delins so will normalize statically and replace the reference bases
+				genomic_gap_variant = hn.normalize(genomic_gap_variant)
+				# Static map to c. and static normalize
+				transcript_gap_variant = vm.g_to_t(genomic_gap_variant, hgvs_c.ac)
+				stored_transcript_gap_variant = transcript_gap_variant
+				transcript_gap_variant = hn.normalize(transcript_gap_variant)
+				# if NM_ need the n. position
+				if re.match('NM_', str(hgvs_c.ac)):
+					transcript_gap_n = no_norm_evm.c_to_n(transcript_gap_variant)
+					transcript_gap_alt_n = no_norm_evm.c_to_n(stored_hgvs_c)
+				else:
+					transcript_gap_n = transcript_gap_variant
+					transcript_gap_alt_n = stored_hgvs_c
+					
+				# Ensure an ALT exists
+				try:
+					if transcript_gap_alt_n.posedit.edit.alt is None:
+						transcript_gap_alt_n.posedit.edit.alt = 'X'
+				except Exception as e:
+					if str(e) == "'Dup' object has no attribute 'alt'":
+						transcript_gap_n_delins_from_dup = transcript_gap_n.ac + ':' + transcript_gap_n.type + '.' + str(transcript_gap_n.posedit.pos.start.base) + '_' + str(transcript_gap_n.posedit.pos.end.base) + 'del' + transcript_gap_n.posedit.edit.ref + 'ins' + 	transcript_gap_n.posedit.edit.ref + transcript_gap_n.posedit.edit.ref							
+						transcript_gap_n = hp.parse_hgvs_variant(transcript_gap_n_delins_from_dup)							
+						transcript_gap_alt_n_delins_from_dup = transcript_gap_alt_n.ac + ':' + transcript_gap_alt_n.type + '.' + str(transcript_gap_alt_n.posedit.pos.start.base) + '_' + str(transcript_gap_alt_n.posedit.pos.end.base) + 'del' + transcript_gap_alt_n.posedit.edit.ref + 'ins' + 	transcript_gap_alt_n.posedit.edit.ref + transcript_gap_alt_n.posedit.edit.ref							
+						transcript_gap_alt_n = hp.parse_hgvs_variant(transcript_gap_alt_n_delins_from_dup)
+
+				# Split the reference and replacing alt sequence into a dictionary
+				reference_bases = list(transcript_gap_n.posedit.edit.ref)
+				if transcript_gap_alt_n.posedit.edit.alt is not None:
+					alternate_bases = list(transcript_gap_alt_n.posedit.edit.alt)
+				else:
+					# Deletions with no ins
+					pre_alternate_bases = list(transcript_gap_alt_n.posedit.edit.ref)
+					alternate_bases = []
+					for base in pre_alternate_bases:
+						alternate_bases.append('X')
+				
+				# Create the dictionaries		
+				ref_start = transcript_gap_n.posedit.pos.start.base
+				alt_start = transcript_gap_alt_n.posedit.pos.start.base	
+				ref_base_dict = {}
+				for base in reference_bases:
+					ref_base_dict[ref_start] = str(base)
+					ref_start = ref_start + 1
+				
+				alt_base_dict = {}
+
+				# Note, all variants will be forced into the format delete insert
+				# Deleted bases in the ALT will be substituted for X
+				for int in range(transcript_gap_alt_n.posedit.pos.start.base, transcript_gap_alt_n.posedit.pos.end.base+1, 1):
+					if int == alt_start:
+						alt_base_dict[int] = str(''.join(alternate_bases))
+					else:
+						alt_base_dict[int] = 'X'		
+
+				# Generate the alt sequence
+				alternate_sequence_bases = []
+				for int in range(transcript_gap_n.posedit.pos.start.base, transcript_gap_n.posedit.pos.end.base+1, 1):
+					if int in alt_base_dict.keys():
+						alternate_sequence_bases.append(alt_base_dict[int])
+					else:
+						alternate_sequence_bases.append(ref_base_dict[int])
+				alternate_sequence = ''.join(alternate_sequence_bases)
+				alternate_sequence = alternate_sequence.replace('X', '')		
+				
+				# Update variant, map to genome using vm and normalize
+				transcript_gap_n.posedit.edit.alt = alternate_sequence
+												
+ 				try:
+ 					transcript_gap_variant = vm.n_to_c(transcript_gap_n)
+ 				except:
+ 					transcript_gap_variant = transcript_gap_n	
+ 				
+ 				try:
+ 					hgvs_genomic = vm.t_to_g(transcript_gap_variant, hgvs_genomic.ac)
+ 					hgvs_genomic = hn.normalize(hgvs_genomic)
+				except Exception as e:
+					if str(e) == "base start position must be <= end position":
+						# Expansion out is required to map back to the genomic position
+						pre_base = sf.fetch_seq(transcript_gap_n.ac,transcript_gap_n.posedit.pos.start.base-2,transcript_gap_n.posedit.pos.start.base-1)
+						post_base = sf.fetch_seq(transcript_gap_n.ac,transcript_gap_n.posedit.pos.end.base,transcript_gap_n.posedit.pos.end.base+1)
+						transcript_gap_n.posedit.pos.start.base = transcript_gap_n.posedit.pos.start.base - 1 
+						transcript_gap_n.posedit.pos.end.base = transcript_gap_n.posedit.pos.end.base + 1
+						transcript_gap_n.posedit.edit.ref = pre_base + transcript_gap_n.posedit.edit.ref + post_base
+						transcript_gap_n.posedit.edit.alt = pre_base + transcript_gap_n.posedit.edit.alt + post_base					
+ 						try:
+ 							transcript_gap_variant = vm.n_to_c(transcript_gap_n)
+ 						except:
+ 							transcript_gap_variant = transcript_gap_n
+ 						hgvs_genomic = vm.t_to_g(transcript_gap_variant, hgvs_genomic.ac)
+ 						hgvs_genomic = hn.normalize(hgvs_genomic)						
+
 	return hgvs_genomic
 
 """
@@ -792,19 +908,136 @@ def myvm_t_to_g(hgvs_c, alt_chr, vm, hn, hdp, primary_assembly):
 				hgvs_genomic.posedit.edit.alt = ref[0:1] + hgvs_genomic.posedit.edit.alt + ref[-1:]
 				hgvs_genomic = hn.normalize(hgvs_genomic)
 
+	# CASCADING STATEMENTS WHICH CAPTURE t to g MAPPING OPTIONS
 	# Remove identity bases
 	if hgvs_c == stored_hgvs_c:
 		expanded_out = 'false'
-	elif expand_out == 'true' and len(hgvs_genomic.posedit.edit.ref) >= 3:
+	# Correct expansion ref + 2
+	elif expand_out == 'true' and (	len(hgvs_genomic.posedit.edit.ref) == (len(stored_hgvs_c.posedit.edit.ref) + 2)	):#>= 3:
 		hgvs_genomic.posedit.pos.start.base = hgvs_genomic.posedit.pos.start.base + 1
 		hgvs_genomic.posedit.pos.end.base = hgvs_genomic.posedit.pos.end.base - 1
 		hgvs_genomic.posedit.edit.ref = hgvs_genomic.posedit.edit.ref[1:-1]
 		if hgvs_genomic.posedit.edit.alt is not None:
-			hgvs_genomic.posedit.edit.alt = hgvs_genomic.posedit.edit.alt[1:-1]  
-	else:
-		pass
+			hgvs_genomic.posedit.edit.alt = hgvs_genomic.posedit.edit.alt[1:-1] 
+	elif expand_out == 'true' and (	len(hgvs_genomic.posedit.edit.ref) != (len(stored_hgvs_c.posedit.edit.ref) + 2)	):#>= 3:
+		if expand_out == 'true' and len(hgvs_genomic.posedit.edit.ref) == 2:
+			gn = hn.normalize(hgvs_genomic)
+			pass 
+		
+		# Likely if the start or end position aligns to a gap in the genomic sequence
+		# Logic
+		# We have checked that the variant does not cross boundaries, or is intronic
+		# So is likely mapping to a genomic gap
+		elif expand_out == 'true' and len(hgvs_genomic.posedit.edit.ref) <= 1:
+			# Incorrect expansion, likely < ref + 2
+			genomic_gap_variant = vm.t_to_g(stored_hgvs_c, hgvs_genomic.ac)
+		  	try:
+  				hn.normalize(genomic_gap_variant)
+  			except Exception as e:
+  				if str(e) == 'base start position must be <= end position':
+					gap_start = genomic_gap_variant.posedit.pos.end.base
+					gap_end	= genomic_gap_variant.posedit.pos.start.base	
+					genomic_gap_variant.posedit.pos.start.base = gap_start
+					genomic_gap_variant.posedit.pos.end.base = gap_end
+				# Remove alt
+				try:
+					genomic_gap_variant.posedit.edit.alt = ''
+				except Exception as e:
+					if str(e) == "'Dup' object has no attribute 'alt'":
+						pass	
+				# Should be a delins so will normalize statically and replace the reference bases
+				genomic_gap_variant = hn.normalize(genomic_gap_variant)
+				# Static map to c. and static normalize
+				transcript_gap_variant = vm.g_to_t(genomic_gap_variant, hgvs_c.ac)
+				stored_transcript_gap_variant = transcript_gap_variant
+				transcript_gap_variant = hn.normalize(transcript_gap_variant)
+				# if NM_ need the n. position
+				if re.match('NM_', str(hgvs_c.ac)):
+					transcript_gap_n = no_norm_evm.c_to_n(transcript_gap_variant)
+					transcript_gap_alt_n = no_norm_evm.c_to_n(stored_hgvs_c)
+				else:
+					transcript_gap_n = transcript_gap_variant
+					transcript_gap_alt_n = stored_hgvs_c
+					
+				# Ensure an ALT exists
+				try:
+					if transcript_gap_alt_n.posedit.edit.alt is None:
+						transcript_gap_alt_n.posedit.edit.alt = 'X'
+				except Exception as e:
+					if str(e) == "'Dup' object has no attribute 'alt'":
+						transcript_gap_n_delins_from_dup = transcript_gap_n.ac + ':' + transcript_gap_n.type + '.' + str(transcript_gap_n.posedit.pos.start.base) + '_' + str(transcript_gap_n.posedit.pos.end.base) + 'del' + transcript_gap_n.posedit.edit.ref + 'ins' + 	transcript_gap_n.posedit.edit.ref + transcript_gap_n.posedit.edit.ref							
+						transcript_gap_n = hp.parse_hgvs_variant(transcript_gap_n_delins_from_dup)							
+						transcript_gap_alt_n_delins_from_dup = transcript_gap_alt_n.ac + ':' + transcript_gap_alt_n.type + '.' + str(transcript_gap_alt_n.posedit.pos.start.base) + '_' + str(transcript_gap_alt_n.posedit.pos.end.base) + 'del' + transcript_gap_alt_n.posedit.edit.ref + 'ins' + 	transcript_gap_alt_n.posedit.edit.ref + transcript_gap_alt_n.posedit.edit.ref							
+						transcript_gap_alt_n = hp.parse_hgvs_variant(transcript_gap_alt_n_delins_from_dup)
+
+				# Split the reference and replacing alt sequence into a dictionary
+				reference_bases = list(transcript_gap_n.posedit.edit.ref)
+				if transcript_gap_alt_n.posedit.edit.alt is not None:
+					alternate_bases = list(transcript_gap_alt_n.posedit.edit.alt)
+				else:
+					# Deletions with no ins
+					pre_alternate_bases = list(transcript_gap_alt_n.posedit.edit.ref)
+					alternate_bases = []
+					for base in pre_alternate_bases:
+						alternate_bases.append('X')
+				
+				# Create the dictionaries		
+				ref_start = transcript_gap_n.posedit.pos.start.base
+				alt_start = transcript_gap_alt_n.posedit.pos.start.base	
+				ref_base_dict = {}
+				for base in reference_bases:
+					ref_base_dict[ref_start] = str(base)
+					ref_start = ref_start + 1
+				
+				alt_base_dict = {}
+
+				# Note, all variants will be forced into the format delete insert
+				# Deleted bases in the ALT will be substituted for X
+				for int in range(transcript_gap_alt_n.posedit.pos.start.base, transcript_gap_alt_n.posedit.pos.end.base+1, 1):
+					if int == alt_start:
+						alt_base_dict[int] = str(''.join(alternate_bases))
+					else:
+						alt_base_dict[int] = 'X'		
+
+				# Generate the alt sequence
+				alternate_sequence_bases = []
+				for int in range(transcript_gap_n.posedit.pos.start.base, transcript_gap_n.posedit.pos.end.base+1, 1):
+					if int in alt_base_dict.keys():
+						alternate_sequence_bases.append(alt_base_dict[int])
+					else:
+						alternate_sequence_bases.append(ref_base_dict[int])
+				alternate_sequence = ''.join(alternate_sequence_bases)
+				alternate_sequence = alternate_sequence.replace('X', '')		
+				
+				# Update variant, map to genome using vm and normalize
+				transcript_gap_n.posedit.edit.alt = alternate_sequence
+												
+ 				try:
+ 					transcript_gap_variant = vm.n_to_c(transcript_gap_n)
+ 				except:
+ 					transcript_gap_variant = transcript_gap_n	
+ 				
+ 				try:
+ 					hgvs_genomic = vm.t_to_g(transcript_gap_variant, hgvs_genomic.ac)
+ 					hgvs_genomic = hn.normalize(hgvs_genomic)
+				except Exception as e:
+					if str(e) == "base start position must be <= end position":
+						# Expansion out is required to map back to the genomic position
+						pre_base = sf.fetch_seq(transcript_gap_n.ac,transcript_gap_n.posedit.pos.start.base-2,transcript_gap_n.posedit.pos.start.base-1)
+						post_base = sf.fetch_seq(transcript_gap_n.ac,transcript_gap_n.posedit.pos.end.base,transcript_gap_n.posedit.pos.end.base+1)
+						transcript_gap_n.posedit.pos.start.base = transcript_gap_n.posedit.pos.start.base - 1 
+						transcript_gap_n.posedit.pos.end.base = transcript_gap_n.posedit.pos.end.base + 1
+						transcript_gap_n.posedit.edit.ref = pre_base + transcript_gap_n.posedit.edit.ref + post_base
+						transcript_gap_n.posedit.edit.alt = pre_base + transcript_gap_n.posedit.edit.alt + post_base					
+ 						try:
+ 							transcript_gap_variant = vm.n_to_c(transcript_gap_n)
+ 						except:
+ 							transcript_gap_variant = transcript_gap_n
+ 						hgvs_genomic = vm.t_to_g(transcript_gap_variant, hgvs_genomic.ac)
+ 						hgvs_genomic = hn.normalize(hgvs_genomic)						
 
 	return hgvs_genomic
+
 	
 
 """
