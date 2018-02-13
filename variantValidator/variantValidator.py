@@ -1140,6 +1140,17 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						error = str(e)
 						validation['warnings'] = validation['warnings'] + ': ' + str(error)
 						continue
+					except Exception as e:
+						error = str(e)
+						validation['warnings'] = validation['warnings'] + ': ' + str(error)
+						continue
+					# Additional test
+					try:
+						hn.normalize(input_parses)
+					except hgvs.exceptions.HGVSError as e:
+						error = str(e)
+						validation['warnings'] = validation['warnings'] + ': ' + str(error)
+						continue
 					else:
 						pass
 						
@@ -2231,11 +2242,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
 									# ANY VARIANT WHOLLY WITHIN THE GAP
 									if (re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)) or re.search('\-', str(tx_hgvs_not_delins.posedit.pos.start))) and (re.search('\+', str(tx_hgvs_not_delins.posedit.pos.end)) or re.search('\-', str(tx_hgvs_not_delins.posedit.pos.end))):
-										non_valid_caution = 'true'										
-										# PICK UP HERE - GAP SIZE!			
-										auto_info = auto_info + 'Genome position ' + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos) + ' aligns to a gap in transcript ' + str(tx_hgvs_not_delins.ac)						
-										gapped_transcripts = gapped_transcripts + ' ' + str(tx_hgvs_not_delins.ac)														
-					
+										gapped_transcripts = gapped_transcripts + ' ' + str(tx_hgvs_not_delins.ac)
 										# Copy the current variant
 										tx_gap_fill_variant = copy.deepcopy(tx_hgvs_not_delins)
 										# Identify which half of the NOT-intron the start position of the variant is in
@@ -2322,6 +2329,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										# Add the new alt to the gap fill variant and generate transcript variant
 										genomic_gap_fill_variant.posedit.edit.alt = alternate_sequence
 										hgvs_refreshed_variant = vm.g_to_t(genomic_gap_fill_variant, tx_gap_fill_variant.ac)						
+
+										# Set warning							
+										gap_size = str(len(genomic_gap_fill_variant.posedit.edit.ref)-2)
+										disparity_deletion_in[1] = [gap_size]
+										auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + gap_size + ' genomic base(s) that fail to align to transcript ' + str(tx_hgvs_not_delins.ac)
+										non_valid_caution = 'true'
 					
 										# Alignment position
 										for_location_c = copy.deepcopy(hgvs_refreshed_variant)
@@ -2333,11 +2346,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										else:
 											gps = for_location_c.posedit.pos.start.base
 											gpe = for_location_c.posedit.pos.start.base + 1									
-										gap_position = ' at position ' + str(gps) + '_' + str(gpe) + '\n'
+										gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
 										auto_info = auto_info + '%s' %(gap_position)
 									else:
 										if re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search('\+', str(tx_hgvs_not_delins.posedit.pos.end)):
-											auto_info = auto_info + 'Genome position ' + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.start.base) + ' aligns within a ' + str(disparity_deletion_in[1]) + '-bp gap in transcript ' + str(tx_hgvs_not_delins.ac)
+											auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(disparity_deletion_in[1]) + ' genomic base(s) that fail to align to transcript ' + str(tx_hgvs_not_delins.ac)
 											non_valid_caution = 'true'
 											c2 = vm.n_to_c(tx_hgvs_not_delins)
 											c1 = copy.deepcopy(c2)
@@ -2362,7 +2375,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												for_location_c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
 												gps = for_location_c.posedit.pos.start.base
 												gpe = for_location_c.posedit.pos.start.base + 1
-											gap_position = ' at position ' + str(gps) + '_' + str(gpe) + '\n'
+											gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
 											# Warn update
 											auto_info = auto_info + '%s' %(gap_position)
 										elif re.search('\+', str(tx_hgvs_not_delins.posedit.pos.end)) and not re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)):
@@ -2391,11 +2404,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												for_location_c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
 											gps = for_location_c.posedit.pos.end.base
 											gpe = for_location_c.posedit.pos.end.base + 1
-											gap_position = ' at position ' + str(gps) + '_' + str(gpe) + '\n'
+											gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
 											# Warn update
 											auto_info = auto_info + '%s' %(gap_position)
 										elif re.search('\-', str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search('\-', str(tx_hgvs_not_delins.posedit.pos.end)):
-											auto_info = auto_info + 'Genome position ' + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.start.base) + ' aligns within a ' + str(disparity_deletion_in[1]) + '-bp gap in transcript ' + str(tx_hgvs_not_delins.ac)
+											auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(disparity_deletion_in[1]) + ' genomic base(s) that fail to align to transcript ' + str(tx_hgvs_not_delins.ac)
 											non_valid_caution = 'true'
 											c2 = vm.n_to_c(tx_hgvs_not_delins)
 											c1 = copy.deepcopy(c2)
@@ -2420,7 +2433,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												for_location_c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
 											gps = for_location_c.posedit.pos.start.base -1
 											gpe = for_location_c.posedit.pos.start.base
-											gap_position = ' at position ' + str(gps) + '_' + str(gpe) + '\n'
+											gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
 											# Warn update
 											auto_info = auto_info + '%s' %(gap_position)
 										elif re.search('\-', str(tx_hgvs_not_delins.posedit.pos.end)) and not re.search('\-', str(tx_hgvs_not_delins.posedit.pos.start)):
@@ -2449,11 +2462,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												for_location_c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
 											gps = for_location_c.posedit.pos.end.base - 1
 											gpe = for_location_c.posedit.pos.end.base
-											gap_position = ' at position ' + str(gps) + '_' + str(gpe) + '\n'
+											gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
 											# Warn update
 											auto_info = auto_info + '%s' %(gap_position)
 										else:
-											auto_info = auto_info + 'Genome position ' + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos) + ' aligns across a ' + str(disparity_deletion_in[1]) + '-bp gap in transcript ' + str(tx_hgvs_not_delins.ac) + '\n'
+											auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos) + ' contains ' + str(disparity_deletion_in[1]) + ' genomic base(s) that fail to align to transcript ' + str(tx_hgvs_not_delins.ac) + '\n'
 											hgvs_refreshed_variant = tx_hgvs_not_delins
 											gapped_transcripts = gapped_transcripts + ' ' + str(tx_hgvs_not_delins.ac)
 					
@@ -2463,6 +2476,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									gap_position = ''
 									gapped_alignment_warning = str(hgvs_genomic_5pr) + ' does not represent a true variant because it is an artefact of aligning the transcripts listed below with genome build ' + primary_assembly
 									hgvs_refreshed_variant = tx_hgvs_not_delins
+									# Warn
+									auto_info = auto_info + str(hgvs_refreshed_variant.ac) + ':c.' + str(hgvs_refreshed_variant.posedit.pos) + ' contains ' + str(disparity_deletion_in[1]) + ' transcript base(s) that fail to align to chromosome ' + str(hgvs_genomic.ac) + '\n'
 									gapped_transcripts = gapped_transcripts + str(hgvs_refreshed_variant.ac) + ' '	
 									# print hgvs_refreshed_variant
 								else:
@@ -2483,8 +2498,14 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									stash_end_left = str(stash_pos_left + len(stash_ref_left) -1)
 									stash_hgvs_not_delins_left = hp.parse_hgvs_variant(stash_ac + ':' +  hgvs_stash.type + '.' +  str(stash_pos_left) + '_' + stash_end_left + 'del' + stash_ref_left + 'ins' + stash_alt_left)		
 									# Map in-situ to the transcript left and right
-									tx_hard_right = vm.g_to_t(stash_hgvs_not_delins_right, saved_hgvs_coding.ac)
-									tx_hard_left = vm.g_to_t(stash_hgvs_not_delins_left, saved_hgvs_coding.ac)
+									try:
+										tx_hard_right = vm.g_to_t(stash_hgvs_not_delins_right, saved_hgvs_coding.ac)
+									except:
+										tx_hard_right = saved_hgvs_coding
+									try:
+										tx_hard_left = vm.g_to_t(stash_hgvs_not_delins_left, saved_hgvs_coding.ac)
+									except:
+										tx_hard_left = saved_hgvs_coding
 									# The Logic - Currently limited to genome gaps
 									if len(stash_hgvs_not_delins_right.posedit.edit.ref) < len(tx_hard_right.posedit.edit.ref):
 										tx_hard_right = hn.normalize(tx_hard_right)
@@ -3807,8 +3828,6 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									# amend_RefSeqGene = 'true'
 									# ANY VARIANT WHOLLY WITHIN THE GAP
 									if (re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)) or re.search('\-', str(tx_hgvs_not_delins.posedit.pos.start))) and (re.search('\+', str(tx_hgvs_not_delins.posedit.pos.end)) or re.search('\-', str(tx_hgvs_not_delins.posedit.pos.end))):
-										non_valid_caution = 'true'
-										auto_info = auto_info + 'Genome position ' + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos) + ' aligns to a gap in transcript ' + str(tx_hgvs_not_delins.ac)						
 										gapped_transcripts = gapped_transcripts + ' ' + str(tx_hgvs_not_delins.ac)														
 					
 										# Copy the current variant
@@ -3898,6 +3917,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										genomic_gap_fill_variant.posedit.edit.alt = alternate_sequence
 										hgvs_refreshed_variant = vm.g_to_t(genomic_gap_fill_variant, tx_gap_fill_variant.ac)						
 					
+										# Set warning							
+										gap_size = str(len(genomic_gap_fill_variant.posedit.edit.ref)-2)
+										disparity_deletion_in[1] = [gap_size]
+										auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + gap_size + ' genomic base(s) that fail to align to transcript ' + str(tx_hgvs_not_delins.ac)
+										non_valid_caution = 'true'
+
 										# Alignment position
 										for_location_c = copy.deepcopy(hgvs_refreshed_variant)
 										if re.match('NM_', str(for_location_c)):
@@ -3908,12 +3933,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										else:
 											gps = for_location_c.posedit.pos.start.base
 											gpe = for_location_c.posedit.pos.start.base + 1									
-										gap_position = ' at position ' + str(gps) + '_' + str(gpe) + '\n'
+										gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
 										auto_info = auto_info + '%s' %(gap_position)
 
 									else:
 										if re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search('\+', str(tx_hgvs_not_delins.posedit.pos.end)):
-											auto_info = auto_info + 'Genome position ' + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.start.base) + ' aligns within a ' + str(disparity_deletion_in[1]) + '-bp gap in transcript ' + str(tx_hgvs_not_delins.ac)
+											auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(disparity_deletion_in[1]) + ' genomic base(s) that fail to align to transcript ' + str(tx_hgvs_not_delins.ac)
 											non_valid_caution = 'true'
 											c2 = vm.n_to_c(tx_hgvs_not_delins)
 											c1 = copy.deepcopy(c2)
@@ -3938,7 +3963,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												for_location_c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
 												gps = for_location_c.posedit.pos.start.base
 												gpe = for_location_c.posedit.pos.start.base + 1
-											gap_position = ' at position ' + str(gps) + '_' + str(gpe) + '\n'
+											gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
 											# Warn update
 											auto_info = auto_info + '%s' %(gap_position)
 										elif re.search('\+', str(tx_hgvs_not_delins.posedit.pos.end)) and not re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)):
@@ -3967,11 +3992,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												for_location_c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
 											gps = for_location_c.posedit.pos.end.base
 											gpe = for_location_c.posedit.pos.end.base + 1
-											gap_position = ' at position ' + str(gps) + '_' + str(gpe) + '\n'
+											gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
 											# Warn update
 											auto_info = auto_info + '%s' %(gap_position)
 										elif re.search('\-', str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search('\-', str(tx_hgvs_not_delins.posedit.pos.end)):								
-											auto_info = auto_info + 'Genome position ' + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.start.base) + ' aligns within a ' + str(disparity_deletion_in[1]) + '-bp gap in transcript ' + str(tx_hgvs_not_delins.ac)
+											auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(disparity_deletion_in[1]) + ' genomic base(s) that fail to align to transcript ' + str(tx_hgvs_not_delins.ac)
 											non_valid_caution = 'true'
 											c2 = vm.n_to_c(tx_hgvs_not_delins)
 											c1 = copy.deepcopy(c2)
@@ -3999,7 +4024,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												for_location_c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
 											gps = for_location_c.posedit.pos.start.base -1
 											gpe = for_location_c.posedit.pos.start.base
-											gap_position = ' at position ' + str(gps) + '_' + str(gpe) + '\n'
+											gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
 											# Warn update
 											auto_info = auto_info + '%s' %(gap_position)
 										elif re.search('\-', str(tx_hgvs_not_delins.posedit.pos.end)) and not re.search('\-', str(tx_hgvs_not_delins.posedit.pos.start)):
@@ -4028,11 +4053,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												for_location_c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
 											gps = for_location_c.posedit.pos.end.base - 1
 											gpe = for_location_c.posedit.pos.end.base
-											gap_position = ' at position ' + str(gps) + '_' + str(gpe) + '\n'
+											gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
 											# Warn update
 											auto_info = auto_info + '%s' %(gap_position)
 										else:
-											auto_info = auto_info + 'Genome position ' + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos) + ' aligns across a ' + str(disparity_deletion_in[1]) + '-bp gap in transcript ' + str(tx_hgvs_not_delins.ac) + '\n'
+											auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos) + ' contains ' + str(disparity_deletion_in[1]) + ' genomic base(s) that fail to align to transcript ' + str(tx_hgvs_not_delins.ac) + '\n'
 											tx_hgvs_not_delins.posedit.pos.end.base = tx_hgvs_not_delins.posedit.pos.start.base + len(tx_hgvs_not_delins.posedit.edit.ref) - 1
 											hgvs_refreshed_variant = tx_hgvs_not_delins
 						
@@ -4045,6 +4070,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										hgvs_refreshed_variant = stash_tx_left								
 									else:
 										hgvs_refreshed_variant = chromosome_normalized_hgvs_coding
+									# Warn
+									auto_info = auto_info + str(hgvs_refreshed_variant.ac) + ':c.' + str(hgvs_refreshed_variant.posedit.pos) + ' contains ' + str(disparity_deletion_in[1]) + ' transcript base(s) that fail to align to chromosome ' + str(hgvs_genomic.ac) + '\n'
 								else:
 									# Keep the same by re-setting rel_var
 									hgvs_refreshed_variant = hgvs_coding
@@ -4066,11 +4093,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								# Update hgvs_genomic
 								hgvs_genomic = va_func.myevm_t_to_g(hgvs_refreshed_variant, no_norm_evm, hdp, primary_assembly)
 								# print 'un-normalized genomic = ' + str(hgvs_genomic)				
-								
-								# Genomic gap warning
-								if disparity_deletion_in[0] == 'chromosome':
-									auto_info = auto_info + "Prior to 3' normalization, Transcript variant " + str(hgvs_refreshed_variant) + ' aligns across a ' + str(disparity_deletion_in[1]) + '-bp gap in genomic sequence ' + str(stored_hgvs_not_delins.ac) + ' between positions ' + str(hgvs_genomic.posedit.pos.start.base) + '_' + str(hgvs_genomic.posedit.pos.end.base) + '\n'
-							
+															
 							
 							# If it is intronic, these vairables will not have been set
 							else:
@@ -4083,9 +4106,20 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
 						# Warn user about gapping								
 						if auto_info != '':
+							info_lines = auto_info.split('\n')				
+							info_keys = {}
+							for information in info_lines:
+								info_keys[information] = ''
+							info_out = []
+							info_out.append('The displayed variants may be artefacts of aligning ' + hgvs_coding.ac + ' with genome build ' + primary_assembly)
+							for ky in info_keys.keys():
+								info_out.append(ky)		
+							auto_info = '\n'.join(info_out)
+							auto_info = auto_info + '\nCaution should be used when reporting the displayed variant descriptions: If you are unsure, please contact admin'	
 							auto_info = str(auto_info.replace('\n', ': '))
 							validation['warnings'] = validation['warnings'] + ': ' + str(auto_info)
-													
+
+
 						# Normailse hgvs_genomic
 						try:
 							hgvs_genomic = hn.normalize(hgvs_genomic)
@@ -4361,8 +4395,6 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
 								# ANY VARIANT WHOLLY WITHIN THE GAP
 								if (re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)) or re.search('\-', str(tx_hgvs_not_delins.posedit.pos.start))) and (re.search('\+', str(tx_hgvs_not_delins.posedit.pos.end)) or re.search('\-', str(tx_hgvs_not_delins.posedit.pos.end))):
-									non_valid_caution = 'true'
-									auto_info = auto_info + 'Genome position ' + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos) + ' aligns to a gap in transcript ' + str(tx_hgvs_not_delins.ac)						
 									gapped_transcripts = gapped_transcripts + ' ' + str(tx_hgvs_not_delins.ac)														
 				
 									# Copy the current variant
@@ -4451,6 +4483,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									# Add the new alt to the gap fill variant and generate transcript variant
 									genomic_gap_fill_variant.posedit.edit.alt = alternate_sequence
 									hgvs_refreshed_variant = vm.g_to_t(genomic_gap_fill_variant, tx_gap_fill_variant.ac)						
+
+									# Set warning							
+									gap_size = str(len(genomic_gap_fill_variant.posedit.edit.ref)-2)
+									disparity_deletion_in[1] = [gap_size]
+									auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + gap_size + ' genomic base(s) that fail to align to transcript ' + str(tx_hgvs_not_delins.ac)
+									non_valid_caution = 'true'
 				
 									# Alignment position
 									for_location_c = copy.deepcopy(hgvs_refreshed_variant)
@@ -4462,12 +4500,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									else:
 										gps = for_location_c.posedit.pos.start.base
 										gpe = for_location_c.posedit.pos.start.base + 1									
-									gap_position = ' at position ' + str(gps) + '_' + str(gpe) + '\n'
+									gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
 									auto_info = auto_info + '%s' %(gap_position)
 
 								else:
 									if re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search('\+', str(tx_hgvs_not_delins.posedit.pos.end)):
-										auto_info = auto_info + 'Genome position ' + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.start.base) + ' aligns within a ' + str(disparity_deletion_in[1]) + '-bp gap in transcript ' + str(tx_hgvs_not_delins.ac)
+										auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(disparity_deletion_in[1]) + ' genomic base(s) that fail to align to transcript ' + str(tx_hgvs_not_delins.ac)
 										non_valid_caution = 'true'
 										c2 = vm.n_to_c(tx_hgvs_not_delins)
 										c1 = copy.deepcopy(c2)
@@ -4492,7 +4530,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											for_location_c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
 											gps = for_location_c.posedit.pos.start.base
 											gpe = for_location_c.posedit.pos.start.base + 1
-										gap_position = ' at position ' + str(gps) + '_' + str(gpe) + '\n'
+										gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
 										# Warn update
 										auto_info = auto_info + '%s' %(gap_position)
 									elif re.search('\+', str(tx_hgvs_not_delins.posedit.pos.end)) and not re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)):
@@ -4521,11 +4559,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											for_location_c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
 										gps = for_location_c.posedit.pos.end.base
 										gpe = for_location_c.posedit.pos.end.base + 1
-										gap_position = ' at position ' + str(gps) + '_' + str(gpe) + '\n'
+										gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
 										# Warn update
 										auto_info = auto_info + '%s' %(gap_position)
 									elif re.search('\-', str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search('\-', str(tx_hgvs_not_delins.posedit.pos.end)):
-										auto_info = auto_info + 'Genome position ' + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.start.base) + ' aligns within a ' + str(disparity_deletion_in[1]) + '-bp gap in transcript ' + str(tx_hgvs_not_delins.ac)
+										auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(disparity_deletion_in[1]) + ' genomic base(s) that fail to align to transcript ' + str(tx_hgvs_not_delins.ac)
 										non_valid_caution = 'true'
 										c2 = vm.n_to_c(tx_hgvs_not_delins)
 										c1 = copy.deepcopy(c2)
@@ -4550,7 +4588,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											for_location_c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
 										gps = for_location_c.posedit.pos.start.base -1
 										gpe = for_location_c.posedit.pos.start.base
-										gap_position = ' at position ' + str(gps) + '_' + str(gpe) + '\n'
+										gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
 										# Warn update
 										auto_info = auto_info + '%s' %(gap_position)
 									elif re.search('\-', str(tx_hgvs_not_delins.posedit.pos.end)) and not re.search('\-', str(tx_hgvs_not_delins.posedit.pos.start)):
@@ -4579,11 +4617,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											for_location_c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
 										gps = for_location_c.posedit.pos.end.base - 1
 										gpe = for_location_c.posedit.pos.end.base
-										gap_position = ' at position ' + str(gps) + '_' + str(gpe) + '\n'
+										gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
 										# Warn update
 										auto_info = auto_info + '%s' %(gap_position)
 									else:
-										auto_info = auto_info + 'Genome position ' + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos) + ' aligns across a ' + str(disparity_deletion_in[1]) + '-bp gap in transcript ' + str(tx_hgvs_not_delins.ac) + '\n'
+										auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos) + ' contains ' + str(disparity_deletion_in[1]) + ' genomic base(s) that fail to align to transcript ' + str(tx_hgvs_not_delins.ac) + '\n'
 										hgvs_refreshed_variant = tx_hgvs_not_delins
 										gapped_transcripts = gapped_transcripts + ' ' + str(tx_hgvs_not_delins.ac)	
 						
@@ -4594,6 +4632,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								gap_position = ''
 								gapped_alignment_warning = str(hgvs_genomic_5pr) + ' does not represent a true variant because it is an artefact of aligning the transcripts listed below with genome build ' + primary_assembly
 								hgvs_refreshed_variant = tx_hgvs_not_delins
+								# Warn
+								auto_info = auto_info + str(hgvs_refreshed_variant.ac) + ':c.' + str(hgvs_refreshed_variant.posedit.pos) + ' contains ' + str(disparity_deletion_in[1]) + ' transcript base(s) that fail to align to chromosome ' + str(hgvs_genomic.ac) + '\n'
 								gapped_transcripts = gapped_transcripts + str(hgvs_refreshed_variant.ac) + ' '	
 							else:
 								# Keep the same by re-setting rel_var
@@ -5017,10 +5057,14 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						if lrg_transcript == 'none':
 							lrg_transcript_variant = ''
 						else:
-							if hgvs_refseqgene_variant != 'false':
-								hgvs_lrg_t = vm.g_to_t(hgvs_refseq, hgvs_coding.ac)
-								hgvs_lrg_t.ac = lrg_transcript
-								lrg_transcript_variant = valstr(hgvs_lrg_t)
+							if not re.search('RefSeqGene', refseqgene_variant) or refseqgene_variant != '':
+								if hgvs_refseq != 'RefSeqGene record not available':
+									try:
+										hgvs_lrg_t = vm.g_to_t(hgvs_refseq, hgvs_coding.ac)
+										hgvs_lrg_t.ac = lrg_transcript
+										lrg_transcript_variant = valstr(hgvs_lrg_t)
+									except:
+										lrg_transcript_variant = ''
 					else:
 						transcript_accession = ''
 						lrg_transcript_variant = ''
@@ -5040,7 +5084,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								if refseqgene_variant != '':
 									hgvs_refseqgene_variant = hp.parse_hgvs_variant(refseqgene_variant)
 									refseqgene_accession = hgvs_refseqgene_variant.ac
-									RefSeqGene_context_transcript_variant = refseqgene_accession + '(' + transcript_accession + '):c.' + str(hgvs_transcript_variant.posedit.pos) + str(hgvs_refseqgene_variant.posedit.edit)
+									hgvs_coding_from_refseqgene = vm.g_to_t(hgvs_refseqgene_variant, hgvs_transcript_variant.ac)
+									hgvs_coding_from_refseqgene.posedit.edit.ref = ''
+									RefSeqGene_context_transcript_variant = refseqgene_accession + '(' + transcript_accession + '):c.' + str(hgvs_coding_from_refseqgene.posedit.pos) + str(hgvs_coding_from_refseqgene.posedit.edit)
 								else:
 									RefSeqGene_context_transcript_variant = ''
 							else:
@@ -5517,8 +5563,6 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											# amend_RefSeqGene = 'true'
 											# ANY VARIANT WHOLLY WITHIN THE GAP
 											if (re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)) or re.search('\-', str(tx_hgvs_not_delins.posedit.pos.start))) and (re.search('\+', str(tx_hgvs_not_delins.posedit.pos.end)) or re.search('\-', str(tx_hgvs_not_delins.posedit.pos.end))):
-												non_valid_caution = 'true'
-												auto_info = auto_info + 'Genome position ' + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos) + ' aligns to a gap in transcript ' + str(tx_hgvs_not_delins.ac)						
 												gapped_transcripts = gapped_transcripts + ' ' + str(tx_hgvs_not_delins.ac)														
 							
 												# Copy the current variant
@@ -5608,6 +5652,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												genomic_gap_fill_variant.posedit.edit.alt = alternate_sequence
 												hgvs_refreshed_variant = vm.g_to_t(genomic_gap_fill_variant, tx_gap_fill_variant.ac)						
 							
+												# Set warning							
+												gap_size = str(len(genomic_gap_fill_variant.posedit.edit.ref)-2)
+												disparity_deletion_in[1] = [gap_size]
+												auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + gap_size + ' genomic base(s) that fail to align to transcript ' + str(tx_hgvs_not_delins.ac)
+												non_valid_caution = 'true'
+
 												# Alignment position
 												for_location_c = copy.deepcopy(hgvs_refreshed_variant)
 												if re.match('NM_', str(for_location_c)):
@@ -5618,12 +5668,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												else:
 													gps = for_location_c.posedit.pos.start.base
 													gpe = for_location_c.posedit.pos.start.base + 1									
-												gap_position = ' at position ' + str(gps) + '_' + str(gpe) + '\n'
+												gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
 												auto_info = auto_info + '%s' %(gap_position)
 
 											else:
 												if re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search('\+', str(tx_hgvs_not_delins.posedit.pos.end)):
-													auto_info = auto_info + 'Genome position ' + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.start.base) + ' aligns within a ' + str(disparity_deletion_in[1]) + '-bp gap in transcript ' + str(tx_hgvs_not_delins.ac)
+													auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(disparity_deletion_in[1]) + ' genomic base(s) that fail to align to transcript ' + str(tx_hgvs_not_delins.ac)
 													non_valid_caution = 'true'
 													c2 = vm.n_to_c(tx_hgvs_not_delins)
 													c1 = copy.deepcopy(c2)
@@ -5648,7 +5698,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 														for_location_c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
 														gps = for_location_c.posedit.pos.start.base
 														gpe = for_location_c.posedit.pos.start.base + 1
-													gap_position = ' at position ' + str(gps) + '_' + str(gpe) + '\n'
+													gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
 													# Warn update
 													auto_info = auto_info + '%s' %(gap_position)
 												elif re.search('\+', str(tx_hgvs_not_delins.posedit.pos.end)) and not re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)):
@@ -5677,11 +5727,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 														for_location_c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
 													gps = for_location_c.posedit.pos.end.base
 													gpe = for_location_c.posedit.pos.end.base + 1
-													gap_position = ' at position ' + str(gps) + '_' + str(gpe) + '\n'
+													gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
 													# Warn update
 													auto_info = auto_info + '%s' %(gap_position)
 												elif re.search('\-', str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search('\-', str(tx_hgvs_not_delins.posedit.pos.end)):								
-													auto_info = auto_info + 'Genome position ' + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.start.base) + ' aligns within a ' + str(disparity_deletion_in[1]) + '-bp gap in transcript ' + str(tx_hgvs_not_delins.ac)
+													auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(disparity_deletion_in[1]) + ' genomic base(s) that fail to align to transcript ' + str(tx_hgvs_not_delins.ac)
 													non_valid_caution = 'true'
 													c2 = vm.n_to_c(tx_hgvs_not_delins)
 													c1 = copy.deepcopy(c2)
@@ -5709,7 +5759,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 														for_location_c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
 													gps = for_location_c.posedit.pos.start.base -1
 													gpe = for_location_c.posedit.pos.start.base
-													gap_position = ' at position ' + str(gps) + '_' + str(gpe) + '\n'
+													gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
 													# Warn update
 													auto_info = auto_info + '%s' %(gap_position)
 												elif re.search('\-', str(tx_hgvs_not_delins.posedit.pos.end)) and not re.search('\-', str(tx_hgvs_not_delins.posedit.pos.start)):
@@ -5738,11 +5788,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 														for_location_c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
 													gps = for_location_c.posedit.pos.end.base - 1
 													gpe = for_location_c.posedit.pos.end.base
-													gap_position = ' at position ' + str(gps) + '_' + str(gpe) + '\n'
+													gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
 													# Warn update
 													auto_info = auto_info + '%s' %(gap_position)
 												else:
-													auto_info = auto_info + 'Genome position ' + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos) + ' aligns across a ' + str(disparity_deletion_in[1]) + '-bp gap in transcript ' + str(tx_hgvs_not_delins.ac) + '\n'
+													auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos) + ' contains ' + str(disparity_deletion_in[1]) + ' genomic base(s) that fail to align to transcript ' + str(tx_hgvs_not_delins.ac) + '\n'
 													hgvs_refreshed_variant = tx_hgvs_not_delins
 						
 										# GAP IN THE CHROMOSOME		
@@ -5754,6 +5804,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												hgvs_refreshed_variant = stash_tx_left								
 											else:
 												hgvs_refreshed_variant = chromosome_normalized_hgvs_coding
+											# Warn
+											auto_info = auto_info + str(hgvs_refreshed_variant.ac) + ':c.' + str(hgvs_refreshed_variant.posedit.pos) + ' contains ' + str(disparity_deletion_in[1]) + ' transcript base(s) that fail to align to chromosome ' + str(hgvs_genomic.ac) + '\n'
 										else:
 											# Keep the same by re-setting rel_var
 											hgvs_refreshed_variant = hgvs_coding
