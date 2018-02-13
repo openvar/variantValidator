@@ -5029,6 +5029,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							lrg_variant = ''
 						else:
 							hgvs_lrg = copy.deepcopy(hgvs_refseqgene_variant)
+							try:
+								hgvs_lrg.posedit.edit.ref = ''
+							except:
+								pass		
 							hgvs_lrg.ac = rsg_ac[0]
 							lrg_variant = str(hgvs_lrg)
 							if rsg_ac[1] == 'public':
@@ -5061,6 +5065,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								if hgvs_refseq != 'RefSeqGene record not available':
 									try:
 										hgvs_lrg_t = vm.g_to_t(hgvs_refseq, hgvs_coding.ac)
+										try:
+											hgvs_lrg_t.posedit.edit.ref = ''
+										except:
+											pass		
 										hgvs_lrg_t.ac = lrg_transcript
 										lrg_transcript_variant = valstr(hgvs_lrg_t)
 									except:
@@ -5085,7 +5093,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									hgvs_refseqgene_variant = hp.parse_hgvs_variant(refseqgene_variant)
 									refseqgene_accession = hgvs_refseqgene_variant.ac
 									hgvs_coding_from_refseqgene = vm.g_to_t(hgvs_refseqgene_variant, hgvs_transcript_variant.ac)
-									hgvs_coding_from_refseqgene.posedit.edit.ref = ''
+									try:
+										hgvs_coding_from_refseqgene.posedit.edit.ref = ''
+									except:
+										pass
 									RefSeqGene_context_transcript_variant = refseqgene_accession + '(' + transcript_accession + '):c.' + str(hgvs_coding_from_refseqgene.posedit.pos) + str(hgvs_coding_from_refseqgene.posedit.edit)
 								else:
 									RefSeqGene_context_transcript_variant = ''
