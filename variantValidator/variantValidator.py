@@ -5073,6 +5073,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										lrg_transcript_variant = valstr(hgvs_lrg_t)
 									except:
 										lrg_transcript_variant = ''
+								else:
+									lrg_transcript_variant = ''		
 					else:
 						transcript_accession = ''
 						lrg_transcript_variant = ''
