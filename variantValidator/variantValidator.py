@@ -1702,7 +1702,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							# If the current entry is too old
 							if entry['expiry'] == 'true':
 								dbaction = 'update'
-								entry = va_btch.data_add(input=input, alt_aln_method=alt_aln_method, accession=accession, dbaction=dbaction, hp=hp, evm=evm, hdp=hdp)
+								try:
+									entry = va_btch.data_add(input=input, alt_aln_method=alt_aln_method, accession=accession, dbaction=dbaction, hp=hp, evm=evm, hdp=hdp)
+								except hgvs.exceptions.HGVSError as e:
+									error = 'Transcript %s is not currently supported' %(accession)
+									validation['warnings'] = validation['warnings'] + ': ' + str(error)
+									continue
 								hgnc_gene_info = entry['description']
 							else:
 								hgnc_gene_info = entry['description']
