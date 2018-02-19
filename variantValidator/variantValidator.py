@@ -1965,8 +1965,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						non_valid_caution = 'false'
 			
 						# make an empty rel_var
-						nw_rel_var = []
-			
+						nw_rel_var = []						
+						
 						# loop through rel_var and amend where required
 						for var in rel_var:
 							# Store the current hgvs:c. description
@@ -2232,8 +2232,18 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											else:		
 												gap_length = len(stash_hgvs_not_delins.posedit.edit.ref) - len(hgvs_stash_t.posedit.edit.ref)
 												disparity_deletion_in = ['transcript', gap_length]
-												tx_hgvs_not_delins = hgvs_stash_t
+												try:
+													tx_hgvs_not_delins = vm.c_to_n(hgvs_stash_t)
+												except:
+													tx_hgvs_not_delins = hgvs_stash_t
 												hgvs_not_delins = stash_hgvs_not_delins 							
+										elif hgvs_stash_t.posedit.pos.start.offset != 0 or hgvs_stash_t.posedit.pos.end.offset != 0:
+											disparity_deletion_in = ['transcript', 'Requires Analysis']
+											try:
+												tx_hgvs_not_delins = vm.c_to_n(hgvs_stash_t)
+											except:
+												tx_hgvs_not_delins = hgvs_stash_t									
+											hgvs_not_delins = stash_hgvs_not_delins								
 										else:
 											pass
 		
@@ -2357,7 +2367,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										if re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search('\+', str(tx_hgvs_not_delins.posedit.pos.end)):
 											auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(disparity_deletion_in[1]) + ' genomic base(s) that fail to align to transcript ' + str(tx_hgvs_not_delins.ac)
 											non_valid_caution = 'true'
-											c2 = vm.n_to_c(tx_hgvs_not_delins)
+											try:
+												c2 = vm.n_to_c(tx_hgvs_not_delins)
+											except:
+												c2 = tx_hgvs_not_delins	
 											c1 = copy.deepcopy(c2)
 											c1.posedit.pos.start.base = c2.posedit.pos.start.base
 											c1.posedit.pos.start.offset = 0
@@ -2387,7 +2400,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											auto_info = auto_info + 'Genome position ' + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.end.base + 1) + ' aligns within a ' + str(disparity_deletion_in[1]) + '-bp gap in transcript ' + str(tx_hgvs_not_delins.ac)						
 											gapped_transcripts = gapped_transcripts + ' ' + str(tx_hgvs_not_delins.ac)
 											non_valid_caution = 'true'
-											c1 = vm.n_to_c(tx_hgvs_not_delins)
+											try:
+												c1 = vm.n_to_c(tx_hgvs_not_delins)
+											except:
+												c1 = tx_hgvs_not_delins
 											c2 = copy.deepcopy(c1)
 											c2.posedit.pos.start = c1.posedit.pos.end
 											c2.posedit.pos.end.base = c1.posedit.pos.end.base + 1
@@ -2415,7 +2431,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										elif re.search('\-', str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search('\-', str(tx_hgvs_not_delins.posedit.pos.end)):
 											auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(disparity_deletion_in[1]) + ' genomic base(s) that fail to align to transcript ' + str(tx_hgvs_not_delins.ac)
 											non_valid_caution = 'true'
-											c2 = vm.n_to_c(tx_hgvs_not_delins)
+											try:
+												c2 = vm.n_to_c(tx_hgvs_not_delins)
+											except:
+												c2 = tx_hgvs_not_delins	
 											c1 = copy.deepcopy(c2)
 											c1.posedit.pos.start.base = c2.posedit.pos.start.base -1
 											c1.posedit.pos.start.offset = 0
@@ -2445,7 +2464,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											auto_info = auto_info + 'Genome position ' + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.end.base + 1) + ' aligns within a ' + str(disparity_deletion_in[1]) + '-bp gap in transcript ' + str(tx_hgvs_not_delins.ac)						
 											gapped_transcripts = gapped_transcripts + ' ' + str(tx_hgvs_not_delins.ac)
 											non_valid_caution = 'true'
-											c1 = vm.n_to_c(tx_hgvs_not_delins)
+											try:
+												c1 = vm.n_to_c(tx_hgvs_not_delins)
+											except:
+												c1 = tx_hgvs_not_delins
+
 											c2 = copy.deepcopy(c1)
 											c2.posedit.pos.start = c1.posedit.pos.end
 											c2.posedit.pos.end.base = c1.posedit.pos.end.base
@@ -2575,7 +2598,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						
 						# Set the values and append to batch_list
 						for c_description in rel_var:
-							print valstr(c_description)
+							# print valstr(c_description)
 							query = {'quibble' : str(c_description), 'id' : validation['id'], 'warnings' : validation['warnings'], 'description' : '', 'coding' : '', 'coding_g' : '', 'genomic_r' : '', 'genomic_g' : '', 'protein' : '', 'write' : 'true', 'primary_assembly' : primary_assembly, 'order' : ordering}
 							batch_list.append(query)		
 		
@@ -3945,7 +3968,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										if re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search('\+', str(tx_hgvs_not_delins.posedit.pos.end)):
 											auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(disparity_deletion_in[1]) + ' genomic base(s) that fail to align to transcript ' + str(tx_hgvs_not_delins.ac)
 											non_valid_caution = 'true'
-											c2 = vm.n_to_c(tx_hgvs_not_delins)
+											try:
+												c2 = vm.n_to_c(tx_hgvs_not_delins)
+											except:
+												c2 = tx_hgvs_not_delins	
 											c1 = copy.deepcopy(c2)
 											c1.posedit.pos.start.base = c2.posedit.pos.start.base
 											c1.posedit.pos.start.offset = 0
@@ -3975,7 +4001,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											auto_info = auto_info + 'Genome position ' + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.end.base + 1) + ' aligns within a ' + str(disparity_deletion_in[1]) + '-bp gap in transcript ' + str(tx_hgvs_not_delins.ac)						
 											gapped_transcripts = gapped_transcripts + ' ' + str(tx_hgvs_not_delins.ac)
 											non_valid_caution = 'true'
-											c1 = vm.n_to_c(tx_hgvs_not_delins)
+											try:
+												c1 = vm.n_to_c(tx_hgvs_not_delins)
+											except:
+												c1 = tx_hgvs_not_delins
+
 											c2 = copy.deepcopy(c1)
 											c2.posedit.pos.start = c1.posedit.pos.end
 											c2.posedit.pos.end.base = c1.posedit.pos.end.base + 1
@@ -4003,7 +4033,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										elif re.search('\-', str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search('\-', str(tx_hgvs_not_delins.posedit.pos.end)):								
 											auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(disparity_deletion_in[1]) + ' genomic base(s) that fail to align to transcript ' + str(tx_hgvs_not_delins.ac)
 											non_valid_caution = 'true'
-											c2 = vm.n_to_c(tx_hgvs_not_delins)
+											try:
+												c2 = vm.n_to_c(tx_hgvs_not_delins)
+											except:
+												c2 = tx_hgvs_not_delins	
 											c1 = copy.deepcopy(c2)
 											c1.posedit.pos.start.base = c2.posedit.pos.start.base -1
 											c1.posedit.pos.start.offset = 0
@@ -4036,7 +4069,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											auto_info = auto_info + 'Genome position ' + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.end.base + 1) + ' aligns within a ' + str(disparity_deletion_in[1]) + '-bp gap in transcript ' + str(tx_hgvs_not_delins.ac)						
 											gapped_transcripts = gapped_transcripts + ' ' + str(tx_hgvs_not_delins.ac)
 											non_valid_caution = 'true'
-											c1 = vm.n_to_c(tx_hgvs_not_delins)
+											try:
+												c1 = vm.n_to_c(tx_hgvs_not_delins)
+											except:
+												c1 = tx_hgvs_not_delins
 											c2 = copy.deepcopy(c1)
 											c2.posedit.pos.start = c1.posedit.pos.end
 											c2.posedit.pos.end.base = c1.posedit.pos.end.base
@@ -4512,7 +4548,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									if re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search('\+', str(tx_hgvs_not_delins.posedit.pos.end)):
 										auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(disparity_deletion_in[1]) + ' genomic base(s) that fail to align to transcript ' + str(tx_hgvs_not_delins.ac)
 										non_valid_caution = 'true'
-										c2 = vm.n_to_c(tx_hgvs_not_delins)
+										try:
+											c2 = vm.n_to_c(tx_hgvs_not_delins)
+										except:
+											c2 = tx_hgvs_not_delins	
 										c1 = copy.deepcopy(c2)
 										c1.posedit.pos.start.base = c2.posedit.pos.start.base
 										c1.posedit.pos.start.offset = 0
@@ -4542,7 +4581,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										auto_info = auto_info + 'Genome position ' + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.end.base + 1) + ' aligns within a ' + str(disparity_deletion_in[1]) + '-bp gap in transcript ' + str(tx_hgvs_not_delins.ac)						
 										gapped_transcripts = gapped_transcripts + ' ' + str(tx_hgvs_not_delins.ac)
 										non_valid_caution = 'true'
-										c1 = vm.n_to_c(tx_hgvs_not_delins)
+										try:
+											c1 = vm.n_to_c(tx_hgvs_not_delins)
+										except:
+											c1 = tx_hgvs_not_delins
 										c2 = copy.deepcopy(c1)
 										c2.posedit.pos.start = c1.posedit.pos.end
 										c2.posedit.pos.end.base = c1.posedit.pos.end.base + 1
@@ -4570,7 +4612,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									elif re.search('\-', str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search('\-', str(tx_hgvs_not_delins.posedit.pos.end)):
 										auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(disparity_deletion_in[1]) + ' genomic base(s) that fail to align to transcript ' + str(tx_hgvs_not_delins.ac)
 										non_valid_caution = 'true'
-										c2 = vm.n_to_c(tx_hgvs_not_delins)
+										try:
+											c2 = vm.n_to_c(tx_hgvs_not_delins)
+										except:
+											c2 = tx_hgvs_not_delins	
 										c1 = copy.deepcopy(c2)
 										c1.posedit.pos.start.base = c2.posedit.pos.start.base -1
 										c1.posedit.pos.start.offset = 0
@@ -4600,7 +4645,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										auto_info = auto_info + 'Genome position ' + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.end.base + 1) + ' aligns within a ' + str(disparity_deletion_in[1]) + '-bp gap in transcript ' + str(tx_hgvs_not_delins.ac)						
 										gapped_transcripts = gapped_transcripts + ' ' + str(tx_hgvs_not_delins.ac)
 										non_valid_caution = 'true'
-										c1 = vm.n_to_c(tx_hgvs_not_delins)
+										try:
+											c1 = vm.n_to_c(tx_hgvs_not_delins)
+										except:
+											c1 = tx_hgvs_not_delins
 										c2 = copy.deepcopy(c1)
 										c2.posedit.pos.start = c1.posedit.pos.end
 										c2.posedit.pos.end.base = c1.posedit.pos.end.base
@@ -5693,7 +5741,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												if re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search('\+', str(tx_hgvs_not_delins.posedit.pos.end)):
 													auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(disparity_deletion_in[1]) + ' genomic base(s) that fail to align to transcript ' + str(tx_hgvs_not_delins.ac)
 													non_valid_caution = 'true'
-													c2 = vm.n_to_c(tx_hgvs_not_delins)
+													try:
+														c2 = vm.n_to_c(tx_hgvs_not_delins)
+													except:
+														c2 = tx_hgvs_not_delins	
 													c1 = copy.deepcopy(c2)
 													c1.posedit.pos.start.base = c2.posedit.pos.start.base
 													c1.posedit.pos.start.offset = 0
@@ -5723,7 +5774,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 													auto_info = auto_info + 'Genome position ' + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.end.base + 1) + ' aligns within a ' + str(disparity_deletion_in[1]) + '-bp gap in transcript ' + str(tx_hgvs_not_delins.ac)						
 													gapped_transcripts = gapped_transcripts + ' ' + str(tx_hgvs_not_delins.ac)
 													non_valid_caution = 'true'
-													c1 = vm.n_to_c(tx_hgvs_not_delins)
+													try:
+														c1 = vm.n_to_c(tx_hgvs_not_delins)
+													except:
+														c1 = tx_hgvs_not_delins
 													c2 = copy.deepcopy(c1)
 													c2.posedit.pos.start = c1.posedit.pos.end
 													c2.posedit.pos.end.base = c1.posedit.pos.end.base + 1
@@ -5751,7 +5805,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												elif re.search('\-', str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search('\-', str(tx_hgvs_not_delins.posedit.pos.end)):								
 													auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(disparity_deletion_in[1]) + ' genomic base(s) that fail to align to transcript ' + str(tx_hgvs_not_delins.ac)
 													non_valid_caution = 'true'
-													c2 = vm.n_to_c(tx_hgvs_not_delins)
+													try:
+														c2 = vm.n_to_c(tx_hgvs_not_delins)
+													except:
+														c2 = tx_hgvs_not_delins	
 													c1 = copy.deepcopy(c2)
 													c1.posedit.pos.start.base = c2.posedit.pos.start.base -1
 													c1.posedit.pos.start.offset = 0
@@ -5784,7 +5841,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 													auto_info = auto_info + 'Genome position ' + str(stored_hgvs_not_delins.ac) + ':g.' + str(stored_hgvs_not_delins.posedit.pos.end.base + 1) + ' aligns within a ' + str(disparity_deletion_in[1]) + '-bp gap in transcript ' + str(tx_hgvs_not_delins.ac)						
 													gapped_transcripts = gapped_transcripts + ' ' + str(tx_hgvs_not_delins.ac)
 													non_valid_caution = 'true'
-													c1 = vm.n_to_c(tx_hgvs_not_delins)
+													try:
+														c1 = vm.n_to_c(tx_hgvs_not_delins)
+													except:
+														c1 = tx_hgvs_not_delins
 													c2 = copy.deepcopy(c1)
 													c2.posedit.pos.start = c1.posedit.pos.end
 													c2.posedit.pos.end.base = c1.posedit.pos.end.base
