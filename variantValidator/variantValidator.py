@@ -2243,7 +2243,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												tx_hgvs_not_delins = vm.c_to_n(hgvs_stash_t)
 											except:
 												tx_hgvs_not_delins = hgvs_stash_t									
-											hgvs_not_delins = stash_hgvs_not_delins								
+											hgvs_not_delins = stash_hgvs_not_delins
+											hgvs_genomic_5pr = stash_hgvs_not_delins								
 										else:
 											pass
 		
@@ -2381,7 +2382,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											c1 = vm.g_to_t(g2, c1.ac)
 											c1.posedit.edit.alt = c1.posedit.edit.ref
 											reference = c1.posedit.edit.ref + c2.posedit.edit.ref[1:]
-											alternate = c1.posedit.edit.alt + c2.posedit.edit.alt[1:]
+											alternate = c1.posedit.edit.alt[:-1] + c2.posedit.edit.alt
 											c3 = copy.deepcopy(c1)
 											c3.posedit.pos.end = c2.posedit.pos.end
 											c3.posedit.edit.ref = '' #reference
@@ -2445,7 +2446,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											c1 = vm.g_to_t(g2, c1.ac)
 											c1.posedit.edit.alt = c1.posedit.edit.ref
 											reference = c1.posedit.edit.ref + c2.posedit.edit.ref[1:]
-											alternate = c1.posedit.edit.alt + c2.posedit.edit.alt[1:]
+											alternate = c1.posedit.edit.alt[:-1] + c2.posedit.edit.alt
 											c3 = copy.deepcopy(c1)
 											c3.posedit.pos.end = c2.posedit.pos.end
 											c3.posedit.edit.ref = '' #reference
@@ -2568,8 +2569,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										hgvs_refreshed_variant.posedit.edit.alt = hgvs_refreshed_variant.posedit.edit.alt[1:]
 										hgvs_refreshed_variant.posedit.pos.start.base = hgvs_refreshed_variant.posedit.pos.start.base + 1
 										hgvs_refreshed_variant = hn.normalize(hgvs_refreshed_variant)	
-								except:
-									pass
+								except Exception as e:
+									error = str(e)
+									# Ensure the final variant is not intronic nor does it cross exon boundaries
+									if re.match('Normalization of intronic variants is not supported', error) or re.match('Unsupported normalization of variants spanning the exon-intron boundary', error):
+										hgvs_refreshed_variant = saved_hgvs_coding
+									else:
+										pass	
 								
 								# print 'in ' + str(var)
 								# print 'out ' + str(hgvs_refreshed_variant)
@@ -3480,8 +3486,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								pr5_ref = sf.fetch_seq(hgvs_coding.ac,n_5pr.posedit.pos.start.base - 1, n_5pr.posedit.pos.end.base)
 								most_3pr_hgvs_transcript_variant.posedit.edit.ref = pr3_ref
 								most_5pr_hgvs_transcript_variant.posedit.edit.ref = pr5_ref
-								most_3pr_hgvs_transcript_variant.posedit.edit.alt = pr3_ref[0] + most_3pr_hgvs_transcript_variant.posedit.edit.alt + pr3_ref[0]
-								most_5pr_hgvs_transcript_variant.posedit.edit.alt = pr5_ref[0] + most_5pr_hgvs_transcript_variant.posedit.edit.alt + pr5_ref[0]
+								most_3pr_hgvs_transcript_variant.posedit.edit.alt = pr3_ref[0] + most_3pr_hgvs_transcript_variant.posedit.edit.alt + pr3_ref[1]
+								most_5pr_hgvs_transcript_variant.posedit.edit.alt = pr5_ref[0] + most_5pr_hgvs_transcript_variant.posedit.edit.alt + pr5_ref[1]
 								# Map to the genome
 								genomic_from_most_3pr_hgvs_transcript_variant = vm.t_to_g(most_3pr_hgvs_transcript_variant, hgvs_genomic.ac)
 								genomic_from_most_5pr_hgvs_transcript_variant = vm.t_to_g(most_5pr_hgvs_transcript_variant, hgvs_genomic.ac)
@@ -3839,7 +3845,41 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										gap_length = len(hgvs_not_delins.posedit.edit.ref) - len(rn_tx_hgvs_not_delins.posedit.edit.ref)
 										disparity_deletion_in = ['transcript', gap_length]
 									else:
-										pass
+										re_capture_tx_variant = []
+										for possibility in hgvs_genomic_possibilities:							
+											if possibility == '':
+												continue
+											hgvs_t_possibility = vm.g_to_t(possibility, hgvs_coding.ac)
+											if hgvs_t_possibility.posedit.edit.type == 'ins':
+												try:
+													hgvs_t_possibility = vm.c_to_n(hgvs_t_possibility)
+												except:
+													pass 
+												ins_ref = sf.fetch_seq(hgvs_t_possibility.ac,hgvs_t_possibility.posedit.pos.start.base-1,hgvs_t_possibility.posedit.pos.end.base)
+												try:
+													hgvs_t_possibility = vm.n_to_c(hgvs_t_possibility)
+												except:
+													pass
+												hgvs_t_possibility.posedit.edit.ref = ins_ref
+												hgvs_t_possibility.posedit.edit.alt = ins_ref[0] + hgvs_t_possibility.posedit.edit.alt + ins_ref[1] 
+											if possibility.posedit.edit.type == 'ins':
+												ins_ref = sf.fetch_seq(possibility.ac,possibility.posedit.pos.start.base-1,possibility.posedit.pos.end.base)
+												possibility.posedit.edit.ref = ins_ref
+												possibility.posedit.edit.alt = ins_ref[0] + possibility.posedit.edit.alt + ins_ref[1] 
+											if len(hgvs_t_possibility.posedit.edit.ref) < len(possibility.posedit.edit.ref):
+												gap_length = len(possibility.posedit.edit.ref) - len(hgvs_t_possibility.posedit.edit.ref)
+												re_capture_tx_variant = ['transcript', gap_length, hgvs_t_possibility]
+												hgvs_not_delins = possibility
+												break														
+							
+										if re_capture_tx_variant != []:
+											try:
+												tx_hgvs_not_delins = vm.c_to_n(re_capture_tx_variant[2])
+											except:
+												tx_hgvs_not_delins = re_capture_tx_variant[2]								
+											disparity_deletion_in = re_capture_tx_variant[0:-1]
+										else:				
+											pass
 
 								# print 'At hgvs_genomic'
 								# print disparity_deletion_in	
@@ -3982,7 +4022,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											c1 = vm.g_to_t(g2, c1.ac)
 											c1.posedit.edit.alt = c1.posedit.edit.ref
 											reference = c1.posedit.edit.ref + c2.posedit.edit.ref[1:]
-											alternate = c1.posedit.edit.alt + c2.posedit.edit.alt[1:]
+											alternate = c1.posedit.edit.alt[:-1] + c2.posedit.edit.alt
 											c3 = copy.deepcopy(c1)
 											c3.posedit.pos.end = c2.posedit.pos.end
 											c3.posedit.edit.ref = '' #reference
@@ -4050,7 +4090,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											c1.posedit.edit.alt = c1.posedit.edit.ref[0]
 								
 											reference = c1.posedit.edit.ref + c2.posedit.edit.ref[1:]
-											alternate = c1.posedit.edit.alt + c2.posedit.edit.alt[1:]
+											alternate = c1.posedit.edit.alt[:-1] + c2.posedit.edit.alt
 											c3 = copy.deepcopy(c1)
 											c3.posedit.pos.end = c2.posedit.pos.end
 											c3.posedit.edit.ref = '' #reference
@@ -4123,6 +4163,17 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									hgvs_refreshed_variant = no_norm_evm.n_to_c(hgvs_refreshed_variant)
 								else:
 									pass
+
+								try:
+									hn.normalize(hgvs_refreshed_variant)
+								except Exception as e:
+									error = str(e)
+									# Ensure the final variant is not intronic nor does it cross exon boundaries
+									if re.match('Normalization of intronic variants is not supported', error) or re.match('Unsupported normalization of variants spanning the exon-intron boundary', error):
+										hgvs_refreshed_variant = saved_hgvs_coding
+									else:
+										continue	
+
 								# Quick check to make sure the coding variant has not changed
 								try:
 									to_test = hn.normalize(hgvs_refreshed_variant)
@@ -4427,7 +4478,41 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									gap_length = len(hgvs_not_delins.posedit.edit.ref) - len(rn_tx_hgvs_not_delins.posedit.edit.ref)
 									disparity_deletion_in = ['transcript', gap_length]
 								else:
-									pass
+									re_capture_tx_variant = []
+									for possibility in hgvs_genomic_possibilities:							
+										if possibility == '':
+											continue
+										hgvs_t_possibility = vm.g_to_t(possibility, hgvs_coding.ac)
+										if hgvs_t_possibility.posedit.edit.type == 'ins':
+											try:
+												hgvs_t_possibility = vm.c_to_n(hgvs_t_possibility)
+											except:
+												pass 
+											ins_ref = sf.fetch_seq(hgvs_t_possibility.ac,hgvs_t_possibility.posedit.pos.start.base-1,hgvs_t_possibility.posedit.pos.end.base)
+											try:
+												hgvs_t_possibility = vm.n_to_c(hgvs_t_possibility)
+											except:
+												pass
+											hgvs_t_possibility.posedit.edit.ref = ins_ref
+											hgvs_t_possibility.posedit.edit.alt = ins_ref[0] + hgvs_t_possibility.posedit.edit.alt + ins_ref[1] 
+										if possibility.posedit.edit.type == 'ins':
+											ins_ref = sf.fetch_seq(possibility.ac,possibility.posedit.pos.start.base-1,possibility.posedit.pos.end.base)
+											possibility.posedit.edit.ref = ins_ref
+											possibility.posedit.edit.alt = ins_ref[0] + possibility.posedit.edit.alt + ins_ref[1] 
+										if len(hgvs_t_possibility.posedit.edit.ref) < len(possibility.posedit.edit.ref):
+											gap_length = len(possibility.posedit.edit.ref) - len(hgvs_t_possibility.posedit.edit.ref)
+											re_capture_tx_variant = ['transcript', gap_length, hgvs_t_possibility]
+											hgvs_not_delins = possibility
+											break														
+							
+									if re_capture_tx_variant != []:
+										try:
+											tx_hgvs_not_delins = vm.c_to_n(re_capture_tx_variant[2])
+										except:
+											tx_hgvs_not_delins = re_capture_tx_variant[2]								
+										disparity_deletion_in = re_capture_tx_variant[0:-1]
+									else:				
+										pass
 																					
 							# GAP IN THE TRANSCRIPT	DISPARITY DETECTED	
 							if disparity_deletion_in[0] == 'transcript':			
@@ -4562,7 +4647,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										c1 = vm.g_to_t(g2, c1.ac)
 										c1.posedit.edit.alt = c1.posedit.edit.ref
 										reference = c1.posedit.edit.ref + c2.posedit.edit.ref[1:]
-										alternate = c1.posedit.edit.alt + c2.posedit.edit.alt[1:]
+										alternate = c1.posedit.edit.alt[:-1] + c2.posedit.edit.alt
 										c3 = copy.deepcopy(c1)
 										c3.posedit.pos.end = c2.posedit.pos.end
 										c3.posedit.edit.ref = '' #reference
@@ -4626,7 +4711,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										c1 = vm.g_to_t(g2, c1.ac)
 										c1.posedit.edit.alt = c1.posedit.edit.ref
 										reference = c1.posedit.edit.ref + c2.posedit.edit.ref[1:]
-										alternate = c1.posedit.edit.alt + c2.posedit.edit.alt[1:]
+										alternate = c1.posedit.edit.alt[:-1] + c2.posedit.edit.alt
 										c3 = copy.deepcopy(c1)
 										c3.posedit.pos.end = c2.posedit.pos.end
 										c3.posedit.edit.ref = '' #reference
@@ -4709,8 +4794,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									hgvs_refreshed_variant.posedit.edit.alt = hgvs_refreshed_variant.posedit.edit.alt[1:]
 									hgvs_refreshed_variant.posedit.pos.start.base = hgvs_refreshed_variant.posedit.pos.start.base + 1
 									hgvs_refreshed_variant = hn.normalize(hgvs_refreshed_variant)	
-							except:
-								pass
+							except Exception as e:
+								error = str(e)
+								# Ensure the final variant is not intronic nor does it cross exon boundaries
+								if re.match('Normalization of intronic variants is not supported', error) or re.match('Unsupported normalization of variants spanning the exon-intron boundary', error):
+									hgvs_refreshed_variant = saved_hgvs_coding
+								else:
+									pass	
 							hgvs_coding = copy.deepcopy(hgvs_refreshed_variant) 
 							coding = valstr(hgvs_coding)
 							variant = coding
@@ -5267,8 +5357,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										pr5_ref = sf.fetch_seq(hgvs_coding.ac,n_5pr.posedit.pos.start.base - 1, n_5pr.posedit.pos.end.base)
 										most_3pr_hgvs_transcript_variant.posedit.edit.ref = pr3_ref
 										most_5pr_hgvs_transcript_variant.posedit.edit.ref = pr5_ref
-										most_3pr_hgvs_transcript_variant.posedit.edit.alt = pr3_ref[0] + most_3pr_hgvs_transcript_variant.posedit.edit.alt + pr3_ref[0]
-										most_5pr_hgvs_transcript_variant.posedit.edit.alt = pr5_ref[0] + most_5pr_hgvs_transcript_variant.posedit.edit.alt + pr5_ref[0]
+										most_3pr_hgvs_transcript_variant.posedit.edit.alt = pr3_ref[0] + most_3pr_hgvs_transcript_variant.posedit.edit.alt + pr3_ref[1]
+										most_5pr_hgvs_transcript_variant.posedit.edit.alt = pr5_ref[0] + most_5pr_hgvs_transcript_variant.posedit.edit.alt + pr5_ref[1]
 										# Map to the genome
 										genomic_from_most_3pr_hgvs_transcript_variant = vm.t_to_g(most_3pr_hgvs_transcript_variant, hgvs_genomic.ac)
 										genomic_from_most_5pr_hgvs_transcript_variant = vm.t_to_g(most_5pr_hgvs_transcript_variant, hgvs_genomic.ac)
@@ -5616,7 +5706,41 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												gap_length = len(hgvs_not_delins.posedit.edit.ref) - len(rn_tx_hgvs_not_delins.posedit.edit.ref)
 												disparity_deletion_in = ['transcript', gap_length]
 											else:
-												pass
+												re_capture_tx_variant = []
+												for possibility in hgvs_genomic_possibilities:							
+													if possibility == '':
+														continue
+													hgvs_t_possibility = vm.g_to_t(possibility, hgvs_coding.ac)
+													if hgvs_t_possibility.posedit.edit.type == 'ins':
+														try:
+															hgvs_t_possibility = vm.c_to_n(hgvs_t_possibility)
+														except:
+															pass 
+														ins_ref = sf.fetch_seq(hgvs_t_possibility.ac,hgvs_t_possibility.posedit.pos.start.base-1,hgvs_t_possibility.posedit.pos.end.base)
+														try:
+															hgvs_t_possibility = vm.n_to_c(hgvs_t_possibility)
+														except:
+															pass
+														hgvs_t_possibility.posedit.edit.ref = ins_ref
+														hgvs_t_possibility.posedit.edit.alt = ins_ref[0] + hgvs_t_possibility.posedit.edit.alt + ins_ref[1] 
+													if possibility.posedit.edit.type == 'ins':
+														ins_ref = sf.fetch_seq(possibility.ac,possibility.posedit.pos.start.base-1,possibility.posedit.pos.end.base)
+														possibility.posedit.edit.ref = ins_ref
+														possibility.posedit.edit.alt = ins_ref[0] + possibility.posedit.edit.alt + ins_ref[1] 
+													if len(hgvs_t_possibility.posedit.edit.ref) < len(possibility.posedit.edit.ref):
+														gap_length = len(possibility.posedit.edit.ref) - len(hgvs_t_possibility.posedit.edit.ref)
+														re_capture_tx_variant = ['transcript', gap_length, hgvs_t_possibility]
+														hgvs_not_delins = possibility
+														break														
+							
+												if re_capture_tx_variant != []:
+													try:
+														tx_hgvs_not_delins = vm.c_to_n(re_capture_tx_variant[2])
+													except:
+														tx_hgvs_not_delins = re_capture_tx_variant[2]								
+													disparity_deletion_in = re_capture_tx_variant[0:-1]
+												else:				
+													pass
 
 										# Amend RefSeqGene = 'false'
 										# amend_RefSeqGene = 'false'
@@ -5755,7 +5879,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 													c1 = vm.g_to_t(g2, c1.ac)
 													c1.posedit.edit.alt = c1.posedit.edit.ref
 													reference = c1.posedit.edit.ref + c2.posedit.edit.ref[1:]
-													alternate = c1.posedit.edit.alt + c2.posedit.edit.alt[1:]
+													alternate = c1.posedit.edit.alt[:-1] + c2.posedit.edit.alt
 													c3 = copy.deepcopy(c1)
 													c3.posedit.pos.end = c2.posedit.pos.end
 													c3.posedit.edit.ref = '' #reference
@@ -5822,7 +5946,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 													c1.posedit.edit.alt = c1.posedit.edit.ref[0]
 								
 													reference = c1.posedit.edit.ref + c2.posedit.edit.ref[1:]
-													alternate = c1.posedit.edit.alt + c2.posedit.edit.alt[1:]
+													alternate = c1.posedit.edit.alt[:-1] + c2.posedit.edit.alt
 													c3 = copy.deepcopy(c1)
 													c3.posedit.pos.end = c2.posedit.pos.end
 													c3.posedit.edit.ref = '' #reference
@@ -5894,6 +6018,17 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											hgvs_refreshed_variant = no_norm_evm.n_to_c(hgvs_refreshed_variant)
 										else:
 											pass
+										
+										try:
+											hn.normalize(hgvs_refreshed_variant)
+										except Exception as e:
+											error = str(e)
+											# Ensure the final variant is not intronic nor does it cross exon boundaries
+											if re.match('Normalization of intronic variants is not supported', error) or re.match('Unsupported normalization of variants spanning the exon-intron boundary', error):
+												hgvs_refreshed_variant = saved_hgvs_coding
+											else:
+												continue	
+										
 										# Quick check to make sure the coding variant has not changed
 										try:
 											to_test = hn.normalize(hgvs_refreshed_variant)
