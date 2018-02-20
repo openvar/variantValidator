@@ -5231,7 +5231,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									refseqgene_accession = hgvs_refseqgene_variant.ac
 									hgvs_coding_from_refseqgene = vm.g_to_t(hgvs_refseqgene_variant, hgvs_transcript_variant.ac)
 									try:
-										hgvs_coding_from_refseqgene.posedit.edit.ref = ''
+										if hgvs_coding_from_refseqgene.posedit.edit.type != identity:
+											hgvs_coding_from_refseqgene.posedit.edit.ref = ''
 									except:
 										pass
 									RefSeqGene_context_transcript_variant = refseqgene_accession + '(' + transcript_accession + '):c.' + str(hgvs_coding_from_refseqgene.posedit.pos) + str(hgvs_coding_from_refseqgene.posedit.edit)
