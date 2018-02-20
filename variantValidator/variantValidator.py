@@ -5171,13 +5171,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						if rsg_ac[0] == 'none':
 							lrg_variant = ''
 						else:
-							hgvs_lrg = copy.deepcopy(hgvs_refseqgene_variant)
-							try:
-								hgvs_lrg.posedit.edit.ref = ''
-							except:
-								pass		
+							hgvs_lrg = copy.deepcopy(hgvs_refseqgene_variant)	
 							hgvs_lrg.ac = rsg_ac[0]
-							lrg_variant = str(hgvs_lrg)
+							lrg_variant = valstr(hgvs_lrg)
 							if rsg_ac[1] == 'public':
 								pass
 							else:
@@ -5207,11 +5203,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							if not re.search('RefSeqGene', refseqgene_variant) or refseqgene_variant != '':
 								if hgvs_refseq != 'RefSeqGene record not available':
 									try:
-										hgvs_lrg_t = vm.g_to_t(hgvs_refseq, hgvs_coding.ac)
-										try:
-											hgvs_lrg_t.posedit.edit.ref = ''
-										except:
-											pass		
+										hgvs_lrg_t = vm.g_to_t(hgvs_refseq, hgvs_coding.ac)	
 										hgvs_lrg_t.ac = lrg_transcript
 										lrg_transcript_variant = valstr(hgvs_lrg_t)
 									except:
