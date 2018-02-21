@@ -2371,22 +2371,28 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											try:
 												c2 = vm.n_to_c(tx_hgvs_not_delins)
 											except:
-												c2 = tx_hgvs_not_delins	
+												c2 = tx_hgvs_not_delins
 											c1 = copy.deepcopy(c2)
-											c1.posedit.pos.start.base = c2.posedit.pos.start.base
+											c1.posedit.pos.start.base = c2.posedit.pos.start.base -1
 											c1.posedit.pos.start.offset = 0
 											c1.posedit.pos.end = c2.posedit.pos.start
 											c1.posedit.edit.ref = ''
 											c1.posedit.edit.alt = ''
-											g2 = vm.t_to_g(c1, hgvs_genomic.ac)
-											c1 = vm.g_to_t(g2, c1.ac)
-											c1.posedit.edit.alt = c1.posedit.edit.ref
-											reference = c1.posedit.edit.ref + c2.posedit.edit.ref[1:]
-											alternate = c1.posedit.edit.alt[:-1] + c2.posedit.edit.alt
-											c3 = copy.deepcopy(c1)
-											c3.posedit.pos.end = c2.posedit.pos.end
-											c3.posedit.edit.ref = '' #reference
-											c3.posedit.edit.alt = alternate
+											if orientation != -1:
+												g1 = vm.t_to_g(c1, hgvs_genomic.ac)
+												g2 = vm.t_to_g(c2, hgvs_genomic.ac)
+												g1.posedit.edit.alt = g1.posedit.edit.ref
+											else:
+												g1 = vm.t_to_g(c2, hgvs_genomic.ac)
+												g2 = vm.t_to_g(c1, hgvs_genomic.ac)								
+												g2.posedit.edit.alt = g2.posedit.edit.ref							
+											reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
+											alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
+											g3 = copy.deepcopy(g1)
+											g3.posedit.pos.end.base = g2.posedit.pos.end.base
+											g3.posedit.edit.ref = reference
+											g3.posedit.edit.alt = alternate
+											c3 = vm.g_to_t(g3, c1.ac)
 											hgvs_refreshed_variant = c3							
 											# Alignment position
 											for_location_c = copy.deepcopy(hgvs_refreshed_variant)
@@ -2411,14 +2417,21 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											c2.posedit.pos.end.offset = 0
 											c2.posedit.edit.ref = ''
 											c2.posedit.edit.alt = ''
-											g2 = vm.t_to_g(c2, hgvs_genomic.ac)
-											c2 = vm.g_to_t(g2, c2.ac)
-											reference = c1.posedit.edit.ref + c2.posedit.edit.ref[1:]
-											alternate = c1.posedit.edit.alt + c2.posedit.edit.ref[1:]
-											c3 = copy.deepcopy(c1)
-											c3.posedit.pos.end = c2.posedit.pos.end
-											c3.posedit.edit.ref = '' #reference
-											c3.posedit.edit.alt = alternate
+											if orientation != -1:
+												g1 = vm.t_to_g(c1, hgvs_genomic.ac)
+												g2 = vm.t_to_g(c2, hgvs_genomic.ac)
+												g2.posedit.edit.alt = g2.posedit.edit.ref
+											else:
+												g1 = vm.t_to_g(c2, hgvs_genomic.ac)
+												g2 = vm.t_to_g(c1, hgvs_genomic.ac)								
+												g1.posedit.edit.alt = g1.posedit.edit.ref							
+											reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
+											alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
+											g3 = copy.deepcopy(g1)
+											g3.posedit.pos.end.base = g2.posedit.pos.end.base
+											g3.posedit.edit.ref = reference
+											g3.posedit.edit.alt = alternate
+											c3 = vm.g_to_t(g3, c1.ac)
 											hgvs_refreshed_variant = c3							
 											# Alignment position
 											for_location_c = copy.deepcopy(hgvs_refreshed_variant)
@@ -2435,23 +2448,29 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											try:
 												c2 = vm.n_to_c(tx_hgvs_not_delins)
 											except:
-												c2 = tx_hgvs_not_delins	
+												c2 = tx_hgvs_not_delins
 											c1 = copy.deepcopy(c2)
 											c1.posedit.pos.start.base = c2.posedit.pos.start.base -1
 											c1.posedit.pos.start.offset = 0
 											c1.posedit.pos.end = c2.posedit.pos.start
 											c1.posedit.edit.ref = ''
 											c1.posedit.edit.alt = ''
-											g2 = vm.t_to_g(c1, hgvs_genomic.ac)
-											c1 = vm.g_to_t(g2, c1.ac)
-											c1.posedit.edit.alt = c1.posedit.edit.ref
-											reference = c1.posedit.edit.ref + c2.posedit.edit.ref[1:]
-											alternate = c1.posedit.edit.alt[:-1] + c2.posedit.edit.alt
-											c3 = copy.deepcopy(c1)
-											c3.posedit.pos.end = c2.posedit.pos.end
-											c3.posedit.edit.ref = '' #reference
-											c3.posedit.edit.alt = alternate
-											hgvs_refreshed_variant = c3							
+											if orientation != -1:
+												g1 = vm.t_to_g(c1, hgvs_genomic.ac)
+												g2 = vm.t_to_g(c2, hgvs_genomic.ac)
+												g1.posedit.edit.alt = g1.posedit.edit.ref
+											else:
+												g1 = vm.t_to_g(c2, hgvs_genomic.ac)
+												g2 = vm.t_to_g(c1, hgvs_genomic.ac)								
+												g2.posedit.edit.alt = g2.posedit.edit.ref							
+											reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
+											alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
+											g3 = copy.deepcopy(g1)
+											g3.posedit.pos.end.base = g2.posedit.pos.end.base
+											g3.posedit.edit.ref = reference
+											g3.posedit.edit.alt = alternate
+											c3 = vm.g_to_t(g3, c1.ac)
+											hgvs_refreshed_variant = c3	
 											# Alignment position
 											for_location_c = copy.deepcopy(hgvs_refreshed_variant)
 											if re.match('NM_', str(for_location_c)):
@@ -2469,21 +2488,27 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												c1 = vm.n_to_c(tx_hgvs_not_delins)
 											except:
 												c1 = tx_hgvs_not_delins
-
 											c2 = copy.deepcopy(c1)
 											c2.posedit.pos.start = c1.posedit.pos.end
-											c2.posedit.pos.end.base = c1.posedit.pos.end.base
+											c2.posedit.pos.end.base = c1.posedit.pos.end.base + 1
 											c2.posedit.pos.end.offset = 0
 											c2.posedit.edit.ref = ''
 											c2.posedit.edit.alt = ''
-											g2 = vm.t_to_g(c2, hgvs_genomic.ac)
-											c2 = vm.g_to_t(g2, c2.ac)
-											reference = c1.posedit.edit.ref + c2.posedit.edit.ref[1:]
-											alternate = c1.posedit.edit.alt + c2.posedit.edit.ref[1:]
-											c3 = copy.deepcopy(c1)
-											c3.posedit.pos.end = c2.posedit.pos.end
-											c3.posedit.edit.ref = '' #reference
-											c3.posedit.edit.alt = alternate
+											if orientation != -1:
+												g1 = vm.t_to_g(c1, hgvs_genomic.ac)
+												g2 = vm.t_to_g(c2, hgvs_genomic.ac)
+												g2.posedit.edit.alt = g2.posedit.edit.ref
+											else:
+												g1 = vm.t_to_g(c2, hgvs_genomic.ac)
+												g2 = vm.t_to_g(c1, hgvs_genomic.ac)								
+												g1.posedit.edit.alt = g1.posedit.edit.ref							
+											reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
+											alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
+											g3 = copy.deepcopy(g1)
+											g3.posedit.pos.end.base = g2.posedit.pos.end.base
+											g3.posedit.edit.ref = reference
+											g3.posedit.edit.alt = alternate
+											c3 = vm.g_to_t(g3, c1.ac)
 											hgvs_refreshed_variant = c3							
 											# Alignment position
 											for_location_c = copy.deepcopy(hgvs_refreshed_variant)
@@ -4011,22 +4036,28 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											try:
 												c2 = vm.n_to_c(tx_hgvs_not_delins)
 											except:
-												c2 = tx_hgvs_not_delins	
+												c2 = tx_hgvs_not_delins
 											c1 = copy.deepcopy(c2)
-											c1.posedit.pos.start.base = c2.posedit.pos.start.base
+											c1.posedit.pos.start.base = c2.posedit.pos.start.base -1
 											c1.posedit.pos.start.offset = 0
 											c1.posedit.pos.end = c2.posedit.pos.start
 											c1.posedit.edit.ref = ''
 											c1.posedit.edit.alt = ''
-											g2 = vm.t_to_g(c1, hgvs_genomic.ac)
-											c1 = vm.g_to_t(g2, c1.ac)
-											c1.posedit.edit.alt = c1.posedit.edit.ref
-											reference = c1.posedit.edit.ref + c2.posedit.edit.ref[1:]
-											alternate = c1.posedit.edit.alt[:-1] + c2.posedit.edit.alt
-											c3 = copy.deepcopy(c1)
-											c3.posedit.pos.end = c2.posedit.pos.end
-											c3.posedit.edit.ref = '' #reference
-											c3.posedit.edit.alt = alternate
+											if orientation != -1:
+												g1 = vm.t_to_g(c1, hgvs_genomic.ac)
+												g2 = vm.t_to_g(c2, hgvs_genomic.ac)
+												g1.posedit.edit.alt = g1.posedit.edit.ref
+											else:
+												g1 = vm.t_to_g(c2, hgvs_genomic.ac)
+												g2 = vm.t_to_g(c1, hgvs_genomic.ac)								
+												g2.posedit.edit.alt = g2.posedit.edit.ref							
+											reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
+											alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
+											g3 = copy.deepcopy(g1)
+											g3.posedit.pos.end.base = g2.posedit.pos.end.base
+											g3.posedit.edit.ref = reference
+											g3.posedit.edit.alt = alternate
+											c3 = vm.g_to_t(g3, c1.ac)
 											hgvs_refreshed_variant = c3							
 											# Alignment position
 											for_location_c = copy.deepcopy(hgvs_refreshed_variant)
@@ -4045,21 +4076,27 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												c1 = vm.n_to_c(tx_hgvs_not_delins)
 											except:
 												c1 = tx_hgvs_not_delins
-
 											c2 = copy.deepcopy(c1)
 											c2.posedit.pos.start = c1.posedit.pos.end
 											c2.posedit.pos.end.base = c1.posedit.pos.end.base + 1
 											c2.posedit.pos.end.offset = 0
 											c2.posedit.edit.ref = ''
 											c2.posedit.edit.alt = ''
-											g2 = vm.t_to_g(c2, hgvs_genomic.ac)
-											c2 = vm.g_to_t(g2, c2.ac)
-											reference = c1.posedit.edit.ref + c2.posedit.edit.ref[1:]
-											alternate = c1.posedit.edit.alt + c2.posedit.edit.ref[1:]
-											c3 = copy.deepcopy(c1)
-											c3.posedit.pos.end = c2.posedit.pos.end
-											c3.posedit.edit.ref = '' #reference
-											c3.posedit.edit.alt = alternate
+											if orientation != -1:
+												g1 = vm.t_to_g(c1, hgvs_genomic.ac)
+												g2 = vm.t_to_g(c2, hgvs_genomic.ac)
+												g2.posedit.edit.alt = g2.posedit.edit.ref
+											else:
+												g1 = vm.t_to_g(c2, hgvs_genomic.ac)
+												g2 = vm.t_to_g(c1, hgvs_genomic.ac)								
+												g1.posedit.edit.alt = g1.posedit.edit.ref							
+											reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
+											alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
+											g3 = copy.deepcopy(g1)
+											g3.posedit.pos.end.base = g2.posedit.pos.end.base
+											g3.posedit.edit.ref = reference
+											g3.posedit.edit.alt = alternate
+											c3 = vm.g_to_t(g3, c1.ac)
 											hgvs_refreshed_variant = c3							
 											# Alignment position
 											for_location_c = copy.deepcopy(hgvs_refreshed_variant)
@@ -4076,26 +4113,29 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											try:
 												c2 = vm.n_to_c(tx_hgvs_not_delins)
 											except:
-												c2 = tx_hgvs_not_delins	
+												c2 = tx_hgvs_not_delins
 											c1 = copy.deepcopy(c2)
 											c1.posedit.pos.start.base = c2.posedit.pos.start.base -1
 											c1.posedit.pos.start.offset = 0
 											c1.posedit.pos.end = c2.posedit.pos.start
 											c1.posedit.edit.ref = ''
 											c1.posedit.edit.alt = ''
-											g2 = vm.t_to_g(c1, hgvs_genomic.ac)
-											c1 = vm.g_to_t(g2, c1.ac)
-								
-											# Remove alt?								
-											c1.posedit.edit.alt = c1.posedit.edit.ref[0]
-								
-											reference = c1.posedit.edit.ref + c2.posedit.edit.ref[1:]
-											alternate = c1.posedit.edit.alt[:-1] + c2.posedit.edit.alt
-											c3 = copy.deepcopy(c1)
-											c3.posedit.pos.end = c2.posedit.pos.end
-											c3.posedit.edit.ref = '' #reference
-											c3.posedit.edit.alt = alternate
-											hgvs_refreshed_variant = c3													
+											if orientation != -1:
+												g1 = vm.t_to_g(c1, hgvs_genomic.ac)
+												g2 = vm.t_to_g(c2, hgvs_genomic.ac)
+												g1.posedit.edit.alt = g1.posedit.edit.ref
+											else:
+												g1 = vm.t_to_g(c2, hgvs_genomic.ac)
+												g2 = vm.t_to_g(c1, hgvs_genomic.ac)								
+												g2.posedit.edit.alt = g2.posedit.edit.ref							
+											reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
+											alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
+											g3 = copy.deepcopy(g1)
+											g3.posedit.pos.end.base = g2.posedit.pos.end.base
+											g3.posedit.edit.ref = reference
+											g3.posedit.edit.alt = alternate
+											c3 = vm.g_to_t(g3, c1.ac)
+											hgvs_refreshed_variant = c3	
 											# Alignment position
 											for_location_c = copy.deepcopy(hgvs_refreshed_variant)
 											if re.match('NM_', str(for_location_c)):
@@ -4115,18 +4155,25 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												c1 = tx_hgvs_not_delins
 											c2 = copy.deepcopy(c1)
 											c2.posedit.pos.start = c1.posedit.pos.end
-											c2.posedit.pos.end.base = c1.posedit.pos.end.base
+											c2.posedit.pos.end.base = c1.posedit.pos.end.base + 1
 											c2.posedit.pos.end.offset = 0
 											c2.posedit.edit.ref = ''
 											c2.posedit.edit.alt = ''
-											g2 = vm.t_to_g(c2, hgvs_genomic.ac)
-											c2 = vm.g_to_t(g2, c2.ac)
-											reference = c1.posedit.edit.ref + c2.posedit.edit.ref[1:]
-											alternate = c1.posedit.edit.alt + c2.posedit.edit.ref[1:]
-											c3 = copy.deepcopy(c1)
-											c3.posedit.pos.end = c2.posedit.pos.end
-											c3.posedit.edit.ref = '' #reference
-											c3.posedit.edit.alt = alternate
+											if orientation != -1:
+												g1 = vm.t_to_g(c1, hgvs_genomic.ac)
+												g2 = vm.t_to_g(c2, hgvs_genomic.ac)
+												g2.posedit.edit.alt = g2.posedit.edit.ref
+											else:
+												g1 = vm.t_to_g(c2, hgvs_genomic.ac)
+												g2 = vm.t_to_g(c1, hgvs_genomic.ac)								
+												g1.posedit.edit.alt = g1.posedit.edit.ref							
+											reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
+											alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
+											g3 = copy.deepcopy(g1)
+											g3.posedit.pos.end.base = g2.posedit.pos.end.base
+											g3.posedit.edit.ref = reference
+											g3.posedit.edit.alt = alternate
+											c3 = vm.g_to_t(g3, c1.ac)
 											hgvs_refreshed_variant = c3							
 											# Alignment position
 											for_location_c = copy.deepcopy(hgvs_refreshed_variant)
@@ -4636,22 +4683,28 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										try:
 											c2 = vm.n_to_c(tx_hgvs_not_delins)
 										except:
-											c2 = tx_hgvs_not_delins	
+											c2 = tx_hgvs_not_delins
 										c1 = copy.deepcopy(c2)
-										c1.posedit.pos.start.base = c2.posedit.pos.start.base
+										c1.posedit.pos.start.base = c2.posedit.pos.start.base -1
 										c1.posedit.pos.start.offset = 0
 										c1.posedit.pos.end = c2.posedit.pos.start
 										c1.posedit.edit.ref = ''
 										c1.posedit.edit.alt = ''
-										g2 = vm.t_to_g(c1, hgvs_genomic.ac)
-										c1 = vm.g_to_t(g2, c1.ac)
-										c1.posedit.edit.alt = c1.posedit.edit.ref
-										reference = c1.posedit.edit.ref + c2.posedit.edit.ref[1:]
-										alternate = c1.posedit.edit.alt[:-1] + c2.posedit.edit.alt
-										c3 = copy.deepcopy(c1)
-										c3.posedit.pos.end = c2.posedit.pos.end
-										c3.posedit.edit.ref = '' #reference
-										c3.posedit.edit.alt = alternate
+										if orientation != -1:
+											g1 = vm.t_to_g(c1, hgvs_genomic.ac)
+											g2 = vm.t_to_g(c2, hgvs_genomic.ac)
+											g1.posedit.edit.alt = g1.posedit.edit.ref
+										else:
+											g1 = vm.t_to_g(c2, hgvs_genomic.ac)
+											g2 = vm.t_to_g(c1, hgvs_genomic.ac)								
+											g2.posedit.edit.alt = g2.posedit.edit.ref							
+										reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
+										alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
+										g3 = copy.deepcopy(g1)
+										g3.posedit.pos.end.base = g2.posedit.pos.end.base
+										g3.posedit.edit.ref = reference
+										g3.posedit.edit.alt = alternate
+										c3 = vm.g_to_t(g3, c1.ac)
 										hgvs_refreshed_variant = c3							
 										# Alignment position
 										for_location_c = copy.deepcopy(hgvs_refreshed_variant)
@@ -4676,14 +4729,21 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										c2.posedit.pos.end.offset = 0
 										c2.posedit.edit.ref = ''
 										c2.posedit.edit.alt = ''
-										g2 = vm.t_to_g(c2, hgvs_genomic.ac)
-										c2 = vm.g_to_t(g2, c2.ac)
-										reference = c1.posedit.edit.ref + c2.posedit.edit.ref[1:]
-										alternate = c1.posedit.edit.alt + c2.posedit.edit.ref[1:]
-										c3 = copy.deepcopy(c1)
-										c3.posedit.pos.end = c2.posedit.pos.end
-										c3.posedit.edit.ref = '' #reference
-										c3.posedit.edit.alt = alternate
+										if orientation != -1:
+											g1 = vm.t_to_g(c1, hgvs_genomic.ac)
+											g2 = vm.t_to_g(c2, hgvs_genomic.ac)
+											g2.posedit.edit.alt = g2.posedit.edit.ref
+										else:
+											g1 = vm.t_to_g(c2, hgvs_genomic.ac)
+											g2 = vm.t_to_g(c1, hgvs_genomic.ac)								
+											g1.posedit.edit.alt = g1.posedit.edit.ref							
+										reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
+										alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
+										g3 = copy.deepcopy(g1)
+										g3.posedit.pos.end.base = g2.posedit.pos.end.base
+										g3.posedit.edit.ref = reference
+										g3.posedit.edit.alt = alternate
+										c3 = vm.g_to_t(g3, c1.ac)
 										hgvs_refreshed_variant = c3							
 										# Alignment position
 										for_location_c = copy.deepcopy(hgvs_refreshed_variant)
@@ -4700,23 +4760,29 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										try:
 											c2 = vm.n_to_c(tx_hgvs_not_delins)
 										except:
-											c2 = tx_hgvs_not_delins	
+											c2 = tx_hgvs_not_delins
 										c1 = copy.deepcopy(c2)
 										c1.posedit.pos.start.base = c2.posedit.pos.start.base -1
 										c1.posedit.pos.start.offset = 0
 										c1.posedit.pos.end = c2.posedit.pos.start
 										c1.posedit.edit.ref = ''
 										c1.posedit.edit.alt = ''
-										g2 = vm.t_to_g(c1, hgvs_genomic.ac)
-										c1 = vm.g_to_t(g2, c1.ac)
-										c1.posedit.edit.alt = c1.posedit.edit.ref
-										reference = c1.posedit.edit.ref + c2.posedit.edit.ref[1:]
-										alternate = c1.posedit.edit.alt[:-1] + c2.posedit.edit.alt
-										c3 = copy.deepcopy(c1)
-										c3.posedit.pos.end = c2.posedit.pos.end
-										c3.posedit.edit.ref = '' #reference
-										c3.posedit.edit.alt = alternate
-										hgvs_refreshed_variant = c3							
+										if orientation != -1:
+											g1 = vm.t_to_g(c1, hgvs_genomic.ac)
+											g2 = vm.t_to_g(c2, hgvs_genomic.ac)
+											g1.posedit.edit.alt = g1.posedit.edit.ref
+										else:
+											g1 = vm.t_to_g(c2, hgvs_genomic.ac)
+											g2 = vm.t_to_g(c1, hgvs_genomic.ac)								
+											g2.posedit.edit.alt = g2.posedit.edit.ref							
+										reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
+										alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
+										g3 = copy.deepcopy(g1)
+										g3.posedit.pos.end.base = g2.posedit.pos.end.base
+										g3.posedit.edit.ref = reference
+										g3.posedit.edit.alt = alternate
+										c3 = vm.g_to_t(g3, c1.ac)
+										hgvs_refreshed_variant = c3	
 										# Alignment position
 										for_location_c = copy.deepcopy(hgvs_refreshed_variant)
 										if re.match('NM_', str(for_location_c)):
@@ -4736,18 +4802,25 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											c1 = tx_hgvs_not_delins
 										c2 = copy.deepcopy(c1)
 										c2.posedit.pos.start = c1.posedit.pos.end
-										c2.posedit.pos.end.base = c1.posedit.pos.end.base
+										c2.posedit.pos.end.base = c1.posedit.pos.end.base + 1
 										c2.posedit.pos.end.offset = 0
 										c2.posedit.edit.ref = ''
 										c2.posedit.edit.alt = ''
-										g2 = vm.t_to_g(c2, hgvs_genomic.ac)
-										c2 = vm.g_to_t(g2, c2.ac)
-										reference = c1.posedit.edit.ref + c2.posedit.edit.ref[1:]
-										alternate = c1.posedit.edit.alt + c2.posedit.edit.ref[1:]
-										c3 = copy.deepcopy(c1)
-										c3.posedit.pos.end = c2.posedit.pos.end
-										c3.posedit.edit.ref = '' #reference
-										c3.posedit.edit.alt = alternate
+										if orientation != -1:
+											g1 = vm.t_to_g(c1, hgvs_genomic.ac)
+											g2 = vm.t_to_g(c2, hgvs_genomic.ac)
+											g2.posedit.edit.alt = g2.posedit.edit.ref
+										else:
+											g1 = vm.t_to_g(c2, hgvs_genomic.ac)
+											g2 = vm.t_to_g(c1, hgvs_genomic.ac)								
+											g1.posedit.edit.alt = g1.posedit.edit.ref							
+										reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
+										alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
+										g3 = copy.deepcopy(g1)
+										g3.posedit.pos.end.base = g2.posedit.pos.end.base
+										g3.posedit.edit.ref = reference
+										g3.posedit.edit.alt = alternate
+										c3 = vm.g_to_t(g3, c1.ac)
 										hgvs_refreshed_variant = c3							
 										# Alignment position
 										for_location_c = copy.deepcopy(hgvs_refreshed_variant)
@@ -5858,22 +5931,28 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 													try:
 														c2 = vm.n_to_c(tx_hgvs_not_delins)
 													except:
-														c2 = tx_hgvs_not_delins	
+														c2 = tx_hgvs_not_delins
 													c1 = copy.deepcopy(c2)
-													c1.posedit.pos.start.base = c2.posedit.pos.start.base
+													c1.posedit.pos.start.base = c2.posedit.pos.start.base -1
 													c1.posedit.pos.start.offset = 0
 													c1.posedit.pos.end = c2.posedit.pos.start
 													c1.posedit.edit.ref = ''
 													c1.posedit.edit.alt = ''
-													g2 = vm.t_to_g(c1, hgvs_genomic.ac)
-													c1 = vm.g_to_t(g2, c1.ac)
-													c1.posedit.edit.alt = c1.posedit.edit.ref
-													reference = c1.posedit.edit.ref + c2.posedit.edit.ref[1:]
-													alternate = c1.posedit.edit.alt[:-1] + c2.posedit.edit.alt
-													c3 = copy.deepcopy(c1)
-													c3.posedit.pos.end = c2.posedit.pos.end
-													c3.posedit.edit.ref = '' #reference
-													c3.posedit.edit.alt = alternate
+													if orientation != -1:
+														g1 = vm.t_to_g(c1, hgvs_genomic.ac)
+														g2 = vm.t_to_g(c2, hgvs_genomic.ac)
+														g1.posedit.edit.alt = g1.posedit.edit.ref
+													else:
+														g1 = vm.t_to_g(c2, hgvs_genomic.ac)
+														g2 = vm.t_to_g(c1, hgvs_genomic.ac)								
+														g2.posedit.edit.alt = g2.posedit.edit.ref							
+													reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
+													alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
+													g3 = copy.deepcopy(g1)
+													g3.posedit.pos.end.base = g2.posedit.pos.end.base
+													g3.posedit.edit.ref = reference
+													g3.posedit.edit.alt = alternate
+													c3 = vm.g_to_t(g3, c1.ac)
 													hgvs_refreshed_variant = c3							
 													# Alignment position
 													for_location_c = copy.deepcopy(hgvs_refreshed_variant)
@@ -5898,14 +5977,21 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 													c2.posedit.pos.end.offset = 0
 													c2.posedit.edit.ref = ''
 													c2.posedit.edit.alt = ''
-													g2 = vm.t_to_g(c2, hgvs_genomic.ac)
-													c2 = vm.g_to_t(g2, c2.ac)
-													reference = c1.posedit.edit.ref + c2.posedit.edit.ref[1:]
-													alternate = c1.posedit.edit.alt + c2.posedit.edit.ref[1:]
-													c3 = copy.deepcopy(c1)
-													c3.posedit.pos.end = c2.posedit.pos.end
-													c3.posedit.edit.ref = '' #reference
-													c3.posedit.edit.alt = alternate
+													if orientation != -1:
+														g1 = vm.t_to_g(c1, hgvs_genomic.ac)
+														g2 = vm.t_to_g(c2, hgvs_genomic.ac)
+														g2.posedit.edit.alt = g2.posedit.edit.ref
+													else:
+														g1 = vm.t_to_g(c2, hgvs_genomic.ac)
+														g2 = vm.t_to_g(c1, hgvs_genomic.ac)								
+														g1.posedit.edit.alt = g1.posedit.edit.ref							
+													reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
+													alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
+													g3 = copy.deepcopy(g1)
+													g3.posedit.pos.end.base = g2.posedit.pos.end.base
+													g3.posedit.edit.ref = reference
+													g3.posedit.edit.alt = alternate
+													c3 = vm.g_to_t(g3, c1.ac)
 													hgvs_refreshed_variant = c3							
 													# Alignment position
 													for_location_c = copy.deepcopy(hgvs_refreshed_variant)
@@ -5922,26 +6008,29 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 													try:
 														c2 = vm.n_to_c(tx_hgvs_not_delins)
 													except:
-														c2 = tx_hgvs_not_delins	
+														c2 = tx_hgvs_not_delins
 													c1 = copy.deepcopy(c2)
 													c1.posedit.pos.start.base = c2.posedit.pos.start.base -1
 													c1.posedit.pos.start.offset = 0
 													c1.posedit.pos.end = c2.posedit.pos.start
 													c1.posedit.edit.ref = ''
 													c1.posedit.edit.alt = ''
-													g2 = vm.t_to_g(c1, hgvs_genomic.ac)
-													c1 = vm.g_to_t(g2, c1.ac)
-								
-													# Remove alt?								
-													c1.posedit.edit.alt = c1.posedit.edit.ref[0]
-								
-													reference = c1.posedit.edit.ref + c2.posedit.edit.ref[1:]
-													alternate = c1.posedit.edit.alt[:-1] + c2.posedit.edit.alt
-													c3 = copy.deepcopy(c1)
-													c3.posedit.pos.end = c2.posedit.pos.end
-													c3.posedit.edit.ref = '' #reference
-													c3.posedit.edit.alt = alternate
-													hgvs_refreshed_variant = c3													
+													if orientation != -1:
+														g1 = vm.t_to_g(c1, hgvs_genomic.ac)
+														g2 = vm.t_to_g(c2, hgvs_genomic.ac)
+														g1.posedit.edit.alt = g1.posedit.edit.ref
+													else:
+														g1 = vm.t_to_g(c2, hgvs_genomic.ac)
+														g2 = vm.t_to_g(c1, hgvs_genomic.ac)								
+														g2.posedit.edit.alt = g2.posedit.edit.ref							
+													reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
+													alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
+													g3 = copy.deepcopy(g1)
+													g3.posedit.pos.end.base = g2.posedit.pos.end.base
+													g3.posedit.edit.ref = reference
+													g3.posedit.edit.alt = alternate
+													c3 = vm.g_to_t(g3, c1.ac)
+													hgvs_refreshed_variant = c3	
 													# Alignment position
 													for_location_c = copy.deepcopy(hgvs_refreshed_variant)
 													if re.match('NM_', str(for_location_c)):
@@ -5961,18 +6050,25 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 														c1 = tx_hgvs_not_delins
 													c2 = copy.deepcopy(c1)
 													c2.posedit.pos.start = c1.posedit.pos.end
-													c2.posedit.pos.end.base = c1.posedit.pos.end.base
+													c2.posedit.pos.end.base = c1.posedit.pos.end.base + 1
 													c2.posedit.pos.end.offset = 0
 													c2.posedit.edit.ref = ''
 													c2.posedit.edit.alt = ''
-													g2 = vm.t_to_g(c2, hgvs_genomic.ac)
-													c2 = vm.g_to_t(g2, c2.ac)
-													reference = c1.posedit.edit.ref + c2.posedit.edit.ref[1:]
-													alternate = c1.posedit.edit.alt + c2.posedit.edit.ref[1:]
-													c3 = copy.deepcopy(c1)
-													c3.posedit.pos.end = c2.posedit.pos.end
-													c3.posedit.edit.ref = '' #reference
-													c3.posedit.edit.alt = alternate
+													if orientation != -1:
+														g1 = vm.t_to_g(c1, hgvs_genomic.ac)
+														g2 = vm.t_to_g(c2, hgvs_genomic.ac)
+														g2.posedit.edit.alt = g2.posedit.edit.ref
+													else:
+														g1 = vm.t_to_g(c2, hgvs_genomic.ac)
+														g2 = vm.t_to_g(c1, hgvs_genomic.ac)								
+														g1.posedit.edit.alt = g1.posedit.edit.ref							
+													reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
+													alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
+													g3 = copy.deepcopy(g1)
+													g3.posedit.pos.end.base = g2.posedit.pos.end.base
+													g3.posedit.edit.ref = reference
+													g3.posedit.edit.alt = alternate
+													c3 = vm.g_to_t(g3, c1.ac)
 													hgvs_refreshed_variant = c3							
 													# Alignment position
 													for_location_c = copy.deepcopy(hgvs_refreshed_variant)
