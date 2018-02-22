@@ -104,7 +104,7 @@ no_norm_evm_37 = hgvs.assemblymapper.AssemblyMapper(hdp,
 		alt_aln_method='splign', 
 		normalize=False, 
 		replace_reference=True
-		)
+		)	
 
 # variantanalyser modules
 import dbControls
@@ -817,10 +817,14 @@ def myvm_t_to_g(hgvs_c, alt_chr, vm, hn, hdp, primary_assembly):
 		no_norm_evm = no_norm_evm_38
 	elif primary_assembly == 'GRCh37':
 		no_norm_evm = no_norm_evm_37	
+
+	# Validator
+	vr = hgvs.validator.Validator(hdp)			
 	
 	# store the input
 	stored_hgvs_c = copy.deepcopy(hgvs_c)
 	
+	# Working
 	# Set expansion variable
 	expand_out = 'false'
 	if hgvs_c.posedit.edit.type == 'identity' or hgvs_c.posedit.edit.type == 'del' or hgvs_c.posedit.edit.type =='delins' or hgvs_c.posedit.edit.type == 'dup' or hgvs_c.posedit.edit.type == 'sub' or hgvs_c.posedit.edit.type == 'ins':
@@ -828,7 +832,7 @@ def myvm_t_to_g(hgvs_c, alt_chr, vm, hn, hdp, primary_assembly):
 		# if NM_ need the n. position
 		if re.match('NM_', str(hgvs_c.ac)):
 			hgvs_c = no_norm_evm.c_to_n(hgvs_c)
-		
+
 		# Check for intronic
 		try: 
 			hn.normalize(hgvs_c)
@@ -836,13 +840,14 @@ def myvm_t_to_g(hgvs_c, alt_chr, vm, hn, hdp, primary_assembly):
 			error = str(e)
 			if re.search('intronic variant', error):
 				pass
-			elif re.search('Length implied by coordinates must equal sequence deletion length', error) and hgvs_c.type == 'n':
+			elif re.search('Length implied by coordinates must equal sequence deletion length', error) and re.match('NR_', hgvs_c.ac):
 				hgvs_c.posedit.pos.end.base = hgvs_c.posedit.pos.start.base + len(hgvs_c.posedit.edit.ref) - 1
 
 		# Check again before continuing
+		# To tool and API
 		if re.search('\d+\+', str(hgvs_c.posedit.pos)) or re.search('\d+\-', str(hgvs_c.posedit.pos)) or re.search('\*\d+\+', str(hgvs_c.posedit.pos)) or re.search('\*\d+\-', str(hgvs_c.posedit.pos)):
 			pass
-
+				
 		else:		
 			try:
 				# For non-intronic sequence
@@ -877,10 +882,10 @@ def myvm_t_to_g(hgvs_c, alt_chr, vm, hn, hdp, primary_assembly):
 			
 				# Set expanded out test to true
 				expand_out = 'true'
-			
+
 			except Exception:
-				hgvs_c = hgvs_c		
-		
+				hgvs_c = hgvs_c				
+			
 		if re.match('NM_', str(hgvs_c.ac)):
 			try:
 				hgvs_c = no_norm_evm.n_to_c(hgvs_c)
@@ -1037,8 +1042,6 @@ def myvm_t_to_g(hgvs_c, alt_chr, vm, hn, hdp, primary_assembly):
  						hgvs_genomic = hn.normalize(hgvs_genomic)						
 
 	return hgvs_genomic
-
-	
 
 """
 Simple hgvs g. to c. or n. mapping

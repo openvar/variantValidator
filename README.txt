@@ -68,6 +68,8 @@ INSTALLATION
 pip install --upgrade setuptools, pip
 pip install variantValidator_0.1.0.tar.gz
 
+Variant Validator also requires mysql_connector >= 2.1.4. mysql_connector is  OS specific and can be downloaded from https://dev.mysql.com/downloads/connector/python/
+
 REQUIRED ALTERATIONS TO DEPENDENCIES
 The following alteration must be made to the hgvs Python package https://github.com/biocommons/hgvs/ 
 
@@ -92,7 +94,7 @@ seqrepo_dir = <PATH TO>/seqrepo/<CURRENT SEQREPO DATABASE>
 [UTA]
 uta_url = postgresql://uta_admin:uta_admin@127.0.0.1/uta/<CURRENT UTA SCHEMA>
 
-Alternatively, these configurations con be set on via environment variables
+Alternatively, these configurations can be set on via environment variables
 
 Example
 import os

@@ -5351,6 +5351,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					multi_gen_vars = []
 					if tx_variant != '':
 						hgvs_coding = hp.parse_hgvs_variant(str(tx_variant))
+						try:
+							hgvs_coding = hn.normalize(hgvs_coding)
+						except:
+							pass
 						multi_g = []
 						multi_g_tab = []
 						multi_list = []
@@ -5364,6 +5368,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								ori = va_func.tx_exons(tx_ac=hgvs_coding.ac, alt_ac=alt_chr, alt_aln_method=alt_aln_method, hdp=hdp)
 								orientation = int(ori[0]['alt_strand'])								
 								hgvs_alt_genomic = va_func.myvm_t_to_g(hgvs_coding, alt_chr, vm, hn, hdp, primary_assembly)
+					
+					
+								print 'YIPPERS!'
+								print hgvs_coding
+								print hgvs_alt_genomic								
+								
 								
 								# genomic_possibilities
 								# 1. take the simple 3 pr normalized hgvs_genomic
