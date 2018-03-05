@@ -1083,7 +1083,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 				# NM_ NC_ NG_ NR_ p.
 				if (re.search('^NM_', variant) or re.search('^NR_', variant) or re.search('^NC_', variant) or re.search('^NG_', variant)) and re.search(':p.', variant):
 					issue_link = 'http://varnomen.hgvs.org/recommendations/protein/'
-					error = 'Coding transcript reference sequence input as non-coding transcript (n.) reference sequence. Did you mean ' + suggestion + '?'
+					error = 'Using a nucleotide reference sequence (NM_ NR_ NG_ NC_) to specify protein-level (p.) variation is not HGVS compliant. Please select an appropriate protein reference sequence (NP_)'
 					validation['warnings'] = validation['warnings'] + ': ' + error
 					continue
 					
@@ -2033,6 +2033,22 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							except hgvs.exceptions.HGVSUnsupportedOperationError as e:
 								error = str(e)
 								if re.match('Normalization of intronic variants is not supported', error) or re.match('Unsupported normalization of variants spanning the exon-intron boundary', error):
+									if re.match('Unsupported normalization of variants spanning the exon-intron boundary', error):
+										intronic_variant = 'hard_fail'
+									else:	
+										# Double check to see whether the variant is actually intronic?
+										for exon in ori:
+											genomic_start = int(exon['alt_start_i'])
+											genomic_end = int(exon['alt_end_i'])
+											if (hgvs_genomic_5pr.posedit.pos.start.base > genomic_start and hgvs_genomic_5pr.posedit.pos.start.base <= genomic_end) and (hgvs_genomic_5pr.posedit.pos.end.base > genomic_start and hgvs_genomic_5pr.posedit.pos.end.base <= genomic_end):
+												intronic_variant = 'false'
+												break
+											else:							
+												intronic_variant = 'true'
+
+		
+							if intronic_variant != 'hard_fail':
+								if re.search('\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search('\d+\-', str(hgvs_seek_var.posedit.pos)) or re.search('\*\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search('\*\d+\-', str(hgvs_seek_var.posedit.pos)):
 									# Double check to see whether the variant is actually intronic?
 									for exon in ori:
 										genomic_start = int(exon['alt_start_i'])
@@ -2043,16 +2059,6 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										else:							
 											intronic_variant = 'true'
 				
-							if re.search('\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search('\d+\-', str(hgvs_seek_var.posedit.pos)) or re.search('\*\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search('\*\d+\-', str(hgvs_seek_var.posedit.pos)):
-								# Double check to see whether the variant is actually intronic?
-								for exon in ori:
-									genomic_start = int(exon['alt_start_i'])
-									genomic_end = int(exon['alt_end_i'])
-									if (hgvs_genomic_5pr.posedit.pos.start.base > genomic_start and hgvs_genomic_5pr.posedit.pos.start.base <= genomic_end) and (hgvs_genomic_5pr.posedit.pos.end.base > genomic_start and hgvs_genomic_5pr.posedit.pos.end.base <= genomic_end):
-										intronic_variant = 'false'
-										break							
-									else:							
-										intronic_variant = 'true'
 
 							if re.search('\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search('\d+\-', str(hgvs_seek_var.posedit.pos)) or re.search('\*\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search('\*\d+\-', str(hgvs_seek_var.posedit.pos)):
 								# Double check to see whether the variant is actually intronic?
@@ -3647,14 +3653,20 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							stored_hgvs_not_delins = hp.parse_hgvs_variant(str(hgvs_genomic_5pr.ac) + ':' +  hgvs_genomic_5pr.type + '.' +  pos + '_' + end + 'del' + ref + 'ins' + alt)
 							v = [chr, pos,ref,alt]
 
+							# Detect intronic variation using normalization
+							intronic_variant = 'false'
+
 							# Save a copy of current hgvs_coding
 							try:
 								saved_hgvs_coding = no_norm_evm.g_to_t(stored_hgvs_not_delins, hgvs_coding.ac)
 							except hgvs.exceptions.HGVSInvalidIntervalError:
 								saved_hgvs_coding = no_norm_evm.g_to_n(reverse_normalized_hgvs_genomic, hgvs_coding.ac) 
+ 							except Exception as e:
+ 								if str(e) == 'start or end or both are beyond the bounds of transcript record':
+ 									saved_hgvs_coding = hgvs_coding
+ 									intronic_variant = 'true'
+ 									continue
 
-							# Detect intronic variation using normalization
-							intronic_variant = 'false'
 							# Look for normalized variant options that do not match hgvs_coding
 							if orientation == -1:
 								# position genomic at its most 5 prime position
@@ -3699,15 +3711,32 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							except hgvs.exceptions.HGVSUnsupportedOperationError as e:
 								error = str(e)
 								if re.match('Normalization of intronic variants is not supported', error) or re.match('Unsupported normalization of variants spanning the exon-intron boundary', error):
+									if re.match('Unsupported normalization of variants spanning the exon-intron boundary', error):
+										intronic_variant = 'hard_fail'
+									else:	
+										# Double check to see whether the variant is actually intronic?
+										for exon in ori:
+											genomic_start = int(exon['alt_start_i'])
+											genomic_end = int(exon['alt_end_i'])
+											if (hgvs_genomic_5pr.posedit.pos.start.base > genomic_start and hgvs_genomic_5pr.posedit.pos.start.base <= genomic_end) and (hgvs_genomic_5pr.posedit.pos.end.base > genomic_start and hgvs_genomic_5pr.posedit.pos.end.base <= genomic_end):
+												intronic_variant = 'false'
+												break
+											else:							
+												intronic_variant = 'true'
+
+		
+							if intronic_variant != 'hard_fail':
+								if re.search('\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search('\d+\-', str(hgvs_seek_var.posedit.pos)) or re.search('\*\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search('\*\d+\-', str(hgvs_seek_var.posedit.pos)):
 									# Double check to see whether the variant is actually intronic?
 									for exon in ori:
 										genomic_start = int(exon['alt_start_i'])
 										genomic_end = int(exon['alt_end_i'])
 										if (hgvs_genomic_5pr.posedit.pos.start.base > genomic_start and hgvs_genomic_5pr.posedit.pos.start.base <= genomic_end) and (hgvs_genomic_5pr.posedit.pos.end.base > genomic_start and hgvs_genomic_5pr.posedit.pos.end.base <= genomic_end):
 											intronic_variant = 'false'
-											break
+											break							
 										else:							
 											intronic_variant = 'true'
+			
 
 							if re.search('\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search('\d+\-', str(hgvs_seek_var.posedit.pos)) or re.search('\*\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search('\*\d+\-', str(hgvs_seek_var.posedit.pos)):
 								# Double check to see whether the variant is actually intronic?
@@ -3907,8 +3936,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											pass
 
 								# print 'At hgvs_genomic'
-								# print disparity_deletion_in	
-																		
+								
+								try:
+									vm.g_to_t(hgvs_not_delins, tx_hgvs_not_delins.ac)
+								except Exception as e:
+									if str(e) == 'start or end or both are beyond the bounds of transcript record':
+										continue								
+																										
 								# amend_RefSeqGene = 'false'
 								# Recreate hgvs_genomic
 								if disparity_deletion_in[0] == 'transcript':
@@ -4317,7 +4351,6 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						# DO NOT DELETE
 						stored_hgvs_not_delins = hp.parse_hgvs_variant(str(hgvs_genomic_5pr.ac) + ':' +  hgvs_genomic_5pr.type + '.' +  pos + '_' + end + 'del' + ref + 'ins' + alt)
 
-						
 						# Apply gap code to re-format hgvs_coding
 						# Store the current hgvs:c. description
 						saved_hgvs_coding = copy.deepcopy(hgvs_coding)
@@ -4430,7 +4463,15 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										pass
 								else:
 									pass						
-								tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins, saved_hgvs_coding.ac)
+								
+								hard_fail = 'false'
+								try:
+									tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins, saved_hgvs_coding.ac)
+								except Exception as e:
+									if str(e) == 'start or end or both are beyond the bounds of transcript record':
+										tx_hgvs_not_delins = hgvs_coding
+										hard_fail = 'true'
+										
 								# Create normalized version of tx_hgvs_not_delins
 								rn_tx_hgvs_not_delins = copy.deepcopy(tx_hgvs_not_delins)
 								# Check for +ve base and adjust
@@ -4560,7 +4601,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										disparity_deletion_in = re_capture_tx_variant[0:-1]
 									else:				
 										pass
-																					
+
+							if hard_fail == 'true':
+								disparity_deletion_in = ['false', 'false']
+							
+							
 							# GAP IN THE TRANSCRIPT	DISPARITY DETECTED	
 							if disparity_deletion_in[0] == 'transcript':			
 								gap_position = ''
@@ -5556,7 +5601,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									v = [chr, pos,ref,alt]
 
 									# Save a copy of current hgvs_coding
-									saved_hgvs_coding = no_norm_evm.g_to_t(stored_hgvs_not_delins, hgvs_coding.ac)
+									try:
+										saved_hgvs_coding = no_norm_evm.g_to_t(stored_hgvs_not_delins, hgvs_coding.ac) 
+									except Exception as e:
+										if str(e) == 'start or end or both are beyond the bounds of transcript record':
+											saved_hgvs_coding = hgvs_coding
+											continue
 
 									# Detect intronic variation using normalization
 									intronic_variant = 'false'
@@ -5603,26 +5653,32 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									except hgvs.exceptions.HGVSUnsupportedOperationError as e:
 										error = str(e)
 										if re.match('Normalization of intronic variants is not supported', error) or re.match('Unsupported normalization of variants spanning the exon-intron boundary', error):
+											if re.match('Unsupported normalization of variants spanning the exon-intron boundary', error):
+												intronic_variant = 'hard_fail'
+											else:	
+												# Double check to see whether the variant is actually intronic?
+												for exon in ori:
+													genomic_start = int(exon['alt_start_i'])
+													genomic_end = int(exon['alt_end_i'])
+													if (hgvs_genomic_5pr.posedit.pos.start.base > genomic_start and hgvs_genomic_5pr.posedit.pos.start.base <= genomic_end) and (hgvs_genomic_5pr.posedit.pos.end.base > genomic_start and hgvs_genomic_5pr.posedit.pos.end.base <= genomic_end):
+														intronic_variant = 'false'
+														break
+													else:							
+														intronic_variant = 'true'
+
+		
+									if intronic_variant != 'hard_fail':
+										if re.search('\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search('\d+\-', str(hgvs_seek_var.posedit.pos)) or re.search('\*\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search('\*\d+\-', str(hgvs_seek_var.posedit.pos)):
 											# Double check to see whether the variant is actually intronic?
 											for exon in ori:
 												genomic_start = int(exon['alt_start_i'])
 												genomic_end = int(exon['alt_end_i'])
 												if (hgvs_genomic_5pr.posedit.pos.start.base > genomic_start and hgvs_genomic_5pr.posedit.pos.start.base <= genomic_end) and (hgvs_genomic_5pr.posedit.pos.end.base > genomic_start and hgvs_genomic_5pr.posedit.pos.end.base <= genomic_end):
 													intronic_variant = 'false'
-													break
+													break							
 												else:							
 													intronic_variant = 'true'
-
-									if re.search('\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search('\d+\-', str(hgvs_seek_var.posedit.pos)) or re.search('\*\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search('\*\d+\-', str(hgvs_seek_var.posedit.pos)):
-										# Double check to see whether the variant is actually intronic?
-										for exon in ori:
-											genomic_start = int(exon['alt_start_i'])
-											genomic_end = int(exon['alt_end_i'])
-											if (hgvs_genomic_5pr.posedit.pos.start.base > genomic_start and hgvs_genomic_5pr.posedit.pos.start.base <= genomic_end) and (hgvs_genomic_5pr.posedit.pos.end.base > genomic_start and hgvs_genomic_5pr.posedit.pos.end.base <= genomic_end):
-												intronic_variant = 'false'
-												break							
-											else:							
-												intronic_variant = 'true'
+			
 
 									if intronic_variant != 'true':
 										# Flag RefSeqGene for ammendment
@@ -5808,8 +5864,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 												else:				
 													pass
 
-										# Amend RefSeqGene = 'false'
-										# amend_RefSeqGene = 'false'
+										
 										# Recreate hgvs_genomic
 										if disparity_deletion_in[0] == 'transcript':
 											hgvs_genomic = hgvs_not_delins 	

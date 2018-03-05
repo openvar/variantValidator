@@ -356,6 +356,9 @@ def report_hgvs2vcf(hgvs_genomic):
 def pos_lock_hgvs2vcf(hgvs_genomic):		
 					
 	reverse_normalized_hgvs_genomic = hgvs_genomic
+	if reverse_normalized_hgvs_genomic.posedit.edit.type == 'identity' and len(reverse_normalized_hgvs_genomic.posedit.edit.ref) == 0:
+		reverse_normalized_hgvs_genomic = reverse_normalize.normalize(reverse_normalized_hgvs_genomic)
+
 	hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
 	# Chr
