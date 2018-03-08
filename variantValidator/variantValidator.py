@@ -875,54 +875,6 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					else:
 						validation['warnings'] = validation['warnings'] + ': ' + str(trap_ens_in) + ' automapped to equivalent RefSeq transcript ' + variant 
 
-				# Catch interval end > interval start
-				"""
-				hgvs did/does not handle 3' UTR position ordering well. This function
-				ensures that end pos is not > start pos wrt 3' UTRs. 
-				
-				Also identifies some variants which span into the downstream sequence
-				i.e. out of bounds
-				"""
-				astr = re.compile('\*')
-				if astr.search(str(input_parses.posedit)):
-					input_parses_copy = copy.deepcopy(input_parses)
-					input_parses_copy.type = "c"
-					# Map to n. position
-					# Create easy variant mapper (over variant mapper) and splign locked evm
-					evm = hgvs.assemblymapper.AssemblyMapper(hdp, assembly_name=primary_assembly, alt_aln_method='splign', normalize=True, replace_reference=True)
-					try:
-						to_n = evm.c_to_n(input_parses_copy)
-					except hgvs.exceptions.HGVSError as e:
-						error = str(e)
-						validation['warnings'] = validation['warnings'] + ': ' + str(error)
-						continue
-					if to_n.posedit.pos.end.base < to_n.posedit.pos.start.base:
-						error = 'Interval end position < interval start position '
-						validation['warnings'] = validation['warnings'] + ': ' + str(error)
-						continue
-				elif input_parses.posedit.pos.end.base < input_parses.posedit.pos.start.base:
-					error = 'Interval end position '  + str(input_parses.posedit.pos.end.base) + ' < interval start position ' + str(input_parses.posedit.pos.start.base)
-					validation['warnings'] = validation['warnings'] + ': ' + str(error)
-					continue
-				else:
-					pass
-					
-				# Catch missing version number in refseq
-				ref_type = re.compile("^N\w\w\d")
-				is_version = re.compile("\d\.\d")
-				en_type = re.compile('^ENS')
-				lrg_type = re.compile('LRG')
-				if (ref_type.search(str(input_parses)) and is_version.search(str(input_parses))) or (en_type.search(str(input_parses))):
-					pass
-				else:	
-					if lrg_type.search(str(input_parses)):
-						#return render_template('bootstrap/variantError.html', title=title, user=input, error='LRG reference sequences are not currently supported', reason = 'Invalid Variant description', issue_link=issue_link)
-						pass
-					if ref_type.search(str(input_parses)):
-						error='RefSeq variant accession numbers MUST include a version number'
-						validation['warnings'] = validation['warnings'] + ': ' + str(error)
-						continue
-
 				"""
 				Marked for removal
 				"""
@@ -977,43 +929,60 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							normalize=False, 
 							replace_reference=False
 							)							
-				# Marked for removal
-# 				Will extract any genomic variants and append to list		
-# 				elif is_mapable == 'false' and type == ':g.':
-# 					historic_assembly = copy.deepcopy(primary_assembly)
-# 					primary_assembly = 'GRCh37'
-# 					Create easy variant mapper (over variant mapper) and splign locked evm
-# 					evm = hgvs.assemblymapper.AssemblyMapper(hdp, assembly_name=primary_assembly, alt_aln_method=alt_aln_method, normalize=True, replace_reference=True)
-# 	
-# 					Liftover
-# 					hgvs_variant = hp.parse_hgvs_variant(variant)
-# 					target_hgvs_variant = va_lo.hgvs_liftover(hgvs_variant, primary_assembly=historic_assembly, target_assembly=primary_assembly, hn=hn)
-# 					Check liftover has completed
-# 					if str(target_hgvs_variant) != str(hgvs_variant):
-# 						try:
-# 							vr.validate(target_hgvs_variant)
-# 						except hgvs.exceptions.HGVSError as e:
-# 							error = valstr(hgvs_variant) + ' (' + historic_assembly + ') lifted over to ' + valstr(target_hgvs_variant) + ' (' + primary_assembly + ')' 
-# 							error = error + ': ' + str(e)
-# 							validation['warnings'] = validation['warnings'] + ': ' + str(error)
-# 							continue
-# 						else:
-# 							Set variant
-# 							variant = str(target_hgvs_variant)
-# 							Tag relevant sections of output line
-# 							validation['genomic_g'] = str(target_hgvs_variant)
-# 							validation['primary_assembly'] = primary_assembly
-# 							error = valstr(hgvs_variant) + ' (' + historic_assembly + ') lifted over to ' + valstr(target_hgvs_variant) + ' (' + primary_assembly + ')'
-# 							validation['warnings'] = validation['warnings'] + ': ' + str(error)
-# 					else:
-# 						error='Liftover from ' + historic_assembly + ' to ' + primary_assembly + ' failed.'
-# 						validation['warnings'] = validation['warnings'] + ': ' + str(error)
-# 						continue
+
 				else:
 					error='Mapping of ' + variant + ' to genome assembly ' + primary_assembly + ' is not supported'
 					validation['warnings'] = validation['warnings'] + ': ' + str(error)
 					continue			
 		
+
+				# Catch interval end > interval start
+				"""
+				hgvs did/does not handle 3' UTR position ordering well. This function
+				ensures that end pos is not > start pos wrt 3' UTRs. 
+				
+				Also identifies some variants which span into the downstream sequence
+				i.e. out of bounds
+				"""
+				astr = re.compile('\*')
+				if astr.search(str(input_parses.posedit)):
+					input_parses_copy = copy.deepcopy(input_parses)
+					input_parses_copy.type = "c"
+					# Map to n. position
+					# Create easy variant mapper (over variant mapper) and splign locked evm
+					try:
+						to_n = evm.c_to_n(input_parses_copy)
+					except hgvs.exceptions.HGVSError as e:
+						error = str(e)
+						validation['warnings'] = validation['warnings'] + ': ' + str(error)
+						continue
+					if to_n.posedit.pos.end.base < to_n.posedit.pos.start.base:
+						error = 'Interval end position < interval start position '
+						validation['warnings'] = validation['warnings'] + ': ' + str(error)
+						continue
+				elif input_parses.posedit.pos.end.base < input_parses.posedit.pos.start.base:
+					error = 'Interval end position '  + str(input_parses.posedit.pos.end.base) + ' < interval start position ' + str(input_parses.posedit.pos.start.base)
+					validation['warnings'] = validation['warnings'] + ': ' + str(error)
+					continue
+				else:
+					pass
+					
+				# Catch missing version number in refseq
+				ref_type = re.compile("^N\w\w\d")
+				is_version = re.compile("\d\.\d")
+				en_type = re.compile('^ENS')
+				lrg_type = re.compile('LRG')
+				if (ref_type.search(str(input_parses)) and is_version.search(str(input_parses))) or (en_type.search(str(input_parses))):
+					pass
+				else:	
+					if lrg_type.search(str(input_parses)):
+						#return render_template('bootstrap/variantError.html', title=title, user=input, error='LRG reference sequences are not currently supported', reason = 'Invalid Variant description', issue_link=issue_link)
+						pass
+					if ref_type.search(str(input_parses)):
+						error='RefSeq variant accession numbers MUST include a version number'
+						validation['warnings'] = validation['warnings'] + ': ' + str(error)
+						continue
+
 				# handle LRG inputs
 				"""
 				LRG and LRG_t reference sequence identifiers need to be replaced with 
@@ -1236,7 +1205,6 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										
 									
 						# Create a specific minimal evm with no normalizer and no replace_reference
-						# min_evm = hgvs.assemblymapper.AssemblyMapper(hdp, assembly_name=primary_assembly, alt_aln_method=alt_aln_method, normalize=False, replace_reference=False)
 						# Have to use this method due to potential multi chromosome error, note, normalizes but does not replace sequence
 						try:
 							output = va_func.noreplace_myevm_t_to_g(input_parses, min_evm, hdp, primary_assembly)
@@ -1402,7 +1370,6 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								continue
 							
 						# Create a specific minimal evm with no normalizer and no replace_reference
-						# min_evm = hgvs.assemblymapper.AssemblyMapper(hdp, assembly_name=primary_assembly, alt_aln_method=alt_aln_method, normalize=False, replace_reference=False)
 						# Have to use this method due to potential multi chromosome error, note, normalizes but does not replace sequence
 						try:
 							output = va_func.noreplace_myevm_t_to_g(input_parses, min_evm, hdp, primary_assembly)
@@ -2136,7 +2103,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins, saved_hgvs_coding.ac)
 									except hgvs.exceptions.HGVSInvalidIntervalError:
 										tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_genomic_5pr, saved_hgvs_coding.ac) 
-									
+									except hgvs.exceptions.HGVSError:
+										if str(e) == 'start or end or both are beyond the bounds of transcript record':
+											tx_hgvs_not_delins = saved_hgvs_coding
+		
 									# Create normalized version of tx_hgvs_not_delins
 									rn_tx_hgvs_not_delins = copy.deepcopy(tx_hgvs_not_delins)
 									# Check for +ve base and adjust
@@ -2256,7 +2226,22 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 		
 								# print disparity_deletion_in
 								
-								
+								# Final sanity checks
+								try:
+									vm.g_to_t(hgvs_not_delins, tx_hgvs_not_delins.ac)
+								except Exception as e:
+									if str(e) == 'start or end or both are beyond the bounds of transcript record':
+										hgvs_not_delins = saved_hgvs_coding
+										disparity_deletion_in = ['false', 'false']								
+								try:
+									hn.normalize(tx_hgvs_not_delins)
+								except hgvs.exceptions.HGVSUnsupportedOperationError as e:
+									error = str(e)
+									if re.match('Normalization of intronic variants is not supported', error) or re.match('Unsupported normalization of variants spanning the exon-intron boundary', error):
+										if re.match('Unsupported normalization of variants spanning the exon-intron boundary', error):
+											hgvs_not_delins = saved_hgvs_coding
+											disparity_deletion_in = ['false', 'false']
+
 								# GAP IN THE TRANSCRIPT	DISPARITY DETECTED	
 								if disparity_deletion_in[0] == 'transcript':			
 									gap_position = ''
@@ -3936,12 +3921,19 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											pass
 
 								# print 'At hgvs_genomic'
-								
+								# Final sanity checks
 								try:
 									vm.g_to_t(hgvs_not_delins, tx_hgvs_not_delins.ac)
 								except Exception as e:
 									if str(e) == 'start or end or both are beyond the bounds of transcript record':
 										continue								
+								try:
+									hn.normalize(tx_hgvs_not_delins)
+								except hgvs.exceptions.HGVSUnsupportedOperationError as e:
+									error = str(e)
+									if re.match('Normalization of intronic variants is not supported', error) or re.match('Unsupported normalization of variants spanning the exon-intron boundary', error):
+										if re.match('Unsupported normalization of variants spanning the exon-intron boundary', error):
+											continue
 																										
 								# amend_RefSeqGene = 'false'
 								# Recreate hgvs_genomic
