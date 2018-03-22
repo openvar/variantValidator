@@ -154,6 +154,8 @@ from variantanalyser import supported_chromosome_builds as va_scb
 hdp = hgvs.dataproviders.uta.connect(pooling=True)
 # From the hgvs parser import, create an instance of hgvs.parser.Parser
 hp = hgvs.parser.Parser() 			
+# Configure hgvs package global settings
+hgvs.global_config.formatting.max_ref_length = 1000000
 # Validator
 vr = hgvs.validator.Validator(hdp)
 # Variant mapper
@@ -4936,16 +4938,14 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							try:
 								hgvs_refseq = hn.normalize(hgvs_refseq)
 							except Exception as e:
-								if re.search('insertion length must be 1', error):
-									hgvs_refseq = 'RefSeqGene record not available'
-									refseq = 'RefSeqGene record not available'
-									hgvs_refseq_ac = 'RefSeqGene record not available'
-									print 'REFSEQGENE ALERT'
-									pass
-								else:
-									pass			
-							refseq = valstr(hgvs_refseq)
-							hgvs_refseq_ac = hgvs_refseq.ac
+								# if re.search('insertion length must be 1', error):
+								hgvs_refseq = 'RefSeqGene record not available'
+								refseq = 'RefSeqGene record not available'
+								hgvs_refseq_ac = 'RefSeqGene record not available'
+								pass
+							else:
+								refseq = valstr(hgvs_refseq)
+								hgvs_refseq_ac = hgvs_refseq.ac
 						else:
 							hgvs_refseq = 'RefSeqGene record not available'
 							refseq = 'RefSeqGene record not available'

@@ -350,7 +350,7 @@ def report_hgvs2vcf(hgvs_genomic):
 		pos = ''
 	
 	# Dictionary the VCF
-	vcf_dict = {'pos' : pos, 'ref' : ref, 'alt' : alt, 'ucsc_chr' : ucsc_chr, 'grc_chr' : grc_chr, 'normalized_hgvs' : reverse_normalized_hgvs_genomic}
+	vcf_dict = {'pos' : str(pos), 'ref' : ref, 'alt' : alt, 'ucsc_chr' : ucsc_chr, 'grc_chr' : grc_chr, 'normalized_hgvs' : reverse_normalized_hgvs_genomic}
 	return vcf_dict		
 	
 def pos_lock_hgvs2vcf(hgvs_genomic):		
