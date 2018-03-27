@@ -168,48 +168,62 @@ def update_transcript_info_record(accession, hdp):
 	accession = accession.split('.')[0] # list[3].split('.')[0]
 
 	# Search Entrez for corresponding record for the RefSeq ID
-	record = functions.entrez_efetch(db="nucleotide", id=accession, rettype="gb", retmode="text")
-	version = record.id 
-	description = record.description
-	variant = '0'
-	
-	if re.search('transcript variant', description):				
-		tv = re.search('transcript variant \w+', description)
-		tv = str(tv.group(0))
-		tv = tv.replace('transcript variant', '')
-		variant = tv.strip()
-		variant = variant.upper() # Some tv descriptions are a or A
-	else:
+	try:
+		record = functions.entrez_efetch(db="nucleotide", id=accession, rettype="gb", retmode="text")
+		version = record.id 
+		description = record.description
 		variant = '0'
 	
-	# Get information from UTA
-	try:
-		uta_info = hdp.get_tx_identity_info(version)
-	except:
-		version_ac_ver = version.split('.')
-		version = version_ac_ver[0] + '.' + str(int(version_ac_ver[1]) - 1)
-		uta_info = hdp.get_tx_identity_info(version)
-	
-	uta_symbol = str(uta_info[6])	
-
-	# First perform a search against the input gene symbol or the symbol inferred from UTA
-	initial = functions.hgnc_rest(path = "/fetch/symbol/" + uta_symbol)
-	# Check for a record
-	if str(initial['record']['response']['numFound']) != '0':
-		hgnc_symbol = uta_symbol
-	# No record found, is it a previous symbol?
-	else:	
-		# Search hgnc rest to see if symbol is out of date
-		rest_data = functions.hgnc_rest(path = "/search/prev_symbol/" + uta_symbol)
-		# If the name is correct no record will be found
-		if rest_data['error'] == 'false':
-			if int(rest_data['record']['response']['numFound']) == 0:
-				hgnc_symbol = uta_info[6]
-			else:
-				hgnc_symbol = rest_data['record']['response']['docs'][0]['symbol']
+		if re.search('transcript variant', description):				
+			tv = re.search('transcript variant \w+', description)
+			tv = str(tv.group(0))
+			tv = tv.replace('transcript variant', '')
+			variant = tv.strip()
+			variant = variant.upper() # Some tv descriptions are a or A
 		else:
-			hgnc_symbol = 'unassigned'
+			variant = '0'
+	
+		# Get information from UTA
+		try:
+			uta_info = hdp.get_tx_identity_info(version)
+		except:
+			version_ac_ver = version.split('.')
+			version = version_ac_ver[0] + '.' + str(int(version_ac_ver[1]) - 1)
+			uta_info = hdp.get_tx_identity_info(version)
+	
+		uta_symbol = str(uta_info[6])	
+
+		# First perform a search against the input gene symbol or the symbol inferred from UTA
+		initial = functions.hgnc_rest(path = "/fetch/symbol/" + uta_symbol)
+		# Check for a record
+		if str(initial['record']['response']['numFound']) != '0':
+			hgnc_symbol = uta_symbol
+		# No record found, is it a previous symbol?
+		else:	
+			# Search hgnc rest to see if symbol is out of date
+			rest_data = functions.hgnc_rest(path = "/search/prev_symbol/" + uta_symbol)
+			# If the name is correct no record will be found
+			if rest_data['error'] == 'false':
+				if int(rest_data['record']['response']['numFound']) == 0:
+					hgnc_symbol = uta_info[6]
+				else:
+					hgnc_symbol = rest_data['record']['response']['docs'][0]['symbol']
+			else:
+				hgnc_symbol = 'unassigned'
 			
+	# List of connection error types. May need to be expanded. 
+	# Outcome - Put off update for 3 months!
+	except Exception as e:
+		if str(e) == '<urlopen error [Errno -2] Name or service not known>':
+			# Issues with DNSSEC for the nih.gov
+			previous_entry = in_entries(accession.split('.')[0], 'transcript_info')
+			accession = accession
+			description = previous_entry['description']
+			variant = previous_entry['variant']
+			version = previous_entry['version']
+			hgnc_symbol = previous_entry['hgnc_symbol']
+			uta_symbol = previous_entry['uta_symbol']
+
 	# Query information
 	query_info = [accession, description, variant, version, hgnc_symbol, uta_symbol]
 	table='transcript_info'
