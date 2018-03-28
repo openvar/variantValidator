@@ -359,7 +359,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 				
 				The reference sequence type is also assigned. 
 				"""
-				if re.search('\w+\:', input) and not re.search('\w+\:[gcnmrp].', input):
+				if re.search('\w+\:', input) and not re.search('\w+\:[gcnmrp]\.', input):
 					# sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
 					try:
 						pre_input = copy.deepcopy(input)
@@ -413,15 +413,20 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						stash_input = input
 					except:
 						pass	
-				
 
+				# Descriptions lacking the colon :
+				if re.search('[gcnmrp]\.', input) and not re.search(':[gcnmrp]\.', input): 
+					error = 'Unable to identify a colon (:) in the variant description %s. A colon is required in HGVS variant descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. e.g. :c.' %(input)
+					validation['warnings'] = validation['warnings'] + ': ' error
+					continue
+				
 				# Ambiguous chr reference 
 				"""
 				VCF2HGVS conversion step 3 is similar to step 2 but handles 
 				formats like Chr16<:g.>2099572TC>T which are provided by Alamut and other
 				software
 				""" 
-				if re.search('\w+\:[gcnmrp].', input) and not re.match('N[CGTWMRP]_', input):
+				if re.search('\w+\:[gcnmrp]\.', input) and not re.match('N[CGTWMRP]_', input):
 					if not re.match('LRG_', input) and not re.match('ENS', input):
 						try:
 							pre_input = copy.deepcopy(input)
@@ -458,7 +463,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 				of knowing which the users intended reference sequence was, and the exon 
 				boundaries etc of the alternative transcript variants may not be equivalent 
 				"""
-				if re.search('\w+\:[cn].', input):
+				if re.search('\w+\:[cn]\.', input):
 					try:
 						pre_input = copy.deepcopy(input)
 						query_a_symbol = pre_input.split(':')[0]
