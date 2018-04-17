@@ -49,9 +49,9 @@ https://variantvalidator.org/ref_finder/ except the data is returned within a st
 python object
 
 # HGNC example
-variantValidator.validator.gene2transcripts ('HTT')
+variantValidator.validator.gene2transcripts('HTT')
 # RefSeq Transcript example
-variantValidator.validator.gene2transcripts (' NM_002111.8')
+variantValidator.validator.gene2transcripts('NM_002111.8')
 
 
 4. hgvs2ref
@@ -179,14 +179,21 @@ genome_builds = ['GRCh37', 'hg19', 'GRCh38']
 
 # method for final validation and stringifying parsed hgvs variants prior to # # # printing/passing to html
 def valstr(hgvs_variant):
+	"""
+	Function to ensure the required number of reference bases are displayed in descriptions
+	"""
 	# import re
 	if re.search('del', str(hgvs_variant.posedit.edit)) or re.search('dup', str(hgvs_variant.posedit.edit)):
 		if len(hgvs_variant.posedit.edit.ref) <= 4:
 			hgvs_variant.posedit.edit.ref = ''
-			#pass
 		else:	
 			hgvs_variant.posedit.edit.ref = ''
 		hgvs_variant = str(hgvs_variant)
+	elif hgvs_variant.posedit.edit.type == 'identity':
+		if len(hgvs_variant.posedit.edit.ref) > 1:
+			hgvs_variant.posedit.edit.ref = ''
+			hgvs_variant.posedit.edit.alt = ''
+		hgvs_variant = str(hgvs_variant)		
 	else:
 		hgvs_variant = str(hgvs_variant)
 	return hgvs_variant
@@ -417,7 +424,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 				# Descriptions lacking the colon :
 				if re.search('[gcnmrp]\.', input) and not re.search(':[gcnmrp]\.', input): 
 					error = 'Unable to identify a colon (:) in the variant description %s. A colon is required in HGVS variant descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. e.g. :c.' %(input)
-					validation['warnings'] = validation['warnings'] + ': ' error
+					validation['warnings'] = validation['warnings'] + ': ' + error
 					continue
 				
 				# Ambiguous chr reference 
@@ -5119,9 +5126,16 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								coding = valstr(hgvs_coding)
 								validation['warnings'] = validation['warnings'] + ': ' + automap
 								rng = hn.normalize(query_genomic)
-								c_for_p = vm.g_to_t(rng, hgvs_coding.ac)
-								hgvs_protein = evm.c_to_p(c_for_p)
-								protein = str(hgvs_protein)
+								try:
+									c_for_p = vm.g_to_t(rng, hgvs_coding.ac)
+								except hgvs.exceptions.HGVSInvalidIntervalError as e:
+									c_for_p = seek_var
+								try:
+									hgvs_protein = evm.c_to_p(c_for_p)
+									# Replace protein description in vars table
+									protein = str(hgvs_protein)
+								except:
+									pass
 							else:
 								# Double check protein position by normalize genomic, and normalize back to c. for normalize or not to normalize issue
 								coding = valstr(hgvs_coding)
@@ -5287,6 +5301,16 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							lrg_variant = ''
 						else:
 							hgvs_lrg = copy.deepcopy(hgvs_refseqgene_variant)	
+							try:
+								if hgvs_lrg.posedit.edit.type == 'dup' or re.search('del', hgvs_lrg.posedit.edit.type):
+									if len(hgvs_lrg.posedit.edit.ref) > 4:
+										hgvs_lrg.posedit.edit.ref = ''
+								elif hgvs_lrg.posedit.edit.type == 'identity':
+									if len(hgvs_lrg.posedit.edit.ref) > 1:
+										hgvs_lrg.posedit.edit.ref = ''
+										hgvs_lrg.posedit.edit.alt = ''	
+							except:
+								pass	
 							hgvs_lrg.ac = rsg_ac[0]
 							lrg_variant = valstr(hgvs_lrg)
 							if rsg_ac[1] == 'public':
@@ -5316,9 +5340,19 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							lrg_transcript_variant = ''
 						else:
 							if not re.search('RefSeqGene', refseqgene_variant) or refseqgene_variant != '':
-								if hgvs_refseq != 'RefSeqGene record not available':
+								if hgvs_refseqgene_variant != 'RefSeqGene record not available' and hgvs_refseqgene_variant != 'false':
 									try:
-										hgvs_lrg_t = vm.g_to_t(hgvs_refseq, hgvs_coding.ac)	
+										hgvs_lrg_t = vm.g_to_t(hgvs_refseqgene_variant, hgvs_coding.ac)	
+										try:
+											if hgvs_lrg_t.posedit.edit.type == 'dup' or re.search('del', hgvs_lrg_t.posedit.edit.type):
+												if len(hgvs_lrg_t.posedit.edit.ref) > 4:
+													hgvs_lrg_t.posedit.edit.ref = ''
+											elif hgvs_lrg_t.posedit.edit.type == 'identity':
+												if len(hgvs_lrg_t.posedit.edit.ref) > 1:
+													hgvs_lrg_t.posedit.edit.ref = ''
+													hgvs_lrg_t.posedit.edit.alt = ''
+										except:
+											pass
 										hgvs_lrg_t.ac = lrg_transcript
 										lrg_transcript_variant = valstr(hgvs_lrg_t)
 									except:
