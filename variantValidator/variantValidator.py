@@ -3401,23 +3401,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								chromosome_normalized_hgvs_coding = reverse_normalizer.normalize(hgvs_coding)
 							except hgvs.exceptions.HGVSUnsupportedOperationError as e:
 								error = str(e)
-								if re.match('Normalization of intronic variants is not supported', error):
-									chromosome_normalized_hgvs_coding = hgvs_coding
-								elif re.match('Unsupported normalization of variants spanning the exon-intron boundary', error):
-									chromosome_normalized_hgvs_coding = hgvs_coding	
-								else:
-									chromosome_normalized_hgvs_coding = hgvs_coding		
+								chromosome_normalized_hgvs_coding = hgvs_coding
 						else:
 							try:	
 								chromosome_normalized_hgvs_coding = hn.normalize(hgvs_coding)	
 							except hgvs.exceptions.HGVSUnsupportedOperationError as e:
 								error = str(e)
-								if re.match('Normalization of intronic variants is not supported', error):
-									chromosome_normalized_hgvs_coding = hgvs_coding
-								elif re.match('Unsupported normalization of variants spanning the exon-intron boundary', error):
-									chromosome_normalized_hgvs_coding = hgvs_coding
-								else:
-									chromosome_normalized_hgvs_coding = hgvs_coding	
+								chromosome_normalized_hgvs_coding = hgvs_coding
 
 						most_3pr_hgvs_genomic = va_func.myvm_t_to_g(chromosome_normalized_hgvs_coding , hgvs_genomic.ac, vm, hn, hdp, primary_assembly)
 						hgvs_genomic_possibilities.append(most_3pr_hgvs_genomic)
@@ -3456,6 +3446,20 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							if len(test_stash_tx_right.posedit.edit.ref) == len(stash_genomic.posedit.edit.ref): 
 								stash_tx_right = ''
 								hgvs_genomic_possibilities.append('')
+							elif test_stash_tx_right.posedit.edit.type == 'identity':
+								reform_ident = str(test_stash_tx_right).split(':')[0]
+								reform_ident = reform_ident + ':c.' + str(hgvs_c.posedit.pos) + 'del' + str(hgvs_c.posedit.edit.ref)# + 'ins' + str(hgvs_c.posedit.edit.alt)
+								hgvs_reform_ident = hp.parse_hgvs_variant(reform_ident)			
+								try:
+									hn.normalize(hgvs_reform_ident)
+								except hgvs.exceptions.HGVSError as e:
+									error = str(e) 
+									if re.search('spanning the exon-intron boundary', error):
+										stash_tx_right = test_stash_tx_right = ''
+										hgvs_genomic_possibilities.append('')							
+								else:
+									stash_tx_right = test_stash_tx_right
+									hgvs_genomic_possibilities.append(stash_genomic)								
 							else:
 								stash_tx_right = test_stash_tx_right
 								hgvs_genomic_possibilities.append(stash_genomic)
@@ -3494,6 +3498,20 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							if len(test_stash_tx_left.posedit.edit.ref) == len(stash_genomic.posedit.edit.ref): 
 								stash_tx_left = test_stash_tx_left = ''
 								hgvs_genomic_possibilities.append('')
+							elif test_stash_tx_left.posedit.edit.type == 'identity':
+								reform_ident = str(test_stash_tx_left).split(':')[0]
+								reform_ident = reform_ident + ':c.' + str(hgvs_c.posedit.pos) + 'del' + str(hgvs_c.posedit.edit.ref)# + 'ins' + str(hgvs_c.posedit.edit.alt)
+								hgvs_reform_ident = hp.parse_hgvs_variant(reform_ident)			
+								try:
+									hn.normalize(hgvs_reform_ident)
+								except hgvs.exceptions.HGVSError as e:
+									error = str(e) 
+									if re.search('spanning the exon-intron boundary', error):
+										stash_tx_left = test_stash_tx_left = ''
+										hgvs_genomic_possibilities.append('')							
+								else:
+									stash_tx_left = test_stash_tx_left
+									hgvs_genomic_possibilities.append(stash_genomic)								
 							else:
 								stash_tx_left = test_stash_tx_left
 								hgvs_genomic_possibilities.append(stash_genomic)
@@ -4972,7 +4990,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							if re.search(':n.', variant):
 								hgvs_protein = va_func.protein(variant, evm, hp)
 								protein = str(hgvs_protein)
-							else:
+							else:	
+								try:
+									hgvs_coding = hn.normalize(hgvs_coding)
+								except:
+									pass	
 								# Convert positions to n. position
 								hgvs_naughty = evm.c_to_n(hgvs_coding)
 								# Collect the deleted sequence using fetch_seq
@@ -4980,101 +5002,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								# Make the inverted sequence
 								my_seq = Seq(del_seq)
 								inv_seq = my_seq.reverse_complement()
-								# Collect the associated protein
-								ass_prot = hdp.get_pro_ac_for_tx_ac(hgvs_coding.ac)
-								# This method sometimes fails
-								if str(ass_prot) == 'None':
-									cod = str(hgvs_coding)
-									cod = cod.replace('inv', 'del')
-									cod = hp.parse_hgvs_variant(cod)
-									p = evm.c_to_p(cod)
-									ass_prot = p.ac	
-					
-								# UTR and Intronic inversions go down as uncertain
-								int_pl = re.compile('\+')
-								int_mi = re.compile('\-')
-								if int_pl.search(variant) or int_mi.search(variant) or re.search('\*', variant):
-									# Make the variant
-									hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=ass_prot, type='p', posedit='(?)')
-									protein = str(hgvs_protein) 
-								else:
-									# Need to obtain the cds_start
-									inf = va_func.tx_identity_info(variant, hdp)
-									cds_start = inf[3]
-
-									# Extract the reference coding sequence from the UTA database
-									try:
-										ref_seq = sf.fetch_seq(str(hgvs_naughty.ac))
-									except hgvs.exceptions.HGVSError as e:
-										error = str(e)
-										excep = "%s -- %s -- %s\n" %(time.ctime(), error, variant)								
-										validation['warnings'] = validation['warnings'] + ': ' + str(error)
-										continue
-									else: 
-										pass
-									# Create the variant coding sequence
-									var_seq = variantanalyser.links.n_inversion(ref_seq, del_seq, inv_seq, hgvs_naughty.posedit.pos.start.base, hgvs_naughty.posedit.pos.end.base)
-									prot_ref_seq = variantanalyser.links.translate(ref_seq, cds_start)
-									prot_var_seq = variantanalyser.links.translate(var_seq, cds_start)
-									if prot_ref_seq == 'error':
-
-										error='Unable to generate protein variant description. Admin have been made aware of the issue'
-										validation['warnings'] = validation['warnings'] + ': ' + str(error)
-										continue
-									elif prot_var_seq == 'error':
-										# Does the edit affect the start codon?
-										if hgvs_coding.posedit.pos.start.base >= 1 and hgvs_coding.posedit.pos.start.base <= 3:
-											hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=ass_prot, type='p', posedit='(Met1?)')
-											protein = str(hgvs_protein)
-										else:
-											error='Unable to generate protein variant description. Admin have been made aware of the issue'
-											validation['warnings'] = validation['warnings'] + ': ' + str(error)
-											continue
-
-									else:				
-										# Gather the required information regarding variant interval and sequences
-										pro_inv_info = variantanalyser.links.pro_inv_info(prot_ref_seq, prot_var_seq)
-				
-										if pro_inv_info['error'] == 'true':
-											error = 'Translation erroro occurred, please contact admin'
-											validation['warnings'] = validation['warnings'] + ': ' + str(error)
-											continue
-										elif pro_inv_info['variant'] != 'true':
-											# Make the variant
-											hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=ass_prot, type='p', posedit='(=)')
-											protein = str(hgvs_protein)
-										else:
-											if pro_inv_info['terminate'] == 'true':
-												end = 'Ter' + str(pro_inv_info['ter_pos'])
-												pro_inv_info['prot_ins_seq'].replace('*', end) 
-											# Complete variant description
-											iv = hgvs.location.Interval(start=pro_inv_info['edit_start'], end=pro_inv_info['edit_end'])
-											# Note for hgvs to continue working, we need to take the format delXXXinsyyy
-											# Need to recode the single letter del and ins sequences
-											del_thr = variantanalyser.links.one_to_three(pro_inv_info['prot_del_seq'])
-											ins_thr = variantanalyser.links.one_to_three(pro_inv_info['prot_ins_seq'])
-											# Make the edit
-											del_len = len(del_thr)
-											from_aa = del_thr[0:3]
-											to_aa = del_thr[del_len-3:]
-											if pro_inv_info['edit_start'] != pro_inv_info['edit_end']:
-												posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + '_' + to_aa + str(pro_inv_info['edit_end']) + 'delins' + ins_thr + ')'
-											else:
-												posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + ins_thr + ')'
-											no = 'false'
-											try:
-												hgvs_p = hgvs.sequencevariant.SequenceVariant(ac=ass_prot, type='p', posedit=posedit)
-											except hgvs.exceptions.HGVSError as e:
-												no = e
-											if no == 'false':
-												prot = str(hgvs_p)
-												hgvs_protein = hp.parse_hgvs_variant(prot)
-												protein = str(hgvs_protein)
-											else:
-												excep = "%s -- %s -- %s\n" %(time.ctime(), error, variant)
-												validation['warnings'] = validation['warnings'] + ': ' + str(no)
-												continue
-		
+								reformat_c_inversion = str(hgvs_coding).split('inv')[0]
+								reformat_c_inversion = reformat_c_inversion + 'del%sins%s' %(my_seq, inv_seq)
+								hgvs_protein = va_func.protein(reformat_c_inversion, evm, hp)
+								protein = str(hgvs_protein)		
 						else: 
 							try:
 								hgvs_protein = va_func.protein(variant, evm, hp)
@@ -5131,7 +5062,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								except hgvs.exceptions.HGVSInvalidIntervalError as e:
 									c_for_p = seek_var
 								try:
-									hgvs_protein = evm.c_to_p(c_for_p)
+									hgvs_protein = va_func.protein(str(c_for_p), evm, hp)
 									# Replace protein description in vars table
 									protein = str(hgvs_protein)
 								except:
@@ -5176,7 +5107,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								rng = reverse_normalizer.normalize(query_genomic)
 								try:
 									c_for_p = vm.g_to_t(rng, hgvs_coding.ac)
-									hgvs_protein = evm.c_to_p(c_for_p)
+									hgvs_protein = va_func.protein(str(c_for_p), evm, hp)
 									protein = str(hgvs_protein)								
 								except:
 									pass
@@ -5455,15 +5386,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										chromosome_normalized_hgvs_coding = reverse_normalizer.normalize(hgvs_coding)
 									except hgvs.exceptions.HGVSUnsupportedOperationError as e:
 										error = str(e)
-										if re.match('Normalization of intronic variants is not supported', error) or re.match('Unsupported normalization of variants spanning the exon-intron boundary', error):
-											chromosome_normalized_hgvs_coding = hgvs_coding	
+										chromosome_normalized_hgvs_coding = hgvs_coding	
 								else:
 									try:	
 										chromosome_normalized_hgvs_coding = hn.normalize(hgvs_coding)	
 									except hgvs.exceptions.HGVSUnsupportedOperationError as e:
 										error = str(e)
-										if re.match('Normalization of intronic variants is not supported', error) or re.match('Unsupported normalization of variants spanning the exon-intron boundary', error):
-											chromosome_normalized_hgvs_coding = hgvs_coding
+										chromosome_normalized_hgvs_coding = hgvs_coding
 			
 								most_3pr_hgvs_genomic = va_func.myvm_t_to_g(chromosome_normalized_hgvs_coding, alt_chr, vm, hn, hdp, primary_assembly)
 								hgvs_genomic_possibilities.append(most_3pr_hgvs_genomic)

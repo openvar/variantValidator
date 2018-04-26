@@ -46,6 +46,7 @@ import hgvs.normalizer
 import hgvs.validator
 import hgvs.parser
 import hgvs.variantmapper
+import hgvs.sequencevariant
 
 # Error types
 from hgvs.exceptions import HGVSError, HGVSDataNotAvailableError, HGVSUnsupportedOperationError
@@ -345,23 +346,31 @@ Ensures variant strings are transcript c.
 returns parsed hgvs p. object
 """
 def protein(variant, evm, hp):
-	variant = str(variant)
 	# Set regular expressions for if statements
 	pat_c = re.compile("\:c\.") 		# Pattern looks for :c. Note (gene) has been removed
 	
 	# If the :c. pattern is present in the input variant
 	if  pat_c.search(variant): 
 		# convert the input string into a hgvs object
-		var_c = hp.parse_hgvs_variant(variant)		
-		# map to the genomic sequence
-		var_p = evm.c_to_p(var_c)	# genomic level variant
+		var_c = hp.parse_hgvs_variant(variant)
+		# Does the edit affect the start codon?
+		if ((var_c.posedit.pos.start.base >= 1 and var_c.posedit.pos.start.base <= 3) or (var_c.posedit.pos.end.base >= 1 and var_c.posedit.pos.end.base <= 3)) and not re.search('\*', str(var_c.posedit.pos)):
+			ass_prot = hdp.get_pro_ac_for_tx_ac(var_c.ac)
+			if str(ass_prot) == 'None':
+				cod = str(var_c)
+				cod = cod.replace('inv', 'del')
+				cod = hp.parse_hgvs_variant(cod)
+				p = evm.c_to_p(cod)
+				ass_prot = p.ac	
+			var_p = hgvs.sequencevariant.SequenceVariant(ac=ass_prot, type='p', posedit='(Met1?)')
+		else:
+			var_p = evm.c_to_p(var_c)
 		return var_p
 	if re.search(':n.', variant):
 		var_p = hp.parse_hgvs_variant(variant)
 		var_p.ac = 'Non-coding transcript '
 		var_p.posedit = ''
 		return var_p
-	
 
 """
 Marked for removal
@@ -514,6 +523,17 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 			error = str(e) 
 			if re.search('spanning the exon-intron boundary', error):
 				hgvs_c = copy.deepcopy(stored_hgvs_c)
+		# Catch identity at the exon/intron boundary by trying to normalize ref only 
+		if hgvs_check_boundaries.posedit.edit.type == 'identity':
+			reform_ident = str(hgvs_c).split(':')[0]
+			reform_ident = reform_ident + ':c.' + str(hgvs_c.posedit.pos) + 'del' + str(hgvs_c.posedit.edit.ref)# + 'ins' + str(hgvs_c.posedit.edit.alt)
+			hgvs_reform_ident = hp.parse_hgvs_variant(reform_ident)			
+			try:
+				hn.normalize(hgvs_reform_ident)
+			except hgvs.exceptions.HGVSError as e:
+				error = str(e) 
+				if re.search('spanning the exon-intron boundary', error):
+					hgvs_c = copy.deepcopy(stored_hgvs_c)
 	try:
 		hgvs_genomic = no_norm_evm.t_to_g(hgvs_c)
 		hn.normalize(hgvs_genomic) # Check the validity of the mapping
@@ -900,6 +920,17 @@ def myvm_t_to_g(hgvs_c, alt_chr, vm, hn, hdp, primary_assembly):
 			error = str(e) 
 			if re.search('spanning the exon-intron boundary', error):
 				hgvs_c = copy.deepcopy(stored_hgvs_c)
+		# Catch identity at the exon/intron boundary by trying to normalize ref only 
+		if hgvs_check_boundaries.posedit.edit.type == 'identity':
+			reform_ident = str(hgvs_c).split(':')[0]
+			reform_ident = reform_ident + ':c.' + str(hgvs_c.posedit.pos) + 'del' + str(hgvs_c.posedit.edit.ref)# + 'ins' + str(hgvs_c.posedit.edit.alt)
+			hgvs_reform_ident = hp.parse_hgvs_variant(reform_ident)			
+			try:
+				hn.normalize(hgvs_reform_ident)
+			except hgvs.exceptions.HGVSError as e:
+				error = str(e) 
+				if re.search('spanning the exon-intron boundary', error):
+					hgvs_c = copy.deepcopy(stored_hgvs_c)
 
 	hgvs_genomic = vm.t_to_g(hgvs_c, alt_chr)	
 	if hgvs_genomic.posedit.edit.type == 'ins':
