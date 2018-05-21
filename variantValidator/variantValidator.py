@@ -1188,7 +1188,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							# Can we go c-g-c
 							try:
 	 							to_genome = evm.c_to_g(input_parses)
-	 							to_tx = evm.g_to_c(to_genome, input_parses.ac)
+	 							to_tx = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
 	 						except hgvs.exceptions.HGVSInvalidIntervalError as e:
 	 							error = str(e)
 	 							validation['warnings'] = validation['warnings'] + ': ' + str(error) + ' ' + input_parses.ac
