@@ -49,7 +49,8 @@ def pro_inv_info(prot_ref_seq, prot_var_seq):
 			prot_var_seq = prot_var_seq[0:info['ter_pos']] 
 		
 			# Whether terminated or not, the sequences should now be the same length
-			if len(prot_var_seq) != len(prot_ref_seq):
+			# Unless the termination codon has been disrupted
+			if len(prot_var_seq) < len(prot_ref_seq):
 				info['error'] = 'true'
 				return info
 			else:
@@ -74,7 +75,8 @@ def pro_inv_info(prot_ref_seq, prot_var_seq):
 				del var[0:aa_counter]
 
 				# the sequences should now be the same length
-				if len(ref) != len(var):
+				# Except if the termination codon was removed
+				if len(ref) > len(var):
 					info['error'] = 'true'
 					return info
 				else:
@@ -98,10 +100,16 @@ def pro_inv_info(prot_ref_seq, prot_var_seq):
 					ref = ref[::-1]
 					var = var[::-1]
 					
+					# If the var is > ref, the ter has been removed, need to re-add ter to each
+					if len(ref) < len(var):
+						ref.append('*')
+						if prot_var_seq[-1] == '*':
+							var.append('*')
 					# the sequences should now be the same length
-					if len(ref) != len(var):
+					# Except if the ter was removed
+					if len(ref) > len(var):
 						info['error'] = 'true'
-						return info
+						return info				
 					else:
 						# Enter the sequences
 						info['prot_del_seq'] = ''.join(ref)

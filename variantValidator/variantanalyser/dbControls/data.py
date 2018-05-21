@@ -192,7 +192,7 @@ def update_transcript_info_record(accession, hdp):
 			uta_info = hdp.get_tx_identity_info(version)
 	
 		uta_symbol = str(uta_info[6])	
-
+				
 		# First perform a search against the input gene symbol or the symbol inferred from UTA
 		initial = functions.hgnc_rest(path = "/fetch/symbol/" + uta_symbol)
 		# Check for a record

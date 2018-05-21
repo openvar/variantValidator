@@ -1667,7 +1667,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						accession = hgvs_object.ac
 						# Look for the accession in our database
 						# Connect to database and send request
-						entry = va_dbCrl.data.in_entries(accession.split(',')[0], 'transcript_info')
+						entry = va_dbCrl.data.in_entries(accession.split('.')[0], 'transcript_info')
 
 						# Analyse the returned data and take the necessary actions
 						# If the error key exists
@@ -1689,6 +1689,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									error = 'Transcript %s is not currently supported' %(accession)
 									validation['warnings'] = validation['warnings'] + ': ' + str(error)
 									continue
+								except:
+									error = 'Unable to assign transcript identity records to ' + accession + ', potentially an obsolete record :'
+									validation['warnings'] = validation['warnings'] + ': ' + str(error)
+									continue								
 								hgnc_gene_info = entry['description']
 							else:
 								hgnc_gene_info = entry['description']
@@ -4986,11 +4990,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						inversion = re.compile('inv')
 						if inversion.search(variant):
 							# SeqFetcher
-							# sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
 							if re.search(':n.', variant):
 								hgvs_protein = va_func.protein(variant, evm, hp)
 								protein = str(hgvs_protein)
-							else:	
+							else:
 								try:
 									hgvs_coding = hn.normalize(hgvs_coding)
 								except:
@@ -5002,10 +5005,105 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								# Make the inverted sequence
 								my_seq = Seq(del_seq)
 								inv_seq = my_seq.reverse_complement()
-								reformat_c_inversion = str(hgvs_coding).split('inv')[0]
-								reformat_c_inversion = reformat_c_inversion + 'del%sins%s' %(my_seq, inv_seq)
-								hgvs_protein = va_func.protein(reformat_c_inversion, evm, hp)
-								protein = str(hgvs_protein)		
+								# Collect the associated protein
+								ass_prot = hdp.get_pro_ac_for_tx_ac(hgvs_coding.ac)
+								# This method sometimes fails
+								if str(ass_prot) == 'None':
+									cod = str(hgvs_coding)
+									cod = cod.replace('inv', 'del')
+									cod = hp.parse_hgvs_variant(cod)
+									p = evm.c_to_p(cod)
+									ass_prot = p.ac	
+								# Intronic inversions go down as uncertain
+								int_pl = re.compile('\+')
+								int_mi = re.compile('\-')
+								if int_pl.search(variant) or int_mi.search(variant): #  or re.search('\*', variant):
+									# Make the variant
+									hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=ass_prot, type='p', posedit='?')
+									protein = str(hgvs_protein) 
+								else:
+									# Need to obtain the cds_start
+									inf = va_func.tx_identity_info(variant, hdp)
+									cds_start = inf[3]
+
+									# Extract the reference coding sequence from the UTA database
+									try:
+										ref_seq = sf.fetch_seq(str(hgvs_naughty.ac))
+									except hgvs.exceptions.HGVSError as e:
+										error = str(e)
+										excep = "%s -- %s -- %s\n" %(time.ctime(), error, variant)								
+										validation['warnings'] = validation['warnings'] + ': ' + str(error)
+										continue
+									else: 
+										pass
+									# Create the variant coding sequence
+									var_seq = variantanalyser.links.n_inversion(ref_seq, del_seq, inv_seq, hgvs_naughty.posedit.pos.start.base, hgvs_naughty.posedit.pos.end.base)
+									prot_ref_seq = variantanalyser.links.translate(ref_seq, cds_start)
+									prot_var_seq = variantanalyser.links.translate(var_seq, cds_start)
+									if prot_ref_seq == 'error':
+										error='Unable to generate protein variant description. Admin have been made aware of the issue'
+										validation['warnings'] = validation['warnings'] + ': ' + str(error)
+										continue
+									elif prot_var_seq == 'error':
+										# Does the edit affect the start codon?
+										if (hgvs_coding.posedit.pos.start.base >= 1 and hgvs_coding.posedit.pos.start.base <= 3) or (hgvs_coding.posedit.pos.end.base >= 1 and hgvs_coding.posedit.pos.end.base <= 3):
+											hgvs_protein = va_func.protein(str(hgvs_coding), evm, hp)
+											protein = str(hgvs_protein)
+										else:
+											error='Unable to generate protein variant description. Admin have been made aware of the issue'
+											validation['warnings'] = validation['warnings'] + ': ' + str(error)
+											continue
+									else:				
+										# Gather the required information regarding variant interval and sequences
+										pro_inv_info = variantanalyser.links.pro_inv_info(prot_ref_seq, prot_var_seq)
+				
+										if pro_inv_info['error'] == 'true':
+											error = 'Translation error occurred, please contact admin'
+											validation['warnings'] = validation['warnings'] + ': ' + str(error)
+											continue
+										elif pro_inv_info['variant'] != 'true':
+											# Make the variant
+											hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=ass_prot, type='p', posedit='=')
+											protein = str(hgvs_protein)
+										else:
+											if pro_inv_info['terminate'] == 'true':
+												end = 'Ter' + str(pro_inv_info['ter_pos'])
+												pro_inv_info['prot_ins_seq'].replace('*', end) 
+											# Complete variant description
+											iv = hgvs.location.Interval(start=pro_inv_info['edit_start'], end=pro_inv_info['edit_end'])
+											# Note for hgvs to continue working, we need to take the format delXXXinsyyy
+											# Need to recode the single letter del and ins sequences
+											del_thr = variantanalyser.links.one_to_three(pro_inv_info['prot_del_seq'])
+											ins_thr = variantanalyser.links.one_to_three(pro_inv_info['prot_ins_seq'])
+											# Make the edit
+											del_len = len(del_thr)
+											from_aa = del_thr[0:3]
+											to_aa = del_thr[del_len-3:]
+											if pro_inv_info['edit_start'] != pro_inv_info['edit_end']:
+												posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + '_' + to_aa + str(pro_inv_info['edit_end']) + 'delins' + ins_thr + ')'
+											else:
+												if del_thr == 'Ter' and (len(ins_thr) > len(del_thr)):
+													posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + 'delins' + ins_thr + ')'
+													if ins_thr[-3:] == 'Ter':
+														posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + str(ins_thr[:3]) + 'ext' + str(ins_thr[-3:]) + str((len(ins_thr)/3)-1) + ')'
+													else:
+														posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + str(ins_thr[:3]) + 'ext?)'
+
+												else:	
+													posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + ins_thr[:3] + ')'
+											no = 'false'
+											try:
+												hgvs_p = hgvs.sequencevariant.SequenceVariant(ac=ass_prot, type='p', posedit=posedit)
+											except hgvs.exceptions.HGVSError as e:
+												no = e
+											if no == 'false':
+												prot = str(hgvs_p)
+												hgvs_protein = hp.parse_hgvs_variant(prot)
+												protein = str(hgvs_protein)
+											else:
+												excep = "%s -- %s -- %s\n" %(time.ctime(), error, variant)
+												validation['warnings'] = validation['warnings'] + ': ' + str(no)
+												continue
 						else: 
 							try:
 								hgvs_protein = va_func.protein(variant, evm, hp)
@@ -5052,11 +5150,14 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								seek_var = valstr(hgvs_seek_var)
 								seek_ac = str(hgvs_seek_var.ac)
 							elif (hgvs_seek_var.posedit.pos.start.base + hgvs_seek_var.posedit.pos.start.offset) > (saved_hgvs_coding.posedit.pos.start.base +  saved_hgvs_coding.posedit.pos.start.offset) and (hgvs_seek_var.posedit.pos.end.base + hgvs_seek_var.posedit.pos.end.offset) > (saved_hgvs_coding.posedit.pos.end.base +  saved_hgvs_coding.posedit.pos.end.offset) and rec_var != 'false':
-								automap = valstr(saved_hgvs_coding) + ' normalized to ' + valstr(hgvs_seek_var) 
-								hgvs_coding = hgvs_seek_var
-								coding = valstr(hgvs_coding)
-								validation['warnings'] = validation['warnings'] + ': ' + automap
-								rng = hn.normalize(query_genomic)
+								try:
+									automap = valstr(saved_hgvs_coding) + ' normalized to ' + valstr(hgvs_seek_var) 
+									hgvs_coding = hgvs_seek_var
+									coding = valstr(hgvs_coding)
+									validation['warnings'] = validation['warnings'] + ': ' + automap
+									rng = hn.normalize(query_genomic)
+								except NotImplementedError:
+									pass
 								try:
 									c_for_p = vm.g_to_t(rng, hgvs_coding.ac)
 								except hgvs.exceptions.HGVSInvalidIntervalError as e:
@@ -5097,10 +5198,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								seek_var = valstr(hgvs_seek_var)
 								seek_ac = str(hgvs_seek_var.ac)							
 							elif (hgvs_seek_var.posedit.pos.start.base + hgvs_seek_var.posedit.pos.start.offset) > (saved_hgvs_coding.posedit.pos.start.base +  saved_hgvs_coding.posedit.pos.start.offset) and (hgvs_seek_var.posedit.pos.end.base + hgvs_seek_var.posedit.pos.end.offset) > (saved_hgvs_coding.posedit.pos.end.base +  saved_hgvs_coding.posedit.pos.end.offset) and rec_var != 'false':
-								automap = valstr(saved_hgvs_coding) + ' normalized to ' + valstr(hgvs_seek_var) 
-								hgvs_coding = hgvs_seek_var
-								coding = valstr(hgvs_coding)
-								validation['warnings'] = validation['warnings'] + ': ' + automap
+								try:
+									automap = valstr(saved_hgvs_coding) + ' normalized to ' + valstr(hgvs_seek_var) 
+									hgvs_coding = hgvs_seek_var
+									coding = valstr(hgvs_coding)
+									validation['warnings'] = validation['warnings'] + ': ' + automap
+								except NotImplementedError:
+									pass
 							else:
 								# Double check protein position by reverse_norm genomic, and normalize back to c. for normalize or not to normalize issue
 								coding = valstr(hgvs_coding)
