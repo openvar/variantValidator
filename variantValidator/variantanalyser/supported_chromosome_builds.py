@@ -2107,7 +2107,7 @@ def to_chr_num_ucsc(accession):
 
 def to_chr_num_grc(accession):
 	# Available genome builds
-   chr_num_convert = {
+	chr_num_convert = {
 		"NC_000001": "1",
 		"NC_000002": "2",
 		"NC_000003": "3",
@@ -2750,7 +2750,7 @@ def to_chr_num_grc(accession):
 		'NT_187685.1': 'HSCHR19KIR_FH13_A_HAP_CTG3_1',
 		'NT_187686.1': 'HSCHR19KIR_FH13_BA2_HAP_CTG3_1',
 		'NT_187687.1': 'HSCHR19KIR_FH15_A_HAP_CTG3_1',
-		'NT_113949.2': 'HSCHR19KIR_RP5_B_HAP_CTG3_1',
+		'NT_113949.2': 'HSCHR19KIR_RP5_B_HAP_CTG3_1'
 	}
 	if re.match('NC_', accession):
 		accession = accession.split('.')[0]
