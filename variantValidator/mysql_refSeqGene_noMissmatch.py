@@ -174,7 +174,8 @@ def update():
 	
 	# Known Obsolete identifiers
 	obsolete = {
-				'NG_016553.1' : 'OBSOLETE'
+				'NG_016553.1' : 'OBSOLETE',
+				'NG_012639.1' : 'Removed due to questionable status'
 				}
 		
 	# Identify lines with missing data e.g. gene symbols
