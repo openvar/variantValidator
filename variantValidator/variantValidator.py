@@ -430,7 +430,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 				# Ambiguous chr reference 
 				"""
 				VCF2HGVS conversion step 3 is similar to step 2 but handles 
-				formats like Chr16<:g.>2099572TC>T which are provided by Alamut and other
+				formats like Chr16:g.>2099572TC>T which are provided by Alamut and other
 				software
 				""" 
 				if re.search('\w+\:[gcnmrp]\.', input) and not re.match('N[CGTWMRP]_', input):
@@ -439,7 +439,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 							pre_input = copy.deepcopy(input)
 							input_list = input.split(':')
 							query_a_symbol = input_list[0]
-							is_it_a_gene = va_dbCrl.get_hgnc_symbol(query_a_symbol)
+							is_it_a_gene = va_dbCrl.data.get_hgnc_symbol(query_a_symbol)
 							if is_it_a_gene == 'none':
 								pos_ref_alt = str(input_list[1]) 
 								positionAndEdit = input_list[1]
@@ -456,9 +456,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								stash_input = input						
 							else:
 								pass
-						except:
+						except Exception as e:
+							print e
 							pass
-
+				
 				# GENE_SYMBOL:c. n. types
 				"""
 				Searches for gene symbols that have been used as reference sequence
