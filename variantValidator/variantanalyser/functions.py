@@ -1479,8 +1479,10 @@ def merge_hgvs_3pr(hgvs_variant_list):
 		# For testing include parser
 		try:
 			hgvs_v = hp.parse_hgvs_variant(hgvs_v)
-		except:
+		except Exception as e:
+			print e
 			pass		
+
 		# Validate
 		vr.validate(hgvs_v) # Let hgvs errors deal with invalid variants and not hgvs objects
 		if hgvs_v.type == 'c':
@@ -1489,6 +1491,8 @@ def merge_hgvs_3pr(hgvs_variant_list):
 				h_list.append(hgvs_v)
 			except:
 				raise mergeHGVSerror("Unable to map from c. position to absolute position")	
+		elif hgvs_v.type == 'g':
+			h_list.append(hgvs_v)
 	if h_list != []:
 		hgvs_variant_list = copy.deepcopy(h_list)
 	
@@ -1813,7 +1817,9 @@ def hgvs_alleles(variant_description):
 					my_alleles.append(current_allele)
 				# Now merge the alleles into a single variant
 				merged_alleles = []
+				
 				for each_allele in my_alleles:
+					print each_allele
 					if re.search('\?', str(each_allele)):
 						# NM_004006.2:c.[2376G>C];[?]
 						continue					

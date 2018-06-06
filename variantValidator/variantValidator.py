@@ -459,7 +459,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						except Exception as e:
 							print e
 							pass
-				
+								
 				# GENE_SYMBOL:c. n. types
 				"""
 				Searches for gene symbols that have been used as reference sequence
