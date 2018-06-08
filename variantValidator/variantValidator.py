@@ -5452,7 +5452,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					
 					# Create VCF
 					if genomic_variant != '':					
-						vcf_dict = va_H2V.report_hgvs2vcf(hgvs_genomic_variant)
+						vcf_dict = va_H2V.report_hgvs2vcf(hgvs_genomic_variant, validation['primary_assembly'])
 						vcf_ucsc_chr = vcf_dict['ucsc_chr']	
 						vcf_grc_chr = vcf_dict['grc_chr']	
 						vcf_pos = vcf_dict['pos']				
@@ -6316,13 +6316,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					alt_genomic_dicts = []
 					primary_genomic_dicts = {}
 					
-					# Add VCF to alts
 					if len(multi_gen_vars) != 0:
-						for alt_gen_var in multi_gen_vars:
-							vcf_dict = va_H2V.report_hgvs2vcf(alt_gen_var) 
+						for alt_gen_var in multi_gen_vars: 
 							for build in genome_builds:	
+								vcf_dict = va_H2V.report_hgvs2vcf(alt_gen_var, build)
 								test = va_scb.supported_for_mapping(alt_gen_var.ac, build)
 								if test == 'true':
+
 									# Identify primary assembly positions
 									if re.match('NC_', alt_gen_var.ac):
 										if re.match('GRC', build):
@@ -6343,6 +6343,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 																		}
 																	}
 										if build =='GRCh38':
+											vcf_dict = va_H2V.report_hgvs2vcf(alt_gen_var, 'hg38')
 											primary_genomic_dicts['hg38'] = {'HGVS_genomic_description' : valstr(alt_gen_var),									
 														'vcf' : {'chr' : vcf_dict['ucsc_chr'],
 																	'pos' : vcf_dict['pos'],
@@ -6376,6 +6377,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										alt_genomic_dicts.append(dict)
 
 										if build =='GRCh38':
+											vcf_dict = va_H2V.report_hgvs2vcf(alt_gen_var, 'hg38')
 											dict = {'hg38' : {	'HGVS_genomic_description' : valstr(alt_gen_var),									
 															'vcf' : {'chr' : vcf_dict['ucsc_chr'],
 																		'pos' : vcf_dict['pos'],

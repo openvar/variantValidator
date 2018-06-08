@@ -200,7 +200,7 @@ def hgvs2vcf(hgvs_genomic):
 	vcf_dict = {'chr' : chr, 'pos' : pos, 'ref' : ref, 'alt' : alt, 'normalized_hgvs' : reverse_normalized_hgvs_genomic}
 	return vcf_dict		
 	
-def report_hgvs2vcf(hgvs_genomic):		
+def report_hgvs2vcf(hgvs_genomic, primary_assembly):		
 
 	hgvs_genomic_variant = hgvs_genomic					
 	# Reverse normalize hgvs_genomic_variant: NOTE will replace ref
@@ -215,14 +215,14 @@ def report_hgvs2vcf(hgvs_genomic):
 		chr = reverse_normalized_hgvs_genomic.ac
 
 	# UCSC Chr
-	ucsc_chr = supported_chromosome_builds.to_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac)
+	ucsc_chr = supported_chromosome_builds.to_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, primary_assembly)
 	if ucsc_chr is not None:
 		pass
 	else:
 		ucsc_chr = reverse_normalized_hgvs_genomic.ac
 
 	# GRC Chr
-	grc_chr = supported_chromosome_builds.to_chr_num_grc(reverse_normalized_hgvs_genomic.ac)
+	grc_chr = supported_chromosome_builds.to_chr_num_refseq(reverse_normalized_hgvs_genomic.ac, primary_assembly)
 	if grc_chr is not None:
 		pass
 	else:
