@@ -291,6 +291,14 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 		###########################
 		# Allow order by input
 		ordering = 0
+
+		"""
+		Set a flag to mark the final output type
+		flag : error
+		flag : intragenic
+		flag : gene
+		"""
+		set_output_type_flag = 'error'
 		for validation in batch_list:
 			# Re-set cautions and automaps
 			caution = ''
