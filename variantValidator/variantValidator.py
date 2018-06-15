@@ -87,6 +87,8 @@ import os
 import sys
 from operator import itemgetter
 import warnings as warner
+from pyliftover import LiftOver
+import json
 
 # Import Biopython
 from Bio.Seq import Seq
@@ -294,11 +296,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
 		"""
 		Set a flag to mark the final output type
+		flag : warning
 		flag : error
 		flag : intragenic
 		flag : gene
 		"""
-		set_output_type_flag = 'error'
+		set_output_type_flag = 'warning'
 		for validation in batch_list:
 			# Re-set cautions and automaps
 			caution = ''
@@ -506,7 +509,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 									query = {'quibble' : refreshed_description, 'id' : validation['id'], 'warnings' : validation['warnings'], 'description' : '', 'coding' : '', 'coding_g' : '', 'genomic_r' : '', 'genomic_g' : '', 'protein' : '', 'write' : 'true', 'primary_assembly' : primary_assembly, 'order' : ordering}
 									batch_list.append(query)
 							else:
-								validation['warnings'] = validation['warnings'] + ': ' + 'HGVS variant nomenclature does not allow the use of a gene symbol (' + query_a_symbol + ') in place of a valid reference sequence: Re-submit ' + input + ' and specify transcripts from the following - ' + select_from_these_transcripts
+								validation['warnings'] = validation['warnings'] + ': ' + 'HGVS variant nomenclature does not allow the use of a gene symbol (' + query_a_symbol + ') in place of a valid reference sequence: Re-submit ' + input + ' and specify transcripts from the following: ' + 'select_transcripts='+select_from_these_transcripts
 							continue
 						else:
 							pass	
@@ -546,7 +549,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 										query = {'quibble' : refreshed_description, 'id' : validation['id'], 'warnings' : validation['warnings'], 'description' : '', 'coding' : '', 'coding_g' : '', 'genomic_r' : '', 'genomic_g' : '', 'protein' : '', 'write' : 'true', 'primary_assembly' : primary_assembly, 'order' : ordering}
 										batch_list.append(query)
 								else:
-									validation['warnings'] = validation['warnings'] + ': ' + 'A transcript reference sequence has not been provided e.g. NG_(NM_):c.PositionVariation. Re-submit ' + input + ' but also specify transcripts from the following - ' + str(select_from_these_transcripts)
+									validation['warnings'] = validation['warnings'] + ': ' + 'A transcript reference sequence has not been provided e.g. NG_(NM_):c.PositionVariation. Re-submit ' + input + ' but also specify transcripts from the following: ' + 'select_transcripts='+select_from_these_transcripts
 								continue									
 							else:
 								validation['warnings'] = validation['warnings'] + ': ' + 'A transcript reference sequence has not been provided e.g. NG_(NM_):c.PositionVariation'
@@ -1085,31 +1088,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					error = 'NG_:c.PositionVariation descriptions should not be used unless a transcript reference sequence has also been provided e.g. NG_(NM_):c.PositionVariation' + suggestion
 					validation['warnings'] = validation['warnings'] + ': ' + error
 					continue
-					
-				# Extract variants from HGVS allele descriptions
-				# http://varnomen.hgvs.org/recommendations/DNA/variant/alleles/
-				"""
-				HGVS allele string parsing function Occurance #2 Marked for removal
-				"""
-# 				if (re.search(':[gcnr].\[', input) and re.search('\;', input)) or (re.search(':[gcrn].\d+\[', input) and re.search('\;', input)) or (re.search('\(\;\)', input)):
-# 					try:
-# 						# Submit to allele extraction function
-# 						alleles = va_func.hgvs_alleles(input)
-# 						validation['warnings'] = validation['warnings'] + ': ' + 'Automap has extracted possible variant descriptions'
-# 						for allele in alleles:		
-# 							query = {'quibble' : allele, 'id' : validation['id'], 'warnings' : validation['warnings'], 'description' : '', 'coding' : '', 'coding_g' : '', 'genomic_r' : '', 'genomic_g' : '', 'protein' : '', 'write' : 'true', 'primary_assembly' : primary_assembly, 'order' : ordering}
-# 							coding = 'intergenic'
-# 							batch_list.append(query)
-# 						validation['write'] = 'false'
-# 						continue
-# 					except alleleVariantError as e:
-# 						error = str(e)
-# 						if re.search('Cannot validate sequence of an intronic variant', error):
-# 							validation['warnings'] = validation['warnings'] + ': ' + 'Intronic positions not supported for HGVS Allele descriptions'
-# 							continue	
-# 						else:
-# 							raise variantValidatorError(error)								
-
+												
 				# Primary validation of the input
 				"""
 				An evolving set of variant structure and content searches which identify 
@@ -1563,36 +1542,6 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					input = str(hgvs_c)
 					variant = str(hgvs_c)
 
-
-				# Convert and handle :n.
-				# Note, map to :c. currently. May need to look into non-coding transcripts
-				"""
-				Ensures coding transcripts used with n. are converted - Possibly redundant
-				Marked for removal
-				"""
-# 				if type == ':n.':
-# 					# Convert to hgvs object
-# 					hgvs_n = hp.parse_hgvs_variant(variant)
-# 					# try to map to :c.
-# 					error = 'false'
-# 					try:
-# 						hgvs_c = evm.n_to_c(hgvs_n)
-# 					except hgvs.exceptions.HGVSError as e:
-# 						error = str(e)
-# 					if error == 'false':
-# 						# Re-set input and variant
-# 						old_in = input
-# 						old_var = variant
-# 						input = str(hgvs_c)
-# 						variant = valstr(hgvs_c)
-# 						type = ':c.'
-# 						caution = 'The use of n. to describe a variant with respect to a protein-coding transcript does not comply with HGVS variant nomenclature' 
-# 						automap = old_in + ' automapped to ' + variant
-# 						validation['warnings'] = validation['warnings'] + ': ' + str(caution) + ': ' + str(automap)
-# 					else:
-# 						# Keep everything the same
-# 						pass
-
 				# Select for requested Genes if any
 				"""
 				Marked for removal
@@ -1886,12 +1835,15 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 											rsg_data = rsg_data + data['hgvs_refseqgene'] + ' (' + data['gene'] + '), '
 						
 									error = 'Suspected intergenic region, No transcripts fully overlap the input genomic coordinates'
+									# set output type flag
+									set_output_type_flag = 'intergenic'
+									# set genomic and where available RefSeqGene outputs
 									validation['warnings'] = validation['warnings'] + ': ' + str(error)
 									validation['genomic_g'] = valstr(hgvs_genomic)
 									validation['genomic_r'] = str(rsg_data.split('(')[0])
 									continue
 							else:
-								error = 'Please ensure the requested chromosome version relates to a supported genome build. Supported genome builds are: GRCh37, GRCh38 and NCBI36'
+								error = 'Please ensure the requested chromosome version relates to a supported genome build. Supported genome builds are: GRCh37, GRCh38, hg19 and hg38'
 								validation['warnings'] = validation['warnings'] + ': ' + str(error)
 								continue		
 			
@@ -5256,9 +5208,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								else:
 									pass	
 							updated_transcript_variant = hgvs_updated					
-							validation['warnings'] = validation['warnings'] + ': ' + 'A more recent version of the selected reference sequence ' + hgvs_coding.ac + ' is available (' + updated_transcript_variant.ac + ')'
+							validation['warnings'] = validation['warnings'] + ': ' + 'A more recent version of the selected reference sequence ' + hgvs_coding.ac + ' is available (' + updated_transcript_variant.ac + ')' + ': ' + str(updated_transcript_variant) + ' MUST be fully validated prior to use in reports'
 
  				# Set the data 
+				set_output_type_flag = 'gene'
 				validation['description'] = hgnc_gene_info
 				validation['coding'] = str(hgvs_coding)
 				validation['genomic_r'] = str(hgvs_refseq)
@@ -5268,6 +5221,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
 			# Report errors to User and VV admin
 			except:
+				set_output_type_flag = 'error'
 				if VALIDATOR_DEBUG is not None:
 					import traceback
 					error = 'Validation error'
@@ -6425,7 +6379,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 						if warning == '':
 							continue
 						warnings_out.append(warning)
-					
+									
 					# Populate the dictionary
 					dict_out['submitted_variant'] = submitted
 					# dict_out['HGVS_genomic_variant'] = 	genomic_variant 
@@ -6441,11 +6395,6 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					dict_out['HGVS_LRG_variant'] = lrg_variant
 					dict_out['alt_genomic_loci'] = alt_genomic_dicts
 					dict_out['primary_assembly_loci'] = primary_genomic_dicts
-					# vcf
-					#try:
-					#	dict_out['vcf'] = {'ucsc_chr' : vcf_ucsc_chr, 'grc_chr' : vcf_grc_chr, 'pos' : vcf_pos, 'ref': vcf_ref, 'alt' : vcf_alt}
-					#except:
-					#	dict_out['vcf'] = {'chr' : '', 'pos' : '', 'ref': '', 'alt' : ''}	 	
 					
 					# Append to a list for return	
 					batch_out.append(dict_out)
@@ -6453,15 +6402,161 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					continue
 			else:
 				continue
+			
+		print '\nRun out the colours!'
+		print 'Flag : ' + set_output_type_flag
+		print '\n'
+		
+		"""
+		Structure the output into dictionaries rather than a list with descriptive keys
+		and a validation type flag
+		"""
+
+		# Create output dictionary
+		validation_output = {'flag' : None}
+		
+		# For gene outputs, i.e. those that hit transcripts
+		if set_output_type_flag == 'gene':
+			validation_output['flag'] = 'gene_variant'
+			validation_error_counter = 0
+			for valid_v in batch_out:
+				if valid_v['validation_warnings'] == ['Validation error']:
+					validation_error_counter = validation_error_counter + 1
+					identification_key = 'Validation_Error_%s' %(str(validation_error_counter))
+				else:
+					identification_key = '%s %s' %(str(valid_v['HGVS_transcript_variant']), str(valid_v['transcript_description']))
+				validation_output[identification_key] = valid_v
+
+		# For warning only outputs
+		# Should only ever be 1 output as an error or a warning of the following types
+		# Gene symbol as reference sequence
+		# Gene as transcript reference sequence
+		if set_output_type_flag == 'warning':
+			validation_output['flag'] = 'warning'
+			validation_error_counter = 0
+			validation_warning_counter = 0
+			for valid_v in batch_out:
+				if valid_v['validation_warnings'] == ['Validation error']:
+					validation_error_counter = validation_error_counter + 1
+					identification_key = 'Validation_Error_%s' %(str(validation_error_counter))
+				else:
+					validation_warning_counter = validation_warning_counter + 1
+					identification_key = 'Validation_Warning_%s' %(str(validation_warning_counter))
+				validation_output[identification_key] = valid_v
+		
+		# Intergenic variants
+		validation_intergenic_counter = 0
+		if set_output_type_flag == 'intergenic':
+			validation_output['flag'] = 'intergenic'
+			for valid_v in batch_out:
+				validation_intergenic_counter = validation_intergenic_counter + 1
+				identification_key = 'Intergenic_Variant_%s' %(str(validation_intergenic_counter))
+				
+				# Attempt to liftover between genome builds
+				# Note: pyliftover uses the UCSC liftOver tool. 
+				# https://pypi.org/project/pyliftover/ 
+				genomic_position_info = valid_v['primary_assembly_loci']
+				for g_p_key in genomic_position_info.keys():
+					if re.match('GRC', g_p_key):
+						continue
+					if re.match('hg', g_p_key):
+						incoming_build = g_p_key
+						incoming_vcf = genomic_position_info[g_p_key]['vcf']
+						incoming_hgvs = genomic_position_info[g_p_key]['HGVS_genomic_description']	
+					if g_p_key == 'hg19':
+						build_to = 'hg38'
+					if g_p_key == 'hg38':
+						build_to = 'hg19'							 
+					lo = LiftOver(g_p_key, build_to)
+					# Note: May be multiple alts!
+					liftover_list = lo.convert_coordinate(incoming_vcf['chr'], int(incoming_vcf['pos']))
+					# Create dictionary
+					primary_genomic_dicts = {}
+					for lifted in liftover_list:
+						chr = lifted[0]
+						pos = lifted[1]
+						orientated = lifted[2]
+						lifted_ref_bases = incoming_vcf['ref']
+						lifted_alt_bases = incoming_vcf['alt']
+						# Inverted sequence
+						if orientated != '+':
+							my_seq = Seq(lifted_ref_bases)
+							lifted_ref_bases = my_seq.reverse_complement()
+							your_seq = Seq(lifted_alt_bases)
+							lifted_alt_bases = your_seq.reverse_complement()								
+						accession = va_scb.to_accession(chr, build_to)
+						if accession is None:
+							# No accession
+							continue
+						else:
+							not_delins = accession + ':g.' + str(pos) + '_' + str((pos-1) + len(lifted_ref_bases)) + 'del' + lifted_ref_bases + 'ins' + lifted_alt_bases   
+							hgvs_not_delins = hp.parse_hgvs_variant(not_delins)
+							try:
+								vr.validate(hgvs_not_delins)
+							except hgvs.exceptions.HGVSError as e:
+								# Most likely incorrect bases
+								continue
+							else:
+								hgvs_lifted = hn.normalize(hgvs_not_delins)
+								# Now try map back
+								lo = LiftOver(build_to, g_p_key)
+								liftback_list = lo.convert_coordinate(chr, pos)
+								for lifted_back in liftback_list:
+									# Pull out the good guys!
+									if lifted_back[0] == incoming_vcf['chr']:
+										if lifted_back[1] == int(incoming_vcf['pos']):
+											for build in genome_builds:	
+												vcf_dict = va_H2V.report_hgvs2vcf(hgvs_lifted, build)
+												test = va_scb.supported_for_mapping(hgvs_lifted.ac, build)
+										
+												if test == 'true':
+													if re.match('NC_', alt_gen_var.ac):
+														if re.match('GRC', build):
+															primary_genomic_dicts[build] = {'HGVS_genomic_description' : valstr(hgvs_lifted),									
+																			'vcf' : {'chr' : vcf_dict['grc_chr'],
+																						'pos' : vcf_dict['pos'],
+																						'ref' : vcf_dict['ref'],
+																						'alt' : vcf_dict['alt']
+																						}
+																					}
+																
+														else:
+															primary_genomic_dicts[build] = {'HGVS_genomic_description' : valstr(hgvs_lifted),									
+																			'vcf' : {'chr' : vcf_dict['ucsc_chr'],
+																						'pos' : vcf_dict['pos'],
+																						'ref' : vcf_dict['ref'],
+																						'alt' : vcf_dict['alt']
+																						}
+																					}			
+	
+														if build =='GRCh38':
+															vcf_dict = va_H2V.report_hgvs2vcf(hgvs_lifted, 'hg38')
+															primary_genomic_dicts['hg38'] = {'HGVS_genomic_description' : valstr(hgvs_lifted),									
+																		'vcf' : {'chr' : vcf_dict['ucsc_chr'],
+																					'pos' : vcf_dict['pos'],
+																					'ref' : vcf_dict['ref'],
+																					'alt' : vcf_dict['alt']
+																					}
+																				}										
+								
+					# Append the data if any
+					if len(primary_genomic_dicts) > 0:
+						for build_key in primary_genomic_dicts.keys():
+							valid_v['primary_assembly_loci'][build_key] = primary_genomic_dicts[build_key]
+				# Finalise the output dictionary
+				validation_output[identification_key] = valid_v
+				
+		
+		# print json.dumps(validation_output, sort_keys=True, indent=4, separators=(',', ': '))
 
 		if VALIDATOR_DEBUG is not None:
 			# Measure time elapsed
 			time_now = time.time()
 			elapsed_time = time_now - start_time
 			print 'validation time = ' + str(elapsed_time)
-			
-		# Exit the script
-		return batch_out
+
+		# return batch_out
+		return validation_output
 
 	# Bug catcher
 	except:
