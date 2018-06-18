@@ -5208,7 +5208,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 								else:
 									pass	
 							updated_transcript_variant = hgvs_updated					
-							validation['warnings'] = validation['warnings'] + ': ' + 'A more recent version of the selected reference sequence ' + hgvs_coding.ac + ' is available (' + updated_transcript_variant.ac + ')' + ': ' + str(updated_transcript_variant) + ' MUST be fully validated prior to use in reports'
+							validation['warnings'] = validation['warnings'] + ': ' + 'A more recent version of the selected reference sequence ' + hgvs_coding.ac + ' is available (' + updated_transcript_variant.ac + ')' + ': ' + str(updated_transcript_variant) + ' MUST be fully validated prior to use in reports: select_variants='+str(updated_transcript_variant)
 
  				# Set the data 
 				set_output_type_flag = 'gene'
@@ -6403,9 +6403,6 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 			else:
 				continue
 			
-		print '\nRun out the colours!'
-		print 'Flag : ' + set_output_type_flag
-		print '\n'
 		
 		"""
 		Structure the output into dictionaries rather than a list with descriptive keys
@@ -6424,7 +6421,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 					validation_error_counter = validation_error_counter + 1
 					identification_key = 'Validation_Error_%s' %(str(validation_error_counter))
 				else:
-					identification_key = '%s %s' %(str(valid_v['HGVS_transcript_variant']), str(valid_v['transcript_description']))
+					identification_key = '%s %s' %(str(valid_v['HGVS_transcript_variant'].split(':')[0]), str(valid_v['transcript_description']))
 				validation_output[identification_key] = valid_v
 
 		# For warning only outputs
