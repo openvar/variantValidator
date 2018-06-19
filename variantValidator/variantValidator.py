@@ -5810,7 +5810,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             if not re.search('RefSeqGene', refseqgene_variant) or refseqgene_variant != '':
                                 if hgvs_refseqgene_variant != 'RefSeqGene record not available' and hgvs_refseqgene_variant != 'false':
                                     try:
-                                        hgvs_lrg_t = vm.g_to_t(hgvs_refseqgene_variant, hgvs_coding.ac)
+                                        hgvs_lrg_t = vm.g_to_t(hgvs_refseqgene_variant, transcript_accession)
                                         try:
                                             if hgvs_lrg_t.posedit.edit.type == 'dup' or re.search('del',
                                                                                                   hgvs_lrg_t.posedit.edit.type):
@@ -5837,7 +5837,6 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         # Remove del bases
                         str_transcript = valstr(hgvs_transcript_variant)
                         hgvs_transcript_variant = hp.parse_hgvs_variant(str_transcript)
-                        error = 'false'
                         try:
                             vr.validate(hgvs_transcript_variant)
                         except hgvs.exceptions.HGVSError as e:
