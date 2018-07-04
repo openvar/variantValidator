@@ -12,7 +12,7 @@ README.txt
 This version of the VariantValidator API 0.1.0 contains the following functions:
 
 1 my_config
-my_config is a simple function that allows the user to detrmine wheter VariantValidator is
+my_config is a simple function that allows the user to determine whether VariantValidator is
 correctly configured, i.e. is the tool searching in the correct locations for its data?
 The function also returns version information
 
