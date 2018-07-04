@@ -5,4 +5,4 @@
 # To run this # tool, type './setup' at the command line.
 
 # rm -r /local/python/2.7.12/lib/python2.7/site-packages/variantValidator/
-rsync -rv .// /local/python/2.7.12/lib/python2.7/site-packages/variantValidator/ --delete
+rsync -rv .// /local/python/2.7.12/lib/python2.7/site-packages/VariantValidator/ --delete

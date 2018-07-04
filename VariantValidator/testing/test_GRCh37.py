@@ -20,11 +20,11 @@ try:
 except ImportError:
     parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     os.sys.path.insert(0, parentdir)
-    from variantValidator import variantValidator
+    from VariantValidator import variantValidator
 except AttributeError:
     parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     os.sys.path.insert(0, parentdir)
-    from variantValidator import variantValidator
+    from VariantValidator import variantValidator
 
 
 # Error types
