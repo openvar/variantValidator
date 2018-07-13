@@ -136,11 +136,11 @@ except ImportError:
 """
 usr_input
 collect the input from the form and convert to a hgvs readable string
-	Removes brackets and contained information -if given
-	Identifies variant type (p. c. etc)
-	Returns a dictionary containing a formated input string which is optimal for hgvs 
-	parsing and the variant type
-	Accepts c, g, n, r currently. And now P also 15.07.15
+    Removes brackets and contained information -if given
+    Identifies variant type (p. c. etc)
+    Returns a dictionary containing a formated input string which is optimal for hgvs 
+    parsing and the variant type
+    Accepts c, g, n, r currently. And now P also 15.07.15
 """
 
 
@@ -233,7 +233,7 @@ def r_to_c(variant, evm, hp):
     return c_from_r
 
 
-"""	
+""" 
 Maps transcript variant descriptions onto specified RefSeqGene reference sequences
 Return an hgvs object containing the genomic sequence variant relative to the RefSeqGene 
 acession
@@ -398,7 +398,7 @@ def protein(variant, evm, hp):
         return var_p
     if re.search(':n.', variant):
         var_p = hp.parse_hgvs_variant(variant)
-        var_p.ac = 'Non-coding transcript '
+        var_p.ac = 'Non-coding transcript'
         var_p.posedit = ''
         return var_p
 
@@ -408,27 +408,27 @@ Marked for removal
 """
 # Return an hgvs object containing the rna sequence variant
 # def rna(variant, evm, hp):
-# 	Set regular expressions for if statements
-# 	pat_c = re.compile("\:c\.") 		# Pattern looks for :c. Note (gene) has been removed
-# 	If the :c. pattern is present in the input variant
-# 	if  pat_c.search(variant):
-# 		convert the input string into a hgvs object
-# 		var_c = hp.parse_hgvs_variant(variant)
-# 		map to the genomic sequence
-# 		var_r = evm.c_to_n(var_c)	# rna level variant
-# 		return var_r
+#   Set regular expressions for if statements
+#   pat_c = re.compile("\:c\.")         # Pattern looks for :c. Note (gene) has been removed
+#   If the :c. pattern is present in the input variant
+#   if  pat_c.search(variant):
+#       convert the input string into a hgvs object
+#       var_c = hp.parse_hgvs_variant(variant)
+#       map to the genomic sequence
+#       var_r = evm.c_to_n(var_c)   # rna level variant
+#       return var_r
 
 """
 Marked for removal
 """
 # def hgvs_rna(variant, hp):
-# 	# Set regular expressions for if statements
-# 	pat_r = re.compile("\:n\.") 		# Pattern looks for :n. Note (gene) has been removed
-# 	# If the :r. pattern is present in the input variant
-# 	if  pat_r.search(variant):
-# 		# convert the input string into a hgvs object
-# 		var_r = hp.parse_hgvs_variant(variant)
-# 		return var_r
+#   # Set regular expressions for if statements
+#   pat_r = re.compile("\:n\.")         # Pattern looks for :n. Note (gene) has been removed
+#   # If the :r. pattern is present in the input variant
+#   if  pat_r.search(variant):
+#       # convert the input string into a hgvs object
+#       var_r = hp.parse_hgvs_variant(variant)
+#       return var_r
 
 
 """
@@ -569,14 +569,13 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
         # Catch identity at the exon/intron boundary by trying to normalize ref only
         if hgvs_check_boundaries.posedit.edit.type == 'identity':
             reform_ident = str(hgvs_c).split(':')[0]
-            reform_ident = reform_ident + ':c.' + str(hgvs_c.posedit.pos) + 'del' + str(
-                hgvs_c.posedit.edit.ref)  # + 'ins' + str(hgvs_c.posedit.edit.alt)
+            reform_ident = reform_ident + ':' + stored_hgvs_c.type + '.' + str(hgvs_c.posedit.pos) + 'del' + str(hgvs_c.posedit.edit.ref)# + 'ins' + str(hgvs_c.posedit.edit.alt)
             hgvs_reform_ident = hp.parse_hgvs_variant(reform_ident)
             try:
                 hn.normalize(hgvs_reform_ident)
             except hgvs.exceptions.HGVSError as e:
                 error = str(e)
-                if re.search('spanning the exon-intron boundary', error):
+                if re.search('spanning the exon-intron boundary', error) or re.search('Normalization of intronic variants', error):
                     hgvs_c = copy.deepcopy(stored_hgvs_c)
     try:
         hgvs_genomic = no_norm_evm.t_to_g(hgvs_c)
@@ -645,6 +644,8 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
                                     print str(e) + ' ' + str(option)
                                     continue
 
+    if hgvs_c.posedit.edit.type == 'identity' and hgvs_genomic.posedit.edit.type == 'delins' and hgvs_genomic.posedit.edit.alt == '' and expand_out != 'true':
+        hgvs_genomic.posedit.edit.alt = hgvs_genomic.posedit.edit.ref 
     if hgvs_genomic.posedit.edit.type == 'ins':
         try:
             hgvs_genomic = hn.normalize(hgvs_genomic)
@@ -991,17 +992,18 @@ def myvm_t_to_g(hgvs_c, alt_chr, vm, hn, hdp, primary_assembly):
         # Catch identity at the exon/intron boundary by trying to normalize ref only
         if hgvs_check_boundaries.posedit.edit.type == 'identity':
             reform_ident = str(hgvs_c).split(':')[0]
-            reform_ident = reform_ident + ':c.' + str(hgvs_c.posedit.pos) + 'del' + str(
-                hgvs_c.posedit.edit.ref)  # + 'ins' + str(hgvs_c.posedit.edit.alt)
+            reform_ident = reform_ident + ':' + stored_hgvs_c.type + '.' + str(hgvs_c.posedit.pos) + 'del' + str(hgvs_c.posedit.edit.ref)# + 'ins' + str(hgvs_c.posedit.edit.alt)
             hgvs_reform_ident = hp.parse_hgvs_variant(reform_ident)
             try:
                 hn.normalize(hgvs_reform_ident)
             except hgvs.exceptions.HGVSError as e:
                 error = str(e)
-                if re.search('spanning the exon-intron boundary', error):
+                if re.search('spanning the exon-intron boundary', error) or re.search('Normalization of intronic variants', error):
                     hgvs_c = copy.deepcopy(stored_hgvs_c)
 
     hgvs_genomic = vm.t_to_g(hgvs_c, alt_chr)
+    if hgvs_c.posedit.edit.type == 'identity' and hgvs_genomic.posedit.edit.type == 'delins' and hgvs_genomic.posedit.edit.alt == '' and expand_out != 'true':
+        hgvs_genomic.posedit.edit.alt = hgvs_genomic.posedit.edit.ref 
     if hgvs_genomic.posedit.edit.type == 'ins':
         try:
             hgvs_genomic = hn.normalize(hgvs_genomic)
@@ -1306,23 +1308,23 @@ def ng_extract(tx_for_gene):
 marked for removal
 """
 # def int_start(var_g):
-# 	start = var_g.posedit.pos.start
-# 	# Stringify to get start co-ords
-# 	start = str(start)
-# 	# Make into an integer
-# 	int_start = int(start)
-# 	return int_start
+#   start = var_g.posedit.pos.start
+#   # Stringify to get start co-ords
+#   start = str(start)
+#   # Make into an integer
+#   int_start = int(start)
+#   return int_start
 
 """
 marked for removal
 """
 # def int_end(var_g):
-# 	end = var_g.posedit.pos.end
-# 	# Stringify to get start co-ords
-# 	end = str(end)
-# 	# Make into an integer
-# 	int_end = int(end)
-# 	return int_end
+#   end = var_g.posedit.pos.end
+#   # Stringify to get start co-ords
+#   end = str(end)
+#   # Make into an integer
+#   int_end = int(end)
+#   return int_end
 
 """
 Returns exon information for a given transcript
@@ -1473,18 +1475,18 @@ def validate(input, hp, vr):
 marked for removal
 """
 # def sequence_extractor(ac, hdp):
-# 	ac_seq = hdp.get_tx_seq(ac)
-# 	return ac_seq
+#   ac_seq = hdp.get_tx_seq(ac)
+#   return ac_seq
 
 """
 marked for removal
 """
 # def ref_replace(e, hgvs_variant):
-# 	error = str(e)
-# 	match = re.findall('\(([GATC]+)\)', error)
-# 	new_ref = match[1]
-# 	hgvs_variant.posedit.edit.ref = new_ref
-# 	return hgvs_variant
+#   error = str(e)
+#   match = re.findall('\(([GATC]+)\)', error)
+#   new_ref = match[1]
+#   hgvs_variant.posedit.edit.ref = new_ref
+#   return hgvs_variant
 
 """
 Search HGNC rest
@@ -1844,7 +1846,7 @@ def hgvs_alleles(variant_description):
         if re.search('[gcn]\.\d+\[', remainder):
             # NM_004006.2:c.2376[G>C];[(G>C)]
             # if re.search('\(', remainder):
-            #	raise alleleVariantError('Unsupported format ' + remainder)
+            #   raise alleleVariantError('Unsupported format ' + remainder)
             # NM_004006.2:c.2376[G>C];[G>C]
             type, remainder = remainder.split('.')
             pos = re.match('\d+', remainder)
