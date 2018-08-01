@@ -55,6 +55,9 @@ def pvcf_to_hgvs(input, selected_assembly, normalization_direction):
     if normalization_direction == 5:
         selected_normalizer = reverse_normalize
 
+    # Gel stye pVCF
+    input = input.replace(':', '-')
+    
     # VCF type 1
     if re.search('-\d+-[GATC]+-[GATC]+', input):
         pre_input = copy.deepcopy(input)

@@ -309,6 +309,54 @@ def validator(batch_variant, selected_assembly, select_transcripts):
             try:
                 # Note, ID is not touched. It is always the input variant description. Quibble will be altered but id will not if type = g.
                 input = validation['quibble']
+
+                # Test for rich text unicode characters
+                try:
+                    unicode_test = u"{}".format(input)
+                except UnicodeDecodeError as e:
+                    # Format the trapped character into unicode for styled printing
+                    my_unicode = e[1]
+                    my_unicode = my_unicode.decode('utf-8')
+
+                    # Test for rich text unicode characters
+                    try:
+                        str(my_unicode)
+                    except UnicodeEncodeError as e:
+                        # Format the trapped character into unicode for styled printing
+                        unicoded_it = e[1]
+                        unicoded_it_list = unicoded_it.split()
+                        for try_me in unicoded_it_list:
+                            try:
+                                str(try_me)
+                            except UnicodeEncodeError as e:
+                                found_unicode = try_me
+                                found_error = str(e)
+                                found_at = found_unicode.encode('raw_unicode_escape')
+                                break
+                        # Extract character from the error
+                        unicode = re.findall("u'\\\\\w+'", found_error)
+                        character = unicode[0]
+                        search_term = character.replace("u'", '')
+                        search_term = search_term.replace("'", '')
+                        found_at_decoded = found_at.decode('raw_unicode_escape')
+                        found_at = found_at_decoded.encode('raw_unicode_escape')
+                        string_char = str(character)
+                        # Create a human readable U+ representation
+                        human_code = re.sub("u'\\\\\w", 'U+', string_char)
+                        human_code = human_code.replace("'", "")
+                        format_human = u"{}".format(human_code)
+                        format_human = format_human.upper()         
+                        found_at = re.sub(search_term, u'<' + format_human + u'>', found_at)
+                        slasher = re.compile("\\\\")
+                        found_at = re.sub(slasher, '', found_at) 
+                        error = u'Submitted variant description contains an invalid character which is represented by Unicode character ' + format_human + u' at position ' + found_at + u': Please remove this character and re-submit: A useful search function for Unicode characters can be found at https://unicode-search.net/'
+                        validation['warnings'] = validation['warnings'] + ': ' + error
+                        continue
+                    else:
+                        pass
+                else:
+                    pass
+                    
                 stash_input = copy.copy(input)
                 # Set the primary_assembly
                 if validation['primary_assembly'] == 'false':
@@ -1011,13 +1059,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     try:
                         to_n = evm.c_to_n(input_parses_copy)
                     except hgvs.exceptions.HGVSError as e:
-                        error = str(e)
-                        validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                        continue
-                    if to_n.posedit.pos.end.base < to_n.posedit.pos.start.base:
-                        error = 'Interval end position < interval start position '
-                        validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                        continue
+                        pass
+                    else:
+                        if to_n.posedit.pos.end.base < to_n.posedit.pos.start.base:
+                            error = 'Interval end position < interval start position '
+                            validation['warnings'] = validation['warnings'] + ': ' + str(error)
+                            continue
                 elif input_parses.posedit.pos.end.base < input_parses.posedit.pos.start.base:
                     error = 'Interval end position ' + str(
                         input_parses.posedit.pos.end.base) + ' < interval start position ' + str(
@@ -1189,6 +1236,43 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     input_parses.posedit.edit.ref = ''
                                     variant = str(input_parses)
                             else:
+                                if re.search('outside the bounds', error):
+                                    try:
+                                        identity_info = hdp.get_tx_identity_info(input_parses.ac)
+                                        ref_start = identity_info[3]
+                                        ref_end = identity_info[4]
+                                        if re.match('-', str(input_parses.posedit.pos.start)):
+                                            # upstream positions
+                                            boundary = int('-'+str(ref_start))
+                                            remainder = int(str(input_parses.posedit.pos.start)) - boundary
+                                            input_parses.posedit.pos.start.base = boundary
+                                            input_parses.posedit.pos.start.offset = remainder
+                                        if re.match('-', str(input_parses.posedit.pos.end)):
+                                            boundary = int('-'+str(ref_start))
+                                            remainder = int(str(input_parses.posedit.pos.end)) - boundary
+                                            input_parses.posedit.pos.end.base = boundary
+                                            input_parses.posedit.pos.end.offset = remainder
+                                        if re.match('\*', str(input_parses.posedit.pos.start)):
+                                            # downstream positions
+                                            tot_end_pos = str(input_parses.posedit.pos.start).replace('*', '')
+                                            ts_seq = sf.fetch_seq(input_parses.ac)
+                                            boundary = len(ts_seq) - ref_end
+                                            input_parses.posedit.pos.start.base = boundary
+                                            offset = int(tot_end_pos) - int(boundary)
+                                            input_parses.posedit.pos.start.offset = offset
+                                        if re.match('\*', str(input_parses.posedit.pos.end)):
+                                            tot_end_pos = str(input_parses.posedit.pos.end).replace('*', '')
+                                            ts_seq = sf.fetch_seq(input_parses.ac)
+                                            boundary = len(ts_seq) - ref_end
+                                            input_parses.posedit.pos.end.base = boundary
+                                            offset = int(tot_end_pos) - int(boundary)
+                                            input_parses.posedit.pos.end.offset = offset
+                                        report_gen = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
+                                        error = 'Using a transcript reference sequence to specify an intergenic variant position is not HGVS compliant. Instead use ' + valstr(report_gen)
+                                    except Exception as e:
+                                        pass
+                                else:
+                                    pass                    
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                 continue
                         try:
@@ -1200,9 +1284,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
                         if re.search('n.1-', str(input_parses)):
                             input_parses = evm.n_to_c(input_parses)
-                            error = 'Using a transcript reference sequence to specify an intergenic variant position that lies 5' + "'" + ' to the transcript reference sequence is not HGVS compliant. Instead use '
+                            error = 'Using a transcript reference sequence to specify an intergenic variant position is not HGVS compliant. Instead use '
                             genomic_position = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
-                            error = error + str(genomic_position)
+                            error = error + valstr(genomic_position)
                             validation['warnings'] = validation['warnings'] + ': ' + str(error)
                             continue
                         else:
@@ -1219,8 +1303,50 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 to_tx = evm.g_to_t(to_genome, input_parses.ac)
                             except hgvs.exceptions.HGVSInvalidIntervalError as e:
                                 error = str(e)
+                                if re.search('beyond the bounds', error):
+                                    try:
+                                        identity_info = hdp.get_tx_identity_info(input_parses.ac)
+                                        ref_start = identity_info[3]
+                                        ref_end = identity_info[4]
+                                        if re.match('-', str(input_parses.posedit.pos.start)):
+                                            # upstream positions
+                                            boundary = int('-'+str(ref_start))
+                                            remainder = int(str(input_parses.posedit.pos.start)) - boundary
+                                            input_parses.posedit.pos.start.base = boundary
+                                            input_parses.posedit.pos.start.offset = remainder
+                                        if re.match('-', str(input_parses.posedit.pos.end)):
+                                            boundary = int('-'+str(ref_start))
+                                            remainder = int(str(input_parses.posedit.pos.end)) - boundary
+                                            input_parses.posedit.pos.end.base = boundary
+                                            input_parses.posedit.pos.end.offset = remainder
+                                        if re.match('\*', str(input_parses.posedit.pos.start)):
+                                            # downstream positions
+                                            tot_end_pos = str(input_parses.posedit.pos.start).replace('*', '')
+                                            ts_seq = sf.fetch_seq(input_parses.ac)
+                                            boundary = len(ts_seq) - ref_end
+                                            input_parses.posedit.pos.start.base = boundary
+                                            te1,te2 = tot_end_pos.split('+')
+                                            tot_end_pos = int(te1)+int(te2)
+                                            offset = int(tot_end_pos) - int(boundary)
+                                            input_parses.posedit.pos.start.offset = offset
+                                        if re.match('\*', str(input_parses.posedit.pos.end)):
+                                            tot_end_pos = str(input_parses.posedit.pos.end).replace('*', '')
+                                            ts_seq = sf.fetch_seq(input_parses.ac)
+                                            boundary = len(ts_seq) - ref_end
+                                            input_parses.posedit.pos.end.base = boundary
+                                            te1,te2 = tot_end_pos.split('+')
+                                            tot_end_pos = int(te1)+int(te2)
+                                            offset = int(tot_end_pos) - int(boundary)
+                                            input_parses.posedit.pos.end.offset = offset
+                                        report_gen = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
+                                        error = 'Using a transcript reference sequence to specify an intergenic variant position is not HGVS compliant. Instead use ' + valstr(report_gen)
+                                    except Exception as e:
+                                        print e
+                                        pass
+                                else:
+                                    pass    
                                 validation['warnings'] = validation['warnings'] + ': ' + str(
-                                    error) + ' ' + input_parses.ac
+                                    error)
                                 continue
 
                     elif re.search('\d\-', str(input_parses)) or re.search('\d\+', str(input_parses)):
@@ -1378,6 +1504,24 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
                             elif re.search('base must be >=1 for datum = SEQ_START or CDS_END', error):
                                 error = 'The given coordinate is outside the bounds of the reference sequence.'
+                                try:
+                                    if re.match('-', str(input_parses.posedit.pos.start)):
+                                        # upstream positions
+                                        boundary = 1
+                                        remainder = int(str(input_parses.posedit.pos.start)) - boundary
+                                        remainder = remainder + 1
+                                        input_parses.posedit.pos.start.base = boundary
+                                        input_parses.posedit.pos.start.offset = remainder
+                                    if re.match('-', str(input_parses.posedit.pos.end)):
+                                        boundary = 1
+                                        remainder = int(str(input_parses.posedit.pos.end)) - boundary
+                                        remainder = remainder + 1
+                                        input_parses.posedit.pos.end.base = boundary
+                                        input_parses.posedit.pos.end.offset = remainder
+                                    report_gen = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
+                                    error = 'Using a transcript reference sequence to specify an intergenic variant position is not HGVS compliant. Instead use ' + valstr(report_gen)
+                                except Exception as e:
+                                    pass
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                 continue
                             else:
@@ -1385,9 +1529,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 continue
 
                     if re.search('n.1-', str(input_parses)):
-                        error = 'Using a transcript reference sequence to specify an intergenic variant position that lies 5' + "'" + ' to the transcript reference sequence is not HGVS compliant. Instead use '
+                        error = 'Using a transcript reference sequence to specify an intergenic variant position is not HGVS compliant. Instead use '
                         genomic_position = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
-                        error = error + str(genomic_position)
+                        error = error + valstr(genomic_position)
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
                         continue
                     else:
@@ -1415,6 +1559,19 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 # error = 'Interval start position ' + str(input_parses.posedit.pos.start) + ' > interval end position ' + str(input_parses.posedit.pos.end)
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                 continue
+                            elif re.search('Cannot validate sequence of an intronic variant', error):
+                                try:
+                                    test_g = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
+                                    back_to_n = evm.g_to_t(test_g, input_parses.ac)
+                                except hgvs.exceptions.HGVSError as e:
+                                    error = str(e)
+                                    if re.match('start or end or both are beyond the bounds of transcript record', error):
+                                        report_gen = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
+                                        error = 'Using a transcript reference sequence to specify an intergenic variant position is not HGVS compliant. Instead use ' + valstr(report_gen)                      
+                                        validation['warnings'] = validation['warnings'] + ': ' + str(error)
+                                        continue
+                                else:
+                                    pass       
 
                         # Create a specific minimal evm with no normalizer and no replace_reference
                         # Have to use this method due to potential multi chromosome error, note, normalizes but does not replace sequence
@@ -3528,12 +3685,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
                         # Gap gene black list
                         try:
-                            gene_symbol = variantanalyser.dbControls.data.get_gene_symbol_from_transcriptID(hgvs_coding.ac)
+                            gene_symbol = va_dbCrl.data.get_gene_symbol_from_transcriptID(hgvs_coding.ac)
                         except Exception:
                             pass
                         else:
                             # If the gene symbol is not in the list, the value False will be returned
-                            gap_compensation = gapGenes.gap_black_list(gene_symbol, primary_assembly)
+                            gap_compensation = gapGenes.gap_black_list(gene_symbol)
                         
                         # Intron spanning variants
                         if boundary.search(str(error)) or spanning.search(str(error)):
@@ -3615,7 +3772,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 # Store a tx copy for later use 
                                 test_stash_tx_right = copy.deepcopy(stash_hgvs_not_delins)
                                 # stash_genomic = vm.t_to_g(test_stash_tx_right, hgvs_genomic.ac)
-                                stash_genomic = variantanalyser.functions.myvm_t_to_g(test_stash_tx_right, hgvs_genomic.ac, vm, hn, hdp, primary_assembly)
+                                stash_genomic = va_func.myvm_t_to_g(test_stash_tx_right, hgvs_genomic.ac, vm, hn, hdp, primary_assembly)
                                 # Stash the outputs if required
                                 # test variants = NC_000006.11:g.90403795G= (causes double identity)
                                 #                 NC_000002.11:g.73675227_73675228insCTC (? incorrect assumed insertion position)
@@ -3674,7 +3831,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 # Store a tx copy for later use         
                                 test_stash_tx_left = copy.deepcopy(stash_hgvs_not_delins)
                                 #stash_genomic = vm.t_to_g(test_stash_tx_left, hgvs_genomic.ac)
-                                stash_genomic = variantanalyser.functions.myvm_t_to_g(test_stash_tx_left, hgvs_genomic.ac, vm, hn, hdp, primary_assembly)
+                                stash_genomic = va_func.myvm_t_to_g(test_stash_tx_left, hgvs_genomic.ac, vm, hn, hdp, primary_assembly)
                                 # Stash the outputs if required
                                 # test variants = NC_000006.11:g.90403795G= (causes double identity)
                                 #                 NC_000002.11:g.73675227_73675228insCTC
@@ -4805,6 +4962,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 hgvs_seek_var = saved_hgvs_coding
 
                         # Loop out gap finding code under these circumstances!
+                        warner.warn("gap_compensation_2 = " + str(gap_compensation)) 
                         if gap_compensation is True:
                             warner.warn('g_to_t gap code 2 active')
                             # is it in an exon?
@@ -6009,12 +6167,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         hgvs_coding = hp.parse_hgvs_variant(str(tx_variant))
                         # Gap gene black list
                         try:
-                            gene_symbol = variantanalyser.dbControls.data.get_gene_symbol_from_transcriptID(hgvs_coding.ac)
+                            gene_symbol = va_dbCrl.data.get_gene_symbol_from_transcriptID(hgvs_coding.ac)
                         except Exception:
                             pass
                         else:
                             # If the gene symbol is not in the list, the value False will be returned
-                            gap_compensation = variantanalyser.gap_genes.gap_black_list(gene_symbol, primary_assembly)
+                            gap_compensation = gapGenes.gap_black_list(gene_symbol)
                         
                         # Look for variants spanning introns
                         try:
@@ -6029,7 +6187,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             pass
                         
                         # Warn gap code status
-                        warner.warn("gap_compensation_2 = " + str(gap_compensation))
+                        warner.warn("gap_compensation_3 = " + str(gap_compensation))
                         
                         multi_g = []
                         multi_g_tab = []

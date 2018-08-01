@@ -119,6 +119,7 @@ import dbControls
 import supported_chromosome_builds
 import hgvs2vcf
 import pseudo_vcf2hgvs
+import gap_genes
 
 # BioPython
 from Bio import Entrez
@@ -470,22 +471,25 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
     if primary_assembly == 'GRCh38':
         no_norm_evm = no_norm_evm_38
     elif primary_assembly == 'GRCh37':
-        no_norm_evm = no_norm_evm_37    
-
-    # Validator
-    vr = hgvs.validator.Validator(hdp)
-
+        no_norm_evm = no_norm_evm_37        
+    
     # store the input
     stored_hgvs_c = copy.deepcopy(hgvs_c)
-
-    # Test mapping options
-    # mapping_options = hdp.get_tx_mapping_options(hgvs_c.ac)
-
-    # identity sub del delins ins dup inv
-    # Working
-    # Set expansion variable
     expand_out = 'false'
-    if hgvs_c.posedit.edit.type == 'identity' or hgvs_c.posedit.edit.type == 'del' or hgvs_c.posedit.edit.type =='delins' or hgvs_c.posedit.edit.type == 'dup' or hgvs_c.posedit.edit.type == 'sub' or hgvs_c.posedit.edit.type == 'ins' or hgvs_c.posedit.edit.type == 'inv':
+    utilise_gap_code = True
+    
+    # Gap gene black list
+    try:
+        gene_symbol = dbControls.data.get_gene_symbol_from_transcriptID(hgvs_c.ac)
+    except Exception:
+        utilise_gap_code = False
+    else:
+        # If the gene symbol is not in the list, the value False will be returned
+        utilise_gap_code = gap_genes.gap_black_list(gene_symbol)
+    # Warn gap code in use
+    warnings.warn("gap_compensation_myevm = " + str(utilise_gap_code))
+        
+    if utilise_gap_code is True and (hgvs_c.posedit.edit.type == 'identity' or hgvs_c.posedit.edit.type == 'del' or hgvs_c.posedit.edit.type =='delins' or hgvs_c.posedit.edit.type == 'dup' or hgvs_c.posedit.edit.type == 'sub' or hgvs_c.posedit.edit.type == 'ins' or hgvs_c.posedit.edit.type == 'inv'):
 
         # if NM_ need the n. position
         if re.match('NM_', str(hgvs_c.ac)):
@@ -695,7 +699,7 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
     # Remove identity bases
     if hgvs_c == stored_hgvs_c:
         expanded_out = 'false'
-    elif expand_out == 'false':
+    elif expand_out == 'false' or utilise_gap_code is False:
         pass
     # Correct expansion ref + 2
     elif expand_out == 'true' and (
@@ -931,18 +935,25 @@ def myvm_t_to_g(hgvs_c, alt_chr, vm, hn, hdp, primary_assembly):
     if primary_assembly == 'GRCh38':
         no_norm_evm = no_norm_evm_38
     elif primary_assembly == 'GRCh37':
-        no_norm_evm = no_norm_evm_37    
-
-    # Validator
-    vr = hgvs.validator.Validator(hdp)
-
+        no_norm_evm = no_norm_evm_37        
+    
     # store the input
     stored_hgvs_c = copy.deepcopy(hgvs_c)
-
-    # Working
-    # Set expansion variable
     expand_out = 'false'
-    if hgvs_c.posedit.edit.type == 'identity' or hgvs_c.posedit.edit.type == 'del' or hgvs_c.posedit.edit.type =='delins' or hgvs_c.posedit.edit.type == 'dup' or hgvs_c.posedit.edit.type == 'sub' or hgvs_c.posedit.edit.type == 'ins' or hgvs_c.posedit.edit.type == 'inv':
+    utilise_gap_code = True
+    
+    # Gap gene black list
+    try:
+        gene_symbol = dbControls.data.get_gene_symbol_from_transcriptID(hgvs_c.ac)
+    except Exception:
+        utilise_gap_code = False
+    else:
+        # If the gene symbol is not in the list, the value False will be returned
+        utilise_gap_code = gap_genes.gap_black_list(gene_symbol)
+    # Warn gap code in use
+    warnings.warn("gap_compensation_mvm = " + str(utilise_gap_code))
+        
+    if utilise_gap_code is True and (hgvs_c.posedit.edit.type == 'identity' or hgvs_c.posedit.edit.type == 'del' or hgvs_c.posedit.edit.type =='delins' or hgvs_c.posedit.edit.type == 'dup' or hgvs_c.posedit.edit.type == 'sub' or hgvs_c.posedit.edit.type == 'ins' or hgvs_c.posedit.edit.type == 'inv'):
 
         # if NM_ need the n. position
         if re.match('NM_', str(hgvs_c.ac)):
@@ -1088,7 +1099,7 @@ def myvm_t_to_g(hgvs_c, alt_chr, vm, hn, hdp, primary_assembly):
     # Remove identity bases
     if hgvs_c == stored_hgvs_c:
         expanded_out = 'false'
-    elif expand_out == 'false':
+    elif expand_out == 'false' or utilise_gap_code is False:
         pass
     # Correct expansion ref + 2
     elif expand_out == 'true' and (
