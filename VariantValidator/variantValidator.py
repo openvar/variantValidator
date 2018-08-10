@@ -349,6 +349,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         found_at = re.sub(search_term, u'<' + format_human + u'>', found_at)
                         slasher = re.compile("\\\\")
                         found_at = re.sub(slasher, '', found_at) 
+                        validation['id'] = found_at
                         error = u'Submitted variant description contains an invalid character which is represented by Unicode character ' + format_human + u' at position ' + found_at + u': Please remove this character and re-submit: A useful search function for Unicode characters can be found at https://unicode-search.net/'
                         validation['warnings'] = validation['warnings'] + ': ' + error
                         continue
@@ -1236,7 +1237,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     input_parses.posedit.edit.ref = ''
                                     variant = str(input_parses)
                             else:
-                                if re.search('outside the bounds', error):
+                                if re.search('bounds', error):
                                     try:
                                         identity_info = hdp.get_tx_identity_info(input_parses.ac)
                                         ref_start = identity_info[3]
@@ -1268,7 +1269,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             offset = int(tot_end_pos) - int(boundary)
                                             input_parses.posedit.pos.end.offset = offset
                                         report_gen = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
-                                        error = 'Using a transcript reference sequence to specify an intergenic variant position is not HGVS compliant. Instead use ' + valstr(report_gen)
+                                        error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(report_gen)
                                     except Exception as e:
                                         pass
                                 else:
@@ -1284,7 +1285,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
                         if re.search('n.1-', str(input_parses)):
                             input_parses = evm.n_to_c(input_parses)
-                            error = 'Using a transcript reference sequence to specify an intergenic variant position is not HGVS compliant. Instead use '
+                            error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use '
                             genomic_position = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
                             error = error + valstr(genomic_position)
                             validation['warnings'] = validation['warnings'] + ': ' + str(error)
@@ -1303,7 +1304,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 to_tx = evm.g_to_t(to_genome, input_parses.ac)
                             except hgvs.exceptions.HGVSInvalidIntervalError as e:
                                 error = str(e)
-                                if re.search('beyond the bounds', error):
+                                if re.search('bounds', error):
                                     try:
                                         identity_info = hdp.get_tx_identity_info(input_parses.ac)
                                         ref_start = identity_info[3]
@@ -1339,7 +1340,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             offset = int(tot_end_pos) - int(boundary)
                                             input_parses.posedit.pos.end.offset = offset
                                         report_gen = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
-                                        error = 'Using a transcript reference sequence to specify an intergenic variant position is not HGVS compliant. Instead use ' + valstr(report_gen)
+                                        error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(report_gen)
                                     except Exception as e:
                                         print e
                                         pass
@@ -1355,7 +1356,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             vr.validate(input_parses)
                         except hgvs.exceptions.HGVSInvalidVariantError as e:
                             error = str(e)
-                            if re.search('bounds of transcript', error):
+                            if re.search('bounds', error):
+                                try:
+                                    report_gen = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
+                                except hgvs.exceptions.HGVSError as e:
+                                    pass
+                                else:
+                                    error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(report_gen)
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                 continue
                             elif re.search('insertion length must be 1', error):
@@ -1474,7 +1481,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             continue
                         except hgvs.exceptions.HGVSError as e:
                             error = str(e)
-                            if re.search('outside the bounds', error):
+                            if re.search('bounds', error):
                                 error = error + ' (' + input_parses.ac + ')'
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                 continue
@@ -1519,7 +1526,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         input_parses.posedit.pos.end.base = boundary
                                         input_parses.posedit.pos.end.offset = remainder
                                     report_gen = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
-                                    error = 'Using a transcript reference sequence to specify an intergenic variant position is not HGVS compliant. Instead use ' + valstr(report_gen)
+                                    error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(report_gen)
                                 except Exception as e:
                                     pass
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
@@ -1529,7 +1536,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 continue
 
                     if re.search('n.1-', str(input_parses)):
-                        error = 'Using a transcript reference sequence to specify an intergenic variant position is not HGVS compliant. Instead use '
+                        error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use '
                         genomic_position = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
                         error = error + valstr(genomic_position)
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
@@ -1543,7 +1550,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             vr.validate(input_parses)
                         except hgvs.exceptions.HGVSInvalidVariantError as e:
                             error = str(e)
-                            if re.search('bounds of transcript', error):
+                            if re.search('bounds', error):
+                                try:
+                                    report_gen = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
+                                except hgvs.exceptions.HGVSError as e:
+                                    pass
+                                else:
+                                    error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(report_gen)
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                 continue
                             elif re.search('insertion length must be 1', error):
@@ -1565,9 +1578,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     back_to_n = evm.g_to_t(test_g, input_parses.ac)
                                 except hgvs.exceptions.HGVSError as e:
                                     error = str(e)
-                                    if re.match('start or end or both are beyond the bounds of transcript record', error):
+                                    if re.match('bounds', error):
                                         report_gen = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
-                                        error = 'Using a transcript reference sequence to specify an intergenic variant position is not HGVS compliant. Instead use ' + valstr(report_gen)                      
+                                        error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(report_gen)                      
                                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                         continue
                                 else:
@@ -1662,7 +1675,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             continue
                         except hgvs.exceptions.HGVSError as e:
                             error = str(e)
-                            if re.search('outside the bounds', error):
+                            if re.search('bounds', error):
                                 error = error + ' (' + input_parses.ac + ')'
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                 continue

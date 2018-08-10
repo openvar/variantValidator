@@ -39,6 +39,9 @@ def get_curated_variants():
 
 def get_new_variants():
     new_variant_list = [
+                        #"†c.589G>T",
+                        #"NM_000088​.3:c.589G>T",
+                        "NC_000023.10:g.33229673A>T",
                         "NM_001145026.1:c.715A>G",
                         "NC_000016.9:g.2099572TC>T",
                         "NM_000088.3:c.589GG>CT",
@@ -160,6 +163,7 @@ def get_new_variants():
                         "NM_000088.3:c.589-2_589-1AG>G",
                         "NM_000088.3:c.642+1_642+2delGTinsG",
                         "NM_004415.3:c.1-1insA",
+                        "NM_004415.3:c.-1_1insA",
                         "NM_000273.2:c.1-5028_253del",
                         "NM_002929.2:c.1006C>T",
                         "NR_125367.1:n.167+18165G>A",
