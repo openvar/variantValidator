@@ -37,81 +37,9 @@ except AttributeError:
 def in_entries(entry, table): 
 	
 	# Use dbquery.py to connect to mysql and return the necessary data
-
-# 	GeneNamesLoci
-# 	if table == 'genePos37' or table == 'genePos38':
-# 		row = dbquery.query_with_fetchone(entry.split('.')[0], table)
-# 		
-# 		if row[0] == 'error':
-# 			data = {
-# 				'error' : 'false',
-# 				'description': 'false'
-# 				}
-# 		
-# 			data['error'] = row[0]
-# 			data['description'] = row[1]
-# 	
-# 		elif row[0] == 'none':
-# 			data = {
-# 				'none' : 'false',
-# 				'description': 'false'
-# 				}
-# 		
-# 			data['none'] = row[0]
-# 			data['description'] = row[1]
-# 	
-# 		else:
-# 			data = {}
-# 			data['hgncID'] = row[0]
-# 			data['symbol'] = row[1]
-# 			data['name'] = row[2]
-# 			data['prevSymbol'] = row[3]
-# 			data['reference'] = row[4]
-# 			data['assembly'] = row[5]
-# 			data['chr'] = row[6]
-# 			data['start'] = row[7]
-# 			data['end'] = row[8]
-# 			data['refSeqTranscriptID'] = row[9]
-# 			data['refSeqGeneID'] = row[10]
-# 		
-# 	Transcript ID
-# 	if table == 'transcript_id':
-# 		row = dbquery.query_with_fetchone(entry.split('.')[0], table)
-# 	
-# 		if row[0] == 'error':
-# 			data = {
-# 				'error' : 'false',
-# 				'description': 'false'
-# 				}
-# 		
-# 			data['error'] = row[0]
-# 			data['description'] = row[1]
-# 	
-# 		elif row[0] == 'none':
-# 			data = {
-# 				'none' : 'false',
-# 				'description': 'false'
-# 				}
-# 		
-# 			data['none'] = row[0]
-# 			data['description'] = row[1]
-# 	
-# 		else:
-# 			data = {
-# 				'accession' : 'false',
-# 				'description': 'false',
-# 				'updated' : 'false',
-# 				'expiry' : 'false'
-# 				}
-# 		
-# 			data['accession'] = row[0]
-# 			data['description'] = row[1]
-# 			data['updated'] = row[2]
-# 			data['expiry'] = row[3]
-
 	if table == 'transcript_info':
-		row = dbquery.query_with_fetchone(entry.split('.')[0], table)
-	
+		row = dbquery.query_with_fetchone(entry, table)
+		
 		if row[0] == 'error':
 			data = {
 				'error' : 'false',
@@ -165,8 +93,7 @@ def update_entry(entry, data, table):
 	return success
 
 def update_transcript_info_record(accession, hdp):
-	accession = accession.split('.')[0] # list[3].split('.')[0]
-
+	
 	# Search Entrez for corresponding record for the RefSeq ID
 	try:
 		record = functions.entrez_efetch(db="nucleotide", id=accession, rettype="gb", retmode="text")
@@ -216,7 +143,7 @@ def update_transcript_info_record(accession, hdp):
 	except Exception as e:
 		if str(e) == '<urlopen error [Errno -2] Name or service not known>':
 			# Issues with DNSSEC for the nih.gov
-			previous_entry = in_entries(accession.split('.')[0], 'transcript_info')
+			previous_entry = in_entries(accession, 'transcript_info')
 			accession = accession
 			description = previous_entry['description']
 			variant = previous_entry['variant']
@@ -225,17 +152,18 @@ def update_transcript_info_record(accession, hdp):
 			uta_symbol = previous_entry['uta_symbol']
 
 	# Query information
-	query_info = [accession, description, variant, version, hgnc_symbol, uta_symbol]
+	# query_info = [accession, description, variant, version, hgnc_symbol, uta_symbol]
+	query_info = [version, description, variant, version, hgnc_symbol, uta_symbol]
 	table='transcript_info'
 
 	# Update the transcript_info table (needs plugging in) 
-	returned_data = in_entries(accession, table)
+	returned_data = in_entries(version, table)
 	# If the entry is not in the database add it
 	if 'none' in returned_data:
-		add_entry(accession, query_info, table)
+		add_entry(version, query_info, table)
 	# If the data in the entry has changed, update it
 	else:
-		update_entry(accession, query_info, table)
+		update_entry(version, query_info, table)
 	return			
 
 def update_refSeqGene_loci(rsg_data):

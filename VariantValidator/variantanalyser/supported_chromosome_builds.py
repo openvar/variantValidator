@@ -1525,6 +1525,7 @@ def to_accession(chr_num, primary_assembly):
         'HSCHR19KIR_FH13_BA2_HAP_CTG3_1': 'NT_187686.1',
         'HSCHR19KIR_FH15_A_HAP_CTG3_1': 'NT_187687.1',
         'HSCHR19KIR_RP5_B_HAP_CTG3_1': 'NT_113949.2',
+        'HSCHR22_CTG1_3': 'NT_167235.1'
     }
     # Convert call line to rs line
     chr_num = chr_num.upper()
@@ -2832,7 +2833,8 @@ def to_chr_num_refseq(accession, primary_assembly):
         'NT_187685.1': 'HSCHR19KIR_FH13_A_HAP_CTG3_1',
         'NT_187686.1': 'HSCHR19KIR_FH13_BA2_HAP_CTG3_1',
         'NT_187687.1': 'HSCHR19KIR_FH15_A_HAP_CTG3_1',
-        'NT_113949.2': 'HSCHR19KIR_RP5_B_HAP_CTG3_1'
+        'NT_113949.2': 'HSCHR19KIR_RP5_B_HAP_CTG3_1',
+        'NT_167235.1': 'HSCHR22_CTG1_3'
     }
     if primary_assembly == 'GRCh38':
         chr_num = chr_num_convert_38.get(accession)

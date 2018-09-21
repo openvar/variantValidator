@@ -36,24 +36,14 @@ def get_hgncSymbol(gene_symbol):
 	row = execute(query)
 	return row
 
-"""
-marked for removal
-"""	
-# def get_current_hgnc_symbol(gene_symbol, primary_assembly):
-# 	strip_assembly = primary_assembly.replace('GRCh', '')
-# 	query = "SELECT symbol FROM genePos%s WHERE symbol LIKE '%s' OR prevSymbol LIKE '%s'" %(strip_assembly, gene_symbol, gene_symbol)
-# 	symbol = str(execute(query)[0])
-# 	hgncSymbol = symbol.replace('|', '')
-# 	return hgncSymbol
-
 def get_transcript_description(transcript_id):
-	transcript_id = transcript_id.split('.')[0]
+	transcript_id = transcript_id
 	query = "SELECT description FROM transcript_info WHERE refSeqID = '%s'" %(transcript_id)
 	tx_description = str(execute(query)[0])
 	return tx_description	
 
 def get_gene_symbol_from_transcriptID(transcript_id):
-	transcript_id = transcript_id.split('.')[0]
+	transcript_id = transcript_id
 	query = "SELECT hgncSymbol FROM transcript_info WHERE refSeqID = '%s'" %(transcript_id)
 	gene_symbol = str(execute(query)[0])
 	return gene_symbol
@@ -64,21 +54,10 @@ def get_refSeqGene_data_by_refSeqGeneID(refSeqGeneID, genomeBuild):
 	return refSeqGene_data
 
 def get_gene_symbol_from_refSeqGeneID(refSeqGeneID):
-	refseqgene_id = refSeqGeneID #.split('.')[0]
+	refseqgene_id = refSeqGeneID
 	query = "SELECT hgncSymbol FROM refSeqGene_loci WHERE refSeqGeneID = '%s'" %(refseqgene_id)
 	gene_symbol = str(execute(query)[0])
 	return gene_symbol	
-
-"""
-marked for removal
-"""
-# def get_transcribed_span_for_transcript(transcript_id, primary_assembly):
-# 	transcript_id = transcript_id.split('.')[0]
-# 	table_identifier = primary_assembly.replace('GRCh', '')
-# 	table = 'genePos' + table_identifier
-# 	query = "SELECT chr, start, end FROM " + table + " WHERE refSeqTranscriptID = '%s'" %(transcript_id)
-# 	span = execute(query)
-# 	return span
 	
 def get_RefSeqGeneID_from_lrgID(lrgID):
 	query = "SELECT RefSeqGeneID FROM LRG_RSG_lookup WHERE lrgID = '%s'" %(lrgID)

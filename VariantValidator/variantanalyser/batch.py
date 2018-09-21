@@ -18,7 +18,7 @@ def data_add(input, alt_aln_method, accession, dbaction, hp, evm, hdp):
     # RefSeq databases
     # Get the Entrez (GenBank) file
     dbControls.data.update_transcript_info_record(accession, hdp)
-    entry = dbControls.data.in_entries(accession.split('.')[0], 'transcript_info')
+    entry = dbControls.data.in_entries(accession, 'transcript_info')
     return entry
 
 # <LICENSE>

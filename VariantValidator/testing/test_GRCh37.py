@@ -41,6 +41,10 @@ def get_new_variants():
     new_variant_list = [
                         #"†c.589G>T",
                         #"NM_000088​.3:c.589G>T",
+                        "NM_015120.4:c.35T>C",
+                        "NM_015120.4:c.39G>C",
+                        "NM_015120.4:c.34C>T",
+                        "NC_000002.11:g.73613030C>T",
                         "NC_000023.10:g.33229673A>T",
                         "NM_001145026.1:c.715A>G",
                         "NC_000016.9:g.2099572TC>T",
@@ -56,6 +60,8 @@ def get_new_variants():
                         "NM_000500.7:c.-107-19C>T",
                         "NM_000518.4:c.-130C>T",
                         "NM_000518.4:c.-50-80C>T",
+                        "NM_000518.4:c.316_*342delinsCTACTT",
+                        "NM_000518.4:c.316_*100del",
                         "NM_000518.4:c.*2000C>T",
                         "NM_000518.4:c.*132+1868C>T",
                         "NM_000518.4:c.-130_*2000=",
@@ -363,8 +369,8 @@ def get_new_variants():
 
 def write_variant_files():
     ROOT = os.path.dirname(os.path.abspath(__file__))
-    new_file = os.path.join(ROOT, 'new_variants.txt')
-    cur_file = os.path.join(ROOT, 'curated_variants.txt')
+    new_file = os.path.join(ROOT, 'new_variants_GRCh37.txt')
+    cur_file = os.path.join(ROOT, 'curated_variants_GRCh37.txt')
     new_variants = get_new_variants()
     curated_variants = get_curated_variants()
     all_new = []
