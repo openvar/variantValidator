@@ -172,10 +172,16 @@ def update():
 
     # Known missing identifiers
     known = {
-        'NG_021289.1': {'symbol': 'CFAP47', 'gene_id': '286464'},
-        'NG_027707.1': {'symbol': 'DUX4L1', 'gene_id': '22947'},
-        'NG_033266.1': {'symbol': 'DSE', 'gene_id': '29940'}
-    }
+            'NG_021289.1' : {'symbol' : 'CFAP47', 'gene_id' : '286464'},
+            'NG_027707.1' : {'symbol' : 'DUX4L1', 'gene_id' : '22947'},
+            'NG_033266.1' : {'symbol' : 'DSE', 'gene_id': '29940'},
+            'NG_061543.1' : {'symbol' : 'CYP1A2', 'gene_id': '1544'},
+            'NG_061374.1' : {'symbol' : 'CYP1A1', 'gene_id': '1543'},
+            'NG_059281.1' : {'symbol' : 'HBB', 'gene_id': '3043'},
+            'NG_012639.1' : {'symbol' : 'VHLL', 'gene_id': '391104'},
+            'NG_059186.1' : {'symbol' : 'HBA1', 'gene_id': '3040'},
+            'NG_059271.1' : {'symbol' : 'HBA2', 'gene_id': '3040'}
+            }
 
     # Known Obsolete identifiers
     obsolete = {
@@ -253,7 +259,7 @@ def update():
 
 # <LICENSE>
 
-# </LICENSE>	
+# </LICENSE>    
 
 
 
