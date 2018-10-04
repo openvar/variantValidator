@@ -837,7 +837,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                 # Tackle compound variant descriptions NG or NC (NM_) i.e. correctly input NG/NC_(NM_):c.
                 """
                 Fully HGVS compliant intronic variant descriptions take the format e.g
-                NG_007400.1(NM_000088.3):c.589-1G>T. However, hgvs can not parse and map
+                NG_007400.1(NM_000088.3):c.589-1G>T. However, hgvs cannot parse and map
                 these variant strings. 
 
                 This function:
@@ -1199,7 +1199,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                 An evolving set of variant structure and content searches which identify 
                 and warn users about inappropriate use of HGVS
 
-                Primarily, this code filters out variants that can not realistically be 
+                Primarily, this code filters out variants that cannot realistically be 
                 auto corrected and will cause the downstream functions to return errors
                 """
                 input_parses = hp.parse_hgvs_variant(input)
@@ -1818,7 +1818,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     if error != 'false':
                         error = 'Please inform UTA admin of the following error: ' + str(error)
                         issue_link = "https://bitbucket.org/biocommons/uta/issues?status=new&status=open"
-                        reason = "VariantValidator can not recover information for transcript " + str(
+                        reason = "VariantValidator cannot recover information for transcript " + str(
                             hgvs_vt.ac) + ' beacuse it is not available in the Universal Transcript Archive'
                         validation['warnings'] = validation['warnings'] + ': ' + str(reason)
                         continue
@@ -6271,27 +6271,47 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         if lrg_transcript == 'none':
                             lrg_transcript_variant = ''
                         else:
-                            if not re.search('RefSeqGene', refseqgene_variant) or refseqgene_variant != '':
-                                if hgvs_refseqgene_variant != 'RefSeqGene record not available' and hgvs_refseqgene_variant != 'false':
+                            # Note - LRG availability is dependant on UTA containing the data. In some
+                            # instances we will be able to display the LRG_tx without being able to
+                            # display the LRG gene data
+                            
+                            # if not re.search('RefSeqGene', refseqgene_variant) or refseqgene_variant != '':
+                                # if hgvs_refseqgene_variant != 'RefSeqGene record not available' and hgvs_refseqgene_variant != 'false':
+                            try:
+                                hgvs_lrg_t = vm.g_to_t(hgvs_refseqgene_variant, transcript_accession)
+                                try:
+                                    if hgvs_lrg_t.posedit.edit.type == 'dup' or re.search('del',
+                                                                                          hgvs_lrg_t.posedit.edit.type):
+                                        if len(hgvs_lrg_t.posedit.edit.ref) > 4:
+                                            hgvs_lrg_t.posedit.edit.ref = ''
+                                    elif hgvs_lrg_t.posedit.edit.type == 'identity':
+                                        if len(hgvs_lrg_t.posedit.edit.ref) > 1:
+                                            hgvs_lrg_t.posedit.edit.ref = ''
+                                            hgvs_lrg_t.posedit.edit.alt = ''
+                                except:
+                                    pass
+                                hgvs_lrg_t.ac = lrg_transcript
+                                lrg_transcript_variant = valstr(hgvs_lrg_t)
+                            except:
+                                if hgvs_transcript_variant.posedit.pos.start.offset == 0 and hgvs_transcript_variant.posedit.pos.end.offset == 0:
+                                    hgvs_lrg_t = copy.copy(hgvs_transcript_variant)
                                     try:
-                                        hgvs_lrg_t = vm.g_to_t(hgvs_refseqgene_variant, transcript_accession)
-                                        try:
-                                            if hgvs_lrg_t.posedit.edit.type == 'dup' or re.search('del',
-                                                                                                  hgvs_lrg_t.posedit.edit.type):
-                                                if len(hgvs_lrg_t.posedit.edit.ref) > 4:
-                                                    hgvs_lrg_t.posedit.edit.ref = ''
-                                            elif hgvs_lrg_t.posedit.edit.type == 'identity':
-                                                if len(hgvs_lrg_t.posedit.edit.ref) > 1:
-                                                    hgvs_lrg_t.posedit.edit.ref = ''
-                                                    hgvs_lrg_t.posedit.edit.alt = ''
-                                        except:
-                                            pass
-                                        hgvs_lrg_t.ac = lrg_transcript
-                                        lrg_transcript_variant = valstr(hgvs_lrg_t)
+                                        if hgvs_lrg_t.posedit.edit.type == 'dup' or re.search('del',
+                                                                                              hgvs_lrg_t.posedit.edit.type):
+                                            if len(hgvs_lrg_t.posedit.edit.ref) > 4:
+                                                hgvs_lrg_t.posedit.edit.ref = ''
+                                        elif hgvs_lrg_t.posedit.edit.type == 'identity':
+                                            if len(hgvs_lrg_t.posedit.edit.ref) > 1:
+                                                hgvs_lrg_t.posedit.edit.ref = ''
+                                                hgvs_lrg_t.posedit.edit.alt = ''
                                     except:
-                                        lrg_transcript_variant = ''
+                                        pass
+                                    hgvs_lrg_t.ac = lrg_transcript
+                                    lrg_transcript_variant = valstr(hgvs_lrg_t)
                                 else:
                                     lrg_transcript_variant = ''
+#                         else:
+#                             lrg_transcript_variant = ''
                     else:
                         transcript_accession = ''
                         lrg_transcript_variant = ''
@@ -7814,7 +7834,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         caution = ''
                         if primary_assembly not in primary_genomic_dicts.keys():
                             warnings = warnings + ': ' + str(
-                                hgvs_coding) + ' can not be mapped directly to genome build ' + primary_assembly + ': See alternative genomic loci or alternative genome builds for aligned genomic positions'
+                                hgvs_coding) + ' cannot be mapped directly to genome build ' + primary_assembly + ': See alternative genomic loci or alternative genome builds for aligned genomic positions'
 
                     warn_list = warnings.split(': ')
                     warnings_out = []
