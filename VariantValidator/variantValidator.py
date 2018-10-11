@@ -278,7 +278,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
         # if select_transcripts != 'all':
 
         # split the batch queries into a list
-        batch_queries = batch_variant.split()
+        batch_queries = batch_variant.split('|')
 
         # Turn each variant into a dictionary. The dictionary will be compiled during validation
         batch_list = []
@@ -371,6 +371,14 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         pass
                 else:
                     pass
+                
+                # Remove whitespace 
+                ws = copy.copy(input)
+                input = input.strip()
+                input = ''.join(input.split())
+                if input != ws:
+                    caution = 'Whitespace removed from variant description ' + str(ws)
+                    validation['warnings'] = validation['warnings'] + ': ' + caution 
                     
                 stash_input = copy.copy(input)
                 # Set the primary_assembly
@@ -533,7 +541,19 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                 software
                 """
                 if re.search('\w+:[gcnmrp]\.', input) and not re.match('N[CGTWMRP]_', input):
-                    if not re.match('LRG_', input) and not re.match('ENS', input):
+                    # Take out lowercase Accession characters
+                    lower_cased_list = input.split(':')
+                    if re.search('LRG', lower_cased_list[0], re.IGNORECASE):
+                        lower_case_accession = lower_cased_list[0]  
+                        lower_case_accession = lower_case_accession.replace('l', 'L')
+                        lower_case_accession = lower_case_accession.replace('r', 'R')
+                        lower_case_accession = lower_case_accession.replace('g', 'G')
+                    else:
+                        lower_case_accession = lower_cased_list[0]
+                        lower_case_accession = lower_case_accession.upper()
+                    input = ''.join(lower_cased_list[1:])
+                    input = lower_case_accession + ':' + input      
+                    if not re.match('LRG_', input) and not re.match('ENS', input) and not re.match('N[MRP]_', input):
                         try:
                             pre_input = copy.deepcopy(input)
                             input_list = input.split(':')
@@ -959,7 +979,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     if re.search('\w+\:[gcnmrp]', input) and not re.search('\w+\:[gcnmrp]\.', input):
                         error = 'Variant description ' + input + ' lacks the . character between <type> and <position> in the expected pattern <accession>:<type>.<position>'
                     else:
-                        error = 'Variant description ' + input + ' is not in an accepted format. Please see examples bleow'
+                        error = 'Variant description ' + input + ' is not in an accepted format'
                     validation['warnings'] = validation[
                                                  'warnings'] + ': ' + error
                     continue
@@ -995,6 +1015,17 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                 except hgvs.exceptions.HGVSError as e:
                     error = str(e)
                 if error == 'false':
+                    input_parses.ac = input_parses.ac.upper()
+                    try:
+                        input_parses.posedit.edit.alt = input_parses.posedit.edit.alt.upper()
+                    except Exception as e:          
+                        pass
+                    try:
+                        input_parses.posedit.edit.ref = input_parses.posedit.edit.ref.upper()
+                    except Exception as e:          
+                        pass
+                    variant = str(input_parses)
+                    input = str(input_parses)
                     pass
                 else:
                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
