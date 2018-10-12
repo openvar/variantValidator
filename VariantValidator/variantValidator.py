@@ -385,11 +385,25 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                 if validation['primary_assembly'] == 'false':
                     if selected_assembly == 'hg19':
                         primary_assembly = 'GRCh37'
-                    if selected_assembly == 'hg38':
+                    elif selected_assembly == 'hg38':
                         primary_assembly = 'GRCh38'
-                    else:
+                    # Ensure genome build is correctly formatted
+                    elif re.search('GRC', selected_assembly, re.IGNORECASE):
+                        selected_assembly = selected_assembly.replace('g', 'G')
+                        selected_assembly = selected_assembly.replace('r', 'R')
+                        selected_assembly = selected_assembly.replace('c', 'C')
+                        selected_assembly = selected_assembly.replace('H', 'h')
                         primary_assembly = selected_assembly
-                    validation['primary_assembly'] = primary_assembly
+                    # Catch invalid genome build
+                    valid_build = False
+                    for build in genome_builds:
+                        if primary_assembly == build:
+                            valid_build = True
+                    if valid_build is False:
+                        primary_assembly = 'GRCh38'
+                        validation['warnings'] = validation['warnings'] + ': Invalid genome build has been specified. Automap has selected the default build (GRCh38)'
+                    else:
+                        validation['primary_assembly'] = primary_assembly
                 else:
                     primary_assembly = validation['primary_assembly']
 
@@ -553,7 +567,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         lower_case_accession = lower_case_accession.upper()
                     input = ''.join(lower_cased_list[1:])
                     input = lower_case_accession + ':' + input      
-                    if not re.match('LRG_', input) and not re.match('ENS', input) and not re.match('N[MRP]_', input):
+                    if not re.match('LRG_', input) and not re.match('ENS', input) and not re.match('N[MRPC]_', input):
                         try:
                             pre_input = copy.deepcopy(input)
                             input_list = input.split(':')
