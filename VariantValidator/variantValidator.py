@@ -152,6 +152,7 @@ class variantValidatorError(Exception):
     pass
 
 # PRE COMPILE VARIABLES
+hgvs.global_config.uta.pool_max = 25
 hdp = hgvs.dataproviders.uta.connect(pooling=True)
 # From the hgvs parser import, create an instance of hgvs.parser.Parser
 hp = hgvs.parser.Parser()
@@ -6003,14 +6004,18 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             hgvs_refseq_ac = 'RefSeqGene record not available'
 
                         # Predicted effect on protein
-                        protein_dict = va_func.myc_to_p(hgvs_coding, evm)
+                        protein_dict = va_func.myc_to_p(hgvs_coding, evm, re_to_p = False)
                         if protein_dict['error'] == '':
                             hgvs_protein = protein_dict['hgvs_protein']
                             protein = str(hgvs_protein)
                         else:
                             error = protein_dict['error']
                             validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                            continue
+                            if error == 'Cannot identify an in-frame Termination codon in the variant mRNA sequence':
+                                hgvs_protein = protein_dict['hgvs_protein']
+                                protein = str(hgvs_protein) 
+                            else:
+                                continue
 
                         # Gene orientation wrt genome
                         ori = va_func.tx_exons(tx_ac=hgvs_coding.ac, alt_ac=hgvs_genomic.ac,
@@ -6066,15 +6071,18 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 try:
                                     #hgvs_protein = va_func.protein(str(c_for_p), evm, hp)
                                     # Predicted effect on protein
-                                    protein_dict = va_func.myc_to_p(c_for_p, evm)
+                                    protein_dict = va_func.myc_to_p(c_for_p, evm, re_to_p = False)
                                     if protein_dict['error'] == '':
                                         hgvs_protein = protein_dict['hgvs_protein']
                                         protein = str(hgvs_protein)
                                     else:
                                         error = protein_dict['error']
+                                        if error == 'Cannot identify an in-frame Termination codon in the variant mRNA sequence':
+                                            hgvs_protein = protein_dict['hgvs_protein']
+                                            validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                     # Replace protein description in vars table
                                     protein = str(hgvs_protein)
-                                except:
+                                except NotImplementedError:
                                     pass
                             else:
                                 # Double check protein position by normalize genomic, and normalize back to c. for normalize or not to normalize issue
@@ -6136,12 +6144,16 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         pass
                                     else:
                                         # hgvs_protein = va_func.protein(str(c_for_p), evm, hp)
-                                        protein_dict = va_func.myc_to_p(c_for_p, evm)
+                                        protein_dict = va_func.myc_to_p(c_for_p, evm, re_to_p = False)
                                         if protein_dict['error'] == '':
                                             hgvs_protein = protein_dict['hgvs_protein']
                                             protein = str(hgvs_protein)
                                         else:
                                             error = protein_dict['error']
+                                            if error == 'Cannot identify an in-frame Termination codon in the variant mRNA sequence':
+                                                hgvs_protein = protein_dict['hgvs_protein']
+                                                validation['warnings'] = validation['warnings'] + ': ' + str(error)
+                                        # Replace protein description in vars table
                                         protein = str(hgvs_protein)
                                 except Exception:                                    
                                     pass
@@ -6155,11 +6167,15 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         version_tracking = '0'
                         update = ''
                         for accession in tx_for_gene:
-                            if re.match(ac_root, accession[3]):
-                                query_version = accession[3].split('.')[1]
-                                if int(query_version) > int(ac_version) and int(query_version) > int(version_tracking):
-                                    version_tracking = query_version
-                                    update = accession[3]
+                            try:
+                                if re.match(ac_root, accession[3]):
+                                    query_version = accession[3].split('.')[1]
+                                    if int(query_version) > int(ac_version) and int(query_version) > int(version_tracking):
+                                        version_tracking = query_version
+                                        update = accession[3]
+                            except ValueError:
+                                continue
+                            
                         if update != '':
                             hgvs_updated = copy.deepcopy(hgvs_coding)
                             hgvs_updated.ac = update
@@ -7902,12 +7918,15 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         
                     # Add single letter AA code to protein descriptions
                     if predicted_protein_variant != '': 
-                        format_p = predicted_protein_variant
-                        format_p = re.sub('\(LRG_.+?\)', '', format_p)              
-                        re_parse_protein = hp.parse_hgvs_variant(format_p)
-                        re_parse_protein_singleAA = re_parse_protein.format({'p_3_letter': False})
-                        if re_parse_protein_singleAA.split(':p.')[1] != '?':
-                            predicted_protein_variant = predicted_protein_variant + ' p.' + re_parse_protein_singleAA.split(':p.')[1]               
+                        try:
+                            format_p = predicted_protein_variant
+                            format_p = re.sub('\(LRG_.+?\)', '', format_p)              
+                            re_parse_protein = hp.parse_hgvs_variant(format_p)
+                            re_parse_protein_singleAA = re_parse_protein.format({'p_3_letter': False})
+                            if re_parse_protein_singleAA.split(':p.')[1] != '?':
+                                predicted_protein_variant = predicted_protein_variant + ' p.' + re_parse_protein_singleAA.split(':p.')[1]               
+                        except hgvs.exceptions.HGVSParseError:
+                            pass
                     
                     # Populate the dictionary
                     dict_out['submitted_variant'] = submitted

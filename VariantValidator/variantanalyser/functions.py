@@ -389,8 +389,8 @@ def protein(variant, evm, hp):
         # convert the input string into a hgvs object
         var_c = hp.parse_hgvs_variant(variant)
         # Does the edit affect the start codon?
-        if ((var_c.posedit.pos.start.base >= 1 and var_c.posedit.pos.start.base <= 3) or (
-                var_c.posedit.pos.end.base >= 1 and var_c.posedit.pos.end.base <= 3)) and not re.search('\*', str(
+        if ((var_c.posedit.pos.start.base >= 1 and var_c.posedit.pos.start.base <= 3 and var_c.posedit.pos.start.offset == 0) or (
+                var_c.posedit.pos.end.base >= 1 and var_c.posedit.pos.end.base <= 3 and var_c.posedit.pos.end.offset == 0)) and not re.search('\*', str(
                 var_c.posedit.pos)):
             ass_prot = hdp.get_pro_ac_for_tx_ac(var_c.ac)
             if str(ass_prot) == 'None':
@@ -418,7 +418,7 @@ previous g_to_t function
 """
 
 
-def myc_to_p(hgvs_transcript, evm):
+def myc_to_p(hgvs_transcript, evm, re_to_p):
     # Create dictionary to store the information
     hgvs_transcript_to_hgvs_protein = {'error': '', 'hgvs_protein': '', 'ref_residues': ''}
     
@@ -439,10 +439,10 @@ def myc_to_p(hgvs_transcript, evm):
     if hgvs_transcript.type == 'c':
         # Handle non inversions with simple c_to_p mapping
                 
-        if (hgvs_transcript.posedit.edit.type != 'inv') and (hgvs_transcript.posedit.edit.type != 'delins'):
+        if (hgvs_transcript.posedit.edit.type != 'inv') and (hgvs_transcript.posedit.edit.type != 'delins') and (re_to_p is not False):
             # Does the edit affect the start codon?
-            if ((hgvs_transcript.posedit.pos.start.base >= 1 and hgvs_transcript.posedit.pos.start.base <= 3) or (
-                    hgvs_transcript.posedit.pos.end.base >= 1 and hgvs_transcript.posedit.pos.end.base <= 3)) \
+            if ((hgvs_transcript.posedit.pos.start.base >= 1 and hgvs_transcript.posedit.pos.start.base <= 3 and hgvs_transcript.posedit.pos.start.offset == 0) or (
+                    hgvs_transcript.posedit.pos.end.base >= 1 and hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset == 0)) \
                     and not re.search('\*', str(
                 hgvs_transcript.posedit.pos)):
                 hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
@@ -452,14 +452,18 @@ def myc_to_p(hgvs_transcript, evm):
                     hgvs_protein = evm.c_to_p(hgvs_transcript)
                 except IndexError as e:
                     error = str(e)
-                    if re.search('string index out of range', error) and re.search('dup', variant):
-                        hgvs_ins = hp.parse_hgvs_variant(variant)
+                    if re.search('string index out of range', error) and re.search('dup', str(hgvs_transcript)):
+                        hgvs_ins = hp.parse_hgvs_variant(str(hgvs_transcript))
                         hgvs_ins = hn.normalize(hgvs_ins)
                         inst = hgvs_ins.ac + ':c.' + str(hgvs_ins.posedit.pos.start.base - 1) + '_' + str(hgvs_ins.posedit.pos.start.base) + 'ins' + hgvs_ins.posedit.edit.ref
+                        hgvs_transcript = hp.parse_hgvs_variant(inst)
                         hgvs_protein = evm.c_to_p(hgvs_transcript)
 
-            hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
-            return hgvs_transcript_to_hgvs_protein
+            try:
+                hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
+                return hgvs_transcript_to_hgvs_protein
+            except UnboundLocalError:
+                myc_to_p(hgvs_transcript, evm, re_to_p = True)
         else:           
             # Additional code required to process inversions
             # Note, this code was developed for VariantValidator and is not native to the biocommons hgvs Python package
@@ -472,16 +476,21 @@ def myc_to_p(hgvs_transcript, evm):
             # Make the inverted sequence
             my_seq = Seq(del_seq)
             
-            if hgvs_transcript.posedit.edit.type != 'delins':
+            if hgvs_transcript.posedit.edit.type == 'inv':
                 inv_seq = my_seq.reverse_complement()
             else:
                 inv_seq = hgvs_transcript.posedit.edit.alt
+                if inv_seq is None:
+                    inv_seq = ''
 
             # Look for p. delins or del
             not_delins = True
             if hgvs_transcript.posedit.edit.type != 'inv':
-                shifts = vm.c_to_p(hgvs_transcript)
-                if re.search('del', shifts.posedit.edit.type):
+                try:
+                    shifts = vm.c_to_p(hgvs_transcript)
+                    if re.search('del', shifts.posedit.edit.type):
+                        not_delins = False
+                except Exception:
                     not_delins = False
             else:
                 not_delins = False
@@ -517,8 +526,16 @@ def myc_to_p(hgvs_transcript, evm):
                                                 hgvs_naughty.posedit.pos.end.base)
                     # Translate the reference and variant proteins
                     prot_ref_seq = links.translate(ref_seq, cds_start)
-                    prot_var_seq = links.translate(var_seq, cds_start)
-
+                    
+                    try:
+                        prot_var_seq = links.translate(var_seq, cds_start)
+                    except IndexError:
+                        hgvs_transcript_to_hgvs_protein['error'] = 'Cannot identify an in-frame Termination codon in the variant mRNA sequence'
+                        hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession, type='p',
+                                                                                posedit='?')
+                        hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
+                        return hgvs_transcript_to_hgvs_protein
+                        
                     if prot_ref_seq == 'error':
                         error = 'Unable to generate protein variant description'
                         hgvs_transcript_to_hgvs_protein['error'] = error
@@ -526,9 +543,9 @@ def myc_to_p(hgvs_transcript, evm):
                     elif prot_var_seq == 'error':
                         # Does the edit affect the start codon?
                         if ((
-                                    hgvs_transcript.posedit.pos.start.base >= 1 and hgvs_transcript.posedit.pos.start.base <= 3)
+                                    hgvs_transcript.posedit.pos.start.base >= 1 and hgvs_transcript.posedit.pos.start.base <= 3 and hgvs_transcript.posedit.pos.start.offset == 0)
                             or
-                            (hgvs_transcript.posedit.pos.end.base >= 1 and hgvs_transcript.posedit.pos.end.base <= 3)) \
+                            (hgvs_transcript.posedit.pos.end.base >= 1 and hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset == 0)) \
                                 and not re.search('\*', str(hgvs_transcript.posedit.pos)):                      
                             hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession, type='p',
                                                                                 posedit='(Met1?)')
@@ -545,7 +562,7 @@ def myc_to_p(hgvs_transcript, evm):
                             pro_inv_info = links.pro_inv_info(prot_ref_seq, prot_var_seq)
                         else:
                             pro_inv_info = links.pro_delins_info(prot_ref_seq, prot_var_seq)
-
+                        
                         # Error has occurred
                         if pro_inv_info['error'] == 'true':
                             error = 'Translation error occurred, please contact admin'
@@ -603,7 +620,7 @@ def myc_to_p(hgvs_transcript, evm):
                                     else:
                                         posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + str(
                                             ins_thr[:3]) + 'ext?)'
-
+                                
                                 # Nucleotide variation has not affected the length of the protein thus substitution or del
                                 else:                                   
                                     if len(ins_thr) == 3: 
@@ -624,6 +641,7 @@ def myc_to_p(hgvs_transcript, evm):
             
             # Return
             return hgvs_transcript_to_hgvs_protein
+                                
 
     # Handle non-coding transcript and non transcript descriptions
     elif hgvs_transcript.type == 'n':
@@ -637,7 +655,6 @@ def myc_to_p(hgvs_transcript, evm):
         hgvs_transcript_to_hgvs_protein['error'] = 'Unable to map %s to %s' % (
             hgvs_transcript.ac, associated_protein_accession)
         return hgvs_transcript_to_hgvs_protein
-
 
 
 """
