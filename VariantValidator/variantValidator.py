@@ -2,6 +2,7 @@
 """
 VariantValidator.py
 
+
 Top level VariantValidator functions
 
 This API is configured by reading the configuration information in the config.ini file
