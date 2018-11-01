@@ -418,6 +418,7 @@ previous g_to_t function
 """
 
 
+
 def myc_to_p(hgvs_transcript, evm, re_to_p):
     # Create dictionary to store the information
     hgvs_transcript_to_hgvs_protein = {'error': '', 'hgvs_protein': '', 'ref_residues': ''}
@@ -439,7 +440,7 @@ def myc_to_p(hgvs_transcript, evm, re_to_p):
     if hgvs_transcript.type == 'c':
         # Handle non inversions with simple c_to_p mapping
                 
-        if (hgvs_transcript.posedit.edit.type != 'inv') and (hgvs_transcript.posedit.edit.type != 'delins') and (re_to_p is not False):
+        if (hgvs_transcript.posedit.edit.type != 'inv') and (hgvs_transcript.posedit.edit.type != 'delins') and (re_to_p is False):
             # Does the edit affect the start codon?
             if ((hgvs_transcript.posedit.pos.start.base >= 1 and hgvs_transcript.posedit.pos.start.base <= 3 and hgvs_transcript.posedit.pos.start.offset == 0) or (
                     hgvs_transcript.posedit.pos.end.base >= 1 and hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset == 0)) \
@@ -463,7 +464,9 @@ def myc_to_p(hgvs_transcript, evm, re_to_p):
                 hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
                 return hgvs_transcript_to_hgvs_protein
             except UnboundLocalError:
-                myc_to_p(hgvs_transcript, evm, re_to_p = True)
+                hgvs_transcript_to_hgvs_protein = myc_to_p(hgvs_transcript, evm, re_to_p = True)
+                return hgvs_transcript_to_hgvs_protein
+                
         else:           
             # Additional code required to process inversions
             # Note, this code was developed for VariantValidator and is not native to the biocommons hgvs Python package
