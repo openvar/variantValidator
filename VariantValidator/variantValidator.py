@@ -2180,12 +2180,29 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         # Re-Analyse genomic positions
                         if re.match('NG_', str(stash_input)):
                             c = hp.parse_hgvs_variant(rel_var[0])
-                            stash_input = va_func.myevm_t_to_g(c, no_norm_evm, hdp, primary_assembly)
+                            try:
+                                c.posedit.edit.ref = c.posedit.edit.ref.upper()
+                            except Exception:
+                                pass
+                            try:
+                                c.posedit.edit.alt = c.posedit.edit.alt.upper()
+                            except Exception:
+                                pass                
+                            stash_input = variantanalyser.functions.myevm_t_to_g(c, no_norm_evm, hdp, primary_assembly)
                         if re.match('NC_', str(stash_input)):
                             try:
                                 hgvs_stash = hp.parse_hgvs_variant(stash_input)
-                            except:
+                            except: 
                                 hgvs_stash = stash_input
+                            try:
+                                hgvs_stash.posedit.edit.ref = hgvs_stash.posedit.edit.ref.upper()
+                            except Exception:
+                                pass
+                            try:
+                                hgvs_stash.posedit.edit.alt = hgvs_stash.posedit.edit.alt.upper()
+                            except Exception:
+                                pass
+
                             stash_ac = hgvs_stash.ac
                             # MAKE A NO NORM HGVS2VCF
                             stash_dict = va_H2V.pos_lock_hgvs2vcf(hgvs_stash)
