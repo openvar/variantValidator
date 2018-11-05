@@ -490,7 +490,7 @@ def myc_to_p(hgvs_transcript, evm, re_to_p):
             not_delins = True
             if hgvs_transcript.posedit.edit.type != 'inv':
                 try:
-                    shifts = vm.c_to_p(hgvs_transcript)
+                    shifts = evm.c_to_p(hgvs_transcript)
                     if re.search('del', shifts.posedit.edit.type):
                         not_delins = False
                 except Exception:
