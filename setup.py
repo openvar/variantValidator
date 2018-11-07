@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='variantValidator',
-    version='0.1.0',
+    version='0.1.0_dev_pre_a',
     description='API for accurate, mapping and formatting of sequence variants using HGVS nomenclature',
     long_description=open('README.txt').read(),
     url='',
@@ -14,7 +14,7 @@ setup(
 	package_data={"variantValidator": ["configuration/*.ini"],},
     packages=find_packages(),
     include_package_data=True,
-    license='University of Leicester VariantValidator License (LICENSE.txt)',
+    license="https://www.gnu.org/licenses/agpl-3.0.en.html",
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
         # How mature is this project? Common values are
@@ -41,11 +41,13 @@ setup(
           "genomic variation",
           "genomics",
           "hgvs",
+          "HGVS",
+          "sequencevariants",
       ],
 
 	# List run-time dependencies here.  These will be installed by pip when the project is installed.
     install_requires=[
-        "hgvs >= 1.0.0", # This will install BioPython
+        "hgvs == 1.1.3", # This will install BioPython
 		"biocommons.seqrepo >= 0.3.5",
 		"httplib2 >= 0.9.0",
 		"configparser >= 3.5.0",
