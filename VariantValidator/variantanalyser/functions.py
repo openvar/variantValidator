@@ -505,8 +505,16 @@ def myc_to_p(hgvs_transcript, evm, re_to_p):
 
                 # Intronic inversions are marked as uncertain i.e. p.?
                 if re.search('\d+\-', str(hgvs_transcript.posedit.pos)) or re.search('\d+\+', str(hgvs_transcript.posedit.pos)) or re.search('\*', str(hgvs_transcript.posedit.pos)) or re.search('\.\-', str(hgvs_transcript.posedit.pos)):
-                    # Make the variant
-                    hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession, type='p', posedit='?')
+                    if ((
+                                hgvs_transcript.posedit.pos.start.base >= 1 and hgvs_transcript.posedit.pos.start.base <= 3 and hgvs_transcript.posedit.pos.start.offset == 0)
+                        or
+                        (hgvs_transcript.posedit.pos.end.base >= 1 and hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset == 0)) \
+                            and not re.search('\*', str(hgvs_transcript.posedit.pos)):                      
+                        hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession, type='p',
+                                                                            posedit='(Met1?)')
+                    else:                   
+                        # Make the variant
+                        hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession, type='p', posedit='?')
                     hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
                     return hgvs_transcript_to_hgvs_protein
                 else:
