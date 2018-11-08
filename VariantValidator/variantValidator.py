@@ -2189,7 +2189,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             except Exception:
                                 pass                
                             stash_input = variantanalyser.functions.myevm_t_to_g(c, no_norm_evm, hdp, primary_assembly)
-                        if re.match('NC_', str(stash_input)):
+                        if re.match('NC_', str(stash_input)) or re.match('NT_', str(stash_input)) or re.match('NW_', str(stash_input)):
                             try:
                                 hgvs_stash = hp.parse_hgvs_variant(stash_input)
                             except: 
