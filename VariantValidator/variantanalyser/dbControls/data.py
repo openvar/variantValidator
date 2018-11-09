@@ -178,14 +178,6 @@ def update_refSeqGene_loci(rsg_data):
 		dbupdate.update_refSeqGene_data(rsg_data)
 	return
 
-"""
-marked for removal
-"""
-# def update__transcript_loci(update_data, primary_assembly):
-# 	# import dbupdate
-# 	success = dbupdate.update_transcript_loci(update_data, primary_assembly)
-# 	return success	
-
 def update_lrg_rs_lookup(lrg_rs_lookup):
 	# First query the database
 	rsgID = dbfetchone.get_RefSeqGeneID_from_lrgID(lrg_rs_lookup[0])
@@ -230,15 +222,6 @@ def get_hgnc_symbol(gene_symbol):
 	# returns the HGNC gene symbol when UTA gene symbol is input
 	hgncSymbol = str(dbfetchone.get_hgncSymbol(gene_symbol)[0])
 	return hgncSymbol
-
-"""
-marked for removal
-"""
-# def get_current_hgnc_symbol(gene_symbol, primary_assembly):
-# 	# returns current HGNC gene symbol when previous gene symbol is input
-# 	# import dbfetchone
-# 	hgncSymbol = dbfetchone.get_current_hgnc_symbol(gene_symbol, primary_assembly)
-# 	return hgncSymbol
 	
 def get_transcript_description(transcript_id):
 	# returns the transcript description for a given transcript
@@ -254,40 +237,6 @@ def get_gene_symbol_from_refSeqGeneID(refSeqGeneID):
 	# Returns the databases most up-to-date gene symbol for a given NG_ ID
 	gene_symbol = dbfetchone.get_gene_symbol_from_refSeqGeneID(refSeqGeneID)
 	return gene_symbol
-
-"""
-marked for removal
-"""
-#def get_transcribed_span_for_transcript(transcript_id, primary_assembly):
-# 	Returns the chromosome and span for the selected transcript
-# 	import dbfetchone
-# 	span = dbfetchone.get_transcribed_span_for_transcript(transcript_id, primary_assembly)
-# 	return span
-
-"""
-marked for removal
-"""
-# def get_transcribed_span_for_gene(gene_symbol, primary_assembly):
-# 	# Returns the chromosome and span for the selected gene_symbol
-# 	# import dbfetchall
-# 	span = dbfetchall.get_transcribed_span_for_gene(gene_symbol, primary_assembly)
-# 	span_out = {}
-# 	chr = span[0][0]
-# 	start = 0
-# 	end = 0
-# 	for row in span:
-# 		if start == 0:
-# 			start = row[1]
-# 		if end == 0:
-# 			end = row[2]
-# 		if row[1] < start:
-# 			start = row[1]
-# 		if row[2] > end:
-# 			end = row[2]			
-# 	span_out['chr'] = chr
-# 	span_out['start'] = start
-# 	span_out['end'] = end						
-# 	return span_out	
 
 def get_g_to_g_info():
 	# Recovers the g_to_g data table
@@ -325,5 +274,18 @@ def get_refseqgene_info(refseqgene_id, primary_assembly):
 	return refseqgene_info
 
 # <LICENSE>
-
+# Copyright (C) 2018  Peter Causey-Freeman, University of Leicester
+# 
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+# 
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # </LICENSE>

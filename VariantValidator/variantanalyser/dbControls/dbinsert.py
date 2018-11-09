@@ -16,27 +16,6 @@ def insert(entry, data, table):
 	conn = dbConnection.get_connection().get_connection() # MySQLConnection(**db_config)
 	cursor = conn.cursor()
 	# MySQL queries
-	
-# 	if table == 'genePos37' or table == 'genePos38':
-# 		query = "INSERT INTO " +  table + "(hgncID, symbol, name, prevSymbol, reference, assembly, chr, start, end, refSeqTranscriptID, refSeqGeneID, updated) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, NOW())"
-# 		cursor.execute(query, (data['hgncID'], 
-# 			data['symbol'],
-# 			data['name'],
-# 			data['prevSymbol'],
-# 			data['reference'],
-# 			data['assembly'],
-# 			data['chr'],
-# 			data['start'],
-# 			data['end'],
-# 			data['refSeqTranscriptID'],
-# 			data['refSeqGeneID']
-# 			))
-	
-# 	if table == 'transcript_id':
-# 		accession = entry
-# 		desc = data
-# 		query = "INSERT INTO transcript_id(accession, description, updated) VALUES(%s,%s,NOW())" 
-# 		cursor.execute(query, (accession, desc))
 
 	if table == 'transcript_info':	
 		accession = entry
@@ -76,28 +55,6 @@ def insert_refSeqGene_data(rsg_data):
 	cursor.close()
 	conn.close()
 	return success
-
-"""
-marked for removal
-"""
-# def insert_transcript_loci(add_data, primary_assembly):
-# 	data = add_data
-# 	table = 'genePos' + str(primary_assembly.replace('GRCh', ''))
-# 	query = "INSERT INTO " +  table + "(hgncID, symbol, name, prevSymbol, reference, assembly, chr, start, end, refSeqTranscriptID, refSeqGeneID, updated) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, NOW())"
-# 	conn = dbConnection.get_connection().get_connection()
-# 	cursor = conn.cursor()
-# 	cursor.execute(query, (data['hgncID'], data['symbol'], data['name'], data['prevSymbol'], data['reference'], data['assembly'], data['chr'], data['start'], data['end'], data['refSeqTranscriptID'], data['refSeqGeneID']))			
-# 	# Query report
-# 	if cursor.lastrowid:
-# 		success = 'true'
-# 	else:
-# 		success = 'Unknown error'
-# 
-# 	# Commit and close connection
-# 	conn.commit()
-# 	cursor.close()
-# 	conn.close()
-# 	return success
 
 def insert_RefSeqGeneID_from_lrgID(lrg_rs_lookup):
 	query = "INSERT INTO LRG_RSG_lookup(lrgID, hgncSymbol, RefSeqGeneID, status) VALUES(%s,%s,%s,%s)"
@@ -154,5 +111,18 @@ if __name__ == '__main__':
 	insert()
 
 # <LICENSE>
-
+# Copyright (C) 2018  Peter Causey-Freeman, University of Leicester
+# 
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+# 
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # </LICENSE>

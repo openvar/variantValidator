@@ -279,29 +279,6 @@ def one_to_three(seq):
     return threed_up
 
 
-"""
-marked for removal
-"""
-# def reference(tx_ac_fasta_title, ac_seq):
-#   # Open a list to store the fasta file
-#   tx_ac_fasta = []
-#   # Append the title line
-#   tx_ac_fasta.append(tx_ac_fasta_title)
-#   # Remove any white space from the string (tabs or spaces)
-#   # ac_seq = textwrap.dedent(ac_seq).strip()
-#   # Apply a width of 60 characters to the string output
-#   # ac_seq = textwrap.fill(ac_seq, width=60)
-#   # Append the sequence
-#   # tx_ac_fasta.append(seq_text)
-#   # The sequence string should be 60 bp chunks
-#   # Split the strings into lists of 60 base chunks
-#   #seq_list = nsplit(ac_seq, n=60)
-#   # loop and append as required
-#   #for lines in seq_list:
-#       #tx_ac_fasta.append(lines + '\n')
-#   tx_ac_fasta.append(ac_seq)
-#   return tx_ac_fasta
-
 """ 
 Takes a reference sequence and inverts the specified position
 """
@@ -1185,7 +1162,22 @@ legacy function, May be recycled
 
 
 
-
+# <LICENSE>
+# Copyright (C) 2018  Peter Causey-Freeman, University of Leicester
+# 
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+# 
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# </LICENSE>
 
 
 

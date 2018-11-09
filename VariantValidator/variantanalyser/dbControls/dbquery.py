@@ -12,16 +12,6 @@ def query_with_fetchone(entry, table):
 	# """ Connect to MySQL database """
 	
 	# MySQL queries
-
-# 	if table == 'genePos37' or table == 'genePos38':
-# 		import re
-# 		if re.search('HGNC:', entry):			
-# 			query = "SELECT hgncID, symbol, name, prevSymbol, reference, assembly, chr, start, end, refSeqTranscriptID, refSeqGeneID FROM " + table + " WHERE hgncID = '%s'" %(entry)
-# 		if re.search('sym:', entry):
-# 			symbol = entry.replace('sym:', '')
-# 			query = "SELECT hgncID, symbol, name, prevSymbol, reference, assembly, chr, start, end, refSeqTranscriptID, refSeqGeneID FROM " + table + " WHERE symbol LIKE '%s' OR prevSymbol LIKE '|%s|'" %(symbol, symbol)
-# 	if table == 'transcript_id':
-# 		query = "SELECT accession, description, updated, IF(updated < NOW() - INTERVAL 3 MONTH , 'true', 'false') FROM transcript_id WHERE accession = '%s'" %(entry)
 	
 	if table == 'transcript_info':
 		query = "SELECT refSeqID, description, transcriptVariant, currentVersion, hgncSymbol, utaSymbol, updated, IF(updated < NOW() - INTERVAL 3 MONTH , 'true', 'false') FROM transcript_info WHERE refSeqID = '%s'" %(entry)
@@ -48,5 +38,18 @@ if __name__ == '__main__':
 	query_with_fetchone()
 	
 # <LICENSE>
-
+# Copyright (C) 2018  Peter Causey-Freeman, University of Leicester
+# 
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+# 
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # </LICENSE>	

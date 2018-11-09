@@ -31,15 +31,6 @@ def get_transcript_info_for_gene(gene_symbol):
 	rows = execute(query)
 	return rows
 
-"""
-Marked for removal
-"""
-# def get_transcribed_span_for_gene(gene_symbol, primary_assembly):
-# 	table = 'genePos' + primary_assembly.replace('GRCh', '')
-# 	query = "SELECT chr, start, end FROM " + table + " WHERE symbol = '%s'" %(gene_symbol) 
-# 	rows = execute(query)
-# 	return rows
-
 def get_g_to_g_info():
 	query = "SELECT refSeqGeneID, refSeqChromosomeID, startPos, endPos, orientation, hgncSymbol, genomeBuild FROM refSeqGene_loci"
 	table = execute(query)
@@ -54,5 +45,18 @@ if __name__ == '__main__':
 	query_with_fetchall()
 	
 # <LICENSE>
-
-# </LICENSE>	
+# Copyright (C) 2018  Peter Causey-Freeman, University of Leicester
+# 
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+# 
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# </LICENSE>

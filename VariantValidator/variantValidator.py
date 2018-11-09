@@ -489,6 +489,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         pass
                     else:   
                         try:
+                            if re.search('GRCh37', input) or re.search('hg19', input):
+                                primary_assembly = 'GRCh37'
+                            elif re.search('GRCh38', input) or re.search('hg38', input):
+                                primary_assembly = 'GRCh38'
                             pre_input = copy.deepcopy(input)
                             input_list = input.split(':')
                             pos_ref_alt = str(input_list[1])
@@ -571,6 +575,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     input = lower_case_accession + ':' + input      
                     if not re.match('LRG_', input) and not re.match('ENS', input) and not re.match('N[MRPC]_', input):
                         try:
+                            if re.search('GRCh37', input) or re.search('hg19', input):
+                                primary_assembly = 'GRCh37'
+                            elif re.search('GRCh38', input) or re.search('hg38', input):
+                                primary_assembly = 'GRCh38' 
                             pre_input = copy.deepcopy(input)
                             input_list = input.split(':')
                             query_a_symbol = input_list[0]
@@ -1002,6 +1010,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                 else:
                     variant = formatted['variant']
                     input = formatted['variant']
+                    stash_input = formatted['variant']
                     type = formatted['type']
 
                 # Conversions
@@ -8405,5 +8414,18 @@ def update_vv_data():
     compile_lrg_data.update()
 
 # <LICENSE>
-
+# Copyright (C) 2018  Peter Causey-Freeman, University of Leicester
+# 
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+# 
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # </LICENSE>
