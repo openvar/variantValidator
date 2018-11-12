@@ -6,6 +6,7 @@
 
 # rm -r /local/python/2.7.12/lib/python2.7/site-packages/variantValidator/
 rsync -rv .// /local/python/2.7.12/lib/python2.7/site-packages/VariantValidator/ --delete
+rsync -rv .// /local/python/2.7/lib/python2.7/site-packages/VariantValidator/ --delete
 
 
 # <LICENSE>
