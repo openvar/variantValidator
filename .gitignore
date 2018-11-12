@@ -1,5 +1,5 @@
 #Git ignorance file for variant validator
 #Testing script
-vvTest.py
+VariantValidator/vvTest.py
 #pycs
-variantAnalyser/*.pyc
+VariantValidator/variantanalyser/**/*.pyc
