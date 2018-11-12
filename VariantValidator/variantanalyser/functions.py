@@ -952,7 +952,7 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
 
     if hgvs_c.posedit.edit.type == 'identity' and hgvs_genomic.posedit.edit.type == 'delins' and hgvs_genomic.posedit.edit.alt == '' and expand_out != 'true':
         hgvs_genomic.posedit.edit.alt = hgvs_genomic.posedit.edit.ref 
-    if hgvs_genomic.posedit.edit.type == 'ins':
+    if hgvs_genomic.posedit.edit.type == 'ins' and utilise_gap_code is True:
         try:
             hgvs_genomic = hn.normalize(hgvs_genomic)
         except hgvs.exceptions.HGVSError as e:
@@ -1284,6 +1284,31 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
                         hgvs_genomic = vm.t_to_g(transcript_gap_variant, hgvs_genomic.ac)
                         hgvs_genomic = hn.normalize(hgvs_genomic)
 
+    # Ins variants map badly - Especially between c. exon/exon boundary
+    if hgvs_c.posedit.edit.type == 'ins' and hgvs_c.posedit.pos.start.offset == 0 and hgvs_c.posedit.pos.end.offset == 0:               
+        try:
+            hn.normalize(hgvs_genomic)
+        except hgvs.exceptions.HGVSError as e:
+            error = str(e)
+            if error == 'insertion length must be 1':   
+                if hgvs_c.type == 'c':
+                    hgvs_t = vm.c_to_n(hgvs_c)
+                else:
+                    hgvs_t = copy.copy(hgvs_c)
+                ins_ref = sf.fetch_seq(str(hgvs_t.ac),hgvs_t.posedit.pos.start.base-1,hgvs_t.posedit.pos.end.base)
+                ins_alt = ins_ref[:1] + hgvs_t.posedit.edit.alt + ins_ref[-1:]
+                ins_to_delins = hgvs_t.ac + ':' + hgvs_t.type + '.' + str(hgvs_t.posedit.pos.start.base) + '_' + str(hgvs_t.posedit.pos.end.base) + 'del' + ins_ref + 'ins' + ins_alt
+                hgvs_t = hp.parse_hgvs_variant(ins_to_delins)
+                try:
+                    hgvs_c = vm.n_to_c(hgvs_t)
+                except Exception:
+                    hgvs_c = copy.copy(hgvs_t)
+                try:
+                    hgvs_genomic = no_norm_evm.t_to_g(hgvs_c)
+                except Exception as e:
+                    error = str(e)
+                    warnings.warn('Ins mapping error in myt_to_g ' + error) 
+
     return hgvs_genomic
 
 
@@ -1384,6 +1409,31 @@ def noreplace_myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
         
         raise HGVSDataNotAvailableError('No available t_to_g liftover')
         
+    # Ins variants map badly - Especially between c. exon/exon boundary
+    if hgvs_c.posedit.edit.type == 'ins' and hgvs_c.posedit.pos.start.offset == 0 and hgvs_c.posedit.pos.end.offset == 0:               
+        try:
+            hn.normalize(hgvs_genomic)
+        except hgvs.exceptions.HGVSError as e:
+            error = str(e)
+            if error == 'insertion length must be 1':   
+                if hgvs_c.type == 'c':
+                    hgvs_t = vm.c_to_n(hgvs_c)
+                else:
+                    hgvs_t = copy.copy(hgvs_c)
+                ins_ref = sf.fetch_seq(str(hgvs_t.ac),hgvs_t.posedit.pos.start.base-1,hgvs_t.posedit.pos.end.base)
+                ins_alt = ins_ref[:1] + hgvs_t.posedit.edit.alt + ins_ref[-1:]
+                ins_to_delins = hgvs_t.ac + ':' + hgvs_t.type + '.' + str(hgvs_t.posedit.pos.start.base) + '_' + str(hgvs_t.posedit.pos.end.base) + 'del' + ins_ref + 'ins' + ins_alt
+                hgvs_t = hp.parse_hgvs_variant(ins_to_delins)
+                try:
+                    hgvs_c = vm.n_to_c(hgvs_t)
+                except Exception:
+                    hgvs_c = copy.copy(hgvs_t)
+                try:
+                    hgvs_genomic = no_norm_evm.t_to_g(hgvs_c)
+                except Exception as e:
+                    error = str(e)
+                    warnings.warn('Ins mapping error in myt_to_g ' + error) 
+
     return hgvs_genomic
 
 
@@ -1527,7 +1577,7 @@ def myvm_t_to_g(hgvs_c, alt_chr, vm, hn, hdp, primary_assembly):
     hgvs_genomic = vm.t_to_g(hgvs_c, alt_chr)
     if hgvs_c.posedit.edit.type == 'identity' and hgvs_genomic.posedit.edit.type == 'delins' and hgvs_genomic.posedit.edit.alt == '' and expand_out != 'true':
         hgvs_genomic.posedit.edit.alt = hgvs_genomic.posedit.edit.ref 
-    if hgvs_genomic.posedit.edit.type == 'ins':
+    if hgvs_genomic.posedit.edit.type == 'ins' and utilise_gap_code is True:
         try:
             hgvs_genomic = hn.normalize(hgvs_genomic)
         except hgvs.exceptions.HGVSError as e:
@@ -1857,6 +1907,31 @@ def myvm_t_to_g(hgvs_c, alt_chr, vm, hn, hdp, primary_assembly):
                             transcript_gap_variant = transcript_gap_n
                         hgvs_genomic = vm.t_to_g(transcript_gap_variant, hgvs_genomic.ac)
                         hgvs_genomic = hn.normalize(hgvs_genomic)
+
+    # Ins variants map badly - Especially between c. exon/exon boundary
+    if hgvs_c.posedit.edit.type == 'ins' and hgvs_c.posedit.pos.start.offset == 0 and hgvs_c.posedit.pos.end.offset == 0:               
+        try:
+            hn.normalize(hgvs_genomic)
+        except hgvs.exceptions.HGVSError as e:
+            error = str(e)
+            if error == 'insertion length must be 1':   
+                if hgvs_c.type == 'c':
+                    hgvs_t = vm.c_to_n(hgvs_c)
+                else:
+                    hgvs_t = copy.copy(hgvs_c)
+                ins_ref = sf.fetch_seq(str(hgvs_t.ac),hgvs_t.posedit.pos.start.base-1,hgvs_t.posedit.pos.end.base)
+                ins_alt = ins_ref[:1] + hgvs_t.posedit.edit.alt + ins_ref[-1:]
+                ins_to_delins = hgvs_t.ac + ':' + hgvs_t.type + '.' + str(hgvs_t.posedit.pos.start.base) + '_' + str(hgvs_t.posedit.pos.end.base) + 'del' + ins_ref + 'ins' + ins_alt
+                hgvs_t = hp.parse_hgvs_variant(ins_to_delins)
+                try:
+                    hgvs_c = vm.n_to_c(hgvs_t)
+                except Exception:
+                    hgvs_c = copy.copy(hgvs_t)
+                try:
+                    hgvs_genomic = no_norm_evm.t_to_g(hgvs_c)
+                except Exception as e:
+                    error = str(e)
+                    warnings.warn('Ins mapping error in myt_to_g ' + error) 
 
     return hgvs_genomic
 

@@ -3193,7 +3193,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
                     geno = re.compile(':g.')
                     if plus.search(input) or minus.search(input):
-                        to_g = va_func.genomic(variant, evm, hp, hdp, primary_assembly)
+                        # to_g = va_func.genomic(variant, evm, hp, hdp, primary_assembly)
                         es = re.compile('error')
                         if es.search(str(to_g)):
                             if alt_aln_method != 'genebuild':
@@ -3211,10 +3211,15 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 continue
 
                         else:
-                            # Normalise the g variant
-                            to_g = hn.normalize(to_g)
-                            variant = str(va_func.myevm_g_to_t(hdp, evm, to_g, tx_ac))
-                            tx_ac = ''
+                            # Insertions at exon boundaries are miss-handled by vm.g_to_t
+                            if (obj.posedit.edit.type == 'ins' and obj.posedit.pos.start.offset == 0 and obj.posedit.pos.end.offset != 0) or (obj.posedit.edit.type == 'ins' and obj.posedit.pos.start.offset != 0 and obj.posedit.pos.end.offset == 0):
+                                variant = str(obj)
+                            else:
+                                # Normalize was I believe to replace ref. Mapping does this anyway
+                                #to_g = hn.normalize(to_g)
+                                variant = str(variantanalyser.functions.myevm_g_to_t(hdp, evm, to_g, tx_ac))
+                                tx_ac = ''
+
                     elif geno.search(input):
                         if plus.search(variant) or minus.search(variant):
                             to_g = va_func.genomic(variant, evm, hp, hdp, primary_assembly)
@@ -3233,12 +3238,16 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     excep = "%s -- %s -- %s\n" % (time.ctime(), reason, variant)
                                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                     continue
-
                         else:
-                            # Normalise the g variant
-                            to_g = hp.parse_hgvs_variant(to_g)
-                            variant = str(va_func.myevm_g_to_t(hdp, evm, to_g, tx_ac))
-                            tx_ac = ''
+                            # Insertions at exon boundaries are miss-handled by vm.g_to_t
+                            if (obj.posedit.edit.type == 'ins' and obj.posedit.pos.start.offset == 0 and obj.posedit.pos.end.offset != 0) or (obj.posedit.edit.type == 'ins' and obj.posedit.pos.start.offset != 0 and obj.posedit.pos.end.offset == 0):
+                                print 'OK'
+                                variant = str(obj)
+                            else:
+                                # Normalize was I believe to replace ref. Mapping does this anyway
+                                # to_g = hn.normalize(to_g)
+                                variant = str(variantanalyser.functions.myevm_g_to_t(hdp, evm, to_g, tx_ac))
+                                tx_ac = ''
 
                     else:
                         # Normalize the variant
