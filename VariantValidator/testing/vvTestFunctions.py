@@ -65,7 +65,7 @@ def validateBatch(variantArray):
     out=[]
     selectTranscripts='all'
     selectedAssembly='GRCh37'
-    for i,v in enumerate(variantArray[:3]):
+    for i,v in enumerate(variantArray):
         print("VALIDATING Variant"+str(i),str(i+1)+"/"+str(len(variantArray)),v)
         out.append(vv.validator(v,selectedAssembly,selectTranscripts))
     return out
@@ -105,7 +105,7 @@ def compareBatches(v1path,v2path):
         print("Validation sets are not identical - differences are:")
         for i,v in enumerate(v1batch):
             if not outFlags[i]:
-                print("Validation mismatch in validation "+str(i))
+                print("Mismatch in validation "+str(i))
                 print(v1batch[i])
                 print("Verses")
                 print(v2batch[i])
