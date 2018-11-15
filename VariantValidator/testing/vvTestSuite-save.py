@@ -4,6 +4,7 @@
 #The input variants file should contain a bunch of variants on each line in quotes. Anything outside the
 #quotes is discarded.
 inputVariants="inputVariants.txt"
+saveDirectory="referenceOutputs"
 
 import unittest
 import os
@@ -23,14 +24,46 @@ def config():
     print "Configured"
     
 def saveTestResults():
-    with open(inputVariants) as f:
+    #Saves the results of running inputVariants to a folder given in saveDirectory.
+    if not os.direxists(saveDirectory):
+        os.mkdir(saveDirectory)
+    variantArray=loadVariantList(inputVariants)
+    #Go through the variant array, validating, and save the results.
+    batch=validateBatch(variantArray)
+    #Save copy of the resulting dictionary
+    for i,v in enumerate(batch):
+        with open(os.path.join(saveDirectory,"variant"+str(i)+".txt") ,"w") as f:
+            pickle.dump(out,f)
+
+def loadVariantList(path):
+    out=[]
+    #Load up the input variant file, should be passed in path.txt. Extra space, commas and quotes will be stripped.
+    with open(path) as f:
         for l in f.readlines():
-            print(l)
+            l=l.strip()
+            if len(l)>3:
+                if l[-1]==",":
+                    l=l[:-1]
+                if l[-1]=='"':
+                    l=l[:-1]
+                if l[0]=='"':
+                    l=l[1:]
+                out.append(l)
+    return out
 
+def validateBatch(variantArray):
+    #Returns an array of validations (themselves dictionary objects).
+    out=[]
+    selectTranscripts='all'
+    selectedAssembly='GRCh37'
+    for i,v in enumerate(variantArray):
+        print("VALIDATING",str(i)+"/"+str(len(variantArray)),v)
+        out.append(vv.validator(v,selectedAssembly,selectTranscripts))
+    return out
 
+#Main chain
+saveTestResults()
 
 #variant='NG_005905.2:g.172252G>A'
-#select_transcripts='all'
-#selected_assembly='GRCh37'
 #validation=vv.validator(variant,selected_assembly,select_transcripts)
 #print json.dumps(validation, sort_keys=True, indent=4, separators=(',',":"))
