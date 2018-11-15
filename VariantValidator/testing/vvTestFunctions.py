@@ -3,11 +3,10 @@
 #Run this test to validate all variants and SAVE the results for comparison with a different version.
 #The input variants file should contain a bunch of variants on each line in quotes. Anything outside the
 #quotes is discarded.
-inputVariants="inputVariants.txt"
-saveDirectory="referenceOutputs"
 
 import unittest
 import os
+import pickle
 from VariantValidator import variantValidator as vv
 
 
@@ -23,17 +22,17 @@ def config():
     vv.my_config()
     print "Configured"
     
-def saveTestResults():
+def saveValidations(path,inputVariants):
     #Saves the results of running inputVariants to a folder given in saveDirectory.
-    if not os.path.isdir(saveDirectory):
-        os.mkdir(saveDirectory)
+    if not os.path.isdir(path):
+        os.mkdir(path)
     variantArray=loadVariantList(inputVariants)
     #Go through the variant array, validating, and save the results.
     batch=validateBatch(variantArray)
     #Save copy of the resulting dictionary
     for i,v in enumerate(batch):
         with open(os.path.join(saveDirectory,"variant"+str(i)+".txt") ,"w") as f:
-            pickle.dump(out,f)
+            pickle.dump(v,f)
 
 def loadVariantList(path):
     out=[]
@@ -51,20 +50,78 @@ def loadVariantList(path):
                 out.append(l)
     return out
 
+def loadValidations(path):
+    #Saves the results of running inputVariants to a folder given in saveDirectory.
+    out=[]
+    for paths,dirs,files in os.walk(path):
+        for filePath in files:
+            with open(os.path.join(paths,filePath)) as f:
+                out.append(pickle.load(f))
+                #print(type(out[-1]))
+    return out
+
 def validateBatch(variantArray):
     #Returns an array of validations (themselves dictionary objects).
     out=[]
     selectTranscripts='all'
     selectedAssembly='GRCh37'
     for i,v in enumerate(variantArray[:3]):
-        print("VALIDATING",str(i)+"/"+str(len(variantArray)),v)
+        print("VALIDATING Variant"+str(i),str(i+1)+"/"+str(len(variantArray)),v)
         out.append(vv.validator(v,selectedAssembly,selectTranscripts))
     return out
+
+def compareValidations(v1,v2):
+    #print(v1,v2)
+    for vk in v1.keys():
+        if not (vk in v2.keys()):
+            print(vk,"not found in second variant")
+            return False
+    for vk in v2.keys():
+        if not (vk in v1.keys()):
+            print(vk,"not found in first variant")
+            return False
+    for vk in v1.keys():
+        if not (v1[vk]==v2[vk]):
+            print("Different variant values - "+str(vk)+":"+str(v1[vk])+"vs."+str(vk)+":"+str(v2[vk]))
+            return False
+    return True
+
+def compareBatches(v1path,v2path):
+    #Loads all files in validations folder and compares them
+    outFlags=[]
+    passScore=0
+    v1batch=loadValidations(v1path)
+    v2batch=loadValidations(v2path)
+    for i,v in enumerate(v1batch):
+        outFlags.append(compareValidations(v1batch[i],v2batch[i]))
+        if outFlags[-1]:
+            passScore+=1
+    print("Passed "+str(passScore)+"/"+str(len(v1batch)))
+    if passScore==len(v1batch):
+        #Test passed.
+        print("Validation sets are identical")
+        return True
+    else:
+        print("Validation sets are not identical - differences are:")
+        for i,v in enumerate(v1batch):
+            if not outFlags[i]:
+                print("Validation mismatch in validation "+str(i))
+                print(v1batch[i])
+                print("Verses")
+                print(v2batch[i])
+        return False
+
+
+    
 
 #Main chain
 loadDatabases()
 config()
-saveTestResults()
+#saveValidations(saveDirectory)
+
+#loadValidations(saveDirectory)
+
+#compareBatches(saveDirectory,saveDirectory)
 
 #variant='NG_005905.2:g.172252G>A'
 #validation=vv.validator(variant,selected_assembly,select_transcripts)
