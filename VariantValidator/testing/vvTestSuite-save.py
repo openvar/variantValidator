@@ -25,7 +25,7 @@ def config():
     
 def saveTestResults():
     #Saves the results of running inputVariants to a folder given in saveDirectory.
-    if not os.direxists(saveDirectory):
+    if not os.path.isdir(saveDirectory):
         os.mkdir(saveDirectory)
     variantArray=loadVariantList(inputVariants)
     #Go through the variant array, validating, and save the results.
@@ -56,12 +56,14 @@ def validateBatch(variantArray):
     out=[]
     selectTranscripts='all'
     selectedAssembly='GRCh37'
-    for i,v in enumerate(variantArray):
+    for i,v in enumerate(variantArray[:3]):
         print("VALIDATING",str(i)+"/"+str(len(variantArray)),v)
         out.append(vv.validator(v,selectedAssembly,selectTranscripts))
     return out
 
 #Main chain
+loadDatabases()
+config()
 saveTestResults()
 
 #variant='NG_005905.2:g.172252G>A'
