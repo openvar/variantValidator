@@ -7,20 +7,24 @@
 import unittest
 import os
 import pickle
-from VariantValidator import variantValidator as vv
 
 
-def loadDatabases():
+
+
+
+def config():
     seqrepo_current_version='2018-08-21'
     HGVS_SEQREPO_DIR='/home/pjdp2/seqrepo/'+seqrepo_current_version
     os.environ['HGVS_SEQREPO_DIR']=HGVS_SEQREPO_DIR
     uta_current_version='uta_20180821'
     UTA_DB_URL='postgresql://uta_admin:uta_admin@127.0.0.1/uta/' + uta_current_version
     os.environ['UTA_DB_URL']=UTA_DB_URL
-
-def config():
-    vv.my_config()
+    #from VariantValidator import variantValidator as vv
     print "Configured"
+
+config()
+from VariantValidator import variantValidator as vv
+vv.my_config()
     
 def saveValidations(path,inputVariants):
     #Saves the results of running inputVariants to a folder given in saveDirectory.
@@ -115,7 +119,6 @@ def compareBatches(v1path,v2path):
     
 
 #Main chain
-loadDatabases()
 config()
 #saveValidations(saveDirectory)
 

@@ -3,7 +3,7 @@
 import vvTestFunctions as fn
 
 inputVariants="inputVariants.txt"
-saveDirectory="referenceOutputs"
+saveDirectory="outpusITS-VM"
 
 fn.saveValidations(saveDirectory,inputVariants)
 
