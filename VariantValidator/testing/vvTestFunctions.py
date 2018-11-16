@@ -8,24 +8,35 @@ import unittest
 import os
 import pickle
 
+import sqlite3
 
-
-
-
-def config():
+try:
     seqrepo_current_version='2018-08-21'
-    HGVS_SEQREPO_DIR='/home/pjdp2/seqrepo/'+seqrepo_current_version
+    #HGVS_SEQREPO_DIR='/home/pjdp2/seqrepo/'+seqrepo_current_version
+    HGVS_SEQREPO_DIR='/local/seqrepo/'+seqrepo_current_version
     os.environ['HGVS_SEQREPO_DIR']=HGVS_SEQREPO_DIR
     uta_current_version='uta_20180821'
     UTA_DB_URL='postgresql://uta_admin:uta_admin@127.0.0.1/uta/' + uta_current_version
     os.environ['UTA_DB_URL']=UTA_DB_URL
     #from VariantValidator import variantValidator as vv
-    print "Configured"
+    print "Databases loaded"
+    from VariantValidator import variantValidator as vv
+    vv.my_config()
+    print("Configured for LAMP")
+except sqlite3.OperationalError:
+    seqrepo_current_version='2018-08-21'
+    HGVS_SEQREPO_DIR='/home/pjdp2/seqrepo/'+seqrepo_current_version
+    #HGVS_SEQREPO_DIR='/local/seqrepo/'+seqrepo_current_version
+    os.environ['HGVS_SEQREPO_DIR']=HGVS_SEQREPO_DIR
+    uta_current_version='uta_20180821'
+    UTA_DB_URL='postgresql://uta_admin:uta_admin@127.0.0.1/uta/' + uta_current_version
+    os.environ['UTA_DB_URL']=UTA_DB_URL
+    #from VariantValidator import variantValidator as vv
+    print "Databases loaded"
+    from VariantValidator import variantValidator as vv
+    vv.my_config()
+    print("Configured for VM")
 
-config()
-from VariantValidator import variantValidator as vv
-vv.my_config()
-    
 def saveValidations(path,inputVariants):
     #Saves the results of running inputVariants to a folder given in saveDirectory.
     if not os.path.isdir(path):
@@ -35,7 +46,7 @@ def saveValidations(path,inputVariants):
     batch=validateBatch(variantArray)
     #Save copy of the resulting dictionary
     for i,v in enumerate(batch):
-        with open(os.path.join(saveDirectory,"variant"+str(i)+".txt") ,"w") as f:
+        with open(os.path.join(path,"variant"+str(i)+".txt") ,"w") as f:
             pickle.dump(v,f)
 
 def loadVariantList(path):
@@ -70,8 +81,12 @@ def validateBatch(variantArray):
     selectTranscripts='all'
     selectedAssembly='GRCh37'
     for i,v in enumerate(variantArray):
-        print("VALIDATING Variant"+str(i),str(i+1)+"/"+str(len(variantArray)),v)
-        out.append(vv.validator(v,selectedAssembly,selectTranscripts))
+        print("VALIDATING Variant"+str(i)+" "+str(i+1)+"/"+str(len(variantArray))+" "+str(v))
+        try:
+            out.append(vv.validator(v,selectedAssembly,selectTranscripts))
+        except Exception as e:
+            print("FATAL error processing variant: "+str(e))
+            out.append({"ERROR":str(e)})
     return out
 
 def compareValidations(v1,v2):
@@ -118,14 +133,3 @@ def compareBatches(v1path,v2path):
 
     
 
-#Main chain
-config()
-#saveValidations(saveDirectory)
-
-#loadValidations(saveDirectory)
-
-#compareBatches(saveDirectory,saveDirectory)
-
-#variant='NG_005905.2:g.172252G>A'
-#validation=vv.validator(variant,selected_assembly,select_transcripts)
-#print json.dumps(validation, sort_keys=True, indent=4, separators=(',',":"))

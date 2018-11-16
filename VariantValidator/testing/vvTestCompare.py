@@ -2,8 +2,8 @@
 
 import vvTestFunctions as fn
 
-directory1="referenceOutputs"
-directory2="referenceOutputs2"
+directory1="outputsITS"
+directory2="outputs101"
 
 fn.compareBatches(directory1,directory2)
 
