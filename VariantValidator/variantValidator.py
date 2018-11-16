@@ -8291,7 +8291,7 @@ def gene2transcripts(query):
         for tx in cp_genes_and_tx:
             tx_d = {'reference': tx[0],
                     'description': tx[1],
-                    'coding_start': tx[2],
+                    'coding_start': tx[2] + 1,
                     'coding_end': tx[3]}
             genes_and_tx.append(tx_d)
 
