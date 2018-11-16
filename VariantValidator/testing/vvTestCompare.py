@@ -2,8 +2,11 @@
 
 import vvTestFunctions as fn
 
-directory1="outputsITS"
-directory2="outputs101"
+masterDirectory="outputs101"
+testDirectory1="outputs246"
+testDirectory2="outputsITS"
 
-fn.compareBatches(directory1,directory2)
+fn.compareBatches(masterDirectory,testDirectory1)
+
+fn.compareBatches(masterDirectory,testDirectory2)
 

@@ -89,19 +89,24 @@ def validateBatch(variantArray):
             out.append({"ERROR":str(e)})
     return out
 
-def compareValidations(v1,v2):
+def compareValidations(v1,v2,id):
     #print(v1,v2)
     for vk in v1.keys():
         if not (vk in v2.keys()):
-            print(vk,"not found in second variant")
+#            print("tag "+vk+" : "+str(v1[vk])+" not found in second variant")
+            print("Variant "+str(id)+": Tag "+vk+" not found in second variant")
             return False
     for vk in v2.keys():
         if not (vk in v1.keys()):
-            print(vk,"not found in first variant")
+#            print("tag "+vk+" : "+str(v2[vk])+" not found in first variant")
+            print("Variant "+str(id)+": Tag "+vk+" not found in first variant")
             return False
     for vk in v1.keys():
         if not (v1[vk]==v2[vk]):
-            print("Different variant values - "+str(vk)+":"+str(v1[vk])+"vs."+str(vk)+":"+str(v2[vk]))
+            if type(v1[vk])==type(dict()) or type(v2[vk])==type(dict()):
+                print("Variant " + str(id) + ": Different tag values for key " + str(vk))
+            else:
+                print("Variant "+str(id)+": Different tag values - "+str(vk)+" : "+str(v1[vk])+" vs. "+str(vk)+" : "+str(v2[vk]))
             return False
     return True
 
@@ -111,23 +116,24 @@ def compareBatches(v1path,v2path):
     passScore=0
     v1batch=loadValidations(v1path)
     v2batch=loadValidations(v2path)
+    print("Comparing validation sets...")
     for i,v in enumerate(v1batch):
-        outFlags.append(compareValidations(v1batch[i],v2batch[i]))
+#        print("Comparing validation "+str(i))
+        outFlags.append(compareValidations(v1batch[i],v2batch[i],i))
         if outFlags[-1]:
             passScore+=1
-    print("Passed "+str(passScore)+"/"+str(len(v1batch)))
     if passScore==len(v1batch):
         #Test passed.
-        print("Validation sets are identical")
+        print("Validation sets are identical, "+str(passScore)+" passed")
         return True
     else:
-        print("Validation sets are not identical - differences are:")
-        for i,v in enumerate(v1batch):
-            if not outFlags[i]:
-                print("Mismatch in validation "+str(i))
-                print(v1batch[i])
-                print("Verses")
-                print(v2batch[i])
+        print("Validation sets are NOT identical, passed " + str(passScore) + "/" + str(len(v1batch)))
+        #for i,v in enumerate(v1batch):
+            #if not outFlags[i]:
+                #print("Mismatch in validation "+str(i))
+                #print(v1batch[i])
+                #print("Verses")
+                #print(v2batch[i])
         return False
 
 
