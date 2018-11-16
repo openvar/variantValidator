@@ -1,0 +1,8 @@
+#Git ignorance file for variant validator
+#Testing script
+VariantValidator/vvTest.py
+#pycs
+VariantValidator/variantanalyser/**/*.pyc
+build
+dist
+variantValidator.egg-info
