@@ -7953,26 +7953,27 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         
                     # Add single letter AA code to protein descriptions
                     if predicted_protein_variant != '': 
+                        predicted_protein_variant_dict = {"tlr": str(predicted_protein_variant), "slr": ''} 
                         try:
                             format_p = predicted_protein_variant
                             format_p = re.sub('\(LRG_.+?\)', '', format_p)              
                             re_parse_protein = hp.parse_hgvs_variant(format_p)
                             re_parse_protein_singleAA = re_parse_protein.format({'p_3_letter': False})
-                            if re_parse_protein_singleAA.split(':p.')[1] != '?':
-                                predicted_protein_variant = predicted_protein_variant + ' p.' + re_parse_protein_singleAA.split(':p.')[1]               
+                            #if re_parse_protein_singleAA.split(':p.')[1] != '?':
+                            #    predicted_protein_variant["s_l_r"] = predicted_protein_variant + ' p.' + re_parse_protein_singleAA.split(':p.')[1]               
+                            predicted_protein_variant_dict["slr"] = str(re_parse_protein_singleAA)
                         except hgvs.exceptions.HGVSParseError:
                             pass
                     
                     # Populate the dictionary
                     dict_out['submitted_variant'] = submitted
-                    # dict_out['HGVS_genomic_variant'] =    genomic_variant
                     dict_out['gene_symbol'] = gene_symbol
                     dict_out['transcript_description'] = transcript_description
                     dict_out['HGVS_transcript_variant'] = tx_variant
                     dict_out['genome_context_intronic_sequence'] = genome_context_transcript_variant
                     dict_out['RefSeqGene_context_intronic_sequence'] = RefSeqGene_context_transcript_variant
                     dict_out['HGVS_RefSeqGene_variant'] = refseqgene_variant
-                    dict_out['HGVS_predicted_protein_consequence'] = predicted_protein_variant
+                    dict_out['HGVS_predicted_protein_consequence'] = predicted_protein_variant_dict
                     dict_out['validation_warnings'] = warnings_out
                     dict_out['HGVS_LRG_transcript_variant'] = lrg_transcript_variant
                     dict_out['HGVS_LRG_variant'] = lrg_variant
