@@ -1,0 +1,552 @@
+VALIDATING Variant0 1/334 NM_015120.4:c.35T>C
+VALIDATING Variant1 2/334 NM_015120.4:c.39G>C
+VALIDATING Variant2 3/334 NM_015120.4:c.34C>T
+VALIDATING Variant3 4/334 NC_000002.11:g.73613030C>T
+VALIDATING Variant4 5/334 NC_000023.10:g.33229673A>T
+VALIDATING Variant5 6/334 NM_001145026.1:c.715A>G
+VALIDATING Variant6 7/334 NC_000016.9:g.2099572TC>T
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+VALIDATING Variant7 8/334 NM_000088.3:c.589GG>CT
+VALIDATING Variant8 9/334 NM_000094.3:c.6751-2_6751-3del
+VALIDATING Variant9 10/334 COL5A1:c.5071A>T
+VALIDATING Variant10 11/334 NG_007400.1:c.5071A>T
+VALIDATING Variant11 12/334 chr16:15832508_15832509delinsAC
+VALIDATING Variant12 13/334 NM_000088.3:c.589-1GG>G
+VALIDATING Variant13 14/334 NM_000088.3:c.642+1GT>G
+VALIDATING Variant14 15/334 NM_000088.3:c.589-2AG>G
+VALIDATING Variant15 16/334 NC_000017.10:g.48279242G>T
+VALIDATING Variant16 17/334 NM_000500.7:c.-107-19C>T
+Normalization of intronic variants is not supported
+VALIDATING Variant17 18/334 NM_000518.4:c.-130C>T
+The given coordinate is outside the bounds of the reference sequence.
+VALIDATING Variant18 19/334 NM_000518.4:c.-50-80C>T
+Normalization of intronic variants is not supported
+VALIDATING Variant19 20/334 NM_000518.4:c.316_*342delinsCTACTT
+The given coordinate is outside the bounds of the reference sequence.
+VALIDATING Variant20 21/334 NM_000518.4:c.316_*100del
+VALIDATING Variant21 22/334 NM_000518.4:c.*2000C>T
+The given coordinate is outside the bounds of the reference sequence.
+VALIDATING Variant22 23/334 NM_000518.4:c.*132+1868C>T
+Normalization of intronic variants is not supported
+VALIDATING Variant23 24/334 NM_000518.4:c.-130_*2000=
+The given coordinate is outside the bounds of the reference sequence.
+VALIDATING Variant24 25/334 NM_000518.4:c.-50-80_*132+1868=
+VALIDATING Variant25 26/334 NR_138595.1:n.-810C>T
+VALIDATING Variant26 27/334 NR_138595.1:n.1-810C>T
+VALIDATING Variant27 28/334 NR_138595.1:n.1071+1A=
+VALIDATING Variant28 29/334 NR_138595.1:n.-810_1071+1=
+VALIDATING Variant29 30/334 NC_000017.10:g.48261457_48261463TTATGTT=
+VALIDATING Variant30 31/334 NC_000017.10:g.48275363C>A
+VALIDATING Variant31 32/334 NM_000088.3:c.589-1G>T
+VALIDATING Variant32 33/334 NM_000088.3:c.591_593inv
+VALIDATING Variant33 34/334 11-5248232-T-A
+VALIDATING Variant34 35/334 NG_007400.1(NM_000088.3):c.589-1G>T
+VALIDATING Variant35 36/334 1:150550916G>A
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+VALIDATING Variant36 37/334 1-150550916-G-A
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+VALIDATING Variant37 38/334 NG_008123.1(LEPRE1_v003):c.2055+18G>A
+VALIDATING Variant38 39/334 NG_008123.1:c.2055+18G>A
+VALIDATING Variant39 40/334 NG_008123.1(NM_022356.3):c.2055+18G>A
+VALIDATING Variant40 41/334 NM_021983.4:c.490G>C
+VALIDATING Variant41 42/334 NM_032470.3:c.4del
+VALIDATING Variant42 43/334 NM_001194958.2:c.20C>A
+VALIDATING Variant43 44/334 NM_000022.2:c.534A>G
+VALIDATING Variant44 45/334 HSCHR6_MHC_SSTO_CTG1-3852542-C-G
+VALIDATING Variant45 46/334 NM_000368.4:c.363+1dupG
+VALIDATING Variant46 47/334 NM_000368.4:c.363dupG
+VALIDATING Variant47 48/334 NM_000089.3:c.1033_1035delGTT
+VALIDATING Variant48 49/334 NM_000089.3:c.1035_1035+2delTGT
+VALIDATING Variant49 50/334 NM_000088.3:c.2023_2028delGCAAGA
+VALIDATING Variant50 51/334 NM_000089.3:c.938-1delG
+VALIDATING Variant51 52/334 NM_000088.3:c.589G=
+VALIDATING Variant52 53/334 NM_000088.3:c.642A=
+VALIDATING Variant53 54/334 NM_000088.3:c.642+1GG>G
+VALIDATING Variant54 55/334 NM_000088.3:c.589-2GG>G
+VALIDATING Variant55 56/334 NM_000088.3:c.589-6_589-5insTTTT
+VALIDATING Variant56 57/334 NM_000088.3:c.642+3_642+4insAAAA
+VALIDATING Variant57 58/334 NM_000088.3:c.589-4_589-3insTT
+VALIDATING Variant58 59/334 NM_000088.3:c.589-8del
+VALIDATING Variant59 60/334 NM_000527.4:c.-187_-185delCTC
+VALIDATING Variant60 61/334 NM_206933.2:c.6317C>G
+VALIDATING Variant61 62/334 NC_000013.10:g.32929387T>C
+VALIDATING Variant62 63/334 NM_015102.3:c.2818-2T>A
+VALIDATING Variant63 64/334 19-41123094-G-GG
+local variable 'hgvs_c' referenced before assignment
+local variable 'hgvs_c' referenced before assignment
+local variable 'hgvs_c' referenced before assignment
+VALIDATING Variant64 65/334 15-72105928-AC-A
+local variable 'hgvs_c' referenced before assignment
+local variable 'hgvs_c' referenced before assignment
+local variable 'hgvs_c' referenced before assignment
+local variable 'hgvs_c' referenced before assignment
+VALIDATING Variant65 66/334 12-122064773-CCCGCCA-C
+local variable 'hgvs_c' referenced before assignment
+local variable 'hgvs_c' referenced before assignment
+VALIDATING Variant66 67/334 12-122064774-CCGCCA-CCGCCA
+VALIDATING Variant67 68/334 12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC
+VALIDATING Variant68 69/334 NC_000012.11:g.122064777C>A
+VALIDATING Variant69 70/334 NC_000012.11:g.122064776delG
+VALIDATING Variant70 71/334 NC_000012.11:g.122064776dupG
+VALIDATING Variant71 72/334 NC_000012.11:g.122064776_122064777insTTT
+VALIDATING Variant72 73/334 NC_000012.11:g.122064772_122064775del
+object of type 'NoneType' has no len()
+object of type 'NoneType' has no len()
+VALIDATING Variant73 74/334 NC_000012.11:g.122064772_122064775dup
+VALIDATING Variant74 75/334 NC_000012.11:g.122064773_122064774insTTTT
+VALIDATING Variant75 76/334 NC_000012.11:g.122064772_122064777del
+VALIDATING Variant76 77/334 NC_000012.11:g.122064772_122064777dup
+VALIDATING Variant77 78/334 NC_000012.11:g.122064779_122064782dup
+VALIDATING Variant78 79/334 NC_000012.11:g.122064772_122064782del
+VALIDATING Variant79 80/334 NC_000002.11:g.95847041_95847043GCG=
+VALIDATING Variant80 81/334 NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG=
+VALIDATING Variant81 82/334 NC_000003.11:g.14561629_14561630GC=
+VALIDATING Variant82 83/334 NC_000003.11:g.14561629_14561630insG
+local variable 'hgvs_c' referenced before assignment
+local variable 'hgvs_c' referenced before assignment
+VALIDATING Variant83 84/334 NC_000004.11:g.140811111_140811122del
+local variable 'hgvs_c' referenced before assignment
+local variable 'hgvs_c' referenced before assignment
+VALIDATING Variant84 85/334 NC_000004.11:g.140811111_140811122CTGCTGCTGCTG=
+VALIDATING Variant85 86/334 NC_000004.11:g.140811117_140811122del
+VALIDATING Variant86 87/334 NC_000004.11:g.140811111_140811117del
+object of type 'NoneType' has no len()
+object of type 'NoneType' has no len()
+VALIDATING Variant87 88/334 NC_000004.11:g.140811117C>A
+VALIDATING Variant88 89/334 NC_000002.11:g.73675227_73675228insCTC
+local variable 'hgvs_c' referenced before assignment
+VALIDATING Variant89 90/334 9-136132908-T-TC
+local variable 'hgvs_c' referenced before assignment
+local variable 'hgvs_c' referenced before assignment
+local variable 'hgvs_c' referenced before assignment
+VALIDATING Variant90 91/334 9-136132908-TAC-TCA
+VALIDATING Variant91 92/334 9-136132908-TA-TA
+VALIDATING Variant92 93/334 NM_020469.2:c.258delG
+VALIDATING Variant93 94/334 NM_020469.2:c.260_262TGA=
+local variable 'hgvs_c' referenced before assignment
+local variable 'hgvs_c' referenced before assignment
+local variable 'hgvs_c' referenced before assignment
+VALIDATING Variant94 95/334 NM_020469.2:c.261delG
+VALIDATING Variant95 96/334 NM_020469.2:c.261dupG
+VALIDATING Variant96 97/334 NM_020469.2:c.261_262insTT
+VALIDATING Variant97 98/334 NC_000019.10:g.50378563_50378564insTAC
+VALIDATING Variant98 99/334 NC_000019.10:g.50378563_50378564insC
+VALIDATING Variant99 100/334 NC_000019.10:g.50378564_50378565insTACA
+VALIDATING Variant100 101/334 NC_000019.10:g.50378565_50378567dup
+local variable 'hgvs_c' referenced before assignment
+local variable 'hgvs_c' referenced before assignment
+local variable 'hgvs_c' referenced before assignment
+local variable 'hgvs_c' referenced before assignment
+VALIDATING Variant101 102/334 NC_000019.10:g.50378563_50378564=
+VALIDATING Variant102 103/334 NC_000019.10:g.50378563_50378564insTCGG
+VALIDATING Variant103 104/334 NC_000019.10:g.50378563delinsTTAC
+VALIDATING Variant104 105/334 NC_000019.10:g.50378563_50378564insTAAC
+VALIDATING Variant105 106/334 NC_000019.10:g.50378562_50378565del
+VALIDATING Variant106 107/334 NC_000019.10:g.50378562_50378565delinsTC
+VALIDATING Variant107 108/334 NC_000007.14:g.149779575_149779577delinsT
+VALIDATING Variant108 109/334 NC_000007.14:g.149779575_149779577=
+local variable 'hgvs_c' referenced before assignment
+local variable 'hgvs_c' referenced before assignment
+local variable 'hgvs_c' referenced before assignment
+VALIDATING Variant109 110/334 NC_000007.14:g.149779576_149779578del
+local variable 'hgvs_c' referenced before assignment
+local variable 'hgvs_c' referenced before assignment
+local variable 'hgvs_c' referenced before assignment
+VALIDATING Variant110 111/334 NC_000007.14:g.149779577del
+VALIDATING Variant111 112/334 NC_000007.14:g.149779573_149779579del
+object of type 'NoneType' has no len()
+VALIDATING Variant112 113/334 NC_000007.14:g.149779573_149779579delinsCA
+VALIDATING Variant113 114/334 NM_000088.3:c.590_591inv
+VALIDATING Variant114 115/334 NM_024989.3:c.1778_1779inv
+VALIDATING Variant115 116/334 NM_032815.3:c.555_556inv
+VALIDATING Variant116 117/334 NM_006138.4:c.3_4inv
+VALIDATING Variant117 118/334 NM_000038.5:c.3927_3928delAAinsTT
+VALIDATING Variant118 119/334 NM_001034853.1:c.2847_2848delAGinsCT
+VALIDATING Variant119 120/334 NM_000088.3:c.4392_*2inv
+VALIDATING Variant120 121/334 NM_000088.3:c.4392_*5inv
+VALIDATING Variant121 122/334 NM_000088.3:c.4390_*7inv
+VALIDATING Variant122 123/334 NM_005732.3:c.2923-5insT
+VALIDATING Variant123 124/334 NM_198283.1(EYS):c.*743120C>T
+The given coordinate is outside the bounds of the reference sequence.
+The given coordinate is outside the bounds of the reference sequence.
+The given coordinate is outside the bounds of the reference sequence.
+The given coordinate is outside the bounds of the reference sequence.
+The given coordinate is outside the bounds of the reference sequence.
+VALIDATING Variant124 125/334 NM_133379.4(TTN):c.*265+26591C>T
+Normalization of intronic variants is not supported
+The given coordinate is outside the bounds of the reference sequence.
+The given coordinate is outside the bounds of the reference sequence.
+The given coordinate is outside the bounds of the reference sequence.
+The given coordinate is outside the bounds of the reference sequence.
+The given coordinate is outside the bounds of the reference sequence.
+The given coordinate is outside the bounds of the reference sequence./NM_133379.4/NC_000002.11~The given coordinate is outside the bounds of the reference sequence./NM_133379.4/NC_018913.2~The given coordinate is outside the bounds of the reference sequence./NM_133379.4/NC_000002.12~The given coordinate is outside the bounds of the reference sequence./NM_133379.4/NG_011618.3~
+VALIDATING Variant125 126/334 NM_000088.3:c.589-2_589-1AG>G
+VALIDATING Variant126 127/334 NM_000088.3:c.642+1_642+2delGTinsG
+VALIDATING Variant127 128/334 NM_004415.3:c.1-1insA
+VALIDATING Variant128 129/334 NM_004415.3:c.-1_1insA
+VALIDATING Variant129 130/334 NM_000273.2:c.1-5028_253del
+VALIDATING Variant130 131/334 NM_002929.2:c.1006C>T
+The given coordinate is outside the bounds of the reference sequence.
+The given coordinate is outside the bounds of the reference sequence.
+The given coordinate is outside the bounds of the reference sequence.
+The given coordinate is outside the bounds of the reference sequence.
+The given coordinate is outside the bounds of the reference sequence.
+The given coordinate is outside the bounds of the reference sequence.
+VALIDATING Variant131 132/334 NR_125367.1:n.167+18165G>A
+VALIDATING Variant132 133/334 NM_006005.3:c.3071_3073delinsTTA
+VALIDATING Variant133 134/334 NM_000089.3:n.1504_1506del
+VALIDATING Variant134 135/334 NC_012920.1:m.1011C>T
+VALIDATING Variant135 136/334 NC_000006.11:g.90403795G=
+VALIDATING Variant136 137/334 1-169519049-T-.
+VALIDATING Variant137 138/334 NC_000005.9:g.35058667_35058668AG=
+local variable 'hgvs_c' referenced before assignment
+local variable 'hgvs_c' referenced before assignment
+invalid literal for int() with base 10: ''
+invalid literal for int() with base 10: ''
+invalid literal for int() with base 10: ''
+invalid literal for int() with base 10: ''
+invalid literal for int() with base 10: ''
+invalid literal for int() with base 10: ''
+invalid literal for int() with base 10: ''
+invalid literal for int() with base 10: ''
+invalid literal for int() with base 10: ''
+invalid literal for int() with base 10: ''
+invalid literal for int() with base 10: ''
+VALIDATING Variant138 139/334 NM_000251.1:c.1296_1348del
+VALIDATING Variant139 140/334 NM_000088.3:c.2023_2028del
+VALIDATING Variant140 141/334 NM_000088.3:c.2024_2028+1del
+VALIDATING Variant141 142/334 ENST00000450616.1:n.31+1G>C
+VALIDATING Variant142 143/334 ENST00000491747:c.5071A>T
+VALIDATING Variant143 144/334 NM_000088.3:c.589G>T
+VALIDATING Variant144 145/334 NG_007400.1:g.8638G>T
+VALIDATING Variant145 146/334 LRG_1:g.8638G>T
+VALIDATING Variant146 147/334 LRG_1t1:c.589G>T
+VALIDATING Variant147 148/334 chr16:g.15832508_15832509delinsAC
+VALIDATING Variant148 149/334 NG_012386.1:g.24048dupG
+Normalization of intronic variants is not supported
+VALIDATING Variant149 150/334 NM_033517.1:c.1307_1309delCGA
+VALIDATING Variant150 151/334 HG1311_PATCH-33720-CCGA-C
+VALIDATING Variant151 152/334 2-73675227-TCTC-TCTCCTC
+local variable 'hgvs_c' referenced before assignment
+VALIDATING Variant152 153/334 2-73675227-TC-TC
+VALIDATING Variant153 154/334 3-14561627-AG-AGG
+local variable 'hgvs_c' referenced before assignment
+local variable 'hgvs_c' referenced before assignment
+VALIDATING Variant154 155/334 3-14561630-CC-CC
+VALIDATING Variant155 156/334 6-90403795-G-G
+VALIDATING Variant156 157/334 6-90403795-G-A
+VALIDATING Variant157 158/334 6-32012992-CG-C
+VALIDATING Variant158 159/334 17-48275363-C-A
+VALIDATING Variant159 160/334 17-48275364-C-A
+VALIDATING Variant160 161/334 17-48275359-GGA-TCC
+VALIDATING Variant161 162/334 7-94039128-CTTG-C
+VALIDATING Variant162 163/334 9-135800972-AC-ACC
+Normalization of intronic variants is not supported
+VALIDATING Variant163 164/334 1-43212925-C-T
+VALIDATING Variant164 165/334 HG987_PATCH-355171-C-A
+VALIDATING Variant165 166/334 20-43252915-T-C
+VALIDATING Variant166 167/334 1-216219781-A-C
+VALIDATING Variant167 168/334 2-209113113-G-A,C,T
+VALIDATING Variant168 169/334 NC_000005.9:g.35058665_35058666CA=
+local variable 'hgvs_c' referenced before assignment
+local variable 'hgvs_c' referenced before assignment
+invalid literal for int() with base 10: ''
+invalid literal for int() with base 10: ''
+invalid literal for int() with base 10: ''
+invalid literal for int() with base 10: ''
+invalid literal for int() with base 10: ''
+invalid literal for int() with base 10: ''
+invalid literal for int() with base 10: ''
+invalid literal for int() with base 10: ''
+invalid literal for int() with base 10: ''
+invalid literal for int() with base 10: ''
+invalid literal for int() with base 10: ''
+VALIDATING Variant169 170/334 NC_000002.11:g.73675227_73675229delTCTinsTCTCTC
+VALIDATING Variant170 171/334 NM_000828.4:c.-2dupG
+FATAL error processing variant: Validation error
+VALIDATING Variant171 172/334 X-122318386-A-AGG
+FATAL error processing variant: Validation error
+VALIDATING Variant172 173/334 NM_000828.4:c.-2G>T
+VALIDATING Variant173 174/334 NM_000828.4:c.-2G=
+local variable 'hgvs_c' referenced before assignment
+VALIDATING Variant174 175/334 X-122318386-A-AT
+VALIDATING Variant175 176/334 NM_000828.4:c.-2_-1insT
+VALIDATING Variant176 177/334 NM_000828.4:c.-3_-2insT
+VALIDATING Variant177 178/334 NM_000828.4:c.-2delGinsTT
+VALIDATING Variant178 179/334 NM_000828.4:c.-2_-1delGCinsTT
+VALIDATING Variant179 180/334 NM_000828.4:c.-3_-2delAGinsTT
+VALIDATING Variant180 181/334 15-72105929-C-C
+VALIDATING Variant181 182/334 15-72105928-AC-ATT
+VALIDATING Variant182 183/334 15-72105928-ACC-ATT
+VALIDATING Variant183 184/334 15-72105927-GACC-GTT
+VALIDATING Variant184 185/334 19-41123093-A-AG
+local variable 'hgvs_c' referenced before assignment
+local variable 'hgvs_c' referenced before assignment
+local variable 'hgvs_c' referenced before assignment
+VALIDATING Variant185 186/334 19-41123093-A-AT
+VALIDATING Variant186 187/334 19-41123093-AG-A
+VALIDATING Variant187 188/334 19-41123093-AG-AG
+VALIDATING Variant188 189/334 NM_012309.4:c.913-5058G>A
+VALIDATING Variant189 190/334 LRG_199t1:c.2376[G>C];[G>C]
+VALIDATING Variant190 191/334 LRG_199t1:c.[2376G>C];[3103del]
+[u'NM_004006.2:c.2376G>C']
+[u'NM_004006.2:c.3103del']
+VALIDATING Variant191 192/334 LRG_199t1:c.[4358_4359del;4361_4372del]
+[u'NM_004006.2:c.4358_4359del', u'NM_004006.2:c.4361_4372del']
+VALIDATING Variant192 193/334 LRG_199t1:c.2376G>C(;)3103del
+VALIDATING Variant193 194/334 LRG_199t1:c.2376[G>C];[(G>C)]
+VALIDATING Variant194 195/334 LRG_199t1:c.[2376G>C];[?]
+[u'NM_004006.2:c.2376G>C']
+[u'NM_004006.2:c.?']
+VALIDATING Variant195 196/334 LRG_199t1:c.[296T>G;476T=];[476T=](;)1083A>C
+VALIDATING Variant196 197/334 LRG_199t1:c.[296T>G];[476T>C](;)1083A>C(;)1406del
+VALIDATING Variant197 198/334 LRG_199t1:c.[976-20T>A;976-17_976-1dup]
+[u'NM_004006.2:c.976-20T>A', u'NM_004006.2:c.976-17_976-1dup']
+VALIDATING Variant198 199/334 1-5935162-A-T
+VALIDATING Variant199 200/334 1-12065948-C-T
+VALIDATING Variant200 201/334 1-46655125-CTCAC-C
+VALIDATING Variant201 202/334 1-68912523-TGAGCCAGAG-T
+VALIDATING Variant202 203/334 1-68912526-GCCAGAG-G
+VALIDATING Variant203 204/334 1-109817590-G-T
+VALIDATING Variant204 205/334 1-145597475-GAAGT-G
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+VALIDATING Variant205 206/334 1-153791300-CTG-C
+VALIDATING Variant206 207/334 1-156104666-TTGAGAGCCGGCTGGCGGATGCGCT-TCCCC
+VALIDATING Variant207 208/334 1-156108541-G-GG
+VALIDATING Variant208 209/334 1-161279695-T-A
+VALIDATING Variant209 210/334 1-169519049-T-T
+VALIDATING Variant210 211/334 1-226125468-G-A
+VALIDATING Variant211 212/334 10-89623035-CGCA-C
+VALIDATING Variant212 213/334 11-62457852-C-A
+VALIDATING Variant213 214/334 11-108178710-A-AT
+VALIDATING Variant214 215/334 11-111735981-G-A
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+VALIDATING Variant215 216/334 12-11023080-C-A
+VALIDATING Variant216 217/334 12-22018712-TC-T
+VALIDATING Variant217 218/334 12-52912946-T-C
+VALIDATING Variant218 219/334 12-103234292-TC-T
+VALIDATING Variant219 220/334 12-103311124-T-C
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+VALIDATING Variant220 221/334 12-111064166-G-A
+Normalization of intronic variants is not supported
+VALIDATING Variant221 222/334 12-123738430-CA-C
+VALIDATING Variant222 223/334 13-31789169-CT-C
+VALIDATING Variant223 224/334 14-62187287-G-A
+VALIDATING Variant224 225/334 14-62188231-TT-GA
+VALIDATING Variant225 226/334 14-63174827-C-A
+VALIDATING Variant226 227/334 15-42680000-CA-C
+VALIDATING Variant227 228/334 15-42680000-CA-CAA
+VALIDATING Variant228 229/334 15-42703179-T-TTCA
+VALIDATING Variant229 230/334 15-42703179-TAG-TTCATCT
+VALIDATING Variant230 231/334 15-48782203-C-T
+VALIDATING Variant231 232/334 15-72105929-CC-C
+local variable 'hgvs_c' referenced before assignment
+local variable 'hgvs_c' referenced before assignment
+local variable 'hgvs_c' referenced before assignment
+local variable 'hgvs_c' referenced before assignment
+VALIDATING Variant232 233/334 15-89873415-G-A
+VALIDATING Variant233 234/334 16-2103394-C-T
+Normalization of intronic variants is not supported
+VALIDATING Variant234 235/334 16-3779300-C-G
+VALIDATING Variant235 236/334 16-5128843-C-G
+VALIDATING Variant236 237/334 16-74808559-C-T
+VALIDATING Variant237 238/334 16-89574804-C-A
+VALIDATING Variant238 239/334 16-89574826-A-C
+VALIDATING Variant239 240/334 16-89574914-G-GT
+VALIDATING Variant240 241/334 16-89574916-C-CGTC
+VALIDATING Variant241 242/334 16-89575009-G-A
+VALIDATING Variant242 243/334 16-89575040-C-A,CA
+VALIDATING Variant243 244/334 16-89576896-A-C
+VALIDATING Variant244 245/334 16-89576930-T-TA,TT
+VALIDATING Variant245 246/334 16-89576931-G-GTG
+VALIDATING Variant246 247/334 16-89598368-CGGCCCCCCCGGCTGTGGGAAGACGCT-C
+VALIDATING Variant247 248/334 16-89613064-AGGAGAGGCG-AT
+VALIDATING Variant248 249/334 16-89613069-AGGCGGGAGA-AT
+VALIDATING Variant249 250/334 16-89613145-C-T
+VALIDATING Variant250 251/334 17-7578194-GCAC-G
+VALIDATING Variant251 252/334 17-7578523-T-TG
+VALIDATING Variant252 253/334 17-17119692-A-C
+VALIDATING Variant253 254/334 17-41197588-GGACA-G
+VALIDATING Variant254 255/334 17-41256884-C-G
+VALIDATING Variant255 256/334 17-42991428-C-A
+VALIDATING Variant256 257/334 17-48252809-A-T
+VALIDATING Variant257 258/334 17-62022709-G-GTC
+VALIDATING Variant258 259/334 17-62022711-C-CT
+VALIDATING Variant259 260/334 17-62023005-G-GGC
+VALIDATING Variant260 261/334 17-62023006-C-A
+VALIDATING Variant261 262/334 17-62034787-G-A
+VALIDATING Variant262 263/334 18-24128261-GTCCTCC-G
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+VALIDATING Variant263 264/334 19-15291774-G-A
+VALIDATING Variant264 265/334 19-15311794-A-G
+VALIDATING Variant265 266/334 19-39076592-G-A
+VALIDATING Variant266 267/334 2-50149352-T-C
+VALIDATING Variant267 268/334 2-50847195-G-A
+VALIDATING Variant268 269/334 2-71825797-C-G
+VALIDATING Variant269 270/334 2-166179712-G-C
+VALIDATING Variant270 271/334 2-166183371-A-G
+VALIDATING Variant271 272/334 2-166929889-GTCCAGGTCCT-GAC
+VALIDATING Variant272 273/334 2-166929891-CCAGGTCCT-C
+VALIDATING Variant273 274/334 2-179393504-G-T
+VALIDATING Variant274 275/334 2-185803444-TGCAGCTGCTGCAGCTGCAGCTGCA-T
+VALIDATING Variant275 276/334 2-201950249-G-T
+VALIDATING Variant276 277/334 2-238268730-C-A
+VALIDATING Variant277 278/334 21-43897396-C-T
+VALIDATING Variant278 279/334 22-30064360-G-GCGACGC
+VALIDATING Variant279 280/334 3-10188187-TGTCCCGATAG-T
+Normalization of intronic variants is not supported
+VALIDATING Variant280 281/334 3-50402127-T-G
+VALIDATING Variant281 282/334 3-50402890-G-A
+VALIDATING Variant282 283/334 3-57851007-AG-A
+VALIDATING Variant283 284/334 3-122003832-G-C
+VALIDATING Variant284 285/334 4-153332910-C-CAGG
+VALIDATING Variant285 286/334 5-1295183-G-A
+VALIDATING Variant286 287/334 5-77396835-TTTC-T
+VALIDATING Variant287 288/334 5-118811422-GGTGA-G
+Normalization of intronic variants is not supported
+VALIDATING Variant288 289/334 5-118811422-GGTGAG-G
+Normalization of intronic variants is not supported
+VALIDATING Variant289 290/334 5-131705587-CG-C
+VALIDATING Variant290 291/334 5-148406482-T-C
+VALIDATING Variant291 292/334 6-110036337-T-TCAG
+VALIDATING Variant292 293/334 6-110036337-TGAT-T
+VALIDATING Variant293 294/334 6-152651802-C-A
+VALIDATING Variant294 295/334 6-152737643-C-G
+VALIDATING Variant295 296/334 7-6026775-T-C
+VALIDATING Variant296 297/334 7-55242465-GGAATTAAGAGAAGCA-G
+VALIDATING Variant297 298/334 7-55248992-T-TTCCAGGAAGCCT
+VALIDATING Variant298 299/334 7-75932111-C-A
+VALIDATING Variant299 300/334 7-91652178-A-AAAC
+VALIDATING Variant300 301/334 7-117199644-ATCT-A
+VALIDATING Variant301 302/334 7-140453136-AC-CT
+VALIDATING Variant302 303/334 7-140453136-A-T
+VALIDATING Variant303 304/334 7-140453137-C-T
+VALIDATING Variant304 305/334 7-143013488-A-T
+VALIDATING Variant305 306/334 7-143018934-G-A
+VALIDATING Variant306 307/334 7-143048771-C-T
+VALIDATING Variant307 308/334 8-1871951-C-T
+VALIDATING Variant308 309/334 9-13112056-T-TG
+VALIDATING Variant309 310/334 9-21971208-C-A
+Normalization of intronic variants is not supported
+Normalization of intronic variants is not supported
+VALIDATING Variant310 311/334 9-35683240-T-TG
+VALIDATING Variant311 312/334 9-135796754-G-A
+VALIDATING Variant312 313/334 HG536_PATCH-10391-AC-A
+VALIDATING Variant313 314/334 HG865_PATCH-33547-G-A
+VALIDATING Variant314 315/334 HG865_PATCH-569441-G-T
+VALIDATING Variant315 316/334 HG865_PATCH-574546-C-T
+VALIDATING Variant316 317/334 HSCHR1_1_CTG31-133178-TAG-T
+VALIDATING Variant317 318/334 HSCHR6_MHC_MANN_CTG1-3848158-T-G
+VALIDATING Variant318 319/334 HSCHR6_MHC_MANN_CTG1-3851043-C-A
+VALIDATING Variant319 320/334 X-70443101-C-T
+Normalization of intronic variants is not supported
+VALIDATING Variant320 321/334 X-107845202-GACCACC-GACC,G
+VALIDATING Variant321 322/334 X-153296777-G-A
+VALIDATING Variant322 323/334 NM_198180.2:c.408_410delGTG
+VALIDATING Variant323 324/334 NM_080877.2:c.1733_1735delinsTTT
+VALIDATING Variant324 325/334 NM_080877.2:c.1735_1737delinsTGA
+VALIDATING Variant325 326/334 NM_080877.2:c.1735_1737delinsTAATTGTTC
+VALIDATING Variant326 327/334 NM_080877.2:c.1737delinsATTGTTC
+VALIDATING Variant327 328/334 NM_000088.3:c.4392_*2delinsAGAG
+VALIDATING Variant328 329/334 NM_000088.3:c.589_591delinsAGAAGC
+VALIDATING Variant329 330/334 NM_000885.5:c.*2536delinsAGAAAAATCA
+VALIDATING Variant330 331/334 NM_002693.2:c.-186_-185delinsCC
+VALIDATING Variant331 332/334 NG_009616.1:g.29052_29053insCTACATAG
+VALIDATING Variant332 333/334 NM_000061.2:c.588_588+1insCTACATAG
+VALIDATING Variant333 334/334 NM_000061.2:c.588_589insCTACATAG
