@@ -101,6 +101,9 @@ def validateBatch(variantArray):
         print("VALIDATING Variant"+str(i)+" "+str(i+1)+"/"+str(len(variantArray))+" "+str(v))
         try:
             out.append(vv.validator(v,selectedAssembly,selectTranscripts))
+        except KeyboardInterrupt:
+            print("Exiting...")
+            sys.exit()
         except Exception as e:
             print("FATAL error processing variant: "+str(e))
             out.append({"ERROR":str(e)})

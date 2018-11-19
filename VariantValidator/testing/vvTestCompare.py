@@ -2,15 +2,10 @@
 
 import vvTestFunctions as fn
 
-masterDirectory="outputs101"
-testDirectory1="outputs246"
-testDirectory2="outputsITS"
-testDirectory3="outputs249"
+masterDirectory="testOutputsMaster101"
+testDirectories=["testOutputs246","testOutputsITS"]
 
-print("Comparing "+masterDirectory+" and "+testDirectory1)
-fn.compareBatches(masterDirectory,testDirectory1)
-print("Comparing "+masterDirectory+" and "+testDirectory2)
-fn.compareBatches(masterDirectory,testDirectory2)
-print("Comparing "+masterDirectory+" and "+testDirectory3)
-fn.compareBatches(masterDirectory,testDirectory3)
+for d in testDirectories:
+    print("Comparing "+masterDirectory+" and "+d)
+    fn.compareBatches(masterDirectory,d)
 
