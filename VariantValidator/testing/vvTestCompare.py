@@ -2,8 +2,8 @@
 
 import vvTestFunctions as fn
 
-masterDirectory="testOutputsMaster101"
-testDirectories=["testOutputs246","testOutputsITS"]
+masterDirectory="testOutputsMasterITS"
+testDirectories=["testOutputs"]
 
 for d in testDirectories:
     print("Comparing "+masterDirectory+" and "+d)
