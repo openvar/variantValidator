@@ -3,7 +3,7 @@
 import vvTestFunctions as fn
 
 masterDirectory="testOutputsMasterITS"
-testDirectories=["testOutputs"]
+testDirectories=["testOutputs","testOutputs246"]
 
 for d in testDirectories:
     print("Comparing "+masterDirectory+" and "+d)
