@@ -2,4 +2,9 @@
 #Testing script
 VariantValidator/vvTest.py
 #pycs
-VariantValidator/variantanalyser/**/*.pyc
+VariantValidator/**/*.pyc
+build
+.idea
+dist
+variantValidator.egg-info
+VariantValidator/testing/outputs*

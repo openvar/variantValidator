@@ -14,7 +14,7 @@ setup(
 	package_data={"variantValidator": ["configuration/*.ini"],},
     packages=find_packages(),
     include_package_data=True,
-    license="https://www.gnu.org/licenses/agpl-3.0.en.html",
+    license="GNU AFFERO GENERAL PUBLIC LICENSE, Version 3 (https://www.gnu.org/licenses/agpl-3.0.en.html)",
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
         # How mature is this project? Common values are
@@ -53,6 +53,24 @@ setup(
 		"configparser >= 3.5.0",
 		"pyliftover >= 0.3",
 		"biotools >= 0.3.0",
-		# "mysql_connector >=	2.1.4",  Required but is OS specific. https://dev.mysql.com/downloads/connector/python/
+		# "mysql_connector >= 2.1.4",  Required but is OS specific. https://dev.mysql.com/downloads/connector/python/
     ],
 )
+
+
+# <LICENSE>
+# Copyright (C) 2018  Peter Causey-Freeman, University of Leicester
+# 
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+# 
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# </LICENSE>

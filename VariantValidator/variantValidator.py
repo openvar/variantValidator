@@ -2,8 +2,7 @@
 """
 VariantValidator.py
 
-
-Top level VariantValidator functions
+List of top level VariantValidator functions
 
 This API is configured by reading the configuration information in the config.ini file
 located in the configuration module contained the the root variantValidator directory.
@@ -3890,7 +3889,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             gap_compensation = gapGenes.gap_black_list(gene_symbol)
                         
                         # Intron spanning variants
-                        if boundary.search(str(error)) or spanning.search(str(error)):
+                        if re.search('boundary', str(error)) or re.search('spanning', str(error)):
                             try:
                                 hgvs_coding = evm._maybe_normalize(hgvs_coding)
                                 gap_compensation = False
@@ -6501,7 +6500,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             hgvs_coding = hn.normalize(hgvs_coding)
                         except hgvs.exceptions.HGVSUnsupportedOperationError as e:
                             error = str(e)
-                            if boundary.search(str(error)) or spanning.search(str(error)):
+                            if re.search('boundary', str(error)) or re.search('spanning', str(error)):
                                 gap_compensation = False
                             else:
                                 pass
@@ -8005,8 +8004,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     validation_error_counter = validation_error_counter + 1
                     identification_key = 'Validation_Error_%s' % (str(validation_error_counter))
                 else:
-                    identification_key = '%s %s' % (
-                        str(valid_v['HGVS_transcript_variant']), str(valid_v['transcript_description']))
+#                     identification_key = '%s %s' % (
+#                         str(valid_v['HGVS_transcript_variant']), str(valid_v['transcript_description']))
+                    identification_key = '%s' % (
+                        str(valid_v['HGVS_transcript_variant']))
                 if identification_key not in validation_output.keys():
                     validation_output[identification_key] = valid_v
                 else:
