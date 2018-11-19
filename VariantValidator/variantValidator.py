@@ -7952,8 +7952,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         pass
                         
                     # Add single letter AA code to protein descriptions
-                    if predicted_protein_variant != '': 
-                        predicted_protein_variant_dict = {"tlr": str(predicted_protein_variant), "slr": ''} 
+                    predicted_protein_variant_dict = {"tlr": str(predicted_protein_variant), "slr": ''}
+                    if predicted_protein_variant != '':  
                         try:
                             format_p = predicted_protein_variant
                             format_p = re.sub('\(LRG_.+?\)', '', format_p)              
