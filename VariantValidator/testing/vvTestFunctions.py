@@ -41,7 +41,7 @@ def saveValidations(path,inputVariants):
     #Saves the results of running inputVariants to a folder given in saveDirectory.
     if not os.path.isdir(path):
         os.mkdir(path)
-    variantArray=loadVariantList(inputVariants)
+    variantArray=loadVariantFile(inputVariants)
     #Go through the variant array, validating, and save the results.
     batch=validateBatch(variantArray)
     #Save copy of the resulting dictionary
@@ -49,7 +49,7 @@ def saveValidations(path,inputVariants):
         with open(os.path.join(path,"variant"+str(i)+".txt") ,"w") as f:
             pickle.dump(v,f)
 
-def loadVariantList(path):
+def loadVariantFile(path):
     out=[]
     #Load up the input variant file, should be passed in path.txt. Extra space, commas and quotes will be stripped.
     with open(path) as f:
@@ -63,6 +63,23 @@ def loadVariantList(path):
                 if l[0]=='"':
                     l=l[1:]
                 out.append(l)
+    return out
+
+def saveVariantFile(path, variants):
+    #Saves a variant input array (a bunch of strings) into a new text file given by path.
+    with open(path,"w") as f:
+        for v in variants:
+            f.write(v+"\n")
+
+def mergeVariantList(variants1,variants2):
+    #Merges two lists of variants, avoiding duplicants.
+    out=[]
+    for v in variants1:
+        if not v in out:
+            out.append(v)
+    for v in variants2:
+        if not v in out:
+            out.append(v)
     return out
 
 def loadValidations(path):
