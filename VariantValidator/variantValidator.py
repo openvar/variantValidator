@@ -91,17 +91,32 @@ from pyliftover import LiftOver
 # Import Biopython
 from Bio.Seq import Seq
 
+#Importation should be more consistent. Logging goes out of scope too often.
+import logging
+
+
 # Set debug mode
 VALIDATOR_DEBUG = os.environ.get('VALIDATOR_DEBUG')
 if VALIDATOR_DEBUG is not None:
-    # Logging
-    import logging
 
-    if VALIDATOR_DEBUG == 'log_to_logger':
-        logging.getLogger()
-        logging.info('Logging to log file')
+    if "debug" in VALIDATOR_DEBUG:
+        logging.setLevel(logging.DEBUG)
+    elif "warning" in VALIDATOR_DEBUG:
+        logging.setLevel(logging.WARNING)
+    elif "info" in VALIDATOR_DEBUG:
+        logging.setLevel(logging.INFO)
+    elif "error" in VALIDATOR_DEBUG:
+        logging.setLevel(logging.ERROR)
+    elif "critical" in VALIDATOR_DEBUG:
+        logging.setLevel(logging.CRITICAL)
     else:
-        logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+        logging.setLevel(logging.WARNING)
+    if "file" in VALIDATOR_DEBUG:
+        logging.basicConfig(filename="vvLog.txt")
+    else:
+        logging.basicConfig(stream=sys.stdout)
+
+
 
 # Ensure configuration is on the OS
 if os.environ.get('CONF_ROOT') is None:
@@ -8414,7 +8429,6 @@ def hgvs2ref(query):
 
 def update_vv_data():
     import sys
-    import logging
     logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
     # import update modules
     import mysql_refSeqGene_noMissmatch
