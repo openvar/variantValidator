@@ -86,6 +86,7 @@ import os
 import sys
 from operator import itemgetter
 from pyliftover import LiftOver
+import traceback
 
 # Import Biopython
 from Bio.Seq import Seq
@@ -8133,12 +8134,25 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
         # print json.dumps(validation_output, sort_keys=True, indent=4, separators=(',', ': '))
 
+        #Add error strings to validation output
+        #'''
+        metadata={}
+        logs=[]
+        for l in logger.getString().split("\n"):
+            logs.append(l)
+        metadata["logs"]=logs
+        metadata["variant"]=batch_variant
+        metadata["assembly"]=selected_assembly
+        metadata["transcripts"]=select_transcripts
+        validation_output["metadata"]=metadata
+        #'''
         # Measure time elapsed
         time_now = time.time()
         elapsed_time = time_now - start_time
         logger.debug('validation time = ' + str(elapsed_time))
 
         # return batch_out
+        print(validation_output)
         return validation_output
 
     # Bug catcher
@@ -8149,10 +8163,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
         # tr = ''.join(traceback.format_stack())
         tbk = [str(exc_type), str(exc_value), str(te)]
         er = '\n'.join(tbk)
-        logger.warning = (str(er))
-        raise variantValidatorError('Validation error')
+        logger.error = (str(er))
+        #raise variantValidatorError('Validation error')
         # Return
-        return
+        #return
+        logger.critical(str(e))
 
 
 # Generates a list of transcript (UTA supported) and transcript names from a gene symbol or RefSeq transcript ID

@@ -75,8 +75,11 @@ class logger():
     def trace(s):
         logger.logger.debug("TRACE: "+s)
     @staticmethod
-    def getString(s):
-        return logger.logString.getvalue()
+    def getString():
+        try:
+            return logger.logString.getvalue()
+        except:
+            return logger.logString
 
 
 logger.loggingSetup()
