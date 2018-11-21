@@ -104,9 +104,9 @@ else:
 # Import variantanalyser and peripheral VV modules
 import ref_seq_type
 import variantanalyser
-from logging import getLogger
-logger=getLogger("VV")
-logger.critical("WHAT THE FUCK vv")
+import vvLogging
+import logging
+logger = logging.getLogger("VV")
 
 from variantanalyser import functions as va_func
 from variantanalyser import dbControls as va_dbCrl
