@@ -85,15 +85,15 @@ import copy
 import os
 import sys
 from operator import itemgetter
-import warnings as warner
 from pyliftover import LiftOver
 
 # Import Biopython
 from Bio.Seq import Seq
 
-#Importation should be more consistent. Logging goes out of scope too often.
+# Import python diagnostic tools
 import logging
 from StringIO import StringIO
+import traceback
 
 # Set up logging
 VALIDATOR_DEBUG = os.environ.get('VALIDATOR_DEBUG')
@@ -156,9 +156,9 @@ def ConfigSectionMap(section):
         try:
             dict1[option] = Config.get(section, option)
             if dict1[option] == -1:
-                warner.warn("skip: %s" % option)
+                logger.warning("skip: %s" % option)
         except:
-            warner.warn("exception on %s!" % option)
+            logger.warning("exception on %s!" % option)
             dict1[option] = None
     return dict1
 
@@ -280,10 +280,9 @@ This is the primary VariantValidator function
 
 
 def validator(batch_variant, selected_assembly, select_transcripts):
-    if VALIDATOR_DEBUG is not None:
-        logger.info(batch_variant + ' : ' + selected_assembly)
-        # Take start time
-        start_time = time.time()
+    logger.info(batch_variant + ' : ' + selected_assembly)
+    # Take start time
+    start_time = time.time()
 
     # Set pre defined variables
     alt_aln_method = 'splign'
@@ -1903,9 +1902,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         tx_id_info = hdp.get_tx_identity_info(str(hgvs_vt.ac))
                     except hgvs.exceptions.HGVSError as e:
                         error = str(e)
-                        if VALIDATOR_DEBUG is not None:
-                            warner.warn(error)
-                            logger.info(error)
+                        logger.warning(error)
                     if error != 'false':
                         error = 'Please inform UTA admin of the following error: ' + str(error)
                         issue_link = "https://bitbucket.org/biocommons/uta/issues?status=new&status=open"
@@ -1967,7 +1964,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                     continue
                                 except Exception as e:
-                                    warner.warn(str(e))
+                                    logger.warning(str(e))
                                     error = 'Unable to assign transcript identity records to ' + accession + ', potentially an obsolete record :'
                                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                     continue
@@ -1982,7 +1979,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                          accession=accession, dbaction=dbaction, hp=hp, evm=evm,
                                                          hdp=hdp)
                             except Exception as e:
-                                warner.warn(str(e))
+                                logger.warning(str(e))
                                 error = 'Unable to assign transcript identity records to ' + accession + ', potentially an obsolete record :'
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                 continue
@@ -2034,7 +2031,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                          accession=accession, dbaction=dbaction, hp=hp, evm=evm,
                                                          hdp=hdp)
                             except Exception as e:
-                                warner.warn(str(e))                                
+                                logger.warning(str(e))
                                 error = 'Unable to assign transcript identity records to ' + accession + ', potentially an obsolete record :'
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                 continue
@@ -3936,7 +3933,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             pass
                         
                         # Warn status
-                        warner.warn("gap_compensation_1 = " + str(gap_compensation))
+                        logger.warning("gap_compensation_1 = " + str(gap_compensation))
                         coding = valstr(hgvs_coding)
 
                         # RNA sequence
@@ -3955,7 +3952,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
                         # Loop out gap finding code under these circumstances!
                         if gap_compensation is True:
-                            warner.warn('g_to_t gap code 1 active')                       
+                            logger.warning('g_to_t gap code 1 active')
                             rn_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic)
                             hgvs_genomic_possibilities.append(rn_hgvs_genomic)
                             if orientation != -1:
@@ -4223,14 +4220,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         'Unsupported normalization of variants spanning the exon-intron boundary', error):
                                     pass
 
-                            if VALIDATOR_DEBUG is not None:
-                                print '\nGENOMIC POSSIBILITIES'
-                                for possibility in hgvs_genomic_possibilities:
-                                    if possibility == '':
-                                        print 'X'
-                                    else:
-                                        print possibility
-                                print '\n'
+                            logger.info('\nGENOMIC POSSIBILITIES')
+                            for possibility in hgvs_genomic_possibilities:
+                                if possibility == '':
+                                    logger.info('X')
+                                else:
+                                    print possibility
+                            logger.info('\n')
 
                             # Set variables for problem specific warnings
                             gapped_alignment_warning = ''
@@ -5314,9 +5310,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 hgvs_seek_var = saved_hgvs_coding
 
                         # Loop out gap finding code under these circumstances!
-                        warner.warn("gap_compensation_2 = " + str(gap_compensation)) 
+                        logger.warning("gap_compensation_2 = " + str(gap_compensation))
                         if gap_compensation is True:
-                            warner.warn('g_to_t gap code 2 active')
+                            logger.warning('g_to_t gap code 2 active')
                             # is it in an exon?
                             is_it_in_an_exon = 'no'
                             for exon in ori:
@@ -6284,28 +6280,14 @@ def validator(batch_variant, selected_assembly, select_transcripts):
             # Report errors to User and VV admin
             except:
                 set_output_type_flag = 'error'
-                if VALIDATOR_DEBUG is not None:
-                    import traceback
-                    error = 'Validation error'
-                    validation['warnings'] = str(error)
-                    exc_type, exc_value, last_traceback = sys.exc_info()
-                    te = traceback.format_exc()
-                    tbk = [str(exc_type), str(exc_value), str(te)]
-                    er = str('\n'.join(tbk))
-                    warner.warn(er)
-                    logger.info(er)
-                    continue
-                else:
-                    import traceback
-                    error = 'Validation error'
-                    validation['warnings'] = str(error)
-                    exc_type, exc_value, last_traceback = sys.exc_info()
-                    te = traceback.format_exc()
-                    tbk = [str(exc_type), str(exc_value), str(te)]
-                    er = str('\n'.join(tbk))
-                    warner.warn(er)
-                    logger.info(er)
-                    continue
+                error = 'Validation error'
+                validation['warnings'] = str(error)
+                exc_type, exc_value, last_traceback = sys.exc_info()
+                te = traceback.format_exc()
+                tbk = [str(exc_type), str(exc_value), str(te)]
+                er = str('\n'.join(tbk))
+                logger.warning(er)
+                continue
 
         # Outside the for loop
         ######################
@@ -6544,7 +6526,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             pass
                         
                         # Warn gap code status
-                        warner.warn("gap_compensation_3 = " + str(gap_compensation))
+                        logger.warning("gap_compensation_3 = " + str(gap_compensation))
                         
                         multi_g = []
                         multi_g_tab = []
@@ -6574,7 +6556,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 
                                 # Loop out gap code under these circumstances!
                                 if gap_compensation is True:
-                                    warner.warn('g_to_t gap code 3 active')                                                                
+                                    logger.warning('g_to_t gap code 3 active')
                                     rn_hgvs_genomic = reverse_normalizer.normalize(hgvs_alt_genomic)
                                     hgvs_genomic_possibilities.append(rn_hgvs_genomic)
                                     if orientation != -1:
@@ -7851,18 +7833,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     multi_g.append(hgvs_alt_genomic)
                                     corrective_action_taken = 'false'
                             except:
-                                if VALIDATOR_DEBUG is not None:
-                                    import os
-                                    import traceback
-                                    exc_type, exc_value, last_traceback = sys.exc_info()
-                                    te = traceback.format_exc()
-                                    error = str(te)
-                                    warner.warn(error)
-                                    logger.info(error)
-                                    continue
-                                else:
-                                    continue
-                        
+                                exc_type, exc_value, last_traceback = sys.exc_info()
+                                te = traceback.format_exc()
+                                error = str(te)
+                                logger.warning(error)
+
                         if multi_g != []:
                             multi_g.sort()
                             multi_gen_vars = multi_g  # '|'.join(multi_g)
@@ -8099,12 +8074,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     if PYLIFTOVER_DIR is not None:
                         lo_filename = PYLIFTOVER_DIR + "hg%sToHg%s.over.chain" % (g_p_key, build_to)
                         lo = LiftOver(lo_filename)
-                        warner.warn('liftover from ' + str(lo_filename))
+                        logger.warning('liftover from ' + str(lo_filename))
                     else:
                         build_to = 'hg' + build_to
                         g_p_key = 'hg' + g_p_key
                         lo = LiftOver(g_p_key, build_to)
-                        warner.warn('liftover from external files')
+                        logger.warning('liftover from external files')
                     # Note: May be multiple alts!
                     liftover_list = lo.convert_coordinate(incoming_vcf['chr'], int(incoming_vcf['pos']))
                     
@@ -8145,11 +8120,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 if PYLIFTOVER_DIR is not None:
                                     lo_filename = PYLIFTOVER_DIR + "hg%sToHg%s.over.chain" % (build_to, g_p_key)
                                     lo = LiftOver(lo_filename)
-                                    warner.warn('liftover from ' + str(lo_filename))
+                                    logger.warning('liftover from ' + str(lo_filename))
                                 else:
                                     # hg already added to build_to and g_p_key
                                     lo = LiftOver(build_to, g_p_key)
-                                    warner.warn('liftover from external files')
+                                    logger.warning('liftover from external files')
                                 liftback_list = lo.convert_coordinate(chr, pos)                                
                                 
                                 for lifted_back in liftback_list:
@@ -8202,11 +8177,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
         # print json.dumps(validation_output, sort_keys=True, indent=4, separators=(',', ': '))
 
-        if VALIDATOR_DEBUG is not None:
-            # Measure time elapsed
-            time_now = time.time()
-            elapsed_time = time_now - start_time
-            print 'validation time = ' + str(elapsed_time)
+        # Measure time elapsed
+        time_now = time.time()
+        elapsed_time = time_now - start_time
+        logger.debug('validation time = ' + str(elapsed_time))
 
         # return batch_out
         return validation_output
@@ -8214,15 +8188,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
     # Bug catcher
     except BaseException as e:
         # Debug mode
-        if VALIDATOR_DEBUG is not None:
-            import traceback
-            exc_type, exc_value, last_traceback = sys.exc_info()
-            te = traceback.format_exc()
-            # tr = ''.join(traceback.format_stack())
-            tbk = [str(exc_type), str(exc_value), str(te)]
-            er = '\n'.join(tbk)
-            logger.info = (er)
-            print str(er)
+        exc_type, exc_value, last_traceback = sys.exc_info()
+        te = traceback.format_exc()
+        # tr = ''.join(traceback.format_stack())
+        tbk = [str(exc_type), str(exc_value), str(te)]
+        er = '\n'.join(tbk)
+        logger.warning = (str(er))
         raise variantValidatorError('Validation error')
         # Return
         return
@@ -8345,8 +8316,7 @@ def gene2transcripts(query):
 
 # Fetch reference sequence from a HGVS variant description
 def hgvs2ref(query):
-    if VALIDATOR_DEBUG is not None:
-        logger.info('Fetching reference sequence for ' + query)
+    logger.info('Fetching reference sequence for ' + query)
     # Dictionary to store the data
     reference = {'variant': query,
                  'start_position': '',
@@ -8383,14 +8353,12 @@ def hgvs2ref(query):
                 sequence = sf.fetch_seq(accession, start, end)
             except Exception as e:
                 reference['error'] = str(e)
-                if VALIDATOR_DEBUG is not None:
-                    import traceback
-                    exc_type, exc_value, last_traceback = sys.exc_info()
-                    te = traceback.format_exc()
-                    # tr = ''.join(traceback.format_stack())
-                    tbk = [str(exc_type), str(exc_value), str(te)]
-                    er = '\n'.join(tbk)
-                    logger.info(er)
+                exc_type, exc_value, last_traceback = sys.exc_info()
+                te = traceback.format_exc()
+                # tr = ''.join(traceback.format_stack())
+                tbk = [str(exc_type), str(exc_value), str(te)]
+                er = '\n'.join(tbk)
+                logger.info(er)
             else:
                 reference['start_position'] = str(input_hgvs_query.posedit.pos.start.base)
                 reference['end_position'] = str(input_hgvs_query.posedit.pos.end.base)
@@ -8406,14 +8374,12 @@ def hgvs2ref(query):
                 sequence = sf.fetch_seq(accession, start, end)
             except Exception as e:
                 reference['error'] = str(e)
-                if VALIDATOR_DEBUG is not None:
-                    import traceback
-                    exc_type, exc_value, last_traceback = sys.exc_info()
-                    te = traceback.format_exc()
-                    # tr = ''.join(traceback.format_stack())
-                    tbk = [str(exc_type), str(exc_value), str(te)]
-                    er = '\n'.join(tbk)
-                    logger.info(er)
+                exc_type, exc_value, last_traceback = sys.exc_info()
+                te = traceback.format_exc()
+                # tr = ''.join(traceback.format_stack())
+                tbk = [str(exc_type), str(exc_value), str(te)]
+                er = '\n'.join(tbk)
+                logger.info(er)
             else:
                 reference['start_position'] = str(input_hgvs_query.posedit.pos.start.base)
                 reference['end_position'] = str(input_hgvs_query.posedit.pos.end.base)
@@ -8431,14 +8397,12 @@ def hgvs2ref(query):
             sequence = sf.fetch_seq(accession, start, end)
         except Exception as e:
             reference['error'] = str(e)
-            if VALIDATOR_DEBUG is not None:
-                import traceback
-                exc_type, exc_value, last_traceback = sys.exc_info()
-                te = traceback.format_exc()
-                # tr = ''.join(traceback.format_stack())
-                tbk = [str(exc_type), str(exc_value), str(te)]
-                er = '\n'.join(tbk)
-                logger.info(er)
+            exc_type, exc_value, last_traceback = sys.exc_info()
+            te = traceback.format_exc()
+            # tr = ''.join(traceback.format_stack())
+            tbk = [str(exc_type), str(exc_value), str(te)]
+            er = '\n'.join(tbk)
+            logger.info(er)
         else:
             reference['start_position'] = str(input_hgvs_query.posedit.pos.start.base)
             reference['end_position'] = str(input_hgvs_query.posedit.pos.end.base)
