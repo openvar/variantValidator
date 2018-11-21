@@ -93,28 +93,49 @@ from Bio.Seq import Seq
 
 #Importation should be more consistent. Logging goes out of scope too often.
 import logging
+from StringIO import StringIO
 
-
-# Set debug mode
+# Set up logging
 VALIDATOR_DEBUG = os.environ.get('VALIDATOR_DEBUG')
-if VALIDATOR_DEBUG is not None:
+if VALIDATOR_DEBUG is None:
+    VALIDATOR_DEBUG="info console" #Set default value
+logger=logging.getLogger("VV")
+#Set logging urgency levels.
+if "debug" in VALIDATOR_DEBUG:
+    logLevel =logging.DEBUG
+elif "warning" in VALIDATOR_DEBUG:
+    logLevel =logging.WARNING
+elif "info" in VALIDATOR_DEBUG:
+    logLevel =logging.INFO
+elif "error" in VALIDATOR_DEBUG:
+    logLevel =logging.ERROR
+elif "critical" in VALIDATOR_DEBUG:
+    logLevel =logging.CRITICAL
 
-    if "debug" in VALIDATOR_DEBUG:
-        logging.setLevel(logging.DEBUG)
-    elif "warning" in VALIDATOR_DEBUG:
-        logging.setLevel(logging.WARNING)
-    elif "info" in VALIDATOR_DEBUG:
-        logging.setLevel(logging.INFO)
-    elif "error" in VALIDATOR_DEBUG:
-        logging.setLevel(logging.ERROR)
-    elif "critical" in VALIDATOR_DEBUG:
-        logging.setLevel(logging.CRITICAL)
-    else:
-        logging.setLevel(logging.WARNING)
-    if "file" in VALIDATOR_DEBUG:
-        logging.basicConfig(filename="vvLog.txt")
-    else:
-        logging.basicConfig(stream=sys.stdout)
+if "file" in VALIDATOR_DEBUG:
+    logFileHandler=logging.FileHandler("VV-log.txt")
+    logFileHandler.setLevel(logLevel)
+    logger.addHandler(logFileHandler)
+if "console" in VALIDATOR_DEBUG:
+    logConsoleHandler=logging.StreamHandler()
+    logConsoleHandler.setLevel(logLevel)
+    logger.addHandler(logConsoleHandler)
+#Create a log string to add to validations.
+logString=StringIO()
+logStringHandler=logging.StreamHandler(logString)
+#We want the validation metadata to not contain debug info which may change with program operation
+logStringHandler.setLevel(logging.INFO)
+logger.addHandler(logStringHandler)
+logger.setLevel(logging.DEBUG) #The logger itself must be set with an appropriate level of urgency.
+
+#Test
+#logger.debug("Message D")
+#logger.info("Message I")
+#logger.warning("Message W")
+#logger.error("Message E")
+#logger.critical("Message C")#
+
+#print("TEST "+logString.getvalue())
 
 
 
@@ -260,7 +281,7 @@ This is the primary VariantValidator function
 
 def validator(batch_variant, selected_assembly, select_transcripts):
     if VALIDATOR_DEBUG is not None:
-        logging.info(batch_variant + ' : ' + selected_assembly)
+        logger.info(batch_variant + ' : ' + selected_assembly)
         # Take start time
         start_time = time.time()
 
@@ -1884,7 +1905,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         error = str(e)
                         if VALIDATOR_DEBUG is not None:
                             warner.warn(error)
-                            logging.info(error)
+                            logger.info(error)
                     if error != 'false':
                         error = 'Please inform UTA admin of the following error: ' + str(error)
                         issue_link = "https://bitbucket.org/biocommons/uta/issues?status=new&status=open"
@@ -6272,7 +6293,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     tbk = [str(exc_type), str(exc_value), str(te)]
                     er = str('\n'.join(tbk))
                     warner.warn(er)
-                    logging.info(er)
+                    logger.info(er)
                     continue
                 else:
                     import traceback
@@ -6283,7 +6304,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     tbk = [str(exc_type), str(exc_value), str(te)]
                     er = str('\n'.join(tbk))
                     warner.warn(er)
-                    logging.info(er)
+                    logger.info(er)
                     continue
 
         # Outside the for loop
@@ -7837,7 +7858,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     te = traceback.format_exc()
                                     error = str(te)
                                     warner.warn(error)
-                                    logging.info(error)
+                                    logger.info(error)
                                     continue
                                 else:
                                     continue
@@ -8200,7 +8221,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
             # tr = ''.join(traceback.format_stack())
             tbk = [str(exc_type), str(exc_value), str(te)]
             er = '\n'.join(tbk)
-            logging.info = (er)
+            logger.info = (er)
             print str(er)
         raise variantValidatorError('Validation error')
         # Return
@@ -8325,7 +8346,7 @@ def gene2transcripts(query):
 # Fetch reference sequence from a HGVS variant description
 def hgvs2ref(query):
     if VALIDATOR_DEBUG is not None:
-        logging.info('Fetching reference sequence for ' + query)
+        logger.info('Fetching reference sequence for ' + query)
     # Dictionary to store the data
     reference = {'variant': query,
                  'start_position': '',
@@ -8369,7 +8390,7 @@ def hgvs2ref(query):
                     # tr = ''.join(traceback.format_stack())
                     tbk = [str(exc_type), str(exc_value), str(te)]
                     er = '\n'.join(tbk)
-                    logging.info(er)
+                    logger.info(er)
             else:
                 reference['start_position'] = str(input_hgvs_query.posedit.pos.start.base)
                 reference['end_position'] = str(input_hgvs_query.posedit.pos.end.base)
@@ -8392,7 +8413,7 @@ def hgvs2ref(query):
                     # tr = ''.join(traceback.format_stack())
                     tbk = [str(exc_type), str(exc_value), str(te)]
                     er = '\n'.join(tbk)
-                    logging.info(er)
+                    logger.info(er)
             else:
                 reference['start_position'] = str(input_hgvs_query.posedit.pos.start.base)
                 reference['end_position'] = str(input_hgvs_query.posedit.pos.end.base)
@@ -8417,7 +8438,7 @@ def hgvs2ref(query):
                 # tr = ''.join(traceback.format_stack())
                 tbk = [str(exc_type), str(exc_value), str(te)]
                 er = '\n'.join(tbk)
-                logging.info(er)
+                logger.info(er)
         else:
             reference['start_position'] = str(input_hgvs_query.posedit.pos.start.base)
             reference['end_position'] = str(input_hgvs_query.posedit.pos.end.base)
