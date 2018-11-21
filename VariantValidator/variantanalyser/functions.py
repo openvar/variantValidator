@@ -12,9 +12,7 @@ import re
 import os
 import sys
 import copy
-import vvLogging
-import logging
-logger = logging.getLogger("VV")
+from vvLogging import logger
 
 # Setup functions
 

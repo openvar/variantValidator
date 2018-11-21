@@ -104,9 +104,7 @@ else:
 # Import variantanalyser and peripheral VV modules
 import ref_seq_type
 import variantanalyser
-import vvLogging
-import logging
-logger = logging.getLogger("VV")
+from vvLogging import logger
 
 from variantanalyser import functions as va_func
 from variantanalyser import dbControls as va_dbCrl
