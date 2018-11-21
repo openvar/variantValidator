@@ -8,5 +8,5 @@ sys.stdout=open("vvTestSaveOutput.txt","w")
 inputVariants="inputVariants.txt"
 saveDirectory="testOutputs"
 
-fn.saveValidations(saveDirectory,inputVariants)
+fn.generateTestFolder(saveDirectory,inputVariants)
 

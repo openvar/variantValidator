@@ -37,7 +37,7 @@ except sqlite3.OperationalError:
     vv.my_config()
     print("Configured for VM")
 
-def saveValidations(path,inputVariants):
+def generateTestFolder(path, inputVariants):
     #Saves the results of running inputVariants to a folder given in saveDirectory.
     if not os.path.isdir(path):
         os.mkdir(path)
@@ -45,9 +45,14 @@ def saveValidations(path,inputVariants):
     #Go through the variant array, validating, and save the results.
     batch=validateBatch(variantArray)
     #Save copy of the resulting dictionary
-    for i,v in enumerate(batch):
+    saveValidations(path,batch)
+
+def saveValidations(path, validations):
+    #Pickles validation dictionaries into the given folder.
+    for i,v in enumerate(validations):
         with open(os.path.join(path,"variant"+str(i)+".txt") ,"w") as f:
             pickle.dump(v,f)
+
 
 def loadVariantFile(path):
     out=[]
@@ -83,7 +88,7 @@ def mergeVariantList(variants1,variants2):
     return out
 
 def loadValidations(path):
-    #Saves the results of running inputVariants to a folder given in saveDirectory.
+    #Loads a set of validations from the folder given in path.
     out=[]
     for paths,dirs,files in os.walk(path):
         for filePath in files:
@@ -108,6 +113,23 @@ def validateBatch(variantArray):
             print("FATAL error processing variant: "+str(e))
             out.append({"ERROR":str(e)})
     return out
+
+def retrieveVariant(validation):
+    #Returns the variant string (if possible) from a validation.
+    out=None
+    for v in validation.values():
+        try:
+            if type(v)==type({}) and "submitted_variant" in v.keys():
+                out=v["submitted_variant"]
+                return out
+        except (KeyError, TypeError, AttributeError):
+            pass
+    raise AttributeError("Validation does not contain the original variant string")
+
+def saveValidationsAsJSON(path,v):
+    #Saves a single validation (v is a dictionary) or a bunch of validations (v is a list of dictionaries) in
+    #the folder given in path. The name of the file will be that of the input variant string.
+    pass
 
 def compareValidations(v1,v2,id):
     #print(v1,v2)
