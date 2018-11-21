@@ -12,7 +12,76 @@ import re
 import os
 import sys
 import copy
-import warnings
+
+
+# Import python diagnostic tools
+import logging
+from StringIO import StringIO
+import traceback
+
+
+# Set up logging
+def loggingSetup():
+    print("THIS CODE IS CALLED FUCKING ONCE")
+    if "VV" in logging.Logger.manager.loggerDict:
+        raise("GOT YOU YOU FUCKER")
+    try:
+        loggingSetup.calledCount+=1
+        return
+    except:
+        loggingSetup.calledCount=1
+    VALIDATOR_DEBUG = os.environ.get('VALIDATOR_DEBUG')
+    if VALIDATOR_DEBUG is None:
+        VALIDATOR_DEBUG="info console" #Set default value
+    logger=logging.getLogger("VV")
+    #Set logging urgency levels.
+    if "debug" in VALIDATOR_DEBUG:
+        logLevel =logging.DEBUG
+    elif "warning" in VALIDATOR_DEBUG:
+        logLevel =logging.WARNING
+    elif "info" in VALIDATOR_DEBUG:
+        logLevel =logging.INFO
+    elif "error" in VALIDATOR_DEBUG:
+        logLevel =logging.ERROR
+    elif "critical" in VALIDATOR_DEBUG:
+        logLevel =logging.CRITICAL
+
+    if "file" in VALIDATOR_DEBUG:
+        logFileHandler=logging.FileHandler("VV-log.txt")
+        logFileHandler.setLevel(logLevel)
+        logger.addHandler(logFileHandler)
+    if "console" in VALIDATOR_DEBUG:
+        logConsoleHandler=logging.StreamHandler()
+        logConsoleHandler.setLevel(logLevel)
+        logger.addHandler(logConsoleHandler)
+    #Create a log string to add to validations.
+    logString=StringIO()
+    logStringHandler=logging.StreamHandler(logString)
+    #We want the validation metadata to not contain debug info which may change with program operation
+    logStringHandler.setLevel(logging.INFO)
+    logger.addHandler(logStringHandler)
+    logger.setLevel(logging.DEBUG) #The logger itself must be set with an appropriate level of urgency.
+
+    #print(logger.handers)
+    logger.propagate=False
+
+loggingSetup()
+logger=logging.getLogger("VV")
+logger.critical("WHAT THE FUCK va")
+
+
+
+#Test
+#logger.debug("Message D")
+#logger.info("Message I")
+#logger.warning("Message W")
+#logger.error("Message E")
+#logger.critical("Message C")#
+
+#print("TEST "+logString.getvalue())
+
+
+# Setup functions
 
 # Import Biopython modules
 from Bio.Seq import Seq
@@ -25,9 +94,9 @@ def ConfigSectionMap(section):
         try:
             dict1[option] = Config.get(section, option)
             if dict1[option] == -1:
-                warnings.warn("skip: %s" % option)
+                logger.warning("skip: %s" % option)
         except:
-            warnings.warn("exception on %s!" % option)
+            logger.warning("exception on %s!" % option)
             dict1[option] = None
     return dict1
 
@@ -750,7 +819,7 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
         # If the gene symbol is not in the list, the value False will be returned
         utilise_gap_code = gap_genes.gap_black_list(gene_symbol)
     # Warn gap code in use
-    warnings.warn("gap_compensation_myevm = " + str(utilise_gap_code))
+    logger.warning("gap_compensation_myevm = " + str(utilise_gap_code))
         
     if utilise_gap_code is True and (hgvs_c.posedit.edit.type == 'identity' or hgvs_c.posedit.edit.type == 'del' or hgvs_c.posedit.edit.type =='delins' or hgvs_c.posedit.edit.type == 'dup' or hgvs_c.posedit.edit.type == 'sub' or hgvs_c.posedit.edit.type == 'ins' or hgvs_c.posedit.edit.type == 'inv'):
 
@@ -999,7 +1068,7 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
         
                 # Warn of variant location wrt the gap
                 if re.match('Length implied by coordinates must equal sequence deletion length', str(e)):
-                    warnings.warn('Variant is proximal to the flank of a genomic gap')
+                    logger.warning('Variant is proximal to the flank of a genomic gap')
                     genomic_gap_variant = vm.t_to_g(stored_hgvs_c, hgvs_genomic.ac)
                     try:
                         hn.normalize(genomic_gap_variant)
@@ -1009,7 +1078,7 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
                         genomic_gap_variant = nr_vm.t_to_g(hgvs_c, hgvs_genomic.ac)
                     
                 if str(e) == 'base start position must be <= end position':
-                    warnings.warn('Variant is fully within a genomic gap')
+                    logger.warning('Variant is fully within a genomic gap')
                     genomic_gap_variant = vm.t_to_g(stored_hgvs_c, hgvs_genomic.ac)
                 
                 # Logic
@@ -1027,7 +1096,7 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
                     if re.match('Length implied by coordinates must equal sequence deletion length', str(e)):
                         # This will only happen if the variant is flanking the gap but is 
                         # not inside the gap
-                        warnings.warn('Variant is on the flank of a genomic gap but not within the gap')
+                        logger.warning('Variant is on the flank of a genomic gap but not within the gap')
                         gap_start = genomic_gap_variant.posedit.pos.start.base - 1
                         gap_end = genomic_gap_variant.posedit.pos.end.base + 1  
                         genomic_gap_variant.posedit.pos.start.base = gap_start
@@ -1307,7 +1376,7 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
                     hgvs_genomic = no_norm_evm.t_to_g(hgvs_c)
                 except Exception as e:
                     error = str(e)
-                    warnings.warn('Ins mapping error in myt_to_g ' + error) 
+                    logger.warning('Ins mapping error in myt_to_g ' + error)
 
     return hgvs_genomic
 
@@ -1432,7 +1501,7 @@ def noreplace_myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
                     hgvs_genomic = no_norm_evm.t_to_g(hgvs_c)
                 except Exception as e:
                     error = str(e)
-                    warnings.warn('Ins mapping error in myt_to_g ' + error) 
+                    logger.warning('Ins mapping error in myt_to_g ' + error)
 
     return hgvs_genomic
 
@@ -1466,7 +1535,7 @@ def myvm_t_to_g(hgvs_c, alt_chr, vm, hn, hdp, primary_assembly):
         # If the gene symbol is not in the list, the value False will be returned
         utilise_gap_code = gap_genes.gap_black_list(gene_symbol)
     # Warn gap code in use
-    warnings.warn("gap_compensation_mvm = " + str(utilise_gap_code))
+    logger.warning("gap_compensation_mvm = " + str(utilise_gap_code))
         
     if utilise_gap_code is True and (hgvs_c.posedit.edit.type == 'identity' or hgvs_c.posedit.edit.type == 'del' or hgvs_c.posedit.edit.type =='delins' or hgvs_c.posedit.edit.type == 'dup' or hgvs_c.posedit.edit.type == 'sub' or hgvs_c.posedit.edit.type == 'ins' or hgvs_c.posedit.edit.type == 'inv'):
 
@@ -1624,7 +1693,7 @@ def myvm_t_to_g(hgvs_c, alt_chr, vm, hn, hdp, primary_assembly):
         
                 # Warn of variant location wrt the gap
                 if re.match('Length implied by coordinates must equal sequence deletion length', str(e)):
-                    warnings.warn('Variant is proximal to the flank of a genomic gap')
+                    logger.warning('Variant is proximal to the flank of a genomic gap')
                     genomic_gap_variant = vm.t_to_g(stored_hgvs_c, hgvs_genomic.ac)
                     try:
                         hn.normalize(genomic_gap_variant)
@@ -1634,7 +1703,7 @@ def myvm_t_to_g(hgvs_c, alt_chr, vm, hn, hdp, primary_assembly):
                         genomic_gap_variant = nr_vm.t_to_g(hgvs_c, hgvs_genomic.ac)
                     
                 if str(e) == 'base start position must be <= end position':
-                    warnings.warn('Variant is fully within a genomic gap')
+                    logger.warning('Variant is fully within a genomic gap')
                     genomic_gap_variant = vm.t_to_g(stored_hgvs_c, hgvs_genomic.ac)
                 
                 # Logic
@@ -1652,7 +1721,7 @@ def myvm_t_to_g(hgvs_c, alt_chr, vm, hn, hdp, primary_assembly):
                     if re.match('Length implied by coordinates must equal sequence deletion length', str(e)):
                         # This will only happen if the variant is flanking the gap but is 
                         # not inside the gap
-                        warnings.warn('Variant is on the flank of a genomic gap but not within the gap')
+                        logger.warning('Variant is on the flank of a genomic gap but not within the gap')
                         gap_start = genomic_gap_variant.posedit.pos.start.base - 1
                         gap_end = genomic_gap_variant.posedit.pos.end.base + 1  
                         genomic_gap_variant.posedit.pos.start.base = gap_start
@@ -1931,7 +2000,7 @@ def myvm_t_to_g(hgvs_c, alt_chr, vm, hn, hdp, primary_assembly):
                     hgvs_genomic = no_norm_evm.t_to_g(hgvs_c)
                 except Exception as e:
                     error = str(e)
-                    warnings.warn('Ins mapping error in myt_to_g ' + error) 
+                    logger.warning('Ins mapping error in myt_to_g ' + error)
 
     return hgvs_genomic
 

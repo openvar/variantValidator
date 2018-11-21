@@ -90,52 +90,6 @@ from pyliftover import LiftOver
 # Import Biopython
 from Bio.Seq import Seq
 
-# Import python diagnostic tools
-import logging
-from StringIO import StringIO
-import traceback
-
-# Set up logging
-VALIDATOR_DEBUG = os.environ.get('VALIDATOR_DEBUG')
-if VALIDATOR_DEBUG is None:
-    VALIDATOR_DEBUG="info console" #Set default value
-logger=logging.getLogger("VV")
-#Set logging urgency levels.
-if "debug" in VALIDATOR_DEBUG:
-    logLevel =logging.DEBUG
-elif "warning" in VALIDATOR_DEBUG:
-    logLevel =logging.WARNING
-elif "info" in VALIDATOR_DEBUG:
-    logLevel =logging.INFO
-elif "error" in VALIDATOR_DEBUG:
-    logLevel =logging.ERROR
-elif "critical" in VALIDATOR_DEBUG:
-    logLevel =logging.CRITICAL
-
-if "file" in VALIDATOR_DEBUG:
-    logFileHandler=logging.FileHandler("VV-log.txt")
-    logFileHandler.setLevel(logLevel)
-    logger.addHandler(logFileHandler)
-if "console" in VALIDATOR_DEBUG:
-    logConsoleHandler=logging.StreamHandler()
-    logConsoleHandler.setLevel(logLevel)
-    logger.addHandler(logConsoleHandler)
-#Create a log string to add to validations.
-logString=StringIO()
-logStringHandler=logging.StreamHandler(logString)
-#We want the validation metadata to not contain debug info which may change with program operation
-logStringHandler.setLevel(logging.INFO)
-logger.addHandler(logStringHandler)
-logger.setLevel(logging.DEBUG) #The logger itself must be set with an appropriate level of urgency.
-
-#Test
-#logger.debug("Message D")
-#logger.info("Message I")
-#logger.warning("Message W")
-#logger.error("Message E")
-#logger.critical("Message C")#
-
-#print("TEST "+logString.getvalue())
 
 
 
@@ -147,6 +101,20 @@ if os.environ.get('CONF_ROOT') is None:
 else:
     CONF_ROOT = os.environ.get('CONF_ROOT')
 
+# Import variantanalyser and peripheral VV modules
+import ref_seq_type
+import variantanalyser
+from logging import getLogger
+logger=getLogger("VV")
+logger.critical("WHAT THE FUCK vv")
+
+from variantanalyser import functions as va_func
+from variantanalyser import dbControls as va_dbCrl
+from variantanalyser import hgvs2vcf as va_H2V
+from variantanalyser import batch as va_btch
+from variantanalyser import g_to_g as va_g2g
+from variantanalyser import supported_chromosome_builds as va_scb
+from variantanalyser import gap_genes as gapGenes
 
 # Config Section Mapping function
 def ConfigSectionMap(section):
@@ -172,16 +140,6 @@ __version__ = ConfigSectionMap("variantValidator")['version']
 if re.match('^\d+\.\d+\.\d+$', __version__) is not None:
     _is_released_version = True
 
-# Import variantanalyser and peripheral VV modules
-import ref_seq_type
-import variantanalyser
-from variantanalyser import functions as va_func
-from variantanalyser import dbControls as va_dbCrl
-from variantanalyser import hgvs2vcf as va_H2V
-from variantanalyser import batch as va_btch
-from variantanalyser import g_to_g as va_g2g
-from variantanalyser import supported_chromosome_builds as va_scb
-from variantanalyser import gap_genes as gapGenes
 
 # Custom Exceptions
 class variantValidatorError(Exception):
