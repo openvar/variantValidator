@@ -3,11 +3,9 @@ import logging
 import os
 from StringIO import StringIO
 
-
 class logger():
     #Grand unified variant validator logging static class.
-    logger=logging.getLogger("VV")
-    logString=""
+    #logString=StringIO()
     @staticmethod
     def loggingSetup():
         # Set up logging
@@ -18,14 +16,19 @@ class logger():
         # once. If another programmer has any better ideas that leave these functions
         # with a configured VV logger object that only has its handlers added once,
         # feel free to fix it up.
+        #print("Entering setup")
+        #The logger must be at the very least drawn from the logging library's dictionary
+        #for every time this module is imported.
+        logger.logger = logging.getLogger("VV")
         if "VVObfuscator" in logging.Logger.manager.loggerDict:
             return
         logging.getLogger("VVObfuscator")
+        #print("Engaging setup")
+
         # Check envrionment variables
         VALIDATOR_DEBUG = os.environ.get('VALIDATOR_DEBUG')
         if VALIDATOR_DEBUG is None:
             VALIDATOR_DEBUG = "info console"  # Set default value
-        logger.logger = logging.getLogger("VV")
         # Set logging urgency levels.
         if "debug" in VALIDATOR_DEBUG:
             logLevel = logging.DEBUG
@@ -47,43 +50,47 @@ class logger():
             logConsoleHandler.setLevel(logLevel)
             logger.logger.addHandler(logConsoleHandler)
         # Create a log string to add to validations.
-        logger.logString = StringIO()
-        logStringHandler = logging.StreamHandler(logger.logString)
+        # Since it has to survive multiple imports, I'm stuffing it into the logger dictionary.
+        # Feel free to amend this coding monstrosity without my knowledge.
+        logging.Logger.manager.loggerDict["VVLogString"]=StringIO()
+        logStringHandler = logging.StreamHandler(logging.Logger.manager.loggerDict["VVLogString"])
         # We want the validation metadata to not contain debug info which may change with program operation
         logStringHandler.setLevel(logging.INFO)
         logger.logger.addHandler(logStringHandler)
         logger.logger.setLevel(logging.DEBUG)  # The logger itself must be set with an appropriate level of urgency.
 
-        # print(logger.handers)
         logger.logger.propagate = False
+        logger.setup=True
     @staticmethod
     def debug(s):
+        logger.loggingSetup()
         logger.logger.debug("DEBUG: "+s)
     @staticmethod
     def info(s):
+        logger.loggingSetup()
         logger.logger.info("INFO : "+s)
     @staticmethod
     def warning(s):
-        logger.logger.warn("WARN : "+s)
+        logger.loggingSetup()
+        logger.logger.warning("WARN : "+s)
     @staticmethod
     def error(s):
+        logger.loggingSetup()
         logger.logger.error("ERROR: "+s)
     @staticmethod
     def critical(s):
+        logger.loggingSetup()
         logger.logger.critical("CRIT : "+s)
     @staticmethod
     def trace(s):
+        logger.loggingSetup()
         logger.logger.debug("TRACE: "+s)
     @staticmethod
     def getString():
-        try:
-            return logger.logString.getvalue()
-        except:
-            return logger.logString
-
-
-logger.loggingSetup()
-
+        logger.loggingSetup()
+        #print("RETURNING:")
+        #print(logging.Logger.manager.loggerDict["VVLogString"].getvalue())
+        return logging.Logger.manager.loggerDict["VVLogString"].getvalue()
 
 
 #Test

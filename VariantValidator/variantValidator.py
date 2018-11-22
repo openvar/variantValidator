@@ -8138,9 +8138,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
         #'''
         metadata={}
         logs=[]
+        logString=logger.getString()
         for l in logger.getString().split("\n"):
             logs.append(l)
-        metadata["logs"]=logs
+        metadata["logs"]=logString
         metadata["variant"]=batch_variant
         metadata["assembly"]=selected_assembly
         metadata["transcripts"]=select_transcripts
