@@ -60,7 +60,6 @@ class logger():
         logger.logger.setLevel(logging.DEBUG)  # The logger itself must be set with an appropriate level of urgency.
 
         logger.logger.propagate = False
-        logger.setup=True
     @staticmethod
     def debug(s):
         logger.loggingSetup()
