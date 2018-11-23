@@ -8064,15 +8064,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         pass
 
                     # Add single letter AA code to protein descriptions
+                    predicted_protein_variant_dict = {"tlr": str(predicted_protein_variant), "slr": ''}
                     if predicted_protein_variant != '':
-                        predicted_protein_variant_dict = {"tlr": str(predicted_protein_variant), "slr": ''}
                         try:
                             format_p = predicted_protein_variant
                             format_p = re.sub('\(LRG_.+?\)', '', format_p)
                             re_parse_protein = hp.parse_hgvs_variant(format_p)
                             re_parse_protein_singleAA = re_parse_protein.format({'p_3_letter': False})
-                            # if re_parse_protein_singleAA.split(':p.')[1] != '?':
-                            #    predicted_protein_variant["s_l_r"] = predicted_protein_variant + ' p.' + re_parse_protein_singleAA.split(':p.')[1]
                             predicted_protein_variant_dict["slr"] = str(re_parse_protein_singleAA)
                         except hgvs.exceptions.HGVSParseError:
                             pass
@@ -8081,14 +8079,14 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     dict_out['submitted_variant'] = submitted
                     dict_out['gene_symbol'] = gene_symbol
                     dict_out['transcript_description'] = transcript_description
-                    dict_out['HGVS_transcript_variant'] = tx_variant
+                    dict_out['hgvs_transcript_variant'] = tx_variant
                     dict_out['genome_context_intronic_sequence'] = genome_context_transcript_variant
-                    dict_out['RefSeqGene_context_intronic_sequence'] = RefSeqGene_context_transcript_variant
-                    dict_out['HGVS_RefSeqGene_variant'] = refseqgene_variant
-                    dict_out['HGVS_predicted_protein_consequence'] = predicted_protein_variant_dict
+                    dict_out['refseqgene_context_intronic_sequence'] = RefSeqGene_context_transcript_variant
+                    dict_out['hgvs_refseqgene_variant'] = refseqgene_variant
+                    dict_out['hgvs_predicted_protein_consequence'] = predicted_protein_variant_dict
                     dict_out['validation_warnings'] = warnings_out
-                    dict_out['HGVS_LRG_transcript_variant'] = lrg_transcript_variant
-                    dict_out['HGVS_LRG_variant'] = lrg_variant
+                    dict_out['hgvs_lrg_transcript_variant'] = lrg_transcript_variant
+                    dict_out['hgvs_lrg_variant'] = lrg_variant
                     dict_out['alt_genomic_loci'] = alt_genomic_dicts
                     dict_out['primary_assembly_loci'] = primary_genomic_dicts
 
@@ -8117,17 +8115,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     validation_error_counter = validation_error_counter + 1
                     identification_key = 'Validation_Error_%s' % (str(validation_error_counter))
                 else:
-                    #                     identification_key = '%s %s' % (
-                    #                         str(valid_v['HGVS_transcript_variant']), str(valid_v['transcript_description']))
-                    identification_key = '%s' % (
-                        str(valid_v['HGVS_transcript_variant']))
+                    identification_key = '%s' % (str(valid_v['HGVS_transcript_variant']))
 
-				# This code ought to be redundant since id key is now a full variant
-#                 if identification_key not in validation_output.keys():
-#                     validation_output[identification_key] = valid_v
-#                 else:
-#                     dotter = dotter + ' '
-#                     validation_output[identification_key + dotter] = valid_v
+                #if identification_key not in validation_output.keys():
+                validation_output[identification_key] = valid_v
+                #else:
+                    #dotter = dotter + ' '
+                    #validation_output[identification_key + dotter] = valid_v
 
         # For warning only outputs
         # Should only ever be 1 output as an error or a warning of the following types
@@ -8142,10 +8136,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
             for valid_v in batch_out:
                 if valid_v['validation_warnings'] == ['Validation error']:
                     validation_error_counter = validation_error_counter + 1
-                    identification_key = 'Validation_Error_%s' % (str(validation_error_counter))
+                    identification_key = 'validation_error_%s' % (str(validation_error_counter))
                 else:
                     validation_warning_counter = validation_warning_counter + 1
-                    identification_key = 'Validation_Warning_%s' % (str(validation_warning_counter))
+                    identification_key = 'validation_warning_%s' % (str(validation_warning_counter))
                 validation_output[identification_key] = valid_v
 
         # Intergenic variants
@@ -8154,7 +8148,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
             validation_output['flag'] = 'intergenic'
             for valid_v in batch_out:
                 validation_intergenic_counter = validation_intergenic_counter + 1
-                identification_key = 'Intergenic_Variant_%s' % (str(validation_intergenic_counter))
+                identification_key = 'intergenic_variant_%s' % (str(validation_intergenic_counter))
 
                 # Attempt to liftover between genome builds
                 # Note: pyliftover uses the UCSC liftOver tool.
