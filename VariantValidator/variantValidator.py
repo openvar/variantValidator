@@ -84,11 +84,9 @@ import time
 import copy
 import os
 import sys
+import warnings
 from operator import itemgetter
-import warnings as warner
 from pyliftover import LiftOver
-
-# Import Biopython
 from Bio.Seq import Seq
 
 # Set debug mode
@@ -120,9 +118,9 @@ def ConfigSectionMap(section):
         try:
             dict1[option] = Config.get(section, option)
             if dict1[option] == -1:
-                warner.warn("skip: %s" % option)
+                warnings.warn("skip: %s" % option)
         except:
-            warner.warn("exception on %s!" % option)
+            warnings.warn("exception on %s!" % option)
             dict1[option] = None
     return dict1
 
@@ -147,9 +145,11 @@ from variantanalyser import g_to_g as va_g2g
 from variantanalyser import supported_chromosome_builds as va_scb
 from variantanalyser import gap_genes as gapGenes
 
+
 # Custom Exceptions
 class variantValidatorError(Exception):
     pass
+
 
 # PRE COMPILE VARIABLES
 hgvs.global_config.uta.pool_max = 25
@@ -165,23 +165,13 @@ vm = hgvs.variantmapper.VariantMapper(hdp)
 nr_vm = hgvs.variantmapper.VariantMapper(hdp, replace_reference=False)
 # Create seqfetcher object
 sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
-# create normalizers
-hn = hgvs.normalizer.Normalizer(hdp,
-                                cross_boundaries=False,
-                                shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
-                                alt_aln_method='splign'
-                                )
-reverse_normalizer = hgvs.normalizer.Normalizer(hdp,
-                                                cross_boundaries=False,
-                                                shuffle_direction=5,
-                                                alt_aln_method='splign'
-                                                )
 
 # Set current genome builds
 genome_builds = ['GRCh37', 'hg19', 'GRCh38']
 
 # Obtain environment variables needed within the top-level function
 PYLIFTOVER_DIR = os.environ.get('PYLIFTOVER_DIR')
+
 
 # method for final validation and stringifying parsed hgvs variants prior to printing/passing to html
 def valstr(hgvs_variant):
@@ -228,7 +218,7 @@ def my_config():
     locate = {
         'SeqRepo_Directory': HGVS_SEQREPO_DIR,
         'UTA_URL': UTA_DB_URL,
-        'py_liftover' : PYLIFTOVER_DIR,
+        'py_liftover': PYLIFTOVER_DIR,
         'variantValidator_data_URL': VALIDATOR_DB_URL,
         'ENTREZ_ID': ENTREZ_ID,
         'variantValidator_Version': VERSION,
@@ -360,10 +350,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         human_code = re.sub("u'\\\\\w", 'U+', string_char)
                         human_code = human_code.replace("'", "")
                         format_human = u"{}".format(human_code)
-                        format_human = format_human.upper()         
+                        format_human = format_human.upper()
                         found_at = re.sub(search_term, u'<' + format_human + u'>', found_at)
                         slasher = re.compile("\\\\")
-                        found_at = re.sub(slasher, '', found_at) 
+                        found_at = re.sub(slasher, '', found_at)
                         validation['id'] = found_at
                         error = u'Submitted variant description contains an invalid character which is represented by Unicode character ' + format_human + u' at position ' + found_at + u': Please remove this character and re-submit: A useful search function for Unicode characters can be found at https://unicode-search.net/'
                         validation['warnings'] = validation['warnings'] + ': ' + error
@@ -372,15 +362,15 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         pass
                 else:
                     pass
-                
-                # Remove whitespace 
+
+                # Remove whitespace
                 ws = copy.copy(input)
                 input = input.strip()
                 input = ''.join(input.split())
                 if input != ws:
                     caution = 'Whitespace removed from variant description ' + str(ws)
-                    validation['warnings'] = validation['warnings'] + ': ' + caution 
-                    
+                    validation['warnings'] = validation['warnings'] + ': ' + caution
+
                 stash_input = copy.copy(input)
                 # Set the primary_assembly
                 if validation['primary_assembly'] == 'false':
@@ -397,12 +387,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         primary_assembly = selected_assembly
                     # Catch invalid genome build
                     valid_build = False
-                    for build in genome_builds:
-                        if primary_assembly == build:
+                    for genome_build in genome_builds:
+                        if primary_assembly == genome_build:
                             valid_build = True
                     if valid_build is False:
                         primary_assembly = 'GRCh38'
-                        validation['warnings'] = validation['warnings'] + ': Invalid genome build has been specified. Automap has selected the default build (GRCh38)'
+                        validation['warnings'] = validation[
+                                                     'warnings'] + ': Invalid genome build has been specified. Automap has selected the default build (GRCh38)'
                     else:
                         validation['primary_assembly'] = primary_assembly
                 else:
@@ -419,7 +410,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                 VCF variants into HGVS - hence the need for conversion step 2
                 """
                 if re.search('[-:]\d+[-:][GATC]+[-:][GATC]+', input):
-                    input = input.replace(':','-')
+                    input = input.replace(':', '-')
                     # Extract primary_assembly if provided
                     if re.match('GRCh3\d+-', input) or re.match('hg\d+-', input):
                         in_list = input.split('-')
@@ -429,7 +420,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     vcf_elements = pre_input.split('-')
                     input = '%s:%s%s>%s' % (vcf_elements[0], vcf_elements[1], vcf_elements[2], vcf_elements[3])
                 elif re.search('[-:]\d+[-:][GATC]+[-:]', input):
-                    input = input.replace(':','-')
+                    input = input.replace(':', '-')
                     # Extract primary_assembly if provided
                     if re.match('GRCh3\d+-', input) or re.match('hg\d+-', input):
                         in_list = input.split('-')
@@ -444,20 +435,20 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     input_A = '%s:%s%s>%s' % (vcf_elements[0], vcf_elements[1], vcf_elements[2], 'del')
                     input_B = '%s:%s%s>%s' % (vcf_elements[0], vcf_elements[1], vcf_elements[2], vcf_elements[2])
                     queryA = {'quibble': input_A, 'id': validation['id'], 'warnings': validation['warnings'],
-                             'description': '', 'coding': '', 'coding_g': '', 'genomic_r': '', 'genomic_g': '',
-                             'protein': '', 'write': 'true', 'primary_assembly': primary_assembly, 'order': ordering}
+                              'description': '', 'coding': '', 'coding_g': '', 'genomic_r': '', 'genomic_g': '',
+                              'protein': '', 'write': 'true', 'primary_assembly': primary_assembly, 'order': ordering}
                     queryB = {'quibble': input_B, 'id': validation['id'], 'warnings': validation['warnings'],
-                             'description': '', 'coding': '', 'coding_g': '', 'genomic_r': '', 'genomic_g': '',
-                             'protein': '', 'write': 'true', 'primary_assembly': primary_assembly, 'order': ordering}
+                              'description': '', 'coding': '', 'coding_g': '', 'genomic_r': '', 'genomic_g': '',
+                              'protein': '', 'write': 'true', 'primary_assembly': primary_assembly, 'order': ordering}
                     batch_list.append(queryA)
                     batch_list.append(queryB)
                     continue
                 elif re.search('[-:]\d+[-:][-:][GATC]+', input) or re.search('[-:]\d+[-:][.][-:][GATC]+', input):
-                    input = input.replace(':','-')
+                    input = input.replace(':', '-')
                     if re.search('-.-', input):
-                        input = input.replace('-.-','-ins-')
+                        input = input.replace('-.-', '-ins-')
                     if re.search('--', input):
-                        input = input.replace('--','-ins-')
+                        input = input.replace('--', '-ins-')
                     # Extract primary_assembly if provided
                     if re.match('GRCh3\d+-', input) or re.match('hg\d+-', input):
                         in_list = input.split('-')
@@ -467,7 +458,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     vcf_elements = pre_input.split('-')
                     input = '%s:%s%s>%s' % (vcf_elements[0], vcf_elements[1], vcf_elements[2], vcf_elements[3])
                     stash_input = input
-                    
+
                 # API type non-HGVS
                 # e.g. Chr16:2099572TC>T
                 """
@@ -486,7 +477,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     if re.search('\w+\:[gcnmrp]', input) and not re.search('\w+\:[gcnmrp]\.', input):
                         # Missing dot
                         pass
-                    else:   
+                    else:
                         try:
                             if re.search('GRCh37', input) or re.search('hg19', input):
                                 primary_assembly = 'GRCh37'
@@ -563,7 +554,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     # Take out lowercase Accession characters
                     lower_cased_list = input.split(':')
                     if re.search('LRG', lower_cased_list[0], re.IGNORECASE):
-                        lower_case_accession = lower_cased_list[0]  
+                        lower_case_accession = lower_cased_list[0]
                         lower_case_accession = lower_case_accession.replace('l', 'L')
                         lower_case_accession = lower_case_accession.replace('r', 'R')
                         lower_case_accession = lower_case_accession.replace('g', 'G')
@@ -571,13 +562,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         lower_case_accession = lower_cased_list[0]
                         lower_case_accession = lower_case_accession.upper()
                     input = ''.join(lower_cased_list[1:])
-                    input = lower_case_accession + ':' + input      
+                    input = lower_case_accession + ':' + input
                     if not re.match('LRG_', input) and not re.match('ENS', input) and not re.match('N[MRPC]_', input):
                         try:
                             if re.search('GRCh37', input) or re.search('hg19', input):
                                 primary_assembly = 'GRCh37'
                             elif re.search('GRCh38', input) or re.search('hg38', input):
-                                primary_assembly = 'GRCh38' 
+                                primary_assembly = 'GRCh38'
                             pre_input = copy.deepcopy(input)
                             input_list = input.split(':')
                             query_a_symbol = input_list[0]
@@ -1042,11 +1033,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     input_parses.ac = input_parses.ac.upper()
                     try:
                         input_parses.posedit.edit.alt = input_parses.posedit.edit.alt.upper()
-                    except Exception as e:          
+                    except Exception as e:
                         pass
                     try:
                         input_parses.posedit.edit.ref = input_parses.posedit.edit.ref.upper()
-                    except Exception as e:          
+                    except Exception as e:
                         pass
                     variant = str(input_parses)
                     input = str(input_parses)
@@ -1086,6 +1077,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                 }
                 is_mapable = mapable_assemblies.get(primary_assembly)
                 if is_mapable == 'true':
+
+                    # These objects cannot be moved outside of the main function because they gather data from the
+                    # iuser input e.g. alignment method and genome build
+                    # They initiate quickly, so no need to move them unnecessarily
+
                     # Create easy variant mapper (over variant mapper) and splign locked evm
                     evm = hgvs.assemblymapper.AssemblyMapper(hdp,
                                                              assembly_name=primary_assembly,
@@ -1109,6 +1105,18 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                                  normalize=False,
                                                                  replace_reference=False
                                                                  )
+
+                    # create normalizers
+                    hn = hgvs.normalizer.Normalizer(hdp,
+                                                    cross_boundaries=False,
+                                                    shuffle_direction=3,
+                                                    alt_aln_method=alt_aln_method
+                                                    )
+                    reverse_normalizer = hgvs.normalizer.Normalizer(hdp,
+                                                                    cross_boundaries=False,
+                                                                    shuffle_direction=5,
+                                                                    alt_aln_method=alt_aln_method
+                                                                    )
 
                 else:
                     error = 'Mapping of ' + variant + ' to genome assembly ' + primary_assembly + ' is not supported'
@@ -1308,7 +1316,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     variant = str(input_parses)
                             else:
                                 if re.search('bounds', error) or re.search('intronic variant', error):
-                                    try: 
+                                    try:
                                         hn.normalize(input_parses)
                                     except Exception as e:
                                         print e
@@ -1317,18 +1325,21 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             identity_info = hdp.get_tx_identity_info(input_parses.ac)
                                             ref_start = identity_info[3]
                                             ref_end = identity_info[4]
-                                            if re.match('-', str(input_parses.posedit.pos.start)) and input_parses.posedit.pos.start.offset == 0:
+                                            if re.match('-', str(
+                                                    input_parses.posedit.pos.start)) and input_parses.posedit.pos.start.offset == 0:
                                                 # upstream positions
-                                                boundary = int('-'+str(ref_start))
+                                                boundary = int('-' + str(ref_start))
                                                 remainder = int(str(input_parses.posedit.pos.start)) - boundary
                                                 input_parses.posedit.pos.start.base = boundary
                                                 input_parses.posedit.pos.start.offset = remainder
-                                            if re.match('-', str(input_parses.posedit.pos.end)) and input_parses.posedit.pos.end.offset == 0:
-                                                boundary = int('-'+str(ref_start))
+                                            if re.match('-', str(
+                                                    input_parses.posedit.pos.end)) and input_parses.posedit.pos.end.offset == 0:
+                                                boundary = int('-' + str(ref_start))
                                                 remainder = int(str(input_parses.posedit.pos.end)) - boundary
                                                 input_parses.posedit.pos.end.base = boundary
                                                 input_parses.posedit.pos.end.offset = remainder
-                                            if re.match('\*', str(input_parses.posedit.pos.start)) and input_parses.posedit.pos.start.offset == 0:
+                                            if re.match('\*', str(
+                                                    input_parses.posedit.pos.start)) and input_parses.posedit.pos.start.offset == 0:
                                                 # downstream positions
                                                 tot_end_pos = str(input_parses.posedit.pos.start).replace('*', '')
                                                 ts_seq = sf.fetch_seq(input_parses.ac)
@@ -1336,23 +1347,25 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                 input_parses.posedit.pos.start.base = boundary
                                                 offset = int(tot_end_pos) - int(boundary)
                                                 input_parses.posedit.pos.start.offset = offset
-                                            if re.match('\*', str(input_parses.posedit.pos.end)) and input_parses.posedit.pos.end.offset == 0:
+                                            if re.match('\*', str(
+                                                    input_parses.posedit.pos.end)) and input_parses.posedit.pos.end.offset == 0:
                                                 tot_end_pos = str(input_parses.posedit.pos.end).replace('*', '')
                                                 ts_seq = sf.fetch_seq(input_parses.ac)
                                                 boundary = len(ts_seq) - ref_end
                                                 input_parses.posedit.pos.end.base = boundary
                                                 offset = int(tot_end_pos) - int(boundary)
                                                 input_parses.posedit.pos.end.offset = offset
-                                            report_gen = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
-                                            error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant: Instead use ' + valstr(report_gen)
+                                            report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
+                                            error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant: Instead use ' + valstr(
+                                                report_gen)
                                         except Exception as e:
                                             pass
                                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                        continue                                            
+                                        continue
                                     else:
                                         pass
                                 else:
-                                    pass                    
+                                    pass
 
                         try:
                             input_parses = evm.c_to_n(input_parses)
@@ -1364,7 +1377,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         if re.search('n.1-', str(input_parses)):
                             input_parses = evm.n_to_c(input_parses)
                             error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use '
-                            genomic_position = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
+                            genomic_position = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
                             error = error + valstr(genomic_position)
                             validation['warnings'] = validation['warnings'] + ': ' + str(error)
                             continue
@@ -1378,7 +1391,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         if re.search('\d\-\d', str(input_parses)) or re.search('\d\+\d', str(input_parses)):
                             # Can we go c-g-c
                             try:
-                                to_genome = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
+                                to_genome = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
                                 to_tx = evm.g_to_t(to_genome, input_parses.ac)
                             except hgvs.exceptions.HGVSInvalidIntervalError as e:
                                 error = str(e)
@@ -1389,12 +1402,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         ref_end = identity_info[4]
                                         if re.match('-', str(input_parses.posedit.pos.start)):
                                             # upstream positions
-                                            boundary = int('-'+str(ref_start))
+                                            boundary = int('-' + str(ref_start))
                                             remainder = int(str(input_parses.posedit.pos.start)) - boundary
                                             input_parses.posedit.pos.start.base = boundary
                                             input_parses.posedit.pos.start.offset = remainder
                                         if re.match('-', str(input_parses.posedit.pos.end)):
-                                            boundary = int('-'+str(ref_start))
+                                            boundary = int('-' + str(ref_start))
                                             remainder = int(str(input_parses.posedit.pos.end)) - boundary
                                             input_parses.posedit.pos.end.base = boundary
                                             input_parses.posedit.pos.end.offset = remainder
@@ -1404,8 +1417,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             ts_seq = sf.fetch_seq(input_parses.ac)
                                             boundary = len(ts_seq) - ref_end
                                             input_parses.posedit.pos.start.base = boundary
-                                            te1,te2 = tot_end_pos.split('+')
-                                            tot_end_pos = int(te1)+int(te2)
+                                            te1, te2 = tot_end_pos.split('+')
+                                            tot_end_pos = int(te1) + int(te2)
                                             offset = int(tot_end_pos) - int(boundary)
                                             input_parses.posedit.pos.start.offset = offset
                                         if re.match('\*', str(input_parses.posedit.pos.end)):
@@ -1413,17 +1426,18 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             ts_seq = sf.fetch_seq(input_parses.ac)
                                             boundary = len(ts_seq) - ref_end
                                             input_parses.posedit.pos.end.base = boundary
-                                            te1,te2 = tot_end_pos.split('+')
-                                            tot_end_pos = int(te1)+int(te2)
+                                            te1, te2 = tot_end_pos.split('+')
+                                            tot_end_pos = int(te1) + int(te2)
                                             offset = int(tot_end_pos) - int(boundary)
                                             input_parses.posedit.pos.end.offset = offset
-                                        report_gen = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
-                                        error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(report_gen)
+                                        report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
+                                        error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(
+                                            report_gen)
                                     except Exception as e:
                                         print e
                                         pass
                                 else:
-                                    pass    
+                                    pass
                                 validation['warnings'] = validation['warnings'] + ': ' + str(
                                     error)
                                 continue
@@ -1436,11 +1450,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             error = str(e)
                             if re.search('bounds', error):
                                 try:
-                                    report_gen = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
+                                    report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
                                 except hgvs.exceptions.HGVSError as e:
                                     pass
                                 else:
-                                    error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(report_gen)
+                                    error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(
+                                        report_gen)
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                 continue
                             elif re.search('insertion length must be 1', error):
@@ -1460,7 +1475,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         # Create a specific minimal evm with no normalizer and no replace_reference
                         # Have to use this method due to potential multi chromosome error, note, normalizes but does not replace sequence
                         try:
-                            output = va_func.noreplace_myevm_t_to_g(input_parses, min_evm, hdp, primary_assembly)
+                            output = va_func.noreplace_myevm_t_to_g(input_parses, min_evm, hdp, primary_assembly, vm, hn, hp, sf, no_norm_evm)
                         except hgvs.exceptions.HGVSDataNotAvailableError as e:
                             tx_ac = input_parses.ac
                             try:
@@ -1603,8 +1618,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         remainder = remainder + 1
                                         input_parses.posedit.pos.end.base = boundary
                                         input_parses.posedit.pos.end.offset = remainder
-                                    report_gen = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
-                                    error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(report_gen)
+                                    report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
+                                    error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(
+                                        report_gen)
                                 except Exception as e:
                                     pass
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
@@ -1615,7 +1631,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
                     if re.search('n.1-', str(input_parses)):
                         error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use '
-                        genomic_position = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
+                        genomic_position = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
                         error = error + valstr(genomic_position)
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
                         continue
@@ -1630,11 +1646,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             error = str(e)
                             if re.search('bounds', error):
                                 try:
-                                    report_gen = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
+                                    report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
                                 except hgvs.exceptions.HGVSError as e:
                                     pass
                                 else:
-                                    error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(report_gen)
+                                    error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(
+                                        report_gen)
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                 continue
                             elif re.search('insertion length must be 1', error):
@@ -1652,22 +1669,23 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 continue
                             elif re.search('Cannot validate sequence of an intronic variant', error):
                                 try:
-                                    test_g = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
+                                    test_g = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
                                     back_to_n = evm.g_to_t(test_g, input_parses.ac)
                                 except hgvs.exceptions.HGVSError as e:
                                     error = str(e)
                                     if re.match('bounds', error):
-                                        report_gen = va_func.myevm_t_to_g(input_parses, evm, hdp, primary_assembly)
-                                        error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(report_gen)                      
+                                        report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
+                                        error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(
+                                            report_gen)
                                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                         continue
                                 else:
-                                    pass       
+                                    pass
 
-                        # Create a specific minimal evm with no normalizer and no replace_reference
+                                    # Create a specific minimal evm with no normalizer and no replace_reference
                         # Have to use this method due to potential multi chromosome error, note, normalizes but does not replace sequence
                         try:
-                            output = va_func.noreplace_myevm_t_to_g(input_parses, min_evm, hdp, primary_assembly)
+                            output = va_func.noreplace_myevm_t_to_g(input_parses, min_evm, hdp, primary_assembly, vm, hn, hp, sf, no_norm_evm)
                         except hgvs.exceptions.HGVSDataNotAvailableError as e:
                             tx_ac = input_parses.ac
                             try:
@@ -1783,7 +1801,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         continue
                     else:
                         # Any transcripts?
-                        rel_var = va_func.relevant_transcripts(hgvs_mito, evm, hdp, alt_aln_method)
+                        rel_var = va_func.relevant_transcripts(hgvs_mito, evm, hdp, alt_aln_method, reverse_normalizer)
                         hgvs_genomic = copy.deepcopy(hgvs_mito)
                         if len(rel_var) == 0:
                             validation['genomic_g'] = valstr(hgvs_mito)
@@ -1842,12 +1860,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                 """
                 trapped_input = input
                 if type == ':r.':
-                    input = hp.parse_hgvs_variant(input)  # Traps the hgvs variant of r. for further use
+                    hgvs_input = hp.parse_hgvs_variant(input)  # Traps the hgvs variant of r. for further use
                     # Change to coding variant
                     type = ':c.'
                     # Change input to reflect!
                     try:
-                        hgvs_c = va_func.hgvs_r_to_c(input)
+                        hgvs_c = va_func.hgvs_r_to_c(hgvs_input)
                     except hgvs.exceptions.HGVSDataNotAvailableError as e:
                         error = str(e)
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
@@ -1868,7 +1886,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     except hgvs.exceptions.HGVSError as e:
                         error = str(e)
                         if VALIDATOR_DEBUG is not None:
-                            warner.warn(error)
+                            warnings.warn(error)
                             logging.info(error)
                     if error != 'false':
                         error = 'Please inform UTA admin of the following error: ' + str(error)
@@ -1931,7 +1949,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                     continue
                                 except Exception as e:
-                                    warner.warn(str(e))
+                                    warnings.warn(str(e))
                                     error = 'Unable to assign transcript identity records to ' + accession + ', potentially an obsolete record :'
                                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                     continue
@@ -1946,7 +1964,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                          accession=accession, dbaction=dbaction, hp=hp, evm=evm,
                                                          hdp=hdp)
                             except Exception as e:
-                                warner.warn(str(e))
+                                warnings.warn(str(e))
                                 error = 'Unable to assign transcript identity records to ' + accession + ', potentially an obsolete record :'
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                 continue
@@ -1998,7 +2016,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                          accession=accession, dbaction=dbaction, hp=hp, evm=evm,
                                                          hdp=hdp)
                             except Exception as e:
-                                warner.warn(str(e))                                
+                                warnings.warn(str(e))
                                 error = 'Unable to assign transcript identity records to ' + accession + ', potentially an obsolete record :'
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                 continue
@@ -2052,18 +2070,18 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     Initial simple projection from the provided g. position all overlapping
                     transcripts
                     """
-                    rel_var = va_func.relevant_transcripts(hgvs_genomic, evm, hdp, alt_aln_method)
+                    rel_var = va_func.relevant_transcripts(hgvs_genomic, evm, hdp, alt_aln_method, reverse_normalizer)
 
                     # Double check rel_vars have not been missed when mapping from a RefSeqGene
                     if len(rel_var) != 0 and re.match('NG_', str(hgvs_genomic.ac)):
                         for var in rel_var:
                             hgvs_coding_variant = hp.parse_hgvs_variant(var)
                             try:
-                                hgvs_genomic = va_func.myevm_t_to_g(hgvs_coding_variant, evm, hdp, primary_assembly)
+                                hgvs_genomic = va_func.myevm_t_to_g(hgvs_coding_variant, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
                             except hgvs.exceptions.HGVSError as e:
                                 try_rel_var = []
                             else:
-                                try_rel_var = va_func.relevant_transcripts(hgvs_genomic, evm, hdp, alt_aln_method)
+                                try_rel_var = va_func.relevant_transcripts(hgvs_genomic, evm, hdp, alt_aln_method, reverse_normalizer)
                             if len(try_rel_var) > len(rel_var):
                                 rel_var = try_rel_var
                                 break
@@ -2072,12 +2090,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
                     #                   Tripple check this assumption by querying the gene position database
                     if len(rel_var) == 0:
-                        vcf_dict = va_H2V.hgvs2vcf(hgvs_genomic)
+                        vcf_dict = va_H2V.hgvs2vcf(hgvs_genomic, reverse_normalizer, sf)
                         not_di = str(hgvs_genomic.ac) + ':g.' + str(vcf_dict['pos']) + '_' + str(
                             int(vcf_dict['pos']) + (len(vcf_dict['ref']) - 1)) + 'del' + vcf_dict['ref'] + 'ins' + \
                                  vcf_dict['alt']
                         hgvs_not_di = hp.parse_hgvs_variant(not_di)
-                        rel_var = va_func.relevant_transcripts(hgvs_not_di, evm, hdp, alt_aln_method)
+                        rel_var = va_func.relevant_transcripts(hgvs_not_di, evm, hdp, alt_aln_method, reverse_normalizer)
 
                     # list return statements
                     """
@@ -2169,7 +2187,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
                         # VCF
-                        vcf_dict = va_H2V.hgvs2vcf(reverse_normalized_hgvs_genomic)
+                        vcf_dict = va_H2V.hgvs2vcf(reverse_normalized_hgvs_genomic, reverse_normalizer, sf)
                         chr = vcf_dict['chr']
                         pos = vcf_dict['pos']
                         ref = vcf_dict['ref']
@@ -2195,12 +2213,14 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             try:
                                 c.posedit.edit.alt = c.posedit.edit.alt.upper()
                             except Exception:
-                                pass                
-                            stash_input = variantanalyser.functions.myevm_t_to_g(c, no_norm_evm, hdp, primary_assembly)
-                        if re.match('NC_', str(stash_input)) or re.match('NT_', str(stash_input)) or re.match('NW_', str(stash_input)):
+                                pass
+                            stash_input = va_func.myevm_t_to_g(c, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
+                        if re.match('NC_', str(stash_input)) or re.match('NT_', str(stash_input)) or re.match('NW_',
+                                                                                                              str(
+                                                                                                                      stash_input)):
                             try:
                                 hgvs_stash = hp.parse_hgvs_variant(stash_input)
-                            except: 
+                            except:
                                 hgvs_stash = stash_input
                             try:
                                 hgvs_stash.posedit.edit.ref = hgvs_stash.posedit.edit.ref.upper()
@@ -2213,7 +2233,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
                             stash_ac = hgvs_stash.ac
                             # MAKE A NO NORM HGVS2VCF
-                            stash_dict = va_H2V.pos_lock_hgvs2vcf(hgvs_stash)
+                            stash_dict = va_H2V.pos_lock_hgvs2vcf(hgvs_stash, reverse_normalizer, sf)
+
                             stash_ac = hgvs_stash.ac
                             stash_pos = int(stash_dict['pos'])
                             stash_ref = stash_dict['ref']
@@ -2465,8 +2486,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         else:
                                             test_tx_var = rn_tx_hgvs_not_delins
                                         # re-make genomic and tx
-                                        hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, no_norm_evm, hdp,
-                                                                               primary_assembly)
+                                        hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
                                         rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                    str(saved_hgvs_coding.ac))
                                     elif re.search('\+', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
@@ -2478,18 +2498,17 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         else:
                                             test_tx_var = rn_tx_hgvs_not_delins
                                         # re-make genomic and tx
-                                        hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, no_norm_evm, hdp,
-                                                                               primary_assembly)
+                                        hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
                                         rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                    str(saved_hgvs_coding.ac))
                                         rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
-#                                     else:
-#                                         pass
+                                    #                                     else:
+                                    #                                         pass
 
                                     # Check for -ve base and adjust
                                     elif re.search('\-', str(rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search('\-',
-                                                                                                                 str(
-                                                                                                                     rn_tx_hgvs_not_delins.posedit.pos.start)):
+                                                                                                                   str(
+                                                                                                                       rn_tx_hgvs_not_delins.posedit.pos.start)):
                                         # Remove offsetting to span the gap
                                         rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
                                         rn_tx_hgvs_not_delins.posedit.pos.end.offset = 0
@@ -2514,8 +2533,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         else:
                                             test_tx_var = rn_tx_hgvs_not_delins
                                         # re-make genomic and tx
-                                        hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, no_norm_evm, hdp,
-                                                                               primary_assembly)
+                                        hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
                                         rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                    str(saved_hgvs_coding.ac))
                                     elif re.search('\-', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
@@ -2528,8 +2546,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         else:
                                             test_tx_var = rn_tx_hgvs_not_delins
                                         # re-make genomic and tx
-                                        hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, no_norm_evm, hdp,
-                                                                               primary_assembly)
+                                        hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
                                         rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                    str(saved_hgvs_coding.ac))
                                         rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
@@ -2605,7 +2622,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         tx_hgvs_not_delins.posedit.edit.alt = ''
                                 except Exception as e:
                                     if str(e) == "'Dup' object has no attribute 'alt'":
-                                        tx_hgvs_not_delins_delins_from_dup = tx_hgvs_not_delins.ac + ':' + tx_hgvs_not_delins.type + '.' + str(tx_hgvs_not_delins.posedit.pos.start) + '_' + str(tx_hgvs_not_delins.posedit.pos.end) + 'del' + tx_hgvs_not_delins.posedit.edit.ref + 'ins' +    tx_hgvs_not_delins.posedit.edit.ref + tx_hgvs_not_delins.posedit.edit.ref                           
+                                        tx_hgvs_not_delins_delins_from_dup = tx_hgvs_not_delins.ac + ':' + tx_hgvs_not_delins.type + '.' + str(
+                                            tx_hgvs_not_delins.posedit.pos.start) + '_' + str(
+                                            tx_hgvs_not_delins.posedit.pos.end) + 'del' + tx_hgvs_not_delins.posedit.edit.ref + 'ins' + tx_hgvs_not_delins.posedit.edit.ref + tx_hgvs_not_delins.posedit.edit.ref
                                         tx_hgvs_not_delins = hp.parse_hgvs_variant(tx_hgvs_not_delins_delins_from_dup)
 
                                 # GAP IN THE TRANSCRIPT DISPARITY DETECTED
@@ -2629,8 +2648,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                 tx_gap_fill_variant.posedit.edit.alt = ''
                                         except Exception as e:
                                             if str(e) == "'Dup' object has no attribute 'alt'":
-                                                tx_gap_fill_variant_delins_from_dup = tx_gap_fill_variant.ac + ':' + tx_gap_fill_variant.type + '.' + str(tx_gap_fill_variant.posedit.pos.start) + '_' + str(tx_gap_fill_variant.posedit.pos.end) + 'del' + tx_gap_fill_variant.posedit.edit.ref + 'ins' +  tx_gap_fill_variant.posedit.edit.ref + tx_gap_fill_variant.posedit.edit.ref                         
-                                                tx_gap_fill_variant = hp.parse_hgvs_variant(tx_gap_fill_variant_delins_from_dup)
+                                                tx_gap_fill_variant_delins_from_dup = tx_gap_fill_variant.ac + ':' + tx_gap_fill_variant.type + '.' + str(
+                                                    tx_gap_fill_variant.posedit.pos.start) + '_' + str(
+                                                    tx_gap_fill_variant.posedit.pos.end) + 'del' + tx_gap_fill_variant.posedit.edit.ref + 'ins' + tx_gap_fill_variant.posedit.edit.ref + tx_gap_fill_variant.posedit.edit.ref
+                                                tx_gap_fill_variant = hp.parse_hgvs_variant(
+                                                    tx_gap_fill_variant_delins_from_dup)
 
                                         # Identify which half of the NOT-intron the start position of the variant is in
                                         if re.search('\-', str(tx_gap_fill_variant.posedit.pos.start)):
@@ -2658,7 +2680,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             c_tx_hgvs_not_delins = vm.n_to_c(tx_hgvs_not_delins)
                                         except Exception:
                                             c_tx_hgvs_not_delins = copy.copy(tx_hgvs_not_delins)
-                                        genomic_gap_fill_variant_alt = vm.t_to_g(c_tx_hgvs_not_delins, hgvs_genomic_5pr.ac)
+                                        genomic_gap_fill_variant_alt = vm.t_to_g(c_tx_hgvs_not_delins,
+                                                                                 hgvs_genomic_5pr.ac)
 
                                         # Ensure an ALT exists
                                         try:
@@ -2757,7 +2780,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         auto_info = auto_info + '%s' % (gap_position)
                                     else:
                                         if tx_hgvs_not_delins.posedit.pos.start.offset == 0 and tx_hgvs_not_delins.posedit.pos.end.offset == 0:
-                                            # In this instance, we have identified a transcript gap but the n. version of 
+                                            # In this instance, we have identified a transcript gap but the n. version of
                                             # the transcript variant but do not have a position which actually hits the gap,
                                             # so the variant likely spans the gap, and is not picked up by an offset.
                                             try:
@@ -2768,7 +2791,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             g3 = nr_vm.t_to_g(c1, hgvs_genomic.ac)
                                             g2 = vm.t_to_g(c1, hgvs_genomic.ac)
                                             ng2 = hn.normalize(g2)
-                                            g3.posedit.pos.end.base = g3.posedit.pos.start.base + (len(g3.posedit.edit.ref) - 1)                                    
+                                            g3.posedit.pos.end.base = g3.posedit.pos.start.base + (
+                                                        len(g3.posedit.edit.ref) - 1)
                                             try:
                                                 c2 = vm.g_to_t(g3, c1.ac)
                                                 if c2.posedit.pos.start.offset == 0 and c2.posedit.pos.end.offset == 0:
@@ -2779,7 +2803,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                         tx_hgvs_not_delins = vm.c_to_n(tx_hgvs_not_delins)
                                                     except hgvs.exceptions.HGVSError:
                                                         pass
-                                            except hgvs.exceptions.HGVSInvalidVariantError:     
+                                            except hgvs.exceptions.HGVSInvalidVariantError:
                                                 pass
 
                                         if re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search(
@@ -2826,7 +2850,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             # Warn update
                                             auto_info = auto_info + '%s' % (gap_position)
                                         elif re.search('\+', str(tx_hgvs_not_delins.posedit.pos.end)) and not re.search(
-                                                '\+', str(tx_hgvs_not_delins.posedit.pos.start)):                                            
+                                                '\+', str(tx_hgvs_not_delins.posedit.pos.start)):
                                             auto_info = auto_info + 'Genome position ' + str(
                                                 stored_hgvs_not_delins.ac) + ':g.' + str(
                                                 stored_hgvs_not_delins.posedit.pos.end.base + 1) + ' aligns within a ' + str(
@@ -2850,8 +2874,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                 g2.posedit.edit.alt = g2.posedit.edit.ref
                                             else:
                                                 g1 = vm.t_to_g(c2, hgvs_genomic.ac)
-                                                g2 = vm.t_to_g(c1, hgvs_genomic.ac)                             
-                                                g1.posedit.edit.alt = g1.posedit.edit.ref                           
+                                                g2 = vm.t_to_g(c1, hgvs_genomic.ac)
+                                                g1.posedit.edit.alt = g1.posedit.edit.ref
                                             reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
                                             alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
                                             g3 = copy.deepcopy(g1)
@@ -2859,7 +2883,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             g3.posedit.edit.ref = reference
                                             g3.posedit.edit.alt = alternate
                                             c3 = vm.g_to_t(g3, c1.ac)
-                                            hgvs_refreshed_variant = c3                         
+                                            hgvs_refreshed_variant = c3
                                             # Alignment position
                                             for_location_c = copy.deepcopy(hgvs_refreshed_variant)
                                             if re.match('NM_', str(for_location_c)):
@@ -2938,7 +2962,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             alternate = c1.posedit.edit.alt + c2.posedit.edit.ref[1:]
                                             c3 = copy.deepcopy(c1)
                                             c3.posedit.pos.end = c2.posedit.pos.end
-                                            c3.posedit.edit.ref = '' #reference
+                                            c3.posedit.edit.ref = ''  # reference
                                             c3.posedit.edit.alt = alternate
                                             hgvs_refreshed_variant = c3
                                             # Alignment position
@@ -2977,21 +3001,19 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     hgvs_stash = copy.deepcopy(stash_hgvs_not_delins)
                                     stash_ac = hgvs_stash.ac
                                     # Make a hard left and hard right not delins g.
-                                    stash_dict_right = va_H2V.hard_right_hgvs2vcf(hgvs_stash)
+                                    stash_dict_right = va_H2V.hard_right_hgvs2vcf(hgvs_stash, hn, sf)
                                     stash_pos_right = int(stash_dict_right['pos'])
                                     stash_ref_right = stash_dict_right['ref']
                                     stash_alt_right = stash_dict_right['alt']
                                     stash_end_right = str(stash_pos_right + len(stash_ref_right) - 1)
-                                    stash_hgvs_not_delins_right = hp.parse_hgvs_variant(
-                                        stash_ac + ':' + hgvs_stash.type + '.' + str(
+                                    stash_hgvs_not_delins_right = hp.parse_hgvs_variant(stash_ac + ':' + hgvs_stash.type + '.' + str(
                                             stash_pos_right) + '_' + stash_end_right + 'del' + stash_ref_right + 'ins' + stash_alt_right)
-                                    stash_dict_left = va_H2V.hard_left_hgvs2vcf(hgvs_stash)
+                                    stash_dict_left = va_H2V.hard_left_hgvs2vcf(hgvs_stash, reverse_normalizer, sf)
                                     stash_pos_left = int(stash_dict_left['pos'])
                                     stash_ref_left = stash_dict_left['ref']
                                     stash_alt_left = stash_dict_left['alt']
                                     stash_end_left = str(stash_pos_left + len(stash_ref_left) - 1)
-                                    stash_hgvs_not_delins_left = hp.parse_hgvs_variant(
-                                        stash_ac + ':' + hgvs_stash.type + '.' + str(
+                                    stash_hgvs_not_delins_left = hp.parse_hgvs_variant(stash_ac + ':' + hgvs_stash.type + '.' + str(
                                             stash_pos_left) + '_' + stash_end_left + 'del' + stash_ref_left + 'ins' + stash_alt_left)
                                     # Map in-situ to the transcript left and right
                                     try:
@@ -3001,7 +3023,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     else:
                                         normalize_stash_right = hn.normalize(stash_hgvs_not_delins_right)
                                         if str(normalize_stash_right.posedit) == str(stash_hgvs_not_delins.posedit):
-                                             tx_hard_right = saved_hgvs_coding
+                                            tx_hard_right = saved_hgvs_coding
                                     try:
                                         tx_hard_left = vm.g_to_t(stash_hgvs_not_delins_left, saved_hgvs_coding.ac)
                                     except Exception as e:
@@ -3009,7 +3031,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     else:
                                         normalize_stash_left = hn.normalize(stash_hgvs_not_delins_left)
                                         if str(normalize_stash_left.posedit) == str(stash_hgvs_not_delins.posedit):
-                                             tx_hard_left = saved_hgvs_coding
+                                            tx_hard_left = saved_hgvs_coding
                                     # The Logic - Currently limited to genome gaps
                                     if len(stash_hgvs_not_delins_right.posedit.edit.ref) < len(
                                             tx_hard_right.posedit.edit.ref):
@@ -3067,7 +3089,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         hgvs_refreshed_variant = saved_hgvs_coding
                                     else:
                                         pass
-                                
+
                                 # Send to empty nw_rel_var
                                 nw_rel_var.append(hgvs_refreshed_variant)
 
@@ -3116,7 +3138,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     obj = hp.parse_hgvs_variant(variant)
 
                     tx_ac = obj.ac
-                    
+
                     # Do we keep it?
                     if select_transcripts != 'all':
                         if tx_ac in select_transcripts_dict_plus_version.keys():
@@ -3134,21 +3156,23 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     # Se rec_var to '' so it can be updated later
                     rec_var = ''
                     try:
-                        to_g = va_func.myevm_t_to_g(obj, evm, hdp, primary_assembly)
+                        to_g = va_func.myevm_t_to_g(obj, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
                         genomic_ac = to_g.ac
                     except hgvs.exceptions.HGVSDataNotAvailableError as e:
-                        if (re.search('~', str(e)) and re.search('Alignment is incomplete', str(e))) or re.match("No relevant genomic mapping options available", str(e)):
+                        if (re.search('~', str(e)) and re.search('Alignment is incomplete', str(e))) or re.match(
+                                "No relevant genomic mapping options available", str(e)):
                             reason = 'Unable to map the input variant onto a genomic position'
                             if (re.search('~', str(e)) and re.search('Alignment is incomplete', str(e))):
                                 error_list = str(e).split('~')[:-1]
-                                combos = ['Full alignment data between the specified transcript reference sequence and all GRCh37 and GRCh38 genomic reference sequences (including alternate chromosome assemblies, patches and RefSeqGenes) are not available: Consequently the input variant description cannot be fully validated and is not supported: Use the Gene to Transcripts function to determine whether an updated transcript reference sequence is available'] # Partial alignment data is available for the following genomic reference sequences: ']
-            #                   Only record misalignment errors. Forget the others
-            #                   for miss_alignment in error_list:
-            #                       if re.search('Alignment is incomplete', miss_alignment):
-            #                           miss_alignment = miss_alignment.split('/')
-            #                           combos = combos + [miss_alignment[2]]
-            #                       else:
-            #                           continue
+                                combos = [
+                                    'Full alignment data between the specified transcript reference sequence and all GRCh37 and GRCh38 genomic reference sequences (including alternate chromosome assemblies, patches and RefSeqGenes) are not available: Consequently the input variant description cannot be fully validated and is not supported: Use the Gene to Transcripts function to determine whether an updated transcript reference sequence is available']  # Partial alignment data is available for the following genomic reference sequences: ']
+                                #                   Only record misalignment errors. Forget the others
+                                #                   for miss_alignment in error_list:
+                                #                       if re.search('Alignment is incomplete', miss_alignment):
+                                #                           miss_alignment = miss_alignment.split('/')
+                                #                           combos = combos + [miss_alignment[2]]
+                                #                       else:
+                                #                           continue
                                 error = '; '.join(combos)
                                 error = error.replace(': ;', ': ')
                             else:
@@ -3192,7 +3216,6 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
                     geno = re.compile(':g.')
                     if plus.search(input) or minus.search(input):
-                        # to_g = va_func.genomic(variant, evm, hp, hdp, primary_assembly)
                         es = re.compile('error')
                         if es.search(str(to_g)):
                             if alt_aln_method != 'genebuild':
@@ -3211,17 +3234,19 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
                         else:
                             # Insertions at exon boundaries are miss-handled by vm.g_to_t
-                            if (obj.posedit.edit.type == 'ins' and obj.posedit.pos.start.offset == 0 and obj.posedit.pos.end.offset != 0) or (obj.posedit.edit.type == 'ins' and obj.posedit.pos.start.offset != 0 and obj.posedit.pos.end.offset == 0):
+                            if (
+                                    obj.posedit.edit.type == 'ins' and obj.posedit.pos.start.offset == 0 and obj.posedit.pos.end.offset != 0) or (
+                                    obj.posedit.edit.type == 'ins' and obj.posedit.pos.start.offset != 0 and obj.posedit.pos.end.offset == 0):
                                 variant = str(obj)
                             else:
                                 # Normalize was I believe to replace ref. Mapping does this anyway
-                                #to_g = hn.normalize(to_g)
-                                variant = str(variantanalyser.functions.myevm_g_to_t(hdp, evm, to_g, tx_ac))
+                                # to_g = hn.normalize(to_g)
+                                variant = str(va_func.myevm_g_to_t(evm, to_g, tx_ac))
                                 tx_ac = ''
 
                     elif geno.search(input):
                         if plus.search(variant) or minus.search(variant):
-                            to_g = va_func.genomic(variant, evm, hp, hdp, primary_assembly)
+                            # to_g = va_func.genomic(variant, evm, hp, hdp, primary_assembly)
                             es = re.compile('error')
                             if es.search(str(to_g)):
                                 if alt_aln_method != 'genebuild':
@@ -3239,13 +3264,15 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     continue
                         else:
                             # Insertions at exon boundaries are miss-handled by vm.g_to_t
-                            if (obj.posedit.edit.type == 'ins' and obj.posedit.pos.start.offset == 0 and obj.posedit.pos.end.offset != 0) or (obj.posedit.edit.type == 'ins' and obj.posedit.pos.start.offset != 0 and obj.posedit.pos.end.offset == 0):
+                            if (
+                                    obj.posedit.edit.type == 'ins' and obj.posedit.pos.start.offset == 0 and obj.posedit.pos.end.offset != 0) or (
+                                    obj.posedit.edit.type == 'ins' and obj.posedit.pos.start.offset != 0 and obj.posedit.pos.end.offset == 0):
                                 print 'OK'
                                 variant = str(obj)
                             else:
                                 # Normalize was I believe to replace ref. Mapping does this anyway
                                 # to_g = hn.normalize(to_g)
-                                variant = str(variantanalyser.functions.myevm_g_to_t(hdp, evm, to_g, tx_ac))
+                                variant = str(va_func.myevm_g_to_t(evm, to_g, tx_ac))
                                 tx_ac = ''
 
                     else:
@@ -3255,12 +3282,14 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             h_variant = hn.normalize(obj)
                         except hgvs.exceptions.HGVSUnsupportedOperationError as e:
                             error = str(e)
-                            if re.match('Unsupported normalization of variants spanning the exon-intron boundary', error):
+                            if re.match('Unsupported normalization of variants spanning the exon-intron boundary',
+                                        error):
                                 h_variant = obj
                                 variant = variant
                                 caution = 'This coding sequence variant description spans at least one intron'
                                 automap = 'Use of the corresponding genomic sequence variant descriptions may be invalid. Please refer to https://www35.lamp.le.ac.uk/recommendations/'
-                                validation['warnings'] = validation['warnings'] + ': ' + str(caution) + ': ' + str(automap)
+                                validation['warnings'] = validation['warnings'] + ': ' + str(caution) + ': ' + str(
+                                    automap)
                         else:
                             variant = str(h_variant)
 
@@ -3327,9 +3356,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 coding = va_func.coding(variant, hp)
                                 trans_acc = coding.ac
                                 # c to Genome coordinates - Map the variant to the genome
-                                pre_var = va_func.genomic(variant, evm, hp, hdp, primary_assembly)
+                                pre_var = va_func.genomic(variant, no_norm_evm, hp, hdp, primary_assembly, vm, hn, sf, nr_vm)
                                 # genome back to C coordinates
-                                post_var = va_func.myevm_g_to_t(hdp, evm, pre_var, trans_acc)
+                                post_var = va_func.myevm_g_to_t(evm, pre_var, trans_acc)
 
                                 test = hp.parse_hgvs_variant(input)
                                 if post_var.posedit.pos.start.base != test.posedit.pos.start.base or post_var.posedit.pos.end.base != test.posedit.pos.end.base:
@@ -3426,7 +3455,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 # c to Genome coordinates - Map the variant to the genome
                                 pre_var = hp.parse_hgvs_variant(variant)
                                 try:
-                                    pre_var = va_func.myevm_t_to_g(pre_var, evm, hdp, primary_assembly)
+                                    pre_var = va_func.myevm_t_to_g(pre_var, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
                                 except:
                                     e = sys.exc_info()[1]
                                     error = str(e)
@@ -3441,7 +3470,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     pass
                                 # genome back to C coordinates
                                 try:
-                                    post_var = va_func.myevm_g_to_t(hdp, evm, pre_var, trans_acc)
+                                    post_var = va_func.myevm_g_to_t(evm, pre_var, trans_acc)
                                 except hgvs.exceptions.HGVSError as error:
                                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                     continue
@@ -3534,9 +3563,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 coding = va_func.coding(variant, hp)
                                 trans_acc = coding.ac
                                 # c to Genome coordinates - Map the variant to the genome
-                                pre_var = va_func.genomic(variant, evm, hp, hdp, primary_assembly)
+                                pre_var = va_func.genomic(variant, no_norm_evm, hp, hdp, primary_assembly, vm, hn, sf, nr_vm)
                                 # genome back to C coordinates
-                                post_var = va_func.myevm_g_to_t(hdp, evm, pre_var, trans_acc)
+                                post_var = va_func.myevm_g_to_t(evm, pre_var, trans_acc)
 
                                 test = hp.parse_hgvs_variant(input)
                                 if post_var.posedit.pos.start.base != test.posedit.pos.start.base or post_var.posedit.pos.end.base != test.posedit.pos.end.base:
@@ -3599,9 +3628,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 coding = va_func.coding(variant, hp)
                                 trans_acc = coding.ac
                                 # c to Genome coordinates - Map the variant to the genome
-                                pre_var = va_func.genomic(variant, evm, hp, hdp, primary_assembly)
+                                pre_var = va_func.genomic(variant, no_norm_evm, hp, hdp, primary_assembly, vm, hn, sf, nr_vm)
                                 # genome back to C coordinates
-                                post_var = va_func.myevm_g_to_t(hdp, evm, pre_var, trans_acc)
+                                post_var = va_func.myevm_g_to_t(evm, pre_var, trans_acc)
 
                                 test = hp.parse_hgvs_variant(input)
                                 if post_var.posedit.pos.start.base != test.posedit.pos.start.base or post_var.posedit.pos.end.base != test.posedit.pos.end.base:
@@ -3666,7 +3695,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         plus = re.compile("\d\+\d")  # finds digit + digit
                         minus = re.compile("\d\-\d")  # finds digit - digit
                         if plus.search(input) or minus.search(input):
-                            to_g = va_func.genomic(inp, evm, hp, hdp, primary_assembly)
+                            to_g = va_func.genomic(inp, no_norm_evm, hp, hdp, primary_assembly, vm, hn, sf, nr_vm)
                             es = re.compile('error')
                             if es.search(str(to_g)):
                                 if alt_aln_method != 'genebuild':
@@ -3685,9 +3714,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
                             else:
                                 # Set variants pre and post genomic norm
-                                hgvs_inp = va_func.myevm_g_to_t(hdp, evm, to_g, tx_ac=obj.ac)
+                                hgvs_inp = va_func.myevm_g_to_t(evm, to_g, tx_ac=obj.ac)
                                 to_g = hn.normalize(to_g)
-                                hgvs_otp = va_func.myevm_g_to_t(hdp, evm, to_g, tx_ac=obj.ac)
+                                hgvs_otp = va_func.myevm_g_to_t(evm, to_g, tx_ac=obj.ac)
                                 tx_ac = ''
                         else:
                             # Set variants pre and post RNA norm
@@ -3821,7 +3850,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     post_valid = hp.parse_hgvs_variant(variant)
                     if valid == 'false':
                         error = 'false'
-                        genomic_validation = str(va_func.genomic(input, evm, hp, hdp, primary_assembly))
+                        genomic_validation = str(va_func.genomic(input, no_norm_evm, hp, hdp, primary_assembly, vm, hn, sf, nr_vm))
                         del_end = re.compile('\ddel$')
                         delins = re.compile('delins')
                         inv = re.compile('inv')
@@ -3887,7 +3916,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         else:
                             # If the gene symbol is not in the list, the value False will be returned
                             gap_compensation = gapGenes.gap_black_list(gene_symbol)
-                        
+
                         # Intron spanning variants
                         if re.search('boundary', str(error)) or re.search('spanning', str(error)):
                             try:
@@ -3898,9 +3927,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 continue
                         else:
                             pass
-                        
+
                         # Warn status
-                        warner.warn("gap_compensation_1 = " + str(gap_compensation))
+                        warnings.warn("gap_compensation_1 = " + str(gap_compensation))
                         coding = valstr(hgvs_coding)
 
                         # RNA sequence
@@ -3909,7 +3938,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         rna = str(hgvs_rna)
 
                         # Genomic sequence
-                        hgvs_genomic = va_func.myevm_t_to_g(hgvs_coding, evm, hdp, primary_assembly)
+                        hgvs_genomic = va_func.myevm_t_to_g(hgvs_coding, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
                         final_hgvs_genomic = hgvs_genomic
 
                         # genomic_possibilities
@@ -3919,7 +3948,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
                         # Loop out gap finding code under these circumstances!
                         if gap_compensation is True:
-                            warner.warn('g_to_t gap code 1 active')                       
+                            warnings.warn('g_to_t gap code 1 active')
                             rn_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic)
                             hgvs_genomic_possibilities.append(rn_hgvs_genomic)
                             if orientation != -1:
@@ -3935,8 +3964,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     error = str(e)
                                     chromosome_normalized_hgvs_coding = hgvs_coding
 
-                            most_3pr_hgvs_genomic = va_func.myvm_t_to_g(chromosome_normalized_hgvs_coding, hgvs_genomic.ac,
-                                                                        vm, hn, hdp, primary_assembly)
+                            most_3pr_hgvs_genomic = va_func.myvm_t_to_g(chromosome_normalized_hgvs_coding,
+                                                                        hgvs_genomic.ac,
+                                                                        no_norm_evm, vm, hp, hn, sf, nr_vm)
                             hgvs_genomic_possibilities.append(most_3pr_hgvs_genomic)
 
                             # Push from side to side to try pick up odd placements
@@ -3946,32 +3976,35 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             try:
                                 hgvs_stash = no_norm_evm.c_to_n(hgvs_stash)
                             except:
-                                pass    
+                                pass
                             try:
                                 stash_ac = hgvs_stash.ac
-                                stash_dict = va_H2V.hard_right_hgvs2vcf(hgvs_stash)
+                                stash_dict = va_H2V.hard_right_hgvs2vcf(hgvs_stash, hn, sf)
                                 stash_pos = int(stash_dict['pos'])
                                 stash_ref = stash_dict['ref']
-                                stash_alt = stash_dict['alt'] 
+                                stash_alt = stash_dict['alt']
                                 # Generate an end position
-                                stash_end = str(stash_pos + len(stash_ref) -1)
+                                stash_end = str(stash_pos + len(stash_ref) - 1)
                                 # make a not real deletion insertion
-                                stash_hgvs_not_delins = hp.parse_hgvs_variant(stash_ac + ':' +  hgvs_stash.type + '.' +  str(stash_pos) + '_' + stash_end + 'del' + stash_ref + 'ins' + stash_alt)          
+                                stash_hgvs_not_delins = hp.parse_hgvs_variant(
+                                    stash_ac + ':' + hgvs_stash.type + '.' + str(
+                                        stash_pos) + '_' + stash_end + 'del' + stash_ref + 'ins' + stash_alt)
                                 try:
                                     stash_hgvs_not_delins = no_norm_evm.n_to_c(stash_hgvs_not_delins)
                                 except:
-                                    pass    
-                                # Store a tx copy for later use 
+                                    pass
+                                    # Store a tx copy for later use
                                 test_stash_tx_right = copy.deepcopy(stash_hgvs_not_delins)
                                 # stash_genomic = vm.t_to_g(test_stash_tx_right, hgvs_genomic.ac)
-                                stash_genomic = va_func.myvm_t_to_g(test_stash_tx_right, hgvs_genomic.ac, vm, hn, hdp, primary_assembly)
+                                stash_genomic = va_func.myvm_t_to_g(test_stash_tx_right, hgvs_genomic.ac, no_norm_evm, vm, hp, hn, sf, nr_vm)
                                 # Stash the outputs if required
                                 # test variants = NC_000006.11:g.90403795G= (causes double identity)
                                 #                 NC_000002.11:g.73675227_73675228insCTC (? incorrect assumed insertion position)
                                 #                 NC_000003.11:g.14561629_14561630GC= NC_000003.11:g.14561629_14561630insG (Odd gap position)
-                                #if test_stash_tx_right.posedit.edit.type == 'identity' and stash_genomic.posedit.edit.type == 'identity':
-                                    #pass               
-                                if len(test_stash_tx_right.posedit.edit.ref) == ((stash_genomic.posedit.pos.end.base - stash_genomic.posedit.pos.start.base) + 1): 
+                                # if test_stash_tx_right.posedit.edit.type == 'identity' and stash_genomic.posedit.edit.type == 'identity':
+                                # pass
+                                if len(test_stash_tx_right.posedit.edit.ref) == ((
+                                                                                         stash_genomic.posedit.pos.end.base - stash_genomic.posedit.pos.start.base) + 1):
                                     stash_tx_right = test_stash_tx_right
                                     try:
                                         alt = test_stash_tx_right.posedit.edit.alt
@@ -3980,27 +4013,31 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     try:
                                         g_alt = stash_genomic.posedit.edit.alt
                                     except Exception:
-                                        g_alt = ''                          
-                                    if (len(alt) - (test_stash_tx_right.posedit.pos.end.base - test_stash_tx_right.posedit.pos.start.base) + 1) != (len(g_alt) - (stash_genomic.posedit.pos.end.base - stash_genomic.posedit.pos.start.base) + 1):
+                                        g_alt = ''
+                                    if (len(alt) - (
+                                            test_stash_tx_right.posedit.pos.end.base - test_stash_tx_right.posedit.pos.start.base) + 1) != (
+                                            len(g_alt) - (
+                                            stash_genomic.posedit.pos.end.base - stash_genomic.posedit.pos.start.base) + 1):
                                         hgvs_genomic_possibilities.append(stash_genomic)
                                     else:
                                         hgvs_genomic_possibilities.append('')
                                 elif test_stash_tx_right.posedit.edit.type == 'identity':
                                     reform_ident = str(test_stash_tx_right).split(':')[0]
-                                    reform_ident = reform_ident + ':c.' + str(hgvs_c.posedit.pos) + 'del' + str(hgvs_c.posedit.edit.ref)# + 'ins' + str(hgvs_c.posedit.edit.alt)
-                                    hgvs_reform_ident = hp.parse_hgvs_variant(reform_ident)         
+                                    reform_ident = reform_ident + ':c.' + str(hgvs_c.posedit.pos) + 'del' + str(
+                                        hgvs_c.posedit.edit.ref)  # + 'ins' + str(hgvs_c.posedit.edit.alt)
+                                    hgvs_reform_ident = hp.parse_hgvs_variant(reform_ident)
                                     try:
                                         hn.normalize(hgvs_reform_ident)
                                     except hgvs.exceptions.HGVSError as e:
-                                        error = str(e) 
+                                        error = str(e)
                                         if re.search('spanning the exon-intron boundary', error):
                                             stash_tx_right = test_stash_tx_right
-                                            hgvs_genomic_possibilities.append('')                           
+                                            hgvs_genomic_possibilities.append('')
                                     else:
                                         stash_tx_right = test_stash_tx_right
-                                        hgvs_genomic_possibilities.append(stash_genomic)                                
+                                        hgvs_genomic_possibilities.append(stash_genomic)
                                 else:
-                                    try: 
+                                    try:
                                         hn.normalize(test_stash_tx_right)
                                     except hgvs.exceptions.HGVSUnsupportedOperationError:
                                         hgvs_genomic_possibilities.append('')
@@ -4019,29 +4056,32 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 pass
                             try:
                                 stash_ac = hgvs_stash.ac
-                                stash_dict = va_H2V.hard_left_hgvs2vcf(hgvs_stash)
+                                stash_dict = va_H2V.hard_left_hgvs2vcf(hgvs_stash, reverse_normalizer, sf)
                                 stash_pos = int(stash_dict['pos'])
                                 stash_ref = stash_dict['ref']
-                                stash_alt = stash_dict['alt'] 
+                                stash_alt = stash_dict['alt']
                                 # Generate an end position
-                                stash_end = str(stash_pos + len(stash_ref) -1)
+                                stash_end = str(stash_pos + len(stash_ref) - 1)
                                 # make a not real deletion insertion
-                                stash_hgvs_not_delins = hp.parse_hgvs_variant(stash_ac + ':' +  hgvs_stash.type + '.' +  str(stash_pos) + '_' + stash_end + 'del' + stash_ref + 'ins' + stash_alt)          
+                                stash_hgvs_not_delins = hp.parse_hgvs_variant(
+                                    stash_ac + ':' + hgvs_stash.type + '.' + str(
+                                        stash_pos) + '_' + stash_end + 'del' + stash_ref + 'ins' + stash_alt)
                                 try:
                                     stash_hgvs_not_delins = no_norm_evm.n_to_c(stash_hgvs_not_delins)
                                 except:
-                                    pass    
-                                # Store a tx copy for later use         
+                                    pass
+                                    # Store a tx copy for later use
                                 test_stash_tx_left = copy.deepcopy(stash_hgvs_not_delins)
-                                #stash_genomic = vm.t_to_g(test_stash_tx_left, hgvs_genomic.ac)
-                                stash_genomic = va_func.myvm_t_to_g(test_stash_tx_left, hgvs_genomic.ac, vm, hn, hdp, primary_assembly)
+                                # stash_genomic = vm.t_to_g(test_stash_tx_left, hgvs_genomic.ac)
+                                stash_genomic = va_func.myvm_t_to_g(test_stash_tx_left, hgvs_genomic.ac, no_norm_evm, vm, hp, hn, sf, nr_vm)
                                 # Stash the outputs if required
                                 # test variants = NC_000006.11:g.90403795G= (causes double identity)
                                 #                 NC_000002.11:g.73675227_73675228insCTC
                                 #                 NC_000003.11:g.14561629_14561630GC= NC_000003.11:g.14561629_14561630insG (Odd gap position)
-                                #if test_stash_tx_left.posedit.edit.type == 'identity' and stash_genomic.posedit.edit.type == 'identity':
-                                    #pass
-                                if len(test_stash_tx_left.posedit.edit.ref) == ((stash_genomic.posedit.pos.end.base - stash_genomic.posedit.pos.start.base) + 1): # len(stash_genomic.posedit.edit.ref): 
+                                # if test_stash_tx_left.posedit.edit.type == 'identity' and stash_genomic.posedit.edit.type == 'identity':
+                                # pass
+                                if len(test_stash_tx_left.posedit.edit.ref) == ((
+                                                                                        stash_genomic.posedit.pos.end.base - stash_genomic.posedit.pos.start.base) + 1):  # len(stash_genomic.posedit.edit.ref):
                                     stash_tx_left = test_stash_tx_left
                                     try:
                                         alt = test_stash_tx_left.posedit.edit.alt
@@ -4050,30 +4090,34 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     try:
                                         g_alt = stash_genomic.posedit.edit.alt
                                     except Exception:
-                                        g_alt = ''                          
-                                    if (len(alt) - (test_stash_tx_left.posedit.pos.end.base - test_stash_tx_left.posedit.pos.start.base) + 1) != (len(g_alt) - (stash_genomic.posedit.pos.end.base - stash_genomic.posedit.pos.start.base) + 1):
+                                        g_alt = ''
+                                    if (len(alt) - (
+                                            test_stash_tx_left.posedit.pos.end.base - test_stash_tx_left.posedit.pos.start.base) + 1) != (
+                                            len(g_alt) - (
+                                            stash_genomic.posedit.pos.end.base - stash_genomic.posedit.pos.start.base) + 1):
                                         hgvs_genomic_possibilities.append(stash_genomic)
                                     else:
                                         hgvs_genomic_possibilities.append('')
                                 elif test_stash_tx_left.posedit.edit.type == 'identity':
                                     reform_ident = str(test_stash_tx_left).split(':')[0]
-                                    reform_ident = reform_ident + ':c.' + str(hgvs_c.posedit.pos) + 'del' + str(hgvs_c.posedit.edit.ref)# + 'ins' + str(hgvs_c.posedit.edit.alt)
-                                    hgvs_reform_ident = hp.parse_hgvs_variant(reform_ident)         
+                                    reform_ident = reform_ident + ':c.' + str(hgvs_c.posedit.pos) + 'del' + str(
+                                        hgvs_c.posedit.edit.ref)  # + 'ins' + str(hgvs_c.posedit.edit.alt)
+                                    hgvs_reform_ident = hp.parse_hgvs_variant(reform_ident)
                                     try:
                                         hn.normalize(hgvs_reform_ident)
                                     except hgvs.exceptions.HGVSError as e:
-                                        error = str(e) 
+                                        error = str(e)
                                         if re.search('spanning the exon-intron boundary', error):
                                             stash_tx_left = test_stash_tx_left
-                                            hgvs_genomic_possibilities.append('')                           
+                                            hgvs_genomic_possibilities.append('')
                                     else:
                                         stash_tx_left = test_stash_tx_left
-                                        hgvs_genomic_possibilities.append(stash_genomic)                                
+                                        hgvs_genomic_possibilities.append(stash_genomic)
                                 else:
-                                    try: 
+                                    try:
                                         hn.normalize(test_stash_tx_left)
                                     except hgvs.exceptions.HGVSUnsupportedOperationError:
-                                        hgvs_genomic_possibilities.append('')                                
+                                        hgvs_genomic_possibilities.append('')
                                     else:
                                         stash_tx_left = test_stash_tx_left
                                         hgvs_genomic_possibilities.append(stash_genomic)
@@ -4111,25 +4155,29 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         most_5pr_hgvs_transcript_variant, hgvs_genomic.ac)
                                     # Normalize - If the variant spans a gap it should then form a static genomic variant
                                     try:
-                                        genomic_from_most_3pr_hgvs_transcript_variant = hn.normalize(genomic_from_most_3pr_hgvs_transcript_variant)
+                                        genomic_from_most_3pr_hgvs_transcript_variant = hn.normalize(
+                                            genomic_from_most_3pr_hgvs_transcript_variant)
                                     except hgvs.exceptions.HGVSInvalidVariantError as e:
                                         error = str(e)
                                         if error == 'base start position must be <= end position':
                                             start = genomic_from_most_3pr_hgvs_transcript_variant.posedit.pos.start.base
-                                            end = genomic_from_most_3pr_hgvs_transcript_variant.posedit.pos.end.base 
+                                            end = genomic_from_most_3pr_hgvs_transcript_variant.posedit.pos.end.base
                                             genomic_from_most_3pr_hgvs_transcript_variant.posedit.pos.start.base = end
                                             genomic_from_most_3pr_hgvs_transcript_variant.posedit.pos.end.base = start
-                                            genomic_from_most_3pr_hgvs_transcript_variant = hn.normalize(genomic_from_most_3pr_hgvs_transcript_variant) 
+                                            genomic_from_most_3pr_hgvs_transcript_variant = hn.normalize(
+                                                genomic_from_most_3pr_hgvs_transcript_variant)
                                     try:
-                                        genomic_from_most_5pr_hgvs_transcript_variant = hn.normalize(genomic_from_most_5pr_hgvs_transcript_variant)
+                                        genomic_from_most_5pr_hgvs_transcript_variant = hn.normalize(
+                                            genomic_from_most_5pr_hgvs_transcript_variant)
                                     except hgvs.exceptions.HGVSInvalidVariantError as e:
                                         error = str(e)
                                         if error == 'base start position must be <= end position':
                                             start = genomic_from_most_5pr_hgvs_transcript_variant.posedit.pos.start.base
-                                            end = genomic_from_most_5pr_hgvs_transcript_variant.posedit.pos.end.base 
+                                            end = genomic_from_most_5pr_hgvs_transcript_variant.posedit.pos.end.base
                                             genomic_from_most_5pr_hgvs_transcript_variant.posedit.pos.start.base = end
                                             genomic_from_most_5pr_hgvs_transcript_variant.posedit.pos.end.base = start
-                                            genomic_from_most_5pr_hgvs_transcript_variant = hn.normalize(genomic_from_most_5pr_hgvs_transcript_variant) 
+                                            genomic_from_most_5pr_hgvs_transcript_variant = hn.normalize(
+                                                genomic_from_most_5pr_hgvs_transcript_variant)
                                     try:
                                         if genomic_from_most_3pr_hgvs_transcript_variant.posedit.edit.alt is None:
                                             genomic_from_most_3pr_hgvs_transcript_variant.posedit.edit.alt = ''
@@ -4184,7 +4232,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             except hgvs.exceptions.HGVSUnsupportedOperationError as e:
                                 error = str(e)
                                 if re.match('Normalization of intronic variants is not supported', error) or re.match(
-                                        'Unsupported normalization of variants spanning the exon-intron boundary', error):
+                                        'Unsupported normalization of variants spanning the exon-intron boundary',
+                                        error):
                                     pass
 
                             if VALIDATOR_DEBUG is not None:
@@ -4210,10 +4259,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             possibility_counter = 0
                             suppress_c_normalization = 'false'  # Applies to boundary crossing normalization
 
-                            # Copy a version of hgvs_genomic_possibilities                            
+                            # Copy a version of hgvs_genomic_possibilities
                             for possibility in hgvs_genomic_possibilities:
                                 possibility_counter = possibility_counter + 1
-                                
+
                                 # Loop out stash possibilities which will not spot gaps so are empty
                                 if possibility == '':
                                     continue
@@ -4221,7 +4270,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 # Use VCF generation code to push hgvs_genomic as for 5 prime as possible to uncover gaps
                                 hgvs_genomic_variant = copy.deepcopy(possibility)
                                 stored_hgvs_genomic_variant = copy.deepcopy(hgvs_genomic_variant)
-                                
+
                                 # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
                                 try:
                                     reverse_normalized_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic_variant)
@@ -4265,7 +4314,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 stored_hgvs_genomic_5pr = copy.deepcopy(hgvs_genomic_5pr)
 
                                 # Create VCF
-                                vcf_dict = va_H2V.hgvs2vcf(reverse_normalized_hgvs_genomic)
+                                vcf_dict = va_H2V.hgvs2vcf(reverse_normalized_hgvs_genomic, reverse_normalizer, sf)
                                 chr = vcf_dict['chr']
                                 pos = vcf_dict['pos']
                                 ref = vcf_dict['ref']
@@ -4313,7 +4362,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     else:
                                         seek_var = valstr(hgvs_seek_var)
                                         seek_ac = str(hgvs_seek_var.ac)
-                                    if (hgvs_seek_var.posedit.pos.start.base + hgvs_seek_var.posedit.pos.start.offset) > (
+                                    if (
+                                            hgvs_seek_var.posedit.pos.start.base + hgvs_seek_var.posedit.pos.start.offset) > (
                                             hgvs_coding.posedit.pos.start.base + hgvs_coding.posedit.pos.start.offset) and (
                                             hgvs_seek_var.posedit.pos.end.base + hgvs_seek_var.posedit.pos.end.offset) > (
                                             hgvs_coding.posedit.pos.end.base + hgvs_coding.posedit.pos.end.offset) and rec_var != 'false':
@@ -4335,7 +4385,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     else:
                                         seek_var = valstr(hgvs_seek_var)
                                         seek_ac = str(hgvs_seek_var.ac)
-                                    if (hgvs_seek_var.posedit.pos.start.base + hgvs_seek_var.posedit.pos.start.offset) > (
+                                    if (
+                                            hgvs_seek_var.posedit.pos.start.base + hgvs_seek_var.posedit.pos.start.offset) > (
                                             hgvs_coding.posedit.pos.start.base + hgvs_coding.posedit.pos.start.offset) and (
                                             hgvs_seek_var.posedit.pos.end.base + hgvs_seek_var.posedit.pos.end.offset) > (
                                             hgvs_coding.posedit.pos.end.base + hgvs_coding.posedit.pos.end.offset) and rec_var != 'false':
@@ -4347,7 +4398,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     intron_test = hn.normalize(hgvs_seek_var)
                                 except hgvs.exceptions.HGVSUnsupportedOperationError as e:
                                     error = str(e)
-                                    if re.match('Normalization of intronic variants is not supported', error) or re.match(
+                                    if re.match('Normalization of intronic variants is not supported',
+                                                error) or re.match(
                                             'Unsupported normalization of variants spanning the exon-intron boundary',
                                             error):
                                         if re.match(
@@ -4428,11 +4480,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                         hgvs_not_delins.posedit.edit.alt = ref_bases[
                                                                                            :1] + hgvs_not_delins.posedit.edit.alt[
                                                                                                  1:] + ref_bases[1:]
-                                                    elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and re.search(
+                                                    elif re.search('ins',
+                                                                   str(hgvs_genomic_5pr.posedit.edit)) and re.search(
                                                             'del', str(hgvs_genomic_5pr.posedit.edit)):
                                                         hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
                                                     elif re.search('ins',
-                                                                   str(hgvs_genomic_5pr.posedit.edit)) and not re.search(
+                                                                   str(
+                                                                       hgvs_genomic_5pr.posedit.edit)) and not re.search(
                                                         'del', str(hgvs_genomic_5pr.posedit.edit)):
                                                         hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
                                                         start = hgvs_not_delins.posedit.pos.start.base - 1
@@ -4452,11 +4506,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                         hgvs_not_delins.posedit.edit.alt = ref_bases[
                                                                                            :1] + hgvs_not_delins.posedit.edit.alt[
                                                                                                  1:] + ref_bases[1:]
-                                                    elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and re.search(
+                                                    elif re.search('ins',
+                                                                   str(hgvs_genomic_5pr.posedit.edit)) and re.search(
                                                             'del', str(hgvs_genomic_5pr.posedit.edit)):
                                                         hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
                                                     elif re.search('ins',
-                                                                   str(hgvs_genomic_5pr.posedit.edit)) and not re.search(
+                                                                   str(
+                                                                       hgvs_genomic_5pr.posedit.edit)) and not re.search(
                                                         'del', str(hgvs_genomic_5pr.posedit.edit)):
                                                         hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
                                                         start = hgvs_not_delins.posedit.pos.start.base - 1
@@ -4471,17 +4527,19 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         else:
                                             pass
                                         try:
-                                            tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins, saved_hgvs_coding.ac)
+                                            tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
+                                                                                    saved_hgvs_coding.ac)
                                         except hgvs.exceptions.HGVSInvalidIntervalError:
                                             tx_hgvs_not_delins = no_norm_evm.g_to_n(reverse_normalized_hgvs_genomic,
                                                                                     saved_hgvs_coding.ac)
                                         # Create normalized version of tx_hgvs_not_delins
                                         rn_tx_hgvs_not_delins = copy.deepcopy(tx_hgvs_not_delins)
-                                        
+
                                         # Check for +1 base and adjust
-                                        if re.search('\+', str(rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search('\+',
-                                                                                                                     str(
-                                                                                                                         rn_tx_hgvs_not_delins.posedit.pos.start)):
+                                        if re.search('\+', str(rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search(
+                                                '\+',
+                                                str(
+                                                    rn_tx_hgvs_not_delins.posedit.pos.start)):
                                             # Remove offsetting to span the gap
                                             rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
                                             rn_tx_hgvs_not_delins.posedit.pos.end.offset = 0
@@ -4502,12 +4560,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             else:
                                                 test_tx_var = rn_tx_hgvs_not_delins
                                             # re-make genomic and tx
-                                            hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, no_norm_evm, hdp,
-                                                                                   primary_assembly)
-                                                                                                                                                                      
+                                            hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
+
                                             rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                        str(saved_hgvs_coding.ac))
-                                                                                       
+
                                         # tx_hgvs_not_delins = rn_tx_hgvs_not_delins
                                         elif re.search('\+', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
                                             # move tx start base to previous available non-offset base
@@ -4518,18 +4575,18 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             else:
                                                 test_tx_var = rn_tx_hgvs_not_delins
                                             # re-make genomic and tx
-                                            hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, no_norm_evm, hdp,
-                                                                                   primary_assembly)
+                                            hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
                                             rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                        str(saved_hgvs_coding.ac))
                                             rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
-#                                         else:
-#                                             pass
+                                        #                                         else:
+                                        #                                             pass
 
                                         # Check for -ve base and adjust
-                                        elif re.search('\-', str(rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search('\-',
-                                                                                                                     str(
-                                                                                                                         rn_tx_hgvs_not_delins.posedit.pos.start)):
+                                        elif re.search('\-', str(rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search(
+                                                '\-',
+                                                str(
+                                                    rn_tx_hgvs_not_delins.posedit.pos.start)):
                                             # Remove offsetting to span the gap
                                             rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
                                             rn_tx_hgvs_not_delins.posedit.pos.end.offset = 0
@@ -4553,8 +4610,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             else:
                                                 test_tx_var = rn_tx_hgvs_not_delins
                                             # re-make genomic and tx
-                                            hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, no_norm_evm, hdp,
-                                                                                   primary_assembly)
+                                            hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
                                             rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                        str(saved_hgvs_coding.ac))
                                         elif re.search('\-', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
@@ -4567,8 +4623,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             else:
                                                 test_tx_var = rn_tx_hgvs_not_delins
                                             # re-make genomic and tx
-                                            hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, no_norm_evm, hdp,
-                                                                                   primary_assembly)
+                                            hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
                                             rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                        str(saved_hgvs_coding.ac))
                                             rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
@@ -4588,7 +4643,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             disparity_deletion_in = ['transcript', gap_length]
                                         else:
                                             re_capture_tx_variant = []
-                                            for internal_possibility in hgvs_genomic_possibilities:                                                                     
+                                            for internal_possibility in hgvs_genomic_possibilities:
                                                 if internal_possibility == '':
                                                     continue
 
@@ -4597,43 +4652,36 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                     try:
                                                         hgvs_t_possibility = vm.c_to_n(hgvs_t_possibility)
                                                     except:
-                                                        pass 
-                                                    ins_ref = sf.fetch_seq(hgvs_t_possibility.ac,hgvs_t_possibility.posedit.pos.start.base-1,hgvs_t_possibility.posedit.pos.start.base + 1)
+                                                        pass
+                                                    ins_ref = sf.fetch_seq(hgvs_t_possibility.ac,
+                                                                           hgvs_t_possibility.posedit.pos.start.base - 1,
+                                                                           hgvs_t_possibility.posedit.pos.start.base + 1)
                                                     try:
                                                         hgvs_t_possibility = vm.n_to_c(hgvs_t_possibility)
                                                     except:
                                                         pass
                                                     hgvs_t_possibility.posedit.edit.ref = ins_ref
-                                                    hgvs_t_possibility.posedit.edit.alt = ins_ref[0] + hgvs_t_possibility.posedit.edit.alt + ins_ref[1] 
+                                                    hgvs_t_possibility.posedit.edit.alt = ins_ref[
+                                                                                              0] + hgvs_t_possibility.posedit.edit.alt + \
+                                                                                          ins_ref[1]
                                                 if internal_possibility.posedit.edit.type == 'ins':
-                                                    ins_ref = sf.fetch_seq(internal_possibility.ac,internal_possibility.posedit.pos.start.base-1,internal_possibility.posedit.pos.end.base)
+                                                    ins_ref = sf.fetch_seq(internal_possibility.ac,
+                                                                           internal_possibility.posedit.pos.start.base - 1,
+                                                                           internal_possibility.posedit.pos.end.base)
                                                     internal_possibility.posedit.edit.ref = ins_ref
-                                                    internal_possibility.posedit.edit.alt = ins_ref[0] + internal_possibility.posedit.edit.alt + ins_ref[1]
-                                            
-                                                if len(hgvs_t_possibility.posedit.edit.ref) < len(internal_possibility.posedit.edit.ref):
-                                                    gap_length = len(internal_possibility.posedit.edit.ref) - len(hgvs_t_possibility.posedit.edit.ref)
-                                                    re_capture_tx_variant = ['transcript', gap_length, hgvs_t_possibility]
+                                                    internal_possibility.posedit.edit.alt = ins_ref[
+                                                                                                0] + internal_possibility.posedit.edit.alt + \
+                                                                                            ins_ref[1]
+
+                                                if len(hgvs_t_possibility.posedit.edit.ref) < len(
+                                                        internal_possibility.posedit.edit.ref):
+                                                    gap_length = len(internal_possibility.posedit.edit.ref) - len(
+                                                        hgvs_t_possibility.posedit.edit.ref)
+                                                    re_capture_tx_variant = ['transcript', gap_length,
+                                                                             hgvs_t_possibility]
                                                     hgvs_not_delins = internal_possibility
                                                     hgvs_genomic_5pr = internal_possibility
                                                     break
-
-#                                                 elif hgvs_t_possibility.posedit.pos.start.offset != 0 or hgvs_t_possibility.posedit.pos.end.offset != 0:
-#                                                     exons = hdp.get_tx_exons(hgvs_t_possibility.ac, possibility.ac, alt_aln_method)
-#                                                     exonic = False
-#                                                     for ex_test in exons:
-#                                                         if hgvs_t_possibility.posedit.pos.start.base in range(ex_test[6],ex_test[7]) and hgvs_t_possibility.posedit.pos.end.base in range(ex_test[6],ex_test[7]):
-#                                                             exonic = True
-#                                                     if exonic is True:
-#                                                         norm_g = hn.normalize(possibility)
-#                                                         norm_g_to_c = vm.g_to_c(norm_g, hgvs_coding.ac)
-#                                                         if norm_g_to_c == hgvs_coding:
-#                                                             continue
-#                                                         else:
-#                                                             gap_length = 'Requires Analysis'
-#                                                             re_capture_tx_variant = ['transcript', gap_length, hgvs_t_possibility]
-#                                                             hgvs_not_delins = possibility
-#                                                             hgvs_genomic_5pr = possibility
-#                                                             break                                                   
 
                                             if re_capture_tx_variant != []:
                                                 try:
@@ -4673,18 +4721,21 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         hgvs_genomic = hgvs_not_delins
 
                                     # Find oddly placed gaps where the tx variant is encompassed in the gap
-                                    if disparity_deletion_in[0] == 'false' and (possibility_counter == 3 or possibility_counter == 4):
+                                    if disparity_deletion_in[0] == 'false' and (
+                                            possibility_counter == 3 or possibility_counter == 4):
                                         rg = reverse_normalizer.normalize(hgvs_not_delins)
                                         rtx = vm.g_to_t(rg, tx_hgvs_not_delins.ac)
                                         fg = hn.normalize(hgvs_not_delins)
                                         ftx = vm.g_to_t(fg, tx_hgvs_not_delins.ac)
-                                        if (rtx.posedit.pos.start.offset == 0 and rtx.posedit.pos.end.offset == 0) and (ftx.posedit.pos.start.offset != 0 and ftx.posedit.pos.end.offset != 0):
+                                        if (rtx.posedit.pos.start.offset == 0 and rtx.posedit.pos.end.offset == 0) and (
+                                                ftx.posedit.pos.start.offset != 0 and ftx.posedit.pos.end.offset != 0):
                                             exons = hdp.get_tx_exons(ftx.ac, hgvs_not_delins.ac, alt_aln_method)
                                             exonic = False
                                             for ex_test in exons:
-                                                if ftx.posedit.pos.start.base in range(ex_test[6],ex_test[7]) and ftx.posedit.pos.end.base in range(ex_test[6],ex_test[7]):
+                                                if ftx.posedit.pos.start.base in range(ex_test[6], ex_test[
+                                                    7]) and ftx.posedit.pos.end.base in range(ex_test[6], ex_test[7]):
                                                     exonic = True
-                                            if exonic is True:                                          
+                                            if exonic is True:
                                                 hgvs_not_delins = fg
                                                 hgvs_genomic = fg
                                                 hgvs_genomic_5pr = fg
@@ -4700,8 +4751,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             tx_hgvs_not_delins.posedit.edit.alt = ''
                                     except Exception as e:
                                         if str(e) == "'Dup' object has no attribute 'alt'":
-                                            tx_hgvs_not_delins_delins_from_dup = tx_hgvs_not_delins.ac + ':' + tx_hgvs_not_delins.type + '.' + str(tx_hgvs_not_delins.posedit.pos.start) + '_' + str(tx_hgvs_not_delins.posedit.pos.end) + 'del' + tx_hgvs_not_delins.posedit.edit.ref + 'ins' +    tx_hgvs_not_delins.posedit.edit.ref + tx_hgvs_not_delins.posedit.edit.ref                           
-                                            tx_hgvs_not_delins = hp.parse_hgvs_variant(tx_hgvs_not_delins_delins_from_dup)
+                                            tx_hgvs_not_delins_delins_from_dup = tx_hgvs_not_delins.ac + ':' + tx_hgvs_not_delins.type + '.' + str(
+                                                tx_hgvs_not_delins.posedit.pos.start) + '_' + str(
+                                                tx_hgvs_not_delins.posedit.pos.end) + 'del' + tx_hgvs_not_delins.posedit.edit.ref + 'ins' + tx_hgvs_not_delins.posedit.edit.ref + tx_hgvs_not_delins.posedit.edit.ref
+                                            tx_hgvs_not_delins = hp.parse_hgvs_variant(
+                                                tx_hgvs_not_delins_delins_from_dup)
 
                                     # GAP IN THE TRANSCRIPT DISPARITY DETECTED
                                     if disparity_deletion_in[0] == 'transcript':
@@ -4709,12 +4763,14 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         suppress_c_normalization = 'true'
                                         # amend_RefSeqGene = 'true'
                                         # ANY VARIANT WHOLLY WITHIN THE GAP
-                                        if (re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)) or re.search('\-',
-                                                                                                                    str(
-                                                                                                                        tx_hgvs_not_delins.posedit.pos.start))) and (
-                                                re.search('\+', str(tx_hgvs_not_delins.posedit.pos.end)) or re.search('\-',
-                                                                                                                      str(
-                                                                                                                          tx_hgvs_not_delins.posedit.pos.end))):
+                                        if (re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)) or re.search(
+                                                '\-',
+                                                str(
+                                                    tx_hgvs_not_delins.posedit.pos.start))) and (
+                                                re.search('\+', str(tx_hgvs_not_delins.posedit.pos.end)) or re.search(
+                                            '\-',
+                                            str(
+                                                tx_hgvs_not_delins.posedit.pos.end))):
 
                                             gapped_transcripts = gapped_transcripts + ' ' + str(tx_hgvs_not_delins.ac)
 
@@ -4725,10 +4781,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                     tx_gap_fill_variant.posedit.edit.alt = ''
                                             except Exception as e:
                                                 if str(e) == "'Dup' object has no attribute 'alt'":
-                                                    tx_gap_fill_variant_delins_from_dup = tx_gap_fill_variant.ac + ':' + tx_gap_fill_variant.type + '.' + str(tx_gap_fill_variant.posedit.pos.start) + '_' + str(tx_gap_fill_variant.posedit.pos.end) + 'del' + tx_gap_fill_variant.posedit.edit.ref + 'ins' +  tx_gap_fill_variant.posedit.edit.ref + tx_gap_fill_variant.posedit.edit.ref                         
-                                                    tx_gap_fill_variant = hp.parse_hgvs_variant(tx_gap_fill_variant_delins_from_dup)                                            
-                                            
-                                            # Identify which half of the NOT-intron the start position of the variant is in
+                                                    tx_gap_fill_variant_delins_from_dup = tx_gap_fill_variant.ac + ':' + tx_gap_fill_variant.type + '.' + str(
+                                                        tx_gap_fill_variant.posedit.pos.start) + '_' + str(
+                                                        tx_gap_fill_variant.posedit.pos.end) + 'del' + tx_gap_fill_variant.posedit.edit.ref + 'ins' + tx_gap_fill_variant.posedit.edit.ref + tx_gap_fill_variant.posedit.edit.ref
+                                                    tx_gap_fill_variant = hp.parse_hgvs_variant(
+                                                        tx_gap_fill_variant_delins_from_dup)
+
+                                                    # Identify which half of the NOT-intron the start position of the variant is in
                                             if re.search('\-', str(tx_gap_fill_variant.posedit.pos.start)):
                                                 tx_gap_fill_variant.posedit.pos.start.base = tx_gap_fill_variant.posedit.pos.start.base - 1
                                                 tx_gap_fill_variant.posedit.pos.start.offset = int('0')  # int('+1')
@@ -4754,7 +4813,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                 c_tx_hgvs_not_delins = vm.n_to_c(tx_hgvs_not_delins)
                                             except Exception:
                                                 c_tx_hgvs_not_delins = copy.copy(tx_hgvs_not_delins)
-                                            genomic_gap_fill_variant_alt = vm.t_to_g(c_tx_hgvs_not_delins, hgvs_genomic_5pr.ac)
+                                            genomic_gap_fill_variant_alt = vm.t_to_g(c_tx_hgvs_not_delins,
+                                                                                     hgvs_genomic_5pr.ac)
 
                                             # Ensure an ALT exists
                                             try:
@@ -4788,7 +4848,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                 alternate_bases = list(genomic_gap_fill_variant_alt.posedit.edit.alt)
                                             else:
                                                 # Deletions with no ins
-                                                pre_alternate_bases = list(genomic_gap_fill_variant_alt.posedit.edit.ref)
+                                                pre_alternate_bases = list(
+                                                    genomic_gap_fill_variant_alt.posedit.edit.ref)
                                                 alternate_bases = []
                                                 for base in pre_alternate_bases:
                                                     alternate_bases.append('X')
@@ -4809,7 +4870,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             # Note, all variants will be forced into the format delete insert
                                             # Deleted bases in the ALT will be substituted for X
                                             for integer in range(genomic_gap_fill_variant_alt.posedit.pos.start.base,
-                                                                 genomic_gap_fill_variant_alt.posedit.pos.end.base + 1, 1):
+                                                                 genomic_gap_fill_variant_alt.posedit.pos.end.base + 1,
+                                                                 1):
                                                 if integer == alt_start:
                                                     alt_base_dict[integer] = str(''.join(alternate_bases))
                                                 else:
@@ -4830,7 +4892,6 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             genomic_gap_fill_variant.posedit.edit.alt = alternate_sequence
                                             hgvs_refreshed_variant = vm.g_to_t(genomic_gap_fill_variant,
                                                                                tx_gap_fill_variant.ac)
-
 
                                             # Set warning
                                             gap_size = str(len(genomic_gap_fill_variant.posedit.edit.ref) - 2)
@@ -4855,7 +4916,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
                                         else:
                                             if tx_hgvs_not_delins.posedit.pos.start.offset == 0 and tx_hgvs_not_delins.posedit.pos.end.offset == 0:
-                                                # In this instance, we have identified a transcript gap but the n. version of 
+                                                # In this instance, we have identified a transcript gap but the n. version of
                                                 # the transcript variant but do not have a position which actually hits the gap,
                                                 # so the variant likely spans the gap, and is not picked up by an offset.
                                                 try:
@@ -4866,7 +4927,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                 g3 = nr_vm.t_to_g(c1, hgvs_genomic.ac)
                                                 g2 = vm.t_to_g(c1, hgvs_genomic.ac)
                                                 ng2 = hn.normalize(g2)
-                                                g3.posedit.pos.end.base = g3.posedit.pos.start.base + (len(g3.posedit.edit.ref) - 1)                                    
+                                                g3.posedit.pos.end.base = g3.posedit.pos.start.base + (
+                                                            len(g3.posedit.edit.ref) - 1)
                                                 try:
                                                     c2 = vm.g_to_t(g3, c1.ac)
                                                     if c2.posedit.pos.start.offset == 0 and c2.posedit.pos.end.offset == 0:
@@ -4877,10 +4939,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                             tx_hgvs_not_delins = vm.c_to_n(tx_hgvs_not_delins)
                                                         except hgvs.exceptions.HGVSError:
                                                             pass
-                                                except hgvs.exceptions.HGVSInvalidVariantError:     
+                                                except hgvs.exceptions.HGVSInvalidVariantError:
                                                     pass
 
-                                            if re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search(
+                                            if re.search('\+',
+                                                         str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search(
                                                     '\+', str(tx_hgvs_not_delins.posedit.pos.end)):
                                                 auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(
                                                     stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(
@@ -4920,17 +4983,20 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                     for_location_c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
                                                     gps = for_location_c.posedit.pos.start.base
                                                     gpe = for_location_c.posedit.pos.start.base + 1
-                                                gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
+                                                gap_position = ' between positions c.' + str(gps) + '_' + str(
+                                                    gpe) + '\n'
                                                 # Warn update
                                                 auto_info = auto_info + '%s' % (gap_position)
-                                            elif re.search('\+', str(tx_hgvs_not_delins.posedit.pos.end)) and not re.search(
+                                            elif re.search('\+',
+                                                           str(tx_hgvs_not_delins.posedit.pos.end)) and not re.search(
                                                     '\+', str(tx_hgvs_not_delins.posedit.pos.start)):
                                                 auto_info = auto_info + 'Genome position ' + str(
                                                     stored_hgvs_not_delins.ac) + ':g.' + str(
                                                     stored_hgvs_not_delins.posedit.pos.end.base + 1) + ' aligns within a ' + str(
                                                     disparity_deletion_in[1]) + '-bp gap in transcript ' + str(
                                                     tx_hgvs_not_delins.ac)
-                                                gapped_transcripts = gapped_transcripts + ' ' + str(tx_hgvs_not_delins.ac)
+                                                gapped_transcripts = gapped_transcripts + ' ' + str(
+                                                    tx_hgvs_not_delins.ac)
                                                 non_valid_caution = 'true'
                                                 try:
                                                     c1 = vm.n_to_c(tx_hgvs_not_delins)
@@ -4964,7 +5030,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                     for_location_c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
                                                 gps = for_location_c.posedit.pos.end.base
                                                 gpe = for_location_c.posedit.pos.end.base + 1
-                                                gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
+                                                gap_position = ' between positions c.' + str(gps) + '_' + str(
+                                                    gpe) + '\n'
                                                 # Warn update
                                                 auto_info = auto_info + '%s' % (gap_position)
                                             elif re.search('\-',
@@ -5008,17 +5075,20 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                     for_location_c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
                                                 gps = for_location_c.posedit.pos.start.base - 1
                                                 gpe = for_location_c.posedit.pos.start.base
-                                                gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
+                                                gap_position = ' between positions c.' + str(gps) + '_' + str(
+                                                    gpe) + '\n'
                                                 # Warn update
                                                 auto_info = auto_info + '%s' % (gap_position)
-                                            elif re.search('\-', str(tx_hgvs_not_delins.posedit.pos.end)) and not re.search(
+                                            elif re.search('\-',
+                                                           str(tx_hgvs_not_delins.posedit.pos.end)) and not re.search(
                                                     '\-', str(tx_hgvs_not_delins.posedit.pos.start)):
                                                 auto_info = auto_info + 'Genome position ' + str(
                                                     stored_hgvs_not_delins.ac) + ':g.' + str(
                                                     stored_hgvs_not_delins.posedit.pos.end.base + 1) + ' aligns within a ' + str(
                                                     disparity_deletion_in[1]) + '-bp gap in transcript ' + str(
                                                     tx_hgvs_not_delins.ac)
-                                                gapped_transcripts = gapped_transcripts + ' ' + str(tx_hgvs_not_delins.ac)
+                                                gapped_transcripts = gapped_transcripts + ' ' + str(
+                                                    tx_hgvs_not_delins.ac)
                                                 non_valid_caution = 'true'
                                                 try:
                                                     c1 = vm.n_to_c(tx_hgvs_not_delins)
@@ -5052,7 +5122,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                     for_location_c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
                                                 gps = for_location_c.posedit.pos.end.base - 1
                                                 gpe = for_location_c.posedit.pos.end.base
-                                                gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
+                                                gap_position = ' between positions c.' + str(gps) + '_' + str(
+                                                    gpe) + '\n'
                                                 # Warn update
                                                 auto_info = auto_info + '%s' % (gap_position)
                                             else:
@@ -5077,8 +5148,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             hgvs_refreshed_variant = chromosome_normalized_hgvs_coding
                                         # Warn
                                         auto_info = auto_info + str(hgvs_refreshed_variant.ac) + ':c.' + str(
-                                            hgvs_refreshed_variant.posedit.pos) + ' contains ' + str(disparity_deletion_in[
-                                                                                                         1]) + ' transcript base(s) that fail to align to chromosome ' + str(
+                                            hgvs_refreshed_variant.posedit.pos) + ' contains ' + str(
+                                            disparity_deletion_in[
+                                                1]) + ' transcript base(s) that fail to align to chromosome ' + str(
                                             hgvs_genomic.ac) + '\n'
                                     else:
                                         # Keep the same by re-setting rel_var
@@ -5096,7 +5168,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         hn.normalize(hgvs_refreshed_variant)
                                     except Exception as e:
                                         error = str(e)
-                                        
+
                                         # Ensure the final variant is not intronic nor does it cross exon boundaries
                                         if re.match('Normalization of intronic variants is not supported',
                                                     error) or re.match(
@@ -5115,10 +5187,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         # Try the next available genomic option
                                         if hgvs_coding.posedit.edit.type == 'identity' and to_test.posedit.edit.type == 'identity':
                                             hgvs_coding = to_test
-                                        else:                                       
+                                        else:
                                             continue
                                     # Update hgvs_genomic
-                                    hgvs_genomic = va_func.myvm_t_to_g(hgvs_refreshed_variant, hgvs_genomic.ac, vm, hn, hdp, primary_assembly)
+                                    hgvs_genomic = va_func.myvm_t_to_g(hgvs_refreshed_variant, hgvs_genomic.ac, no_norm_evm, vm, hp, hn, sf, nr_vm)
                                     if hgvs_genomic.posedit.edit.type == 'identity':
                                         re_c = vm.g_to_t(hgvs_genomic, hgvs_refreshed_variant.ac)
                                         if (hn.normalize(re_c)) != (hn.normalize(hgvs_refreshed_variant)):
@@ -5157,7 +5229,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 auto_info = str(auto_info.replace('\n', ': '))
                                 validation['warnings'] = validation['warnings'] + ': ' + str(auto_info)
 
-                            # Normailse hgvs_genomic                            
+                            # Normailse hgvs_genomic
                             try:
                                 hgvs_genomic = hn.normalize(hgvs_genomic)
                             except hgvs.exceptions.HGVSError as e:
@@ -5202,8 +5274,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
                         hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
-                        # Create vcf                       
-                        vcf_dict = va_H2V.hgvs2vcf(reverse_normalized_hgvs_genomic)
+                        # Create vcf
+                        vcf_dict = va_H2V.hgvs2vcf(reverse_normalized_hgvs_genomic, reverse_normalizer, sf)
                         chr = vcf_dict['chr']
                         pos = vcf_dict['pos']
                         ref = vcf_dict['ref']
@@ -5278,9 +5350,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 hgvs_seek_var = saved_hgvs_coding
 
                         # Loop out gap finding code under these circumstances!
-                        warner.warn("gap_compensation_2 = " + str(gap_compensation)) 
+                        warnings.warn("gap_compensation_2 = " + str(gap_compensation))
                         if gap_compensation is True:
-                            warner.warn('g_to_t gap code 2 active')
+                            warnings.warn('g_to_t gap code 2 active')
                             # is it in an exon?
                             is_it_in_an_exon = 'no'
                             for exon in ori:
@@ -5326,7 +5398,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                 elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and re.search(
                                                         'del', str(hgvs_genomic_5pr.posedit.edit)):
                                                     hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-                                                elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and not re.search(
+                                                elif re.search('ins',
+                                                               str(hgvs_genomic_5pr.posedit.edit)) and not re.search(
                                                         'del', str(hgvs_genomic_5pr.posedit.edit)):
                                                     hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
                                                     start = hgvs_not_delins.posedit.pos.start.base - 1
@@ -5349,7 +5422,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                 elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and re.search(
                                                         'del', str(hgvs_genomic_5pr.posedit.edit)):
                                                     hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-                                                elif re.search('ins', str(hgvs_genomic_5pr.posedit.edit)) and not re.search(
+                                                elif re.search('ins',
+                                                               str(hgvs_genomic_5pr.posedit.edit)) and not re.search(
                                                         'del', str(hgvs_genomic_5pr.posedit.edit)):
                                                     hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
                                                     start = hgvs_not_delins.posedit.pos.start.base - 1
@@ -5375,8 +5449,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     # Create normalized version of tx_hgvs_not_delins
                                     rn_tx_hgvs_not_delins = copy.deepcopy(tx_hgvs_not_delins)
                                     # Check for +ve base and adjust
-                                    if re.search('\+', str(rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search('\+', str(
-                                            rn_tx_hgvs_not_delins.posedit.pos.start)):
+                                    if re.search('\+', str(rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search('\+',
+                                                                                                                 str(
+                                                                                                                         rn_tx_hgvs_not_delins.posedit.pos.start)):
                                         # Remove offsetting to span the gap
                                         rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
                                         rn_tx_hgvs_not_delins.posedit.pos.end.offset = 0
@@ -5397,8 +5472,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         else:
                                             test_tx_var = rn_tx_hgvs_not_delins
                                         # re-make genomic and tx
-                                        hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, no_norm_evm, hdp,
-                                                                               primary_assembly)
+                                        hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
                                         rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                    str(saved_hgvs_coding.ac))
                                     elif re.search('\+', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
@@ -5410,17 +5484,17 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         else:
                                             test_tx_var = rn_tx_hgvs_not_delins
                                         # re-make genomic and tx
-                                        hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, no_norm_evm, hdp,
-                                                                               primary_assembly)
+                                        hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
                                         rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                    str(saved_hgvs_coding.ac))
                                         rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
-#                                     else:
-#                                         pass
+                                    #                                     else:
+                                    #                                         pass
 
                                     # Check for -ve base and adjust
-                                    elif re.search('\-', str(rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search('\-', str(
-                                            rn_tx_hgvs_not_delins.posedit.pos.start)):
+                                    elif re.search('\-', str(rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search('\-',
+                                                                                                                   str(
+                                                                                                                           rn_tx_hgvs_not_delins.posedit.pos.start)):
                                         # Remove offsetting to span the gap
                                         rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
                                         rn_tx_hgvs_not_delins.posedit.pos.end.offset = 0
@@ -5446,8 +5520,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         else:
                                             test_tx_var = rn_tx_hgvs_not_delins
                                         # re-make genomic and tx
-                                        hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, no_norm_evm, hdp,
-                                                                               primary_assembly)
+                                        hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
                                         rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                    str(saved_hgvs_coding.ac))
                                     elif re.search('\-', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
@@ -5460,8 +5533,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         else:
                                             test_tx_var = rn_tx_hgvs_not_delins
                                         # re-make genomic and tx
-                                        hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, no_norm_evm, hdp,
-                                                                               primary_assembly)
+                                        hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
                                         rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                    str(saved_hgvs_coding.ac))
                                         rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
@@ -5469,7 +5541,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         pass
 
                                     # Logic
-                                    if len(hgvs_not_delins.posedit.edit.ref) < len(rn_tx_hgvs_not_delins.posedit.edit.ref):
+                                    if len(hgvs_not_delins.posedit.edit.ref) < len(
+                                            rn_tx_hgvs_not_delins.posedit.edit.ref):
                                         gap_length = len(rn_tx_hgvs_not_delins.posedit.edit.ref) - len(
                                             hgvs_not_delins.posedit.edit.ref)
                                         disparity_deletion_in = ['chromosome', gap_length]
@@ -5480,8 +5553,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         disparity_deletion_in = ['transcript', gap_length]
                                     else:
                                         re_capture_tx_variant = []
-                                        for internal_possibility in hgvs_genomic_possibilities:                         
-                                            
+                                        for internal_possibility in hgvs_genomic_possibilities:
+
                                             if internal_possibility == '':
                                                 continue
 
@@ -5490,42 +5563,35 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                 try:
                                                     hgvs_t_possibility = vm.c_to_n(hgvs_t_possibility)
                                                 except:
-                                                    pass 
-                                                ins_ref = sf.fetch_seq(hgvs_t_possibility.ac,hgvs_t_possibility.posedit.pos.start.base-1,hgvs_t_possibility.posedit.pos.start.base + 1)
+                                                    pass
+                                                ins_ref = sf.fetch_seq(hgvs_t_possibility.ac,
+                                                                       hgvs_t_possibility.posedit.pos.start.base - 1,
+                                                                       hgvs_t_possibility.posedit.pos.start.base + 1)
                                                 try:
                                                     hgvs_t_possibility = vm.n_to_c(hgvs_t_possibility)
                                                 except:
                                                     pass
                                                 hgvs_t_possibility.posedit.edit.ref = ins_ref
-                                                hgvs_t_possibility.posedit.edit.alt = ins_ref[0] + hgvs_t_possibility.posedit.edit.alt + ins_ref[1] 
+                                                hgvs_t_possibility.posedit.edit.alt = ins_ref[
+                                                                                          0] + hgvs_t_possibility.posedit.edit.alt + \
+                                                                                      ins_ref[1]
                                             if internal_possibility.posedit.edit.type == 'ins':
-                                                ins_ref = sf.fetch_seq(internal_possibility.ac,internal_possibility.posedit.pos.start.base-1,internal_possibility.posedit.pos.end.base)
+                                                ins_ref = sf.fetch_seq(internal_possibility.ac,
+                                                                       internal_possibility.posedit.pos.start.base - 1,
+                                                                       internal_possibility.posedit.pos.end.base)
                                                 internal_possibility.posedit.edit.ref = ins_ref
-                                                internal_possibility.posedit.edit.alt = ins_ref[0] + internal_possibility.posedit.edit.alt + ins_ref[1]
-                                            
-                                            if len(hgvs_t_possibility.posedit.edit.ref) < len(internal_possibility.posedit.edit.ref):
-                                                gap_length = len(internal_possibility.posedit.edit.ref) - len(hgvs_t_possibility.posedit.edit.ref)
+                                                internal_possibility.posedit.edit.alt = ins_ref[
+                                                                                            0] + internal_possibility.posedit.edit.alt + \
+                                                                                        ins_ref[1]
+
+                                            if len(hgvs_t_possibility.posedit.edit.ref) < len(
+                                                    internal_possibility.posedit.edit.ref):
+                                                gap_length = len(internal_possibility.posedit.edit.ref) - len(
+                                                    hgvs_t_possibility.posedit.edit.ref)
                                                 re_capture_tx_variant = ['transcript', gap_length, hgvs_t_possibility]
                                                 hgvs_not_delins = internal_possibility
                                                 hgvs_genomic_5pr = internal_possibility
                                                 break
-#                                             elif hgvs_t_possibility.posedit.pos.start.offset != 0 or hgvs_t_possibility.posedit.pos.end.offset != 0:
-#                                                 exons = hdp.get_tx_exons(hgvs_t_possibility.ac, possibility.ac, alt_aln_method)
-#                                                 exonic = False
-#                                                 for ex_test in exons:
-#                                                     if hgvs_t_possibility.posedit.pos.start.base in range(ex_test[6],ex_test[7]) and hgvs_t_possibility.posedit.pos.end.base in range(ex_test[6],ex_test[7]):
-#                                                         exonic = True
-#                                                 if exonic is True:
-#                                                     norm_g = hn.normalize(possibility)
-#                                                     norm_g_to_c = vm.g_to_c(norm_g, hgvs_coding.ac)
-#                                                     if norm_g_to_c == hgvs_coding:
-#                                                         continue
-#                                                     else:
-#                                                         gap_length = 'Requires Analysis'
-#                                                         re_capture_tx_variant = ['transcript', gap_length, hgvs_t_possibility]
-#                                                         hgvs_not_delins = possibility
-#                                                         hgvs_genomic_5pr = possibility
-#                                                         break                                                     
 
                                         if re_capture_tx_variant != []:
                                             try:
@@ -5557,8 +5623,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         elif re.match('Normalization of intronic variants is not supported', error):
                                             # We know that this cannot be because of an intronic variant, so must be aligned to tx gap
                                             disparity_deletion_in = ['transcript', 'Requires Analysis']
- 
-          
+
                                 if hard_fail == 'true':
                                     disparity_deletion_in = ['false', 'false']
 
@@ -5572,19 +5637,18 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         tx_hgvs_not_delins.posedit.edit.alt = ''
                                 except Exception as e:
                                     if str(e) == "'Dup' object has no attribute 'alt'":
-                                        tx_hgvs_not_delins_delins_from_dup = tx_hgvs_not_delins.ac + ':' + tx_hgvs_not_delins.type + '.' + str(tx_hgvs_not_delins.posedit.pos.start) + '_' + str(tx_hgvs_not_delins.posedit.pos.end) + 'del' + tx_hgvs_not_delins.posedit.edit.ref + 'ins' +    tx_hgvs_not_delins.posedit.edit.ref + tx_hgvs_not_delins.posedit.edit.ref                           
+                                        tx_hgvs_not_delins_delins_from_dup = tx_hgvs_not_delins.ac + ':' + tx_hgvs_not_delins.type + '.' + str(
+                                            tx_hgvs_not_delins.posedit.pos.start) + '_' + str(
+                                            tx_hgvs_not_delins.posedit.pos.end) + 'del' + tx_hgvs_not_delins.posedit.edit.ref + 'ins' + tx_hgvs_not_delins.posedit.edit.ref + tx_hgvs_not_delins.posedit.edit.ref
                                         tx_hgvs_not_delins = hp.parse_hgvs_variant(tx_hgvs_not_delins_delins_from_dup)
 
-
-#                                 print '\nCHECKING IN'
-#                                 print disparity_deletion_in
-#                                 print tx_hgvs_not_delins
-#                                 for p in hgvs_genomic_possibilities:
-#                                     print p
-#                                 
-#                                 print 'CHECKING OUT'  
-
-
+                                #                                 print '\nCHECKING IN'
+                                #                                 print disparity_deletion_in
+                                #                                 print tx_hgvs_not_delins
+                                #                                 for p in hgvs_genomic_possibilities:
+                                #                                     print p
+                                #
+                                #                                 print 'CHECKING OUT'
 
                                 # GAP IN THE TRANSCRIPT DISPARITY DETECTED
                                 if disparity_deletion_in[0] == 'transcript':
@@ -5593,10 +5657,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         hgvs_genomic_5pr) + ' does not represent a true variant because it is an artefact of aligning the transcripts listed below with genome build ' + primary_assembly
 
                                     # ANY VARIANT WHOLLY WITHIN THE GAP
-                                    if (re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)) or re.search('\-', str(
-                                            tx_hgvs_not_delins.posedit.pos.start))) and (
-                                            re.search('\+', str(tx_hgvs_not_delins.posedit.pos.end)) or re.search('\-', str(
-                                        tx_hgvs_not_delins.posedit.pos.end))):
+                                    if (re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)) or re.search('\-',
+                                                                                                                str(
+                                                                                                                        tx_hgvs_not_delins.posedit.pos.start))) and (
+                                            re.search('\+', str(tx_hgvs_not_delins.posedit.pos.end)) or re.search('\-',
+                                                                                                                  str(
+                                                                                                                      tx_hgvs_not_delins.posedit.pos.end))):
                                         gapped_transcripts = gapped_transcripts + ' ' + str(tx_hgvs_not_delins.ac)
 
                                         # Copy the current variant
@@ -5606,8 +5672,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                 tx_gap_fill_variant.posedit.edit.alt = ''
                                         except Exception as e:
                                             if str(e) == "'Dup' object has no attribute 'alt'":
-                                                tx_gap_fill_variant_delins_from_dup = tx_gap_fill_variant.ac + ':' + tx_gap_fill_variant.type + '.' + str(tx_gap_fill_variant.posedit.pos.start) + '_' + str(tx_gap_fill_variant.posedit.pos.end) + 'del' + tx_gap_fill_variant.posedit.edit.ref + 'ins' +  tx_gap_fill_variant.posedit.edit.ref + tx_gap_fill_variant.posedit.edit.ref                         
-                                                tx_gap_fill_variant = hp.parse_hgvs_variant(tx_gap_fill_variant_delins_from_dup)
+                                                tx_gap_fill_variant_delins_from_dup = tx_gap_fill_variant.ac + ':' + tx_gap_fill_variant.type + '.' + str(
+                                                    tx_gap_fill_variant.posedit.pos.start) + '_' + str(
+                                                    tx_gap_fill_variant.posedit.pos.end) + 'del' + tx_gap_fill_variant.posedit.edit.ref + 'ins' + tx_gap_fill_variant.posedit.edit.ref + tx_gap_fill_variant.posedit.edit.ref
+                                                tx_gap_fill_variant = hp.parse_hgvs_variant(
+                                                    tx_gap_fill_variant_delins_from_dup)
 
                                         # Identify which half of the NOT-intron the start position of the variant is in
                                         if re.search('\-', str(tx_gap_fill_variant.posedit.pos.start)):
@@ -5635,7 +5704,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             c_tx_hgvs_not_delins = vm.n_to_c(tx_hgvs_not_delins)
                                         except Exception:
                                             c_tx_hgvs_not_delins = copy.copy(tx_hgvs_not_delins)
-                                        genomic_gap_fill_variant_alt = vm.t_to_g(c_tx_hgvs_not_delins, hgvs_genomic_5pr.ac)
+                                        genomic_gap_fill_variant_alt = vm.t_to_g(c_tx_hgvs_not_delins,
+                                                                                 hgvs_genomic_5pr.ac)
 
                                         # Ensure an ALT exists
                                         try:
@@ -5709,7 +5779,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
                                         # Add the new alt to the gap fill variant and generate transcript variant
                                         genomic_gap_fill_variant.posedit.edit.alt = alternate_sequence
-                                        hgvs_refreshed_variant = vm.g_to_t(genomic_gap_fill_variant, tx_gap_fill_variant.ac)
+                                        hgvs_refreshed_variant = vm.g_to_t(genomic_gap_fill_variant,
+                                                                           tx_gap_fill_variant.ac)
 
                                         # Set warning
                                         gap_size = str(len(genomic_gap_fill_variant.posedit.edit.ref) - 2)
@@ -5734,7 +5805,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
                                     else:
                                         if tx_hgvs_not_delins.posedit.pos.start.offset == 0 and tx_hgvs_not_delins.posedit.pos.end.offset == 0:
-                                            # In this instance, we have identified a transcript gap but the n. version of 
+                                            # In this instance, we have identified a transcript gap but the n. version of
                                             # the transcript variant but do not have a position which actually hits the gap,
                                             # so the variant likely spans the gap, and is not picked up by an offset.
                                             try:
@@ -5745,7 +5816,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             g3 = nr_vm.t_to_g(c1, hgvs_genomic.ac)
                                             g2 = vm.t_to_g(c1, hgvs_genomic.ac)
                                             ng2 = hn.normalize(g2)
-                                            g3.posedit.pos.end.base = g3.posedit.pos.start.base + (len(g3.posedit.edit.ref) - 1)                                    
+                                            g3.posedit.pos.end.base = g3.posedit.pos.start.base + (
+                                                        len(g3.posedit.edit.ref) - 1)
                                             try:
                                                 c2 = vm.g_to_t(g3, c1.ac)
                                                 if c2.posedit.pos.start.offset == 0 and c2.posedit.pos.end.offset == 0:
@@ -5756,9 +5828,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                         tx_hgvs_not_delins = vm.c_to_n(tx_hgvs_not_delins)
                                                     except hgvs.exceptions.HGVSError:
                                                         pass
-                                            except hgvs.exceptions.HGVSInvalidVariantError:     
+                                            except hgvs.exceptions.HGVSInvalidVariantError:
                                                 pass
-                                                    
+
                                         if re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search(
                                                 '\+', str(tx_hgvs_not_delins.posedit.pos.end)):
                                             auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(
@@ -5846,7 +5918,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
                                             # Warn update
                                             auto_info = auto_info + '%s' % (gap_position)
-                                        elif re.search('\-', str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search(
+                                        elif re.search('\-',
+                                                       str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search(
                                                 '\-', str(tx_hgvs_not_delins.posedit.pos.end)):
                                             auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(
                                                 stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(
@@ -5989,17 +6062,18 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 except Exception as e:
                                     error = str(e)
                                     # Ensure the final variant is not intronic nor does it cross exon boundaries
-                                    if re.match('Normalization of intronic variants is not supported', error) or re.match(
+                                    if re.match('Normalization of intronic variants is not supported',
+                                                error) or re.match(
                                             'Unsupported normalization of variants spanning the exon-intron boundary',
                                             error):
                                         hgvs_refreshed_variant = saved_hgvs_coding
                                     else:
                                         pass
-                            
+
                                 # Sort out equality to equality c. events where the code will add 2 additional bases
-                                if hgvs_coding.posedit.edit.type == 'identity' and hgvs_refreshed_variant.posedit.edit.type == 'identity': # and len(hgvs_refreshed_variant.posedit.edit.ref) ==  (len(hgvs_coding.posedit.edit.ref) + 2):
+                                if hgvs_coding.posedit.edit.type == 'identity' and hgvs_refreshed_variant.posedit.edit.type == 'identity':  # and len(hgvs_refreshed_variant.posedit.edit.ref) ==  (len(hgvs_coding.posedit.edit.ref) + 2):
                                     pass
-                                else:   
+                                else:
                                     hgvs_coding = copy.deepcopy(hgvs_refreshed_variant)
                                 coding = valstr(hgvs_coding)
                                 variant = coding
@@ -6039,7 +6113,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             hgvs_refseq_ac = 'RefSeqGene record not available'
 
                         # Predicted effect on protein
-                        protein_dict = va_func.myc_to_p(hgvs_coding, evm, re_to_p = False)
+                        protein_dict = va_func.myc_to_p(hgvs_coding, evm, hdp, hp, hn, vm, sf, re_to_p=False)
                         if protein_dict['error'] == '':
                             hgvs_protein = protein_dict['hgvs_protein']
                             protein = str(hgvs_protein)
@@ -6048,7 +6122,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             validation['warnings'] = validation['warnings'] + ': ' + str(error)
                             if error == 'Cannot identify an in-frame Termination codon in the variant mRNA sequence':
                                 hgvs_protein = protein_dict['hgvs_protein']
-                                protein = str(hgvs_protein) 
+                                protein = str(hgvs_protein)
                             else:
                                 continue
 
@@ -6062,7 +6136,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         # Re-Save the required variants
                         hgvs_seek_var = copy.deepcopy(hgvs_coding)
                         saved_hgvs_coding = copy.deepcopy(hgvs_coding)
-                                                
+
                         if ori == -1:
                             # position genomic at its most 5 prime position
                             try:
@@ -6104,9 +6178,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 except hgvs.exceptions.HGVSInvalidIntervalError as e:
                                     c_for_p = seek_var
                                 try:
-                                    #hgvs_protein = va_func.protein(str(c_for_p), evm, hp)
                                     # Predicted effect on protein
-                                    protein_dict = va_func.myc_to_p(c_for_p, evm, re_to_p = False)
+                                    protein_dict = va_func.myc_to_p(c_for_p, evm, hdp, hp, hn, vm, sf, re_to_p=False)
                                     if protein_dict['error'] == '':
                                         hgvs_protein = protein_dict['hgvs_protein']
                                         protein = str(hgvs_protein)
@@ -6164,13 +6237,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 rng = reverse_normalizer.normalize(query_genomic)
                                 try:
                                     # Diagram where - = intron and E = Exon
-                                    
+
                                     # 3 prime
                                     # ---------EEEEEEEEEEEEEEEEE-----------
                                     #          <
                                     # Result, normalize of new variant will baulk at intronic
-                                    # 5 prime                   
-                                    #                          <                    
+                                    # 5 prime
+                                    #                          <
                                     # Result, normalize of new variant will be happy
                                     c_for_p = vm.g_to_t(rng, hgvs_coding.ac)
                                     try:
@@ -6178,8 +6251,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     except hgvs.exceptions.HGVSError as e:
                                         pass
                                     else:
-                                        # hgvs_protein = va_func.protein(str(c_for_p), evm, hp)
-                                        protein_dict = va_func.myc_to_p(c_for_p, evm, re_to_p = False)
+                                        protein_dict = va_func.myc_to_p(c_for_p, evm, hdp, hp, hn, vm, sf, re_to_p=False)
                                         if protein_dict['error'] == '':
                                             hgvs_protein = protein_dict['hgvs_protein']
                                             protein = str(hgvs_protein)
@@ -6190,9 +6262,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                         # Replace protein description in vars table
                                         protein = str(hgvs_protein)
-                                except Exception:                                    
+                                except Exception:
                                     pass
-                        
+
                         # Check for up-to-date transcript version
                         updated_transcript_variant = 'None'
                         tx_id_info = hdp.get_tx_identity_info(hgvs_coding.ac)
@@ -6205,12 +6277,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             try:
                                 if re.match(ac_root, accession[3]):
                                     query_version = accession[3].split('.')[1]
-                                    if int(query_version) > int(ac_version) and int(query_version) > int(version_tracking):
+                                    if int(query_version) > int(ac_version) and int(query_version) > int(
+                                            version_tracking):
                                         version_tracking = query_version
                                         update = accession[3]
                             except ValueError:
                                 continue
-                            
+
                         if update != '':
                             hgvs_updated = copy.deepcopy(hgvs_coding)
                             hgvs_updated.ac = update
@@ -6256,7 +6329,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     te = traceback.format_exc()
                     tbk = [str(exc_type), str(exc_value), str(te)]
                     er = str('\n'.join(tbk))
-                    warner.warn(er)
+                    warnings.warn(er)
                     logging.info(er)
                     continue
                 else:
@@ -6267,7 +6340,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     te = traceback.format_exc()
                     tbk = [str(exc_type), str(exc_value), str(te)]
                     er = str('\n'.join(tbk))
-                    warner.warn(er)
+                    warnings.warn(er)
                     logging.info(er)
                     continue
 
@@ -6282,14 +6355,14 @@ def validator(batch_variant, selected_assembly, select_transcripts):
             if 'write' in valid.keys():
                 if valid['write'] == 'true':
                     # Blank VCF
-#                     chr = ''
-#                     pos = ''
-#                     ref = ''
-#                     alt = ''
+                    #                     chr = ''
+                    #                     pos = ''
+                    #                     ref = ''
+                    #                     alt = ''
 
                     # Fromulate a json type response
                     dict_out = {}
-                    
+
                     # Set gap compensation bool
                     gap_compensation = True
 
@@ -6370,9 +6443,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             # Note - LRG availability is dependant on UTA containing the data. In some
                             # instances we will be able to display the LRG_tx without being able to
                             # display the LRG gene data
-                            
+
                             # if not re.search('RefSeqGene', refseqgene_variant) or refseqgene_variant != '':
-                                # if hgvs_refseqgene_variant != 'RefSeqGene record not available' and hgvs_refseqgene_variant != 'false':
+                            # if hgvs_refseqgene_variant != 'RefSeqGene record not available' and hgvs_refseqgene_variant != 'false':
                             try:
                                 hgvs_lrg_t = vm.g_to_t(hgvs_refseqgene_variant, transcript_accession)
                                 try:
@@ -6406,8 +6479,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     lrg_transcript_variant = valstr(hgvs_lrg_t)
                                 else:
                                     lrg_transcript_variant = ''
-#                         else:
-#                             lrg_transcript_variant = ''
+                    #                         else:
+                    #                             lrg_transcript_variant = ''
                     else:
                         transcript_accession = ''
                         lrg_transcript_variant = ''
@@ -6466,14 +6539,14 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     # Transcript description
                     transcript_description = valid['description']
 
-#                     Create VCF
-#                     if genomic_variant != '':
-#                         vcf_dict = va_H2V.report_hgvs2vcf(hgvs_genomic_variant, validation['primary_assembly'])
-#                         vcf_ucsc_chr = vcf_dict['ucsc_chr']
-#                         vcf_grc_chr = vcf_dict['grc_chr']
-#                         vcf_pos = vcf_dict['pos']
-#                         vcf_ref = vcf_dict['ref']
-#                         vcf_alt = vcf_dict['alt']
+                    #                     Create VCF
+                    #                     if genomic_variant != '':
+                    #                         vcf_dict = va_H2V.report_hgvs2vcf(hgvs_genomic_variant, validation['primary_assembly'])
+                    #                         vcf_ucsc_chr = vcf_dict['ucsc_chr']
+                    #                         vcf_grc_chr = vcf_dict['grc_chr']
+                    #                         vcf_pos = vcf_dict['pos']
+                    #                         vcf_ref = vcf_dict['ref']
+                    #                         vcf_alt = vcf_dict['alt']
 
                     # Stashed variants
                     try:
@@ -6481,9 +6554,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         test_stash_tx_right = validation['test_stash_tx_right']
                     except KeyError:
                         pass
-                    
+
                     # Multiple genomic variants
-                    multi_gen_vars = []
+                    # multi_gen_vars = []
                     if tx_variant != '':
                         hgvs_coding = hp.parse_hgvs_variant(str(tx_variant))
                         # Gap gene black list
@@ -6494,7 +6567,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         else:
                             # If the gene symbol is not in the list, the value False will be returned
                             gap_compensation = gapGenes.gap_black_list(gene_symbol)
-                        
+
                         # Look for variants spanning introns
                         try:
                             hgvs_coding = hn.normalize(hgvs_coding)
@@ -6504,14 +6577,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 gap_compensation = False
                             else:
                                 pass
-                        except hgvs.exceptions.HGVSError:  
+                        except hgvs.exceptions.HGVSError:
                             pass
-                        
+
                         # Warn gap code status
-                        warner.warn("gap_compensation_3 = " + str(gap_compensation))
-                        
+                        warnings.warn("gap_compensation_3 = " + str(gap_compensation))
+
                         multi_g = []
-                        multi_g_tab = []
                         multi_list = []
                         mapping_options = hdp.get_tx_mapping_options(hgvs_coding.ac)
                         for alt_chr in mapping_options:
@@ -6526,26 +6598,25 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 ori = va_func.tx_exons(tx_ac=hgvs_coding.ac, alt_ac=alt_chr,
                                                        alt_aln_method=alt_aln_method, hdp=hdp)
                                 orientation = int(ori[0]['alt_strand'])
-                                hgvs_alt_genomic = va_func.myvm_t_to_g(hgvs_coding, alt_chr, vm, hn, hdp,
-                                                                       primary_assembly)
+                                hgvs_alt_genomic = va_func.myvm_t_to_g(hgvs_coding, alt_chr, no_norm_evm, vm, hp, hn, sf, nr_vm)
                                 # Set hgvs_genomic accordingly
                                 hgvs_genomic = copy.deepcopy(hgvs_alt_genomic)
-                                
+
                                 # genomic_possibilities
                                 # 1. take the simple 3 pr normalized hgvs_genomic
                                 # 2. Lock in hgvs_genomic at its most 5 prime position wrt genome
                                 hgvs_genomic_possibilities = []
-                                
+
                                 # Loop out gap code under these circumstances!
                                 if gap_compensation is True:
-                                    warner.warn('g_to_t gap code 3 active')                                                                
+                                    warnings.warn('g_to_t gap code 3 active')
                                     rn_hgvs_genomic = reverse_normalizer.normalize(hgvs_alt_genomic)
                                     hgvs_genomic_possibilities.append(rn_hgvs_genomic)
                                     if orientation != -1:
                                         try:
-                                            chromosome_normalized_hgvs_coding = reverse_normalizer.normalize(hgvs_coding)
+                                            chromosome_normalized_hgvs_coding = reverse_normalizer.normalize(
+                                                hgvs_coding)
                                         except hgvs.exceptions.HGVSUnsupportedOperationError as e:
-                                            error = str(e)
                                             chromosome_normalized_hgvs_coding = hgvs_coding
                                     else:
                                         try:
@@ -6554,56 +6625,45 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             error = str(e)
                                             chromosome_normalized_hgvs_coding = hgvs_coding
 
-                                    most_3pr_hgvs_genomic = va_func.myvm_t_to_g(chromosome_normalized_hgvs_coding, alt_chr,
-                                                                                vm, hn, hdp, primary_assembly)
+                                    most_3pr_hgvs_genomic = va_func.myvm_t_to_g(chromosome_normalized_hgvs_coding,
+                                                                                alt_chr,
+                                                                                no_norm_evm, vm, hp, hn, sf, nr_vm)
                                     hgvs_genomic_possibilities.append(most_3pr_hgvs_genomic)
-
-#                                     Use stashed variants to extend list
-#                                     try:
-#                                         stash_genomic_right = va_func.myvm_t_to_g(test_stash_tx_right, hgvs_genomic.ac, vm, hn, hdp, primary_assembly)
-#                                         stash_tx_right = test_stash_tx_right
-#                                         hgvs_genomic_possibilities.append(stash_genomic_right)
-#                                     except:
-#                                         stash_genomic_right = ''
-#                                         hgvs_genomic_possibilities.append('')
-#                                     try:
-#                                         stash_genomic_left = va_func.myvm_t_to_g(test_stash_tx_left, hgvs_genomic.ac, vm, hn, hdp, primary_assembly)
-#                                         stash_tx_left = test_stash_tx_left
-#                                         hgvs_genomic_possibilities.append(stash_genomic_left)
-#                                     except:
-#                                         stash_genomic_left = ''
-#                                         hgvs_genomic_possibilities.append('')
 
                                     # First to the right
                                     hgvs_stash = copy.deepcopy(hgvs_coding)
                                     try:
                                         hgvs_stash = no_norm_evm.c_to_n(hgvs_stash)
                                     except:
-                                        pass    
+                                        pass
                                     try:
                                         stash_ac = hgvs_stash.ac
-                                        stash_dict = va_H2V.hard_right_hgvs2vcf(hgvs_stash)
+                                        stash_dict = va_H2V.hard_right_hgvs2vcf(hgvs_stash, hn, sf)
                                         stash_pos = int(stash_dict['pos'])
                                         stash_ref = stash_dict['ref']
-                                        stash_alt = stash_dict['alt'] 
+                                        stash_alt = stash_dict['alt']
                                         # Generate an end position
-                                        stash_end = str(stash_pos + len(stash_ref) -1)
+                                        stash_end = str(stash_pos + len(stash_ref) - 1)
                                         # make a not real deletion insertion
-                                        stash_hgvs_not_delins = hp.parse_hgvs_variant(stash_ac + ':' +  hgvs_stash.type + '.' +  str(stash_pos) + '_' + stash_end + 'del' + stash_ref + 'ins' + stash_alt)          
+                                        stash_hgvs_not_delins = hp.parse_hgvs_variant(
+                                            stash_ac + ':' + hgvs_stash.type + '.' + str(
+                                                stash_pos) + '_' + stash_end + 'del' + stash_ref + 'ins' + stash_alt)
                                         try:
                                             stash_hgvs_not_delins = no_norm_evm.n_to_c(stash_hgvs_not_delins)
                                         except:
-                                            pass    
-                                        # Store a tx copy for later use 
+                                            pass
+                                            # Store a tx copy for later use
                                         test_stash_tx_right = copy.deepcopy(stash_hgvs_not_delins)
-                                        stash_genomic = va_func.myvm_t_to_g(test_stash_tx_right, hgvs_alt_genomic.ac, vm, hn, hdp, primary_assembly)
+                                        stash_genomic = va_func.myvm_t_to_g(test_stash_tx_right, hgvs_alt_genomic.ac,
+                                                                            no_norm_evm, vm, hp, hn, sf, nr_vm)
                                         # Stash the outputs if required
                                         # test variants = NC_000006.11:g.90403795G= (causes double identity)
                                         #                 NC_000002.11:g.73675227_73675228insCTC (? incorrect assumed insertion position)
                                         #                 NC_000003.11:g.14561629_14561630GC= NC_000003.11:g.14561629_14561630insG (Odd gap position)
-                                        #if test_stash_tx_right.posedit.edit.type == 'identity' and stash_genomic.posedit.edit.type == 'identity':
-                                            #pass               
-                                        if len(test_stash_tx_right.posedit.edit.ref) == ((stash_genomic.posedit.pos.end.base - stash_genomic.posedit.pos.start.base) + 1): 
+                                        # if test_stash_tx_right.posedit.edit.type == 'identity' and stash_genomic.posedit.edit.type == 'identity':
+                                        # pass
+                                        if len(test_stash_tx_right.posedit.edit.ref) == ((
+                                                                                                 stash_genomic.posedit.pos.end.base - stash_genomic.posedit.pos.start.base) + 1):
                                             stash_tx_right = test_stash_tx_right
                                             try:
                                                 alt = test_stash_tx_right.posedit.edit.alt
@@ -6612,27 +6672,31 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             try:
                                                 g_alt = stash_genomic.posedit.edit.alt
                                             except Exception:
-                                                g_alt = ''                          
-                                            if (len(alt) - (test_stash_tx_right.posedit.pos.end.base - test_stash_tx_right.posedit.pos.start.base) + 1) != (len(g_alt) - (stash_genomic.posedit.pos.end.base - stash_genomic.posedit.pos.start.base) + 1):
+                                                g_alt = ''
+                                            if (len(alt) - (
+                                                    test_stash_tx_right.posedit.pos.end.base - test_stash_tx_right.posedit.pos.start.base) + 1) != (
+                                                    len(g_alt) - (
+                                                    stash_genomic.posedit.pos.end.base - stash_genomic.posedit.pos.start.base) + 1):
                                                 hgvs_genomic_possibilities.append(stash_genomic)
                                             else:
                                                 hgvs_genomic_possibilities.append('')
                                         elif test_stash_tx_right.posedit.edit.type == 'identity':
                                             reform_ident = str(test_stash_tx_right).split(':')[0]
-                                            reform_ident = reform_ident + ':c.' + str(hgvs_c.posedit.pos) + 'del' + str(hgvs_c.posedit.edit.ref)# + 'ins' + str(hgvs_c.posedit.edit.alt)
-                                            hgvs_reform_ident = hp.parse_hgvs_variant(reform_ident)         
+                                            reform_ident = reform_ident + ':c.' + str(hgvs_c.posedit.pos) + 'del' + str(
+                                                hgvs_c.posedit.edit.ref)  # + 'ins' + str(hgvs_c.posedit.edit.alt)
+                                            hgvs_reform_ident = hp.parse_hgvs_variant(reform_ident)
                                             try:
                                                 hn.normalize(hgvs_reform_ident)
                                             except hgvs.exceptions.HGVSError as e:
-                                                error = str(e) 
+                                                error = str(e)
                                                 if re.search('spanning the exon-intron boundary', error):
                                                     stash_tx_right = test_stash_tx_right
-                                                    hgvs_genomic_possibilities.append('')                           
+                                                    hgvs_genomic_possibilities.append('')
                                             else:
                                                 stash_tx_right = test_stash_tx_right
-                                                hgvs_genomic_possibilities.append(stash_genomic)                                
+                                                hgvs_genomic_possibilities.append(stash_genomic)
                                         else:
-                                            try: 
+                                            try:
                                                 hn.normalize(test_stash_tx_right)
                                             except hgvs.exceptions.HGVSUnsupportedOperationError:
                                                 hgvs_genomic_possibilities.append('')
@@ -6650,28 +6714,32 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         pass
                                     try:
                                         stash_ac = hgvs_stash.ac
-                                        stash_dict = va_H2V.hard_left_hgvs2vcf(hgvs_stash)
+                                        stash_dict = va_H2V.hard_left_hgvs2vcf(hgvs_stash, reverse_normalizer, sf)
                                         stash_pos = int(stash_dict['pos'])
                                         stash_ref = stash_dict['ref']
-                                        stash_alt = stash_dict['alt'] 
+                                        stash_alt = stash_dict['alt']
                                         # Generate an end position
-                                        stash_end = str(stash_pos + len(stash_ref) -1)
+                                        stash_end = str(stash_pos + len(stash_ref) - 1)
                                         # make a not real deletion insertion
-                                        stash_hgvs_not_delins = hp.parse_hgvs_variant(stash_ac + ':' +  hgvs_stash.type + '.' +  str(stash_pos) + '_' + stash_end + 'del' + stash_ref + 'ins' + stash_alt)          
+                                        stash_hgvs_not_delins = hp.parse_hgvs_variant(
+                                            stash_ac + ':' + hgvs_stash.type + '.' + str(
+                                                stash_pos) + '_' + stash_end + 'del' + stash_ref + 'ins' + stash_alt)
                                         try:
                                             stash_hgvs_not_delins = no_norm_evm.n_to_c(stash_hgvs_not_delins)
                                         except:
-                                            pass    
-                                        # Store a tx copy for later use         
+                                            pass
+                                            # Store a tx copy for later use
                                         test_stash_tx_left = copy.deepcopy(stash_hgvs_not_delins)
-                                        stash_genomic = va_func.myvm_t_to_g(test_stash_tx_left, hgvs_alt_genomic.ac, vm, hn, hdp, primary_assembly)
+                                        stash_genomic = va_func.myvm_t_to_g(test_stash_tx_left, hgvs_alt_genomic.ac, vm,
+                                                                            hn, hdp, primary_assembly)
                                         # Stash the outputs if required
                                         # test variants = NC_000006.11:g.90403795G= (causes double identity)
                                         #                 NC_000002.11:g.73675227_73675228insCTC
                                         #                 NC_000003.11:g.14561629_14561630GC= NC_000003.11:g.14561629_14561630insG (Odd gap position)
-                                        #if test_stash_tx_left.posedit.edit.type == 'identity' and stash_genomic.posedit.edit.type == 'identity':
-                                            #pass
-                                        if len(test_stash_tx_left.posedit.edit.ref) == ((stash_genomic.posedit.pos.end.base - stash_genomic.posedit.pos.start.base) + 1): # len(stash_genomic.posedit.edit.ref): 
+                                        # if test_stash_tx_left.posedit.edit.type == 'identity' and stash_genomic.posedit.edit.type == 'identity':
+                                        # pass
+                                        if len(test_stash_tx_left.posedit.edit.ref) == ((
+                                                                                                stash_genomic.posedit.pos.end.base - stash_genomic.posedit.pos.start.base) + 1):  # len(stash_genomic.posedit.edit.ref):
                                             stash_tx_left = test_stash_tx_left
                                             try:
                                                 alt = test_stash_tx_left.posedit.edit.alt
@@ -6680,30 +6748,34 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             try:
                                                 g_alt = stash_genomic.posedit.edit.alt
                                             except Exception:
-                                                g_alt = ''                          
-                                            if (len(alt) - (test_stash_tx_left.posedit.pos.end.base - test_stash_tx_left.posedit.pos.start.base) + 1) != (len(g_alt) - (stash_genomic.posedit.pos.end.base - stash_genomic.posedit.pos.start.base) + 1):
+                                                g_alt = ''
+                                            if (len(alt) - (
+                                                    test_stash_tx_left.posedit.pos.end.base - test_stash_tx_left.posedit.pos.start.base) + 1) != (
+                                                    len(g_alt) - (
+                                                    stash_genomic.posedit.pos.end.base - stash_genomic.posedit.pos.start.base) + 1):
                                                 hgvs_genomic_possibilities.append(stash_genomic)
                                             else:
                                                 hgvs_genomic_possibilities.append('')
                                         elif test_stash_tx_left.posedit.edit.type == 'identity':
                                             reform_ident = str(test_stash_tx_left).split(':')[0]
-                                            reform_ident = reform_ident + ':c.' + str(hgvs_c.posedit.pos) + 'del' + str(hgvs_c.posedit.edit.ref)# + 'ins' + str(hgvs_c.posedit.edit.alt)
-                                            hgvs_reform_ident = hp.parse_hgvs_variant(reform_ident)         
+                                            reform_ident = reform_ident + ':c.' + str(hgvs_c.posedit.pos) + 'del' + str(
+                                                hgvs_c.posedit.edit.ref)  # + 'ins' + str(hgvs_c.posedit.edit.alt)
+                                            hgvs_reform_ident = hp.parse_hgvs_variant(reform_ident)
                                             try:
                                                 hn.normalize(hgvs_reform_ident)
                                             except hgvs.exceptions.HGVSError as e:
-                                                error = str(e) 
+                                                error = str(e)
                                                 if re.search('spanning the exon-intron boundary', error):
                                                     stash_tx_left = test_stash_tx_left
-                                                    hgvs_genomic_possibilities.append('')                           
+                                                    hgvs_genomic_possibilities.append('')
                                             else:
                                                 stash_tx_left = test_stash_tx_left
-                                                hgvs_genomic_possibilities.append(stash_genomic)                                
+                                                hgvs_genomic_possibilities.append(stash_genomic)
                                         else:
-                                            try: 
+                                            try:
                                                 hn.normalize(test_stash_tx_left)
                                             except hgvs.exceptions.HGVSUnsupportedOperationError:
-                                                hgvs_genomic_possibilities.append('')                                
+                                                hgvs_genomic_possibilities.append('')
                                             else:
                                                 stash_tx_left = test_stash_tx_left
                                                 hgvs_genomic_possibilities.append(stash_genomic)
@@ -6743,25 +6815,29 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
                                             # Normalize - If the variant spans a gap it should then form a static genomic variant
                                             try:
-                                                genomic_from_most_3pr_hgvs_transcript_variant = hn.normalize(genomic_from_most_3pr_hgvs_transcript_variant)
+                                                genomic_from_most_3pr_hgvs_transcript_variant = hn.normalize(
+                                                    genomic_from_most_3pr_hgvs_transcript_variant)
                                             except hgvs.exceptions.HGVSInvalidVariantError as e:
                                                 error = str(e)
                                                 if error == 'base start position must be <= end position':
                                                     start = genomic_from_most_3pr_hgvs_transcript_variant.posedit.pos.start.base
-                                                    end = genomic_from_most_3pr_hgvs_transcript_variant.posedit.pos.end.base 
+                                                    end = genomic_from_most_3pr_hgvs_transcript_variant.posedit.pos.end.base
                                                     genomic_from_most_3pr_hgvs_transcript_variant.posedit.pos.start.base = end
                                                     genomic_from_most_3pr_hgvs_transcript_variant.posedit.pos.end.base = start
-                                                    genomic_from_most_3pr_hgvs_transcript_variant = hn.normalize(genomic_from_most_3pr_hgvs_transcript_variant) 
+                                                    genomic_from_most_3pr_hgvs_transcript_variant = hn.normalize(
+                                                        genomic_from_most_3pr_hgvs_transcript_variant)
                                             try:
-                                                genomic_from_most_5pr_hgvs_transcript_variant = hn.normalize(genomic_from_most_5pr_hgvs_transcript_variant)
+                                                genomic_from_most_5pr_hgvs_transcript_variant = hn.normalize(
+                                                    genomic_from_most_5pr_hgvs_transcript_variant)
                                             except hgvs.exceptions.HGVSInvalidVariantError as e:
                                                 error = str(e)
                                                 if error == 'base start position must be <= end position':
                                                     start = genomic_from_most_5pr_hgvs_transcript_variant.posedit.pos.start.base
-                                                    end = genomic_from_most_5pr_hgvs_transcript_variant.posedit.pos.end.base 
+                                                    end = genomic_from_most_5pr_hgvs_transcript_variant.posedit.pos.end.base
                                                     genomic_from_most_5pr_hgvs_transcript_variant.posedit.pos.start.base = end
                                                     genomic_from_most_5pr_hgvs_transcript_variant.posedit.pos.end.base = start
-                                                    genomic_from_most_5pr_hgvs_transcript_variant = hn.normalize(genomic_from_most_5pr_hgvs_transcript_variant)                                 
+                                                    genomic_from_most_5pr_hgvs_transcript_variant = hn.normalize(
+                                                        genomic_from_most_5pr_hgvs_transcript_variant)
 
                                             try:
                                                 if genomic_from_most_3pr_hgvs_transcript_variant.posedit.edit.alt is None:
@@ -6807,11 +6883,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                     most_5pr_hgvs_transcript_variant = hp.parse_hgvs_variant(
                                                         most_5pr_hgvs_transcript_variant_delins_from_dup)
 
-                                            if len(genomic_from_most_3pr_hgvs_transcript_variant.posedit.edit.alt) < len(
+                                            if len(
+                                                    genomic_from_most_3pr_hgvs_transcript_variant.posedit.edit.alt) < len(
                                                     most_3pr_hgvs_transcript_variant.posedit.edit.alt):
                                                 hgvs_genomic_possibilities.append(
                                                     genomic_from_most_3pr_hgvs_transcript_variant)
-                                            if len(genomic_from_most_5pr_hgvs_transcript_variant.posedit.edit.alt) < len(
+                                            if len(
+                                                    genomic_from_most_5pr_hgvs_transcript_variant.posedit.edit.alt) < len(
                                                     most_5pr_hgvs_transcript_variant.posedit.edit.alt):
                                                 hgvs_genomic_possibilities.append(
                                                     genomic_from_most_5pr_hgvs_transcript_variant)
@@ -6891,7 +6969,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         stored_hgvs_genomic_5pr = copy.deepcopy(hgvs_genomic_5pr)
 
                                         # Make VCF
-                                        vcf_dict = va_H2V.hgvs2vcf(reverse_normalized_hgvs_genomic)
+                                        vcf_dict = va_H2V.hgvs2vcf(reverse_normalized_hgvs_genomic, reverse_normalizer,
+                                                                   sf)
                                         chr = vcf_dict['chr']
                                         pos = vcf_dict['pos']
                                         ref = vcf_dict['ref']
@@ -6911,9 +6990,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
                                         # Save a copy of current hgvs_coding
                                         try:
-                                            saved_hgvs_coding = no_norm_evm.g_to_t(stored_hgvs_not_delins, hgvs_coding.ac)
+                                            saved_hgvs_coding = no_norm_evm.g_to_t(stored_hgvs_not_delins,
+                                                                                   hgvs_coding.ac)
                                         except Exception as e:
-                                            if str(e) == 'start or end or both are beyond the bounds of transcript record':
+                                            if str(
+                                                    e) == 'start or end or both are beyond the bounds of transcript record':
                                                 saved_hgvs_coding = hgvs_coding
                                                 continue
 
@@ -6991,9 +7072,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                             intronic_variant = 'true'
 
                                         if intronic_variant != 'hard_fail':
-                                            if re.search('\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search('\d+\-', str(
-                                                    hgvs_seek_var.posedit.pos)) or re.search('\*\d+\+', str(
-                                                hgvs_seek_var.posedit.pos)) or re.search('\*\d+\-', str(
+                                            if re.search('\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search('\d+\-',
+                                                                                                               str(
+                                                                                                                       hgvs_seek_var.posedit.pos)) or re.search(
+                                                '\*\d+\+', str(
+                                                    hgvs_seek_var.posedit.pos)) or re.search('\*\d+\-', str(
                                                 hgvs_seek_var.posedit.pos)):
                                                 # Double check to see whether the variant is actually intronic?
                                                 for exon in ori:
@@ -7016,14 +7099,16 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                 hgvs_not_delins = copy.deepcopy(stored_hgvs_not_delins)
                                                 # This test will only occur in dup of single base, insertion or substitution
                                                 if not re.search('_', str(hgvs_not_delins.posedit.pos)):
-                                                    if re.search('dup', hgvs_genomic_5pr.posedit.edit.type) or re.search(
+                                                    if re.search('dup',
+                                                                 hgvs_genomic_5pr.posedit.edit.type) or re.search(
                                                             'ins', hgvs_genomic_5pr.posedit.edit.type):
                                                         # For gap in chr, map to t. - but becaouse we have pushed to 5 prime by norm, add 1 to end pos
                                                         plussed_hgvs_not_delins = copy.deepcopy(hgvs_not_delins)
                                                         plussed_hgvs_not_delins.posedit.pos.end.base = plussed_hgvs_not_delins.posedit.pos.end.base + 1
                                                         plussed_hgvs_not_delins.posedit.edit.ref = ''
                                                         transcript_variant = no_norm_evm.g_to_t(plussed_hgvs_not_delins,
-                                                                                                str(saved_hgvs_coding.ac))
+                                                                                                str(
+                                                                                                    saved_hgvs_coding.ac))
                                                         if ((
                                                                 transcript_variant.posedit.pos.end.base - transcript_variant.posedit.pos.start.base) > (
                                                                 hgvs_genomic_5pr.posedit.pos.end.base - hgvs_genomic_5pr.posedit.pos.start.base)):
@@ -7036,16 +7121,18 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                                 hgvs_not_delins.posedit.edit.ref = ref_bases
                                                                 hgvs_not_delins.posedit.edit.alt = ref_bases[
                                                                                                    :1] + hgvs_not_delins.posedit.edit.alt[
-                                                                                                         1:] + ref_bases[1:]
+                                                                                                         1:] + ref_bases[
+                                                                                                               1:]
                                                             elif re.search('ins', str(
                                                                     hgvs_genomic_5pr.posedit.edit)) and re.search('del',
                                                                                                                   str(
                                                                                                                       hgvs_genomic_5pr.posedit.edit)):
                                                                 hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
                                                             elif re.search('ins', str(
-                                                                    hgvs_genomic_5pr.posedit.edit)) and not re.search('del',
-                                                                                                                      str(
-                                                                                                                          hgvs_genomic_5pr.posedit.edit)):
+                                                                    hgvs_genomic_5pr.posedit.edit)) and not re.search(
+                                                                'del',
+                                                                str(
+                                                                    hgvs_genomic_5pr.posedit.edit)):
                                                                 hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
                                                                 start = hgvs_not_delins.posedit.pos.start.base - 1
                                                                 end = hgvs_not_delins.posedit.pos.end.base
@@ -7054,7 +7141,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                                 hgvs_not_delins.posedit.edit.ref = ref_bases
                                                                 hgvs_not_delins.posedit.edit.alt = ref_bases[
                                                                                                    :1] + hgvs_not_delins.posedit.edit.alt[
-                                                                                                         1:] + ref_bases[1:]
+                                                                                                         1:] + ref_bases[
+                                                                                                               1:]
                                                         else:
                                                             if re.search('dup', str(hgvs_genomic_5pr.posedit.edit)):
                                                                 hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
@@ -7065,16 +7153,18 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                                 hgvs_not_delins.posedit.edit.ref = ref_bases
                                                                 hgvs_not_delins.posedit.edit.alt = ref_bases[
                                                                                                    :1] + hgvs_not_delins.posedit.edit.alt[
-                                                                                                         1:] + ref_bases[1:]
+                                                                                                         1:] + ref_bases[
+                                                                                                               1:]
                                                             elif re.search('ins', str(
                                                                     hgvs_genomic_5pr.posedit.edit)) and re.search('del',
                                                                                                                   str(
                                                                                                                       hgvs_genomic_5pr.posedit.edit)):
                                                                 hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
                                                             elif re.search('ins', str(
-                                                                    hgvs_genomic_5pr.posedit.edit)) and not re.search('del',
-                                                                                                                      str(
-                                                                                                                          hgvs_genomic_5pr.posedit.edit)):
+                                                                    hgvs_genomic_5pr.posedit.edit)) and not re.search(
+                                                                'del',
+                                                                str(
+                                                                    hgvs_genomic_5pr.posedit.edit)):
                                                                 hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
                                                                 start = hgvs_not_delins.posedit.pos.start.base - 1
                                                                 end = hgvs_not_delins.posedit.pos.end.base
@@ -7083,7 +7173,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                                 hgvs_not_delins.posedit.edit.ref = ref_bases
                                                                 hgvs_not_delins.posedit.edit.alt = ref_bases[
                                                                                                    :1] + hgvs_not_delins.posedit.edit.alt[
-                                                                                                         1:] + ref_bases[1:]
+                                                                                                         1:] + ref_bases[
+                                                                                                               1:]
                                                     else:
                                                         pass
                                                 else:
@@ -7094,9 +7185,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                 rn_tx_hgvs_not_delins = copy.deepcopy(tx_hgvs_not_delins)
                                                 # Check for +1 base and adjust
                                                 if re.search('\+',
-                                                             str(rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search('\+',
-                                                                                                                       str(
-                                                                                                                           rn_tx_hgvs_not_delins.posedit.pos.start)):
+                                                             str(rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search(
+                                                    '\+',
+                                                    str(
+                                                        rn_tx_hgvs_not_delins.posedit.pos.start)):
                                                     # Remove offsetting to span the gap
                                                     rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
                                                     rn_tx_hgvs_not_delins.posedit.pos.end.offset = 0
@@ -7117,10 +7209,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                     else:
                                                         test_tx_var = rn_tx_hgvs_not_delins
                                                     # re-make genomic and tx
-                                                    hgvs_not_delins = va_func.myvm_t_to_g(test_tx_var, alt_chr, vm, hn, hdp,
+                                                    hgvs_not_delins = va_func.myvm_t_to_g(test_tx_var, alt_chr, vm, hn,
+                                                                                          hdp,
                                                                                           primary_assembly)
                                                     rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
-                                                                                               str(saved_hgvs_coding.ac))
+                                                                                               str(
+                                                                                                   saved_hgvs_coding.ac))
                                                 elif re.search('\+', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
                                                     # move tx start base to previous available non-offset base
                                                     rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
@@ -7130,19 +7224,23 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                     else:
                                                         test_tx_var = rn_tx_hgvs_not_delins
                                                     # re-make genomic and tx
-                                                    hgvs_not_delins = va_func.myvm_t_to_g(test_tx_var, alt_chr, vm, hn, hdp,
+                                                    hgvs_not_delins = va_func.myvm_t_to_g(test_tx_var, alt_chr, vm, hn,
+                                                                                          hdp,
                                                                                           primary_assembly)
                                                     rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
-                                                                                               str(saved_hgvs_coding.ac))
+                                                                                               str(
+                                                                                                   saved_hgvs_coding.ac))
                                                     rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
-#                                                 else:
-#                                                     pass
+                                                #                                                 else:
+                                                #                                                     pass
 
                                                 # Check for -ve base and adjust
                                                 elif re.search('\-',
-                                                             str(rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search('\-',
-                                                                                                                       str(
-                                                                                                                           rn_tx_hgvs_not_delins.posedit.pos.start)):
+                                                               str(
+                                                                   rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search(
+                                                    '\-',
+                                                    str(
+                                                        rn_tx_hgvs_not_delins.posedit.pos.start)):
                                                     # Remove offsetting to span the gap
                                                     rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
                                                     rn_tx_hgvs_not_delins.posedit.pos.end.offset = 0
@@ -7167,10 +7265,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                     else:
                                                         test_tx_var = rn_tx_hgvs_not_delins
                                                     # re-make genomic and tx
-                                                    hgvs_not_delins = va_func.myvm_t_to_g(test_tx_var, alt_chr, vm, hn, hdp,
+                                                    hgvs_not_delins = va_func.myvm_t_to_g(test_tx_var, alt_chr, vm, hn,
+                                                                                          hdp,
                                                                                           primary_assembly)
                                                     rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
-                                                                                               str(saved_hgvs_coding.ac))
+                                                                                               str(
+                                                                                                   saved_hgvs_coding.ac))
                                                 elif re.search('\-', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
                                                     # move tx start base to previous available non-offset base
                                                     rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
@@ -7181,11 +7281,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                     else:
                                                         test_tx_var = rn_tx_hgvs_not_delins
                                                     # re-make genomic and tx
-                                                    # hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, no_norm_evm, hdp, primary_assembly)
-                                                    hgvs_not_delins = va_func.myvm_t_to_g(test_tx_var, alt_chr, vm, hn, hdp,
+                                                    hgvs_not_delins = va_func.myvm_t_to_g(test_tx_var, alt_chr, vm, hn,
+                                                                                          hdp,
                                                                                           primary_assembly)
                                                     rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
-                                                                                               str(saved_hgvs_coding.ac))
+                                                                                               str(
+                                                                                                   saved_hgvs_coding.ac))
                                                     rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
                                                 else:
                                                     pass
@@ -7242,24 +7343,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                             hgvs_not_delins = possibility
                                                             hgvs_genomic_5pr = possibility
                                                             break
-#                                                         elif hgvs_t_possibility.posedit.pos.start.offset != 0 or hgvs_t_possibility.posedit.pos.end.offset != 0:
-#                                                             exons = hdp.get_tx_exons(hgvs_t_possibility.ac, possibility.ac, alt_aln_method)
-#                                                             exonic = False
-#                                                             for ex_test in exons:
-#                                                                 if hgvs_t_possibility.posedit.pos.start.base in range(ex_test[6],ex_test[7]) and hgvs_t_possibility.posedit.pos.end.base in range(ex_test[6],ex_test[7]):
-#                                                                     exonic = True
-#                                                             if exonic is True:
-#                                                                 norm_g = hn.normalize(possibility)
-#                                                                 norm_g_to_c = vm.g_to_c(norm_g, hgvs_coding.ac)
-#                                                                 if norm_g_to_c == hgvs_coding:
-#                                                                     continue
-#                                                                 else:
-#                                                                     gap_length = 'Requires Analysis'
-#                                                                     re_capture_tx_variant = ['transcript', gap_length, hgvs_t_possibility]
-#                                                                     hgvs_not_delins = possibility
-#                                                                     hgvs_genomic_5pr = possibility
-#                                                                     break                                                    
-
+                                                            
                                                     if re_capture_tx_variant != []:
                                                         try:
                                                             tx_hgvs_not_delins = vm.c_to_n(re_capture_tx_variant[2])
@@ -7273,13 +7357,14 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             try:
                                                 vm.g_to_t(hgvs_not_delins, tx_hgvs_not_delins.ac)
                                             except Exception as e:
-                                                if str(e) == 'start or end or both are beyond the bounds of transcript record':
+                                                if str(
+                                                        e) == 'start or end or both are beyond the bounds of transcript record':
                                                     continue
                                             try:
                                                 hn.normalize(tx_hgvs_not_delins)
                                             except hgvs.exceptions.HGVSUnsupportedOperationError as e:
                                                 error = str(e)
-                                                
+
                                                 if re.match('Normalization of intronic variants is not supported',
                                                             error) or re.match(
                                                     'Unsupported normalization of variants spanning the exon-intron boundary',
@@ -7288,7 +7373,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                             'Unsupported normalization of variants spanning the exon-intron boundary',
                                                             error):
                                                         continue
-                                                    elif re.match('Normalization of intronic variants is not supported', error):
+                                                    elif re.match('Normalization of intronic variants is not supported',
+                                                                  error):
                                                         # We know that this cannot be because of an intronic variant, so must be aligned to tx gap
                                                         disparity_deletion_in = ['transcript', 'Requires Analysis']
 
@@ -7297,18 +7383,23 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                 hgvs_genomic = hgvs_not_delins
 
                                             # Find oddly placed gaps where the tx variant is encompassed in the gap
-                                            if disparity_deletion_in[0] == 'false' and (possibility_counter == 3 or possibility_counter == 4):
+                                            if disparity_deletion_in[0] == 'false' and (
+                                                    possibility_counter == 3 or possibility_counter == 4):
                                                 rg = reverse_normalizer.normalize(hgvs_not_delins)
                                                 rtx = vm.g_to_t(rg, tx_hgvs_not_delins.ac)
                                                 fg = hn.normalize(hgvs_not_delins)
                                                 ftx = vm.g_to_t(fg, tx_hgvs_not_delins.ac)
-                                                if (rtx.posedit.pos.start.offset == 0 and rtx.posedit.pos.end.offset == 0) and (ftx.posedit.pos.start.offset != 0 and ftx.posedit.pos.end.offset != 0):
+                                                if (
+                                                        rtx.posedit.pos.start.offset == 0 and rtx.posedit.pos.end.offset == 0) and (
+                                                        ftx.posedit.pos.start.offset != 0 and ftx.posedit.pos.end.offset != 0):
                                                     exons = hdp.get_tx_exons(ftx.ac, hgvs_not_delins.ac, alt_aln_method)
                                                     exonic = False
                                                     for ex_test in exons:
-                                                        if ftx.posedit.pos.start.base in range(ex_test[6],ex_test[7]) and ftx.posedit.pos.end.base in range(ex_test[6],ex_test[7]):
+                                                        if ftx.posedit.pos.start.base in range(ex_test[6], ex_test[
+                                                            7]) and ftx.posedit.pos.end.base in range(ex_test[6],
+                                                                                                      ex_test[7]):
                                                             exonic = True
-                                                    if exonic is True:                                          
+                                                    if exonic is True:
                                                         hgvs_not_delins = fg
                                                         hgvs_genomic = fg
                                                         hgvs_genomic_5pr = fg
@@ -7324,13 +7415,17 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                     tx_hgvs_not_delins.posedit.edit.alt = ''
                                             except Exception as e:
                                                 if str(e) == "'Dup' object has no attribute 'alt'":
-                                                    tx_hgvs_not_delins_delins_from_dup = tx_hgvs_not_delins.ac + ':' + tx_hgvs_not_delins.type + '.' + str(tx_hgvs_not_delins.posedit.pos.start) + '_' + str(tx_hgvs_not_delins.posedit.pos.end) + 'del' + tx_hgvs_not_delins.posedit.edit.ref + 'ins' +    tx_hgvs_not_delins.posedit.edit.ref + tx_hgvs_not_delins.posedit.edit.ref                           
-                                                    tx_hgvs_not_delins = hp.parse_hgvs_variant(tx_hgvs_not_delins_delins_from_dup)
-                                            
+                                                    tx_hgvs_not_delins_delins_from_dup = tx_hgvs_not_delins.ac + ':' + tx_hgvs_not_delins.type + '.' + str(
+                                                        tx_hgvs_not_delins.posedit.pos.start) + '_' + str(
+                                                        tx_hgvs_not_delins.posedit.pos.end) + 'del' + tx_hgvs_not_delins.posedit.edit.ref + 'ins' + tx_hgvs_not_delins.posedit.edit.ref + tx_hgvs_not_delins.posedit.edit.ref
+                                                    tx_hgvs_not_delins = hp.parse_hgvs_variant(
+                                                        tx_hgvs_not_delins_delins_from_dup)
+
                                             if disparity_deletion_in[0] == 'transcript':
                                                 # amend_RefSeqGene = 'true'
                                                 # ANY VARIANT WHOLLY WITHIN THE GAP
-                                                if (re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)) or re.search(
+                                                if (re.search('\+',
+                                                              str(tx_hgvs_not_delins.posedit.pos.start)) or re.search(
                                                         '\-', str(tx_hgvs_not_delins.posedit.pos.start))) and (
                                                         re.search('\+',
                                                                   str(tx_hgvs_not_delins.posedit.pos.end)) or re.search(
@@ -7345,20 +7440,27 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                             tx_gap_fill_variant.posedit.edit.alt = ''
                                                     except Exception as e:
                                                         if str(e) == "'Dup' object has no attribute 'alt'":
-                                                            tx_gap_fill_variant_delins_from_dup = tx_gap_fill_variant.ac + ':' + tx_gap_fill_variant.type + '.' + str(tx_gap_fill_variant.posedit.pos.start) + '_' + str(tx_gap_fill_variant.posedit.pos.end) + 'del' + tx_gap_fill_variant.posedit.edit.ref + 'ins' +  tx_gap_fill_variant.posedit.edit.ref + tx_gap_fill_variant.posedit.edit.ref                         
-                                                            tx_gap_fill_variant = hp.parse_hgvs_variant(tx_gap_fill_variant_delins_from_dup)
-                                                                                            
+                                                            tx_gap_fill_variant_delins_from_dup = tx_gap_fill_variant.ac + ':' + tx_gap_fill_variant.type + '.' + str(
+                                                                tx_gap_fill_variant.posedit.pos.start) + '_' + str(
+                                                                tx_gap_fill_variant.posedit.pos.end) + 'del' + tx_gap_fill_variant.posedit.edit.ref + 'ins' + tx_gap_fill_variant.posedit.edit.ref + tx_gap_fill_variant.posedit.edit.ref
+                                                            tx_gap_fill_variant = hp.parse_hgvs_variant(
+                                                                tx_gap_fill_variant_delins_from_dup)
+
                                                     # Identify which half of the NOT-intron the start position of the variant is in
                                                     if re.search('\-', str(tx_gap_fill_variant.posedit.pos.start)):
                                                         tx_gap_fill_variant.posedit.pos.start.base = tx_gap_fill_variant.posedit.pos.start.base - 1
-                                                        tx_gap_fill_variant.posedit.pos.start.offset = int('0')  # int('+1')
-                                                        tx_gap_fill_variant.posedit.pos.end.offset = int('0')  # int('-1')
+                                                        tx_gap_fill_variant.posedit.pos.start.offset = int(
+                                                            '0')  # int('+1')
+                                                        tx_gap_fill_variant.posedit.pos.end.offset = int(
+                                                            '0')  # int('-1')
                                                         tx_gap_fill_variant.posedit.edit.alt = ''
                                                         tx_gap_fill_variant.posedit.edit.ref = ''
                                                     elif re.search('\+', str(tx_gap_fill_variant.posedit.pos.start)):
-                                                        tx_gap_fill_variant.posedit.pos.start.offset = int('0')  # int('+1')
+                                                        tx_gap_fill_variant.posedit.pos.start.offset = int(
+                                                            '0')  # int('+1')
                                                         tx_gap_fill_variant.posedit.pos.end.base = tx_gap_fill_variant.posedit.pos.end.base + 1
-                                                        tx_gap_fill_variant.posedit.pos.end.offset = int('0')  # int('-1')
+                                                        tx_gap_fill_variant.posedit.pos.end.offset = int(
+                                                            '0')  # int('-1')
                                                         tx_gap_fill_variant.posedit.edit.alt = ''
                                                         tx_gap_fill_variant.posedit.edit.ref = ''
 
@@ -7374,7 +7476,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                         c_tx_hgvs_not_delins = vm.n_to_c(tx_hgvs_not_delins)
                                                     except Exception:
                                                         c_tx_hgvs_not_delins = copy.copy(tx_hgvs_not_delins)
-                                                    genomic_gap_fill_variant_alt = vm.t_to_g(c_tx_hgvs_not_delins, hgvs_genomic_5pr.ac)
+                                                    genomic_gap_fill_variant_alt = vm.t_to_g(c_tx_hgvs_not_delins,
+                                                                                             hgvs_genomic_5pr.ac)
 
                                                     # Ensure an ALT exists
                                                     try:
@@ -7440,9 +7543,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
                                                     # Generate the alt sequence
                                                     alternate_sequence_bases = []
-                                                    for integer in range(genomic_gap_fill_variant.posedit.pos.start.base,
-                                                                         genomic_gap_fill_variant.posedit.pos.end.base + 1,
-                                                                         1):
+                                                    for integer in range(
+                                                            genomic_gap_fill_variant.posedit.pos.start.base,
+                                                            genomic_gap_fill_variant.posedit.pos.end.base + 1,
+                                                            1):
                                                         if integer in alt_base_dict.keys():
                                                             alternate_sequence_bases.append(alt_base_dict[integer])
                                                         else:
@@ -7458,7 +7562,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                     # Set warning
                                                     gap_size = str(len(genomic_gap_fill_variant.posedit.edit.ref) - 2)
                                                     disparity_deletion_in[1] = [gap_size]
-                                                    auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(
+                                                    auto_info = auto_info + str(
+                                                        stored_hgvs_not_delins.ac) + ':g.' + str(
                                                         stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + gap_size + ' genomic base(s) that fail to align to transcript ' + str(
                                                         tx_hgvs_not_delins.ac)
                                                     non_valid_caution = 'true'
@@ -7479,7 +7584,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
                                                 else:
                                                     if tx_hgvs_not_delins.posedit.pos.start.offset == 0 and tx_hgvs_not_delins.posedit.pos.end.offset == 0:
-                                                        # In this instance, we have identified a transcript gap but the n. version of 
+                                                        # In this instance, we have identified a transcript gap but the n. version of
                                                         # the transcript variant but do not have a position which actually hits the gap,
                                                         # so the variant likely spans the gap, and is not picked up by an offset.
                                                         try:
@@ -7490,7 +7595,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                         g3 = nr_vm.t_to_g(c1, hgvs_genomic.ac)
                                                         g2 = vm.t_to_g(c1, hgvs_genomic.ac)
                                                         ng2 = hn.normalize(g2)
-                                                        g3.posedit.pos.end.base = g3.posedit.pos.start.base + (len(g3.posedit.edit.ref) - 1)                                    
+                                                        g3.posedit.pos.end.base = g3.posedit.pos.start.base + (
+                                                                    len(g3.posedit.edit.ref) - 1)
                                                         try:
                                                             c2 = vm.g_to_t(g3, c1.ac)
                                                             if c2.posedit.pos.start.offset == 0 and c2.posedit.pos.end.offset == 0:
@@ -7501,13 +7607,14 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                                     tx_hgvs_not_delins = vm.c_to_n(tx_hgvs_not_delins)
                                                                 except hgvs.exceptions.HGVSError:
                                                                     pass
-                                                        except hgvs.exceptions.HGVSInvalidVariantError:     
+                                                        except hgvs.exceptions.HGVSInvalidVariantError:
                                                             pass
- 
+
                                                     if re.search('\+', str(
-                                                            tx_hgvs_not_delins.posedit.pos.start)) and not re.search('\+',
-                                                                                                                     str(
-                                                                                                                         tx_hgvs_not_delins.posedit.pos.end)):
+                                                            tx_hgvs_not_delins.posedit.pos.start)) and not re.search(
+                                                        '\+',
+                                                        str(
+                                                            tx_hgvs_not_delins.posedit.pos.end)):
                                                         auto_info = auto_info + str(
                                                             stored_hgvs_not_delins.ac) + ':g.' + str(
                                                             stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(
@@ -7600,9 +7707,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                         # Warn update
                                                         auto_info = auto_info + '%s' % (gap_position)
                                                     elif re.search('\-', str(
-                                                            tx_hgvs_not_delins.posedit.pos.start)) and not re.search('\-',
-                                                                                                                     str(
-                                                                                                                         tx_hgvs_not_delins.posedit.pos.end)):
+                                                            tx_hgvs_not_delins.posedit.pos.start)) and not re.search(
+                                                        '\-',
+                                                        str(
+                                                            tx_hgvs_not_delins.posedit.pos.end)):
                                                         auto_info = auto_info + str(
                                                             stored_hgvs_not_delins.ac) + ':g.' + str(
                                                             stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(
@@ -7724,8 +7832,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             # amend_RefSeqGene = 'false'
 
                                             # Edit the output
-                                            if re.match('NM_', str(hgvs_refreshed_variant.ac)) and not re.search('c', str(
-                                                    hgvs_refreshed_variant.type)):
+                                            if re.match('NM_', str(hgvs_refreshed_variant.ac)) and not re.search('c',
+                                                                                                                 str(
+                                                                                                                         hgvs_refreshed_variant.type)):
                                                 hgvs_refreshed_variant = no_norm_evm.n_to_c(hgvs_refreshed_variant)
                                             else:
                                                 pass
@@ -7752,11 +7861,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                 # Try the next available genomic option
                                                 if hgvs_coding.posedit.edit.type == 'identity' and to_test.posedit.edit.type == 'identity':
                                                     hgvs_coding = to_test
-                                                else:                                       
+                                                else:
                                                     continue
 
                                             # Update hgvs_genomic
-                                            hgvs_alt_genomic = va_func.myvm_t_to_g(hgvs_refreshed_variant, alt_chr, vm, hn,
+                                            hgvs_alt_genomic = va_func.myvm_t_to_g(hgvs_refreshed_variant, alt_chr, vm,
+                                                                                   hn,
                                                                                    hdp, primary_assembly)
                                             if hgvs_alt_genomic.posedit.edit.type == 'identity':
                                                 re_c = vm.g_to_t(hgvs_alt_genomic, hgvs_refreshed_variant.ac)
@@ -7769,9 +7879,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                     shuffle_left_g = reverse_normalizer.normalize(shuffle_left_g)
                                                     re_c = vm.g_to_t(shuffle_left_g, hgvs_refreshed_variant.ac)
                                                     if (hn.normalize(re_c)) != (hn.normalize(hgvs_refreshed_variant)):
-                                                        hgvs_alt_genomic = shuffle_left_g 
+                                                        hgvs_alt_genomic = shuffle_left_g
 
-                                        # If it is intronic, these vairables will not have been set
+                                                        # If it is intronic, these vairables will not have been set
                                         else:
                                             # amend_RefSeqGene = 'false'
                                             no_normalized_c = 'false'
@@ -7821,12 +7931,12 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     exc_type, exc_value, last_traceback = sys.exc_info()
                                     te = traceback.format_exc()
                                     error = str(te)
-                                    warner.warn(error)
+                                    warnings.warn(error)
                                     logging.info(error)
                                     continue
                                 else:
                                     continue
-                        
+
                         if multi_g != []:
                             multi_g.sort()
                             multi_gen_vars = multi_g  # '|'.join(multi_g)
@@ -7849,7 +7959,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 test = va_scb.supported_for_mapping(alt_gen_var.ac, build)
                                 if test == 'true':
                                     try:
-                                        vcf_dict = va_H2V.report_hgvs2vcf(alt_gen_var, build)
+                                        vcf_dict = va_H2V.report_hgvs2vcf(alt_gen_var, build, reverse_normalizer, sf)
                                     except hgvs.exceptions.HGVSInvalidVariantError as e:
                                         continue
                                     # Identify primary assembly positions
@@ -7874,7 +7984,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                         }
                                             }
                                         if build == 'GRCh38':
-                                            vcf_dict = va_H2V.report_hgvs2vcf(alt_gen_var, 'hg38')
+                                            vcf_dict = va_H2V.report_hgvs2vcf(alt_gen_var, 'hg38', reverse_normalizer,
+                                                                              sf)
                                             primary_genomic_dicts['hg38'] = {
                                                 'HGVS_genomic_description': valstr(alt_gen_var),
                                                 'vcf': {'chr': vcf_dict['ucsc_chr'],
@@ -7909,7 +8020,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         alt_genomic_dicts.append(dict)
 
                                         if build == 'GRCh38':
-                                            vcf_dict = va_H2V.report_hgvs2vcf(alt_gen_var, 'hg38')
+                                            vcf_dict = va_H2V.report_hgvs2vcf(alt_gen_var, 'hg38', reverse_normalizer,
+                                                                              sf)
                                             dict = {'hg38': {'HGVS_genomic_description': valstr(alt_gen_var),
                                                              'vcf': {'chr': vcf_dict['ucsc_chr'],
                                                                      'pos': vcf_dict['pos'],
@@ -7950,21 +8062,21 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         refseqgene_variant = valstr(hgvs_refseqgene_variant)
                     except:
                         pass
-                        
+
                     # Add single letter AA code to protein descriptions
-                    if predicted_protein_variant != '': 
-                        predicted_protein_variant_dict = {"tlr": str(predicted_protein_variant), "slr": ''} 
+                    if predicted_protein_variant != '':
+                        predicted_protein_variant_dict = {"tlr": str(predicted_protein_variant), "slr": ''}
                         try:
                             format_p = predicted_protein_variant
-                            format_p = re.sub('\(LRG_.+?\)', '', format_p)              
+                            format_p = re.sub('\(LRG_.+?\)', '', format_p)
                             re_parse_protein = hp.parse_hgvs_variant(format_p)
                             re_parse_protein_singleAA = re_parse_protein.format({'p_3_letter': False})
-                            #if re_parse_protein_singleAA.split(':p.')[1] != '?':
-                            #    predicted_protein_variant["s_l_r"] = predicted_protein_variant + ' p.' + re_parse_protein_singleAA.split(':p.')[1]               
+                            # if re_parse_protein_singleAA.split(':p.')[1] != '?':
+                            #    predicted_protein_variant["s_l_r"] = predicted_protein_variant + ' p.' + re_parse_protein_singleAA.split(':p.')[1]
                             predicted_protein_variant_dict["slr"] = str(re_parse_protein_singleAA)
                         except hgvs.exceptions.HGVSParseError:
                             pass
-                    
+
                     # Populate the dictionary
                     dict_out['submitted_variant'] = submitted
                     dict_out['gene_symbol'] = gene_symbol
@@ -7996,7 +8108,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
         validation_output = {'flag': None}
 
         # For gene outputs, i.e. those that hit transcripts
-        dotter = ''
+        # dotter = ''
         if set_output_type_flag == 'gene':
             validation_output['flag'] = 'gene_variant'
             validation_error_counter = 0
@@ -8005,15 +8117,17 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     validation_error_counter = validation_error_counter + 1
                     identification_key = 'Validation_Error_%s' % (str(validation_error_counter))
                 else:
-#                     identification_key = '%s %s' % (
-#                         str(valid_v['HGVS_transcript_variant']), str(valid_v['transcript_description']))
+                    #                     identification_key = '%s %s' % (
+                    #                         str(valid_v['HGVS_transcript_variant']), str(valid_v['transcript_description']))
                     identification_key = '%s' % (
                         str(valid_v['HGVS_transcript_variant']))
-                if identification_key not in validation_output.keys():
-                    validation_output[identification_key] = valid_v
-                else:
-                    dotter = dotter + ' '
-                    validation_output[identification_key + dotter] = valid_v
+
+				# This code ought to be redundant since id key is now a full variant
+#                 if identification_key not in validation_output.keys():
+#                     validation_output[identification_key] = valid_v
+#                 else:
+#                     dotter = dotter + ' '
+#                     validation_output[identification_key + dotter] = valid_v
 
         # For warning only outputs
         # Should only ever be 1 output as an error or a warning of the following types
@@ -8050,9 +8164,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     if re.match('GRC', g_p_key):
                         continue
                     if re.match('hg', g_p_key):
-                        incoming_build = g_p_key
+                        # incoming_build = g_p_key
                         incoming_vcf = genomic_position_info[g_p_key]['vcf']
-                        incoming_hgvs = genomic_position_info[g_p_key]['HGVS_genomic_description']
+                        # incoming_hgvs = genomic_position_info[g_p_key]['HGVS_genomic_description']
                     # removed 'hg'
                     if g_p_key == 'hg19':
                         build_to = '38'
@@ -8063,15 +8177,15 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     if PYLIFTOVER_DIR is not None:
                         lo_filename = PYLIFTOVER_DIR + "hg%sToHg%s.over.chain" % (g_p_key, build_to)
                         lo = LiftOver(lo_filename)
-                        warner.warn('liftover from ' + str(lo_filename))
+                        warnings.warn('liftover from ' + str(lo_filename))
                     else:
                         build_to = 'hg' + build_to
                         g_p_key = 'hg' + g_p_key
                         lo = LiftOver(g_p_key, build_to)
-                        warner.warn('liftover from external files')
+                        warnings.warn('liftover from external files')
                     # Note: May be multiple alts!
                     liftover_list = lo.convert_coordinate(incoming_vcf['chr'], int(incoming_vcf['pos']))
-                    
+
                     # Create dictionary
                     primary_genomic_dicts = {}
                     for lifted in liftover_list:
@@ -8086,7 +8200,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             lifted_ref_bases = my_seq.reverse_complement()
                             your_seq = Seq(lifted_alt_bases)
                             lifted_alt_bases = your_seq.reverse_complement()
-                        
+
                         if PYLIFTOVER_DIR is not None:
                             accession = va_scb.to_accession(chr, 'hg' + build_to)
                         else:
@@ -8109,19 +8223,20 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 if PYLIFTOVER_DIR is not None:
                                     lo_filename = PYLIFTOVER_DIR + "hg%sToHg%s.over.chain" % (build_to, g_p_key)
                                     lo = LiftOver(lo_filename)
-                                    warner.warn('liftover from ' + str(lo_filename))
+                                    warnings.warn('liftover from ' + str(lo_filename))
                                 else:
                                     # hg already added to build_to and g_p_key
                                     lo = LiftOver(build_to, g_p_key)
-                                    warner.warn('liftover from external files')
-                                liftback_list = lo.convert_coordinate(chr, pos)                                
-                                
+                                    warnings.warn('liftover from external files')
+                                liftback_list = lo.convert_coordinate(chr, pos)
+
                                 for lifted_back in liftback_list:
                                     # Pull out the good guys!
                                     if lifted_back[0] == incoming_vcf['chr']:
                                         if lifted_back[1] == int(incoming_vcf['pos']):
                                             for build in genome_builds:
-                                                vcf_dict = va_H2V.report_hgvs2vcf(hgvs_lifted, build)
+                                                vcf_dict = va_H2V.report_hgvs2vcf(hgvs_lifted, build,
+                                                                                  reverse_normalizer, sf)
                                                 test = va_scb.supported_for_mapping(hgvs_lifted.ac, build)
 
                                                 if test == 'true':
@@ -8147,7 +8262,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                             }
 
                                                         if build == 'GRCh38':
-                                                            vcf_dict = va_H2V.report_hgvs2vcf(hgvs_lifted, 'hg38')
+                                                            vcf_dict = va_H2V.report_hgvs2vcf(hgvs_lifted, 'hg38',
+                                                                                              reverse_normalizer, sf)
                                                             primary_genomic_dicts['hg38'] = {
                                                                 'HGVS_genomic_description': valstr(hgvs_lifted),
                                                                 'vcf': {'chr': vcf_dict['ucsc_chr'],
@@ -8426,17 +8542,17 @@ def update_vv_data():
 
 # <LICENSE>
 # Copyright (C) 2018  Peter Causey-Freeman, University of Leicester
-# 
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
 # published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # </LICENSE>
