@@ -104,7 +104,6 @@ if VALIDATOR_DEBUG is not None:
 # Ensure configuration is on the OS
 if os.environ.get('CONF_ROOT') is None:
     import configuration
-
     CONF_ROOT = os.environ.get('CONF_ROOT')
 else:
     CONF_ROOT = os.environ.get('CONF_ROOT')
@@ -136,7 +135,6 @@ if re.match('^\d+\.\d+\.\d+$', __version__) is not None:
 
 # Import variantanalyser and peripheral VV modules
 import ref_seq_type
-import variantanalyser
 from variantanalyser import functions as va_func
 from variantanalyser import dbControls as va_dbCrl
 from variantanalyser import hgvs2vcf as va_H2V
@@ -547,7 +545,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                 # Ambiguous chr reference
                 """
                 VCF2HGVS conversion step 3 is similar to step 2 but handles 
-                formats like Chr16:g.>2099572TC>T which are provided by Alamut and other
+                formats like Chr16:g.2099572TC>T which are provided by Alamut and other
                 software
                 """
                 if re.search('\w+:[gcnmrp]\.', input) and not re.match('N[CGTWMRP]_', input):
@@ -2088,7 +2086,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             else:
                                 continue
 
-                    #                   Tripple check this assumption by querying the gene position database
+                    #  Tripple check this assumption by querying the gene position database
                     if len(rel_var) == 0:
                         vcf_dict = va_H2V.hgvs2vcf(hgvs_genomic, reverse_normalizer, sf)
                         not_di = str(hgvs_genomic.ac) + ':g.' + str(vcf_dict['pos']) + '_' + str(
@@ -8304,7 +8302,6 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
 # Generates a list of transcript (UTA supported) and transcript names from a gene symbol or RefSeq transcript ID
 def gene2transcripts(query):
-    caution = ''
     input = query
     input = input.upper()
     if re.search('\d+ORF\d+', input):
@@ -8314,7 +8311,6 @@ def gene2transcripts(query):
         caution = {'error': 'Please enter HGNC gene name or transcript identifier (NM_, NR_, or ENST)'}
         return caution
     else:
-        caution = ''
         hgnc = input
         if re.match('NM_', hgnc) or re.match('NR_', hgnc):  # or re.match('ENST', hgnc):
             try:
@@ -8354,8 +8350,9 @@ def gene2transcripts(query):
         try:
             gene_name = previous['record']['response']['docs'][0]['name']
         except:
-            caution = current_sym + ' is not a valid HGNC gene symbol'
-            gene_name = 'Not found in the HGNC database of human gene names www.genenames.org'
+            # error = current_sym + ' is not a valid HGNC gene symbol'
+            gene_name = 'Gene symbol %s not found in the HGNC database of human gene names www.genenames.org' % query
+            return {'error': gene_name}
 
         # Look up previous name
         try:
@@ -8369,6 +8366,7 @@ def gene2transcripts(query):
             tx_for_gene = hdp.get_tx_for_gene(previous_sym)
         if len(tx_for_gene) == 0:
             tx_for_gene = {'error': 'Unable to retrieve data from the UTA, please contact admin'}
+            return tx_for_gene
 
         # Loop through each transcript and get the relevant transcript description
         genes_and_tx = []
@@ -8378,6 +8376,9 @@ def gene2transcripts(query):
                 # Transcript ID
                 tx = line[3]
                 tx_description = va_dbCrl.data.get_transcript_description(tx)
+                if tx_description == 'none':
+                    va_dbCrl.data.update_transcript_info_record(tx, hdp)
+                    tx_description = va_dbCrl.data.get_transcript_description(tx)
                 # Check for duplicates
                 if tx in recovered_dict.keys():
                     continue
@@ -8403,7 +8404,8 @@ def gene2transcripts(query):
             tx_d = {'reference': tx[0],
                     'description': tx[1],
                     'coding_start': tx[2] + 1,
-                    'coding_end': tx[3]}
+                    'coding_end': tx[3]
+                    }
             genes_and_tx.append(tx_d)
 
         # Return data table
@@ -8411,8 +8413,8 @@ def gene2transcripts(query):
                     'previous_symbol': previous_sym,
                     'current_name': gene_name,
                     'previous_name': previous_name,
-                    'transcripts': genes_and_tx,
-                    'error': ''}
+                    'transcripts': genes_and_tx
+                    }
 
         return g2d_data
 
