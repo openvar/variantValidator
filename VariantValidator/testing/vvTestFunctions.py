@@ -11,6 +11,7 @@ import pickle
 import sqlite3
 
 try:
+    print("Configuring for lamp")
     seqrepo_current_version='2018-08-21'
     #HGVS_SEQREPO_DIR='/home/pjdp2/seqrepo/'+seqrepo_current_version
     HGVS_SEQREPO_DIR='/local/seqrepo/'+seqrepo_current_version
@@ -24,6 +25,7 @@ try:
     vv.my_config()
     print("Configured for LAMP")
 except sqlite3.OperationalError:
+    print("Configuring for VM")
     seqrepo_current_version='2018-08-21'
     HGVS_SEQREPO_DIR='/home/pjdp2/seqrepo/'+seqrepo_current_version
     #HGVS_SEQREPO_DIR='/local/seqrepo/'+seqrepo_current_version
@@ -36,6 +38,21 @@ except sqlite3.OperationalError:
     from VariantValidator import variantValidator as vv
     vv.my_config()
     print("Configured for VM")
+except OSError:
+    print("Configuring for personal linux")
+    seqrepo_current_version='2018-08-21'
+    HGVS_SEQREPO_DIR='/home/buran/documents/workspace/ITS/seqrepo/'+seqrepo_current_version
+    #HGVS_SEQREPO_DIR='/local/seqrepo/'+seqrepo_current_version
+    os.environ['HGVS_SEQREPO_DIR']=HGVS_SEQREPO_DIR
+    uta_current_version='uta_20180821'
+    UTA_DB_URL='postgresql://uta_admin:uta_admin@127.0.0.1/uta/' + uta_current_version
+    os.environ['UTA_DB_URL']=UTA_DB_URL
+    #from VariantValidator import variantValidator as vv
+    print "Databases loaded"
+    from VariantValidator import variantValidator as vv
+    vv.my_config()
+    print("Configured for VM")
+
 
 def generateTestFolder(path, inputVariants):
     #Saves the results of running inputVariants to a folder given in saveDirectory.
