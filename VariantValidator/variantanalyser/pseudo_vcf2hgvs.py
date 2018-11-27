@@ -9,10 +9,7 @@ HGVS description
 # Import  modules
 import re
 import copy
-import hgvs
-import hgvs.dataproviders
-import hgvs.normalizer
-import hgvs.parser
+import hgvs.exceptions
 import supported_chromosome_builds as va_scb
 from dbControls import data as va_dbCrl
 
@@ -23,37 +20,37 @@ class pseudoVCF2HGVSError(Exception):
 
 
 # Set variables
-hdp = hgvs.dataproviders.uta.connect(pooling=True)
-
-# Reverse normalizer (5 prime)
-reverse_normalize = hgvs.normalizer.Normalizer(hdp,
-                                               cross_boundaries=False,
-                                               shuffle_direction=5,
-                                               alt_aln_method='splign'
-                                               )
-
-# normalizer (3 prime)
-normalize = hgvs.normalizer.Normalizer(hdp,
-                                       cross_boundaries=False,
-                                       shuffle_direction=3,
-                                       alt_aln_method='splign'
-                                       )
+# hdp = hgvs.dataproviders.uta.connect(pooling=True)
+#
+# # Reverse normalizer (5 prime)
+# reverse_normalize = hgvs.normalizer.Normalizer(hdp,
+#                                                cross_boundaries=False,
+#                                                shuffle_direction=5,
+#                                                alt_aln_method='splign'
+#                                                )
+#
+# # normalizer (3 prime)
+# normalize = hgvs.normalizer.Normalizer(hdp,
+#                                        cross_boundaries=False,
+#                                        shuffle_direction=3,
+#                                        alt_aln_method='splign'
+#                                        )
 
 # parser
-hp = hgvs.parser.Parser()
+# hp = hgvs.parser.Parser()
 # SeqFetcher
-sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
+# sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
 
 
 # pvcf is a pseudo_vcf string
 # genome build is a build string e.g. GRCh37 hg19
 # normalization direction an integer, 5 or 3.
-def pvcf_to_hgvs(input, selected_assembly, normalization_direction):
+def pvcf_to_hgvs(input, selected_assembly, normalization_direction, reverse_normalizer, hn, hp):
     # Set normalizer
     if normalization_direction == 3:
-        selected_normalizer = normalize
+        selected_normalizer = hn
     if normalization_direction == 5:
-        selected_normalizer = reverse_normalize
+        selected_normalizer = reverse_normalizer
 
     # Gel stye pVCF
     input = input.replace(':', '-')

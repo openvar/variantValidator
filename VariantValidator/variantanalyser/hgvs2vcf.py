@@ -25,39 +25,17 @@ hard right pushes as 3 prime as possible and adds additional bases
 # Import  modules
 import re
 import copy
-import hgvs
-import hgvs.dataproviders
-import hgvs.normalizer
 import supported_chromosome_builds
 
 # Import Biopython modules
 from Bio.Seq import Seq
 
-# Set variables
-hdp = hgvs.dataproviders.uta.connect(pooling=True)
+# Database connections and hgvs objects are now passed from VariantValidator.py
 
-# Reverse normalizer (5 prime)
-reverse_normalize = hgvs.normalizer.Normalizer(hdp,
-                                               cross_boundaries=False,
-                                               shuffle_direction=5,
-                                               alt_aln_method='splign'
-                                               )
-
-# normalizer (3 prime)
-normalize = hgvs.normalizer.Normalizer(hdp,
-                                       cross_boundaries=False,
-                                       shuffle_direction=3,
-                                       alt_aln_method='splign'
-                                       )
-
-# SeqFetcher
-sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
-
-
-def hgvs2vcf(hgvs_genomic):
+def hgvs2vcf(hgvs_genomic, reverse_normalizer, sf):
     hgvs_genomic_variant = hgvs_genomic
     # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
-    reverse_normalized_hgvs_genomic = reverse_normalize.normalize(hgvs_genomic_variant)
+    reverse_normalized_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic_variant)
     hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
     # Chr
@@ -132,8 +110,6 @@ def hgvs2vcf(hgvs_genomic):
         bs  = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),adj_start-1, adj_start)
         # Assemble  
         pos = str(start)
-        # pos = str(start-1)
-        # ref = bs + vcf_del_seq
         ref = vcf_del_seq
         alt = ins_seq
         if re.search('inv', str(reverse_normalized_hgvs_genomic.posedit)):
@@ -201,14 +177,15 @@ def hgvs2vcf(hgvs_genomic):
     return vcf_dict
 
 
-def report_hgvs2vcf(hgvs_genomic, primary_assembly):
+def report_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
     hgvs_genomic_variant = hgvs_genomic
+    
     # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
-    reverse_normalized_hgvs_genomic = reverse_normalize.normalize(hgvs_genomic_variant)
+    reverse_normalized_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic_variant)
     hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
     # Chr
-    chr = supported_chromosome_builds.to_chr_num(reverse_normalized_hgvs_genomic.ac)
+    chr = supported_chromosome_builds.to_chr_num_refseq(reverse_normalized_hgvs_genomic.ac, build)
     if chr is not None:
         pass
     else:
@@ -354,7 +331,7 @@ def report_hgvs2vcf(hgvs_genomic, primary_assembly):
     return vcf_dict
 
 
-def pos_lock_hgvs2vcf(hgvs_genomic):
+def pos_lock_hgvs2vcf(hgvs_genomic, reverse_normalizer, sf):
 
     # Replace reference manually
     if hgvs_genomic.posedit.edit.ref == '':
@@ -363,7 +340,7 @@ def pos_lock_hgvs2vcf(hgvs_genomic):
     reverse_normalized_hgvs_genomic = hgvs_genomic
     if reverse_normalized_hgvs_genomic.posedit.edit.type == 'identity' and len(
             reverse_normalized_hgvs_genomic.posedit.edit.ref) == 0:
-        reverse_normalized_hgvs_genomic = reverse_normalize.normalize(reverse_normalized_hgvs_genomic)
+        reverse_normalized_hgvs_genomic = reverse_normalizer.normalize(reverse_normalized_hgvs_genomic)
 
     hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
@@ -500,10 +477,10 @@ def pos_lock_hgvs2vcf(hgvs_genomic):
     return vcf_dict
 
 
-def hard_right_hgvs2vcf(hgvs_genomic):
+def hard_right_hgvs2vcf(hgvs_genomic, hn, sf):
     hgvs_genomic_variant = hgvs_genomic
     # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
-    normalized_hgvs_genomic = normalize.normalize(hgvs_genomic_variant)
+    normalized_hgvs_genomic = hn.normalize(hgvs_genomic_variant)
     hgvs_genomic_5pr = copy.deepcopy(normalized_hgvs_genomic)
 
     # Chr
@@ -648,10 +625,10 @@ def hard_right_hgvs2vcf(hgvs_genomic):
     return vcf_dict
 
 
-def hard_left_hgvs2vcf(hgvs_genomic):
+def hard_left_hgvs2vcf(hgvs_genomic, reverse_normalizer, sf):
     hgvs_genomic_variant = hgvs_genomic
     # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
-    reverse_normalized_hgvs_genomic = reverse_normalize.normalize(hgvs_genomic_variant)
+    reverse_normalized_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic_variant)
     hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
     # Chr
@@ -796,7 +773,7 @@ def hard_left_hgvs2vcf(hgvs_genomic):
     return vcf_dict
 
 
-def hgvs_ref_alt(hgvs_variant):
+def hgvs_ref_alt(hgvs_variant, sf):
     if re.search('[GATC]+\=', str(hgvs_variant.posedit)):
         ref = hgvs_variant.posedit.edit.ref
         alt = hgvs_variant.posedit.edit.ref

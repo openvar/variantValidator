@@ -17,7 +17,7 @@ from vvLogging import logger
 # Setup functions
 
 # Import Biopython modules
-from Bio.Seq import Seq
+# from Bio.Seq import Seq
 
 # Config Section Mapping function
 def ConfigSectionMap(section):
@@ -48,11 +48,6 @@ if ENTREZ_ID is None:
 # IMPORT HGVS MODULES and create instances
 import hgvs
 import hgvs.exceptions
-from hgvs.dataproviders import uta, seqfetcher
-import hgvs.normalizer
-import hgvs.validator
-import hgvs.parser
-import hgvs.variantmapper
 import hgvs.sequencevariant
 
 # Error types
@@ -66,59 +61,58 @@ class mergeHGVSerror(Exception):
 class alleleVariantError(Exception):
     pass
 
-
-# Connect to UTA
-hdp = hgvs.dataproviders.uta.connect(pooling=True)
-# Create normalizer
-hn = hgvs.normalizer.Normalizer(hdp,
-                                cross_boundaries=False,
-                                shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
-                                alt_aln_method='splign'
-                                )
-reverse_hn = hgvs.normalizer.Normalizer(hdp,
-                                        cross_boundaries=False,
-                                        shuffle_direction=5,
-                                        alt_aln_method='splign'
-                                        )
-
-# Create normalizer
-merge_normalizer = hgvs.normalizer.Normalizer(hdp,
-                                              cross_boundaries=False,
-                                              shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
-                                              alt_aln_method='splign',
-                                              validate=False
-                                              )
-reverse_merge_normalizer = hgvs.normalizer.Normalizer(hdp,
-                                                      cross_boundaries=False,
-                                                      shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
-                                                      alt_aln_method='splign',
-                                                      validate=False
-                                                      )
-
-# Validator
-vr = hgvs.validator.Validator(hdp)
-# parser
-hp = hgvs.parser.Parser()
-# Variantmapper
-vm = hgvs.variantmapper.VariantMapper(hdp, replace_reference=True)  # , normalize=False)
-nr_vm = hgvs.variantmapper.VariantMapper(hdp, replace_reference=False)
-# SeqFetcher
-sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
-
-#create no_norm_evm
-no_norm_evm_38 = hgvs.assemblymapper.AssemblyMapper(hdp,
-                                                    assembly_name='GRCh38',
-                                                    alt_aln_method='splign',
-                                                    normalize=False,
-                                                    replace_reference=True
-                                                    )
-
-no_norm_evm_37 = hgvs.assemblymapper.AssemblyMapper(hdp,
-                                                    assembly_name='GRCh37',
-                                                    alt_aln_method='splign',
-                                                    normalize=False,
-                                                    replace_reference=True
-                                                    )
+# # Connect to UTA
+# hdp = hgvs.dataproviders.uta.connect(pooling=True)
+# # Create normalizer
+# hn = hgvs.normalizer.Normalizer(hdp,
+#                                 cross_boundaries=False,
+#                                 shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
+#                                 alt_aln_method='splign'
+#                                 )
+# reverse_hn = hgvs.normalizer.Normalizer(hdp,
+#                                         cross_boundaries=False,
+#                                         shuffle_direction=5,
+#                                         alt_aln_method='splign'
+#                                         )
+#
+# # Create normalizer
+# merge_normalizer = hgvs.normalizer.Normalizer(hdp,
+#                                               cross_boundaries=False,
+#                                               shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
+#                                               alt_aln_method='splign',
+#                                               validate=False
+#                                               )
+# reverse_merge_normalizer = hgvs.normalizer.Normalizer(hdp,
+#                                                       cross_boundaries=False,
+#                                                       shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
+#                                                       alt_aln_method='splign',
+#                                                       validate=False
+#                                                       )
+#
+# # Validator
+# vr = hgvs.validator.Validator(hdp)
+# # parser
+# hp = hgvs.parser.Parser()
+# # Variantmapper
+# vm = hgvs.variantmapper.VariantMapper(hdp, replace_reference=True)  # , normalize=False)
+# nr_vm = hgvs.variantmapper.VariantMapper(hdp, replace_reference=False)
+# # SeqFetcher
+# sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
+#
+# #create no_norm_evm
+# no_norm_evm_38 = hgvs.assemblymapper.AssemblyMapper(hdp,
+#                                                     assembly_name='GRCh38',
+#                                                     alt_aln_method='splign',
+#                                                     normalize=False,
+#                                                     replace_reference=True
+#                                                     )
+#
+# no_norm_evm_37 = hgvs.assemblymapper.AssemblyMapper(hdp,
+#                                                     assembly_name='GRCh37',
+#                                                     alt_aln_method='splign',
+#                                                     normalize=False,
+#                                                     replace_reference=True
+#                                                     )
 
 # variantanalyser modules
 import dbControls
@@ -157,14 +151,14 @@ def user_input(input):
     raw_variant = input.strip()
 
     # Set regular expressions for if statements
-    pat_g = re.compile("\:g\.")  # Pattern looks for :g.
+    pat_g = re.compile(":g\.")  # Pattern looks for :g.
     pat_gene = re.compile('\(.+?\)')  # Pattern looks for (....)
-    pat_c = re.compile("\:c\.")  # Pattern looks for :c.
-    pat_r = re.compile("\:r\.")  # Pattern looks for :r.
-    pat_n = re.compile("\:n\.")  # Pattern looks for :n.
-    pat_p = re.compile("\:p\.")  # Pattern looks for :p.
-    pat_m = re.compile("\:m\.")  # Pattern looks for :m.
-    pat_est = re.compile("\d\:\d")  # Pattern looks for number:number
+    pat_c = re.compile(":c\.")  # Pattern looks for :c.
+    pat_r = re.compile(":r\.")  # Pattern looks for :r.
+    pat_n = re.compile(":n\.")  # Pattern looks for :n.
+    pat_p = re.compile(":p\.")  # Pattern looks for :p.
+    pat_m = re.compile(":m\.")  # Pattern looks for :m.
+    pat_est = re.compile("\d:\d")  # Pattern looks for number:number
 
     # If statements
     if pat_g.search(raw_variant):  # If the :g. pattern is present in the raw_variant, g_in is linked to the raw_variant
@@ -229,17 +223,19 @@ def user_input(input):
 """
 r_to_c
 parses r. variant strings into hgvs object and maps to the c. equivalent. 
+
+Marked for removal
 """
 
 
-def r_to_c(variant, evm, hp):
-    # convert the input string into a hgvs object by parsing
-    var_r = hp.parse_hgvs_variant(variant)
-    # map to the coding sequence
-    var_c = evm.r_to_c(var_r)  # coding level variant
-    variant = str(var_c)
-    c_from_r = {'variant': variant, 'type': ':c.'}
-    return c_from_r
+# def r_to_c(variant, evm, hp):
+#     # convert the input string into a hgvs object by parsing
+#     var_r = hp.parse_hgvs_variant(variant)
+#     # map to the coding sequence
+#     var_c = evm.r_to_c(var_r)  # coding level variant
+#     variant = str(var_c)
+#     c_from_r = {'variant': variant, 'type': ':c.'}
+#     return c_from_r
 
 
 """ 
@@ -247,86 +243,91 @@ Maps transcript variant descriptions onto specified RefSeqGene reference sequenc
 Return an hgvs object containing the genomic sequence variant relative to the RefSeqGene 
 acession
 refseq_ac = RefSeqGene ac
+
+Marked for removal
 """
 
 
-def refseq(variant, vm, refseq_ac, hp, evm, hdp, primary_assembly):
-    vr = hgvs.validator.Validator(hdp)
-    # parse the variant into hgvs object
-    var_c = hp.parse_hgvs_variant(variant)
-    # map to the genomic co-ordinates using the easy variant mapper set to alt_aln_method = alt_aln_method
-    var_g = myevm_t_to_g(var_c, evm, hdp, primary_assembly)
-    # Get overlapping transcripts - forcing a splign alignment
-    start_i = var_g.posedit.pos.start.base
-    end_i = var_g.posedit.pos.end.base
-    alt_ac = var_g.ac
-    alt_aln_method = 'splign'
-    transcripts = hdp.get_tx_for_region(alt_ac, alt_aln_method, start_i - 1, end_i)
-    # Take the first transcript
-    for trans in transcripts:
-        tx_ac = trans[0]
-        try:
-            ref_c = vm.g_to_t(var_g, tx_ac, alt_aln_method='splign')
-        except:
-            continue
-        else:
-            # map the variant co-ordinates to the refseq Gene accession using vm
-            ref_g_dict = {
-                'ref_g': '',
-                'error': 'false'
-            }
-            try:
-                ref_g_dict['ref_g'] = vm.t_to_g(ref_c, alt_ac=refseq_ac, alt_aln_method='splign')
-            except:
-                e = sys.exc_info()[0]
-                ref_g_dict['error'] = e
-            try:
-                vr.validate(ref_g_dict['ref_g'])
-            except:
-                e = sys.exc_info()[0]
-                ref_g_dict['error'] = e
-            if ref_g_dict['error'] == 'false':
-                return ref_g_dict
-            else:
-                continue
-    # Return as an error if all fail
-    return ref_g_dict
+# def refseq(variant, vm, refseq_ac, hp, hdp, no_norm_evm, primary_assembly, vr, sf, nr_vm, hn):
+#     # parse the variant into hgvs object
+#     var_c = hp.parse_hgvs_variant(variant)
+#     # map to the genomic co-ordinates using the easy variant mapper set to alt_aln_method = alt_aln_method
+#     var_g = myevm_t_to_g(var_c, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
+#     # Get overlapping transcripts - forcing a splign alignment
+#     start_i = var_g.posedit.pos.start.base
+#     end_i = var_g.posedit.pos.end.base
+#     alt_ac = var_g.ac
+#     alt_aln_method = 'splign'
+#     transcripts = hdp.get_tx_for_region(alt_ac, alt_aln_method, start_i - 1, end_i)
+#     # Take the first transcript
+#     for trans in transcripts:
+#         tx_ac = trans[0]
+#         try:
+#             ref_c = vm.g_to_t(var_g, tx_ac, alt_aln_method='splign')
+#         except:
+#             continue
+#         else:
+#             # map the variant co-ordinates to the refseq Gene accession using vm
+#             ref_g_dict = {
+#                 'ref_g': '',
+#                 'error': 'false'
+#             }
+#             try:
+#                 ref_g_dict['ref_g'] = vm.t_to_g(ref_c, alt_ac=refseq_ac, alt_aln_method='splign')
+#             except:
+#                 e = sys.exc_info()[0]
+#                 ref_g_dict['error'] = e
+#             try:
+#                 vr.validate(ref_g_dict['ref_g'])
+#             except:
+#                 e = sys.exc_info()[0]
+#                 ref_g_dict['error'] = e
+#             if ref_g_dict['error'] == 'false':
+#                 return ref_g_dict
+#             else:
+#                 continue
+#     # Return as an error if all fail
+#     return ref_g_dict
 
 
 """
 Parses genomic variant strings into hgvs objects
 Maps genomic hgvs object into a coding hgvs object if the c accession string is provided
 returns a c. variant description string
+
+Marked for removal
 """
 
 
-def g_to_c(var_g, tx_ac, hp, evm):
-    pat_g = re.compile("\:g\.")  # Pattern looks for :g.
-    # If the :g. pattern is present in the input variant
-    if pat_g.search(var_g):
-        # convert the input string into a hgvs object by parsing
-        var_g = hp.parse_hgvs_variant(var_g)
-        # Map to coding variant
-        var_c = str(evm.g_to_c(var_g, tx_ac))
-        return var_c
+# def g_to_c(var_g, tx_ac, hp, evm):
+#     pat_g = re.compile(":g\.")  # Pattern looks for :g.
+#     # If the :g. pattern is present in the input variant
+#     if pat_g.search(var_g):
+#         # convert the input string into a hgvs object by parsing
+#         var_g = hp.parse_hgvs_variant(var_g)
+#         # Map to coding variant
+#         var_c = str(evm.g_to_c(var_g, tx_ac))
+#         return var_c
 
 
 """
 Parses genomic variant strings into hgvs objects
 Maps genomic hgvs object into a non-coding hgvs object if the n accession string is provided
 returns a n. variant description string
+
+Marked for removal
 """
 
 
-def g_to_n(var_g, tx_ac, hp, evm):
-    pat_g = re.compile("\:g\.")  # Pattern looks for :g.
-    # If the :g. pattern is present in the input variant
-    if pat_g.search(var_g):
-        # convert the input string into a hgvs object by parsing
-        var_g = hp.parse_hgvs_variant(var_g)
-        # Map to coding variant
-        var_n = str(evm.g_to_n(var_g, tx_ac))
-        return var_n
+# def g_to_n(var_g, tx_ac, hp, evm):
+#     pat_g = re.compile(":g\.")  # Pattern looks for :g.
+#     # If the :g. pattern is present in the input variant
+#     if pat_g.search(var_g):
+#         # convert the input string into a hgvs object by parsing
+#         var_g = hp.parse_hgvs_variant(var_g)
+#         # Map to coding variant
+#         var_n = str(evm.g_to_n(var_g, tx_ac))
+#         return var_n
 
 
 """
@@ -344,24 +345,25 @@ def coding(variant, hp):
 
 
 """
-Mapping transcript to genomic position
+Mapping transcript to genomic position from a HGVS string rather than an hgvs (py) parsed object 
+Interfaces with myevm t_to_g
 Ensures variant strings are transcript c. or n.
 returns parsed hgvs g. object
 """
 
 
-def genomic(variant, evm, hp, hdp, primary_assembly):
+def genomic(variant, no_norm_evm, hp, hdp, primary_assembly, vm, hn, sf, nr_vm):
     # Set regular expressions for if statements
-    pat_g = re.compile("\:g\.")  # Pattern looks for :g.
-    pat_n = re.compile("\:n\.")
-    pat_c = re.compile("\:c\.")  # Pattern looks for :c.
+    pat_g = re.compile(":g\.")  # Pattern looks for :g.
+    pat_n = re.compile(":n\.")
+    pat_c = re.compile(":c\.")  # Pattern looks for :c.
 
     # If the :c. pattern is present in the input variant
     if pat_c.search(variant) or pat_n.search(variant):
         error = 'false'
         hgvs_var = hp.parse_hgvs_variant(variant)
         try:
-            var_g = myevm_t_to_g(hgvs_var, evm, hdp, primary_assembly)  # genomic level variant
+            var_g = myevm_t_to_g(hgvs_var, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
         except hgvs.exceptions.HGVSError as e:
             error = e
         if error != 'false':
@@ -376,40 +378,45 @@ def genomic(variant, evm, hp, hdp, primary_assembly):
 
 
 """
+
+
 Mapping transcript to protein prediction
+Accepts a variant string rather than a parsed hgvs_object
 Ensures variant strings are transcript c.
 returns parsed hgvs p. object
+
+Replaced by myc_to_p and marked for removal
 """
 
 
-def protein(variant, evm, hp):
-    # Set regular expressions for if statements
-    pat_c = re.compile("\:c\.")  # Pattern looks for :c. Note (gene) has been removed
-
-    # If the :c. pattern is present in the input variant
-    if pat_c.search(variant):
-        # convert the input string into a hgvs object
-        var_c = hp.parse_hgvs_variant(variant)
-        # Does the edit affect the start codon?
-        if ((var_c.posedit.pos.start.base >= 1 and var_c.posedit.pos.start.base <= 3 and var_c.posedit.pos.start.offset == 0) or (
-                var_c.posedit.pos.end.base >= 1 and var_c.posedit.pos.end.base <= 3 and var_c.posedit.pos.end.offset == 0)) and not re.search('\*', str(
-                var_c.posedit.pos)):
-            ass_prot = hdp.get_pro_ac_for_tx_ac(var_c.ac)
-            if str(ass_prot) == 'None':
-                cod = str(var_c)
-                cod = cod.replace('inv', 'del')
-                cod = hp.parse_hgvs_variant(cod)
-                p = evm.c_to_p(cod)
-                ass_prot = p.ac
-            var_p = hgvs.sequencevariant.SequenceVariant(ac=ass_prot, type='p', posedit='(Met1?)')
-        else:
-            var_p = evm.c_to_p(var_c)
-        return var_p
-    if re.search(':n.', variant):
-        var_p = hp.parse_hgvs_variant(variant)
-        var_p.ac = 'Non-coding transcript'
-        var_p.posedit = ''
-        return var_p
+# def protein(variant, evm, hp, hdp):
+#     # Set regular expressions for if statements
+#     pat_c = re.compile(":c\.")  # Pattern looks for :c. Note (gene) has been removed
+#
+#     # If the :c. pattern is present in the input variant
+#     if pat_c.search(variant):
+#         # convert the input string into a hgvs object
+#         var_c = hp.parse_hgvs_variant(variant)
+#         # Does the edit affect the start codon?
+#         if ((var_c.posedit.pos.start.base >= 1 and var_c.posedit.pos.start.base <= 3 and var_c.posedit.pos.start.offset == 0) or (
+#                 var_c.posedit.pos.end.base >= 1 and var_c.posedit.pos.end.base <= 3 and var_c.posedit.pos.end.offset == 0)) and not re.search('\*', str(
+#                 var_c.posedit.pos)):
+#             ass_prot = hdp.get_pro_ac_for_tx_ac(var_c.ac)
+#             if str(ass_prot) == 'None':
+#                 cod = str(var_c)
+#                 cod = cod.replace('inv', 'del')
+#                 cod = hp.parse_hgvs_variant(cod)
+#                 p = evm.c_to_p(cod)
+#                 ass_prot = p.ac
+#             var_p = hgvs.sequencevariant.SequenceVariant(ac=ass_prot, type='p', posedit='(Met1?)')
+#         else:
+#             var_p = evm.c_to_p(var_c)
+#         return var_p
+#     if re.search(':n.', variant):
+#         var_p = hp.parse_hgvs_variant(variant)
+#         var_p.ac = 'Non-coding transcript'
+#         var_p.posedit = ''
+#         return var_p
 
 """
 Function which takes a NORMALIZED hgvs Python transcript variant and maps to a specified protein reference sequence. A protein
@@ -421,7 +428,7 @@ previous g_to_t function
 
 
 
-def myc_to_p(hgvs_transcript, evm, re_to_p):
+def myc_to_p(hgvs_transcript, evm, hdp, hp, hn, vm, sf, re_to_p):
     # Create dictionary to store the information
     hgvs_transcript_to_hgvs_protein = {'error': '', 'hgvs_protein': '', 'ref_residues': ''}
     
@@ -675,7 +682,7 @@ Marked for removal
 # Return an hgvs object containing the rna sequence variant
 # def rna(variant, evm, hp):
 #   Set regular expressions for if statements
-#   pat_c = re.compile("\:c\.")         # Pattern looks for :c. Note (gene) has been removed
+#   pat_c = re.compile(":c\.")         # Pattern looks for :c. Note (gene) has been removed
 #   If the :c. pattern is present in the input variant
 #   if  pat_c.search(variant):
 #       convert the input string into a hgvs object
@@ -689,7 +696,7 @@ Marked for removal
 """
 # def hgvs_rna(variant, hp):
 #   # Set regular expressions for if statements
-#   pat_r = re.compile("\:n\.")         # Pattern looks for :n. Note (gene) has been removed
+#   pat_r = re.compile(":n\.")         # Pattern looks for :n. Note (gene) has been removed
 #   # If the :r. pattern is present in the input variant
 #   if  pat_r.search(variant):
 #       # convert the input string into a hgvs object
@@ -700,17 +707,19 @@ Marked for removal
 """
 Ensures variant strings are g.
 returns parsed hgvs g. object
+
+Marked for removal
 """
 
 
-def hgvs_genomic(variant, hp):
-    # Set regular expressions for if statements
-    pat_g = re.compile("\:g\.")  # Pattern looks for :g. Note (gene) has been removed
-    # If the :g. pattern is present in the input variant
-    if pat_g.search(variant):
-        # convert the input string into a hgvs object
-        var_g = hp.parse_hgvs_variant(variant)
-        return var_g
+# def hgvs_genomic(variant, hp):
+#     # Set regular expressions for if statements
+#     pat_g = re.compile(":g\.")  # Pattern looks for :g. Note (gene) has been removed
+#     # If the :g. pattern is present in the input variant
+#     if pat_g.search(variant):
+#         # convert the input string into a hgvs object
+#         var_g = hp.parse_hgvs_variant(variant)
+#         return var_g
 
 
 """
@@ -731,13 +740,8 @@ returns parsed hgvs g. object
 """
 
 
-def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
-    # create no_norm_evm
-    if primary_assembly == 'GRCh38':
-        no_norm_evm = no_norm_evm_38
-    elif primary_assembly == 'GRCh37':
-        no_norm_evm = no_norm_evm_37        
-    
+def myevm_t_to_g(hgvs_c, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm):
+
     # store the input
     stored_hgvs_c = copy.deepcopy(hgvs_c)
     expand_out = 'false'
@@ -783,7 +787,7 @@ def myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
                 if hgvs_t.posedit.edit.type == 'inv':
                     inv_alt = revcomp(hgvs_t.posedit.edit.ref)
                     t_delins = hgvs_t.ac + ':' + hgvs_t.type + '.' + str(hgvs_t.posedit.pos.start.base) + '_' + str(hgvs_t.posedit.pos.end.base) + 'del' + hgvs_t.posedit.edit.ref + 'ins' + inv_alt
-                    hgvs_t_delins = hp.parse_hgvs_variant(t_delins)                 
+                    hgvs_t_delins = hp.parse_hgvs_variant(t_delins)
                     pre_base = sf.fetch_seq(str(hgvs_t.ac),hgvs_t.posedit.pos.start.base-2,hgvs_t.posedit.pos.start.base-1)
                     post_base = sf.fetch_seq(str(hgvs_t.ac),hgvs_t.posedit.pos.end.base,hgvs_t.posedit.pos.end.base+1)
                     hgvs_t.posedit.edit.ref = pre_base + hgvs_t.posedit.edit.ref + post_base
@@ -1327,7 +1331,7 @@ returns parsed hgvs g. object
 """
 
 
-def noreplace_myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly):
+def noreplace_myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly, vm, hn, hp, sf, no_norm_evm):
     try:
         hgvs_genomic = evm.t_to_g(hgvs_c)
         hn.normalize(hgvs_genomic)
@@ -1447,13 +1451,8 @@ returns parsed hgvs g. object
 """
 
 
-def myvm_t_to_g(hgvs_c, alt_chr, vm, hn, hdp, primary_assembly):
-    # create no_norm_evm
-    if primary_assembly == 'GRCh38':
-        no_norm_evm = no_norm_evm_38
-    elif primary_assembly == 'GRCh37':
-        no_norm_evm = no_norm_evm_37        
-    
+def myvm_t_to_g(hgvs_c, alt_chr, no_norm_evm, vm, hp, hn, sf, nr_vm):
+
     # store the input
     stored_hgvs_c = copy.deepcopy(hgvs_c)
     expand_out = 'false'
@@ -1944,24 +1943,26 @@ returns parsed hgvs c. or n. object
 """
 
 
-def myevm_g_to_t(hdp, evm, hgvs_genomic, alt_ac):
+def myevm_g_to_t(evm, hgvs_genomic, alt_ac):
     hgvs_t = evm.g_to_t(hgvs_genomic, alt_ac)
     return hgvs_t
 
 
 """
 parse p. strings into hgvs p. objects
+
+MARKED FOR REMOVAL
 """
 
 
-def hgvs_protein(variant, hp):
-    # Set regular expressions for if statements
-    pat_p = re.compile("\:p\.")  # Pattern looks for :g. Note (gene) has been removed
-    # If the :p. pattern is present in the input variant
-    if pat_p.search(variant):
-        # convert the input string into a hgvs object
-        var_p = hp.parse_hgvs_variant(variant)
-        return var_p
+# def hgvs_protein(variant, hp):
+#     # Set regular expressions for if statements
+#     pat_p = re.compile(":p\.")  # Pattern looks for :g. Note (gene) has been removed
+#     # If the :p. pattern is present in the input variant
+#     if pat_p.search(variant):
+#         # convert the input string into a hgvs object
+#         var_p = hp.parse_hgvs_variant(variant)
+#         return var_p
 
 
 """
@@ -2010,62 +2011,69 @@ def hgvs_c_to_r(hgvs_object):
 Input c. r. n. variant string
 Use uta.py (hdp) to return the identity information for the transcript variant 
 see hgvs.dataproviders.uta.py for details
+
+MARKED FOR REMOVAL
 """
 
 
-def tx_identity_info(variant, hdp):
-    # Set regular expressions for if statements
-    pat_c = re.compile("\:c\.")  # Pattern looks for :c. Note (gene) has been removed
-    pat_n = re.compile("\:n\.")  # Pattern looks for :c. Note (gene) has been removed
-    pat_r = re.compile("\:r\.")  # Pattern looks for :c. Note (gene) has been removed
-
-    # If the :c. pattern is present in the input variant
-    if pat_c.search(variant):
-        # Remove all text to the right and including pat_c
-        tx_ac = variant[:variant.index(':c.') + len(':c.')]
-        tx_ac = pat_c.sub('', tx_ac)
-        # Interface with the UTA database via get_tx_identity in uta.py
-        tx_id_info = hdp.get_tx_identity_info(tx_ac)
-        # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
-        return tx_id_info
-
-    # If the :n. pattern is present in the input variant
-    if pat_n.search(variant):
-        # Remove all text to the right and including pat_c
-        tx_ac = variant[:variant.index(':n.') + len(':n.')]
-        tx_ac = pat_n.sub('', tx_ac)
-        # Interface with the UTA database via get_tx_identity in uta.py
-        tx_id_info = hdp.get_tx_identity_info(tx_ac)
-        # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
-        return tx_id_info
-
-    # If the :r. pattern is present in the input variant
-    if pat_r.search(variant):
-        # Remove all text to the right and including pat_c
-        tx_ac = variant[:variant.index(':r.') + len(':r.')]
-        tx_ac = pat_r.sub('', tx_ac)
-        # Interface with the UTA database via get_tx_identity in uta.py
-        tx_id_info = hdp.get_tx_identity_info(tx_ac)
-        # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
-        return tx_id_info
+# def tx_identity_info(variant, hdp):
+#     # Set regular expressions for if statements
+#     pat_c = re.compile(":c\.")  # Pattern looks for :c. Note (gene) has been removed
+#     pat_n = re.compile(":n\.")  # Pattern looks for :c. Note (gene) has been removed
+#     pat_r = re.compile(":r\.")  # Pattern looks for :c. Note (gene) has been removed
+#
+#     # If the :c. pattern is present in the input variant
+#     if pat_c.search(variant):
+#         # Remove all text to the right and including pat_c
+#         tx_ac = variant[:variant.index(':c.') + len(':c.')]
+#         tx_ac = pat_c.sub('', tx_ac)
+#         # Interface with the UTA database via get_tx_identity in uta.py
+#         tx_id_info = hdp.get_tx_identity_info(tx_ac)
+#         # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
+#         return tx_id_info
+#
+#     # If the :n. pattern is present in the input variant
+#     if pat_n.search(variant):
+#         # Remove all text to the right and including pat_c
+#         tx_ac = variant[:variant.index(':n.') + len(':n.')]
+#         tx_ac = pat_n.sub('', tx_ac)
+#         # Interface with the UTA database via get_tx_identity in uta.py
+#         tx_id_info = hdp.get_tx_identity_info(tx_ac)
+#         # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
+#         return tx_id_info
+#
+#     # If the :r. pattern is present in the input variant
+#     if pat_r.search(variant):
+#         # Remove all text to the right and including pat_c
+#         tx_ac = variant[:variant.index(':r.') + len(':r.')]
+#         tx_ac = pat_r.sub('', tx_ac)
+#         # Interface with the UTA database via get_tx_identity in uta.py
+#         tx_id_info = hdp.get_tx_identity_info(tx_ac)
+#         # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
+#         return tx_id_info
 
 
 """
 Input c. r. nd accession string
 Use uta.py (hdp) to return the identity information for the transcript variant 
 see hgvs.dataproviders.uta.py for details
+
+MARKED FOR REMOVAL
 """
 
 
-def tx_id_info(alt_ac, hdp):
-    tx_id_info = hdp.get_tx_identity_info(alt_ac)
-    # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
-    return tx_id_info
+# def tx_id_info(alt_ac, hdp):
+#     tx_id_info = hdp.get_tx_identity_info(alt_ac)
+#     # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
+#     return tx_id_info
 
 
 """
 Use uta.py (hdp) to return the transcript information for a specified gene (HGNC SYMBOL)
 see hgvs.dataproviders.uta.py for details
+
+
+marked for removal
 """
 
 
@@ -2127,11 +2135,10 @@ def tx_exons(tx_ac, alt_ac, alt_aln_method, hdp):
     try:
         tx_exons = hdp.get_tx_exons(tx_ac, alt_ac, alt_aln_method)
     except hgvs.exceptions.HGVSError as e:
-        e
         tx_exons = 'hgvs Exception: ' + str(e)
         return tx_exons
     try:
-        completion = tx_exons[0]['alt_strand']
+        tx_exons[0]['alt_strand']
     except TypeError:
         tx_exons = 'error'
         return tx_exons
@@ -2148,7 +2155,8 @@ Automatically maps genomic positions onto all overlapping transcripts
 """
 
 
-def relevant_transcripts(hgvs_genomic, evm, hdp, alt_aln_method):
+def relevant_transcripts(hgvs_genomic, evm, hdp, alt_aln_method, reverse_normalizer):
+    reverse_hn = reverse_normalizer
     # Pass relevant transcripts for the input variant to rts
     # Note, the evm method misses one end, the hdp. method misses the other. Combine both
     rts_list = hdp.get_tx_for_region(hgvs_genomic.ac, alt_aln_method, hgvs_genomic.posedit.pos.start.base-1, hgvs_genomic.posedit.pos.end.base-1)
@@ -2387,7 +2395,7 @@ using 3 prime normalization
 """
 
 
-def merge_hgvs_3pr(hgvs_variant_list):
+def merge_hgvs_3pr(hgvs_variant_list, hp, vr, hn, vm, sf):
     # Ensure c. is mapped to the
     h_list = []
 
@@ -2502,7 +2510,9 @@ using 5 prime normalization
 """
 
 
-def merge_hgvs_5pr(hgvs_variant_list):
+def merge_hgvs_5pr(hgvs_variant_list, hp, vr, reverse_normalizer, vm, sf):
+    reverse_hn = reverse_normalizer
+
     # Ensure c. is mapped to the
     h_list = []
 
@@ -2615,11 +2625,12 @@ using 5 prime normalization then return a 3 prime normalized final HGVS object
 """
 
 
-def merge_pseudo_vcf(vcf_list, genome_build):
+def merge_pseudo_vcf(vcf_list, genome_build, reverse_normalizer, hn, hp):
     hgvs_list = []
     # Convert pseudo_vcf list into a HGVS list
+    normalization_direction = 5
     for call in vcf_list:
-        hgvs = pseudo_vcf2hgvs.pvcf_to_hgvs(call, genome_build, normalization_direction=5)
+        hgvs = pseudo_vcf2hgvs.pvcf_to_hgvs(call, genome_build, normalization_direction, reverse_normalizer, hn, hp)
         hgvs_list.append(hgvs)
     # Merge
     hgvs_delins = merge_hgvs_5pr(hgvs_list)
