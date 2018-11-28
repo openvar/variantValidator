@@ -7,6 +7,7 @@
 import unittest
 import os
 import pickle
+import json
 
 import sqlite3
 
