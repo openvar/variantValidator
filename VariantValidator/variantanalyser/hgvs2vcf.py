@@ -22,7 +22,7 @@ hard left pushes as 5 prime as possible and adds additional bases
 hard right pushes as 3 prime as possible and adds additional bases
 """
 
-# Import  modules
+# Import modules
 import re
 import copy
 import supported_chromosome_builds as supportedChromosomeBuilds
