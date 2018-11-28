@@ -91,6 +91,18 @@ import traceback
 
 from Bio.Seq import Seq
 
+# Import variantanalyser and peripheral VV modules
+import ref_seq_type
+import variantanalyser
+from vvLogging import logger
+from variantanalyser import functions as va_func
+from variantanalyser import dbControls as va_dbCrl
+from variantanalyser import hgvs2vcf as va_H2V
+from variantanalyser import batch as va_btch
+from variantanalyser import g_to_g as va_g2g
+from variantanalyser import supported_chromosome_builds as va_scb
+from variantanalyser import gap_genes as gapGenes
+
 
 
 
@@ -100,19 +112,6 @@ if os.environ.get('CONF_ROOT') is None:
     CONF_ROOT = os.environ.get('CONF_ROOT')
 else:
     CONF_ROOT = os.environ.get('CONF_ROOT')
-
-# Import variantanalyser and peripheral VV modules
-import ref_seq_type
-import variantanalyser
-from vvLogging import logger
-
-from variantanalyser import functions as va_func
-from variantanalyser import dbControls as va_dbCrl
-from variantanalyser import hgvs2vcf as va_H2V
-from variantanalyser import batch as va_btch
-from variantanalyser import g_to_g as va_g2g
-from variantanalyser import supported_chromosome_builds as va_scb
-from variantanalyser import gap_genes as gapGenes
 
 # Config Section Mapping function
 def ConfigSectionMap(section):
@@ -208,13 +207,15 @@ def my_config():
     hgvs_version = hgvs.__version__,
     hgvs_version = str(hgvs_version[0])
     locate = {
-        'SeqRepo_Directory': HGVS_SEQREPO_DIR,
-        'UTA_URL': UTA_DB_URL,
-        'py_liftover': PYLIFTOVER_DIR,
-        'variantValidator_data_URL': VALIDATOR_DB_URL,
-        'ENTREZ_ID': ENTREZ_ID,
-        'variantValidator_Version': VERSION,
-        'hgvs_version': hgvs_version
+        'seqrepo_directory': HGVS_SEQREPO_DIR,
+        'uta_url': UTA_DB_URL,
+        'py_liftover_directory' : PYLIFTOVER_DIR,
+        'variantvalidator_data_url': VALIDATOR_DB_URL,
+        'entrez_id': ENTREZ_ID,
+        'variantvalidator_version': VERSION,
+        'variantvalidator_hgvs_version': hgvs_version,
+        'uta_schema': str(hdp.data_version()),
+        'seqrepo_db': HGVS_SEQREPO_DIR.split('/')[-1]
     }
     return locate
 
@@ -1347,8 +1348,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                 offset = int(tot_end_pos) - int(boundary)
                                                 input_parses.posedit.pos.end.offset = offset
                                             report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
-                                            error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant: Instead use ' + valstr(
-                                                report_gen)
+                                            error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant: Instead use ' + valstr(report_gen)
                                         except Exception as e:
                                             pass
                                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
@@ -1422,8 +1422,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             offset = int(tot_end_pos) - int(boundary)
                                             input_parses.posedit.pos.end.offset = offset
                                         report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
-                                        error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(
-                                            report_gen)
+                                        error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(report_gen)
                                     except Exception as e:
                                         print e
                                         pass
@@ -1466,7 +1465,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         # Create a specific minimal evm with no normalizer and no replace_reference
                         # Have to use this method due to potential multi chromosome error, note, normalizes but does not replace sequence
                         try:
-                            output = va_func.noreplace_myevm_t_to_g(input_parses, min_evm, hdp, primary_assembly, vm, hn, hp, sf, no_norm_evm)
+                            output = va_func.noreplace_myevm_t_to_g(input_parses, evm, hdp, primary_assembly, vm, hn, hp, sf, no_norm_evm)
                         except hgvs.exceptions.HGVSDataNotAvailableError as e:
                             tx_ac = input_parses.ac
                             try:
@@ -1610,8 +1609,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         input_parses.posedit.pos.end.base = boundary
                                         input_parses.posedit.pos.end.offset = remainder
                                     report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
-                                    error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(
-                                        report_gen)
+                                    error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(report_gen)
                                 except Exception as e:
                                     pass
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
@@ -1666,8 +1664,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     error = str(e)
                                     if re.match('bounds', error):
                                         report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
-                                        error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(
-                                            report_gen)
+                                        error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(report_gen)
                                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                         continue
                                 else:
@@ -1676,7 +1673,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     # Create a specific minimal evm with no normalizer and no replace_reference
                         # Have to use this method due to potential multi chromosome error, note, normalizes but does not replace sequence
                         try:
-                            output = va_func.noreplace_myevm_t_to_g(input_parses, min_evm, hdp, primary_assembly, vm, hn, hp, sf, no_norm_evm)
+                            output = va_func.noreplace_myevm_t_to_g(input_parses, evm, hdp, primary_assembly, vm, hn, hp, sf, no_norm_evm)
                         except hgvs.exceptions.HGVSDataNotAvailableError as e:
                             tx_ac = input_parses.ac
                             try:
@@ -2079,7 +2076,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
                     #  Tripple check this assumption by querying the gene position database
                     if len(rel_var) == 0:
-                        vcf_dict = va_H2V.hgvs2vcf(hgvs_genomic, reverse_normalizer, sf)
+                        vcf_dict = va_H2V.hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf)
                         not_di = str(hgvs_genomic.ac) + ':g.' + str(vcf_dict['pos']) + '_' + str(
                             int(vcf_dict['pos']) + (len(vcf_dict['ref']) - 1)) + 'del' + vcf_dict['ref'] + 'ins' + \
                                  vcf_dict['alt']
@@ -2176,7 +2173,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
                         # VCF
-                        vcf_dict = va_H2V.hgvs2vcf(reverse_normalized_hgvs_genomic, reverse_normalizer, sf)
+                        vcf_dict = va_H2V.hgvs2vcf(reverse_normalized_hgvs_genomic, primary_assembly, reverse_normalizer, sf)
                         chr = vcf_dict['chr']
                         pos = vcf_dict['pos']
                         ref = vcf_dict['ref']
@@ -2204,9 +2201,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             except Exception:
                                 pass
                             stash_input = va_func.myevm_t_to_g(c, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
-                        if re.match('NC_', str(stash_input)) or re.match('NT_', str(stash_input)) or re.match('NW_',
-                                                                                                              str(
-                                                                                                                      stash_input)):
+                        if re.match('NC_', str(stash_input)) or re.match('NT_', str(stash_input)) or re.match('NW_', str(stash_input)):
                             try:
                                 hgvs_stash = hp.parse_hgvs_variant(stash_input)
                             except:
@@ -2222,8 +2217,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
                             stash_ac = hgvs_stash.ac
                             # MAKE A NO NORM HGVS2VCF
-                            stash_dict = va_H2V.pos_lock_hgvs2vcf(hgvs_stash, reverse_normalizer, sf)
-
+                            stash_dict = va_H2V.pos_lock_hgvs2vcf(hgvs_stash, primary_assembly, reverse_normalizer, sf)
                             stash_ac = hgvs_stash.ac
                             stash_pos = int(stash_dict['pos'])
                             stash_ref = stash_dict['ref']
@@ -2990,14 +2984,14 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     hgvs_stash = copy.deepcopy(stash_hgvs_not_delins)
                                     stash_ac = hgvs_stash.ac
                                     # Make a hard left and hard right not delins g.
-                                    stash_dict_right = va_H2V.hard_right_hgvs2vcf(hgvs_stash, hn, sf)
+                                    stash_dict_right = va_H2V.hard_right_hgvs2vcf(hgvs_stash, primary_assembly, hn, sf)
                                     stash_pos_right = int(stash_dict_right['pos'])
                                     stash_ref_right = stash_dict_right['ref']
                                     stash_alt_right = stash_dict_right['alt']
                                     stash_end_right = str(stash_pos_right + len(stash_ref_right) - 1)
                                     stash_hgvs_not_delins_right = hp.parse_hgvs_variant(stash_ac + ':' + hgvs_stash.type + '.' + str(
                                             stash_pos_right) + '_' + stash_end_right + 'del' + stash_ref_right + 'ins' + stash_alt_right)
-                                    stash_dict_left = va_H2V.hard_left_hgvs2vcf(hgvs_stash, reverse_normalizer, sf)
+                                    stash_dict_left = va_H2V.hard_left_hgvs2vcf(hgvs_stash, primary_assembly, reverse_normalizer, sf)
                                     stash_pos_left = int(stash_dict_left['pos'])
                                     stash_ref_left = stash_dict_left['ref']
                                     stash_alt_left = stash_dict_left['alt']
@@ -3153,15 +3147,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             reason = 'Unable to map the input variant onto a genomic position'
                             if (re.search('~', str(e)) and re.search('Alignment is incomplete', str(e))):
                                 error_list = str(e).split('~')[:-1]
-                                combos = [
-                                    'Full alignment data between the specified transcript reference sequence and all GRCh37 and GRCh38 genomic reference sequences (including alternate chromosome assemblies, patches and RefSeqGenes) are not available: Consequently the input variant description cannot be fully validated and is not supported: Use the Gene to Transcripts function to determine whether an updated transcript reference sequence is available']  # Partial alignment data is available for the following genomic reference sequences: ']
-                                #                   Only record misalignment errors. Forget the others
-                                #                   for miss_alignment in error_list:
-                                #                       if re.search('Alignment is incomplete', miss_alignment):
-                                #                           miss_alignment = miss_alignment.split('/')
-                                #                           combos = combos + [miss_alignment[2]]
-                                #                       else:
-                                #                           continue
+                                combos = ['Full alignment data between the specified transcript reference sequence and all GRCh37 and GRCh38 genomic reference sequences (including alternate chromosome assemblies, patches and RefSeqGenes) are not available: Consequently the input variant description cannot be fully validated and is not supported: Use the Gene to Transcripts function to determine whether an updated transcript reference sequence is available'] # Partial alignment data is available for the following genomic reference sequences: ']
                                 error = '; '.join(combos)
                                 error = error.replace(': ;', ': ')
                             else:
@@ -3229,13 +3215,13 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 variant = str(obj)
                             else:
                                 # Normalize was I believe to replace ref. Mapping does this anyway
-                                # to_g = hn.normalize(to_g)
+                                #to_g = hn.normalize(to_g)
                                 variant = str(va_func.myevm_g_to_t(evm, to_g, tx_ac))
                                 tx_ac = ''
 
                     elif geno.search(input):
                         if plus.search(variant) or minus.search(variant):
-                            # to_g = va_func.genomic(variant, evm, hp, hdp, primary_assembly)
+                            to_g = va_func.genomic(variant, no_norm_evm, hp, hdp, primary_assembly, vm, hn, sf, nr_vm)
                             es = re.compile('error')
                             if es.search(str(to_g)):
                                 if alt_aln_method != 'genebuild':
@@ -3953,9 +3939,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     error = str(e)
                                     chromosome_normalized_hgvs_coding = hgvs_coding
 
-                            most_3pr_hgvs_genomic = va_func.myvm_t_to_g(chromosome_normalized_hgvs_coding,
-                                                                        hgvs_genomic.ac,
-                                                                        no_norm_evm, vm, hp, hn, sf, nr_vm)
+                            most_3pr_hgvs_genomic = va_func.myvm_t_to_g(chromosome_normalized_hgvs_coding, hgvs_genomic.ac, no_norm_evm, vm, hp, hn, sf, nr_vm)
                             hgvs_genomic_possibilities.append(most_3pr_hgvs_genomic)
 
                             # Push from side to side to try pick up odd placements
@@ -3968,7 +3952,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 pass
                             try:
                                 stash_ac = hgvs_stash.ac
-                                stash_dict = va_H2V.hard_right_hgvs2vcf(hgvs_stash, hn, sf)
+                                stash_dict = va_H2V.hard_right_hgvs2vcf(hgvs_stash, primary_assembly, hn, sf)
                                 stash_pos = int(stash_dict['pos'])
                                 stash_ref = stash_dict['ref']
                                 stash_alt = stash_dict['alt']
@@ -4045,7 +4029,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 pass
                             try:
                                 stash_ac = hgvs_stash.ac
-                                stash_dict = va_H2V.hard_left_hgvs2vcf(hgvs_stash, reverse_normalizer, sf)
+                                stash_dict = va_H2V.hard_left_hgvs2vcf(hgvs_stash, primary_assembly, reverse_normalizer, sf)
                                 stash_pos = int(stash_dict['pos'])
                                 stash_ref = stash_dict['ref']
                                 stash_alt = stash_dict['alt']
@@ -4061,7 +4045,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     pass
                                     # Store a tx copy for later use
                                 test_stash_tx_left = copy.deepcopy(stash_hgvs_not_delins)
-                                # stash_genomic = vm.t_to_g(test_stash_tx_left, hgvs_genomic.ac)
+                                #stash_genomic = vm.t_to_g(test_stash_tx_left, hgvs_genomic.ac)
                                 stash_genomic = va_func.myvm_t_to_g(test_stash_tx_left, hgvs_genomic.ac, no_norm_evm, vm, hp, hn, sf, nr_vm)
                                 # Stash the outputs if required
                                 # test variants = NC_000006.11:g.90403795G= (causes double identity)
@@ -4302,7 +4286,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 stored_hgvs_genomic_5pr = copy.deepcopy(hgvs_genomic_5pr)
 
                                 # Create VCF
-                                vcf_dict = va_H2V.hgvs2vcf(reverse_normalized_hgvs_genomic, reverse_normalizer, sf)
+                                vcf_dict = va_H2V.hgvs2vcf(reverse_normalized_hgvs_genomic, primary_assembly, reverse_normalizer, sf)
                                 chr = vcf_dict['chr']
                                 pos = vcf_dict['pos']
                                 ref = vcf_dict['ref']
@@ -5263,7 +5247,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
                         # Create vcf
-                        vcf_dict = va_H2V.hgvs2vcf(reverse_normalized_hgvs_genomic, reverse_normalizer, sf)
+                        vcf_dict = va_H2V.hgvs2vcf(reverse_normalized_hgvs_genomic, primary_assembly, reverse_normalizer, sf)
                         chr = vcf_dict['chr']
                         pos = vcf_dict['pos']
                         ref = vcf_dict['ref']
@@ -6239,6 +6223,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     except hgvs.exceptions.HGVSError as e:
                                         pass
                                     else:
+                                        # hgvs_protein = va_func.protein(str(c_for_p), evm, hp)
                                         protein_dict = va_func.myc_to_p(c_for_p, evm, hdp, hp, hn, vm, sf, re_to_p=False)
                                         if protein_dict['error'] == '':
                                             hgvs_protein = protein_dict['hgvs_protein']
@@ -6513,15 +6498,6 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     # Transcript description
                     transcript_description = valid['description']
 
-                    #                     Create VCF
-                    #                     if genomic_variant != '':
-                    #                         vcf_dict = va_H2V.report_hgvs2vcf(hgvs_genomic_variant, validation['primary_assembly'])
-                    #                         vcf_ucsc_chr = vcf_dict['ucsc_chr']
-                    #                         vcf_grc_chr = vcf_dict['grc_chr']
-                    #                         vcf_pos = vcf_dict['pos']
-                    #                         vcf_ref = vcf_dict['ref']
-                    #                         vcf_alt = vcf_dict['alt']
-
                     # Stashed variants
                     try:
                         test_stash_tx_left = validation['test_stash_tx_left']
@@ -6598,8 +6574,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             error = str(e)
                                             chromosome_normalized_hgvs_coding = hgvs_coding
 
-                                    most_3pr_hgvs_genomic = va_func.myvm_t_to_g(chromosome_normalized_hgvs_coding,
-                                                                                alt_chr,
+                                    most_3pr_hgvs_genomic = va_func.myvm_t_to_g(chromosome_normalized_hgvs_coding, alt_chr,
                                                                                 no_norm_evm, vm, hp, hn, sf, nr_vm)
                                     hgvs_genomic_possibilities.append(most_3pr_hgvs_genomic)
 
@@ -6611,7 +6586,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         pass
                                     try:
                                         stash_ac = hgvs_stash.ac
-                                        stash_dict = va_H2V.hard_right_hgvs2vcf(hgvs_stash, hn, sf)
+                                        stash_dict = va_H2V.hard_right_hgvs2vcf(hgvs_stash, primary_assembly, hn, sf)
                                         stash_pos = int(stash_dict['pos'])
                                         stash_ref = stash_dict['ref']
                                         stash_alt = stash_dict['alt']
@@ -6627,8 +6602,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             pass
                                             # Store a tx copy for later use
                                         test_stash_tx_right = copy.deepcopy(stash_hgvs_not_delins)
-                                        stash_genomic = va_func.myvm_t_to_g(test_stash_tx_right, hgvs_alt_genomic.ac,
-                                                                            no_norm_evm, vm, hp, hn, sf, nr_vm)
+                                        stash_genomic = va_func.myvm_t_to_g(test_stash_tx_right, hgvs_alt_genomic.ac, no_norm_evm, vm, hp, hn, sf, nr_vm)
                                         # Stash the outputs if required
                                         # test variants = NC_000006.11:g.90403795G= (causes double identity)
                                         #                 NC_000002.11:g.73675227_73675228insCTC (? incorrect assumed insertion position)
@@ -6687,7 +6661,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         pass
                                     try:
                                         stash_ac = hgvs_stash.ac
-                                        stash_dict = va_H2V.hard_left_hgvs2vcf(hgvs_stash, reverse_normalizer, sf)
+                                        stash_dict = va_H2V.hard_left_hgvs2vcf(hgvs_stash, primary_assembly, reverse_normalizer, sf)
                                         stash_pos = int(stash_dict['pos'])
                                         stash_ref = stash_dict['ref']
                                         stash_alt = stash_dict['alt']
@@ -6703,8 +6677,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             pass
                                             # Store a tx copy for later use
                                         test_stash_tx_left = copy.deepcopy(stash_hgvs_not_delins)
-                                        stash_genomic = va_func.myvm_t_to_g(test_stash_tx_left, hgvs_alt_genomic.ac, vm,
-                                                                            hn, hdp, primary_assembly)
+                                        stash_genomic = va_func.myvm_t_to_g(test_stash_tx_left, hgvs_alt_genomic.ac, no_norm_evm, vm, hp, hn, sf, nr_vm)
                                         # Stash the outputs if required
                                         # test variants = NC_000006.11:g.90403795G= (causes double identity)
                                         #                 NC_000002.11:g.73675227_73675228insCTC
@@ -6942,8 +6915,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         stored_hgvs_genomic_5pr = copy.deepcopy(hgvs_genomic_5pr)
 
                                         # Make VCF
-                                        vcf_dict = va_H2V.hgvs2vcf(reverse_normalized_hgvs_genomic, reverse_normalizer,
-                                                                   sf)
+                                        vcf_dict = va_H2V.hgvs2vcf(reverse_normalized_hgvs_genomic, primary_assembly, reverse_normalizer, sf)
                                         chr = vcf_dict['chr']
                                         pos = vcf_dict['pos']
                                         ref = vcf_dict['ref']
@@ -7182,9 +7154,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                     else:
                                                         test_tx_var = rn_tx_hgvs_not_delins
                                                     # re-make genomic and tx
-                                                    hgvs_not_delins = va_func.myvm_t_to_g(test_tx_var, alt_chr, vm, hn,
-                                                                                          hdp,
-                                                                                          primary_assembly)
+                                                    hgvs_not_delins = va_func.myvm_t_to_g(test_tx_var, alt_chr, no_norm_evm, vm, hp, hn, sf, nr_vm)
                                                     rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                                str(
                                                                                                    saved_hgvs_coding.ac))
@@ -7197,9 +7167,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                     else:
                                                         test_tx_var = rn_tx_hgvs_not_delins
                                                     # re-make genomic and tx
-                                                    hgvs_not_delins = va_func.myvm_t_to_g(test_tx_var, alt_chr, vm, hn,
-                                                                                          hdp,
-                                                                                          primary_assembly)
+                                                    hgvs_not_delins = va_func.myvm_t_to_g(test_tx_var, alt_chr, no_norm_evm, vm, hp, hn, sf, nr_vm)
                                                     rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                                str(
                                                                                                    saved_hgvs_coding.ac))
@@ -7238,9 +7206,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                     else:
                                                         test_tx_var = rn_tx_hgvs_not_delins
                                                     # re-make genomic and tx
-                                                    hgvs_not_delins = va_func.myvm_t_to_g(test_tx_var, alt_chr, vm, hn,
-                                                                                          hdp,
-                                                                                          primary_assembly)
+                                                    hgvs_not_delins = va_func.myvm_t_to_g(test_tx_var, alt_chr, no_norm_evm, vm, hp, hn, sf, nr_vm)
                                                     rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                                str(
                                                                                                    saved_hgvs_coding.ac))
@@ -7254,9 +7220,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                     else:
                                                         test_tx_var = rn_tx_hgvs_not_delins
                                                     # re-make genomic and tx
-                                                    hgvs_not_delins = va_func.myvm_t_to_g(test_tx_var, alt_chr, vm, hn,
-                                                                                          hdp,
-                                                                                          primary_assembly)
+                                                    hgvs_not_delins = va_func.myvm_t_to_g(test_tx_var, alt_chr, no_norm_evm, vm, hp, hn, sf, nr_vm)
                                                     rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                                str(
                                                                                                    saved_hgvs_coding.ac))
@@ -7838,9 +7802,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                     continue
 
                                             # Update hgvs_genomic
-                                            hgvs_alt_genomic = va_func.myvm_t_to_g(hgvs_refreshed_variant, alt_chr, vm,
-                                                                                   hn,
-                                                                                   hdp, primary_assembly)
+                                            hgvs_alt_genomic = va_func.myvm_t_to_g(hgvs_refreshed_variant, alt_chr, no_norm_evm, vm, hp, hn, sf, nr_vm)
                                             if hgvs_alt_genomic.posedit.edit.type == 'identity':
                                                 re_c = vm.g_to_t(hgvs_alt_genomic, hgvs_refreshed_variant.ac)
                                                 if (hn.normalize(re_c)) != (hn.normalize(hgvs_refreshed_variant)):
@@ -7931,8 +7893,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     # Identify primary assembly positions
                                     if re.match('NC_', alt_gen_var.ac):
                                         if re.match('GRC', build):
-                                            primary_genomic_dicts[build] = {
-                                                'HGVS_genomic_description': valstr(alt_gen_var),
+                                            primary_genomic_dicts[build.lower()] = {
+                                                'hgvs_genomic_description': valstr(alt_gen_var),
                                                 'vcf': {'chr': vcf_dict['grc_chr'],
                                                         'pos': vcf_dict['pos'],
                                                         'ref': vcf_dict['ref'],
@@ -7941,8 +7903,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                             }
 
                                         else:
-                                            primary_genomic_dicts[build] = {
-                                                'HGVS_genomic_description': valstr(alt_gen_var),
+                                            primary_genomic_dicts[build.lower()] = {
+                                                'hgvs_genomic_description': valstr(alt_gen_var),
                                                 'vcf': {'chr': vcf_dict['ucsc_chr'],
                                                         'pos': vcf_dict['pos'],
                                                         'ref': vcf_dict['ref'],
@@ -7950,10 +7912,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                         }
                                             }
                                         if build == 'GRCh38':
-                                            vcf_dict = va_H2V.report_hgvs2vcf(alt_gen_var, 'hg38', reverse_normalizer,
-                                                                              sf)
+                                            vcf_dict = va_H2V.report_hgvs2vcf(alt_gen_var, 'hg38', reverse_normalizer, sf)
                                             primary_genomic_dicts['hg38'] = {
-                                                'HGVS_genomic_description': valstr(alt_gen_var),
+                                                'hgvs_genomic_description': valstr(alt_gen_var),
                                                 'vcf': {'chr': vcf_dict['ucsc_chr'],
                                                         'pos': vcf_dict['pos'],
                                                         'ref': vcf_dict['ref'],
@@ -7965,7 +7926,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
 
                                     else:
                                         if re.match('GRC', build):
-                                            dict = {build: {'HGVS_genomic_description': valstr(alt_gen_var),
+                                            dict = {build.lower(): {'hgvs_genomic_description': valstr(alt_gen_var),
                                                             'vcf': {'chr': vcf_dict['grc_chr'],
                                                                     'pos': vcf_dict['pos'],
                                                                     'ref': vcf_dict['ref'],
@@ -7974,7 +7935,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                             }
                                                     }
                                         else:
-                                            dict = {build: {'HGVS_genomic_description': valstr(alt_gen_var),
+                                            dict = {build.lower(): {'hgvs_genomic_description': valstr(alt_gen_var),
                                                             'vcf': {'chr': vcf_dict['ucsc_chr'],
                                                                     'pos': vcf_dict['pos'],
                                                                     'ref': vcf_dict['ref'],
@@ -7986,9 +7947,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                         alt_genomic_dicts.append(dict)
 
                                         if build == 'GRCh38':
-                                            vcf_dict = va_H2V.report_hgvs2vcf(alt_gen_var, 'hg38', reverse_normalizer,
-                                                                              sf)
-                                            dict = {'hg38': {'HGVS_genomic_description': valstr(alt_gen_var),
+                                            vcf_dict = va_H2V.report_hgvs2vcf(alt_gen_var, 'hg38', reverse_normalizer, sf)
+                                            dict = {'hg38': {'hgvs_genomic_description': valstr(alt_gen_var),
                                                              'vcf': {'chr': vcf_dict['ucsc_chr'],
                                                                      'pos': vcf_dict['pos'],
                                                                      'ref': vcf_dict['ref'],
@@ -8006,7 +7966,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     # Warn not directly mapped to specified genome build
                     if genomic_accession != '':
                         caution = ''
-                        if primary_assembly not in primary_genomic_dicts.keys():
+                        if primary_assembly.lower() not in primary_genomic_dicts.keys():
                             warnings = warnings + ': ' + str(
                                 hgvs_coding) + ' cannot be mapped directly to genome build ' + primary_assembly + ': See alternative genomic loci or alternative genome builds for aligned genomic positions'
 
@@ -8081,7 +8041,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     validation_error_counter = validation_error_counter + 1
                     identification_key = 'Validation_Error_%s' % (str(validation_error_counter))
                 else:
-                    identification_key = '%s' % (str(valid_v['HGVS_transcript_variant']))
+                    identification_key = '%s' % (str(valid_v['hgvs_transcript_variant']))
 
                 #if identification_key not in validation_output.keys():
                 validation_output[identification_key] = valid_v
@@ -8194,15 +8154,14 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                     if lifted_back[0] == incoming_vcf['chr']:
                                         if lifted_back[1] == int(incoming_vcf['pos']):
                                             for build in genome_builds:
-                                                vcf_dict = va_H2V.report_hgvs2vcf(hgvs_lifted, build,
-                                                                                  reverse_normalizer, sf)
+                                                vcf_dict = va_H2V.report_hgvs2vcf(hgvs_lifted, build, reverse_normalizer, sf)
                                                 test = va_scb.supported_for_mapping(hgvs_lifted.ac, build)
 
                                                 if test == 'true':
                                                     if re.match('NC_', alt_gen_var.ac):
                                                         if re.match('GRC', build):
-                                                            primary_genomic_dicts[build] = {
-                                                                'HGVS_genomic_description': valstr(hgvs_lifted),
+                                                            primary_genomic_dicts[build.lower()] = {
+                                                                'hgvs_genomic_description': valstr(hgvs_lifted),
                                                                 'vcf': {'chr': vcf_dict['grc_chr'],
                                                                         'pos': vcf_dict['pos'],
                                                                         'ref': vcf_dict['ref'],
@@ -8211,8 +8170,8 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                             }
 
                                                         else:
-                                                            primary_genomic_dicts[build] = {
-                                                                'HGVS_genomic_description': valstr(hgvs_lifted),
+                                                            primary_genomic_dicts[build.lower()] = {
+                                                                'hgvs_genomic_description': valstr(hgvs_lifted),
                                                                 'vcf': {'chr': vcf_dict['ucsc_chr'],
                                                                         'pos': vcf_dict['pos'],
                                                                         'ref': vcf_dict['ref'],
@@ -8221,10 +8180,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                                             }
 
                                                         if build == 'GRCh38':
-                                                            vcf_dict = va_H2V.report_hgvs2vcf(hgvs_lifted, 'hg38',
-                                                                                              reverse_normalizer, sf)
+                                                            vcf_dict = va_H2V.report_hgvs2vcf(hgvs_lifted, 'hg38', reverse_normalizer, sf)
                                                             primary_genomic_dicts['hg38'] = {
-                                                                'HGVS_genomic_description': valstr(hgvs_lifted),
+                                                                'hgvs_genomic_description': valstr(hgvs_lifted),
                                                                 'vcf': {'chr': vcf_dict['ucsc_chr'],
                                                                         'pos': vcf_dict['pos'],
                                                                         'ref': vcf_dict['ref'],

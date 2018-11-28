@@ -34,11 +34,11 @@ def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp):
     Step 1, attempt to liftover using a common RefSeq transcript
     """
     evm = hgvs.assemblymapper.AssemblyMapper(hdp,
-            assembly_name=build_from,
-            alt_aln_method='splign',
-            normalize=True,
-            replace_reference=True
-            )
+                                             assembly_name=build_from,
+                                             alt_aln_method='splign',
+                                             normalize=True,
+                                             replace_reference=True
+                                             )
     try:
         hgvs_genomic = hp.parse_hgvs_variant(hgvs_genomic)
     except TypeError:
@@ -70,7 +70,8 @@ def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp):
 
     # Get a list of overlapping RefSeq transcripts
     # Note, due to 0 base positions in UTA (I think) occasionally tx will
-    rts_list = hdp.get_tx_for_region(hgvs_genomic.ac, 'splign', hgvs_genomic.posedit.pos.start.base-1, hgvs_genomic.posedit.pos.end.base-1)
+    rts_list = hdp.get_tx_for_region(hgvs_genomic.ac, 'splign', hgvs_genomic.posedit.pos.start.base - 1,
+                                     hgvs_genomic.posedit.pos.end.base - 1)
     rts_dict = {}
     tx_list = False
     for tx_dat in rts_list:
@@ -150,7 +151,6 @@ def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp):
 
     """
     Step 2, attempt to liftover using PyLiftover. 
-    
     Lift position > Check bases > Lift back and confirm the original position
     """
 
@@ -255,20 +255,19 @@ def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp):
 
     return lifted_response
 
-
 # <LICENSE>
 # Copyright (C) 2018  Peter Causey-Freeman, University of Leicester
-# 
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
 # published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # </LICENSE>
