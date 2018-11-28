@@ -138,7 +138,6 @@ if re.match('^\d+\.\d+\.\d+$', __version__) is not None:
 
 # Import variantanalyser and peripheral VV modules
 import ref_seq_type
-import variantanalyser
 from variantanalyser import functions as va_func
 from variantanalyser import dbControls as va_dbCrl
 from variantanalyser import hgvs2vcf as va_H2V
