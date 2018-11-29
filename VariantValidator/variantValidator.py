@@ -8210,6 +8210,15 @@ def validator(batch_variant, selected_assembly, select_transcripts):
         metadata["variant"]=batch_variant
         metadata["assembly"]=selected_assembly
         metadata["transcripts"]=select_transcripts
+        metadata['seqrepo_directory']=HGVS_SEQREPO_DIR
+        metadata['uta_url']=UTA_DB_URL
+        metadata['py_liftover_directory']=PYLIFTOVER_DIR
+        metadata['variantvalidator_data_url']=VALIDATOR_DB_URL
+        metadata['entrez_id']=ENTREZ_ID
+        metadata['variantvalidator_version']=VERSION
+        metadata['variantvalidator_hgvs_version']=hgvs_version
+        metadata['uta_schema']=str(hdp.data_version())
+        metadata['seqrepo_db']=HGVS_SEQREPO_DIR.split('/')[-1]
         validation_output["metadata"]=metadata
         #'''
         # Measure time elapsed
