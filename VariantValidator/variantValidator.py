@@ -86,7 +86,7 @@ import os
 import sys
 from operator import itemgetter
 import warnings as warner
-from pyliftover import LiftOver
+# from pyliftover import LiftOver
 
 # Import Biopython
 from Bio.Seq import Seq
@@ -138,6 +138,7 @@ if re.match('^\d+\.\d+\.\d+$', __version__) is not None:
 
 # Import variantanalyser and peripheral VV modules
 import ref_seq_type
+import variantanalyser
 from variantanalyser import functions as va_func
 from variantanalyser import dbControls as va_dbCrl
 from variantanalyser import hgvs2vcf as va_H2V
@@ -145,6 +146,8 @@ from variantanalyser import batch as va_btch
 from variantanalyser import g_to_g as va_g2g
 from variantanalyser import supported_chromosome_builds as va_scb
 from variantanalyser import gap_genes as gapGenes
+from variantanalyser.liftover import liftover as lift_over
+
 
 # Custom Exceptions
 class variantValidatorError(Exception):
@@ -275,9 +278,6 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                 select_transcripts_dict[id] = ''
         # Set up gene list dictionary
         input_genes = {}
-
-        # Remove genes if transcripts selected
-        # if select_transcripts != 'all':
 
         # split the batch queries into a list
         batch_queries = batch_variant.split('|')
@@ -2241,6 +2241,9 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             saved_hgvs_coding = hp.parse_hgvs_variant(var)
 
                             # Remove un-selected transcripts
+
+                            # REVIEW AT MODULAR
+
                             if select_transcripts != 'all':
                                 tx_ac = saved_hgvs_coding.ac
                                 # If it's in the selected tx dict, keep it
@@ -7992,124 +7995,53 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                 # https://pypi.org/project/pyliftover/
                 genomic_position_info = valid_v['primary_assembly_loci']
                 for g_p_key in genomic_position_info.keys():
-                    if re.match('GRC', g_p_key):
-                        continue
+
+                    # Identify the current build and hgvs_genomic descripsion
                     if re.match('hg', g_p_key):
-                        incoming_build = g_p_key
-                        incoming_vcf = genomic_position_info[g_p_key]['vcf']
-                        incoming_hgvs = genomic_position_info[g_p_key]['HGVS_genomic_description']
-                    # removed 'hg'
-                    if g_p_key == 'hg19':
-                        build_to = '38'
-                    if g_p_key == 'hg38':
-                        build_to = '19'
-                    g_p_key = g_p_key.replace('hg', '')
+                        # incoming_vcf = genomic_position_info[g_p_key]['vcf']
+                        # set builds
+                        if g_p_key == 'hg38':
+                            build_to = 'hg19'
+                            build_from = 'hg38'
+                        if g_p_key == 'hg19':
+                            build_to = 'hg38'
+                            build_from = 'hg19'
+                    elif re.match('grc', g_p_key):
+                        # incoming_vcf = genomic_position_info[g_p_key]['vcf']
+                        # set builds
+                        if g_p_key == 'grch38':
+                            build_to = 'GRCh37'
+                            build_from = 'GRCh38'
+                        if g_p_key == 'grch37':
+                            build_to = 'GRCh38'
+                            build_from = 'GRCh37'
 
-                    if PYLIFTOVER_DIR is not None:
-                        lo_filename = PYLIFTOVER_DIR + "hg%sToHg%s.over.chain" % (g_p_key, build_to)
-                        lo = LiftOver(lo_filename)
-                        warner.warn('liftover from ' + str(lo_filename))
-                    else:
-                        build_to = 'hg' + build_to
-                        g_p_key = 'hg' + g_p_key
-                        lo = LiftOver(g_p_key, build_to)
-                        warner.warn('liftover from external files')
-                    # Note: May be multiple alts!
-                    liftover_list = lo.convert_coordinate(incoming_vcf['chr'], int(incoming_vcf['pos']))
-                    
-                    # Create dictionary
-                    primary_genomic_dicts = {}
-                    for lifted in liftover_list:
-                        chr = lifted[0]
-                        pos = lifted[1]
-                        orientated = lifted[2]
-                        lifted_ref_bases = incoming_vcf['ref']
-                        lifted_alt_bases = incoming_vcf['alt']
-                        # Inverted sequence
-                        if orientated != '+':
-                            my_seq = Seq(lifted_ref_bases)
-                            lifted_ref_bases = my_seq.reverse_complement()
-                            your_seq = Seq(lifted_alt_bases)
-                            lifted_alt_bases = your_seq.reverse_complement()
-                        
-                        if PYLIFTOVER_DIR is not None:
-                            accession = va_scb.to_accession(chr, 'hg' + build_to)
-                        else:
-                            accession = va_scb.to_accession(chr, build_to)
-                        if accession is None:
-                            # No accession
-                            continue
-                        else:
-                            not_delins = accession + ':g.' + str(pos) + '_' + str(
-                                (pos - 1) + len(lifted_ref_bases)) + 'del' + lifted_ref_bases + 'ins' + lifted_alt_bases
-                            hgvs_not_delins = hp.parse_hgvs_variant(not_delins)
-                            try:
-                                vr.validate(hgvs_not_delins)
-                            except hgvs.exceptions.HGVSError as e:
-                                # Most likely incorrect bases
-                                continue
+                    # Liftover
+                    lifted_response = lift_over(genomic_position_info[g_p_key]['hgvs_genomic_description'], build_from, build_to, hn, vm, vr, hdp, hp, reverse_normalizer, sf, evm)
+
+                    # Sort the respomse into primary assembly and ALT
+                    primary_assembly_loci = {}
+                    alt_genomic_loci = []
+                    for build_key, accession_dict in lifted_response.iteritems():
+                        try:
+                            accession_key = accession_dict.keys()[0]
+                            if re.match('NC_', accession_dict[accession_key]['hgvs_genomic_description']):
+                                primary_assembly_loci[build_key.lower()] = accession_dict[accession_key]
                             else:
-                                hgvs_lifted = hn.normalize(hgvs_not_delins)
-                                # Now try map back
-                                if PYLIFTOVER_DIR is not None:
-                                    lo_filename = PYLIFTOVER_DIR + "hg%sToHg%s.over.chain" % (build_to, g_p_key)
-                                    lo = LiftOver(lo_filename)
-                                    warner.warn('liftover from ' + str(lo_filename))
-                                else:
-                                    # hg already added to build_to and g_p_key
-                                    lo = LiftOver(build_to, g_p_key)
-                                    warner.warn('liftover from external files')
-                                liftback_list = lo.convert_coordinate(chr, pos)                                
-                                
-                                for lifted_back in liftback_list:
-                                    # Pull out the good guys!
-                                    if lifted_back[0] == incoming_vcf['chr']:
-                                        if lifted_back[1] == int(incoming_vcf['pos']):
-                                            for build in genome_builds:
-                                                vcf_dict = va_H2V.report_hgvs2vcf(hgvs_lifted, build, reverse_normalizer, sf)
-                                                test = va_scb.supported_for_mapping(hgvs_lifted.ac, build)
+                                alt_genomic_loci.append({build_key.lower(): accession_dict[accession_key]})
 
-                                                if test == 'true':
-                                                    if re.match('NC_', alt_gen_var.ac):
-                                                        if re.match('GRC', build):
-                                                            primary_genomic_dicts[build.lower()] = {
-                                                                'hgvs_genomic_description': valstr(hgvs_lifted),
-                                                                'vcf': {'chr': vcf_dict['grc_chr'],
-                                                                        'pos': vcf_dict['pos'],
-                                                                        'ref': vcf_dict['ref'],
-                                                                        'alt': vcf_dict['alt']
-                                                                        }
-                                                            }
+                        # KeyError if the dicts are empty
+                        except KeyError:
+                            continue
 
-                                                        else:
-                                                            primary_genomic_dicts[build.lower()] = {
-                                                                'hgvs_genomic_description': valstr(hgvs_lifted),
-                                                                'vcf': {'chr': vcf_dict['ucsc_chr'],
-                                                                        'pos': vcf_dict['pos'],
-                                                                        'ref': vcf_dict['ref'],
-                                                                        'alt': vcf_dict['alt']
-                                                                        }
-                                                            }
+                    # Add the dictionaries from lifted response to the output
+                    if primary_assembly_loci != {}:
+                        valid_v['primary_assembly_loci'] = primary_assembly_loci
+                    if alt_genomic_loci != []:
+                        valid_v['alt_genomic_loci'] = alt_genomic_loci
 
-                                                        if build == 'GRCh38':
-                                                            vcf_dict = va_H2V.report_hgvs2vcf(hgvs_lifted, 'hg38', reverse_normalizer, sf)
-                                                            primary_genomic_dicts['hg38'] = {
-                                                                'hgvs_genomic_description': valstr(hgvs_lifted),
-                                                                'vcf': {'chr': vcf_dict['ucsc_chr'],
-                                                                        'pos': vcf_dict['pos'],
-                                                                        'ref': vcf_dict['ref'],
-                                                                        'alt': vcf_dict['alt']
-                                                                        }
-                                                            }
-
-                    # Append the data if any
-                    if len(primary_genomic_dicts) > 0:
-                        for build_key in primary_genomic_dicts.keys():
-                            valid_v['primary_assembly_loci'][build_key] = primary_genomic_dicts[build_key]
                 # Finalise the output dictionary
                 validation_output[identification_key] = valid_v
-
-        # print json.dumps(validation_output, sort_keys=True, indent=4, separators=(',', ': '))
 
         if VALIDATOR_DEBUG is not None:
             # Measure time elapsed

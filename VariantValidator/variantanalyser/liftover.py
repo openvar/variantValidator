@@ -23,8 +23,12 @@ hgvs.global_config.formatting.max_ref_length = 1000000
 # Determine whether a liftover directory has been added to the environment
 PYLIFTOVER_DIR = os.environ.get('PYLIFTOVER_DIR')
 
+def mystr(hgvs_nucleotide):
+    hgvs_nucleotide_refless = hgvs_nucleotide.format({'max_ref_length': 0})
+    return hgvs_nucleotide_refless
 
-def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp):
+def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp, reverse_normalizer, sf, evm):
+
     """
     :param hgvs_genomic: hgvs_object genomic description accession NC, NT, or NW. Not NG
     :param build_from:
@@ -33,12 +37,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp):
 
     Step 1, attempt to liftover using a common RefSeq transcript
     """
-    evm = hgvs.assemblymapper.AssemblyMapper(hdp,
-                                             assembly_name=build_from,
-                                             alt_aln_method='splign',
-                                             normalize=True,
-                                             replace_reference=True
-                                             )
+
     try:
         hgvs_genomic = hp.parse_hgvs_variant(hgvs_genomic)
     except TypeError:
@@ -49,24 +48,67 @@ def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp):
 
     # Check genome build type
     if re.match('GRC', build_from):
-        from_set = 'chr'
+        from_set = 'grc_chr'
+        alt_from_set = 'ucsc_chr'
+        if re.search('37', build_from):
+            lo_from = 'hg19'
+            alt_build_from = 'hg19'
+        if re.search('38', build_from):
+            lo_from = 'hg38'
+            alt_build_from = 'hg38'
+
     else:
         from_set = 'ucsc_chr'
+        alt_from_set = 'grc_chr'
+        if re.search('19', build_from):
+            lo_from = 'hg19'
+            alt_build_from = 'GRCh37'
+        if re.search('38', build_from):
+            lo_from = 'hg38'
+            alt_build_from = 'GRCh38'
+
     if re.match('GRC', build_to):
-        to_set = 'chr'
+        to_set = 'grc_chr'
+        alt_to_set = 'ucsc_chr'
+        if re.search('37', build_to):
+            lo_to = 'hg19'
+            alt_build_to = 'hg19'
+        if re.search('38', build_to):
+            lo_to = 'hg38'
+            alt_build_to = 'hg38'
     else:
         to_set = 'ucsc_chr'
+        alt_to_set = 'grc_chr'
+        if re.search('19', build_to):
+            lo_to = 'hg19'
+            alt_build_to = 'GRCh37'
+        if re.search('38', build_to):
+            lo_to = 'hg38'
+            alt_build_to = 'GRCh38'
 
     # populate the variant from data
-    vcf = hgvs2vcf.report_hgvs2vcf(hgvs_genomic, build_from)
-    lifted_response[build_from] = {'hgvs': hgvs_genomic,
+    vcf = hgvs2vcf.report_hgvs2vcf(hgvs_genomic, build_from, reverse_normalizer, sf)
+
+    # Create to and from dictionaries
+    lifted_response[build_from.lower()] = {}
+    lifted_response[build_from.lower()][hgvs_genomic.ac] = {'hgvs_genomic_description': mystr(hgvs_genomic),
                                    'vcf': {
                                        'chr': vcf[from_set],
                                        'pos': str(vcf['pos']),
                                        'ref': vcf['ref'],
                                        'alt': vcf['alt']}
                                    }
-    lifted_response[build_to] = {}
+    lifted_response[alt_build_from.lower()] = {}
+    lifted_response[alt_build_from.lower()][hgvs_genomic.ac] = {'hgvs_genomic_description': mystr(hgvs_genomic),
+                                   'vcf': {
+                                       'chr': vcf[alt_from_set],
+                                       'pos': str(vcf['pos']),
+                                       'ref': vcf['ref'],
+                                       'alt': vcf['alt']}
+                                   }
+    # From dictionary currently blank
+    lifted_response[build_to.lower()] = {}
+    lifted_response[alt_build_to.lower()] = {}
 
     # Get a list of overlapping RefSeq transcripts
     # Note, due to 0 base positions in UTA (I think) occasionally tx will
@@ -129,10 +171,21 @@ def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp):
                     # In this instance, do not mark added data as True
                     hgvs_tx = vm.g_to_t(hgvs_genomic, val)
                     hgvs_alt_genomic = vm.t_to_g(hgvs_tx, key)
-                    alt_vcf = hgvs2vcf.report_hgvs2vcf(hgvs_alt_genomic, build_to)
-                    lifted_response[build_to][hgvs_alt_genomic.ac] = {'hgvs': hgvs_alt_genomic,
+                    alt_vcf = hgvs2vcf.report_hgvs2vcf(hgvs_alt_genomic, build_to, reverse_normalizer, sf)
+
+                    # Add the to build dictionaries
+                    lifted_response[build_to.lower()][hgvs_alt_genomic.ac] = {
+                                                                    'hgvs_genomic_description': mystr(hgvs_alt_genomic),
                                                                       'vcf': {
                                                                           'chr': alt_vcf[to_set],
+                                                                          'pos': str(alt_vcf['pos']),
+                                                                          'ref': alt_vcf['ref'],
+                                                                          'alt': alt_vcf['alt']}
+                                                                      }
+                    lifted_response[alt_build_to.lower()][hgvs_alt_genomic.ac] = {
+                                                                    'hgvs_genomic_description': mystr(hgvs_alt_genomic),
+                                                                      'vcf': {
+                                                                          'chr': alt_vcf[alt_to_set],
                                                                           'pos': str(alt_vcf['pos']),
                                                                           'ref': alt_vcf['ref'],
                                                                           'alt': alt_vcf['alt']}
@@ -159,24 +212,11 @@ def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp):
     # https://pypi.org/project/pyliftover/
     # Once validated, download the UCSC liftover files from http://hgdownload.cse.ucsc.edu/goldenPath/hg38/liftOver/
 
-    # for the purposes of the liftover tool, the hg builds must be selected
-    if build_from == 'GRCh37':
-        lo_from = 'hg19'
-    elif build_from == 'GRCh38':
-        lo_from = 'hg38'
-    else:
-        lo_from = build_from
-    if build_to == 'GRCh37':
-        lo_to = 'hg19'
-    elif build_to == 'GRCh38':
-        lo_to = 'hg38'
-    else:
-        lo_to = build_to
     # The structure of the following code comes from VV pymod, so need to create a list
     genome_builds = [build_to]
 
     # Create liftover vcf
-    from_vcf = hgvs2vcf.report_hgvs2vcf(hgvs_genomic, lo_from)
+    from_vcf = hgvs2vcf.report_hgvs2vcf(hgvs_genomic, lo_from, reverse_normalizer, sf)
 
     if PYLIFTOVER_DIR is not None:
         lo_filename_to = PYLIFTOVER_DIR + "%sTo%s.over.chain" % (lo_from, lo_to)
@@ -185,8 +225,14 @@ def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp):
         lo = LiftOver(lo_filename_to)
     else:
         lo = LiftOver(lo_from, lo_to)
-    # Note: May be multiple alts!
-    liftover_list = lo.convert_coordinate(from_vcf['chr'], int(from_vcf['pos']))
+
+    # Fix the GRC CHR
+    if re.match('chr', from_vcf[from_set]):
+        liftover_list = lo.convert_coordinate(from_vcf[from_set], int(from_vcf['pos']))
+    else:
+        my_chrom = 'chr' + from_vcf[from_set]
+        liftover_list = lo.convert_coordinate(my_chrom, int(from_vcf['pos']))
+
 
     # Create dictionary
     primary_genomic_dicts = {}
@@ -194,8 +240,10 @@ def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp):
         chr = lifted[0]
         pos = lifted[1]
         orientated = lifted[2]
+
         lifted_ref_bases = from_vcf['ref']
         lifted_alt_bases = from_vcf['alt']
+
         # Inverted sequence
         if orientated != '+':
             my_seq = Seq(lifted_ref_bases)
@@ -227,33 +275,56 @@ def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp):
                     lo = LiftOver(lo_filename_from)
                 else:
                     lo = LiftOver(lo_to, lo_from)
+
+                # Lift back
                 liftback_list = lo.convert_coordinate(chr, pos)
+
                 for lifted_back in liftback_list:
                     # Pull out the good guys!
-                    if lifted_back[0] == from_vcf['chr']:
+                    # Need to add chr to the from_set
+                    if not re.match('chr', lifted_back[0]):
+                        my_from_chr = 'chr' + lifted_back[0]
+                    else:
+                        my_from_chr = lifted_back[0]
+
+                    if lifted_back[0] == from_vcf[from_set] or lifted_back[0] == my_from_chr:
                         if lifted_back[1] == int(from_vcf['pos']):
                             for build in genome_builds:
-                                vcf_dict = hgvs2vcf.report_hgvs2vcf(hgvs_lifted, build)
+                                vcf_dict = hgvs2vcf.report_hgvs2vcf(hgvs_lifted, build, reverse_normalizer, sf)
                                 if re.match('GRC', build):
-                                    lifted_response[build_to][hgvs_lifted.ac] = {
-                                        'hgvs': hgvs_lifted,
-                                        'vcf': {'chr': vcf_dict['chr'],
+                                    lifted_response[build_to.lower()][hgvs_lifted.ac] = {
+                                        'hgvs_genomic_description': mystr(hgvs_lifted),
+                                        'vcf': {'chr': vcf_dict['grc_chr'],
                                                 'pos': str(vcf_dict['pos']),
                                                 'ref': vcf_dict['ref'],
                                                 'alt': vcf_dict['alt']
                                                 }
                                     }
-
+                                    lifted_response[alt_build_to.lower()][hgvs_lifted.ac] = {
+                                        'hgvs_genomic_description': mystr(hgvs_lifted),
+                                        'vcf': {'chr': vcf_dict['ucsc_chr'],
+                                                'pos': str(vcf_dict['pos']),
+                                                'ref': vcf_dict['ref'],
+                                                'alt': vcf_dict['alt']
+                                                }
+                                    }
                                 else:
-                                    lifted_response[build_to][hgvs_lifted.ac] = {
-                                        'hgvs': hgvs_lifted,
-                                        'vcf': {'chr': vcf_dict['chr'],
+                                    lifted_response[build_to.lower()][hgvs_lifted.ac] = {
+                                        'hgvs_genomic_description': mystr(hgvs_lifted),
+                                        'vcf': {'chr': vcf_dict['ucsc_chr'],
                                                 'pos': str(vcf_dict['pos']),
                                                 'ref': vcf_dict['ref'],
                                                 'alt': vcf_dict['alt']
                                                 }
                                     }
-
+                                    lifted_response[alt_build_to.lower()][hgvs_lifted.ac] = {
+                                        'hgvs_genomic_description': mystr(hgvs_lifted),
+                                        'vcf': {'chr': vcf_dict['grc_chr'],
+                                                'pos': str(vcf_dict['pos']),
+                                                'ref': vcf_dict['ref'],
+                                                'alt': vcf_dict['alt']
+                                                }
+                                    }
     return lifted_response
 
 # <LICENSE>

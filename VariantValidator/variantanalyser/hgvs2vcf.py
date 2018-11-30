@@ -185,22 +185,31 @@ def report_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
     reverse_normalized_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic_variant)
     # hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
+    # Sort the primary assemblies
+    if re.match('GRC', primary_assembly):
+        if re.search('37', primary_assembly):
+            ucsc_pa = 'hg19'
+            grc_pa = primary_assembly
+        if re.search('38', primary_assembly):
+            ucsc_pa = 'hg38'
+            grc_pa = primary_assembly
+    else:
+        if re.search('19', primary_assembly):
+            ucsc_pa = primary_assembly
+            grc_pa = 'GRCh37'
+        if re.search('38', primary_assembly):
+            ucsc_pa = primary_assembly
+            grc_pa = 'GRCh38'
+
     # UCSC Chr
-    ucsc_chr = supportedChromosomeBuilds.to_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, primary_assembly)
+    ucsc_chr = supportedChromosomeBuilds.to_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, ucsc_pa)
     if ucsc_chr is not None:
         pass
     else:
         ucsc_chr = reverse_normalized_hgvs_genomic.ac
 
     # GRC Chr
-    grc_chr = supportedChromosomeBuilds.to_chr_num_refseq(reverse_normalized_hgvs_genomic.ac, primary_assembly)
-    if grc_chr is not None:
-        pass
-    else:
-        grc_chr = reverse_normalized_hgvs_genomic.ac
-
-    # GRC Chr
-    grc_chr = supportedChromosomeBuilds.to_chr_num_refseq(reverse_normalized_hgvs_genomic.ac, primary_assembly)
+    grc_chr = supportedChromosomeBuilds.to_chr_num_refseq(reverse_normalized_hgvs_genomic.ac, grc_pa)
     if grc_chr is not None:
         pass
     else:

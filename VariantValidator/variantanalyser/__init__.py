@@ -10,6 +10,7 @@ import hgvs2vcf
 from batch import *
 from gap_genes import *
 import pseudo_vcf2hgvs
+from liftover import *
 
 # <LICENSE>
 # Copyright (C) 2018  Peter Causey-Freeman, University of Leicester
