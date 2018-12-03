@@ -2,11 +2,14 @@
 
 import vvTestFunctions as fn
 import sys
+from StringIO import StringIO
 
-sys.stdout=open("vvTestSaveOutput.txt","w")
+sysOut=StringIO()
+
+#sys.stdout=sysOut
 
 inputVariants="inputVariants.txt"
-saveDirectory="testOutputs"
+saveOut="testJSON.json"
 
-fn.generateTestFolder(saveDirectory,inputVariants)
+fn.generateTestJSON(saveOut,inputVariants,sysOut)
 

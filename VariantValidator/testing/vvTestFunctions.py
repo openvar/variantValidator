@@ -63,14 +63,29 @@ def generateTestFolder(path, inputVariants):
     #Go through the variant array, validating, and save the results.
     batch=validateBatch(variantArray)
     #Save copy of the resulting dictionary
-    saveValidations(path,batch)
+    saveValidationsAsFolder(path,batch)
 
-def saveValidations(path, validations):
+def generateTestJSON(path, inputVariants,sysOut):
+    variantArray=loadVariantFile(inputVariants)
+    #Go through the variant array, validating, and save the results.
+    batch=validateBatch(variantArray)
+    #batch.append(sysOut.getvalue())
+    #Save copy of the resulting dictionary
+    saveValidationsAsJSON(path,batch)
+
+def saveValidationsAsFolder(path, validations):
     #Pickles validation dictionaries into the given folder.
     for i,v in enumerate(validations):
         with open(os.path.join(path,"variant"+str(i)+".txt") ,"w") as f:
             pickle.dump(v,f)
 
+def saveValidationsAsJSON(path,validations):
+    #Saves a set of validations (v is a list of dictionaries) or a bunch of validations (v is a list of dictionaries)
+    #as the json given in path. The name of the file will be that of the input variant string.
+    jOut=json.dumps(validations)
+    with open(path,"w") as f:
+        f.write(jOut)
+    print("JSON saved to "+path)
 
 def loadVariantFile(path):
     out=[]
@@ -143,11 +158,6 @@ def retrieveVariant(validation):
         except (KeyError, TypeError, AttributeError):
             pass
     raise AttributeError("Validation does not contain the original variant string")
-
-def saveValidationsAsJSON(path,v):
-    #Saves a single validation (v is a dictionary) or a bunch of validations (v is a list of dictionaries) in
-    #the folder given in path. The name of the file will be that of the input variant string.
-    pass
 
 def compareValidations(v1,v2,id):
     #print(v1,v2)

@@ -760,7 +760,7 @@ def myevm_t_to_g(hgvs_c, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_
         # If the gene symbol is not in the list, the value False will be returned
         utilise_gap_code = gap_genes.gap_black_list(gene_symbol)
     # Warn gap code in use
-    logger.warn("gap_compensation_myevm = " + str(utilise_gap_code))
+    logger.warning("gap_compensation_myevm = " + str(utilise_gap_code))
 
     if utilise_gap_code is True and (
             hgvs_c.posedit.edit.type == 'identity' or hgvs_c.posedit.edit.type == 'del' or hgvs_c.posedit.edit.type == 'delins' or hgvs_c.posedit.edit.type == 'dup' or hgvs_c.posedit.edit.type == 'sub' or hgvs_c.posedit.edit.type == 'ins' or hgvs_c.posedit.edit.type == 'inv'):

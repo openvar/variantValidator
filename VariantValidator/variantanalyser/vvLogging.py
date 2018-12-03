@@ -85,6 +85,11 @@ class logger():
         logger.loggingSetup()
         logger.logger.debug("TRACE: "+s)
     @staticmethod
+    def resub(s):
+        #Resubmit one or multiple variants
+        logger.loggingSetup()
+        logger.logger.warning("RESUB: "+s)
+    @staticmethod
     def getString():
         logger.loggingSetup()
         #print("RETURNING:")
