@@ -127,7 +127,7 @@ def exceptPass(validation=None):
     te = traceback.format_exc()
     tbk = [str(exc_type), str(exc_value), str(te)]
     er = str('\n'.join(tbk))
-    logger.warning("Except pass for "+str(exc_type)+" "+str(exc_value))
+    logger.warning("Except pass for "+str(exc_type)+" "+str(exc_value)+" at line "+str(last_traceback.tb_lineno))
     logger.debug(er)
 
 
@@ -251,13 +251,12 @@ This is the primary VariantValidator function
 """
 
 
-def validator(batch_variant, selected_assembly, select_transcripts):
+def validator(batch_variant, selected_assembly, select_transcripts, transcriptSet="refseq"):
     logger.info(batch_variant + ' : ' + selected_assembly)
     # Take start time
     start_time = time.time()
 
     # Set pre defined variables
-    alt_aln_method = 'splign'
     # SeqFetcher
     # sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
 
@@ -319,6 +318,19 @@ def validator(batch_variant, selected_assembly, select_transcripts):
         logger.debug("Batch list length "+str(len(batch_list)))
         for validation in batch_list:
             # Re-set cautions and automaps
+
+            if transcriptSet=="refseq":
+                alt_aln_method = 'splign'
+            elif transcriptSet=="ensembl":
+                alt_aln_method = 'genebuild'
+                logger.error("Ensembl is currently not supported")
+                validation['warnings']+=': '+"Ensembl is currently not supported"
+                continue
+            else:
+                logger.error("The transcript set variable "+transcriptSet+" is invalid, it needs to be 'refseq' or 'ensembl'")
+                validation['warnings']+=': '+"The transcript set variable "+transcriptSet+" is invalid, it needs to be 'refseq' or 'ensembl'"
+                continue
+
             caution = ''
             automap = ''
 
@@ -626,7 +638,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                             logger.debug(er)
 
                 # GENE_SYMBOL:c. n. types
-                logger.trace("Completed VCF-HVGS step 3")
+                logger.trace("Completed VCF-HGVS step 3")
                 """
                 Searches for gene symbols that have been used as reference sequence
                 identifiers. Provides a sufficiently repremanding warning, but also provides
