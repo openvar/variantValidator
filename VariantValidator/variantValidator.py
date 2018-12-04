@@ -424,7 +424,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     # Extract primary_assembly if provided
                     if re.match('GRCh3\d+-', input) or re.match('hg\d+-', input):
                         in_list = input.split('-')
-                        selected_assembly = in_list[0]
+                        primary_assembly = in_list[0]
                         input = '-'.join(in_list[1:])
                     pre_input = copy.deepcopy(input)
                     vcf_elements = pre_input.split('-')
@@ -434,7 +434,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     # Extract primary_assembly if provided
                     if re.match('GRCh3\d+-', input) or re.match('hg\d+-', input):
                         in_list = input.split('-')
-                        selected_assembly = in_list[0]
+                        primary_assembly = in_list[0]
                         input = '-'.join(in_list[1:])
                     pre_input = copy.deepcopy(input)
                     vcf_elements = pre_input.split('-')
@@ -462,7 +462,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     # Extract primary_assembly if provided
                     if re.match('GRCh3\d+-', input) or re.match('hg\d+-', input):
                         in_list = input.split('-')
-                        selected_assembly = in_list[0]
+                        primary_assembly = in_list[0]
                         input = '-'.join(in_list[1:])
                     pre_input = copy.deepcopy(input)
                     vcf_elements = pre_input.split('-')
@@ -504,11 +504,11 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 if re.match('CHR', chr_num):
                                     chr_num = chr_num.replace('CHR', '')
                                 # Use selected assembly
-                                accession = va_scb.to_accession(chr_num, selected_assembly)
+                                accession = va_scb.to_accession(chr_num, primary_assembly)
                                 if accession is None:
                                     validation['warnings'] = validation[
                                                                  'warnings'] + ': ' + chr_num + \
-                                                             ' is not part of genome build ' + selected_assembly
+                                                             ' is not part of genome build ' + primary_assembly
                                     continue
                             else:
                                 accession = input_list[0]
@@ -557,7 +557,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                 # Ambiguous chr reference
                 """
                 VCF2HGVS conversion step 3 is similar to step 2 but handles 
-                formats like Chr16:g.>2099572TC>T which are provided by Alamut and other
+                formats like chr16:g.2099572TC>T which are provided by Alamut and other
                 software
                 """
                 if re.search('\w+:[gcnmrp]\.', input) and not re.match('N[CGTWMRP]_', input):
@@ -591,10 +591,10 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                                 chr_num = chr_num.strip()
                                 if re.match('CHR', chr_num):
                                     chr_num = chr_num.replace('CHR', '')  # Use selected assembly
-                                accession = va_scb.to_accession(chr_num, selected_assembly)
+                                accession = va_scb.to_accession(chr_num, primary_assembly)
                                 if accession is None:
                                     validation['warnings'] = validation['warnings'] + ': ' + chr_num + \
-                                                             ' is not part of genome build ' + selected_assembly
+                                                             ' is not part of genome build ' + primary_assembly
                                     continue
                                 input = str(accession) + ':' + str(positionAndEdit)
                                 stash_input = input
