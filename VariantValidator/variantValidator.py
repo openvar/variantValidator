@@ -6346,7 +6346,6 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                         transcript_accession = hgvs_transcript_variant.ac
 
                         # Handle LRG
-                        lrg_status = 'public'
                         lrg_transcript = va_dbCrl.data.get_lrgTranscriptID_from_RefSeqTranscriptID(transcript_accession)
                         if lrg_transcript == 'none':
                             lrg_transcript_variant = ''
@@ -7929,6 +7928,34 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     dict_out['hgvs_lrg_variant'] = lrg_variant
                     dict_out['alt_genomic_loci'] = alt_genomic_dicts
                     dict_out['primary_assembly_loci'] = primary_genomic_dicts
+                    dict_out['urls'] = ''
+
+                    # Add urls
+                    report_urls = {}
+                    if 'NM_' in dict_out['hgvs_transcript_variant'] or 'NR_' in dict_out['hgvs_transcript_variant']:
+                        report_urls['transcript'] = 'https://www.ncbi.nlm.nih.gov' \
+                                                    '/nuccore/%s' % dict_out['hgvs_transcript_variant'].split(':')[0]
+                    if 'NP_' in str(predicted_protein_variant):
+                        report_urls['protein'] = 'https://www.ncbi.nlm.nih.gov' \
+                                                    '/nuccore/%s' % str(format_p).split(':')[0]
+                    if 'NG_' in dict_out['hgvs_refseqgene_variant']:
+                        report_urls['refseqgene'] = 'https://www.ncbi.nlm.nih.gov' \
+                                                    '/nuccore/%s' % dict_out['hgvs_refseqgene_variant'].split(':')[0]
+                    if 'LRG' in dict_out['hgvs_lrg_variant']:
+                        lrg_id = dict_out['hgvs_lrg_variant'].split(':')[0]
+                        lrg_data = va_dbCrl.data.get_LRG_data_from_LRGid(lrg_id)
+                        lrg_status = str(lrg_data[4])
+                        if lrg_status == 'public':
+                            report_urls['lrg'] = 'http://ftp.ebi.ac.uk/pub' \
+                                                 '/databases/lrgex/%s.xml' % dict_out['hgvs_lrg_variant'].split(':')[0]
+                        else:
+                            report_urls['lrg'] = 'http://ftp.ebi.ac.uk' \
+                                                 '/pub/databases/lrgex' \
+                                                 '/pending/%s.xml' % dict_out['hgvs_lrg_variant'].split(':')[0]
+                    # Ensembl needs to be added at a later data
+                    # "http://www.ensembl.org/id/" ? What about historic versions?????
+                    if report_urls != {}:
+                        dict_out['urls'] = report_urls
 
                     # Append to a list for return
                     batch_out.append(dict_out)
@@ -7936,6 +7963,7 @@ def validator(batch_variant, selected_assembly, select_transcripts):
                     continue
             else:
                 continue
+
 
         """
         Structure the output into dictionaries rather than a list with descriptive keys

@@ -273,6 +273,10 @@ def get_refseqgene_info(refseqgene_id, primary_assembly):
     refseqgene_info = dbfetchone.get_refseqgene_info(refseqgene_id, primary_assembly)
     return refseqgene_info
 
+def get_LRG_data_from_LRGid(lrg_id):
+	LRG_data = dbfetchone.get_LRG_data_from_LRGid(lrg_id)
+	return LRG_data
+
 # <LICENSE>
 # Copyright (C) 2018  Peter Causey-Freeman, University of Leicester
 # 
