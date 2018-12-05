@@ -88,6 +88,7 @@ import warnings
 from operator import itemgetter
 from pyliftover import LiftOver
 import traceback
+from configparser import ConfigParser
 
 from Bio.Seq import Seq
 
@@ -104,6 +105,7 @@ from variantanalyser import supported_chromosome_builds as va_scb
 from variantanalyser import gap_genes as gapGenes
 
 
+__version__=None
 
 
 # Ensure configuration is on the OS
@@ -132,12 +134,12 @@ def exceptPass(validation=None):
 
 
 # Config Section Mapping function
-def ConfigSectionMap(section):
+def ConfigSectionMap(section,c):
     dict1 = {}
-    options = Config.options(section)
+    options = c.options(section)
     for option in options:
         try:
-            dict1[option] = Config.get(section, option)
+            dict1[option] = c.get(section, option)
             if dict1[option] == -1:
                 logger.warning("skip: %s" % option)
         except:
@@ -146,14 +148,21 @@ def ConfigSectionMap(section):
     return dict1
 
 
-# Set the version from the config.ini
-from configparser import ConfigParser
+def loadConfigFile():
+    # Set the version from the config.ini
+    global __version__
+    Config = ConfigParser()
+    Config.read(os.path.join(CONF_ROOT, 'config.ini'))
+    __version__ = ConfigSectionMap("variantValidator",Config)['version']
+    if re.match('^\d+\.\d+\.\d+$', __version__) is not None:
+        _is_released_version = True
+    #Load database environments from config
 
-Config = ConfigParser()
-Config.read(os.path.join(CONF_ROOT, 'config.ini'))
-__version__ = ConfigSectionMap("variantValidator")['version']
-if re.match('^\d+\.\d+\.\d+$', __version__) is not None:
-    _is_released_version = True
+
+    logString = ConfigSectionMap("logging",Config)['string']
+    os.environ["VALIDATOR_DEBUG"]=logString
+    print "ac",os.environ["VALIDATOR_DEBUG"]
+    print("ls",logString)
 
 # Custom Exceptions
 class variantValidatorError(Exception):
@@ -206,6 +215,7 @@ def valstr(hgvs_variant):
 
 # Check configuration variables
 def my_config():
+    loadConfigFile()
     global HGVS_SEQREPO_DIR
     global UTA_DB_URL
     global VALIDATOR_DB_URL
@@ -6474,6 +6484,8 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     validation['test_stash_tx_right'] = test_stash_tx_right
 
             # Report errors to User and VV admin
+            except KeyboardInterrupt:
+                raise
             except:
                 set_output_type_flag = 'error'
                 error = 'Validation error'
@@ -8418,6 +8430,8 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
         return validation_output
 
     # Bug catcher
+    except KeyboardInterrupt:
+        raise
     except BaseException as e:
         # Debug mode
         exc_type, exc_value, last_traceback = sys.exc_info()
