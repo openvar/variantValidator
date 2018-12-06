@@ -81,6 +81,7 @@ import hgvs.normalizer
 # IMPORT PYTHON MODULES
 import re
 import time
+import datetime
 import copy
 import os
 import sys
@@ -129,7 +130,10 @@ def exceptPass(validation=None):
     te = traceback.format_exc()
     tbk = [str(exc_type), str(exc_value), str(te)]
     er = str('\n'.join(tbk))
-    logger.warning("Except pass for "+str(exc_type)+" "+str(exc_value)+" at line "+str(last_traceback.tb_lineno))
+    if last_traceback:
+        logger.warning("Except pass for "+str(exc_type)+" "+str(exc_value)+" at line "+str(last_traceback.tb_lineno))
+    else:
+        logger.warning("Except pass for "+str(exc_type)+" "+str(exc_value))
     logger.debug(er)
 
 
@@ -327,6 +331,8 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
         set_output_type_flag = 'warning'
         logger.debug("Batch list length "+str(len(batch_list)))
         for validation in batch_list:
+            #Start timing
+            logger.traceStart(validation)
             # Re-set cautions and automaps
 
             if transcriptSet=="refseq":
@@ -354,7 +360,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
             try:
                 # Note, ID is not touched. It is always the input variant description. Quibble will be altered but id will not if type = g.
                 input = validation['quibble']
-                logger.trace("Commenced validation of "+str(input))
+                logger.trace("Commenced validation of "+str(input),validation)
 
                 # Test for rich text unicode characters
                 try:
@@ -441,7 +447,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         validation['primary_assembly'] = primary_assembly
                 else:
                     primary_assembly = validation['primary_assembly']
-                logger.trace("Completed string formatting")
+                logger.trace("Completed string formatting",validation)
                 # Set variables that batch will not use but are required
                 crossing = 'false'
                 boundary = 'false'
@@ -504,7 +510,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     vcf_elements = pre_input.split('-')
                     input = '%s:%s%s>%s' % (vcf_elements[0], vcf_elements[1], vcf_elements[2], vcf_elements[3])
                     stash_input = input
-                logger.trace("Completed VCF-HVGS step 1")
+                logger.trace("Completed VCF-HVGS step 1",validation)
                 # API type non-HGVS
                 # e.g. Chr16:2099572TC>T
                 """
@@ -593,7 +599,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     continue
 
                 # Ambiguous chr reference
-                logger.trace("Completed VCF-HVGS step 2")
+                logger.trace("Completed VCF-HVGS step 2",validation)
                 """
                 VCF2HGVS conversion step 3 is similar to step 2 but handles 
                 formats like Chr16:g.2099572TC>T which are provided by Alamut and other
@@ -648,7 +654,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             logger.debug(er)
 
                 # GENE_SYMBOL:c. n. types
-                logger.trace("Completed VCF-HGVS step 3")
+                logger.trace("Completed VCF-HGVS step 3",validation)
                 """
                 Searches for gene symbols that have been used as reference sequence
                 identifiers. Provides a sufficiently repremanding warning, but also provides
@@ -705,7 +711,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             pass
                     except:
                         exceptPass()
-                logger.trace("Gene symbol reference catching complete")
+                logger.trace("Gene symbol reference catching complete",validation)
 
                 # NG_:c. or NC_:c.
                 """
@@ -766,7 +772,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     except:
                         exceptPass()
 
-                logger.trace("Chromosomal/RefSeqGene reference catching complete")
+                logger.trace("Chromosomal/RefSeqGene reference catching complete",validation)
                 # Find not_sub type in input e.g. GGGG>G
                 """
                 VCF2HGVS conversion step 4 has two purposes
@@ -896,7 +902,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         exceptPass()
                 else:
                     pass
-                logger.trace("Completed VCF-HVGS step 4")
+                logger.trace("Completed VCF-HVGS step 4",validation)
 
                 # Tackle edit1234 type
                 """
@@ -944,7 +950,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         logger.warning(automap)
                         input = failed
 
-                logger.trace("Ins/Del reference catching complete")
+                logger.trace("Ins/Del reference catching complete",validation)
                 # Tackle compound variant descriptions NG or NC (NM_) i.e. correctly input NG/NC_(NM_):c.
                 """
                 Fully HGVS compliant intronic variant descriptions take the format e.g
@@ -969,7 +975,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     transy = transy.group(1)
                     transy = transy.replace(')', '')
                     input = transy
-                logger.trace("HVGS typesetting complete")
+                logger.trace("HVGS typesetting complete",validation)
                 # Extract variants from HGVS allele descriptions
                 # http://varnomen.hgvs.org/recommendations/DNA/variant/alleles/
                 """
@@ -1044,7 +1050,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             continue
                         else:
                             raise variantValidatorError(error)
-                logger.trace("HVGS String allele parsing pass 1 complete")
+                logger.trace("HVGS String allele parsing pass 1 complete",validation)
                 # INITIAL USER INPUT FORMATTING
                 """
                 Removes whitespace from the ends of the string
@@ -1084,7 +1090,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     input = formatted['variant']
                     stash_input = formatted['variant']
                     type = formatted['type']
-                logger.trace("Variant input formatted, proceeding to validate.")
+                logger.trace("Variant input formatted, proceeding to validate.",validation)
                 # Conversions
                 """
                 Conversions are not currently supported. The HGVS format for conversions
@@ -1153,7 +1159,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         validation['warnings'] = validation['warnings'] + ': ' + str(
                             trap_ens_in) + ' automapped to equivalent RefSeq transcript ' + variant
                         logger.warning(str(trap_ens_in) + ' automapped to equivalent RefSeq transcript ' + variant)
-                logger.trace("HVGS acceptance test passed")
+                logger.trace("HVGS acceptance test passed",validation)
                 # Check whether supported genome build is requested for non g. descriptions
                 historic_assembly = 'false'
                 mapable_assemblies = {
@@ -1258,7 +1264,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         error = 'RefSeq variant accession numbers MUST include a version number'
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
                         continue
-                logger.trace("HVGS interval/version mapping complete")
+                logger.trace("HVGS interval/version mapping complete",validation)
 
                 # handle LRG inputs
                 """
@@ -1309,7 +1315,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             logger.warning(str(caution))
                     else:
                         pass
-                logger.trace("LRG check for conversion to refseq completed")
+                logger.trace("LRG check for conversion to refseq completed",validation)
                 # Additional Incorrectly input variant capture training
                 """
                 Evolving list of common mistakes, see sections below
@@ -1353,7 +1359,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     logger.error(error)
                     continue
 
-                logger.trace("Passed 'common mistakes' catcher")
+                logger.trace("Passed 'common mistakes' catcher",validation)
                 # Primary validation of the input
                 """
                 An evolving set of variant structure and content searches which identify 
@@ -1910,7 +1916,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 continue
                 else:
                     pass
-                logger.trace("Variant structure and contents searches passed")
+                logger.trace("Variant structure and contents searches passed",validation)
                 # Mitochondrial variants
                 """
                 Reformat m. into the new HGVS standard which is now m again!
@@ -2014,7 +2020,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
 
                 # COLLECT gene symbol, name and ACCESSION INFORMATION
                 # Gene symbol
-                logger.trace("Handled mitochondrial variants")
+                logger.trace("Handled mitochondrial variants",validation)
                 """
                 Identifies the transcript reference sequence name and HGNC gene symbol
                 """
@@ -6482,7 +6488,8 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                 if gap_compensation is True:
                     validation['test_stash_tx_left'] = test_stash_tx_left
                     validation['test_stash_tx_right'] = test_stash_tx_right
-
+                # finish timing
+                logger.traceEnd(validation)
             # Report errors to User and VV admin
             except KeyboardInterrupt:
                 raise
@@ -8398,9 +8405,8 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
 
         #Add error strings to validation output
         #'''
-        logger.info("Variant successfully validated")
-        logger.trace("completed validation")
         metadata={}
+        logger.info("Variant successfully validated")
         logs=[]
         logString=logger.getString()
         for l in logger.getString().split("\n"):
