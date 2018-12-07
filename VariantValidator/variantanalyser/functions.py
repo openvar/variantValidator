@@ -897,6 +897,7 @@ def myevm_t_to_g(hgvs_c, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_
 
         # Capture errors from attempted mappings
         attempted_mapping_error = ''
+
         for option in mapping_options:
             if re.match('blat', option[2]):
                 continue
@@ -920,17 +921,19 @@ def myevm_t_to_g(hgvs_c, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_
                 if re.match('blat', option[2]):
                     continue
                 if re.match('NC_', option[1]):
-                    try:
-                        hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
-                        break
-                    except Exception as e:
-                        if re.search(option[1], attempted_mapping_error):
-                            pass
-                        else:
-                            attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + option[
-                                1] + '~'
-                        print e
-                        continue
+                    chr_num = supported_chromosome_builds.supported_for_mapping(str(option[1]), primary_assembly)
+                    if chr_num == 'false':
+                        try:
+                            hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
+                            break
+                        except Exception as e:
+                            if re.search(option[1], attempted_mapping_error):
+                                pass
+                            else:
+                                attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + option[
+                                    1] + '~'
+                            print e
+                            continue
             try:
                 hn.normalize(hgvs_genomic)
             except:
@@ -938,45 +941,90 @@ def myevm_t_to_g(hgvs_c, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_
                     if re.match('blat', option[2]):
                         continue
                     if re.match('NT_', option[1]):
-                        try:
-                            hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
-                            break
-                        except Exception as e:
-                            attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + option[
-                                1] + '~'
-                            print e
-                            continue
+                        chr_num = supported_chromosome_builds.supported_for_mapping(str(option[1]), primary_assembly)
+                        if chr_num != 'false':
+                            try:
+                                hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
+                                break
+                            except Exception as e:
+                                attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + option[
+                                    1] + '~'
+                                print e
+                                continue
                 try:
                     hn.normalize(hgvs_genomic)
                 except:
                     for option in mapping_options:
                         if re.match('blat', option[2]):
                             continue
-                        if re.match('NW_', option[1]):
-                            try:
-                                hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
-                                break
-                            except Exception as e:
-                                attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + \
-                                                          option[1] + '~'
-                                print e
-                                continue
-                    # Only a RefSeqGene available
+                        if re.match('NT_', option[1]):
+                            chr_num = supported_chromosome_builds.supported_for_mapping(str(option[1]),
+                                                                                        primary_assembly)
+                            if chr_num == 'false':
+                                try:
+                                    hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
+                                    break
+                                except Exception as e:
+                                    attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + \
+                                                              option[
+                                                                  1] + '~'
+                                    print e
+                                    continue
                     try:
                         hn.normalize(hgvs_genomic)
                     except:
                         for option in mapping_options:
                             if re.match('blat', option[2]):
                                 continue
-                            if re.match('NG_', option[1]):
-                                try:
-                                    hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
-                                    break
-                                except Exception as e:
-                                    attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + \
-                                                              option[1] + '~'
-                                    print e
+                            if re.match('NW_', option[1]):
+                                chr_num = supported_chromosome_builds.supported_for_mapping(str(option[1]),
+                                                                                            primary_assembly)
+                                if chr_num != 'false':
+                                    try:
+                                        hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
+                                        break
+                                    except Exception as e:
+                                        attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + \
+                                                                  option[1] + '~'
+                                        print e
+                                        continue
+                        try:
+                            hn.normalize(hgvs_genomic)
+                        except:
+                            for option in mapping_options:
+                                if re.match('blat', option[2]):
                                     continue
+                                if re.match('NW_', option[1]):
+                                    chr_num = supported_chromosome_builds.supported_for_mapping(str(option[1]),
+                                                                                                primary_assembly)
+                                    if chr_num == 'false':
+                                        try:
+                                            hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
+                                            break
+                                        except Exception as e:
+                                            attempted_mapping_error = attempted_mapping_error + str(
+                                                e) + "/" + hgvs_c.ac + "/" + \
+                                                                      option[1] + '~'
+                                            print e
+                                            continue
+
+                            # Only a RefSeqGene available
+                            try:
+                                hn.normalize(hgvs_genomic)
+                            except:
+                                for option in mapping_options:
+                                    if re.match('blat', option[2]):
+                                        continue
+                                    if re.match('NG_', option[1]):
+                                        try:
+                                            hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
+                                            break
+                                        except Exception as e:
+                                            attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + \
+                                                                      option[1] + '~'
+                                            print e
+                                            continue
+
     # If not mapped, raise error
     try:
         hgvs_genomic
@@ -1072,14 +1120,14 @@ def myevm_t_to_g(hgvs_c, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_
                         genomic_gap_variant.posedit.edit.ref = ''
                         stored_hgvs_c = copy.deepcopy(hgvs_c)
 
-                        # Remove alt
+                    # Remove alt
                     try:
                         genomic_gap_variant.posedit.edit.alt = ''
                     except Exception as e:
                         if str(e) == "'Dup' object has no attribute 'alt'":
                             pass
 
-                            # Should be a delins so will normalize statically and replace the reference bases
+                    # Should be a delins so will normalize statically and replace the reference bases
                     genomic_gap_variant = hn.normalize(genomic_gap_variant)
                     # Static map to c. and static normalize
                     transcript_gap_variant = vm.g_to_t(genomic_gap_variant, hgvs_c.ac)
@@ -1378,8 +1426,10 @@ def noreplace_myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly, vm, hn, hp, sf, n
     except hgvs.exceptions.HGVSError as e:
         # Recover all available mapping options from UTA
         mapping_options = hdp.get_tx_mapping_options(hgvs_c.ac)
+
         if mapping_options == []:
             raise HGVSDataNotAvailableError("no g. mapping options available")
+
         for option in mapping_options:
             if re.match('blat', option[2]):
                 continue
@@ -1390,7 +1440,12 @@ def noreplace_myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly, vm, hn, hp, sf, n
                         hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
                         break
                     except Exception as e:
+                        attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + option[
+                            1] + '~'
+                        print e
                         continue
+
+        # If not mapped, raise error
         try:
             hn.normalize(hgvs_genomic)
         except:
@@ -1399,25 +1454,37 @@ def noreplace_myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly, vm, hn, hp, sf, n
                     continue
                 if re.match('NC_', option[1]):
                     chr_num = supported_chromosome_builds.supported_for_mapping(str(option[1]), primary_assembly)
-                    try:
-                        hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
-                        break
-                    except Exception as e:
-                        continue
+                    if chr_num != 'false':
+                        try:
+                            hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
+                            break
+                        except Exception as e:
+                            attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + option[
+                                1] + '~'
+                            print e
+                            continue
 
+            # If not mapped, raise error
             try:
                 hn.normalize(hgvs_genomic)
             except:
                 for option in mapping_options:
                     if re.match('blat', option[2]):
                         continue
-                    if re.match('NT_', option[1]):
+                    if re.match('NC_', option[1]):
                         chr_num = supported_chromosome_builds.supported_for_mapping(str(option[1]), primary_assembly)
-                        if chr_num != 'false':
+                        if chr_num == 'false':
                             try:
                                 hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
                                 break
                             except Exception as e:
+                                if re.search(option[1], attempted_mapping_error):
+                                    pass
+                                else:
+                                    attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + \
+                                                              option[
+                                                                  1] + '~'
+                                print e
                                 continue
                 try:
                     hn.normalize(hgvs_genomic)
@@ -1425,7 +1492,7 @@ def noreplace_myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly, vm, hn, hp, sf, n
                     for option in mapping_options:
                         if re.match('blat', option[2]):
                             continue
-                        if re.match('NW_', option[1]):
+                        if re.match('NT_', option[1]):
                             chr_num = supported_chromosome_builds.supported_for_mapping(str(option[1]),
                                                                                         primary_assembly)
                             if chr_num != 'false':
@@ -1433,25 +1500,90 @@ def noreplace_myevm_t_to_g(hgvs_c, evm, hdp, primary_assembly, vm, hn, hp, sf, n
                                     hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
                                     break
                                 except Exception as e:
+                                    attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + \
+                                                              option[
+                                                                  1] + '~'
+                                    print e
                                     continue
-
-                    # Only a RefSeqGene available
                     try:
                         hn.normalize(hgvs_genomic)
                     except:
                         for option in mapping_options:
                             if re.match('blat', option[2]):
                                 continue
-                            if re.match('NG_', option[1]):
-                                try:
-                                    hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
-                                    break
-                                except:
+                            if re.match('NT_', option[1]):
+                                chr_num = supported_chromosome_builds.supported_for_mapping(str(option[1]),
+                                                                                            primary_assembly)
+                                if chr_num == 'false':
+                                    try:
+                                        hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
+                                        break
+                                    except Exception as e:
+                                        attempted_mapping_error = attempted_mapping_error + str(
+                                            e) + "/" + hgvs_c.ac + "/" + \
+                                                                  option[
+                                                                      1] + '~'
+                                        print e
+                                        continue
+                        try:
+                            hn.normalize(hgvs_genomic)
+                        except:
+                            for option in mapping_options:
+                                if re.match('blat', option[2]):
                                     continue
+                                if re.match('NW_', option[1]):
+                                    chr_num = supported_chromosome_builds.supported_for_mapping(str(option[1]),
+                                                                                                primary_assembly)
+                                    if chr_num != 'false':
+                                        try:
+                                            hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
+                                            break
+                                        except Exception as e:
+                                            attempted_mapping_error = attempted_mapping_error + str(
+                                                e) + "/" + hgvs_c.ac + "/" + \
+                                                                      option[1] + '~'
+                                            print e
+                                            continue
+                            try:
+                                hn.normalize(hgvs_genomic)
+                            except:
+                                for option in mapping_options:
+                                    if re.match('blat', option[2]):
+                                        continue
+                                    if re.match('NW_', option[1]):
+                                        chr_num = supported_chromosome_builds.supported_for_mapping(str(option[1]),
+                                                                                                    primary_assembly)
+                                        if chr_num == 'false':
+                                            try:
+                                                hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
+                                                break
+                                            except Exception as e:
+                                                attempted_mapping_error = attempted_mapping_error + str(
+                                                    e) + "/" + hgvs_c.ac + "/" + \
+                                                                          option[1] + '~'
+                                                print e
+                                                continue
+
+                                # Only a RefSeqGene available
+                                try:
+                                    hn.normalize(hgvs_genomic)
+                                except:
+                                    for option in mapping_options:
+                                        if re.match('blat', option[2]):
+                                            continue
+                                        if re.match('NG_', option[1]):
+                                            try:
+                                                hgvs_genomic = vm.t_to_g(hgvs_c, str(option[1]))
+                                                break
+                                            except Exception as e:
+                                                attempted_mapping_error = attempted_mapping_error + str(
+                                                    e) + "/" + hgvs_c.ac + "/" + \
+                                                                          option[1] + '~'
+                                                print e
+                                                continue
     try:
         hgvs_genomic
     except Exception:
-
         raise HGVSDataNotAvailableError('No available t_to_g liftover')
 
     # Ins variants map badly - Especially between c. exon/exon boundary
@@ -1681,8 +1813,8 @@ def myvm_t_to_g(hgvs_c, alt_chr, no_norm_evm, vm, hp, hn, sf, nr_vm):
             if re.match('Length implied by coordinates must equal sequence deletion length', str(e)) or str(
                     e) == 'base start position must be <= end position':
                 # Effectively, this code is designed to handle variants that are directly proximal to
-                # gap BOUNDARIES, but in some cases the replace reference function of hgvs mapping has removed bases due to
-                # the deletion length being > the specified range.
+                # gap BOUNDARIES, but in some cases the replace reference function of hgvs mapping has removed bases
+                # due to the deletion length being > the specified range.
 
                 # Warn of variant location wrt the gap
                 if re.match('Length implied by coordinates must equal sequence deletion length', str(e)):
@@ -1790,7 +1922,7 @@ def myvm_t_to_g(hgvs_c, alt_chr, no_norm_evm, vm, hp, hn, sf, nr_vm):
                         else:
                             alt_base_dict[int] = 'X'
 
-                            # Generate the alt sequence
+                    # Generate the alt sequence
                     alternate_sequence_bases = []
                     for int in range(transcript_gap_n.posedit.pos.start.base, transcript_gap_n.posedit.pos.end.base + 1,
                                      1):

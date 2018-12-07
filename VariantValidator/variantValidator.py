@@ -339,14 +339,27 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                 alt_aln_method = 'splign'
             elif transcriptSet=="ensembl":
                 alt_aln_method = 'genebuild'
-                logger.error("Ensembl is currently not supported")
+                logger.warning("Ensembl is currently not supported")
                 validation['warnings']+=': '+"Ensembl is currently not supported"
                 continue
             else:
-                logger.error("The transcript set variable "+transcriptSet+" is invalid, it needs to be 'refseq' or 'ensembl'")
+                logger.warning("The transcript set variable "+transcriptSet+" is invalid, it needs to be 'refseq' or 'ensembl'")
                 validation['warnings']+=': '+"The transcript set variable "+transcriptSet+" is invalid, it needs to be 'refseq' or 'ensembl'"
                 continue
 
+            # Create Normalizers
+            hn = hgvs.normalizer.Normalizer(hdp,
+                                            cross_boundaries=False,
+                                            shuffle_direction=3,
+                                            alt_aln_method=alt_aln_method
+                                            )
+            reverse_normalizer = hgvs.normalizer.Normalizer(hdp,
+                                                            cross_boundaries=False,
+                                                            shuffle_direction=5,
+                                                            alt_aln_method=alt_aln_method
+                                                            )
+
+            # Blank cautions
             caution = ''
             automap = ''
 
@@ -404,7 +417,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         validation['id'] = found_at
                         error = u'Submitted variant description contains an invalid character which is represented by Unicode character ' + format_human + u' at position ' + found_at + u': Please remove this character and re-submit: A useful search function for Unicode characters can be found at https://unicode-search.net/'
                         validation['warnings'] = validation['warnings'] + ': ' + error
-                        logger.error(error)
+                        logger.warning(error)
                         continue
                     else:
                         pass
@@ -551,7 +564,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     validation['warnings'] = validation[
                                                                  'warnings'] + ': ' + chr_num + \
                                                              ' is not part of genome build ' + selected_assembly
-                                    logger.error(chr_num + ' is not part of genome build ' + selected_assembly)
+                                    logger.warning(chr_num + ' is not part of genome build ' + selected_assembly)
                                     continue
                             else:
                                 accession = input_list[0]
@@ -595,7 +608,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     error = 'Unable to identify a colon (:) in the variant description %s. A colon is required in HGVS variant descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. e.g. :c.' % (
                         input)
                     validation['warnings'] = validation['warnings'] + ': ' + error
-                    logger.error(error)
+                    logger.warning(error)
                     continue
 
                 # Ambiguous chr reference
@@ -703,7 +716,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                                          ': ' + 'HGVS variant nomenclature does not allow the use of a gene symbol (' + \
                                                          query_a_symbol + ') in place of a valid reference sequence: Re-submit ' + input + \
                                                          ' and specify transcripts from the following: ' + 'select_transcripts=' + select_from_these_transcripts
-                                logger.error('HGVS variant nomenclature does not allow the use of a gene symbol (' + \
+                                logger.warning('HGVS variant nomenclature does not allow the use of a gene symbol (' + \
                                                          query_a_symbol + ') in place of a valid reference sequence: Re-submit ' + input + \
                                                          ' and specify transcripts from the following: ' + 'select_transcripts=' + select_from_these_transcripts)
                             continue
@@ -754,18 +767,18 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 else:
                                     validation['warnings'] = validation[
                                                                  'warnings'] + ': ' + 'A transcript reference sequence has not been provided e.g. NG_(NM_):c.PositionVariation. Re-submit ' + input + ' but also specify transcripts from the following: ' + 'select_transcripts=' + select_from_these_transcripts
-                                    logger.error(+ 'A transcript reference sequence has not been provided e.g. NG_(NM_):c.PositionVariation. Re-submit ' +
-                                                   input + ' but also specify transcripts from the following: ' + 'select_transcripts=' + select_from_these_transcripts)
+                                    logger.warning(+ 'A transcript reference sequence has not been provided e.g. NG_(NM_):c.PositionVariation. Re-submit ' +
+                                                   str(input) + ' but also specify transcripts from the following: ' + 'select_transcripts=' + str(select_from_these_transcripts))
                                 continue
                             else:
                                 validation['warnings'] = validation[
                                                              'warnings'] + ': ' + 'A transcript reference sequence has not been provided e.g. NG_(NM_):c.PositionVariation'
-                                logger.error( 'A transcript reference sequence has not been provided e.g. NG_(NM_):c.PositionVariation')
+                                logger.warning( 'A transcript reference sequence has not been provided e.g. NG_(NM_):c.PositionVariation')
                             continue
                         elif re.match('^NC_', input):
                             validation['warnings'] = validation[
                                                          'warnings'] + ': ' + 'A transcript reference sequence has not been provided e.g. NC_(NM_):c.PositionVariation. Unable to predict available transripts because chromosomal position is not specified'
-                            logger.error( 'A transcript reference sequence has not been provided e.g. NC_(NM_):c.PositionVariation. Unable to predict available transripts because chromosomal position is not specified')
+                            logger.warning( 'A transcript reference sequence has not been provided e.g. NC_(NM_):c.PositionVariation. Unable to predict available transripts because chromosomal position is not specified')
                             continue
                         else:
                             pass
@@ -874,7 +887,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     error = str(e)
                                     issue_link = ''
                                     validation['warnings'] = validation['warnings'] + ': ' + error
-                                    logger.error(str(e))
+                                    logger.warning(str(e))
                                     continue
 
                             # Re-Stash the input as an HGVS
@@ -888,7 +901,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 else:
                                     issue_link = ''
                                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                    logger.error(str(e))
+                                    logger.warning(str(e))
                                     continue
                             # Create warning
                             caution = 'Variant description ' + input + ' is not HGVS compliant'
@@ -939,7 +952,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 issue_link = 'http://varnomen.hgvs.org/recommendations/DNA/variant/insertion/'
                                 error = error + ' please refer to ' + issue_link
                             validation['warnings'] = validation['warnings'] + error
-                            logger.error(error+" "+e)
+                            logger.warning(error+" "+e)
                             continue
                         hgvs_failed = hp.parse_hgvs_variant(failed)
                         hgvs_failed.posedit.edit = str(hgvs_failed.posedit.edit).replace(digits, '')
@@ -1046,7 +1059,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         if re.search("Cannot validate sequence of an intronic variant", str(e)):
                             validation['warnings'] = validation[
                                                          'warnings'] + ': ' + 'Intronic positions not supported for HGVS Allele descriptions'
-                            logger.error('Intronic positions not supported for HGVS Allele descriptions')
+                            logger.warning('Intronic positions not supported for HGVS Allele descriptions')
                             continue
                         else:
                             raise variantValidatorError(error)
@@ -1083,7 +1096,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         error = 'Variant description ' + input + ' is not in an accepted format'
                     validation['warnings'] = validation[
                                                  'warnings'] + ': ' + error
-                    logger.error(error)
+                    logger.warning(error)
                     continue
                 else:
                     variant = formatted['variant']
@@ -1099,7 +1112,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                 conversion = re.compile('con')
                 if conversion.search(variant):
                     validation['warnings'] = validation['warnings'] + ': ' + 'Gene conversions currently unsupported'
-                    logger.error('Gene conversions currently unsupported')
+                    logger.warning('Gene conversions currently unsupported')
                     continue
 
                 # Primary check that hgvs will accept the variant
@@ -1120,20 +1133,18 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     error = str(e)
                 if error == 'false':
                     input_parses.ac = input_parses.ac.upper()
-                    try:
-                        input_parses.posedit.edit.alt = input_parses.posedit.edit.alt.upper()
-                    except Exception as e:
-                        exceptPass()
-                    try:
-                        input_parses.posedit.edit.ref = input_parses.posedit.edit.ref.upper()
-                    except Exception as e:
-                        exceptPass()
+                    if hasattr(input_parses.posedit.edit, 'alt'):
+                        if input_parses.posedit.edit.alt is not None:
+                            input_parses.posedit.edit.alt = input_parses.posedit.edit.alt.upper()
+                    if hasattr(input_parses.posedit.edit, 'ref'):
+                        if input_parses.posedit.edit.ref is not None:
+                            input_parses.posedit.edit.ref = input_parses.posedit.edit.ref.upper()
                     variant = str(input_parses)
                     input = str(input_parses)
                     pass
                 else:
                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                    logger.error(error)
+                    logger.warning(error)
                     continue
 
                 """
@@ -1153,7 +1164,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     if re.match('^ENST', str(input_parses)):
                         error = 'Unable to map ' + str(input_parses.ac) + ' to an equivalent RefSeq transcript'
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                        logger.error(str(error))
+                        logger.warning(str(error))
                         continue
                     else:
                         validation['warnings'] = validation['warnings'] + ': ' + str(
@@ -1198,22 +1209,10 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                                                  replace_reference=False
                                                                  )
 
-                    # create normalizers
-                    hn = hgvs.normalizer.Normalizer(hdp,
-                                                    cross_boundaries=False,
-                                                    shuffle_direction=3,
-                                                    alt_aln_method=alt_aln_method
-                                                    )
-                    reverse_normalizer = hgvs.normalizer.Normalizer(hdp,
-                                                                    cross_boundaries=False,
-                                                                    shuffle_direction=5,
-                                                                    alt_aln_method=alt_aln_method
-                                                                    )
-
                 else:
                     error = 'Mapping of ' + variant + ' to genome assembly ' + primary_assembly + ' is not supported'
                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                    logger.error(str(error))
+                    logger.warning(str(error))
                     continue
                 # Catch interval end > interval start
                 """
@@ -1237,14 +1236,14 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         if to_n.posedit.pos.end.base < to_n.posedit.pos.start.base:
                             error = 'Interval end position < interval start position '
                             validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                            logger.error(str(error))
+                            logger.warning(str(error))
                             continue
                 elif input_parses.posedit.pos.end.base < input_parses.posedit.pos.start.base:
                     error = 'Interval end position ' + str(
                         input_parses.posedit.pos.end.base) + ' < interval start position ' + str(
                         input_parses.posedit.pos.start.base)
                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                    logger.error(str(error))
+                    logger.warning(str(error))
                     continue
                 else:
                     pass
@@ -1325,21 +1324,21 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     suggestion = input.replace(':g.', ':c.')
                     error = 'Transcript reference sequence input as genomic (g.) reference sequence. Did you mean ' + suggestion + '?'
                     validation['warnings'] = validation['warnings'] + ': ' + error
-                    logger.error(error)
+                    logger.warning(error)
                     continue
                 # NR_ c.
                 if re.search('^NR_', input) and re.search(':c.', input):
                     suggestion = input.replace(':c.', ':n.')
                     error = 'Non-coding transcript reference sequence input as coding (c.) reference sequence. Did you mean ' + suggestion + '?'
                     validation['warnings'] = validation['warnings'] + ': ' + error
-                    logger.error(error)
+                    logger.warning(error)
                     continue
                 # NM_ n.
                 if re.search('^NM_', input) and re.search(':n.', input):
                     suggestion = input.replace(':n.', ':c.')
                     error = 'Coding transcript reference sequence input as non-coding transcript (n.) reference sequence. Did you mean ' + suggestion + '?'
                     validation['warnings'] = validation['warnings'] + ': ' + error
-                    logger.error(error)
+                    logger.warning(error)
                     continue
 
                 # NM_ NC_ NG_ NR_ p.
@@ -1348,7 +1347,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     issue_link = 'http://varnomen.hgvs.org/recommendations/protein/'
                     error = 'Using a nucleotide reference sequence (NM_ NR_ NG_ NC_) to specify protein-level (p.) variation is not HGVS compliant. Please select an appropriate protein reference sequence (NP_)'
                     validation['warnings'] = validation['warnings'] + ': ' + error
-                    logger.error(error)
+                    logger.warning(error)
                     continue
 
                 # NG_ c or NC_c..
@@ -1356,7 +1355,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     suggestion = ': For additional assistance, submit ' + str(variant) + ' to VariantValidator'
                     error = 'NG_:c.PositionVariation descriptions should not be used unless a transcript reference sequence has also been provided e.g. NG_(NM_):c.PositionVariation' + suggestion
                     validation['warnings'] = validation['warnings'] + ': ' + error
-                    logger.error(error)
+                    logger.warning(error)
                     continue
 
                 logger.trace("Passed 'common mistakes' catcher",validation)
@@ -1377,19 +1376,19 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     else:
                         error = 'Invalid reference sequence identifier (' + input_parses.ac + ')'
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                        logger.error(error)
+                        logger.warning(error)
                         continue
                     try:
                         vr.validate(input_parses)
                     except hgvs.exceptions.HGVSError as e:
                         error = str(e)
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                        logger.error(error)
+                        logger.warning(error)
                         continue
                     except Exception as e:
                         error = str(e)
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                        logger.error(error)
+                        logger.warning(error)
                         continue
                     # Additional test
                     try:
@@ -1397,7 +1396,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     except hgvs.exceptions.HGVSError as e:
                         error = str(e)
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                        logger.error(error)
+                        logger.warning(error)
                         continue
                     else:
                         exceptPass()
@@ -1417,7 +1416,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 if called_ref != actual_ref:
                                     error = 'Variant reference (' + called_ref + ') does not agree with reference sequence (' + actual_ref + ')'
                                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                    logger.error(error)
+                                    logger.warning(error)
                                     continue
                                 else:
                                     input_parses.posedit.edit.ref = ''
@@ -1468,7 +1467,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                         except Exception as e:
                                             exceptPass()
                                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                        logger.error(str(error))
+                                        logger.warning(str(error))
                                         continue
                                     else:
                                         pass
@@ -1480,7 +1479,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         except hgvs.exceptions.HGVSError as e:
                             error = str(e)
                             validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                            logger.error(str(e))
+                            logger.warning(str(e))
                             continue
 
                         if re.search('n.1-', str(input_parses)):
@@ -1489,7 +1488,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             genomic_position = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
                             error = error + valstr(genomic_position)
                             validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                            logger.error(str(error))
+                            logger.warning(str(error))
                             continue
                         else:
                             pass
@@ -1548,7 +1547,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     pass
                                 validation['warnings'] = validation['warnings'] + ': ' + str(
                                     error)
-                                logger.error(str(error))
+                                logger.warning(str(error))
 
                     elif re.search('\d\-', str(input_parses)) or re.search('\d\+', str(input_parses)):
                         # Quick look at syntax validation
@@ -1565,11 +1564,11 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(
                                         report_gen)
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                logger.error(str(error))
+                                logger.warning(str(error))
                                 continue
                             elif re.search('insertion length must be 1', error):
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                logger.error(str(error))
+                                logger.warning(str(error))
                                 continue
                             elif re.search('base start position must be <= end position', error):
                                 correction = copy.deepcopy(input_parses)
@@ -1580,7 +1579,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 error = error + ': Did you mean ' + str(correction) + '?'
                                 # error = 'Interval start position ' + str(input_parses.posedit.pos.start) + ' > interval end position ' + str(input_parses.posedit.pos.end)
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                logger.error(str(error))
+                                logger.warning(str(error))
                                 continue
 
                         # Create a specific minimal evm with no normalizer and no replace_reference
@@ -1598,7 +1597,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             else:
                                 error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' or ' + gene_symbol + ' to  https://variantvalidator.org/ref_finder/, or select an alternative genome build'
                             validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                            logger.error(str(error))
+                            logger.warning(str(error))
                             continue
                         except ValueError as e:
                             error = str(e)
@@ -1607,7 +1606,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     input_parses.posedit.pos.start) + ' > interval end position ' + str(
                                     input_parses.posedit.pos.end)
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                logger.error(str(error))
+                                logger.warning(str(error))
                                 continue
                         except hgvs.exceptions.HGVSInvalidVariantError as e:
                             error = str(e)
@@ -1622,12 +1621,12 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     input_parses.posedit.pos.start) + ' > interval end position ' + str(
                                     input_parses.posedit.pos.end)
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                logger.error(str(error))
+                                logger.warning(str(error))
                                 continue
                             else:
                                 error = str(e)
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                logger.error(str(error))
+                                logger.warning(str(error))
                                 continue
 
                         try:
@@ -1635,7 +1634,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         except hgvs.exceptions.HGVSError as e:
                             error = str(e)
                             validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                            logger.error(str(error))
+                            logger.warning(str(error))
                             continue
 
                         try:
@@ -1643,7 +1642,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         except hgvs.exceptions.HGVSError as e:
                             error = str(e)
                             validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                            logger.error(str(error))
+                            logger.warning(str(error))
                             continue
 
                     else:
@@ -1683,20 +1682,20 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     input_parses.posedit.pos.start) + ' > interval end position ' + str(
                                     input_parses.posedit.pos.end)
                             validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                            logger.error(str(error))
+                            logger.warning(str(error))
                             continue
 
                         except hgvs.exceptions.HGVSDataNotAvailableError as e:
                             error = e
                             validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                            logger.error(str(error))
+                            logger.warning(str(error))
                             continue
                         except hgvs.exceptions.HGVSError as e:
                             error = str(e)
                             if re.search('bounds', error):
                                 error = error + ' (' + input_parses.ac + ')'
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                logger.error(str(error))
+                                logger.warning(str(error))
                                 continue
                             exceptPass()
 
@@ -1718,7 +1717,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 if called_ref != actual_ref:
                                     error = 'Variant reference (' + called_ref + ') does not agree with reference sequence (' + actual_ref + ')'
                                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                    logger.error(str(error))
+                                    logger.warning(str(error))
                                     continue
                                 else:
                                     input_parses.posedit.edit.ref = ''
@@ -1745,11 +1744,11 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 except Exception as e:
                                     exceptPass()
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                logger.error(str(error))
+                                logger.warning(str(error))
                                 continue
                             else:
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                logger.error(str(error))
+                                logger.warning(str(error))
                                 continue
 
                     if re.search('n.1-', str(input_parses)):
@@ -1757,7 +1756,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         genomic_position = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
                         error = error + valstr(genomic_position)
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                        logger.error(str(error))
+                        logger.warning(str(error))
                         continue
                     else:
                         pass
@@ -1777,11 +1776,11 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(
                                         report_gen)
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                logger.error(str(error))
+                                logger.warning(str(error))
                                 continue
                             elif re.search('insertion length must be 1', error):
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                logger.error(str(error))
+                                logger.warning(str(error))
                                 continue
                             elif re.search('base start position must be <= end position', error):
                                 correction = copy.deepcopy(input_parses)
@@ -1792,7 +1791,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 error = error + ': Did you mean ' + str(correction) + '?'
                                 # error = 'Interval start position ' + str(input_parses.posedit.pos.start) + ' > interval end position ' + str(input_parses.posedit.pos.end)
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                logger.error(str(error))
+                                logger.warning(str(error))
                                 continue
                             elif re.search('Cannot validate sequence of an intronic variant', error):
                                 try:
@@ -1804,7 +1803,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                         report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
                                         error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(report_gen)
                                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                        logger.error(str(error))
+                                        logger.warning(str(error))
                                         continue
                                 else:
                                     exceptPass()
@@ -1824,7 +1823,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             else:
                                 error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' or ' + gene_symbol + ' to  https://variantvalidator.org/ref_finder/, or select an alternative genome build'
                             validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                            logger.error(str(error))
+                            logger.warning(str(error))
                             continue
                         except ValueError as e:
                             error = str(e)
@@ -1833,7 +1832,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     input_parses.posedit.pos.start) + ' > interval end position ' + str(
                                     input_parses.posedit.pos.end)
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                logger.error(str(error))
+                                logger.warning(str(error))
                                 continue
                         except hgvs.exceptions.HGVSInvalidVariantError as e:
                             error = str(e)
@@ -1848,14 +1847,14 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     input_parses.posedit.pos.start) + ' > interval end position ' + str(
                                     input_parses.posedit.pos.end)
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                logger.error(str(error))
+                                logger.warning(str(error))
                                 continue
                         try:
                             vr.validate(output)
                         except hgvs.exceptions.HGVSError as e:
                             error = str(e)
                             validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                            logger.error(str(error))
+                            logger.warning(str(error))
                             continue
 
                     else:
@@ -1896,23 +1895,23 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 error = 'Interval start position ' + str(
                                     input_parses.posedit.pos.start) + ' > interval end position ' + str(
                                     input_parses.posedit.pos.end)
-                                logger.error(str(error))
+                                logger.warning(str(error))
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                 continue
                             validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                            logger.error(str(error))
+                            logger.warning(str(error))
                             continue
                         except hgvs.exceptions.HGVSDataNotAvailableError as e:
                             error = e
                             validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                            logger.error(str(error))
+                            logger.warning(str(error))
                             continue
                         except hgvs.exceptions.HGVSError as e:
                             error = str(e)
                             if re.search('bounds', error):
                                 error = error + ' (' + input_parses.ac + ')'
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                logger.error(str(error))
+                                logger.warning(str(error))
                                 continue
                 else:
                     pass
@@ -1933,12 +1932,12 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     except hgvs.exceptions.HGVSError as e:
                         error = caution + ': ' + str(e)
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                        logger.error(str(error))
+                        logger.warning(str(error))
                         continue
                     except KeyError as e:
                         error = caution + ': Currently unable to validate ' + hgvs_mito.ac + ' sequence variation'
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                        logger.error(str(error))
+                        logger.warning(str(error))
                         continue
                     else:
                         # Any transcripts?
@@ -1968,7 +1967,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         error = str(e)
                     if error != 'false':
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                        logger.error(str(error))
+                        logger.warning(str(error))
                         continue
                     else:
                         # Get accurate descriptions from the relevant databases
@@ -1995,7 +1994,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             reason = 'Protein level variant descriptions are not fully supported due to redundancy in the genetic code'
                             validation['warnings'] = validation['warnings'] + ': ' + str(reason) + ': ' + str(error)
                             validation['protein'] = str(hgvs_object)
-                            logger.error(str(reason)+": "+str(error))
+                            logger.warning(str(reason)+": "+str(error))
                             continue
 
                 # handle :r.
@@ -2013,7 +2012,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     except hgvs.exceptions.HGVSDataNotAvailableError as e:
                         error = str(e)
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                        logger.error(str(error))
+                        logger.warning(str(error))
                         continue
                     input = str(hgvs_c)
                     variant = str(hgvs_c)
@@ -2038,7 +2037,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         reason = "VariantValidator cannot recover information for transcript " + str(
                             hgvs_vt.ac) + ' beacuse it is not available in the Universal Transcript Archive'
                         validation['warnings'] = validation['warnings'] + ': ' + str(reason)
-                        logger.error(str(reason)+": "+str(error))
+                        logger.warning(str(reason)+": "+str(error))
                         continue
                     else:
                         # Get hgnc Gene name from command
@@ -2077,7 +2076,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             error = entry['description']
                             validation['warnings'] = validation['warnings'] + ': ' + str(
                                 error) + ': A Database error occurred, please contact admin'
-                            logger.error(str(error)+": A Database error occurred, please contact admin")
+                            logger.warning(str(error)+": A Database error occurred, please contact admin")
                             continue
 
                         # If the accession key is found
@@ -2093,12 +2092,12 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 except hgvs.exceptions.HGVSError as e:
                                     error = 'Transcript %s is not currently supported' % (accession)
                                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                    logger.error(str(error))
+                                    logger.warning(str(error))
                                     continue
                                 except Exception as e:
                                     error = 'Unable to assign transcript identity records to ' + accession + ', potentially an obsolete record :'
                                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                    logger.error(str(error))
+                                    logger.warning(str(error))
                                     continue
                                 hgnc_gene_info = entry['description']
                             else:
@@ -2114,7 +2113,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 logger.warning(str(e))
                                 error = 'Unable to assign transcript identity records to ' + accession + ', potentially an obsolete record :'
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                logger.error(str(error))
+                                logger.warning(str(error))
                                 continue
                             hgnc_gene_info = entry['description']
 
@@ -2124,7 +2123,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             error = 'Unknown error type'
                             validation['warnings'] = validation['warnings'] + ': ' + str(
                                 error) + ': A Database error occurred, please contact admin'
-                            logger.error(str(error))
+                            logger.warning(str(error))
                             continue
 
                     # Ensembl databases
@@ -2143,7 +2142,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             error = entry['description']
                             validation['warnings'] = validation['warnings'] + ': ' + str(
                                 error) + ': A Database error occurred, please contact admin'
-                            logger.error(str(error))
+                            logger.warning(str(error))
                             continue
 
                         # If the accession key is found
@@ -2169,7 +2168,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 logger.warning(str(e))
                                 error = 'Unable to assign transcript identity records to ' + accession + ', potentially an obsolete record :'
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                logger.error(str(error))
+                                logger.warning(str(error))
                                 continue
                             hgnc_gene_info = entry['description']
 
@@ -2179,7 +2178,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             error = 'Unknown error type'
                             validation['warnings'] = validation['warnings'] + ': ' + str(
                                 error) + ': A Database error occurred, please contact admin'
-                            logger.error(str(error))
+                            logger.warning(str(error))
                             continue
 
                 # Genomic type variants will need to be mapped to transcripts
@@ -2202,7 +2201,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     if error != 'false':
                         reason = 'Invalid variant description'
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                        logger.error(str(error))
+                        logger.warning(str(error))
                         continue
                     else:
                         pass
@@ -2283,7 +2282,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             else:
                                 error = 'Mapping unavailable for RefSeqGene ' + variant + ' using alignment method = ' + alt_aln_method
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                logger.error(str(error))
+                                logger.warning(str(error))
                                 continue
 
                         # Chromosome build is not supported or intergenic???
@@ -2295,7 +2294,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 except hgvs.exceptions.HGVSError as e:
                                     error = str(e)
                                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                    logger.error(str(error))
+                                    logger.warning(str(error))
                                     continue
                                 else:
                                     # Map to RefSeqGene if available
@@ -2315,12 +2314,12 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                     validation['genomic_g'] = valstr(hgvs_genomic)
                                     validation['genomic_r'] = str(rsg_data.split('(')[0])
-                                    logger.error(str(error))
+                                    logger.warning(str(error))
                                     continue
                             else:
                                 error = 'Please ensure the requested chromosome version relates to a supported genome build. Supported genome builds are: GRCh37, GRCh38, hg19 and hg38'
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                logger.error(str(error))
+                                logger.warning(str(error))
                                 continue
 
                     else:
@@ -3325,7 +3324,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 error = str(e)
                                 error = error + ': Consequently the input variant description cannot be fully validated and is not supported: Use the Gene to Transcripts function to determine whether an updated transcript reference sequence is available'
                             validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                            logger.error(str(error))
+                            logger.warning(str(error))
                             continue
                         try:
                             gene_symbol = va_dbCrl.data.get_gene_symbol_from_transcriptID(tx_ac)
@@ -3336,7 +3335,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         else:
                             error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' or ' + gene_symbol + ' to  https://variantvalidator.org/ref_finder/, or select an alternative genome build'
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                        logger.error(str(error))
+                        logger.warning(str(error))
                         continue
                     except TypeError as e:
                         try:
@@ -3348,7 +3347,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         else:
                             error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' or ' + gene_symbol + ' to  https://variantvalidator.org/ref_finder/, or select an alternative genome build'
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                        logger.error(str(error))
+                        logger.warning(str(error))
                         continue
 
                     # Get orientation of the gene wrt genome and a list of exons mapped to the genome
@@ -3372,7 +3371,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 reason = "An error has occurred"
                                 excep = "%s -- %s -- %s\n" % (time.ctime(), reason, variant)
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                logger.error(str(error))
+                                logger.warning(str(error))
                                 continue
 
                             else:
@@ -3380,7 +3379,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 reason = "An error has occurred"
                                 excep = "%s -- %s -- %s\n" % (time.ctime(), reason, variant)
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                logger.error(str(error))
+                                logger.warning(str(error))
                                 continue
 
                         else:
@@ -3405,7 +3404,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     reason = "An error has occurred"
                                     excep = "%s -- %s -- %s\n" % (time.ctime(), reason, variant)
                                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                    logger.error(str(error))
+                                    logger.warning(str(error))
                                     continue
 
                                 else:
@@ -3413,7 +3412,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     reason = "An error has occurred"
                                     excep = "%s -- %s -- %s\n" % (time.ctime(), reason, variant)
                                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                    logger.error(str(error))
+                                    logger.warning(str(error))
                                     continue
                         else:
                             # Insertions at exon boundaries are miss-handled by vm.g_to_t
@@ -3469,7 +3468,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             else:
                                 excep = "%s -- %s -- %s\n" % (time.ctime(), error, variant)
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                logger.error(str(error))
+                                logger.warning(str(error))
                                 continue
 
                     # Tackle the plus intronic offset
@@ -3630,7 +3629,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     post_var = va_func.myevm_g_to_t(evm, pre_var, trans_acc)
                                 except hgvs.exceptions.HGVSError as error:
                                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                    logger.error(str(error))
+                                    logger.warning(str(error))
                                     continue
                                 query = post_var
                                 test = hp.parse_hgvs_variant(input)
@@ -3865,7 +3864,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     reason = "An error has occurred"
                                     excep = "%s -- %s -- %s\n" % (time.ctime(), reason, variant)
                                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                    logger.error(str(error))
+                                    logger.warning(str(error))
                                     continue
 
                                 else:
@@ -3873,7 +3872,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     reason = "An error has occurred"
                                     excep = "%s -- %s -- %s\n" % (time.ctime(), reason, variant)
                                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                    logger.error(str(error))
+                                    logger.warning(str(error))
                                     continue
 
                             else:
@@ -4091,7 +4090,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 gap_compensation = False
                             except hgvs.exceptions.HGVSError as error:
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
-                                logger.error(str(error))
+                                logger.warning(str(error))
                                 continue
                         else:
                             pass
@@ -4407,7 +4406,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 if possibility == '':
                                     logger.info('X')
                                 else:
-                                    logger.info(possibility)
+                                    logger.info(valstr(possibility))
                                     #print possibility
                             logger.info('\n')
 
@@ -5774,7 +5773,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     vm.g_to_t(hgvs_not_delins, tx_hgvs_not_delins.ac)
                                 except Exception as e:
                                     if str(e) == 'start or end or both are beyond the bounds of transcript record':
-                                        logger.error(str(e))
+                                        logger.warning(str(e))
                                         continue
                                 try:
                                     hn.normalize(tx_hgvs_not_delins)
@@ -5787,7 +5786,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                         if re.match(
                                                 'Unsupported normalization of variants spanning the exon-intron boundary',
                                                 error):
-                                            logger.error(error)
+                                            logger.warning(error)
                                             continue
                                         elif re.match('Normalization of intronic variants is not supported', error):
                                             # We know that this cannot be because of an intronic variant, so must be aligned to tx gap
@@ -6584,11 +6583,9 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     # Transcript sequence variation
                     tx_variant = valid['coding']
                     if tx_variant != '':
-                        try:
+                        if '(' in tx_variant and ')' in tx_variant:
                             tx_variant = tx_variant.split('(')[1]
-                        except:
-                            exceptPass()
-                        tx_variant = tx_variant.replace(')', '')
+                            tx_variant = tx_variant.replace(')', '')
 
                         # transcript accession
                         hgvs_tx_variant = hp.parse_hgvs_variant(tx_variant)
@@ -6702,11 +6699,14 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     transcript_description = valid['description']
 
                     # Stashed variants
-                    try:
+                    if 'test_stash_tx_left' not in validation:
+                        pass
+                    else:
                         test_stash_tx_left = validation['test_stash_tx_left']
+                    if 'test_stash_tx_right' not in validation:
+                        pass
+                    else:
                         test_stash_tx_right = validation['test_stash_tx_right']
-                    except KeyError:
-                        exceptPass()
 
                     # Multiple genomic variants
                     # multi_gen_vars = []
@@ -8062,12 +8062,21 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 else:
                                     multi_g.append(hgvs_alt_genomic)
                                     corrective_action_taken = 'false'
-                            except:
+
+                            # In this instance, the gap code has generally found an incomplete-alignment rather than a
+                            # truly gapped alignment.
+                            except KeyError:
+                                warnings = warnings + ': Suspected incomplete alignment between transcript %s and ' \
+                                                      'genomic reference sequence %s' % (hgvs_coding.ac,
+                                                                                         alt_chr)
+                                continue
+                            except Exception as e:
                                 exc_type, exc_value, last_traceback = sys.exc_info()
                                 te = traceback.format_exc()
                                 error = str(te)
                                 logger.error(str(exc_type)+" "+str(exc_value))
                                 logger.debug(error)
+                                continue
 
                         if multi_g != []:
                             multi_g.sort()
@@ -8188,22 +8197,27 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     warnings_out = no_rep_list
 
                     # Ensure Variants have had the refs removed.
-                    try:
-                        refseqgene_variant = valstr(hgvs_refseqgene_variant)
-                    except:
-                        exceptPass()
+                    # if not hasattr(posedit, refseqgene_variant):
+                    if refseqgene_variant != '':
+                        try:
+                            refseqgene_variant = valstr(hgvs_refseqgene_variant)
+                        except:
+                            exceptPass()
 
                     # Add single letter AA code to protein descriptions
                     predicted_protein_variant_dict = {"tlr": str(predicted_protein_variant), "slr": ''}
                     if predicted_protein_variant != '':
-                        try:
-                            format_p = predicted_protein_variant
-                            format_p = re.sub('\(LRG_.+?\)', '', format_p)
-                            re_parse_protein = hp.parse_hgvs_variant(format_p)
-                            re_parse_protein_singleAA = re_parse_protein.format({'p_3_letter': False})
-                            predicted_protein_variant_dict["slr"] = str(re_parse_protein_singleAA)
-                        except hgvs.exceptions.HGVSParseError:
-                            exceptPass()
+                        if not 'Non-coding :n.' in predicted_protein_variant:
+                            try:
+                                format_p = predicted_protein_variant
+                                format_p = re.sub('\(LRG_.+?\)', '', format_p)
+                                re_parse_protein = hp.parse_hgvs_variant(format_p)
+                                re_parse_protein_singleAA = re_parse_protein.format({'p_3_letter': False})
+                                predicted_protein_variant_dict["slr"] = str(re_parse_protein_singleAA)
+                            except hgvs.exceptions.HGVSParseError:
+                                exceptPass()
+                        else:
+                            predicted_protein_variant_dict["slr"] = str(predicted_protein_variant)
 
                     # Populate the dictionary
                     dict_out['submitted_variant'] = submitted
