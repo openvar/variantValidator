@@ -4,7 +4,6 @@
 #The input variants file should contain a bunch of variants on each line in quotes. Anything outside the
 #quotes is discarded.
 
-import unittest
 import os
 import pickle
 import json
@@ -48,6 +47,7 @@ except OSError:
     os.environ['HGVS_SEQREPO_DIR']=HGVS_SEQREPO_DIR
     uta_current_version='uta_20180821'
     UTA_DB_URL='postgresql://uta_admin:uta_admin@127.0.0.1/uta/' + uta_current_version
+    #export postgresql://uta_admin:uta_admin@127.0.0.1/uta/uta_20180821
     os.environ['UTA_DB_URL']=UTA_DB_URL
     #from VariantValidator import variantValidator as vv
     print "Databases loaded"

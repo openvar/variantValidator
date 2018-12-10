@@ -4,6 +4,7 @@ import datetime
 import os
 from StringIO import StringIO
 
+VALIDATOR_DEBUG=os.environ.get('VALIDATOR_DEBUG')
 
 class logger():
     #Grand unified variant validator logging static class.
@@ -88,17 +89,17 @@ class logger():
     @staticmethod
     def trace(s,v=None):
         #v should be a dictionary with a 'timing' key.
-        global VALIDATOR_DEBUG
+        #global VALIDATOR_DEBUG
         #print(VALIDATOR_DEBUG)
-        if "trace" in VALIDATOR_DEBUG:
-            logger.loggingSetup()
-            if not v:
-                logger.logger.debug("TRACE: "+s)
-            else:
-                logger.logger.debug("TRACE: "+s)
-                v['timing']['traceLabels'].append(s)
-                v['timing']['traceTimes'].append(str((datetime.datetime.now()-v['timing']['checkDT']).microseconds//1000))
-                v['timing']['checkDT']=datetime.datetime.now()
+        #if "trace" in VALIDATOR_DEBUG:
+        #    logger.loggingSetup()
+        if not v:
+            logger.logger.debug("TRACE: "+s)
+        else:
+            logger.logger.debug("TRACE: "+s)
+            v['timing']['traceLabels'].append(s)
+            v['timing']['traceTimes'].append(str((datetime.datetime.now()-v['timing']['checkDT']).microseconds//1000))
+            v['timing']['checkDT']=datetime.datetime.now()
     @staticmethod
     def resub(s):
         #Resubmit one or multiple variants
@@ -112,8 +113,10 @@ class logger():
         return logging.Logger.manager.loggerDict["VVLogString"].getvalue()
     @staticmethod
     def traceStart(v):
-        global VALIDATOR_DEBUG
-        if "trace" in VALIDATOR_DEBUG:
+        logger.loggingSetup()
+#        global VALIDATOR_DEBUG
+#        if "trace" in VALIDATOR_DEBUG:
+        if True:
             v['timing']={}
             v['timing']['traceLabels']=[]
             v['timing']['traceTimes']=[]
@@ -121,8 +124,10 @@ class logger():
             v['timing']['checkDT']=datetime.datetime.now()
     @staticmethod
     def traceEnd(v):
-        global VALIDATOR_DEBUG
-        if "trace" in VALIDATOR_DEBUG:
+        logger.loggingSetup()
+        #global VALIDATOR_DEBUG
+        #if "trace" in VALIDATOR_DEBUG:
+        if True:
             v['timing']['traceLabels'].append("complete")
             v['timing']['traceTimes'].append((datetime.datetime.now()-v['timing']['startDT']).microseconds//1000)
             del v['timing']['startDT']

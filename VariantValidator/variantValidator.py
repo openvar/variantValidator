@@ -165,8 +165,6 @@ def loadConfigFile():
 
     logString = ConfigSectionMap("logging",Config)['string']
     os.environ["VALIDATOR_DEBUG"]=logString
-    print "ac",os.environ["VALIDATOR_DEBUG"]
-    print("ls",logString)
 
 # Custom Exceptions
 class variantValidatorError(Exception):
@@ -8406,7 +8404,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
         #Add error strings to validation output
         #'''
         metadata={}
-        logger.info("Variant successfully validated")
+        logger.info("Endpoint reached")
         logs=[]
         logString=logger.getString()
         for l in logger.getString().split("\n"):
@@ -8445,11 +8443,11 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
         # tr = ''.join(traceback.format_stack())
         tbk = [str(exc_type), str(exc_value), str(te)]
         er = '\n'.join(tbk)
-        #raise variantValidatorError('Validation error')
-        # Return
-        #return
-        logger.critical(str(exc_type)+" "+str(exc_value))
-        logger.debug(str(e))
+        if last_traceback:
+            logger.critical(str(exc_type)+" "+str(exc_value)+" at line "+str(last_traceback.tb_lineno))
+        else:
+            logger.critical(str(exc_type)+" "+str(exc_value))
+        logger.debug(er)
 
 
 # Generates a list of transcript (UTA supported) and transcript names from a gene symbol or RefSeq transcript ID
