@@ -10,6 +10,13 @@ import json
 import sys
 
 import sqlite3
+import logging
+
+logConsoleHandler = logging.StreamHandler()
+logConsoleHandler.setLevel(logging.DEBUG)
+#Debug
+hl=logging.getLogger("hgvs.dataproviders.uta")
+hl.addHandler(logConsoleHandler)
 
 try:
     print("Configuring for lamp")

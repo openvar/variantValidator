@@ -11,5 +11,5 @@ sysOut=StringIO()
 inputVariants="inputVariants.txt"
 saveOut="testJSON.json"
 
-fn.generateTestJSON(saveOut,inputVariants,sysOut)
-
+#fn.generateTestJSON(saveOut,inputVariants,sysOut)
+fn.generateTestFolder("testOutputsRebuilt",inputVariants)
