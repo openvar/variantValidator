@@ -98,7 +98,13 @@ def get_lrgProteinID_from_RefSeqProteinID(rs_p):
 	query = "SELECT LRGproteinID FROM LRG_proteins WHERE  RefSeqProteinID = '%s'" %(rs_p)
 	lrpID = execute(query)
 	lrpID = lrpID[0]
-	return lrpID	
+	return lrpID
+
+def get_LRG_data_from_LRGid(lrg_id):
+    query = "SELECT * FROM LRG_RSG_lookup WHERE lrgID = '%s'" %(lrg_id)
+    lrg_data = execute(query)
+    lrg_data = lrg_data
+    return lrg_data
 	
 if __name__ == '__main__':
 	query_with_fetchone()

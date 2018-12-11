@@ -1,14 +1,26 @@
 # -*- coding: utf-8 -*-
 
+"""
+Fiunctions that return links to external data
+"""
+
+import output_formatter
+from variantanalyser import dbControls as va_dbCrl
+
+
+"""
+Provide direct links to reference sequence records
+"""
+
 def get_urls(dict_out):
     # Add urls
     report_urls = {}
     if 'NM_' in dict_out['hgvs_transcript_variant'] or 'NR_' in dict_out['hgvs_transcript_variant']:
         report_urls['transcript'] = 'https://www.ncbi.nlm.nih.gov' \
                                     '/nuccore/%s' % dict_out['hgvs_transcript_variant'].split(':')[0]
-    if 'NP_' in str(predicted_protein_variant):
+    if 'NP_' in dict_out['hgvs_predicted_protein_consequence']['slr']:
         report_urls['protein'] = 'https://www.ncbi.nlm.nih.gov' \
-                                 '/nuccore/%s' % str(format_p).split(':')[0]
+                                 '/nuccore/%s' % str(dict_out['hgvs_predicted_protein_consequence']['slr']).split(':')[0]
     if 'NG_' in dict_out['hgvs_refseqgene_variant']:
         report_urls['refseqgene'] = 'https://www.ncbi.nlm.nih.gov' \
                                     '/nuccore/%s' % dict_out['hgvs_refseqgene_variant'].split(':')[0]
@@ -26,44 +38,62 @@ def get_urls(dict_out):
     # Ensembl needs to be added at a later data
     # "http://www.ensembl.org/id/" ? What about historic versions?????
 
+
+    return report_urls
+
+
+
+"""
+Returns a link to the external Varsome Website
+"""
+
+def get_varsome_links(vcf_dict, ucsc_build):
     # Varsome and UCSC
-    report_urls['external'] = {}
-    for primary_assembly, data_set in dict_out['primary_assembly_loci'][]
+    varsome_url = None
 
-        if not 'hg' in primary_assembly:
-            continue
+    if not 'hg19' in primary_assembly or not 'hg38' in primary_assembly:
+        return {'error': 'Unsupported genome build: supported = hg19 and hg38'}
 
-        if primary_assembly == 'hg19':
-            varsome = "https://varsome.com/variant/hg19/"  # %s" %(coding.replace('dup', 'ins'))
-        if primary_assembly == 'hg38':
-            varsome = "https://varsome.com/variant/hg38/"  # %s" %(coding.replace('dup', 'ins'))
+    if primary_assembly == 'hg19':
+        varsome = "https://varsome.com/variant/hg19/"  # %s" %(coding.replace('dup', 'ins'))
+    if primary_assembly == 'hg38':
+        varsome = "https://varsome.com/variant/hg38/"  # %s" %(coding.replace('dup', 'ins'))
 
-        # Report VCF from hgvs
-        rp_vcf_component_list = [str(dataset['vcf']['chr']),
-                                 str(dataset['vcf']['pos']),
-                                 str(dataset['vcf']['ref']),
-                                 str(dataset['vcf']['alt'])
-                                 ]
-        vcf_varsome = '-'.join(rp_vcf_component_list)
-        varsome = varsome + vcf_varsome
+    # Report VCF from hgvs
+    rp_vcf_component_list = [str(vcf_dict['vcf']['chr']),
+                             str(vcf_dict['vcf']['pos']),
+                             str(vcf_dict['vcf']['ref']),
+                             str(vcf_dict['vcf']['alt'])
+                             ]
+    vcf_varsome = '-'.join(rp_vcf_component_list)
+    varsome_external = varsome + vcf_varsome
+    varsome_url = varsome_external
+    return varsome_url
 
-        # Create a link to UCSC genome browser
-        ucsc_assembly = primary_assembly
-        vcf_components = vcf_varsome.split('-')
-        vcf_components[0] = ucsc_chromosome
-        vcf_varsome = '-'.join(vcf_components)
 
-        browser_start = str(final_hgvs_genomic.posedit.pos.start.base - 11)
-        browser_end = str(final_hgvs_genomic.posedit.pos.end.base + 11)
-        ucsc_browser_position = '%s:%s-%s' % (ucsc_chromosome, browser_start, browser_end)
-        coding = 'intergenic'
-        warnings.warn(coding)
-        ucsc_link = 'http://genome.ucsc.edu/cgi-bin/hgTracks?db=%s&position=%s&hgt.customText=https://variantvalidator.org/bed/?variant=%s|%s|GRCh37|%s|%s' % (
-        ucsc_assembly, ucsc_browser_position, coding, final_hgvs_genomic.ac, valstr(final_hgvs_genomic), vcf_varsome)
-        # add links
-        vcf_varsome = primary_assembly + ':' + vcf_varsome.replace('-', ':')
-        report_urls['external'][vcf_varsome]['varsome'] = varsome
-        report_urls['external'][vcf_varsome]['ucsc'] = ucsc_link
+
+"""
+Creates a link to add the VV track to the UCSC genome browser
+"""
+def ucsc_link(pvcf_dashed, hgvs_genomic, ucsc_assembly, intragenic=False):
+
+    if not 'hg19' in ucsc_assembly or not 'hg38' in ucsc_assembly:
+        return {'error': 'Unsupported genome build: supported = hg19 and hg38'}
+
+    vcf_components = pvcf_dashed.split('-')
+    vcf_components[0] = ucsc_chromosome
+
+    browser_start = str(final_hgvs_genomic.posedit.pos.start.base - 11)
+    browser_end = str(final_hgvs_genomic.posedit.pos.end.base + 11)
+    ucsc_browser_position = '%s:%s-%s' % (ucsc_chromosome, browser_start, browser_end)
+    remove_genomic_bases = str(output_formatter.remove_reference(hgvs_genomic))
+
+    ucsc_link = 'http://genome.ucsc.edu/cgi-bin/hgTracks?db=%s&position=%s&hgt.customText=https://variantvalidator.org/bed/?variant=%s|%s|GRCh37|%s|%s' % (
+        ucsc_assembly, ucsc_browser_position, coding, hgvs_genomic.ac, remove_genomic_bases, pvcf_dashed
+        )
+
+    return ucsc_link
+
 
 
 # <LICENSE>

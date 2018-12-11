@@ -95,6 +95,8 @@ from Bio.Seq import Seq
 
 # Import variantanalyser and peripheral VV modules
 import ref_seq_type
+import external
+import output_formatter
 import variantanalyser
 from vvLogging import logger
 from variantanalyser import functions as va_func
@@ -201,18 +203,12 @@ def valstr(hgvs_variant):
     Function to ensure the required number of reference bases are displayed in descriptions
     """
     cp_hgvs_variant = copy.deepcopy(hgvs_variant)
-    if re.search('del', str(cp_hgvs_variant.posedit.edit)) or re.search('dup', str(cp_hgvs_variant.posedit.edit)):
-        if len(cp_hgvs_variant.posedit.edit.ref) <= 4:
-            cp_hgvs_variant.posedit.edit.ref = ''
-        else:
-            cp_hgvs_variant.posedit.edit.ref = ''
-        cp_hgvs_variant = str(cp_hgvs_variant)
-    elif cp_hgvs_variant.posedit.edit.type == 'identity':
+    if cp_hgvs_variant.posedit.edit.type == 'identity':
         if len(cp_hgvs_variant.posedit.edit.ref) > 1:
-            cp_hgvs_variant.posedit.edit.ref = ''
-            cp_hgvs_variant.posedit.edit.alt = ''
+            cp_hgvs_variant = output_formatter.remove_reference(cp_hgvs_variant)
         cp_hgvs_variant = str(cp_hgvs_variant)
     else:
+        cp_hgvs_variant = output_formatter.remove_reference(cp_hgvs_variant)
         cp_hgvs_variant = str(cp_hgvs_variant)
     return cp_hgvs_variant
 
@@ -1411,7 +1407,13 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             error = str(e)
                             if re.search('datums is ill-defined', error):
                                 called_ref = input_parses.posedit.edit.ref
-                                to_n = evm.c_to_n(input_parses)
+                                try:
+                                    to_n = evm.c_to_n(input_parses)
+                                except hgvs.exceptions.HGVSInvalidVariantError as e:
+                                    error = str(e)
+                                    validation['warnings'] = validation['warnings'] + ': ' + str(error)
+                                    logger.warning(error)
+                                    continue
                                 actual_ref = to_n.posedit.edit.ref
                                 if called_ref != actual_ref:
                                     error = 'Variant reference (' + called_ref + ') does not agree with reference sequence (' + actual_ref + ')'
@@ -1425,7 +1427,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 if re.search('bounds', error) or re.search('intronic variant', error):
                                     try:
                                         hn.normalize(input_parses)
-                                    except Exception as e:
+                                    except hgvs.exceptions.HGVSError as e:
                                         exceptPass()
                                     if re.search('bounds', str(e)):
                                         try:
@@ -1548,6 +1550,25 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 validation['warnings'] = validation['warnings'] + ': ' + str(
                                     error)
                                 logger.warning(str(error))
+                                continue
+
+                            except hgvs.exceptions.HGVSDataNotAvailableError as e:
+                                error = str(e)
+                                if 'Alignment is incomplete' in error:
+                                    e_list = error.split('~')
+                                    gens = []
+                                    for el in e_list:
+                                        el_l = el.split('/')
+                                        if el_l[-1] == '':
+                                            continue
+                                        gens.append(el_l[-1])
+                                    acs = '; '.join(gens)
+                                    error = 'Cannot map ' + valstr(
+                                        input_parses) + ' to a genomic position. ' + input_parses.ac + ' can only be partially aligned to genomic reference sequences ' + acs
+                                    validation['warnings'] = validation['warnings'] + ': ' + str(
+                                        error)
+                                    logger.warning(str(error))
+                                    continue
 
                     elif re.search('\d\-', str(input_parses)) or re.search('\d\+', str(input_parses)):
                         # Quick look at syntax validation
@@ -1725,6 +1746,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
 
                             elif re.search('base must be >=1 for datum = SEQ_START or CDS_END', error):
                                 error = 'The given coordinate is outside the bounds of the reference sequence.'
+
                                 try:
                                     if re.match('-', str(input_parses.posedit.pos.start)):
                                         # upstream positions
@@ -1799,7 +1821,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     back_to_n = evm.g_to_t(test_g, input_parses.ac)
                                 except hgvs.exceptions.HGVSError as e:
                                     error = str(e)
-                                    if re.match('bounds', error):
+                                    if re.search('bounds', error):
                                         report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
                                         error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(report_gen)
                                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
@@ -1808,7 +1830,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 else:
                                     exceptPass()
 
-                                    # Create a specific minimal evm with no normalizer and no replace_reference
+                        # Create a specific minimal evm with no normalizer and no replace_reference
                         # Have to use this method due to potential multi chromosome error, note, normalizes but does not replace sequence
                         try:
                             output = va_func.noreplace_myevm_t_to_g(input_parses, evm, hdp, primary_assembly, vm, hn, hp, sf, no_norm_evm)
@@ -1862,6 +1884,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         try:
                             vr.validate(input_parses)
                         except hgvs.exceptions.HGVSUnsupportedOperationError:
+
                             exceptPass()
                         except hgvs.exceptions.HGVSInvalidVariantError as e:
                             error = str(e)
@@ -2362,28 +2385,20 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         # Re-Analyse genomic positions
                         if re.match('NG_', str(stash_input)):
                             c = hp.parse_hgvs_variant(rel_var[0])
-                            try:
+                            if hasattr(c.posedit.edit, 'ref') and c.posedit.edit.ref is not None:
                                 c.posedit.edit.ref = c.posedit.edit.ref.upper()
-                            except Exception as e:
-                                exceptPass()
-                            try:
+                            if hasattr(c.posedit.edit, 'alt') and c.posedit.edit.alt is not None:
                                 c.posedit.edit.alt = c.posedit.edit.alt.upper()
-                            except Exception as e:
-                                exceptPass()
                             stash_input = va_func.myevm_t_to_g(c, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm)
                         if re.match('NC_', str(stash_input)) or re.match('NT_', str(stash_input)) or re.match('NW_', str(stash_input)):
                             try:
                                 hgvs_stash = hp.parse_hgvs_variant(stash_input)
                             except:
                                 hgvs_stash = stash_input
-                            try:
+                            if hasattr(hgvs_stash.posedit.edit, 'ref') and hgvs_stash.posedit.edit.ref is not None:
                                 hgvs_stash.posedit.edit.ref = hgvs_stash.posedit.edit.ref.upper()
-                            except Exception as e:
-                                exceptPass()
-                            try:
+                            if hasattr(hgvs_stash.posedit.edit, 'alt') and hgvs_stash.posedit.edit.alt is not None:
                                 hgvs_stash.posedit.edit.alt = hgvs_stash.posedit.edit.alt.upper()
-                            except Exception as e:
-                                exceptPass()
 
                             stash_ac = hgvs_stash.ac
                             # MAKE A NO NORM HGVS2VCF
@@ -4171,13 +4186,13 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 if len(test_stash_tx_right.posedit.edit.ref) == ((
                                                                                          stash_genomic.posedit.pos.end.base - stash_genomic.posedit.pos.start.base) + 1):
                                     stash_tx_right = test_stash_tx_right
-                                    try:
+                                    if hasattr(test_stash_tx_right.posedit.edit, 'alt') and test_stash_tx_right.posedit.edit.alt is not None:
                                         alt = test_stash_tx_right.posedit.edit.alt
-                                    except Exception:
+                                    else:
                                         alt = ''
-                                    try:
+                                    if hasattr(stash_genomic.posedit.edit, 'alt') and stash_genomic.posedit.edit.alt is not None:
                                         g_alt = stash_genomic.posedit.edit.alt
-                                    except Exception:
+                                    else:
                                         g_alt = ''
                                     if (len(alt) - (
                                             test_stash_tx_right.posedit.pos.end.base - test_stash_tx_right.posedit.pos.start.base) + 1) != (
@@ -4209,7 +4224,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     else:
                                         stash_tx_right = test_stash_tx_right
                                         hgvs_genomic_possibilities.append(stash_genomic)
-                            except Exception as e:
+                            except hgvs.exceptions.HGVSError as e:
                                 test_stash_tx_right = copy.deepcopy(hgvs_coding)
                                 pass
 
@@ -4246,16 +4261,17 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 # if test_stash_tx_left.posedit.edit.type == 'identity' and stash_genomic.posedit.edit.type == 'identity':
                                 # pass
                                 if len(test_stash_tx_left.posedit.edit.ref) == ((
-                                                                                        stash_genomic.posedit.pos.end.base - stash_genomic.posedit.pos.start.base) + 1):  # len(stash_genomic.posedit.edit.ref):
+                                        stash_genomic.posedit.pos.end.base - stash_genomic.posedit.pos.start.base) + 1):  # len(stash_genomic.posedit.edit.ref):
                                     stash_tx_left = test_stash_tx_left
-                                    try:
+                                    if hasattr(test_stash_tx_left.posedit.edit, 'alt') and test_stash_tx_left.posedit.edit.alt is not None:
                                         alt = test_stash_tx_left.posedit.edit.alt
-                                    except Exception:
+                                    else:
                                         alt = ''
-                                    try:
+                                    if hasattr(stash_genomic.posedit.edit, 'alt') and stash_genomic.posedit.edit.alt is not None:
                                         g_alt = stash_genomic.posedit.edit.alt
-                                    except Exception:
+                                    else:
                                         g_alt = ''
+
                                     if (len(alt) - (
                                             test_stash_tx_left.posedit.pos.end.base - test_stash_tx_left.posedit.pos.start.base) + 1) != (
                                             len(g_alt) - (
@@ -4286,7 +4302,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     else:
                                         stash_tx_left = test_stash_tx_left
                                         hgvs_genomic_possibilities.append(stash_genomic)
-                            except Exception as e:
+                            except hgvs.exceptions.HGVSError as e:
                                 test_stash_tx_left = copy.deepcopy(hgvs_coding)
                                 pass
                             # direct mapping from reverse_normalized transcript insertions in the delins format
@@ -6250,14 +6266,16 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         # Attempt 1 = UTA
                         sequences_for_tx = hdp.get_tx_mapping_options(hgvs_coding.ac)
                         recovered_rsg = []
+
                         for sequence in sequences_for_tx:
-                            if re.search('^NG_', sequence[1]):
+                            if re.match('^NG_', sequence[1]):
                                 recovered_rsg.append(sequence[1])
                         recovered_rsg.sort()
                         recovered_rsg.reverse()
-                        try:
-                            refseqgene_ac = recovered_rsg[0]
-                        except:
+
+                        if 'NG_' in recovered_rsg:
+                            refseqgene_ac = recovered_rsg
+                        else:
                             refseqgene_ac = ''
 
                         # Given the difficulties with mapping to and from RefSeqGenes, we now solely rely on UTA
@@ -6562,16 +6580,6 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             lrg_variant = ''
                         else:
                             hgvs_lrg = copy.deepcopy(hgvs_refseqgene_variant)
-                            try:
-                                if hgvs_lrg.posedit.edit.type == 'dup' or re.search('del', hgvs_lrg.posedit.edit.type):
-                                    if len(hgvs_lrg.posedit.edit.ref) > 4:
-                                        hgvs_lrg.posedit.edit.ref = ''
-                                elif hgvs_lrg.posedit.edit.type == 'identity':
-                                    if len(hgvs_lrg.posedit.edit.ref) > 1:
-                                        hgvs_lrg.posedit.edit.ref = ''
-                                        hgvs_lrg.posedit.edit.alt = ''
-                            except:
-                                pass
                             hgvs_lrg.ac = rsg_ac[0]
                             lrg_variant = valstr(hgvs_lrg)
                             if rsg_ac[1] == 'public':
@@ -6607,39 +6615,15 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             # if hgvs_refseqgene_variant != 'RefSeqGene record not available' and hgvs_refseqgene_variant != 'false':
                             try:
                                 hgvs_lrg_t = vm.g_to_t(hgvs_refseqgene_variant, transcript_accession)
-                                try:
-                                    if hgvs_lrg_t.posedit.edit.type == 'dup' or re.search('del',
-                                                                                          hgvs_lrg_t.posedit.edit.type):
-                                        if len(hgvs_lrg_t.posedit.edit.ref) > 4:
-                                            hgvs_lrg_t.posedit.edit.ref = ''
-                                    elif hgvs_lrg_t.posedit.edit.type == 'identity':
-                                        if len(hgvs_lrg_t.posedit.edit.ref) > 1:
-                                            hgvs_lrg_t.posedit.edit.ref = ''
-                                            hgvs_lrg_t.posedit.edit.alt = ''
-                                except:
-                                    exceptPass()
                                 hgvs_lrg_t.ac = lrg_transcript
                                 lrg_transcript_variant = valstr(hgvs_lrg_t)
                             except:
                                 if hgvs_transcript_variant.posedit.pos.start.offset == 0 and hgvs_transcript_variant.posedit.pos.end.offset == 0:
                                     hgvs_lrg_t = copy.copy(hgvs_transcript_variant)
-                                    try:
-                                        if hgvs_lrg_t.posedit.edit.type == 'dup' or re.search('del',
-                                                                                              hgvs_lrg_t.posedit.edit.type):
-                                            if len(hgvs_lrg_t.posedit.edit.ref) > 4:
-                                                hgvs_lrg_t.posedit.edit.ref = ''
-                                        elif hgvs_lrg_t.posedit.edit.type == 'identity':
-                                            if len(hgvs_lrg_t.posedit.edit.ref) > 1:
-                                                hgvs_lrg_t.posedit.edit.ref = ''
-                                                hgvs_lrg_t.posedit.edit.alt = ''
-                                    except:
-                                        exceptPass()
                                     hgvs_lrg_t.ac = lrg_transcript
                                     lrg_transcript_variant = valstr(hgvs_lrg_t)
                                 else:
                                     lrg_transcript_variant = ''
-                    #                         else:
-                    #                             lrg_transcript_variant = ''
                     else:
                         transcript_accession = ''
                         lrg_transcript_variant = ''
@@ -6815,13 +6799,13 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                         if len(test_stash_tx_right.posedit.edit.ref) == ((
                                                                                                  stash_genomic.posedit.pos.end.base - stash_genomic.posedit.pos.start.base) + 1):
                                             stash_tx_right = test_stash_tx_right
-                                            try:
+                                            if hasattr(test_stash_tx_right.posedit.edit, 'alt') and test_stash_tx_right.posedit.edit.alt is not None:
                                                 alt = test_stash_tx_right.posedit.edit.alt
-                                            except Exception:
+                                            else:
                                                 alt = ''
-                                            try:
+                                            if hasattr(stash_genomic.posedit.edit, 'alt') and stash_genomic.posedit.edit.alt is not None:
                                                 g_alt = stash_genomic.posedit.edit.alt
-                                            except Exception:
+                                            else:
                                                 g_alt = ''
                                             if (len(alt) - (
                                                     test_stash_tx_right.posedit.pos.end.base - test_stash_tx_right.posedit.pos.start.base) + 1) != (
@@ -6853,7 +6837,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                             else:
                                                 stash_tx_right = test_stash_tx_right
                                                 hgvs_genomic_possibilities.append(stash_genomic)
-                                    except Exception as e:
+                                    except hgvs.exceptions.HGVSError as e:
                                         exceptPass()
 
                                     # Then to the left
@@ -6890,13 +6874,13 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                         if len(test_stash_tx_left.posedit.edit.ref) == ((
                                                                                                 stash_genomic.posedit.pos.end.base - stash_genomic.posedit.pos.start.base) + 1):  # len(stash_genomic.posedit.edit.ref):
                                             stash_tx_left = test_stash_tx_left
-                                            try:
+                                            if hasattr(test_stash_tx_left.posedit.edit, 'alt') and test_stash_tx_left.posedit.edit.alt is not None:
                                                 alt = test_stash_tx_left.posedit.edit.alt
-                                            except Exception:
+                                            else:
                                                 alt = ''
-                                            try:
+                                            if hasattr(stash_genomic.posedit.edit, 'alt') and stash_genomic.posedit.edit.alt is not None:
                                                 g_alt = stash_genomic.posedit.edit.alt
-                                            except Exception:
+                                            else:
                                                 g_alt = ''
                                             if (len(alt) - (
                                                     test_stash_tx_left.posedit.pos.end.base - test_stash_tx_left.posedit.pos.start.base) + 1) != (
@@ -6928,7 +6912,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                             else:
                                                 stash_tx_left = test_stash_tx_left
                                                 hgvs_genomic_possibilities.append(stash_genomic)
-                                    except Exception as e:
+                                    except hgvs.exceptions.HGVSError as e:
                                         exceptPass()
 
                                     # direct mapping from reverse_normalized transcript insertions in the delins format
@@ -8070,7 +8054,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                                       'genomic reference sequence %s' % (hgvs_coding.ac,
                                                                                          alt_chr)
                                 continue
-                            except Exception as e:
+                            except hgvs.exceptions.HGVSError as e:
                                 exc_type, exc_value, last_traceback = sys.exc_info()
                                 te = traceback.format_exc()
                                 error = str(te)
@@ -8212,7 +8196,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 format_p = predicted_protein_variant
                                 format_p = re.sub('\(LRG_.+?\)', '', format_p)
                                 re_parse_protein = hp.parse_hgvs_variant(format_p)
-                                re_parse_protein_singleAA = re_parse_protein.format({'p_3_letter': False})
+                                re_parse_protein_singleAA = output_formatter.single_letter_protein(re_parse_protein)
                                 predicted_protein_variant_dict["slr"] = str(re_parse_protein_singleAA)
                             except hgvs.exceptions.HGVSParseError:
                                 exceptPass()
@@ -8233,6 +8217,12 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     dict_out['hgvs_lrg_variant'] = lrg_variant
                     dict_out['alt_genomic_loci'] = alt_genomic_dicts
                     dict_out['primary_assembly_loci'] = primary_genomic_dicts
+                    dict_out['reference_sequence_records'] = ''
+
+                    # Add links to reference_sequence_records
+                    ref_records = external.get_urls(dict_out)
+                    if ref_records != {}:
+                        dict_out['reference_sequence_records'] = ref_records
 
                     # Append to a list for return
                     batch_out.append(dict_out)
