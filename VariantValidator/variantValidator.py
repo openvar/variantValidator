@@ -106,6 +106,7 @@ from variantanalyser import batch as va_btch
 from variantanalyser import g_to_g as va_g2g
 from variantanalyser import supported_chromosome_builds as va_scb
 from variantanalyser import gap_genes as gapGenes
+from variantanalyser.liftover import liftover as lift_over
 
 
 __version__=None
@@ -163,8 +164,6 @@ def loadConfigFile():
     if re.match('^\d+\.\d+\.\d+$', __version__) is not None:
         _is_released_version = True
     #Load database environments from config
-
-
     logString = ConfigSectionMap("logging",Config)['string']
     os.environ["VALIDATOR_DEBUG"]=logString
 
@@ -288,9 +287,6 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                 select_transcripts_dict[id] = ''
         # Set up gene list dictionary
         input_genes = {}
-
-        # Remove genes if transcripts selected
-        # if select_transcripts != 'all':
 
         # split the batch queries into a list
         batch_queries = batch_variant.split('|')
@@ -470,7 +466,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     # Extract primary_assembly if provided
                     if re.match('GRCh3\d+-', input) or re.match('hg\d+-', input):
                         in_list = input.split('-')
-                        selected_assembly = in_list[0]
+                        primary_assembly = in_list[0]
                         input = '-'.join(in_list[1:])
                     pre_input = copy.deepcopy(input)
                     vcf_elements = pre_input.split('-')
@@ -480,7 +476,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     # Extract primary_assembly if provided
                     if re.match('GRCh3\d+-', input) or re.match('hg\d+-', input):
                         in_list = input.split('-')
-                        selected_assembly = in_list[0]
+                        primary_assembly = in_list[0]
                         input = '-'.join(in_list[1:])
                     pre_input = copy.deepcopy(input)
                     vcf_elements = pre_input.split('-')
@@ -511,7 +507,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     # Extract primary_assembly if provided
                     if re.match('GRCh3\d+-', input) or re.match('hg\d+-', input):
                         in_list = input.split('-')
-                        selected_assembly = in_list[0]
+                        primary_assembly = in_list[0]
                         input = '-'.join(in_list[1:])
                     pre_input = copy.deepcopy(input)
                     vcf_elements = pre_input.split('-')
@@ -553,7 +549,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 if re.match('CHR', chr_num):
                                     chr_num = chr_num.replace('CHR', '')
                                 # Use selected assembly
-                                accession = va_scb.to_accession(chr_num, selected_assembly)
+                                accession = va_scb.to_accession(chr_num, primary_assembly)
                                 if accession is None:
                                     validation['warnings'] = validation[
                                                                  'warnings'] + ': ' + chr_num + \
@@ -643,10 +639,10 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 chr_num = chr_num.strip()
                                 if re.match('CHR', chr_num):
                                     chr_num = chr_num.replace('CHR', '')  # Use selected assembly
-                                accession = va_scb.to_accession(chr_num, selected_assembly)
+                                accession = va_scb.to_accession(chr_num, primary_assembly)
                                 if accession is None:
                                     validation['warnings'] = validation['warnings'] + ': ' + chr_num + \
-                                                             ' is not part of genome build ' + selected_assembly
+                                                             ' is not part of genome build ' + primary_assembly
                                     continue
                                 input = str(accession) + ':' + str(positionAndEdit)
                                 stash_input = input
@@ -2427,6 +2423,9 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             saved_hgvs_coding = hp.parse_hgvs_variant(var)
 
                             # Remove un-selected transcripts
+
+                            # REVIEW AT MODULAR
+
                             if select_transcripts != 'all':
                                 tx_ac = saved_hgvs_coding.ac
                                 # If it's in the selected tx dict, keep it
@@ -6600,7 +6599,6 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         transcript_accession = hgvs_transcript_variant.ac
 
                         # Handle LRG
-                        lrg_status = 'public'
                         lrg_transcript = va_dbCrl.data.get_lrgTranscriptID_from_RefSeqTranscriptID(transcript_accession)
                         if lrg_transcript == 'none':
                             lrg_transcript_variant = ''
@@ -8216,11 +8214,38 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     dict_out['alt_genomic_loci'] = alt_genomic_dicts
                     dict_out['primary_assembly_loci'] = primary_genomic_dicts
                     dict_out['reference_sequence_records'] = ''
-
                     # Add links to reference_sequence_records
                     ref_records = external.get_urls(dict_out)
                     if ref_records != {}:
                         dict_out['reference_sequence_records'] = ref_records
+                    dict_out['urls'] = ''
+
+                    # Add urls
+                    report_urls = {}
+                    if 'NM_' in dict_out['hgvs_transcript_variant'] or 'NR_' in dict_out['hgvs_transcript_variant']:
+                        report_urls['transcript'] = 'https://www.ncbi.nlm.nih.gov' \
+                                                    '/nuccore/%s' % dict_out['hgvs_transcript_variant'].split(':')[0]
+                    if 'NP_' in str(predicted_protein_variant):
+                        report_urls['protein'] = 'https://www.ncbi.nlm.nih.gov' \
+                                                    '/nuccore/%s' % str(format_p).split(':')[0]
+                    if 'NG_' in dict_out['hgvs_refseqgene_variant']:
+                        report_urls['refseqgene'] = 'https://www.ncbi.nlm.nih.gov' \
+                                                    '/nuccore/%s' % dict_out['hgvs_refseqgene_variant'].split(':')[0]
+                    if 'LRG' in dict_out['hgvs_lrg_variant']:
+                        lrg_id = dict_out['hgvs_lrg_variant'].split(':')[0]
+                        lrg_data = va_dbCrl.data.get_LRG_data_from_LRGid(lrg_id)
+                        lrg_status = str(lrg_data[4])
+                        if lrg_status == 'public':
+                            report_urls['lrg'] = 'http://ftp.ebi.ac.uk/pub' \
+                                                 '/databases/lrgex/%s.xml' % dict_out['hgvs_lrg_variant'].split(':')[0]
+                        else:
+                            report_urls['lrg'] = 'http://ftp.ebi.ac.uk' \
+                                                 '/pub/databases/lrgex' \
+                                                 '/pending/%s.xml' % dict_out['hgvs_lrg_variant'].split(':')[0]
+                    # Ensembl needs to be added at a later data
+                    # "http://www.ensembl.org/id/" ? What about historic versions?????
+                    if report_urls != {}:
+                        dict_out['urls'] = report_urls
 
                     # Append to a list for return
                     batch_out.append(dict_out)
@@ -8228,6 +8253,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     continue
             else:
                 continue
+
 
         """
         Structure the output into dictionaries rather than a list with descriptive keys
@@ -8287,8 +8313,8 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                 # https://pypi.org/project/pyliftover/
                 genomic_position_info = valid_v['primary_assembly_loci']
                 for g_p_key in genomic_position_info.keys():
-                    if re.match('GRC', g_p_key):
-                        continue
+
+                    # Identify the current build and hgvs_genomic descripsion
                     if re.match('hg', g_p_key):
                         # incoming_build = g_p_key
                         incoming_vcf = genomic_position_info[g_p_key]['vcf']
@@ -8375,31 +8401,16 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                                                         }
                                                             }
 
-                                                        else:
-                                                            primary_genomic_dicts[build.lower()] = {
-                                                                'hgvs_genomic_description': valstr(hgvs_lifted),
-                                                                'vcf': {'chr': vcf_dict['ucsc_chr'],
-                                                                        'pos': vcf_dict['pos'],
-                                                                        'ref': vcf_dict['ref'],
-                                                                        'alt': vcf_dict['alt']
-                                                                        }
-                                                            }
+                        # KeyError if the dicts are empty
+                        except KeyError:
+                            continue
 
-                                                        if build == 'GRCh38':
-                                                            vcf_dict = va_H2V.report_hgvs2vcf(hgvs_lifted, 'hg38', reverse_normalizer, sf)
-                                                            primary_genomic_dicts['hg38'] = {
-                                                                'hgvs_genomic_description': valstr(hgvs_lifted),
-                                                                'vcf': {'chr': vcf_dict['ucsc_chr'],
-                                                                        'pos': vcf_dict['pos'],
-                                                                        'ref': vcf_dict['ref'],
-                                                                        'alt': vcf_dict['alt']
-                                                                        }
-                                                            }
+                    # Add the dictionaries from lifted response to the output
+                    if primary_assembly_loci != {}:
+                        valid_v['primary_assembly_loci'] = primary_assembly_loci
+                    if alt_genomic_loci != []:
+                        valid_v['alt_genomic_loci'] = alt_genomic_loci
 
-                    # Append the data if any
-                    if len(primary_genomic_dicts) > 0:
-                        for build_key in primary_genomic_dicts.keys():
-                            valid_v['primary_assembly_loci'][build_key] = primary_genomic_dicts[build_key]
                 # Finalise the output dictionary
                 validation_output[identification_key] = valid_v
 
