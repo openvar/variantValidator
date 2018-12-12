@@ -18,49 +18,15 @@ logConsoleHandler.setLevel(logging.DEBUG)
 hl=logging.getLogger("hgvs.dataproviders.uta")
 hl.addHandler(logConsoleHandler)
 
-try:
-    print("Configuring for lamp")
-    seqrepo_current_version='2018-08-21'
-    #HGVS_SEQREPO_DIR='/home/pjdp2/seqrepo/'+seqrepo_current_version
-    HGVS_SEQREPO_DIR='/local/seqrepo/'+seqrepo_current_version
-    os.environ['HGVS_SEQREPO_DIR']=HGVS_SEQREPO_DIR
-    uta_current_version='uta_20180821'
-    UTA_DB_URL='postgresql://uta_admin:uta_admin@127.0.0.1/uta/' + uta_current_version
-    os.environ['UTA_DB_URL']=UTA_DB_URL
-    #from VariantValidator import variantValidator as vv
-    print "Databases loaded"
-    from VariantValidator import variantValidator as vv
-    vv.my_config()
-    print("Configured for LAMP")
-except sqlite3.OperationalError:
-    print("Configuring for VM")
-    seqrepo_current_version='2018-08-21'
-    HGVS_SEQREPO_DIR='/home/pjdp2/seqrepo/'+seqrepo_current_version
-    #HGVS_SEQREPO_DIR='/local/seqrepo/'+seqrepo_current_version
-    os.environ['HGVS_SEQREPO_DIR']=HGVS_SEQREPO_DIR
-    uta_current_version='uta_20180821'
-    UTA_DB_URL='postgresql://uta_admin:uta_admin@127.0.0.1/uta/' + uta_current_version
-    os.environ['UTA_DB_URL']=UTA_DB_URL
-    #from VariantValidator import variantValidator as vv
-    print "Databases loaded"
-    from VariantValidator import variantValidator as vv
-    vv.my_config()
-    print("Configured for VM")
-except OSError:
-    print("Configuring for personal linux")
-    seqrepo_current_version='2018-08-21'
-    HGVS_SEQREPO_DIR='/home/buran/documents/workspace/ITS/seqrepo/'+seqrepo_current_version
-    #HGVS_SEQREPO_DIR='/local/seqrepo/'+seqrepo_current_version
-    os.environ['HGVS_SEQREPO_DIR']=HGVS_SEQREPO_DIR
-    uta_current_version='uta_20180821'
-    UTA_DB_URL='postgresql://uta_admin:uta_admin@127.0.0.1/uta/' + uta_current_version
-    #export postgresql://uta_admin:uta_admin@127.0.0.1/uta/uta_20180821
-    os.environ['UTA_DB_URL']=UTA_DB_URL
-    #from VariantValidator import variantValidator as vv
-    print "Databases loaded"
-    from VariantValidator import variantValidator as vv
-    vv.my_config()
-    print("Configured for VM")
+print("Configuring for personal linux")
+seqrepo_current_version='2018-08-21'
+HGVS_SEQREPO_DIR='/home/buran/documents/workspace/ITS/seqrepo/'+seqrepo_current_version
+os.environ['HGVS_SEQREPO_DIR']=HGVS_SEQREPO_DIR
+uta_current_version='uta_20180821'
+UTA_DB_URL='postgresql://uta_admin:uta_admin@127.0.0.1/uta/' + uta_current_version
+os.environ['UTA_DB_URL']=UTA_DB_URL
+from VariantValidator import variantValidator as vv
+vv.my_config()
 
 
 def generateTestFolder(path, inputVariants):
@@ -214,6 +180,10 @@ def compareBatches(v1path,v2path):
                 #print(v2batch[i])
         return False
 
+if __name__=="__main__":
 
-    
+    inputVariants="inputVariants.txt"
+    #saveOut="testJSON.json"
 
+    #fn.generateTestJSON(saveOut,inputVariants,sysOut)
+    generateTestFolder("testOutputs",inputVariants)
