@@ -28,7 +28,6 @@ os.environ['UTA_DB_URL']=UTA_DB_URL
 from VariantValidator import variantValidator as vv
 vv.my_config()
 
-
 def generateTestFolder(path, inputVariants):
     #Saves the results of running inputVariants to a folder given in saveDirectory.
     if not os.path.isdir(path):
