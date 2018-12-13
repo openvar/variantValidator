@@ -159,7 +159,8 @@ def loadConfigFile():
     # Set the version from the config.ini
     global __version__
     Config = ConfigParser()
-    Config.read(os.path.join(CONF_ROOT, 'config.ini'))
+    with open(os.path.join(CONF_ROOT, 'config.ini')) as f:
+        Config.read_file(f)
     __version__ = ConfigSectionMap("variantValidator",Config)['version']
     if re.match('^\d+\.\d+\.\d+$', __version__) is not None:
         _is_released_version = True

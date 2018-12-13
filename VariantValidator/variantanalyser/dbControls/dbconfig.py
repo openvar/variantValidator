@@ -19,7 +19,8 @@ def read_db_config(filename=os.path.join(CONF_ROOT, 'config.ini'), section='mysq
     """
     # create parser and read ini configuration file
     parser = ConfigParser()
-    parser.read(filename)
+    with open(filename) as f:
+        parser.read_file(f)
     
     # get section, default to mysql
     db = {}
