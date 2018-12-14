@@ -2,7 +2,6 @@
 """
 Liftover between genome builds is most accurate when mapping via a RefSeq transcript.
 For intergenic regions, the process is more complex.
-
 Lift position > Check bases > Lift back and confirm the original position
 """
 
@@ -34,7 +33,6 @@ def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp, reverse_no
     :param build_from:
     :param build_to:
     :return: lifted {}
-
     Step 1, attempt to liftover using a common RefSeq transcript
     """
 

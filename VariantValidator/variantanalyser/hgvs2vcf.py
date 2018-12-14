@@ -1,21 +1,16 @@
 # -*- coding: utf-8 -*-
 """
 hgvs2vcf.py
-
 A variety of functions that convert parder hgvs objects into VCF component parts
 Each function has a slightly difference emphasis
-
 1. hgvs2vcf
 Simple conversionwhich ensures identity is as 5 prime as possible by adding an extra 5
 prime base. Necessary for most gap handling situations
-
 2. report_hgvs2vcf
 Used to report the Most true representation of the VCF i.e. 5 prime normalized but no
 additional bases added. NOTE: no gap handling capabilities
-
 3. pos_lock_hgvs2vcf
 No normalization at all. No additional bases added. Simply returns an in-situ VCF
-
 4. hard_right_hgvs2vcf and hard_left_hgvs2vcf
 Designed specifically for gap handling.
 hard left pushes as 5 prime as possible and adds additional bases
