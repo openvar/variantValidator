@@ -449,8 +449,11 @@ def myc_to_p(hgvs_transcript, evm, hdp, hp, hn, vm, sf, re_to_p):
                         hgvs_transcript.posedit.pos.end.base >= 1 and hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset == 0)) \
                     and not re.search('\*', str(
                 hgvs_transcript.posedit.pos)):
+                residue_one = sf.fetch_seq(associated_protein_accession, start_i=1-1,end_i=1)
+                threed_residue_one = links.one_to_three(residue_one)
+                r_one_report = '(%s1?)' % threed_residue_one
                 hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
-                                                                    type='p', posedit='(Met1?)')
+                                                                    type='p', posedit=r_one_report)
             else:
                 try:
                     hgvs_protein = evm.c_to_p(hgvs_transcript)
@@ -468,7 +471,7 @@ def myc_to_p(hgvs_transcript, evm, hdp, hp, hn, vm, sf, re_to_p):
                 hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
                 return hgvs_transcript_to_hgvs_protein
             except UnboundLocalError:
-                hgvs_transcript_to_hgvs_protein = myc_to_p(hgvs_transcript, evm, re_to_p=True)
+                hgvs_transcript_to_hgvs_protein = myc_to_p(hgvs_transcript, evm, hdp, hp, hn, vm, sf, re_to_p=True)
                 return hgvs_transcript_to_hgvs_protein
 
         else:
@@ -518,8 +521,11 @@ def myc_to_p(hgvs_transcript, evm, hdp, hp, hn, vm, sf, re_to_p):
                         (
                                 hgvs_transcript.posedit.pos.end.base >= 1 and hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset == 0)) \
                             and not re.search('\*', str(hgvs_transcript.posedit.pos)):
-                        hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession, type='p',
-                                                                            posedit='(Met1?)')
+                        residue_one = sf.fetch_seq(associated_protein_accession, start_i=1 - 1, end_i=1)
+                        threed_residue_one = links.one_to_three(residue_one)
+                        r_one_report = '(%s1?)' % threed_residue_one # was (MET1?)
+                        hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
+                                                                            type='p', posedit=r_one_report)
                     else:
                         # Make the variant
                         hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession, type='p',
@@ -568,9 +574,11 @@ def myc_to_p(hgvs_transcript, evm, hdp, hp, hn, vm, sf, re_to_p):
                             (
                                     hgvs_transcript.posedit.pos.end.base >= 1 and hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset == 0)) \
                                 and not re.search('\*', str(hgvs_transcript.posedit.pos)):
+                            residue_one = sf.fetch_seq(associated_protein_accession, start_i=1 - 1, end_i=1)
+                            threed_residue_one # was (MET1?) = links.one_to_three(residue_one)
+                            r_one_report = '(%s1?)' % threed_residue_one # was (MET1?)
                             hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
-                                                                                type='p',
-                                                                                posedit='(Met1?)')
+                                                                                type='p', posedit=r_one_report)
 
                             hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
                             return hgvs_transcript_to_hgvs_protein
@@ -746,6 +754,7 @@ returns parsed hgvs g. object
 
 
 def myevm_t_to_g(hgvs_c, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_vm):
+
     # store the input
     stored_hgvs_c = copy.deepcopy(hgvs_c)
     expand_out = 'false'
@@ -1072,10 +1081,13 @@ def myevm_t_to_g(hgvs_c, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_
     # First look for variants mapping to the flanks of gaps
     # either in the gap or on the flank but not fully within the gap
     if expand_out == 'true':
+
         nr_genomic = nr_vm.t_to_g(hgvs_c, hgvs_genomic.ac)
+
         try:
             hn.normalize(nr_genomic)
         except hgvs.exceptions.HGVSInvalidVariantError as e:
+            error_type_1 = str(e)
             if re.match('Length implied by coordinates must equal sequence deletion length', str(e)) or str(
                     e) == 'base start position must be <= end position':
                 # Effectively, this code is designed to handle variants that are directly proximal to
@@ -1088,12 +1100,21 @@ def myevm_t_to_g(hgvs_c, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_
                     genomic_gap_variant = vm.t_to_g(stored_hgvs_c, hgvs_genomic.ac)
                     try:
                         hn.normalize(genomic_gap_variant)
-                    except Exception:
-                        pass
+                    # Still a problem
+                    except hgvs.exceptions.HGVSInvalidVariantError as e:
+                        if 'base start position must be <= end position' in str(e) and \
+                                'Length implied by coordinates must equal' in error_type_1:
+                            make_gen_var = copy.copy(nr_genomic)
+                            make_gen_var.posedit.edit.ref = sf.fetch_seq(nr_genomic.ac,
+                                                                         nr_genomic.posedit.pos.start.base - 1,
+                                                                         nr_genomic.posedit.pos.end.base)
+                            genomic_gap_variant = make_gen_var
+
+                            error_type_1 = None
                     else:
                         genomic_gap_variant = nr_vm.t_to_g(hgvs_c, hgvs_genomic.ac)
 
-                if str(e) == 'base start position must be <= end position':
+                if error_type_1 == 'base start position must be <= end position':
                     logger.warning('Variant is fully within a genomic gap')
                     genomic_gap_variant = vm.t_to_g(stored_hgvs_c, hgvs_genomic.ac)
 
@@ -1132,8 +1153,13 @@ def myevm_t_to_g(hgvs_c, hdp, no_norm_evm, primary_assembly, vm, hp, hn, sf, nr_
                     # Static map to c. and static normalize
                     transcript_gap_variant = vm.g_to_t(genomic_gap_variant, hgvs_c.ac)
                     stored_transcript_gap_variant = transcript_gap_variant
+
                     if not re.match('Length implied by coordinates must equal sequence deletion length', str(e)):
-                        transcript_gap_variant = hn.normalize(transcript_gap_variant)
+                        try:
+                            transcript_gap_variant = hn.normalize(transcript_gap_variant)
+                        except hgvs.exceptions.HGVSUnsupportedOperationError as e:
+                            if ' Unsupported normalization of variants spanning the UTR-exon boundary' in str(e):
+                                pass
 
                     # if NM_ need the n. position
                     if re.match('NM_', str(hgvs_c.ac)):
@@ -1810,6 +1836,7 @@ def myvm_t_to_g(hgvs_c, alt_chr, no_norm_evm, vm, hp, hn, sf, nr_vm):
         try:
             hn.normalize(nr_genomic)
         except hgvs.exceptions.HGVSInvalidVariantError as e:
+            error_type_1 = str(e)
             if re.match('Length implied by coordinates must equal sequence deletion length', str(e)) or str(
                     e) == 'base start position must be <= end position':
                 # Effectively, this code is designed to handle variants that are directly proximal to
@@ -1822,12 +1849,20 @@ def myvm_t_to_g(hgvs_c, alt_chr, no_norm_evm, vm, hp, hn, sf, nr_vm):
                     genomic_gap_variant = vm.t_to_g(stored_hgvs_c, hgvs_genomic.ac)
                     try:
                         hn.normalize(genomic_gap_variant)
-                    except Exception:
-                        pass
+                    # Still a problem
+                    except hgvs.exceptions.HGVSInvalidVariantError as e:
+                        if 'base start position must be <= end position' in str(e) and \
+                                'Length implied by coordinates must equal' in error_type_1:
+                            make_gen_var = copy.copy(nr_genomic)
+                            make_gen_var.posedit.edit.ref = sf.fetch_seq(nr_genomic.ac,
+                                                                         nr_genomic.posedit.pos.start.base - 1,
+                                                                         nr_genomic.posedit.pos.end.base)
+                            genomic_gap_variant = make_gen_var
+                            error_type_1 = None
                     else:
                         genomic_gap_variant = nr_vm.t_to_g(hgvs_c, hgvs_genomic.ac)
 
-                if str(e) == 'base start position must be <= end position':
+                if error_type_1 == 'base start position must be <= end position':
                     logger.warning('Variant is fully within a genomic gap')
                     genomic_gap_variant = vm.t_to_g(stored_hgvs_c, hgvs_genomic.ac)
 
@@ -1867,7 +1902,11 @@ def myvm_t_to_g(hgvs_c, alt_chr, no_norm_evm, vm, hp, hn, sf, nr_vm):
                     transcript_gap_variant = vm.g_to_t(genomic_gap_variant, hgvs_c.ac)
                     stored_transcript_gap_variant = transcript_gap_variant
                     if not re.match('Length implied by coordinates must equal sequence deletion length', str(e)):
-                        transcript_gap_variant = hn.normalize(transcript_gap_variant)
+                        try:
+                            transcript_gap_variant = hn.normalize(transcript_gap_variant)
+                        except hgvs.exceptions.HGVSUnsupportedOperationError as e:
+                            if ' Unsupported normalization of variants spanning the UTR-exon boundary' in str(e):
+                                pass
 
                     # if NM_ need the n. position
                     if re.match('NM_', str(hgvs_c.ac)):
@@ -2679,7 +2718,7 @@ def merge_hgvs_3pr(hgvs_variant_list, hp, vr, hn, vm, sf):
     # Generate the alt sequence
     alt_sequence = ''
     for hgvs_v in full_list:
-        ref_alt = hgvs2vcf.hgvs_ref_alt(hgvs_v)
+        ref_alt = hgvs2vcf.hgvs_ref_alt(hgvs_v, sf)
         alt_sequence = alt_sequence + ref_alt['alt']
 
     # Fetch the reference sequence and copy it for the basis of the alt sequence
@@ -2793,7 +2832,7 @@ def merge_hgvs_5pr(hgvs_variant_list, hp, vr, reverse_normalizer, vm, sf):
     # Generate the alt sequence
     alt_sequence = ''
     for hgvs_v in full_list:
-        ref_alt = hgvs2vcf.hgvs_ref_alt(hgvs_v)
+        ref_alt = hgvs2vcf.hgvs_ref_alt(hgvs_v, sf)
         alt_sequence = alt_sequence + ref_alt['alt']
 
     # Fetch the reference sequence and copy it for the basis of the alt sequence
@@ -2846,7 +2885,7 @@ separates each allele into a list of HGVS variants
 """
 
 
-def hgvs_alleles(variant_description):
+def hgvs_alleles(variant_description, hp, vr, hn, vm, sf):
     try:
         # Split up the description
         accession, remainder = variant_description.split(':')
@@ -2916,7 +2955,7 @@ def hgvs_alleles(variant_description):
                         # NM_004006.2:c.[2376G>C];[?]
                         continue
                     merge = []
-                    allele = str(merge_hgvs_3pr(each_allele))
+                    allele = str(merge_hgvs_3pr(each_allele, hp, vr, hn, vm, sf))
                     merge.append(allele)
                     merged_alleles.append(merge)
                 my_alleles = merged_alleles
@@ -2961,12 +3000,11 @@ def hgvs_alleles(variant_description):
                 merged_alleles = []
 
                 for each_allele in my_alleles:
-                    print each_allele
                     if re.search('\?', str(each_allele)):
                         # NM_004006.2:c.[2376G>C];[?]
                         continue
                     merge = []
-                    allele = str(merge_hgvs_3pr(each_allele))
+                    allele = str(merge_hgvs_3pr(each_allele, hp, vr, hn, vm, sf))
                     merge.append(allele)
                     merged_alleles.append(merge)
                 my_alleles = merged_alleles

@@ -172,6 +172,11 @@ hgvs.global_config.formatting.max_ref_length = 1000000
 vr = hgvs.validator.Validator(hdp)
 # Variant mapper
 vm = hgvs.variantmapper.VariantMapper(hdp)
+# Create a lose vm instance
+lose_vm = hgvs.variantmapper.VariantMapper(hdp,
+                                           replace_reference=True,
+                                           prevalidation_level=None
+                                           )
 nr_vm = hgvs.variantmapper.VariantMapper(hdp, replace_reference=False)
 # Create seqfetcher object
 sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
@@ -1021,7 +1026,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             pass
                     try:
                         # Submit to allele extraction function
-                        alleles = va_func.hgvs_alleles(input)
+                        alleles = va_func.hgvs_alleles(input, hp, vr, hn, vm, sf)
                         validation['warnings'] = validation[
                                                      'warnings'] + ': ' + 'Automap has extracted possible variant descriptions'
                         logger.resub('Automap has extracted possible variant descriptions, resubmitting')
@@ -1041,7 +1046,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             logger.warning('Intronic positions not supported for HGVS Allele descriptions')
                             continue
                         else:
-                            raise variantValidatorError(error)
+                            raise variantValidatorError(str(e))
                 logger.trace("HVGS String allele parsing pass 1 complete", validation)
                 # INITIAL USER INPUT FORMATTING
                 """
@@ -1445,8 +1450,16 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                                 input_parses.posedit.pos.end.base = boundary
                                                 offset = int(tot_end_pos) - int(boundary)
                                                 input_parses.posedit.pos.end.offset = offset
+
+                                            # Create a lose vm instance
+                                            lose_vm = hgvs.variantmapper.VariantMapper(hdp,
+                                                                                       replace_reference=True,
+                                                                                       prevalidation_level=None
+                                                                                       )
+
+
                                             report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm,
-                                                                              primary_assembly, vm, hp, hn, sf, nr_vm)
+                                                                              primary_assembly, lose_vm, hp, hn, sf, nr_vm)
                                             error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant: Instead use ' + valstr(
                                                 report_gen)
                                         except Exception as e:
@@ -1526,8 +1539,9 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                             tot_end_pos = int(te1) + int(te2)
                                             offset = int(tot_end_pos) - int(boundary)
                                             input_parses.posedit.pos.end.offset = offset
+
                                         report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm,
-                                                                          primary_assembly, vm, hp, hn, sf, nr_vm)
+                                                                          primary_assembly, lose_vm, hp, hn, sf, nr_vm)
                                         error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(
                                             report_gen)
                                     except Exception as e:
@@ -1566,7 +1580,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             if re.search('bounds', error):
                                 try:
                                     report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly,
-                                                                      vm, hp, hn, sf, nr_vm)
+                                                                      lose_vm, hp, hn, sf, nr_vm)
                                 except hgvs.exceptions.HGVSError as e:
                                     exceptPass()
                                 else:
@@ -1751,7 +1765,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                         input_parses.posedit.pos.end.base = boundary
                                         input_parses.posedit.pos.end.offset = remainder
                                     report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly,
-                                                                      vm, hp, hn, sf, nr_vm)
+                                                                      lose_vm, hp, hn, sf, nr_vm)
                                     error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(
                                         report_gen)
                                 except Exception as e:
@@ -1784,7 +1798,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             if re.search('bounds', error):
                                 try:
                                     report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly,
-                                                                      vm, hp, hn, sf, nr_vm)
+                                                                      lose_vm, hp, hn, sf, nr_vm)
                                 except hgvs.exceptions.HGVSError as e:
                                     exceptPass()
                                 else:
@@ -1817,7 +1831,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     error = str(e)
                                     if re.search('bounds', error):
                                         report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm,
-                                                                          primary_assembly, vm, hp, hn, sf, nr_vm)
+                                                                          primary_assembly, lose_vm, hp, hn, sf, nr_vm)
                                         error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(
                                             report_gen)
                                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
@@ -3446,7 +3460,6 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             if (
                                     obj.posedit.edit.type == 'ins' and obj.posedit.pos.start.offset == 0 and obj.posedit.pos.end.offset != 0) or (
                                     obj.posedit.edit.type == 'ins' and obj.posedit.pos.start.offset != 0 and obj.posedit.pos.end.offset == 0):
-                                #                                print 'OK'
                                 variant = str(obj)
                             else:
                                 # Normalize was I believe to replace ref. Mapping does this anyway
@@ -4098,6 +4111,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         hgvs_coding = va_func.coding(variant, hp)
                         boundary = re.compile('exon-intron boundary')
                         spanning = re.compile('exon/intron')
+
                         try:
                             hgvs_coding = hn.normalize(hgvs_coding)
                         except hgvs.exceptions.HGVSError as e:
@@ -4226,8 +4240,8 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                         hgvs_genomic_possibilities.append('')
                                 elif test_stash_tx_right.posedit.edit.type == 'identity':
                                     reform_ident = str(test_stash_tx_right).split(':')[0]
-                                    reform_ident = reform_ident + ':c.' + str(hgvs_c.posedit.pos) + 'del' + str(
-                                        hgvs_c.posedit.edit.ref)  # + 'ins' + str(hgvs_c.posedit.edit.alt)
+                                    reform_ident = reform_ident + ':c.' + str(test_stash_tx_right.posedit.pos) + 'del' + str(
+                                        test_stash_tx_right.posedit.edit.ref)  # + 'ins' + str(test_stash_tx_right.posedit.edit.alt)
                                     hgvs_reform_ident = hp.parse_hgvs_variant(reform_ident)
                                     try:
                                         hn.normalize(hgvs_reform_ident)
@@ -4249,7 +4263,11 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                         hgvs_genomic_possibilities.append(stash_genomic)
                             except hgvs.exceptions.HGVSError as e:
                                 test_stash_tx_right = copy.deepcopy(hgvs_coding)
-                                pass
+                                exceptPass()
+                            # Intronic positions not supported. Will cause a Value Error
+                            except ValueError:
+                                test_stash_tx_right = copy.deepcopy(hgvs_coding)
+                                exceptPass()
 
                             # Then to the left
                             hgvs_stash = copy.deepcopy(hgvs_coding)
@@ -4308,8 +4326,8 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                         hgvs_genomic_possibilities.append('')
                                 elif test_stash_tx_left.posedit.edit.type == 'identity':
                                     reform_ident = str(test_stash_tx_left).split(':')[0]
-                                    reform_ident = reform_ident + ':c.' + str(hgvs_c.posedit.pos) + 'del' + str(
-                                        hgvs_c.posedit.edit.ref)  # + 'ins' + str(hgvs_c.posedit.edit.alt)
+                                    reform_ident = reform_ident + ':c.' + str(test_stash_tx_left.posedit.pos) + 'del' + str(
+                                        test_stash_tx_left.posedit.edit.ref)  # + 'ins' + str(test_stash_tx_left.posedit.edit.alt)
                                     hgvs_reform_ident = hp.parse_hgvs_variant(reform_ident)
                                     try:
                                         hn.normalize(hgvs_reform_ident)
@@ -4331,7 +4349,11 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                         hgvs_genomic_possibilities.append(stash_genomic)
                             except hgvs.exceptions.HGVSError as e:
                                 test_stash_tx_left = copy.deepcopy(hgvs_coding)
-                                pass
+                                exceptPass()
+                            except ValueError:
+                                test_stash_tx_left = copy.deepcopy(hgvs_coding)
+                                exceptPass()
+
                             # direct mapping from reverse_normalized transcript insertions in the delins format
                             try:
                                 if hgvs_coding.posedit.edit.type == 'ins':
@@ -4450,7 +4472,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     logger.info('X')
                                 else:
                                     logger.info(valstr(possibility))
-                                    # print possibility
+
                             logger.info('\n')
 
                             # Set variables for problem specific warnings
@@ -5868,13 +5890,6 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                             tx_hgvs_not_delins.posedit.pos.end) + 'del' + tx_hgvs_not_delins.posedit.edit.ref + 'ins' + tx_hgvs_not_delins.posedit.edit.ref + tx_hgvs_not_delins.posedit.edit.ref
                                         tx_hgvs_not_delins = hp.parse_hgvs_variant(tx_hgvs_not_delins_delins_from_dup)
 
-                                #                                 print '\nCHECKING IN'
-                                #                                 print disparity_deletion_in
-                                #                                 print tx_hgvs_not_delins
-                                #                                 for p in hgvs_genomic_possibilities:
-                                #                                     print p
-                                #
-                                #                                 print 'CHECKING OUT'
 
                                 # GAP IN THE TRANSCRIPT DISPARITY DETECTED
                                 if disparity_deletion_in[0] == 'transcript':
@@ -6864,8 +6879,8 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                                 hgvs_genomic_possibilities.append('')
                                         elif test_stash_tx_right.posedit.edit.type == 'identity':
                                             reform_ident = str(test_stash_tx_right).split(':')[0]
-                                            reform_ident = reform_ident + ':c.' + str(hgvs_c.posedit.pos) + 'del' + str(
-                                                hgvs_c.posedit.edit.ref)  # + 'ins' + str(hgvs_c.posedit.edit.alt)
+                                            reform_ident = reform_ident + ':c.' + str(test_stash_tx_right.posedit.pos) + 'del' + str(
+                                                test_stash_tx_right.posedit.edit.ref)  # + 'ins' + str(test_stash_tx_right.posedit.edit.alt)
                                             hgvs_reform_ident = hp.parse_hgvs_variant(reform_ident)
                                             try:
                                                 hn.normalize(hgvs_reform_ident)
@@ -6886,6 +6901,8 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                                 stash_tx_right = test_stash_tx_right
                                                 hgvs_genomic_possibilities.append(stash_genomic)
                                     except hgvs.exceptions.HGVSError as e:
+                                        exceptPass()
+                                    except ValueError:
                                         exceptPass()
 
                                     # Then to the left
@@ -6943,8 +6960,8 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                                 hgvs_genomic_possibilities.append('')
                                         elif test_stash_tx_left.posedit.edit.type == 'identity':
                                             reform_ident = str(test_stash_tx_left).split(':')[0]
-                                            reform_ident = reform_ident + ':c.' + str(hgvs_c.posedit.pos) + 'del' + str(
-                                                hgvs_c.posedit.edit.ref)  # + 'ins' + str(hgvs_c.posedit.edit.alt)
+                                            reform_ident = reform_ident + ':c.' + str(test_stash_tx_left.posedit.pos) + 'del' + str(
+                                                test_stash_tx_left.posedit.edit.ref)  # + 'ins' + str(test_stash_tx_left.posedit.edit.alt)
                                             hgvs_reform_ident = hp.parse_hgvs_variant(reform_ident)
                                             try:
                                                 hn.normalize(hgvs_reform_ident)
@@ -6965,6 +6982,8 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                                 stash_tx_left = test_stash_tx_left
                                                 hgvs_genomic_possibilities.append(stash_genomic)
                                     except hgvs.exceptions.HGVSError as e:
+                                        exceptPass()
+                                    except ValueError:
                                         exceptPass()
 
                                     # direct mapping from reverse_normalized transcript insertions in the delins format
@@ -8430,7 +8449,6 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
         logger.debug('validation time = ' + str(elapsed_time))
 
         # return batch_out
-        # print(validation_output)
         return validation_output
 
     # Bug catcher
@@ -8447,8 +8465,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
         # Return
         # return
         logger.critical(str(exc_type) + " " + str(exc_value))
-        logger.debug(str(e))
-
+        logger.debug(str(er))
 
 # Generates a list of transcript (UTA supported) and transcript names from a gene symbol or RefSeq transcript ID
 def gene2transcripts(query):
