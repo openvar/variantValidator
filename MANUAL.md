@@ -77,5 +77,10 @@ RefSeq Transcript
 Get reference sequence for HGVS variant description
 > variantValidator.validator.hgvs2ref('NM_000088.3:c.589_594del')
 
+## Unit testing
+
+Variant Validator is written to be pytest-compatible. Run
+> pytest
+in the variant validator root folder, the same as that in which this file resides. The test will take several minutes to complete, but runs through over three hundred common and malformed variants.
 
 
