@@ -38,7 +38,7 @@ def constructHub():
     hub=vvHub()
     return hub
 
-@pytest.fixture(params=inputVariants[:])
+@pytest.fixture(params=["NC_000012.11:g.122064777C>A","NC_000012.11:g.122064776delG","NC_000012.11:g.122064776dupG"])#inputVariants[:])
 def constructValidation(request):
     hub=constructHub()
 #    print request.param

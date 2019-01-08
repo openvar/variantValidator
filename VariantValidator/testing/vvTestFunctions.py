@@ -18,6 +18,8 @@ logConsoleHandler.setLevel(logging.DEBUG)
 hl=logging.getLogger("hgvs.dataproviders.uta")
 hl.addHandler(logConsoleHandler)
 
+
+'''
 try:
     print("Configuring for personal linux")
     seqrepo_current_version='2018-08-21'
@@ -39,13 +41,15 @@ except sqlite3.OperationalError:
     os.environ['PYLIFTOVER_DIR'] = '/Users/pjf9/variant_validator_data/pyLiftover/'
     from VariantValidator import variantValidator as vv
 
-def generateTestFolder(path, inputVariants):
+'''
+
+def generateTestFolder(path, inputVariants, validator):
     #Saves the results of running inputVariants to a folder given in saveDirectory.
     if not os.path.isdir(path):
         os.mkdir(path)
     variantArray=loadVariantFile(inputVariants)
     #Go through the variant array, validating, and save the results.
-    batch=validateBatch(variantArray)
+    batch=validateBatch(variantArray,validator)
     #Save copy of the resulting dictionary
     saveValidationsAsFolder(path,batch)
 
@@ -114,7 +118,7 @@ def loadValidations(path):
                 #print(type(out[-1]))
     return out
 
-def validateBatch(variantArray):
+def validateBatch(variantArray,validator):
     #Returns an array of validations (themselves dictionary objects).
     out=[]
     selectTranscripts='all'
@@ -122,7 +126,7 @@ def validateBatch(variantArray):
     for i,v in enumerate(variantArray):
         print("VALIDATING Variant"+str(i)+" "+str(i+1)+"/"+str(len(variantArray))+" "+str(v))
         try:
-            out.append(vv.validator(v,selectedAssembly,selectTranscripts))
+            out.append(validator.vv.validator(v,selectedAssembly,selectTranscripts))
         except KeyboardInterrupt:
             print("Exiting...")
             sys.exit()
