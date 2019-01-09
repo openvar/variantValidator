@@ -70,6 +70,8 @@ Possible assemblies are:
 You can select all transcripts by passing 'all', or use multiple transcripts with:
 > select_transcripts = 'NM_022356.3| NM_001146289.1| NM_001243246.1' 
 
+Variant validator produces a dictionary output that contain all possible interpretations of the input variant.
+
 View supported transcripts for a gene example: HGNC gene symbol https://www.genenames.org/
 > variantValidator.validator.gene2transcripts ('HTT')
 RefSeq Transcript

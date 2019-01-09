@@ -70,16 +70,24 @@ Quit mysql with
  > \q
 Bye indeed.
 
-You must source a copy of the validator database from somewhere. That'll have to be fixed for release...
-Copy it over to a temporary folder (say, temp, in your home directory).
- > scp someone@somewhere~/databases/validator_2018-11-08.sql ~/temp/validator_2018-11-08.sql
-Then, upload it to the running MySQL with:
- > mysql -u root -p validator < ~/databases/validator_2018-11-08.sql 
+In the VariantValidator/data folder is a copy of the empty mysql database needed by Variant Validator to run. The software will populate it as variants are run. You need to upload it to the running MySQL database with:
+ > mysql -u root -p validator < data/emptyValidatorDump.sql 
+- adjusting the path depending on where your empty database is.
 You should log into MySQL and check to see if the database uploaded correctly. Login with vvadmin, password "var1ant".
 Then:
  > USE validator;
  > SHOW TABLES;
-which should give some good lines.
+which should show:
+> +---------------------+
+> | Tables_in_validator |
+> +---------------------+
+> | LRG_RSG_lookup      |
+> | LRG_proteins        |
+> | LRG_transcripts     |
+> | refSeqGene_loci     |
+> | transcript_info     |
+> +---------------------+
+if it's set up correctly.
 
 ## Setting up PostGreSQL
 
