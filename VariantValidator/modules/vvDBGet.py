@@ -83,3 +83,33 @@ class vvDBGet:
     def get_hgnc_symbol(self,gene_symbol):
         # returns the HGNC gene symbol when UTA gene symbol is input
         return str(self.get_hgncSymbol(gene_symbol)[0])
+    # from external.py
+    def get_urls(self,dict_out):
+        # Provide direct links to reference sequence records
+        # Add urls
+        report_urls = {}
+        if 'NM_' in dict_out['hgvs_transcript_variant'] or 'NR_' in dict_out['hgvs_transcript_variant']:
+            report_urls['transcript'] = 'https://www.ncbi.nlm.nih.gov' \
+                                        '/nuccore/%s' % dict_out['hgvs_transcript_variant'].split(':')[0]
+        if 'NP_' in dict_out['hgvs_predicted_protein_consequence']['slr']:
+            report_urls['protein'] = 'https://www.ncbi.nlm.nih.gov' \
+                                     '/nuccore/%s' % str(dict_out['hgvs_predicted_protein_consequence']['slr']).split(':')[0]
+        if 'NG_' in dict_out['hgvs_refseqgene_variant']:
+            report_urls['refseqgene'] = 'https://www.ncbi.nlm.nih.gov' \
+                                        '/nuccore/%s' % dict_out['hgvs_refseqgene_variant'].split(':')[0]
+        if 'LRG' in dict_out['hgvs_lrg_variant']:
+            lrg_id = dict_out['hgvs_lrg_variant'].split(':')[0]
+            lrg_data = self.get_LRG_data_from_LRGid(lrg_id)
+            lrg_status = str(lrg_data[4])
+            if lrg_status == 'public':
+                report_urls['lrg'] = 'http://ftp.ebi.ac.uk/pub' \
+                                     '/databases/lrgex/%s.xml' % dict_out['hgvs_lrg_variant'].split(':')[0]
+            else:
+                report_urls['lrg'] = 'http://ftp.ebi.ac.uk' \
+                                     '/pub/databases/lrgex' \
+                                     '/pending/%s.xml' % dict_out['hgvs_lrg_variant'].split(':')[0]
+        # Ensembl needs to be added at a later date
+        # "http://www.ensembl.org/id/" ? What about historic versions?????
+
+        return report_urls
+

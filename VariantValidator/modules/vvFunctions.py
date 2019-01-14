@@ -3,6 +3,8 @@ import httplib2 as http
 import json
 from urlparse import urlparse #Python 2
 import functools
+import re
+import copy
 #from urllib.parse import urlparse #Python 3
 
 def handleCursor(func):
@@ -67,9 +69,23 @@ def valstr(hgvs_variant):
     cp_hgvs_variant = copy.deepcopy(hgvs_variant)
     if cp_hgvs_variant.posedit.edit.type == 'identity':
         if len(cp_hgvs_variant.posedit.edit.ref) > 1:
-            cp_hgvs_variant = output_formatter.remove_reference(cp_hgvs_variant)
+            cp_hgvs_variant = remove_reference(cp_hgvs_variant)
         cp_hgvs_variant = str(cp_hgvs_variant)
     else:
-        cp_hgvs_variant = output_formatter.remove_reference(cp_hgvs_variant)
+        cp_hgvs_variant = remove_reference(cp_hgvs_variant)
         cp_hgvs_variant = str(cp_hgvs_variant)
     return cp_hgvs_variant
+
+# From output_formatter
+"""
+format protein description into single letter aa code
+"""
+def single_letter_protein(hgvs_protein):
+    hgvs_protein_slc = hgvs_protein.format({'p_3_letter': False})
+    return hgvs_protein_slc
+"""
+format nucleotide descriptions to not display reference base
+"""
+def remove_reference(hgvs_nucleotide):
+    hgvs_nucleotide_refless = hgvs_nucleotide.format({'max_ref_length': 0})
+    return hgvs_nucleotide_refless

@@ -17,6 +17,7 @@ import re
 #import io
 from vvDatabase import vvDatabase
 from vvLogging import logger
+import vvCore
 
 # Custom Exceptions
 class variantValidatorError(Exception):
