@@ -4,40 +4,42 @@
 #The input variants file should contain a bunch of variants on each line in quotes. Anything outside the
 #quotes is discarded.
 
-import unittest
 import os
 import pickle
+import json
+import sys
 
 import sqlite3
+import logging
+
+logConsoleHandler = logging.StreamHandler()
+logConsoleHandler.setLevel(logging.DEBUG)
+#Debug
+hl=logging.getLogger("hgvs.dataproviders.uta")
+hl.addHandler(logConsoleHandler)
 
 try:
+    print("Configuring for personal linux")
     seqrepo_current_version='2018-08-21'
-    #HGVS_SEQREPO_DIR='/home/pjdp2/seqrepo/'+seqrepo_current_version
-    HGVS_SEQREPO_DIR='/local/seqrepo/'+seqrepo_current_version
+    HGVS_SEQREPO_DIR='/home/buran/documents/workspace/ITS/seqrepo/'+seqrepo_current_version
     os.environ['HGVS_SEQREPO_DIR']=HGVS_SEQREPO_DIR
     uta_current_version='uta_20180821'
     UTA_DB_URL='postgresql://uta_admin:uta_admin@127.0.0.1/uta/' + uta_current_version
     os.environ['UTA_DB_URL']=UTA_DB_URL
-    #from VariantValidator import variantValidator as vv
-    print "Databases loaded"
     from VariantValidator import variantValidator as vv
     vv.my_config()
-    print("Configured for LAMP")
 except sqlite3.OperationalError:
-    seqrepo_current_version='2018-08-21'
-    HGVS_SEQREPO_DIR='/home/pjdp2/seqrepo/'+seqrepo_current_version
-    #HGVS_SEQREPO_DIR='/local/seqrepo/'+seqrepo_current_version
-    os.environ['HGVS_SEQREPO_DIR']=HGVS_SEQREPO_DIR
-    uta_current_version='uta_20180821'
-    UTA_DB_URL='postgresql://uta_admin:uta_admin@127.0.0.1/uta/' + uta_current_version
-    os.environ['UTA_DB_URL']=UTA_DB_URL
-    #from VariantValidator import variantValidator as vv
-    print "Databases loaded"
+    print("Configuring for VM")
+    seqrepo_current_version = '2018-08-21'
+    HGVS_SEQREPO_DIR = '/Users/pjf9/variant_validator_data/seqrepo/' + seqrepo_current_version
+    os.environ['HGVS_SEQREPO_DIR'] = HGVS_SEQREPO_DIR
+    uta_current_version = 'uta_20180821'
+    UTA_DB_URL = 'postgresql://uta_admin:uta_admin@127.0.0.1/uta/' + uta_current_version
+    os.environ['UTA_DB_URL'] = UTA_DB_URL
+    os.environ['PYLIFTOVER_DIR'] = '/Users/pjf9/variant_validator_data/pyLiftover/'
     from VariantValidator import variantValidator as vv
-    vv.my_config()
-    print("Configured for VM")
 
-def saveValidations(path,inputVariants):
+def generateTestFolder(path, inputVariants):
     #Saves the results of running inputVariants to a folder given in saveDirectory.
     if not os.path.isdir(path):
         os.mkdir(path)
@@ -45,9 +47,29 @@ def saveValidations(path,inputVariants):
     #Go through the variant array, validating, and save the results.
     batch=validateBatch(variantArray)
     #Save copy of the resulting dictionary
-    for i,v in enumerate(batch):
+    saveValidationsAsFolder(path,batch)
+
+def generateTestJSON(path, inputVariants,sysOut):
+    variantArray=loadVariantFile(inputVariants)
+    #Go through the variant array, validating, and save the results.
+    batch=validateBatch(variantArray)
+    #batch.append(sysOut.getvalue())
+    #Save copy of the resulting dictionary
+    saveValidationsAsJSON(path,batch)
+
+def saveValidationsAsFolder(path, validations):
+    #Pickles validation dictionaries into the given folder.
+    for i,v in enumerate(validations):
         with open(os.path.join(path,"variant"+str(i)+".txt") ,"w") as f:
             pickle.dump(v,f)
+
+def saveValidationsAsJSON(path,validations):
+    #Saves a set of validations (v is a list of dictionaries) or a bunch of validations (v is a list of dictionaries)
+    #as the json given in path. The name of the file will be that of the input variant string.
+    jOut=json.dumps(validations)
+    with open(path,"w") as f:
+        f.write(jOut)
+    print("JSON saved to "+path)
 
 def loadVariantFile(path):
     out=[]
@@ -83,7 +105,7 @@ def mergeVariantList(variants1,variants2):
     return out
 
 def loadValidations(path):
-    #Saves the results of running inputVariants to a folder given in saveDirectory.
+    #Loads a set of validations from the folder given in path.
     out=[]
     for paths,dirs,files in os.walk(path):
         for filePath in files:
@@ -108,6 +130,18 @@ def validateBatch(variantArray):
             print("FATAL error processing variant: "+str(e))
             out.append({"ERROR":str(e)})
     return out
+
+def retrieveVariant(validation):
+    #Returns the variant string (if possible) from a validation.
+    out=None
+    for v in validation.values():
+        try:
+            if type(v)==type({}) and "submitted_variant" in v.keys():
+                out=v["submitted_variant"]
+                return out
+        except (KeyError, TypeError, AttributeError):
+            pass
+    raise AttributeError("Validation does not contain the original variant string")
 
 def compareValidations(v1,v2,id):
     #print(v1,v2)
@@ -156,6 +190,10 @@ def compareBatches(v1path,v2path):
                 #print(v2batch[i])
         return False
 
+if __name__=="__main__":
 
-    
+    inputVariants="inputVariants.txt"
+    #saveOut="testJSON.json"
 
+    #fn.generateTestJSON(saveOut,inputVariants,sysOut)
+    generateTestFolder("testOutputs",inputVariants)

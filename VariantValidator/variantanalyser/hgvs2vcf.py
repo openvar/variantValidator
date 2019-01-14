@@ -1,67 +1,41 @@
 # -*- coding: utf-8 -*-
 """
 hgvs2vcf.py
-
 A variety of functions that convert parder hgvs objects into VCF component parts
 Each function has a slightly difference emphasis
-
 1. hgvs2vcf
 Simple conversionwhich ensures identity is as 5 prime as possible by adding an extra 5
 prime base. Necessary for most gap handling situations
-
 2. report_hgvs2vcf
 Used to report the Most true representation of the VCF i.e. 5 prime normalized but no
 additional bases added. NOTE: no gap handling capabilities
-
 3. pos_lock_hgvs2vcf
 No normalization at all. No additional bases added. Simply returns an in-situ VCF
-
 4. hard_right_hgvs2vcf and hard_left_hgvs2vcf
 Designed specifically for gap handling.
 hard left pushes as 5 prime as possible and adds additional bases
 hard right pushes as 3 prime as possible and adds additional bases
 """
 
-# Import  modules
+# Import modules
 import re
 import copy
-import hgvs
-import hgvs.dataproviders
-import hgvs.normalizer
-import supported_chromosome_builds
+import supported_chromosome_builds as supportedChromosomeBuilds
 
 # Import Biopython modules
 from Bio.Seq import Seq
 
-# Set variables
-hdp = hgvs.dataproviders.uta.connect(pooling=True)
 
-# Reverse normalizer (5 prime)
-reverse_normalize = hgvs.normalizer.Normalizer(hdp,
-                                               cross_boundaries=False,
-                                               shuffle_direction=5,
-                                               alt_aln_method='splign'
-                                               )
+# Database connections and hgvs objects are now passed from VariantValidator.py
 
-# normalizer (3 prime)
-normalize = hgvs.normalizer.Normalizer(hdp,
-                                       cross_boundaries=False,
-                                       shuffle_direction=3,
-                                       alt_aln_method='splign'
-                                       )
-
-# SeqFetcher
-sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
-
-
-def hgvs2vcf(hgvs_genomic):
+def hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
     hgvs_genomic_variant = hgvs_genomic
     # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
-    reverse_normalized_hgvs_genomic = reverse_normalize.normalize(hgvs_genomic_variant)
-    hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
+    reverse_normalized_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic_variant)
+    # hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
     # Chr
-    chr = supported_chromosome_builds.to_chr_num(reverse_normalized_hgvs_genomic.ac)
+    chr = supportedChromosomeBuilds.to_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, primary_assembly)
     if chr is not None:
         pass
     else:
@@ -72,27 +46,29 @@ def hgvs2vcf(hgvs_genomic):
         ref = reverse_normalized_hgvs_genomic.posedit.edit.ref
         alt = reverse_normalized_hgvs_genomic.posedit.edit.ref
 
-    # Insertions    
-    elif (re.search('ins', str(reverse_normalized_hgvs_genomic.posedit)) and not re.search('del', str(reverse_normalized_hgvs_genomic.posedit))):                       
+    # Insertions
+    elif (re.search('ins', str(reverse_normalized_hgvs_genomic.posedit)) and not re.search('del', str(
+            reverse_normalized_hgvs_genomic.posedit))):
         end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
-        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base) 
-        alt_start = start - 1 #
+        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
+        alt_start = start - 1  #
         # Recover sequences
-        ref_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),alt_start,end-1)
+        ref_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), alt_start, end - 1)
         ins_seq = reverse_normalized_hgvs_genomic.posedit.edit.alt
-        # Assemble  
+        # Assemble
         pos = start
         ref = ref_seq
-        alt = ref_seq + ins_seq                     
+        alt = ref_seq + ins_seq
 
-    # Substitutions
+        # Substitutions
     elif re.search('>', str(reverse_normalized_hgvs_genomic.posedit)):
         ref = reverse_normalized_hgvs_genomic.posedit.edit.ref
         alt = reverse_normalized_hgvs_genomic.posedit.edit.alt
         pos = str(reverse_normalized_hgvs_genomic.posedit.pos)
 
     # Deletions
-    elif re.search('del', str(reverse_normalized_hgvs_genomic.posedit)) and not re.search('ins', str(reverse_normalized_hgvs_genomic.posedit)):                     
+    elif re.search('del', str(reverse_normalized_hgvs_genomic.posedit)) and not re.search('ins', str(
+            reverse_normalized_hgvs_genomic.posedit)):
         end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
         start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
         adj_start = start - 2
@@ -103,21 +79,21 @@ def hgvs2vcf(hgvs_genomic):
             ins_seq = ''
         else:
             if str(ins_seq) == 'None':
-                ins_seq = ''        
-        # Recover sequences
-        hgvs_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),start,end)
-        pre_base = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),adj_start,start)
-        # Assemble  
+                ins_seq = ''
+                # Recover sequences
+        hgvs_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), start, end)
+        pre_base = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, start)
+        # Assemble
         pos = str(start)
         ref = pre_base + hgvs_del_seq
         alt = pre_base
 
-    
+
     # inv
-    elif re.search('inv', str(reverse_normalized_hgvs_genomic.posedit)):                        
+    elif re.search('inv', str(reverse_normalized_hgvs_genomic.posedit)):
         end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
         start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
-        adj_start = start -1
+        adj_start = start - 1
         start = start
         try:
             ins_seq = reverse_normalized_hgvs_genomic.posedit.edit.alt
@@ -125,28 +101,27 @@ def hgvs2vcf(hgvs_genomic):
             ins_seq = ''
         else:
             if str(ins_seq) == 'None':
-                ins_seq = ''        
-        # Recover sequences
-        hgvs_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),start,end)
-        vcf_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),adj_start,end)
-        bs  = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),adj_start-1, adj_start)
-        # Assemble  
+                ins_seq = ''
+                # Recover sequences
+        hgvs_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), start, end)
+        vcf_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, end)
+        bs = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start - 1, adj_start)
+        # Assemble
         pos = str(start)
-        # pos = str(start-1)
-        # ref = bs + vcf_del_seq
         ref = vcf_del_seq
         alt = ins_seq
         if re.search('inv', str(reverse_normalized_hgvs_genomic.posedit)):
             my_seq = Seq(vcf_del_seq)
             # alt = bs + str(my_seq.reverse_complement())
             alt = str(my_seq.reverse_complement())
-             
-    
+
+
     # Delins
-    elif (re.search('del', str(reverse_normalized_hgvs_genomic.posedit)) and re.search('ins', str(reverse_normalized_hgvs_genomic.posedit))):
+    elif (re.search('del', str(reverse_normalized_hgvs_genomic.posedit)) and re.search('ins', str(
+            reverse_normalized_hgvs_genomic.posedit))):
         end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
-        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base -1)
-        adj_start = start -1
+        start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base - 1)
+        adj_start = start - 1
         start = start
         try:
             ins_seq = reverse_normalized_hgvs_genomic.posedit.edit.alt
@@ -154,26 +129,25 @@ def hgvs2vcf(hgvs_genomic):
             ins_seq = ''
         else:
             if str(ins_seq) == 'None':
-                ins_seq = ''        
-        # Recover sequences
-        hgvs_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),start,end)
-        vcf_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),adj_start,end)
-        # Assemble  
+                ins_seq = ''
+                # Recover sequences
+        hgvs_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), start, end)
+        vcf_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, end)
+        # Assemble
         pos = str(start)
         ref = vcf_del_seq
-        alt = vcf_del_seq[:1] + ins_seq         
-    
-    
-    # Duplications                              
+        alt = vcf_del_seq[:1] + ins_seq
+
+        # Duplications
     elif (re.search('dup', str(reverse_normalized_hgvs_genomic.posedit))):
-        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base) #
+        end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)  #
         start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
-        adj_start = start - 2 #
-        start = start - 1 #
+        adj_start = start - 2  #
+        start = start - 1  #
         # Recover sequences
         dup_seq = reverse_normalized_hgvs_genomic.posedit.edit.ref
-        vcf_ref_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),adj_start,end)
-        # Assemble  
+        vcf_ref_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, end)
+        # Assemble
         pos = str(start)
         ref = vcf_ref_seq
         alt = vcf_ref_seq + dup_seq
@@ -182,47 +156,55 @@ def hgvs2vcf(hgvs_genomic):
         ref = ''
         alt = ''
         pos = ''
-        
-    
+
     # ensure as 5' as possible
     if chr != '' and pos != '' and ref != '' and alt != '':
         if len(ref) > 1:
             rsb = list(str(ref))
             if reverse_normalized_hgvs_genomic.posedit.edit.type == 'identity':
                 pos = int(pos) - 1
-                prev = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac),pos-1,pos)
-                pos = str(pos)              
+                prev = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), pos - 1, pos)
+                pos = str(pos)
                 ref = prev + ref
                 alt = prev + alt
-    
 
     # Dictionary the VCF
     vcf_dict = {'chr': chr, 'pos': pos, 'ref': ref, 'alt': alt, 'normalized_hgvs': reverse_normalized_hgvs_genomic}
     return vcf_dict
 
 
-def report_hgvs2vcf(hgvs_genomic, primary_assembly):
+def report_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
     hgvs_genomic_variant = hgvs_genomic
-    # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
-    reverse_normalized_hgvs_genomic = reverse_normalize.normalize(hgvs_genomic_variant)
-    hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
-    # Chr
-    chr = supported_chromosome_builds.to_chr_num(reverse_normalized_hgvs_genomic.ac)
-    if chr is not None:
-        pass
+    # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
+    reverse_normalized_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic_variant)
+    # hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
+
+    # Sort the primary assemblies
+    if re.match('GRC', primary_assembly):
+        if re.search('37', primary_assembly):
+            ucsc_pa = 'hg19'
+            grc_pa = primary_assembly
+        if re.search('38', primary_assembly):
+            ucsc_pa = 'hg38'
+            grc_pa = primary_assembly
     else:
-        chr = reverse_normalized_hgvs_genomic.ac
+        if re.search('19', primary_assembly):
+            ucsc_pa = primary_assembly
+            grc_pa = 'GRCh37'
+        if re.search('38', primary_assembly):
+            ucsc_pa = primary_assembly
+            grc_pa = 'GRCh38'
 
     # UCSC Chr
-    ucsc_chr = supported_chromosome_builds.to_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, primary_assembly)
+    ucsc_chr = supportedChromosomeBuilds.to_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, ucsc_pa)
     if ucsc_chr is not None:
         pass
     else:
         ucsc_chr = reverse_normalized_hgvs_genomic.ac
 
     # GRC Chr
-    grc_chr = supported_chromosome_builds.to_chr_num_refseq(reverse_normalized_hgvs_genomic.ac, primary_assembly)
+    grc_chr = supportedChromosomeBuilds.to_chr_num_refseq(reverse_normalized_hgvs_genomic.ac, grc_pa)
     if grc_chr is not None:
         pass
     else:
@@ -339,7 +321,7 @@ def report_hgvs2vcf(hgvs_genomic, primary_assembly):
         dup_seq = reverse_normalized_hgvs_genomic.posedit.edit.ref
         vcf_ref_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, end)
         # Assemble
-        pos = str(start+1)
+        pos = str(start + 1)
         ref = vcf_ref_seq[1:]
         alt = vcf_ref_seq[1:] + dup_seq
     else:
@@ -354,30 +336,26 @@ def report_hgvs2vcf(hgvs_genomic, primary_assembly):
     return vcf_dict
 
 
-def pos_lock_hgvs2vcf(hgvs_genomic):
-
+def pos_lock_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
     # Replace reference manually
     if hgvs_genomic.posedit.edit.ref == '':
-        hgvs_genomic.posedit.edit.ref = sf.fetch_seq(str(hgvs_genomic.ac), hgvs_genomic.posedit.pos.start.base-1, hgvs_genomic.posedit.pos.end.base)
+        hgvs_genomic.posedit.edit.ref = sf.fetch_seq(str(hgvs_genomic.ac), hgvs_genomic.posedit.pos.start.base - 1,
+                                                     hgvs_genomic.posedit.pos.end.base)
 
     reverse_normalized_hgvs_genomic = hgvs_genomic
     if reverse_normalized_hgvs_genomic.posedit.edit.type == 'identity' and len(
             reverse_normalized_hgvs_genomic.posedit.edit.ref) == 0:
-        reverse_normalized_hgvs_genomic = reverse_normalize.normalize(reverse_normalized_hgvs_genomic)
+        reverse_normalized_hgvs_genomic = reverse_normalizer.normalize(reverse_normalized_hgvs_genomic)
 
-    hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
+    # hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
     # Chr
-    if re.match('NC_', reverse_normalized_hgvs_genomic.ac):
-        chr = supported_chromosome_builds.to_chr_num(reverse_normalized_hgvs_genomic.ac)
-        if chr is not None:
-            pass
-        else:
-            chr = reverse_normalized_hgvs_genomic.ac
+    chr = supportedChromosomeBuilds.to_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, primary_assembly)
+    if chr is not None:
+        pass
     else:
         chr = reverse_normalized_hgvs_genomic.ac
 
-    # TO BATCH AND API AND VALIDATOR
     if re.search('[GATC]+\=', str(reverse_normalized_hgvs_genomic.posedit)):
         pos = str(reverse_normalized_hgvs_genomic.posedit.pos.start)
         ref = reverse_normalized_hgvs_genomic.posedit.edit.ref
@@ -500,19 +478,15 @@ def pos_lock_hgvs2vcf(hgvs_genomic):
     return vcf_dict
 
 
-def hard_right_hgvs2vcf(hgvs_genomic):
+def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, sf):
     hgvs_genomic_variant = hgvs_genomic
     # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
-    normalized_hgvs_genomic = normalize.normalize(hgvs_genomic_variant)
-    hgvs_genomic_5pr = copy.deepcopy(normalized_hgvs_genomic)
+    normalized_hgvs_genomic = hn.normalize(hgvs_genomic_variant)
 
     # Chr
-    if re.match('NC_', normalized_hgvs_genomic.ac):
-        chr = supported_chromosome_builds.to_chr_num(normalized_hgvs_genomic.ac)
-        if chr is not None:
-            pass
-        else:
-            chr = normalized_hgvs_genomic.ac
+    chr = supportedChromosomeBuilds.to_chr_num_ucsc(normalized_hgvs_genomic.ac, primary_assembly)
+    if chr is not None:
+        pass
     else:
         chr = normalized_hgvs_genomic.ac
 
@@ -648,19 +622,16 @@ def hard_right_hgvs2vcf(hgvs_genomic):
     return vcf_dict
 
 
-def hard_left_hgvs2vcf(hgvs_genomic):
+def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
     hgvs_genomic_variant = hgvs_genomic
     # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
-    reverse_normalized_hgvs_genomic = reverse_normalize.normalize(hgvs_genomic_variant)
+    reverse_normalized_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic_variant)
     hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
     # Chr
-    if re.match('NC_', reverse_normalized_hgvs_genomic.ac):
-        chr = supported_chromosome_builds.to_chr_num(reverse_normalized_hgvs_genomic.ac)
-        if chr is not None:
-            pass
-        else:
-            chr = reverse_normalized_hgvs_genomic.ac
+    chr = supportedChromosomeBuilds.to_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, primary_assembly)
+    if chr is not None:
+        pass
     else:
         chr = reverse_normalized_hgvs_genomic.ac
 
@@ -796,7 +767,7 @@ def hard_left_hgvs2vcf(hgvs_genomic):
     return vcf_dict
 
 
-def hgvs_ref_alt(hgvs_variant):
+def hgvs_ref_alt(hgvs_variant, sf):
     if re.search('[GATC]+\=', str(hgvs_variant.posedit)):
         ref = hgvs_variant.posedit.edit.ref
         alt = hgvs_variant.posedit.edit.ref
@@ -846,17 +817,17 @@ def hgvs_ref_alt(hgvs_variant):
     return ref_alt_dict
 
 # Copyright (C) 2018  Peter Causey-Freeman, University of Leicester
-# 
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
 # published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # </LICENSE>

@@ -4,14 +4,14 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='variantValidator',
+    name='VariantValidator',
     version='0.1.0_dev_pre_a',
     description='API for accurate, mapping and formatting of sequence variants using HGVS nomenclature',
     long_description=open('README.txt').read(),
     url='',
     author='Peter J. Causey-Freeman',
     author_email='pjf9@leicester.ac.uk',
-	package_data={"variantValidator": ["configuration/*.ini"],},
+	package_data={"VariantValidator": ["configuration/*.ini"],},
     packages=find_packages(),
     include_package_data=True,
     license="GNU AFFERO GENERAL PUBLIC LICENSE, Version 3 (https://www.gnu.org/licenses/agpl-3.0.en.html)",
