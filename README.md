@@ -40,15 +40,15 @@ Optional software:
 * Postgres version 9.5 or above, Postgres 10 is not supported.
 * SQLite version 3.8.0 or above
 
-For installation instructions please see INSTALLATION.md
+For installation instructions please see [INSTALLATION.md](INSTALLATION.md)
 
 # Operation and configuration
 
-Please see MANUAL.md
+Please see [MANUAL.md](MANUAL.md)
 
 ## License
 
-Please see LICENSE.txt
+Please see [LICENSE.txt](LICENSE.txt)
 
 ## Cite us
 
