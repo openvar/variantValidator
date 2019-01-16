@@ -14,9 +14,6 @@ import supported_chromosome_builds as va_scb
 from dbControls import data as va_dbCrl
 
 
-# Error handling
-class pseudoVCF2HGVSError(Exception):
-    pass
 
 
 # Set variables
@@ -42,6 +39,9 @@ class pseudoVCF2HGVSError(Exception):
 # sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
 
 
+# Error handling
+class pseudoVCF2HGVSError(Exception):
+    pass
 # pvcf is a pseudo_vcf string
 # genome build is a build string e.g. GRCh37 hg19
 # normalization direction an integer, 5 or 3.
