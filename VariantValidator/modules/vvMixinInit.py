@@ -178,6 +178,10 @@ class Mixin():
 
     #def validate(self): # <-------------- this is imported from the mixin class in vvCore.
     #    pass
+    def myConfig(self):
+        #Returns configuration:
+        #version, hgvs version, uta schema, seqrepo db.
+
     def createConfig(self,outPath):
         # This function reads from the default configuration file stored in the same folder as this module,
         # and transfers it to outPath.
