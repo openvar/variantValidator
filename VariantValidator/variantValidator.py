@@ -8435,9 +8435,9 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
             logs.append(l)
         if os.environ.get("ADD_LOGS")=="True":
             metadata["logs"] = logString
-        metadata["variant"] = batch_variant
-        metadata["assembly"] = selected_assembly
-        metadata["transcripts"] = select_transcripts
+        #metadata["variant"] = batch_variant
+        #metadata["assembly"] = selected_assembly
+        #metadata["transcripts"] = select_transcripts
         #metadata['seqrepo_directory'] = HGVS_SEQREPO_DIR
         #metadata['uta_url'] = UTA_DB_URL
         #metadata['py_liftover_directory'] = PYLIFTOVER_DIR
