@@ -239,10 +239,10 @@ def my_config():
         'py_liftover_directory': PYLIFTOVER_DIR,
         'variantvalidator_data_url': VALIDATOR_DB_URL,
         'entrez_id': ENTREZ_ID,
-        'variantvalidator_version': VERSION,
-        'variantvalidator_hgvs_version': hgvs_version,
-        'uta_schema': str(hdp.data_version()),
-        'seqrepo_db': HGVS_SEQREPO_DIR.split('/')[-1]
+        'variantvalidator_version': VERSION, #
+        'variantvalidator_hgvs_version': hgvs_version, #
+        'uta_schema': str(hdp.data_version()), #
+        'seqrepo_db': HGVS_SEQREPO_DIR.split('/')[-1] #
     }
     return locate
 
