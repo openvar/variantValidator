@@ -22,6 +22,3 @@ class ValOutput():
 class Validator(vvMixinCore.Mixin):
     pass
 
-# Custom Exceptions
-class variantValidatorError(Exception):
-    pass

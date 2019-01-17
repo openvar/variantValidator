@@ -2233,7 +2233,7 @@ class Mixin(vvMixinInit.Mixin):
                     remainder = ';'.join(pre_merges)
                     remainder = remainder[1:-1]  # removes the first [ and the last ]
                     alleles = remainder.split('];[')
-                    # now separate out the variants in each allele§
+                    # now separate out the variants in each allele |
                     for posedits in alleles:
                         posedit_list = posedits.split(';')
                         current_allele = []
@@ -2261,7 +2261,7 @@ class Mixin(vvMixinInit.Mixin):
                     # NM_004006.2:c.2376G>C(;)3103del
                     # NM_000548.3:c.3623_3647del(;)3745_3756dup
                     alleles = remainder.split('(;)')
-                    # now separate out the variants in each allele§
+                    # now separate out the variants in each allele |
                     my_alleles = []
                     for posedits in alleles:
                         posedit_list = posedits.split(';')
@@ -2280,7 +2280,7 @@ class Mixin(vvMixinInit.Mixin):
                     # NM_000548.3:c.[4358_4359del;4361_4372del]
                     remainder = remainder[1:-1]  # removes the first [ and the last ]
                     alleles = remainder.split('];[')
-                    # now separate out the variants in each allele§
+                    # now separate out the variants in each allele |
                     my_alleles = []
                     for posedits in alleles:
                         posedit_list = posedits.split(';')

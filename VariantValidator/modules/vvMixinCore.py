@@ -51,7 +51,7 @@ import vvFunctions as fn
 import vvDatabase
 import vvChromosomes
 import vvMixinConverters
-from vvObjects import variantValidatorError
+from vvFunctions import VariantValidatorError
 
 
 class Mixin(vvMixinConverters.Mixin):
@@ -852,7 +852,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 logger.warning('Intronic positions not supported for HGVS Allele descriptions')
                                 continue
                             else:
-                                raise variantValidatorError(str(e))
+                                raise VariantValidatorError(str(e))
                     logger.trace("HVGS String allele parsing pass 1 complete", validation)
                     # INITIAL USER INPUT FORMATTING
                     """
@@ -8267,7 +8267,7 @@ class Mixin(vvMixinConverters.Mixin):
             # tr = ''.join(traceback.format_stack())
             tbk = [str(exc_type), str(exc_value), str(te)]
             er = '\n'.join(tbk)
-            # raise variantValidatorError('Validation error')
+            # raise VariantValidatorError('Validation error')
             # Return
             # return
             logger.critical(str(exc_type) + " " + str(exc_value))
