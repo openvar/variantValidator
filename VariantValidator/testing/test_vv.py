@@ -44,6 +44,7 @@ def constructValidation(request):
 #    print request.param
     selectTranscripts='all'
     selectedAssembly='GRCh37'
+    os.environ["ADD_LOGS"]="True"
     return hub,hub.vv.validator(request.param,selectedAssembly,selectTranscripts)
 
 def test_validation_output(constructValidation):

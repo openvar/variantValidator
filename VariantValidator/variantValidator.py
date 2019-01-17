@@ -83,7 +83,7 @@ import ref_seq_type
 import external
 import output_formatter
 import variantanalyser
-from vvLogging import logger
+from variantanalyser.vvLogging import logger
 from variantanalyser import functions as va_func
 from variantanalyser import dbControls as va_dbCrl
 from variantanalyser import hgvs2vcf as va_H2V
@@ -150,11 +150,20 @@ def loadConfigFile():
     if re.match('^\d+\.\d+\.\d+$', __version__) is not None:
         _is_released_version = True
     # Load database environments from config
-
-    logString = ConfigSectionMap("logging", Config)['string']
+    levelString = ConfigSectionMap("logging", Config)['level']
+    consoleString = ConfigSectionMap("logging", Config)['console']
+    if consoleString.lower()=="true":
+        consoleString="console"
+    fileString = ConfigSectionMap("logging", Config)['file']
+    if fileString.lower()=="true":
+        fileString="file"
+    traceString = ConfigSectionMap("logging", Config)['trace']
+    if traceString.lower()=="true":
+        traceString="trace"
+    logString = levelString+" "+consoleString+" "+fileString+" "+traceString
     os.environ["VALIDATOR_DEBUG"] = logString
-    print "ac", os.environ["VALIDATOR_DEBUG"]
-    print("ls", logString)
+    #print "ac", os.environ["VALIDATOR_DEBUG"]
+    #print("ls", logString)
 
 
 # Custom Exceptions
@@ -234,11 +243,6 @@ def my_config():
     hgvs_version = hgvs.__version__,
     hgvs_version = str(hgvs_version[0])
     locate = {
-        'seqrepo_directory': HGVS_SEQREPO_DIR,
-        'uta_url': UTA_DB_URL,
-        'py_liftover_directory': PYLIFTOVER_DIR,
-        'variantvalidator_data_url': VALIDATOR_DB_URL,
-        'entrez_id': ENTREZ_ID,
         'variantvalidator_version': VERSION, #
         'variantvalidator_hgvs_version': hgvs_version, #
         'uta_schema': str(hdp.data_version()), #
@@ -8429,15 +8433,16 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
         logString = logger.getString()
         for l in logger.getString().split("\n"):
             logs.append(l)
-        metadata["logs"] = logString
+        if os.environ.get("ADD_LOGS")=="True":
+            metadata["logs"] = logString
         metadata["variant"] = batch_variant
         metadata["assembly"] = selected_assembly
         metadata["transcripts"] = select_transcripts
-        metadata['seqrepo_directory'] = HGVS_SEQREPO_DIR
-        metadata['uta_url'] = UTA_DB_URL
-        metadata['py_liftover_directory'] = PYLIFTOVER_DIR
-        metadata['variantvalidator_data_url'] = VALIDATOR_DB_URL
-        metadata['entrez_id'] = ENTREZ_ID
+        #metadata['seqrepo_directory'] = HGVS_SEQREPO_DIR
+        #metadata['uta_url'] = UTA_DB_URL
+        #metadata['py_liftover_directory'] = PYLIFTOVER_DIR
+        #metadata['variantvalidator_data_url'] = VALIDATOR_DB_URL
+        #metadata['entrez_id'] = ENTREZ_ID
         metadata['variantvalidator_version'] = VERSION
         metadata['variantvalidator_hgvs_version'] = hgvs_version
         metadata['uta_schema'] = str(hdp.data_version())
@@ -8689,7 +8694,7 @@ def hgvs2ref(query):
 
 def update_vv_data():
     import sys
-    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+    #logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
     # import update modules
     import mysql_refSeqGene_noMissmatch
     import compile_lrg_data
