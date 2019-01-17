@@ -33,13 +33,6 @@ def handleCursor(func):
             raise
     return wrapper
 
-def entrez_efetch(val, db, id, rettype, retmode):
-    Entrez.email = val.entrezID
-    handle = Entrez.efetch(db=db, id=id, rettype=rettype, retmode=retmode)
-    record = SeqIO.read(handle, "gb")
-    handle.close()
-    return record
-
 def hgnc_rest(path):
     data = {
         'record': '',
@@ -458,3 +451,5 @@ def n_inversion(ref_seq, del_seq, inv_seq, interval_start, interval_end):
     else:
         sequence = 'error'
         return sequence
+
+

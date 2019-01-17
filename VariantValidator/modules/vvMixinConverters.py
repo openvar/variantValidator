@@ -827,7 +827,7 @@ class Mixin(vvMixinInit.Mixin):
     returns parsed hgvs g. object
     """
 
-    def noreplace_myevm_t_to_g(self,hgvs_c, evm, hdpOld, primary_assembly, vmOld, hnOld, hpOld, sfOld, no_norm_evm):
+    def noreplace_myevm_t_to_g(self,hgvs_c, evm, hdpOld, primary_assembly, vmOld, hn, hpOld, sfOld, no_norm_evm):
         try:
             hgvs_genomic = evm.t_to_g(hgvs_c)
             self.hn.normalize(hgvs_genomic)
@@ -1031,7 +1031,7 @@ class Mixin(vvMixinInit.Mixin):
     """
 
 
-    def myvm_t_to_g(self, hgvs_c, alt_chr, vmOld, hnOld, hdpOld, primary_assembly):
+    def myvm_t_to_g(self, hgvs_c, alt_chr, vmOld, hn, hdpOld, primary_assembly):
         # create no_norm_evm
         if primary_assembly == 'GRCh38':
             no_norm_evm = self.no_norm_evm_38
@@ -1143,7 +1143,7 @@ class Mixin(vvMixinInit.Mixin):
             # Ensure the altered c. variant has not crossed intro exon boundaries
             hgvs_check_boundaries = copy.deepcopy(hgvs_c)
             try:
-                h_variant = self.hn.normalize(hgvs_check_boundaries)
+                h_variant = hn.normalize(hgvs_check_boundaries)
             except hgvs.exceptions.HGVSError as e:
                 error = str(e)
                 if re.search('spanning the exon-intron boundary', error):
@@ -1154,7 +1154,7 @@ class Mixin(vvMixinInit.Mixin):
                 reform_ident = reform_ident + ':' + stored_hgvs_c.type + '.' + str(hgvs_c.posedit.pos) + 'del' + str(hgvs_c.posedit.edit.ref)# + 'ins' + str(hgvs_c.posedit.edit.alt)
                 hgvs_reform_ident = self.hp.parse_hgvs_variant(reform_ident)
                 try:
-                    self.hn.normalize(hgvs_reform_ident)
+                    hn.normalize(hgvs_reform_ident)
                 except hgvs.exceptions.HGVSError as e:
                     error = str(e)
                     if re.search('spanning the exon-intron boundary', error) or re.search('Normalization of intronic variants', error):
@@ -1165,20 +1165,20 @@ class Mixin(vvMixinInit.Mixin):
             hgvs_genomic.posedit.edit.alt = hgvs_genomic.posedit.edit.ref
         if hgvs_genomic.posedit.edit.type == 'ins' and utilise_gap_code is True:
             try:
-                hgvs_genomic = self.hn.normalize(hgvs_genomic)
+                hgvs_genomic = hn.normalize(hgvs_genomic)
             except hgvs.exceptions.HGVSError as e:
                 error = str(e)
                 if error == 'insertion length must be 1':
                     ref = self.sf.fetch_seq(str(hgvs_genomic.ac),hgvs_genomic.posedit.pos.start.base-1,hgvs_genomic.posedit.pos.end.base)
                     hgvs_genomic.posedit.edit.ref = ref
                     hgvs_genomic.posedit.edit.alt = ref[0:1] + hgvs_genomic.posedit.edit.alt + ref[-1:]
-                    hgvs_genomic = self.hn.normalize(hgvs_genomic)
+                    hgvs_genomic = hn.normalize(hgvs_genomic)
                 if error == 'base start position must be <= end position':
                     start = hgvs_genomic.posedit.pos.start.base
                     end = hgvs_genomic.posedit.pos.end.base
                     hgvs_genomic.posedit.pos.start.base = end
                     hgvs_genomic.posedit.pos.end.base = start
-                    hgvs_genomic = self.hn.normalize(hgvs_genomic)
+                    hgvs_genomic = hn.normalize(hgvs_genomic)
 
         # Statements required to reformat the stored_hgvs_c into a useable synonym
         if (stored_hgvs_c.posedit.edit.ref == '' or stored_hgvs_c.posedit.edit.ref is None) and expand_out != 'false':
@@ -1201,7 +1201,7 @@ class Mixin(vvMixinInit.Mixin):
         if expand_out == 'true':
             nr_genomic = self.nr_vm.t_to_g(hgvs_c, hgvs_genomic.ac)
             try:
-                self.hn.normalize(nr_genomic)
+                hn.normalize(nr_genomic)
             except hgvs.exceptions.HGVSInvalidVariantError as e:
                 if re.match('Length implied by coordinates must equal sequence deletion length', str(e)) or str(e) == 'base start position must be <= end position':
                     # Effectively, this code is designed to handle variants that are directly proximal to
@@ -1213,7 +1213,7 @@ class Mixin(vvMixinInit.Mixin):
                         logger.warning('Variant is proximal to the flank of a genomic gap')
                         genomic_gap_variant = self.vm.t_to_g(stored_hgvs_c, hgvs_genomic.ac)
                         try:
-                            self.hn.normalize(genomic_gap_variant)
+                            hn.normalize(genomic_gap_variant)
                         except Exception:
                             pass
                         else:
@@ -1227,7 +1227,7 @@ class Mixin(vvMixinInit.Mixin):
                     # We have checked that the variant does not cross boundaries, or is intronic
                     # So is likely mapping to a genomic gap
                     try:
-                        self.hn.normalize(genomic_gap_variant)
+                        hn.normalize(genomic_gap_variant)
                     except Exception as e:
                         if str(e) == 'base start position must be <= end position':
                             # This will only happen when the variant is fully within the gap
@@ -1254,12 +1254,12 @@ class Mixin(vvMixinInit.Mixin):
                                 pass
 
                         # Should be a delins so will normalize statically and replace the reference bases
-                        genomic_gap_variant = self.hn.normalize(genomic_gap_variant)
+                        genomic_gap_variant = hn.normalize(genomic_gap_variant)
                         # Static map to c. and static normalize
                         transcript_gap_variant = self.vm.g_to_t(genomic_gap_variant, hgvs_c.ac)
                         stored_transcript_gap_variant = transcript_gap_variant
                         if not re.match('Length implied by coordinates must equal sequence deletion length', str(e)):
-                            transcript_gap_variant = self.hn.normalize(transcript_gap_variant)
+                            transcript_gap_variant = hn.normalize(transcript_gap_variant)
 
                         # if NM_ need the n. position
                         if re.match('NM_', str(hgvs_c.ac)):
@@ -1329,7 +1329,7 @@ class Mixin(vvMixinInit.Mixin):
 
                         try:
                             hgvs_genomic = self.vm.t_to_g(transcript_gap_variant, hgvs_genomic.ac)
-                            hgvs_genomic = self.hn.normalize(hgvs_genomic)
+                            hgvs_genomic = hn.normalize(hgvs_genomic)
                         except Exception as e:
                             if str(e) == "base start position must be <= end position":
                                 # Expansion out is required to map back to the genomic position
@@ -1344,7 +1344,7 @@ class Mixin(vvMixinInit.Mixin):
                                 except:
                                     transcript_gap_variant = transcript_gap_n
                                 hgvs_genomic = self.vm.t_to_g(transcript_gap_variant, hgvs_genomic.ac)
-                                hgvs_genomic = self.hn.normalize(hgvs_genomic)
+                                hgvs_genomic = hn.normalize(hgvs_genomic)
 
                         # Bypass the next bit of gap code
                         expand_out = 'false'
@@ -1372,7 +1372,7 @@ class Mixin(vvMixinInit.Mixin):
         elif expand_out == 'true' and (
                 len(hgvs_genomic.posedit.edit.ref) != (len(stored_hgvs_c.posedit.edit.ref) + 2)):  # >= 3:
             if expand_out == 'true' and len(hgvs_genomic.posedit.edit.ref) == 2:
-                gn = self.hn.normalize(hgvs_genomic)
+                gn = hn.normalize(hgvs_genomic)
                 pass
 
             # Likely if the start or end position aligns to a gap in the genomic sequence
@@ -1383,7 +1383,7 @@ class Mixin(vvMixinInit.Mixin):
                 # Incorrect expansion, likely < ref + 2
                 genomic_gap_variant = self.vm.t_to_g(stored_hgvs_c, hgvs_genomic.ac)
                 try:
-                    self.hn.normalize(genomic_gap_variant)
+                    hn.normalize(genomic_gap_variant)
                 except Exception as e:
                     if str(e) == 'base start position must be <= end position':
                         gap_start = genomic_gap_variant.posedit.pos.end.base
@@ -1397,11 +1397,11 @@ class Mixin(vvMixinInit.Mixin):
                         if str(e) == "'Dup' object has no attribute 'alt'":
                             pass
                     # Should be a delins so will normalize statically and replace the reference bases
-                    genomic_gap_variant = self.hn.normalize(genomic_gap_variant)
+                    genomic_gap_variant = hn.normalize(genomic_gap_variant)
                     # Static map to c. and static normalize
                     transcript_gap_variant = self.vm.g_to_t(genomic_gap_variant, hgvs_c.ac)
                     stored_transcript_gap_variant = transcript_gap_variant
-                    transcript_gap_variant = self.hn.normalize(transcript_gap_variant)
+                    transcript_gap_variant = hn.normalize(transcript_gap_variant)
                     # if NM_ need the n. position
                     if re.match('NM_', str(hgvs_c.ac)):
                         transcript_gap_n = no_norm_evm.c_to_n(transcript_gap_variant)
@@ -1475,7 +1475,7 @@ class Mixin(vvMixinInit.Mixin):
 
                     try:
                         hgvs_genomic = self.vm.t_to_g(transcript_gap_variant, hgvs_genomic.ac)
-                        hgvs_genomic = self.hn.normalize(hgvs_genomic)
+                        hgvs_genomic = hn.normalize(hgvs_genomic)
                     except Exception as e:
                         if str(e) == "base start position must be <= end position":
                             # Expansion out is required to map back to the genomic position
@@ -1492,12 +1492,12 @@ class Mixin(vvMixinInit.Mixin):
                             except:
                                 transcript_gap_variant = transcript_gap_n
                             hgvs_genomic = self.vm.t_to_g(transcript_gap_variant, hgvs_genomic.ac)
-                            hgvs_genomic = self.hn.normalize(hgvs_genomic)
+                            hgvs_genomic = hn.normalize(hgvs_genomic)
 
         # Ins variants map badly - Especially between c. exon/exon boundary
         if hgvs_c.posedit.edit.type == 'ins' and hgvs_c.posedit.pos.start.offset == 0 and hgvs_c.posedit.pos.end.offset == 0:
             try:
-                self.hn.normalize(hgvs_genomic)
+                hn.normalize(hgvs_genomic)
             except hgvs.exceptions.HGVSError as e:
                 error = str(e)
                 if error == 'insertion length must be 1':
@@ -1791,7 +1791,7 @@ class Mixin(vvMixinInit.Mixin):
     """
 
 
-    def validate(self, input, hpOld, vrOld):
+    def validateHGVS(self, input, hpOld, vrOld):
         hgvs_input = self.hp.parse_hgvs_variant(input)
         g = re.compile(":g.")
         p = re.compile(":p.")
@@ -2317,3 +2317,268 @@ class Mixin(vvMixinInit.Mixin):
             exc_type, exc_value, last_traceback = sys.exc_info()
             te = traceback.format_exc()
             raise alleleVariantError(str(e))
+
+    # Covert chromosomal HGVS description to RefSeqGene
+    def chr_to_rsg(self, hgvs_genomic, hn, vrOld):
+        # print 'chr_to_rsg triggered'
+        hgvs_genomic = hn.normalize(hgvs_genomic)
+        # split the description
+        # Accessions
+        chr_ac = hgvs_genomic.ac
+        # Positions
+        chr_start_pos = int(hgvs_genomic.posedit.pos.start.base)
+        chr_end_pos = int(hgvs_genomic.posedit.pos.end.base)
+        # edit
+        chr_edit = hgvs_genomic.posedit.edit
+
+        # Pre set variable, note there could be several
+        rsg_data_set = []
+
+        # Recover table from MySql
+        all_info = self.db.get.get_g_to_g_info()
+        for line in all_info:
+            # Logic to identify the correct RefSeqGene
+            rsg_data = {}
+            if chr_ac == line[1] and chr_start_pos >= int(line[2]) and chr_end_pos <= int(line[3]):
+                # query = "SELECT refSeqGeneID, refSeqChromosomeID, startPos, endPos, orientation, hgncSymbol FROM refSeqGene_loci"
+                # (u'NG_034189.1', u'NC_000004.12', 190173122, 190177845, u'+', u'DUX4L1')
+                # Set the values of the data dictionary
+                rsg_data['rsg_ac'] = line[0]
+                rsg_data['chr_ac'] = line[1]
+                rsg_data['rsg_start'] = line[2]
+                rsg_data['rsg_end'] = line[3]
+                rsg_data['ori'] = line[4]
+                rsg_data['gene'] = line[5]
+                rsg_data_set.append(rsg_data)
+            else:
+                continue
+
+        # Compile descriptions and validate
+        descriptions = []
+        for rsg_data in rsg_data_set:
+            rsg_ac = rsg_data['rsg_ac']
+            rsg_start = rsg_data['rsg_start']
+            rsg_end = rsg_data['rsg_end']
+            ori = rsg_data['ori']
+            gene = rsg_data['gene']
+            # String the description
+            if ori == '+':
+                rsg_description = rsg_ac + ':g.' + str(chr_start_pos - int(rsg_start) + 1) + '_' + str(
+                    chr_end_pos - int(rsg_start) + 1) + str(chr_edit)
+                hgvs_refseqgene = self.hp.parse_hgvs_variant(rsg_description)
+                try:
+                    hgvs_refseqgene = hn.normalize(hgvs_refseqgene)
+                except:
+                    error = 'Not in SeqRepo'
+                    data = {'hgvs_refseqgene': str(hgvs_refseqgene), 'gene': gene, 'valid': str(error)}
+                    descriptions.append(data)
+                    continue
+                try:
+                    self.vr.validate(hgvs_refseqgene)
+                except hgvs.exceptions.HGVSError as e:
+                    error = str(e)
+                    if re.search('does not agree with reference sequence', error):
+                        match = re.findall('\(([GATC]+)\)', error)
+                        new_ref = match[1]
+                        hgvs_refseqgene.posedit.edit.ref = new_ref
+                        error = 'true'
+                    else:
+                        pass
+                    data = {'hgvs_refseqgene': str(hgvs_refseqgene), 'gene': gene, 'valid': str(error)}
+                else:
+                    data = {'hgvs_refseqgene': str(hgvs_refseqgene), 'gene': gene, 'valid': 'true'}
+                descriptions.append(data)
+            if ori == '-':
+                # Reverse complement of bases may be required. Let normalizer do the lifting for strings of bases
+                # Look for scenarios with RC needed bases and extract the bases from the edit
+                if re.search(r"((del[GATCUgatcu]+))", str(chr_edit)):
+                    bases = re.search(r"((del[GATCUgatcu]+))", str(chr_edit))
+                    bases = bases.group(1)
+                    chr_edit = 'del' + str(chr_edit).replace(bases, '')
+                if re.search(r"((ins[GATCUgatcu]+))", str(chr_edit)):
+                    bases = re.search(r"((ins[GATCUgatcu]+))", str(chr_edit))
+                    bases = bases.group(1)
+                    ins_revcomp = self.revcomp(bases)
+                    chr_edit = str(chr_edit).replace(bases, '') + 'ins' + ins_revcomp
+                if re.search(r"((dup[GATCUgatcu]+))", str(chr_edit)):
+                    bases = re.search(r"((dup[GATCUgatcu]+))", str(chr_edit))
+                    bases = bases.group(1)
+                    chr_edit = 'dup' + str(chr_edit).replace(bases, '')
+                if re.search(r"((inv[GATCUgatcu]+))", str(chr_edit)):
+                    bases = re.search(r"((inv[GATCUgatcu]+))", str(chr_edit))
+                    bases = bases.group(1)
+                    chr_edit = 'inv' + str(chr_edit).replace(bases, '')
+                if re.search('>', str(chr_edit)) or re.search('=', str(chr_edit)):
+                    chr_edit = str(chr_edit)
+                    chr_edit = chr_edit.replace('A>', 't>')
+                    chr_edit = chr_edit.replace('T>', 'a>')
+                    chr_edit = chr_edit.replace('G>', 'c>')
+                    chr_edit = chr_edit.replace('C>', 'g>')
+                    chr_edit = chr_edit.replace('>A', '>t')
+                    chr_edit = chr_edit.replace('>T', '>a')
+                    chr_edit = chr_edit.replace('>G', '>c')
+                    chr_edit = chr_edit.replace('>C', '>g')
+                    chr_edit = chr_edit.replace('C=', 'g=')
+                    chr_edit = chr_edit.replace('G=', 'c=')
+                    chr_edit = chr_edit.replace('A=', 't=')
+                    chr_edit = chr_edit.replace('T=', 'a=')
+                    chr_edit = chr_edit.upper()
+
+                rsg_description = rsg_ac + ':g.' + str(
+                    (int(rsg_end) - int(rsg_start)) - (chr_end_pos - int(rsg_start)) + 1) + '_' + str(
+                    (int(rsg_end) - int(rsg_start)) - (chr_start_pos - int(rsg_start)) + 1) + str(chr_edit)
+                hgvs_refseqgene = self.hp.parse_hgvs_variant(rsg_description)
+                try:
+                    hgvs_refseqgene = hn.normalize(hgvs_refseqgene)
+                except:
+                    error = 'Not in SeqRepo'
+                    data = {'hgvs_refseqgene': str(hgvs_refseqgene), 'gene': gene, 'valid': str(error)}
+                    descriptions.append(data)
+                    continue
+                try:
+                    self.vr.validate(hgvs_refseqgene)
+                except hgvs.exceptions.HGVSError as e:
+                    error = str(e)
+                    if re.search('does not agree with reference sequence', error):
+                        match = re.findall('\(([GATC]+)\)', error)
+                        new_ref = match[1]
+                        hgvs_refseqgene.posedit.edit.ref = new_ref
+                        error = 'true'
+                    else:
+                        pass
+                    data = {'hgvs_refseqgene': str(hgvs_refseqgene), 'gene': gene, 'valid': str(error)}
+                else:
+                    data = {'hgvs_refseqgene': str(hgvs_refseqgene), 'gene': gene, 'valid': 'true'}
+                descriptions.append(data)
+
+        # Return the required data. This is a dictionary containing the rsg description, validation status and gene ID
+        return descriptions
+
+
+    # Covert RefSeqGene HGVS description to Chromosomal
+    def rsg_to_chr(self, hgvs_refseqgene, primary_assembly, hn, vr):
+        # normalize
+        try:
+            hgvs_refseqgene = hn.normalize(hgvs_refseqgene)
+        except:
+            pass
+        # split the description
+        # Accessions
+        rsg_ac = hgvs_refseqgene.ac
+        # Positions
+        rsg_start_pos = int(hgvs_refseqgene.posedit.pos.start.base)
+        rsg_end_pos = int(hgvs_refseqgene.posedit.pos.end.base)
+        # edit
+        rsg_edit = hgvs_refseqgene.posedit.edit
+
+        # Pre set variable, note there could be several
+        chr_data_set = []
+
+        # Recover table from MySql
+        all_info = self.db.get.get_g_to_g_info()
+        for line in all_info:
+            # Logic to identify the correct RefSeqGene
+            chr_data = {}
+            if rsg_ac == line[0] and primary_assembly == line[6]:
+                # query = "SELECT refSeqGeneID, refSeqChromosomeID, startPos, endPos, orientation, hgncSymbol FROM refSeqGene_loci"
+                # (u'NG_034189.1', u'NC_000004.12', 190173122, 190177845, u'+', u'DUX4L1')
+                # Set the values of the data dictionary
+                chr_data['rsg_ac'] = line[0]
+                chr_data['chr_ac'] = line[1]
+                chr_data['rsg_start'] = line[2]
+                chr_data['rsg_end'] = line[3]
+                chr_data['ori'] = line[4]
+                chr_data['gene'] = line[5]
+                chr_data_set.append(chr_data)
+            else:
+                continue
+
+        # Compile descriptions and validate
+        descriptions = []
+        for chr_data in chr_data_set:
+            chr_ac = chr_data['chr_ac']
+            rsg_ac = chr_data['rsg_ac']
+            chr_start = int(chr_data['rsg_start'])
+            chr_end = int(chr_data['rsg_end'])
+            ori = chr_data['ori']
+            gene = chr_data['gene']
+            # String the description
+            if ori == '+':
+                chr_description = chr_ac + ':g.' + str(chr_start + rsg_start_pos - 1) + '_' + str(
+                    chr_start + rsg_end_pos - 1) + str(rsg_edit)
+                hgvs_genomic = self.hp.parse_hgvs_variant(chr_description)
+                hgvs_genomic = hn.normalize(hgvs_genomic)
+                try:
+                    vr.validate(hgvs_genomic)
+                except hgvs.exceptions.HGVSError as e:
+                    error = str(e)
+                    if re.search('does not agree with reference sequence', error):
+                        match = re.findall('\(([GATC]+)\)', error)
+                        new_ref = match[1]
+                        hgvs_genomic.posedit.edit.ref = new_ref
+                        error = 'true'
+                    else:
+                        pass
+                    # # print str(e) + '\n3.'
+                    data = {'hgvs_genomic': str(hgvs_genomic), 'gene': gene, 'valid': str(error)}
+                else:
+                    data = {'hgvs_genomic': str(hgvs_genomic), 'gene': gene, 'valid': 'true'}
+                descriptions.append(data)
+            if ori == '-':
+                # Reverse complement of bases may be required. Let normalizer do the lifting for strings of bases
+                # Look for scenarios with RC needed bases and extract the bases from the edit
+                if re.search(r"((del[GATCUgatcu]+))", str(rsg_edit)):
+                    bases = re.search(r"((del[GATCUgatcu]+))", str(rsg_edit))
+                    bases = bases.group(1)
+                    rsg_edit = 'del' + str(rsg_edit).replace(bases, '')
+                if re.search(r"((ins[GATCUgatcu]+))", str(rsg_edit)):
+                    bases = re.search(r"((ins[GATCUgatcu]+))", str(rsg_edit))
+                    bases = bases.group(1)
+                    ins_revcomp = self.revcomp(bases)
+                    rsg_edit = str(rsg_edit).replace(bases, '') + 'ins' + ins_revcomp
+                if re.search(r"((dup[GATCUgatcu]+))", str(rsg_edit)):
+                    bases = re.search(r"((dup[GATCUgatcu]+))", str(rsg_edit))
+                    bases = bases.group(1)
+                    rsg_edit = 'dup' + str(rsg_edit).replace(bases, '')
+                if re.search(r"((inv[GATCUgatcu]+))", str(rsg_edit)):
+                    bases = re.search(r"((inv[GATCUgatcu]+))", str(rsg_edit))
+                    bases = bases.group(1)
+                    rsg_edit = 'inv' + str(rsg_edit).replace(bases, '')
+                if re.search('>', str(rsg_edit)) or re.search('=', str(rsg_edit)):
+                    rsg_edit = str(rsg_edit)
+                    rsg_edit = rsg_edit.replace('A>', 't>')
+                    rsg_edit = rsg_edit.replace('T>', 'a>')
+                    rsg_edit = rsg_edit.replace('G>', 'c>')
+                    rsg_edit = rsg_edit.replace('C>', 'g>')
+                    rsg_edit = rsg_edit.replace('>A', '>t')
+                    rsg_edit = rsg_edit.replace('>T', '>a')
+                    rsg_edit = rsg_edit.replace('>G', '>c')
+                    rsg_edit = rsg_edit.replace('>C', '>g')
+                    rsg_edit = rsg_edit.replace('C=', 'g=')
+                    rsg_edit = rsg_edit.replace('G=', 'c=')
+                    rsg_edit = rsg_edit.replace('A=', 't=')
+                    rsg_edit = rsg_edit.replace('T=', 'a=')
+                    rsg_edit = rsg_edit.upper()
+
+                chr_description = chr_ac + ':g.' + str(
+                    int(chr_start) + (int(chr_end) - int(chr_start)) - rsg_end_pos + 1) + '_' + str(
+                    int(chr_start) + (int(chr_end) - int(chr_start)) - rsg_start_pos + 1) + str(rsg_edit)
+
+                hgvs_genomic = self.hp.parse_hgvs_variant(chr_description)
+                hgvs_genomic = hn.normalize(hgvs_genomic)
+                try:
+                    vr.validate(hgvs_genomic)
+                except hgvs.exceptions.HGVSError as e:
+                    error = str(e)
+                    if re.search('does not agree with reference sequence', error):
+                        match = re.findall('\(([GATC]+)\)', error)
+                        new_ref = match[1]
+                        hgvs_genomic.posedit.edit.ref = new_ref
+                        error = 'true'
+                    data = {'hgvs_genomic': str(hgvs_genomic), 'gene': gene, 'valid': str(error)}
+                else:
+                    data = {'hgvs_genomic': str(hgvs_genomic), 'gene': gene, 'valid': 'true'}
+                descriptions.append(data)
+
+        # Return the required data. This is a dictionary containing the rsg description, validation status and gene ID
+        return descriptions

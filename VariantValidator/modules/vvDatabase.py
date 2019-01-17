@@ -39,7 +39,17 @@ class vvDatabase:
             logger.debug("No data returned from query "+str(query))
         return row
     # From data
+    # function for adding information to database
+    def data_add(self, input, alt_aln_method, accession, dbaction, hp, evm, hdp):
+        # Add accurate transcript descriptions to the database
+        # RefSeq databases
+        # Get the Entrez (GenBank) file
+        self.update_transcript_info_record(accession, hdp)
+        entry = self.in_entries(accession, 'transcript_info')
+        return entry
+
     # Retrieve transcript information
+
     def in_entries(self,entry, table):
         # Use dbquery.py to connect to mysql and return the necessary data
         data={}
@@ -72,7 +82,7 @@ class vvDatabase:
         hgnc_symbol = previous_entry['hgnc_symbol']
         uta_symbol = previous_entry['uta_symbol']
         try:
-            record = fn.entrez_efetch(self.val,db="nucleotide", id=accession, rettype="gb", retmode="text")
+            record = self.val.entrez_efetch(db="nucleotide", id=accession, rettype="gb", retmode="text")
             version = record.id
             description = record.description
             variant = '0'
