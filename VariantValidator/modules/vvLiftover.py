@@ -12,8 +12,8 @@ import re
 import os
 import vvChromosomes
 import vvHGVS
+from vvLogging import logger
 from pyliftover import LiftOver
-import warnings
 from Bio.Seq import Seq
 
 # Pre compile variables
@@ -85,7 +85,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp, reverse_no
             alt_build_to = 'GRCh38'
 
     # populate the variant from data
-    vcf = hgvs2vcf.report_hgvs2vcf(hgvs_genomic, build_from, reverse_normalizer, sf)
+    vcf = vvHGVS.report_hgvs2vcf(hgvs_genomic, build_from, reverse_normalizer, sf)
 
     # Create to and from dictionaries
     lifted_response[build_from.lower()] = {}
@@ -250,7 +250,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp, reverse_no
         accession = vvChromosomes.to_accession(chr, lo_to)
         if accession is None:
             wrn = 'Unable to identify an equivalent %s chromosome ID for %s' % (str(lo_to), str(chr))
-            warnings.warn(wrn)
+            logger.warning(wrn)
             continue
         else:
             not_delins = accession + ':g.' + str(pos) + '_' + str(
@@ -259,7 +259,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp, reverse_no
             try:
                 vr.validate(hgvs_not_delins)
             except hgvs.exceptions.HGVSError as e:
-                warnings.warn(str(e))
+                logger.warning(str(e))
                 # Most likely incorrect bases
                 continue
             else:

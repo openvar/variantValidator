@@ -19,17 +19,16 @@ import hgvs.normalizer
 # IMPORT PYTHON MODULES
 import re
 import time
-import datetime
+#import datetime
 import copy
 import os
 import sys
-import warnings
 from operator import itemgetter
-from pyliftover import LiftOver
+#from pyliftover import LiftOver
 import traceback
-from configparser import ConfigParser
+#from configparser import ConfigParser
 
-from Bio.Seq import Seq
+#from Bio.Seq import Seq
 
 # Import variantanalyser and peripheral VV modules
 #import ref_seq_type
@@ -3985,9 +3984,9 @@ class Mixin(vvMixinConverters.Mixin):
                                         error = str(e)
                                         chromosome_normalized_hgvs_coding = hgvs_coding
 
-                                most_3pr_hgvs_genomic = va_func.myvm_t_to_g(chromosome_normalized_hgvs_coding,
-                                                                            hgvs_genomic.ac, no_norm_evm, vm, hp, hn, self.sf,
-                                                                            nr_vm)
+                                most_3pr_hgvs_genomic = self.myvm_t_to_g(chromosome_normalized_hgvs_coding,
+                                                                            hgvs_genomic.ac, no_norm_evm, self.vm, self.hp, hn, self.sf,
+                                                                            self.nr_vm)
                                 hgvs_genomic_possibilities.append(most_3pr_hgvs_genomic)
 
                                 # Push from side to side to try pick up odd placements
@@ -4007,7 +4006,7 @@ class Mixin(vvMixinConverters.Mixin):
                                     # Generate an end position
                                     stash_end = str(stash_pos + len(stash_ref) - 1)
                                     # make a not real deletion insertion
-                                    stash_hgvs_not_delins = hp.parse_hgvs_variant(
+                                    stash_hgvs_not_delins = self.hp.parse_hgvs_variant(
                                         stash_ac + ':' + hgvs_stash.type + '.' + str(
                                             stash_pos) + '_' + stash_end + 'del' + stash_ref + 'ins' + stash_alt)
                                     try:
@@ -4017,8 +4016,8 @@ class Mixin(vvMixinConverters.Mixin):
                                         # Store a tx copy for later use
                                     test_stash_tx_right = copy.deepcopy(stash_hgvs_not_delins)
                                     # stash_genomic = vm.t_to_g(test_stash_tx_right, hgvs_genomic.ac)
-                                    stash_genomic = va_func.myvm_t_to_g(test_stash_tx_right, hgvs_genomic.ac, no_norm_evm,
-                                                                        vm, hp, hn, self.sf, nr_vm)
+                                    stash_genomic = self.myvm_t_to_g(test_stash_tx_right, hgvs_genomic.ac, no_norm_evm,
+                                                                        self.vm, self.hp, hn, self.sf, self.nr_vm)
                                     # Stash the outputs if required
                                     # test variants = NC_000006.11:g.90403795G= (causes double identity)
                                     #                 NC_000002.11:g.73675227_73675228insCTC (? incorrect assumed insertion position)
@@ -4049,7 +4048,7 @@ class Mixin(vvMixinConverters.Mixin):
                                         reform_ident = str(test_stash_tx_right).split(':')[0]
                                         reform_ident = reform_ident + ':c.' + str(test_stash_tx_right.posedit.pos) + 'del' + str(
                                             test_stash_tx_right.posedit.edit.ref)  # + 'ins' + str(test_stash_tx_right.posedit.edit.alt)
-                                        hgvs_reform_ident = hp.parse_hgvs_variant(reform_ident)
+                                        hgvs_reform_ident = self.hp.parse_hgvs_variant(reform_ident)
                                         try:
                                             hn.normalize(hgvs_reform_ident)
                                         except hgvs.exceptions.HGVSError as e:
@@ -4092,7 +4091,7 @@ class Mixin(vvMixinConverters.Mixin):
                                     # Generate an end position
                                     stash_end = str(stash_pos + len(stash_ref) - 1)
                                     # make a not real deletion insertion
-                                    stash_hgvs_not_delins = hp.parse_hgvs_variant(
+                                    stash_hgvs_not_delins = self.hp.parse_hgvs_variant(
                                         stash_ac + ':' + hgvs_stash.type + '.' + str(
                                             stash_pos) + '_' + stash_end + 'del' + stash_ref + 'ins' + stash_alt)
                                     try:
@@ -4102,8 +4101,8 @@ class Mixin(vvMixinConverters.Mixin):
                                         # Store a tx copy for later use
                                     test_stash_tx_left = copy.deepcopy(stash_hgvs_not_delins)
                                     # stash_genomic = vm.t_to_g(test_stash_tx_left, hgvs_genomic.ac)
-                                    stash_genomic = va_func.myvm_t_to_g(test_stash_tx_left, hgvs_genomic.ac, no_norm_evm,
-                                                                        vm, hp, hn, self.sf, nr_vm)
+                                    stash_genomic = self.myvm_t_to_g(test_stash_tx_left, hgvs_genomic.ac, no_norm_evm,
+                                                                        self.vm, self.hp, hn, self.sf, self.nr_vm)
                                     # Stash the outputs if required
                                     # test variants = NC_000006.11:g.90403795G= (causes double identity)
                                     #                 NC_000002.11:g.73675227_73675228insCTC
@@ -4135,7 +4134,7 @@ class Mixin(vvMixinConverters.Mixin):
                                         reform_ident = str(test_stash_tx_left).split(':')[0]
                                         reform_ident = reform_ident + ':c.' + str(test_stash_tx_left.posedit.pos) + 'del' + str(
                                             test_stash_tx_left.posedit.edit.ref)  # + 'ins' + str(test_stash_tx_left.posedit.edit.alt)
-                                        hgvs_reform_ident = hp.parse_hgvs_variant(reform_ident)
+                                        hgvs_reform_ident = self.hp.parse_hgvs_variant(reform_ident)
                                         try:
                                             hn.normalize(hgvs_reform_ident)
                                         except hgvs.exceptions.HGVSError as e:
@@ -4167,8 +4166,8 @@ class Mixin(vvMixinConverters.Mixin):
                                         most_5pr_hgvs_transcript_variant = copy.deepcopy(hgvs_coding)
                                         most_3pr_hgvs_transcript_variant = reverse_normalizer.normalize(hgvs_coding)
                                         try:
-                                            n_3pr = vm.c_to_n(most_3pr_hgvs_transcript_variant)
-                                            n_5pr = vm.c_to_n(most_5pr_hgvs_transcript_variant)
+                                            n_3pr = self.vm.c_to_n(most_3pr_hgvs_transcript_variant)
+                                            n_5pr = self.vm.c_to_n(most_5pr_hgvs_transcript_variant)
                                         except:
                                             n_3pr = most_3pr_hgvs_transcript_variant
                                             n_5pr = most_5pr_hgvs_transcript_variant
@@ -4186,9 +4185,9 @@ class Mixin(vvMixinConverters.Mixin):
                                                                                                 0] + most_5pr_hgvs_transcript_variant.posedit.edit.alt + \
                                                                                             pr5_ref[1]
                                         # Map to the genome
-                                        genomic_from_most_3pr_hgvs_transcript_variant = vm.t_to_g(
+                                        genomic_from_most_3pr_hgvs_transcript_variant = self.vm.t_to_g(
                                             most_3pr_hgvs_transcript_variant, hgvs_genomic.ac)
-                                        genomic_from_most_5pr_hgvs_transcript_variant = vm.t_to_g(
+                                        genomic_from_most_5pr_hgvs_transcript_variant = self.vm.t_to_g(
                                             most_5pr_hgvs_transcript_variant, hgvs_genomic.ac)
                                         # Normalize - If the variant spans a gap it should then form a static genomic variant
                                         try:
@@ -4223,7 +4222,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                 genomic_from_most_3pr_hgvs_transcript_variant_delins_from_dup = genomic_from_most_3pr_hgvs_transcript_variant.ac + ':' + genomic_from_most_3pr_hgvs_transcript_variant.type + '.' + str(
                                                     genomic_from_most_3pr_hgvs_transcript_variant.posedit.pos.start.base) + '_' + str(
                                                     genomic_from_most_3pr_hgvs_transcript_variant.posedit.pos.end.base) + 'del' + genomic_from_most_3pr_hgvs_transcript_variant.posedit.edit.ref + 'ins' + genomic_from_most_3pr_hgvs_transcript_variant.posedit.edit.ref + genomic_from_most_3pr_hgvs_transcript_variant.posedit.edit.ref
-                                                genomic_from_most_3pr_hgvs_transcript_variant = hp.parse_hgvs_variant(
+                                                genomic_from_most_3pr_hgvs_transcript_variant = self.hp.parse_hgvs_variant(
                                                     genomic_from_most_3pr_hgvs_transcript_variant_delins_from_dup)
 
                                         try:
@@ -4234,7 +4233,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                 most_3pr_hgvs_transcript_variant_delins_from_dup = most_3pr_hgvs_transcript_variant.ac + ':' + most_3pr_hgvs_transcript_variant.type + '.' + str(
                                                     most_3pr_hgvs_transcript_variant.posedit.pos.start.base) + '_' + str(
                                                     most_3pr_hgvs_transcript_variant.posedit.pos.end.base) + 'del' + most_3pr_hgvs_transcript_variant.posedit.edit.ref + 'ins' + most_3pr_hgvs_transcript_variant.posedit.edit.ref + most_3pr_hgvs_transcript_variant.posedit.edit.ref
-                                                most_3pr_hgvs_transcript_variant = hp.parse_hgvs_variant(
+                                                most_3pr_hgvs_transcript_variant = self.hp.parse_hgvs_variant(
                                                     most_3pr_hgvs_transcript_variant_delins_from_dup)
 
                                         try:
@@ -4245,7 +4244,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                 genomic_from_most_5pr_hgvs_transcript_variant_delins_from_dup = genomic_from_most_5pr_hgvs_transcript_variant.ac + ':' + genomic_from_most_5pr_hgvs_transcript_variant.type + '.' + str(
                                                     genomic_from_most_5pr_hgvs_transcript_variant.posedit.pos.start.base) + '_' + str(
                                                     genomic_from_most_5pr_hgvs_transcript_variant.posedit.pos.end.base) + 'del' + genomic_from_most_5pr_hgvs_transcript_variant.posedit.edit.ref + 'ins' + genomic_from_most_5pr_hgvs_transcript_variant.posedit.edit.ref + genomic_from_most_5pr_hgvs_transcript_variant.posedit.edit.ref
-                                                genomic_from_most_5pr_hgvs_transcript_variant = hp.parse_hgvs_variant(
+                                                genomic_from_most_5pr_hgvs_transcript_variant = self.hp.parse_hgvs_variant(
                                                     genomic_from_most_5pr_hgvs_transcript_variant_delins_from_dup)
 
                                         try:
@@ -4256,7 +4255,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                 most_5pr_hgvs_transcript_variant_delins_from_dup = most_5pr_hgvs_transcript_variant.ac + ':' + most_5pr_hgvs_transcript_variant.type + '.' + str(
                                                     most_5pr_hgvs_transcript_variant.posedit.pos.start.base) + '_' + str(
                                                     most_5pr_hgvs_transcript_variant.posedit.pos.end.base) + 'del' + most_5pr_hgvs_transcript_variant.posedit.edit.ref + 'ins' + most_5pr_hgvs_transcript_variant.posedit.edit.ref + most_5pr_hgvs_transcript_variant.posedit.edit.ref
-                                                most_5pr_hgvs_transcript_variant = hp.parse_hgvs_variant(
+                                                most_5pr_hgvs_transcript_variant = self.hp.parse_hgvs_variant(
                                                     most_5pr_hgvs_transcript_variant_delins_from_dup)
 
                                         if len(genomic_from_most_3pr_hgvs_transcript_variant.posedit.edit.alt) < len(
@@ -4366,7 +4365,7 @@ class Mixin(vvMixinConverters.Mixin):
                                     pos = str(pos)
 
                                     # Store a not real deletion insertion to test for gapping
-                                    stored_hgvs_not_delins = hp.parse_hgvs_variant(str(
+                                    stored_hgvs_not_delins = self.hp.parse_hgvs_variant(str(
                                         hgvs_genomic_5pr.ac) + ':' + hgvs_genomic_5pr.type + '.' + pos + '_' + end + 'del' + ref + 'ins' + alt)
                                     v = [chr, pos, ref, alt]
 
@@ -4598,9 +4597,9 @@ class Mixin(vvMixinConverters.Mixin):
                                                 else:
                                                     test_tx_var = rn_tx_hgvs_not_delins
                                                 # re-make genomic and tx
-                                                hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, self.hdp, no_norm_evm,
-                                                                                       primary_assembly, vm, hp, hn, self.sf,
-                                                                                       nr_vm)
+                                                hgvs_not_delins = self.myevm_t_to_g(test_tx_var, self.hdp, no_norm_evm,
+                                                                                       primary_assembly, self.vm, self.hp, hn, self.sf,
+                                                                                       self.nr_vm)
 
                                                 rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                            str(saved_hgvs_coding.ac))
@@ -4615,9 +4614,9 @@ class Mixin(vvMixinConverters.Mixin):
                                                 else:
                                                     test_tx_var = rn_tx_hgvs_not_delins
                                                 # re-make genomic and tx
-                                                hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, self.hdp, no_norm_evm,
-                                                                                       primary_assembly, vm, hp, hn, self.sf,
-                                                                                       nr_vm)
+                                                hgvs_not_delins = self.myevm_t_to_g(test_tx_var, self.hdp, no_norm_evm,
+                                                                                       primary_assembly, self.vm, self.hp, hn, self.sf,
+                                                                                       self.nr_vm)
                                                 rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                            str(saved_hgvs_coding.ac))
                                                 rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
@@ -4652,9 +4651,9 @@ class Mixin(vvMixinConverters.Mixin):
                                                 else:
                                                     test_tx_var = rn_tx_hgvs_not_delins
                                                 # re-make genomic and tx
-                                                hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, self.hdp, no_norm_evm,
-                                                                                       primary_assembly, vm, hp, hn, self.sf,
-                                                                                       nr_vm)
+                                                hgvs_not_delins = self.myevm_t_to_g(test_tx_var, self.hdp, no_norm_evm,
+                                                                                       primary_assembly, self.vm, self.hp, hn, self.sf,
+                                                                                       self.nr_vm)
                                                 rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                            str(saved_hgvs_coding.ac))
                                             elif re.search('\-', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
@@ -4667,9 +4666,9 @@ class Mixin(vvMixinConverters.Mixin):
                                                 else:
                                                     test_tx_var = rn_tx_hgvs_not_delins
                                                 # re-make genomic and tx
-                                                hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, self.hdp, no_norm_evm,
-                                                                                       primary_assembly, vm, hp, hn, self.sf,
-                                                                                       nr_vm)
+                                                hgvs_not_delins = self.myevm_t_to_g(test_tx_var, self.hdp, no_norm_evm,
+                                                                                       primary_assembly, self.vm, self.hp, hn, self.sf,
+                                                                                       self.nr_vm)
                                                 rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                            str(saved_hgvs_coding.ac))
                                                 rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
@@ -4693,17 +4692,17 @@ class Mixin(vvMixinConverters.Mixin):
                                                     if internal_possibility == '':
                                                         continue
 
-                                                    hgvs_t_possibility = vm.g_to_t(internal_possibility, hgvs_coding.ac)
+                                                    hgvs_t_possibility = self.vm.g_to_t(internal_possibility, hgvs_coding.ac)
                                                     if hgvs_t_possibility.posedit.edit.type == 'ins':
                                                         try:
-                                                            hgvs_t_possibility = vm.c_to_n(hgvs_t_possibility)
+                                                            hgvs_t_possibility = self.vm.c_to_n(hgvs_t_possibility)
                                                         except:
                                                             fn.exceptPass()
                                                         ins_ref = self.sf.fetch_seq(hgvs_t_possibility.ac,
                                                                                hgvs_t_possibility.posedit.pos.start.base - 1,
                                                                                hgvs_t_possibility.posedit.pos.start.base + 1)
                                                         try:
-                                                            hgvs_t_possibility = vm.n_to_c(hgvs_t_possibility)
+                                                            hgvs_t_possibility = self.vm.n_to_c(hgvs_t_possibility)
                                                         except:
                                                             fn.exceptPass()
                                                         hgvs_t_possibility.posedit.edit.ref = ins_ref
@@ -4731,7 +4730,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                                                 if re_capture_tx_variant != []:
                                                     try:
-                                                        tx_hgvs_not_delins = vm.c_to_n(re_capture_tx_variant[2])
+                                                        tx_hgvs_not_delins = self.vm.c_to_n(re_capture_tx_variant[2])
                                                     except:
                                                         tx_hgvs_not_delins = re_capture_tx_variant[2]
                                                     disparity_deletion_in = re_capture_tx_variant[0:-1]
@@ -4741,7 +4740,7 @@ class Mixin(vvMixinConverters.Mixin):
                                         # 'At hgvs_genomic'
                                         # Final sanity checks
                                         try:
-                                            vm.g_to_t(hgvs_not_delins, tx_hgvs_not_delins.ac)
+                                            self.vm.g_to_t(hgvs_not_delins, tx_hgvs_not_delins.ac)
                                         except Exception as e:
                                             if str(e) == 'start or end or both are beyond the bounds of transcript record':
                                                 continue
@@ -4770,9 +4769,9 @@ class Mixin(vvMixinConverters.Mixin):
                                         if disparity_deletion_in[0] == 'false' and (
                                                 possibility_counter == 3 or possibility_counter == 4):
                                             rg = reverse_normalizer.normalize(hgvs_not_delins)
-                                            rtx = vm.g_to_t(rg, tx_hgvs_not_delins.ac)
+                                            rtx = self.vm.g_to_t(rg, tx_hgvs_not_delins.ac)
                                             fg = hn.normalize(hgvs_not_delins)
-                                            ftx = vm.g_to_t(fg, tx_hgvs_not_delins.ac)
+                                            ftx = self.vm.g_to_t(fg, tx_hgvs_not_delins.ac)
                                             if (rtx.posedit.pos.start.offset == 0 and rtx.posedit.pos.end.offset == 0) and (
                                                     ftx.posedit.pos.start.offset != 0 and ftx.posedit.pos.end.offset != 0):
                                                 exons = self.hdp.get_tx_exons(ftx.ac, hgvs_not_delins.ac, alt_aln_method)
@@ -4786,7 +4785,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                     hgvs_genomic = fg
                                                     hgvs_genomic_5pr = fg
                                                     try:
-                                                        tx_hgvs_not_delins = vm.c_to_n(ftx)
+                                                        tx_hgvs_not_delins = self.vm.c_to_n(ftx)
                                                     except Exception:
                                                         tx_hgvs_not_delins = ftx
                                                     disparity_deletion_in = ['transcript', 'Requires Analysis']
@@ -4800,7 +4799,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                 tx_hgvs_not_delins_delins_from_dup = tx_hgvs_not_delins.ac + ':' + tx_hgvs_not_delins.type + '.' + str(
                                                     tx_hgvs_not_delins.posedit.pos.start) + '_' + str(
                                                     tx_hgvs_not_delins.posedit.pos.end) + 'del' + tx_hgvs_not_delins.posedit.edit.ref + 'ins' + tx_hgvs_not_delins.posedit.edit.ref + tx_hgvs_not_delins.posedit.edit.ref
-                                                tx_hgvs_not_delins = hp.parse_hgvs_variant(
+                                                tx_hgvs_not_delins = self.hp.parse_hgvs_variant(
                                                     tx_hgvs_not_delins_delins_from_dup)
 
                                         # GAP IN THE TRANSCRIPT DISPARITY DETECTED
@@ -4830,7 +4829,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                         tx_gap_fill_variant_delins_from_dup = tx_gap_fill_variant.ac + ':' + tx_gap_fill_variant.type + '.' + str(
                                                             tx_gap_fill_variant.posedit.pos.start) + '_' + str(
                                                             tx_gap_fill_variant.posedit.pos.end) + 'del' + tx_gap_fill_variant.posedit.edit.ref + 'ins' + tx_gap_fill_variant.posedit.edit.ref + tx_gap_fill_variant.posedit.edit.ref
-                                                        tx_gap_fill_variant = hp.parse_hgvs_variant(
+                                                        tx_gap_fill_variant = self.hp.parse_hgvs_variant(
                                                             tx_gap_fill_variant_delins_from_dup)
 
                                                         # Identify which half of the NOT-intron the start position of the variant is in
@@ -4848,18 +4847,18 @@ class Mixin(vvMixinConverters.Mixin):
                                                     tx_gap_fill_variant.posedit.edit.ref = ''
 
                                                 try:
-                                                    tx_gap_fill_variant = vm.n_to_c(tx_gap_fill_variant)
+                                                    tx_gap_fill_variant = self.vm.n_to_c(tx_gap_fill_variant)
                                                 except:
                                                     fn.exceptPass()
-                                                genomic_gap_fill_variant = vm.t_to_g(tx_gap_fill_variant,
+                                                genomic_gap_fill_variant = self.vm.t_to_g(tx_gap_fill_variant,
                                                                                      reverse_normalized_hgvs_genomic.ac)
                                                 genomic_gap_fill_variant.posedit.edit.alt = genomic_gap_fill_variant.posedit.edit.ref
 
                                                 try:
-                                                    c_tx_hgvs_not_delins = vm.n_to_c(tx_hgvs_not_delins)
+                                                    c_tx_hgvs_not_delins = self.vm.n_to_c(tx_hgvs_not_delins)
                                                 except Exception:
                                                     c_tx_hgvs_not_delins = copy.copy(tx_hgvs_not_delins)
-                                                genomic_gap_fill_variant_alt = vm.t_to_g(c_tx_hgvs_not_delins,
+                                                genomic_gap_fill_variant_alt = self.vm.t_to_g(c_tx_hgvs_not_delins,
                                                                                          hgvs_genomic_5pr.ac)
 
                                                 # Ensure an ALT exists
@@ -4871,12 +4870,12 @@ class Mixin(vvMixinConverters.Mixin):
                                                         genomic_gap_fill_variant_delins_from_dup = genomic_gap_fill_variant.ac + ':' + genomic_gap_fill_variant.type + '.' + str(
                                                             genomic_gap_fill_variant.posedit.pos.start.base) + '_' + str(
                                                             genomic_gap_fill_variant.posedit.pos.end.base) + 'del' + genomic_gap_fill_variant.posedit.edit.ref + 'ins' + genomic_gap_fill_variant.posedit.edit.ref + genomic_gap_fill_variant.posedit.edit.ref
-                                                        genomic_gap_fill_variant = hp.parse_hgvs_variant(
+                                                        genomic_gap_fill_variant = self.hp.parse_hgvs_variant(
                                                             genomic_gap_fill_variant_delins_from_dup)
                                                         genomic_gap_fill_variant_alt_delins_from_dup = genomic_gap_fill_variant_alt.ac + ':' + genomic_gap_fill_variant_alt.type + '.' + str(
                                                             genomic_gap_fill_variant_alt.posedit.pos.start.base) + '_' + str(
                                                             genomic_gap_fill_variant_alt.posedit.pos.end.base) + 'del' + genomic_gap_fill_variant_alt.posedit.edit.ref + 'ins' + genomic_gap_fill_variant_alt.posedit.edit.ref + genomic_gap_fill_variant_alt.posedit.edit.ref
-                                                        genomic_gap_fill_variant_alt = hp.parse_hgvs_variant(
+                                                        genomic_gap_fill_variant_alt = self.hp.parse_hgvs_variant(
                                                             genomic_gap_fill_variant_alt_delins_from_dup)
 
                                                 # Correct insertion alts
@@ -4936,7 +4935,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                                                 # Add the new alt to the gap fill variant and generate transcript variant
                                                 genomic_gap_fill_variant.posedit.edit.alt = alternate_sequence
-                                                hgvs_refreshed_variant = vm.g_to_t(genomic_gap_fill_variant,
+                                                hgvs_refreshed_variant = self.vm.g_to_t(genomic_gap_fill_variant,
                                                                                    tx_gap_fill_variant.ac)
 
                                                 # Set warning
@@ -4966,23 +4965,23 @@ class Mixin(vvMixinConverters.Mixin):
                                                     # the transcript variant but do not have a position which actually hits the gap,
                                                     # so the variant likely spans the gap, and is not picked up by an offset.
                                                     try:
-                                                        c1 = vm.n_to_c(tx_hgvs_not_delins)
+                                                        c1 = self.vm.n_to_c(tx_hgvs_not_delins)
                                                     except:
                                                         c1 = tx_hgvs_not_delins
-                                                    g1 = nr_vm.t_to_g(c1, hgvs_genomic.ac)
-                                                    g3 = nr_vm.t_to_g(c1, hgvs_genomic.ac)
-                                                    g2 = vm.t_to_g(c1, hgvs_genomic.ac)
+                                                    g1 = self.nr_vm.t_to_g(c1, hgvs_genomic.ac)
+                                                    g3 = self.nr_vm.t_to_g(c1, hgvs_genomic.ac)
+                                                    g2 = self.vm.t_to_g(c1, hgvs_genomic.ac)
                                                     ng2 = hn.normalize(g2)
                                                     g3.posedit.pos.end.base = g3.posedit.pos.start.base + (
                                                             len(g3.posedit.edit.ref) - 1)
                                                     try:
-                                                        c2 = vm.g_to_t(g3, c1.ac)
+                                                        c2 = self.vm.g_to_t(g3, c1.ac)
                                                         if c2.posedit.pos.start.offset == 0 and c2.posedit.pos.end.offset == 0:
                                                             pass
                                                         else:
                                                             tx_hgvs_not_delins = c2
                                                             try:
-                                                                tx_hgvs_not_delins = vm.c_to_n(tx_hgvs_not_delins)
+                                                                tx_hgvs_not_delins = self.vm.c_to_n(tx_hgvs_not_delins)
                                                             except hgvs.exceptions.HGVSError:
                                                                 fn.exceptPass()
                                                     except hgvs.exceptions.HGVSInvalidVariantError:
@@ -4998,7 +4997,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                         tx_hgvs_not_delins.ac)
                                                     non_valid_caution = 'true'
                                                     try:
-                                                        c2 = vm.n_to_c(tx_hgvs_not_delins)
+                                                        c2 = self.vm.n_to_c(tx_hgvs_not_delins)
                                                     except:
                                                         c2 = tx_hgvs_not_delins
                                                     c1 = copy.deepcopy(c2)
@@ -5008,12 +5007,12 @@ class Mixin(vvMixinConverters.Mixin):
                                                     c1.posedit.edit.ref = ''
                                                     c1.posedit.edit.alt = ''
                                                     if orientation != -1:
-                                                        g1 = vm.t_to_g(c1, hgvs_genomic.ac)
-                                                        g2 = vm.t_to_g(c2, hgvs_genomic.ac)
+                                                        g1 = self.vm.t_to_g(c1, hgvs_genomic.ac)
+                                                        g2 = self.vm.t_to_g(c2, hgvs_genomic.ac)
                                                         g1.posedit.edit.alt = g1.posedit.edit.ref
                                                     else:
-                                                        g1 = vm.t_to_g(c2, hgvs_genomic.ac)
-                                                        g2 = vm.t_to_g(c1, hgvs_genomic.ac)
+                                                        g1 = self.vm.t_to_g(c2, hgvs_genomic.ac)
+                                                        g2 = self.vm.t_to_g(c1, hgvs_genomic.ac)
                                                         g2.posedit.edit.alt = g2.posedit.edit.ref
                                                     reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
                                                     alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
@@ -5021,7 +5020,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                     g3.posedit.pos.end.base = g2.posedit.pos.end.base
                                                     g3.posedit.edit.ref = reference
                                                     g3.posedit.edit.alt = alternate
-                                                    c3 = vm.g_to_t(g3, c1.ac)
+                                                    c3 = self.vm.g_to_t(g3, c1.ac)
                                                     hgvs_refreshed_variant = c3
                                                     # Alignment position
                                                     for_location_c = copy.deepcopy(hgvs_refreshed_variant)
@@ -5045,7 +5044,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                         tx_hgvs_not_delins.ac)
                                                     non_valid_caution = 'true'
                                                     try:
-                                                        c1 = vm.n_to_c(tx_hgvs_not_delins)
+                                                        c1 = self.vm.n_to_c(tx_hgvs_not_delins)
                                                     except:
                                                         c1 = tx_hgvs_not_delins
                                                     c2 = copy.deepcopy(c1)
@@ -5055,12 +5054,12 @@ class Mixin(vvMixinConverters.Mixin):
                                                     c2.posedit.edit.ref = ''
                                                     c2.posedit.edit.alt = ''
                                                     if orientation != -1:
-                                                        g1 = vm.t_to_g(c1, hgvs_genomic.ac)
-                                                        g2 = vm.t_to_g(c2, hgvs_genomic.ac)
+                                                        g1 = self.vm.t_to_g(c1, hgvs_genomic.ac)
+                                                        g2 = self.vm.t_to_g(c2, hgvs_genomic.ac)
                                                         g2.posedit.edit.alt = g2.posedit.edit.ref
                                                     else:
-                                                        g1 = vm.t_to_g(c2, hgvs_genomic.ac)
-                                                        g2 = vm.t_to_g(c1, hgvs_genomic.ac)
+                                                        g1 = self.vm.t_to_g(c2, hgvs_genomic.ac)
+                                                        g2 = self.vm.t_to_g(c1, hgvs_genomic.ac)
                                                         g1.posedit.edit.alt = g1.posedit.edit.ref
                                                     reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
                                                     alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
@@ -5068,7 +5067,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                     g3.posedit.pos.end.base = g2.posedit.pos.end.base
                                                     g3.posedit.edit.ref = reference
                                                     g3.posedit.edit.alt = alternate
-                                                    c3 = vm.g_to_t(g3, c1.ac)
+                                                    c3 = self.vm.g_to_t(g3, c1.ac)
                                                     hgvs_refreshed_variant = c3
                                                     # Alignment position
                                                     for_location_c = copy.deepcopy(hgvs_refreshed_variant)
@@ -5090,7 +5089,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                         tx_hgvs_not_delins.ac)
                                                     non_valid_caution = 'true'
                                                     try:
-                                                        c2 = vm.n_to_c(tx_hgvs_not_delins)
+                                                        c2 = self.vm.n_to_c(tx_hgvs_not_delins)
                                                     except:
                                                         c2 = tx_hgvs_not_delins
                                                     c1 = copy.deepcopy(c2)
@@ -5100,12 +5099,12 @@ class Mixin(vvMixinConverters.Mixin):
                                                     c1.posedit.edit.ref = ''
                                                     c1.posedit.edit.alt = ''
                                                     if orientation != -1:
-                                                        g1 = vm.t_to_g(c1, hgvs_genomic.ac)
-                                                        g2 = vm.t_to_g(c2, hgvs_genomic.ac)
+                                                        g1 = self.vm.t_to_g(c1, hgvs_genomic.ac)
+                                                        g2 = self.vm.t_to_g(c2, hgvs_genomic.ac)
                                                         g1.posedit.edit.alt = g1.posedit.edit.ref
                                                     else:
-                                                        g1 = vm.t_to_g(c2, hgvs_genomic.ac)
-                                                        g2 = vm.t_to_g(c1, hgvs_genomic.ac)
+                                                        g1 = self.vm.t_to_g(c2, hgvs_genomic.ac)
+                                                        g2 = self.vm.t_to_g(c1, hgvs_genomic.ac)
                                                         g2.posedit.edit.alt = g2.posedit.edit.ref
                                                     reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
                                                     alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
@@ -5113,7 +5112,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                     g3.posedit.pos.end.base = g2.posedit.pos.end.base
                                                     g3.posedit.edit.ref = reference
                                                     g3.posedit.edit.alt = alternate
-                                                    c3 = vm.g_to_t(g3, c1.ac)
+                                                    c3 = self.vm.g_to_t(g3, c1.ac)
                                                     hgvs_refreshed_variant = c3
                                                     # Alignment position
                                                     for_location_c = copy.deepcopy(hgvs_refreshed_variant)
@@ -5137,7 +5136,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                         tx_hgvs_not_delins.ac)
                                                     non_valid_caution = 'true'
                                                     try:
-                                                        c1 = vm.n_to_c(tx_hgvs_not_delins)
+                                                        c1 = self.vm.n_to_c(tx_hgvs_not_delins)
                                                     except:
                                                         c1 = tx_hgvs_not_delins
                                                     c2 = copy.deepcopy(c1)
@@ -5147,12 +5146,12 @@ class Mixin(vvMixinConverters.Mixin):
                                                     c2.posedit.edit.ref = ''
                                                     c2.posedit.edit.alt = ''
                                                     if orientation != -1:
-                                                        g1 = vm.t_to_g(c1, hgvs_genomic.ac)
-                                                        g2 = vm.t_to_g(c2, hgvs_genomic.ac)
+                                                        g1 = self.vm.t_to_g(c1, hgvs_genomic.ac)
+                                                        g2 = self.vm.t_to_g(c2, hgvs_genomic.ac)
                                                         g2.posedit.edit.alt = g2.posedit.edit.ref
                                                     else:
-                                                        g1 = vm.t_to_g(c2, hgvs_genomic.ac)
-                                                        g2 = vm.t_to_g(c1, hgvs_genomic.ac)
+                                                        g1 = self.vm.t_to_g(c2, hgvs_genomic.ac)
+                                                        g2 = self.vm.t_to_g(c1, hgvs_genomic.ac)
                                                         g1.posedit.edit.alt = g1.posedit.edit.ref
                                                     reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
                                                     alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
@@ -5160,7 +5159,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                     g3.posedit.pos.end.base = g2.posedit.pos.end.base
                                                     g3.posedit.edit.ref = reference
                                                     g3.posedit.edit.alt = alternate
-                                                    c3 = vm.g_to_t(g3, c1.ac)
+                                                    c3 = self.vm.g_to_t(g3, c1.ac)
                                                     hgvs_refreshed_variant = c3
                                                     # Alignment position
                                                     for_location_c = copy.deepcopy(hgvs_refreshed_variant)
@@ -5237,10 +5236,10 @@ class Mixin(vvMixinConverters.Mixin):
                                             else:
                                                 continue
                                         # Update hgvs_genomic
-                                        hgvs_genomic = va_func.myvm_t_to_g(hgvs_refreshed_variant, hgvs_genomic.ac,
-                                                                           no_norm_evm, vm, hp, hn, self.sf, nr_vm)
+                                        hgvs_genomic = self.va_func.myvm_t_to_g(hgvs_refreshed_variant, hgvs_genomic.ac,
+                                                                           no_norm_evm, self.vm, self.hp, hn, self.sf, self.nr_vm)
                                         if hgvs_genomic.posedit.edit.type == 'identity':
-                                            re_c = vm.g_to_t(hgvs_genomic, hgvs_refreshed_variant.ac)
+                                            re_c = self.vm.g_to_t(hgvs_genomic, hgvs_refreshed_variant.ac)
                                             if (hn.normalize(re_c)) != (hn.normalize(hgvs_refreshed_variant)):
                                                 shuffle_left_g = copy.copy(hgvs_genomic)
                                                 shuffle_left_g.posedit.edit.ref = ''
@@ -5248,7 +5247,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                 shuffle_left_g.posedit.pos.start.base = shuffle_left_g.posedit.pos.start.base - 1
                                                 shuffle_left_g.posedit.pos.end.base = shuffle_left_g.posedit.pos.end.base - 1
                                                 shuffle_left_g = reverse_normalizer.normalize(shuffle_left_g)
-                                                re_c = vm.g_to_t(shuffle_left_g, hgvs_refreshed_variant.ac)
+                                                re_c = self.vm.g_to_t(shuffle_left_g, hgvs_refreshed_variant.ac)
                                                 if (hn.normalize(re_c)) != (hn.normalize(hgvs_refreshed_variant)):
                                                     hgvs_genomic = shuffle_left_g
 
@@ -5340,7 +5339,7 @@ class Mixin(vvMixinConverters.Mixin):
                             pos = str(pos)
 
                             # DO NOT DELETE
-                            stored_hgvs_not_delins = hp.parse_hgvs_variant(str(
+                            stored_hgvs_not_delins = self.hp.parse_hgvs_variant(str(
                                 hgvs_genomic_5pr.ac) + ':' + hgvs_genomic_5pr.type + '.' + pos + '_' + end + 'del' + ref + 'ins' + alt)
 
                             # Apply gap code to re-format hgvs_coding
@@ -5348,7 +5347,7 @@ class Mixin(vvMixinConverters.Mixin):
                             saved_hgvs_coding = copy.deepcopy(hgvs_coding)
 
                             # Get orientation of the gene wrt genome and a list of exons mapped to the genome
-                            ori = va_func.tx_exons(tx_ac=saved_hgvs_coding.ac, alt_ac=hgvs_genomic_5pr.ac,
+                            ori = self.tx_exons(tx_ac=saved_hgvs_coding.ac, alt_ac=hgvs_genomic_5pr.ac,
                                                    alt_aln_method=alt_aln_method, hdp=self.hdp)
                             orientation = int(ori[0]['alt_strand'])
 
@@ -5521,8 +5520,8 @@ class Mixin(vvMixinConverters.Mixin):
                                             else:
                                                 test_tx_var = rn_tx_hgvs_not_delins
                                             # re-make genomic and tx
-                                            hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, self.hdp, no_norm_evm,
-                                                                                   primary_assembly, vm, hp, hn, self.sf, nr_vm)
+                                            hgvs_not_delins = self.myevm_t_to_g(test_tx_var, self.hdp, no_norm_evm,
+                                                                                   primary_assembly, self.vm, self.hp, hn, self.sf, self.nr_vm)
                                             rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                        str(saved_hgvs_coding.ac))
                                         elif re.search('\+', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
@@ -5534,8 +5533,8 @@ class Mixin(vvMixinConverters.Mixin):
                                             else:
                                                 test_tx_var = rn_tx_hgvs_not_delins
                                             # re-make genomic and tx
-                                            hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, self.hdp, no_norm_evm,
-                                                                                   primary_assembly, vm, hp, hn, self.sf, nr_vm)
+                                            hgvs_not_delins = self.myevm_t_to_g(test_tx_var, self.hdp, no_norm_evm,
+                                                                                   primary_assembly, self.vm, self.hp, hn, self.sf, self.nr_vm)
                                             rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                        str(saved_hgvs_coding.ac))
                                             rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
@@ -5571,8 +5570,8 @@ class Mixin(vvMixinConverters.Mixin):
                                             else:
                                                 test_tx_var = rn_tx_hgvs_not_delins
                                             # re-make genomic and tx
-                                            hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, self.hdp, no_norm_evm,
-                                                                                   primary_assembly, vm, hp, hn, self.sf, nr_vm)
+                                            hgvs_not_delins = self.myevm_t_to_g(test_tx_var, self.hdp, no_norm_evm,
+                                                                                   primary_assembly, self.vm, self.hp, hn, self.sf, self.nr_vm)
                                             rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                        str(saved_hgvs_coding.ac))
                                         elif re.search('\-', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
@@ -5585,8 +5584,8 @@ class Mixin(vvMixinConverters.Mixin):
                                             else:
                                                 test_tx_var = rn_tx_hgvs_not_delins
                                             # re-make genomic and tx
-                                            hgvs_not_delins = va_func.myevm_t_to_g(test_tx_var, self.hdp, no_norm_evm,
-                                                                                   primary_assembly, vm, hp, hn, self.sf, nr_vm)
+                                            hgvs_not_delins = self.myevm_t_to_g(test_tx_var, self.hdp, no_norm_evm,
+                                                                                   primary_assembly, self.vm, self.hp, hn, self.sf, self.nr_vm)
                                             rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                        str(saved_hgvs_coding.ac))
                                             rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
@@ -5611,17 +5610,17 @@ class Mixin(vvMixinConverters.Mixin):
                                                 if internal_possibility == '':
                                                     continue
 
-                                                hgvs_t_possibility = vm.g_to_t(internal_possibility, hgvs_coding.ac)
+                                                hgvs_t_possibility = self.vm.g_to_t(internal_possibility, hgvs_coding.ac)
                                                 if hgvs_t_possibility.posedit.edit.type == 'ins':
                                                     try:
-                                                        hgvs_t_possibility = vm.c_to_n(hgvs_t_possibility)
+                                                        hgvs_t_possibility = self.vm.c_to_n(hgvs_t_possibility)
                                                     except:
                                                         fn.exceptPass()
                                                     ins_ref = self.sf.fetch_seq(hgvs_t_possibility.ac,
                                                                            hgvs_t_possibility.posedit.pos.start.base - 1,
                                                                            hgvs_t_possibility.posedit.pos.start.base + 1)
                                                     try:
-                                                        hgvs_t_possibility = vm.n_to_c(hgvs_t_possibility)
+                                                        hgvs_t_possibility = self.vm.n_to_c(hgvs_t_possibility)
                                                     except:
                                                         fn.exceptPass()
                                                     hgvs_t_possibility.posedit.edit.ref = ins_ref
@@ -5648,7 +5647,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                                             if re_capture_tx_variant != []:
                                                 try:
-                                                    tx_hgvs_not_delins = vm.c_to_n(re_capture_tx_variant[2])
+                                                    tx_hgvs_not_delins = self.vm.c_to_n(re_capture_tx_variant[2])
                                                 except:
                                                     tx_hgvs_not_delins = re_capture_tx_variant[2]
                                                 disparity_deletion_in = re_capture_tx_variant[0:-1]
@@ -5657,7 +5656,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                                     # Final sanity checks
                                     try:
-                                        vm.g_to_t(hgvs_not_delins, tx_hgvs_not_delins.ac)
+                                        self.vm.g_to_t(hgvs_not_delins, tx_hgvs_not_delins.ac)
                                     except Exception as e:
                                         if str(e) == 'start or end or both are beyond the bounds of transcript record':
                                             logger.warning(str(e))
@@ -5695,7 +5694,7 @@ class Mixin(vvMixinConverters.Mixin):
                                             tx_hgvs_not_delins_delins_from_dup = tx_hgvs_not_delins.ac + ':' + tx_hgvs_not_delins.type + '.' + str(
                                                 tx_hgvs_not_delins.posedit.pos.start) + '_' + str(
                                                 tx_hgvs_not_delins.posedit.pos.end) + 'del' + tx_hgvs_not_delins.posedit.edit.ref + 'ins' + tx_hgvs_not_delins.posedit.edit.ref + tx_hgvs_not_delins.posedit.edit.ref
-                                            tx_hgvs_not_delins = hp.parse_hgvs_variant(tx_hgvs_not_delins_delins_from_dup)
+                                            tx_hgvs_not_delins = self.hp.parse_hgvs_variant(tx_hgvs_not_delins_delins_from_dup)
 
 
                                     # GAP IN THE TRANSCRIPT DISPARITY DETECTED
@@ -5723,7 +5722,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                     tx_gap_fill_variant_delins_from_dup = tx_gap_fill_variant.ac + ':' + tx_gap_fill_variant.type + '.' + str(
                                                         tx_gap_fill_variant.posedit.pos.start) + '_' + str(
                                                         tx_gap_fill_variant.posedit.pos.end) + 'del' + tx_gap_fill_variant.posedit.edit.ref + 'ins' + tx_gap_fill_variant.posedit.edit.ref + tx_gap_fill_variant.posedit.edit.ref
-                                                    tx_gap_fill_variant = hp.parse_hgvs_variant(
+                                                    tx_gap_fill_variant = self.hp.parse_hgvs_variant(
                                                         tx_gap_fill_variant_delins_from_dup)
 
                                             # Identify which half of the NOT-intron the start position of the variant is in
@@ -5741,18 +5740,18 @@ class Mixin(vvMixinConverters.Mixin):
                                                 tx_gap_fill_variant.posedit.edit.ref = ''
 
                                             try:
-                                                tx_gap_fill_variant = vm.n_to_c(tx_gap_fill_variant)
+                                                tx_gap_fill_variant = self.vm.n_to_c(tx_gap_fill_variant)
                                             except:
                                                 fn.exceptPass()
-                                            genomic_gap_fill_variant = vm.t_to_g(tx_gap_fill_variant,
+                                            genomic_gap_fill_variant = self.vm.t_to_g(tx_gap_fill_variant,
                                                                                  reverse_normalized_hgvs_genomic.ac)
                                             genomic_gap_fill_variant.posedit.edit.alt = genomic_gap_fill_variant.posedit.edit.ref
 
                                             try:
-                                                c_tx_hgvs_not_delins = vm.n_to_c(tx_hgvs_not_delins)
+                                                c_tx_hgvs_not_delins = self.vm.n_to_c(tx_hgvs_not_delins)
                                             except Exception:
                                                 c_tx_hgvs_not_delins = copy.copy(tx_hgvs_not_delins)
-                                            genomic_gap_fill_variant_alt = vm.t_to_g(c_tx_hgvs_not_delins,
+                                            genomic_gap_fill_variant_alt = self.vm.t_to_g(c_tx_hgvs_not_delins,
                                                                                      hgvs_genomic_5pr.ac)
 
                                             # Ensure an ALT exists
@@ -5764,12 +5763,12 @@ class Mixin(vvMixinConverters.Mixin):
                                                     genomic_gap_fill_variant_delins_from_dup = genomic_gap_fill_variant.ac + ':' + genomic_gap_fill_variant.type + '.' + str(
                                                         genomic_gap_fill_variant.posedit.pos.start.base) + '_' + str(
                                                         genomic_gap_fill_variant.posedit.pos.end.base) + 'del' + genomic_gap_fill_variant.posedit.edit.ref + 'ins' + genomic_gap_fill_variant.posedit.edit.ref + genomic_gap_fill_variant.posedit.edit.ref
-                                                    genomic_gap_fill_variant = hp.parse_hgvs_variant(
+                                                    genomic_gap_fill_variant = self.hp.parse_hgvs_variant(
                                                         genomic_gap_fill_variant_delins_from_dup)
                                                     genomic_gap_fill_variant_alt_delins_from_dup = genomic_gap_fill_variant_alt.ac + ':' + genomic_gap_fill_variant_alt.type + '.' + str(
                                                         genomic_gap_fill_variant_alt.posedit.pos.start.base) + '_' + str(
                                                         genomic_gap_fill_variant_alt.posedit.pos.end.base) + 'del' + genomic_gap_fill_variant_alt.posedit.edit.ref + 'ins' + genomic_gap_fill_variant_alt.posedit.edit.ref + genomic_gap_fill_variant_alt.posedit.edit.ref
-                                                    genomic_gap_fill_variant_alt = hp.parse_hgvs_variant(
+                                                    genomic_gap_fill_variant_alt = self.hp.parse_hgvs_variant(
                                                         genomic_gap_fill_variant_alt_delins_from_dup)
 
                                             # Correct insertion alts
@@ -5827,7 +5826,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                                             # Add the new alt to the gap fill variant and generate transcript variant
                                             genomic_gap_fill_variant.posedit.edit.alt = alternate_sequence
-                                            hgvs_refreshed_variant = vm.g_to_t(genomic_gap_fill_variant,
+                                            hgvs_refreshed_variant = self.vm.g_to_t(genomic_gap_fill_variant,
                                                                                tx_gap_fill_variant.ac)
 
                                             # Set warning
@@ -5857,23 +5856,23 @@ class Mixin(vvMixinConverters.Mixin):
                                                 # the transcript variant but do not have a position which actually hits the gap,
                                                 # so the variant likely spans the gap, and is not picked up by an offset.
                                                 try:
-                                                    c1 = vm.n_to_c(tx_hgvs_not_delins)
+                                                    c1 = self.vm.n_to_c(tx_hgvs_not_delins)
                                                 except:
                                                     c1 = tx_hgvs_not_delins
-                                                g1 = nr_vm.t_to_g(c1, hgvs_genomic.ac)
-                                                g3 = nr_vm.t_to_g(c1, hgvs_genomic.ac)
-                                                g2 = vm.t_to_g(c1, hgvs_genomic.ac)
+                                                g1 = self.nr_vm.t_to_g(c1, hgvs_genomic.ac)
+                                                g3 = self.nr_vm.t_to_g(c1, hgvs_genomic.ac)
+                                                g2 = self.vm.t_to_g(c1, hgvs_genomic.ac)
                                                 ng2 = hn.normalize(g2)
                                                 g3.posedit.pos.end.base = g3.posedit.pos.start.base + (
                                                         len(g3.posedit.edit.ref) - 1)
                                                 try:
-                                                    c2 = vm.g_to_t(g3, c1.ac)
+                                                    c2 = self.vm.g_to_t(g3, c1.ac)
                                                     if c2.posedit.pos.start.offset == 0 and c2.posedit.pos.end.offset == 0:
                                                         pass
                                                     else:
                                                         tx_hgvs_not_delins = c2
                                                         try:
-                                                            tx_hgvs_not_delins = vm.c_to_n(tx_hgvs_not_delins)
+                                                            tx_hgvs_not_delins = self.vm.c_to_n(tx_hgvs_not_delins)
                                                         except hgvs.exceptions.HGVSError:
                                                             fn.exceptPass()
                                                 except hgvs.exceptions.HGVSInvalidVariantError:
@@ -5888,7 +5887,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                     tx_hgvs_not_delins.ac)
                                                 non_valid_caution = 'true'
                                                 try:
-                                                    c2 = vm.n_to_c(tx_hgvs_not_delins)
+                                                    c2 = self.vm.n_to_c(tx_hgvs_not_delins)
                                                 except:
                                                     c2 = tx_hgvs_not_delins
                                                 c1 = copy.deepcopy(c2)
@@ -5898,12 +5897,12 @@ class Mixin(vvMixinConverters.Mixin):
                                                 c1.posedit.edit.ref = ''
                                                 c1.posedit.edit.alt = ''
                                                 if orientation != -1:
-                                                    g1 = vm.t_to_g(c1, hgvs_genomic.ac)
-                                                    g2 = vm.t_to_g(c2, hgvs_genomic.ac)
+                                                    g1 = self.vm.t_to_g(c1, hgvs_genomic.ac)
+                                                    g2 = self.vm.t_to_g(c2, hgvs_genomic.ac)
                                                     g1.posedit.edit.alt = g1.posedit.edit.ref
                                                 else:
-                                                    g1 = vm.t_to_g(c2, hgvs_genomic.ac)
-                                                    g2 = vm.t_to_g(c1, hgvs_genomic.ac)
+                                                    g1 = self.vm.t_to_g(c2, hgvs_genomic.ac)
+                                                    g2 = self.vm.t_to_g(c1, hgvs_genomic.ac)
                                                     g2.posedit.edit.alt = g2.posedit.edit.ref
                                                 reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
                                                 alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
@@ -5911,7 +5910,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                 g3.posedit.pos.end.base = g2.posedit.pos.end.base
                                                 g3.posedit.edit.ref = reference
                                                 g3.posedit.edit.alt = alternate
-                                                c3 = vm.g_to_t(g3, c1.ac)
+                                                c3 = self.vm.g_to_t(g3, c1.ac)
                                                 hgvs_refreshed_variant = c3
                                                 # Alignment position
                                                 for_location_c = copy.deepcopy(hgvs_refreshed_variant)
@@ -5932,7 +5931,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                 gapped_transcripts = gapped_transcripts + ' ' + str(tx_hgvs_not_delins.ac)
                                                 non_valid_caution = 'true'
                                                 try:
-                                                    c1 = vm.n_to_c(tx_hgvs_not_delins)
+                                                    c1 = self.vm.n_to_c(tx_hgvs_not_delins)
                                                 except:
                                                     c1 = tx_hgvs_not_delins
                                                 c2 = copy.deepcopy(c1)
@@ -5942,12 +5941,12 @@ class Mixin(vvMixinConverters.Mixin):
                                                 c2.posedit.edit.ref = ''
                                                 c2.posedit.edit.alt = ''
                                                 if orientation != -1:
-                                                    g1 = vm.t_to_g(c1, hgvs_genomic.ac)
-                                                    g2 = vm.t_to_g(c2, hgvs_genomic.ac)
+                                                    g1 = self.vm.t_to_g(c1, hgvs_genomic.ac)
+                                                    g2 = self.vm.t_to_g(c2, hgvs_genomic.ac)
                                                     g2.posedit.edit.alt = g2.posedit.edit.ref
                                                 else:
-                                                    g1 = vm.t_to_g(c2, hgvs_genomic.ac)
-                                                    g2 = vm.t_to_g(c1, hgvs_genomic.ac)
+                                                    g1 = self.vm.t_to_g(c2, hgvs_genomic.ac)
+                                                    g2 = self.vm.t_to_g(c1, hgvs_genomic.ac)
                                                     g1.posedit.edit.alt = g1.posedit.edit.ref
                                                 reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
                                                 alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
@@ -5955,7 +5954,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                 g3.posedit.pos.end.base = g2.posedit.pos.end.base
                                                 g3.posedit.edit.ref = reference
                                                 g3.posedit.edit.alt = alternate
-                                                c3 = vm.g_to_t(g3, c1.ac)
+                                                c3 = self.vm.g_to_t(g3, c1.ac)
                                                 hgvs_refreshed_variant = c3
                                                 # Alignment position
                                                 for_location_c = copy.deepcopy(hgvs_refreshed_variant)
@@ -5976,7 +5975,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                     tx_hgvs_not_delins.ac)
                                                 non_valid_caution = 'true'
                                                 try:
-                                                    c2 = vm.n_to_c(tx_hgvs_not_delins)
+                                                    c2 = self.vm.n_to_c(tx_hgvs_not_delins)
                                                 except:
                                                     c2 = tx_hgvs_not_delins
                                                 c1 = copy.deepcopy(c2)
@@ -5986,12 +5985,12 @@ class Mixin(vvMixinConverters.Mixin):
                                                 c1.posedit.edit.ref = ''
                                                 c1.posedit.edit.alt = ''
                                                 if orientation != -1:
-                                                    g1 = vm.t_to_g(c1, hgvs_genomic.ac)
-                                                    g2 = vm.t_to_g(c2, hgvs_genomic.ac)
+                                                    g1 = self.vm.t_to_g(c1, hgvs_genomic.ac)
+                                                    g2 = self.vm.t_to_g(c2, hgvs_genomic.ac)
                                                     g1.posedit.edit.alt = g1.posedit.edit.ref
                                                 else:
-                                                    g1 = vm.t_to_g(c2, hgvs_genomic.ac)
-                                                    g2 = vm.t_to_g(c1, hgvs_genomic.ac)
+                                                    g1 = self.vm.t_to_g(c2, hgvs_genomic.ac)
+                                                    g2 = self.vm.t_to_g(c1, hgvs_genomic.ac)
                                                     g2.posedit.edit.alt = g2.posedit.edit.ref
                                                 reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
                                                 alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
@@ -5999,7 +5998,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                 g3.posedit.pos.end.base = g2.posedit.pos.end.base
                                                 g3.posedit.edit.ref = reference
                                                 g3.posedit.edit.alt = alternate
-                                                c3 = vm.g_to_t(g3, c1.ac)
+                                                c3 = self.vm.g_to_t(g3, c1.ac)
                                                 hgvs_refreshed_variant = c3
                                                 # Alignment position
                                                 for_location_c = copy.deepcopy(hgvs_refreshed_variant)
@@ -6020,7 +6019,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                 gapped_transcripts = gapped_transcripts + ' ' + str(tx_hgvs_not_delins.ac)
                                                 non_valid_caution = 'true'
                                                 try:
-                                                    c1 = vm.n_to_c(tx_hgvs_not_delins)
+                                                    c1 = self.vm.n_to_c(tx_hgvs_not_delins)
                                                 except:
                                                     c1 = tx_hgvs_not_delins
                                                 c2 = copy.deepcopy(c1)
@@ -6030,12 +6029,12 @@ class Mixin(vvMixinConverters.Mixin):
                                                 c2.posedit.edit.ref = ''
                                                 c2.posedit.edit.alt = ''
                                                 if orientation != -1:
-                                                    g1 = vm.t_to_g(c1, hgvs_genomic.ac)
-                                                    g2 = vm.t_to_g(c2, hgvs_genomic.ac)
+                                                    g1 = self.vm.t_to_g(c1, hgvs_genomic.ac)
+                                                    g2 = self.vm.t_to_g(c2, hgvs_genomic.ac)
                                                     g2.posedit.edit.alt = g2.posedit.edit.ref
                                                 else:
-                                                    g1 = vm.t_to_g(c2, hgvs_genomic.ac)
-                                                    g2 = vm.t_to_g(c1, hgvs_genomic.ac)
+                                                    g1 = self.vm.t_to_g(c2, hgvs_genomic.ac)
+                                                    g2 = self.vm.t_to_g(c1, hgvs_genomic.ac)
                                                     g1.posedit.edit.alt = g1.posedit.edit.ref
                                                 reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
                                                 alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
@@ -6043,7 +6042,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                 g3.posedit.pos.end.base = g2.posedit.pos.end.base
                                                 g3.posedit.edit.ref = reference
                                                 g3.posedit.edit.alt = alternate
-                                                c3 = vm.g_to_t(g3, c1.ac)
+                                                c3 = self.vm.g_to_t(g3, c1.ac)
                                                 hgvs_refreshed_variant = c3
                                                 # Alignment position
                                                 for_location_c = copy.deepcopy(hgvs_refreshed_variant)
@@ -6144,7 +6143,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                             # Given the difficulties with mapping to and from RefSeqGenes, we now solely rely on UTA
                             if refseqgene_ac != '':
-                                hgvs_refseq = vm.t_to_g(hgvs_coding, refseqgene_ac)
+                                hgvs_refseq = self.vm.t_to_g(hgvs_coding, refseqgene_ac)
                                 # Normalize the RefSeqGene Variant to the correct position
                                 try:
                                     hgvs_refseq = hn.normalize(hgvs_refseq)
@@ -6163,7 +6162,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 hgvs_refseq_ac = 'RefSeqGene record not available'
 
                             # Predicted effect on protein
-                            protein_dict = va_func.myc_to_p(hgvs_coding, evm, self.hdp, hp, hn, vm, self.sf, re_to_p=False)
+                            protein_dict = self.myc_to_p(hgvs_coding, evm, self.hdp, self.hp, hn, self.vm, self.sf, re_to_p=False)
                             if protein_dict['error'] == '':
                                 hgvs_protein = protein_dict['hgvs_protein']
                                 protein = str(hgvs_protein)
@@ -6178,7 +6177,7 @@ class Mixin(vvMixinConverters.Mixin):
                                     continue
 
                             # Gene orientation wrt genome
-                            ori = va_func.tx_exons(tx_ac=hgvs_coding.ac, alt_ac=hgvs_genomic.ac,
+                            ori = self.tx_exons(tx_ac=hgvs_coding.ac, alt_ac=hgvs_genomic.ac,
                                                    alt_aln_method=alt_aln_method, hdp=self.hdp)
                             ori = int(ori[0]['alt_strand'])
 
@@ -6225,12 +6224,12 @@ class Mixin(vvMixinConverters.Mixin):
                                     except NotImplementedError:
                                         pass
                                     try:
-                                        c_for_p = vm.g_to_t(rng, hgvs_coding.ac)
+                                        c_for_p = self.vm.g_to_t(rng, hgvs_coding.ac)
                                     except hgvs.exceptions.HGVSInvalidIntervalError as e:
                                         c_for_p = seek_var
                                     try:
                                         # Predicted effect on protein
-                                        protein_dict = va_func.myc_to_p(c_for_p, evm, self.hdp, hp, hn, vm, self.sf, re_to_p=False)
+                                        protein_dict = self.myc_to_p(c_for_p, evm, self.hdp, self.hp, hn, self.vm, self.sf, re_to_p=False)
                                         if protein_dict['error'] == '':
                                             hgvs_protein = protein_dict['hgvs_protein']
                                             protein = str(hgvs_protein)
@@ -6296,14 +6295,14 @@ class Mixin(vvMixinConverters.Mixin):
                                         # 5 prime
                                         #                          <
                                         # Result, normalize of new variant will be happy
-                                        c_for_p = vm.g_to_t(rng, hgvs_coding.ac)
+                                        c_for_p = self.vm.g_to_t(rng, hgvs_coding.ac)
                                         try:
                                             hn.normalize(c_for_p)
                                         except hgvs.exceptions.HGVSError as e:
                                             fn.exceptPass()
                                         else:
                                             # hgvs_protein = va_func.protein(str(c_for_p), evm, hp)
-                                            protein_dict = va_func.myc_to_p(c_for_p, evm, self.hdp, hp, hn, vm, self.sf,
+                                            protein_dict = self.myc_to_p(c_for_p, evm, self.hdp, self.hp, hn, self.vm, self.sf,
                                                                             re_to_p=False)
                                             if protein_dict['error'] == '':
                                                 hgvs_protein = protein_dict['hgvs_protein']
@@ -6341,7 +6340,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 hgvs_updated = copy.deepcopy(hgvs_coding)
                                 hgvs_updated.ac = update
                                 try:
-                                    vr.validate(hgvs_updated)
+                                    self.vr.validate(hgvs_updated)
                                 # Updated reference sequence
                                 except hgvs.exceptions.HGVSError as e:
                                     error = str(e)
@@ -6349,7 +6348,7 @@ class Mixin(vvMixinConverters.Mixin):
                                         match = re.findall('\(([GATC]+)\)', error)
                                         new_ref = match[1]
                                         hgvs_updated.posedit.edit.ref = new_ref
-                                        vr.validate(hgvs_updated)
+                                        self.vr.validate(hgvs_updated)
                                         updated_transcript_variant = hgvs_updated
                                     else:
                                         pass
@@ -6424,7 +6423,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                         # genomic accession
                         if genomic_variant != '':
-                            hgvs_genomic_variant = hp.parse_hgvs_variant(genomic_variant)
+                            hgvs_genomic_variant = self.hp.parse_hgvs_variant(genomic_variant)
                             genomic_variant = fn.valstr(hgvs_genomic_variant)
                             genomic_accession = hgvs_genomic_variant.ac
                         else:
@@ -6439,8 +6438,8 @@ class Mixin(vvMixinConverters.Mixin):
                             lrg_variant = ''
                             hgvs_refseqgene_variant = 'false'
                         else:
-                            hgvs_refseqgene_variant = hp.parse_hgvs_variant(refseqgene_variant)
-                            rsg_ac = va_dbCrl.data.get_lrgID_from_RefSeqGeneID(str(hgvs_refseqgene_variant.ac))
+                            hgvs_refseqgene_variant = self.hp.parse_hgvs_variant(refseqgene_variant)
+                            rsg_ac = self.db.get.get_lrgID_from_RefSeqGeneID(str(hgvs_refseqgene_variant.ac))
                             if rsg_ac[0] == 'none':
                                 lrg_variant = ''
                             else:
@@ -6461,14 +6460,14 @@ class Mixin(vvMixinConverters.Mixin):
                                 tx_variant = tx_variant.replace(')', '')
 
                             # transcript accession
-                            hgvs_tx_variant = hp.parse_hgvs_variant(tx_variant)
+                            hgvs_tx_variant = self.hp.parse_hgvs_variant(tx_variant)
                             tx_variant = fn.valstr(hgvs_tx_variant)
-                            hgvs_transcript_variant = hp.parse_hgvs_variant(tx_variant)
+                            hgvs_transcript_variant = self.hp.parse_hgvs_variant(tx_variant)
                             transcript_accession = hgvs_transcript_variant.ac
 
                             # Handle LRG
                             lrg_status = 'public'
-                            lrg_transcript = va_dbCrl.data.get_lrgTranscriptID_from_RefSeqTranscriptID(transcript_accession)
+                            lrg_transcript = self.db.get.get_lrgTranscriptID_from_RefSeqTranscriptID(transcript_accession)
                             if lrg_transcript == 'none':
                                 lrg_transcript_variant = ''
                             else:
@@ -6479,7 +6478,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 # if not re.search('RefSeqGene', refseqgene_variant) or refseqgene_variant != '':
                                 # if hgvs_refseqgene_variant != 'RefSeqGene record not available' and hgvs_refseqgene_variant != 'false':
                                 try:
-                                    hgvs_lrg_t = vm.g_to_t(hgvs_refseqgene_variant, transcript_accession)
+                                    hgvs_lrg_t = self.vm.g_to_t(hgvs_refseqgene_variant, transcript_accession)
                                     hgvs_lrg_t.ac = lrg_transcript
                                     lrg_transcript_variant = fn.valstr(hgvs_lrg_t)
                                 except:
@@ -6497,21 +6496,21 @@ class Mixin(vvMixinConverters.Mixin):
                         if transcript_accession != '' and genomic_accession != '':
                             # Remove del bases
                             str_transcript = fn.valstr(hgvs_transcript_variant)
-                            hgvs_transcript_variant = hp.parse_hgvs_variant(str_transcript)
+                            hgvs_transcript_variant = self.hp.parse_hgvs_variant(str_transcript)
                             try:
-                                vr.validate(hgvs_transcript_variant)
+                                self.vr.validate(hgvs_transcript_variant)
                             except hgvs.exceptions.HGVSError as e:
                                 error = str(e)
                                 if re.search('intronic variant', error):
                                     genome_context_transcript_variant = genomic_accession + '(' + transcript_accession + '):c.' + str(
                                         hgvs_transcript_variant.posedit)
                                     if refseqgene_variant != '':
-                                        hgvs_refseqgene_variant = hp.parse_hgvs_variant(refseqgene_variant)
+                                        hgvs_refseqgene_variant = self.hp.parse_hgvs_variant(refseqgene_variant)
                                         refseqgene_accession = hgvs_refseqgene_variant.ac
-                                        hgvs_coding_from_refseqgene = vm.g_to_t(hgvs_refseqgene_variant,
+                                        hgvs_coding_from_refseqgene = self.vm.g_to_t(hgvs_refseqgene_variant,
                                                                                 hgvs_transcript_variant.ac)
                                         hgvs_coding_from_refseqgene = fn.valstr(hgvs_coding_from_refseqgene)
-                                        hgvs_coding_from_refseqgene = hp.parse_hgvs_variant(hgvs_coding_from_refseqgene)
+                                        hgvs_coding_from_refseqgene = self.hp.parse_hgvs_variant(hgvs_coding_from_refseqgene)
                                         RefSeqGene_context_transcript_variant = refseqgene_accession + '(' + transcript_accession + '):c.' + str(
                                             hgvs_coding_from_refseqgene.posedit.pos) + str(
                                             hgvs_coding_from_refseqgene.posedit.edit)

@@ -181,7 +181,9 @@ class Mixin():
     def myConfig(self):
         #Returns configuration:
         #version, hgvs version, uta schema, seqrepo db.
-
+        return {
+            "Seqrepo path":self.seqrepoPath
+        }
     def createConfig(self,outPath):
         # This function reads from the default configuration file stored in the same folder as this module,
         # and transfers it to outPath.
