@@ -2471,7 +2471,7 @@ def relevant_transcripts(hgvs_genomic, evm, hdp, alt_aln_method, reverse_normali
 
         strung = str(variant)
         try:
-            hp.parse_hgvs_variant(variant)
+            hp.parse_hgvs_variant(strung)
         except hgvs.exceptions.HGVSError:
             continue
         except TypeError:
