@@ -1983,7 +1983,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         continue
                     else:
                         # Any transcripts?
-                        rel_var = va_func.relevant_transcripts(hgvs_mito, evm, hdp, alt_aln_method, reverse_normalizer)
+                        rel_var = va_func.relevant_transcripts(hgvs_mito, evm, hdp, alt_aln_method, reverse_normalizer, hp)
                         hgvs_genomic = copy.deepcopy(hgvs_mito)
                         if len(rel_var) == 0:
                             validation['genomic_g'] = valstr(hgvs_mito)
@@ -2264,7 +2264,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     Initial simple projection from the provided g. position all overlapping
                     transcripts
                     """
-                    rel_var = va_func.relevant_transcripts(hgvs_genomic, evm, hdp, alt_aln_method, reverse_normalizer)
+                    rel_var = va_func.relevant_transcripts(hgvs_genomic, evm, hdp, alt_aln_method, reverse_normalizer, hp)
 
                     # Double check rel_vars have not been missed when mapping from a RefSeqGene
                     if len(rel_var) != 0 and re.match('NG_', str(hgvs_genomic.ac)):
@@ -2277,7 +2277,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 try_rel_var = []
                             else:
                                 try_rel_var = va_func.relevant_transcripts(hgvs_genomic, evm, hdp, alt_aln_method,
-                                                                           reverse_normalizer)
+                                                                           reverse_normalizer, hp)
                             if len(try_rel_var) > len(rel_var):
                                 rel_var = try_rel_var
                                 break
@@ -2292,7 +2292,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                  vcf_dict['alt']
                         hgvs_not_di = hp.parse_hgvs_variant(not_di)
                         rel_var = va_func.relevant_transcripts(hgvs_not_di, evm, hdp, alt_aln_method,
-                                                               reverse_normalizer)
+                                                               reverse_normalizer, hp)
 
                     # list return statements
                     """

@@ -2393,7 +2393,7 @@ Automatically maps genomic positions onto all overlapping transcripts
 """
 
 
-def relevant_transcripts(hgvs_genomic, evm, hdp, alt_aln_method, reverse_normalizer):
+def relevant_transcripts(hgvs_genomic, evm, hdp, alt_aln_method, reverse_normalizer, hp):
     reverse_hn = reverse_normalizer
     # Pass relevant transcripts for the input variant to rts
     # Note, the evm method misses one end, the hdp. method misses the other. Combine both
@@ -2468,7 +2468,16 @@ def relevant_transcripts(hgvs_genomic, evm, hdp, alt_aln_method, reverse_normali
                 rev_hgvs_genomic = reverse_hn.normalize(hgvs_genomic)
                 # map back to coding
                 variant = evm.g_to_t(rev_hgvs_genomic, tx_ac)
-        code_var.append(str(variant))
+
+        strung = str(variant)
+        try:
+            hp.parse_hgvs_variant(variant)
+        except hgvs.exceptions.HGVSError:
+            continue
+        except TypeError:
+            continue
+        else:
+            code_var.append(str(variant))
     return code_var
 
 
