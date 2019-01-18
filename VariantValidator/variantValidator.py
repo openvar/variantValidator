@@ -1121,7 +1121,10 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                 except hgvs.exceptions.HGVSError as e:
                     error = str(e)
                 if error == 'false':
-                    input_parses.ac = input_parses.ac.upper()
+                    if 'LRG' in input_parses.ac:
+                        input_parses.ac.replace('T', 't')
+                    else:
+                        input_parses.ac = input_parses.ac.upper()
                     if hasattr(input_parses.posedit.edit, 'alt'):
                         if input_parses.posedit.edit.alt is not None:
                             input_parses.posedit.edit.alt = input_parses.posedit.edit.alt.upper()
