@@ -15,6 +15,7 @@ class vvDatabase:
     # This class contains and handles the mysql connections for the variant validator database.
     def __init__(self,val,dbConfig):
         self.conn = None
+        self.pool = None
         # self.cursor will be none UNLESS you're wrapping a function in @handleCursor, which automatically opens and
         # closes connections for you.
         self.cursor=None

@@ -18,7 +18,8 @@ def handleCursor(func):
     #Decorator function for handling opening and closing cursors.
     @functools.wraps(func)
     def wrapper(self,*args,**kwargs):
-        self.db.pool=mysql.connector.pooling.MySQLConnectionPool(pool_size=10, **self.db.dbConfig)
+        if self.db.pool==None:
+            self.db.pool=mysql.connector.pooling.MySQLConnectionPool(pool_size=10, **self.db.dbConfig)
         self.db.conn=self.db.pool.get_connection()
         self.db.cursor = self.db.conn.cursor(buffered=True)
         out=func(self,*args,**kwargs)
