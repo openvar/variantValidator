@@ -218,7 +218,7 @@ class Mixin():
             var_p.ac = 'Non-coding transcript'
             var_p.posedit = ''
             return var_p
-    def myc_to_p(self,hgvs_transcript, evm, hn, re_to_p):
+    def myc_to_p(self,hgvs_transcript, evm, re_to_p):
         # Create dictionary to store the information
         hgvs_transcript_to_hgvs_protein = {'error': '', 'hgvs_protein': '', 'ref_residues': ''}
 

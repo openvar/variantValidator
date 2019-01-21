@@ -3242,7 +3242,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                         elif geno.search(input):
                             if plus.search(variant) or minus.search(variant):
-                                to_g = self.genomic(variant, no_norm_evm, self.hp, self.hdp, primary_assembly, self.vm, hn, self.sf, self.nr_vm)
+                                to_g = self.genomic(variant, no_norm_evm, primary_assembly,hn)
                                 es = re.compile('error')
                                 if es.search(str(to_g)):
                                     if alt_aln_method != 'genebuild':
@@ -3355,8 +3355,7 @@ class Mixin(vvMixinConverters.Mixin):
                                     coding = self.coding(variant, self.hp)
                                     trans_acc = coding.ac
                                     # c to Genome coordinates - Map the variant to the genome
-                                    pre_var = self.genomic(variant, no_norm_evm, self.hp, self.hdp, primary_assembly, self.vm, hn, self.sf,
-                                                              self.nr_vm)
+                                    pre_var = self.genomic(variant, no_norm_evm, primary_assembly,hn)
                                     # genome back to C coordinates
                                     post_var = self.myevm_g_to_t(evm, pre_var, trans_acc)
 
@@ -3569,8 +3568,7 @@ class Mixin(vvMixinConverters.Mixin):
                                     coding = self.coding(variant, self.hp)
                                     trans_acc = coding.ac
                                     # c to Genome coordinates - Map the variant to the genome
-                                    pre_var = self.genomic(variant, no_norm_evm, self.hp, self.hdp, primary_assembly, self.vm, hn, self.sf,
-                                                              self.nr_vm)
+                                    pre_var = self.genomic(variant, no_norm_evm, primary_assembly,hn)
                                     # genome back to C coordinates
                                     post_var = self.myevm_g_to_t(evm, pre_var, trans_acc)
 
@@ -3636,8 +3634,8 @@ class Mixin(vvMixinConverters.Mixin):
                                     coding = self.coding(variant, self.hp)
                                     trans_acc = coding.ac
                                     # c to Genome coordinates - Map the variant to the genome
-                                    pre_var = self.genomic(variant, no_norm_evm, self.hp, self.hdp, primary_assembly, self.vm, hn, self.sf,
-                                                              self.nr_vm)
+                                    pre_var = self.genomic(variant, no_norm_evm, primary_assembly,hn)
+
                                     # genome back to C coordinates
                                     post_var = self.myevm_g_to_t(evm, pre_var, trans_acc)
 
@@ -3705,7 +3703,7 @@ class Mixin(vvMixinConverters.Mixin):
                             plus = re.compile("\d\+\d")  # finds digit + digit
                             minus = re.compile("\d\-\d")  # finds digit - digit
                             if plus.search(input) or minus.search(input):
-                                to_g = self.genomic(inp, no_norm_evm, self.hp, self.hdp, primary_assembly, self.vm, hn, self.sf, self.nr_vm)
+                                to_g = self.genomic(inp, no_norm_evm, primary_assembly,hn)
                                 es = re.compile('error')
                                 if es.search(str(to_g)):
                                     if alt_aln_method != 'genebuild':
@@ -3865,7 +3863,7 @@ class Mixin(vvMixinConverters.Mixin):
                         if valid == 'false':
                             error = 'false'
                             genomic_validation = str(
-                                self.genomic(input, no_norm_evm, self.hp, self.hdp, primary_assembly, self.vm, hn, self.sf, self.nr_vm))
+                                self.genomic(input, no_norm_evm, primary_assembly,hn) )
                             del_end = re.compile('\ddel$')
                             delins = re.compile('delins')
                             inv = re.compile('inv')
@@ -3982,7 +3980,7 @@ class Mixin(vvMixinConverters.Mixin):
                                         error = str(e)
                                         chromosome_normalized_hgvs_coding = hgvs_coding
 
-                                most_3pr_hgvs_genomic = self.myvm_t_to_g(chromosome_normalized_hgvs_coding,
+                                most_3pr_hgvs_genomic = self.myvm_t_to_g(chromosome_normalized_hgvs_coding, hgvs_genomic.ac,
                                                                                 no_norm_evm, hn)
                                 hgvs_genomic_possibilities.append(most_3pr_hgvs_genomic)
 
@@ -6153,7 +6151,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 hgvs_refseq_ac = 'RefSeqGene record not available'
 
                             # Predicted effect on protein
-                            protein_dict = self.myc_to_p(hgvs_coding, evm, hn, re_to_p=False)
+                            protein_dict = self.myc_to_p(hgvs_coding, evm, re_to_p=False)
                             if protein_dict['error'] == '':
                                 hgvs_protein = protein_dict['hgvs_protein']
                                 protein = str(hgvs_protein)
@@ -6220,7 +6218,7 @@ class Mixin(vvMixinConverters.Mixin):
                                         c_for_p = seek_var
                                     try:
                                         # Predicted effect on protein
-                                        protein_dict = self.myc_to_p(c_for_p, evm, hn, re_to_p=False)
+                                        protein_dict = self.myc_to_p(c_for_p, evm, re_to_p=False)
                                         if protein_dict['error'] == '':
                                             hgvs_protein = protein_dict['hgvs_protein']
                                             protein = str(hgvs_protein)
@@ -6293,7 +6291,7 @@ class Mixin(vvMixinConverters.Mixin):
                                             fn.exceptPass()
                                         else:
                                             # hgvs_protein = va_func.protein(str(c_for_p), evm, hp)
-                                            protein_dict = self.myc_to_p(c_for_p, evm, hn, re_to_p=False)
+                                            protein_dict = self.myc_to_p(c_for_p, evm, re_to_p=False)
                                             if protein_dict['error'] == '':
                                                 hgvs_protein = protein_dict['hgvs_protein']
                                                 protein = str(hgvs_protein)
