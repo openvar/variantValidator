@@ -8223,15 +8223,17 @@ class Mixin(vvMixinConverters.Mixin):
             logString = logger.getString()
             for l in logger.getString().split("\n"):
                 logs.append(l)
-            metadata["logs"] = logString
+
+            if os.environ.get("ADD_LOGS")=="True":
+                metadata["logs"] = logs
             metadata["variant"] = batch_variant
-            metadata["assembly"] = selected_assembly
-            metadata["transcripts"] = select_transcripts
-            metadata['seqrepo_directory'] = self.seqrepoPath
-            metadata['uta_url'] = self.utaPath
-            metadata['py_liftover_directory'] = self.liftoverPath
-            metadata['variantvalidator_data_url'] = self.db.path
-            metadata['entrez_id'] = self.entrezID
+            #metadata["assembly"] = selected_assembly
+            #metadata["transcripts"] = select_transcripts
+            #metadata['seqrepo_directory'] = self.seqrepoPath
+            #metadata['uta_url'] = self.utaPath
+            #metadata['py_liftover_directory'] = self.liftoverPath
+            #metadata['variantvalidator_data_url'] = self.db.path
+            #metadata['entrez_id'] = self.entrezID
             metadata['variantvalidator_version'] = self.version
             metadata['variantvalidator_hgvs_version'] = self.hgvsVersion
             metadata['uta_schema'] = self.utaSchema

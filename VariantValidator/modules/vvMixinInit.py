@@ -185,9 +185,9 @@ class Mixin():
         #Returns configuration:
         #version, hgvs version, uta schema, seqrepo db.
         return {
-            'variantvalidator_version': self.version
-            'variantvalidator_hgvs_version': self.hgvsVersion
-            'uta_schema': self.utaSchema
+            'variantvalidator_version': self.version,
+            'variantvalidator_hgvs_version': self.hgvsVersion,
+            'uta_schema': self.utaSchema,
             'seqrepo_db': self.seqrepoPath
         }
     def createConfig(self,outPath):
