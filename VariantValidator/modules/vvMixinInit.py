@@ -77,7 +77,17 @@ class Mixin():
         config=RawConfigParser(allow_no_value=True)
         config.read(configPath)
         # The custom vvLogging module will set itself up using the VALDIATOR_DEBUG environment variable.
-        logString = config["logging"]['string']
+        levelString = config["logging"]['level']
+        consoleString = config["logging"]['console']
+        if consoleString.lower()=="true":
+            consoleString="console"
+        fileString = config["logging"]['file']
+        if fileString.lower()=="true":
+            fileString="file"
+        traceString = config["logging"]['trace']
+        if traceString.lower()=="true":
+            traceString="trace"
+        logString = levelString+" "+consoleString+" "+fileString+" "+traceString
         os.environ["VALIDATOR_DEBUG"] = logString
 
         # Handle databases
