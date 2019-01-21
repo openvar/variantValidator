@@ -387,7 +387,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 ref_type = self.db.ref_type_assign(accession)
                                 if re.match('LRG_', accession):
                                     if ref_type == ':g.':
-                                        accession = self.db.get.get_refseqgeneId_from_lrgID(accession)
+                                        accession = self.db.get.get_RefSeqGeneID_from_lrgID(accession)
                                     else:
                                         accession = self.db.get.get_RefSeqTranscriptID_from_lrgTranscriptID(accession)
                                 else:
@@ -806,7 +806,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                                                                               input) or re.match(
                                 '^LRG_\d+:n.', input):
                                 lrg_reference, variation = input.split(':')
-                                refseqgene_reference = self.db.get.get_refseqgeneId_from_lrgID(lrg_reference)
+                                refseqgene_reference = self.db.get.get_RefSeqGeneID_from_lrgID(lrg_reference)
                                 if refseqgene_reference != 'none':
                                     input = refseqgene_reference + ':' + variation
                                     if caution == '':
@@ -832,7 +832,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 pass
                         try:
                             # Submit to allele extraction function
-                            alleles = self.hgvs_alleles(input, self.hp, self.vr, hn, self.vm, self.sf)
+                            alleles = self.hgvs_alleles(input,hn)
                             validation['warnings'] = validation[
                                                          'warnings'] + ': ' + 'Automap has extracted possible variant descriptions'
                             logger.resub('Automap has extracted possible variant descriptions, resubmitting')
@@ -850,6 +850,11 @@ class Mixin(vvMixinConverters.Mixin):
                                 validation['warnings'] = validation[
                                                              'warnings'] + ': ' + 'Intronic positions not supported for HGVS Allele descriptions'
                                 logger.warning('Intronic positions not supported for HGVS Allele descriptions')
+                                continue
+                            elif re.search("No transcript definition for ",str(e)):
+                                validation['warnings'] = validation[
+                                                             'warnings'] + ': ' + str(e)
+                                logger.warning(str(e))
                                 continue
                             else:
                                 raise VariantValidatorError(str(e))
@@ -1072,7 +1077,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                                                     str(input_parses)) or re.match(
                             '^LRG_\d+:c.', str(input_parses)) or re.match('^LRG_\d+:n.', str(input_parses)):
                             lrg_reference, variation = str(input_parses).split(':')
-                            refseqgene_reference = self.db.get.get_refseqgeneId_from_lrgID(lrg_reference)
+                            refseqgene_reference = self.db.get.get_RefSeqGeneID_from_lrgID(lrg_reference)
                             if refseqgene_reference != 'none':
                                 input_parses.ac = refseqgene_reference
                                 variant = str(input_parses)

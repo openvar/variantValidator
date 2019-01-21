@@ -19,16 +19,11 @@ from urlparse import urlparse
 import httplib2 as http
 import json
 from Bio import Entrez,SeqIO
-
+import vvFunctions as fn
 
 
 #Error setup
 from hgvs.exceptions import HGVSError, HGVSDataNotAvailableError, HGVSUnsupportedOperationError
-class mergeHGVSerror(Exception):
-    pass
-class alleleVariantError(Exception):
-    pass
-
 
 
 class Mixin(vvMixinInit.Mixin):
@@ -2073,7 +2068,7 @@ class Mixin(vvMixinInit.Mixin):
                     hgvs_v = self.vm.c_to_n(hgvs_v)
                     h_list.append(hgvs_v)
                 except:
-                    raise mergeHGVSerror("Unable to map from c. position to absolute position")
+                    raise fn.mergeHGVSerror("Unable to map from c. position to absolute position")
             elif hgvs_v.type == 'g':
                 h_list.append(hgvs_v)
         if h_list != []:
@@ -2091,9 +2086,9 @@ class Mixin(vvMixinInit.Mixin):
             # No intronic positions
             try:
                 if hgvs_v.posedit.pos.start.offset != 0:
-                    raise mergeHGVSerror("Base-offset position submitted")
+                    raise fn.mergeHGVSerror("Base-offset position submitted")
                 if hgvs_v.posedit.pos.end.offset != 0:
-                    raise mergeHGVSerror("Base-offset position submitted")
+                    raise fn.mergeHGVSerror("Base-offset position submitted")
             except AttributeError:
                 pass
 
@@ -2106,7 +2101,7 @@ class Mixin(vvMixinInit.Mixin):
                 type = hgvs_v.type
             else:
                 if hgvs_v.ac != accession:
-                    raise mergeHGVSerror("More than one reference sequence submitted")
+                    raise fn.mergeHGVSerror("More than one reference sequence submitted")
                 else:
                     pass
 
@@ -2121,7 +2116,7 @@ class Mixin(vvMixinInit.Mixin):
             else:
                 # ! hgvs_v.posedit.pos.start.base !>
                 if hgvs_v.posedit.pos.start.base <= merge_end_pos:
-                    raise mergeHGVSerror("Submitted variants are out of order or their ranges overlap")
+                    raise fn.mergeHGVSerror("Submitted variants are out of order or their ranges overlap")
                 else:
                     # Create a fake variant to handle the missing sequence
                     ins_seq = self.sf.fetch_seq(hgvs_v.ac, merge_end_pos, hgvs_v.posedit.pos.start.base - 1)
@@ -2187,7 +2182,7 @@ class Mixin(vvMixinInit.Mixin):
                     hgvs_v = self.vm.c_to_n(hgvs_v)
                     h_list.append(hgvs_v)
                 except:
-                    raise mergeHGVSerror("Unable to map from c. position to absolute position")
+                    raise fn.mergeHGVSerror("Unable to map from c. position to absolute position")
         if h_list != []:
             hgvs_variant_list = copy.deepcopy(h_list)
 
@@ -2203,9 +2198,9 @@ class Mixin(vvMixinInit.Mixin):
             try:
                 # No intronic positions
                 if hgvs_v.posedit.pos.start.offset != 0:
-                    raise mergeHGVSerror("Base-offset position submitted")
+                    raise fn.mergeHGVSerror("Base-offset position submitted")
                 if hgvs_v.posedit.pos.end.offset != 0:
-                    raise mergeHGVSerror("Base-offset position submitted")
+                    raise fn.mergeHGVSerror("Base-offset position submitted")
             except AttributeError:
                 pass
 
@@ -2218,7 +2213,7 @@ class Mixin(vvMixinInit.Mixin):
                 type = hgvs_v.type
             else:
                 if hgvs_v.ac != accession:
-                    raise mergeHGVSerror("More than one reference sequence submitted")
+                    raise fn.mergeHGVSerror("More than one reference sequence submitted")
                 else:
                     pass
 
@@ -2233,7 +2228,7 @@ class Mixin(vvMixinInit.Mixin):
             else:
                 # ! hgvs_v.posedit.pos.start.base !>
                 if hgvs_v.posedit.pos.start.base <= merge_end_pos:
-                    raise mergeHGVSerror("Submitted variants are out of order or their ranges overlap")
+                    raise fn.mergeHGVSerror("Submitted variants are out of order or their ranges overlap")
                 else:
                     # Create a fake variant to handle the missing sequence
                     ins_seq = self.sf.fetch_seq(hgvs_v.ac, merge_end_pos, hgvs_v.posedit.pos.start.base - 1)
@@ -2301,7 +2296,7 @@ class Mixin(vvMixinInit.Mixin):
     """
 
 
-    def hgvs_alleles(self, variant_description):
+    def hgvs_alleles(self, variant_description,hn):
         try:
             # Split up the description
             accession, remainder = variant_description.split(':')
@@ -2309,7 +2304,7 @@ class Mixin(vvMixinInit.Mixin):
             if re.search('[gcn]\.\d+\[', remainder):
                 # NM_004006.2:c.2376[G>C];[(G>C)]
                 # if re.search('\(', remainder):
-                #   raise alleleVariantError('Unsupported format ' + remainder)
+                #   raise fn.alleleVariantError('Unsupported format ' + remainder)
                 # NM_004006.2:c.2376[G>C];[G>C]
                 type, remainder = remainder.split('.')
                 pos = re.match('\d+', remainder)
@@ -2371,7 +2366,7 @@ class Mixin(vvMixinInit.Mixin):
                             # NM_004006.2:c.[2376G>C];[?]
                             continue
                         merge = []
-                        allele = str(self.merge_hgvs_3pr(each_allele))
+                        allele = str(self.merge_hgvs_3pr(each_allele,hn))
                         merge.append(allele)
                         merged_alleles.append(merge)
                     my_alleles = merged_alleles
@@ -2380,7 +2375,7 @@ class Mixin(vvMixinInit.Mixin):
                     # If statement for uncertainties
                     # NM_004006.2:c.[296T>G;476C>T];[476C>T](;)1083A>C
                     if re.search('\[', remainder):
-                        raise alleleVariantError('Unsupported format ' + type + '.' + remainder)
+                        raise fn.alleleVariantError('Unsupported format ' + type + '.' + remainder)
                     # NM_004006.2:c.2376G>C(;)3103del
                     # NM_000548.3:c.3623_3647del(;)3745_3756dup
                     alleles = remainder.split('(;)')
@@ -2396,7 +2391,7 @@ class Mixin(vvMixinInit.Mixin):
                 else:
                     # If statement for uncertainties
                     if re.search('\(', remainder):
-                        raise alleleVariantError('Unsupported format ' + type + '.' + remainder)
+                        raise fn.alleleVariantError('Unsupported format ' + type + '.' + remainder)
                     # NM_004006.2:c.[2376G>C];[3103del]
                     # NM_004006.2:c.[2376G>C];[3103del]
                     # NM_004006.2:c.[296T>G;476C>T;1083A>C];[296T>G;1083A>C]
@@ -2421,7 +2416,7 @@ class Mixin(vvMixinInit.Mixin):
                             # NM_004006.2:c.[2376G>C];[?]
                             continue
                         merge = []
-                        allele = str(self.merge_hgvs_3pr(each_allele))
+                        allele = str(self.merge_hgvs_3pr(each_allele,hn))
                         merge.append(allele)
                         merged_alleles.append(merge)
                     my_alleles = merged_alleles
@@ -2439,7 +2434,7 @@ class Mixin(vvMixinInit.Mixin):
             import traceback
             exc_type, exc_value, last_traceback = sys.exc_info()
             te = traceback.format_exc()
-            raise alleleVariantError(str(e))
+            raise fn.alleleVariantError(str(e))
 
     # Covert chromosomal HGVS description to RefSeqGene
     def chr_to_rsg(self, hgvs_genomic, hn, vrOld):

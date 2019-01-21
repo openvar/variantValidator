@@ -40,6 +40,7 @@ class vvDBGet:
     def get_gene_symbol_from_refSeqGeneID(self,refSeqGeneID):
         query = "SELECT hgncSymbol FROM refSeqGene_loci WHERE refSeqGeneID = '%s'" %(refSeqGeneID)
         return self.execute(query)[0]
+    #get_refseqgeneId_from_lrgID
     def get_RefSeqGeneID_from_lrgID(self,lrgID):
         query = "SELECT RefSeqGeneID FROM LRG_RSG_lookup WHERE lrgID = '%s'" %(lrgID)
         return self.execute(query)[0]

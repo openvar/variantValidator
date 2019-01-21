@@ -457,3 +457,8 @@ def n_inversion(ref_seq, del_seq, inv_seq, interval_start, interval_end):
 # Custom Exceptions
 class VariantValidatorError(Exception):
     pass
+class mergeHGVSerror(Exception):
+    pass
+class alleleVariantError(Exception):
+    pass
+
