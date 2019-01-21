@@ -16,10 +16,10 @@ class vvDBGet:
     @handleCursor
     def executeAll(self,query):
         self.db.cursor.execute(query)
-        rows = self.db.cursor.fetchone()
+        rows = self.db.cursor.fetchall()
         if rows==[]:
             logger.debug("No data returned from query "+str(query))
-            row = ['none', 'No data']
+            rows = ['none', 'No data']
         return rows
     # from dbfetchone
     def get_utaSymbol(self,gene_symbol):

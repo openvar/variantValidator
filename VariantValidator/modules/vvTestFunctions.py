@@ -133,7 +133,7 @@ def validateBatch(variantArray,val):
         except Exception as e:
             print("FATAL error processing variant: "+str(e))
             out.append({"ERROR":str(e)})
-            #raise #debug - uncomment this line to ensure the test leaves a traceback and fails the first time there's a critical error.
+            raise #debug - uncomment this line to ensure the test leaves a traceback and fails the first time there's a critical error.
     return out
 
 def retrieveVariant(validation):

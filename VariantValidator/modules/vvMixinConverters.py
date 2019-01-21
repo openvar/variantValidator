@@ -1515,7 +1515,7 @@ class Mixin(vvMixinInit.Mixin):
             # So is likely mapping to a genomic gap
             elif expand_out == 'true' and len(hgvs_genomic.posedit.edit.ref) <= 1:
                 # Incorrect expansion, likely < ref + 2
-                genomic_gap_variant = self.self.vm.t_to_g(stored_hgvs_c, hgvs_genomic.ac)
+                genomic_gap_variant = self.vm.t_to_g(stored_hgvs_c, hgvs_genomic.ac)
                 try:
                     hn.normalize(genomic_gap_variant)
                 except Exception as e:
