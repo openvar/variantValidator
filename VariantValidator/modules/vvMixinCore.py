@@ -1781,7 +1781,7 @@ class Mixin(vvMixinConverters.Mixin):
                             continue
                         else:
                             # Any transcripts?
-                            rel_var = self.relevant_transcripts(hgvs_mito, evm, self.hdp, alt_aln_method, reverse_normalizer)
+                            rel_var = self.relevant_transcripts(hgvs_mito, evm, alt_aln_method, reverse_normalizer)
                             hgvs_genomic = copy.deepcopy(hgvs_mito)
                             if len(rel_var) == 0:
                                 validation['genomic_g'] = fn.valstr(hgvs_mito)
@@ -2062,7 +2062,7 @@ class Mixin(vvMixinConverters.Mixin):
                         Initial simple projection from the provided g. position all overlapping
                         transcripts
                         """
-                        rel_var = self.relevant_transcripts(hgvs_genomic, evm, self.hdp, alt_aln_method, reverse_normalizer)
+                        rel_var = self.relevant_transcripts(hgvs_genomic, evm, alt_aln_method, reverse_normalizer)
 
                         # Double check rel_vars have not been missed when mapping from a RefSeqGene
                         if len(rel_var) != 0 and re.match('NG_', str(hgvs_genomic.ac)):
@@ -2074,7 +2074,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 except hgvs.exceptions.HGVSError as e:
                                     try_rel_var = []
                                 else:
-                                    try_rel_var = self.relevant_transcripts(hgvs_genomic, evm, self.hdp, alt_aln_method,
+                                    try_rel_var = self.relevant_transcripts(hgvs_genomic, evm, alt_aln_method,
                                                                                reverse_normalizer)
                                 if len(try_rel_var) > len(rel_var):
                                     rel_var = try_rel_var
@@ -2089,7 +2089,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 int(vcf_dict['pos']) + (len(vcf_dict['ref']) - 1)) + 'del' + vcf_dict['ref'] + 'ins' + \
                                      vcf_dict['alt']
                             hgvs_not_di = self.hp.parse_hgvs_variant(not_di)
-                            rel_var = self.relevant_transcripts(hgvs_not_di, evm, self.hdp, alt_aln_method,
+                            rel_var = self.relevant_transcripts(hgvs_not_di, evm, alt_aln_method,
                                                                    reverse_normalizer)
 
                         # list return statements
@@ -2264,7 +2264,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                                 # Get orientation of the gene wrt genome and a list of exons mapped to the genome
                                 ori = self.tx_exons(tx_ac=saved_hgvs_coding.ac, alt_ac=hgvs_genomic_5pr.ac,
-                                                       alt_aln_method=alt_aln_method, hdp=self.hdp)
+                                                       alt_aln_method=alt_aln_method)
                                 orientation = int(ori[0]['alt_strand'])
                                 intronic_variant = 'false'
 
@@ -3198,7 +3198,7 @@ class Mixin(vvMixinConverters.Mixin):
                             continue
 
                         # Get orientation of the gene wrt genome and a list of exons mapped to the genome
-                        ori = self.tx_exons(tx_ac=tx_ac, alt_ac=genomic_ac, alt_aln_method=alt_aln_method, hdp=self.hdp)
+                        ori = self.tx_exons(tx_ac=tx_ac, alt_ac=genomic_ac, alt_aln_method=alt_aln_method)
                         orientation = int(ori[0]['alt_strand'])
                         intronic_variant = 'false'
 
@@ -5348,7 +5348,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                             # Get orientation of the gene wrt genome and a list of exons mapped to the genome
                             ori = self.tx_exons(tx_ac=saved_hgvs_coding.ac, alt_ac=hgvs_genomic_5pr.ac,
-                                                   alt_aln_method=alt_aln_method, hdp=self.hdp)
+                                                   alt_aln_method=alt_aln_method)
                             orientation = int(ori[0]['alt_strand'])
 
                             # Look for normalized variant options that do not match hgvs_coding
@@ -6178,7 +6178,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                             # Gene orientation wrt genome
                             ori = self.tx_exons(tx_ac=hgvs_coding.ac, alt_ac=hgvs_genomic.ac,
-                                                   alt_aln_method=alt_aln_method, hdp=self.hdp)
+                                                   alt_aln_method=alt_aln_method)
                             ori = int(ori[0]['alt_strand'])
 
                             # Look for normalized variant options that do not match hgvs_coding
@@ -6384,7 +6384,8 @@ class Mixin(vvMixinConverters.Mixin):
                     er = str('\n'.join(tbk))
                     logger.error(str(exc_type) + " " + str(exc_value))
                     logger.debug(er)
-
+                    #debug
+                    raise
                     continue
 
             # Outside the for loop
@@ -6596,7 +6597,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 try:
                                     # Re set ori
                                     ori = self.tx_exons(tx_ac=hgvs_coding.ac, alt_ac=alt_chr,
-                                                           alt_aln_method=alt_aln_method, hdp=self.hdp)
+                                                           alt_aln_method=alt_aln_method)
                                     orientation = int(ori[0]['alt_strand'])
                                     hgvs_alt_genomic = self.myvm_t_to_g(hgvs_coding, alt_chr, no_norm_evm, self.vm, self.hp, hn,
                                                                            self.sf, self.nr_vm)
@@ -8271,4 +8272,5 @@ class Mixin(vvMixinConverters.Mixin):
             # Return
             # return
             logger.critical(str(exc_type) + " " + str(exc_value))
+            raise
             logger.debug(str(er))

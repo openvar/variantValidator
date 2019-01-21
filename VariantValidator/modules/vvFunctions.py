@@ -18,19 +18,13 @@ def handleCursor(func):
     #Decorator function for handling opening and closing cursors.
     @functools.wraps(func)
     def wrapper(self,*args,**kwargs):
-        try:
-            self.cursor = self.conn.cursor(buffered=True)
-            out=func(*args,**kwargs)
+        self.connection=self.conn.get_connection()
+        self.cursor = self.connection.cursor(buffered=True)
+        out=func(self,*args,**kwargs)
+        if self.cursor:
             self.cursor.close()
-            self.cursor=None
-            return out
-        except:
-            try:
-                self.cursor.close()
-                self.cursor=None
-            except:
-                self.cursor=None
-            raise
+        #self.cursor=None
+        return out
     return wrapper
 
 def hgnc_rest(path):

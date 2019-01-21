@@ -1683,7 +1683,7 @@ class Mixin(vvMixinInit.Mixin):
     """
 
 
-    def tx_exons(self, tx_ac, alt_ac, alt_aln_method, hdpOld):
+    def tx_exons(self, tx_ac, alt_ac, alt_aln_method):
         # Interface with the UTA database via get_tx_exons in uta.py
         try:
             tx_exons = self.hdp.get_tx_exons(tx_ac, alt_ac, alt_aln_method)
@@ -1709,7 +1709,7 @@ class Mixin(vvMixinInit.Mixin):
     """
 
 
-    def relevant_transcripts(self, hgvs_genomic, evm, hdpOld, alt_aln_method):
+    def relevant_transcripts(self, hgvs_genomic, evm, alt_aln_method,reverse_normalizer):
         # Pass relevant transcripts for the input variant to rts
         # Note, the evm method misses one end, the hdp. method misses the other. Combine both
         rts_list = self.hdp.get_tx_for_region(hgvs_genomic.ac, alt_aln_method, hgvs_genomic.posedit.pos.start.base-1, hgvs_genomic.posedit.pos.end.base-1)
@@ -1779,7 +1779,7 @@ class Mixin(vvMixinInit.Mixin):
                     pass
                 else:
                     # Reverse normalize hgvs_genomic
-                    rev_hgvs_genomic = self.reverse_hn.normalize(hgvs_genomic)
+                    rev_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic)
                     # map back to coding
                     variant = evm.g_to_t(rev_hgvs_genomic, tx_ac)
             code_var.append(str(variant))

@@ -6,4 +6,5 @@ import os
 
 
 hub=vvHub()
-fn.generateTestFolder("testOutputs","inputVariants.txt",hub)
+
+fn.generateTestFolder("testOutputsPreRework","inputVariants.txt",hub)

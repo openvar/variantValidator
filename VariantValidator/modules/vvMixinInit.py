@@ -132,7 +132,7 @@ class Mixin():
         self.sf = hgvs.dataproviders.seqfetcher.SeqFetcher() # Seqfetcher
         # Set standard genome builds
         self.genome_builds = ['GRCh37', 'hg19', 'GRCh38']
-        self.uta_schema = str(self.hdp.data_version())
+        self.utaSchema = str(self.hdp.data_version())
 
         # Create normalizer
         self.hn = hgvs.normalizer.Normalizer(self.hdp,
@@ -176,8 +176,6 @@ class Mixin():
 
 
 
-    #def validate(self): # <-------------- this is imported from the mixin class in vvCore.
-    #    pass
     def myConfig(self):
         #Returns configuration:
         #version, hgvs version, uta schema, seqrepo db.
