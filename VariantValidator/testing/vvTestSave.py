@@ -1,10 +1,9 @@
 #Saving script
 
 import vvTestFunctions as fn
+from vvObjects import Validator
 import os
 
+val=Validator()
 
-
-hub=vvHub()
-
-fn.generateTestFolder("testOutputsPreRework","inputVariants.txt",hub)
+fn.generateTestFolder("testOutputsReworked","inputVariants.txt",val)

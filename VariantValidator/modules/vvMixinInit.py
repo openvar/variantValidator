@@ -135,11 +135,6 @@ class Mixin():
         self.utaSchema = str(self.hdp.data_version())
 
         # Create normalizer
-        self.hn = hgvs.normalizer.Normalizer(self.hdp,
-                                        cross_boundaries=False,
-                                        shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
-                                        alt_aln_method='splign'
-                                        )
         self.reverse_hn = hgvs.normalizer.Normalizer(self.hdp,
                                                 cross_boundaries=False,
                                                 shuffle_direction=5,
@@ -223,7 +218,7 @@ class Mixin():
             var_p.ac = 'Non-coding transcript'
             var_p.posedit = ''
             return var_p
-    def myc_to_p(self,hgvs_transcript, evm, re_to_p):
+    def myc_to_p(self,hgvs_transcript, evm, hn, re_to_p):
         # Create dictionary to store the information
         hgvs_transcript_to_hgvs_protein = {'error': '', 'hgvs_protein': '', 'ref_residues': ''}
 
@@ -259,7 +254,7 @@ class Mixin():
                         error = str(e)
                         if re.search('string index out of range', error) and re.search('dup', str(hgvs_transcript)):
                             hgvs_ins = self.hp.parse_hgvs_variant(str(hgvs_transcript))
-                            hgvs_ins = self.hn.normalize(hgvs_ins)
+                            hgvs_ins = hn.normalize(hgvs_ins)
                             inst = hgvs_ins.ac + ':c.' + str(hgvs_ins.posedit.pos.start.base - 1) + '_' + str(hgvs_ins.posedit.pos.start.base) + 'ins' + hgvs_ins.posedit.edit.ref
                             hgvs_transcript = self.hp.parse_hgvs_variant(inst)
                             hgvs_protein = evm.c_to_p(hgvs_transcript)

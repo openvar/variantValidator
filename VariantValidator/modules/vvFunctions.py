@@ -10,7 +10,7 @@ import sys
 from vvLogging import logger
 import re
 import copy
-
+import mysql
 
 #from urllib.parse import urlparse #Python 3
 
@@ -18,14 +18,20 @@ def handleCursor(func):
     #Decorator function for handling opening and closing cursors.
     @functools.wraps(func)
     def wrapper(self,*args,**kwargs):
-        self.connection=self.conn.get_connection()
-        self.cursor = self.connection.cursor(buffered=True)
+        self.db.pool=mysql.connector.pooling.MySQLConnectionPool(pool_size=10, **self.db.dbConfig)
+        self.db.conn=self.db.pool.get_connection()
+        self.db.cursor = self.db.conn.cursor(buffered=True)
         out=func(self,*args,**kwargs)
-        if self.cursor:
-            self.cursor.close()
+        if self.db.cursor:
+            self.db.cursor.close()
+        if self.db.conn:
+            self.db.conn.close()
         #self.cursor=None
         return out
     return wrapper
+
+
+
 
 def hgnc_rest(path):
     data = {

@@ -118,7 +118,7 @@ def loadValidations(path):
                 #print(type(out[-1]))
     return out
 
-def validateBatch(variantArray,validator):
+def validateBatch(variantArray,val):
     #Returns an array of validations (themselves dictionary objects).
     out=[]
     selectTranscripts='all'
@@ -126,7 +126,7 @@ def validateBatch(variantArray,validator):
     for i,v in enumerate(variantArray):
         print("VALIDATING Variant"+str(i)+" "+str(i+1)+"/"+str(len(variantArray))+" "+str(v))
         try:
-            out.append(validator.vv.validator(v,selectedAssembly,selectTranscripts))
+            out.append(val.validate(v,selectedAssembly,selectTranscripts))
         except KeyboardInterrupt:
             print("Exiting...")
             sys.exit()

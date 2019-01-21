@@ -2,23 +2,21 @@ from vvFunctions import handleCursor
 from vvLogging import logger
 
 class vvDBGet:
-    def __init__(self,conn,cursor):
+    def __init__(self,db):
         # These are inherited by reference from the vvDatabase object.
-        self.conn=conn
-        self.cursor=cursor
-
+        self.db=db
     @handleCursor
     def execute(self,query):
-        self.cursor.execute(query)
-        row = self.cursor.fetchone()
+        self.db.cursor.execute(query)
+        row = self.db.cursor.fetchone()
         if row is None:
             logger.debug("No data returned from query "+str(query))
             row = ['none', 'No data']
         return row
     @handleCursor
     def executeAll(self,query):
-        self.cursor.execute(query)
-        rows = self.cursor.fetchone()
+        self.db.cursor.execute(query)
+        rows = self.db.cursor.fetchone()
         if rows==[]:
             logger.debug("No data returned from query "+str(query))
             row = ['none', 'No data']

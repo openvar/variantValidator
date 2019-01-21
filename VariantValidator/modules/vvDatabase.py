@@ -14,8 +14,8 @@ import os
 class vvDatabase:
     # This class contains and handles the mysql connections for the variant validator database.
     def __init__(self,val,dbConfig):
-        self.conn = mysql.connector.pooling.MySQLConnectionPool(pool_size=10, **dbConfig)
-        # self.cursor will be none UNLESS you're wrapping a function in @handlecursor, which automatically opens and
+        self.conn = None
+        # self.cursor will be none UNLESS you're wrapping a function in @handleCursor, which automatically opens and
         # closes connections for you.
         self.cursor=None
         self.dbConfig=dbConfig
@@ -24,8 +24,9 @@ class vvDatabase:
         self.path="mysqlx://"+dbConfig["user"]+":"+dbConfig["password"]+"@"+dbConfig["host"]+"/"+dbConfig["database"]
         os.environ["VALIDATOR_DB_URL"]=self.path
         self.val=val
-        self.insert = vvDBInsert(self.conn,self.cursor) # contains dbinsert, dbupdate
-        self.get = vvDBGet(self.conn,self.cursor)       # contains dbfetchone, dbfetchall
+        self.insert = vvDBInsert(self) # contains dbinsert, dbupdate
+        self.get = vvDBGet(self)       # contains dbfetchone, dbfetchall
+        self.db=self #needed to make handlecursor behave
 
     # from dbquery
     @handleCursor
