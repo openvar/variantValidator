@@ -1,9 +1,10 @@
 #Saving script
 
 import vvTestFunctions as fn
-from VariantValidator import Validator
+#from VariantValidator import Validator
+import VariantValidator as vv
 import os
 
-val=Validator()
+val=vv.Validator()
 os.environ["ADD_LOGS"]="True"
-fn.generateTestFolder("testOutputsReworked","inputVariants.txt",val)
+fn.generateTestFolder("testOutputs","inputVariants.txt",val)

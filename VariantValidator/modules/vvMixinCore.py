@@ -2001,7 +2001,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 # If the current entry is too old
                                 if entry['expiry'] == 'true':
                                     dbaction = 'update'
-                                        entry = self.db.data_add(accession=accession)
+                                    entry = self.db.data_add(accession=accession)
                                     hgnc_gene_info = entry['description']
                                 else:
                                     hgnc_gene_info = entry['description']
