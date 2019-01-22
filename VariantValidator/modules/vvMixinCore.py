@@ -56,6 +56,15 @@ from vvFunctions import VariantValidatorError
 
 class Mixin(vvMixinConverters.Mixin):
     def validate(self, batch_variant, selected_assembly, select_transcripts, transcriptSet="refseq"):
+        '''
+        This is the main validator function.
+        :param batch_variant: A string containing the variant to be validated
+        :param selected_assembly: The version of the genome assembly to use.
+        :param select_transcripts: Can be an array of different transcripts, or 'all'
+        Selecting multiple transcripts will lead to a multiple variant outputs.
+        :param transcriptSet:
+        :return:
+        '''
         logger.info(batch_variant + ' : ' + selected_assembly)
         # Take start time
         start_time = time.time()
@@ -1931,9 +1940,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 if entry['expiry'] == 'true':
                                     dbaction = 'update'
                                     try:
-                                        entry = self.db.data_add(input=input, alt_aln_method=alt_aln_method,
-                                                                 accession=accession, dbaction=dbaction, hp=self.hp, evm=evm,
-                                                                 hdp=self.hdp)
+                                        entry = self.db.data_add(accession=accession)
                                     except hgvs.exceptions.HGVSError as e:
                                         error = 'Transcript %s is not currently supported' % (accession)
                                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
@@ -1951,9 +1958,7 @@ class Mixin(vvMixinConverters.Mixin):
                             elif 'none' in entry:
                                 dbaction = 'insert'
                                 try:
-                                    entry = self.db.data_add(input=input, alt_aln_method=alt_aln_method,
-                                                             accession=accession, dbaction=dbaction, hp=self.hp, evm=evm,
-                                                             hdp=self.hdp)
+                                    entry = self.db.data_add(accession=accession)
                                 except Exception as e:
                                     logger.warning(str(e))
                                     error = 'Unable to assign transcript identity records to ' + accession + ', potentially an obsolete record :'
@@ -1996,9 +2001,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 # If the current entry is too old
                                 if entry['expiry'] == 'true':
                                     dbaction = 'update'
-                                    entry = self.db.data_add(input=input, alt_aln_method=alt_aln_method,
-                                                             accession=accession, dbaction=dbaction, hp=self.hp, evm=evm,
-                                                             hdp=self.hdp)
+                                        entry = self.db.data_add(accession=accession)
                                     hgnc_gene_info = entry['description']
                                 else:
                                     hgnc_gene_info = entry['description']
@@ -2006,9 +2009,7 @@ class Mixin(vvMixinConverters.Mixin):
                             elif 'none' in entry:
                                 dbaction = 'insert'
                                 try:
-                                    entry = self.db.data_add(input=input, alt_aln_method=alt_aln_method,
-                                                             accession=accession, dbaction=dbaction, hp=self.hp, evm=evm,
-                                                             hdp=self.hdp)
+                                        entry = self.db.data_add(accession=accession)
                                 except Exception as e:
                                     logger.warning(str(e))
                                     error = 'Unable to assign transcript identity records to ' + accession + ', potentially an obsolete record :'

@@ -2,6 +2,9 @@ from vvFunctions import handleCursor
 from vvLogging import logger
 
 class vvDBGet:
+    '''
+    Most of the functions in DBGet generate queries for retrieving data from the databases.
+    '''
     def __init__(self,db):
         # These are inherited by reference from the vvDatabase object.
         self.db=db

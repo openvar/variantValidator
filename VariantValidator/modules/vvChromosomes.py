@@ -19,7 +19,13 @@ def supported_for_mapping(ac, primary_assembly):
 
 
 def to_accession(chr_num, primary_assembly):
-    # Available genome builds
+    '''
+    Available genome builds
+
+    :param chr_num:
+    :param primary_assembly:
+    :return:
+    '''
     GRCh37 = {
         "1": "NC_000001.10",
         "2": "NC_000002.11",
@@ -1536,51 +1542,14 @@ def to_accession(chr_num, primary_assembly):
         chr_accession = hg19.get(chr_num)
     return chr_accession
 
-"""
-Mark for removal at testing
-"""
-# def to_chr_num(accession):
-#     # Available genome builds - Primary assembly only, Otherwise leave the RefSeq accession in place
-#     chr_num_convert = {
-#         "NC_000001": "1",
-#         "NC_000002": "2",
-#         "NC_000003": "3",
-#         "NC_000004": "4",
-#         "NC_000005": "5",
-#         "NC_000006": "6",
-#         "NC_000007": "7",
-#         "NC_000008": "8",
-#         "NC_000009": "9",
-#         "NC_000010": "10",
-#         "NC_000011": "11",
-#         "NC_000012": "12",
-#         "NC_000013": "13",
-#         "NC_000014": "14",
-#         "NC_000015": "15",
-#         "NC_000016": "16",
-#         "NC_000017": "17",
-#         "NC_000018": "18",
-#         "NC_000019": "19",
-#         "NC_000020": "20",
-#         "NC_000021": "21",
-#         "NC_000022": "22",
-#         "NC_000023": "X",
-#         "NC_000024": "Y"
-#     }
-#     accession = accession.split('.')[0]
-#     chr_num = chr_num_convert.get(accession)
-#     return chr_num
-
-
-"""
-Simple dictionary lookup function that takes the RefSeq chromosome identifier and returns the
-UCSC genome build formatted VCF identifier.
-
-Note, UCSC and GenBank have different aliases for the ALT and Patch identifiers
-"""
-
 
 def to_chr_num_ucsc(accession, primary_assembly):
+    """
+    Simple dictionary lookup function that takes the RefSeq chromosome identifier and returns the
+    UCSC genome build formatted VCF identifier.
+
+    Note, UCSC and GenBank have different aliases for the ALT and Patch identifiers
+    """
     # Available genome builds
     chr_num_convert_37 = {
         "NC_000001.10": "chr1",
@@ -2150,16 +2119,13 @@ def to_chr_num_ucsc(accession, primary_assembly):
         chr_num = None
         return chr_num
 
-
-"""
-Simple dictionary lookup function that takes the RefSeq chromosome identifier and returns the
-Genbank genome build formatted VCF identifier.
-
-Note, UCSC and GenBank have different aliases for the ALT and Patch identifiers
-"""
-
-
 def to_chr_num_refseq(accession, primary_assembly):
+    """
+    Simple dictionary lookup function that takes the RefSeq chromosome identifier and returns the
+    Genbank genome build formatted VCF identifier.
+
+    Note, UCSC and GenBank have different aliases for the ALT and Patch identifiers
+    """
     # Available genome builds
     chr_num_convert_37 = {
         "NC_000001.10": "1",
@@ -2846,11 +2812,11 @@ def to_chr_num_refseq(accession, primary_assembly):
         return chr_num
 
 # from gap_genes
-"""
-Lists of genes for GRCh37 and GRCh38 which require a gap to be inserted into either the 
-transcript or the genome to maintain a perfect alignment
-"""
 def gap_black_list(symbol):
+    """
+    Lists of genes for GRCh37 and GRCh38 which require a gap to be inserted into either the
+    transcript or the genome to maintain a perfect alignment
+    """
     gapGene = {
                     "LPP": "",
                     "VPS13D": "",

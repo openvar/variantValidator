@@ -23,24 +23,29 @@ from vvLogging import logger
 import vvFunctions as fn
 
 
-'''
-This file contains the validator object, which is instantiated in order to perform validator functions.
-The validator contains configuration information and permanent copies of database links and the like.
-Much of the validator's inner workings are stored in special one-off function container objects:
-validator.db : The validator's MySQL database access functions
 
-The validator configuration is stored in ~/.config/VariantValidator/config.ini . This is loaded
-when the validator object is initialized.
+class Mixin():
+    '''
+    # This object contains configuration options for the validator, but it inherits the mixin
+    # class in vvCore that contains the enormous validator function.
 
-Running variant validator should hopefully be as simple as writing a script like this:
-import VariantValidator
+    This mixin is the first for the validator object, which is instantiated in order to perform validator functions.
+    The validator contains configuration information and permanent copies of database links and the like.
+    Much of the validator's inner workings are stored in special one-off function container objects:
+    validator.db : The validator's MySQL database access functions
 
-val=Validator()
-val.validate("some kind of gene situation","the transcripts to use")
+    The validator configuration is stored in ~/.config/VariantValidator/config.ini . This is loaded
+    when the validator object is initialized.
 
-'''
+    Running variant validator should hopefully be as simple as writing a script like this:
+    import VariantValidator
 
-'''        
+    val=Validator()
+    val.validate("some kind of gene situation","The genome version","the transcripts to use")
+
+    '''
+    def __init__(self):
+        '''
         Renaming of variables :
         'seqrepo_directory': HGVS_SEQREPO_DIR,           #self.seqrepoPath
         'uta_url': UTA_DB_URL,                           #self.utaPath
@@ -51,14 +56,7 @@ val.validate("some kind of gene situation","the transcripts to use")
         'variantvalidator_hgvs_version': hgvs_version,   #self.hgvsVersion
         'uta_schema': str(hdp.data_version()),           #self.uta_schema
         'seqrepo_db': HGVS_SEQREPO_DIR.split('/')[-1]    #self.seqrepoVersion
-'''
-
-
-
-class Mixin():
-    # This object contains configuration options for the validator, but it inherits the mixin
-    # class in vvCore that contains the enormous validator function.
-    def __init__(self):
+        '''
         # First load from the configuration file, if it exists.
         configName="config.ini"
         homePath=os.path.expanduser("~")
@@ -72,10 +70,9 @@ class Mixin():
             self.createConfig(configPath)
 
         # Load the configuration file.
-        with open(configPath) as file:
-            lines=file.read()
         config=RawConfigParser(allow_no_value=True)
-        config.read(configPath)
+        with open(configPath) as file:
+            config.read_file(file)
         # The custom vvLogging module will set itself up using the VALDIATOR_DEBUG environment variable.
         levelString = config["logging"]['level']
         consoleString = config["logging"]['console']
@@ -179,11 +176,13 @@ class Mixin():
                                                             replace_reference=True
                                                             )
 
-
-
+    def __del__(self):
+        del self.db
     def myConfig(self):
+        '''
         #Returns configuration:
         #version, hgvs version, uta schema, seqrepo db.
+        '''
         return {
             'variantvalidator_version': self.version,
             'variantvalidator_hgvs_version': self.hgvsVersion,
@@ -191,9 +190,11 @@ class Mixin():
             'seqrepo_db': self.seqrepoPath
         }
     def createConfig(self,outPath):
+        '''
         # This function reads from the default configuration file stored in the same folder as this module,
         # and transfers it to outPath.
         # Outpath should include a filename.
+        '''
         lines=[]
         inPath=os.path.join(os.path.dirname(os.path.realpath(__file__)),"defaultConfig.ini")
 #        print(os.path.join(inPath,"defaultConfig.ini"))

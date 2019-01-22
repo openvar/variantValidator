@@ -27,11 +27,15 @@ from hgvs.exceptions import HGVSError, HGVSDataNotAvailableError, HGVSUnsupporte
 
 
 class Mixin(vvMixinInit.Mixin):
-    """
-    r_to_c
-    parses r. variant strings into hgvs object and maps to the c. equivalent.
-    """
+    '''
+    This mixin contains converters that use the validator's configuration information.
+
+    '''
     def r_to_c(self, variant, evm):
+        """
+        r_to_c
+        parses r. variant strings into hgvs object and maps to the c. equivalent.
+        """
         # convert the input string into a hgvs object by parsing
         var_r = self.hp.parse_hgvs_variant(variant)
         # map to the coding sequence
@@ -40,15 +44,13 @@ class Mixin(vvMixinInit.Mixin):
         c_from_r = {'variant': variant, 'type': ':c.'}
         return c_from_r
 
-    """ 
-    Maps transcript variant descriptions onto specified RefSeqGene reference sequences
-    Return an hgvs object containing the genomic sequence variant relative to the RefSeqGene 
-    acession
-    refseq_ac = RefSeqGene ac
-    """
-
-
     def refseq(self, variant, vmOld, refseq_ac, hpOld, evm, hdpOld, primary_assembly):
+        """
+        Maps transcript variant descriptions onto specified RefSeqGene reference sequences
+        Return an hgvs object containing the genomic sequence variant relative to the RefSeqGene
+        acession
+        refseq_ac = RefSeqGene ac
+        """
         vr = hgvs.validator.Validator(self.hdp)
         # parse the variant into hgvs object
         var_c = self.hp.parse_hgvs_variant(variant)
@@ -90,15 +92,12 @@ class Mixin(vvMixinInit.Mixin):
         # Return as an error if all fail
         return ref_g_dict
 
-
-    """
-    Parses genomic variant strings into hgvs objects
-    Maps genomic hgvs object into a coding hgvs object if the c accession string is provided
-    returns a c. variant description string
-    """
-
-
     def g_to_c(self, var_g, tx_ac, hpOld, evm):
+        """
+        Parses genomic variant strings into hgvs objects
+        Maps genomic hgvs object into a coding hgvs object if the c accession string is provided
+        returns a c. variant description string
+        """
         pat_g = re.compile("\:g\.")  # Pattern looks for :g.
         # If the :g. pattern is present in the input variant
         if pat_g.search(var_g):
@@ -109,14 +108,12 @@ class Mixin(vvMixinInit.Mixin):
             return var_c
 
 
-    """
-    Parses genomic variant strings into hgvs objects
-    Maps genomic hgvs object into a non-coding hgvs object if the n accession string is provided
-    returns a n. variant description string
-    """
-
-
     def g_to_n(self, var_g, tx_ac, hpOld, evm):
+        """
+        Parses genomic variant strings into hgvs objects
+        Maps genomic hgvs object into a non-coding hgvs object if the n accession string is provided
+        returns a n. variant description string
+        """
         pat_g = re.compile("\:g\.")  # Pattern looks for :g.
         # If the :g. pattern is present in the input variant
         if pat_g.search(var_g):
@@ -126,29 +123,23 @@ class Mixin(vvMixinInit.Mixin):
             var_n = str(evm.g_to_n(var_g, tx_ac))
             return var_n
 
-
-    """
-    Ensures variant strings are transcript c. or n.
-    returns parsed hgvs c. or n. object
-    """
-
-
     def coding(self, variant, hpOld):
+        """
+        Ensures variant strings are transcript c. or n.
+        returns parsed hgvs c. or n. object
+        """
         # If the :c. pattern is present in the input variant
         if re.search(':c.', variant) or re.search(':n.', variant):
             # convert the input string into a hgvs object
             var_c = self.hp.parse_hgvs_variant(variant)
             return var_c
 
-
-    """
-    Mapping transcript to genomic position
-    Ensures variant strings are transcript c. or n.
-    returns parsed hgvs g. object
-    """
-
-
     def genomic(self, variant, evm, primary_assembly,hn):
+        """
+        Mapping transcript to genomic position
+        Ensures variant strings are transcript c. or n.
+        returns parsed hgvs g. object
+        """
         # Set regular expressions for if statements
         pat_g = re.compile("\:g\.")  # Pattern looks for :g.
         pat_n = re.compile("\:n\.")
@@ -172,35 +163,11 @@ class Mixin(vvMixinInit.Mixin):
             var_g = self.hp.parse_hgvs_variant(variant)
             return var_g
 
-
-    """
-    Mapping transcript to protein prediction
-    Ensures variant strings are transcript c.
-    returns parsed hgvs p. object
-    """
-
-
-
-
-    """
-    Function which takes a NORMALIZED hgvs Python transcript variant and maps to a specified protein reference sequence. A protein
-    level hgvs python object is returned.
-    
-    Note the function currently assumes that the transcript description is correctly normalized having come from the 
-    previous g_to_t function
-    """
-
-
-
-
-
-    """
-    Ensures variant strings are g.
-    returns parsed hgvs g. object
-    """
-
-
     def hgvs_genomic(self, variant, hpOld):
+        """
+        Ensures variant strings are g.
+        returns parsed hgvs g. object
+        """
         # Set regular expressions for if statements
         pat_g = re.compile("\:g\.")  # Pattern looks for :g. Note (gene) has been removed
         # If the :g. pattern is present in the input variant
@@ -209,27 +176,23 @@ class Mixin(vvMixinInit.Mixin):
             var_g = self.hp.parse_hgvs_variant(variant)
             return var_g
 
-
-    """
-    Enhanced transcript to genome position mapping function using evm
-    Deals with mapping from transcript positions that do not exist in the genomic sequence
-    i.e. the stated position aligns to a genomic gap!
-    Trys to ensure that a genomic position is always returned even if the c. or n. transcript
-    will not map to the specified genome build primary assembly.
-    Deals with transcript mapping to several genomic assemblies
-    Order 
-    Map to a single NC_ for the specified genome build primary assembly
-    Map to a single NC_ for an alternate genome build primary assembly
-    Map to an NT_ from the specified genome build
-    Map to an NT_ from an alternative genome build
-    Map to an NW_ from the specified genome build
-    Map to an NW_ from an alternative genome buildRequires parsed c. or n. object
-    returns parsed hgvs g. object
-    """
-
-
     def myevm_t_to_g(self,hgvs_c, no_norm_evm, primary_assembly, hn):
-
+        """
+        Enhanced transcript to genome position mapping function using evm
+        Deals with mapping from transcript positions that do not exist in the genomic sequence
+        i.e. the stated position aligns to a genomic gap!
+        Trys to ensure that a genomic position is always returned even if the c. or n. transcript
+        will not map to the specified genome build primary assembly.
+        Deals with transcript mapping to several genomic assemblies
+        Order
+        Map to a single NC_ for the specified genome build primary assembly
+        Map to a single NC_ for an alternate genome build primary assembly
+        Map to an NT_ from the specified genome build
+        Map to an NT_ from an alternative genome build
+        Map to an NW_ from the specified genome build
+        Map to an NW_ from an alternative genome buildRequires parsed c. or n. object
+        returns parsed hgvs g. object
+        """
         # store the input
         stored_hgvs_c = copy.deepcopy(hgvs_c)
         expand_out = 'false'
@@ -905,19 +868,18 @@ class Mixin(vvMixinInit.Mixin):
 
         return hgvs_genomic
 
-    """
-    USE WITH MAPPER THAT DOES NOT REPLACE THE REFERENCE GENOMIC BASES AND DOED NOT NORMALIZE
-    
-    Enhanced transcript to genome position mapping function using evm
-    Trys to ensure that a genomic position is always returned even if the c. or n. transcript
-    will not map to the specified genome build primary assembly.
-    Deals with transcript mapping to several genomic assemblies
-    Order 
-    Map to a single NC_ (or ALT) for the specified genome build
-    returns parsed hgvs g. object
-    """
-
     def noreplace_myevm_t_to_g(self,hgvs_c, evm, hdpOld, primary_assembly, vmOld, hn, hpOld, sfOld, no_norm_evm):
+        """
+        USE WITH MAPPER THAT DOES NOT REPLACE THE REFERENCE GENOMIC BASES AND DOED NOT NORMALIZE
+
+        Enhanced transcript to genome position mapping function using evm
+        Trys to ensure that a genomic position is always returned even if the c. or n. transcript
+        will not map to the specified genome build primary assembly.
+        Deals with transcript mapping to several genomic assemblies
+        Order
+        Map to a single NC_ (or ALT) for the specified genome build
+        returns parsed hgvs g. object
+        """
         try:
             hgvs_genomic = evm.t_to_g(hgvs_c)
             hn.normalize(hgvs_genomic)
@@ -1113,14 +1075,13 @@ class Mixin(vvMixinInit.Mixin):
 
         return hgvs_genomic
 
-    """
-    Enhanced transcript to genome position on a specified genomic reference using vm
-    Deals with mapping from transcript positions that do not exist in the genomic sequence
-    i.e. the stated position aligns to a genomic gap!
-    returns parsed hgvs g. object
-    """
-
     def myevm_g_to_t(self,evm, hgvs_genomic, alt_ac):
+        """
+        Enhanced transcript to genome position on a specified genomic reference using vm
+        Deals with mapping from transcript positions that do not exist in the genomic sequence
+        i.e. the stated position aligns to a genomic gap!
+        returns parsed hgvs g. object
+        """
         hgvs_t = evm.g_to_t(hgvs_genomic, alt_ac)
         return hgvs_t
     def myvm_t_to_g(self, hgvs_c, alt_chr, no_norm_evm, hn):
@@ -1651,12 +1612,10 @@ class Mixin(vvMixinInit.Mixin):
 
         return hgvs_genomic
 
-    """
-    parse p. strings into hgvs p. objects
-    """
-
-
     def hgvs_protein(self, variant, hpOld):
+        """
+        parse p. strings into hgvs p. objects
+        """
         # Set regular expressions for if statements
         pat_p = re.compile("\:p\.")  # Pattern looks for :g. Note (gene) has been removed
         # If the :p. pattern is present in the input variant
@@ -1665,13 +1624,10 @@ class Mixin(vvMixinInit.Mixin):
             var_p = self.hp.parse_hgvs_variant(variant)
             return var_p
 
-
-    """
-    Convert r. into c.
-    """
-
-
     def hgvs_r_to_c(self, hgvs_object):
+        """
+        Convert r. into c.
+        """
         # check for LRG_t with r.
         if re.match('LRG', hgvs_object.ac):
             transcript_ac = self.db.get.get_RefSeqTranscriptID_from_lrgTranscriptID(hgvs_object.ac)
@@ -1693,13 +1649,10 @@ class Mixin(vvMixinInit.Mixin):
         hgvs_object.posedit.edit = edit
         return hgvs_object
 
-
-    """
-    Convert c. into r.
-    """
-
-
     def hgvs_c_to_r(self, hgvs_object):
+        """
+        Convert c. into r.
+        """
         hgvs_object.type = 'r'
         edit = str(hgvs_object.posedit.edit)
         edit = edit.lower()
@@ -1707,15 +1660,12 @@ class Mixin(vvMixinInit.Mixin):
         hgvs_object.posedit.edit = edit
         return hgvs_object
 
-
-    """
-    Input c. r. n. variant string
-    Use uta.py (hdp) to return the identity information for the transcript variant 
-    see hgvs.dataproviders.uta.py for details
-    """
-
-
     def tx_identity_info(self, variant, hdpOld):
+        """
+        Input c. r. n. variant string
+        Use uta.py (hdp) to return the identity information for the transcript variant
+        see hgvs.dataproviders.uta.py for details
+        """
         # Set regular expressions for if statements
         pat_c = re.compile("\:c\.")  # Pattern looks for :c. Note (gene) has been removed
         pat_n = re.compile("\:n\.")  # Pattern looks for :c. Note (gene) has been removed
@@ -1751,39 +1701,30 @@ class Mixin(vvMixinInit.Mixin):
             # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
             return tx_id_info
 
-
-    """
-    Input c. r. nd accession string
-    Use uta.py (hdp) to return the identity information for the transcript variant 
-    see hgvs.dataproviders.uta.py for details
-    """
-
-
     def tx_id_info(self, alt_ac, hdpOld):
+        """
+        Input c. r. nd accession string
+        Use uta.py (hdp) to return the identity information for the transcript variant
+        see hgvs.dataproviders.uta.py for details
+        """
         tx_id_info = self.hdp.get_tx_identity_info(alt_ac)
         # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
         return tx_id_info
 
-
-    """
-    Use uta.py (hdp) to return the transcript information for a specified gene (HGNC SYMBOL)
-    see hgvs.dataproviders.uta.py for details
-    """
-
-
     def tx_for_gene(self, hgnc, hdpOld):
+        """
+        Use uta.py (hdp) to return the transcript information for a specified gene (HGNC SYMBOL)
+        see hgvs.dataproviders.uta.py for details
+        """
         # Interface with the UTA database via get_tx_for_gene in uta.py
         tx_for_gene = self.hdp.get_tx_for_gene(hgnc)
         return tx_for_gene
 
-
-    """
-    Extract RefSeqGene Accession from transcript information
-    see hgvs.dataproviders.uta.py for details
-    """
-
-
     def ng_extract(self, tx_for_gene):
+        """
+        Extract RefSeqGene Accession from transcript information
+        see hgvs.dataproviders.uta.py for details
+        """
         # Set regular expressions for if statements
         pat_NG = re.compile("^NG_")  # Pattern looks for NG_ at beginning of a string
         # For each list in the list of lists tx_for_gene
@@ -1794,14 +1735,12 @@ class Mixin(vvMixinInit.Mixin):
                 gene_ac = list[4]
                 return gene_ac
 
-    """
-    Returns exon information for a given transcript
-    e.g. how the exons align to the genomic reference
-    see hgvs.dataproviders.uta.py for details
-    """
-
-
     def tx_exons(self, tx_ac, alt_ac, alt_aln_method):
+        """
+        Returns exon information for a given transcript
+        e.g. how the exons align to the genomic reference
+        see hgvs.dataproviders.uta.py for details
+        """
         # Interface with the UTA database via get_tx_exons in uta.py
         try:
             tx_exons = self.hdp.get_tx_exons(tx_ac, alt_ac, alt_aln_method)
@@ -1821,13 +1760,10 @@ class Mixin(vvMixinInit.Mixin):
         else:
             return tx_exons
 
-
-    """
-    Automatically maps genomic positions onto all overlapping transcripts
-    """
-
-
     def relevant_transcripts(self, hgvs_genomic, evm, alt_aln_method,reverse_normalizer):
+        """
+        Automatically maps genomic positions onto all overlapping transcripts
+        """
         # Pass relevant transcripts for the input variant to rts
         # Note, the evm method misses one end, the hdp. method misses the other. Combine both
         rts_list = self.hdp.get_tx_for_region(hgvs_genomic.ac, alt_aln_method, hgvs_genomic.posedit.pos.start.base-1, hgvs_genomic.posedit.pos.end.base-1)
@@ -1903,13 +1839,10 @@ class Mixin(vvMixinInit.Mixin):
             code_var.append(str(variant))
         return code_var
 
-
-    """
-    Take HGVS string, parse into hgvs object and validate
-    """
-
-
     def validateHGVS(self, input):
+        """
+        Take HGVS string, parse into hgvs object and validate
+        """
         hgvs_input = self.hp.parse_hgvs_variant(input)
         g = re.compile(":g.")
         p = re.compile(":p.")
@@ -1946,12 +1879,10 @@ class Mixin(vvMixinInit.Mixin):
             error = 'false'
             return error
 
-    """
-    Search HGNC rest
-    """
-
-
     def hgnc_rest(self, path):
+        """
+        Search HGNC rest
+        """
         data = {
             'record': '',
             'error': 'false'
@@ -1979,14 +1910,10 @@ class Mixin(vvMixinInit.Mixin):
             data['error'] = "Unable to contact the HGNC database: Please try again later"
         return data
 
-
-    """
-    Search Entrez databases with efetch and SeqIO
-    """
-
-
     def entrez_efetch(self, db, id, rettype, retmode):
-        # IMPORT Bio modules
+        """
+        Search Entrez databases with efetch and SeqIO
+        """
         # from Bio import Entrez
         Entrez.email = self.entrezID
         # from Bio import SeqIO
@@ -1998,13 +1925,10 @@ class Mixin(vvMixinInit.Mixin):
         handle.close()
         return record
 
-
-    """
-    search Entrez databases with efetch and read
-    """
-
-
     def entrez_read(self,db, id, retmode):
+        """
+        search Entrez databases with efetch and read
+        """
         # IMPORT Bio modules
         # from Bio import Entrez
         Entrez.email = self.entrezID
@@ -2017,13 +1941,10 @@ class Mixin(vvMixinInit.Mixin):
         handle.close()
         return record
 
-
-    """
-    Simple reverse complement function for nucleotide sequences
-    """
-
-
     def revcomp(self, bases):
+        """
+        Simple reverse complement function for nucleotide sequences
+        """
         l2 = []
         l = list(bases)
         element = 0
@@ -2041,14 +1962,11 @@ class Mixin(vvMixinInit.Mixin):
         revcomp = revcomp[::-1]
         return revcomp
 
-
-    """
-    Function designed to merge multiple HGVS variants (hgvs objects) into a single delins 
-    using 3 prime normalization
-    """
-
-
     def merge_hgvs_3pr(self, hgvs_variant_list,hn):
+        """
+        Function designed to merge multiple HGVS variants (hgvs objects) into a single delins
+        using 3 prime normalization
+        """
         # Ensure c. is mapped to the
         h_list = []
 
@@ -2156,14 +2074,11 @@ class Mixin(vvMixinInit.Mixin):
             pass
         return hgvs_delins
 
-
-    """
-    Function designed to merge multiple HGVS variants (hgvs objects) into a single delins 
-    using 5 prime normalization
-    """
-
-
     def merge_hgvs_5pr(self, hgvs_variant_list):
+        """
+        Function designed to merge multiple HGVS variants (hgvs objects) into a single delins
+        using 5 prime normalization
+        """
         # Ensure c. is mapped to the
         h_list = []
 
@@ -2269,14 +2184,11 @@ class Mixin(vvMixinInit.Mixin):
             pass
         return hgvs_delins
 
-
-    """
-    Function designed to merge multiple pseudo VCF variants (strings) into a single HGVS delins 
-    using 5 prime normalization then return a 3 prime normalized final HGVS object
-    """
-
-
     def merge_pseudo_vcf(self, vcf_list, genome_build, hn):
+        """
+        Function designed to merge multiple pseudo VCF variants (strings) into a single HGVS delins
+        using 5 prime normalization then return a 3 prime normalized final HGVS object
+        """
         hgvs_list = []
         # Convert pseudo_vcf list into a HGVS list
         for call in vcf_list:
@@ -2289,14 +2201,11 @@ class Mixin(vvMixinInit.Mixin):
         # return
         return hgvs_delins
 
-
-    """
-    HGVS allele handling function which takes a single HGVS allele description and 
-    separates each allele into a list of HGVS variants
-    """
-
-
     def hgvs_alleles(self, variant_description,hn):
+        """
+        HGVS allele handling function which takes a single HGVS allele description and
+        separates each allele into a list of HGVS variants
+        """
         try:
             # Split up the description
             accession, remainder = variant_description.split(':')
@@ -2436,8 +2345,10 @@ class Mixin(vvMixinInit.Mixin):
             te = traceback.format_exc()
             raise fn.alleleVariantError(str(e))
 
-    # Covert chromosomal HGVS description to RefSeqGene
     def chr_to_rsg(self, hgvs_genomic, hn, vrOld):
+        '''
+        # Covert chromosomal HGVS description to RefSeqGene
+        '''
         # print 'chr_to_rsg triggered'
         hgvs_genomic = hn.normalize(hgvs_genomic)
         # split the description
@@ -2573,8 +2484,16 @@ class Mixin(vvMixinInit.Mixin):
         return descriptions
 
 
-    # Covert RefSeqGene HGVS description to Chromosomal
     def rsg_to_chr(self, hgvs_refseqgene, primary_assembly, hn, vr):
+        '''
+        # Covert RefSeqGene HGVS description to Chromosomal
+
+        :param hgvs_refseqgene:
+        :param primary_assembly:
+        :param hn: HGVS Normalizer
+        :param vr:
+        :return:
+        '''
         # normalize
         try:
             hgvs_refseqgene = hn.normalize(hgvs_refseqgene)

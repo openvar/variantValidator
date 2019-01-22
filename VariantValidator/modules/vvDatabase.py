@@ -12,10 +12,11 @@ import re
 import os
 
 class vvDatabase:
-    # This class contains and handles the mysql connections for the variant validator database.
+    '''
+    This class contains and handles the mysql connections for the variant validator database.
+    '''
     def __init__(self,val,dbConfig):
         self.conn = None
-        self.pool = None
         # self.cursor will be none UNLESS you're wrapping a function in @handleCursor, which automatically opens and
         # closes connections for you.
         self.cursor=None
@@ -28,7 +29,14 @@ class vvDatabase:
         self.insert = vvDBInsert(self) # contains dbinsert, dbupdate
         self.get = vvDBGet(self)       # contains dbfetchone, dbfetchall
         self.db=self #needed to make handlecursor behave
-
+        self.pool=mysql.connector.pooling.MySQLConnectionPool(pool_size=10, **self.dbConfig)
+    def __del__(self):
+        if self.conn:
+            self.conn.close()
+        if self.pool:
+            self.pool.close()
+        if self.cursor:
+            self.cursor.close()
     # from dbquery
     @handleCursor
     def query_with_fetchone(self,entry, table):
@@ -41,19 +49,23 @@ class vvDatabase:
             logger.debug("No data returned from query "+str(query))
         return row
     # From data
-    # function for adding information to database
-    def data_add(self, input, alt_aln_method, accession, dbaction, hp, evm, hdp):
+    def data_add(self, accession):
+        '''
         # Add accurate transcript descriptions to the database
-        # RefSeq databases
-        # Get the Entrez (GenBank) file
-        self.update_transcript_info_record(accession, hdp)
+        :param accession:
+        :return:
+        '''
+        self.update_transcript_info_record(accession, self.val.hdp)
         entry = self.in_entries(accession, 'transcript_info')
         return entry
 
-    # Retrieve transcript information
-
     def in_entries(self,entry, table):
-        # Use dbquery.py to connect to mysql and return the necessary data
+        '''
+        Retrieve transcript information
+        :param entry:
+        :param table:
+        :return:
+        '''
         data={}
         if table == 'transcript_info':
             row = self.query_with_fetchone(entry, table)
@@ -74,7 +86,9 @@ class vvDatabase:
                 data['expiry'] = row[7]
         return data
     def update_transcript_info_record(self,accession, hdp):
+        '''
         # Search Entrez for corresponding record for the RefSeq ID
+        '''
         # Prime these entries, just in case.
         previous_entry = self.in_entries(accession, 'transcript_info')
         accession = accession

@@ -1,6 +1,9 @@
 from vvFunctions import handleCursor
 
 class vvDBInsert:
+    '''
+    This object is a function container for inserting objects into the database.
+    '''
     def __init__(self,db):
         # These are inherited by reference from the vvDatabase object.
         self.db=db

@@ -15,11 +15,13 @@ import mysql
 #from urllib.parse import urlparse #Python 3
 
 def handleCursor(func):
-    #Decorator function for handling opening and closing cursors.
+    '''
+    Decorator function for handling opening and closing cursors.
+    '''
     @functools.wraps(func)
     def wrapper(self,*args,**kwargs):
-        if self.db.pool==None:
-            self.db.pool=mysql.connector.pooling.MySQLConnectionPool(pool_size=10, **self.db.dbConfig)
+#        if self.db.pool==None:
+#            self.db.pool=mysql.connector.pooling.MySQLConnectionPool(pool_size=10, **self.db.dbConfig)
         self.db.conn=self.db.pool.get_connection()
         self.db.cursor = self.db.conn.cursor(buffered=True)
         out=func(self,*args,**kwargs)
@@ -78,15 +80,15 @@ def valstr(hgvs_variant):
     return cp_hgvs_variant
 
 # From output_formatter
-"""
-format protein description into single letter aa code
-"""
 def single_letter_protein(hgvs_protein):
+    """
+    format protein description into single letter aa code
+    """
     return hgvs_protein.format({'p_3_letter': False})
-"""
-format nucleotide descriptions to not display reference base
-"""
 def remove_reference(hgvs_nucleotide):
+    """
+    format nucleotide descriptions to not display reference base
+    """
     hgvs_nucleotide_refless = hgvs_nucleotide.format({'max_ref_length': 0})
     return hgvs_nucleotide_refless
 
@@ -103,16 +105,16 @@ def exceptPass(validation=None):
     logger.debug(er)
 
 # From functions.py
-"""
-user_input
-collect the input from the form and convert to a hgvs readable string
-    Removes brackets and contained information -if given
-    Identifies variant type (p. c. etc)
-    Returns a dictionary containing a formated input string which is optimal for hgvs 
-    parsing and the variant type
-    Accepts c, g, n, r currently. And now P also 15.07.15
-"""
 def user_input(input):
+    """
+    user_input
+    collect the input from the form and convert to a hgvs readable string
+        Removes brackets and contained information -if given
+        Identifies variant type (p. c. etc)
+        Returns a dictionary containing a formated input string which is optimal for hgvs
+        parsing and the variant type
+        Accepts c, g, n, r currently. And now P also 15.07.15
+    """
     raw_variant = input.strip()
 
     # Set regular expressions for if statements
@@ -185,11 +187,10 @@ def user_input(input):
         return formatted
 
 # From links.py
-"""
-Function which predicts the protein effect of c. inversions
-"""
-
 def pro_inv_info(prot_ref_seq, prot_var_seq):
+    """
+    Function which predicts the protein effect of c. inversions
+    """
     info = {
         'variant': 'true',
         'prot_del_seq': '',
@@ -382,11 +383,11 @@ def pro_delins_info(prot_ref_seq, prot_var_seq):
                         info['edit_end'] = info['edit_start'] + len(ref) -1
                         return info
 
-"""
-Translate c. reference sequences, including those that have been modified 
-must have the CDS in the specified position
-"""
 def translate(ed_seq, cds_start):
+    """
+    Translate c. reference sequences, including those that have been modified
+    must have the CDS in the specified position
+    """
     # ed_seq = ed_seq.replace('\n', '')
     ed_seq = ed_seq.strip()
     # Ensure the starting codon is in the correct position
@@ -415,10 +416,10 @@ def translate(ed_seq, cds_start):
         translation = 'error'
         return translation
 
-"""
-Convert single letter amino acid code to 3 letter code
-"""
 def one_to_three(seq):
+    """
+    Convert single letter amino acid code to 3 letter code
+    """
     aacode = {
         'A': 'Ala', 'C': 'Cys', 'D': 'Asp', 'E': 'Glu',
         'F': 'Phe', 'G': 'Gly', 'H': 'His', 'I': 'Ile',
@@ -438,11 +439,11 @@ def one_to_three(seq):
     return threed_up
 
 
-""" 
-Takes a reference sequence and inverts the specified position
-"""
 # n. Inversions - This comes from VariantValidator, not validation!!!!
 def n_inversion(ref_seq, del_seq, inv_seq, interval_start, interval_end):
+    """
+    Takes a reference sequence and inverts the specified position
+    """
     sequence = ''
     # Use string indexing to check whether the sequences are the same
     test = ref_seq[interval_start - 1:interval_end]

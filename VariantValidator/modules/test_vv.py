@@ -18,24 +18,24 @@ from VariantValidator import variantValidator as vv
 vv.my_config()
 '''
 
-def constructVal():
-    val=Validator()
-    return val
 
 @pytest.fixture(params=inputVariants[:])
 def constructValidation(request):
-    val=constructVal()
+    val=Validator()
 #    print request.param
     selectTranscripts='all'
     selectedAssembly='GRCh37'
-    return val,val.validate(request.param,selectedAssembly,selectTranscripts)
+    out=val.validate(request.param,selectedAssembly,selectTranscripts)
+    del val.db
+    del val
+    return out
 
 def test_validation_output(constructValidation):
-    val,v=constructValidation
+    v=constructValidation
     assert v!=None
 
 def test_validation_errors(constructValidation):
-    val,v=constructValidation
+    v=constructValidation
     logs=v["metadata"]["logs"].split("\n")
     e=0
     for l in logs:
@@ -44,7 +44,7 @@ def test_validation_errors(constructValidation):
     assert e==0
 
 def test_validation_criticals(constructValidation):
-    val,v=constructValidation
+    v=constructValidation
     logs=v["metadata"]["logs"].split("\n")
     c=0
     for l in logs:

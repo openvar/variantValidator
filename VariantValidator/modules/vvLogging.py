@@ -7,10 +7,13 @@ from StringIO import StringIO
 VALIDATOR_DEBUG=os.environ.get('VALIDATOR_DEBUG')
 
 class logger():
+    '''
     #Grand unified variant validator logging static class.
+    '''
     #logString=StringIO()
     @staticmethod
     def loggingSetup():
+        '''
         # Set up logging
         # I need to use the VVObfuscator in the logger global dictionary
         # becuase it's a global variable tied to the logger module
@@ -19,6 +22,7 @@ class logger():
         # once. If another programmer has any better ideas that leave these functions
         # with a configured VV logger object that only has its handlers added once,
         # feel free to fix it up.
+        '''
         #print("Entering setup")
         #The logger must be at the very least drawn from the logging library's dictionary
         #for every time this module is imported.

@@ -1,18 +1,6 @@
 """
 A variety of functions that convert parder hgvs objects into VCF component parts
 Each function has a slightly difference emphasis
-1. hgvs2vcf
-Simple conversionwhich ensures identity is as 5 prime as possible by adding an extra 5
-prime base. Necessary for most gap handling situations
-2. report_hgvs2vcf
-Used to report the Most true representation of the VCF i.e. 5 prime normalized but no
-additional bases added. NOTE: no gap handling capabilities
-3. pos_lock_hgvs2vcf
-No normalization at all. No additional bases added. Simply returns an in-situ VCF
-4. hard_right_hgvs2vcf and hard_left_hgvs2vcf
-Designed specifically for gap handling.
-hard left pushes as 5 prime as possible and adds additional bases
-hard right pushes as 3 prime as possible and adds additional bases
 """
 
 # Import modules
@@ -31,10 +19,15 @@ import hgvs
 # Error handling
 class pseudoVCF2HGVSError(Exception):
     pass
-# pvcf is a pseudo_vcf string
-# genome build is a build string e.g. GRCh37 hg19
-# normalization direction an integer, 5 or 3.
 def pvcf_to_hgvs(input, selected_assembly, normalization_direction, reverse_normalizer, validator):
+    '''
+    :param input: pseudo_vcf string
+    :param selected_assembly:
+    :param normalization_direction: normalization direction an integer, 5 or 3.
+    :param reverse_normalizer:
+    :param validator:
+    :return:
+    '''
     # Set normalizer
     if normalization_direction == 3:
         selected_normalizer = validator.hn
@@ -190,6 +183,16 @@ def pvcf_to_hgvs(input, selected_assembly, normalization_direction, reverse_norm
 
 
 def hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
+    '''
+    Simple conversionwhich ensures identity is as 5 prime as possible by adding an extra 5
+    prime base. Necessary for most gap handling situations
+
+    :param hgvs_genomic:
+    :param primary_assembly:
+    :param reverse_normalizer:
+    :param sf:
+    :return:
+    '''
     hgvs_genomic_variant = hgvs_genomic
     # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
     reverse_normalized_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic_variant)
@@ -335,6 +338,16 @@ def hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
 
 
 def report_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
+    '''
+    Used to report the Most true representation of the VCF i.e. 5 prime normalized but no
+    additional bases added. NOTE: no gap handling capabilities
+
+    :param hgvs_genomic:
+    :param primary_assembly:
+    :param reverse_normalizer:
+    :param sf:
+    :return:
+    '''
     hgvs_genomic_variant = hgvs_genomic
 
     # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
@@ -498,6 +511,15 @@ def report_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
 
 
 def pos_lock_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
+    '''
+    No normalization at all. No additional bases added. Simply returns an in-situ VCF
+
+    :param hgvs_genomic:
+    :param primary_assembly:
+    :param reverse_normalizer:
+    :param sf:
+    :return:
+    '''
     # Replace reference manually
     if hgvs_genomic.posedit.edit.ref == '':
         hgvs_genomic.posedit.edit.ref = sf.fetch_seq(str(hgvs_genomic.ac), hgvs_genomic.posedit.pos.start.base - 1,
@@ -640,6 +662,10 @@ def pos_lock_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
 
 
 def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, sf):
+    '''
+    Designed specifically for gap handling.
+    hard right pushes as 3 prime as possible and adds additional bases
+    '''
     hgvs_genomic_variant = hgvs_genomic
     # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
     normalized_hgvs_genomic = hn.normalize(hgvs_genomic_variant)
@@ -784,6 +810,16 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, sf):
 
 
 def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
+    '''
+    Designed specifically for gap handling.
+    hard left pushes as 5 prime as possible and adds additional bases
+
+    :param hgvs_genomic:
+    :param primary_assembly:
+    :param reverse_normalizer:
+    :param sf:
+    :return:
+    '''
     hgvs_genomic_variant = hgvs_genomic
     # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
     reverse_normalized_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic_variant)
