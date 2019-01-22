@@ -1,7 +1,7 @@
 #Saving script
 
 import vvTestFunctions as fn
-from vvObjects import Validator
+from VariantValidator import Validator
 import os
 
 val=Validator()

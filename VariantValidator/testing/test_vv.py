@@ -2,7 +2,7 @@
 import os
 import pytest
 import vvTestFunctions as fn
-from vvObjects import Validator
+from VariantValidator import Validator
 
 inputVariants=fn.loadVariantFile("VariantValidator/modules/inputVariants.txt")
 
