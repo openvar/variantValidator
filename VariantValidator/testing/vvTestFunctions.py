@@ -150,17 +150,28 @@ def retrieveVariant(validation):
 
 def compareValidations(v1,v2,id):
     #print(v1,v2)
-    for vk in v1.keys():
-        if not (vk in v2.keys()):
+    #Remove metadata
+    v1Keys=v1.keys()
+    if "metadata" in v1Keys:
+        v1Keys.remove("metadata")
+    else:
+        print("Variant "+str(id)+": metadata not found in first variant")
+    v2Keys=v2.keys()
+    if "metadata" in v2Keys:
+        v2Keys.remove("metadata")
+    else:
+        print("Variant "+str(id)+": metadata not found in second variant")
+    for vk in v1Keys:
+        if not (vk in v2Keys):
 #            print("tag "+vk+" : "+str(v1[vk])+" not found in second variant")
             print("Variant "+str(id)+": Tag "+vk+" not found in second variant")
             return False
-    for vk in v2.keys():
-        if not (vk in v1.keys()):
+    for vk in v2Keys:
+        if not (vk in v1Keys):
 #            print("tag "+vk+" : "+str(v2[vk])+" not found in first variant")
             print("Variant "+str(id)+": Tag "+vk+" not found in first variant")
             return False
-    for vk in v1.keys():
+    for vk in v1Keys:
         if not (v1[vk]==v2[vk]):
             if type(v1[vk])==type(dict()) or type(v2[vk])==type(dict()):
                 print("Variant " + str(id) + ": Different tag values for key " + str(vk))

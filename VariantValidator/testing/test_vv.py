@@ -4,7 +4,7 @@ import pytest
 import vvTestFunctions as fn
 from VariantValidator import Validator
 
-inputVariants=fn.loadVariantFile("VariantValidator/modules/inputVariants.txt")
+inputVariants=fn.loadVariantFile("inputVariants.txt")
 
 '''
 print("Configuring for personal linux")
