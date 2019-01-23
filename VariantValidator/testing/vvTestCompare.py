@@ -2,7 +2,7 @@
 
 import vvTestFunctions as fn
 
-masterDirectory="testOutputsMasterITS"
+masterDirectory="testOutputsMasterITS	"
 testDirectories=["testOutputs"]
 
 for d in testDirectories:

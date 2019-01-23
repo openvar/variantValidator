@@ -121,4 +121,8 @@ After it finishes downloading, check it installed correctly:
 
 ## Configuration
 
-See the file MANUAL.md for configuration instructions.
+See the file MANUAL.md for configuration instructions - but before you attempt to configure anything, run
+ > python simpleTestScript.py
+to check that validator's depedencies are installed correctly, and allow it to create a blank configuration file on your system.
+
+
