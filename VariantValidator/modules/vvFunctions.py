@@ -11,6 +11,7 @@ from vvLogging import logger
 import re
 import copy
 import mysql
+import time
 
 #from urllib.parse import urlparse #Python 3
 
@@ -20,15 +21,15 @@ def handleCursor(func):
     '''
     @functools.wraps(func)
     def wrapper(self,*args,**kwargs):
-#        if self.db.pool==None:
-#            self.db.pool=mysql.connector.pooling.MySQLConnectionPool(pool_size=10, **self.db.dbConfig)
-        self.db.conn=self.db.pool.get_connection()
-        self.db.cursor = self.db.conn.cursor(buffered=True)
+#        if self.pool==None:
+#            self.pool=mysql.connector.pooling.MySQLConnectionPool(pool_size=10, **self.dbConfig)
+#        self.conn=self.pool.get_connection()
+        self.cursor = self.conn.cursor(buffered=True)
         out=func(self,*args,**kwargs)
-        if self.db.cursor:
-            self.db.cursor.close()
-        if self.db.conn:
-            self.db.conn.close()
+        if self.cursor:
+            self.cursor.close()
+#        if self.conn:
+#            self.conn.close()
         #self.cursor=None
         return out
     return wrapper

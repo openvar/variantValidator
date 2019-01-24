@@ -200,7 +200,7 @@ class Mixin(vvMixinInit.Mixin):
 
         # Gap gene black list
         try:
-            gene_symbol = self.db.get.get_gene_symbol_from_transcriptID(hgvs_c.ac)
+            gene_symbol = self.db.get_gene_symbol_from_transcriptID(hgvs_c.ac)
         except Exception:
             utilise_gap_code = False
         else:
@@ -1092,7 +1092,7 @@ class Mixin(vvMixinInit.Mixin):
 
         # Gap gene black list
         try:
-            gene_symbol = self.db.get.get_gene_symbol_from_transcriptID(hgvs_c.ac)
+            gene_symbol = self.db.get_gene_symbol_from_transcriptID(hgvs_c.ac)
         except Exception:
             utilise_gap_code = False
         else:
@@ -1630,7 +1630,7 @@ class Mixin(vvMixinInit.Mixin):
         """
         # check for LRG_t with r.
         if re.match('LRG', hgvs_object.ac):
-            transcript_ac = self.db.get.get_RefSeqTranscriptID_from_lrgTranscriptID(hgvs_object.ac)
+            transcript_ac = self.db.get_RefSeqTranscriptID_from_lrgTranscriptID(hgvs_object.ac)
             if transcript_ac == 'none':
                 raise HGVSDataNotAvailableError('Unable to identify a relevant transcript for ' + hgvs_object.ac)
             else:
@@ -2364,7 +2364,7 @@ class Mixin(vvMixinInit.Mixin):
         rsg_data_set = []
 
         # Recover table from MySql
-        all_info = self.db.get.get_g_to_g_info()
+        all_info = self.db.get_g_to_g_info()
         for line in all_info:
             # Logic to identify the correct RefSeqGene
             rsg_data = {}
@@ -2512,7 +2512,7 @@ class Mixin(vvMixinInit.Mixin):
         chr_data_set = []
 
         # Recover table from MySql
-        all_info = self.db.get.get_g_to_g_info()
+        all_info = self.db.get_g_to_g_info()
         for line in all_info:
             # Logic to identify the correct RefSeqGene
             chr_data = {}

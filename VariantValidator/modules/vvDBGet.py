@@ -1,25 +1,23 @@
 from vvFunctions import handleCursor
 from vvLogging import logger
+import vvDBInit
 
-class vvDBGet:
+class Mixin(vvDBInit.Mixin):
     '''
     Most of the functions in DBGet generate queries for retrieving data from the databases.
     '''
-    def __init__(self,db):
-        # These are inherited by reference from the vvDatabase object.
-        self.db=db
     @handleCursor
     def execute(self,query):
-        self.db.cursor.execute(query)
-        row = self.db.cursor.fetchone()
+        self.cursor.execute(query)
+        row = self.cursor.fetchone()
         if row is None:
             logger.debug("No data returned from query "+str(query))
             row = ['none', 'No data']
         return row
     @handleCursor
     def executeAll(self,query):
-        self.db.cursor.execute(query)
-        rows = self.db.cursor.fetchall()
+        self.cursor.execute(query)
+        rows = self.cursor.fetchall()
         if rows==[]:
             logger.debug("No data returned from query "+str(query))
             rows = ['none', 'No data']

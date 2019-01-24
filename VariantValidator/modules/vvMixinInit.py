@@ -104,6 +104,7 @@ class Mixin():
             'database':config["mysql"]["database"],
     	    'raise_on_warnings': True
         }
+        #Create database access objects
         self.db=vvDatabase(self,self.dbConfig)
         # Set up versions
         __version__ = config["variantValidator"]['version']

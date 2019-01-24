@@ -1,42 +1,28 @@
-import mysql.connector
-from mysql.connector.pooling import MySQLConnectionPool
 from vvLogging import logger
 import vvFunctions as fn
 from vvFunctions import handleCursor
-from vvDBInsert import vvDBInsert
-from vvDBGet import vvDBGet
+#from vvDBInsert import vvDBInsert
+#from vvDBGet import vvDBGet
+import vvDBInsert
 import urllib2
 import copy
 
 import re
 import os
 
-class vvDatabase:
+class vvDatabase(vvDBInsert.Mixin):
     '''
     This class contains and handles the mysql connections for the variant validator database.
+
+    It now uses mixins, and the order of inheritance is
+    vvDBInit.Mixin
+       v
+    vvDBGet.Mixin
+       v
+    vvDBInsert.Mixin
+       v
+    vvDatabase
     '''
-    def __init__(self,val,dbConfig):
-        self.conn = None
-        # self.cursor will be none UNLESS you're wrapping a function in @handleCursor, which automatically opens and
-        # closes connections for you.
-        self.cursor=None
-        self.dbConfig=dbConfig
-        # Construct database URL
-        #'mysqlx://vvadmin:var1ant@127.0.0.1/validator'
-        self.path="mysqlx://"+dbConfig["user"]+":"+dbConfig["password"]+"@"+dbConfig["host"]+"/"+dbConfig["database"]
-        os.environ["VALIDATOR_DB_URL"]=self.path
-        self.val=val
-        self.insert = vvDBInsert(self) # contains dbinsert, dbupdate
-        self.get = vvDBGet(self)       # contains dbfetchone, dbfetchall
-        self.db=self #needed to make handlecursor behave
-        self.pool=mysql.connector.pooling.MySQLConnectionPool(pool_size=10, **self.dbConfig)
-    def __del__(self):
-        if self.conn:
-            self.conn.close()
-        if self.pool:
-            self.pool.close()
-        if self.cursor:
-            self.cursor.close()
     # from dbquery
     @handleCursor
     def query_with_fetchone(self,entry, table):
@@ -156,34 +142,34 @@ class vvDatabase:
         returned_data = self.in_entries(version, table)
         # If the entry is not in the database add it
         if 'none' in returned_data:
-            self.insert.add_entry(version, query_info, table)
+            self.add_entry(version, query_info, table)
         # If the data in the entry has changed, update it
         else:
-            self.insert.update_entry(version, query_info, table)
+            self.update_entry(version, query_info, table)
         return
 
     def update_refSeqGene_loci(self,rsg_data):
         # First query the database
-        entry_exists = self.get.get_refSeqGene_data_by_refSeqGeneID(rsg_data[0], rsg_data[2])
+        entry_exists = self.get_refSeqGene_data_by_refSeqGeneID(rsg_data[0], rsg_data[2])
         if entry_exists[0] == 'none':
-            self.insert.insert_refSeqGene_data(rsg_data)
+            self.insert_refSeqGene_data(rsg_data)
         else:
-            self.insert.update_refSeqGene_data(rsg_data)
+            self.update_refSeqGene_data(rsg_data)
     def update_lrg_rs_lookup(self,lrg_rs_lookup):
         # First query the database
-        rsgID = self.get.get_RefSeqGeneID_from_lrgID(lrg_rs_lookup[0])
+        rsgID = self.get_RefSeqGeneID_from_lrgID(lrg_rs_lookup[0])
         if rsgID == 'none':
-            self.insert.insert_RefSeqGeneID_from_lrgID(lrg_rs_lookup)
+            self.insert_RefSeqGeneID_from_lrgID(lrg_rs_lookup)
     def update_lrgt_rst(self,lrgtx_to_rstID):
         # First query the database
-        rstID = self.get.get_RefSeqTranscriptID_from_lrgTranscriptID(lrgtx_to_rstID[0])
+        rstID = self.get_RefSeqTranscriptID_from_lrgTranscriptID(lrgtx_to_rstID[0])
         if rstID == 'none':
-            self.insert.insert_LRG_transcript_data(lrgtx_to_rstID)
+            self.insert_LRG_transcript_data(lrgtx_to_rstID)
     def update_lrg_p_rs_p_lookup(self,lrg_p, rs_p):
         # First query the database
-        rspID = self.get.get_RefSeqProteinID_from_lrgProteinID(lrg_p)
+        rspID = self.get_RefSeqProteinID_from_lrgProteinID(lrg_p)
         if rspID == 'none':
-            self.insert.insert_LRG_protein_data(lrg_p, rs_p)
+            self.insert_LRG_protein_data(lrg_p, rs_p)
     # From variantValidator.py
     def update_vv_data(self):
         # Update refSeqGene Primary assembly alignment data
@@ -420,7 +406,7 @@ class vvDatabase:
 
         # Set up code to write to database
         for line in to_mysql:
-            current_symbol = self.get.get_gene_symbol_from_refSeqGeneID(line[0])
+            current_symbol = self.get_gene_symbol_from_refSeqGeneID(line[0])
             if line[10] == current_symbol:
                 pass
             else:
@@ -546,7 +532,7 @@ class vvDatabase:
             ref_type = ':p.'
         elif re.match('LRG_', accession):
             if re.search('t', accession):
-                refseqtranscript_reference = self.get.get_RefSeqTranscriptID_from_lrgTranscriptID(accession)
+                refseqtranscript_reference = self.get_RefSeqTranscriptID_from_lrgTranscriptID(accession)
                 if re.match('NM_', refseqtranscript_reference):
                     ref_type = ':c.'
                 else:

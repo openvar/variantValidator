@@ -86,7 +86,7 @@ class Mixin(vvMixinConverters.Mixin):
                 for id in select_transcripts_list:
                     id = id.strip()
                     if re.match('LRG', id):
-                        id = self.db.get.get_RefSeqTranscriptID_from_lrgTranscriptID(id)
+                        id = self.db.get_RefSeqTranscriptID_from_lrgTranscriptID(id)
                         if id == 'none':
                             continue
                     select_transcripts_dict_plus_version[id] = ''
@@ -396,9 +396,9 @@ class Mixin(vvMixinConverters.Mixin):
                                 ref_type = self.db.ref_type_assign(accession)
                                 if re.match('LRG_', accession):
                                     if ref_type == ':g.':
-                                        accession = self.db.get.get_RefSeqGeneID_from_lrgID(accession)
+                                        accession = self.db.get_RefSeqGeneID_from_lrgID(accession)
                                     else:
-                                        accession = self.db.get.get_RefSeqTranscriptID_from_lrgTranscriptID(accession)
+                                        accession = self.db.get_RefSeqTranscriptID_from_lrgTranscriptID(accession)
                                 else:
                                     accession = accession
                                 input = str(accession) + ref_type + str(positionAndEdit)
@@ -443,7 +443,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 pre_input = copy.deepcopy(input)
                                 input_list = input.split(':')
                                 query_a_symbol = input_list[0]
-                                is_it_a_gene = self.db.get.get_hgnc_symbol(query_a_symbol)
+                                is_it_a_gene = self.db.get_hgnc_symbol(query_a_symbol)
                                 if is_it_a_gene == 'none':
                                     pos_ref_alt = str(input_list[1])
                                     positionAndEdit = input_list[1]
@@ -485,9 +485,9 @@ class Mixin(vvMixinConverters.Mixin):
                             pre_input = copy.deepcopy(input)
                             query_a_symbol = pre_input.split(':')[0]
                             tx_edit = pre_input.split(':')[1]
-                            is_it_a_gene = self.db.get.get_hgnc_symbol(query_a_symbol)
+                            is_it_a_gene = self.db.get_hgnc_symbol(query_a_symbol)
                             if is_it_a_gene != 'none':
-                                uta_symbol = self.db.get.get_uta_symbol(is_it_a_gene)
+                                uta_symbol = self.db.get_uta_symbol(is_it_a_gene)
                                 available_transcripts = self.hdp.get_tx_for_gene(uta_symbol)
                                 select_from_these_transcripts = {}
                                 for tx in available_transcripts:
@@ -539,9 +539,9 @@ class Mixin(vvMixinConverters.Mixin):
                             if re.match('^NG_', input):
                                 refSeqGeneID = input.split(':')[0]
                                 tx_edit = input.split(':')[1]
-                                gene_symbol = self.db.get.get_gene_symbol_from_refSeqGeneID(refSeqGeneID)
+                                gene_symbol = self.db.get_gene_symbol_from_refSeqGeneID(refSeqGeneID)
                                 if gene_symbol != 'none':
-                                    uta_symbol = self.db.get.get_uta_symbol(gene_symbol)
+                                    uta_symbol = self.db.get_uta_symbol(gene_symbol)
                                     available_transcripts = self.hdp.get_tx_for_gene(uta_symbol)
                                     select_from_these_transcripts = {}
                                     for tx in available_transcripts:
@@ -815,7 +815,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                                                                               input) or re.match(
                                 '^LRG_\d+:n.', input):
                                 lrg_reference, variation = input.split(':')
-                                refseqgene_reference = self.db.get.get_RefSeqGeneID_from_lrgID(lrg_reference)
+                                refseqgene_reference = self.db.get_RefSeqGeneID_from_lrgID(lrg_reference)
                                 if refseqgene_reference != 'none':
                                     input = refseqgene_reference + ':' + variation
                                     if caution == '':
@@ -827,7 +827,7 @@ class Mixin(vvMixinConverters.Mixin):
                             elif re.match('^LRG_\d+t\d+:c.', input) or re.match('^LRG_\d+t\d+:n.', input) or re.match(
                                     '^LRG_\d+t\d+:p.', input) or re.match('^LRG_\d+t\d+:g.', input):
                                 lrg_reference, variation = input.split(':')
-                                refseqtranscript_reference = self.db.get.get_RefSeqTranscriptID_from_lrgTranscriptID(
+                                refseqtranscript_reference = self.db.get_RefSeqTranscriptID_from_lrgTranscriptID(
                                     lrg_reference)
                                 if refseqtranscript_reference != 'none':
                                     input = refseqtranscript_reference + ':' + variation
@@ -1086,7 +1086,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                                                     str(input_parses)) or re.match(
                             '^LRG_\d+:c.', str(input_parses)) or re.match('^LRG_\d+:n.', str(input_parses)):
                             lrg_reference, variation = str(input_parses).split(':')
-                            refseqgene_reference = self.db.get.get_RefSeqGeneID_from_lrgID(lrg_reference)
+                            refseqgene_reference = self.db.get_RefSeqGeneID_from_lrgID(lrg_reference)
                             if refseqgene_reference != 'none':
                                 input_parses.ac = refseqgene_reference
                                 variant = str(input_parses)
@@ -1102,7 +1102,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                                                         str(input_parses)) or re.match(
                             '^LRG_\d+t\d+:p.', str(input_parses)) or re.match('^LRG_\d+t\d+:g.', str(input_parses)):
                             lrg_reference, variation = str(input_parses).split(':')
-                            refseqtranscript_reference = self.db.get.get_RefSeqTranscriptID_from_lrgTranscriptID(
+                            refseqtranscript_reference = self.db.get_RefSeqTranscriptID_from_lrgTranscriptID(
                                 lrg_reference)
                             if refseqtranscript_reference != 'none':
                                 input_parses.ac = refseqtranscript_reference
@@ -1433,7 +1433,7 @@ class Mixin(vvMixinConverters.Mixin):
                             except hgvs.exceptions.HGVSDataNotAvailableError as e:
                                 tx_ac = input_parses.ac
                                 try:
-                                    gene_symbol = self.db.get.get_gene_symbol_from_transcriptID(tx_ac)
+                                    gene_symbol = self.db.get_gene_symbol_from_transcriptID(tx_ac)
                                 except:
                                     gene_symbol = 'none'
                                 if gene_symbol == 'none':
@@ -1668,7 +1668,7 @@ class Mixin(vvMixinConverters.Mixin):
                             except hgvs.exceptions.HGVSDataNotAvailableError as e:
                                 tx_ac = input_parses.ac
                                 try:
-                                    gene_symbol = self.db.get.get_gene_symbol_from_transcriptID(tx_ac)
+                                    gene_symbol = self.db.get_gene_symbol_from_transcriptID(tx_ac)
                                 except:
                                     gene_symbol = 'none'
                                 if gene_symbol == 'none':
@@ -3179,7 +3179,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 logger.warning(str(error))
                                 continue
                             try:
-                                gene_symbol = self.db.get.get_gene_symbol_from_transcriptID(tx_ac)
+                                gene_symbol = self.db.get_gene_symbol_from_transcriptID(tx_ac)
                             except:
                                 gene_symbol = 'none'
                             if gene_symbol == 'none':
@@ -3191,7 +3191,7 @@ class Mixin(vvMixinConverters.Mixin):
                             continue
                         except TypeError as e:
                             try:
-                                gene_symbol = self.db.get.get_gene_symbol_from_transcriptID(tx_ac)
+                                gene_symbol = self.db.get_gene_symbol_from_transcriptID(tx_ac)
                             except:
                                 gene_symbol = 'none'
                             if gene_symbol == 'none':
@@ -3931,7 +3931,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                             # Gap gene black list
                             try:
-                                gene_symbol = self.db.get.get_gene_symbol_from_transcriptID(hgvs_coding.ac)
+                                gene_symbol = self.db.get_gene_symbol_from_transcriptID(hgvs_coding.ac)
                             except Exception:
                                 fn.exceptPass()
                             else:
@@ -6434,7 +6434,7 @@ class Mixin(vvMixinConverters.Mixin):
                             hgvs_refseqgene_variant = 'false'
                         else:
                             hgvs_refseqgene_variant = self.hp.parse_hgvs_variant(refseqgene_variant)
-                            rsg_ac = self.db.get.get_lrgID_from_RefSeqGeneID(str(hgvs_refseqgene_variant.ac))
+                            rsg_ac = self.db.get_lrgID_from_RefSeqGeneID(str(hgvs_refseqgene_variant.ac))
                             if rsg_ac[0] == 'none':
                                 lrg_variant = ''
                             else:
@@ -6462,7 +6462,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                             # Handle LRG
                             lrg_status = 'public'
-                            lrg_transcript = self.db.get.get_lrgTranscriptID_from_RefSeqTranscriptID(transcript_accession)
+                            lrg_transcript = self.db.get_lrgTranscriptID_from_RefSeqTranscriptID(transcript_accession)
                             if lrg_transcript == 'none':
                                 lrg_transcript_variant = ''
                             else:
@@ -6525,14 +6525,14 @@ class Mixin(vvMixinConverters.Mixin):
                         predicted_protein_variant = valid['protein']
                         if re.match('NP_', predicted_protein_variant):
                             rs_p, pred_prot_posedit = predicted_protein_variant.split(':')
-                            lrg_p = self.db.get.get_lrgProteinID_from_RefSeqProteinID(rs_p)
+                            lrg_p = self.db.get_lrgProteinID_from_RefSeqProteinID(rs_p)
                             if re.match('LRG', lrg_p):
                                 predicted_protein_variant = rs_p + '(' + lrg_p + '):' + pred_prot_posedit
 
                         # Gene
                         if transcript_accession != '':
                             try:
-                                gene_symbol = self.db.get.get_gene_symbol_from_transcriptID(transcript_accession)
+                                gene_symbol = self.db.get_gene_symbol_from_transcriptID(transcript_accession)
                             except:
                                 gene_symbol = 'Unable to verify gene symbol for ' + str(transcript_accession)
                         else:
@@ -6557,7 +6557,7 @@ class Mixin(vvMixinConverters.Mixin):
                             hgvs_coding = self.hp.parse_hgvs_variant(str(tx_variant))
                             # Gap gene black list
                             try:
-                                gene_symbol = self.db.get.get_gene_symbol_from_transcriptID(hgvs_coding.ac)
+                                gene_symbol = self.db.get_gene_symbol_from_transcriptID(hgvs_coding.ac)
                             except Exception:
                                 fn.exceptPass()
                             else:
@@ -8099,7 +8099,7 @@ class Mixin(vvMixinConverters.Mixin):
                         dict_out['reference_sequence_records'] = ''
 
                         # Add links to reference_sequence_records
-                        ref_records = self.db.get.get_urls(dict_out)
+                        ref_records = self.db.get_urls(dict_out)
                         if ref_records != {}:
                             dict_out['reference_sequence_records'] = ref_records
 

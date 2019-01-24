@@ -72,7 +72,7 @@ def pvcf_to_hgvs(input, selected_assembly, normalization_direction, reverse_norm
         # Assign reference sequence type
         ref_type = ':g.'
         if re.match('LRG_', accession):
-            accession = validator.db.get.get_RefSeqGeneID_from_lrgID(accession)
+            accession = validator.db.get_RefSeqGeneID_from_lrgID(accession)
 
         # Reformat the variant
         input = str(accession) + ref_type + str(positionAndEdit)
