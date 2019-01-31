@@ -18,26 +18,7 @@ logConsoleHandler.setLevel(logging.DEBUG)
 hl=logging.getLogger("hgvs.dataproviders.uta")
 hl.addHandler(logConsoleHandler)
 
-try:
-    print("Configuring for personal linux")
-    seqrepo_current_version='2018-08-21'
-    HGVS_SEQREPO_DIR='/home/buran/documents/workspace/ITS/seqrepo/'+seqrepo_current_version
-    os.environ['HGVS_SEQREPO_DIR']=HGVS_SEQREPO_DIR
-    uta_current_version='uta_20180821'
-    UTA_DB_URL='postgresql://uta_admin:uta_admin@127.0.0.1/uta/' + uta_current_version
-    os.environ['UTA_DB_URL']=UTA_DB_URL
-    from VariantValidator import variantValidator as vv
-    vv.my_config()
-except sqlite3.OperationalError:
-    print("Configuring for VM")
-    seqrepo_current_version = '2018-08-21'
-    HGVS_SEQREPO_DIR = '/Users/pjf9/variant_validator_data/seqrepo/' + seqrepo_current_version
-    os.environ['HGVS_SEQREPO_DIR'] = HGVS_SEQREPO_DIR
-    uta_current_version = 'uta_20180821'
-    UTA_DB_URL = 'postgresql://uta_admin:uta_admin@127.0.0.1/uta/' + uta_current_version
-    os.environ['UTA_DB_URL'] = UTA_DB_URL
-    os.environ['PYLIFTOVER_DIR'] = '/Users/pjf9/variant_validator_data/pyLiftover/'
-    from VariantValidator import variantValidator as vv
+from VariantValidator import variantValidator as vv
 
 def generateTestFolder(path, inputVariants):
     #Saves the results of running inputVariants to a folder given in saveDirectory.
@@ -106,11 +87,12 @@ def mergeVariantList(variants1,variants2):
 
 def loadValidations(path):
     #Loads a set of validations from the folder given in path.
-    out=[]
+    out = {}
     for paths,dirs,files in os.walk(path):
         for filePath in files:
+            variant = os.path.splitext(filePath)[0]
             with open(os.path.join(paths,filePath)) as f:
-                out.append(pickle.load(f))
+                out[variant] = pickle.load(f)
                 #print(type(out[-1]))
     return out
 
@@ -171,9 +153,9 @@ def compareBatches(v1path,v2path):
     v1batch=loadValidations(v1path)
     v2batch=loadValidations(v2path)
     print("Comparing validation sets...")
-    for i,v in enumerate(v1batch):
+    for i in range(333):
 #        print("Comparing validation "+str(i))
-        outFlags.append(compareValidations(v1batch[i],v2batch[i],i))
+        outFlags.append(compareValidations(v1batch['variant'+str(i)],v2batch['variant'+str(i)],i))
         if outFlags[-1]:
             passScore+=1
     if passScore==len(v1batch):
