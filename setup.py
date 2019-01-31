@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='VariantValidator',
-    version='0.1.0_dev_pre_a',
+    version='0.2.1',
     description='API for accurate, mapping and formatting of sequence variants using HGVS nomenclature',
     long_description=open('README.txt').read(),
     url='',
