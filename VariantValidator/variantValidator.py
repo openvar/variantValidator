@@ -104,6 +104,7 @@ else:
     CONF_ROOT = os.environ.get('CONF_ROOT')
 # Define global configuration variables
 HGVS_SEQREPO_DIR = "Unspecified"
+HGVS_SEQREPO_DIR = "Unspecified"
 UTA_DB_URL = 'Unspecified'
 VALIDATOR_DB_URL = 'Unspecified'
 PYLIFTOVER_DIR = 'Unspecified'
@@ -443,14 +444,19 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     # Catch invalid genome build
                     valid_build = False
                     for genome_build in genome_builds:
-                        if primary_assembly == genome_build:
+                        if validation['primary_assembly'] == genome_build:
                             valid_build = True
                     if valid_build is False:
-                        primary_assembly = 'GRCh38'
-                        validation['warnings'] = validation[
+                        selected_assembly = 'GRCh38'
+                        primary_assembly = selected_assembly
+                        if 'GRCh38' in input or 'GRCh37' in input or 'hg19' in input or 'hg38' in input:
+                            pass
+                        else:
+                            validation['warnings'] = validation[
                                                      'warnings'] + ': Invalid genome build has been specified. Automap has selected the default build (GRCh38)'
-                        logger.warning(
+                            logger.warning(
                             'Invalid genome build has been specified. Automap has selected the default build ' + primary_assembly)
+                        validation['primary_assembly'] = primary_assembly
                     else:
                         validation['primary_assembly'] = primary_assembly
                 else:
