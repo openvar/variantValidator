@@ -321,7 +321,7 @@ def report_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
         dup_seq = reverse_normalized_hgvs_genomic.posedit.edit.ref
         vcf_ref_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, end)
         # Assemble
-        pos = str(start + 1)
+        pos = str(start)
         ref = vcf_ref_seq[0]
         alt = vcf_ref_seq
     else:
