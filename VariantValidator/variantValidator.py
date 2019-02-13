@@ -1056,6 +1056,11 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                                          'warnings'] + ': ' + 'Intronic positions not supported for HGVS Allele descriptions'
                             logger.warning('Intronic positions not supported for HGVS Allele descriptions')
                             continue
+                        elif re.search('does not agree with reference sequence', str(e)):
+                            er = str(e).replace(':', ';')
+                            validation['warnings'] = validation[
+                                                         'warnings'] + ': ' + er
+                            continue
                         else:
                             raise variantValidatorError(str(e))
                 logger.trace("HVGS String allele parsing pass 1 complete", validation)
