@@ -6338,8 +6338,6 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         recovered_rsg.sort()
                         recovered_rsg.reverse()
 
-                        print recovered_rsg
-
                         if len(recovered_rsg) > 0 and 'NG_' in recovered_rsg[0]:
                             refseqgene_ac = recovered_rsg[0]
                         else:
