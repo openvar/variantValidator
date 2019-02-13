@@ -8,3 +8,4 @@ build
 dist
 variantValidator.egg-info
 VariantValidator/testing/outputs*
+.DS_Store

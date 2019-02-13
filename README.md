@@ -36,6 +36,7 @@ Variant Validator will work on Mac OS X or Linux-compatiable computers.
 Required software:
 * MySQL
 * Python 2.7
+
 Optional software:
 * Postgres version 9.5 or above, Postgres 10 is not supported.
 * SQLite version 3.8.0 or above

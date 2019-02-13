@@ -3,17 +3,20 @@
 ## Configuration
 
 Presently Variant Validator uses a combination of environment variables to configure itself. The configuration file is in /VariantValidator/configuration/config.ini and should be edited with the current user's details. Specifically, the section:
- > [mysql]
- > host = 127.0.0.1
- > database = validator
- > user = vvadmin  
- > password = var1ant
+```
+[mysql]
+host = 127.0.0.1
+database = validator
+user = vvadmin  
+password = var1ant
+```
 needs to be changed if the variant validator database login details are different.
 
 The section
- > [logging]
-contains a single variable:
- > string = error file console trace
+```
+[logging]
+string = error file console trace
+```
 which can be changed to alter the level of verbosity of the validator output. Alternatively you can set the environment variable VALIDATOR_DEBUG to a string of the same format.
 The string should contain any of the following words:
 * file - Writes the logging output to the "vvLog.txt" file. Without the word "file" in the environment variable, the logs will be posted instead to the console.
@@ -33,56 +36,68 @@ Python scripts importing variant validator will have to set up a last few config
 
 This example script will validate the variant NM_000088.3:c.589G>T and then print the output as a json file. You might need to change it to point to the correct seqrepo directory.
 
-> import json
-> import os
-> seqrepo_current_version = '2018-08-21'
-> HGVS_SEQREPO_DIR = '~/seqrepo/' + seqrepo_current_version
-> os.environ['HGVS_SEQREPO_DIR'] = HGVS_SEQREPO_DIR
-> uta_current_version = 'uta_20180821'
-> UTA_DB_URL = 'postgresql://uta_admin:uta_admin@127.0.0.1/uta/' + uta_current_version
-> os.environ['UTA_DB_URL'] = UTA_DB_URL
-> from VariantValidator import variantValidator
-> variantValidator.my_config()
-
+```
+import json
+import os
+seqrepo_current_version = '2018-08-21'
+HGVS_SEQREPO_DIR = '~/seqrepo/' + seqrepo_current_version
+os.environ['HGVS_SEQREPO_DIR'] = HGVS_SEQREPO_DIR
+uta_current_version = 'uta_20180821'
+UTA_DB_URL = 'postgresql://uta_admin:uta_admin@127.0.0.1/uta/' + uta_current_version
+os.environ['UTA_DB_URL'] = UTA_DB_URL
+from VariantValidator import variantValidator
+variantValidator.my_config()
+```
 From this point onward, 
-> variant = 'NM_000088.3:c.589G>T'
-> select_transcripts = 'all'
-> selected_assembly = 'GRCh37'
-> validation = variantValidator.validator(variant, selected_assembly, select_transcripts)
-> print json.dumps(validation, sort_keys=True, indent=4, separators=(',', ': '))
-
-Much of the script is currently reladed to setting up environment variables. In future versions, this information will be stored in a local configuration file.
+```
+variant = 'NM_000088.3:c.589G>T'
+select_transcripts = 'all'
+selected_assembly = 'GRCh37'
+validation = variantValidator.validator(variant, selected_assembly, select_transcripts)
+print json.dumps(validation, sort_keys=True, indent=4, separators=(',', ': '))
+```
+Much of the script is currently related to setting up environment variables. In future versions, this information will be stored in a local configuration file.
 
 The accepted formats for variants include:
-> NM_000088.3:c.589G>T
-> NC_000017.10:g.48275363C>A
-> NG_007400.1:g.8638G>T
-> LRG_1:g.8638G>T
-> LRG_1t1:c.589G>T
-> 17-50198002-C-A (GRCh38)
-> chr17:50198002C>A (GRCh38)
-
+```
+NM_000088.3:c.589G>T
+NC_000017.10:g.48275363C>A
+NG_007400.1:g.8638G>T
+LRG_1:g.8638G>T
+LRG_1t1:c.589G>T
+17-50198002-C-A (GRCh38)
+chr17:50198002C>A (GRCh38)
+```
 Possible assemblies are:
-> GRCh37
-> hg19
-> hg38
-
-You can select all transcripts by passing 'all', or use multiple transcripts with:
-> select_transcripts = 'NM_022356.3| NM_001146289.1| NM_001243246.1' 
+```
+GRCh37
+hg19
+hg38
+```
+You can select all transcripts by passing 'all', or use multiple transcripts with: `select_transcripts = 'NM_022356.3| NM_001146289.1| NM_001243246.1' `
 
 Variant validator produces a dictionary output that contain all possible interpretations of the input variant.
 
 View supported transcripts for a gene example: HGNC gene symbol https://www.genenames.org/
-> variantValidator.validator.gene2transcripts ('HTT')
-RefSeq Transcript
-> variantValidator.validator.gene2transcripts (' NM_002111.8')
-Get reference sequence for HGVS variant description
-> variantValidator.validator.hgvs2ref('NM_000088.3:c.589_594del')
+```
+variantValidator.validator.gene2transcripts ('HTT') 
+# RefSeq Transcript
+variantValidator.validator.gene2transcripts (' NM_002111.8') 
+# Get reference sequence for HGVS variant description
+variantValidator.validator.hgvs2ref('NM_000088.3:c.589_594del')
+```
 
 ## Unit testing
 
 Variant Validator is written to be pytest-compatible. Run
-> pytest
+`pytest`
 in the variant validator root folder, the same as that in which this file resides. The test will take several minutes to complete, but runs through over three hundred common and malformed variants.
 
+Note that you will need to set the environment variables first. 
+
+```
+export UTA_DB_URL="postgresql://uta_admin:uta_admin@127.0.0.1/uta/uta_20180821"
+export HGVS_SEQREPO_DIR="path/to/seqreo"
+pytest
+```
 
