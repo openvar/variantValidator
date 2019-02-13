@@ -1057,7 +1057,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             logger.warning('Intronic positions not supported for HGVS Allele descriptions')
                             continue
                         elif re.search('does not agree with reference sequence', str(e)):
-                            er = str(e).replace(':', ';')
+                            er = str(e).replace(': ', '; ')
                             validation['warnings'] = validation[
                                                          'warnings'] + ': ' + er
                             continue
