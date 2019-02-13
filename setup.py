@@ -7,7 +7,7 @@ setup(
     name='VariantValidator',
     version='0.2.1',
     description='API for accurate, mapping and formatting of sequence variants using HGVS nomenclature',
-    long_description=open('README.txt').read(),
+    long_description=open('README.md').read(),
     url='',
     author='Peter J. Causey-Freeman',
     author_email='pjf9@leicester.ac.uk',
