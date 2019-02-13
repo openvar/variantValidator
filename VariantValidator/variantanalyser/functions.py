@@ -2966,6 +2966,8 @@ def hgvs_alleles(variant_description, hp, vr, hn, vm, sf):
                     merge = []
                     allele = str(merge_hgvs_3pr(each_allele, hp, vr, hn, vm, sf))
                     merge.append(allele)
+                    for variant in each_allele:
+                        merged_alleles.append([variant])
                     merged_alleles.append(merge)
                 my_alleles = merged_alleles
 
@@ -3015,12 +3017,9 @@ def hgvs_alleles(variant_description, hp, vr, hn, vm, sf):
                     merge = []
                     allele = str(merge_hgvs_3pr(each_allele, hp, vr, hn, vm, sf))
                     merge.append(allele)
+                    for variant in each_allele:
+                        merged_alleles.append([variant])
                     merged_alleles.append(merge)
-
-                    print each_allele
-                    print merge
-
-
 
                 my_alleles = merged_alleles
 
