@@ -104,6 +104,7 @@ else:
     CONF_ROOT = os.environ.get('CONF_ROOT')
 # Define global configuration variables
 HGVS_SEQREPO_DIR = "Unspecified"
+HGVS_SEQREPO_DIR = "Unspecified"
 UTA_DB_URL = 'Unspecified'
 VALIDATOR_DB_URL = 'Unspecified'
 PYLIFTOVER_DIR = 'Unspecified'
@@ -443,14 +444,19 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     # Catch invalid genome build
                     valid_build = False
                     for genome_build in genome_builds:
-                        if primary_assembly == genome_build:
+                        if selected_assembly == genome_build:
                             valid_build = True
                     if valid_build is False:
-                        primary_assembly = 'GRCh38'
-                        validation['warnings'] = validation[
+                        selected_assembly = 'GRCh38'
+                        primary_assembly = selected_assembly
+                        if 'GRCh38' in input or 'GRCh37' in input or 'hg19' in input or 'hg38' in input:
+                            pass
+                        else:
+                            validation['warnings'] = validation[
                                                      'warnings'] + ': Invalid genome build has been specified. Automap has selected the default build (GRCh38)'
-                        logger.warning(
+                            logger.warning(
                             'Invalid genome build has been specified. Automap has selected the default build ' + primary_assembly)
+                        validation['primary_assembly'] = primary_assembly
                     else:
                         validation['primary_assembly'] = primary_assembly
                 else:
@@ -1050,6 +1056,11 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                                          'warnings'] + ': ' + 'Intronic positions not supported for HGVS Allele descriptions'
                             logger.warning('Intronic positions not supported for HGVS Allele descriptions')
                             continue
+                        elif re.search('does not agree with reference sequence', str(e)):
+                            er = str(e).replace(':', ';')
+                            validation['warnings'] = validation[
+                                                         'warnings'] + ': ' + er
+                            continue
                         else:
                             raise variantValidatorError(str(e))
                 logger.trace("HVGS String allele parsing pass 1 complete", validation)
@@ -1267,6 +1278,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         string = str(input_parses.ac)
                         reference = string.replace('LRG', 'LRG_')
                         input_parses.ac = reference
+
                         caution = string + ' updated to ' + reference
                     if not re.match('^LRG_\d+', str(input_parses)):
                         pass
@@ -8335,12 +8347,22 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
         if set_output_type_flag == 'gene':
             validation_output['flag'] = 'gene_variant'
             validation_error_counter = 0
+            validation_obsolete_counter = 0
             for valid_v in batch_out:
                 if valid_v['validation_warnings'] == ['Validation error']:
                     validation_error_counter = validation_error_counter + 1
                     identification_key = 'Validation_Error_%s' % (str(validation_error_counter))
                 else:
-                    identification_key = '%s' % (str(valid_v['hgvs_transcript_variant']))
+                    obs_obs = False
+                    for ob_rec in valid_v['validation_warnings']:
+                        if 'obsolete' in ob_rec:
+                            validation_obsolete_counter = validation_obsolete_counter +1
+                            obs_obs = True
+                            break
+                    if obs_obs is True:
+                        identification_key = 'obsolete_record_%s' % (str(validation_obsolete_counter))
+                    else:
+                        identification_key = '%s' % (str(valid_v['hgvs_transcript_variant']))
 
                 # if identification_key not in validation_output.keys():
                 validation_output[identification_key] = valid_v

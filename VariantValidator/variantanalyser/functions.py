@@ -3016,6 +3016,12 @@ def hgvs_alleles(variant_description, hp, vr, hn, vm, sf):
                     allele = str(merge_hgvs_3pr(each_allele, hp, vr, hn, vm, sf))
                     merge.append(allele)
                     merged_alleles.append(merge)
+
+                    print each_allele
+                    print merge
+
+
+
                 my_alleles = merged_alleles
 
         # Extract alleles into strings
