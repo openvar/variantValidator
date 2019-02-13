@@ -8,9 +8,7 @@ There are several steps involved in setting up variant validator:
 * The databases must be downloaded and set up
 * The configuration files must be changed to point the validator at those databases.
 
-## Virtual environment
-
-Variant validator currently requires python 2.7.
+## Virtual environment (Python 2.7)
 
 When installing Variant Validator it is wise to use a virtual environment, as it requires specific versions of several libraries.
 We recommend using conda.
@@ -42,7 +40,7 @@ $ pip install -e .
 ```
 to ensure any changes you make in the local variant validator folder is reflected in your python site-packages.
 
-## Setting up MySQL
+## Setting up validator database (MySQL)
 
 A MySQL database is required to run variantValidator. We recommend creating a user and password specific to the
 variant Validator database.
@@ -50,7 +48,7 @@ variant Validator database.
 ```mysql
 CREATE USER 'vvadmin'@'localhost' IDENTIFIED BY 'var1ant';
 CREATE DATABASE validator;
-GRANT SELECT,INSERT,UPDATE,DELETE ON validator.* TO vvadmin;
+GRANT SELECT,INSERT,UPDATE,DELETE ON validator.* TO 'vvadmin'@'localhost';
 ```
 
 In the `VariantValidator/data` folder is a copy of the empty mysql database needed by Variant Validator to run. The software will populate it as variants are run. You need to upload it to the running MySQL database with:
@@ -59,9 +57,9 @@ $ mysql validator < VariantValidator/data/emptyValidatorDump.sql
 ```
 
 
-## Setting up PostGreSQL
+## Setting up UTA database (PostGreSQL >=9.5, <10)
 
-It's recommended for performance reasons to use a local varsion of the UTA database. We again recommend creating a specific user account.
+It's recommended for performance reasons to use a local version of the UTA database. We again recommend creating a specific user account.
 ```
 CREATE ROLE uta_admin WITH CREATEDB;
 ALTER ROLE uta_admin WITH LOGIN;
@@ -76,7 +74,7 @@ $ gzip -cdq uta_20180821.pgd.gz | psql -U uta_admin -v ON_ERROR_STOP=0 -d uta -E
 ```
 
 
-## Setting up Seqrepo
+## Setting up Seqrepo (SQLite >=3.8)
 
 Similarly, things run much faster with a local SeqRepo database. The seqrepo library is already installed, but you'll need to download an actual sequence repository. These instructions assume you are using your home directory; you can put it anywhere so long as you modify the config.ini file, and environment variables accordingly.
 ```
