@@ -2968,7 +2968,7 @@ def hgvs_alleles(variant_description, hp, vr, hn, vm, sf):
                     merge.append(allele)
                     for variant in each_allele:
                         merged_alleles.append([variant])
-                    merged_alleles.append(merge)
+                    # merged_alleles.append(merge)
                 my_alleles = merged_alleles
 
             elif re.search('\(;\)', remainder):
@@ -3019,7 +3019,7 @@ def hgvs_alleles(variant_description, hp, vr, hn, vm, sf):
                     merge.append(allele)
                     for variant in each_allele:
                         merged_alleles.append([variant])
-                    merged_alleles.append(merge)
+                   # merged_alleles.append(merge)
 
                 my_alleles = merged_alleles
 
