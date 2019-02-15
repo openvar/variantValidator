@@ -2050,7 +2050,7 @@ class Mixin(vvMixinInit.Mixin):
         # Generate the alt sequence
         alt_sequence = ''
         for hgvs_v in full_list:
-            ref_alt = vvHGVS.hgvs_ref_alt(hgvs_v)
+            ref_alt = vvHGVS.hgvs_ref_alt(hgvs_v, self.sf)
             alt_sequence = alt_sequence + ref_alt['alt']
 
         # Fetch the reference sequence and copy it for the basis of the alt sequence
@@ -2159,7 +2159,7 @@ class Mixin(vvMixinInit.Mixin):
         # Generate the alt sequence
         alt_sequence = ''
         for hgvs_v in full_list:
-            ref_alt = vvHGVS.hgvs_ref_alt(hgvs_v)
+            ref_alt = vvHGVS.hgvs_ref_alt(hgvs_v, self.sf)
             alt_sequence = alt_sequence + ref_alt['alt']
 
         # Fetch the reference sequence and copy it for the basis of the alt sequence
@@ -2277,6 +2277,8 @@ class Mixin(vvMixinInit.Mixin):
                         merge = []
                         allele = str(self.merge_hgvs_3pr(each_allele,hn))
                         merge.append(allele)
+                        for variant in each_allele:
+                            merged_alleles.append([variant])
                         merged_alleles.append(merge)
                     my_alleles = merged_alleles
 
@@ -2320,13 +2322,14 @@ class Mixin(vvMixinInit.Mixin):
                     merged_alleles = []
 
                     for each_allele in my_alleles:
-                        print each_allele
                         if re.search('\?', str(each_allele)):
                             # NM_004006.2:c.[2376G>C];[?]
                             continue
                         merge = []
                         allele = str(self.merge_hgvs_3pr(each_allele,hn))
                         merge.append(allele)
+                        for variant in each_allele:
+                            merged_alleles.append([variant])
                         merged_alleles.append(merge)
                     my_alleles = merged_alleles
 

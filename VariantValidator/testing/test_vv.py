@@ -4,7 +4,7 @@ import pytest
 import vvTestFunctions as fn
 from VariantValidator import Validator
 
-inputVariants=fn.loadVariantFile("inputVariants.txt")
+inputVariants=fn.loadVariantFile(os.path.join(os.path.dirname(__file__), "inputVariants.txt"))
 
 '''
 print("Configuring for personal linux")
@@ -30,10 +30,12 @@ def constructValidation(request):
     del val
     return out
 
+@pytest.mark.skip(reason="old test")
 def test_validation_output(constructValidation):
     v=constructValidation
     assert v!=None
 
+@pytest.mark.skip(reason="old test")
 def test_validation_errors(constructValidation):
     v=constructValidation
     logs=v["metadata"]["logs"].split("\n")
@@ -43,6 +45,7 @@ def test_validation_errors(constructValidation):
             e+=1
     assert e==0
 
+@pytest.mark.skip(reason="old test")
 def test_validation_criticals(constructValidation):
     v=constructValidation
     logs=v["metadata"]["logs"].split("\n")

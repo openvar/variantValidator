@@ -936,7 +936,10 @@ class Mixin(vvMixinConverters.Mixin):
                     except hgvs.exceptions.HGVSError as e:
                         error = str(e)
                     if error == 'false':
-                        input_parses.ac = input_parses.ac.upper()
+                        if 'LRG' in input_parses.ac:
+                            input_parses.ac.replace('T', 't')
+                        else:
+                            input_parses.ac = input_parses.ac.upper()
                         if hasattr(input_parses.posedit.edit, 'alt'):
                             if input_parses.posedit.edit.alt is not None:
                                 input_parses.posedit.edit.alt = input_parses.posedit.edit.alt.upper()
@@ -6131,8 +6134,8 @@ class Mixin(vvMixinConverters.Mixin):
                             recovered_rsg.sort()
                             recovered_rsg.reverse()
 
-                            if 'NG_' in recovered_rsg:
-                                refseqgene_ac = recovered_rsg
+                            if len(recovered_rsg) > 0 and 'NG_' in recovered_rsg[0]:
+                                refseqgene_ac = recovered_rsg[0]
                             else:
                                 refseqgene_ac = ''
 
@@ -8123,12 +8126,22 @@ class Mixin(vvMixinConverters.Mixin):
             if set_output_type_flag == 'gene':
                 validation_output['flag'] = 'gene_variant'
                 validation_error_counter = 0
+                validation_obsolete_counter = 0
                 for valid_v in batch_out:
                     if valid_v['validation_warnings'] == ['Validation error']:
                         validation_error_counter = validation_error_counter + 1
                         identification_key = 'Validation_Error_%s' % (str(validation_error_counter))
                     else:
-                        identification_key = '%s' % (str(valid_v['hgvs_transcript_variant']))
+                        obs_obs = False
+                        for ob_rec in valid_v['validation_warnings']:
+                            if 'obsolete' in ob_rec:
+                                validation_obsolete_counter = validation_obsolete_counter + 1
+                                obs_obs = True
+                                break
+                        if obs_obs is True:
+                            identification_key = 'obsolete_record_%s' % (str(validation_obsolete_counter))
+                        else:
+                            identification_key = '%s' % (str(valid_v['hgvs_transcript_variant']))
 
                     # if identification_key not in validation_output.keys():
                     validation_output[identification_key] = valid_v
