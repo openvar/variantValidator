@@ -11,7 +11,7 @@ import hgvs.sequencevariant
 import re
 import os
 import vvChromosomes
-import vvHGVS
+import vvHGVS2VCF
 from vvLogging import logger
 from pyliftover import LiftOver
 from Bio.Seq import Seq
@@ -85,7 +85,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp, reverse_no
             alt_build_to = 'GRCh38'
 
     # populate the variant from data
-    vcf = vvHGVS.report_hgvs2vcf(hgvs_genomic, build_from, reverse_normalizer, sf)
+    vcf = vvHGVS2VCF.report_hgvs2vcf(hgvs_genomic, build_from, reverse_normalizer, sf)
 
     # Create to and from dictionaries
     lifted_response[build_from.lower()] = {}
@@ -169,7 +169,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp, reverse_no
                     # In this instance, do not mark added data as True
                     hgvs_tx = vm.g_to_t(hgvs_genomic, val)
                     hgvs_alt_genomic = vm.t_to_g(hgvs_tx, key)
-                    alt_vcf = vvHGVS.report_hgvs2vcf(hgvs_alt_genomic, build_to, reverse_normalizer, sf)
+                    alt_vcf = vvHGVS2VCF.report_hgvs2vcf(hgvs_alt_genomic, build_to, reverse_normalizer, sf)
 
                     # Add the to build dictionaries
                     lifted_response[build_to.lower()][hgvs_alt_genomic.ac] = {
@@ -213,7 +213,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp, reverse_no
     genome_builds = [build_to]
 
     # Create liftover vcf
-    from_vcf = vvHGVS.report_hgvs2vcf(hgvs_genomic, lo_from, reverse_normalizer, sf)
+    from_vcf = vvHGVS2VCF.report_hgvs2vcf(hgvs_genomic, lo_from, reverse_normalizer, sf)
 
     if PYLIFTOVER_DIR is not None:
         lo_filename_to = PYLIFTOVER_DIR + "%sTo%s.over.chain" % (lo_from, lo_to)
@@ -287,7 +287,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp, reverse_no
                     if lifted_back[0] == from_vcf[from_set] or lifted_back[0] == my_from_chr:
                         if lifted_back[1] == int(from_vcf['pos']):
                             for build in genome_builds:
-                                vcf_dict = vvHGVS.report_hgvs2vcf(hgvs_lifted, build, reverse_normalizer, sf)
+                                vcf_dict = vvHGVS2VCF.report_hgvs2vcf(hgvs_lifted, build, reverse_normalizer, sf)
                                 if re.match('GRC', build):
                                     lifted_response[build_to.lower()][hgvs_lifted.ac] = {
                                         'hgvs_genomic_description': mystr(hgvs_lifted),

@@ -37,7 +37,7 @@ import traceback
 #import variantanalyser
 from vvLogging import logger
 import hgvs
-import vvHGVS
+import vvHGVS2VCF
 #from variantanalyser import functions as va_func
 #from variantanalyser import dbControls as va_dbCrl
 #from variantanalyser import hgvs2vcf as vvHGVS
@@ -50,6 +50,7 @@ from vvLiftover import liftover as lift_over #???
 import vvFunctions as fn
 import vvDatabase
 import vvChromosomes
+import vvGapGenes
 import vvMixinConverters
 from vvFunctions import VariantValidatorError
 
@@ -2093,7 +2094,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                         #  Tripple check this assumption by querying the gene position database
                         if len(rel_var) == 0:
-                            vcf_dict = vvHGVS.hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, self.sf)
+                            vcf_dict = vvHGVS2VCF.hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, self.sf)
                             not_di = str(hgvs_genomic.ac) + ':g.' + str(vcf_dict['pos']) + '_' + str(
                                 int(vcf_dict['pos']) + (len(vcf_dict['ref']) - 1)) + 'del' + vcf_dict['ref'] + 'ins' + \
                                      vcf_dict['alt']
@@ -2195,8 +2196,8 @@ class Mixin(vvMixinConverters.Mixin):
                             hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
                             # VCF
-                            vcf_dict = vvHGVS.hgvs2vcf(reverse_normalized_hgvs_genomic, primary_assembly,
-                                                       reverse_normalizer, self.sf)
+                            vcf_dict = vvHGVS2VCF.hgvs2vcf(reverse_normalized_hgvs_genomic, primary_assembly,
+                                                           reverse_normalizer, self.sf)
                             chr = vcf_dict['chr']
                             pos = vcf_dict['pos']
                             ref = vcf_dict['ref']
@@ -2234,7 +2235,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                                 stash_ac = hgvs_stash.ac
                                 # MAKE A NO NORM HGVS2VCF
-                                stash_dict = vvHGVS.pos_lock_hgvs2vcf(hgvs_stash, primary_assembly, reverse_normalizer, self.sf)
+                                stash_dict = vvHGVS2VCF.pos_lock_hgvs2vcf(hgvs_stash, primary_assembly, reverse_normalizer, self.sf)
                                 stash_ac = hgvs_stash.ac
                                 stash_pos = int(stash_dict['pos'])
                                 stash_ref = stash_dict['ref']
@@ -3006,7 +3007,7 @@ class Mixin(vvMixinConverters.Mixin):
                                         hgvs_stash = copy.deepcopy(stash_hgvs_not_delins)
                                         stash_ac = hgvs_stash.ac
                                         # Make a hard left and hard right not delins g.
-                                        stash_dict_right = vvHGVS.hard_right_hgvs2vcf(hgvs_stash, primary_assembly, hn, self.sf)
+                                        stash_dict_right = vvHGVS2VCF.hard_right_hgvs2vcf(hgvs_stash, primary_assembly, hn, self.sf)
                                         stash_pos_right = int(stash_dict_right['pos'])
                                         stash_ref_right = stash_dict_right['ref']
                                         stash_alt_right = stash_dict_right['alt']
@@ -3014,8 +3015,8 @@ class Mixin(vvMixinConverters.Mixin):
                                         stash_hgvs_not_delins_right = self.hp.parse_hgvs_variant(
                                             stash_ac + ':' + hgvs_stash.type + '.' + str(
                                                 stash_pos_right) + '_' + stash_end_right + 'del' + stash_ref_right + 'ins' + stash_alt_right)
-                                        stash_dict_left = vvHGVS.hard_left_hgvs2vcf(hgvs_stash, primary_assembly,
-                                                                                    reverse_normalizer, self.sf)
+                                        stash_dict_left = vvHGVS2VCF.hard_left_hgvs2vcf(hgvs_stash, primary_assembly,
+                                                                                        reverse_normalizer, self.sf)
                                         stash_pos_left = int(stash_dict_left['pos'])
                                         stash_ref_left = stash_dict_left['ref']
                                         stash_alt_left = stash_dict_left['alt']
@@ -3939,7 +3940,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 fn.exceptPass()
                             else:
                                 # If the gene symbol is not in the list, the value False will be returned
-                                gap_compensation = vvChromosomes.gap_black_list(gene_symbol)
+                                gap_compensation = vvGapGenes.gap_black_list(gene_symbol)
 
                             # Intron spanning variants
                             if re.search('boundary', str(error)) or re.search('spanning', str(error)):
@@ -4003,7 +4004,7 @@ class Mixin(vvMixinConverters.Mixin):
                                     fn.exceptPass()
                                 try:
                                     stash_ac = hgvs_stash.ac
-                                    stash_dict = vvHGVS.hard_right_hgvs2vcf(hgvs_stash, primary_assembly, hn, self.sf)
+                                    stash_dict = vvHGVS2VCF.hard_right_hgvs2vcf(hgvs_stash, primary_assembly, hn, self.sf)
                                     stash_pos = int(stash_dict['pos'])
                                     stash_ref = stash_dict['ref']
                                     stash_alt = stash_dict['alt']
@@ -4086,8 +4087,8 @@ class Mixin(vvMixinConverters.Mixin):
                                     fn.exceptPass()
                                 try:
                                     stash_ac = hgvs_stash.ac
-                                    stash_dict = vvHGVS.hard_left_hgvs2vcf(hgvs_stash, primary_assembly, reverse_normalizer,
-                                                                           self.sf)
+                                    stash_dict = vvHGVS2VCF.hard_left_hgvs2vcf(hgvs_stash, primary_assembly, reverse_normalizer,
+                                                                               self.sf)
                                     stash_pos = int(stash_dict['pos'])
                                     stash_ref = stash_dict['ref']
                                     stash_alt = stash_dict['alt']
@@ -4352,8 +4353,8 @@ class Mixin(vvMixinConverters.Mixin):
                                     stored_hgvs_genomic_5pr = copy.deepcopy(hgvs_genomic_5pr)
 
                                     # Create VCF
-                                    vcf_dict = vvHGVS.hgvs2vcf(reverse_normalized_hgvs_genomic, primary_assembly,
-                                                               reverse_normalizer, self.sf)
+                                    vcf_dict = vvHGVS2VCF.hgvs2vcf(reverse_normalized_hgvs_genomic, primary_assembly,
+                                                                   reverse_normalizer, self.sf)
                                     chr = vcf_dict['chr']
                                     pos = vcf_dict['pos']
                                     ref = vcf_dict['ref']
@@ -5320,8 +5321,8 @@ class Mixin(vvMixinConverters.Mixin):
                             hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
                             # Create vcf
-                            vcf_dict = vvHGVS.hgvs2vcf(reverse_normalized_hgvs_genomic, primary_assembly,
-                                                       reverse_normalizer, self.sf)
+                            vcf_dict = vvHGVS2VCF.hgvs2vcf(reverse_normalized_hgvs_genomic, primary_assembly,
+                                                           reverse_normalizer, self.sf)
                             chr = vcf_dict['chr']
                             pos = vcf_dict['pos']
                             ref = vcf_dict['ref']
@@ -6565,7 +6566,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 fn.exceptPass()
                             else:
                                 # If the gene symbol is not in the list, the value False will be returned
-                                gap_compensation = vvChromosomes.gap_black_list(gene_symbol)
+                                gap_compensation = vvGapGenes.gap_black_list(gene_symbol)
 
                             # Look for variants spanning introns
                             try:
@@ -6636,7 +6637,7 @@ class Mixin(vvMixinConverters.Mixin):
                                             fn.exceptPass()
                                         try:
                                             stash_ac = hgvs_stash.ac
-                                            stash_dict = vvHGVS.hard_right_hgvs2vcf(hgvs_stash, primary_assembly, hn, self.sf)
+                                            stash_dict = vvHGVS2VCF.hard_right_hgvs2vcf(hgvs_stash, primary_assembly, hn, self.sf)
                                             stash_pos = int(stash_dict['pos'])
                                             stash_ref = stash_dict['ref']
                                             stash_alt = stash_dict['alt']
@@ -6716,8 +6717,8 @@ class Mixin(vvMixinConverters.Mixin):
                                             fn.exceptPass()
                                         try:
                                             stash_ac = hgvs_stash.ac
-                                            stash_dict = vvHGVS.hard_left_hgvs2vcf(hgvs_stash, primary_assembly,
-                                                                                   reverse_normalizer, self.sf)
+                                            stash_dict = vvHGVS2VCF.hard_left_hgvs2vcf(hgvs_stash, primary_assembly,
+                                                                                       reverse_normalizer, self.sf)
                                             stash_pos = int(stash_dict['pos'])
                                             stash_ref = stash_dict['ref']
                                             stash_alt = stash_dict['alt']
@@ -6976,8 +6977,8 @@ class Mixin(vvMixinConverters.Mixin):
                                             stored_hgvs_genomic_5pr = copy.deepcopy(hgvs_genomic_5pr)
 
                                             # Make VCF
-                                            vcf_dict = vvHGVS.hgvs2vcf(reverse_normalized_hgvs_genomic, primary_assembly,
-                                                                       reverse_normalizer, self.sf)
+                                            vcf_dict = vvHGVS2VCF.hgvs2vcf(reverse_normalized_hgvs_genomic, primary_assembly,
+                                                                           reverse_normalizer, self.sf)
                                             chr = vcf_dict['chr']
                                             pos = vcf_dict['pos']
                                             ref = vcf_dict['ref']
@@ -7964,7 +7965,7 @@ class Mixin(vvMixinConverters.Mixin):
                                     test = vvChromosomes.supported_for_mapping(alt_gen_var.ac, build)
                                     if test == 'true':
                                         try:
-                                            vcf_dict = vvHGVS.report_hgvs2vcf(alt_gen_var, build, reverse_normalizer, self.sf)
+                                            vcf_dict = vvHGVS2VCF.report_hgvs2vcf(alt_gen_var, build, reverse_normalizer, self.sf)
                                         except hgvs.exceptions.HGVSInvalidVariantError as e:
                                             continue
                                         # Identify primary assembly positions
@@ -7989,8 +7990,8 @@ class Mixin(vvMixinConverters.Mixin):
                                                             }
                                                 }
                                             if build == 'GRCh38':
-                                                vcf_dict = vvHGVS.report_hgvs2vcf(alt_gen_var, 'hg38', reverse_normalizer,
-                                                                                  self.sf)
+                                                vcf_dict = vvHGVS2VCF.report_hgvs2vcf(alt_gen_var, 'hg38', reverse_normalizer,
+                                                                                      self.sf)
                                                 primary_genomic_dicts['hg38'] = {
                                                     'hgvs_genomic_description': fn.valstr(alt_gen_var),
                                                     'vcf': {'chr': vcf_dict['ucsc_chr'],
@@ -8025,8 +8026,8 @@ class Mixin(vvMixinConverters.Mixin):
                                             alt_genomic_dicts.append(dict)
 
                                             if build == 'GRCh38':
-                                                vcf_dict = vvHGVS.report_hgvs2vcf(alt_gen_var, 'hg38', reverse_normalizer,
-                                                                                  self.sf)
+                                                vcf_dict = vvHGVS2VCF.report_hgvs2vcf(alt_gen_var, 'hg38', reverse_normalizer,
+                                                                                      self.sf)
                                                 dict = {'hg38': {'hgvs_genomic_description': fn.valstr(alt_gen_var),
                                                                  'vcf': {'chr': vcf_dict['ucsc_chr'],
                                                                          'pos': vcf_dict['pos'],

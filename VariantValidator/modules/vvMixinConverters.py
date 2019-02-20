@@ -14,7 +14,8 @@ import hgvs.variantmapper
 import hgvs.sequencevariant
 import vvMixinInit
 import vvChromosomes
-import vvHGVS
+import vvGapGenes
+import vvHGVS2VCF
 from urlparse import urlparse
 import httplib2 as http
 import json
@@ -205,7 +206,7 @@ class Mixin(vvMixinInit.Mixin):
             utilise_gap_code = False
         else:
             # If the gene symbol is not in the list, the value False will be returned
-            utilise_gap_code = vvChromosomes.gap_black_list(gene_symbol)
+            utilise_gap_code = vvGapGenes.gap_black_list(gene_symbol)
         # Warn gap code in use
         logger.warning("gap_compensation_myevm = " + str(utilise_gap_code))
 
@@ -1097,7 +1098,7 @@ class Mixin(vvMixinInit.Mixin):
             utilise_gap_code = False
         else:
             # If the gene symbol is not in the list, the value False will be returned
-            utilise_gap_code = vvChromosomes.gap_black_list(gene_symbol)
+            utilise_gap_code = vvGapGenes.gap_black_list(gene_symbol)
         # Warn gap code in use
         logger.warning("gap_compensation_mvm = " + str(utilise_gap_code))
 
@@ -2050,7 +2051,7 @@ class Mixin(vvMixinInit.Mixin):
         # Generate the alt sequence
         alt_sequence = ''
         for hgvs_v in full_list:
-            ref_alt = vvHGVS.hgvs_ref_alt(hgvs_v, self.sf)
+            ref_alt = vvHGVS2VCF.hgvs_ref_alt(hgvs_v, self.sf)
             alt_sequence = alt_sequence + ref_alt['alt']
 
         # Fetch the reference sequence and copy it for the basis of the alt sequence
@@ -2159,7 +2160,7 @@ class Mixin(vvMixinInit.Mixin):
         # Generate the alt sequence
         alt_sequence = ''
         for hgvs_v in full_list:
-            ref_alt = vvHGVS.hgvs_ref_alt(hgvs_v, self.sf)
+            ref_alt = vvHGVS2VCF.hgvs_ref_alt(hgvs_v, self.sf)
             alt_sequence = alt_sequence + ref_alt['alt']
 
         # Fetch the reference sequence and copy it for the basis of the alt sequence
@@ -2192,7 +2193,7 @@ class Mixin(vvMixinInit.Mixin):
         hgvs_list = []
         # Convert pseudo_vcf list into a HGVS list
         for call in vcf_list:
-            x55hgvs = vvHGVS.pvcf_to_hgvs(call, genome_build, normalization_direction=5, validator=self)
+            x55hgvs = vvHGVS2VCF.pvcf_to_hgvs(call, genome_build, normalization_direction=5, validator=self)
             hgvs_list.append(x55hgvs)
         # Merge
         hgvs_delins = self.merge_hgvs_5pr(hgvs_list)

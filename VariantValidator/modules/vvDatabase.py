@@ -3,14 +3,14 @@ import vvFunctions as fn
 from vvFunctions import handleCursor
 #from vvDBInsert import vvDBInsert
 #from vvDBGet import vvDBGet
-import vvDBInsert
+import vvDBInsertUpdate
 import urllib2
 import copy
 
 import re
 import os
 
-class vvDatabase(vvDBInsert.Mixin):
+class vvDatabase(vvDBInsertUpdate.Mixin):
     '''
     This class contains and handles the mysql connections for the variant validator database.
 
