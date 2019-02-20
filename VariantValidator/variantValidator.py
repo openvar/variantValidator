@@ -941,19 +941,22 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         # Catch the trailing digits
                         digits = re.search(r"(\d+$)", failed)
                         digits = digits.group(1)
+                        remove = str(digits)  + 'end_anchor'
+                        failed = failed + 'end_anchor'
+                        failed = failed.replace(remove, '')
+
                         # Remove them so that the string SHOULD parse
                         try:
                             hgvs_failed = hp.parse_hgvs_variant(failed)
                         except hgvs.exceptions.HGVSError as e:
                             error = str(e)
                             error = 'The syntax of the input variant description is invalid '
-                            if re.search('ins\d+', failed):
+                            if re.search('ins$', failed):
                                 issue_link = 'http://varnomen.hgvs.org/recommendations/DNA/variant/insertion/'
                                 error = error + ' please refer to ' + issue_link
                             validation['warnings'] = validation['warnings'] + error
-                            logger.warning(error + " " + e)
+                            logger.warning(str(error) + " " + str(e))
                             continue
-                        hgvs_failed = hp.parse_hgvs_variant(failed)
                         hgvs_failed.posedit.edit = str(hgvs_failed.posedit.edit).replace(digits, '')
                         failed = str(hgvs_failed)
                         hgvs_failed = hp.parse_hgvs_variant(failed)

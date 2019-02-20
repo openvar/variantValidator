@@ -15,7 +15,6 @@ class TestVariants(object):
         assert results['NM_015120.4:c.35T>C']['hgvs_lrg_transcript_variant'] == 'LRG_741t1:c.35T>C'
         assert results['NM_015120.4:c.35T>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_015120.4:c.35T>C']['alt_genomic_loci'] == []
-        assert results['NM_015120.4:c.35T>C']['transcript_description'] == 'Homo sapiens ALMS1, centrosome and basal body associated protein (ALMS1), mRNA'
         assert results['NM_015120.4:c.35T>C']['gene_symbol'] == 'ALMS1'
         assert results['NM_015120.4:c.35T>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055935.4(LRG_741p1):p.(Leu12Pro)', 'slr': 'NP_055935.4:p.(L12P)'}
         assert results['NM_015120.4:c.35T>C']['submitted_variant'] == 'NM_015120.4:c.35T>C'
@@ -41,7 +40,6 @@ class TestVariants(object):
         assert results['NM_015120.4:c.39G>C']['hgvs_lrg_transcript_variant'] == 'LRG_741t1:c.39G>C'
         assert results['NM_015120.4:c.39G>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_015120.4:c.39G>C']['alt_genomic_loci'] == []
-        assert results['NM_015120.4:c.39G>C']['transcript_description'] == 'Homo sapiens ALMS1, centrosome and basal body associated protein (ALMS1), mRNA'
         assert results['NM_015120.4:c.39G>C']['gene_symbol'] == 'ALMS1'
         assert results['NM_015120.4:c.39G>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055935.4(LRG_741p1):p.(Glu13Asp)', 'slr': 'NP_055935.4:p.(E13D)'}
         assert results['NM_015120.4:c.39G>C']['submitted_variant'] == 'NM_015120.4:c.39G>C'
@@ -66,7 +64,6 @@ class TestVariants(object):
         assert results['NM_015120.4:c.34C>T']['hgvs_lrg_transcript_variant'] == 'LRG_741t1:c.34C>T'
         assert results['NM_015120.4:c.34C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_015120.4:c.34C>T']['alt_genomic_loci'] == []
-        assert results['NM_015120.4:c.34C>T']['transcript_description'] == 'Homo sapiens ALMS1, centrosome and basal body associated protein (ALMS1), mRNA'
         assert results['NM_015120.4:c.34C>T']['gene_symbol'] == 'ALMS1'
         assert results['NM_015120.4:c.34C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055935.4(LRG_741p1):p.(Leu12=)', 'slr': 'NP_055935.4:p.(L12=)'}
         assert results['NM_015120.4:c.34C>T']['submitted_variant'] == 'NM_015120.4:c.34C>T'
@@ -91,7 +88,6 @@ class TestVariants(object):
         assert results['NM_015120.4:c.34C>T']['hgvs_lrg_transcript_variant'] == 'LRG_741t1:c.34C>T'
         assert results['NM_015120.4:c.34C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_015120.4:c.34C>T']['alt_genomic_loci'] == []
-        assert results['NM_015120.4:c.34C>T']['transcript_description'] == 'Homo sapiens ALMS1, centrosome and basal body associated protein (ALMS1), mRNA'
         assert results['NM_015120.4:c.34C>T']['gene_symbol'] == 'ALMS1'
         assert results['NM_015120.4:c.34C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055935.4(LRG_741p1):p.(Leu12=)', 'slr': 'NP_055935.4:p.(L12=)'}
         assert results['NM_015120.4:c.34C>T']['submitted_variant'] == 'NC_000002.11:g.73613030C>T'
@@ -116,7 +112,6 @@ class TestVariants(object):
         assert results['NM_000109.3:c.7+127703T>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000109.3:c.7+127703T>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000109.3:c.7+127703T>A']['alt_genomic_loci'] == []
-        assert results['NM_000109.3:c.7+127703T>A']['transcript_description'] == 'Homo sapiens dystrophin (DMD), transcript variant Dp427c, mRNA'
         assert results['NM_000109.3:c.7+127703T>A']['gene_symbol'] == 'DMD'
         assert results['NM_000109.3:c.7+127703T>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000100.2:p.?', 'slr': 'NP_000100.2:p.?'}
         assert results['NM_000109.3:c.7+127703T>A']['submitted_variant'] == 'NC_000023.10:g.33229673A>T'
@@ -134,7 +129,6 @@ class TestVariants(object):
         assert results['NM_004006.2:c.-244T>A']['hgvs_lrg_transcript_variant'] == 'LRG_199t1:c.-244T>A'
         assert results['NM_004006.2:c.-244T>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004006.2:c.-244T>A']['alt_genomic_loci'] == []
-        assert results['NM_004006.2:c.-244T>A']['transcript_description'] == 'Homo sapiens dystrophin (DMD), transcript variant Dp427m, mRNA'
         assert results['NM_004006.2:c.-244T>A']['gene_symbol'] == 'DMD'
         assert results['NM_004006.2:c.-244T>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003997.1(LRG_199p1):p.?', 'slr': 'NP_003997.1:p.?'}
         assert results['NM_004006.2:c.-244T>A']['submitted_variant'] == 'NC_000023.10:g.33229673A>T'
@@ -159,7 +153,6 @@ class TestVariants(object):
         assert results['NM_001145026.1:c.715A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001145026.1:c.715A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001145026.1:c.715A>G']['alt_genomic_loci'] == []
-        assert results['NM_001145026.1:c.715A>G']['transcript_description'] == 'Homo sapiens protein tyrosine phosphatase, receptor type Q (PTPRQ), mRNA'
         assert results['NM_001145026.1:c.715A>G']['gene_symbol'] == 'PTPRQ'
         assert results['NM_001145026.1:c.715A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001138498.1:p.(Arg239Gly)', 'slr': 'NP_001138498.1:p.(R239G)'}
         assert results['NM_001145026.1:c.715A>G']['submitted_variant'] == 'NM_001145026.1:c.715A>G'
@@ -183,7 +176,6 @@ class TestVariants(object):
         assert results['NM_000548.4:c.138+821del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000548.4:c.138+821del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000548.4:c.138+821del']['alt_genomic_loci'] == []
-        assert results['NM_000548.4:c.138+821del']['transcript_description'] == 'Homo sapiens TSC complex subunit 2 (TSC2), transcript variant 1, mRNA'
         assert results['NM_000548.4:c.138+821del']['gene_symbol'] == 'TSC2'
         assert results['NM_000548.4:c.138+821del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000539.2(LRG_487p1):p.?', 'slr': 'NP_000539.2:p.?'}
         assert results['NM_000548.4:c.138+821del']['submitted_variant'] == 'NC_000016.9:g.2099572TC>T'
@@ -201,7 +193,6 @@ class TestVariants(object):
         assert results['NM_001077183.2:c.138+821del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001077183.2:c.138+821del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001077183.2:c.138+821del']['alt_genomic_loci'] == []
-        assert results['NM_001077183.2:c.138+821del']['transcript_description'] == 'Homo sapiens TSC complex subunit 2 (TSC2), transcript variant 4, mRNA'
         assert results['NM_001077183.2:c.138+821del']['gene_symbol'] == 'TSC2'
         assert results['NM_001077183.2:c.138+821del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001070651.1:p.?', 'slr': 'NP_001070651.1:p.?'}
         assert results['NM_001077183.2:c.138+821del']['submitted_variant'] == 'NC_000016.9:g.2099572TC>T'
@@ -219,7 +210,6 @@ class TestVariants(object):
         assert results['NM_001318831.1:c.-89+821del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001318831.1:c.-89+821del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001318831.1:c.-89+821del']['alt_genomic_loci'] == []
-        assert results['NM_001318831.1:c.-89+821del']['transcript_description'] == 'Homo sapiens TSC complex subunit 2 (TSC2), transcript variant 8, mRNA'
         assert results['NM_001318831.1:c.-89+821del']['gene_symbol'] == 'TSC2'
         assert results['NM_001318831.1:c.-89+821del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001305760.1:p.?', 'slr': 'NP_001305760.1:p.?'}
         assert results['NM_001318831.1:c.-89+821del']['submitted_variant'] == 'NC_000016.9:g.2099572TC>T'
@@ -237,7 +227,6 @@ class TestVariants(object):
         assert results['NM_000548.3:c.138+821del']['hgvs_lrg_transcript_variant'] == 'LRG_487t1:c.138+821del'
         assert results['NM_000548.3:c.138+821del']['refseqgene_context_intronic_sequence'] == 'NG_005895.1(NM_000548.3):c.138+821del'
         assert results['NM_000548.3:c.138+821del']['alt_genomic_loci'] == []
-        assert results['NM_000548.3:c.138+821del']['transcript_description'] == 'Homo sapiens tuberous sclerosis 2 (TSC2), transcript variant 1, mRNA'
         assert results['NM_000548.3:c.138+821del']['gene_symbol'] == 'TSC2'
         assert results['NM_000548.3:c.138+821del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000539.2(LRG_487p1):p.?', 'slr': 'NP_000539.2:p.?'}
         assert results['NM_000548.3:c.138+821del']['submitted_variant'] == 'NC_000016.9:g.2099572TC>T'
@@ -255,7 +244,6 @@ class TestVariants(object):
         assert results['NM_001114382.1:c.138+821del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001114382.1:c.138+821del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001114382.1:c.138+821del']['alt_genomic_loci'] == []
-        assert results['NM_001114382.1:c.138+821del']['transcript_description'] == 'Homo sapiens tuberous sclerosis 2 (TSC2), transcript variant 5, mRNA'
         assert results['NM_001114382.1:c.138+821del']['gene_symbol'] == 'TSC2'
         assert results['NM_001114382.1:c.138+821del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001107854.1:p.?', 'slr': 'NP_001107854.1:p.?'}
         assert results['NM_001114382.1:c.138+821del']['submitted_variant'] == 'NC_000016.9:g.2099572TC>T'
@@ -273,7 +261,6 @@ class TestVariants(object):
         assert results['NM_001318832.1:c.171+821del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001318832.1:c.171+821del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001318832.1:c.171+821del']['alt_genomic_loci'] == []
-        assert results['NM_001318832.1:c.171+821del']['transcript_description'] == 'Homo sapiens TSC complex subunit 2 (TSC2), transcript variant 9, mRNA'
         assert results['NM_001318832.1:c.171+821del']['gene_symbol'] == 'TSC2'
         assert results['NM_001318832.1:c.171+821del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001305761.1:p.?', 'slr': 'NP_001305761.1:p.?'}
         assert results['NM_001318832.1:c.171+821del']['submitted_variant'] == 'NC_000016.9:g.2099572TC>T'
@@ -291,7 +278,6 @@ class TestVariants(object):
         assert results['NM_001363528.1:c.138+821del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001363528.1:c.138+821del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001363528.1:c.138+821del']['alt_genomic_loci'] == []
-        assert results['NM_001363528.1:c.138+821del']['transcript_description'] == 'Homo sapiens TSC complex subunit 2 (TSC2), transcript variant 10, mRNA'
         assert results['NM_001363528.1:c.138+821del']['gene_symbol'] == 'TSC2'
         assert results['NM_001363528.1:c.138+821del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001350457.1:p.?', 'slr': 'NP_001350457.1:p.?'}
         assert results['NM_001363528.1:c.138+821del']['submitted_variant'] == 'NC_000016.9:g.2099572TC>T'
@@ -310,7 +296,6 @@ class TestVariants(object):
         assert results['NM_021055.2:c.138+821del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_021055.2:c.138+821del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_021055.2:c.138+821del']['alt_genomic_loci'] == []
-        assert results['NM_021055.2:c.138+821del']['transcript_description'] == 'Homo sapiens TSC complex subunit 2 (TSC2), transcript variant 2, mRNA'
         assert results['NM_021055.2:c.138+821del']['gene_symbol'] == 'TSC2'
         assert results['NM_021055.2:c.138+821del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_066399.2:p.?', 'slr': 'NP_066399.2:p.?'}
         assert results['NM_021055.2:c.138+821del']['submitted_variant'] == 'NC_000016.9:g.2099572TC>T'
@@ -328,7 +313,6 @@ class TestVariants(object):
         assert results['NM_001077183.1:c.138+821del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001077183.1:c.138+821del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001077183.1:c.138+821del']['alt_genomic_loci'] == []
-        assert results['NM_001077183.1:c.138+821del']['transcript_description'] == 'Homo sapiens tuberous sclerosis 2 (TSC2), transcript variant 4, mRNA'
         assert results['NM_001077183.1:c.138+821del']['gene_symbol'] == 'TSC2'
         assert results['NM_001077183.1:c.138+821del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001070651.1:p.?', 'slr': 'NP_001070651.1:p.?'}
         assert results['NM_001077183.1:c.138+821del']['submitted_variant'] == 'NC_000016.9:g.2099572TC>T'
@@ -346,7 +330,6 @@ class TestVariants(object):
         assert results['NM_001318827.1:c.138+821del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001318827.1:c.138+821del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001318827.1:c.138+821del']['alt_genomic_loci'] == []
-        assert results['NM_001318827.1:c.138+821del']['transcript_description'] == 'Homo sapiens TSC complex subunit 2 (TSC2), transcript variant 6, mRNA'
         assert results['NM_001318827.1:c.138+821del']['gene_symbol'] == 'TSC2'
         assert results['NM_001318827.1:c.138+821del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001305756.1:p.?', 'slr': 'NP_001305756.1:p.?'}
         assert results['NM_001318827.1:c.138+821del']['submitted_variant'] == 'NC_000016.9:g.2099572TC>T'
@@ -364,7 +347,6 @@ class TestVariants(object):
         assert results['NM_001114382.2:c.138+821del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001114382.2:c.138+821del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001114382.2:c.138+821del']['alt_genomic_loci'] == []
-        assert results['NM_001114382.2:c.138+821del']['transcript_description'] == 'Homo sapiens TSC complex subunit 2 (TSC2), transcript variant 5, mRNA'
         assert results['NM_001114382.2:c.138+821del']['gene_symbol'] == 'TSC2'
         assert results['NM_001114382.2:c.138+821del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001107854.1:p.?', 'slr': 'NP_001107854.1:p.?'}
         assert results['NM_001114382.2:c.138+821del']['submitted_variant'] == 'NC_000016.9:g.2099572TC>T'
@@ -382,7 +364,6 @@ class TestVariants(object):
         assert results['NM_001318829.1:c.-9-826del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001318829.1:c.-9-826del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001318829.1:c.-9-826del']['alt_genomic_loci'] == []
-        assert results['NM_001318829.1:c.-9-826del']['transcript_description'] == 'Homo sapiens TSC complex subunit 2 (TSC2), transcript variant 7, mRNA'
         assert results['NM_001318829.1:c.-9-826del']['gene_symbol'] == 'TSC2'
         assert results['NM_001318829.1:c.-9-826del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001305758.1:p.?', 'slr': 'NP_001305758.1:p.?'}
         assert results['NM_001318829.1:c.-9-826del']['submitted_variant'] == 'NC_000016.9:g.2099572TC>T'
@@ -407,7 +388,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.589_590delinsCT']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.589_590delinsCT'
         assert results['NM_000088.3:c.589_590delinsCT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000088.3:c.589_590delinsCT']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.589_590delinsCT']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.589_590delinsCT']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.589_590delinsCT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.(Gly197Leu)', 'slr': 'NP_000079.2:p.(G197L)'}
         assert results['NM_000088.3:c.589_590delinsCT']['submitted_variant'] == 'NM_000088.3:c.589GG>CT'
@@ -431,7 +411,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'NM_000094.3:c.6751-2_6751-3del'
@@ -456,7 +435,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'COL5A1:c.5071A>T'
@@ -481,7 +459,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'NG_007400.1:c.5071A>T'
@@ -506,7 +483,6 @@ class TestVariants(object):
         assert results['NM_002474.2:c.3034_3035inv']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_002474.2:c.3034_3035inv']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_002474.2:c.3034_3035inv']['alt_genomic_loci'] == [{'grch38': {'hgvs_genomic_description': 'NT_187607.1:g.1396662_1396663inv', 'vcf': {'chr': 'HSCHR16_1_CTG1', 'ref': 'GT', 'pos': '1396662', 'alt': 'AC'}}}, {'hg38': {'hgvs_genomic_description': 'NT_187607.1:g.1396662_1396663inv', 'vcf': {'chr': 'chr16_KI270853v1_alt', 'ref': 'GT', 'pos': '1396662', 'alt': 'AC'}}}]
-        assert results['NM_002474.2:c.3034_3035inv']['transcript_description'] == 'Homo sapiens myosin heavy chain 11 (MYH11), transcript variant SM1A, mRNA'
         assert results['NM_002474.2:c.3034_3035inv']['gene_symbol'] == 'MYH11'
         assert results['NM_002474.2:c.3034_3035inv']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_002465.1:p.(Thr1012Val)', 'slr': 'NP_002465.1:p.(T1012V)'}
         assert results['NM_002474.2:c.3034_3035inv']['submitted_variant'] == 'chr16:15832508_15832509delinsAC'
@@ -524,7 +500,6 @@ class TestVariants(object):
         assert results['NM_022844.2:c.3034_3035inv']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_022844.2:c.3034_3035inv']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_022844.2:c.3034_3035inv']['alt_genomic_loci'] == [{'grch38': {'hgvs_genomic_description': 'NT_187607.1:g.1396662_1396663inv', 'vcf': {'chr': 'HSCHR16_1_CTG1', 'ref': 'GT', 'pos': '1396662', 'alt': 'AC'}}}, {'hg38': {'hgvs_genomic_description': 'NT_187607.1:g.1396662_1396663inv', 'vcf': {'chr': 'chr16_KI270853v1_alt', 'ref': 'GT', 'pos': '1396662', 'alt': 'AC'}}}]
-        assert results['NM_022844.2:c.3034_3035inv']['transcript_description'] == 'Homo sapiens myosin heavy chain 11 (MYH11), transcript variant SM2A, mRNA'
         assert results['NM_022844.2:c.3034_3035inv']['gene_symbol'] == 'MYH11'
         assert results['NM_022844.2:c.3034_3035inv']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_074035.1:p.(Thr1012Val)', 'slr': 'NP_074035.1:p.(T1012V)'}
         assert results['NM_022844.2:c.3034_3035inv']['submitted_variant'] == 'chr16:15832508_15832509delinsAC'
@@ -542,7 +517,6 @@ class TestVariants(object):
         assert results['NM_001040114.1:c.3055_3056inv']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001040114.1:c.3055_3056inv']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001040114.1:c.3055_3056inv']['alt_genomic_loci'] == [{'grch38': {'hgvs_genomic_description': 'NT_187607.1:g.1396662_1396663inv', 'vcf': {'chr': 'HSCHR16_1_CTG1', 'ref': 'GT', 'pos': '1396662', 'alt': 'AC'}}}, {'hg38': {'hgvs_genomic_description': 'NT_187607.1:g.1396662_1396663inv', 'vcf': {'chr': 'chr16_KI270853v1_alt', 'ref': 'GT', 'pos': '1396662', 'alt': 'AC'}}}]
-        assert results['NM_001040114.1:c.3055_3056inv']['transcript_description'] == 'Homo sapiens myosin heavy chain 11 (MYH11), transcript variant SM1B, mRNA'
         assert results['NM_001040114.1:c.3055_3056inv']['gene_symbol'] == 'MYH11'
         assert results['NM_001040114.1:c.3055_3056inv']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001035203.1:p.(Thr1019Val)', 'slr': 'NP_001035203.1:p.(T1019V)'}
         assert results['NM_001040114.1:c.3055_3056inv']['submitted_variant'] == 'chr16:15832508_15832509delinsAC'
@@ -561,7 +535,6 @@ class TestVariants(object):
         assert results['NM_001040113.1:c.3055_3056inv']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001040113.1:c.3055_3056inv']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001040113.1:c.3055_3056inv']['alt_genomic_loci'] == [{'grch38': {'hgvs_genomic_description': 'NT_187607.1:g.1396662_1396663inv', 'vcf': {'chr': 'HSCHR16_1_CTG1', 'ref': 'GT', 'pos': '1396662', 'alt': 'AC'}}}, {'hg38': {'hgvs_genomic_description': 'NT_187607.1:g.1396662_1396663inv', 'vcf': {'chr': 'chr16_KI270853v1_alt', 'ref': 'GT', 'pos': '1396662', 'alt': 'AC'}}}]
-        assert results['NM_001040113.1:c.3055_3056inv']['transcript_description'] == 'Homo sapiens myosin heavy chain 11 (MYH11), transcript variant SM2B, mRNA'
         assert results['NM_001040113.1:c.3055_3056inv']['gene_symbol'] == 'MYH11'
         assert results['NM_001040113.1:c.3055_3056inv']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001035202.1:p.(Thr1019Val)', 'slr': 'NP_001035202.1:p.(T1019V)'}
         assert results['NM_001040113.1:c.3055_3056inv']['submitted_variant'] == 'chr16:15832508_15832509delinsAC'
@@ -586,7 +559,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.589-1_589delinsG']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.590del'
         assert results['NM_000088.3:c.589-1_589delinsG']['refseqgene_context_intronic_sequence'] == 'NG_007400.1(NM_000088.3):c.590del'
         assert results['NM_000088.3:c.589-1_589delinsG']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.589-1_589delinsG']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.589-1_589delinsG']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.589-1_589delinsG']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.?', 'slr': 'NP_000079.2:p.?'}
         assert results['NM_000088.3:c.589-1_589delinsG']['submitted_variant'] == 'NM_000088.3:c.589-1GG>G'
@@ -611,7 +583,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.642+1_642+2delinsG']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.642+2del'
         assert results['NM_000088.3:c.642+1_642+2delinsG']['refseqgene_context_intronic_sequence'] == 'NG_007400.1(NM_000088.3):c.642+2del'
         assert results['NM_000088.3:c.642+1_642+2delinsG']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.642+1_642+2delinsG']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.642+1_642+2delinsG']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.642+1_642+2delinsG']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.?', 'slr': 'NP_000079.2:p.?'}
         assert results['NM_000088.3:c.642+1_642+2delinsG']['submitted_variant'] == 'NM_000088.3:c.642+1GT>G'
@@ -636,7 +607,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.589-2_589-1delinsG']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.589-2del'
         assert results['NM_000088.3:c.589-2_589-1delinsG']['refseqgene_context_intronic_sequence'] == 'NG_007400.1(NM_000088.3):c.589-2del'
         assert results['NM_000088.3:c.589-2_589-1delinsG']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.589-2_589-1delinsG']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.589-2_589-1delinsG']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.589-2_589-1delinsG']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.?', 'slr': 'NP_000079.2:p.?'}
         assert results['NM_000088.3:c.589-2_589-1delinsG']['submitted_variant'] == 'NM_000088.3:c.589-2AG>G'
@@ -661,7 +631,6 @@ class TestVariants(object):
         assert results['Intergenic_Variant_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['Intergenic_Variant_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['Intergenic_Variant_1']['alt_genomic_loci'] == []
-        assert results['Intergenic_Variant_1']['transcript_description'] == ''
         assert results['Intergenic_Variant_1']['gene_symbol'] == ''
         assert results['Intergenic_Variant_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['Intergenic_Variant_1']['submitted_variant'] == 'NC_000017.10:g.48279242G>T'
@@ -685,7 +654,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'NM_000500.7:c.-107-19C>T'
@@ -710,7 +678,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'NM_000518.4:c.-130C>T'
@@ -735,7 +702,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'NM_000518.4:c.-50-80C>T'
@@ -760,7 +726,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'NM_000518.4:c.316_*342delinsCTACTT'
@@ -786,7 +751,6 @@ class TestVariants(object):
         assert results['NM_000518.4:c.316_*100del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000518.4:c.316_*100del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000518.4:c.316_*100del']['alt_genomic_loci'] == []
-        assert results['NM_000518.4:c.316_*100del']['transcript_description'] == 'Homo sapiens hemoglobin subunit beta (HBB), mRNA'
         assert results['NM_000518.4:c.316_*100del']['gene_symbol'] == 'HBB'
         assert results['NM_000518.4:c.316_*100del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000509.1(LRG_1232p1):p.(Leu106SerfsTer3)', 'slr': 'NP_000509.1:p.(L106Sfs*3)'}
         assert results['NM_000518.4:c.316_*100del']['submitted_variant'] == 'NM_000518.4:c.316_*100del'
@@ -810,7 +774,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'NM_000518.4:c.*2000C>T'
@@ -835,7 +798,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'NM_000518.4:c.*132+1868C>T'
@@ -860,7 +822,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'NM_000518.4:c.-130_*2000='
@@ -885,7 +846,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'NM_000518.4:c.-50-80_*132+1868='
@@ -910,7 +870,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'NR_138595.1:n.-810C>T'
@@ -935,7 +894,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'NR_138595.1:n.1-810C>T'
@@ -960,7 +918,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'NR_138595.1:n.1071+1A='
@@ -984,7 +941,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'NR_138595.1:n.-810_1071+1='
@@ -1010,7 +966,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.*1400_*1406=']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.*1400_*1406='
         assert results['NM_000088.3:c.*1400_*1406=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000088.3:c.*1400_*1406=']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.*1400_*1406=']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.*1400_*1406=']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.*1400_*1406=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.?', 'slr': 'NP_000079.2:p.?'}
         assert results['NM_000088.3:c.*1400_*1406=']['submitted_variant'] == 'NC_000017.10:g.48261457_48261463TTATGTT='
@@ -1035,7 +990,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.589G>T']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.589G>T'
         assert results['NM_000088.3:c.589G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000088.3:c.589G>T']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.589G>T']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.589G>T']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.589G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.(Gly197Cys)', 'slr': 'NP_000079.2:p.(G197C)'}
         assert results['NM_000088.3:c.589G>T']['submitted_variant'] == 'NC_000017.10:g.48275363C>A'
@@ -1060,7 +1014,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.589-1G>T']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.589-1G>T'
         assert results['NM_000088.3:c.589-1G>T']['refseqgene_context_intronic_sequence'] == 'NG_007400.1(NM_000088.3):c.589-1G>T'
         assert results['NM_000088.3:c.589-1G>T']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.589-1G>T']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.589-1G>T']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.589-1G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.?', 'slr': 'NP_000079.2:p.?'}
         assert results['NM_000088.3:c.589-1G>T']['submitted_variant'] == 'NM_000088.3:c.589-1G>T'
@@ -1084,7 +1037,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.591_593inv']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.591_593inv'
         assert results['NM_000088.3:c.591_593inv']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000088.3:c.591_593inv']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.591_593inv']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.591_593inv']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.591_593inv']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.(Pro198Asp)', 'slr': 'NP_000079.2:p.(P198D)'}
         assert results['NM_000088.3:c.591_593inv']['submitted_variant'] == 'NM_000088.3:c.591_593inv'
@@ -1110,7 +1062,6 @@ class TestVariants(object):
         assert results['NM_000518.5:c.20A>T']['hgvs_lrg_transcript_variant'] == 'LRG_1232t1:c.20A>T'
         assert results['NM_000518.5:c.20A>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000518.5:c.20A>T']['alt_genomic_loci'] == []
-        assert results['NM_000518.5:c.20A>T']['transcript_description'] == 'Homo sapiens hemoglobin subunit beta (HBB), mRNA'
         assert results['NM_000518.5:c.20A>T']['gene_symbol'] == 'HBB'
         assert results['NM_000518.5:c.20A>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000509.1(LRG_1232p1):p.(Glu7Val)', 'slr': 'NP_000509.1:p.(E7V)'}
         assert results['NM_000518.5:c.20A>T']['submitted_variant'] == '11-5248232-T-A'
@@ -1128,7 +1079,6 @@ class TestVariants(object):
         assert results['NM_000518.4:c.20A>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000518.4:c.20A>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000518.4:c.20A>T']['alt_genomic_loci'] == []
-        assert results['NM_000518.4:c.20A>T']['transcript_description'] == 'Homo sapiens hemoglobin subunit beta (HBB), mRNA'
         assert results['NM_000518.4:c.20A>T']['gene_symbol'] == 'HBB'
         assert results['NM_000518.4:c.20A>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000509.1(LRG_1232p1):p.(Glu7Val)', 'slr': 'NP_000509.1:p.(E7V)'}
         assert results['NM_000518.4:c.20A>T']['submitted_variant'] == '11-5248232-T-A'
@@ -1153,7 +1103,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.589-1G>T']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.589-1G>T'
         assert results['NM_000088.3:c.589-1G>T']['refseqgene_context_intronic_sequence'] == 'NG_007400.1(NM_000088.3):c.589-1G>T'
         assert results['NM_000088.3:c.589-1G>T']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.589-1G>T']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.589-1G>T']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.589-1G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.?', 'slr': 'NP_000079.2:p.?'}
         assert results['NM_000088.3:c.589-1G>T']['submitted_variant'] == 'NG_007400.1(NM_000088.3):c.589-1G>T'
@@ -1178,7 +1127,6 @@ class TestVariants(object):
         assert results['NM_182763.2:c.688+403C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_182763.2:c.688+403C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_182763.2:c.688+403C>T']['alt_genomic_loci'] == []
-        assert results['NM_182763.2:c.688+403C>T']['transcript_description'] == 'Homo sapiens MCL1, BCL2 family apoptosis regulator (MCL1), transcript variant 2, mRNA'
         assert results['NM_182763.2:c.688+403C>T']['gene_symbol'] == 'MCL1'
         assert results['NM_182763.2:c.688+403C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_877495.1:p.?', 'slr': 'NP_877495.1:p.?'}
         assert results['NM_182763.2:c.688+403C>T']['submitted_variant'] == '1:150550916G>A'
@@ -1196,7 +1144,6 @@ class TestVariants(object):
         assert results['NM_001197320.1:c.281C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001197320.1:c.281C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001197320.1:c.281C>T']['alt_genomic_loci'] == []
-        assert results['NM_001197320.1:c.281C>T']['transcript_description'] == 'Homo sapiens MCL1, BCL2 family apoptosis regulator (MCL1), transcript variant 3, mRNA'
         assert results['NM_001197320.1:c.281C>T']['gene_symbol'] == 'MCL1'
         assert results['NM_001197320.1:c.281C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001184249.1:p.(Ser94Phe)', 'slr': 'NP_001184249.1:p.(S94F)'}
         assert results['NM_001197320.1:c.281C>T']['submitted_variant'] == '1:150550916G>A'
@@ -1214,7 +1161,6 @@ class TestVariants(object):
         assert results['NM_021960.4:c.740C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_021960.4:c.740C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_021960.4:c.740C>T']['alt_genomic_loci'] == []
-        assert results['NM_021960.4:c.740C>T']['transcript_description'] == 'Homo sapiens MCL1, BCL2 family apoptosis regulator (MCL1), transcript variant 1, mRNA'
         assert results['NM_021960.4:c.740C>T']['gene_symbol'] == 'MCL1'
         assert results['NM_021960.4:c.740C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_068779.1:p.(Ser247Phe)', 'slr': 'NP_068779.1:p.(S247F)'}
         assert results['NM_021960.4:c.740C>T']['submitted_variant'] == '1:150550916G>A'
@@ -1239,7 +1185,6 @@ class TestVariants(object):
         assert results['NM_182763.2:c.688+403C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_182763.2:c.688+403C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_182763.2:c.688+403C>T']['alt_genomic_loci'] == []
-        assert results['NM_182763.2:c.688+403C>T']['transcript_description'] == 'Homo sapiens MCL1, BCL2 family apoptosis regulator (MCL1), transcript variant 2, mRNA'
         assert results['NM_182763.2:c.688+403C>T']['gene_symbol'] == 'MCL1'
         assert results['NM_182763.2:c.688+403C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_877495.1:p.?', 'slr': 'NP_877495.1:p.?'}
         assert results['NM_182763.2:c.688+403C>T']['submitted_variant'] == '1-150550916-G-A'
@@ -1257,7 +1202,6 @@ class TestVariants(object):
         assert results['NM_001197320.1:c.281C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001197320.1:c.281C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001197320.1:c.281C>T']['alt_genomic_loci'] == []
-        assert results['NM_001197320.1:c.281C>T']['transcript_description'] == 'Homo sapiens MCL1, BCL2 family apoptosis regulator (MCL1), transcript variant 3, mRNA'
         assert results['NM_001197320.1:c.281C>T']['gene_symbol'] == 'MCL1'
         assert results['NM_001197320.1:c.281C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001184249.1:p.(Ser94Phe)', 'slr': 'NP_001184249.1:p.(S94F)'}
         assert results['NM_001197320.1:c.281C>T']['submitted_variant'] == '1-150550916-G-A'
@@ -1275,7 +1219,6 @@ class TestVariants(object):
         assert results['NM_021960.4:c.740C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_021960.4:c.740C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_021960.4:c.740C>T']['alt_genomic_loci'] == []
-        assert results['NM_021960.4:c.740C>T']['transcript_description'] == 'Homo sapiens MCL1, BCL2 family apoptosis regulator (MCL1), transcript variant 1, mRNA'
         assert results['NM_021960.4:c.740C>T']['gene_symbol'] == 'MCL1'
         assert results['NM_021960.4:c.740C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_068779.1:p.(Ser247Phe)', 'slr': 'NP_068779.1:p.(S247F)'}
         assert results['NM_021960.4:c.740C>T']['submitted_variant'] == '1-150550916-G-A'
@@ -1299,7 +1242,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'NG_008123.1(LEPRE1_v003):c.2055+18G>A'
@@ -1324,7 +1266,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'NG_008123.1:c.2055+18G>A'
@@ -1350,7 +1291,6 @@ class TestVariants(object):
         assert results['NM_022356.3:c.2055+18G>A']['hgvs_lrg_transcript_variant'] == 'LRG_5t1:c.2055+18G>A'
         assert results['NM_022356.3:c.2055+18G>A']['refseqgene_context_intronic_sequence'] == 'NG_008123.1(NM_022356.3):c.2055+18G>A'
         assert results['NM_022356.3:c.2055+18G>A']['alt_genomic_loci'] == []
-        assert results['NM_022356.3:c.2055+18G>A']['transcript_description'] == 'Homo sapiens prolyl 3-hydroxylase 1 (P3H1), transcript variant 1, mRNA'
         assert results['NM_022356.3:c.2055+18G>A']['gene_symbol'] == 'P3H1'
         assert results['NM_022356.3:c.2055+18G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_071751.3(LRG_5p1):p.?', 'slr': 'NP_071751.3:p.?'}
         assert results['NM_022356.3:c.2055+18G>A']['submitted_variant'] == 'NG_008123.1(NM_022356.3):c.2055+18G>A'
@@ -1375,7 +1315,6 @@ class TestVariants(object):
         assert results['NM_021983.4:c.490G>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_021983.4:c.490G>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_021983.4:c.490G>C']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NT_167246.1:g.3848158T>G', 'vcf': {'chr': 'HSCHR6_MHC_MANN_CTG1', 'ref': 'T', 'pos': '3848158', 'alt': u'G'}}}, {'hg19': {'hgvs_genomic_description': 'NT_167246.1:g.3848158T>G', 'vcf': {'chr': 'chr6_mann_hap4', 'ref': 'T', 'pos': '3848158', 'alt': u'G'}}}, {'grch38': {'hgvs_genomic_description': 'NT_167246.2:g.3842538T>G', 'vcf': {'chr': 'HSCHR6_MHC_MANN_CTG1', 'ref': 'T', 'pos': '3842538', 'alt': u'G'}}}, {'hg38': {'hgvs_genomic_description': 'NT_167246.2:g.3842538T>G', 'vcf': {'chr': 'chr6_GL000253v2_alt', 'ref': 'T', 'pos': '3842538', 'alt': u'G'}}}, {'grch37': {'hgvs_genomic_description': 'NT_167247.1:g.3884432C>G', 'vcf': {'chr': 'HSCHR6_MHC_MCF_CTG1', 'ref': u'C', 'pos': '3884432', 'alt': u'G'}}}, {'hg19': {'hgvs_genomic_description': 'NT_167247.1:g.3884432C>G', 'vcf': {'chr': 'chr6_mcf_hap5', 'ref': u'C', 'pos': '3884432', 'alt': u'G'}}}, {'grch37': {'hgvs_genomic_description': 'NT_167249.1:g.3852542C>G', 'vcf': {'chr': 'HSCHR6_MHC_SSTO_CTG1', 'ref': u'C', 'pos': '3852542', 'alt': u'G'}}}, {'hg19': {'hgvs_genomic_description': 'NT_167249.1:g.3852542C>G', 'vcf': {'chr': 'chr6_ssto_hap7', 'ref': u'C', 'pos': '3852542', 'alt': u'G'}}}, {'grch38': {'hgvs_genomic_description': 'NT_167249.2:g.3853244C>G', 'vcf': {'chr': 'HSCHR6_MHC_SSTO_CTG1', 'ref': u'C', 'pos': '3853244', 'alt': u'G'}}}, {'hg38': {'hgvs_genomic_description': 'NT_167249.2:g.3853244C>G', 'vcf': {'chr': 'chr6_GL000256v2_alt', 'ref': u'C', 'pos': '3853244', 'alt': u'G'}}}]
-        assert results['NM_021983.4:c.490G>C']['transcript_description'] == 'Homo sapiens major histocompatibility complex, class II, DR beta 4 (HLA-DRB4), mRNA'
         assert results['NM_021983.4:c.490G>C']['gene_symbol'] == 'HLA-DRB4'
         assert results['NM_021983.4:c.490G>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_068818.4:p.(Gly164Arg)', 'slr': 'NP_068818.4:p.(G164R)'}
         assert results['NM_021983.4:c.490G>C']['submitted_variant'] == 'NM_021983.4:c.490G>C'
@@ -1400,7 +1339,6 @@ class TestVariants(object):
         assert results['NM_032470.3:c.4del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_032470.3:c.4del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_032470.3:c.4del']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NT_113891.2:g.3483644del', 'vcf': {'chr': 'HSCHR6_MHC_COX_CTG1', 'ref': 'CG', 'pos': '3483643', 'alt': 'C'}}}, {'hg19': {'hgvs_genomic_description': 'NT_113891.2:g.3483644del', 'vcf': {'chr': 'chr6_cox_hap2', 'ref': 'CG', 'pos': '3483643', 'alt': 'C'}}}, {'grch38': {'hgvs_genomic_description': 'NT_113891.3:g.3483538del', 'vcf': {'chr': 'HSCHR6_MHC_COX_CTG1', 'ref': 'CG', 'pos': '3483537', 'alt': 'C'}}}, {'hg38': {'hgvs_genomic_description': 'NT_113891.3:g.3483538del', 'vcf': {'chr': 'chr6_GL000251v2_alt', 'ref': 'CG', 'pos': '3483537', 'alt': 'C'}}}, {'grch37': {'hgvs_genomic_description': 'NT_167245.1:g.3292210del', 'vcf': {'chr': 'HSCHR6_MHC_DBB_CTG1', 'ref': 'CG', 'pos': '3292209', 'alt': 'C'}}}, {'hg19': {'hgvs_genomic_description': 'NT_167245.1:g.3292210del', 'vcf': {'chr': 'chr6_dbb_hap3', 'ref': 'CG', 'pos': '3292209', 'alt': 'C'}}}, {'grch38': {'hgvs_genomic_description': 'NT_167245.2:g.3286625del', 'vcf': {'chr': 'HSCHR6_MHC_DBB_CTG1', 'ref': 'CG', 'pos': '3286624', 'alt': 'C'}}}, {'hg38': {'hgvs_genomic_description': 'NT_167245.2:g.3286625del', 'vcf': {'chr': 'chr6_GL000252v2_alt', 'ref': 'CG', 'pos': '3286624', 'alt': 'C'}}}, {'grch37': {'hgvs_genomic_description': 'NT_167247.1:g.3392834del', 'vcf': {'chr': 'HSCHR6_MHC_MCF_CTG1', 'ref': 'CG', 'pos': '3392833', 'alt': 'C'}}}, {'hg19': {'hgvs_genomic_description': 'NT_167247.1:g.3392834del', 'vcf': {'chr': 'chr6_mcf_hap5', 'ref': 'CG', 'pos': '3392833', 'alt': 'C'}}}, {'grch38': {'hgvs_genomic_description': 'NT_167247.2:g.3387249del', 'vcf': {'chr': 'HSCHR6_MHC_MCF_CTG1', 'ref': 'CG', 'pos': '3387248', 'alt': 'C'}}}, {'hg38': {'hgvs_genomic_description': 'NT_167247.2:g.3387249del', 'vcf': {'chr': 'chr6_GL000254v2_alt', 'ref': 'CG', 'pos': '3387248', 'alt': 'C'}}}, {'grch37': {'hgvs_genomic_description': 'NT_167248.1:g.3274047del', 'vcf': {'chr': 'HSCHR6_MHC_QBL_CTG1', 'ref': 'CG', 'pos': '3274046', 'alt': 'C'}}}, {'hg19': {'hgvs_genomic_description': 'NT_167248.1:g.3274047del', 'vcf': {'chr': 'chr6_qbl_hap6', 'ref': 'CG', 'pos': '3274046', 'alt': 'C'}}}, {'grch38': {'hgvs_genomic_description': 'NT_167248.2:g.3268451del', 'vcf': {'chr': 'HSCHR6_MHC_QBL_CTG1', 'ref': 'CG', 'pos': '3268450', 'alt': 'C'}}}, {'hg38': {'hgvs_genomic_description': 'NT_167248.2:g.3268451del', 'vcf': {'chr': 'chr6_GL000255v2_alt', 'ref': 'CG', 'pos': '3268450', 'alt': 'C'}}}, {'grch37': {'hgvs_genomic_description': 'NT_167249.1:g.3345701del', 'vcf': {'chr': 'HSCHR6_MHC_SSTO_CTG1', 'ref': 'CG', 'pos': '3345700', 'alt': 'C'}}}, {'hg19': {'hgvs_genomic_description': 'NT_167249.1:g.3345701del', 'vcf': {'chr': 'chr6_ssto_hap7', 'ref': 'CG', 'pos': '3345700', 'alt': 'C'}}}, {'grch38': {'hgvs_genomic_description': 'NT_167249.2:g.3346403del', 'vcf': {'chr': 'HSCHR6_MHC_SSTO_CTG1', 'ref': 'CG', 'pos': '3346402', 'alt': 'C'}}}, {'hg38': {'hgvs_genomic_description': 'NT_167249.2:g.3346403del', 'vcf': {'chr': 'chr6_GL000256v2_alt', 'ref': 'CG', 'pos': '3346402', 'alt': 'C'}}}]
-        assert results['NM_032470.3:c.4del']['transcript_description'] == 'Homo sapiens tenascin XB (TNXB), transcript variant XB-S, mRNA'
         assert results['NM_032470.3:c.4del']['gene_symbol'] == 'TNXB'
         assert results['NM_032470.3:c.4del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_115859.2:p.(Arg2AlafsTer91)', 'slr': 'NP_115859.2:p.(R2Afs*91)'}
         assert results['NM_032470.3:c.4del']['submitted_variant'] == 'NM_032470.3:c.4del'
@@ -1424,7 +1362,6 @@ class TestVariants(object):
         assert results['NM_001194958.2:c.20C>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001194958.2:c.20C>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001194958.2:c.20C>A']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003315950.2:g.355171C>A', 'vcf': {'chr': 'HG987_PATCH', 'ref': 'C', 'pos': '355171', 'alt': 'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003315950.2:g.355171C>A', 'vcf': {'chr': 'NW_003315950.2', 'ref': 'C', 'pos': '355171', 'alt': 'A'}}}]
-        assert results['NM_001194958.2:c.20C>A']['transcript_description'] == 'Homo sapiens potassium voltage-gated channel subfamily J member 18 (KCNJ18), mRNA'
         assert results['NM_001194958.2:c.20C>A']['gene_symbol'] == 'KCNJ18'
         assert results['NM_001194958.2:c.20C>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001181887.2:p.(Ala7Asp)', 'slr': 'NP_001181887.2:p.(A7D)'}
         assert results['NM_001194958.2:c.20C>A']['submitted_variant'] == 'NM_001194958.2:c.20C>A'
@@ -1450,7 +1387,6 @@ class TestVariants(object):
         assert results['NM_000022.2:c.534A>G']['hgvs_lrg_transcript_variant'] == 'LRG_16t1:c.534A>G'
         assert results['NM_000022.2:c.534A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000022.2:c.534A>G']['alt_genomic_loci'] == []
-        assert results['NM_000022.2:c.534A>G']['transcript_description'] == 'Homo sapiens adenosine deaminase (ADA), mRNA'
         assert results['NM_000022.2:c.534A>G']['gene_symbol'] == 'ADA'
         assert results['NM_000022.2:c.534A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000013.2(LRG_16p1):p.(Val178=)', 'slr': 'NP_000013.2:p.(V178=)'}
         assert results['NM_000022.2:c.534A>G']['submitted_variant'] == 'NM_000022.2:c.534A>G'
@@ -1475,7 +1411,6 @@ class TestVariants(object):
         assert results['NM_021983.4:c.490G>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_021983.4:c.490G>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_021983.4:c.490G>C']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NT_167246.1:g.3848158T>G', 'vcf': {'chr': 'HSCHR6_MHC_MANN_CTG1', 'ref': 'T', 'pos': '3848158', 'alt': u'G'}}}, {'hg19': {'hgvs_genomic_description': 'NT_167246.1:g.3848158T>G', 'vcf': {'chr': 'chr6_mann_hap4', 'ref': 'T', 'pos': '3848158', 'alt': u'G'}}}, {'grch38': {'hgvs_genomic_description': 'NT_167246.2:g.3842538T>G', 'vcf': {'chr': 'HSCHR6_MHC_MANN_CTG1', 'ref': 'T', 'pos': '3842538', 'alt': u'G'}}}, {'hg38': {'hgvs_genomic_description': 'NT_167246.2:g.3842538T>G', 'vcf': {'chr': 'chr6_GL000253v2_alt', 'ref': 'T', 'pos': '3842538', 'alt': u'G'}}}, {'grch37': {'hgvs_genomic_description': 'NT_167247.1:g.3884432C>G', 'vcf': {'chr': 'HSCHR6_MHC_MCF_CTG1', 'ref': u'C', 'pos': '3884432', 'alt': u'G'}}}, {'hg19': {'hgvs_genomic_description': 'NT_167247.1:g.3884432C>G', 'vcf': {'chr': 'chr6_mcf_hap5', 'ref': u'C', 'pos': '3884432', 'alt': u'G'}}}, {'grch37': {'hgvs_genomic_description': 'NT_167249.1:g.3852542C>G', 'vcf': {'chr': 'HSCHR6_MHC_SSTO_CTG1', 'ref': u'C', 'pos': '3852542', 'alt': u'G'}}}, {'hg19': {'hgvs_genomic_description': 'NT_167249.1:g.3852542C>G', 'vcf': {'chr': 'chr6_ssto_hap7', 'ref': u'C', 'pos': '3852542', 'alt': u'G'}}}, {'grch38': {'hgvs_genomic_description': 'NT_167249.2:g.3853244C>G', 'vcf': {'chr': 'HSCHR6_MHC_SSTO_CTG1', 'ref': u'C', 'pos': '3853244', 'alt': u'G'}}}, {'hg38': {'hgvs_genomic_description': 'NT_167249.2:g.3853244C>G', 'vcf': {'chr': 'chr6_GL000256v2_alt', 'ref': u'C', 'pos': '3853244', 'alt': u'G'}}}]
-        assert results['NM_021983.4:c.490G>C']['transcript_description'] == 'Homo sapiens major histocompatibility complex, class II, DR beta 4 (HLA-DRB4), mRNA'
         assert results['NM_021983.4:c.490G>C']['gene_symbol'] == 'HLA-DRB4'
         assert results['NM_021983.4:c.490G>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_068818.4:p.(Gly164Arg)', 'slr': 'NP_068818.4:p.(G164R)'}
         assert results['NM_021983.4:c.490G>C']['submitted_variant'] == 'HSCHR6_MHC_SSTO_CTG1-3852542-C-G'
@@ -1500,7 +1435,6 @@ class TestVariants(object):
         assert results['NM_000368.4:c.363+1dup']['hgvs_lrg_transcript_variant'] == 'LRG_486t1:c.363+1dup'
         assert results['NM_000368.4:c.363+1dup']['refseqgene_context_intronic_sequence'] == 'NG_012386.1(NM_000368.4):c.363+1dup'
         assert results['NM_000368.4:c.363+1dup']['alt_genomic_loci'] == []
-        assert results['NM_000368.4:c.363+1dup']['transcript_description'] == 'Homo sapiens TSC complex subunit 1 (TSC1), transcript variant 1, mRNA'
         assert results['NM_000368.4:c.363+1dup']['gene_symbol'] == 'TSC1'
         assert results['NM_000368.4:c.363+1dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000359.1(LRG_486p1):p.?', 'slr': 'NP_000359.1:p.?'}
         assert results['NM_000368.4:c.363+1dup']['submitted_variant'] == 'NM_000368.4:c.363+1dupG'
@@ -1525,7 +1459,6 @@ class TestVariants(object):
         assert results['NM_000368.4:c.363+1dup']['hgvs_lrg_transcript_variant'] == 'LRG_486t1:c.363+1dup'
         assert results['NM_000368.4:c.363+1dup']['refseqgene_context_intronic_sequence'] == 'NG_012386.1(NM_000368.4):c.363+1dup'
         assert results['NM_000368.4:c.363+1dup']['alt_genomic_loci'] == []
-        assert results['NM_000368.4:c.363+1dup']['transcript_description'] == 'Homo sapiens TSC complex subunit 1 (TSC1), transcript variant 1, mRNA'
         assert results['NM_000368.4:c.363+1dup']['gene_symbol'] == 'TSC1'
         assert results['NM_000368.4:c.363+1dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000359.1(LRG_486p1):p.(Met122AspfsTer4)', 'slr': 'NP_000359.1:p.(M122Dfs*4)'}
         assert results['NM_000368.4:c.363+1dup']['submitted_variant'] == 'NM_000368.4:c.363dupG'
@@ -1550,7 +1483,6 @@ class TestVariants(object):
         assert results['NM_000089.3:c.1035_1035+2del']['hgvs_lrg_transcript_variant'] == 'LRG_2t1:c.1035_1035+2del'
         assert results['NM_000089.3:c.1035_1035+2del']['refseqgene_context_intronic_sequence'] == 'NG_007405.1(NM_000089.3):c.1035_1035+2del'
         assert results['NM_000089.3:c.1035_1035+2del']['alt_genomic_loci'] == []
-        assert results['NM_000089.3:c.1035_1035+2del']['transcript_description'] == 'Homo sapiens collagen type I alpha 2 chain (COL1A2), mRNA'
         assert results['NM_000089.3:c.1035_1035+2del']['gene_symbol'] == 'COL1A2'
         assert results['NM_000089.3:c.1035_1035+2del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000080.2(LRG_2p1):p.(Val345del)', 'slr': 'NP_000080.2:p.(V345del)'}
         assert results['NM_000089.3:c.1035_1035+2del']['submitted_variant'] == 'NM_000089.3:c.1033_1035delGTT'
@@ -1575,7 +1507,6 @@ class TestVariants(object):
         assert results['NM_000089.3:c.1035_1035+2del']['hgvs_lrg_transcript_variant'] == 'LRG_2t1:c.1035_1035+2del'
         assert results['NM_000089.3:c.1035_1035+2del']['refseqgene_context_intronic_sequence'] == 'NG_007405.1(NM_000089.3):c.1035_1035+2del'
         assert results['NM_000089.3:c.1035_1035+2del']['alt_genomic_loci'] == []
-        assert results['NM_000089.3:c.1035_1035+2del']['transcript_description'] == 'Homo sapiens collagen type I alpha 2 chain (COL1A2), mRNA'
         assert results['NM_000089.3:c.1035_1035+2del']['gene_symbol'] == 'COL1A2'
         assert results['NM_000089.3:c.1035_1035+2del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000080.2(LRG_2p1):p.(Val345del)', 'slr': 'NP_000080.2:p.(V345del)'}
         assert results['NM_000089.3:c.1035_1035+2del']['submitted_variant'] == 'NM_000089.3:c.1035_1035+2delTGT'
@@ -1600,7 +1531,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.2024_2028+1del']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.2024_2028+1del'
         assert results['NM_000088.3:c.2024_2028+1del']['refseqgene_context_intronic_sequence'] == 'NG_007400.1(NM_000088.3):c.2024_2028+1del'
         assert results['NM_000088.3:c.2024_2028+1del']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.2024_2028+1del']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.2024_2028+1del']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.2024_2028+1del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.(Ala675_Arg676del)', 'slr': 'NP_000079.2:p.(A675_R676del)'}
         assert results['NM_000088.3:c.2024_2028+1del']['submitted_variant'] == 'NM_000088.3:c.2023_2028delGCAAGA'
@@ -1625,7 +1555,6 @@ class TestVariants(object):
         assert results['NM_000089.3:c.938del']['hgvs_lrg_transcript_variant'] == 'LRG_2t1:c.938del'
         assert results['NM_000089.3:c.938del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000089.3:c.938del']['alt_genomic_loci'] == []
-        assert results['NM_000089.3:c.938del']['transcript_description'] == 'Homo sapiens collagen type I alpha 2 chain (COL1A2), mRNA'
         assert results['NM_000089.3:c.938del']['gene_symbol'] == 'COL1A2'
         assert results['NM_000089.3:c.938del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000080.2(LRG_2p1):p.(Gly313AlafsTer86)', 'slr': 'NP_000080.2:p.(G313Afs*86)'}
         assert results['NM_000089.3:c.938del']['submitted_variant'] == 'NM_000089.3:c.938-1delG'
@@ -1650,7 +1579,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.589G=']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.589G='
         assert results['NM_000088.3:c.589G=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000088.3:c.589G=']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.589G=']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.589G=']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.589G=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.(Gly197=)', 'slr': 'NP_000079.2:p.(G197=)'}
         assert results['NM_000088.3:c.589G=']['submitted_variant'] == 'NM_000088.3:c.589G='
@@ -1675,7 +1603,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.642A=']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.642A='
         assert results['NM_000088.3:c.642A=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000088.3:c.642A=']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.642A=']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.642A=']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.642A=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.(Ser214=)', 'slr': 'NP_000079.2:p.(S214=)'}
         assert results['NM_000088.3:c.642A=']['submitted_variant'] == 'NM_000088.3:c.642A='
@@ -1700,7 +1627,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.642+1_642+2delinsG']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.642+2del'
         assert results['NM_000088.3:c.642+1_642+2delinsG']['refseqgene_context_intronic_sequence'] == 'NG_007400.1(NM_000088.3):c.642+2del'
         assert results['NM_000088.3:c.642+1_642+2delinsG']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.642+1_642+2delinsG']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.642+1_642+2delinsG']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.642+1_642+2delinsG']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.?', 'slr': 'NP_000079.2:p.?'}
         assert results['NM_000088.3:c.642+1_642+2delinsG']['submitted_variant'] == 'NM_000088.3:c.642+1GG>G'
@@ -1725,7 +1651,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.589-2_589-1delinsG']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.589-2del'
         assert results['NM_000088.3:c.589-2_589-1delinsG']['refseqgene_context_intronic_sequence'] == 'NG_007400.1(NM_000088.3):c.589-2del'
         assert results['NM_000088.3:c.589-2_589-1delinsG']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.589-2_589-1delinsG']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.589-2_589-1delinsG']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.589-2_589-1delinsG']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.?', 'slr': 'NP_000079.2:p.?'}
         assert results['NM_000088.3:c.589-2_589-1delinsG']['submitted_variant'] == 'NM_000088.3:c.589-2GG>G'
@@ -1750,7 +1675,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.589-5_589-4insTTTT']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.589-5_589-4insTTTT'
         assert results['NM_000088.3:c.589-5_589-4insTTTT']['refseqgene_context_intronic_sequence'] == 'NG_007400.1(NM_000088.3):c.589-5_589-4insTTTT'
         assert results['NM_000088.3:c.589-5_589-4insTTTT']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.589-5_589-4insTTTT']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.589-5_589-4insTTTT']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.589-5_589-4insTTTT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.?', 'slr': 'NP_000079.2:p.?'}
         assert results['NM_000088.3:c.589-5_589-4insTTTT']['submitted_variant'] == 'NM_000088.3:c.589-6_589-5insTTTT'
@@ -1775,7 +1699,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.642+4_642+5insAAAA']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.642+4_642+5insAAAA'
         assert results['NM_000088.3:c.642+4_642+5insAAAA']['refseqgene_context_intronic_sequence'] == 'NG_007400.1(NM_000088.3):c.642+4_642+5insAAAA'
         assert results['NM_000088.3:c.642+4_642+5insAAAA']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.642+4_642+5insAAAA']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.642+4_642+5insAAAA']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.642+4_642+5insAAAA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.?', 'slr': 'NP_000079.2:p.?'}
         assert results['NM_000088.3:c.642+4_642+5insAAAA']['submitted_variant'] == 'NM_000088.3:c.642+3_642+4insAAAA'
@@ -1800,7 +1723,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.589-4_589-3insTT']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.589-4_589-3insTT'
         assert results['NM_000088.3:c.589-4_589-3insTT']['refseqgene_context_intronic_sequence'] == 'NG_007400.1(NM_000088.3):c.589-4_589-3insTT'
         assert results['NM_000088.3:c.589-4_589-3insTT']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.589-4_589-3insTT']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.589-4_589-3insTT']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.589-4_589-3insTT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.?', 'slr': 'NP_000079.2:p.?'}
         assert results['NM_000088.3:c.589-4_589-3insTT']['submitted_variant'] == 'NM_000088.3:c.589-4_589-3insTT'
@@ -1825,7 +1747,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.589-7del']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.589-7del'
         assert results['NM_000088.3:c.589-7del']['refseqgene_context_intronic_sequence'] == 'NG_007400.1(NM_000088.3):c.589-7del'
         assert results['NM_000088.3:c.589-7del']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.589-7del']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.589-7del']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.589-7del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.?', 'slr': 'NP_000079.2:p.?'}
         assert results['NM_000088.3:c.589-7del']['submitted_variant'] == 'NM_000088.3:c.589-8del'
@@ -1849,7 +1770,6 @@ class TestVariants(object):
         assert results['NM_000527.4:c.-187_-185del']['hgvs_lrg_transcript_variant'] == 'LRG_274t1:c.-187_-185del'
         assert results['NM_000527.4:c.-187_-185del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000527.4:c.-187_-185del']['alt_genomic_loci'] == []
-        assert results['NM_000527.4:c.-187_-185del']['transcript_description'] == 'Homo sapiens low density lipoprotein receptor (LDLR), transcript variant 1, mRNA'
         assert results['NM_000527.4:c.-187_-185del']['gene_symbol'] == 'LDLR'
         assert results['NM_000527.4:c.-187_-185del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000518.1(LRG_274p1):p.?', 'slr': 'NP_000518.1:p.?'}
         assert results['NM_000527.4:c.-187_-185del']['submitted_variant'] == 'NM_000527.4:c.-187_-185delCTC'
@@ -1875,7 +1795,6 @@ class TestVariants(object):
         assert results['NM_206933.2:c.6317C>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_206933.2:c.6317C>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_206933.2:c.6317C>G']['alt_genomic_loci'] == []
-        assert results['NM_206933.2:c.6317C>G']['transcript_description'] == 'Homo sapiens usherin (USH2A), transcript variant 2, mRNA'
         assert results['NM_206933.2:c.6317C>G']['gene_symbol'] == 'USH2A'
         assert results['NM_206933.2:c.6317C>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_996816.2:p.(Thr2106Arg)', 'slr': 'NP_996816.2:p.(T2106R)'}
         assert results['NM_206933.2:c.6317C>G']['submitted_variant'] == 'NM_206933.2:c.6317C>G'
@@ -1899,7 +1818,6 @@ class TestVariants(object):
         assert results['NM_000059.3:c.7397C=']['hgvs_lrg_transcript_variant'] == 'LRG_293t1:c.7397C='
         assert results['NM_000059.3:c.7397C=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000059.3:c.7397C=']['alt_genomic_loci'] == []
-        assert results['NM_000059.3:c.7397C=']['transcript_description'] == 'Homo sapiens BRCA2, DNA repair associated (BRCA2), mRNA'
         assert results['NM_000059.3:c.7397C=']['gene_symbol'] == 'BRCA2'
         assert results['NM_000059.3:c.7397C=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000050.2(LRG_293p1):p.(Ala2466=)', 'slr': 'NP_000050.2:p.(A2466=)'}
         assert results['NM_000059.3:c.7397C=']['submitted_variant'] == 'NC_000013.10:g.32929387T>C'
@@ -1924,7 +1842,6 @@ class TestVariants(object):
         assert results['NM_015102.3:c.2818-2T>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_015102.3:c.2818-2T>A']['refseqgene_context_intronic_sequence'] == 'NG_011724.2(NM_015102.3):c.2818-2A='
         assert results['NM_015102.3:c.2818-2T>A']['alt_genomic_loci'] == []
-        assert results['NM_015102.3:c.2818-2T>A']['transcript_description'] == 'Homo sapiens nephronophthisis 4 (NPHP4), mRNA'
         assert results['NM_015102.3:c.2818-2T>A']['gene_symbol'] == 'NPHP4'
         assert results['NM_015102.3:c.2818-2T>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055917.1:p.?', 'slr': 'NP_055917.1:p.?'}
         assert results['NM_015102.3:c.2818-2T>A']['submitted_variant'] == 'NM_015102.3:c.2818-2T>A'
@@ -1950,7 +1867,6 @@ class TestVariants(object):
         assert results['NM_001042544.1:c.3233_3235=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001042544.1:c.3233_3235=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001042544.1:c.3233_3235=']['alt_genomic_loci'] == []
-        assert results['NM_001042544.1:c.3233_3235=']['transcript_description'] == 'Homo sapiens latent transforming growth factor beta binding protein 4 (LTBP4), transcript variant 1, mRNA'
         assert results['NM_001042544.1:c.3233_3235=']['gene_symbol'] == 'LTBP4'
         assert results['NM_001042544.1:c.3233_3235=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001036009.1:p.(Gln1078=)', 'slr': 'NP_001036009.1:p.(Q1078=)'}
         assert results['NM_001042544.1:c.3233_3235=']['submitted_variant'] == '19-41123094-G-GG'
@@ -1968,7 +1884,6 @@ class TestVariants(object):
         assert results['NM_001042545.1:c.3032_3034=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001042545.1:c.3032_3034=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001042545.1:c.3032_3034=']['alt_genomic_loci'] == []
-        assert results['NM_001042545.1:c.3032_3034=']['transcript_description'] == 'Homo sapiens latent transforming growth factor beta binding protein 4 (LTBP4), transcript variant 3, mRNA'
         assert results['NM_001042545.1:c.3032_3034=']['gene_symbol'] == 'LTBP4'
         assert results['NM_001042545.1:c.3032_3034=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001036010.1:p.(Gln1011=)', 'slr': 'NP_001036010.1:p.(Q1011=)'}
         assert results['NM_001042545.1:c.3032_3034=']['submitted_variant'] == '19-41123094-G-GG'
@@ -1986,7 +1901,6 @@ class TestVariants(object):
         assert results['NM_003573.2:c.3122_3124=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003573.2:c.3122_3124=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003573.2:c.3122_3124=']['alt_genomic_loci'] == []
-        assert results['NM_003573.2:c.3122_3124=']['transcript_description'] == 'Homo sapiens latent transforming growth factor beta binding protein 4 (LTBP4), transcript variant 2, mRNA'
         assert results['NM_003573.2:c.3122_3124=']['gene_symbol'] == 'LTBP4'
         assert results['NM_003573.2:c.3122_3124=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003564.2:p.(Gln1041=)', 'slr': 'NP_003564.2:p.(Q1041=)'}
         assert results['NM_003573.2:c.3122_3124=']['submitted_variant'] == '19-41123094-G-GG'
@@ -2010,7 +1924,6 @@ class TestVariants(object):
         assert results['NM_014249.2:c.946_949=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_014249.2:c.946_949=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_014249.2:c.946_949=']['alt_genomic_loci'] == []
-        assert results['NM_014249.2:c.946_949=']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 2, group E, member 3 (NR2E3), transcript variant 2, mRNA'
         assert results['NM_014249.2:c.946_949=']['gene_symbol'] == 'NR2E3'
         assert results['NM_014249.2:c.946_949=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055064.1:p.(Asp316=)', 'slr': 'NP_055064.1:p.(D316=)'}
         assert results['NM_014249.2:c.946_949=']['submitted_variant'] == '15-72105928-AC-A'
@@ -2028,7 +1941,6 @@ class TestVariants(object):
         assert results['NM_016346.3:c.946_949=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_016346.3:c.946_949=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_016346.3:c.946_949=']['alt_genomic_loci'] == []
-        assert results['NM_016346.3:c.946_949=']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 2 group E member 3 (NR2E3), transcript variant 1, mRNA'
         assert results['NM_016346.3:c.946_949=']['gene_symbol'] == 'NR2E3'
         assert results['NM_016346.3:c.946_949=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_057430.1:p.(Asp316=)', 'slr': 'NP_057430.1:p.(D316=)'}
         assert results['NM_016346.3:c.946_949=']['submitted_variant'] == '15-72105928-AC-A'
@@ -2047,7 +1959,6 @@ class TestVariants(object):
         assert results['NM_014249.3:c.946_949=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_014249.3:c.946_949=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_014249.3:c.946_949=']['alt_genomic_loci'] == []
-        assert results['NM_014249.3:c.946_949=']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 2 group E member 3 (NR2E3), transcript variant 2, mRNA'
         assert results['NM_014249.3:c.946_949=']['gene_symbol'] == 'NR2E3'
         assert results['NM_014249.3:c.946_949=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055064.1:p.(Asp316=)', 'slr': 'NP_055064.1:p.(D316=)'}
         assert results['NM_014249.3:c.946_949=']['submitted_variant'] == '15-72105928-AC-A'
@@ -2065,7 +1976,6 @@ class TestVariants(object):
         assert results['NM_016346.2:c.946_949=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_016346.2:c.946_949=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_016346.2:c.946_949=']['alt_genomic_loci'] == []
-        assert results['NM_016346.2:c.946_949=']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 2, group E, member 3 (NR2E3), transcript variant 1, mRNA'
         assert results['NM_016346.2:c.946_949=']['gene_symbol'] == 'NR2E3'
         assert results['NM_016346.2:c.946_949=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_057430.1:p.(Asp316=)', 'slr': 'NP_057430.1:p.(D316=)'}
         assert results['NM_016346.2:c.946_949=']['submitted_variant'] == '15-72105928-AC-A'
@@ -2090,7 +2000,6 @@ class TestVariants(object):
         assert results['NM_032790.3:c.126_128=']['hgvs_lrg_transcript_variant'] == 'LRG_93t1:c.126_128='
         assert results['NM_032790.3:c.126_128=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_032790.3:c.126_128=']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_004504303.2:g.302883_302888del', 'vcf': {'chr': 'HG1595_PATCH', 'ref': 'CCCGCCA', 'pos': '302871', 'alt': 'C'}}}, {'hg19': {'hgvs_genomic_description': 'NW_004504303.2:g.302883_302888del', 'vcf': {'chr': 'NW_004504303.2', 'ref': 'CCCGCCA', 'pos': '302871', 'alt': 'C'}}}]
-        assert results['NM_032790.3:c.126_128=']['transcript_description'] == 'Homo sapiens ORAI calcium release-activated calcium modulator 1 (ORAI1), mRNA'
         assert results['NM_032790.3:c.126_128=']['gene_symbol'] == 'ORAI1'
         assert results['NM_032790.3:c.126_128=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_116179.2(LRG_93p1):p.(Ala42=)', 'slr': 'NP_116179.2:p.(A42=)'}
         assert results['NM_032790.3:c.126_128=']['submitted_variant'] == '12-122064773-CCCGCCA-C'
@@ -2114,7 +2023,6 @@ class TestVariants(object):
         assert results['NM_032790.3:c.132_137dup']['hgvs_lrg_transcript_variant'] == 'LRG_93t1:c.132_137dup'
         assert results['NM_032790.3:c.132_137dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_032790.3:c.132_137dup']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_004504303.2:g.302868_302887=', 'vcf': {'chr': 'HG1595_PATCH', 'ref': 'GGCCCCGCCACCGCCACCGC', 'pos': '302868', 'alt': 'GGCCCCGCCACCGCCACCGC'}}}, {'hg19': {'hgvs_genomic_description': 'NW_004504303.2:g.302868_302887=', 'vcf': {'chr': 'NW_004504303.2', 'ref': 'GGCCCCGCCACCGCCACCGC', 'pos': '302868', 'alt': 'GGCCCCGCCACCGCCACCGC'}}}]
-        assert results['NM_032790.3:c.132_137dup']['transcript_description'] == 'Homo sapiens ORAI calcium release-activated calcium modulator 1 (ORAI1), mRNA'
         assert results['NM_032790.3:c.132_137dup']['gene_symbol'] == 'ORAI1'
         assert results['NM_032790.3:c.132_137dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_116179.2(LRG_93p1):p.(Pro46_Pro47dup)', 'slr': 'NP_116179.2:p.(P46_P47dup)'}
         assert results['NM_032790.3:c.132_137dup']['submitted_variant'] == '12-122064774-CCGCCA-CCGCCA'
@@ -2140,7 +2048,6 @@ class TestVariants(object):
         assert results['NM_032790.3:c.132_135delinsGCCGT']['hgvs_lrg_transcript_variant'] == 'LRG_93t1:c.132_135delinsGCCGT'
         assert results['NM_032790.3:c.132_135delinsGCCGT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_032790.3:c.132_135delinsGCCGT']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_004504303.2:g.302883_302886delinsGCCGT', 'vcf': {'chr': 'HG1595_PATCH', 'ref': 'ACCG', 'pos': '302883', 'alt': u'GCCGT'}}}, {'hg19': {'hgvs_genomic_description': 'NW_004504303.2:g.302883_302886delinsGCCGT', 'vcf': {'chr': 'NW_004504303.2', 'ref': 'ACCG', 'pos': '302883', 'alt': u'GCCGT'}}}]
-        assert results['NM_032790.3:c.132_135delinsGCCGT']['transcript_description'] == 'Homo sapiens ORAI calcium release-activated calcium modulator 1 (ORAI1), mRNA'
         assert results['NM_032790.3:c.132_135delinsGCCGT']['gene_symbol'] == 'ORAI1'
         assert results['NM_032790.3:c.132_135delinsGCCGT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_116179.2(LRG_93p1):p.(Pro46SerfsTer42)', 'slr': 'NP_116179.2:p.(P46Sfs*42)'}
         assert results['NM_032790.3:c.132_135delinsGCCGT']['submitted_variant'] == '12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC'
@@ -2165,7 +2072,6 @@ class TestVariants(object):
         assert results['NM_032790.3:c.129_130insACACCG']['hgvs_lrg_transcript_variant'] == 'LRG_93t1:c.129_130insACACCG'
         assert results['NM_032790.3:c.129_130insACACCG']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_032790.3:c.129_130insACACCG']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_004504303.2:g.302875C>A', 'vcf': {'chr': 'HG1595_PATCH', 'ref': 'C', 'pos': '302875', 'alt': 'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_004504303.2:g.302875C>A', 'vcf': {'chr': 'NW_004504303.2', 'ref': 'C', 'pos': '302875', 'alt': 'A'}}}]
-        assert results['NM_032790.3:c.129_130insACACCG']['transcript_description'] == 'Homo sapiens ORAI calcium release-activated calcium modulator 1 (ORAI1), mRNA'
         assert results['NM_032790.3:c.129_130insACACCG']['gene_symbol'] == 'ORAI1'
         assert results['NM_032790.3:c.129_130insACACCG']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_116179.2(LRG_93p1):p.(Pro43_Pro44insThrPro)', 'slr': 'NP_116179.2:p.(P43_P44insTP)'}
         assert results['NM_032790.3:c.129_130insACACCG']['submitted_variant'] == 'NC_000012.11:g.122064777C>A'
@@ -2190,7 +2096,6 @@ class TestVariants(object):
         assert results['NM_032790.3:c.128_129insCCACC']['hgvs_lrg_transcript_variant'] == 'LRG_93t1:c.128_129insCCACC'
         assert results['NM_032790.3:c.128_129insCCACC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_032790.3:c.128_129insCCACC']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_004504303.2:g.302874del', 'vcf': {'chr': 'HG1595_PATCH', 'ref': 'CG', 'pos': '302873', 'alt': 'C'}}}, {'hg19': {'hgvs_genomic_description': 'NW_004504303.2:g.302874del', 'vcf': {'chr': 'NW_004504303.2', 'ref': 'CG', 'pos': '302873', 'alt': 'C'}}}]
-        assert results['NM_032790.3:c.128_129insCCACC']['transcript_description'] == 'Homo sapiens ORAI calcium release-activated calcium modulator 1 (ORAI1), mRNA'
         assert results['NM_032790.3:c.128_129insCCACC']['gene_symbol'] == 'ORAI1'
         assert results['NM_032790.3:c.128_129insCCACC']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_116179.2(LRG_93p1):p.(Pro44HisfsTer22)', 'slr': 'NP_116179.2:p.(P44Hfs*22)'}
         assert results['NM_032790.3:c.128_129insCCACC']['submitted_variant'] == 'NC_000012.11:g.122064776delG'
@@ -2215,7 +2120,6 @@ class TestVariants(object):
         assert results['NM_032790.3:c.129_130insGCCACCG']['hgvs_lrg_transcript_variant'] == 'LRG_93t1:c.129_130insGCCACCG'
         assert results['NM_032790.3:c.129_130insGCCACCG']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_032790.3:c.129_130insGCCACCG']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_004504303.2:g.302874dup', 'vcf': {'chr': 'HG1595_PATCH', 'ref': 'C', 'pos': '302873', 'alt': 'CG'}}}, {'hg19': {'hgvs_genomic_description': 'NW_004504303.2:g.302874dup', 'vcf': {'chr': 'NW_004504303.2', 'ref': 'C', 'pos': '302873', 'alt': 'CG'}}}]
-        assert results['NM_032790.3:c.129_130insGCCACCG']['transcript_description'] == 'Homo sapiens ORAI calcium release-activated calcium modulator 1 (ORAI1), mRNA'
         assert results['NM_032790.3:c.129_130insGCCACCG']['gene_symbol'] == 'ORAI1'
         assert results['NM_032790.3:c.129_130insGCCACCG']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_116179.2(LRG_93p1):p.(Pro44AlafsTer46)', 'slr': 'NP_116179.2:p.(P44Afs*46)'}
         assert results['NM_032790.3:c.129_130insGCCACCG']['submitted_variant'] == 'NC_000012.11:g.122064776dupG'
@@ -2240,7 +2144,6 @@ class TestVariants(object):
         assert results['NM_032790.3:c.129_130insTTTCCACCG']['hgvs_lrg_transcript_variant'] == 'LRG_93t1:c.129_130insTTTCCACCG'
         assert results['NM_032790.3:c.129_130insTTTCCACCG']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_032790.3:c.129_130insTTTCCACCG']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_004504303.2:g.302874_302875insTTT', 'vcf': {'chr': 'HG1595_PATCH', 'ref': 'G', 'pos': '302874', 'alt': 'GTTT'}}}, {'hg19': {'hgvs_genomic_description': 'NW_004504303.2:g.302874_302875insTTT', 'vcf': {'chr': 'NW_004504303.2', 'ref': 'G', 'pos': '302874', 'alt': 'GTTT'}}}]
-        assert results['NM_032790.3:c.129_130insTTTCCACCG']['transcript_description'] == 'Homo sapiens ORAI calcium release-activated calcium modulator 1 (ORAI1), mRNA'
         assert results['NM_032790.3:c.129_130insTTTCCACCG']['gene_symbol'] == 'ORAI1'
         assert results['NM_032790.3:c.129_130insTTTCCACCG']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_116179.2(LRG_93p1):p.(Pro43_Pro44insPheProPro)', 'slr': 'NP_116179.2:p.(P43_P44insFPP)'}
         assert results['NM_032790.3:c.129_130insTTTCCACCG']['submitted_variant'] == 'NC_000012.11:g.122064776_122064777insTTT'
@@ -2265,7 +2168,6 @@ class TestVariants(object):
         assert results['NM_032790.3:c.125_126delinsGCCA']['hgvs_lrg_transcript_variant'] == 'LRG_93t1:c.125_126delinsGCCA'
         assert results['NM_032790.3:c.125_126delinsGCCA']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_032790.3:c.125_126delinsGCCA']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_004504303.2:g.302870_302873del', 'vcf': {'chr': 'HG1595_PATCH', 'ref': 'GCCCC', 'pos': '302869', 'alt': 'G'}}}, {'hg19': {'hgvs_genomic_description': 'NW_004504303.2:g.302870_302873del', 'vcf': {'chr': 'NW_004504303.2', 'ref': 'GCCCC', 'pos': '302869', 'alt': 'G'}}}]
-        assert results['NM_032790.3:c.125_126delinsGCCA']['transcript_description'] == 'Homo sapiens ORAI calcium release-activated calcium modulator 1 (ORAI1), mRNA'
         assert results['NM_032790.3:c.125_126delinsGCCA']['gene_symbol'] == 'ORAI1'
         assert results['NM_032790.3:c.125_126delinsGCCA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_116179.2(LRG_93p1):p.(Ala42GlyfsTer23)', 'slr': 'NP_116179.2:p.(A42Gfs*23)'}
         assert results['NM_032790.3:c.125_126delinsGCCA']['submitted_variant'] == 'NC_000012.11:g.122064772_122064775del'
@@ -2290,7 +2192,6 @@ class TestVariants(object):
         assert results['NM_032790.3:c.128_129insCCCCGCCACC']['hgvs_lrg_transcript_variant'] == 'LRG_93t1:c.128_129insCCCCGCCACC'
         assert results['NM_032790.3:c.128_129insCCCCGCCACC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_032790.3:c.128_129insCCCCGCCACC']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_004504303.2:g.302870_302873dup', 'vcf': {'chr': 'HG1595_PATCH', 'ref': 'G', 'pos': '302869', 'alt': 'GCCCC'}}}, {'hg19': {'hgvs_genomic_description': 'NW_004504303.2:g.302870_302873dup', 'vcf': {'chr': 'NW_004504303.2', 'ref': 'G', 'pos': '302869', 'alt': 'GCCCC'}}}]
-        assert results['NM_032790.3:c.128_129insCCCCGCCACC']['transcript_description'] == 'Homo sapiens ORAI calcium release-activated calcium modulator 1 (ORAI1), mRNA'
         assert results['NM_032790.3:c.128_129insCCCCGCCACC']['gene_symbol'] == 'ORAI1'
         assert results['NM_032790.3:c.128_129insCCCCGCCACC']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_116179.2(LRG_93p1):p.(Pro45AlafsTer46)', 'slr': 'NP_116179.2:p.(P45Afs*46)'}
         assert results['NM_032790.3:c.128_129insCCCCGCCACC']['submitted_variant'] == 'NC_000012.11:g.122064772_122064775dup'
@@ -2314,7 +2215,6 @@ class TestVariants(object):
         assert results['NM_032790.3:c.126_127insTTTTCCGCCA']['hgvs_lrg_transcript_variant'] == 'LRG_93t1:c.126_127insTTTTCCGCCA'
         assert results['NM_032790.3:c.126_127insTTTTCCGCCA']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_032790.3:c.126_127insTTTTCCGCCA']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_004504303.2:g.302871_302872insTTTT', 'vcf': {'chr': 'HG1595_PATCH', 'ref': 'C', 'pos': '302871', 'alt': 'CTTTT'}}}, {'hg19': {'hgvs_genomic_description': 'NW_004504303.2:g.302871_302872insTTTT', 'vcf': {'chr': 'NW_004504303.2', 'ref': 'C', 'pos': '302871', 'alt': 'CTTTT'}}}]
-        assert results['NM_032790.3:c.126_127insTTTTCCGCCA']['transcript_description'] == 'Homo sapiens ORAI calcium release-activated calcium modulator 1 (ORAI1), mRNA'
         assert results['NM_032790.3:c.126_127insTTTTCCGCCA']['gene_symbol'] == 'ORAI1'
         assert results['NM_032790.3:c.126_127insTTTTCCGCCA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_116179.2(LRG_93p1):p.(Pro43PhefsTer48)', 'slr': 'NP_116179.2:p.(P43Ffs*48)'}
         assert results['NM_032790.3:c.126_127insTTTTCCGCCA']['submitted_variant'] == 'NC_000012.11:g.122064773_122064774insTTTT'
@@ -2339,7 +2239,6 @@ class TestVariants(object):
         assert results['NM_032790.3:c.126C>A']['hgvs_lrg_transcript_variant'] == 'LRG_93t1:c.126C>A'
         assert results['NM_032790.3:c.126C>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_032790.3:c.126C>A']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_004504303.2:g.302871_302876del', 'vcf': {'chr': 'HG1595_PATCH', 'ref': 'GCCCCGC', 'pos': '302869', 'alt': 'G'}}}, {'hg19': {'hgvs_genomic_description': 'NW_004504303.2:g.302871_302876del', 'vcf': {'chr': 'NW_004504303.2', 'ref': 'GCCCCGC', 'pos': '302869', 'alt': 'G'}}}]
-        assert results['NM_032790.3:c.126C>A']['transcript_description'] == 'Homo sapiens ORAI calcium release-activated calcium modulator 1 (ORAI1), mRNA'
         assert results['NM_032790.3:c.126C>A']['gene_symbol'] == 'ORAI1'
         assert results['NM_032790.3:c.126C>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_116179.2(LRG_93p1):p.(Ala42=)', 'slr': 'NP_116179.2:p.(A42=)'}
         assert results['NM_032790.3:c.126C>A']['submitted_variant'] == 'NC_000012.11:g.122064772_122064777del'
@@ -2365,7 +2264,6 @@ class TestVariants(object):
         assert results['NM_032790.3:c.131_132insCCCGCCACCGCC']['hgvs_lrg_transcript_variant'] == 'LRG_93t1:c.131_132insCCCGCCACCGCC'
         assert results['NM_032790.3:c.131_132insCCCGCCACCGCC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_032790.3:c.131_132insCCCGCCACCGCC']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_004504303.2:g.302871_302876dup', 'vcf': {'chr': 'HG1595_PATCH', 'ref': 'G', 'pos': '302869', 'alt': 'GCCCCGC'}}}, {'hg19': {'hgvs_genomic_description': 'NW_004504303.2:g.302871_302876dup', 'vcf': {'chr': 'NW_004504303.2', 'ref': 'G', 'pos': '302869', 'alt': 'GCCCCGC'}}}]
-        assert results['NM_032790.3:c.131_132insCCCGCCACCGCC']['transcript_description'] == 'Homo sapiens ORAI calcium release-activated calcium modulator 1 (ORAI1), mRNA'
         assert results['NM_032790.3:c.131_132insCCCGCCACCGCC']['gene_symbol'] == 'ORAI1'
         assert results['NM_032790.3:c.131_132insCCCGCCACCGCC']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_116179.2(LRG_93p1):p.(Pro44_Pro47dup)', 'slr': 'NP_116179.2:p.(P44_P47dup)'}
         assert results['NM_032790.3:c.131_132insCCCGCCACCGCC']['submitted_variant'] == 'NC_000012.11:g.122064772_122064777dup'
@@ -2389,7 +2287,6 @@ class TestVariants(object):
         assert results['NM_032790.3:c.135_136insACCGCCACCG']['hgvs_lrg_transcript_variant'] == 'LRG_93t1:c.135_136insACCGCCACCG'
         assert results['NM_032790.3:c.135_136insACCGCCACCG']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_032790.3:c.135_136insACCGCCACCG']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_004504303.2:g.302877_302880dup', 'vcf': {'chr': 'HG1595_PATCH', 'ref': 'C', 'pos': '302876', 'alt': 'CACCG'}}}, {'hg19': {'hgvs_genomic_description': 'NW_004504303.2:g.302877_302880dup', 'vcf': {'chr': 'NW_004504303.2', 'ref': 'C', 'pos': '302876', 'alt': 'CACCG'}}}]
-        assert results['NM_032790.3:c.135_136insACCGCCACCG']['transcript_description'] == 'Homo sapiens ORAI calcium release-activated calcium modulator 1 (ORAI1), mRNA'
         assert results['NM_032790.3:c.135_136insACCGCCACCG']['gene_symbol'] == 'ORAI1'
         assert results['NM_032790.3:c.135_136insACCGCCACCG']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_116179.2(LRG_93p1):p.(Pro46ThrfsTer45)', 'slr': 'NP_116179.2:p.(P46Tfs*45)'}
         assert results['NM_032790.3:c.135_136insACCGCCACCG']['submitted_variant'] == 'NC_000012.11:g.122064779_122064782dup'
@@ -2415,7 +2312,6 @@ class TestVariants(object):
         assert results['NM_032790.3:c.126_127insA']['hgvs_lrg_transcript_variant'] == 'LRG_93t1:c.126_127insA'
         assert results['NM_032790.3:c.126_127insA']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_032790.3:c.126_127insA']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_004504303.2:g.302872_302876del', 'vcf': {'chr': 'HG1595_PATCH', 'ref': 'GGCCCC', 'pos': '302868', 'alt': 'G'}}}, {'hg19': {'hgvs_genomic_description': 'NW_004504303.2:g.302872_302876del', 'vcf': {'chr': 'NW_004504303.2', 'ref': 'GGCCCC', 'pos': '302868', 'alt': 'G'}}}]
-        assert results['NM_032790.3:c.126_127insA']['transcript_description'] == 'Homo sapiens ORAI calcium release-activated calcium modulator 1 (ORAI1), mRNA'
         assert results['NM_032790.3:c.126_127insA']['gene_symbol'] == 'ORAI1'
         assert results['NM_032790.3:c.126_127insA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_116179.2(LRG_93p1):p.(Pro43ThrfsTer45)', 'slr': 'NP_116179.2:p.(P43Tfs*45)'}
         assert results['NM_032790.3:c.126_127insA']['submitted_variant'] == 'NC_000012.11:g.122064772_122064782del'
@@ -2439,7 +2335,6 @@ class TestVariants(object):
         assert results['NM_021088.3:c.471_473dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_021088.3:c.471_473dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_021088.3:c.471_473dup']['alt_genomic_loci'] == []
-        assert results['NM_021088.3:c.471_473dup']['transcript_description'] == 'Homo sapiens zinc finger protein 2 (ZNF2), transcript variant 1, mRNA'
         assert results['NM_021088.3:c.471_473dup']['gene_symbol'] == 'ZNF2'
         assert results['NM_021088.3:c.471_473dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_066574.2:p.(Arg159dup)', 'slr': 'NP_066574.2:p.(R159dup)'}
         assert results['NM_021088.3:c.471_473dup']['submitted_variant'] == 'NC_000002.11:g.95847041_95847043GCG='
@@ -2457,7 +2352,6 @@ class TestVariants(object):
         assert results['NM_001291605.1:c.510_512dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001291605.1:c.510_512dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001291605.1:c.510_512dup']['alt_genomic_loci'] == []
-        assert results['NM_001291605.1:c.510_512dup']['transcript_description'] == 'Homo sapiens zinc finger protein 2 (ZNF2), transcript variant 5, mRNA'
         assert results['NM_001291605.1:c.510_512dup']['gene_symbol'] == 'ZNF2'
         assert results['NM_001291605.1:c.510_512dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001278534.1:p.(Arg172dup)', 'slr': 'NP_001278534.1:p.(R172dup)'}
         assert results['NM_001291605.1:c.510_512dup']['submitted_variant'] == 'NC_000002.11:g.95847041_95847043GCG='
@@ -2475,7 +2369,6 @@ class TestVariants(object):
         assert results['NM_001017396.2:c.345_347dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001017396.2:c.345_347dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001017396.2:c.345_347dup']['alt_genomic_loci'] == []
-        assert results['NM_001017396.2:c.345_347dup']['transcript_description'] == 'Homo sapiens zinc finger protein 2 (ZNF2), transcript variant 2, mRNA'
         assert results['NM_001017396.2:c.345_347dup']['gene_symbol'] == 'ZNF2'
         assert results['NM_001017396.2:c.345_347dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001017396.1:p.(Arg117dup)', 'slr': 'NP_001017396.1:p.(R117dup)'}
         assert results['NM_001017396.2:c.345_347dup']['submitted_variant'] == 'NC_000002.11:g.95847041_95847043GCG='
@@ -2493,7 +2386,6 @@ class TestVariants(object):
         assert results['NM_001282398.1:c.357_359dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001282398.1:c.357_359dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001282398.1:c.357_359dup']['alt_genomic_loci'] == []
-        assert results['NM_001282398.1:c.357_359dup']['transcript_description'] == 'Homo sapiens zinc finger protein 2 (ZNF2), transcript variant 3, mRNA'
         assert results['NM_001282398.1:c.357_359dup']['gene_symbol'] == 'ZNF2'
         assert results['NM_001282398.1:c.357_359dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001269327.1:p.(Arg121dup)', 'slr': 'NP_001269327.1:p.(R121dup)'}
         assert results['NM_001282398.1:c.357_359dup']['submitted_variant'] == 'NC_000002.11:g.95847041_95847043GCG='
@@ -2512,7 +2404,6 @@ class TestVariants(object):
         assert results['NM_001291604.1:c.231_233dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001291604.1:c.231_233dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001291604.1:c.231_233dup']['alt_genomic_loci'] == []
-        assert results['NM_001291604.1:c.231_233dup']['transcript_description'] == 'Homo sapiens zinc finger protein 2 (ZNF2), transcript variant 4, mRNA'
         assert results['NM_001291604.1:c.231_233dup']['gene_symbol'] == 'ZNF2'
         assert results['NM_001291604.1:c.231_233dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001278533.1:p.(Arg79dup)', 'slr': 'NP_001278533.1:p.(R79dup)'}
         assert results['NM_001291604.1:c.231_233dup']['submitted_variant'] == 'NC_000002.11:g.95847041_95847043GCG='
@@ -2530,7 +2421,6 @@ class TestVariants(object):
         assert results['NM_021088.2:c.471_473dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_021088.2:c.471_473dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_021088.2:c.471_473dup']['alt_genomic_loci'] == []
-        assert results['NM_021088.2:c.471_473dup']['transcript_description'] == 'Homo sapiens zinc finger protein 2 (ZNF2), transcript variant 1, mRNA'
         assert results['NM_021088.2:c.471_473dup']['gene_symbol'] == 'ZNF2'
         assert results['NM_021088.2:c.471_473dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_066574.2:p.(Arg159dup)', 'slr': 'NP_066574.2:p.(R159dup)'}
         assert results['NM_021088.2:c.471_473dup']['submitted_variant'] == 'NC_000002.11:g.95847041_95847043GCG='
@@ -2548,7 +2438,6 @@ class TestVariants(object):
         assert results['NM_001017396.1:c.345_347dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001017396.1:c.345_347dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001017396.1:c.345_347dup']['alt_genomic_loci'] == []
-        assert results['NM_001017396.1:c.345_347dup']['transcript_description'] == 'Homo sapiens zinc finger protein 2 (ZNF2), transcript variant 2, mRNA'
         assert results['NM_001017396.1:c.345_347dup']['gene_symbol'] == 'ZNF2'
         assert results['NM_001017396.1:c.345_347dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001017396.1:p.(Arg117dup)', 'slr': 'NP_001017396.1:p.(R117dup)'}
         assert results['NM_001017396.1:c.345_347dup']['submitted_variant'] == 'NC_000002.11:g.95847041_95847043GCG='
@@ -2572,7 +2461,6 @@ class TestVariants(object):
         assert results['NM_001083585.1:c.*344_*368dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001083585.1:c.*344_*368dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001083585.1:c.*344_*368dup']['alt_genomic_loci'] == []
-        assert results['NM_001083585.1:c.*344_*368dup']['transcript_description'] == 'Homo sapiens rabaptin, RAB GTPase binding effector protein 1 (RABEP1), transcript variant 2, mRNA'
         assert results['NM_001083585.1:c.*344_*368dup']['gene_symbol'] == 'RABEP1'
         assert results['NM_001083585.1:c.*344_*368dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001077054.1:p.?', 'slr': 'NP_001077054.1:p.?'}
         assert results['NM_001083585.1:c.*344_*368dup']['submitted_variant'] == 'NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG='
@@ -2590,7 +2478,6 @@ class TestVariants(object):
         assert results['NM_004703.5:c.*344_*368dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_004703.5:c.*344_*368dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004703.5:c.*344_*368dup']['alt_genomic_loci'] == []
-        assert results['NM_004703.5:c.*344_*368dup']['transcript_description'] == 'Homo sapiens rabaptin, RAB GTPase binding effector protein 1 (RABEP1), transcript variant 1, mRNA'
         assert results['NM_004703.5:c.*344_*368dup']['gene_symbol'] == 'RABEP1'
         assert results['NM_004703.5:c.*344_*368dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_004694.2:p.?', 'slr': 'NP_004694.2:p.?'}
         assert results['NM_004703.5:c.*344_*368dup']['submitted_variant'] == 'NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG='
@@ -2608,7 +2495,6 @@ class TestVariants(object):
         assert results['NM_004703.4:c.*344_*368dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_004703.4:c.*344_*368dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004703.4:c.*344_*368dup']['alt_genomic_loci'] == []
-        assert results['NM_004703.4:c.*344_*368dup']['transcript_description'] == 'Homo sapiens rabaptin, RAB GTPase binding effector protein 1 (RABEP1), transcript variant 1, mRNA'
         assert results['NM_004703.4:c.*344_*368dup']['gene_symbol'] == 'RABEP1'
         assert results['NM_004703.4:c.*344_*368dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_004694.2:p.?', 'slr': 'NP_004694.2:p.?'}
         assert results['NM_004703.4:c.*344_*368dup']['submitted_variant'] == 'NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG='
@@ -2627,7 +2513,6 @@ class TestVariants(object):
         assert results['NM_001291581.1:c.*344_*368dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001291581.1:c.*344_*368dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001291581.1:c.*344_*368dup']['alt_genomic_loci'] == []
-        assert results['NM_001291581.1:c.*344_*368dup']['transcript_description'] == 'Homo sapiens rabaptin, RAB GTPase binding effector protein 1 (RABEP1), transcript variant 3, mRNA'
         assert results['NM_001291581.1:c.*344_*368dup']['gene_symbol'] == 'RABEP1'
         assert results['NM_001291581.1:c.*344_*368dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001278510.1:p.?', 'slr': 'NP_001278510.1:p.?'}
         assert results['NM_001291581.1:c.*344_*368dup']['submitted_variant'] == 'NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG='
@@ -2645,7 +2530,6 @@ class TestVariants(object):
         assert results['NM_001083585.2:c.*344_*368dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001083585.2:c.*344_*368dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001083585.2:c.*344_*368dup']['alt_genomic_loci'] == []
-        assert results['NM_001083585.2:c.*344_*368dup']['transcript_description'] == 'Homo sapiens rabaptin, RAB GTPase binding effector protein 1 (RABEP1), transcript variant 2, mRNA'
         assert results['NM_001083585.2:c.*344_*368dup']['gene_symbol'] == 'RABEP1'
         assert results['NM_001083585.2:c.*344_*368dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001077054.1:p.?', 'slr': 'NP_001077054.1:p.?'}
         assert results['NM_001083585.2:c.*344_*368dup']['submitted_variant'] == 'NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG='
@@ -2669,7 +2553,6 @@ class TestVariants(object):
         assert results['NM_001080423.3:c.1020del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001080423.3:c.1020del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001080423.3:c.1020del']['alt_genomic_loci'] == []
-        assert results['NM_001080423.3:c.1020del']['transcript_description'] == 'Homo sapiens glutamate receptor interacting protein 2 (GRIP2), mRNA'
         assert results['NM_001080423.3:c.1020del']['gene_symbol'] == 'GRIP2'
         assert results['NM_001080423.3:c.1020del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001073892.3:p.(Ser341GlnfsTer4)', 'slr': 'NP_001073892.3:p.(S341Qfs*4)'}
         assert results['NM_001080423.3:c.1020del']['submitted_variant'] == 'NC_000003.11:g.14561629_14561630GC='
@@ -2688,7 +2571,6 @@ class TestVariants(object):
         assert results['NM_001080423.2:c.1311del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001080423.2:c.1311del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001080423.2:c.1311del']['alt_genomic_loci'] == []
-        assert results['NM_001080423.2:c.1311del']['transcript_description'] == 'Homo sapiens glutamate receptor interacting protein 2 (GRIP2), mRNA'
         assert results['NM_001080423.2:c.1311del']['gene_symbol'] == 'GRIP2'
         assert results['NM_001080423.2:c.1311del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001073892.2:p.(Ser438GlnfsTer4)', 'slr': 'NP_001073892.2:p.(S438Qfs*4)'}
         assert results['NM_001080423.2:c.1311del']['submitted_variant'] == 'NC_000003.11:g.14561629_14561630GC='
@@ -2712,7 +2594,6 @@ class TestVariants(object):
         assert results['NM_001080423.3:c.1016_1020=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001080423.3:c.1016_1020=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001080423.3:c.1016_1020=']['alt_genomic_loci'] == []
-        assert results['NM_001080423.3:c.1016_1020=']['transcript_description'] == 'Homo sapiens glutamate receptor interacting protein 2 (GRIP2), mRNA'
         assert results['NM_001080423.3:c.1016_1020=']['gene_symbol'] == 'GRIP2'
         assert results['NM_001080423.3:c.1016_1020=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001073892.3:p.(Arg339=)', 'slr': 'NP_001073892.3:p.(R339=)'}
         assert results['NM_001080423.3:c.1016_1020=']['submitted_variant'] == 'NC_000003.11:g.14561629_14561630insG'
@@ -2731,7 +2612,6 @@ class TestVariants(object):
         assert results['NM_001080423.2:c.1307_1311=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001080423.2:c.1307_1311=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001080423.2:c.1307_1311=']['alt_genomic_loci'] == []
-        assert results['NM_001080423.2:c.1307_1311=']['transcript_description'] == 'Homo sapiens glutamate receptor interacting protein 2 (GRIP2), mRNA'
         assert results['NM_001080423.2:c.1307_1311=']['gene_symbol'] == 'GRIP2'
         assert results['NM_001080423.2:c.1307_1311=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001073892.2:p.(Arg436=)', 'slr': 'NP_001073892.2:p.(R436=)'}
         assert results['NM_001080423.2:c.1307_1311=']['submitted_variant'] == 'NC_000003.11:g.14561629_14561630insG'
@@ -2756,7 +2636,6 @@ class TestVariants(object):
         assert results['NM_018717.5:c.1515_1526del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_018717.5:c.1515_1526del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_018717.5:c.1515_1526del']['alt_genomic_loci'] == []
-        assert results['NM_018717.5:c.1515_1526del']['transcript_description'] == 'Homo sapiens mastermind like transcriptional coactivator 3 (MAML3), mRNA'
         assert results['NM_018717.5:c.1515_1526del']['gene_symbol'] == 'MAML3'
         assert results['NM_018717.5:c.1515_1526del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_061187.3:p.(Gln507_Gln510del)', 'slr': 'NP_061187.3:p.(Q507_Q510del)'}
         assert results['NM_018717.5:c.1515_1526del']['submitted_variant'] == 'NC_000004.11:g.140811111_140811122del'
@@ -2774,7 +2653,6 @@ class TestVariants(object):
         assert results['NM_018717.4:c.1465_1469=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_018717.4:c.1465_1469=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_018717.4:c.1465_1469=']['alt_genomic_loci'] == []
-        assert results['NM_018717.4:c.1465_1469=']['transcript_description'] == 'Homo sapiens mastermind like transcriptional coactivator 3 (MAML3), mRNA'
         assert results['NM_018717.4:c.1465_1469=']['gene_symbol'] == 'MAML3'
         assert results['NM_018717.4:c.1465_1469=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_061187.2:p.(Gln489=)', 'slr': 'NP_061187.2:p.(Q489=)'}
         assert results['NM_018717.4:c.1465_1469=']['submitted_variant'] == 'NC_000004.11:g.140811111_140811122del'
@@ -2798,7 +2676,6 @@ class TestVariants(object):
         assert results['NM_018717.5:c.1468_1479=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_018717.5:c.1468_1479=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_018717.5:c.1468_1479=']['alt_genomic_loci'] == []
-        assert results['NM_018717.5:c.1468_1479=']['transcript_description'] == 'Homo sapiens mastermind like transcriptional coactivator 3 (MAML3), mRNA'
         assert results['NM_018717.5:c.1468_1479=']['gene_symbol'] == 'MAML3'
         assert results['NM_018717.5:c.1468_1479=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_061187.3:p.(Gln490=)', 'slr': 'NP_061187.3:p.(Q490=)'}
         assert results['NM_018717.5:c.1468_1479=']['submitted_variant'] == 'NC_000004.11:g.140811111_140811122CTGCTGCTGCTG='
@@ -2817,7 +2694,6 @@ class TestVariants(object):
         assert results['NM_018717.4:c.1503_1514dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_018717.4:c.1503_1514dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_018717.4:c.1503_1514dup']['alt_genomic_loci'] == []
-        assert results['NM_018717.4:c.1503_1514dup']['transcript_description'] == 'Homo sapiens mastermind like transcriptional coactivator 3 (MAML3), mRNA'
         assert results['NM_018717.4:c.1503_1514dup']['gene_symbol'] == 'MAML3'
         assert results['NM_018717.4:c.1503_1514dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_061187.2:p.(Gln503_Gln506dup)', 'slr': 'NP_061187.2:p.(Q503_Q506dup)'}
         assert results['NM_018717.4:c.1503_1514dup']['submitted_variant'] == 'NC_000004.11:g.140811111_140811122CTGCTGCTGCTG='
@@ -2842,7 +2718,6 @@ class TestVariants(object):
         assert results['NM_018717.5:c.1521_1526del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_018717.5:c.1521_1526del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_018717.5:c.1521_1526del']['alt_genomic_loci'] == []
-        assert results['NM_018717.5:c.1521_1526del']['transcript_description'] == 'Homo sapiens mastermind like transcriptional coactivator 3 (MAML3), mRNA'
         assert results['NM_018717.5:c.1521_1526del']['gene_symbol'] == 'MAML3'
         assert results['NM_018717.5:c.1521_1526del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_061187.3:p.(Gln509_Gln510del)', 'slr': 'NP_061187.3:p.(Q509_Q510del)'}
         assert results['NM_018717.5:c.1521_1526del']['submitted_variant'] == 'NC_000004.11:g.140811117_140811122del'
@@ -2860,7 +2735,6 @@ class TestVariants(object):
         assert results['NM_018717.4:c.1509_1514dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_018717.4:c.1509_1514dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_018717.4:c.1509_1514dup']['alt_genomic_loci'] == []
-        assert results['NM_018717.4:c.1509_1514dup']['transcript_description'] == 'Homo sapiens mastermind like transcriptional coactivator 3 (MAML3), mRNA'
         assert results['NM_018717.4:c.1509_1514dup']['gene_symbol'] == 'MAML3'
         assert results['NM_018717.4:c.1509_1514dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_061187.2:p.(Gln505_Gln506dup)', 'slr': 'NP_061187.2:p.(Q505_Q506dup)'}
         assert results['NM_018717.4:c.1509_1514dup']['submitted_variant'] == 'NC_000004.11:g.140811117_140811122del'
@@ -2884,7 +2758,6 @@ class TestVariants(object):
         assert results['NM_018717.5:c.1473_1479del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_018717.5:c.1473_1479del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_018717.5:c.1473_1479del']['alt_genomic_loci'] == []
-        assert results['NM_018717.5:c.1473_1479del']['transcript_description'] == 'Homo sapiens mastermind like transcriptional coactivator 3 (MAML3), mRNA'
         assert results['NM_018717.5:c.1473_1479del']['gene_symbol'] == 'MAML3'
         assert results['NM_018717.5:c.1473_1479del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_061187.3:p.(Gln491HisfsTer29)', 'slr': 'NP_061187.3:p.(Q491Hfs*29)'}
         assert results['NM_018717.5:c.1473_1479del']['submitted_variant'] == 'NC_000004.11:g.140811111_140811117del'
@@ -2903,7 +2776,6 @@ class TestVariants(object):
         assert results['NM_018717.4:c.1468_1472dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_018717.4:c.1468_1472dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_018717.4:c.1468_1472dup']['alt_genomic_loci'] == []
-        assert results['NM_018717.4:c.1468_1472dup']['transcript_description'] == 'Homo sapiens mastermind like transcriptional coactivator 3 (MAML3), mRNA'
         assert results['NM_018717.4:c.1468_1472dup']['gene_symbol'] == 'MAML3'
         assert results['NM_018717.4:c.1468_1472dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_061187.2:p.(Gln491HisfsTer29)', 'slr': 'NP_061187.2:p.(Q491Hfs*29)'}
         assert results['NM_018717.4:c.1468_1472dup']['submitted_variant'] == 'NC_000004.11:g.140811111_140811117del'
@@ -2928,7 +2800,6 @@ class TestVariants(object):
         assert results['NM_018717.4:c.1472_1473insTCAGCAGCAGCA']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_018717.4:c.1472_1473insTCAGCAGCAGCA']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_018717.4:c.1472_1473insTCAGCAGCAGCA']['alt_genomic_loci'] == []
-        assert results['NM_018717.4:c.1472_1473insTCAGCAGCAGCA']['transcript_description'] == 'Homo sapiens mastermind like transcriptional coactivator 3 (MAML3), mRNA'
         assert results['NM_018717.4:c.1472_1473insTCAGCAGCAGCA']['gene_symbol'] == 'MAML3'
         assert results['NM_018717.4:c.1472_1473insTCAGCAGCAGCA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_061187.2:p.(Gln490_Gln491insHisGlnGlnGln)', 'slr': 'NP_061187.2:p.(Q490_Q491insHQQQ)'}
         assert results['NM_018717.4:c.1472_1473insTCAGCAGCAGCA']['submitted_variant'] == 'NC_000004.11:g.140811117C>A'
@@ -2946,7 +2817,6 @@ class TestVariants(object):
         assert results['NM_018717.5:c.1473G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_018717.5:c.1473G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_018717.5:c.1473G>T']['alt_genomic_loci'] == []
-        assert results['NM_018717.5:c.1473G>T']['transcript_description'] == 'Homo sapiens mastermind like transcriptional coactivator 3 (MAML3), mRNA'
         assert results['NM_018717.5:c.1473G>T']['gene_symbol'] == 'MAML3'
         assert results['NM_018717.5:c.1473G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_061187.3:p.(Gln491His)', 'slr': 'NP_061187.3:p.(Q491H)'}
         assert results['NM_018717.5:c.1473G>T']['submitted_variant'] == 'NC_000004.11:g.140811117C>A'
@@ -2970,7 +2840,6 @@ class TestVariants(object):
         assert results['NM_015120.4:c.1573_1579=']['hgvs_lrg_transcript_variant'] == 'LRG_741t1:c.1573_1579='
         assert results['NM_015120.4:c.1573_1579=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_015120.4:c.1573_1579=']['alt_genomic_loci'] == []
-        assert results['NM_015120.4:c.1573_1579=']['transcript_description'] == 'Homo sapiens ALMS1, centrosome and basal body associated protein (ALMS1), mRNA'
         assert results['NM_015120.4:c.1573_1579=']['gene_symbol'] == 'ALMS1'
         assert results['NM_015120.4:c.1573_1579=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055935.4(LRG_741p1):p.(Ser525=)', 'slr': 'NP_055935.4:p.(S525=)'}
         assert results['NM_015120.4:c.1573_1579=']['submitted_variant'] == 'NC_000002.11:g.73675227_73675228insCTC'
@@ -2993,22 +2862,21 @@ class TestVariants(object):
 
         assert results['flag'] == 'gene_variant'
         assert 'NM_020469.2:c.260_262=' in results.keys()
-        assert results['NM_020469.2:c.260_262=']['hgvs_lrg_transcript_variant'] == 'LRG_792t1:c.260_262='
+        assert results['NM_020469.2:c.260_262=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_020469.2:c.260_262=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_020469.2:c.260_262=']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003315925.1:g.83614_83616=', 'vcf': {'chr': 'HG79_PATCH', 'ref': u'TCA', 'pos': '83614', 'alt': u'TCA'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003315925.1:g.83614_83616=', 'vcf': {'chr': 'NW_003315925.1', 'ref': u'TCA', 'pos': '83614', 'alt': u'TCA'}}}, {'grch38': {'hgvs_genomic_description': 'NW_009646201.1:g.83614_83616=', 'vcf': {'chr': 'HG2030_PATCH', 'ref': u'TCA', 'pos': '83614', 'alt': u'TCA'}}}, {'hg38': {'hgvs_genomic_description': 'NW_009646201.1:g.83614_83616=', 'vcf': {'chr': 'NW_009646201.1', 'ref': u'TCA', 'pos': '83614', 'alt': u'TCA'}}}]
-        assert results['NM_020469.2:c.260_262=']['transcript_description'] == 'Homo sapiens ABO, alpha 1-3-N-acetylgalactosaminyltransferase and alpha 1-3-galactosyltransferase (ABO), mRNA'
         assert results['NM_020469.2:c.260_262=']['gene_symbol'] == 'ABO'
         assert results['NM_020469.2:c.260_262=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_065202.2(LRG_792p1):p.(Val87=)', 'slr': 'NP_065202.2:p.(V87=)'}
         assert results['NM_020469.2:c.260_262=']['submitted_variant'] == '9-136132908-T-TC'
         assert results['NM_020469.2:c.260_262=']['genome_context_intronic_sequence'] == ''
-        assert results['NM_020469.2:c.260_262=']['hgvs_lrg_variant'] == 'LRG_792:g.20145_20147='
+        assert results['NM_020469.2:c.260_262=']['hgvs_lrg_variant'] == ''
         assert results['NM_020469.2:c.260_262=']['hgvs_transcript_variant'] == 'NM_020469.2:c.260_262='
         assert results['NM_020469.2:c.260_262=']['hgvs_refseqgene_variant'] == 'NG_006669.1:g.20145_20147='
         assert results['NM_020469.2:c.260_262=']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132908_136132909insC', 'vcf': {'chr': 'chr9', 'ref': 'T', 'pos': '136132908', 'alt': u'TC'}}
         assert results['NM_020469.2:c.260_262=']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257521_133257522insC', 'vcf': {'chr': 'chr9', 'ref': 'T', 'pos': '133257521', 'alt': u'TC'}}
         assert results['NM_020469.2:c.260_262=']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132908_136132909insC', 'vcf': {'chr': '9', 'ref': 'T', 'pos': '136132908', 'alt': u'TC'}}
         assert results['NM_020469.2:c.260_262=']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257521_133257522insC', 'vcf': {'chr': '9', 'ref': 'T', 'pos': '133257521', 'alt': u'TC'}}
-        assert results['NM_020469.2:c.260_262=']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2', 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/pending/LRG_792.xml'}
+        assert results['NM_020469.2:c.260_262=']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2'}
 
 
     def test_variant91(self):
@@ -3018,22 +2886,21 @@ class TestVariants(object):
 
         assert results['flag'] == 'gene_variant'
         assert 'NM_020469.2:c.259del' in results.keys()
-        assert results['NM_020469.2:c.259del']['hgvs_lrg_transcript_variant'] == 'LRG_792t1:c.259del'
+        assert results['NM_020469.2:c.259del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_020469.2:c.259del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_020469.2:c.259del']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003315925.1:g.83618del', 'vcf': {'chr': 'HG79_PATCH', 'ref': 'AC', 'pos': '83616', 'alt': 'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003315925.1:g.83618del', 'vcf': {'chr': 'NW_003315925.1', 'ref': 'AC', 'pos': '83616', 'alt': 'A'}}}, {'grch38': {'hgvs_genomic_description': 'NW_009646201.1:g.83618del', 'vcf': {'chr': 'HG2030_PATCH', 'ref': 'AC', 'pos': '83616', 'alt': 'A'}}}, {'hg38': {'hgvs_genomic_description': 'NW_009646201.1:g.83618del', 'vcf': {'chr': 'NW_009646201.1', 'ref': 'AC', 'pos': '83616', 'alt': 'A'}}}]
-        assert results['NM_020469.2:c.259del']['transcript_description'] == 'Homo sapiens ABO, alpha 1-3-N-acetylgalactosaminyltransferase and alpha 1-3-galactosyltransferase (ABO), mRNA'
         assert results['NM_020469.2:c.259del']['gene_symbol'] == 'ABO'
         assert results['NM_020469.2:c.259del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_065202.2(LRG_792p1):p.(Val87Ter)', 'slr': 'NP_065202.2:p.(V87*)'}
         assert results['NM_020469.2:c.259del']['submitted_variant'] == '9-136132908-TAC-TCA'
         assert results['NM_020469.2:c.259del']['genome_context_intronic_sequence'] == ''
-        assert results['NM_020469.2:c.259del']['hgvs_lrg_variant'] == 'LRG_792:g.20144del'
+        assert results['NM_020469.2:c.259del']['hgvs_lrg_variant'] == ''
         assert results['NM_020469.2:c.259del']['hgvs_transcript_variant'] == 'NM_020469.2:c.259del'
         assert results['NM_020469.2:c.259del']['hgvs_refseqgene_variant'] == 'NG_006669.1:g.20144del'
         assert results['NM_020469.2:c.259del']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132909_136132910delinsCA', 'vcf': {'chr': 'chr9', 'ref': 'AC', 'pos': '136132909', 'alt': u'CA'}}
         assert results['NM_020469.2:c.259del']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257522_133257523delinsCA', 'vcf': {'chr': 'chr9', 'ref': 'AC', 'pos': '133257522', 'alt': u'CA'}}
         assert results['NM_020469.2:c.259del']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132909_136132910delinsCA', 'vcf': {'chr': '9', 'ref': 'AC', 'pos': '136132909', 'alt': u'CA'}}
         assert results['NM_020469.2:c.259del']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257522_133257523delinsCA', 'vcf': {'chr': '9', 'ref': 'AC', 'pos': '133257522', 'alt': u'CA'}}
-        assert results['NM_020469.2:c.259del']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2', 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/pending/LRG_792.xml'}
+        assert results['NM_020469.2:c.259del']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2'}
 
 
     def test_variant92(self):
@@ -3042,22 +2909,21 @@ class TestVariants(object):
         print results
 
         assert 'NM_020469.2:c.261del' in results.keys()
-        assert results['NM_020469.2:c.261del']['hgvs_lrg_transcript_variant'] == 'LRG_792t1:c.261del'
+        assert results['NM_020469.2:c.261del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_020469.2:c.261del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_020469.2:c.261del']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003315925.1:g.83615del', 'vcf': {'chr': 'HG79_PATCH', 'ref': 'TC', 'pos': '83614', 'alt': 'T'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003315925.1:g.83615del', 'vcf': {'chr': 'NW_003315925.1', 'ref': 'TC', 'pos': '83614', 'alt': 'T'}}}, {'grch38': {'hgvs_genomic_description': 'NW_009646201.1:g.83615del', 'vcf': {'chr': 'HG2030_PATCH', 'ref': 'TC', 'pos': '83614', 'alt': 'T'}}}, {'hg38': {'hgvs_genomic_description': 'NW_009646201.1:g.83615del', 'vcf': {'chr': 'NW_009646201.1', 'ref': 'TC', 'pos': '83614', 'alt': 'T'}}}]
-        assert results['NM_020469.2:c.261del']['transcript_description'] == 'Homo sapiens ABO, alpha 1-3-N-acetylgalactosaminyltransferase and alpha 1-3-galactosyltransferase (ABO), mRNA'
         assert results['NM_020469.2:c.261del']['gene_symbol'] == 'ABO'
         assert results['NM_020469.2:c.261del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_065202.2(LRG_792p1):p.(Thr88ProfsTer31)', 'slr': 'NP_065202.2:p.(T88Pfs*31)'}
         assert results['NM_020469.2:c.261del']['submitted_variant'] == '9-136132908-TA-TA'
         assert results['NM_020469.2:c.261del']['genome_context_intronic_sequence'] == ''
-        assert results['NM_020469.2:c.261del']['hgvs_lrg_variant'] == 'LRG_792:g.20146del'
+        assert results['NM_020469.2:c.261del']['hgvs_lrg_variant'] == ''
         assert results['NM_020469.2:c.261del']['hgvs_transcript_variant'] == 'NM_020469.2:c.261del'
         assert results['NM_020469.2:c.261del']['hgvs_refseqgene_variant'] == 'NG_006669.1:g.20146del'
         assert results['NM_020469.2:c.261del']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132908_136132909=', 'vcf': {'chr': 'chr9', 'ref': 'TA', 'pos': '136132908', 'alt': 'TA'}}
         assert results['NM_020469.2:c.261del']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257521_133257522=', 'vcf': {'chr': 'chr9', 'ref': 'TA', 'pos': '133257521', 'alt': 'TA'}}
         assert results['NM_020469.2:c.261del']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132908_136132909=', 'vcf': {'chr': '9', 'ref': 'TA', 'pos': '136132908', 'alt': 'TA'}}
         assert results['NM_020469.2:c.261del']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257521_133257522=', 'vcf': {'chr': '9', 'ref': 'TA', 'pos': '133257521', 'alt': 'TA'}}
-        assert results['NM_020469.2:c.261del']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2', 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/pending/LRG_792.xml'}
+        assert results['NM_020469.2:c.261del']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2'}
 
         assert results['flag'] == 'gene_variant'
 
@@ -3068,22 +2934,21 @@ class TestVariants(object):
 
         assert results['flag'] == 'gene_variant'
         assert 'NM_020469.2:c.259del' in results.keys()
-        assert results['NM_020469.2:c.259del']['hgvs_lrg_transcript_variant'] == 'LRG_792t1:c.259del'
+        assert results['NM_020469.2:c.259del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_020469.2:c.259del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_020469.2:c.259del']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003315925.1:g.83618del', 'vcf': {'chr': 'HG79_PATCH', 'ref': 'AC', 'pos': '83616', 'alt': 'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003315925.1:g.83618del', 'vcf': {'chr': 'NW_003315925.1', 'ref': 'AC', 'pos': '83616', 'alt': 'A'}}}, {'grch38': {'hgvs_genomic_description': 'NW_009646201.1:g.83618del', 'vcf': {'chr': 'HG2030_PATCH', 'ref': 'AC', 'pos': '83616', 'alt': 'A'}}}, {'hg38': {'hgvs_genomic_description': 'NW_009646201.1:g.83618del', 'vcf': {'chr': 'NW_009646201.1', 'ref': 'AC', 'pos': '83616', 'alt': 'A'}}}]
-        assert results['NM_020469.2:c.259del']['transcript_description'] == 'Homo sapiens ABO, alpha 1-3-N-acetylgalactosaminyltransferase and alpha 1-3-galactosyltransferase (ABO), mRNA'
         assert results['NM_020469.2:c.259del']['gene_symbol'] == 'ABO'
         assert results['NM_020469.2:c.259del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_065202.2(LRG_792p1):p.(Val87Ter)', 'slr': 'NP_065202.2:p.(V87*)'}
         assert results['NM_020469.2:c.259del']['submitted_variant'] == 'NM_020469.2:c.258delG'
         assert results['NM_020469.2:c.259del']['genome_context_intronic_sequence'] == ''
-        assert results['NM_020469.2:c.259del']['hgvs_lrg_variant'] == 'LRG_792:g.20144del'
+        assert results['NM_020469.2:c.259del']['hgvs_lrg_variant'] == ''
         assert results['NM_020469.2:c.259del']['hgvs_transcript_variant'] == 'NM_020469.2:c.259del'
         assert results['NM_020469.2:c.259del']['hgvs_refseqgene_variant'] == 'NG_006669.1:g.20144del'
         assert results['NM_020469.2:c.259del']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132909_136132910delinsCA', 'vcf': {'chr': 'chr9', 'ref': 'AC', 'pos': '136132909', 'alt': u'CA'}}
         assert results['NM_020469.2:c.259del']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257522_133257523delinsCA', 'vcf': {'chr': 'chr9', 'ref': 'AC', 'pos': '133257522', 'alt': u'CA'}}
         assert results['NM_020469.2:c.259del']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132909_136132910delinsCA', 'vcf': {'chr': '9', 'ref': 'AC', 'pos': '136132909', 'alt': u'CA'}}
         assert results['NM_020469.2:c.259del']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257522_133257523delinsCA', 'vcf': {'chr': '9', 'ref': 'AC', 'pos': '133257522', 'alt': u'CA'}}
-        assert results['NM_020469.2:c.259del']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2', 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/pending/LRG_792.xml'}
+        assert results['NM_020469.2:c.259del']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2'}
 
 
     def test_variant94(self):
@@ -3093,22 +2958,21 @@ class TestVariants(object):
 
         assert results['flag'] == 'gene_variant'
         assert 'NM_020469.2:c.260_262=' in results.keys()
-        assert results['NM_020469.2:c.260_262=']['hgvs_lrg_transcript_variant'] == 'LRG_792t1:c.260_262='
+        assert results['NM_020469.2:c.260_262=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_020469.2:c.260_262=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_020469.2:c.260_262=']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003315925.1:g.83614_83616=', 'vcf': {'chr': 'HG79_PATCH', 'ref': u'TCA', 'pos': '83614', 'alt': u'TCA'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003315925.1:g.83614_83616=', 'vcf': {'chr': 'NW_003315925.1', 'ref': u'TCA', 'pos': '83614', 'alt': u'TCA'}}}, {'grch38': {'hgvs_genomic_description': 'NW_009646201.1:g.83614_83616=', 'vcf': {'chr': 'HG2030_PATCH', 'ref': u'TCA', 'pos': '83614', 'alt': u'TCA'}}}, {'hg38': {'hgvs_genomic_description': 'NW_009646201.1:g.83614_83616=', 'vcf': {'chr': 'NW_009646201.1', 'ref': u'TCA', 'pos': '83614', 'alt': u'TCA'}}}]
-        assert results['NM_020469.2:c.260_262=']['transcript_description'] == 'Homo sapiens ABO, alpha 1-3-N-acetylgalactosaminyltransferase and alpha 1-3-galactosyltransferase (ABO), mRNA'
         assert results['NM_020469.2:c.260_262=']['gene_symbol'] == 'ABO'
         assert results['NM_020469.2:c.260_262=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_065202.2(LRG_792p1):p.(Val87=)', 'slr': 'NP_065202.2:p.(V87=)'}
         assert results['NM_020469.2:c.260_262=']['submitted_variant'] == 'NM_020469.2:c.260_262TGA='
         assert results['NM_020469.2:c.260_262=']['genome_context_intronic_sequence'] == ''
-        assert results['NM_020469.2:c.260_262=']['hgvs_lrg_variant'] == 'LRG_792:g.20145_20147='
+        assert results['NM_020469.2:c.260_262=']['hgvs_lrg_variant'] == ''
         assert results['NM_020469.2:c.260_262=']['hgvs_transcript_variant'] == 'NM_020469.2:c.260_262='
         assert results['NM_020469.2:c.260_262=']['hgvs_refseqgene_variant'] == 'NG_006669.1:g.20145_20147='
         assert results['NM_020469.2:c.260_262=']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132908_136132909insC', 'vcf': {'chr': 'chr9', 'ref': 'T', 'pos': '136132908', 'alt': u'TC'}}
         assert results['NM_020469.2:c.260_262=']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257521_133257522insC', 'vcf': {'chr': 'chr9', 'ref': 'T', 'pos': '133257521', 'alt': u'TC'}}
         assert results['NM_020469.2:c.260_262=']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132908_136132909insC', 'vcf': {'chr': '9', 'ref': 'T', 'pos': '136132908', 'alt': u'TC'}}
         assert results['NM_020469.2:c.260_262=']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257521_133257522insC', 'vcf': {'chr': '9', 'ref': 'T', 'pos': '133257521', 'alt': u'TC'}}
-        assert results['NM_020469.2:c.260_262=']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2', 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/pending/LRG_792.xml'}
+        assert results['NM_020469.2:c.260_262=']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2'}
 
 
     def test_variant95(self):
@@ -3117,22 +2981,21 @@ class TestVariants(object):
         print results
 
         assert 'NM_020469.2:c.261del' in results.keys()
-        assert results['NM_020469.2:c.261del']['hgvs_lrg_transcript_variant'] == 'LRG_792t1:c.261del'
+        assert results['NM_020469.2:c.261del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_020469.2:c.261del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_020469.2:c.261del']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003315925.1:g.83615del', 'vcf': {'chr': 'HG79_PATCH', 'ref': 'TC', 'pos': '83614', 'alt': 'T'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003315925.1:g.83615del', 'vcf': {'chr': 'NW_003315925.1', 'ref': 'TC', 'pos': '83614', 'alt': 'T'}}}, {'grch38': {'hgvs_genomic_description': 'NW_009646201.1:g.83615del', 'vcf': {'chr': 'HG2030_PATCH', 'ref': 'TC', 'pos': '83614', 'alt': 'T'}}}, {'hg38': {'hgvs_genomic_description': 'NW_009646201.1:g.83615del', 'vcf': {'chr': 'NW_009646201.1', 'ref': 'TC', 'pos': '83614', 'alt': 'T'}}}]
-        assert results['NM_020469.2:c.261del']['transcript_description'] == 'Homo sapiens ABO, alpha 1-3-N-acetylgalactosaminyltransferase and alpha 1-3-galactosyltransferase (ABO), mRNA'
         assert results['NM_020469.2:c.261del']['gene_symbol'] == 'ABO'
         assert results['NM_020469.2:c.261del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_065202.2(LRG_792p1):p.(Thr88ProfsTer31)', 'slr': 'NP_065202.2:p.(T88Pfs*31)'}
         assert results['NM_020469.2:c.261del']['submitted_variant'] == 'NM_020469.2:c.261delG'
         assert results['NM_020469.2:c.261del']['genome_context_intronic_sequence'] == ''
-        assert results['NM_020469.2:c.261del']['hgvs_lrg_variant'] == 'LRG_792:g.20146del'
+        assert results['NM_020469.2:c.261del']['hgvs_lrg_variant'] == ''
         assert results['NM_020469.2:c.261del']['hgvs_transcript_variant'] == 'NM_020469.2:c.261del'
         assert results['NM_020469.2:c.261del']['hgvs_refseqgene_variant'] == 'NG_006669.1:g.20146del'
         assert results['NM_020469.2:c.261del']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132908_136132909=', 'vcf': {'chr': 'chr9', 'ref': 'TA', 'pos': '136132908', 'alt': 'TA'}}
         assert results['NM_020469.2:c.261del']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257521_133257522=', 'vcf': {'chr': 'chr9', 'ref': 'TA', 'pos': '133257521', 'alt': 'TA'}}
         assert results['NM_020469.2:c.261del']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132908_136132909=', 'vcf': {'chr': '9', 'ref': 'TA', 'pos': '136132908', 'alt': 'TA'}}
         assert results['NM_020469.2:c.261del']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257521_133257522=', 'vcf': {'chr': '9', 'ref': 'TA', 'pos': '133257521', 'alt': 'TA'}}
-        assert results['NM_020469.2:c.261del']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2', 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/pending/LRG_792.xml'}
+        assert results['NM_020469.2:c.261del']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2'}
 
         assert results['flag'] == 'gene_variant'
 
@@ -3143,22 +3006,21 @@ class TestVariants(object):
 
         assert results['flag'] == 'gene_variant'
         assert 'NM_020469.2:c.261dup' in results.keys()
-        assert results['NM_020469.2:c.261dup']['hgvs_lrg_transcript_variant'] == 'LRG_792t1:c.261dup'
+        assert results['NM_020469.2:c.261dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_020469.2:c.261dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_020469.2:c.261dup']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003315925.1:g.83615dup', 'vcf': {'chr': 'HG79_PATCH', 'ref': 'T', 'pos': '83614', 'alt': 'TC'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003315925.1:g.83615dup', 'vcf': {'chr': 'NW_003315925.1', 'ref': 'T', 'pos': '83614', 'alt': 'TC'}}}, {'grch38': {'hgvs_genomic_description': 'NW_009646201.1:g.83615dup', 'vcf': {'chr': 'HG2030_PATCH', 'ref': 'T', 'pos': '83614', 'alt': 'TC'}}}, {'hg38': {'hgvs_genomic_description': 'NW_009646201.1:g.83615dup', 'vcf': {'chr': 'NW_009646201.1', 'ref': 'T', 'pos': '83614', 'alt': 'TC'}}}]
-        assert results['NM_020469.2:c.261dup']['transcript_description'] == 'Homo sapiens ABO, alpha 1-3-N-acetylgalactosaminyltransferase and alpha 1-3-galactosyltransferase (ABO), mRNA'
         assert results['NM_020469.2:c.261dup']['gene_symbol'] == 'ABO'
         assert results['NM_020469.2:c.261dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_065202.2(LRG_792p1):p.(Thr88AspfsTer107)', 'slr': 'NP_065202.2:p.(T88Dfs*107)'}
         assert results['NM_020469.2:c.261dup']['submitted_variant'] == 'NM_020469.2:c.261dupG'
         assert results['NM_020469.2:c.261dup']['genome_context_intronic_sequence'] == ''
-        assert results['NM_020469.2:c.261dup']['hgvs_lrg_variant'] == 'LRG_792:g.20146dup'
+        assert results['NM_020469.2:c.261dup']['hgvs_lrg_variant'] == ''
         assert results['NM_020469.2:c.261dup']['hgvs_transcript_variant'] == 'NM_020469.2:c.261dup'
         assert results['NM_020469.2:c.261dup']['hgvs_refseqgene_variant'] == 'NG_006669.1:g.20146dup'
         assert results['NM_020469.2:c.261dup']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132908_136132909insCC', 'vcf': {'chr': 'chr9', 'ref': 'T', 'pos': '136132908', 'alt': u'TCC'}}
         assert results['NM_020469.2:c.261dup']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257521_133257522insCC', 'vcf': {'chr': 'chr9', 'ref': 'T', 'pos': '133257521', 'alt': u'TCC'}}
         assert results['NM_020469.2:c.261dup']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132908_136132909insCC', 'vcf': {'chr': '9', 'ref': 'T', 'pos': '136132908', 'alt': u'TCC'}}
         assert results['NM_020469.2:c.261dup']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257521_133257522insCC', 'vcf': {'chr': '9', 'ref': 'T', 'pos': '133257521', 'alt': u'TCC'}}
-        assert results['NM_020469.2:c.261dup']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2', 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/pending/LRG_792.xml'}
+        assert results['NM_020469.2:c.261dup']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2'}
 
 
     def test_variant97(self):
@@ -3168,22 +3030,21 @@ class TestVariants(object):
 
         assert results['flag'] == 'gene_variant'
         assert 'NM_020469.2:c.261_262insTT' in results.keys()
-        assert results['NM_020469.2:c.261_262insTT']['hgvs_lrg_transcript_variant'] == 'LRG_792t1:c.261_262insTT'
+        assert results['NM_020469.2:c.261_262insTT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_020469.2:c.261_262insTT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_020469.2:c.261_262insTT']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003315925.1:g.83614_83615insAA', 'vcf': {'chr': 'HG79_PATCH', 'ref': 'T', 'pos': '83614', 'alt': u'TAA'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003315925.1:g.83614_83615insAA', 'vcf': {'chr': 'NW_003315925.1', 'ref': 'T', 'pos': '83614', 'alt': u'TAA'}}}, {'grch38': {'hgvs_genomic_description': 'NW_009646201.1:g.83614_83615insAA', 'vcf': {'chr': 'HG2030_PATCH', 'ref': 'T', 'pos': '83614', 'alt': u'TAA'}}}, {'hg38': {'hgvs_genomic_description': 'NW_009646201.1:g.83614_83615insAA', 'vcf': {'chr': 'NW_009646201.1', 'ref': 'T', 'pos': '83614', 'alt': u'TAA'}}}]
-        assert results['NM_020469.2:c.261_262insTT']['transcript_description'] == 'Homo sapiens ABO, alpha 1-3-N-acetylgalactosaminyltransferase and alpha 1-3-galactosyltransferase (ABO), mRNA'
         assert results['NM_020469.2:c.261_262insTT']['gene_symbol'] == 'ABO'
         assert results['NM_020469.2:c.261_262insTT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_065202.2(LRG_792p1):p.(Thr88LeufsTer32)', 'slr': 'NP_065202.2:p.(T88Lfs*32)'}
         assert results['NM_020469.2:c.261_262insTT']['submitted_variant'] == 'NM_020469.2:c.261_262insTT'
         assert results['NM_020469.2:c.261_262insTT']['genome_context_intronic_sequence'] == ''
-        assert results['NM_020469.2:c.261_262insTT']['hgvs_lrg_variant'] == 'LRG_792:g.20146_20147insTT'
+        assert results['NM_020469.2:c.261_262insTT']['hgvs_lrg_variant'] == ''
         assert results['NM_020469.2:c.261_262insTT']['hgvs_transcript_variant'] == 'NM_020469.2:c.261_262insTT'
         assert results['NM_020469.2:c.261_262insTT']['hgvs_refseqgene_variant'] == 'NG_006669.1:g.20146_20147insTT'
         assert results['NM_020469.2:c.261_262insTT']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132909_136132910insACA', 'vcf': {'chr': 'chr9', 'ref': 'T', 'pos': '136132908', 'alt': u'TAAC'}}
         assert results['NM_020469.2:c.261_262insTT']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257522_133257523insACA', 'vcf': {'chr': 'chr9', 'ref': 'T', 'pos': '133257521', 'alt': u'TAAC'}}
         assert results['NM_020469.2:c.261_262insTT']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132909_136132910insACA', 'vcf': {'chr': '9', 'ref': 'T', 'pos': '136132908', 'alt': u'TAAC'}}
         assert results['NM_020469.2:c.261_262insTT']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257522_133257523insACA', 'vcf': {'chr': '9', 'ref': 'T', 'pos': '133257521', 'alt': u'TAAC'}}
-        assert results['NM_020469.2:c.261_262insTT']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2', 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/pending/LRG_792.xml'}
+        assert results['NM_020469.2:c.261_262insTT']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2'}
 
 
     def test_variant98(self):
@@ -3196,7 +3057,6 @@ class TestVariants(object):
         assert results['NM_007121.5:c.515A>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_007121.5:c.515A>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_007121.5:c.515A>T']['alt_genomic_loci'] == []
-        assert results['NM_007121.5:c.515A>T']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 1 group H member 2 (NR1H2), transcript variant 1, mRNA'
         assert results['NM_007121.5:c.515A>T']['gene_symbol'] == 'NR1H2'
         assert results['NM_007121.5:c.515A>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_009052.3:p.(Lys172Ile)', 'slr': 'NP_009052.3:p.(K172I)'}
         assert results['NM_007121.5:c.515A>T']['submitted_variant'] == 'NC_000019.10:g.50378563_50378564insTAC'
@@ -3214,7 +3074,6 @@ class TestVariants(object):
         assert results['NM_001256647.1:c.224A>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001256647.1:c.224A>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001256647.1:c.224A>T']['alt_genomic_loci'] == []
-        assert results['NM_001256647.1:c.224A>T']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 1 group H member 2 (NR1H2), transcript variant 2, mRNA'
         assert results['NM_001256647.1:c.224A>T']['gene_symbol'] == 'NR1H2'
         assert results['NM_001256647.1:c.224A>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001243576.1:p.(Lys75Ile)', 'slr': 'NP_001243576.1:p.(K75I)'}
         assert results['NM_001256647.1:c.224A>T']['submitted_variant'] == 'NC_000019.10:g.50378563_50378564insTAC'
@@ -3239,7 +3098,6 @@ class TestVariants(object):
         assert results['NM_007121.5:c.515_516del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_007121.5:c.515_516del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_007121.5:c.515_516del']['alt_genomic_loci'] == []
-        assert results['NM_007121.5:c.515_516del']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 1 group H member 2 (NR1H2), transcript variant 1, mRNA'
         assert results['NM_007121.5:c.515_516del']['gene_symbol'] == 'NR1H2'
         assert results['NM_007121.5:c.515_516del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_009052.3:p.(Lys172ThrfsTer34)', 'slr': 'NP_009052.3:p.(K172Tfs*34)'}
         assert results['NM_007121.5:c.515_516del']['submitted_variant'] == 'NC_000019.10:g.50378563_50378564insC'
@@ -3257,7 +3115,6 @@ class TestVariants(object):
         assert results['NM_001256647.1:c.224_225del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001256647.1:c.224_225del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001256647.1:c.224_225del']['alt_genomic_loci'] == []
-        assert results['NM_001256647.1:c.224_225del']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 1 group H member 2 (NR1H2), transcript variant 2, mRNA'
         assert results['NM_001256647.1:c.224_225del']['gene_symbol'] == 'NR1H2'
         assert results['NM_001256647.1:c.224_225del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001243576.1:p.(Lys75ThrfsTer34)', 'slr': 'NP_001243576.1:p.(K75Tfs*34)'}
         assert results['NM_001256647.1:c.224_225del']['submitted_variant'] == 'NC_000019.10:g.50378563_50378564insC'
@@ -3282,7 +3139,6 @@ class TestVariants(object):
         assert results['NM_007121.5:c.515_516insT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_007121.5:c.515_516insT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_007121.5:c.515_516insT']['alt_genomic_loci'] == []
-        assert results['NM_007121.5:c.515_516insT']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 1 group H member 2 (NR1H2), transcript variant 1, mRNA'
         assert results['NM_007121.5:c.515_516insT']['gene_symbol'] == 'NR1H2'
         assert results['NM_007121.5:c.515_516insT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_009052.3:p.(Lys172AsnfsTer35)', 'slr': 'NP_009052.3:p.(K172Nfs*35)'}
         assert results['NM_007121.5:c.515_516insT']['submitted_variant'] == 'NC_000019.10:g.50378564_50378565insTACA'
@@ -3300,7 +3156,6 @@ class TestVariants(object):
         assert results['NM_001256647.1:c.224_225insT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001256647.1:c.224_225insT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001256647.1:c.224_225insT']['alt_genomic_loci'] == []
-        assert results['NM_001256647.1:c.224_225insT']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 1 group H member 2 (NR1H2), transcript variant 2, mRNA'
         assert results['NM_001256647.1:c.224_225insT']['gene_symbol'] == 'NR1H2'
         assert results['NM_001256647.1:c.224_225insT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001243576.1:p.(Lys75AsnfsTer35)', 'slr': 'NP_001243576.1:p.(K75Nfs*35)'}
         assert results['NM_001256647.1:c.224_225insT']['submitted_variant'] == 'NC_000019.10:g.50378564_50378565insTACA'
@@ -3324,7 +3179,6 @@ class TestVariants(object):
         assert results['NM_007121.5:c.514_520=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_007121.5:c.514_520=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_007121.5:c.514_520=']['alt_genomic_loci'] == []
-        assert results['NM_007121.5:c.514_520=']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 1 group H member 2 (NR1H2), transcript variant 1, mRNA'
         assert results['NM_007121.5:c.514_520=']['gene_symbol'] == 'NR1H2'
         assert results['NM_007121.5:c.514_520=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_009052.3:p.(Lys172=)', 'slr': 'NP_009052.3:p.(K172=)'}
         assert results['NM_007121.5:c.514_520=']['submitted_variant'] == 'NC_000019.10:g.50378565_50378567dup'
@@ -3342,7 +3196,6 @@ class TestVariants(object):
         assert results['NM_001256647.1:c.223_229=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001256647.1:c.223_229=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001256647.1:c.223_229=']['alt_genomic_loci'] == []
-        assert results['NM_001256647.1:c.223_229=']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 1 group H member 2 (NR1H2), transcript variant 2, mRNA'
         assert results['NM_001256647.1:c.223_229=']['gene_symbol'] == 'NR1H2'
         assert results['NM_001256647.1:c.223_229=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001243576.1:p.(Lys75=)', 'slr': 'NP_001243576.1:p.(K75=)'}
         assert results['NM_001256647.1:c.223_229=']['submitted_variant'] == 'NC_000019.10:g.50378565_50378567dup'
@@ -3368,7 +3221,6 @@ class TestVariants(object):
         assert results['NM_007121.5:c.519_521del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_007121.5:c.519_521del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_007121.5:c.519_521del']['alt_genomic_loci'] == []
-        assert results['NM_007121.5:c.519_521del']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 1 group H member 2 (NR1H2), transcript variant 1, mRNA'
         assert results['NM_007121.5:c.519_521del']['gene_symbol'] == 'NR1H2'
         assert results['NM_007121.5:c.519_521del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_009052.3:p.(Gln176del)', 'slr': 'NP_009052.3:p.(Q176del)'}
         assert results['NM_007121.5:c.519_521del']['submitted_variant'] == 'NC_000019.10:g.50378563_50378564='
@@ -3386,7 +3238,6 @@ class TestVariants(object):
         assert results['NM_001256647.1:c.228_230del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001256647.1:c.228_230del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001256647.1:c.228_230del']['alt_genomic_loci'] == []
-        assert results['NM_001256647.1:c.228_230del']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 1 group H member 2 (NR1H2), transcript variant 2, mRNA'
         assert results['NM_001256647.1:c.228_230del']['gene_symbol'] == 'NR1H2'
         assert results['NM_001256647.1:c.228_230del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001243576.1:p.(Gln79del)', 'slr': 'NP_001243576.1:p.(Q79del)'}
         assert results['NM_001256647.1:c.228_230del']['submitted_variant'] == 'NC_000019.10:g.50378563_50378564='
@@ -3410,7 +3261,6 @@ class TestVariants(object):
         assert results['NM_001256647.1:c.224_226delinsTCGG']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001256647.1:c.224_226delinsTCGG']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001256647.1:c.224_226delinsTCGG']['alt_genomic_loci'] == []
-        assert results['NM_001256647.1:c.224_226delinsTCGG']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 1 group H member 2 (NR1H2), transcript variant 2, mRNA'
         assert results['NM_001256647.1:c.224_226delinsTCGG']['gene_symbol'] == 'NR1H2'
         assert results['NM_001256647.1:c.224_226delinsTCGG']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001243576.1:p.(Lys75IlefsTer35)', 'slr': 'NP_001243576.1:p.(K75Ifs*35)'}
         assert results['NM_001256647.1:c.224_226delinsTCGG']['submitted_variant'] == 'NC_000019.10:g.50378563_50378564insTCGG'
@@ -3429,7 +3279,6 @@ class TestVariants(object):
         assert results['NM_007121.5:c.515_517delinsTCGG']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_007121.5:c.515_517delinsTCGG']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_007121.5:c.515_517delinsTCGG']['alt_genomic_loci'] == []
-        assert results['NM_007121.5:c.515_517delinsTCGG']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 1 group H member 2 (NR1H2), transcript variant 1, mRNA'
         assert results['NM_007121.5:c.515_517delinsTCGG']['gene_symbol'] == 'NR1H2'
         assert results['NM_007121.5:c.515_517delinsTCGG']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_009052.3:p.(Lys172IlefsTer35)', 'slr': 'NP_009052.3:p.(K172Ifs*35)'}
         assert results['NM_007121.5:c.515_517delinsTCGG']['submitted_variant'] == 'NC_000019.10:g.50378563_50378564insTCGG'
@@ -3454,7 +3303,6 @@ class TestVariants(object):
         assert results['NM_007121.5:c.514_515inv']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_007121.5:c.514_515inv']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_007121.5:c.514_515inv']['alt_genomic_loci'] == []
-        assert results['NM_007121.5:c.514_515inv']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 1 group H member 2 (NR1H2), transcript variant 1, mRNA'
         assert results['NM_007121.5:c.514_515inv']['gene_symbol'] == 'NR1H2'
         assert results['NM_007121.5:c.514_515inv']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_009052.3:p.(Lys172Leu)', 'slr': 'NP_009052.3:p.(K172L)'}
         assert results['NM_007121.5:c.514_515inv']['submitted_variant'] == 'NC_000019.10:g.50378563delinsTTAC'
@@ -3472,7 +3320,6 @@ class TestVariants(object):
         assert results['NM_001256647.1:c.223_224inv']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001256647.1:c.223_224inv']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001256647.1:c.223_224inv']['alt_genomic_loci'] == []
-        assert results['NM_001256647.1:c.223_224inv']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 1 group H member 2 (NR1H2), transcript variant 2, mRNA'
         assert results['NM_001256647.1:c.223_224inv']['gene_symbol'] == 'NR1H2'
         assert results['NM_001256647.1:c.223_224inv']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001243576.1:p.(Lys75Leu)', 'slr': 'NP_001243576.1:p.(K75L)'}
         assert results['NM_001256647.1:c.223_224inv']['submitted_variant'] == 'NC_000019.10:g.50378563delinsTTAC'
@@ -3496,7 +3343,6 @@ class TestVariants(object):
         assert results['NM_007121.5:c.514_515insT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_007121.5:c.514_515insT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_007121.5:c.514_515insT']['alt_genomic_loci'] == []
-        assert results['NM_007121.5:c.514_515insT']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 1 group H member 2 (NR1H2), transcript variant 1, mRNA'
         assert results['NM_007121.5:c.514_515insT']['gene_symbol'] == 'NR1H2'
         assert results['NM_007121.5:c.514_515insT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_009052.3:p.(Lys172IlefsTer35)', 'slr': 'NP_009052.3:p.(K172Ifs*35)'}
         assert results['NM_007121.5:c.514_515insT']['submitted_variant'] == 'NC_000019.10:g.50378563_50378564insTAAC'
@@ -3514,7 +3360,6 @@ class TestVariants(object):
         assert results['NM_001256647.1:c.223_224insT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001256647.1:c.223_224insT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001256647.1:c.223_224insT']['alt_genomic_loci'] == []
-        assert results['NM_001256647.1:c.223_224insT']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 1 group H member 2 (NR1H2), transcript variant 2, mRNA'
         assert results['NM_001256647.1:c.223_224insT']['gene_symbol'] == 'NR1H2'
         assert results['NM_001256647.1:c.223_224insT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001243576.1:p.(Lys75IlefsTer35)', 'slr': 'NP_001243576.1:p.(K75Ifs*35)'}
         assert results['NM_001256647.1:c.223_224insT']['submitted_variant'] == 'NC_000019.10:g.50378563_50378564insTAAC'
@@ -3540,7 +3385,6 @@ class TestVariants(object):
         assert results['NM_001256647.1:c.222_228del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001256647.1:c.222_228del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001256647.1:c.222_228del']['alt_genomic_loci'] == []
-        assert results['NM_001256647.1:c.222_228del']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 1 group H member 2 (NR1H2), transcript variant 2, mRNA'
         assert results['NM_001256647.1:c.222_228del']['gene_symbol'] == 'NR1H2'
         assert results['NM_001256647.1:c.222_228del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001243576.1:p.(Lys75SerfsTer47)', 'slr': 'NP_001243576.1:p.(K75Sfs*47)'}
         assert results['NM_001256647.1:c.222_228del']['submitted_variant'] == 'NC_000019.10:g.50378562_50378565del'
@@ -3558,7 +3402,6 @@ class TestVariants(object):
         assert results['NM_007121.5:c.513_519del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_007121.5:c.513_519del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_007121.5:c.513_519del']['alt_genomic_loci'] == []
-        assert results['NM_007121.5:c.513_519del']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 1 group H member 2 (NR1H2), transcript variant 1, mRNA'
         assert results['NM_007121.5:c.513_519del']['gene_symbol'] == 'NR1H2'
         assert results['NM_007121.5:c.513_519del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_009052.3:p.(Lys172SerfsTer47)', 'slr': 'NP_009052.3:p.(K172Sfs*47)'}
         assert results['NM_007121.5:c.513_519del']['submitted_variant'] == 'NC_000019.10:g.50378562_50378565del'
@@ -3582,7 +3425,6 @@ class TestVariants(object):
         assert results['NM_001256647.1:c.222_228delinsTC']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001256647.1:c.222_228delinsTC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001256647.1:c.222_228delinsTC']['alt_genomic_loci'] == []
-        assert results['NM_001256647.1:c.222_228delinsTC']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 1 group H member 2 (NR1H2), transcript variant 2, mRNA'
         assert results['NM_001256647.1:c.222_228delinsTC']['gene_symbol'] == 'NR1H2'
         assert results['NM_001256647.1:c.222_228delinsTC']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001243576.1:p.(Lys75ProfsTer33)', 'slr': 'NP_001243576.1:p.(K75Pfs*33)'}
         assert results['NM_001256647.1:c.222_228delinsTC']['submitted_variant'] == 'NC_000019.10:g.50378562_50378565delinsTC'
@@ -3601,7 +3443,6 @@ class TestVariants(object):
         assert results['NM_007121.5:c.513_519delinsTC']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_007121.5:c.513_519delinsTC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_007121.5:c.513_519delinsTC']['alt_genomic_loci'] == []
-        assert results['NM_007121.5:c.513_519delinsTC']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 1 group H member 2 (NR1H2), transcript variant 1, mRNA'
         assert results['NM_007121.5:c.513_519delinsTC']['gene_symbol'] == 'NR1H2'
         assert results['NM_007121.5:c.513_519delinsTC']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_009052.3:p.(Lys172ProfsTer33)', 'slr': 'NP_009052.3:p.(K172Pfs*33)'}
         assert results['NM_007121.5:c.513_519delinsTC']['submitted_variant'] == 'NC_000019.10:g.50378562_50378565delinsTC'
@@ -3626,7 +3467,6 @@ class TestVariants(object):
         assert results['NM_198455.2:c.1115_1116insT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_198455.2:c.1115_1116insT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_198455.2:c.1115_1116insT']['alt_genomic_loci'] == []
-        assert results['NM_198455.2:c.1115_1116insT']['transcript_description'] == 'Homo sapiens SCO-spondin (SSPO), mRNA'
         assert results['NM_198455.2:c.1115_1116insT']['gene_symbol'] == 'SSPO'
         assert results['NM_198455.2:c.1115_1116insT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_940857.2:p.(Leu374ProfsTer16)', 'slr': 'NP_940857.2:p.(L374Pfs*16)'}
         assert results['NM_198455.2:c.1115_1116insT']['submitted_variant'] == 'NC_000007.14:g.149779575_149779577delinsT'
@@ -3651,7 +3491,6 @@ class TestVariants(object):
         assert results['NM_198455.2:c.1116_1118=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_198455.2:c.1116_1118=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_198455.2:c.1116_1118=']['alt_genomic_loci'] == []
-        assert results['NM_198455.2:c.1116_1118=']['transcript_description'] == 'Homo sapiens SCO-spondin (SSPO), mRNA'
         assert results['NM_198455.2:c.1116_1118=']['gene_symbol'] == 'SSPO'
         assert results['NM_198455.2:c.1116_1118=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_940857.2:p.(Asp372=)', 'slr': 'NP_940857.2:p.(D372=)'}
         assert results['NM_198455.2:c.1116_1118=']['submitted_variant'] == 'NC_000007.14:g.149779575_149779577='
@@ -3676,7 +3515,6 @@ class TestVariants(object):
         assert results['NM_198455.2:c.1116_1118=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_198455.2:c.1116_1118=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_198455.2:c.1116_1118=']['alt_genomic_loci'] == []
-        assert results['NM_198455.2:c.1116_1118=']['transcript_description'] == 'Homo sapiens SCO-spondin (SSPO), mRNA'
         assert results['NM_198455.2:c.1116_1118=']['gene_symbol'] == 'SSPO'
         assert results['NM_198455.2:c.1116_1118=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_940857.2:p.(Asp372=)', 'slr': 'NP_940857.2:p.(D372=)'}
         assert results['NM_198455.2:c.1116_1118=']['submitted_variant'] == 'NC_000007.14:g.149779576_149779578del'
@@ -3701,7 +3539,6 @@ class TestVariants(object):
         assert results['NM_198455.2:c.1115_1116dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_198455.2:c.1115_1116dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_198455.2:c.1115_1116dup']['alt_genomic_loci'] == []
-        assert results['NM_198455.2:c.1115_1116dup']['transcript_description'] == 'Homo sapiens SCO-spondin (SSPO), mRNA'
         assert results['NM_198455.2:c.1115_1116dup']['gene_symbol'] == 'SSPO'
         assert results['NM_198455.2:c.1115_1116dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_940857.2:p.(Pro373ThrfsTer6)', 'slr': 'NP_940857.2:p.(P373Tfs*6)'}
         assert results['NM_198455.2:c.1115_1116dup']['submitted_variant'] == 'NC_000007.14:g.149779577del'
@@ -3725,7 +3562,6 @@ class TestVariants(object):
         assert results['NM_198455.2:c.1114_1117del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_198455.2:c.1114_1117del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_198455.2:c.1114_1117del']['alt_genomic_loci'] == []
-        assert results['NM_198455.2:c.1114_1117del']['transcript_description'] == 'Homo sapiens SCO-spondin (SSPO), mRNA'
         assert results['NM_198455.2:c.1114_1117del']['gene_symbol'] == 'SSPO'
         assert results['NM_198455.2:c.1114_1117del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_940857.2:p.(Asp372ProfsTer5)', 'slr': 'NP_940857.2:p.(D372Pfs*5)'}
         assert results['NM_198455.2:c.1114_1117del']['submitted_variant'] == 'NC_000007.14:g.149779573_149779579del'
@@ -3750,7 +3586,6 @@ class TestVariants(object):
         assert results['NM_198455.2:c.1114_1117delinsCA']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_198455.2:c.1114_1117delinsCA']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_198455.2:c.1114_1117delinsCA']['alt_genomic_loci'] == []
-        assert results['NM_198455.2:c.1114_1117delinsCA']['transcript_description'] == 'Homo sapiens SCO-spondin (SSPO), mRNA'
         assert results['NM_198455.2:c.1114_1117delinsCA']['gene_symbol'] == 'SSPO'
         assert results['NM_198455.2:c.1114_1117delinsCA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_940857.2:p.(Asp372HisfsTer17)', 'slr': 'NP_940857.2:p.(D372Hfs*17)'}
         assert results['NM_198455.2:c.1114_1117delinsCA']['submitted_variant'] == 'NC_000007.14:g.149779573_149779579delinsCA'
@@ -3775,7 +3610,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.590_591inv']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.590_591inv'
         assert results['NM_000088.3:c.590_591inv']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000088.3:c.590_591inv']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.590_591inv']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.590_591inv']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.590_591inv']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.(Gly197Asp)', 'slr': 'NP_000079.2:p.(G197D)'}
         assert results['NM_000088.3:c.590_591inv']['submitted_variant'] == 'NM_000088.3:c.590_591inv'
@@ -3800,7 +3634,6 @@ class TestVariants(object):
         assert results['NM_024989.3:c.1778_1779inv']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_024989.3:c.1778_1779inv']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_024989.3:c.1778_1779inv']['alt_genomic_loci'] == []
-        assert results['NM_024989.3:c.1778_1779inv']['transcript_description'] == 'Homo sapiens post-GPI attachment to proteins 1 (PGAP1), transcript variant 1, mRNA'
         assert results['NM_024989.3:c.1778_1779inv']['gene_symbol'] == 'PGAP1'
         assert results['NM_024989.3:c.1778_1779inv']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_079265.2:p.(Phe593Ter)', 'slr': 'NP_079265.2:p.(F593*)'}
         assert results['NM_024989.3:c.1778_1779inv']['submitted_variant'] == 'NM_024989.3:c.1778_1779inv'
@@ -3826,7 +3659,6 @@ class TestVariants(object):
         assert results['NM_032815.3:c.555_556inv']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_032815.3:c.555_556inv']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_032815.3:c.555_556inv']['alt_genomic_loci'] == []
-        assert results['NM_032815.3:c.555_556inv']['transcript_description'] == 'Homo sapiens nuclear factor of activated T cells 2 interacting protein (NFATC2IP), mRNA'
         assert results['NM_032815.3:c.555_556inv']['gene_symbol'] == 'NFATC2IP'
         assert results['NM_032815.3:c.555_556inv']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_116204.3:p.(Glu185_Glu186delinsAspTer)', 'slr': 'NP_116204.3:p.(E185_E186delinsD*)'}
         assert results['NM_032815.3:c.555_556inv']['submitted_variant'] == 'NM_032815.3:c.555_556inv'
@@ -3849,7 +3681,6 @@ class TestVariants(object):
         assert results['NM_006138.4:c.3_4inv']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_006138.4:c.3_4inv']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_006138.4:c.3_4inv']['alt_genomic_loci'] == []
-        assert results['NM_006138.4:c.3_4inv']['transcript_description'] == 'Homo sapiens membrane spanning 4-domains A3 (MS4A3), transcript variant 1, mRNA'
         assert results['NM_006138.4:c.3_4inv']['gene_symbol'] == 'MS4A3'
         assert results['NM_006138.4:c.3_4inv']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_006129.4:p.(Met1?)', 'slr': 'NP_006129.4:p.(M1?)'}
         assert results['NM_006138.4:c.3_4inv']['submitted_variant'] == 'NM_006138.4:c.3_4inv'
@@ -3874,7 +3705,6 @@ class TestVariants(object):
         assert results['NM_000038.5:c.3927_3928inv']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000038.5:c.3927_3928inv']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000038.5:c.3927_3928inv']['alt_genomic_loci'] == []
-        assert results['NM_000038.5:c.3927_3928inv']['transcript_description'] == 'Homo sapiens APC, WNT signaling pathway regulator (APC), transcript variant 3, mRNA'
         assert results['NM_000038.5:c.3927_3928inv']['gene_symbol'] == 'APC'
         assert results['NM_000038.5:c.3927_3928inv']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000029.2(LRG_130p1):p.(Glu1309_Lys1310delinsAspTer)', 'slr': 'NP_000029.2:p.(E1309_K1310delinsD*)'}
         assert results['NM_000038.5:c.3927_3928inv']['submitted_variant'] == 'NM_000038.5:c.3927_3928delAAinsTT'
@@ -3899,7 +3729,6 @@ class TestVariants(object):
         assert results['NM_001034853.1:c.2847_2848inv']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001034853.1:c.2847_2848inv']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001034853.1:c.2847_2848inv']['alt_genomic_loci'] == []
-        assert results['NM_001034853.1:c.2847_2848inv']['transcript_description'] == 'Homo sapiens retinitis pigmentosa GTPase regulator (RPGR), transcript variant C, mRNA'
         assert results['NM_001034853.1:c.2847_2848inv']['gene_symbol'] == 'RPGR'
         assert results['NM_001034853.1:c.2847_2848inv']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001030025.1:p.(Glu949_Glu950delinsAspTer)', 'slr': 'NP_001030025.1:p.(E949_E950delinsD*)'}
         assert results['NM_001034853.1:c.2847_2848inv']['submitted_variant'] == 'NM_001034853.1:c.2847_2848delAGinsCT'
@@ -3923,7 +3752,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.4394_4395inv']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.4394_4395inv'
         assert results['NM_000088.3:c.4394_4395inv']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000088.3:c.4394_4395inv']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.4394_4395inv']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.4394_4395inv']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.4394_4395inv']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.(Ter1465PheextTer27)', 'slr': 'NP_000079.2:p.(*1465Fext*27)'}
         assert results['NM_000088.3:c.4394_4395inv']['submitted_variant'] == 'NM_000088.3:c.4392_*2inv'
@@ -3949,7 +3777,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.4392_*5inv']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.4393_*4inv'
         assert results['NM_000088.3:c.4392_*5inv']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000088.3:c.4392_*5inv']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.4392_*5inv']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.4392_*5inv']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.4392_*5inv']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.?', 'slr': 'NP_000079.2:p.?'}
         assert results['NM_000088.3:c.4392_*5inv']['submitted_variant'] == 'NM_000088.3:c.4392_*5inv'
@@ -3974,7 +3801,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.4390_*7inv']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.4390_*7inv'
         assert results['NM_000088.3:c.4390_*7inv']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000088.3:c.4390_*7inv']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.4390_*7inv']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.4390_*7inv']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.4390_*7inv']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.?', 'slr': 'NP_000079.2:p.?'}
         assert results['NM_000088.3:c.4390_*7inv']['submitted_variant'] == 'NM_000088.3:c.4390_*7inv'
@@ -3998,7 +3824,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'NM_005732.3:c.2923-5insT'
@@ -4023,7 +3848,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'NM_198283.1(EYS):c.*743120C>T'
@@ -4048,7 +3872,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'NM_133379.4(TTN):c.*265+26591C>T'
@@ -4074,7 +3897,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.589-2_589-1delinsG']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.589-2del'
         assert results['NM_000088.3:c.589-2_589-1delinsG']['refseqgene_context_intronic_sequence'] == 'NG_007400.1(NM_000088.3):c.589-2del'
         assert results['NM_000088.3:c.589-2_589-1delinsG']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.589-2_589-1delinsG']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.589-2_589-1delinsG']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.589-2_589-1delinsG']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.?', 'slr': 'NP_000079.2:p.?'}
         assert results['NM_000088.3:c.589-2_589-1delinsG']['submitted_variant'] == 'NM_000088.3:c.589-2_589-1AG>G'
@@ -4099,7 +3921,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.642+1_642+2delinsG']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.642+2del'
         assert results['NM_000088.3:c.642+1_642+2delinsG']['refseqgene_context_intronic_sequence'] == 'NG_007400.1(NM_000088.3):c.642+2del'
         assert results['NM_000088.3:c.642+1_642+2delinsG']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.642+1_642+2delinsG']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.642+1_642+2delinsG']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.642+1_642+2delinsG']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.?', 'slr': 'NP_000079.2:p.?'}
         assert results['NM_000088.3:c.642+1_642+2delinsG']['submitted_variant'] == 'NM_000088.3:c.642+1_642+2delGTinsG'
@@ -4123,7 +3944,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'NM_004415.3:c.1-1insA'
@@ -4149,7 +3969,6 @@ class TestVariants(object):
         assert results['NM_004415.3:c.-1_1insA']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_004415.3:c.-1_1insA']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004415.3:c.-1_1insA']['alt_genomic_loci'] == []
-        assert results['NM_004415.3:c.-1_1insA']['transcript_description'] == 'Homo sapiens desmoplakin (DSP), transcript variant 1, mRNA'
         assert results['NM_004415.3:c.-1_1insA']['gene_symbol'] == 'DSP'
         assert results['NM_004415.3:c.-1_1insA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_004406.2(LRG_423p1):p.(Met1?)', 'slr': 'NP_004406.2:p.(M1?)'}
         assert results['NM_004415.3:c.-1_1insA']['submitted_variant'] == 'NM_004415.3:c.-1_1insA'
@@ -4173,7 +3992,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'NM_000273.2:c.1-5028_253del'
@@ -4199,7 +4017,6 @@ class TestVariants(object):
         assert results['NM_002929.2:c.1006C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_002929.2:c.1006C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_002929.2:c.1006C>T']['alt_genomic_loci'] == []
-        assert results['NM_002929.2:c.1006C>T']['transcript_description'] == 'Homo sapiens G protein-coupled receptor kinase 1 (GRK1), mRNA'
         assert results['NM_002929.2:c.1006C>T']['gene_symbol'] == 'GRK1'
         assert results['NM_002929.2:c.1006C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_002920.1:p.(Leu336Phe)', 'slr': 'NP_002920.1:p.(L336F)'}
         assert results['NM_002929.2:c.1006C>T']['submitted_variant'] == 'NM_002929.2:c.1006C>T'
@@ -4224,7 +4041,6 @@ class TestVariants(object):
         assert results['NR_125367.1:n.167+18165G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_125367.1:n.167+18165G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_125367.1:n.167+18165G>A']['alt_genomic_loci'] == []
-        assert results['NR_125367.1:n.167+18165G>A']['transcript_description'] == 'Homo sapiens myosin heavy chain gene cluster antisense RNA (MYHAS), long non-coding RNA'
         assert results['NR_125367.1:n.167+18165G>A']['gene_symbol'] == 'MYHAS'
         assert results['NR_125367.1:n.167+18165G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_125367.1:n.167+18165G>A']['submitted_variant'] == 'NR_125367.1:n.167+18165G>A'
@@ -4248,7 +4064,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'NM_006005.3:c.3071_3073delinsTTA'
@@ -4273,7 +4088,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'NM_000089.3:n.1504_1506del'
@@ -4298,7 +4112,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == 'Homo sapiens mitochondrion, complete genome'
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'NC_012920.1:m.1011C>T'
@@ -4324,7 +4137,6 @@ class TestVariants(object):
         assert results['NM_014611.1:c.9879T>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_014611.1:c.9879T>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_014611.1:c.9879T>C']['alt_genomic_loci'] == []
-        assert results['NM_014611.1:c.9879T>C']['transcript_description'] == 'Homo sapiens MDN1, midasin homolog (yeast) (MDN1), mRNA'
         assert results['NM_014611.1:c.9879T>C']['gene_symbol'] == 'MDN1'
         assert results['NM_014611.1:c.9879T>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055426.1:p.(Val3293=)', 'slr': 'NP_055426.1:p.(V3293=)'}
         assert results['NM_014611.1:c.9879T>C']['submitted_variant'] == 'NC_000006.11:g.90403795G='
@@ -4342,7 +4154,6 @@ class TestVariants(object):
         assert results['NM_014611.2:c.9879C=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_014611.2:c.9879C=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_014611.2:c.9879C=']['alt_genomic_loci'] == []
-        assert results['NM_014611.2:c.9879C=']['transcript_description'] == 'Homo sapiens midasin AAA ATPase 1 (MDN1), mRNA'
         assert results['NM_014611.2:c.9879C=']['gene_symbol'] == 'MDN1'
         assert results['NM_014611.2:c.9879C=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055426.1:p.(Val3293=)', 'slr': 'NP_055426.1:p.(V3293=)'}
         assert results['NM_014611.2:c.9879C=']['submitted_variant'] == 'NC_000006.11:g.90403795G='
@@ -4366,7 +4177,6 @@ class TestVariants(object):
         assert results['NM_000130.4:c.1602del']['hgvs_lrg_transcript_variant'] == 'LRG_553t1:c.1601del'
         assert results['NM_000130.4:c.1602del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000130.4:c.1602del']['alt_genomic_loci'] == []
-        assert results['NM_000130.4:c.1602del']['transcript_description'] == 'Homo sapiens coagulation factor V (F5), mRNA'
         assert results['NM_000130.4:c.1602del']['gene_symbol'] == 'F5'
         assert results['NM_000130.4:c.1602del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000121.2(LRG_553p1):p.(Arg534GlnfsTer40)', 'slr': 'NP_000121.2:p.(R534Qfs*40)'}
         assert results['NM_000130.4:c.1602del']['submitted_variant'] == '1-169519049-T-.'
@@ -4385,7 +4195,6 @@ class TestVariants(object):
         assert results['NM_000130.4:c.1601G>A']['hgvs_lrg_transcript_variant'] == 'LRG_553t1:c.1601G>A'
         assert results['NM_000130.4:c.1601G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000130.4:c.1601G>A']['alt_genomic_loci'] == []
-        assert results['NM_000130.4:c.1601G>A']['transcript_description'] == 'Homo sapiens coagulation factor V (F5), mRNA'
         assert results['NM_000130.4:c.1601G>A']['gene_symbol'] == 'F5'
         assert results['NM_000130.4:c.1601G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000121.2(LRG_553p1):p.(Arg534Gln)', 'slr': 'NP_000121.2:p.(R534Q)'}
         assert results['NM_000130.4:c.1601G>A']['submitted_variant'] == '1-169519049-T-.'
@@ -4409,7 +4218,6 @@ class TestVariants(object):
         assert results['NM_001204317.1:c.856-9155_856-9154=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001204317.1:c.856-9155_856-9154=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001204317.1:c.856-9155_856-9154=']['alt_genomic_loci'] == []
-        assert results['NM_001204317.1:c.856-9155_856-9154=']['transcript_description'] == 'Homo sapiens prolactin receptor (PRLR), transcript variant 4, mRNA'
         assert results['NM_001204317.1:c.856-9155_856-9154=']['gene_symbol'] == 'PRLR'
         assert results['NM_001204317.1:c.856-9155_856-9154=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001191246.1:p.?', 'slr': 'NP_001191246.1:p.?'}
         assert results['NM_001204317.1:c.856-9155_856-9154=']['submitted_variant'] == 'NC_000005.9:g.35058667_35058668AG='
@@ -4427,7 +4235,6 @@ class TestVariants(object):
         assert results['NM_001204316.1:c.1009+7383_1009+7384=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001204316.1:c.1009+7383_1009+7384=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001204316.1:c.1009+7383_1009+7384=']['alt_genomic_loci'] == []
-        assert results['NM_001204316.1:c.1009+7383_1009+7384=']['transcript_description'] == 'Homo sapiens prolactin receptor (PRLR), transcript variant 3, mRNA'
         assert results['NM_001204316.1:c.1009+7383_1009+7384=']['gene_symbol'] == 'PRLR'
         assert results['NM_001204316.1:c.1009+7383_1009+7384=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001191245.1:p.?', 'slr': 'NP_001191245.1:p.?'}
         assert results['NM_001204316.1:c.1009+7383_1009+7384=']['submitted_variant'] == 'NC_000005.9:g.35058667_35058668AG='
@@ -4445,7 +4252,6 @@ class TestVariants(object):
         assert results['NM_001204314.2:c.*6528del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001204314.2:c.*6528del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001204314.2:c.*6528del']['alt_genomic_loci'] == []
-        assert results['NM_001204314.2:c.*6528del']['transcript_description'] == 'Homo sapiens prolactin receptor (PRLR), transcript variant 6, mRNA'
         assert results['NM_001204314.2:c.*6528del']['gene_symbol'] == 'PRLR'
         assert results['NM_001204314.2:c.*6528del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001191243.1:p.?', 'slr': 'NP_001191243.1:p.?'}
         assert results['NM_001204314.2:c.*6528del']['submitted_variant'] == 'NC_000005.9:g.35058667_35058668AG='
@@ -4463,7 +4269,6 @@ class TestVariants(object):
         assert results['NM_001204318.1:c.686-9155_686-9154=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001204318.1:c.686-9155_686-9154=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001204318.1:c.686-9155_686-9154=']['alt_genomic_loci'] == []
-        assert results['NM_001204318.1:c.686-9155_686-9154=']['transcript_description'] == 'Homo sapiens prolactin receptor (PRLR), transcript variant 5, mRNA'
         assert results['NM_001204318.1:c.686-9155_686-9154=']['gene_symbol'] == 'PRLR'
         assert results['NM_001204318.1:c.686-9155_686-9154=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001191247.1:p.?', 'slr': 'NP_001191247.1:p.?'}
         assert results['NM_001204318.1:c.686-9155_686-9154=']['submitted_variant'] == 'NC_000005.9:g.35058667_35058668AG='
@@ -4481,7 +4286,6 @@ class TestVariants(object):
         assert results['NR_037910.1:n.828-9155_828-9154=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_037910.1:n.828-9155_828-9154=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_037910.1:n.828-9155_828-9154=']['alt_genomic_loci'] == []
-        assert results['NR_037910.1:n.828-9155_828-9154=']['transcript_description'] == 'Homo sapiens prolactin receptor (PRLR), transcript variant 7, non-coding RNA'
         assert results['NR_037910.1:n.828-9155_828-9154=']['gene_symbol'] == 'PRLR'
         assert results['NR_037910.1:n.828-9155_828-9154=']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_037910.1:n.828-9155_828-9154=']['submitted_variant'] == 'NC_000005.9:g.35058667_35058668AG='
@@ -4500,7 +4304,6 @@ class TestVariants(object):
         assert results['NM_000949.5:c.*6523_*6524=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000949.5:c.*6523_*6524=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000949.5:c.*6523_*6524=']['alt_genomic_loci'] == []
-        assert results['NM_000949.5:c.*6523_*6524=']['transcript_description'] == 'Homo sapiens prolactin receptor (PRLR), transcript variant 1, mRNA'
         assert results['NM_000949.5:c.*6523_*6524=']['gene_symbol'] == 'PRLR'
         assert results['NM_000949.5:c.*6523_*6524=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000940.1:p.?', 'slr': 'NP_000940.1:p.?'}
         assert results['NM_000949.5:c.*6523_*6524=']['submitted_variant'] == 'NC_000005.9:g.35058667_35058668AG='
@@ -4518,7 +4321,6 @@ class TestVariants(object):
         assert results['NM_001204314.1:c.*6523_*6524=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001204314.1:c.*6523_*6524=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001204314.1:c.*6523_*6524=']['alt_genomic_loci'] == []
-        assert results['NM_001204314.1:c.*6523_*6524=']['transcript_description'] == 'Homo sapiens prolactin receptor (PRLR), transcript variant 6, mRNA'
         assert results['NM_001204314.1:c.*6523_*6524=']['gene_symbol'] == 'PRLR'
         assert results['NM_001204314.1:c.*6523_*6524=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001191243.1:p.?', 'slr': 'NP_001191243.1:p.?'}
         assert results['NM_001204314.1:c.*6523_*6524=']['submitted_variant'] == 'NC_000005.9:g.35058667_35058668AG='
@@ -4536,7 +4338,6 @@ class TestVariants(object):
         assert results['NM_000949.6:c.*6528del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000949.6:c.*6528del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000949.6:c.*6528del']['alt_genomic_loci'] == []
-        assert results['NM_000949.6:c.*6528del']['transcript_description'] == 'Homo sapiens prolactin receptor (PRLR), transcript variant 1, mRNA'
         assert results['NM_000949.6:c.*6528del']['gene_symbol'] == 'PRLR'
         assert results['NM_000949.6:c.*6528del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000940.1:p.?', 'slr': 'NP_000940.1:p.?'}
         assert results['NM_000949.6:c.*6528del']['submitted_variant'] == 'NC_000005.9:g.35058667_35058668AG='
@@ -4560,7 +4361,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'NM_000251.1:c.1296_1348del'
@@ -4586,7 +4386,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.2024_2028+1del']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.2024_2028+1del'
         assert results['NM_000088.3:c.2024_2028+1del']['refseqgene_context_intronic_sequence'] == 'NG_007400.1(NM_000088.3):c.2024_2028+1del'
         assert results['NM_000088.3:c.2024_2028+1del']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.2024_2028+1del']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.2024_2028+1del']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.2024_2028+1del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.(Ala675_Arg676del)', 'slr': 'NP_000079.2:p.(A675_R676del)'}
         assert results['NM_000088.3:c.2024_2028+1del']['submitted_variant'] == 'NM_000088.3:c.2023_2028del'
@@ -4611,7 +4410,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.2024_2028+1del']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.2024_2028+1del'
         assert results['NM_000088.3:c.2024_2028+1del']['refseqgene_context_intronic_sequence'] == 'NG_007400.1(NM_000088.3):c.2024_2028+1del'
         assert results['NM_000088.3:c.2024_2028+1del']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.2024_2028+1del']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.2024_2028+1del']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.2024_2028+1del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.?', 'slr': 'NP_000079.2:p.?'}
         assert results['NM_000088.3:c.2024_2028+1del']['submitted_variant'] == 'NM_000088.3:c.2024_2028+1del'
@@ -4635,7 +4433,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'ENST00000450616.1:n.31+1G>C'
@@ -4660,7 +4457,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'ENST00000491747:c.5071A>T'
@@ -4686,7 +4482,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.589G>T']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.589G>T'
         assert results['NM_000088.3:c.589G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000088.3:c.589G>T']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.589G>T']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.589G>T']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.589G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.(Gly197Cys)', 'slr': 'NP_000079.2:p.(G197C)'}
         assert results['NM_000088.3:c.589G>T']['submitted_variant'] == 'NM_000088.3:c.589G>T'
@@ -4711,7 +4506,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.589G>T']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.589G>T'
         assert results['NM_000088.3:c.589G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000088.3:c.589G>T']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.589G>T']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.589G>T']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.589G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.(Gly197Cys)', 'slr': 'NP_000079.2:p.(G197C)'}
         assert results['NM_000088.3:c.589G>T']['submitted_variant'] == 'NG_007400.1:g.8638G>T'
@@ -4736,7 +4530,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.589G>T']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.589G>T'
         assert results['NM_000088.3:c.589G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000088.3:c.589G>T']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.589G>T']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.589G>T']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.589G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.(Gly197Cys)', 'slr': 'NP_000079.2:p.(G197C)'}
         assert results['NM_000088.3:c.589G>T']['submitted_variant'] == 'LRG_1:g.8638G>T'
@@ -4761,7 +4554,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.589G>T']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.589G>T'
         assert results['NM_000088.3:c.589G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000088.3:c.589G>T']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.589G>T']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.589G>T']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.589G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.(Gly197Cys)', 'slr': 'NP_000079.2:p.(G197C)'}
         assert results['NM_000088.3:c.589G>T']['submitted_variant'] == 'LRG_1t1:c.589G>T'
@@ -4785,7 +4577,6 @@ class TestVariants(object):
         assert results['NM_002474.2:c.3034_3035inv']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_002474.2:c.3034_3035inv']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_002474.2:c.3034_3035inv']['alt_genomic_loci'] == [{'grch38': {'hgvs_genomic_description': 'NT_187607.1:g.1396662_1396663inv', 'vcf': {'chr': 'HSCHR16_1_CTG1', 'ref': 'GT', 'pos': '1396662', 'alt': 'AC'}}}, {'hg38': {'hgvs_genomic_description': 'NT_187607.1:g.1396662_1396663inv', 'vcf': {'chr': 'chr16_KI270853v1_alt', 'ref': 'GT', 'pos': '1396662', 'alt': 'AC'}}}]
-        assert results['NM_002474.2:c.3034_3035inv']['transcript_description'] == 'Homo sapiens myosin heavy chain 11 (MYH11), transcript variant SM1A, mRNA'
         assert results['NM_002474.2:c.3034_3035inv']['gene_symbol'] == 'MYH11'
         assert results['NM_002474.2:c.3034_3035inv']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_002465.1:p.(Thr1012Val)', 'slr': 'NP_002465.1:p.(T1012V)'}
         assert results['NM_002474.2:c.3034_3035inv']['submitted_variant'] == 'chr16:g.15832508_15832509delinsAC'
@@ -4803,7 +4594,6 @@ class TestVariants(object):
         assert results['NM_022844.2:c.3034_3035inv']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_022844.2:c.3034_3035inv']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_022844.2:c.3034_3035inv']['alt_genomic_loci'] == [{'grch38': {'hgvs_genomic_description': 'NT_187607.1:g.1396662_1396663inv', 'vcf': {'chr': 'HSCHR16_1_CTG1', 'ref': 'GT', 'pos': '1396662', 'alt': 'AC'}}}, {'hg38': {'hgvs_genomic_description': 'NT_187607.1:g.1396662_1396663inv', 'vcf': {'chr': 'chr16_KI270853v1_alt', 'ref': 'GT', 'pos': '1396662', 'alt': 'AC'}}}]
-        assert results['NM_022844.2:c.3034_3035inv']['transcript_description'] == 'Homo sapiens myosin heavy chain 11 (MYH11), transcript variant SM2A, mRNA'
         assert results['NM_022844.2:c.3034_3035inv']['gene_symbol'] == 'MYH11'
         assert results['NM_022844.2:c.3034_3035inv']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_074035.1:p.(Thr1012Val)', 'slr': 'NP_074035.1:p.(T1012V)'}
         assert results['NM_022844.2:c.3034_3035inv']['submitted_variant'] == 'chr16:g.15832508_15832509delinsAC'
@@ -4821,7 +4611,6 @@ class TestVariants(object):
         assert results['NM_001040114.1:c.3055_3056inv']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001040114.1:c.3055_3056inv']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001040114.1:c.3055_3056inv']['alt_genomic_loci'] == [{'grch38': {'hgvs_genomic_description': 'NT_187607.1:g.1396662_1396663inv', 'vcf': {'chr': 'HSCHR16_1_CTG1', 'ref': 'GT', 'pos': '1396662', 'alt': 'AC'}}}, {'hg38': {'hgvs_genomic_description': 'NT_187607.1:g.1396662_1396663inv', 'vcf': {'chr': 'chr16_KI270853v1_alt', 'ref': 'GT', 'pos': '1396662', 'alt': 'AC'}}}]
-        assert results['NM_001040114.1:c.3055_3056inv']['transcript_description'] == 'Homo sapiens myosin heavy chain 11 (MYH11), transcript variant SM1B, mRNA'
         assert results['NM_001040114.1:c.3055_3056inv']['gene_symbol'] == 'MYH11'
         assert results['NM_001040114.1:c.3055_3056inv']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001035203.1:p.(Thr1019Val)', 'slr': 'NP_001035203.1:p.(T1019V)'}
         assert results['NM_001040114.1:c.3055_3056inv']['submitted_variant'] == 'chr16:g.15832508_15832509delinsAC'
@@ -4840,7 +4629,6 @@ class TestVariants(object):
         assert results['NM_001040113.1:c.3055_3056inv']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001040113.1:c.3055_3056inv']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001040113.1:c.3055_3056inv']['alt_genomic_loci'] == [{'grch38': {'hgvs_genomic_description': 'NT_187607.1:g.1396662_1396663inv', 'vcf': {'chr': 'HSCHR16_1_CTG1', 'ref': 'GT', 'pos': '1396662', 'alt': 'AC'}}}, {'hg38': {'hgvs_genomic_description': 'NT_187607.1:g.1396662_1396663inv', 'vcf': {'chr': 'chr16_KI270853v1_alt', 'ref': 'GT', 'pos': '1396662', 'alt': 'AC'}}}]
-        assert results['NM_001040113.1:c.3055_3056inv']['transcript_description'] == 'Homo sapiens myosin heavy chain 11 (MYH11), transcript variant SM2B, mRNA'
         assert results['NM_001040113.1:c.3055_3056inv']['gene_symbol'] == 'MYH11'
         assert results['NM_001040113.1:c.3055_3056inv']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001035202.1:p.(Thr1019Val)', 'slr': 'NP_001035202.1:p.(T1019V)'}
         assert results['NM_001040113.1:c.3055_3056inv']['submitted_variant'] == 'chr16:g.15832508_15832509delinsAC'
@@ -4864,7 +4652,6 @@ class TestVariants(object):
         assert results['NM_001162427.1:c.210+1615dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001162427.1:c.210+1615dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001162427.1:c.210+1615dup']['alt_genomic_loci'] == []
-        assert results['NM_001162427.1:c.210+1615dup']['transcript_description'] == 'Homo sapiens TSC complex subunit 1 (TSC1), transcript variant 4, mRNA'
         assert results['NM_001162427.1:c.210+1615dup']['gene_symbol'] == 'TSC1'
         assert results['NM_001162427.1:c.210+1615dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001155899.1:p.?', 'slr': 'NP_001155899.1:p.?'}
         assert results['NM_001162427.1:c.210+1615dup']['submitted_variant'] == 'NG_012386.1:g.24048dupG'
@@ -4882,7 +4669,6 @@ class TestVariants(object):
         assert results['NM_001162426.1:c.363+1dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001162426.1:c.363+1dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001162426.1:c.363+1dup']['alt_genomic_loci'] == []
-        assert results['NM_001162426.1:c.363+1dup']['transcript_description'] == 'Homo sapiens TSC complex subunit 1 (TSC1), transcript variant 3, mRNA'
         assert results['NM_001162426.1:c.363+1dup']['gene_symbol'] == 'TSC1'
         assert results['NM_001162426.1:c.363+1dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001155898.1:p.?', 'slr': 'NP_001155898.1:p.?'}
         assert results['NM_001162426.1:c.363+1dup']['submitted_variant'] == 'NG_012386.1:g.24048dupG'
@@ -4901,7 +4687,6 @@ class TestVariants(object):
         assert results['NM_001362177.1:c.-1+1dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001362177.1:c.-1+1dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001362177.1:c.-1+1dup']['alt_genomic_loci'] == []
-        assert results['NM_001362177.1:c.-1+1dup']['transcript_description'] == 'Homo sapiens TSC complex subunit 1 (TSC1), transcript variant 5, mRNA'
         assert results['NM_001362177.1:c.-1+1dup']['gene_symbol'] == 'TSC1'
         assert results['NM_001362177.1:c.-1+1dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001349106.1:p.?', 'slr': 'NP_001349106.1:p.?'}
         assert results['NM_001362177.1:c.-1+1dup']['submitted_variant'] == 'NG_012386.1:g.24048dupG'
@@ -4919,7 +4704,6 @@ class TestVariants(object):
         assert results['NM_000368.4:c.363+1dup']['hgvs_lrg_transcript_variant'] == 'LRG_486t1:c.363+1dup'
         assert results['NM_000368.4:c.363+1dup']['refseqgene_context_intronic_sequence'] == 'NG_012386.1(NM_000368.4):c.363+1dup'
         assert results['NM_000368.4:c.363+1dup']['alt_genomic_loci'] == []
-        assert results['NM_000368.4:c.363+1dup']['transcript_description'] == 'Homo sapiens TSC complex subunit 1 (TSC1), transcript variant 1, mRNA'
         assert results['NM_000368.4:c.363+1dup']['gene_symbol'] == 'TSC1'
         assert results['NM_000368.4:c.363+1dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000359.1(LRG_486p1):p.?', 'slr': 'NP_000359.1:p.?'}
         assert results['NM_000368.4:c.363+1dup']['submitted_variant'] == 'NG_012386.1:g.24048dupG'
@@ -4944,7 +4728,6 @@ class TestVariants(object):
         assert results['NM_033517.1:c.1307_1309del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_033517.1:c.1307_1309del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_033517.1:c.1307_1309del']['alt_genomic_loci'] == [{'grch38': {'hgvs_genomic_description': 'NW_015148969.1:g.33721_33723del', 'vcf': {'chr': 'HG1311_PATCH', 'ref': 'CCGA', 'pos': '33720', 'alt': 'C'}}}, {'hg38': {'hgvs_genomic_description': 'NW_015148969.1:g.33721_33723del', 'vcf': {'chr': 'NW_015148969.1', 'ref': 'CCGA', 'pos': '33720', 'alt': 'C'}}}]
-        assert results['NM_033517.1:c.1307_1309del']['transcript_description'] == 'Homo sapiens SH3 and multiple ankyrin repeat domains 3 (SHANK3), mRNA'
         assert results['NM_033517.1:c.1307_1309del']['gene_symbol'] == 'SHANK3'
         assert results['NM_033517.1:c.1307_1309del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_277052.1:p.(Pro436_Ser437delinsArg)', 'slr': 'NP_277052.1:p.(P436_S437delinsR)'}
         assert results['NM_033517.1:c.1307_1309del']['submitted_variant'] == 'NM_033517.1:c.1307_1309delCGA'
@@ -4968,7 +4751,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'HG1311_PATCH-33720-CCGA-C'
@@ -4993,7 +4775,6 @@ class TestVariants(object):
         assert results['NM_015120.4:c.1573_1579=']['hgvs_lrg_transcript_variant'] == 'LRG_741t1:c.1573_1579='
         assert results['NM_015120.4:c.1573_1579=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_015120.4:c.1573_1579=']['alt_genomic_loci'] == []
-        assert results['NM_015120.4:c.1573_1579=']['transcript_description'] == 'Homo sapiens ALMS1, centrosome and basal body associated protein (ALMS1), mRNA'
         assert results['NM_015120.4:c.1573_1579=']['gene_symbol'] == 'ALMS1'
         assert results['NM_015120.4:c.1573_1579=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055935.4(LRG_741p1):p.(Ser525=)', 'slr': 'NP_055935.4:p.(S525=)'}
         assert results['NM_015120.4:c.1573_1579=']['submitted_variant'] == '2-73675227-TCTC-TCTCCTC'
@@ -5018,7 +4799,6 @@ class TestVariants(object):
         assert results['NM_015120.4:c.1577_1579del']['hgvs_lrg_transcript_variant'] == 'LRG_741t1:c.1577_1579del'
         assert results['NM_015120.4:c.1577_1579del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_015120.4:c.1577_1579del']['alt_genomic_loci'] == []
-        assert results['NM_015120.4:c.1577_1579del']['transcript_description'] == 'Homo sapiens ALMS1, centrosome and basal body associated protein (ALMS1), mRNA'
         assert results['NM_015120.4:c.1577_1579del']['gene_symbol'] == 'ALMS1'
         assert results['NM_015120.4:c.1577_1579del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055935.4(LRG_741p1):p.(Pro526del)', 'slr': 'NP_055935.4:p.(P526del)'}
         assert results['NM_015120.4:c.1577_1579del']['submitted_variant'] == '2-73675227-TC-TC'
@@ -5043,7 +4823,6 @@ class TestVariants(object):
         assert results['NM_001080423.3:c.1016_1020=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001080423.3:c.1016_1020=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001080423.3:c.1016_1020=']['alt_genomic_loci'] == []
-        assert results['NM_001080423.3:c.1016_1020=']['transcript_description'] == 'Homo sapiens glutamate receptor interacting protein 2 (GRIP2), mRNA'
         assert results['NM_001080423.3:c.1016_1020=']['gene_symbol'] == 'GRIP2'
         assert results['NM_001080423.3:c.1016_1020=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001073892.3:p.(Arg339=)', 'slr': 'NP_001073892.3:p.(R339=)'}
         assert results['NM_001080423.3:c.1016_1020=']['submitted_variant'] == '3-14561627-AG-AGG'
@@ -5062,7 +4841,6 @@ class TestVariants(object):
         assert results['NM_001080423.2:c.1307_1311=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001080423.2:c.1307_1311=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001080423.2:c.1307_1311=']['alt_genomic_loci'] == []
-        assert results['NM_001080423.2:c.1307_1311=']['transcript_description'] == 'Homo sapiens glutamate receptor interacting protein 2 (GRIP2), mRNA'
         assert results['NM_001080423.2:c.1307_1311=']['gene_symbol'] == 'GRIP2'
         assert results['NM_001080423.2:c.1307_1311=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001073892.2:p.(Arg436=)', 'slr': 'NP_001073892.2:p.(R436=)'}
         assert results['NM_001080423.2:c.1307_1311=']['submitted_variant'] == '3-14561627-AG-AGG'
@@ -5086,7 +4864,6 @@ class TestVariants(object):
         assert results['NM_001080423.3:c.1020del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001080423.3:c.1020del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001080423.3:c.1020del']['alt_genomic_loci'] == []
-        assert results['NM_001080423.3:c.1020del']['transcript_description'] == 'Homo sapiens glutamate receptor interacting protein 2 (GRIP2), mRNA'
         assert results['NM_001080423.3:c.1020del']['gene_symbol'] == 'GRIP2'
         assert results['NM_001080423.3:c.1020del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001073892.3:p.(Ser341GlnfsTer4)', 'slr': 'NP_001073892.3:p.(S341Qfs*4)'}
         assert results['NM_001080423.3:c.1020del']['submitted_variant'] == '3-14561630-CC-CC'
@@ -5105,7 +4882,6 @@ class TestVariants(object):
         assert results['NM_001080423.2:c.1311del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001080423.2:c.1311del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001080423.2:c.1311del']['alt_genomic_loci'] == []
-        assert results['NM_001080423.2:c.1311del']['transcript_description'] == 'Homo sapiens glutamate receptor interacting protein 2 (GRIP2), mRNA'
         assert results['NM_001080423.2:c.1311del']['gene_symbol'] == 'GRIP2'
         assert results['NM_001080423.2:c.1311del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001073892.2:p.(Ser438GlnfsTer4)', 'slr': 'NP_001073892.2:p.(S438Qfs*4)'}
         assert results['NM_001080423.2:c.1311del']['submitted_variant'] == '3-14561630-CC-CC'
@@ -5130,7 +4906,6 @@ class TestVariants(object):
         assert results['NM_014611.1:c.9879T>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_014611.1:c.9879T>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_014611.1:c.9879T>C']['alt_genomic_loci'] == []
-        assert results['NM_014611.1:c.9879T>C']['transcript_description'] == 'Homo sapiens MDN1, midasin homolog (yeast) (MDN1), mRNA'
         assert results['NM_014611.1:c.9879T>C']['gene_symbol'] == 'MDN1'
         assert results['NM_014611.1:c.9879T>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055426.1:p.(Val3293=)', 'slr': 'NP_055426.1:p.(V3293=)'}
         assert results['NM_014611.1:c.9879T>C']['submitted_variant'] == '6-90403795-G-G'
@@ -5148,7 +4923,6 @@ class TestVariants(object):
         assert results['NM_014611.2:c.9879C=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_014611.2:c.9879C=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_014611.2:c.9879C=']['alt_genomic_loci'] == []
-        assert results['NM_014611.2:c.9879C=']['transcript_description'] == 'Homo sapiens midasin AAA ATPase 1 (MDN1), mRNA'
         assert results['NM_014611.2:c.9879C=']['gene_symbol'] == 'MDN1'
         assert results['NM_014611.2:c.9879C=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055426.1:p.(Val3293=)', 'slr': 'NP_055426.1:p.(V3293=)'}
         assert results['NM_014611.2:c.9879C=']['submitted_variant'] == '6-90403795-G-G'
@@ -5172,7 +4946,6 @@ class TestVariants(object):
         assert results['NM_014611.2:c.9879C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_014611.2:c.9879C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_014611.2:c.9879C>T']['alt_genomic_loci'] == []
-        assert results['NM_014611.2:c.9879C>T']['transcript_description'] == 'Homo sapiens midasin AAA ATPase 1 (MDN1), mRNA'
         assert results['NM_014611.2:c.9879C>T']['gene_symbol'] == 'MDN1'
         assert results['NM_014611.2:c.9879C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055426.1:p.(Val3293=)', 'slr': 'NP_055426.1:p.(V3293=)'}
         assert results['NM_014611.2:c.9879C>T']['submitted_variant'] == '6-90403795-G-A'
@@ -5191,7 +4964,6 @@ class TestVariants(object):
         assert results['NM_014611.1:c.9879T=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_014611.1:c.9879T=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_014611.1:c.9879T=']['alt_genomic_loci'] == []
-        assert results['NM_014611.1:c.9879T=']['transcript_description'] == 'Homo sapiens MDN1, midasin homolog (yeast) (MDN1), mRNA'
         assert results['NM_014611.1:c.9879T=']['gene_symbol'] == 'MDN1'
         assert results['NM_014611.1:c.9879T=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055426.1:p.(Val3293=)', 'slr': 'NP_055426.1:p.(V3293=)'}
         assert results['NM_014611.1:c.9879T=']['submitted_variant'] == '6-90403795-G-A'
@@ -5216,7 +4988,6 @@ class TestVariants(object):
         assert results['NM_032470.3:c.4del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_032470.3:c.4del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_032470.3:c.4del']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NT_113891.2:g.3483644del', 'vcf': {'chr': 'HSCHR6_MHC_COX_CTG1', 'ref': 'CG', 'pos': '3483643', 'alt': 'C'}}}, {'hg19': {'hgvs_genomic_description': 'NT_113891.2:g.3483644del', 'vcf': {'chr': 'chr6_cox_hap2', 'ref': 'CG', 'pos': '3483643', 'alt': 'C'}}}, {'grch38': {'hgvs_genomic_description': 'NT_113891.3:g.3483538del', 'vcf': {'chr': 'HSCHR6_MHC_COX_CTG1', 'ref': 'CG', 'pos': '3483537', 'alt': 'C'}}}, {'hg38': {'hgvs_genomic_description': 'NT_113891.3:g.3483538del', 'vcf': {'chr': 'chr6_GL000251v2_alt', 'ref': 'CG', 'pos': '3483537', 'alt': 'C'}}}, {'grch37': {'hgvs_genomic_description': 'NT_167245.1:g.3292210del', 'vcf': {'chr': 'HSCHR6_MHC_DBB_CTG1', 'ref': 'CG', 'pos': '3292209', 'alt': 'C'}}}, {'hg19': {'hgvs_genomic_description': 'NT_167245.1:g.3292210del', 'vcf': {'chr': 'chr6_dbb_hap3', 'ref': 'CG', 'pos': '3292209', 'alt': 'C'}}}, {'grch38': {'hgvs_genomic_description': 'NT_167245.2:g.3286625del', 'vcf': {'chr': 'HSCHR6_MHC_DBB_CTG1', 'ref': 'CG', 'pos': '3286624', 'alt': 'C'}}}, {'hg38': {'hgvs_genomic_description': 'NT_167245.2:g.3286625del', 'vcf': {'chr': 'chr6_GL000252v2_alt', 'ref': 'CG', 'pos': '3286624', 'alt': 'C'}}}, {'grch37': {'hgvs_genomic_description': 'NT_167247.1:g.3392834del', 'vcf': {'chr': 'HSCHR6_MHC_MCF_CTG1', 'ref': 'CG', 'pos': '3392833', 'alt': 'C'}}}, {'hg19': {'hgvs_genomic_description': 'NT_167247.1:g.3392834del', 'vcf': {'chr': 'chr6_mcf_hap5', 'ref': 'CG', 'pos': '3392833', 'alt': 'C'}}}, {'grch38': {'hgvs_genomic_description': 'NT_167247.2:g.3387249del', 'vcf': {'chr': 'HSCHR6_MHC_MCF_CTG1', 'ref': 'CG', 'pos': '3387248', 'alt': 'C'}}}, {'hg38': {'hgvs_genomic_description': 'NT_167247.2:g.3387249del', 'vcf': {'chr': 'chr6_GL000254v2_alt', 'ref': 'CG', 'pos': '3387248', 'alt': 'C'}}}, {'grch37': {'hgvs_genomic_description': 'NT_167248.1:g.3274047del', 'vcf': {'chr': 'HSCHR6_MHC_QBL_CTG1', 'ref': 'CG', 'pos': '3274046', 'alt': 'C'}}}, {'hg19': {'hgvs_genomic_description': 'NT_167248.1:g.3274047del', 'vcf': {'chr': 'chr6_qbl_hap6', 'ref': 'CG', 'pos': '3274046', 'alt': 'C'}}}, {'grch38': {'hgvs_genomic_description': 'NT_167248.2:g.3268451del', 'vcf': {'chr': 'HSCHR6_MHC_QBL_CTG1', 'ref': 'CG', 'pos': '3268450', 'alt': 'C'}}}, {'hg38': {'hgvs_genomic_description': 'NT_167248.2:g.3268451del', 'vcf': {'chr': 'chr6_GL000255v2_alt', 'ref': 'CG', 'pos': '3268450', 'alt': 'C'}}}, {'grch37': {'hgvs_genomic_description': 'NT_167249.1:g.3345701del', 'vcf': {'chr': 'HSCHR6_MHC_SSTO_CTG1', 'ref': 'CG', 'pos': '3345700', 'alt': 'C'}}}, {'hg19': {'hgvs_genomic_description': 'NT_167249.1:g.3345701del', 'vcf': {'chr': 'chr6_ssto_hap7', 'ref': 'CG', 'pos': '3345700', 'alt': 'C'}}}, {'grch38': {'hgvs_genomic_description': 'NT_167249.2:g.3346403del', 'vcf': {'chr': 'HSCHR6_MHC_SSTO_CTG1', 'ref': 'CG', 'pos': '3346402', 'alt': 'C'}}}, {'hg38': {'hgvs_genomic_description': 'NT_167249.2:g.3346403del', 'vcf': {'chr': 'chr6_GL000256v2_alt', 'ref': 'CG', 'pos': '3346402', 'alt': 'C'}}}]
-        assert results['NM_032470.3:c.4del']['transcript_description'] == 'Homo sapiens tenascin XB (TNXB), transcript variant XB-S, mRNA'
         assert results['NM_032470.3:c.4del']['gene_symbol'] == 'TNXB'
         assert results['NM_032470.3:c.4del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_115859.2:p.(Arg2AlafsTer91)', 'slr': 'NP_115859.2:p.(R2Afs*91)'}
         assert results['NM_032470.3:c.4del']['submitted_variant'] == '6-32012992-CG-C'
@@ -5234,7 +5005,6 @@ class TestVariants(object):
         assert results['NM_001365276.1:c.10717del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001365276.1:c.10717del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001365276.1:c.10717del']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NT_113891.2:g.3483644del', 'vcf': {'chr': 'HSCHR6_MHC_COX_CTG1', 'ref': 'CG', 'pos': '3483643', 'alt': 'C'}}}, {'hg19': {'hgvs_genomic_description': 'NT_113891.2:g.3483644del', 'vcf': {'chr': 'chr6_cox_hap2', 'ref': 'CG', 'pos': '3483643', 'alt': 'C'}}}, {'grch37': {'hgvs_genomic_description': 'NT_167245.1:g.3292210del', 'vcf': {'chr': 'HSCHR6_MHC_DBB_CTG1', 'ref': 'CG', 'pos': '3292209', 'alt': 'C'}}}, {'hg19': {'hgvs_genomic_description': 'NT_167245.1:g.3292210del', 'vcf': {'chr': 'chr6_dbb_hap3', 'ref': 'CG', 'pos': '3292209', 'alt': 'C'}}}, {'grch37': {'hgvs_genomic_description': 'NT_167247.1:g.3392834del', 'vcf': {'chr': 'HSCHR6_MHC_MCF_CTG1', 'ref': 'CG', 'pos': '3392833', 'alt': 'C'}}}, {'hg19': {'hgvs_genomic_description': 'NT_167247.1:g.3392834del', 'vcf': {'chr': 'chr6_mcf_hap5', 'ref': 'CG', 'pos': '3392833', 'alt': 'C'}}}]
-        assert results['NM_001365276.1:c.10717del']['transcript_description'] == 'Homo sapiens tenascin XB (TNXB), transcript variant 3, mRNA'
         assert results['NM_001365276.1:c.10717del']['gene_symbol'] == 'TNXB'
         assert results['NM_001365276.1:c.10717del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001352205.1:p.(Arg3573AlafsTer91)', 'slr': 'NP_001352205.1:p.(R3573Afs*91)'}
         assert results['NM_001365276.1:c.10717del']['submitted_variant'] == '6-32012992-CG-C'
@@ -5252,7 +5022,6 @@ class TestVariants(object):
         assert results['NM_019105.7:c.10711del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_019105.7:c.10711del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_019105.7:c.10711del']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NT_113891.2:g.3483644del', 'vcf': {'chr': 'HSCHR6_MHC_COX_CTG1', 'ref': 'CG', 'pos': '3483643', 'alt': 'C'}}}, {'hg19': {'hgvs_genomic_description': 'NT_113891.2:g.3483644del', 'vcf': {'chr': 'chr6_cox_hap2', 'ref': 'CG', 'pos': '3483643', 'alt': 'C'}}}, {'grch37': {'hgvs_genomic_description': 'NT_167245.1:g.3292210del', 'vcf': {'chr': 'HSCHR6_MHC_DBB_CTG1', 'ref': 'CG', 'pos': '3292209', 'alt': 'C'}}}, {'hg19': {'hgvs_genomic_description': 'NT_167245.1:g.3292210del', 'vcf': {'chr': 'chr6_dbb_hap3', 'ref': 'CG', 'pos': '3292209', 'alt': 'C'}}}, {'grch37': {'hgvs_genomic_description': 'NT_167247.1:g.3392834del', 'vcf': {'chr': 'HSCHR6_MHC_MCF_CTG1', 'ref': 'CG', 'pos': '3392833', 'alt': 'C'}}}, {'hg19': {'hgvs_genomic_description': 'NT_167247.1:g.3392834del', 'vcf': {'chr': 'chr6_mcf_hap5', 'ref': 'CG', 'pos': '3392833', 'alt': 'C'}}}]
-        assert results['NM_019105.7:c.10711del']['transcript_description'] == 'Homo sapiens tenascin XB (TNXB), transcript variant XB, mRNA'
         assert results['NM_019105.7:c.10711del']['gene_symbol'] == 'TNXB'
         assert results['NM_019105.7:c.10711del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_061978.6:p.(Arg3571AlafsTer91)', 'slr': 'NP_061978.6:p.(R3571Afs*91)'}
         assert results['NM_019105.7:c.10711del']['submitted_variant'] == '6-32012992-CG-C'
@@ -5270,7 +5039,6 @@ class TestVariants(object):
         assert results['NM_019105.6:c.10711del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_019105.6:c.10711del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_019105.6:c.10711del']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NT_113891.2:g.3483644del', 'vcf': {'chr': 'HSCHR6_MHC_COX_CTG1', 'ref': 'CG', 'pos': '3483643', 'alt': 'C'}}}, {'hg19': {'hgvs_genomic_description': 'NT_113891.2:g.3483644del', 'vcf': {'chr': 'chr6_cox_hap2', 'ref': 'CG', 'pos': '3483643', 'alt': 'C'}}}, {'grch38': {'hgvs_genomic_description': 'NT_113891.3:g.3483538del', 'vcf': {'chr': 'HSCHR6_MHC_COX_CTG1', 'ref': 'CG', 'pos': '3483537', 'alt': 'C'}}}, {'hg38': {'hgvs_genomic_description': 'NT_113891.3:g.3483538del', 'vcf': {'chr': 'chr6_GL000251v2_alt', 'ref': 'CG', 'pos': '3483537', 'alt': 'C'}}}, {'grch37': {'hgvs_genomic_description': 'NT_167245.1:g.3292210del', 'vcf': {'chr': 'HSCHR6_MHC_DBB_CTG1', 'ref': 'CG', 'pos': '3292209', 'alt': 'C'}}}, {'hg19': {'hgvs_genomic_description': 'NT_167245.1:g.3292210del', 'vcf': {'chr': 'chr6_dbb_hap3', 'ref': 'CG', 'pos': '3292209', 'alt': 'C'}}}, {'grch38': {'hgvs_genomic_description': 'NT_167245.2:g.3286625del', 'vcf': {'chr': 'HSCHR6_MHC_DBB_CTG1', 'ref': 'CG', 'pos': '3286624', 'alt': 'C'}}}, {'hg38': {'hgvs_genomic_description': 'NT_167245.2:g.3286625del', 'vcf': {'chr': 'chr6_GL000252v2_alt', 'ref': 'CG', 'pos': '3286624', 'alt': 'C'}}}, {'grch37': {'hgvs_genomic_description': 'NT_167247.1:g.3392834del', 'vcf': {'chr': 'HSCHR6_MHC_MCF_CTG1', 'ref': 'CG', 'pos': '3392833', 'alt': 'C'}}}, {'hg19': {'hgvs_genomic_description': 'NT_167247.1:g.3392834del', 'vcf': {'chr': 'chr6_mcf_hap5', 'ref': 'CG', 'pos': '3392833', 'alt': 'C'}}}, {'grch38': {'hgvs_genomic_description': 'NT_167247.2:g.3387249del', 'vcf': {'chr': 'HSCHR6_MHC_MCF_CTG1', 'ref': 'CG', 'pos': '3387248', 'alt': 'C'}}}, {'hg38': {'hgvs_genomic_description': 'NT_167247.2:g.3387249del', 'vcf': {'chr': 'chr6_GL000254v2_alt', 'ref': 'CG', 'pos': '3387248', 'alt': 'C'}}}, {'grch37': {'hgvs_genomic_description': 'NT_167248.1:g.3271861del', 'vcf': {'chr': 'HSCHR6_MHC_QBL_CTG1', 'ref': 'AG', 'pos': '3271858', 'alt': 'A'}}}, {'hg19': {'hgvs_genomic_description': 'NT_167248.1:g.3271861del', 'vcf': {'chr': 'chr6_qbl_hap6', 'ref': 'AG', 'pos': '3271858', 'alt': 'A'}}}]
-        assert results['NM_019105.6:c.10711del']['transcript_description'] == 'Homo sapiens tenascin XB (TNXB), transcript variant XB, mRNA'
         assert results['NM_019105.6:c.10711del']['gene_symbol'] == 'TNXB'
         assert results['NM_019105.6:c.10711del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_061978.6:p.(Arg3571AlafsTer91)', 'slr': 'NP_061978.6:p.(R3571Afs*91)'}
         assert results['NM_019105.6:c.10711del']['submitted_variant'] == '6-32012992-CG-C'
@@ -5295,7 +5063,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.589G>T']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.589G>T'
         assert results['NM_000088.3:c.589G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000088.3:c.589G>T']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.589G>T']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.589G>T']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.589G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.(Gly197Cys)', 'slr': 'NP_000079.2:p.(G197C)'}
         assert results['NM_000088.3:c.589G>T']['submitted_variant'] == '17-48275363-C-A'
@@ -5320,7 +5087,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.589-1G>T']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.589-1G>T'
         assert results['NM_000088.3:c.589-1G>T']['refseqgene_context_intronic_sequence'] == 'NG_007400.1(NM_000088.3):c.589-1G>T'
         assert results['NM_000088.3:c.589-1G>T']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.589-1G>T']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.589-1G>T']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.589-1G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.?', 'slr': 'NP_000079.2:p.?'}
         assert results['NM_000088.3:c.589-1G>T']['submitted_variant'] == '17-48275364-C-A'
@@ -5344,7 +5110,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.591_593inv']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.591_593inv'
         assert results['NM_000088.3:c.591_593inv']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000088.3:c.591_593inv']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.591_593inv']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.591_593inv']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.591_593inv']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.(Pro198Asp)', 'slr': 'NP_000079.2:p.(P198D)'}
         assert results['NM_000088.3:c.591_593inv']['submitted_variant'] == '17-48275359-GGA-TCC'
@@ -5370,7 +5135,6 @@ class TestVariants(object):
         assert results['NM_000089.3:c.1035_1035+2del']['hgvs_lrg_transcript_variant'] == 'LRG_2t1:c.1035_1035+2del'
         assert results['NM_000089.3:c.1035_1035+2del']['refseqgene_context_intronic_sequence'] == 'NG_007405.1(NM_000089.3):c.1035_1035+2del'
         assert results['NM_000089.3:c.1035_1035+2del']['alt_genomic_loci'] == []
-        assert results['NM_000089.3:c.1035_1035+2del']['transcript_description'] == 'Homo sapiens collagen type I alpha 2 chain (COL1A2), mRNA'
         assert results['NM_000089.3:c.1035_1035+2del']['gene_symbol'] == 'COL1A2'
         assert results['NM_000089.3:c.1035_1035+2del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000080.2(LRG_2p1):p.(Val345del)', 'slr': 'NP_000080.2:p.(V345del)'}
         assert results['NM_000089.3:c.1035_1035+2del']['submitted_variant'] == '7-94039128-CTTG-C'
@@ -5394,7 +5158,6 @@ class TestVariants(object):
         assert results['NM_001162427.1:c.210+1615dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001162427.1:c.210+1615dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001162427.1:c.210+1615dup']['alt_genomic_loci'] == []
-        assert results['NM_001162427.1:c.210+1615dup']['transcript_description'] == 'Homo sapiens TSC complex subunit 1 (TSC1), transcript variant 4, mRNA'
         assert results['NM_001162427.1:c.210+1615dup']['gene_symbol'] == 'TSC1'
         assert results['NM_001162427.1:c.210+1615dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001155899.1:p.?', 'slr': 'NP_001155899.1:p.?'}
         assert results['NM_001162427.1:c.210+1615dup']['submitted_variant'] == '9-135800972-AC-ACC'
@@ -5412,7 +5175,6 @@ class TestVariants(object):
         assert results['NM_001162426.1:c.363+1dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001162426.1:c.363+1dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001162426.1:c.363+1dup']['alt_genomic_loci'] == []
-        assert results['NM_001162426.1:c.363+1dup']['transcript_description'] == 'Homo sapiens TSC complex subunit 1 (TSC1), transcript variant 3, mRNA'
         assert results['NM_001162426.1:c.363+1dup']['gene_symbol'] == 'TSC1'
         assert results['NM_001162426.1:c.363+1dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001155898.1:p.(Met122AspfsTer4)', 'slr': 'NP_001155898.1:p.(M122Dfs*4)'}
         assert results['NM_001162426.1:c.363+1dup']['submitted_variant'] == '9-135800972-AC-ACC'
@@ -5431,7 +5193,6 @@ class TestVariants(object):
         assert results['NM_001362177.1:c.-1+1dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001362177.1:c.-1+1dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001362177.1:c.-1+1dup']['alt_genomic_loci'] == []
-        assert results['NM_001362177.1:c.-1+1dup']['transcript_description'] == 'Homo sapiens TSC complex subunit 1 (TSC1), transcript variant 5, mRNA'
         assert results['NM_001362177.1:c.-1+1dup']['gene_symbol'] == 'TSC1'
         assert results['NM_001362177.1:c.-1+1dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001349106.1:p.?', 'slr': 'NP_001349106.1:p.?'}
         assert results['NM_001362177.1:c.-1+1dup']['submitted_variant'] == '9-135800972-AC-ACC'
@@ -5449,7 +5210,6 @@ class TestVariants(object):
         assert results['NM_000368.4:c.363+1dup']['hgvs_lrg_transcript_variant'] == 'LRG_486t1:c.363+1dup'
         assert results['NM_000368.4:c.363+1dup']['refseqgene_context_intronic_sequence'] == 'NG_012386.1(NM_000368.4):c.363+1dup'
         assert results['NM_000368.4:c.363+1dup']['alt_genomic_loci'] == []
-        assert results['NM_000368.4:c.363+1dup']['transcript_description'] == 'Homo sapiens TSC complex subunit 1 (TSC1), transcript variant 1, mRNA'
         assert results['NM_000368.4:c.363+1dup']['gene_symbol'] == 'TSC1'
         assert results['NM_000368.4:c.363+1dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000359.1(LRG_486p1):p.(Met122AspfsTer4)', 'slr': 'NP_000359.1:p.(M122Dfs*4)'}
         assert results['NM_000368.4:c.363+1dup']['submitted_variant'] == '9-135800972-AC-ACC'
@@ -5474,7 +5234,6 @@ class TestVariants(object):
         assert results['NM_001243246.1:c.2073G>A']['hgvs_lrg_transcript_variant'] == 'LRG_5t3:c.2073G>A'
         assert results['NM_001243246.1:c.2073G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001243246.1:c.2073G>A']['alt_genomic_loci'] == []
-        assert results['NM_001243246.1:c.2073G>A']['transcript_description'] == 'Homo sapiens prolyl 3-hydroxylase 1 (P3H1), transcript variant 3, mRNA'
         assert results['NM_001243246.1:c.2073G>A']['gene_symbol'] == 'P3H1'
         assert results['NM_001243246.1:c.2073G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001230175.1:p.(Ala691=)', 'slr': 'NP_001230175.1:p.(A691=)'}
         assert results['NM_001243246.1:c.2073G>A']['submitted_variant'] == '1-43212925-C-T'
@@ -5492,7 +5251,6 @@ class TestVariants(object):
         assert results['NM_001146289.1:c.2073G>A']['hgvs_lrg_transcript_variant'] == 'LRG_5t2:c.2073G>A'
         assert results['NM_001146289.1:c.2073G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001146289.1:c.2073G>A']['alt_genomic_loci'] == []
-        assert results['NM_001146289.1:c.2073G>A']['transcript_description'] == 'Homo sapiens prolyl 3-hydroxylase 1 (P3H1), transcript variant 2, mRNA'
         assert results['NM_001146289.1:c.2073G>A']['gene_symbol'] == 'P3H1'
         assert results['NM_001146289.1:c.2073G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001139761.1:p.(Ala691=)', 'slr': 'NP_001139761.1:p.(A691=)'}
         assert results['NM_001146289.1:c.2073G>A']['submitted_variant'] == '1-43212925-C-T'
@@ -5510,7 +5268,6 @@ class TestVariants(object):
         assert results['NM_022356.3:c.2055+18G>A']['hgvs_lrg_transcript_variant'] == 'LRG_5t1:c.2055+18G>A'
         assert results['NM_022356.3:c.2055+18G>A']['refseqgene_context_intronic_sequence'] == 'NG_008123.1(NM_022356.3):c.2055+18G>A'
         assert results['NM_022356.3:c.2055+18G>A']['alt_genomic_loci'] == []
-        assert results['NM_022356.3:c.2055+18G>A']['transcript_description'] == 'Homo sapiens prolyl 3-hydroxylase 1 (P3H1), transcript variant 1, mRNA'
         assert results['NM_022356.3:c.2055+18G>A']['gene_symbol'] == 'P3H1'
         assert results['NM_022356.3:c.2055+18G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_071751.3(LRG_5p1):p.?', 'slr': 'NP_071751.3:p.?'}
         assert results['NM_022356.3:c.2055+18G>A']['submitted_variant'] == '1-43212925-C-T'
@@ -5534,7 +5291,6 @@ class TestVariants(object):
         assert results['NM_001194958.2:c.20C>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001194958.2:c.20C>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001194958.2:c.20C>A']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003315950.2:g.355171C>A', 'vcf': {'chr': 'HG987_PATCH', 'ref': 'C', 'pos': '355171', 'alt': 'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003315950.2:g.355171C>A', 'vcf': {'chr': 'NW_003315950.2', 'ref': 'C', 'pos': '355171', 'alt': 'A'}}}]
-        assert results['NM_001194958.2:c.20C>A']['transcript_description'] == 'Homo sapiens potassium voltage-gated channel subfamily J member 18 (KCNJ18), mRNA'
         assert results['NM_001194958.2:c.20C>A']['gene_symbol'] == 'KCNJ18'
         assert results['NM_001194958.2:c.20C>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001181887.2:p.(Ala7Asp)', 'slr': 'NP_001181887.2:p.(A7D)'}
         assert results['NM_001194958.2:c.20C>A']['submitted_variant'] == 'HG987_PATCH-355171-C-A'
@@ -5559,7 +5315,6 @@ class TestVariants(object):
         assert results['NM_000022.3:c.534A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000022.3:c.534A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000022.3:c.534A>G']['alt_genomic_loci'] == []
-        assert results['NM_000022.3:c.534A>G']['transcript_description'] == 'Homo sapiens adenosine deaminase (ADA), transcript variant 1, mRNA'
         assert results['NM_000022.3:c.534A>G']['gene_symbol'] == 'ADA'
         assert results['NM_000022.3:c.534A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000013.2(LRG_16p1):p.(Val178=)', 'slr': 'NP_000013.2:p.(V178=)'}
         assert results['NM_000022.3:c.534A>G']['submitted_variant'] == '20-43252915-T-C'
@@ -5577,7 +5332,6 @@ class TestVariants(object):
         assert results['NM_001322051.1:c.534A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001322051.1:c.534A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001322051.1:c.534A>G']['alt_genomic_loci'] == []
-        assert results['NM_001322051.1:c.534A>G']['transcript_description'] == 'Homo sapiens adenosine deaminase (ADA), transcript variant 3, mRNA'
         assert results['NM_001322051.1:c.534A>G']['gene_symbol'] == 'ADA'
         assert results['NM_001322051.1:c.534A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001308980.1:p.(Val178=)', 'slr': 'NP_001308980.1:p.(V178=)'}
         assert results['NM_001322051.1:c.534A>G']['submitted_variant'] == '20-43252915-T-C'
@@ -5595,7 +5349,6 @@ class TestVariants(object):
         assert results['NM_000022.2:c.534A>G']['hgvs_lrg_transcript_variant'] == 'LRG_16t1:c.534A>G'
         assert results['NM_000022.2:c.534A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000022.2:c.534A>G']['alt_genomic_loci'] == []
-        assert results['NM_000022.2:c.534A>G']['transcript_description'] == 'Homo sapiens adenosine deaminase (ADA), mRNA'
         assert results['NM_000022.2:c.534A>G']['gene_symbol'] == 'ADA'
         assert results['NM_000022.2:c.534A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000013.2(LRG_16p1):p.(Val178=)', 'slr': 'NP_000013.2:p.(V178=)'}
         assert results['NM_000022.2:c.534A>G']['submitted_variant'] == '20-43252915-T-C'
@@ -5614,7 +5367,6 @@ class TestVariants(object):
         assert results['NM_001322050.1:c.129A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001322050.1:c.129A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001322050.1:c.129A>G']['alt_genomic_loci'] == []
-        assert results['NM_001322050.1:c.129A>G']['transcript_description'] == 'Homo sapiens adenosine deaminase (ADA), transcript variant 2, mRNA'
         assert results['NM_001322050.1:c.129A>G']['gene_symbol'] == 'ADA'
         assert results['NM_001322050.1:c.129A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001308979.1:p.(Val43=)', 'slr': 'NP_001308979.1:p.(V43=)'}
         assert results['NM_001322050.1:c.129A>G']['submitted_variant'] == '20-43252915-T-C'
@@ -5632,7 +5384,6 @@ class TestVariants(object):
         assert results['NR_136160.1:n.685A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_136160.1:n.685A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_136160.1:n.685A>G']['alt_genomic_loci'] == []
-        assert results['NR_136160.1:n.685A>G']['transcript_description'] == 'Homo sapiens adenosine deaminase (ADA), transcript variant 4, non-coding RNA'
         assert results['NR_136160.1:n.685A>G']['gene_symbol'] == 'ADA'
         assert results['NR_136160.1:n.685A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_136160.1:n.685A>G']['submitted_variant'] == '20-43252915-T-C'
@@ -5657,7 +5408,6 @@ class TestVariants(object):
         assert results['NM_206933.2:c.6317C>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_206933.2:c.6317C>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_206933.2:c.6317C>G']['alt_genomic_loci'] == []
-        assert results['NM_206933.2:c.6317C>G']['transcript_description'] == 'Homo sapiens usherin (USH2A), transcript variant 2, mRNA'
         assert results['NM_206933.2:c.6317C>G']['gene_symbol'] == 'USH2A'
         assert results['NM_206933.2:c.6317C>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_996816.2:p.(Thr2106Arg)', 'slr': 'NP_996816.2:p.(T2106R)'}
         assert results['NM_206933.2:c.6317C>G']['submitted_variant'] == '1-216219781-A-C'
@@ -5681,7 +5431,6 @@ class TestVariants(object):
         assert results['NM_005896.3:c.394C>G']['hgvs_lrg_transcript_variant'] == 'LRG_610t1:c.394C>G'
         assert results['NM_005896.3:c.394C>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_005896.3:c.394C>G']['alt_genomic_loci'] == []
-        assert results['NM_005896.3:c.394C>G']['transcript_description'] == 'Homo sapiens isocitrate dehydrogenase (NADP(+)) 1, cytosolic (IDH1), transcript variant 1, mRNA'
         assert results['NM_005896.3:c.394C>G']['gene_symbol'] == 'IDH1'
         assert results['NM_005896.3:c.394C>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_005887.2(LRG_610p1):p.(Arg132Gly)', 'slr': 'NP_005887.2:p.(R132G)'}
         assert results['NM_005896.3:c.394C>G']['submitted_variant'] == '2-209113113-G-A,C,T'
@@ -5699,7 +5448,6 @@ class TestVariants(object):
         assert results['NM_001282387.1:c.394C>G']['hgvs_lrg_transcript_variant'] == 'LRG_610t2:c.394C>G'
         assert results['NM_001282387.1:c.394C>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001282387.1:c.394C>G']['alt_genomic_loci'] == []
-        assert results['NM_001282387.1:c.394C>G']['transcript_description'] == 'Homo sapiens isocitrate dehydrogenase (NADP(+)) 1, cytosolic (IDH1), transcript variant 3, mRNA'
         assert results['NM_001282387.1:c.394C>G']['gene_symbol'] == 'IDH1'
         assert results['NM_001282387.1:c.394C>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001269316.1:p.(Arg132Gly)', 'slr': 'NP_001269316.1:p.(R132G)'}
         assert results['NM_001282387.1:c.394C>G']['submitted_variant'] == '2-209113113-G-A,C,T'
@@ -5717,7 +5465,6 @@ class TestVariants(object):
         assert results['NM_001282387.1:c.394C>A']['hgvs_lrg_transcript_variant'] == 'LRG_610t2:c.394C>A'
         assert results['NM_001282387.1:c.394C>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001282387.1:c.394C>A']['alt_genomic_loci'] == []
-        assert results['NM_001282387.1:c.394C>A']['transcript_description'] == 'Homo sapiens isocitrate dehydrogenase (NADP(+)) 1, cytosolic (IDH1), transcript variant 3, mRNA'
         assert results['NM_001282387.1:c.394C>A']['gene_symbol'] == 'IDH1'
         assert results['NM_001282387.1:c.394C>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001269316.1:p.(Arg132Ser)', 'slr': 'NP_001269316.1:p.(R132S)'}
         assert results['NM_001282387.1:c.394C>A']['submitted_variant'] == '2-209113113-G-A,C,T'
@@ -5735,7 +5482,6 @@ class TestVariants(object):
         assert results['NM_005896.3:c.394C>A']['hgvs_lrg_transcript_variant'] == 'LRG_610t1:c.394C>A'
         assert results['NM_005896.3:c.394C>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_005896.3:c.394C>A']['alt_genomic_loci'] == []
-        assert results['NM_005896.3:c.394C>A']['transcript_description'] == 'Homo sapiens isocitrate dehydrogenase (NADP(+)) 1, cytosolic (IDH1), transcript variant 1, mRNA'
         assert results['NM_005896.3:c.394C>A']['gene_symbol'] == 'IDH1'
         assert results['NM_005896.3:c.394C>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_005887.2(LRG_610p1):p.(Arg132Ser)', 'slr': 'NP_005887.2:p.(R132S)'}
         assert results['NM_005896.3:c.394C>A']['submitted_variant'] == '2-209113113-G-A,C,T'
@@ -5753,7 +5499,6 @@ class TestVariants(object):
         assert results['NM_001282386.1:c.394C>T']['hgvs_lrg_transcript_variant'] == 'LRG_610t3:c.394C>T'
         assert results['NM_001282386.1:c.394C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001282386.1:c.394C>T']['alt_genomic_loci'] == []
-        assert results['NM_001282386.1:c.394C>T']['transcript_description'] == 'Homo sapiens isocitrate dehydrogenase (NADP(+)) 1, cytosolic (IDH1), transcript variant 2, mRNA'
         assert results['NM_001282386.1:c.394C>T']['gene_symbol'] == 'IDH1'
         assert results['NM_001282386.1:c.394C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001269315.1:p.(Arg132Cys)', 'slr': 'NP_001269315.1:p.(R132C)'}
         assert results['NM_001282386.1:c.394C>T']['submitted_variant'] == '2-209113113-G-A,C,T'
@@ -5771,7 +5516,6 @@ class TestVariants(object):
         assert results['NM_005896.2:c.394C>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_005896.2:c.394C>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_005896.2:c.394C>A']['alt_genomic_loci'] == []
-        assert results['NM_005896.2:c.394C>A']['transcript_description'] == 'Homo sapiens isocitrate dehydrogenase 1 (NADP+), soluble (IDH1), mRNA'
         assert results['NM_005896.2:c.394C>A']['gene_symbol'] == 'IDH1'
         assert results['NM_005896.2:c.394C>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_005887.2(LRG_610p1):p.(Arg132Ser)', 'slr': 'NP_005887.2:p.(R132S)'}
         assert results['NM_005896.2:c.394C>A']['submitted_variant'] == '2-209113113-G-A,C,T'
@@ -5789,7 +5533,6 @@ class TestVariants(object):
         assert results['NM_005896.2:c.394C>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_005896.2:c.394C>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_005896.2:c.394C>G']['alt_genomic_loci'] == []
-        assert results['NM_005896.2:c.394C>G']['transcript_description'] == 'Homo sapiens isocitrate dehydrogenase 1 (NADP+), soluble (IDH1), mRNA'
         assert results['NM_005896.2:c.394C>G']['gene_symbol'] == 'IDH1'
         assert results['NM_005896.2:c.394C>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_005887.2(LRG_610p1):p.(Arg132Gly)', 'slr': 'NP_005887.2:p.(R132G)'}
         assert results['NM_005896.2:c.394C>G']['submitted_variant'] == '2-209113113-G-A,C,T'
@@ -5808,7 +5551,6 @@ class TestVariants(object):
         assert results['NM_005896.3:c.394C>T']['hgvs_lrg_transcript_variant'] == 'LRG_610t1:c.394C>T'
         assert results['NM_005896.3:c.394C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_005896.3:c.394C>T']['alt_genomic_loci'] == []
-        assert results['NM_005896.3:c.394C>T']['transcript_description'] == 'Homo sapiens isocitrate dehydrogenase (NADP(+)) 1, cytosolic (IDH1), transcript variant 1, mRNA'
         assert results['NM_005896.3:c.394C>T']['gene_symbol'] == 'IDH1'
         assert results['NM_005896.3:c.394C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_005887.2(LRG_610p1):p.(Arg132Cys)', 'slr': 'NP_005887.2:p.(R132C)'}
         assert results['NM_005896.3:c.394C>T']['submitted_variant'] == '2-209113113-G-A,C,T'
@@ -5826,7 +5568,6 @@ class TestVariants(object):
         assert results['NM_001282387.1:c.394C>T']['hgvs_lrg_transcript_variant'] == 'LRG_610t2:c.394C>T'
         assert results['NM_001282387.1:c.394C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001282387.1:c.394C>T']['alt_genomic_loci'] == []
-        assert results['NM_001282387.1:c.394C>T']['transcript_description'] == 'Homo sapiens isocitrate dehydrogenase (NADP(+)) 1, cytosolic (IDH1), transcript variant 3, mRNA'
         assert results['NM_001282387.1:c.394C>T']['gene_symbol'] == 'IDH1'
         assert results['NM_001282387.1:c.394C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001269316.1:p.(Arg132Cys)', 'slr': 'NP_001269316.1:p.(R132C)'}
         assert results['NM_001282387.1:c.394C>T']['submitted_variant'] == '2-209113113-G-A,C,T'
@@ -5844,7 +5585,6 @@ class TestVariants(object):
         assert results['NM_001282386.1:c.394C>G']['hgvs_lrg_transcript_variant'] == 'LRG_610t3:c.394C>G'
         assert results['NM_001282386.1:c.394C>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001282386.1:c.394C>G']['alt_genomic_loci'] == []
-        assert results['NM_001282386.1:c.394C>G']['transcript_description'] == 'Homo sapiens isocitrate dehydrogenase (NADP(+)) 1, cytosolic (IDH1), transcript variant 2, mRNA'
         assert results['NM_001282386.1:c.394C>G']['gene_symbol'] == 'IDH1'
         assert results['NM_001282386.1:c.394C>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001269315.1:p.(Arg132Gly)', 'slr': 'NP_001269315.1:p.(R132G)'}
         assert results['NM_001282386.1:c.394C>G']['submitted_variant'] == '2-209113113-G-A,C,T'
@@ -5862,7 +5602,6 @@ class TestVariants(object):
         assert results['NM_005896.2:c.394C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_005896.2:c.394C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_005896.2:c.394C>T']['alt_genomic_loci'] == []
-        assert results['NM_005896.2:c.394C>T']['transcript_description'] == 'Homo sapiens isocitrate dehydrogenase 1 (NADP+), soluble (IDH1), mRNA'
         assert results['NM_005896.2:c.394C>T']['gene_symbol'] == 'IDH1'
         assert results['NM_005896.2:c.394C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_005887.2(LRG_610p1):p.(Arg132Cys)', 'slr': 'NP_005887.2:p.(R132C)'}
         assert results['NM_005896.2:c.394C>T']['submitted_variant'] == '2-209113113-G-A,C,T'
@@ -5880,7 +5619,6 @@ class TestVariants(object):
         assert results['NM_001282386.1:c.394C>A']['hgvs_lrg_transcript_variant'] == 'LRG_610t3:c.394C>A'
         assert results['NM_001282386.1:c.394C>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001282386.1:c.394C>A']['alt_genomic_loci'] == []
-        assert results['NM_001282386.1:c.394C>A']['transcript_description'] == 'Homo sapiens isocitrate dehydrogenase (NADP(+)) 1, cytosolic (IDH1), transcript variant 2, mRNA'
         assert results['NM_001282386.1:c.394C>A']['gene_symbol'] == 'IDH1'
         assert results['NM_001282386.1:c.394C>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001269315.1:p.(Arg132Ser)', 'slr': 'NP_001269315.1:p.(R132S)'}
         assert results['NM_001282386.1:c.394C>A']['submitted_variant'] == '2-209113113-G-A,C,T'
@@ -5904,7 +5642,6 @@ class TestVariants(object):
         assert results['NM_001204314.1:c.*6525_*6526=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001204314.1:c.*6525_*6526=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001204314.1:c.*6525_*6526=']['alt_genomic_loci'] == []
-        assert results['NM_001204314.1:c.*6525_*6526=']['transcript_description'] == 'Homo sapiens prolactin receptor (PRLR), transcript variant 6, mRNA'
         assert results['NM_001204314.1:c.*6525_*6526=']['gene_symbol'] == 'PRLR'
         assert results['NM_001204314.1:c.*6525_*6526=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001191243.1:p.?', 'slr': 'NP_001191243.1:p.?'}
         assert results['NM_001204314.1:c.*6525_*6526=']['submitted_variant'] == 'NC_000005.9:g.35058665_35058666CA='
@@ -5922,7 +5659,6 @@ class TestVariants(object):
         assert results['NM_001204314.2:c.*6528del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001204314.2:c.*6528del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001204314.2:c.*6528del']['alt_genomic_loci'] == []
-        assert results['NM_001204314.2:c.*6528del']['transcript_description'] == 'Homo sapiens prolactin receptor (PRLR), transcript variant 6, mRNA'
         assert results['NM_001204314.2:c.*6528del']['gene_symbol'] == 'PRLR'
         assert results['NM_001204314.2:c.*6528del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001191243.1:p.?', 'slr': 'NP_001191243.1:p.?'}
         assert results['NM_001204314.2:c.*6528del']['submitted_variant'] == 'NC_000005.9:g.35058665_35058666CA='
@@ -5940,7 +5676,6 @@ class TestVariants(object):
         assert results['NM_001204317.1:c.856-9153_856-9152=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001204317.1:c.856-9153_856-9152=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001204317.1:c.856-9153_856-9152=']['alt_genomic_loci'] == []
-        assert results['NM_001204317.1:c.856-9153_856-9152=']['transcript_description'] == 'Homo sapiens prolactin receptor (PRLR), transcript variant 4, mRNA'
         assert results['NM_001204317.1:c.856-9153_856-9152=']['gene_symbol'] == 'PRLR'
         assert results['NM_001204317.1:c.856-9153_856-9152=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001191246.1:p.?', 'slr': 'NP_001191246.1:p.?'}
         assert results['NM_001204317.1:c.856-9153_856-9152=']['submitted_variant'] == 'NC_000005.9:g.35058665_35058666CA='
@@ -5958,7 +5693,6 @@ class TestVariants(object):
         assert results['NM_001204316.1:c.1009+7385_1009+7386=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001204316.1:c.1009+7385_1009+7386=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001204316.1:c.1009+7385_1009+7386=']['alt_genomic_loci'] == []
-        assert results['NM_001204316.1:c.1009+7385_1009+7386=']['transcript_description'] == 'Homo sapiens prolactin receptor (PRLR), transcript variant 3, mRNA'
         assert results['NM_001204316.1:c.1009+7385_1009+7386=']['gene_symbol'] == 'PRLR'
         assert results['NM_001204316.1:c.1009+7385_1009+7386=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001191245.1:p.?', 'slr': 'NP_001191245.1:p.?'}
         assert results['NM_001204316.1:c.1009+7385_1009+7386=']['submitted_variant'] == 'NC_000005.9:g.35058665_35058666CA='
@@ -5977,7 +5711,6 @@ class TestVariants(object):
         assert results['NR_037910.1:n.828-9153_828-9152=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_037910.1:n.828-9153_828-9152=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_037910.1:n.828-9153_828-9152=']['alt_genomic_loci'] == []
-        assert results['NR_037910.1:n.828-9153_828-9152=']['transcript_description'] == 'Homo sapiens prolactin receptor (PRLR), transcript variant 7, non-coding RNA'
         assert results['NR_037910.1:n.828-9153_828-9152=']['gene_symbol'] == 'PRLR'
         assert results['NR_037910.1:n.828-9153_828-9152=']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_037910.1:n.828-9153_828-9152=']['submitted_variant'] == 'NC_000005.9:g.35058665_35058666CA='
@@ -5995,7 +5728,6 @@ class TestVariants(object):
         assert results['NM_001204318.1:c.686-9153_686-9152=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001204318.1:c.686-9153_686-9152=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001204318.1:c.686-9153_686-9152=']['alt_genomic_loci'] == []
-        assert results['NM_001204318.1:c.686-9153_686-9152=']['transcript_description'] == 'Homo sapiens prolactin receptor (PRLR), transcript variant 5, mRNA'
         assert results['NM_001204318.1:c.686-9153_686-9152=']['gene_symbol'] == 'PRLR'
         assert results['NM_001204318.1:c.686-9153_686-9152=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001191247.1:p.?', 'slr': 'NP_001191247.1:p.?'}
         assert results['NM_001204318.1:c.686-9153_686-9152=']['submitted_variant'] == 'NC_000005.9:g.35058665_35058666CA='
@@ -6013,7 +5745,6 @@ class TestVariants(object):
         assert results['NM_000949.5:c.*6525_*6526=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000949.5:c.*6525_*6526=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000949.5:c.*6525_*6526=']['alt_genomic_loci'] == []
-        assert results['NM_000949.5:c.*6525_*6526=']['transcript_description'] == 'Homo sapiens prolactin receptor (PRLR), transcript variant 1, mRNA'
         assert results['NM_000949.5:c.*6525_*6526=']['gene_symbol'] == 'PRLR'
         assert results['NM_000949.5:c.*6525_*6526=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000940.1:p.?', 'slr': 'NP_000940.1:p.?'}
         assert results['NM_000949.5:c.*6525_*6526=']['submitted_variant'] == 'NC_000005.9:g.35058665_35058666CA='
@@ -6031,7 +5762,6 @@ class TestVariants(object):
         assert results['NM_000949.6:c.*6528del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000949.6:c.*6528del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000949.6:c.*6528del']['alt_genomic_loci'] == []
-        assert results['NM_000949.6:c.*6528del']['transcript_description'] == 'Homo sapiens prolactin receptor (PRLR), transcript variant 1, mRNA'
         assert results['NM_000949.6:c.*6528del']['gene_symbol'] == 'PRLR'
         assert results['NM_000949.6:c.*6528del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000940.1:p.?', 'slr': 'NP_000940.1:p.?'}
         assert results['NM_000949.6:c.*6528del']['submitted_variant'] == 'NC_000005.9:g.35058665_35058666CA='
@@ -6056,7 +5786,6 @@ class TestVariants(object):
         assert results['NM_015120.4:c.1580_1581insCCT']['hgvs_lrg_transcript_variant'] == 'LRG_741t1:c.1580_1581insCCT'
         assert results['NM_015120.4:c.1580_1581insCCT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_015120.4:c.1580_1581insCCT']['alt_genomic_loci'] == []
-        assert results['NM_015120.4:c.1580_1581insCCT']['transcript_description'] == 'Homo sapiens ALMS1, centrosome and basal body associated protein (ALMS1), mRNA'
         assert results['NM_015120.4:c.1580_1581insCCT']['gene_symbol'] == 'ALMS1'
         assert results['NM_015120.4:c.1580_1581insCCT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055935.4(LRG_741p1):p.(Leu527dup)', 'slr': 'NP_055935.4:p.(L527dup)'}
         assert results['NM_015120.4:c.1580_1581insCCT']['submitted_variant'] == 'NC_000002.11:g.73675227_73675229delTCTinsTCTCTC'
@@ -6081,7 +5810,6 @@ class TestVariants(object):
         assert results['NM_000828.4:c.-2dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000828.4:c.-2dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000828.4:c.-2dup']['alt_genomic_loci'] == []
-        assert results['NM_000828.4:c.-2dup']['transcript_description'] == 'Homo sapiens glutamate ionotropic receptor AMPA type subunit 3 (GRIA3), transcript variant 2, mRNA'
         assert results['NM_000828.4:c.-2dup']['gene_symbol'] == 'GRIA3'
         assert results['NM_000828.4:c.-2dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000819.3:p.?', 'slr': 'NP_000819.3:p.?'}
         assert results['NM_000828.4:c.-2dup']['submitted_variant'] == 'NM_000828.4:c.-2dupG'
@@ -6105,7 +5833,6 @@ class TestVariants(object):
         assert results['NM_007325.4:c.-2dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_007325.4:c.-2dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_007325.4:c.-2dup']['alt_genomic_loci'] == []
-        assert results['NM_007325.4:c.-2dup']['transcript_description'] == 'Homo sapiens glutamate ionotropic receptor AMPA type subunit 3 (GRIA3), transcript variant 1, mRNA'
         assert results['NM_007325.4:c.-2dup']['gene_symbol'] == 'GRIA3'
         assert results['NM_007325.4:c.-2dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_015564.4:p.?', 'slr': 'NP_015564.4:p.?'}
         assert results['NM_007325.4:c.-2dup']['submitted_variant'] == 'X-122318386-A-AGG'
@@ -6124,7 +5851,6 @@ class TestVariants(object):
         assert results['NM_001256743.1:c.-2dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001256743.1:c.-2dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001256743.1:c.-2dup']['alt_genomic_loci'] == []
-        assert results['NM_001256743.1:c.-2dup']['transcript_description'] == 'Homo sapiens glutamate ionotropic receptor AMPA type subunit 3 (GRIA3), transcript variant 3, mRNA'
         assert results['NM_001256743.1:c.-2dup']['gene_symbol'] == 'GRIA3'
         assert results['NM_001256743.1:c.-2dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001243672.1:p.?', 'slr': 'NP_001243672.1:p.?'}
         assert results['NM_001256743.1:c.-2dup']['submitted_variant'] == 'X-122318386-A-AGG'
@@ -6142,7 +5868,6 @@ class TestVariants(object):
         assert results['NM_000828.4:c.-2dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000828.4:c.-2dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000828.4:c.-2dup']['alt_genomic_loci'] == []
-        assert results['NM_000828.4:c.-2dup']['transcript_description'] == 'Homo sapiens glutamate ionotropic receptor AMPA type subunit 3 (GRIA3), transcript variant 2, mRNA'
         assert results['NM_000828.4:c.-2dup']['gene_symbol'] == 'GRIA3'
         assert results['NM_000828.4:c.-2dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000819.3:p.?', 'slr': 'NP_000819.3:p.?'}
         assert results['NM_000828.4:c.-2dup']['submitted_variant'] == 'X-122318386-A-AGG'
@@ -6167,7 +5892,6 @@ class TestVariants(object):
         assert results['NM_000828.4:c.-2G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000828.4:c.-2G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000828.4:c.-2G>T']['alt_genomic_loci'] == []
-        assert results['NM_000828.4:c.-2G>T']['transcript_description'] == 'Homo sapiens glutamate ionotropic receptor AMPA type subunit 3 (GRIA3), transcript variant 2, mRNA'
         assert results['NM_000828.4:c.-2G>T']['gene_symbol'] == 'GRIA3'
         assert results['NM_000828.4:c.-2G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000819.3:p.?', 'slr': 'NP_000819.3:p.?'}
         assert results['NM_000828.4:c.-2G>T']['submitted_variant'] == 'NM_000828.4:c.-2G>T'
@@ -6191,7 +5915,6 @@ class TestVariants(object):
         assert results['NM_000828.4:c.-2G=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000828.4:c.-2G=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000828.4:c.-2G=']['alt_genomic_loci'] == []
-        assert results['NM_000828.4:c.-2G=']['transcript_description'] == 'Homo sapiens glutamate ionotropic receptor AMPA type subunit 3 (GRIA3), transcript variant 2, mRNA'
         assert results['NM_000828.4:c.-2G=']['gene_symbol'] == 'GRIA3'
         assert results['NM_000828.4:c.-2G=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000819.3:p.?', 'slr': 'NP_000819.3:p.?'}
         assert results['NM_000828.4:c.-2G=']['submitted_variant'] == 'NM_000828.4:c.-2G='
@@ -6217,7 +5940,6 @@ class TestVariants(object):
         assert results['NM_000828.4:c.-2G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000828.4:c.-2G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000828.4:c.-2G>T']['alt_genomic_loci'] == []
-        assert results['NM_000828.4:c.-2G>T']['transcript_description'] == 'Homo sapiens glutamate ionotropic receptor AMPA type subunit 3 (GRIA3), transcript variant 2, mRNA'
         assert results['NM_000828.4:c.-2G>T']['gene_symbol'] == 'GRIA3'
         assert results['NM_000828.4:c.-2G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000819.3:p.?', 'slr': 'NP_000819.3:p.?'}
         assert results['NM_000828.4:c.-2G>T']['submitted_variant'] == 'X-122318386-A-AT'
@@ -6235,7 +5957,6 @@ class TestVariants(object):
         assert results['NM_001256743.1:c.-2G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001256743.1:c.-2G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001256743.1:c.-2G>T']['alt_genomic_loci'] == []
-        assert results['NM_001256743.1:c.-2G>T']['transcript_description'] == 'Homo sapiens glutamate ionotropic receptor AMPA type subunit 3 (GRIA3), transcript variant 3, mRNA'
         assert results['NM_001256743.1:c.-2G>T']['gene_symbol'] == 'GRIA3'
         assert results['NM_001256743.1:c.-2G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001243672.1:p.?', 'slr': 'NP_001243672.1:p.?'}
         assert results['NM_001256743.1:c.-2G>T']['submitted_variant'] == 'X-122318386-A-AT'
@@ -6253,7 +5974,6 @@ class TestVariants(object):
         assert results['NM_007325.4:c.-2G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_007325.4:c.-2G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_007325.4:c.-2G>T']['alt_genomic_loci'] == []
-        assert results['NM_007325.4:c.-2G>T']['transcript_description'] == 'Homo sapiens glutamate ionotropic receptor AMPA type subunit 3 (GRIA3), transcript variant 1, mRNA'
         assert results['NM_007325.4:c.-2G>T']['gene_symbol'] == 'GRIA3'
         assert results['NM_007325.4:c.-2G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_015564.4:p.?', 'slr': 'NP_015564.4:p.?'}
         assert results['NM_007325.4:c.-2G>T']['submitted_variant'] == 'X-122318386-A-AT'
@@ -6278,7 +5998,6 @@ class TestVariants(object):
         assert results['NM_000828.4:c.-2_-1insT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000828.4:c.-2_-1insT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000828.4:c.-2_-1insT']['alt_genomic_loci'] == []
-        assert results['NM_000828.4:c.-2_-1insT']['transcript_description'] == 'Homo sapiens glutamate ionotropic receptor AMPA type subunit 3 (GRIA3), transcript variant 2, mRNA'
         assert results['NM_000828.4:c.-2_-1insT']['gene_symbol'] == 'GRIA3'
         assert results['NM_000828.4:c.-2_-1insT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000819.3:p.?', 'slr': 'NP_000819.3:p.?'}
         assert results['NM_000828.4:c.-2_-1insT']['submitted_variant'] == 'NM_000828.4:c.-2_-1insT'
@@ -6302,7 +6021,6 @@ class TestVariants(object):
         assert results['NM_000828.4:c.-3_-2insT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000828.4:c.-3_-2insT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000828.4:c.-3_-2insT']['alt_genomic_loci'] == []
-        assert results['NM_000828.4:c.-3_-2insT']['transcript_description'] == 'Homo sapiens glutamate ionotropic receptor AMPA type subunit 3 (GRIA3), transcript variant 2, mRNA'
         assert results['NM_000828.4:c.-3_-2insT']['gene_symbol'] == 'GRIA3'
         assert results['NM_000828.4:c.-3_-2insT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000819.3:p.?', 'slr': 'NP_000819.3:p.?'}
         assert results['NM_000828.4:c.-3_-2insT']['submitted_variant'] == 'NM_000828.4:c.-3_-2insT'
@@ -6328,7 +6046,6 @@ class TestVariants(object):
         assert results['NM_000828.4:c.-2delinsTT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000828.4:c.-2delinsTT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000828.4:c.-2delinsTT']['alt_genomic_loci'] == []
-        assert results['NM_000828.4:c.-2delinsTT']['transcript_description'] == 'Homo sapiens glutamate ionotropic receptor AMPA type subunit 3 (GRIA3), transcript variant 2, mRNA'
         assert results['NM_000828.4:c.-2delinsTT']['gene_symbol'] == 'GRIA3'
         assert results['NM_000828.4:c.-2delinsTT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000819.3:p.?', 'slr': 'NP_000819.3:p.?'}
         assert results['NM_000828.4:c.-2delinsTT']['submitted_variant'] == 'NM_000828.4:c.-2delGinsTT'
@@ -6353,7 +6070,6 @@ class TestVariants(object):
         assert results['NM_000828.4:c.-2_-1delinsTT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000828.4:c.-2_-1delinsTT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000828.4:c.-2_-1delinsTT']['alt_genomic_loci'] == []
-        assert results['NM_000828.4:c.-2_-1delinsTT']['transcript_description'] == 'Homo sapiens glutamate ionotropic receptor AMPA type subunit 3 (GRIA3), transcript variant 2, mRNA'
         assert results['NM_000828.4:c.-2_-1delinsTT']['gene_symbol'] == 'GRIA3'
         assert results['NM_000828.4:c.-2_-1delinsTT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000819.3:p.?', 'slr': 'NP_000819.3:p.?'}
         assert results['NM_000828.4:c.-2_-1delinsTT']['submitted_variant'] == 'NM_000828.4:c.-2_-1delGCinsTT'
@@ -6377,7 +6093,6 @@ class TestVariants(object):
         assert results['NM_000828.4:c.-3_-2delinsTT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000828.4:c.-3_-2delinsTT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000828.4:c.-3_-2delinsTT']['alt_genomic_loci'] == []
-        assert results['NM_000828.4:c.-3_-2delinsTT']['transcript_description'] == 'Homo sapiens glutamate ionotropic receptor AMPA type subunit 3 (GRIA3), transcript variant 2, mRNA'
         assert results['NM_000828.4:c.-3_-2delinsTT']['gene_symbol'] == 'GRIA3'
         assert results['NM_000828.4:c.-3_-2delinsTT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000819.3:p.?', 'slr': 'NP_000819.3:p.?'}
         assert results['NM_000828.4:c.-3_-2delinsTT']['submitted_variant'] == 'NM_000828.4:c.-3_-2delAGinsTT'
@@ -6402,7 +6117,6 @@ class TestVariants(object):
         assert results['NM_014249.3:c.951dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_014249.3:c.951dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_014249.3:c.951dup']['alt_genomic_loci'] == []
-        assert results['NM_014249.3:c.951dup']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 2 group E member 3 (NR2E3), transcript variant 2, mRNA'
         assert results['NM_014249.3:c.951dup']['gene_symbol'] == 'NR2E3'
         assert results['NM_014249.3:c.951dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055064.1:p.(Thr318HisfsTer23)', 'slr': 'NP_055064.1:p.(T318Hfs*23)'}
         assert results['NM_014249.3:c.951dup']['submitted_variant'] == '15-72105929-C-C'
@@ -6420,7 +6134,6 @@ class TestVariants(object):
         assert results['NM_014249.2:c.951dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_014249.2:c.951dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_014249.2:c.951dup']['alt_genomic_loci'] == []
-        assert results['NM_014249.2:c.951dup']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 2, group E, member 3 (NR2E3), transcript variant 2, mRNA'
         assert results['NM_014249.2:c.951dup']['gene_symbol'] == 'NR2E3'
         assert results['NM_014249.2:c.951dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055064.1:p.(Thr318HisfsTer23)', 'slr': 'NP_055064.1:p.(T318Hfs*23)'}
         assert results['NM_014249.2:c.951dup']['submitted_variant'] == '15-72105929-C-C'
@@ -6439,7 +6152,6 @@ class TestVariants(object):
         assert results['NM_016346.3:c.951dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_016346.3:c.951dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_016346.3:c.951dup']['alt_genomic_loci'] == []
-        assert results['NM_016346.3:c.951dup']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 2 group E member 3 (NR2E3), transcript variant 1, mRNA'
         assert results['NM_016346.3:c.951dup']['gene_symbol'] == 'NR2E3'
         assert results['NM_016346.3:c.951dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_057430.1:p.(Thr318HisfsTer23)', 'slr': 'NP_057430.1:p.(T318Hfs*23)'}
         assert results['NM_016346.3:c.951dup']['submitted_variant'] == '15-72105929-C-C'
@@ -6457,7 +6169,6 @@ class TestVariants(object):
         assert results['NM_016346.2:c.951dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_016346.2:c.951dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_016346.2:c.951dup']['alt_genomic_loci'] == []
-        assert results['NM_016346.2:c.951dup']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 2, group E, member 3 (NR2E3), transcript variant 1, mRNA'
         assert results['NM_016346.2:c.951dup']['gene_symbol'] == 'NR2E3'
         assert results['NM_016346.2:c.951dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_057430.1:p.(Thr318HisfsTer23)', 'slr': 'NP_057430.1:p.(T318Hfs*23)'}
         assert results['NM_016346.2:c.951dup']['submitted_variant'] == '15-72105929-C-C'
@@ -6481,7 +6192,6 @@ class TestVariants(object):
         assert results['NM_014249.2:c.947_948insTT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_014249.2:c.947_948insTT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_014249.2:c.947_948insTT']['alt_genomic_loci'] == []
-        assert results['NM_014249.2:c.947_948insTT']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 2, group E, member 3 (NR2E3), transcript variant 2, mRNA'
         assert results['NM_014249.2:c.947_948insTT']['gene_symbol'] == 'NR2E3'
         assert results['NM_014249.2:c.947_948insTT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055064.1:p.(Pro317SerfsTer8)', 'slr': 'NP_055064.1:p.(P317Sfs*8)'}
         assert results['NM_014249.2:c.947_948insTT']['submitted_variant'] == '15-72105928-AC-ATT'
@@ -6499,7 +6209,6 @@ class TestVariants(object):
         assert results['NM_016346.3:c.947_948insTT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_016346.3:c.947_948insTT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_016346.3:c.947_948insTT']['alt_genomic_loci'] == []
-        assert results['NM_016346.3:c.947_948insTT']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 2 group E member 3 (NR2E3), transcript variant 1, mRNA'
         assert results['NM_016346.3:c.947_948insTT']['gene_symbol'] == 'NR2E3'
         assert results['NM_016346.3:c.947_948insTT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_057430.1:p.(Pro317SerfsTer8)', 'slr': 'NP_057430.1:p.(P317Sfs*8)'}
         assert results['NM_016346.3:c.947_948insTT']['submitted_variant'] == '15-72105928-AC-ATT'
@@ -6518,7 +6227,6 @@ class TestVariants(object):
         assert results['NM_016346.2:c.947_948insTT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_016346.2:c.947_948insTT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_016346.2:c.947_948insTT']['alt_genomic_loci'] == []
-        assert results['NM_016346.2:c.947_948insTT']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 2, group E, member 3 (NR2E3), transcript variant 1, mRNA'
         assert results['NM_016346.2:c.947_948insTT']['gene_symbol'] == 'NR2E3'
         assert results['NM_016346.2:c.947_948insTT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_057430.1:p.(Pro317SerfsTer8)', 'slr': 'NP_057430.1:p.(P317Sfs*8)'}
         assert results['NM_016346.2:c.947_948insTT']['submitted_variant'] == '15-72105928-AC-ATT'
@@ -6536,7 +6244,6 @@ class TestVariants(object):
         assert results['NM_014249.3:c.947_948insTT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_014249.3:c.947_948insTT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_014249.3:c.947_948insTT']['alt_genomic_loci'] == []
-        assert results['NM_014249.3:c.947_948insTT']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 2 group E member 3 (NR2E3), transcript variant 2, mRNA'
         assert results['NM_014249.3:c.947_948insTT']['gene_symbol'] == 'NR2E3'
         assert results['NM_014249.3:c.947_948insTT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055064.1:p.(Pro317SerfsTer8)', 'slr': 'NP_055064.1:p.(P317Sfs*8)'}
         assert results['NM_014249.3:c.947_948insTT']['submitted_variant'] == '15-72105928-AC-ATT'
@@ -6560,7 +6267,6 @@ class TestVariants(object):
         assert results['NM_014249.2:c.947_948insTT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_014249.2:c.947_948insTT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_014249.2:c.947_948insTT']['alt_genomic_loci'] == []
-        assert results['NM_014249.2:c.947_948insTT']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 2, group E, member 3 (NR2E3), transcript variant 2, mRNA'
         assert results['NM_014249.2:c.947_948insTT']['gene_symbol'] == 'NR2E3'
         assert results['NM_014249.2:c.947_948insTT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055064.1:p.(Pro317SerfsTer8)', 'slr': 'NP_055064.1:p.(P317Sfs*8)'}
         assert results['NM_014249.2:c.947_948insTT']['submitted_variant'] == '15-72105928-ACC-ATT'
@@ -6578,7 +6284,6 @@ class TestVariants(object):
         assert results['NM_016346.3:c.947_948insTT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_016346.3:c.947_948insTT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_016346.3:c.947_948insTT']['alt_genomic_loci'] == []
-        assert results['NM_016346.3:c.947_948insTT']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 2 group E member 3 (NR2E3), transcript variant 1, mRNA'
         assert results['NM_016346.3:c.947_948insTT']['gene_symbol'] == 'NR2E3'
         assert results['NM_016346.3:c.947_948insTT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_057430.1:p.(Pro317SerfsTer8)', 'slr': 'NP_057430.1:p.(P317Sfs*8)'}
         assert results['NM_016346.3:c.947_948insTT']['submitted_variant'] == '15-72105928-ACC-ATT'
@@ -6597,7 +6302,6 @@ class TestVariants(object):
         assert results['NM_016346.2:c.947_948insTT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_016346.2:c.947_948insTT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_016346.2:c.947_948insTT']['alt_genomic_loci'] == []
-        assert results['NM_016346.2:c.947_948insTT']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 2, group E, member 3 (NR2E3), transcript variant 1, mRNA'
         assert results['NM_016346.2:c.947_948insTT']['gene_symbol'] == 'NR2E3'
         assert results['NM_016346.2:c.947_948insTT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_057430.1:p.(Pro317SerfsTer8)', 'slr': 'NP_057430.1:p.(P317Sfs*8)'}
         assert results['NM_016346.2:c.947_948insTT']['submitted_variant'] == '15-72105928-ACC-ATT'
@@ -6615,7 +6319,6 @@ class TestVariants(object):
         assert results['NM_014249.3:c.947_948insTT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_014249.3:c.947_948insTT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_014249.3:c.947_948insTT']['alt_genomic_loci'] == []
-        assert results['NM_014249.3:c.947_948insTT']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 2 group E member 3 (NR2E3), transcript variant 2, mRNA'
         assert results['NM_014249.3:c.947_948insTT']['gene_symbol'] == 'NR2E3'
         assert results['NM_014249.3:c.947_948insTT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055064.1:p.(Pro317SerfsTer8)', 'slr': 'NP_055064.1:p.(P317Sfs*8)'}
         assert results['NM_014249.3:c.947_948insTT']['submitted_variant'] == '15-72105928-ACC-ATT'
@@ -6639,7 +6342,6 @@ class TestVariants(object):
         assert results['NM_014249.3:c.947delinsTT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_014249.3:c.947delinsTT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_014249.3:c.947delinsTT']['alt_genomic_loci'] == []
-        assert results['NM_014249.3:c.947delinsTT']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 2 group E member 3 (NR2E3), transcript variant 2, mRNA'
         assert results['NM_014249.3:c.947delinsTT']['gene_symbol'] == 'NR2E3'
         assert results['NM_014249.3:c.947delinsTT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055064.1:p.(Asp316ValfsTer25)', 'slr': 'NP_055064.1:p.(D316Vfs*25)'}
         assert results['NM_014249.3:c.947delinsTT']['submitted_variant'] == '15-72105927-GACC-GTT'
@@ -6657,7 +6359,6 @@ class TestVariants(object):
         assert results['NM_016346.2:c.947delinsTT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_016346.2:c.947delinsTT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_016346.2:c.947delinsTT']['alt_genomic_loci'] == []
-        assert results['NM_016346.2:c.947delinsTT']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 2, group E, member 3 (NR2E3), transcript variant 1, mRNA'
         assert results['NM_016346.2:c.947delinsTT']['gene_symbol'] == 'NR2E3'
         assert results['NM_016346.2:c.947delinsTT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_057430.1:p.(Asp316ValfsTer25)', 'slr': 'NP_057430.1:p.(D316Vfs*25)'}
         assert results['NM_016346.2:c.947delinsTT']['submitted_variant'] == '15-72105927-GACC-GTT'
@@ -6675,7 +6376,6 @@ class TestVariants(object):
         assert results['NM_014249.2:c.947delinsTT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_014249.2:c.947delinsTT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_014249.2:c.947delinsTT']['alt_genomic_loci'] == []
-        assert results['NM_014249.2:c.947delinsTT']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 2, group E, member 3 (NR2E3), transcript variant 2, mRNA'
         assert results['NM_014249.2:c.947delinsTT']['gene_symbol'] == 'NR2E3'
         assert results['NM_014249.2:c.947delinsTT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055064.1:p.(Asp316ValfsTer25)', 'slr': 'NP_055064.1:p.(D316Vfs*25)'}
         assert results['NM_014249.2:c.947delinsTT']['submitted_variant'] == '15-72105927-GACC-GTT'
@@ -6694,7 +6394,6 @@ class TestVariants(object):
         assert results['NM_016346.3:c.947delinsTT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_016346.3:c.947delinsTT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_016346.3:c.947delinsTT']['alt_genomic_loci'] == []
-        assert results['NM_016346.3:c.947delinsTT']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 2 group E member 3 (NR2E3), transcript variant 1, mRNA'
         assert results['NM_016346.3:c.947delinsTT']['gene_symbol'] == 'NR2E3'
         assert results['NM_016346.3:c.947delinsTT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_057430.1:p.(Asp316ValfsTer25)', 'slr': 'NP_057430.1:p.(D316Vfs*25)'}
         assert results['NM_016346.3:c.947delinsTT']['submitted_variant'] == '15-72105927-GACC-GTT'
@@ -6719,7 +6418,6 @@ class TestVariants(object):
         assert results['NM_001042544.1:c.3233_3235=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001042544.1:c.3233_3235=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001042544.1:c.3233_3235=']['alt_genomic_loci'] == []
-        assert results['NM_001042544.1:c.3233_3235=']['transcript_description'] == 'Homo sapiens latent transforming growth factor beta binding protein 4 (LTBP4), transcript variant 1, mRNA'
         assert results['NM_001042544.1:c.3233_3235=']['gene_symbol'] == 'LTBP4'
         assert results['NM_001042544.1:c.3233_3235=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001036009.1:p.(Gln1078=)', 'slr': 'NP_001036009.1:p.(Q1078=)'}
         assert results['NM_001042544.1:c.3233_3235=']['submitted_variant'] == '19-41123093-A-AG'
@@ -6737,7 +6435,6 @@ class TestVariants(object):
         assert results['NM_001042545.1:c.3032_3034=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001042545.1:c.3032_3034=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001042545.1:c.3032_3034=']['alt_genomic_loci'] == []
-        assert results['NM_001042545.1:c.3032_3034=']['transcript_description'] == 'Homo sapiens latent transforming growth factor beta binding protein 4 (LTBP4), transcript variant 3, mRNA'
         assert results['NM_001042545.1:c.3032_3034=']['gene_symbol'] == 'LTBP4'
         assert results['NM_001042545.1:c.3032_3034=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001036010.1:p.(Gln1011=)', 'slr': 'NP_001036010.1:p.(Q1011=)'}
         assert results['NM_001042545.1:c.3032_3034=']['submitted_variant'] == '19-41123093-A-AG'
@@ -6755,7 +6452,6 @@ class TestVariants(object):
         assert results['NM_003573.2:c.3122_3124=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003573.2:c.3122_3124=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003573.2:c.3122_3124=']['alt_genomic_loci'] == []
-        assert results['NM_003573.2:c.3122_3124=']['transcript_description'] == 'Homo sapiens latent transforming growth factor beta binding protein 4 (LTBP4), transcript variant 2, mRNA'
         assert results['NM_003573.2:c.3122_3124=']['gene_symbol'] == 'LTBP4'
         assert results['NM_003573.2:c.3122_3124=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003564.2:p.(Gln1041=)', 'slr': 'NP_003564.2:p.(Q1041=)'}
         assert results['NM_003573.2:c.3122_3124=']['submitted_variant'] == '19-41123093-A-AG'
@@ -6779,7 +6475,6 @@ class TestVariants(object):
         assert results['NM_003573.2:c.3123G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003573.2:c.3123G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003573.2:c.3123G>T']['alt_genomic_loci'] == []
-        assert results['NM_003573.2:c.3123G>T']['transcript_description'] == 'Homo sapiens latent transforming growth factor beta binding protein 4 (LTBP4), transcript variant 2, mRNA'
         assert results['NM_003573.2:c.3123G>T']['gene_symbol'] == 'LTBP4'
         assert results['NM_003573.2:c.3123G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003564.2:p.(Gln1041His)', 'slr': 'NP_003564.2:p.(Q1041H)'}
         assert results['NM_003573.2:c.3123G>T']['submitted_variant'] == '19-41123093-A-AT'
@@ -6798,7 +6493,6 @@ class TestVariants(object):
         assert results['NM_001042545.1:c.3033G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001042545.1:c.3033G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001042545.1:c.3033G>T']['alt_genomic_loci'] == []
-        assert results['NM_001042545.1:c.3033G>T']['transcript_description'] == 'Homo sapiens latent transforming growth factor beta binding protein 4 (LTBP4), transcript variant 3, mRNA'
         assert results['NM_001042545.1:c.3033G>T']['gene_symbol'] == 'LTBP4'
         assert results['NM_001042545.1:c.3033G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001036010.1:p.(Gln1011His)', 'slr': 'NP_001036010.1:p.(Q1011H)'}
         assert results['NM_001042545.1:c.3033G>T']['submitted_variant'] == '19-41123093-A-AT'
@@ -6816,7 +6510,6 @@ class TestVariants(object):
         assert results['NM_001042544.1:c.3234G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001042544.1:c.3234G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001042544.1:c.3234G>T']['alt_genomic_loci'] == []
-        assert results['NM_001042544.1:c.3234G>T']['transcript_description'] == 'Homo sapiens latent transforming growth factor beta binding protein 4 (LTBP4), transcript variant 1, mRNA'
         assert results['NM_001042544.1:c.3234G>T']['gene_symbol'] == 'LTBP4'
         assert results['NM_001042544.1:c.3234G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001036009.1:p.(Gln1078His)', 'slr': 'NP_001036009.1:p.(Q1078H)'}
         assert results['NM_001042544.1:c.3234G>T']['submitted_variant'] == '19-41123093-A-AT'
@@ -6840,7 +6533,6 @@ class TestVariants(object):
         assert results['NM_001042544.1:c.3235_3236del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001042544.1:c.3235_3236del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001042544.1:c.3235_3236del']['alt_genomic_loci'] == []
-        assert results['NM_001042544.1:c.3235_3236del']['transcript_description'] == 'Homo sapiens latent transforming growth factor beta binding protein 4 (LTBP4), transcript variant 1, mRNA'
         assert results['NM_001042544.1:c.3235_3236del']['gene_symbol'] == 'LTBP4'
         assert results['NM_001042544.1:c.3235_3236del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001036009.1:p.(Gly1079LeufsTer17)', 'slr': 'NP_001036009.1:p.(G1079Lfs*17)'}
         assert results['NM_001042544.1:c.3235_3236del']['submitted_variant'] == '19-41123093-AG-A'
@@ -6859,7 +6551,6 @@ class TestVariants(object):
         assert results['NM_001042545.1:c.3034_3035del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001042545.1:c.3034_3035del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001042545.1:c.3034_3035del']['alt_genomic_loci'] == []
-        assert results['NM_001042545.1:c.3034_3035del']['transcript_description'] == 'Homo sapiens latent transforming growth factor beta binding protein 4 (LTBP4), transcript variant 3, mRNA'
         assert results['NM_001042545.1:c.3034_3035del']['gene_symbol'] == 'LTBP4'
         assert results['NM_001042545.1:c.3034_3035del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001036010.1:p.(Gly1012LeufsTer17)', 'slr': 'NP_001036010.1:p.(G1012Lfs*17)'}
         assert results['NM_001042545.1:c.3034_3035del']['submitted_variant'] == '19-41123093-AG-A'
@@ -6877,7 +6568,6 @@ class TestVariants(object):
         assert results['NM_003573.2:c.3124_3125del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003573.2:c.3124_3125del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003573.2:c.3124_3125del']['alt_genomic_loci'] == []
-        assert results['NM_003573.2:c.3124_3125del']['transcript_description'] == 'Homo sapiens latent transforming growth factor beta binding protein 4 (LTBP4), transcript variant 2, mRNA'
         assert results['NM_003573.2:c.3124_3125del']['gene_symbol'] == 'LTBP4'
         assert results['NM_003573.2:c.3124_3125del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003564.2:p.(Gly1042LeufsTer17)', 'slr': 'NP_003564.2:p.(G1042Lfs*17)'}
         assert results['NM_003573.2:c.3124_3125del']['submitted_variant'] == '19-41123093-AG-A'
@@ -6901,7 +6591,6 @@ class TestVariants(object):
         assert results['NM_001042545.1:c.3035del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001042545.1:c.3035del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001042545.1:c.3035del']['alt_genomic_loci'] == []
-        assert results['NM_001042545.1:c.3035del']['transcript_description'] == 'Homo sapiens latent transforming growth factor beta binding protein 4 (LTBP4), transcript variant 3, mRNA'
         assert results['NM_001042545.1:c.3035del']['gene_symbol'] == 'LTBP4'
         assert results['NM_001042545.1:c.3035del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001036010.1:p.(Gly1012ValfsTer14)', 'slr': 'NP_001036010.1:p.(G1012Vfs*14)'}
         assert results['NM_001042545.1:c.3035del']['submitted_variant'] == '19-41123093-AG-AG'
@@ -6920,7 +6609,6 @@ class TestVariants(object):
         assert results['NM_001042544.1:c.3236del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001042544.1:c.3236del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001042544.1:c.3236del']['alt_genomic_loci'] == []
-        assert results['NM_001042544.1:c.3236del']['transcript_description'] == 'Homo sapiens latent transforming growth factor beta binding protein 4 (LTBP4), transcript variant 1, mRNA'
         assert results['NM_001042544.1:c.3236del']['gene_symbol'] == 'LTBP4'
         assert results['NM_001042544.1:c.3236del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001036009.1:p.(Gly1079ValfsTer14)', 'slr': 'NP_001036009.1:p.(G1079Vfs*14)'}
         assert results['NM_001042544.1:c.3236del']['submitted_variant'] == '19-41123093-AG-AG'
@@ -6938,7 +6626,6 @@ class TestVariants(object):
         assert results['NM_003573.2:c.3125del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003573.2:c.3125del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003573.2:c.3125del']['alt_genomic_loci'] == []
-        assert results['NM_003573.2:c.3125del']['transcript_description'] == 'Homo sapiens latent transforming growth factor beta binding protein 4 (LTBP4), transcript variant 2, mRNA'
         assert results['NM_003573.2:c.3125del']['gene_symbol'] == 'LTBP4'
         assert results['NM_003573.2:c.3125del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003564.2:p.(Gly1042ValfsTer14)', 'slr': 'NP_003564.2:p.(G1042Vfs*14)'}
         assert results['NM_003573.2:c.3125del']['submitted_variant'] == '19-41123093-AG-AG'
@@ -6963,7 +6650,6 @@ class TestVariants(object):
         assert results['NM_012309.4:c.913-5058G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_012309.4:c.913-5058G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_012309.4:c.913-5058G>A']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_004070871.1:g.574546C>T', 'vcf': {'chr': 'HG865_PATCH', 'ref': u'C', 'pos': '574546', 'alt': u'T'}}}, {'hg19': {'hgvs_genomic_description': 'NW_004070871.1:g.574546C>T', 'vcf': {'chr': 'NW_004070871.1', 'ref': u'C', 'pos': '574546', 'alt': u'T'}}}]
-        assert results['NM_012309.4:c.913-5058G>A']['transcript_description'] == 'Homo sapiens SH3 and multiple ankyrin repeat domains 2 (SHANK2), transcript variant 1, mRNA'
         assert results['NM_012309.4:c.913-5058G>A']['gene_symbol'] == 'SHANK2'
         assert results['NM_012309.4:c.913-5058G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_036441.2:p.?', 'slr': 'NP_036441.2:p.?'}
         assert results['NM_012309.4:c.913-5058G>A']['submitted_variant'] == 'NM_012309.4:c.913-5058G>A'
@@ -6988,7 +6674,6 @@ class TestVariants(object):
         assert results['NM_004006.2:c.2376G>C']['hgvs_lrg_transcript_variant'] == 'LRG_199t1:c.2376G>C'
         assert results['NM_004006.2:c.2376G>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004006.2:c.2376G>C']['alt_genomic_loci'] == []
-        assert results['NM_004006.2:c.2376G>C']['transcript_description'] == 'Homo sapiens dystrophin (DMD), transcript variant Dp427m, mRNA'
         assert results['NM_004006.2:c.2376G>C']['gene_symbol'] == 'DMD'
         assert results['NM_004006.2:c.2376G>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003997.1(LRG_199p1):p.(Val792=)', 'slr': 'NP_003997.1:p.(V792=)'}
         assert results['NM_004006.2:c.2376G>C']['submitted_variant'] == 'LRG_199t1:c.2376[G>C];[G>C]'
@@ -7012,7 +6697,6 @@ class TestVariants(object):
         assert results['NM_004006.2:c.3103del']['hgvs_lrg_transcript_variant'] == 'LRG_199t1:c.3103del'
         assert results['NM_004006.2:c.3103del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004006.2:c.3103del']['alt_genomic_loci'] == []
-        assert results['NM_004006.2:c.3103del']['transcript_description'] == 'Homo sapiens dystrophin (DMD), transcript variant Dp427m, mRNA'
         assert results['NM_004006.2:c.3103del']['gene_symbol'] == 'DMD'
         assert results['NM_004006.2:c.3103del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003997.1(LRG_199p1):p.(Gln1035SerfsTer9)', 'slr': 'NP_003997.1:p.(Q1035Sfs*9)'}
         assert results['NM_004006.2:c.3103del']['submitted_variant'] == 'LRG_199t1:c.[2376G>C];[3103del]'
@@ -7031,7 +6715,6 @@ class TestVariants(object):
         assert results['NM_004006.2:c.2376G>C']['hgvs_lrg_transcript_variant'] == 'LRG_199t1:c.2376G>C'
         assert results['NM_004006.2:c.2376G>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004006.2:c.2376G>C']['alt_genomic_loci'] == []
-        assert results['NM_004006.2:c.2376G>C']['transcript_description'] == 'Homo sapiens dystrophin (DMD), transcript variant Dp427m, mRNA'
         assert results['NM_004006.2:c.2376G>C']['gene_symbol'] == 'DMD'
         assert results['NM_004006.2:c.2376G>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003997.1(LRG_199p1):p.(Val792=)', 'slr': 'NP_003997.1:p.(V792=)'}
         assert results['NM_004006.2:c.2376G>C']['submitted_variant'] == 'LRG_199t1:c.[2376G>C];[3103del]'
@@ -7052,29 +6735,11 @@ class TestVariants(object):
         print results
 
         assert results['flag'] == 'gene_variant'
-        assert 'NM_004006.2:c.4358_4372delinsG' in results.keys()
-        assert results['NM_004006.2:c.4358_4372delinsG']['hgvs_lrg_transcript_variant'] == 'LRG_199t1:c.4358_4372delinsG'
-        assert results['NM_004006.2:c.4358_4372delinsG']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NM_004006.2:c.4358_4372delinsG']['alt_genomic_loci'] == []
-        assert results['NM_004006.2:c.4358_4372delinsG']['transcript_description'] == 'Homo sapiens dystrophin (DMD), transcript variant Dp427m, mRNA'
-        assert results['NM_004006.2:c.4358_4372delinsG']['gene_symbol'] == 'DMD'
-        assert results['NM_004006.2:c.4358_4372delinsG']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003997.1(LRG_199p1):p.(Asp1453GlyfsTer11)', 'slr': 'NP_003997.1:p.(D1453Gfs*11)'}
-        assert results['NM_004006.2:c.4358_4372delinsG']['submitted_variant'] == 'LRG_199t1:c.[4358_4359del;4361_4372del]'
-        assert results['NM_004006.2:c.4358_4372delinsG']['genome_context_intronic_sequence'] == ''
-        assert results['NM_004006.2:c.4358_4372delinsG']['hgvs_lrg_variant'] == 'LRG_199:g.954949_954963delinsG'
-        assert results['NM_004006.2:c.4358_4372delinsG']['hgvs_transcript_variant'] == 'NM_004006.2:c.4358_4372delinsG'
-        assert results['NM_004006.2:c.4358_4372delinsG']['hgvs_refseqgene_variant'] == 'NG_012232.1:g.954949_954963delinsG'
-        assert results['NM_004006.2:c.4358_4372delinsG']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': 'NC_000023.10:g.32407764_32407778delinsC', 'vcf': {'chr': 'chrX', 'ref': 'ACTTCATGGAGACAT', 'pos': '32407764', 'alt': u'C'}}
-        assert results['NM_004006.2:c.4358_4372delinsG']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': 'NC_000023.11:g.32389647_32389661delinsC', 'vcf': {'chr': 'chrX', 'ref': 'ACTTCATGGAGACAT', 'pos': '32389647', 'alt': u'C'}}
-        assert results['NM_004006.2:c.4358_4372delinsG']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_000023.10:g.32407764_32407778delinsC', 'vcf': {'chr': 'X', 'ref': 'ACTTCATGGAGACAT', 'pos': '32407764', 'alt': u'C'}}
-        assert results['NM_004006.2:c.4358_4372delinsG']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': 'NC_000023.11:g.32389647_32389661delinsC', 'vcf': {'chr': 'X', 'ref': 'ACTTCATGGAGACAT', 'pos': '32389647', 'alt': u'C'}}
-        assert results['NM_004006.2:c.4358_4372delinsG']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_012232.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_003997.1', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_004006.2', 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_199.xml'}
 
         assert 'NM_004006.2:c.4358_4359del' in results.keys()
         assert results['NM_004006.2:c.4358_4359del']['hgvs_lrg_transcript_variant'] == 'LRG_199t1:c.4358_4359del'
         assert results['NM_004006.2:c.4358_4359del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004006.2:c.4358_4359del']['alt_genomic_loci'] == []
-        assert results['NM_004006.2:c.4358_4359del']['transcript_description'] == 'Homo sapiens dystrophin (DMD), transcript variant Dp427m, mRNA'
         assert results['NM_004006.2:c.4358_4359del']['gene_symbol'] == 'DMD'
         assert results['NM_004006.2:c.4358_4359del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003997.1(LRG_199p1):p.(Asp1453GlyfsTer15)', 'slr': 'NP_003997.1:p.(D1453Gfs*15)'}
         assert results['NM_004006.2:c.4358_4359del']['submitted_variant'] == 'LRG_199t1:c.[4358_4359del;4361_4372del]'
@@ -7092,7 +6757,6 @@ class TestVariants(object):
         assert results['NM_004006.2:c.4362_4373del']['hgvs_lrg_transcript_variant'] == 'LRG_199t1:c.4362_4373del'
         assert results['NM_004006.2:c.4362_4373del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004006.2:c.4362_4373del']['alt_genomic_loci'] == []
-        assert results['NM_004006.2:c.4362_4373del']['transcript_description'] == 'Homo sapiens dystrophin (DMD), transcript variant Dp427m, mRNA'
         assert results['NM_004006.2:c.4362_4373del']['gene_symbol'] == 'DMD'
         assert results['NM_004006.2:c.4362_4373del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003997.1(LRG_199p1):p.(Ser1455_Phe1458del)', 'slr': 'NP_003997.1:p.(S1455_F1458del)'}
         assert results['NM_004006.2:c.4362_4373del']['submitted_variant'] == 'LRG_199t1:c.[4358_4359del;4361_4372del]'
@@ -7116,7 +6780,6 @@ class TestVariants(object):
         assert results['NM_004006.2:c.3103del']['hgvs_lrg_transcript_variant'] == 'LRG_199t1:c.3103del'
         assert results['NM_004006.2:c.3103del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004006.2:c.3103del']['alt_genomic_loci'] == []
-        assert results['NM_004006.2:c.3103del']['transcript_description'] == 'Homo sapiens dystrophin (DMD), transcript variant Dp427m, mRNA'
         assert results['NM_004006.2:c.3103del']['gene_symbol'] == 'DMD'
         assert results['NM_004006.2:c.3103del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003997.1(LRG_199p1):p.(Gln1035SerfsTer9)', 'slr': 'NP_003997.1:p.(Q1035Sfs*9)'}
         assert results['NM_004006.2:c.3103del']['submitted_variant'] == 'LRG_199t1:c.2376G>C(;)3103del'
@@ -7135,7 +6798,6 @@ class TestVariants(object):
         assert results['NM_004006.2:c.2376G>C']['hgvs_lrg_transcript_variant'] == 'LRG_199t1:c.2376G>C'
         assert results['NM_004006.2:c.2376G>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004006.2:c.2376G>C']['alt_genomic_loci'] == []
-        assert results['NM_004006.2:c.2376G>C']['transcript_description'] == 'Homo sapiens dystrophin (DMD), transcript variant Dp427m, mRNA'
         assert results['NM_004006.2:c.2376G>C']['gene_symbol'] == 'DMD'
         assert results['NM_004006.2:c.2376G>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003997.1(LRG_199p1):p.(Val792=)', 'slr': 'NP_003997.1:p.(V792=)'}
         assert results['NM_004006.2:c.2376G>C']['submitted_variant'] == 'LRG_199t1:c.2376G>C(;)3103del'
@@ -7160,7 +6822,6 @@ class TestVariants(object):
         assert results['NM_004006.2:c.2376G>C']['hgvs_lrg_transcript_variant'] == 'LRG_199t1:c.2376G>C'
         assert results['NM_004006.2:c.2376G>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004006.2:c.2376G>C']['alt_genomic_loci'] == []
-        assert results['NM_004006.2:c.2376G>C']['transcript_description'] == 'Homo sapiens dystrophin (DMD), transcript variant Dp427m, mRNA'
         assert results['NM_004006.2:c.2376G>C']['gene_symbol'] == 'DMD'
         assert results['NM_004006.2:c.2376G>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003997.1(LRG_199p1):p.(Val792=)', 'slr': 'NP_003997.1:p.(V792=)'}
         assert results['NM_004006.2:c.2376G>C']['submitted_variant'] == 'LRG_199t1:c.2376[G>C];[(G>C)]'
@@ -7185,7 +6846,6 @@ class TestVariants(object):
         assert results['NM_004006.2:c.2376G>C']['hgvs_lrg_transcript_variant'] == 'LRG_199t1:c.2376G>C'
         assert results['NM_004006.2:c.2376G>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004006.2:c.2376G>C']['alt_genomic_loci'] == []
-        assert results['NM_004006.2:c.2376G>C']['transcript_description'] == 'Homo sapiens dystrophin (DMD), transcript variant Dp427m, mRNA'
         assert results['NM_004006.2:c.2376G>C']['gene_symbol'] == 'DMD'
         assert results['NM_004006.2:c.2376G>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003997.1(LRG_199p1):p.(Val792=)', 'slr': 'NP_003997.1:p.(V792=)'}
         assert results['NM_004006.2:c.2376G>C']['submitted_variant'] == 'LRG_199t1:c.[2376G>C];[?]'
@@ -7209,7 +6869,6 @@ class TestVariants(object):
         assert results['NM_004006.2:c.476T=']['hgvs_lrg_transcript_variant'] == 'LRG_199t1:c.476T='
         assert results['NM_004006.2:c.476T=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004006.2:c.476T=']['alt_genomic_loci'] == []
-        assert results['NM_004006.2:c.476T=']['transcript_description'] == 'Homo sapiens dystrophin (DMD), transcript variant Dp427m, mRNA'
         assert results['NM_004006.2:c.476T=']['gene_symbol'] == 'DMD'
         assert results['NM_004006.2:c.476T=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003997.1(LRG_199p1):p.(Phe159=)', 'slr': 'NP_003997.1:p.(F159=)'}
         assert results['NM_004006.2:c.476T=']['submitted_variant'] == 'LRG_199t1:c.[296T>G;476T=];[476T=](;)1083A>C'
@@ -7223,30 +6882,11 @@ class TestVariants(object):
         assert results['NM_004006.2:c.476T=']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': 'NC_000023.11:g.32816522A=', 'vcf': {'chr': 'X', 'ref': u'A', 'pos': '32816522', 'alt': u'A'}}
         assert results['NM_004006.2:c.476T=']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_012232.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_003997.1', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_004006.2', 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_199.xml'}
 
-        assert 'NM_004006.2:c.296_476delinsGCGTAGATGGAAATCATAAACTGACTCTTGGTTTGATTTGGAATATAATCCTCCACTGGCAGGTCAAAAATGTAATGAAAAATATCATGGCTGGATTGCAACAAACCAACAGTGAAAAGATTCTCCTGAGCTGGGTCCGACAATCAACTCGTAATTATCCACAGGTTAATGTAATCAACTT' in results.keys()
-        assert results['NM_004006.2:c.296_476delinsGCGTAGATGGAAATCATAAACTGACTCTTGGTTTGATTTGGAATATAATCCTCCACTGGCAGGTCAAAAATGTAATGAAAAATATCATGGCTGGATTGCAACAAACCAACAGTGAAAAGATTCTCCTGAGCTGGGTCCGACAATCAACTCGTAATTATCCACAGGTTAATGTAATCAACTT']['hgvs_lrg_transcript_variant'] == 'LRG_199t1:c.296_358-3delinsGCGTAGATGGAAATCATAAACTGACTCTTGGTTTGATTTGGAATATAATCCTCCACTGGC'
-        assert results['NM_004006.2:c.296_476delinsGCGTAGATGGAAATCATAAACTGACTCTTGGTTTGATTTGGAATATAATCCTCCACTGGCAGGTCAAAAATGTAATGAAAAATATCATGGCTGGATTGCAACAAACCAACAGTGAAAAGATTCTCCTGAGCTGGGTCCGACAATCAACTCGTAATTATCCACAGGTTAATGTAATCAACTT']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NM_004006.2:c.296_476delinsGCGTAGATGGAAATCATAAACTGACTCTTGGTTTGATTTGGAATATAATCCTCCACTGGCAGGTCAAAAATGTAATGAAAAATATCATGGCTGGATTGCAACAAACCAACAGTGAAAAGATTCTCCTGAGCTGGGTCCGACAATCAACTCGTAATTATCCACAGGTTAATGTAATCAACTT']['alt_genomic_loci'] == []
-        assert results['NM_004006.2:c.296_476delinsGCGTAGATGGAAATCATAAACTGACTCTTGGTTTGATTTGGAATATAATCCTCCACTGGCAGGTCAAAAATGTAATGAAAAATATCATGGCTGGATTGCAACAAACCAACAGTGAAAAGATTCTCCTGAGCTGGGTCCGACAATCAACTCGTAATTATCCACAGGTTAATGTAATCAACTT']['transcript_description'] == 'Homo sapiens dystrophin (DMD), transcript variant Dp427m, mRNA'
-        assert results['NM_004006.2:c.296_476delinsGCGTAGATGGAAATCATAAACTGACTCTTGGTTTGATTTGGAATATAATCCTCCACTGGCAGGTCAAAAATGTAATGAAAAATATCATGGCTGGATTGCAACAAACCAACAGTGAAAAGATTCTCCTGAGCTGGGTCCGACAATCAACTCGTAATTATCCACAGGTTAATGTAATCAACTT']['gene_symbol'] == 'DMD'
-        assert results['NM_004006.2:c.296_476delinsGCGTAGATGGAAATCATAAACTGACTCTTGGTTTGATTTGGAATATAATCCTCCACTGGCAGGTCAAAAATGTAATGAAAAATATCATGGCTGGATTGCAACAAACCAACAGTGAAAAGATTCTCCTGAGCTGGGTCCGACAATCAACTCGTAATTATCCACAGGTTAATGTAATCAACTT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003997.1(LRG_199p1):p.(Ile99Ser)', 'slr': 'NP_003997.1:p.(I99S)'}
-        assert results['NM_004006.2:c.296_476delinsGCGTAGATGGAAATCATAAACTGACTCTTGGTTTGATTTGGAATATAATCCTCCACTGGCAGGTCAAAAATGTAATGAAAAATATCATGGCTGGATTGCAACAAACCAACAGTGAAAAGATTCTCCTGAGCTGGGTCCGACAATCAACTCGTAATTATCCACAGGTTAATGTAATCAACTT']['submitted_variant'] == 'LRG_199t1:c.[296T>G;476T=];[476T=](;)1083A>C'
-        assert results['NM_004006.2:c.296_476delinsGCGTAGATGGAAATCATAAACTGACTCTTGGTTTGATTTGGAATATAATCCTCCACTGGCAGGTCAAAAATGTAATGAAAAATATCATGGCTGGATTGCAACAAACCAACAGTGAAAAGATTCTCCTGAGCTGGGTCCGACAATCAACTCGTAATTATCCACAGGTTAATGTAATCAACTT']['genome_context_intronic_sequence'] == ''
-        assert results['NM_004006.2:c.296_476delinsGCGTAGATGGAAATCATAAACTGACTCTTGGTTTGATTTGGAATATAATCCTCCACTGGCAGGTCAAAAATGTAATGAAAAATATCATGGCTGGATTGCAACAAACCAACAGTGAAAAGATTCTCCTGAGCTGGGTCCGACAATCAACTCGTAATTATCCACAGGTTAATGTAATCAACTT']['hgvs_lrg_variant'] == 'LRG_199:g.521254_527967delinsGCGTAGATGGAAATCATAAACTGACTCTTGGTTTGATTTGGAATATAATCCTCCACTGGC'
-        assert results['NM_004006.2:c.296_476delinsGCGTAGATGGAAATCATAAACTGACTCTTGGTTTGATTTGGAATATAATCCTCCACTGGCAGGTCAAAAATGTAATGAAAAATATCATGGCTGGATTGCAACAAACCAACAGTGAAAAGATTCTCCTGAGCTGGGTCCGACAATCAACTCGTAATTATCCACAGGTTAATGTAATCAACTT']['hgvs_transcript_variant'] == 'NM_004006.2:c.296_476delinsGCGTAGATGGAAATCATAAACTGACTCTTGGTTTGATTTGGAATATAATCCTCCACTGGCAGGTCAAAAATGTAATGAAAAATATCATGGCTGGATTGCAACAAACCAACAGTGAAAAGATTCTCCTGAGCTGGGTCCGACAATCAACTCGTAATTATCCACAGGTTAATGTAATCAACTT'
-        assert results['NM_004006.2:c.296_476delinsGCGTAGATGGAAATCATAAACTGACTCTTGGTTTGATTTGGAATATAATCCTCCACTGGCAGGTCAAAAATGTAATGAAAAATATCATGGCTGGATTGCAACAAACCAACAGTGAAAAGATTCTCCTGAGCTGGGTCCGACAATCAACTCGTAATTATCCACAGGTTAATGTAATCAACTT']['hgvs_refseqgene_variant'] == 'NG_012232.1:g.521254_527967delinsGCGTAGATGGAAATCATAAACTGACTCTTGGTTTGATTTGGAATATAATCCTCCACTGGC'
-        assert results['NM_004006.2:c.296_476delinsGCGTAGATGGAAATCATAAACTGACTCTTGGTTTGATTTGGAATATAATCCTCCACTGGCAGGTCAAAAATGTAATGAAAAATATCATGGCTGGATTGCAACAAACCAACAGTGAAAAGATTCTCCTGAGCTGGGTCCGACAATCAACTCGTAATTATCCACAGGTTAATGTAATCAACTT']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': 'NC_000023.10:g.32834639_32841473delinsAAGTTGATTACATTAACCTGTGGATAATTACGAGTTGATTGTCGGACCCAGCTCAGGAGAATCTTTTCACTGTTGGTTTGTTGCAATCCAGCCATGATATTTTTCATTACATTTTTGACCTGCCAGTGGAGGATTATATTCCAAATCAAACCAAGAGTCAGTTTATGATTTCCATCTACGC', 'vcf': {'chr': 'chrX', 'ref': 'ACATGTGGAAATAAATTTTCATAAGAAAATGCATTCCTTGAGCAAGAACCATGCAAACTTAAATATGAATGTCCTTGATCTTCAGTGATAAATAGAAATTTTAGGGCCAATTAGTAATGAGACATAATAGATTCTACCAGAAGTTAAGTCTATTCTCAAAGGCTAGGAGTCTATTCTGATTCATTGGTATCTATGCCATACCATTTACTGAATGTGTTCACTATTACTCCTGGATTCTGCCATATTAGACCCAACATTTACTGTTTATAGAATTGCTCACCTTCTAGCTTTCAATGAACAAGCTAGAGAAGACAGTGTATAAAACATTAGACTTATTGTTAACCAAGGACTTAAGATATAAAAGCGCTTTTTGGATAGGAGGAATACTATAGATAATTGTTTTTTAAAGTATATGTTCAAATTTTGCCTTTGCTATTAATTGTGGTAATTGGACAAGTTGCTTAACCTCTTCTAGGCCTCATTTCTGTGTATCTTACATGCAAGGTTAGTGTAAGATCAAAGTACAAAATATGGTCAGATAAAACCCCTGATTTCATACCATCATTTAACGCAAGCTATATTTATTGGCTGAACTGAAAAGAAGACAGAAATGTTTGCCTACCTAAAATAAAGAAAAAAAACAACAAAGGAAGGAAATATTTATCCCTAAGAGGTGTACATATGTAGCCTTGGTTCTATTTTCATTACTTGGTTTCCATGTATTTGATTGTCTCATAGGCTTCGTGCATGTGCAGATGTTATTCAACAGATTATCAAGTTTAATTCTTCTGAGTCATCTGATGCAGAAATCCATTCTAAGCATTTTTTCTAAGTTTCATGAATGCAGTGACGCTTCATAGAAAAAACTGTCTACATCTTTTATTAAAGAATTATTATTTATTAAAGACTGCTTTTTAAATATAAGCCCCTTATGAGATGCTGGAAGAAGACATCTATGTAAAAGTGATCAGTCTGTACCACTAAGCACTTTCCTTCTGGGAAGGTTAAGGTTCATATACTATCAACATTTGATCAGATGATGAATATTTATTGTGCATTCTAAATATGACAATTTTATTTTTTCATCCATATAGAAGTTAACAAATGCCTTTGGGGTAAATGCATATTTTAACATCTCCAATGTTAGTCATCTTTTTATTAAAAAGTAAATGCAAATTTTAGGATATACTACTAAATCTCATTTTAACATACTTTTAAAAGATTTGAGATGATGCTTTGTAAACACAGTAACGATTCGGAGATATGAAATCTTTGCATGTATCTGTCACAATCCCTTGATAACTAAGCCTATTATTTAGGAGTGGATTATCCAAGTTTTCCTAATTCCTTCTTGACCTACTTATTTAGTCAGTTACTCAGTGAATACAGGTCAAATAATTACGTAATTTGTCTCATATTCTAAAATTATAAATTGCTCAACCTTTATGTACAGTGACTGCAGGAGGTGTATTTTGTGTCCTGTGCTAAATTACGGTTGGAATCAGCAGATAGTGGCTTAATGGTGGTAATGGATTTGCAATAATCAAGCAATCCTCCAATGATGAATGTGATTCATTTGTGAAATGCTTGGCCAGTCTGCCCTCTATGTGCATAACGTTAAAGGACAACAAAGTATTCAATCCAAAACTCCTTTATAGCATCATTATGTCACTAATTCAGCTTATCAGCCTCAGCCTCGCTGTTATTGCTTCTACTTAGGTGCAAATGTTGCTCAGACAAAAAAAAATAATAAAGGGCAATGTATGATAATCATGTCTCCTTTTCCTACATAAAAGGCAGTTATCAAAAAATCATTGAGCTGGTCCCCAAAGGTGAGCCTGTAAACAGAAAACTGTCCCGTCCTCAGGTCTCACTGTCTCTAAAGGAGGCTCAATTTAAACAGATGTATTTGTGTGTGTGCGCGCATACAACTATAAATCAATTTTTAAAAGGAAAAAAGTTGAAATGTCTTTGAGCAGTGATTTTTAAAAATGACTAGGAGTTAACTGGGCCAAGAAGGCATGATGGACATGGAGGTGCACCACCAAGATTGACCTTCAAGGAAGGGCTTGTTGCTCCAGCTGTGGTCAGGCAGCTTCTAGTTGTTAGTTCTCTCAGGTACCACCTGAGTTGCAGAGTCCTGCCAGCCAATGTCACACCCTCTCTAGGGCAACCCACTACTATTGACTGATGAAGGGGCAGAGTATAAACACTCAGCCATTTTAACCCCATTTGAGACAACTCTGAGGGGTCATCCTAGCTGCAAGTTGTCTATGGGGTTTGAATAAGCGTGTCATAGGGTCTACGTCACAGCTCTAGTTCTTCCTCTTTCCACTCCTGTCACCTCTGCCCTTCTACAGGTGTTTTTTTTTTTTTTTTTTTTTCCAGGGCATGGCTTAATAAACATGCTGCCTGCCAAACTCAACTCCGAAGTCTACTCCCCAGAACCCAGACTGTGATTAAAAGAAGTTGCAGCAGAGGAATAGAAATGAAGAGGGTAGGAATAATCTTATATGGTAAGGATAGTTTCTGTGAAGCTCTGCAGAAGAGCAGAGCAAGAACTGTCTTGCACAGAAGTGACTTGGTAGGCAGGAATTTACAGGGATGGCTTTCAGCAGTGCGAACGTCATCATTCTCCTGTAATTGCAAATTGTATCAATAATATGAACATTCTAAAGTGAATTAGCGTTGCCATTAAGTACATCCCTTGAATTGTCCAGTAAAAGTATGGACCTGACTTCTGATAGCTCACCACTGTTAGCAAGATTTGTTATTACAACCAGCTGGTTGCCAGAGCCAAGTTTAGCACTCCGAAAAAAAAAGAATTGCACTTAAGAAGGAAGAAAAAGATGCCAAACACATGTTATATGCTTTGCAATTTTGTTCAAACCTGCCTATGTTACAAAATATGCGTTACTGTTTTAGGCTAGCAATTTTATTTGAGATGGACAGTAGAAAAACAGTAATAGGAAAACAGAGTTTGCATTCCTGAGTTTTCACAAGTTCAATGAGAAGTCCTCCATGGCACTATTAATAACATAGTATGTTGCATTAGAAAAAGGGGCCAACATGGTTCTATCTGTAAATGCCGCTCGTTATCTGATAGATCTAGAATGTACATTAAGTTGACCAAAATGTCCTTTAATCTTTGCTGAAATTCAAGGGCTTCTACCATTTAATAGGAAGAAAATATGTAATGTTGGTGTAAAAAAAAAAAAAAAAAAGAAAAACACATTTTTAGATTCACTGGATTATGATGAACACTGAGCAAGATAATTTTTCAAAGTGTGCTTAATAGTTTTAGAACAGGGCAGTGTGATATAAGAGAGATGAGATAAGTAAGCAGAGGCTGGGAAGAGTCTACAGTCTTGCAGTCTCAAGGATATGGTGATTCAAGGGCATAAATGAAAAACAACAGGCTATAAGAGAGGTCTCAGACAAAGAAAGATTTAAAAAGCATTCCTTCTGATATTCCTCATTGCAAAAGCGCCTCCACATGCTAATAATGAAAAATGGGCTGGGTGCGGTGGCTCACGCCTGTAATCCAAACACTTTGGGAGGCCGAGACGGGCGGATCACAAGGTCAGGAGATCGAGACCATCCTGGCTAACACGGTGAAACCCCATCTCTACTGAACAAAATACAAAAAATTAGCCGGGCGTGGTGGCGGGCGCCTGTAGTCCCAGCTACTTGGGAGGCTGAGGCAAGAGAATGGCATGAACCCAGGAGGCGGAGCTTGCAGTGAGCAGAGATCGCGCCACTGCACTCCAGCCTGGGTGACAGAGCGAGACTCTGTCTCAAAAATAAAAAATAAAAAAATAATAATAAATGAACAACTTGCAAGCAAGTGAAGAAATTATCAGACATAATAGTCTTGAAAGCTTATCTTGGACTAGTTCAGATGGAGTTGGAAAGGGCTTCAGGATATTTTTAAAAATGGTAAGATCATATAAGAAGTAGTATAAACAATAAATACAGTTCAGAGTGCCTTTTGGAGCTCTGTGCATGCTTGAGTTCTTCTGCTGGCTTTGTCAAAACTTACATCTGTCTTACGCAAAGCGGGATCTGCAAACTGGATTCACTCTAGGAATTATTTGTTACTATGCCATAAGATAAAGTCAACAATTCAGAGTGCATCAAGAAACTTATGTAGCGATTTTACAGAGTACCATTTATGTCTAATGTATTTAATAATAAAGGAGGAAGCATGGGTGTTGGGCATCTTATTTTTGTAACGCTTTGGTTTTATTCTATCTTACATACAATGGATTAGGGGAAAAGTGTTCCTTCCTCAAGATATTTTGAGAAGTACTGAGCAACATATGAAAAGCAGTTTGGGGAGAGATGCGGTATGTTGCTTGCTGGTTCTATTTGACACCATCACTATATGGAACGGGCTGAAAATCGGCCAACTTGGGCTCACTTAAGGCTCCTATGAGCTATTCTTTGTTGCCAGCACATATTAATTCCCGCTCTTTCTCTTCCCCTCTCCCCGCTTACTGTTGTGAAGTAGCATTAAGCCTGTTCAGAGAATTTGGAATAAAAATATATGGGGGCCAATTAGGAGAGCAACATGGCTGCTGAATTTAATAGGTACTCTTTGTGTCTACTCACTATTTGACTCTGAGCAAGAGCAATCTACAATTCAAGTTAAAATTCAAGCCGGGCGCAGTGGCTCATGCCTGCAATCCCAGCACTTTGGGAGGCCGAGGCAGGAGGATCACGAGGTCAGGAGATCGAGACCATCCTGGCTAACACGGTGAAACCCCGTCTCTACTAAAAATACAAAAAAAAATTAGCCGGGCGTGGTGGGGGGGCGCCTGTAGTCCCAGCTACTCGGGAGGCTGAGGCAGGAGAATGGCGTGAATCCGGGAGGCGGAGCTTGCAGTGAGCCGAGATCGCGCCACTGCACTCCAGCCTGGGCGACAGAGCAAGACTCTGTCTCAAAATAAAAATAAAAAAAAATAAAAATAAAAAATAAAAAAATTCAAGTTTACCGAATGAAGCCATGATATCTGCTACAATAGGGCTGGATCTGAACTATTACCCTCATTGCAAGAAGCCAGACACAAAAGAACATGTATTATATTGATATAAAATATCCAAAAAGGCAAATACATATGGACAGAAATAGATTGACAATTGCCTAGGGCTGGGGTGGGAGTGAAAAATGACTGTAAATGGAGAAGAAACTTCTTTTTAAGGTGGTGGAAAAGTGCCAAAATTAGATCGCTATGATGGCTATATAACTCTGTAAATATCCTGCAAATTTTAATGAACGTGGTGGGGGGGAGTTATTCATCCCTCAAAATAGTTTGAGAGGCTACCAAGAACCAGAACTAAACCAGATTGATGCAAATTGAATTTTACACTTAGAATGAGTACATTGATGGTCTAACAATTACATTTCAAAAACGCTGATTTATAAAAAAGTAATCCCGACCAGTAAAAACAGCAGTCATTTCTCAGCCTCCAAATTTTTTAAATGAGTGGAAAACTTTAAGCAATCAATACAAGTCATATGATACACCTCAAATAAAAGTGGTATACTACACTGAGTGCCTTGCAGATATTCTCCCACTTAATCGTGATAAGAAATACATACACATTTATTTTTATTTTTACTCTTTTGATAGTGAAGGGACCATGGCCCAGAACAGGGGTGGCAATATACCAAATGCCACTAAGATGGTAACCGTGGAAGTTTAAATTCAAGTTCATGTTGGTATATATATATACACATACATATTTATACATATGTGTATAACGAGTTACTATTACGTATATATATACAATGAGTGGAAAATATTAGTGGATATAAGTTCATGTATGATTATGTATACATATTATGATTATACTATTATGTATATGTATACAATGAGTGGATAATATTAGTGGATATAAGTTCATGTTGGTCTTATATATACATATATAATGTGTGGATATGAGTGTGTATATATATACATATATAATGTGTGGATATGAGTGTGTGTATATACACACATGCATATTGTATATATGTGTGTATATATAGACACATTATATATATACGCATATATACTACACACACACACACACGGGTGTGTGTCTGTATCTTTTCCACAAATCCTTCAACCCATTTTGCAGAGGTCAAATAGACAGTCGGAAGACCCTATGCTCAGGTGACTTAAAAATAATTTCCAAATCACATTATGGAGTTTGTATGTATTACACACATTTATTGATAGAGATACCCATATTCTACTAATCTTTTATTGGCAATAATTTATGTTAAGAATACCCAAGACTGAGAAAGCCTCATTCCTTTGGTAGTGATTAAAATAAAACATACTAAATTAACTTATAGACAAGTTATAGAACATACATTTGTGAAAAAAATTACTCACCTATGATTGGGACTTTGTATTTTTACCTTATACTTACTCAATGAAATAAAATTTTGAAAAATATTCCTGTAAATGTACCAGAACCTATTTTATACCGTGATGATCCTTAACATTTCAGACGACATGGTAGTGTCAATTTAAAAAGCAGCACTATGGAGCAGGGTTTGTTATTGTTAGAAATACACATTTGTTTCACACGTCAAGGGTAAAAATTAAAAAACAAGATTAATGTTACCCAAAAGGAAACCATTCATCAGGATTCTTACCTGCCAGTGGAGGATTATATTCCAAATCAAACCAAGAGTCAGTTTATGATTTCCATCTACGA', 'pos': '32834760', 'alt': u'GCCAGTGGAGGATTATATTCCAAATCAAACCAAGAGTCAGTTTATGATTTCCATCTACGC'}}
-        assert results['NM_004006.2:c.296_476delinsGCGTAGATGGAAATCATAAACTGACTCTTGGTTTGATTTGGAATATAATCCTCCACTGGCAGGTCAAAAATGTAATGAAAAATATCATGGCTGGATTGCAACAAACCAACAGTGAAAAGATTCTCCTGAGCTGGGTCCGACAATCAACTCGTAATTATCCACAGGTTAATGTAATCAACTT']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': 'NC_000023.11:g.32816522_32823356delinsAAGTTGATTACATTAACCTGTGGATAATTACGAGTTGATTGTCGGACCCAGCTCAGGAGAATCTTTTCACTGTTGGTTTGTTGCAATCCAGCCATGATATTTTTCATTACATTTTTGACCTGCCAGTGGAGGATTATATTCCAAATCAAACCAAGAGTCAGTTTATGATTTCCATCTACGC', 'vcf': {'chr': 'chrX', 'ref': 'ACATGTGGAAATAAATTTTCATAAGAAAATGCATTCCTTGAGCAAGAACCATGCAAACTTAAATATGAATGTCCTTGATCTTCAGTGATAAATAGAAATTTTAGGGCCAATTAGTAATGAGACATAATAGATTCTACCAGAAGTTAAGTCTATTCTCAAAGGCTAGGAGTCTATTCTGATTCATTGGTATCTATGCCATACCATTTACTGAATGTGTTCACTATTACTCCTGGATTCTGCCATATTAGACCCAACATTTACTGTTTATAGAATTGCTCACCTTCTAGCTTTCAATGAACAAGCTAGAGAAGACAGTGTATAAAACATTAGACTTATTGTTAACCAAGGACTTAAGATATAAAAGCGCTTTTTGGATAGGAGGAATACTATAGATAATTGTTTTTTAAAGTATATGTTCAAATTTTGCCTTTGCTATTAATTGTGGTAATTGGACAAGTTGCTTAACCTCTTCTAGGCCTCATTTCTGTGTATCTTACATGCAAGGTTAGTGTAAGATCAAAGTACAAAATATGGTCAGATAAAACCCCTGATTTCATACCATCATTTAACGCAAGCTATATTTATTGGCTGAACTGAAAAGAAGACAGAAATGTTTGCCTACCTAAAATAAAGAAAAAAAACAACAAAGGAAGGAAATATTTATCCCTAAGAGGTGTACATATGTAGCCTTGGTTCTATTTTCATTACTTGGTTTCCATGTATTTGATTGTCTCATAGGCTTCGTGCATGTGCAGATGTTATTCAACAGATTATCAAGTTTAATTCTTCTGAGTCATCTGATGCAGAAATCCATTCTAAGCATTTTTTCTAAGTTTCATGAATGCAGTGACGCTTCATAGAAAAAACTGTCTACATCTTTTATTAAAGAATTATTATTTATTAAAGACTGCTTTTTAAATATAAGCCCCTTATGAGATGCTGGAAGAAGACATCTATGTAAAAGTGATCAGTCTGTACCACTAAGCACTTTCCTTCTGGGAAGGTTAAGGTTCATATACTATCAACATTTGATCAGATGATGAATATTTATTGTGCATTCTAAATATGACAATTTTATTTTTTCATCCATATAGAAGTTAACAAATGCCTTTGGGGTAAATGCATATTTTAACATCTCCAATGTTAGTCATCTTTTTATTAAAAAGTAAATGCAAATTTTAGGATATACTACTAAATCTCATTTTAACATACTTTTAAAAGATTTGAGATGATGCTTTGTAAACACAGTAACGATTCGGAGATATGAAATCTTTGCATGTATCTGTCACAATCCCTTGATAACTAAGCCTATTATTTAGGAGTGGATTATCCAAGTTTTCCTAATTCCTTCTTGACCTACTTATTTAGTCAGTTACTCAGTGAATACAGGTCAAATAATTACGTAATTTGTCTCATATTCTAAAATTATAAATTGCTCAACCTTTATGTACAGTGACTGCAGGAGGTGTATTTTGTGTCCTGTGCTAAATTACGGTTGGAATCAGCAGATAGTGGCTTAATGGTGGTAATGGATTTGCAATAATCAAGCAATCCTCCAATGATGAATGTGATTCATTTGTGAAATGCTTGGCCAGTCTGCCCTCTATGTGCATAACGTTAAAGGACAACAAAGTATTCAATCCAAAACTCCTTTATAGCATCATTATGTCACTAATTCAGCTTATCAGCCTCAGCCTCGCTGTTATTGCTTCTACTTAGGTGCAAATGTTGCTCAGACAAAAAAAAATAATAAAGGGCAATGTATGATAATCATGTCTCCTTTTCCTACATAAAAGGCAGTTATCAAAAAATCATTGAGCTGGTCCCCAAAGGTGAGCCTGTAAACAGAAAACTGTCCCGTCCTCAGGTCTCACTGTCTCTAAAGGAGGCTCAATTTAAACAGATGTATTTGTGTGTGTGCGCGCATACAACTATAAATCAATTTTTAAAAGGAAAAAAGTTGAAATGTCTTTGAGCAGTGATTTTTAAAAATGACTAGGAGTTAACTGGGCCAAGAAGGCATGATGGACATGGAGGTGCACCACCAAGATTGACCTTCAAGGAAGGGCTTGTTGCTCCAGCTGTGGTCAGGCAGCTTCTAGTTGTTAGTTCTCTCAGGTACCACCTGAGTTGCAGAGTCCTGCCAGCCAATGTCACACCCTCTCTAGGGCAACCCACTACTATTGACTGATGAAGGGGCAGAGTATAAACACTCAGCCATTTTAACCCCATTTGAGACAACTCTGAGGGGTCATCCTAGCTGCAAGTTGTCTATGGGGTTTGAATAAGCGTGTCATAGGGTCTACGTCACAGCTCTAGTTCTTCCTCTTTCCACTCCTGTCACCTCTGCCCTTCTACAGGTGTTTTTTTTTTTTTTTTTTTTTCCAGGGCATGGCTTAATAAACATGCTGCCTGCCAAACTCAACTCCGAAGTCTACTCCCCAGAACCCAGACTGTGATTAAAAGAAGTTGCAGCAGAGGAATAGAAATGAAGAGGGTAGGAATAATCTTATATGGTAAGGATAGTTTCTGTGAAGCTCTGCAGAAGAGCAGAGCAAGAACTGTCTTGCACAGAAGTGACTTGGTAGGCAGGAATTTACAGGGATGGCTTTCAGCAGTGCGAACGTCATCATTCTCCTGTAATTGCAAATTGTATCAATAATATGAACATTCTAAAGTGAATTAGCGTTGCCATTAAGTACATCCCTTGAATTGTCCAGTAAAAGTATGGACCTGACTTCTGATAGCTCACCACTGTTAGCAAGATTTGTTATTACAACCAGCTGGTTGCCAGAGCCAAGTTTAGCACTCCGAAAAAAAAAGAATTGCACTTAAGAAGGAAGAAAAAGATGCCAAACACATGTTATATGCTTTGCAATTTTGTTCAAACCTGCCTATGTTACAAAATATGCGTTACTGTTTTAGGCTAGCAATTTTATTTGAGATGGACAGTAGAAAAACAGTAATAGGAAAACAGAGTTTGCATTCCTGAGTTTTCACAAGTTCAATGAGAAGTCCTCCATGGCACTATTAATAACATAGTATGTTGCATTAGAAAAAGGGGCCAACATGGTTCTATCTGTAAATGCCGCTCGTTATCTGATAGATCTAGAATGTACATTAAGTTGACCAAAATGTCCTTTAATCTTTGCTGAAATTCAAGGGCTTCTACCATTTAATAGGAAGAAAATATGTAATGTTGGTGTAAAAAAAAAAAAAAAAAAGAAAAACACATTTTTAGATTCACTGGATTATGATGAACACTGAGCAAGATAATTTTTCAAAGTGTGCTTAATAGTTTTAGAACAGGGCAGTGTGATATAAGAGAGATGAGATAAGTAAGCAGAGGCTGGGAAGAGTCTACAGTCTTGCAGTCTCAAGGATATGGTGATTCAAGGGCATAAATGAAAAACAACAGGCTATAAGAGAGGTCTCAGACAAAGAAAGATTTAAAAAGCATTCCTTCTGATATTCCTCATTGCAAAAGCGCCTCCACATGCTAATAATGAAAAATGGGCTGGGTGCGGTGGCTCACGCCTGTAATCCAAACACTTTGGGAGGCCGAGACGGGCGGATCACAAGGTCAGGAGATCGAGACCATCCTGGCTAACACGGTGAAACCCCATCTCTACTGAACAAAATACAAAAAATTAGCCGGGCGTGGTGGCGGGCGCCTGTAGTCCCAGCTACTTGGGAGGCTGAGGCAAGAGAATGGCATGAACCCAGGAGGCGGAGCTTGCAGTGAGCAGAGATCGCGCCACTGCACTCCAGCCTGGGTGACAGAGCGAGACTCTGTCTCAAAAATAAAAAATAAAAAAATAATAATAAATGAACAACTTGCAAGCAAGTGAAGAAATTATCAGACATAATAGTCTTGAAAGCTTATCTTGGACTAGTTCAGATGGAGTTGGAAAGGGCTTCAGGATATTTTTAAAAATGGTAAGATCATATAAGAAGTAGTATAAACAATAAATACAGTTCAGAGTGCCTTTTGGAGCTCTGTGCATGCTTGAGTTCTTCTGCTGGCTTTGTCAAAACTTACATCTGTCTTACGCAAAGCGGGATCTGCAAACTGGATTCACTCTAGGAATTATTTGTTACTATGCCATAAGATAAAGTCAACAATTCAGAGTGCATCAAGAAACTTATGTAGCGATTTTACAGAGTACCATTTATGTCTAATGTATTTAATAATAAAGGAGGAAGCATGGGTGTTGGGCATCTTATTTTTGTAACGCTTTGGTTTTATTCTATCTTACATACAATGGATTAGGGGAAAAGTGTTCCTTCCTCAAGATATTTTGAGAAGTACTGAGCAACATATGAAAAGCAGTTTGGGGAGAGATGCGGTATGTTGCTTGCTGGTTCTATTTGACACCATCACTATATGGAACGGGCTGAAAATCGGCCAACTTGGGCTCACTTAAGGCTCCTATGAGCTATTCTTTGTTGCCAGCACATATTAATTCCCGCTCTTTCTCTTCCCCTCTCCCCGCTTACTGTTGTGAAGTAGCATTAAGCCTGTTCAGAGAATTTGGAATAAAAATATATGGGGGCCAATTAGGAGAGCAACATGGCTGCTGAATTTAATAGGTACTCTTTGTGTCTACTCACTATTTGACTCTGAGCAAGAGCAATCTACAATTCAAGTTAAAATTCAAGCCGGGCGCAGTGGCTCATGCCTGCAATCCCAGCACTTTGGGAGGCCGAGGCAGGAGGATCACGAGGTCAGGAGATCGAGACCATCCTGGCTAACACGGTGAAACCCCGTCTCTACTAAAAATACAAAAAAAAATTAGCCGGGCGTGGTGGGGGGGCGCCTGTAGTCCCAGCTACTCGGGAGGCTGAGGCAGGAGAATGGCGTGAATCCGGGAGGCGGAGCTTGCAGTGAGCCGAGATCGCGCCACTGCACTCCAGCCTGGGCGACAGAGCAAGACTCTGTCTCAAAATAAAAATAAAAAAAAATAAAAATAAAAAATAAAAAAATTCAAGTTTACCGAATGAAGCCATGATATCTGCTACAATAGGGCTGGATCTGAACTATTACCCTCATTGCAAGAAGCCAGACACAAAAGAACATGTATTATATTGATATAAAATATCCAAAAAGGCAAATACATATGGACAGAAATAGATTGACAATTGCCTAGGGCTGGGGTGGGAGTGAAAAATGACTGTAAATGGAGAAGAAACTTCTTTTTAAGGTGGTGGAAAAGTGCCAAAATTAGATCGCTATGATGGCTATATAACTCTGTAAATATCCTGCAAATTTTAATGAACGTGGTGGGGGGGAGTTATTCATCCCTCAAAATAGTTTGAGAGGCTACCAAGAACCAGAACTAAACCAGATTGATGCAAATTGAATTTTACACTTAGAATGAGTACATTGATGGTCTAACAATTACATTTCAAAAACGCTGATTTATAAAAAAGTAATCCCGACCAGTAAAAACAGCAGTCATTTCTCAGCCTCCAAATTTTTTAAATGAGTGGAAAACTTTAAGCAATCAATACAAGTCATATGATACACCTCAAATAAAAGTGGTATACTACACTGAGTGCCTTGCAGATATTCTCCCACTTAATCGTGATAAGAAATACATACACATTTATTTTTATTTTTACTCTTTTGATAGTGAAGGGACCATGGCCCAGAACAGGGGTGGCAATATACCAAATGCCACTAAGATGGTAACCGTGGAAGTTTAAATTCAAGTTCATGTTGGTATATATATATACACATACATATTTATACATATGTGTATAACGAGTTACTATTACGTATATATATACAATGAGTGGAAAATATTAGTGGATATAAGTTCATGTATGATTATGTATACATATTATGATTATACTATTATGTATATGTATACAATGAGTGGATAATATTAGTGGATATAAGTTCATGTTGGTCTTATATATACATATATAATGTGTGGATATGAGTGTGTATATATATACATATATAATGTGTGGATATGAGTGTGTGTATATACACACATGCATATTGTATATATGTGTGTATATATAGACACATTATATATATACGCATATATACTACACACACACACACACGGGTGTGTGTCTGTATCTTTTCCACAAATCCTTCAACCCATTTTGCAGAGGTCAAATAGACAGTCGGAAGACCCTATGCTCAGGTGACTTAAAAATAATTTCCAAATCACATTATGGAGTTTGTATGTATTACACACATTTATTGATAGAGATACCCATATTCTACTAATCTTTTATTGGCAATAATTTATGTTAAGAATACCCAAGACTGAGAAAGCCTCATTCCTTTGGTAGTGATTAAAATAAAACATACTAAATTAACTTATAGACAAGTTATAGAACATACATTTGTGAAAAAAATTACTCACCTATGATTGGGACTTTGTATTTTTACCTTATACTTACTCAATGAAATAAAATTTTGAAAAATATTCCTGTAAATGTACCAGAACCTATTTTATACCGTGATGATCCTTAACATTTCAGACGACATGGTAGTGTCAATTTAAAAAGCAGCACTATGGAGCAGGGTTTGTTATTGTTAGAAATACACATTTGTTTCACACGTCAAGGGTAAAAATTAAAAAACAAGATTAATGTTACCCAAAAGGAAACCATTCATCAGGATTCTTACCTGCCAGTGGAGGATTATATTCCAAATCAAACCAAGAGTCAGTTTATGATTTCCATCTACGA', 'pos': '32816643', 'alt': u'GCCAGTGGAGGATTATATTCCAAATCAAACCAAGAGTCAGTTTATGATTTCCATCTACGC'}}
-        assert results['NM_004006.2:c.296_476delinsGCGTAGATGGAAATCATAAACTGACTCTTGGTTTGATTTGGAATATAATCCTCCACTGGCAGGTCAAAAATGTAATGAAAAATATCATGGCTGGATTGCAACAAACCAACAGTGAAAAGATTCTCCTGAGCTGGGTCCGACAATCAACTCGTAATTATCCACAGGTTAATGTAATCAACTT']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_000023.10:g.32834639_32841473delinsAAGTTGATTACATTAACCTGTGGATAATTACGAGTTGATTGTCGGACCCAGCTCAGGAGAATCTTTTCACTGTTGGTTTGTTGCAATCCAGCCATGATATTTTTCATTACATTTTTGACCTGCCAGTGGAGGATTATATTCCAAATCAAACCAAGAGTCAGTTTATGATTTCCATCTACGC', 'vcf': {'chr': 'X', 'ref': 'ACATGTGGAAATAAATTTTCATAAGAAAATGCATTCCTTGAGCAAGAACCATGCAAACTTAAATATGAATGTCCTTGATCTTCAGTGATAAATAGAAATTTTAGGGCCAATTAGTAATGAGACATAATAGATTCTACCAGAAGTTAAGTCTATTCTCAAAGGCTAGGAGTCTATTCTGATTCATTGGTATCTATGCCATACCATTTACTGAATGTGTTCACTATTACTCCTGGATTCTGCCATATTAGACCCAACATTTACTGTTTATAGAATTGCTCACCTTCTAGCTTTCAATGAACAAGCTAGAGAAGACAGTGTATAAAACATTAGACTTATTGTTAACCAAGGACTTAAGATATAAAAGCGCTTTTTGGATAGGAGGAATACTATAGATAATTGTTTTTTAAAGTATATGTTCAAATTTTGCCTTTGCTATTAATTGTGGTAATTGGACAAGTTGCTTAACCTCTTCTAGGCCTCATTTCTGTGTATCTTACATGCAAGGTTAGTGTAAGATCAAAGTACAAAATATGGTCAGATAAAACCCCTGATTTCATACCATCATTTAACGCAAGCTATATTTATTGGCTGAACTGAAAAGAAGACAGAAATGTTTGCCTACCTAAAATAAAGAAAAAAAACAACAAAGGAAGGAAATATTTATCCCTAAGAGGTGTACATATGTAGCCTTGGTTCTATTTTCATTACTTGGTTTCCATGTATTTGATTGTCTCATAGGCTTCGTGCATGTGCAGATGTTATTCAACAGATTATCAAGTTTAATTCTTCTGAGTCATCTGATGCAGAAATCCATTCTAAGCATTTTTTCTAAGTTTCATGAATGCAGTGACGCTTCATAGAAAAAACTGTCTACATCTTTTATTAAAGAATTATTATTTATTAAAGACTGCTTTTTAAATATAAGCCCCTTATGAGATGCTGGAAGAAGACATCTATGTAAAAGTGATCAGTCTGTACCACTAAGCACTTTCCTTCTGGGAAGGTTAAGGTTCATATACTATCAACATTTGATCAGATGATGAATATTTATTGTGCATTCTAAATATGACAATTTTATTTTTTCATCCATATAGAAGTTAACAAATGCCTTTGGGGTAAATGCATATTTTAACATCTCCAATGTTAGTCATCTTTTTATTAAAAAGTAAATGCAAATTTTAGGATATACTACTAAATCTCATTTTAACATACTTTTAAAAGATTTGAGATGATGCTTTGTAAACACAGTAACGATTCGGAGATATGAAATCTTTGCATGTATCTGTCACAATCCCTTGATAACTAAGCCTATTATTTAGGAGTGGATTATCCAAGTTTTCCTAATTCCTTCTTGACCTACTTATTTAGTCAGTTACTCAGTGAATACAGGTCAAATAATTACGTAATTTGTCTCATATTCTAAAATTATAAATTGCTCAACCTTTATGTACAGTGACTGCAGGAGGTGTATTTTGTGTCCTGTGCTAAATTACGGTTGGAATCAGCAGATAGTGGCTTAATGGTGGTAATGGATTTGCAATAATCAAGCAATCCTCCAATGATGAATGTGATTCATTTGTGAAATGCTTGGCCAGTCTGCCCTCTATGTGCATAACGTTAAAGGACAACAAAGTATTCAATCCAAAACTCCTTTATAGCATCATTATGTCACTAATTCAGCTTATCAGCCTCAGCCTCGCTGTTATTGCTTCTACTTAGGTGCAAATGTTGCTCAGACAAAAAAAAATAATAAAGGGCAATGTATGATAATCATGTCTCCTTTTCCTACATAAAAGGCAGTTATCAAAAAATCATTGAGCTGGTCCCCAAAGGTGAGCCTGTAAACAGAAAACTGTCCCGTCCTCAGGTCTCACTGTCTCTAAAGGAGGCTCAATTTAAACAGATGTATTTGTGTGTGTGCGCGCATACAACTATAAATCAATTTTTAAAAGGAAAAAAGTTGAAATGTCTTTGAGCAGTGATTTTTAAAAATGACTAGGAGTTAACTGGGCCAAGAAGGCATGATGGACATGGAGGTGCACCACCAAGATTGACCTTCAAGGAAGGGCTTGTTGCTCCAGCTGTGGTCAGGCAGCTTCTAGTTGTTAGTTCTCTCAGGTACCACCTGAGTTGCAGAGTCCTGCCAGCCAATGTCACACCCTCTCTAGGGCAACCCACTACTATTGACTGATGAAGGGGCAGAGTATAAACACTCAGCCATTTTAACCCCATTTGAGACAACTCTGAGGGGTCATCCTAGCTGCAAGTTGTCTATGGGGTTTGAATAAGCGTGTCATAGGGTCTACGTCACAGCTCTAGTTCTTCCTCTTTCCACTCCTGTCACCTCTGCCCTTCTACAGGTGTTTTTTTTTTTTTTTTTTTTTCCAGGGCATGGCTTAATAAACATGCTGCCTGCCAAACTCAACTCCGAAGTCTACTCCCCAGAACCCAGACTGTGATTAAAAGAAGTTGCAGCAGAGGAATAGAAATGAAGAGGGTAGGAATAATCTTATATGGTAAGGATAGTTTCTGTGAAGCTCTGCAGAAGAGCAGAGCAAGAACTGTCTTGCACAGAAGTGACTTGGTAGGCAGGAATTTACAGGGATGGCTTTCAGCAGTGCGAACGTCATCATTCTCCTGTAATTGCAAATTGTATCAATAATATGAACATTCTAAAGTGAATTAGCGTTGCCATTAAGTACATCCCTTGAATTGTCCAGTAAAAGTATGGACCTGACTTCTGATAGCTCACCACTGTTAGCAAGATTTGTTATTACAACCAGCTGGTTGCCAGAGCCAAGTTTAGCACTCCGAAAAAAAAAGAATTGCACTTAAGAAGGAAGAAAAAGATGCCAAACACATGTTATATGCTTTGCAATTTTGTTCAAACCTGCCTATGTTACAAAATATGCGTTACTGTTTTAGGCTAGCAATTTTATTTGAGATGGACAGTAGAAAAACAGTAATAGGAAAACAGAGTTTGCATTCCTGAGTTTTCACAAGTTCAATGAGAAGTCCTCCATGGCACTATTAATAACATAGTATGTTGCATTAGAAAAAGGGGCCAACATGGTTCTATCTGTAAATGCCGCTCGTTATCTGATAGATCTAGAATGTACATTAAGTTGACCAAAATGTCCTTTAATCTTTGCTGAAATTCAAGGGCTTCTACCATTTAATAGGAAGAAAATATGTAATGTTGGTGTAAAAAAAAAAAAAAAAAAGAAAAACACATTTTTAGATTCACTGGATTATGATGAACACTGAGCAAGATAATTTTTCAAAGTGTGCTTAATAGTTTTAGAACAGGGCAGTGTGATATAAGAGAGATGAGATAAGTAAGCAGAGGCTGGGAAGAGTCTACAGTCTTGCAGTCTCAAGGATATGGTGATTCAAGGGCATAAATGAAAAACAACAGGCTATAAGAGAGGTCTCAGACAAAGAAAGATTTAAAAAGCATTCCTTCTGATATTCCTCATTGCAAAAGCGCCTCCACATGCTAATAATGAAAAATGGGCTGGGTGCGGTGGCTCACGCCTGTAATCCAAACACTTTGGGAGGCCGAGACGGGCGGATCACAAGGTCAGGAGATCGAGACCATCCTGGCTAACACGGTGAAACCCCATCTCTACTGAACAAAATACAAAAAATTAGCCGGGCGTGGTGGCGGGCGCCTGTAGTCCCAGCTACTTGGGAGGCTGAGGCAAGAGAATGGCATGAACCCAGGAGGCGGAGCTTGCAGTGAGCAGAGATCGCGCCACTGCACTCCAGCCTGGGTGACAGAGCGAGACTCTGTCTCAAAAATAAAAAATAAAAAAATAATAATAAATGAACAACTTGCAAGCAAGTGAAGAAATTATCAGACATAATAGTCTTGAAAGCTTATCTTGGACTAGTTCAGATGGAGTTGGAAAGGGCTTCAGGATATTTTTAAAAATGGTAAGATCATATAAGAAGTAGTATAAACAATAAATACAGTTCAGAGTGCCTTTTGGAGCTCTGTGCATGCTTGAGTTCTTCTGCTGGCTTTGTCAAAACTTACATCTGTCTTACGCAAAGCGGGATCTGCAAACTGGATTCACTCTAGGAATTATTTGTTACTATGCCATAAGATAAAGTCAACAATTCAGAGTGCATCAAGAAACTTATGTAGCGATTTTACAGAGTACCATTTATGTCTAATGTATTTAATAATAAAGGAGGAAGCATGGGTGTTGGGCATCTTATTTTTGTAACGCTTTGGTTTTATTCTATCTTACATACAATGGATTAGGGGAAAAGTGTTCCTTCCTCAAGATATTTTGAGAAGTACTGAGCAACATATGAAAAGCAGTTTGGGGAGAGATGCGGTATGTTGCTTGCTGGTTCTATTTGACACCATCACTATATGGAACGGGCTGAAAATCGGCCAACTTGGGCTCACTTAAGGCTCCTATGAGCTATTCTTTGTTGCCAGCACATATTAATTCCCGCTCTTTCTCTTCCCCTCTCCCCGCTTACTGTTGTGAAGTAGCATTAAGCCTGTTCAGAGAATTTGGAATAAAAATATATGGGGGCCAATTAGGAGAGCAACATGGCTGCTGAATTTAATAGGTACTCTTTGTGTCTACTCACTATTTGACTCTGAGCAAGAGCAATCTACAATTCAAGTTAAAATTCAAGCCGGGCGCAGTGGCTCATGCCTGCAATCCCAGCACTTTGGGAGGCCGAGGCAGGAGGATCACGAGGTCAGGAGATCGAGACCATCCTGGCTAACACGGTGAAACCCCGTCTCTACTAAAAATACAAAAAAAAATTAGCCGGGCGTGGTGGGGGGGCGCCTGTAGTCCCAGCTACTCGGGAGGCTGAGGCAGGAGAATGGCGTGAATCCGGGAGGCGGAGCTTGCAGTGAGCCGAGATCGCGCCACTGCACTCCAGCCTGGGCGACAGAGCAAGACTCTGTCTCAAAATAAAAATAAAAAAAAATAAAAATAAAAAATAAAAAAATTCAAGTTTACCGAATGAAGCCATGATATCTGCTACAATAGGGCTGGATCTGAACTATTACCCTCATTGCAAGAAGCCAGACACAAAAGAACATGTATTATATTGATATAAAATATCCAAAAAGGCAAATACATATGGACAGAAATAGATTGACAATTGCCTAGGGCTGGGGTGGGAGTGAAAAATGACTGTAAATGGAGAAGAAACTTCTTTTTAAGGTGGTGGAAAAGTGCCAAAATTAGATCGCTATGATGGCTATATAACTCTGTAAATATCCTGCAAATTTTAATGAACGTGGTGGGGGGGAGTTATTCATCCCTCAAAATAGTTTGAGAGGCTACCAAGAACCAGAACTAAACCAGATTGATGCAAATTGAATTTTACACTTAGAATGAGTACATTGATGGTCTAACAATTACATTTCAAAAACGCTGATTTATAAAAAAGTAATCCCGACCAGTAAAAACAGCAGTCATTTCTCAGCCTCCAAATTTTTTAAATGAGTGGAAAACTTTAAGCAATCAATACAAGTCATATGATACACCTCAAATAAAAGTGGTATACTACACTGAGTGCCTTGCAGATATTCTCCCACTTAATCGTGATAAGAAATACATACACATTTATTTTTATTTTTACTCTTTTGATAGTGAAGGGACCATGGCCCAGAACAGGGGTGGCAATATACCAAATGCCACTAAGATGGTAACCGTGGAAGTTTAAATTCAAGTTCATGTTGGTATATATATATACACATACATATTTATACATATGTGTATAACGAGTTACTATTACGTATATATATACAATGAGTGGAAAATATTAGTGGATATAAGTTCATGTATGATTATGTATACATATTATGATTATACTATTATGTATATGTATACAATGAGTGGATAATATTAGTGGATATAAGTTCATGTTGGTCTTATATATACATATATAATGTGTGGATATGAGTGTGTATATATATACATATATAATGTGTGGATATGAGTGTGTGTATATACACACATGCATATTGTATATATGTGTGTATATATAGACACATTATATATATACGCATATATACTACACACACACACACACGGGTGTGTGTCTGTATCTTTTCCACAAATCCTTCAACCCATTTTGCAGAGGTCAAATAGACAGTCGGAAGACCCTATGCTCAGGTGACTTAAAAATAATTTCCAAATCACATTATGGAGTTTGTATGTATTACACACATTTATTGATAGAGATACCCATATTCTACTAATCTTTTATTGGCAATAATTTATGTTAAGAATACCCAAGACTGAGAAAGCCTCATTCCTTTGGTAGTGATTAAAATAAAACATACTAAATTAACTTATAGACAAGTTATAGAACATACATTTGTGAAAAAAATTACTCACCTATGATTGGGACTTTGTATTTTTACCTTATACTTACTCAATGAAATAAAATTTTGAAAAATATTCCTGTAAATGTACCAGAACCTATTTTATACCGTGATGATCCTTAACATTTCAGACGACATGGTAGTGTCAATTTAAAAAGCAGCACTATGGAGCAGGGTTTGTTATTGTTAGAAATACACATTTGTTTCACACGTCAAGGGTAAAAATTAAAAAACAAGATTAATGTTACCCAAAAGGAAACCATTCATCAGGATTCTTACCTGCCAGTGGAGGATTATATTCCAAATCAAACCAAGAGTCAGTTTATGATTTCCATCTACGA', 'pos': '32834760', 'alt': u'GCCAGTGGAGGATTATATTCCAAATCAAACCAAGAGTCAGTTTATGATTTCCATCTACGC'}}
-        assert results['NM_004006.2:c.296_476delinsGCGTAGATGGAAATCATAAACTGACTCTTGGTTTGATTTGGAATATAATCCTCCACTGGCAGGTCAAAAATGTAATGAAAAATATCATGGCTGGATTGCAACAAACCAACAGTGAAAAGATTCTCCTGAGCTGGGTCCGACAATCAACTCGTAATTATCCACAGGTTAATGTAATCAACTT']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': 'NC_000023.11:g.32816522_32823356delinsAAGTTGATTACATTAACCTGTGGATAATTACGAGTTGATTGTCGGACCCAGCTCAGGAGAATCTTTTCACTGTTGGTTTGTTGCAATCCAGCCATGATATTTTTCATTACATTTTTGACCTGCCAGTGGAGGATTATATTCCAAATCAAACCAAGAGTCAGTTTATGATTTCCATCTACGC', 'vcf': {'chr': 'X', 'ref': 'ACATGTGGAAATAAATTTTCATAAGAAAATGCATTCCTTGAGCAAGAACCATGCAAACTTAAATATGAATGTCCTTGATCTTCAGTGATAAATAGAAATTTTAGGGCCAATTAGTAATGAGACATAATAGATTCTACCAGAAGTTAAGTCTATTCTCAAAGGCTAGGAGTCTATTCTGATTCATTGGTATCTATGCCATACCATTTACTGAATGTGTTCACTATTACTCCTGGATTCTGCCATATTAGACCCAACATTTACTGTTTATAGAATTGCTCACCTTCTAGCTTTCAATGAACAAGCTAGAGAAGACAGTGTATAAAACATTAGACTTATTGTTAACCAAGGACTTAAGATATAAAAGCGCTTTTTGGATAGGAGGAATACTATAGATAATTGTTTTTTAAAGTATATGTTCAAATTTTGCCTTTGCTATTAATTGTGGTAATTGGACAAGTTGCTTAACCTCTTCTAGGCCTCATTTCTGTGTATCTTACATGCAAGGTTAGTGTAAGATCAAAGTACAAAATATGGTCAGATAAAACCCCTGATTTCATACCATCATTTAACGCAAGCTATATTTATTGGCTGAACTGAAAAGAAGACAGAAATGTTTGCCTACCTAAAATAAAGAAAAAAAACAACAAAGGAAGGAAATATTTATCCCTAAGAGGTGTACATATGTAGCCTTGGTTCTATTTTCATTACTTGGTTTCCATGTATTTGATTGTCTCATAGGCTTCGTGCATGTGCAGATGTTATTCAACAGATTATCAAGTTTAATTCTTCTGAGTCATCTGATGCAGAAATCCATTCTAAGCATTTTTTCTAAGTTTCATGAATGCAGTGACGCTTCATAGAAAAAACTGTCTACATCTTTTATTAAAGAATTATTATTTATTAAAGACTGCTTTTTAAATATAAGCCCCTTATGAGATGCTGGAAGAAGACATCTATGTAAAAGTGATCAGTCTGTACCACTAAGCACTTTCCTTCTGGGAAGGTTAAGGTTCATATACTATCAACATTTGATCAGATGATGAATATTTATTGTGCATTCTAAATATGACAATTTTATTTTTTCATCCATATAGAAGTTAACAAATGCCTTTGGGGTAAATGCATATTTTAACATCTCCAATGTTAGTCATCTTTTTATTAAAAAGTAAATGCAAATTTTAGGATATACTACTAAATCTCATTTTAACATACTTTTAAAAGATTTGAGATGATGCTTTGTAAACACAGTAACGATTCGGAGATATGAAATCTTTGCATGTATCTGTCACAATCCCTTGATAACTAAGCCTATTATTTAGGAGTGGATTATCCAAGTTTTCCTAATTCCTTCTTGACCTACTTATTTAGTCAGTTACTCAGTGAATACAGGTCAAATAATTACGTAATTTGTCTCATATTCTAAAATTATAAATTGCTCAACCTTTATGTACAGTGACTGCAGGAGGTGTATTTTGTGTCCTGTGCTAAATTACGGTTGGAATCAGCAGATAGTGGCTTAATGGTGGTAATGGATTTGCAATAATCAAGCAATCCTCCAATGATGAATGTGATTCATTTGTGAAATGCTTGGCCAGTCTGCCCTCTATGTGCATAACGTTAAAGGACAACAAAGTATTCAATCCAAAACTCCTTTATAGCATCATTATGTCACTAATTCAGCTTATCAGCCTCAGCCTCGCTGTTATTGCTTCTACTTAGGTGCAAATGTTGCTCAGACAAAAAAAAATAATAAAGGGCAATGTATGATAATCATGTCTCCTTTTCCTACATAAAAGGCAGTTATCAAAAAATCATTGAGCTGGTCCCCAAAGGTGAGCCTGTAAACAGAAAACTGTCCCGTCCTCAGGTCTCACTGTCTCTAAAGGAGGCTCAATTTAAACAGATGTATTTGTGTGTGTGCGCGCATACAACTATAAATCAATTTTTAAAAGGAAAAAAGTTGAAATGTCTTTGAGCAGTGATTTTTAAAAATGACTAGGAGTTAACTGGGCCAAGAAGGCATGATGGACATGGAGGTGCACCACCAAGATTGACCTTCAAGGAAGGGCTTGTTGCTCCAGCTGTGGTCAGGCAGCTTCTAGTTGTTAGTTCTCTCAGGTACCACCTGAGTTGCAGAGTCCTGCCAGCCAATGTCACACCCTCTCTAGGGCAACCCACTACTATTGACTGATGAAGGGGCAGAGTATAAACACTCAGCCATTTTAACCCCATTTGAGACAACTCTGAGGGGTCATCCTAGCTGCAAGTTGTCTATGGGGTTTGAATAAGCGTGTCATAGGGTCTACGTCACAGCTCTAGTTCTTCCTCTTTCCACTCCTGTCACCTCTGCCCTTCTACAGGTGTTTTTTTTTTTTTTTTTTTTTCCAGGGCATGGCTTAATAAACATGCTGCCTGCCAAACTCAACTCCGAAGTCTACTCCCCAGAACCCAGACTGTGATTAAAAGAAGTTGCAGCAGAGGAATAGAAATGAAGAGGGTAGGAATAATCTTATATGGTAAGGATAGTTTCTGTGAAGCTCTGCAGAAGAGCAGAGCAAGAACTGTCTTGCACAGAAGTGACTTGGTAGGCAGGAATTTACAGGGATGGCTTTCAGCAGTGCGAACGTCATCATTCTCCTGTAATTGCAAATTGTATCAATAATATGAACATTCTAAAGTGAATTAGCGTTGCCATTAAGTACATCCCTTGAATTGTCCAGTAAAAGTATGGACCTGACTTCTGATAGCTCACCACTGTTAGCAAGATTTGTTATTACAACCAGCTGGTTGCCAGAGCCAAGTTTAGCACTCCGAAAAAAAAAGAATTGCACTTAAGAAGGAAGAAAAAGATGCCAAACACATGTTATATGCTTTGCAATTTTGTTCAAACCTGCCTATGTTACAAAATATGCGTTACTGTTTTAGGCTAGCAATTTTATTTGAGATGGACAGTAGAAAAACAGTAATAGGAAAACAGAGTTTGCATTCCTGAGTTTTCACAAGTTCAATGAGAAGTCCTCCATGGCACTATTAATAACATAGTATGTTGCATTAGAAAAAGGGGCCAACATGGTTCTATCTGTAAATGCCGCTCGTTATCTGATAGATCTAGAATGTACATTAAGTTGACCAAAATGTCCTTTAATCTTTGCTGAAATTCAAGGGCTTCTACCATTTAATAGGAAGAAAATATGTAATGTTGGTGTAAAAAAAAAAAAAAAAAAGAAAAACACATTTTTAGATTCACTGGATTATGATGAACACTGAGCAAGATAATTTTTCAAAGTGTGCTTAATAGTTTTAGAACAGGGCAGTGTGATATAAGAGAGATGAGATAAGTAAGCAGAGGCTGGGAAGAGTCTACAGTCTTGCAGTCTCAAGGATATGGTGATTCAAGGGCATAAATGAAAAACAACAGGCTATAAGAGAGGTCTCAGACAAAGAAAGATTTAAAAAGCATTCCTTCTGATATTCCTCATTGCAAAAGCGCCTCCACATGCTAATAATGAAAAATGGGCTGGGTGCGGTGGCTCACGCCTGTAATCCAAACACTTTGGGAGGCCGAGACGGGCGGATCACAAGGTCAGGAGATCGAGACCATCCTGGCTAACACGGTGAAACCCCATCTCTACTGAACAAAATACAAAAAATTAGCCGGGCGTGGTGGCGGGCGCCTGTAGTCCCAGCTACTTGGGAGGCTGAGGCAAGAGAATGGCATGAACCCAGGAGGCGGAGCTTGCAGTGAGCAGAGATCGCGCCACTGCACTCCAGCCTGGGTGACAGAGCGAGACTCTGTCTCAAAAATAAAAAATAAAAAAATAATAATAAATGAACAACTTGCAAGCAAGTGAAGAAATTATCAGACATAATAGTCTTGAAAGCTTATCTTGGACTAGTTCAGATGGAGTTGGAAAGGGCTTCAGGATATTTTTAAAAATGGTAAGATCATATAAGAAGTAGTATAAACAATAAATACAGTTCAGAGTGCCTTTTGGAGCTCTGTGCATGCTTGAGTTCTTCTGCTGGCTTTGTCAAAACTTACATCTGTCTTACGCAAAGCGGGATCTGCAAACTGGATTCACTCTAGGAATTATTTGTTACTATGCCATAAGATAAAGTCAACAATTCAGAGTGCATCAAGAAACTTATGTAGCGATTTTACAGAGTACCATTTATGTCTAATGTATTTAATAATAAAGGAGGAAGCATGGGTGTTGGGCATCTTATTTTTGTAACGCTTTGGTTTTATTCTATCTTACATACAATGGATTAGGGGAAAAGTGTTCCTTCCTCAAGATATTTTGAGAAGTACTGAGCAACATATGAAAAGCAGTTTGGGGAGAGATGCGGTATGTTGCTTGCTGGTTCTATTTGACACCATCACTATATGGAACGGGCTGAAAATCGGCCAACTTGGGCTCACTTAAGGCTCCTATGAGCTATTCTTTGTTGCCAGCACATATTAATTCCCGCTCTTTCTCTTCCCCTCTCCCCGCTTACTGTTGTGAAGTAGCATTAAGCCTGTTCAGAGAATTTGGAATAAAAATATATGGGGGCCAATTAGGAGAGCAACATGGCTGCTGAATTTAATAGGTACTCTTTGTGTCTACTCACTATTTGACTCTGAGCAAGAGCAATCTACAATTCAAGTTAAAATTCAAGCCGGGCGCAGTGGCTCATGCCTGCAATCCCAGCACTTTGGGAGGCCGAGGCAGGAGGATCACGAGGTCAGGAGATCGAGACCATCCTGGCTAACACGGTGAAACCCCGTCTCTACTAAAAATACAAAAAAAAATTAGCCGGGCGTGGTGGGGGGGCGCCTGTAGTCCCAGCTACTCGGGAGGCTGAGGCAGGAGAATGGCGTGAATCCGGGAGGCGGAGCTTGCAGTGAGCCGAGATCGCGCCACTGCACTCCAGCCTGGGCGACAGAGCAAGACTCTGTCTCAAAATAAAAATAAAAAAAAATAAAAATAAAAAATAAAAAAATTCAAGTTTACCGAATGAAGCCATGATATCTGCTACAATAGGGCTGGATCTGAACTATTACCCTCATTGCAAGAAGCCAGACACAAAAGAACATGTATTATATTGATATAAAATATCCAAAAAGGCAAATACATATGGACAGAAATAGATTGACAATTGCCTAGGGCTGGGGTGGGAGTGAAAAATGACTGTAAATGGAGAAGAAACTTCTTTTTAAGGTGGTGGAAAAGTGCCAAAATTAGATCGCTATGATGGCTATATAACTCTGTAAATATCCTGCAAATTTTAATGAACGTGGTGGGGGGGAGTTATTCATCCCTCAAAATAGTTTGAGAGGCTACCAAGAACCAGAACTAAACCAGATTGATGCAAATTGAATTTTACACTTAGAATGAGTACATTGATGGTCTAACAATTACATTTCAAAAACGCTGATTTATAAAAAAGTAATCCCGACCAGTAAAAACAGCAGTCATTTCTCAGCCTCCAAATTTTTTAAATGAGTGGAAAACTTTAAGCAATCAATACAAGTCATATGATACACCTCAAATAAAAGTGGTATACTACACTGAGTGCCTTGCAGATATTCTCCCACTTAATCGTGATAAGAAATACATACACATTTATTTTTATTTTTACTCTTTTGATAGTGAAGGGACCATGGCCCAGAACAGGGGTGGCAATATACCAAATGCCACTAAGATGGTAACCGTGGAAGTTTAAATTCAAGTTCATGTTGGTATATATATATACACATACATATTTATACATATGTGTATAACGAGTTACTATTACGTATATATATACAATGAGTGGAAAATATTAGTGGATATAAGTTCATGTATGATTATGTATACATATTATGATTATACTATTATGTATATGTATACAATGAGTGGATAATATTAGTGGATATAAGTTCATGTTGGTCTTATATATACATATATAATGTGTGGATATGAGTGTGTATATATATACATATATAATGTGTGGATATGAGTGTGTGTATATACACACATGCATATTGTATATATGTGTGTATATATAGACACATTATATATATACGCATATATACTACACACACACACACACGGGTGTGTGTCTGTATCTTTTCCACAAATCCTTCAACCCATTTTGCAGAGGTCAAATAGACAGTCGGAAGACCCTATGCTCAGGTGACTTAAAAATAATTTCCAAATCACATTATGGAGTTTGTATGTATTACACACATTTATTGATAGAGATACCCATATTCTACTAATCTTTTATTGGCAATAATTTATGTTAAGAATACCCAAGACTGAGAAAGCCTCATTCCTTTGGTAGTGATTAAAATAAAACATACTAAATTAACTTATAGACAAGTTATAGAACATACATTTGTGAAAAAAATTACTCACCTATGATTGGGACTTTGTATTTTTACCTTATACTTACTCAATGAAATAAAATTTTGAAAAATATTCCTGTAAATGTACCAGAACCTATTTTATACCGTGATGATCCTTAACATTTCAGACGACATGGTAGTGTCAATTTAAAAAGCAGCACTATGGAGCAGGGTTTGTTATTGTTAGAAATACACATTTGTTTCACACGTCAAGGGTAAAAATTAAAAAACAAGATTAATGTTACCCAAAAGGAAACCATTCATCAGGATTCTTACCTGCCAGTGGAGGATTATATTCCAAATCAAACCAAGAGTCAGTTTATGATTTCCATCTACGA', 'pos': '32816643', 'alt': u'GCCAGTGGAGGATTATATTCCAAATCAAACCAAGAGTCAGTTTATGATTTCCATCTACGC'}}
-        assert results['NM_004006.2:c.296_476delinsGCGTAGATGGAAATCATAAACTGACTCTTGGTTTGATTTGGAATATAATCCTCCACTGGCAGGTCAAAAATGTAATGAAAAATATCATGGCTGGATTGCAACAAACCAACAGTGAAAAGATTCTCCTGAGCTGGGTCCGACAATCAACTCGTAATTATCCACAGGTTAATGTAATCAACTT']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_012232.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_003997.1', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_004006.2', 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_199.xml'}
-
         assert results['flag'] == 'gene_variant'
         assert 'NM_004006.2:c.296T>G' in results.keys()
         assert results['NM_004006.2:c.296T>G']['hgvs_lrg_transcript_variant'] == 'LRG_199t1:c.296T>G'
         assert results['NM_004006.2:c.296T>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004006.2:c.296T>G']['alt_genomic_loci'] == []
-        assert results['NM_004006.2:c.296T>G']['transcript_description'] == 'Homo sapiens dystrophin (DMD), transcript variant Dp427m, mRNA'
         assert results['NM_004006.2:c.296T>G']['gene_symbol'] == 'DMD'
         assert results['NM_004006.2:c.296T>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003997.1(LRG_199p1):p.(Ile99Ser)', 'slr': 'NP_003997.1:p.(I99S)'}
         assert results['NM_004006.2:c.296T>G']['submitted_variant'] == 'LRG_199t1:c.[296T>G;476T=];[476T=](;)1083A>C'
@@ -7264,7 +6904,6 @@ class TestVariants(object):
         assert results['NM_004006.2:c.1083A>C']['hgvs_lrg_transcript_variant'] == 'LRG_199t1:c.1083A>C'
         assert results['NM_004006.2:c.1083A>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004006.2:c.1083A>C']['alt_genomic_loci'] == []
-        assert results['NM_004006.2:c.1083A>C']['transcript_description'] == 'Homo sapiens dystrophin (DMD), transcript variant Dp427m, mRNA'
         assert results['NM_004006.2:c.1083A>C']['gene_symbol'] == 'DMD'
         assert results['NM_004006.2:c.1083A>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003997.1(LRG_199p1):p.(Thr361=)', 'slr': 'NP_003997.1:p.(T361=)'}
         assert results['NM_004006.2:c.1083A>C']['submitted_variant'] == 'LRG_199t1:c.[296T>G;476T=];[476T=](;)1083A>C'
@@ -7288,7 +6927,6 @@ class TestVariants(object):
         assert results['NM_004006.2:c.1408del']['hgvs_lrg_transcript_variant'] == 'LRG_199t1:c.1408del'
         assert results['NM_004006.2:c.1408del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004006.2:c.1408del']['alt_genomic_loci'] == []
-        assert results['NM_004006.2:c.1408del']['transcript_description'] == 'Homo sapiens dystrophin (DMD), transcript variant Dp427m, mRNA'
         assert results['NM_004006.2:c.1408del']['gene_symbol'] == 'DMD'
         assert results['NM_004006.2:c.1408del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003997.1(LRG_199p1):p.(Arg470GlufsTer17)', 'slr': 'NP_003997.1:p.(R470Efs*17)'}
         assert results['NM_004006.2:c.1408del']['submitted_variant'] == 'LRG_199t1:c.[296T>G];[476T>C](;)1083A>C(;)1406del'
@@ -7307,7 +6945,6 @@ class TestVariants(object):
         assert results['NM_004006.2:c.296T>G']['hgvs_lrg_transcript_variant'] == 'LRG_199t1:c.296T>G'
         assert results['NM_004006.2:c.296T>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004006.2:c.296T>G']['alt_genomic_loci'] == []
-        assert results['NM_004006.2:c.296T>G']['transcript_description'] == 'Homo sapiens dystrophin (DMD), transcript variant Dp427m, mRNA'
         assert results['NM_004006.2:c.296T>G']['gene_symbol'] == 'DMD'
         assert results['NM_004006.2:c.296T>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003997.1(LRG_199p1):p.(Ile99Ser)', 'slr': 'NP_003997.1:p.(I99S)'}
         assert results['NM_004006.2:c.296T>G']['submitted_variant'] == 'LRG_199t1:c.[296T>G];[476T>C](;)1083A>C(;)1406del'
@@ -7325,7 +6962,6 @@ class TestVariants(object):
         assert results['NM_004006.2:c.476T>C']['hgvs_lrg_transcript_variant'] == 'LRG_199t1:c.476T>C'
         assert results['NM_004006.2:c.476T>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004006.2:c.476T>C']['alt_genomic_loci'] == []
-        assert results['NM_004006.2:c.476T>C']['transcript_description'] == 'Homo sapiens dystrophin (DMD), transcript variant Dp427m, mRNA'
         assert results['NM_004006.2:c.476T>C']['gene_symbol'] == 'DMD'
         assert results['NM_004006.2:c.476T>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003997.1(LRG_199p1):p.(Phe159Ser)', 'slr': 'NP_003997.1:p.(F159S)'}
         assert results['NM_004006.2:c.476T>C']['submitted_variant'] == 'LRG_199t1:c.[296T>G];[476T>C](;)1083A>C(;)1406del'
@@ -7343,7 +6979,6 @@ class TestVariants(object):
         assert results['NM_004006.2:c.1083A>C']['hgvs_lrg_transcript_variant'] == 'LRG_199t1:c.1083A>C'
         assert results['NM_004006.2:c.1083A>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004006.2:c.1083A>C']['alt_genomic_loci'] == []
-        assert results['NM_004006.2:c.1083A>C']['transcript_description'] == 'Homo sapiens dystrophin (DMD), transcript variant Dp427m, mRNA'
         assert results['NM_004006.2:c.1083A>C']['gene_symbol'] == 'DMD'
         assert results['NM_004006.2:c.1083A>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003997.1(LRG_199p1):p.(Thr361=)', 'slr': 'NP_003997.1:p.(T361=)'}
         assert results['NM_004006.2:c.1083A>C']['submitted_variant'] == 'LRG_199t1:c.[296T>G];[476T>C](;)1083A>C(;)1406del'
@@ -7367,7 +7002,6 @@ class TestVariants(object):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['validation_warning_1']['alt_genomic_loci'] == []
-        assert results['validation_warning_1']['transcript_description'] == ''
         assert results['validation_warning_1']['gene_symbol'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['submitted_variant'] == 'LRG_199t1:c.[976-20T>A;976-17_976-1dup]'
@@ -7392,7 +7026,6 @@ class TestVariants(object):
         assert results['NM_015102.3:c.2818-2T>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_015102.3:c.2818-2T>A']['refseqgene_context_intronic_sequence'] == 'NG_011724.2(NM_015102.3):c.2818-2A='
         assert results['NM_015102.3:c.2818-2T>A']['alt_genomic_loci'] == []
-        assert results['NM_015102.3:c.2818-2T>A']['transcript_description'] == 'Homo sapiens nephronophthisis 4 (NPHP4), mRNA'
         assert results['NM_015102.3:c.2818-2T>A']['gene_symbol'] == 'NPHP4'
         assert results['NM_015102.3:c.2818-2T>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055917.1:p.?', 'slr': 'NP_055917.1:p.?'}
         assert results['NM_015102.3:c.2818-2T>A']['submitted_variant'] == '1-5935162-A-T'
@@ -7410,7 +7043,6 @@ class TestVariants(object):
         assert results['NM_001291593.1:c.1279-2T>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001291593.1:c.1279-2T>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001291593.1:c.1279-2T>A']['alt_genomic_loci'] == []
-        assert results['NM_001291593.1:c.1279-2T>A']['transcript_description'] == 'Homo sapiens nephrocystin 4 (NPHP4), transcript variant 2, mRNA'
         assert results['NM_001291593.1:c.1279-2T>A']['gene_symbol'] == 'NPHP4'
         assert results['NM_001291593.1:c.1279-2T>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001278522.1:p.?', 'slr': 'NP_001278522.1:p.?'}
         assert results['NM_001291593.1:c.1279-2T>A']['submitted_variant'] == '1-5935162-A-T'
@@ -7428,7 +7060,6 @@ class TestVariants(object):
         assert results['NM_015102.4:c.2818-2T>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_015102.4:c.2818-2T>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_015102.4:c.2818-2T>A']['alt_genomic_loci'] == []
-        assert results['NM_015102.4:c.2818-2T>A']['transcript_description'] == 'Homo sapiens nephrocystin 4 (NPHP4), transcript variant 1, mRNA'
         assert results['NM_015102.4:c.2818-2T>A']['gene_symbol'] == 'NPHP4'
         assert results['NM_015102.4:c.2818-2T>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055917.1:p.?', 'slr': 'NP_055917.1:p.?'}
         assert results['NM_015102.4:c.2818-2T>A']['submitted_variant'] == '1-5935162-A-T'
@@ -7446,7 +7077,6 @@ class TestVariants(object):
         assert results['NM_001291594.1:c.1282-2T>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001291594.1:c.1282-2T>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001291594.1:c.1282-2T>A']['alt_genomic_loci'] == []
-        assert results['NM_001291594.1:c.1282-2T>A']['transcript_description'] == 'Homo sapiens nephrocystin 4 (NPHP4), transcript variant 3, mRNA'
         assert results['NM_001291594.1:c.1282-2T>A']['gene_symbol'] == 'NPHP4'
         assert results['NM_001291594.1:c.1282-2T>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001278523.1:p.?', 'slr': 'NP_001278523.1:p.?'}
         assert results['NM_001291594.1:c.1282-2T>A']['submitted_variant'] == '1-5935162-A-T'
@@ -7465,7 +7095,6 @@ class TestVariants(object):
         assert results['NR_111987.1:n.3633-2T>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_111987.1:n.3633-2T>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_111987.1:n.3633-2T>A']['alt_genomic_loci'] == []
-        assert results['NR_111987.1:n.3633-2T>A']['transcript_description'] == 'Homo sapiens nephrocystin 4 (NPHP4), transcript variant 4, non-coding RNA'
         assert results['NR_111987.1:n.3633-2T>A']['gene_symbol'] == 'NPHP4'
         assert results['NR_111987.1:n.3633-2T>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_111987.1:n.3633-2T>A']['submitted_variant'] == '1-5935162-A-T'
@@ -7490,7 +7119,6 @@ class TestVariants(object):
         assert results['NM_001127660.1:c.1676C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001127660.1:c.1676C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001127660.1:c.1676C>T']['alt_genomic_loci'] == []
-        assert results['NM_001127660.1:c.1676C>T']['transcript_description'] == 'Homo sapiens mitofusin 2 (MFN2), transcript variant 2, mRNA'
         assert results['NM_001127660.1:c.1676C>T']['gene_symbol'] == 'MFN2'
         assert results['NM_001127660.1:c.1676C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001121132.1:p.(Pro559Leu)', 'slr': 'NP_001121132.1:p.(P559L)'}
         assert results['NM_001127660.1:c.1676C>T']['submitted_variant'] == '1-12065948-C-T'
@@ -7508,7 +7136,6 @@ class TestVariants(object):
         assert results['NM_014874.3:c.1676C>T']['hgvs_lrg_transcript_variant'] == 'LRG_255t1:c.1676C>T'
         assert results['NM_014874.3:c.1676C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_014874.3:c.1676C>T']['alt_genomic_loci'] == []
-        assert results['NM_014874.3:c.1676C>T']['transcript_description'] == 'Homo sapiens mitofusin 2 (MFN2), transcript variant 1, mRNA'
         assert results['NM_014874.3:c.1676C>T']['gene_symbol'] == 'MFN2'
         assert results['NM_014874.3:c.1676C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055689.1(LRG_255p1):p.(Pro559Leu)', 'slr': 'NP_055689.1:p.(P559L)'}
         assert results['NM_014874.3:c.1676C>T']['submitted_variant'] == '1-12065948-C-T'
@@ -7532,7 +7159,6 @@ class TestVariants(object):
         assert results['NM_001290129.1:c.1829+5_1829+8del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001290129.1:c.1829+5_1829+8del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001290129.1:c.1829+5_1829+8del']['alt_genomic_loci'] == []
-        assert results['NM_001290129.1:c.1829+5_1829+8del']['transcript_description'] == 'Homo sapiens protein O-linked mannose N-acetylglucosaminyltransferase 1 (beta 1,2-) (POMGNT1), transcript variant 3, mRNA'
         assert results['NM_001290129.1:c.1829+5_1829+8del']['gene_symbol'] == 'POMGNT1'
         assert results['NM_001290129.1:c.1829+5_1829+8del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001277058.1:p.?', 'slr': 'NP_001277058.1:p.?'}
         assert results['NM_001290129.1:c.1829+5_1829+8del']['submitted_variant'] == '1-46655125-CTCAC-C'
@@ -7550,7 +7176,6 @@ class TestVariants(object):
         assert results['NM_001290130.1:c.1466+5_1466+8del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001290130.1:c.1466+5_1466+8del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001290130.1:c.1466+5_1466+8del']['alt_genomic_loci'] == []
-        assert results['NM_001290130.1:c.1466+5_1466+8del']['transcript_description'] == 'Homo sapiens protein O-linked mannose N-acetylglucosaminyltransferase 1 (beta 1,2-) (POMGNT1), transcript variant 4, mRNA'
         assert results['NM_001290130.1:c.1466+5_1466+8del']['gene_symbol'] == 'POMGNT1'
         assert results['NM_001290130.1:c.1466+5_1466+8del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001277059.1:p.?', 'slr': 'NP_001277059.1:p.?'}
         assert results['NM_001290130.1:c.1466+5_1466+8del']['submitted_variant'] == '1-46655125-CTCAC-C'
@@ -7568,7 +7193,6 @@ class TestVariants(object):
         assert results['NM_017739.3:c.1895+5_1895+8del']['hgvs_lrg_transcript_variant'] == 'LRG_701t2:c.1895+5_1895+8del'
         assert results['NM_017739.3:c.1895+5_1895+8del']['refseqgene_context_intronic_sequence'] == 'NG_009205.2(NM_017739.3):c.1895+5_1895+8del'
         assert results['NM_017739.3:c.1895+5_1895+8del']['alt_genomic_loci'] == []
-        assert results['NM_017739.3:c.1895+5_1895+8del']['transcript_description'] == 'Homo sapiens protein O-linked mannose N-acetylglucosaminyltransferase 1 (beta 1,2-) (POMGNT1), transcript variant 1, mRNA'
         assert results['NM_017739.3:c.1895+5_1895+8del']['gene_symbol'] == 'POMGNT1'
         assert results['NM_017739.3:c.1895+5_1895+8del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_060209.3(LRG_701p2):p.?', 'slr': 'NP_060209.3:p.?'}
         assert results['NM_017739.3:c.1895+5_1895+8del']['submitted_variant'] == '1-46655125-CTCAC-C'
@@ -7586,7 +7210,6 @@ class TestVariants(object):
         assert results['NM_001243766.1:c.1869+31_1869+34del']['hgvs_lrg_transcript_variant'] == 'LRG_701t1:c.1869+31_1869+34del'
         assert results['NM_001243766.1:c.1869+31_1869+34del']['refseqgene_context_intronic_sequence'] == 'NG_009205.2(NM_001243766.1):c.1869+31_1869+34del'
         assert results['NM_001243766.1:c.1869+31_1869+34del']['alt_genomic_loci'] == []
-        assert results['NM_001243766.1:c.1869+31_1869+34del']['transcript_description'] == 'Homo sapiens protein O-linked mannose N-acetylglucosaminyltransferase 1 (beta 1,2-) (POMGNT1), transcript variant 2, mRNA'
         assert results['NM_001243766.1:c.1869+31_1869+34del']['gene_symbol'] == 'POMGNT1'
         assert results['NM_001243766.1:c.1869+31_1869+34del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001230695.1:p.?', 'slr': 'NP_001230695.1:p.?'}
         assert results['NM_001243766.1:c.1869+31_1869+34del']['submitted_variant'] == '1-46655125-CTCAC-C'
@@ -7611,7 +7234,6 @@ class TestVariants(object):
         assert results['NM_000329.2:c.106_114del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000329.2:c.106_114del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000329.2:c.106_114del']['alt_genomic_loci'] == []
-        assert results['NM_000329.2:c.106_114del']['transcript_description'] == 'Homo sapiens RPE65, retinoid isomerohydrolase (RPE65), mRNA'
         assert results['NM_000329.2:c.106_114del']['gene_symbol'] == 'RPE65'
         assert results['NM_000329.2:c.106_114del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000320.1:p.(Leu36_Leu38del)', 'slr': 'NP_000320.1:p.(L36_L38del)'}
         assert results['NM_000329.2:c.106_114del']['submitted_variant'] == '1-68912523-TGAGCCAGAG-T'
@@ -7636,7 +7258,6 @@ class TestVariants(object):
         assert results['NM_000329.2:c.109_114del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000329.2:c.109_114del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000329.2:c.109_114del']['alt_genomic_loci'] == []
-        assert results['NM_000329.2:c.109_114del']['transcript_description'] == 'Homo sapiens RPE65, retinoid isomerohydrolase (RPE65), mRNA'
         assert results['NM_000329.2:c.109_114del']['gene_symbol'] == 'RPE65'
         assert results['NM_000329.2:c.109_114del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000320.1:p.(Trp37_Leu38del)', 'slr': 'NP_000320.1:p.(W37_L38del)'}
         assert results['NM_000329.2:c.109_114del']['submitted_variant'] == '1-68912526-GCCAGAG-G'
@@ -7662,7 +7283,6 @@ class TestVariants(object):
         assert results['NM_001408.2:c.*919G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001408.2:c.*919G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001408.2:c.*919G>T']['alt_genomic_loci'] == []
-        assert results['NM_001408.2:c.*919G>T']['transcript_description'] == 'Homo sapiens cadherin EGF LAG seven-pass G-type receptor 2 (CELSR2), mRNA'
         assert results['NM_001408.2:c.*919G>T']['gene_symbol'] == 'CELSR2'
         assert results['NM_001408.2:c.*919G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001399.1:p.?', 'slr': 'NP_001399.1:p.?'}
         assert results['NM_001408.2:c.*919G>T']['submitted_variant'] == '1-109817590-G-T'
@@ -7687,7 +7307,6 @@ class TestVariants(object):
         assert results['NM_006468.6:c.1070+35_1070+38del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_006468.6:c.1070+35_1070+38del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_006468.6:c.1070+35_1070+38del']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003871055.3:g.2653044_2653047del', 'vcf': {'chr': 'HG1287_PATCH', 'ref': 'ATACT', 'pos': '2653042', 'alt': 'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003871055.3:g.2653044_2653047del', 'vcf': {'chr': 'NW_003871055.3', 'ref': 'ATACT', 'pos': '2653042', 'alt': 'A'}}}]
-        assert results['NM_006468.6:c.1070+35_1070+38del']['transcript_description'] == 'Homo sapiens polymerase (RNA) III (DNA directed) polypeptide C (62kD) (POLR3C), mRNA'
         assert results['NM_006468.6:c.1070+35_1070+38del']['gene_symbol'] == 'POLR3C'
         assert results['NM_006468.6:c.1070+35_1070+38del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_006459.3:p.?', 'slr': 'NP_006459.3:p.?'}
         assert results['NM_006468.6:c.1070+35_1070+38del']['submitted_variant'] == '1-145597475-GAAGT-G'
@@ -7705,7 +7324,6 @@ class TestVariants(object):
         assert results['NM_001303456.1:c.1109+35_1109+38del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001303456.1:c.1109+35_1109+38del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001303456.1:c.1109+35_1109+38del']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003871055.3:g.2653044_2653047del', 'vcf': {'chr': 'HG1287_PATCH', 'ref': 'ATACT', 'pos': '2653042', 'alt': 'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003871055.3:g.2653044_2653047del', 'vcf': {'chr': 'NW_003871055.3', 'ref': 'ATACT', 'pos': '2653042', 'alt': 'A'}}}]
-        assert results['NM_001303456.1:c.1109+35_1109+38del']['transcript_description'] == 'Homo sapiens RNA polymerase III subunit C (POLR3C), transcript variant 2, mRNA'
         assert results['NM_001303456.1:c.1109+35_1109+38del']['gene_symbol'] == 'POLR3C'
         assert results['NM_001303456.1:c.1109+35_1109+38del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001290385.1:p.?', 'slr': 'NP_001290385.1:p.?'}
         assert results['NM_001303456.1:c.1109+35_1109+38del']['submitted_variant'] == '1-145597475-GAAGT-G'
@@ -7723,7 +7341,6 @@ class TestVariants(object):
         assert results['NM_006468.7:c.1070+35_1070+38del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_006468.7:c.1070+35_1070+38del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_006468.7:c.1070+35_1070+38del']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003871055.3:g.2653044_2653047del', 'vcf': {'chr': 'HG1287_PATCH', 'ref': 'ATACT', 'pos': '2653042', 'alt': 'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003871055.3:g.2653044_2653047del', 'vcf': {'chr': 'NW_003871055.3', 'ref': 'ATACT', 'pos': '2653042', 'alt': 'A'}}}]
-        assert results['NM_006468.7:c.1070+35_1070+38del']['transcript_description'] == 'Homo sapiens RNA polymerase III subunit C (POLR3C), transcript variant 1, mRNA'
         assert results['NM_006468.7:c.1070+35_1070+38del']['gene_symbol'] == 'POLR3C'
         assert results['NM_006468.7:c.1070+35_1070+38del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_006459.3:p.?', 'slr': 'NP_006459.3:p.?'}
         assert results['NM_006468.7:c.1070+35_1070+38del']['submitted_variant'] == '1-145597475-GAAGT-G'
@@ -7748,7 +7365,6 @@ class TestVariants(object):
         assert results['NM_020699.2:c.562_563del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_020699.2:c.562_563del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_020699.2:c.562_563del']['alt_genomic_loci'] == []
-        assert results['NM_020699.2:c.562_563del']['transcript_description'] == 'Homo sapiens GATA zinc finger domain containing 2B (GATAD2B), mRNA'
         assert results['NM_020699.2:c.562_563del']['gene_symbol'] == 'GATAD2B'
         assert results['NM_020699.2:c.562_563del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_065750.1:p.(Gln188GlufsTer36)', 'slr': 'NP_065750.1:p.(Q188Efs*36)'}
         assert results['NM_020699.2:c.562_563del']['submitted_variant'] == '1-153791300-CTG-C'
@@ -7766,7 +7382,6 @@ class TestVariants(object):
         assert results['NM_020699.3:c.562_563del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_020699.3:c.562_563del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_020699.3:c.562_563del']['alt_genomic_loci'] == []
-        assert results['NM_020699.3:c.562_563del']['transcript_description'] == 'Homo sapiens GATA zinc finger domain containing 2B (GATAD2B), mRNA'
         assert results['NM_020699.3:c.562_563del']['gene_symbol'] == 'GATAD2B'
         assert results['NM_020699.3:c.562_563del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_065750.1:p.(Gln188GlufsTer36)', 'slr': 'NP_065750.1:p.(Q188Efs*36)'}
         assert results['NM_020699.3:c.562_563del']['submitted_variant'] == '1-153791300-CTG-C'
@@ -7790,7 +7405,6 @@ class TestVariants(object):
         assert results['NM_005572.3:c.711_734delinsCCCC']['hgvs_lrg_transcript_variant'] == 'LRG_254t1:c.711_734delinsCCCC'
         assert results['NM_005572.3:c.711_734delinsCCCC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_005572.3:c.711_734delinsCCCC']['alt_genomic_loci'] == []
-        assert results['NM_005572.3:c.711_734delinsCCCC']['transcript_description'] == 'Homo sapiens lamin A/C (LMNA), transcript variant 2, mRNA'
         assert results['NM_005572.3:c.711_734delinsCCCC']['gene_symbol'] == 'LMNA'
         assert results['NM_005572.3:c.711_734delinsCCCC']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_005563.1(LRG_254p1):p.(Glu238ProfsTer9)', 'slr': 'NP_005563.1:p.(E238Pfs*9)'}
         assert results['NM_005572.3:c.711_734delinsCCCC']['submitted_variant'] == '1-156104666-TTGAGAGCCGGCTGGCGGATGCGCT-TCCCC'
@@ -7808,7 +7422,6 @@ class TestVariants(object):
         assert results['NM_001257374.1:c.375_398delinsCCCC']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001257374.1:c.375_398delinsCCCC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001257374.1:c.375_398delinsCCCC']['alt_genomic_loci'] == []
-        assert results['NM_001257374.1:c.375_398delinsCCCC']['transcript_description'] == 'Homo sapiens lamin A/C (LMNA), transcript variant 4, mRNA'
         assert results['NM_001257374.1:c.375_398delinsCCCC']['gene_symbol'] == 'LMNA'
         assert results['NM_001257374.1:c.375_398delinsCCCC']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001244303.1:p.(Glu126ProfsTer9)', 'slr': 'NP_001244303.1:p.(E126Pfs*9)'}
         assert results['NM_001257374.1:c.375_398delinsCCCC']['submitted_variant'] == '1-156104666-TTGAGAGCCGGCTGGCGGATGCGCT-TCCCC'
@@ -7826,7 +7439,6 @@ class TestVariants(object):
         assert results['NM_001257374.2:c.375_398delinsCCCC']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001257374.2:c.375_398delinsCCCC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001257374.2:c.375_398delinsCCCC']['alt_genomic_loci'] == []
-        assert results['NM_001257374.2:c.375_398delinsCCCC']['transcript_description'] == 'Homo sapiens lamin A/C (LMNA), transcript variant 4, mRNA'
         assert results['NM_001257374.2:c.375_398delinsCCCC']['gene_symbol'] == 'LMNA'
         assert results['NM_001257374.2:c.375_398delinsCCCC']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001244303.1:p.(Glu126ProfsTer9)', 'slr': 'NP_001244303.1:p.(E126Pfs*9)'}
         assert results['NM_001257374.2:c.375_398delinsCCCC']['submitted_variant'] == '1-156104666-TTGAGAGCCGGCTGGCGGATGCGCT-TCCCC'
@@ -7844,7 +7456,6 @@ class TestVariants(object):
         assert results['NM_001282624.1:c.468_491delinsCCCC']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001282624.1:c.468_491delinsCCCC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001282624.1:c.468_491delinsCCCC']['alt_genomic_loci'] == []
-        assert results['NM_001282624.1:c.468_491delinsCCCC']['transcript_description'] == 'Homo sapiens lamin A/C (LMNA), transcript variant 5, mRNA'
         assert results['NM_001282624.1:c.468_491delinsCCCC']['gene_symbol'] == 'LMNA'
         assert results['NM_001282624.1:c.468_491delinsCCCC']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001269553.1:p.(Glu157ProfsTer9)', 'slr': 'NP_001269553.1:p.(E157Pfs*9)'}
         assert results['NM_001282624.1:c.468_491delinsCCCC']['submitted_variant'] == '1-156104666-TTGAGAGCCGGCTGGCGGATGCGCT-TCCCC'
@@ -7863,7 +7474,6 @@ class TestVariants(object):
         assert results['NM_170708.3:c.711_734delinsCCCC']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_170708.3:c.711_734delinsCCCC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_170708.3:c.711_734delinsCCCC']['alt_genomic_loci'] == []
-        assert results['NM_170708.3:c.711_734delinsCCCC']['transcript_description'] == 'Homo sapiens lamin A/C (LMNA), transcript variant 3, mRNA'
         assert results['NM_170708.3:c.711_734delinsCCCC']['gene_symbol'] == 'LMNA'
         assert results['NM_170708.3:c.711_734delinsCCCC']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_733822.1(LRG_254p3):p.(Glu238ProfsTer9)', 'slr': 'NP_733822.1:p.(E238Pfs*9)'}
         assert results['NM_170708.3:c.711_734delinsCCCC']['submitted_variant'] == '1-156104666-TTGAGAGCCGGCTGGCGGATGCGCT-TCCCC'
@@ -7881,7 +7491,6 @@ class TestVariants(object):
         assert results['NM_170707.3:c.711_734delinsCCCC']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_170707.3:c.711_734delinsCCCC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_170707.3:c.711_734delinsCCCC']['alt_genomic_loci'] == []
-        assert results['NM_170707.3:c.711_734delinsCCCC']['transcript_description'] == 'Homo sapiens lamin A/C (LMNA), transcript variant 1, mRNA'
         assert results['NM_170707.3:c.711_734delinsCCCC']['gene_symbol'] == 'LMNA'
         assert results['NM_170707.3:c.711_734delinsCCCC']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_733821.1(LRG_254p2):p.(Glu238ProfsTer9)', 'slr': 'NP_733821.1:p.(E238Pfs*9)'}
         assert results['NM_170707.3:c.711_734delinsCCCC']['submitted_variant'] == '1-156104666-TTGAGAGCCGGCTGGCGGATGCGCT-TCCCC'
@@ -7899,7 +7508,6 @@ class TestVariants(object):
         assert results['NM_001282626.1:c.711_734delinsCCCC']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001282626.1:c.711_734delinsCCCC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001282626.1:c.711_734delinsCCCC']['alt_genomic_loci'] == []
-        assert results['NM_001282626.1:c.711_734delinsCCCC']['transcript_description'] == 'Homo sapiens lamin A/C (LMNA), transcript variant 7, mRNA'
         assert results['NM_001282626.1:c.711_734delinsCCCC']['gene_symbol'] == 'LMNA'
         assert results['NM_001282626.1:c.711_734delinsCCCC']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001269555.1:p.(Glu238ProfsTer9)', 'slr': 'NP_001269555.1:p.(E238Pfs*9)'}
         assert results['NM_001282626.1:c.711_734delinsCCCC']['submitted_variant'] == '1-156104666-TTGAGAGCCGGCTGGCGGATGCGCT-TCCCC'
@@ -7917,7 +7525,6 @@ class TestVariants(object):
         assert results['NM_001282625.1:c.711_734delinsCCCC']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001282625.1:c.711_734delinsCCCC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001282625.1:c.711_734delinsCCCC']['alt_genomic_loci'] == []
-        assert results['NM_001282625.1:c.711_734delinsCCCC']['transcript_description'] == 'Homo sapiens lamin A/C (LMNA), transcript variant 6, mRNA'
         assert results['NM_001282625.1:c.711_734delinsCCCC']['gene_symbol'] == 'LMNA'
         assert results['NM_001282625.1:c.711_734delinsCCCC']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001269554.1:p.(Glu238ProfsTer9)', 'slr': 'NP_001269554.1:p.(E238Pfs*9)'}
         assert results['NM_001282625.1:c.711_734delinsCCCC']['submitted_variant'] == '1-156104666-TTGAGAGCCGGCTGGCGGATGCGCT-TCCCC'
@@ -7941,7 +7548,6 @@ class TestVariants(object):
         assert results['NM_170707.3:c.1961dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_170707.3:c.1961dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_170707.3:c.1961dup']['alt_genomic_loci'] == []
-        assert results['NM_170707.3:c.1961dup']['transcript_description'] == 'Homo sapiens lamin A/C (LMNA), transcript variant 1, mRNA'
         assert results['NM_170707.3:c.1961dup']['gene_symbol'] == 'LMNA'
         assert results['NM_170707.3:c.1961dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_733821.1(LRG_254p2):p.(Thr655AsnfsTer49)', 'slr': 'NP_733821.1:p.(T655Nfs*49)'}
         assert results['NM_170707.3:c.1961dup']['submitted_variant'] == '1-156108541-G-GG'
@@ -7959,7 +7565,6 @@ class TestVariants(object):
         assert results['NM_001282626.1:c.1818+143dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001282626.1:c.1818+143dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001282626.1:c.1818+143dup']['alt_genomic_loci'] == []
-        assert results['NM_001282626.1:c.1818+143dup']['transcript_description'] == 'Homo sapiens lamin A/C (LMNA), transcript variant 7, mRNA'
         assert results['NM_001282626.1:c.1818+143dup']['gene_symbol'] == 'LMNA'
         assert results['NM_001282626.1:c.1818+143dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001269555.1:p.?', 'slr': 'NP_001269555.1:p.?'}
         assert results['NM_001282626.1:c.1818+143dup']['submitted_variant'] == '1-156108541-G-GG'
@@ -7978,7 +7583,6 @@ class TestVariants(object):
         assert results['NM_001257374.2:c.1625dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001257374.2:c.1625dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001257374.2:c.1625dup']['alt_genomic_loci'] == []
-        assert results['NM_001257374.2:c.1625dup']['transcript_description'] == 'Homo sapiens lamin A/C (LMNA), transcript variant 4, mRNA'
         assert results['NM_001257374.2:c.1625dup']['gene_symbol'] == 'LMNA'
         assert results['NM_001257374.2:c.1625dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001244303.1:p.(Thr543AsnfsTer90)', 'slr': 'NP_001244303.1:p.(T543Nfs*90)'}
         assert results['NM_001257374.2:c.1625dup']['submitted_variant'] == '1-156108541-G-GG'
@@ -7996,7 +7600,6 @@ class TestVariants(object):
         assert results['NM_170708.3:c.1871dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_170708.3:c.1871dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_170708.3:c.1871dup']['alt_genomic_loci'] == []
-        assert results['NM_170708.3:c.1871dup']['transcript_description'] == 'Homo sapiens lamin A/C (LMNA), transcript variant 3, mRNA'
         assert results['NM_170708.3:c.1871dup']['gene_symbol'] == 'LMNA'
         assert results['NM_170708.3:c.1871dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_733822.1(LRG_254p3):p.(Thr625AsnfsTer49)', 'slr': 'NP_733822.1:p.(T625Nfs*49)'}
         assert results['NM_170708.3:c.1871dup']['submitted_variant'] == '1-156108541-G-GG'
@@ -8014,7 +7617,6 @@ class TestVariants(object):
         assert results['NM_001257374.1:c.1625dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001257374.1:c.1625dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001257374.1:c.1625dup']['alt_genomic_loci'] == []
-        assert results['NM_001257374.1:c.1625dup']['transcript_description'] == 'Homo sapiens lamin A/C (LMNA), transcript variant 4, mRNA'
         assert results['NM_001257374.1:c.1625dup']['gene_symbol'] == 'LMNA'
         assert results['NM_001257374.1:c.1625dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001244303.1:p.(Thr543AsnfsTer90)', 'slr': 'NP_001244303.1:p.(T543Nfs*90)'}
         assert results['NM_001257374.1:c.1625dup']['submitted_variant'] == '1-156108541-G-GG'
@@ -8039,7 +7641,6 @@ class TestVariants(object):
         assert results['NM_001315491.1:c.1A>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001315491.1:c.1A>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001315491.1:c.1A>T']['alt_genomic_loci'] == []
-        assert results['NM_001315491.1:c.1A>T']['transcript_description'] == 'Homo sapiens myelin protein zero (MPZ), transcript variant 1, mRNA'
         assert results['NM_001315491.1:c.1A>T']['gene_symbol'] == 'MPZ'
         assert results['NM_001315491.1:c.1A>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001302420.1:p.(Met1?)', 'slr': 'NP_001302420.1:p.(M1?)'}
         assert results['NM_001315491.1:c.1A>T']['submitted_variant'] == '1-161279695-T-A'
@@ -8057,7 +7658,6 @@ class TestVariants(object):
         assert results['NM_000530.7:c.1A>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000530.7:c.1A>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000530.7:c.1A>T']['alt_genomic_loci'] == []
-        assert results['NM_000530.7:c.1A>T']['transcript_description'] == 'Homo sapiens myelin protein zero (MPZ), transcript variant 1, mRNA'
         assert results['NM_000530.7:c.1A>T']['gene_symbol'] == 'MPZ'
         assert results['NM_000530.7:c.1A>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000521.2(LRG_256p1):p.(Met1?)', 'slr': 'NP_000521.2:p.(M1?)'}
         assert results['NM_000530.7:c.1A>T']['submitted_variant'] == '1-161279695-T-A'
@@ -8075,7 +7675,6 @@ class TestVariants(object):
         assert results['NM_000530.6:c.1A>T']['hgvs_lrg_transcript_variant'] == 'LRG_256t1:c.1A>T'
         assert results['NM_000530.6:c.1A>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000530.6:c.1A>T']['alt_genomic_loci'] == []
-        assert results['NM_000530.6:c.1A>T']['transcript_description'] == 'Homo sapiens myelin protein zero (MPZ), mRNA'
         assert results['NM_000530.6:c.1A>T']['gene_symbol'] == 'MPZ'
         assert results['NM_000530.6:c.1A>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000521.2(LRG_256p1):p.(Met1?)', 'slr': 'NP_000521.2:p.(M1?)'}
         assert results['NM_000530.6:c.1A>T']['submitted_variant'] == '1-161279695-T-A'
@@ -8100,7 +7699,6 @@ class TestVariants(object):
         assert results['NM_000130.4:c.1601G>A']['hgvs_lrg_transcript_variant'] == 'LRG_553t1:c.1601G>A'
         assert results['NM_000130.4:c.1601G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000130.4:c.1601G>A']['alt_genomic_loci'] == []
-        assert results['NM_000130.4:c.1601G>A']['transcript_description'] == 'Homo sapiens coagulation factor V (F5), mRNA'
         assert results['NM_000130.4:c.1601G>A']['gene_symbol'] == 'F5'
         assert results['NM_000130.4:c.1601G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000121.2(LRG_553p1):p.(Arg534Gln)', 'slr': 'NP_000121.2:p.(R534Q)'}
         assert results['NM_000130.4:c.1601G>A']['submitted_variant'] == '1-169519049-T-T'
@@ -8124,7 +7722,6 @@ class TestVariants(object):
         assert results['NM_003240.4:c.774C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003240.4:c.774C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003240.4:c.774C>T']['alt_genomic_loci'] == []
-        assert results['NM_003240.4:c.774C>T']['transcript_description'] == 'Homo sapiens left-right determination factor 2 (LEFTY2), transcript variant 1, mRNA'
         assert results['NM_003240.4:c.774C>T']['gene_symbol'] == 'LEFTY2'
         assert results['NM_003240.4:c.774C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003231.2:p.(Thr258=)', 'slr': 'NP_003231.2:p.(T258=)'}
         assert results['NM_003240.4:c.774C>T']['submitted_variant'] == '1-226125468-G-A'
@@ -8142,7 +7739,6 @@ class TestVariants(object):
         assert results['NM_003240.3:c.774C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003240.3:c.774C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003240.3:c.774C>T']['alt_genomic_loci'] == []
-        assert results['NM_003240.3:c.774C>T']['transcript_description'] == 'Homo sapiens left-right determination factor 2 (LEFTY2), transcript variant 1, mRNA'
         assert results['NM_003240.3:c.774C>T']['gene_symbol'] == 'LEFTY2'
         assert results['NM_003240.3:c.774C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003231.2:p.(Thr258=)', 'slr': 'NP_003231.2:p.(T258=)'}
         assert results['NM_003240.3:c.774C>T']['submitted_variant'] == '1-226125468-G-A'
@@ -8160,7 +7756,6 @@ class TestVariants(object):
         assert results['NM_001172425.1:c.672C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001172425.1:c.672C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001172425.1:c.672C>T']['alt_genomic_loci'] == []
-        assert results['NM_001172425.1:c.672C>T']['transcript_description'] == 'Homo sapiens left-right determination factor 2 (LEFTY2), transcript variant 2, mRNA'
         assert results['NM_001172425.1:c.672C>T']['gene_symbol'] == 'LEFTY2'
         assert results['NM_001172425.1:c.672C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001165896.1:p.(Thr224=)', 'slr': 'NP_001165896.1:p.(T224=)'}
         assert results['NM_001172425.1:c.672C>T']['submitted_variant'] == '1-226125468-G-A'
@@ -8178,7 +7773,6 @@ class TestVariants(object):
         assert results['NM_001172425.2:c.672C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001172425.2:c.672C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001172425.2:c.672C>T']['alt_genomic_loci'] == []
-        assert results['NM_001172425.2:c.672C>T']['transcript_description'] == 'Homo sapiens left-right determination factor 2 (LEFTY2), transcript variant 2, mRNA'
         assert results['NM_001172425.2:c.672C>T']['gene_symbol'] == 'LEFTY2'
         assert results['NM_001172425.2:c.672C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001165896.1:p.(Thr224=)', 'slr': 'NP_001165896.1:p.(T224=)'}
         assert results['NM_001172425.2:c.672C>T']['submitted_variant'] == '1-226125468-G-A'
@@ -8204,7 +7798,6 @@ class TestVariants(object):
         assert results['NM_001126049.1:c.-794_-792del']['hgvs_lrg_transcript_variant'] == 'LRG_1087t1:c.-794_-792del'
         assert results['NM_001126049.1:c.-794_-792del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001126049.1:c.-794_-792del']['alt_genomic_loci'] == [{'grch38': {'hgvs_genomic_description': 'NW_013171807.1:g.79106_79108del', 'vcf': {'chr': 'HG2334_PATCH', 'ref': 'CGCA', 'pos': '79102', 'alt': 'C'}}}, {'hg38': {'hgvs_genomic_description': 'NW_013171807.1:g.79106_79108del', 'vcf': {'chr': 'NW_013171807.1', 'ref': 'CGCA', 'pos': '79102', 'alt': 'C'}}}]
-        assert results['NM_001126049.1:c.-794_-792del']['transcript_description'] == 'Homo sapiens killin, p53 regulated DNA replication inhibitor (KLLN), mRNA'
         assert results['NM_001126049.1:c.-794_-792del']['gene_symbol'] == 'KLLN'
         assert results['NM_001126049.1:c.-794_-792del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001119521.1:p.?', 'slr': 'NP_001119521.1:p.?'}
         assert results['NM_001126049.1:c.-794_-792del']['submitted_variant'] == '10-89623035-CGCA-C'
@@ -8228,7 +7821,6 @@ class TestVariants(object):
         assert results['NR_037946.1:n.3896G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_037946.1:n.3896G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_037946.1:n.3896G>T']['alt_genomic_loci'] == []
-        assert results['NR_037946.1:n.3896G>T']['transcript_description'] == 'Homo sapiens HNRNPUL2-BSCL2 readthrough (NMD candidate) (HNRNPUL2-BSCL2), long non-coding RNA'
         assert results['NR_037946.1:n.3896G>T']['gene_symbol'] == 'HNRNPUL2-BSCL2'
         assert results['NR_037946.1:n.3896G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_037946.1:n.3896G>T']['submitted_variant'] == '11-62457852-C-A'
@@ -8246,7 +7838,6 @@ class TestVariants(object):
         assert results['NM_032667.6:c.1184G>T']['hgvs_lrg_transcript_variant'] == 'LRG_235t2:c.1184G>T'
         assert results['NM_032667.6:c.1184G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_032667.6:c.1184G>T']['alt_genomic_loci'] == []
-        assert results['NM_032667.6:c.1184G>T']['transcript_description'] == 'Homo sapiens BSCL2, seipin lipid droplet biogenesis associated (BSCL2), transcript variant 2, mRNA'
         assert results['NM_032667.6:c.1184G>T']['gene_symbol'] == 'BSCL2'
         assert results['NM_032667.6:c.1184G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_116056.3(LRG_235p2):p.(Cys395Phe)', 'slr': 'NP_116056.3:p.(C395F)'}
         assert results['NM_032667.6:c.1184G>T']['submitted_variant'] == '11-62457852-C-A'
@@ -8264,7 +7855,6 @@ class TestVariants(object):
         assert results['NR_037949.1:n.1984G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_037949.1:n.1984G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_037949.1:n.1984G>T']['alt_genomic_loci'] == []
-        assert results['NR_037949.1:n.1984G>T']['transcript_description'] == 'Homo sapiens BSCL2, seipin lipid droplet biogenesis associated (BSCL2), transcript variant 5, non-coding RNA'
         assert results['NR_037949.1:n.1984G>T']['gene_symbol'] == 'BSCL2'
         assert results['NR_037949.1:n.1984G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_037949.1:n.1984G>T']['submitted_variant'] == '11-62457852-C-A'
@@ -8282,7 +7872,6 @@ class TestVariants(object):
         assert results['NR_037948.1:n.1978G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_037948.1:n.1978G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_037948.1:n.1978G>T']['alt_genomic_loci'] == []
-        assert results['NR_037948.1:n.1978G>T']['transcript_description'] == 'Homo sapiens BSCL2, seipin lipid droplet biogenesis associated (BSCL2), transcript variant 4, non-coding RNA'
         assert results['NR_037948.1:n.1978G>T']['gene_symbol'] == 'BSCL2'
         assert results['NR_037948.1:n.1978G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_037948.1:n.1978G>T']['submitted_variant'] == '11-62457852-C-A'
@@ -8300,7 +7889,6 @@ class TestVariants(object):
         assert results['NM_001122955.3:c.1376G>T']['hgvs_lrg_transcript_variant'] == 'LRG_235t1:c.1376G>T'
         assert results['NM_001122955.3:c.1376G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001122955.3:c.1376G>T']['alt_genomic_loci'] == []
-        assert results['NM_001122955.3:c.1376G>T']['transcript_description'] == 'Homo sapiens BSCL2, seipin lipid droplet biogenesis associated (BSCL2), transcript variant 1, mRNA'
         assert results['NM_001122955.3:c.1376G>T']['gene_symbol'] == 'BSCL2'
         assert results['NM_001122955.3:c.1376G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001116427.1:p.(Cys459Phe)', 'slr': 'NP_001116427.1:p.(C459F)'}
         assert results['NM_001122955.3:c.1376G>T']['submitted_variant'] == '11-62457852-C-A'
@@ -8319,7 +7907,6 @@ class TestVariants(object):
         assert results['NM_001130702.2:c.*178G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001130702.2:c.*178G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001130702.2:c.*178G>T']['alt_genomic_loci'] == []
-        assert results['NM_001130702.2:c.*178G>T']['transcript_description'] == 'Homo sapiens BSCL2, seipin lipid droplet biogenesis associated (BSCL2), transcript variant 3, mRNA'
         assert results['NM_001130702.2:c.*178G>T']['gene_symbol'] == 'BSCL2'
         assert results['NM_001130702.2:c.*178G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001124174.2:p.?', 'slr': 'NP_001124174.2:p.?'}
         assert results['NM_001130702.2:c.*178G>T']['submitted_variant'] == '11-62457852-C-A'
@@ -8343,7 +7930,6 @@ class TestVariants(object):
         assert results['NM_001351834.1:c.5761_5762insT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001351834.1:c.5761_5762insT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001351834.1:c.5761_5762insT']['alt_genomic_loci'] == []
-        assert results['NM_001351834.1:c.5761_5762insT']['transcript_description'] == 'Homo sapiens ATM serine/threonine kinase (ATM), transcript variant 1, mRNA'
         assert results['NM_001351834.1:c.5761_5762insT']['gene_symbol'] == 'ATM'
         assert results['NM_001351834.1:c.5761_5762insT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001338763.1:p.(Arg1921MetfsTer9)', 'slr': 'NP_001338763.1:p.(R1921Mfs*9)'}
         assert results['NM_001351834.1:c.5761_5762insT']['submitted_variant'] == '11-108178710-A-AT'
@@ -8362,7 +7948,6 @@ class TestVariants(object):
         assert results['NM_000051.3:c.5761_5762insT']['hgvs_lrg_transcript_variant'] == 'LRG_135t1:c.5761_5762insT'
         assert results['NM_000051.3:c.5761_5762insT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000051.3:c.5761_5762insT']['alt_genomic_loci'] == []
-        assert results['NM_000051.3:c.5761_5762insT']['transcript_description'] == 'Homo sapiens ATM serine/threonine kinase (ATM), transcript variant 2, mRNA'
         assert results['NM_000051.3:c.5761_5762insT']['gene_symbol'] == 'ATM'
         assert results['NM_000051.3:c.5761_5762insT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000042.3(LRG_135p1):p.(Arg1921MetfsTer9)', 'slr': 'NP_000042.3:p.(R1921Mfs*9)'}
         assert results['NM_000051.3:c.5761_5762insT']['submitted_variant'] == '11-108178710-A-AT'
@@ -8386,7 +7971,6 @@ class TestVariants(object):
         assert results['NM_001352419.1:c.-108-7C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001352419.1:c.-108-7C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001352419.1:c.-108-7C>T']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'HG388_HG400_PATCH', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'NW_003871080.1', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}]
-        assert results['NM_001352419.1:c.-108-7C>T']['transcript_description'] == 'Homo sapiens ALG9, alpha-1,2-mannosyltransferase (ALG9), transcript variant 15, mRNA'
         assert results['NM_001352419.1:c.-108-7C>T']['gene_symbol'] == 'ALG9'
         assert results['NM_001352419.1:c.-108-7C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001339348.1:p.?', 'slr': 'NP_001339348.1:p.?'}
         assert results['NM_001352419.1:c.-108-7C>T']['submitted_variant'] == '11-111735981-G-A'
@@ -8404,7 +7988,6 @@ class TestVariants(object):
         assert results['NM_001352412.1:c.-108-7C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001352412.1:c.-108-7C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001352412.1:c.-108-7C>T']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'HG388_HG400_PATCH', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'NW_003871080.1', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}]
-        assert results['NM_001352412.1:c.-108-7C>T']['transcript_description'] == 'Homo sapiens ALG9, alpha-1,2-mannosyltransferase (ALG9), transcript variant 8, mRNA'
         assert results['NM_001352412.1:c.-108-7C>T']['gene_symbol'] == 'ALG9'
         assert results['NM_001352412.1:c.-108-7C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001339341.1:p.?', 'slr': 'NP_001339341.1:p.?'}
         assert results['NM_001352412.1:c.-108-7C>T']['submitted_variant'] == '11-111735981-G-A'
@@ -8422,7 +8005,6 @@ class TestVariants(object):
         assert results['NM_001077692.1:c.-108-7C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001077692.1:c.-108-7C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001077692.1:c.-108-7C>T']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'HG388_HG400_PATCH', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'NW_003871080.1', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}]
-        assert results['NM_001077692.1:c.-108-7C>T']['transcript_description'] == 'Homo sapiens ALG9, alpha-1,2-mannosyltransferase (ALG9), transcript variant 4, mRNA'
         assert results['NM_001077692.1:c.-108-7C>T']['gene_symbol'] == 'ALG9'
         assert results['NM_001077692.1:c.-108-7C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001071160.1:p.?', 'slr': 'NP_001071160.1:p.?'}
         assert results['NM_001077692.1:c.-108-7C>T']['submitted_variant'] == '11-111735981-G-A'
@@ -8440,7 +8022,6 @@ class TestVariants(object):
         assert results['NM_001352418.1:c.406-7C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001352418.1:c.406-7C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001352418.1:c.406-7C>T']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'HG388_HG400_PATCH', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'NW_003871080.1', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}]
-        assert results['NM_001352418.1:c.406-7C>T']['transcript_description'] == 'Homo sapiens ALG9, alpha-1,2-mannosyltransferase (ALG9), transcript variant 14, mRNA'
         assert results['NM_001352418.1:c.406-7C>T']['gene_symbol'] == 'ALG9'
         assert results['NM_001352418.1:c.406-7C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001339347.1:p.?', 'slr': 'NP_001339347.1:p.?'}
         assert results['NM_001352418.1:c.406-7C>T']['submitted_variant'] == '11-111735981-G-A'
@@ -8458,7 +8039,6 @@ class TestVariants(object):
         assert results['NM_001352423.1:c.-108-7C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001352423.1:c.-108-7C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001352423.1:c.-108-7C>T']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'HG388_HG400_PATCH', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'NW_003871080.1', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}]
-        assert results['NM_001352423.1:c.-108-7C>T']['transcript_description'] == 'Homo sapiens ALG9, alpha-1,2-mannosyltransferase (ALG9), transcript variant 19, mRNA'
         assert results['NM_001352423.1:c.-108-7C>T']['gene_symbol'] == 'ALG9'
         assert results['NM_001352423.1:c.-108-7C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001339352.1:p.?', 'slr': 'NP_001339352.1:p.?'}
         assert results['NM_001352423.1:c.-108-7C>T']['submitted_variant'] == '11-111735981-G-A'
@@ -8476,7 +8056,6 @@ class TestVariants(object):
         assert results['NM_001352415.1:c.-108-7C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001352415.1:c.-108-7C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001352415.1:c.-108-7C>T']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'HG388_HG400_PATCH', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'NW_003871080.1', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}]
-        assert results['NM_001352415.1:c.-108-7C>T']['transcript_description'] == 'Homo sapiens ALG9, alpha-1,2-mannosyltransferase (ALG9), transcript variant 11, mRNA'
         assert results['NM_001352415.1:c.-108-7C>T']['gene_symbol'] == 'ALG9'
         assert results['NM_001352415.1:c.-108-7C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001339344.1:p.?', 'slr': 'NP_001339344.1:p.?'}
         assert results['NM_001352415.1:c.-108-7C>T']['submitted_variant'] == '11-111735981-G-A'
@@ -8494,7 +8073,6 @@ class TestVariants(object):
         assert results['NM_001352421.1:c.-108-7C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001352421.1:c.-108-7C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001352421.1:c.-108-7C>T']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'HG388_HG400_PATCH', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'NW_003871080.1', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}]
-        assert results['NM_001352421.1:c.-108-7C>T']['transcript_description'] == 'Homo sapiens ALG9, alpha-1,2-mannosyltransferase (ALG9), transcript variant 17, mRNA'
         assert results['NM_001352421.1:c.-108-7C>T']['gene_symbol'] == 'ALG9'
         assert results['NM_001352421.1:c.-108-7C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001339350.1:p.?', 'slr': 'NP_001339350.1:p.?'}
         assert results['NM_001352421.1:c.-108-7C>T']['submitted_variant'] == '11-111735981-G-A'
@@ -8512,7 +8090,6 @@ class TestVariants(object):
         assert results['NM_001352411.1:c.-108-7C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001352411.1:c.-108-7C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001352411.1:c.-108-7C>T']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'HG388_HG400_PATCH', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'NW_003871080.1', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}]
-        assert results['NM_001352411.1:c.-108-7C>T']['transcript_description'] == 'Homo sapiens ALG9, alpha-1,2-mannosyltransferase (ALG9), transcript variant 7, mRNA'
         assert results['NM_001352411.1:c.-108-7C>T']['gene_symbol'] == 'ALG9'
         assert results['NM_001352411.1:c.-108-7C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001339340.1:p.?', 'slr': 'NP_001339340.1:p.?'}
         assert results['NM_001352411.1:c.-108-7C>T']['submitted_variant'] == '11-111735981-G-A'
@@ -8530,7 +8107,6 @@ class TestVariants(object):
         assert results['NR_147984.1:n.782-7C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_147984.1:n.782-7C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_147984.1:n.782-7C>T']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'HG388_HG400_PATCH', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'NW_003871080.1', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}]
-        assert results['NR_147984.1:n.782-7C>T']['transcript_description'] == 'Homo sapiens ALG9, alpha-1,2-mannosyltransferase (ALG9), transcript variant 20, non-coding RNA'
         assert results['NR_147984.1:n.782-7C>T']['gene_symbol'] == 'ALG9'
         assert results['NR_147984.1:n.782-7C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_147984.1:n.782-7C>T']['submitted_variant'] == '11-111735981-G-A'
@@ -8548,7 +8124,6 @@ class TestVariants(object):
         assert results['NM_001077691.1:c.-108-7C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001077691.1:c.-108-7C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001077691.1:c.-108-7C>T']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'HG388_HG400_PATCH', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'NW_003871080.1', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}]
-        assert results['NM_001077691.1:c.-108-7C>T']['transcript_description'] == 'Homo sapiens ALG9, alpha-1,2-mannosyltransferase (ALG9), transcript variant 3, mRNA'
         assert results['NM_001077691.1:c.-108-7C>T']['gene_symbol'] == 'ALG9'
         assert results['NM_001077691.1:c.-108-7C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001071159.1:p.?', 'slr': 'NP_001071159.1:p.?'}
         assert results['NM_001077691.1:c.-108-7C>T']['submitted_variant'] == '11-111735981-G-A'
@@ -8566,7 +8141,6 @@ class TestVariants(object):
         assert results['NM_001352410.1:c.-108-7C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001352410.1:c.-108-7C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001352410.1:c.-108-7C>T']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'HG388_HG400_PATCH', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'NW_003871080.1', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}]
-        assert results['NM_001352410.1:c.-108-7C>T']['transcript_description'] == 'Homo sapiens ALG9, alpha-1,2-mannosyltransferase (ALG9), transcript variant 6, mRNA'
         assert results['NM_001352410.1:c.-108-7C>T']['gene_symbol'] == 'ALG9'
         assert results['NM_001352410.1:c.-108-7C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001339339.1:p.?', 'slr': 'NP_001339339.1:p.?'}
         assert results['NM_001352410.1:c.-108-7C>T']['submitted_variant'] == '11-111735981-G-A'
@@ -8584,7 +8158,6 @@ class TestVariants(object):
         assert results['NM_001077690.1:c.406-7C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001077690.1:c.406-7C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001077690.1:c.406-7C>T']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'HG388_HG400_PATCH', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'NW_003871080.1', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}]
-        assert results['NM_001077690.1:c.406-7C>T']['transcript_description'] == 'Homo sapiens ALG9, alpha-1,2-mannosyltransferase (ALG9), transcript variant 2, mRNA'
         assert results['NM_001077690.1:c.406-7C>T']['gene_symbol'] == 'ALG9'
         assert results['NM_001077690.1:c.406-7C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001071158.1:p.?', 'slr': 'NP_001071158.1:p.?'}
         assert results['NM_001077690.1:c.406-7C>T']['submitted_variant'] == '11-111735981-G-A'
@@ -8603,7 +8176,6 @@ class TestVariants(object):
         assert results['NM_001352422.1:c.-326-7C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001352422.1:c.-326-7C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001352422.1:c.-326-7C>T']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'HG388_HG400_PATCH', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'NW_003871080.1', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}]
-        assert results['NM_001352422.1:c.-326-7C>T']['transcript_description'] == 'Homo sapiens ALG9, alpha-1,2-mannosyltransferase (ALG9), transcript variant 18, mRNA'
         assert results['NM_001352422.1:c.-326-7C>T']['gene_symbol'] == 'ALG9'
         assert results['NM_001352422.1:c.-326-7C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001339351.1:p.?', 'slr': 'NP_001339351.1:p.?'}
         assert results['NM_001352422.1:c.-326-7C>T']['submitted_variant'] == '11-111735981-G-A'
@@ -8621,7 +8193,6 @@ class TestVariants(object):
         assert results['NM_001352416.1:c.-108-7C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001352416.1:c.-108-7C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001352416.1:c.-108-7C>T']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'HG388_HG400_PATCH', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'NW_003871080.1', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}]
-        assert results['NM_001352416.1:c.-108-7C>T']['transcript_description'] == 'Homo sapiens ALG9, alpha-1,2-mannosyltransferase (ALG9), transcript variant 12, mRNA'
         assert results['NM_001352416.1:c.-108-7C>T']['gene_symbol'] == 'ALG9'
         assert results['NM_001352416.1:c.-108-7C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001339345.1:p.?', 'slr': 'NP_001339345.1:p.?'}
         assert results['NM_001352416.1:c.-108-7C>T']['submitted_variant'] == '11-111735981-G-A'
@@ -8639,7 +8210,6 @@ class TestVariants(object):
         assert results['NM_001352420.1:c.-108-7C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001352420.1:c.-108-7C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001352420.1:c.-108-7C>T']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'HG388_HG400_PATCH', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'NW_003871080.1', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}]
-        assert results['NM_001352420.1:c.-108-7C>T']['transcript_description'] == 'Homo sapiens ALG9, alpha-1,2-mannosyltransferase (ALG9), transcript variant 16, mRNA'
         assert results['NM_001352420.1:c.-108-7C>T']['gene_symbol'] == 'ALG9'
         assert results['NM_001352420.1:c.-108-7C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001339349.1:p.?', 'slr': 'NP_001339349.1:p.?'}
         assert results['NM_001352420.1:c.-108-7C>T']['submitted_variant'] == '11-111735981-G-A'
@@ -8657,7 +8227,6 @@ class TestVariants(object):
         assert results['NM_024740.2:c.406-7C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_024740.2:c.406-7C>T']['refseqgene_context_intronic_sequence'] == 'NG_009210.1(NM_024740.2):c.406-7C>T'
         assert results['NM_024740.2:c.406-7C>T']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'HG388_HG400_PATCH', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'NW_003871080.1', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}]
-        assert results['NM_024740.2:c.406-7C>T']['transcript_description'] == 'Homo sapiens ALG9, alpha-1,2-mannosyltransferase (ALG9), transcript variant 1, mRNA'
         assert results['NM_024740.2:c.406-7C>T']['gene_symbol'] == 'ALG9'
         assert results['NM_024740.2:c.406-7C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_079016.2:p.?', 'slr': 'NP_079016.2:p.?'}
         assert results['NM_024740.2:c.406-7C>T']['submitted_variant'] == '11-111735981-G-A'
@@ -8675,7 +8244,6 @@ class TestVariants(object):
         assert results['NM_001352414.1:c.-108-7C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001352414.1:c.-108-7C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001352414.1:c.-108-7C>T']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'HG388_HG400_PATCH', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'NW_003871080.1', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}]
-        assert results['NM_001352414.1:c.-108-7C>T']['transcript_description'] == 'Homo sapiens ALG9, alpha-1,2-mannosyltransferase (ALG9), transcript variant 10, mRNA'
         assert results['NM_001352414.1:c.-108-7C>T']['gene_symbol'] == 'ALG9'
         assert results['NM_001352414.1:c.-108-7C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001339343.1:p.?', 'slr': 'NP_001339343.1:p.?'}
         assert results['NM_001352414.1:c.-108-7C>T']['submitted_variant'] == '11-111735981-G-A'
@@ -8693,7 +8261,6 @@ class TestVariants(object):
         assert results['NM_001352417.1:c.406-7C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001352417.1:c.406-7C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001352417.1:c.406-7C>T']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'HG388_HG400_PATCH', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'NW_003871080.1', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}]
-        assert results['NM_001352417.1:c.406-7C>T']['transcript_description'] == 'Homo sapiens ALG9, alpha-1,2-mannosyltransferase (ALG9), transcript variant 13, mRNA'
         assert results['NM_001352417.1:c.406-7C>T']['gene_symbol'] == 'ALG9'
         assert results['NM_001352417.1:c.406-7C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001339346.1:p.?', 'slr': 'NP_001339346.1:p.?'}
         assert results['NM_001352417.1:c.406-7C>T']['submitted_variant'] == '11-111735981-G-A'
@@ -8711,7 +8278,6 @@ class TestVariants(object):
         assert results['NM_001352409.1:c.-108-7C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001352409.1:c.-108-7C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001352409.1:c.-108-7C>T']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'HG388_HG400_PATCH', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'NW_003871080.1', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}]
-        assert results['NM_001352409.1:c.-108-7C>T']['transcript_description'] == 'Homo sapiens ALG9, alpha-1,2-mannosyltransferase (ALG9), transcript variant 5, mRNA'
         assert results['NM_001352409.1:c.-108-7C>T']['gene_symbol'] == 'ALG9'
         assert results['NM_001352409.1:c.-108-7C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001339338.1:p.?', 'slr': 'NP_001339338.1:p.?'}
         assert results['NM_001352409.1:c.-108-7C>T']['submitted_variant'] == '11-111735981-G-A'
@@ -8729,7 +8295,6 @@ class TestVariants(object):
         assert results['NM_001352413.1:c.-108-7C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001352413.1:c.-108-7C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001352413.1:c.-108-7C>T']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'HG388_HG400_PATCH', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003871080.1:g.117249G>A', 'vcf': {'chr': 'NW_003871080.1', 'ref': u'G', 'pos': '117249', 'alt': u'A'}}}]
-        assert results['NM_001352413.1:c.-108-7C>T']['transcript_description'] == 'Homo sapiens ALG9, alpha-1,2-mannosyltransferase (ALG9), transcript variant 9, mRNA'
         assert results['NM_001352413.1:c.-108-7C>T']['gene_symbol'] == 'ALG9'
         assert results['NM_001352413.1:c.-108-7C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001339342.1:p.?', 'slr': 'NP_001339342.1:p.?'}
         assert results['NM_001352413.1:c.-108-7C>T']['submitted_variant'] == '11-111735981-G-A'
@@ -8754,7 +8319,6 @@ class TestVariants(object):
         assert results['NR_037918.2:n.1184+11736G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_037918.2:n.1184+11736G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_037918.2:n.1184+11736G>T']['alt_genomic_loci'] == [{'grch38': {'hgvs_genomic_description': 'NT_187658.1:g.69187C>A', 'vcf': {'chr': 'HSCHR12_3_CTG2', 'ref': u'C', 'pos': '69187', 'alt': u'A'}}}, {'hg38': {'hgvs_genomic_description': 'NT_187658.1:g.69187C>A', 'vcf': {'chr': 'chr12_KI270904v1_alt', 'ref': u'C', 'pos': '69187', 'alt': u'A'}}}, {'grch37': {'hgvs_genomic_description': 'NW_003571047.1:g.69187C>A', 'vcf': {'chr': 'HG1133_PATCH', 'ref': u'C', 'pos': '69187', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003571047.1:g.69187C>A', 'vcf': {'chr': 'NW_003571047.1', 'ref': u'C', 'pos': '69187', 'alt': u'A'}}}, {'grch37': {'hgvs_genomic_description': 'NW_003571050.1:g.69187C>A', 'vcf': {'chr': 'HSCHR12_2_CTG2', 'ref': u'C', 'pos': '69187', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003571050.1:g.69187C>A', 'vcf': {'chr': 'NW_003571050.1', 'ref': u'C', 'pos': '69187', 'alt': u'A'}}}, {'grch38': {'hgvs_genomic_description': 'NW_003571050.1:g.69187C>A', 'vcf': {'chr': 'HSCHR12_2_CTG2', 'ref': u'C', 'pos': '69187', 'alt': u'A'}}}, {'hg38': {'hgvs_genomic_description': 'NW_003571050.1:g.69187C>A', 'vcf': {'chr': 'chr12_GL877876v1_alt', 'ref': u'C', 'pos': '69187', 'alt': u'A'}}}]
-        assert results['NR_037918.2:n.1184+11736G>T']['transcript_description'] == 'Homo sapiens PRH1-PRR4 readthrough (PRH1-PRR4), long non-coding RNA'
         assert results['NR_037918.2:n.1184+11736G>T']['gene_symbol'] == 'PRH1-PRR4'
         assert results['NR_037918.2:n.1184+11736G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_037918.2:n.1184+11736G>T']['submitted_variant'] == '12-11023080-C-A'
@@ -8778,7 +8342,6 @@ class TestVariants(object):
         assert results['NM_020297.3:c.2199-1302del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_020297.3:c.2199-1302del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_020297.3:c.2199-1302del']['alt_genomic_loci'] == []
-        assert results['NM_020297.3:c.2199-1302del']['transcript_description'] == 'Homo sapiens ATP binding cassette subfamily C member 9 (ABCC9), transcript variant SUR2B, mRNA'
         assert results['NM_020297.3:c.2199-1302del']['gene_symbol'] == 'ABCC9'
         assert results['NM_020297.3:c.2199-1302del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_064693.2(LRG_377p1):p.?', 'slr': 'NP_064693.2:p.?'}
         assert results['NM_020297.3:c.2199-1302del']['submitted_variant'] == '12-22018712-TC-T'
@@ -8796,7 +8359,6 @@ class TestVariants(object):
         assert results['NM_005691.3:c.2199-1302del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_005691.3:c.2199-1302del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_005691.3:c.2199-1302del']['alt_genomic_loci'] == []
-        assert results['NM_005691.3:c.2199-1302del']['transcript_description'] == 'Homo sapiens ATP binding cassette subfamily C member 9 (ABCC9), transcript variant SUR2A, mRNA'
         assert results['NM_005691.3:c.2199-1302del']['gene_symbol'] == 'ABCC9'
         assert results['NM_005691.3:c.2199-1302del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_005682.2(LRG_377p2):p.?', 'slr': 'NP_005682.2:p.?'}
         assert results['NM_005691.3:c.2199-1302del']['submitted_variant'] == '12-22018712-TC-T'
@@ -8814,7 +8376,6 @@ class TestVariants(object):
         assert results['NM_020297.2:c.2199-1302del']['hgvs_lrg_transcript_variant'] == 'LRG_377t1:c.2199-1302del'
         assert results['NM_020297.2:c.2199-1302del']['refseqgene_context_intronic_sequence'] == 'NG_012819.1(NM_020297.2):c.2199-1302del'
         assert results['NM_020297.2:c.2199-1302del']['alt_genomic_loci'] == []
-        assert results['NM_020297.2:c.2199-1302del']['transcript_description'] == 'Homo sapiens ATP-binding cassette, sub-family C (CFTR/MRP), member 9 (ABCC9), transcript variant SUR2B, mRNA'
         assert results['NM_020297.2:c.2199-1302del']['gene_symbol'] == 'ABCC9'
         assert results['NM_020297.2:c.2199-1302del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_064693.2(LRG_377p1):p.?', 'slr': 'NP_064693.2:p.?'}
         assert results['NM_020297.2:c.2199-1302del']['submitted_variant'] == '12-22018712-TC-T'
@@ -8833,7 +8394,6 @@ class TestVariants(object):
         assert results['NM_005691.2:c.2199-1302del']['hgvs_lrg_transcript_variant'] == 'LRG_377t2:c.2199-1302del'
         assert results['NM_005691.2:c.2199-1302del']['refseqgene_context_intronic_sequence'] == 'NG_012819.1(NM_005691.2):c.2199-1302del'
         assert results['NM_005691.2:c.2199-1302del']['alt_genomic_loci'] == []
-        assert results['NM_005691.2:c.2199-1302del']['transcript_description'] == 'Homo sapiens ATP-binding cassette, sub-family C (CFTR/MRP), member 9 (ABCC9), transcript variant SUR2A, mRNA'
         assert results['NM_005691.2:c.2199-1302del']['gene_symbol'] == 'ABCC9'
         assert results['NM_005691.2:c.2199-1302del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_005682.2(LRG_377p2):p.?', 'slr': 'NP_005682.2:p.?'}
         assert results['NM_005691.2:c.2199-1302del']['submitted_variant'] == '12-22018712-TC-T'
@@ -8858,7 +8418,6 @@ class TestVariants(object):
         assert results['NM_000424.3:c.556-2A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000424.3:c.556-2A>G']['refseqgene_context_intronic_sequence'] == 'NG_008297.1(NM_000424.3):c.556-2A>G'
         assert results['NM_000424.3:c.556-2A>G']['alt_genomic_loci'] == []
-        assert results['NM_000424.3:c.556-2A>G']['transcript_description'] == 'Homo sapiens keratin 5 (KRT5), mRNA'
         assert results['NM_000424.3:c.556-2A>G']['gene_symbol'] == 'KRT5'
         assert results['NM_000424.3:c.556-2A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000415.2:p.?', 'slr': 'NP_000415.2:p.?'}
         assert results['NM_000424.3:c.556-2A>G']['submitted_variant'] == '12-52912946-T-C'
@@ -8882,7 +8441,6 @@ class TestVariants(object):
         assert results['NM_001354304.1:c.1200del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001354304.1:c.1200del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001354304.1:c.1200del']['alt_genomic_loci'] == []
-        assert results['NM_001354304.1:c.1200del']['transcript_description'] == 'Homo sapiens phenylalanine hydroxylase (PAH), transcript variant 2, mRNA'
         assert results['NM_001354304.1:c.1200del']['gene_symbol'] == 'PAH'
         assert results['NM_001354304.1:c.1200del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001341233.1:p.(Asn401ThrfsTer51)', 'slr': 'NP_001341233.1:p.(N401Tfs*51)'}
         assert results['NM_001354304.1:c.1200del']['submitted_variant'] == '12-103234292-TC-T'
@@ -8900,7 +8458,6 @@ class TestVariants(object):
         assert results['NM_000277.2:c.1200del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000277.2:c.1200del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000277.2:c.1200del']['alt_genomic_loci'] == []
-        assert results['NM_000277.2:c.1200del']['transcript_description'] == 'Homo sapiens phenylalanine hydroxylase (PAH), transcript variant 1, mRNA'
         assert results['NM_000277.2:c.1200del']['gene_symbol'] == 'PAH'
         assert results['NM_000277.2:c.1200del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000268.1:p.(Asn401ThrfsTer51)', 'slr': 'NP_000268.1:p.(N401Tfs*51)'}
         assert results['NM_000277.2:c.1200del']['submitted_variant'] == '12-103234292-TC-T'
@@ -8919,7 +8476,6 @@ class TestVariants(object):
         assert results['NM_000277.1:c.1200del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000277.1:c.1200del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000277.1:c.1200del']['alt_genomic_loci'] == []
-        assert results['NM_000277.1:c.1200del']['transcript_description'] == 'Homo sapiens phenylalanine hydroxylase (PAH), mRNA'
         assert results['NM_000277.1:c.1200del']['gene_symbol'] == 'PAH'
         assert results['NM_000277.1:c.1200del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000268.1:p.(Asn401ThrfsTer51)', 'slr': 'NP_000268.1:p.(N401Tfs*51)'}
         assert results['NM_000277.1:c.1200del']['submitted_variant'] == '12-103234292-TC-T'
@@ -8943,7 +8499,6 @@ class TestVariants(object):
         assert results['NM_001354304.1:c.-95-121A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001354304.1:c.-95-121A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001354304.1:c.-95-121A>G']['alt_genomic_loci'] == []
-        assert results['NM_001354304.1:c.-95-121A>G']['transcript_description'] == 'Homo sapiens phenylalanine hydroxylase (PAH), transcript variant 2, mRNA'
         assert results['NM_001354304.1:c.-95-121A>G']['gene_symbol'] == 'PAH'
         assert results['NM_001354304.1:c.-95-121A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001341233.1:p.?', 'slr': 'NP_001341233.1:p.?'}
         assert results['NM_001354304.1:c.-95-121A>G']['submitted_variant'] == '12-103311124-T-C'
@@ -8962,7 +8517,6 @@ class TestVariants(object):
         assert results['NM_000277.2:c.-216A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000277.2:c.-216A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000277.2:c.-216A>G']['alt_genomic_loci'] == []
-        assert results['NM_000277.2:c.-216A>G']['transcript_description'] == 'Homo sapiens phenylalanine hydroxylase (PAH), transcript variant 1, mRNA'
         assert results['NM_000277.2:c.-216A>G']['gene_symbol'] == 'PAH'
         assert results['NM_000277.2:c.-216A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000268.1:p.?', 'slr': 'NP_000268.1:p.?'}
         assert results['NM_000277.2:c.-216A>G']['submitted_variant'] == '12-103311124-T-C'
@@ -8980,7 +8534,6 @@ class TestVariants(object):
         assert results['NM_000277.1:c.-215A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000277.1:c.-215A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000277.1:c.-215A>G']['alt_genomic_loci'] == []
-        assert results['NM_000277.1:c.-215A>G']['transcript_description'] == 'Homo sapiens phenylalanine hydroxylase (PAH), mRNA'
         assert results['NM_000277.1:c.-215A>G']['gene_symbol'] == 'PAH'
         assert results['NM_000277.1:c.-215A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000268.1:p.?', 'slr': 'NP_000268.1:p.?'}
         assert results['NM_000277.1:c.-215A>G']['submitted_variant'] == '12-103311124-T-C'
@@ -9004,7 +8557,6 @@ class TestVariants(object):
         assert results['NM_001319681.1:c.-366-1G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001319681.1:c.-366-1G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001319681.1:c.-366-1G>A']['alt_genomic_loci'] == []
-        assert results['NM_001319681.1:c.-366-1G>A']['transcript_description'] == 'Homo sapiens tectonic family member 1 (TCTN1), transcript variant 7, mRNA'
         assert results['NM_001319681.1:c.-366-1G>A']['gene_symbol'] == 'TCTN1'
         assert results['NM_001319681.1:c.-366-1G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001306610.1:p.?', 'slr': 'NP_001306610.1:p.?'}
         assert results['NM_001319681.1:c.-366-1G>A']['submitted_variant'] == '12-111064166-G-A'
@@ -9022,7 +8574,6 @@ class TestVariants(object):
         assert results['NM_001319680.1:c.342-1G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001319680.1:c.342-1G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001319680.1:c.342-1G>A']['alt_genomic_loci'] == []
-        assert results['NM_001319680.1:c.342-1G>A']['transcript_description'] == 'Homo sapiens tectonic family member 1 (TCTN1), transcript variant 6, mRNA'
         assert results['NM_001319680.1:c.342-1G>A']['gene_symbol'] == 'TCTN1'
         assert results['NM_001319680.1:c.342-1G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001306609.1:p.?', 'slr': 'NP_001306609.1:p.?'}
         assert results['NM_001319680.1:c.342-1G>A']['submitted_variant'] == '12-111064166-G-A'
@@ -9040,7 +8591,6 @@ class TestVariants(object):
         assert results['NM_001082538.2:c.342-1G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001082538.2:c.342-1G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001082538.2:c.342-1G>A']['alt_genomic_loci'] == []
-        assert results['NM_001082538.2:c.342-1G>A']['transcript_description'] == 'Homo sapiens tectonic family member 1 (TCTN1), transcript variant 1, mRNA'
         assert results['NM_001082538.2:c.342-1G>A']['gene_symbol'] == 'TCTN1'
         assert results['NM_001082538.2:c.342-1G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001076007.1:p.?', 'slr': 'NP_001076007.1:p.?'}
         assert results['NM_001082538.2:c.342-1G>A']['submitted_variant'] == '12-111064166-G-A'
@@ -9058,7 +8608,6 @@ class TestVariants(object):
         assert results['NM_001173976.1:c.162-1G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001173976.1:c.162-1G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001173976.1:c.162-1G>A']['alt_genomic_loci'] == []
-        assert results['NM_001173976.1:c.162-1G>A']['transcript_description'] == 'Homo sapiens tectonic family member 1 (TCTN1), transcript variant 5, mRNA'
         assert results['NM_001173976.1:c.162-1G>A']['gene_symbol'] == 'TCTN1'
         assert results['NM_001173976.1:c.162-1G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001167447.1:p.?', 'slr': 'NP_001167447.1:p.?'}
         assert results['NM_001173976.1:c.162-1G>A']['submitted_variant'] == '12-111064166-G-A'
@@ -9077,7 +8626,6 @@ class TestVariants(object):
         assert results['NM_001082537.2:c.342-1G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001082537.2:c.342-1G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001082537.2:c.342-1G>A']['alt_genomic_loci'] == []
-        assert results['NM_001082537.2:c.342-1G>A']['transcript_description'] == 'Homo sapiens tectonic family member 1 (TCTN1), transcript variant 2, mRNA'
         assert results['NM_001082537.2:c.342-1G>A']['gene_symbol'] == 'TCTN1'
         assert results['NM_001082537.2:c.342-1G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001076006.1:p.?', 'slr': 'NP_001076006.1:p.?'}
         assert results['NM_001082537.2:c.342-1G>A']['submitted_variant'] == '12-111064166-G-A'
@@ -9095,7 +8643,6 @@ class TestVariants(object):
         assert results['NR_135088.1:n.559-1G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_135088.1:n.559-1G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_135088.1:n.559-1G>A']['alt_genomic_loci'] == []
-        assert results['NR_135088.1:n.559-1G>A']['transcript_description'] == 'Homo sapiens tectonic family member 1 (TCTN1), transcript variant 9, non-coding RNA'
         assert results['NR_135088.1:n.559-1G>A']['gene_symbol'] == 'TCTN1'
         assert results['NR_135088.1:n.559-1G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_135088.1:n.559-1G>A']['submitted_variant'] == '12-111064166-G-A'
@@ -9113,7 +8660,6 @@ class TestVariants(object):
         assert results['NM_024549.5:c.342-1G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_024549.5:c.342-1G>A']['refseqgene_context_intronic_sequence'] == 'NG_030381.1(NM_024549.5):c.342-1G>A'
         assert results['NM_024549.5:c.342-1G>A']['alt_genomic_loci'] == []
-        assert results['NM_024549.5:c.342-1G>A']['transcript_description'] == 'Homo sapiens tectonic family member 1 (TCTN1), transcript variant 3, mRNA'
         assert results['NM_024549.5:c.342-1G>A']['gene_symbol'] == 'TCTN1'
         assert results['NM_024549.5:c.342-1G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_078825.2:p.?', 'slr': 'NP_078825.2:p.?'}
         assert results['NM_024549.5:c.342-1G>A']['submitted_variant'] == '12-111064166-G-A'
@@ -9131,7 +8677,6 @@ class TestVariants(object):
         assert results['NM_001173975.2:c.174-1G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001173975.2:c.174-1G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001173975.2:c.174-1G>A']['alt_genomic_loci'] == []
-        assert results['NM_001173975.2:c.174-1G>A']['transcript_description'] == 'Homo sapiens tectonic family member 1 (TCTN1), transcript variant 4, mRNA'
         assert results['NM_001173975.2:c.174-1G>A']['gene_symbol'] == 'TCTN1'
         assert results['NM_001173975.2:c.174-1G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001167446.1:p.?', 'slr': 'NP_001167446.1:p.?'}
         assert results['NM_001173975.2:c.174-1G>A']['submitted_variant'] == '12-111064166-G-A'
@@ -9149,7 +8694,6 @@ class TestVariants(object):
         assert results['NM_001173975.1:c.174-1G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001173975.1:c.174-1G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001173975.1:c.174-1G>A']['alt_genomic_loci'] == []
-        assert results['NM_001173975.1:c.174-1G>A']['transcript_description'] == 'Homo sapiens tectonic family member 1 (TCTN1), transcript variant 4, mRNA'
         assert results['NM_001173975.1:c.174-1G>A']['gene_symbol'] == 'TCTN1'
         assert results['NM_001173975.1:c.174-1G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001167446.1:p.?', 'slr': 'NP_001167446.1:p.?'}
         assert results['NM_001173975.1:c.174-1G>A']['submitted_variant'] == '12-111064166-G-A'
@@ -9167,7 +8711,6 @@ class TestVariants(object):
         assert results['NM_001319682.1:c.174-1G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001319682.1:c.174-1G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001319682.1:c.174-1G>A']['alt_genomic_loci'] == []
-        assert results['NM_001319682.1:c.174-1G>A']['transcript_description'] == 'Homo sapiens tectonic family member 1 (TCTN1), transcript variant 8, mRNA'
         assert results['NM_001319682.1:c.174-1G>A']['gene_symbol'] == 'TCTN1'
         assert results['NM_001319682.1:c.174-1G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001306611.1:p.?', 'slr': 'NP_001306611.1:p.?'}
         assert results['NM_001319682.1:c.174-1G>A']['submitted_variant'] == '12-111064166-G-A'
@@ -9191,7 +8734,6 @@ class TestVariants(object):
         assert results['NM_001194995.1:c.210del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001194995.1:c.210del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001194995.1:c.210del']['alt_genomic_loci'] == []
-        assert results['NM_001194995.1:c.210del']['transcript_description'] == 'Homo sapiens chromosome 12 open reading frame 65 (C12orf65), transcript variant 3, mRNA'
         assert results['NM_001194995.1:c.210del']['gene_symbol'] == 'C12orf65'
         assert results['NM_001194995.1:c.210del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001181924.1:p.(Gly72AlafsTer13)', 'slr': 'NP_001181924.1:p.(G72Afs*13)'}
         assert results['NM_001194995.1:c.210del']['submitted_variant'] == '12-123738430-CA-C'
@@ -9210,7 +8752,6 @@ class TestVariants(object):
         assert results['NM_152269.4:c.210del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_152269.4:c.210del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_152269.4:c.210del']['alt_genomic_loci'] == []
-        assert results['NM_152269.4:c.210del']['transcript_description'] == 'Homo sapiens chromosome 12 open reading frame 65 (C12orf65), transcript variant 1, mRNA'
         assert results['NM_152269.4:c.210del']['gene_symbol'] == 'C12orf65'
         assert results['NM_152269.4:c.210del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_689482.1:p.(Gly72AlafsTer13)', 'slr': 'NP_689482.1:p.(G72Afs*13)'}
         assert results['NM_152269.4:c.210del']['submitted_variant'] == '12-123738430-CA-C'
@@ -9228,7 +8769,6 @@ class TestVariants(object):
         assert results['NM_001143905.2:c.210del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001143905.2:c.210del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001143905.2:c.210del']['alt_genomic_loci'] == []
-        assert results['NM_001143905.2:c.210del']['transcript_description'] == 'Homo sapiens chromosome 12 open reading frame 65 (C12orf65), transcript variant 2, mRNA'
         assert results['NM_001143905.2:c.210del']['gene_symbol'] == 'C12orf65'
         assert results['NM_001143905.2:c.210del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001137377.1:p.(Gly72AlafsTer13)', 'slr': 'NP_001137377.1:p.(G72Afs*13)'}
         assert results['NM_001143905.2:c.210del']['submitted_variant'] == '12-123738430-CA-C'
@@ -9253,7 +8793,6 @@ class TestVariants(object):
         assert results['NM_194318.3:c.71-5del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_194318.3:c.71-5del']['refseqgene_context_intronic_sequence'] == 'NG_011732.1(NM_194318.3):c.71-5del'
         assert results['NM_194318.3:c.71-5del']['alt_genomic_loci'] == []
-        assert results['NM_194318.3:c.71-5del']['transcript_description'] == 'Homo sapiens beta 3-glucosyltransferase (B3GLCT), mRNA'
         assert results['NM_194318.3:c.71-5del']['gene_symbol'] == 'B3GLCT'
         assert results['NM_194318.3:c.71-5del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_919299.3:p.?', 'slr': 'NP_919299.3:p.?'}
         assert results['NM_194318.3:c.71-5del']['submitted_variant'] == '13-31789169-CT-C'
@@ -9277,7 +8816,6 @@ class TestVariants(object):
         assert results['NR_144368.1:n.214-3552C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_144368.1:n.214-3552C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_144368.1:n.214-3552C>T']['alt_genomic_loci'] == []
-        assert results['NR_144368.1:n.214-3552C>T']['transcript_description'] == 'Homo sapiens uncharacterized LOC105370526 (LOC105370526), long non-coding RNA'
         assert results['NR_144368.1:n.214-3552C>T']['gene_symbol'] == 'LOC105370526'
         assert results['NR_144368.1:n.214-3552C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_144368.1:n.214-3552C>T']['submitted_variant'] == '14-62187287-G-A'
@@ -9295,7 +8833,6 @@ class TestVariants(object):
         assert results['NM_181054.2:c.223G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_181054.2:c.223G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_181054.2:c.223G>A']['alt_genomic_loci'] == []
-        assert results['NM_181054.2:c.223G>A']['transcript_description'] == 'Homo sapiens hypoxia inducible factor 1 subunit alpha (HIF1A), transcript variant 2, mRNA'
         assert results['NM_181054.2:c.223G>A']['gene_symbol'] == 'HIF1A'
         assert results['NM_181054.2:c.223G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_851397.1:p.(Ala75Thr)', 'slr': 'NP_851397.1:p.(A75T)'}
         assert results['NM_181054.2:c.223G>A']['submitted_variant'] == '14-62187287-G-A'
@@ -9314,7 +8851,6 @@ class TestVariants(object):
         assert results['NM_001243084.1:c.295G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001243084.1:c.295G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001243084.1:c.295G>A']['alt_genomic_loci'] == []
-        assert results['NM_001243084.1:c.295G>A']['transcript_description'] == 'Homo sapiens hypoxia inducible factor 1 subunit alpha (HIF1A), transcript variant 3, mRNA'
         assert results['NM_001243084.1:c.295G>A']['gene_symbol'] == 'HIF1A'
         assert results['NM_001243084.1:c.295G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001230013.1:p.(Ala99Thr)', 'slr': 'NP_001230013.1:p.(A99T)'}
         assert results['NM_001243084.1:c.295G>A']['submitted_variant'] == '14-62187287-G-A'
@@ -9332,7 +8868,6 @@ class TestVariants(object):
         assert results['NM_001530.3:c.223G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001530.3:c.223G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001530.3:c.223G>A']['alt_genomic_loci'] == []
-        assert results['NM_001530.3:c.223G>A']['transcript_description'] == 'Homo sapiens hypoxia inducible factor 1 subunit alpha (HIF1A), transcript variant 1, mRNA'
         assert results['NM_001530.3:c.223G>A']['gene_symbol'] == 'HIF1A'
         assert results['NM_001530.3:c.223G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001521.1:p.(Ala75Thr)', 'slr': 'NP_001521.1:p.(A75T)'}
         assert results['NM_001530.3:c.223G>A']['submitted_variant'] == '14-62187287-G-A'
@@ -9356,7 +8891,6 @@ class TestVariants(object):
         assert results['NR_144368.1:n.214-4497_214-4496delinsTC']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_144368.1:n.214-4497_214-4496delinsTC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_144368.1:n.214-4497_214-4496delinsTC']['alt_genomic_loci'] == []
-        assert results['NR_144368.1:n.214-4497_214-4496delinsTC']['transcript_description'] == 'Homo sapiens uncharacterized LOC105370526 (LOC105370526), long non-coding RNA'
         assert results['NR_144368.1:n.214-4497_214-4496delinsTC']['gene_symbol'] == 'LOC105370526'
         assert results['NR_144368.1:n.214-4497_214-4496delinsTC']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_144368.1:n.214-4497_214-4496delinsTC']['submitted_variant'] == '14-62188231-TT-GA'
@@ -9374,7 +8908,6 @@ class TestVariants(object):
         assert results['NM_001530.3:c.231_232delinsGA']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001530.3:c.231_232delinsGA']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001530.3:c.231_232delinsGA']['alt_genomic_loci'] == []
-        assert results['NM_001530.3:c.231_232delinsGA']['transcript_description'] == 'Homo sapiens hypoxia inducible factor 1 subunit alpha (HIF1A), transcript variant 1, mRNA'
         assert results['NM_001530.3:c.231_232delinsGA']['gene_symbol'] == 'HIF1A'
         assert results['NM_001530.3:c.231_232delinsGA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001521.1:p.(Asp77_Leu78delinsGluMet)', 'slr': 'NP_001521.1:p.(D77_L78delinsEM)'}
         assert results['NM_001530.3:c.231_232delinsGA']['submitted_variant'] == '14-62188231-TT-GA'
@@ -9393,7 +8926,6 @@ class TestVariants(object):
         assert results['NM_001243084.1:c.303_304delinsGA']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001243084.1:c.303_304delinsGA']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001243084.1:c.303_304delinsGA']['alt_genomic_loci'] == []
-        assert results['NM_001243084.1:c.303_304delinsGA']['transcript_description'] == 'Homo sapiens hypoxia inducible factor 1 subunit alpha (HIF1A), transcript variant 3, mRNA'
         assert results['NM_001243084.1:c.303_304delinsGA']['gene_symbol'] == 'HIF1A'
         assert results['NM_001243084.1:c.303_304delinsGA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001230013.1:p.(Asp101_Leu102delinsGluMet)', 'slr': 'NP_001230013.1:p.(D101_L102delinsEM)'}
         assert results['NM_001243084.1:c.303_304delinsGA']['submitted_variant'] == '14-62188231-TT-GA'
@@ -9411,7 +8943,6 @@ class TestVariants(object):
         assert results['NM_181054.2:c.231_232delinsGA']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_181054.2:c.231_232delinsGA']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_181054.2:c.231_232delinsGA']['alt_genomic_loci'] == []
-        assert results['NM_181054.2:c.231_232delinsGA']['transcript_description'] == 'Homo sapiens hypoxia inducible factor 1 subunit alpha (HIF1A), transcript variant 2, mRNA'
         assert results['NM_181054.2:c.231_232delinsGA']['gene_symbol'] == 'HIF1A'
         assert results['NM_181054.2:c.231_232delinsGA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_851397.1:p.(Asp77_Leu78delinsGluMet)', 'slr': 'NP_851397.1:p.(D77_L78delinsEM)'}
         assert results['NM_181054.2:c.231_232delinsGA']['submitted_variant'] == '14-62188231-TT-GA'
@@ -9435,7 +8966,6 @@ class TestVariants(object):
         assert results['NM_139318.3:c.2366G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_139318.3:c.2366G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_139318.3:c.2366G>T']['alt_genomic_loci'] == []
-        assert results['NM_139318.3:c.2366G>T']['transcript_description'] == 'Homo sapiens potassium voltage-gated channel, subfamily H (eag-related), member 5 (KCNH5), transcript variant 1, mRNA'
         assert results['NM_139318.3:c.2366G>T']['gene_symbol'] == 'KCNH5'
         assert results['NM_139318.3:c.2366G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_647479.2:p.(Gly789Val)', 'slr': 'NP_647479.2:p.(G789V)'}
         assert results['NM_139318.3:c.2366G>T']['submitted_variant'] == '14-63174827-C-A'
@@ -9453,7 +8983,6 @@ class TestVariants(object):
         assert results['NM_172375.1:c.*333G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_172375.1:c.*333G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_172375.1:c.*333G>T']['alt_genomic_loci'] == []
-        assert results['NM_172375.1:c.*333G>T']['transcript_description'] == 'Homo sapiens potassium voltage-gated channel, subfamily H (eag-related), member 5 (KCNH5), transcript variant 3, mRNA'
         assert results['NM_172375.1:c.*333G>T']['gene_symbol'] == 'KCNH5'
         assert results['NM_172375.1:c.*333G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_758963.1:p.?', 'slr': 'NP_758963.1:p.?'}
         assert results['NM_172375.1:c.*333G>T']['submitted_variant'] == '14-63174827-C-A'
@@ -9471,7 +9000,6 @@ class TestVariants(object):
         assert results['NM_172375.2:c.*333G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_172375.2:c.*333G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_172375.2:c.*333G>T']['alt_genomic_loci'] == []
-        assert results['NM_172375.2:c.*333G>T']['transcript_description'] == 'Homo sapiens potassium voltage-gated channel subfamily H member 5 (KCNH5), transcript variant 3, mRNA'
         assert results['NM_172375.2:c.*333G>T']['gene_symbol'] == 'KCNH5'
         assert results['NM_172375.2:c.*333G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_758963.1:p.?', 'slr': 'NP_758963.1:p.?'}
         assert results['NM_172375.2:c.*333G>T']['submitted_variant'] == '14-63174827-C-A'
@@ -9490,7 +9018,6 @@ class TestVariants(object):
         assert results['NM_139318.4:c.2366G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_139318.4:c.2366G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_139318.4:c.2366G>T']['alt_genomic_loci'] == []
-        assert results['NM_139318.4:c.2366G>T']['transcript_description'] == 'Homo sapiens potassium voltage-gated channel subfamily H member 5 (KCNH5), transcript variant 1, mRNA'
         assert results['NM_139318.4:c.2366G>T']['gene_symbol'] == 'KCNH5'
         assert results['NM_139318.4:c.2366G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_647479.2:p.(Gly789Val)', 'slr': 'NP_647479.2:p.(G789V)'}
         assert results['NM_139318.4:c.2366G>T']['submitted_variant'] == '14-63174827-C-A'
@@ -9514,7 +9041,6 @@ class TestVariants(object):
         assert results['NM_000070.2:c.550del']['hgvs_lrg_transcript_variant'] == 'LRG_849t1:c.550del'
         assert results['NM_000070.2:c.550del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000070.2:c.550del']['alt_genomic_loci'] == []
-        assert results['NM_000070.2:c.550del']['transcript_description'] == 'Homo sapiens calpain 3 (CAPN3), transcript variant 1, mRNA'
         assert results['NM_000070.2:c.550del']['gene_symbol'] == 'CAPN3'
         assert results['NM_000070.2:c.550del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000061.1(LRG_849p1):p.(Thr184ArgfsTer36)', 'slr': 'NP_000061.1:p.(T184Rfs*36)'}
         assert results['NM_000070.2:c.550del']['submitted_variant'] == '15-42680000-CA-C'
@@ -9533,7 +9059,6 @@ class TestVariants(object):
         assert results['NM_024344.1:c.550del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_024344.1:c.550del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_024344.1:c.550del']['alt_genomic_loci'] == []
-        assert results['NM_024344.1:c.550del']['transcript_description'] == 'Homo sapiens calpain 3 (CAPN3), transcript variant 2, mRNA'
         assert results['NM_024344.1:c.550del']['gene_symbol'] == 'CAPN3'
         assert results['NM_024344.1:c.550del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_077320.1:p.(Thr184ArgfsTer36)', 'slr': 'NP_077320.1:p.(T184Rfs*36)'}
         assert results['NM_024344.1:c.550del']['submitted_variant'] == '15-42680000-CA-C'
@@ -9551,7 +9076,6 @@ class TestVariants(object):
         assert results['NM_173087.1:c.550del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_173087.1:c.550del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_173087.1:c.550del']['alt_genomic_loci'] == []
-        assert results['NM_173087.1:c.550del']['transcript_description'] == 'Homo sapiens calpain 3 (CAPN3), transcript variant 3, mRNA'
         assert results['NM_173087.1:c.550del']['gene_symbol'] == 'CAPN3'
         assert results['NM_173087.1:c.550del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_775110.1:p.(Thr184ArgfsTer36)', 'slr': 'NP_775110.1:p.(T184Rfs*36)'}
         assert results['NM_173087.1:c.550del']['submitted_variant'] == '15-42680000-CA-C'
@@ -9575,7 +9099,6 @@ class TestVariants(object):
         assert results['NM_024344.1:c.550dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_024344.1:c.550dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_024344.1:c.550dup']['alt_genomic_loci'] == []
-        assert results['NM_024344.1:c.550dup']['transcript_description'] == 'Homo sapiens calpain 3 (CAPN3), transcript variant 2, mRNA'
         assert results['NM_024344.1:c.550dup']['gene_symbol'] == 'CAPN3'
         assert results['NM_024344.1:c.550dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_077320.1:p.(Thr184AsnfsTer16)', 'slr': 'NP_077320.1:p.(T184Nfs*16)'}
         assert results['NM_024344.1:c.550dup']['submitted_variant'] == '15-42680000-CA-CAA'
@@ -9593,7 +9116,6 @@ class TestVariants(object):
         assert results['NM_173087.1:c.550dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_173087.1:c.550dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_173087.1:c.550dup']['alt_genomic_loci'] == []
-        assert results['NM_173087.1:c.550dup']['transcript_description'] == 'Homo sapiens calpain 3 (CAPN3), transcript variant 3, mRNA'
         assert results['NM_173087.1:c.550dup']['gene_symbol'] == 'CAPN3'
         assert results['NM_173087.1:c.550dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_775110.1:p.(Thr184AsnfsTer16)', 'slr': 'NP_775110.1:p.(T184Nfs*16)'}
         assert results['NM_173087.1:c.550dup']['submitted_variant'] == '15-42680000-CA-CAA'
@@ -9612,7 +9134,6 @@ class TestVariants(object):
         assert results['NM_000070.2:c.550dup']['hgvs_lrg_transcript_variant'] == 'LRG_849t1:c.550dup'
         assert results['NM_000070.2:c.550dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000070.2:c.550dup']['alt_genomic_loci'] == []
-        assert results['NM_000070.2:c.550dup']['transcript_description'] == 'Homo sapiens calpain 3 (CAPN3), transcript variant 1, mRNA'
         assert results['NM_000070.2:c.550dup']['gene_symbol'] == 'CAPN3'
         assert results['NM_000070.2:c.550dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000061.1(LRG_849p1):p.(Thr184AsnfsTer16)', 'slr': 'NP_000061.1:p.(T184Nfs*16)'}
         assert results['NM_000070.2:c.550dup']['submitted_variant'] == '15-42680000-CA-CAA'
@@ -9636,7 +9157,6 @@ class TestVariants(object):
         assert results['NM_173088.1:c.825_826insTCA']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_173088.1:c.825_826insTCA']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_173088.1:c.825_826insTCA']['alt_genomic_loci'] == []
-        assert results['NM_173088.1:c.825_826insTCA']['transcript_description'] == 'Homo sapiens calpain 3 (CAPN3), transcript variant 4, mRNA'
         assert results['NM_173088.1:c.825_826insTCA']['gene_symbol'] == 'CAPN3'
         assert results['NM_173088.1:c.825_826insTCA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_775111.1:p.(Val275_Arg276insSer)', 'slr': 'NP_775111.1:p.(V275_R276insS)'}
         assert results['NM_173088.1:c.825_826insTCA']['submitted_variant'] == '15-42703179-T-TTCA'
@@ -9654,7 +9174,6 @@ class TestVariants(object):
         assert results['NM_173090.1:c.366_367insTCA']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_173090.1:c.366_367insTCA']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_173090.1:c.366_367insTCA']['alt_genomic_loci'] == []
-        assert results['NM_173090.1:c.366_367insTCA']['transcript_description'] == 'Homo sapiens calpain 3 (CAPN3), transcript variant 6, mRNA'
         assert results['NM_173090.1:c.366_367insTCA']['gene_symbol'] == 'CAPN3'
         assert results['NM_173090.1:c.366_367insTCA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_775113.1:p.(Val122_Arg123insSer)', 'slr': 'NP_775113.1:p.(V122_R123insS)'}
         assert results['NM_173090.1:c.366_367insTCA']['submitted_variant'] == '15-42703179-T-TTCA'
@@ -9672,7 +9191,6 @@ class TestVariants(object):
         assert results['NM_173089.1:c.366_367insTCA']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_173089.1:c.366_367insTCA']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_173089.1:c.366_367insTCA']['alt_genomic_loci'] == []
-        assert results['NM_173089.1:c.366_367insTCA']['transcript_description'] == 'Homo sapiens calpain 3 (CAPN3), transcript variant 5, mRNA'
         assert results['NM_173089.1:c.366_367insTCA']['gene_symbol'] == 'CAPN3'
         assert results['NM_173089.1:c.366_367insTCA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_775112.1:p.(Val122_Arg123insSer)', 'slr': 'NP_775112.1:p.(V122_R123insS)'}
         assert results['NM_173089.1:c.366_367insTCA']['submitted_variant'] == '15-42703179-T-TTCA'
@@ -9690,7 +9208,6 @@ class TestVariants(object):
         assert results['NM_173087.1:c.2085_2086insTCA']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_173087.1:c.2085_2086insTCA']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_173087.1:c.2085_2086insTCA']['alt_genomic_loci'] == []
-        assert results['NM_173087.1:c.2085_2086insTCA']['transcript_description'] == 'Homo sapiens calpain 3 (CAPN3), transcript variant 3, mRNA'
         assert results['NM_173087.1:c.2085_2086insTCA']['gene_symbol'] == 'CAPN3'
         assert results['NM_173087.1:c.2085_2086insTCA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_775110.1:p.(Val695_Arg696insSer)', 'slr': 'NP_775110.1:p.(V695_R696insS)'}
         assert results['NM_173087.1:c.2085_2086insTCA']['submitted_variant'] == '15-42703179-T-TTCA'
@@ -9709,7 +9226,6 @@ class TestVariants(object):
         assert results['NM_000070.2:c.2361_2362insTCA']['hgvs_lrg_transcript_variant'] == 'LRG_849t1:c.2361_2362insTCA'
         assert results['NM_000070.2:c.2361_2362insTCA']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000070.2:c.2361_2362insTCA']['alt_genomic_loci'] == []
-        assert results['NM_000070.2:c.2361_2362insTCA']['transcript_description'] == 'Homo sapiens calpain 3 (CAPN3), transcript variant 1, mRNA'
         assert results['NM_000070.2:c.2361_2362insTCA']['gene_symbol'] == 'CAPN3'
         assert results['NM_000070.2:c.2361_2362insTCA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000061.1(LRG_849p1):p.(Val787_Arg788insSer)', 'slr': 'NP_000061.1:p.(V787_R788insS)'}
         assert results['NM_000070.2:c.2361_2362insTCA']['submitted_variant'] == '15-42703179-T-TTCA'
@@ -9727,7 +9243,6 @@ class TestVariants(object):
         assert results['NM_024344.1:c.2343_2344insTCA']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_024344.1:c.2343_2344insTCA']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_024344.1:c.2343_2344insTCA']['alt_genomic_loci'] == []
-        assert results['NM_024344.1:c.2343_2344insTCA']['transcript_description'] == 'Homo sapiens calpain 3 (CAPN3), transcript variant 2, mRNA'
         assert results['NM_024344.1:c.2343_2344insTCA']['gene_symbol'] == 'CAPN3'
         assert results['NM_024344.1:c.2343_2344insTCA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_077320.1:p.(Val781_Arg782insSer)', 'slr': 'NP_077320.1:p.(V781_R782insS)'}
         assert results['NM_024344.1:c.2343_2344insTCA']['submitted_variant'] == '15-42703179-T-TTCA'
@@ -9751,7 +9266,6 @@ class TestVariants(object):
         assert results['NM_024344.1:c.2344_2345delinsTCATCT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_024344.1:c.2344_2345delinsTCATCT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_024344.1:c.2344_2345delinsTCATCT']['alt_genomic_loci'] == []
-        assert results['NM_024344.1:c.2344_2345delinsTCATCT']['transcript_description'] == 'Homo sapiens calpain 3 (CAPN3), transcript variant 2, mRNA'
         assert results['NM_024344.1:c.2344_2345delinsTCATCT']['gene_symbol'] == 'CAPN3'
         assert results['NM_024344.1:c.2344_2345delinsTCATCT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_077320.1:p.(Arg782SerfsTer14)', 'slr': 'NP_077320.1:p.(R782Sfs*14)'}
         assert results['NM_024344.1:c.2344_2345delinsTCATCT']['submitted_variant'] == '15-42703179-TAG-TTCATCT'
@@ -9769,7 +9283,6 @@ class TestVariants(object):
         assert results['NM_173090.1:c.367_368delinsTCATCT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_173090.1:c.367_368delinsTCATCT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_173090.1:c.367_368delinsTCATCT']['alt_genomic_loci'] == []
-        assert results['NM_173090.1:c.367_368delinsTCATCT']['transcript_description'] == 'Homo sapiens calpain 3 (CAPN3), transcript variant 6, mRNA'
         assert results['NM_173090.1:c.367_368delinsTCATCT']['gene_symbol'] == 'CAPN3'
         assert results['NM_173090.1:c.367_368delinsTCATCT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_775113.1:p.(Arg123SerfsTer14)', 'slr': 'NP_775113.1:p.(R123Sfs*14)'}
         assert results['NM_173090.1:c.367_368delinsTCATCT']['submitted_variant'] == '15-42703179-TAG-TTCATCT'
@@ -9788,7 +9301,6 @@ class TestVariants(object):
         assert results['NM_000070.2:c.2362_2363delinsTCATCT']['hgvs_lrg_transcript_variant'] == 'LRG_849t1:c.2362_2363delinsTCATCT'
         assert results['NM_000070.2:c.2362_2363delinsTCATCT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000070.2:c.2362_2363delinsTCATCT']['alt_genomic_loci'] == []
-        assert results['NM_000070.2:c.2362_2363delinsTCATCT']['transcript_description'] == 'Homo sapiens calpain 3 (CAPN3), transcript variant 1, mRNA'
         assert results['NM_000070.2:c.2362_2363delinsTCATCT']['gene_symbol'] == 'CAPN3'
         assert results['NM_000070.2:c.2362_2363delinsTCATCT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000061.1(LRG_849p1):p.(Arg788SerfsTer14)', 'slr': 'NP_000061.1:p.(R788Sfs*14)'}
         assert results['NM_000070.2:c.2362_2363delinsTCATCT']['submitted_variant'] == '15-42703179-TAG-TTCATCT'
@@ -9806,7 +9318,6 @@ class TestVariants(object):
         assert results['NM_173088.1:c.826_827delinsTCATCT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_173088.1:c.826_827delinsTCATCT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_173088.1:c.826_827delinsTCATCT']['alt_genomic_loci'] == []
-        assert results['NM_173088.1:c.826_827delinsTCATCT']['transcript_description'] == 'Homo sapiens calpain 3 (CAPN3), transcript variant 4, mRNA'
         assert results['NM_173088.1:c.826_827delinsTCATCT']['gene_symbol'] == 'CAPN3'
         assert results['NM_173088.1:c.826_827delinsTCATCT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_775111.1:p.(Arg276SerfsTer14)', 'slr': 'NP_775111.1:p.(R276Sfs*14)'}
         assert results['NM_173088.1:c.826_827delinsTCATCT']['submitted_variant'] == '15-42703179-TAG-TTCATCT'
@@ -9824,7 +9335,6 @@ class TestVariants(object):
         assert results['NM_173089.1:c.367_368delinsTCATCT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_173089.1:c.367_368delinsTCATCT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_173089.1:c.367_368delinsTCATCT']['alt_genomic_loci'] == []
-        assert results['NM_173089.1:c.367_368delinsTCATCT']['transcript_description'] == 'Homo sapiens calpain 3 (CAPN3), transcript variant 5, mRNA'
         assert results['NM_173089.1:c.367_368delinsTCATCT']['gene_symbol'] == 'CAPN3'
         assert results['NM_173089.1:c.367_368delinsTCATCT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_775112.1:p.(Arg123SerfsTer14)', 'slr': 'NP_775112.1:p.(R123Sfs*14)'}
         assert results['NM_173089.1:c.367_368delinsTCATCT']['submitted_variant'] == '15-42703179-TAG-TTCATCT'
@@ -9842,7 +9352,6 @@ class TestVariants(object):
         assert results['NM_173087.1:c.2086_2087delinsTCATCT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_173087.1:c.2086_2087delinsTCATCT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_173087.1:c.2086_2087delinsTCATCT']['alt_genomic_loci'] == []
-        assert results['NM_173087.1:c.2086_2087delinsTCATCT']['transcript_description'] == 'Homo sapiens calpain 3 (CAPN3), transcript variant 3, mRNA'
         assert results['NM_173087.1:c.2086_2087delinsTCATCT']['gene_symbol'] == 'CAPN3'
         assert results['NM_173087.1:c.2086_2087delinsTCATCT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_775110.1:p.(Arg696SerfsTer14)', 'slr': 'NP_775110.1:p.(R696Sfs*14)'}
         assert results['NM_173087.1:c.2086_2087delinsTCATCT']['submitted_variant'] == '15-42703179-TAG-TTCATCT'
@@ -9866,7 +9375,6 @@ class TestVariants(object):
         assert results['NM_000138.4:c.2927G>A']['hgvs_lrg_transcript_variant'] == 'LRG_778t1:c.2927G>A'
         assert results['NM_000138.4:c.2927G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000138.4:c.2927G>A']['alt_genomic_loci'] == []
-        assert results['NM_000138.4:c.2927G>A']['transcript_description'] == 'Homo sapiens fibrillin 1 (FBN1), mRNA'
         assert results['NM_000138.4:c.2927G>A']['gene_symbol'] == 'FBN1'
         assert results['NM_000138.4:c.2927G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000129.3(LRG_778p1):p.(Arg976His)', 'slr': 'NP_000129.3:p.(R976H)'}
         assert results['NM_000138.4:c.2927G>A']['submitted_variant'] == '15-48782203-C-T'
@@ -9891,7 +9399,6 @@ class TestVariants(object):
         assert results['NM_014249.2:c.946_949=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_014249.2:c.946_949=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_014249.2:c.946_949=']['alt_genomic_loci'] == []
-        assert results['NM_014249.2:c.946_949=']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 2, group E, member 3 (NR2E3), transcript variant 2, mRNA'
         assert results['NM_014249.2:c.946_949=']['gene_symbol'] == 'NR2E3'
         assert results['NM_014249.2:c.946_949=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055064.1:p.(Asp316=)', 'slr': 'NP_055064.1:p.(D316=)'}
         assert results['NM_014249.2:c.946_949=']['submitted_variant'] == '15-72105929-CC-C'
@@ -9909,7 +9416,6 @@ class TestVariants(object):
         assert results['NM_016346.3:c.946_949=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_016346.3:c.946_949=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_016346.3:c.946_949=']['alt_genomic_loci'] == []
-        assert results['NM_016346.3:c.946_949=']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 2 group E member 3 (NR2E3), transcript variant 1, mRNA'
         assert results['NM_016346.3:c.946_949=']['gene_symbol'] == 'NR2E3'
         assert results['NM_016346.3:c.946_949=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_057430.1:p.(Asp316=)', 'slr': 'NP_057430.1:p.(D316=)'}
         assert results['NM_016346.3:c.946_949=']['submitted_variant'] == '15-72105929-CC-C'
@@ -9928,7 +9434,6 @@ class TestVariants(object):
         assert results['NM_014249.3:c.946_949=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_014249.3:c.946_949=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_014249.3:c.946_949=']['alt_genomic_loci'] == []
-        assert results['NM_014249.3:c.946_949=']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 2 group E member 3 (NR2E3), transcript variant 2, mRNA'
         assert results['NM_014249.3:c.946_949=']['gene_symbol'] == 'NR2E3'
         assert results['NM_014249.3:c.946_949=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055064.1:p.(Asp316=)', 'slr': 'NP_055064.1:p.(D316=)'}
         assert results['NM_014249.3:c.946_949=']['submitted_variant'] == '15-72105929-CC-C'
@@ -9946,7 +9451,6 @@ class TestVariants(object):
         assert results['NM_016346.2:c.946_949=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_016346.2:c.946_949=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_016346.2:c.946_949=']['alt_genomic_loci'] == []
-        assert results['NM_016346.2:c.946_949=']['transcript_description'] == 'Homo sapiens nuclear receptor subfamily 2, group E, member 3 (NR2E3), transcript variant 1, mRNA'
         assert results['NM_016346.2:c.946_949=']['gene_symbol'] == 'NR2E3'
         assert results['NM_016346.2:c.946_949=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_057430.1:p.(Asp316=)', 'slr': 'NP_057430.1:p.(D316=)'}
         assert results['NM_016346.2:c.946_949=']['submitted_variant'] == '15-72105929-CC-C'
@@ -9970,7 +9474,6 @@ class TestVariants(object):
         assert results['NM_002693.2:c.752C>T']['hgvs_lrg_transcript_variant'] == 'LRG_765t1:c.752C>T'
         assert results['NM_002693.2:c.752C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_002693.2:c.752C>T']['alt_genomic_loci'] == []
-        assert results['NM_002693.2:c.752C>T']['transcript_description'] == 'Homo sapiens DNA polymerase gamma, catalytic subunit (POLG), transcript variant 1, mRNA'
         assert results['NM_002693.2:c.752C>T']['gene_symbol'] == 'POLG'
         assert results['NM_002693.2:c.752C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_002684.1(LRG_765p1):p.(Thr251Ile)', 'slr': 'NP_002684.1:p.(T251I)'}
         assert results['NM_002693.2:c.752C>T']['submitted_variant'] == '15-89873415-G-A'
@@ -9989,7 +9492,6 @@ class TestVariants(object):
         assert results['NM_001126131.1:c.752C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001126131.1:c.752C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001126131.1:c.752C>T']['alt_genomic_loci'] == []
-        assert results['NM_001126131.1:c.752C>T']['transcript_description'] == 'Homo sapiens DNA polymerase gamma, catalytic subunit (POLG), transcript variant 2, mRNA'
         assert results['NM_001126131.1:c.752C>T']['gene_symbol'] == 'POLG'
         assert results['NM_001126131.1:c.752C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001119603.1:p.(Thr251Ile)', 'slr': 'NP_001119603.1:p.(T251I)'}
         assert results['NM_001126131.1:c.752C>T']['submitted_variant'] == '15-89873415-G-A'
@@ -10013,7 +9515,6 @@ class TestVariants(object):
         assert results['NM_000548.3:c.277C>T']['hgvs_lrg_transcript_variant'] == 'LRG_487t1:c.277C>T'
         assert results['NM_000548.3:c.277C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000548.3:c.277C>T']['alt_genomic_loci'] == []
-        assert results['NM_000548.3:c.277C>T']['transcript_description'] == 'Homo sapiens tuberous sclerosis 2 (TSC2), transcript variant 1, mRNA'
         assert results['NM_000548.3:c.277C>T']['gene_symbol'] == 'TSC2'
         assert results['NM_000548.3:c.277C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000539.2(LRG_487p1):p.(Arg93Trp)', 'slr': 'NP_000539.2:p.(R93W)'}
         assert results['NM_000548.3:c.277C>T']['submitted_variant'] == '16-2103394-C-T'
@@ -10031,7 +9532,6 @@ class TestVariants(object):
         assert results['NM_001318832.1:c.310C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001318832.1:c.310C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001318832.1:c.310C>T']['alt_genomic_loci'] == []
-        assert results['NM_001318832.1:c.310C>T']['transcript_description'] == 'Homo sapiens TSC complex subunit 2 (TSC2), transcript variant 9, mRNA'
         assert results['NM_001318832.1:c.310C>T']['gene_symbol'] == 'TSC2'
         assert results['NM_001318832.1:c.310C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001305761.1:p.(Arg104Trp)', 'slr': 'NP_001305761.1:p.(R104W)'}
         assert results['NM_001318832.1:c.310C>T']['submitted_variant'] == '16-2103394-C-T'
@@ -10049,7 +9549,6 @@ class TestVariants(object):
         assert results['NM_001318829.1:c.130C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001318829.1:c.130C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001318829.1:c.130C>T']['alt_genomic_loci'] == []
-        assert results['NM_001318829.1:c.130C>T']['transcript_description'] == 'Homo sapiens TSC complex subunit 2 (TSC2), transcript variant 7, mRNA'
         assert results['NM_001318829.1:c.130C>T']['gene_symbol'] == 'TSC2'
         assert results['NM_001318829.1:c.130C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001305758.1:p.(Arg44Trp)', 'slr': 'NP_001305758.1:p.(R44W)'}
         assert results['NM_001318829.1:c.130C>T']['submitted_variant'] == '16-2103394-C-T'
@@ -10067,7 +9566,6 @@ class TestVariants(object):
         assert results['NM_001077183.2:c.277C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001077183.2:c.277C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001077183.2:c.277C>T']['alt_genomic_loci'] == []
-        assert results['NM_001077183.2:c.277C>T']['transcript_description'] == 'Homo sapiens TSC complex subunit 2 (TSC2), transcript variant 4, mRNA'
         assert results['NM_001077183.2:c.277C>T']['gene_symbol'] == 'TSC2'
         assert results['NM_001077183.2:c.277C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001070651.1:p.(Arg93Trp)', 'slr': 'NP_001070651.1:p.(R93W)'}
         assert results['NM_001077183.2:c.277C>T']['submitted_variant'] == '16-2103394-C-T'
@@ -10085,7 +9583,6 @@ class TestVariants(object):
         assert results['NM_001114382.1:c.277C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001114382.1:c.277C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001114382.1:c.277C>T']['alt_genomic_loci'] == []
-        assert results['NM_001114382.1:c.277C>T']['transcript_description'] == 'Homo sapiens tuberous sclerosis 2 (TSC2), transcript variant 5, mRNA'
         assert results['NM_001114382.1:c.277C>T']['gene_symbol'] == 'TSC2'
         assert results['NM_001114382.1:c.277C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001107854.1:p.(Arg93Trp)', 'slr': 'NP_001107854.1:p.(R93W)'}
         assert results['NM_001114382.1:c.277C>T']['submitted_variant'] == '16-2103394-C-T'
@@ -10103,7 +9600,6 @@ class TestVariants(object):
         assert results['NM_001077183.1:c.277C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001077183.1:c.277C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001077183.1:c.277C>T']['alt_genomic_loci'] == []
-        assert results['NM_001077183.1:c.277C>T']['transcript_description'] == 'Homo sapiens tuberous sclerosis 2 (TSC2), transcript variant 4, mRNA'
         assert results['NM_001077183.1:c.277C>T']['gene_symbol'] == 'TSC2'
         assert results['NM_001077183.1:c.277C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001070651.1:p.(Arg93Trp)', 'slr': 'NP_001070651.1:p.(R93W)'}
         assert results['NM_001077183.1:c.277C>T']['submitted_variant'] == '16-2103394-C-T'
@@ -10121,7 +9617,6 @@ class TestVariants(object):
         assert results['NM_001318827.1:c.226-903C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001318827.1:c.226-903C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001318827.1:c.226-903C>T']['alt_genomic_loci'] == []
-        assert results['NM_001318827.1:c.226-903C>T']['transcript_description'] == 'Homo sapiens TSC complex subunit 2 (TSC2), transcript variant 6, mRNA'
         assert results['NM_001318827.1:c.226-903C>T']['gene_symbol'] == 'TSC2'
         assert results['NM_001318827.1:c.226-903C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001305756.1:p.?', 'slr': 'NP_001305756.1:p.?'}
         assert results['NM_001318827.1:c.226-903C>T']['submitted_variant'] == '16-2103394-C-T'
@@ -10140,7 +9635,6 @@ class TestVariants(object):
         assert results['NM_001114382.2:c.277C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001114382.2:c.277C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001114382.2:c.277C>T']['alt_genomic_loci'] == []
-        assert results['NM_001114382.2:c.277C>T']['transcript_description'] == 'Homo sapiens TSC complex subunit 2 (TSC2), transcript variant 5, mRNA'
         assert results['NM_001114382.2:c.277C>T']['gene_symbol'] == 'TSC2'
         assert results['NM_001114382.2:c.277C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001107854.1:p.(Arg93Trp)', 'slr': 'NP_001107854.1:p.(R93W)'}
         assert results['NM_001114382.2:c.277C>T']['submitted_variant'] == '16-2103394-C-T'
@@ -10158,7 +9652,6 @@ class TestVariants(object):
         assert results['NM_001363528.1:c.277C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001363528.1:c.277C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001363528.1:c.277C>T']['alt_genomic_loci'] == []
-        assert results['NM_001363528.1:c.277C>T']['transcript_description'] == 'Homo sapiens TSC complex subunit 2 (TSC2), transcript variant 10, mRNA'
         assert results['NM_001363528.1:c.277C>T']['gene_symbol'] == 'TSC2'
         assert results['NM_001363528.1:c.277C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001350457.1:p.(Arg93Trp)', 'slr': 'NP_001350457.1:p.(R93W)'}
         assert results['NM_001363528.1:c.277C>T']['submitted_variant'] == '16-2103394-C-T'
@@ -10176,7 +9669,6 @@ class TestVariants(object):
         assert results['NM_021055.2:c.277C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_021055.2:c.277C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_021055.2:c.277C>T']['alt_genomic_loci'] == []
-        assert results['NM_021055.2:c.277C>T']['transcript_description'] == 'Homo sapiens TSC complex subunit 2 (TSC2), transcript variant 2, mRNA'
         assert results['NM_021055.2:c.277C>T']['gene_symbol'] == 'TSC2'
         assert results['NM_021055.2:c.277C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_066399.2:p.(Arg93Trp)', 'slr': 'NP_066399.2:p.(R93W)'}
         assert results['NM_021055.2:c.277C>T']['submitted_variant'] == '16-2103394-C-T'
@@ -10194,7 +9686,6 @@ class TestVariants(object):
         assert results['NM_000548.4:c.277C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000548.4:c.277C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000548.4:c.277C>T']['alt_genomic_loci'] == []
-        assert results['NM_000548.4:c.277C>T']['transcript_description'] == 'Homo sapiens TSC complex subunit 2 (TSC2), transcript variant 1, mRNA'
         assert results['NM_000548.4:c.277C>T']['gene_symbol'] == 'TSC2'
         assert results['NM_000548.4:c.277C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000539.2(LRG_487p1):p.(Arg93Trp)', 'slr': 'NP_000539.2:p.(R93W)'}
         assert results['NM_000548.4:c.277C>T']['submitted_variant'] == '16-2103394-C-T'
@@ -10212,7 +9703,6 @@ class TestVariants(object):
         assert results['NM_001318831.1:c.-1-2803C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001318831.1:c.-1-2803C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001318831.1:c.-1-2803C>T']['alt_genomic_loci'] == []
-        assert results['NM_001318831.1:c.-1-2803C>T']['transcript_description'] == 'Homo sapiens TSC complex subunit 2 (TSC2), transcript variant 8, mRNA'
         assert results['NM_001318831.1:c.-1-2803C>T']['gene_symbol'] == 'TSC2'
         assert results['NM_001318831.1:c.-1-2803C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001305760.1:p.?', 'slr': 'NP_001305760.1:p.?'}
         assert results['NM_001318831.1:c.-1-2803C>T']['submitted_variant'] == '16-2103394-C-T'
@@ -10237,7 +9727,6 @@ class TestVariants(object):
         assert results['NM_001079846.1:c.5634G>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001079846.1:c.5634G>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001079846.1:c.5634G>C']['alt_genomic_loci'] == []
-        assert results['NM_001079846.1:c.5634G>C']['transcript_description'] == 'Homo sapiens CREB binding protein (CREBBP), transcript variant 2, mRNA'
         assert results['NM_001079846.1:c.5634G>C']['gene_symbol'] == 'CREBBP'
         assert results['NM_001079846.1:c.5634G>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001073315.1:p.(Met1878Ile)', 'slr': 'NP_001073315.1:p.(M1878I)'}
         assert results['NM_001079846.1:c.5634G>C']['submitted_variant'] == '16-3779300-C-G'
@@ -10255,7 +9744,6 @@ class TestVariants(object):
         assert results['NM_004380.2:c.5748G>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_004380.2:c.5748G>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004380.2:c.5748G>C']['alt_genomic_loci'] == []
-        assert results['NM_004380.2:c.5748G>C']['transcript_description'] == 'Homo sapiens CREB binding protein (CREBBP), transcript variant 1, mRNA'
         assert results['NM_004380.2:c.5748G>C']['gene_symbol'] == 'CREBBP'
         assert results['NM_004380.2:c.5748G>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_004371.2:p.(Met1916Ile)', 'slr': 'NP_004371.2:p.(M1916I)'}
         assert results['NM_004380.2:c.5748G>C']['submitted_variant'] == '16-3779300-C-G'
@@ -10279,7 +9767,6 @@ class TestVariants(object):
         assert results['NM_001330504.1:c.493C>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330504.1:c.493C>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330504.1:c.493C>G']['alt_genomic_loci'] == []
-        assert results['NM_001330504.1:c.493C>G']['transcript_description'] == 'Homo sapiens ALG1, chitobiosyldiphosphodolichol beta-mannosyltransferase (ALG1), transcript variant 2, mRNA'
         assert results['NM_001330504.1:c.493C>G']['gene_symbol'] == 'ALG1'
         assert results['NM_001330504.1:c.493C>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317433.1:p.(Arg165Gly)', 'slr': 'NP_001317433.1:p.(R165G)'}
         assert results['NM_001330504.1:c.493C>G']['submitted_variant'] == '16-5128843-C-G'
@@ -10298,7 +9785,6 @@ class TestVariants(object):
         assert results['NM_019109.4:c.826C>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_019109.4:c.826C>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_019109.4:c.826C>G']['alt_genomic_loci'] == []
-        assert results['NM_019109.4:c.826C>G']['transcript_description'] == 'Homo sapiens ALG1, chitobiosyldiphosphodolichol beta-mannosyltransferase (ALG1), transcript variant 1, mRNA'
         assert results['NM_019109.4:c.826C>G']['gene_symbol'] == 'ALG1'
         assert results['NM_019109.4:c.826C>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_061982.3:p.(Arg276Gly)', 'slr': 'NP_061982.3:p.(R276G)'}
         assert results['NM_019109.4:c.826C>G']['submitted_variant'] == '16-5128843-C-G'
@@ -10322,7 +9808,6 @@ class TestVariants(object):
         assert results['NM_024306.4:c.95G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_024306.4:c.95G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_024306.4:c.95G>A']['alt_genomic_loci'] == []
-        assert results['NM_024306.4:c.95G>A']['transcript_description'] == 'Homo sapiens fatty acid 2-hydroxylase (FA2H), mRNA'
         assert results['NM_024306.4:c.95G>A']['gene_symbol'] == 'FA2H'
         assert results['NM_024306.4:c.95G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_077282.3:p.(Arg32His)', 'slr': 'NP_077282.3:p.(R32H)'}
         assert results['NM_024306.4:c.95G>A']['submitted_variant'] == '16-74808559-C-T'
@@ -10347,7 +9832,6 @@ class TestVariants(object):
         assert results['NM_003119.3:c.-22C>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.3:c.-22C>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003119.3:c.-22C>A']['alt_genomic_loci'] == []
-        assert results['NM_003119.3:c.-22C>A']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.3:c.-22C>A']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.3:c.-22C>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.?', 'slr': 'NP_003110.1:p.?'}
         assert results['NM_003119.3:c.-22C>A']['submitted_variant'] == '16-89574804-C-A'
@@ -10366,7 +9850,6 @@ class TestVariants(object):
         assert results['NM_199367.2:c.-22C>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_199367.2:c.-22C>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_199367.2:c.-22C>A']['alt_genomic_loci'] == []
-        assert results['NM_199367.2:c.-22C>A']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 2, mRNA'
         assert results['NM_199367.2:c.-22C>A']['gene_symbol'] == 'SPG7'
         assert results['NM_199367.2:c.-22C>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_955399.1:p.?', 'slr': 'NP_955399.1:p.?'}
         assert results['NM_199367.2:c.-22C>A']['submitted_variant'] == '16-89574804-C-A'
@@ -10384,7 +9867,6 @@ class TestVariants(object):
         assert results['NM_001363850.1:c.-22C>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001363850.1:c.-22C>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001363850.1:c.-22C>A']['alt_genomic_loci'] == []
-        assert results['NM_001363850.1:c.-22C>A']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 3, mRNA'
         assert results['NM_001363850.1:c.-22C>A']['gene_symbol'] == 'SPG7'
         assert results['NM_001363850.1:c.-22C>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001350779.1:p.?', 'slr': 'NP_001350779.1:p.?'}
         assert results['NM_001363850.1:c.-22C>A']['submitted_variant'] == '16-89574804-C-A'
@@ -10408,7 +9890,6 @@ class TestVariants(object):
         assert results['NM_003119.2:c.1A>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.2:c.1A>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003119.2:c.1A>C']['alt_genomic_loci'] == []
-        assert results['NM_003119.2:c.1A>C']['transcript_description'] == 'Homo sapiens spastic paraplegia 7 (pure and complicated autosomal recessive) (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.2:c.1A>C']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.2:c.1A>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.(Met1?)', 'slr': 'NP_003110.1:p.(M1?)'}
         assert results['NM_003119.2:c.1A>C']['submitted_variant'] == '16-89574826-A-C'
@@ -10426,7 +9907,6 @@ class TestVariants(object):
         assert results['NM_199367.1:c.1A>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_199367.1:c.1A>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_199367.1:c.1A>C']['alt_genomic_loci'] == []
-        assert results['NM_199367.1:c.1A>C']['transcript_description'] == 'Homo sapiens spastic paraplegia 7 (pure and complicated autosomal recessive) (SPG7), transcript variant 2, mRNA'
         assert results['NM_199367.1:c.1A>C']['gene_symbol'] == 'SPG7'
         assert results['NM_199367.1:c.1A>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_955399.1:p.(Met1?)', 'slr': 'NP_955399.1:p.(M1?)'}
         assert results['NM_199367.1:c.1A>C']['submitted_variant'] == '16-89574826-A-C'
@@ -10444,7 +9924,6 @@ class TestVariants(object):
         assert results['NM_001363850.1:c.1A>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001363850.1:c.1A>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001363850.1:c.1A>C']['alt_genomic_loci'] == []
-        assert results['NM_001363850.1:c.1A>C']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 3, mRNA'
         assert results['NM_001363850.1:c.1A>C']['gene_symbol'] == 'SPG7'
         assert results['NM_001363850.1:c.1A>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001350779.1:p.(Met1?)', 'slr': 'NP_001350779.1:p.(M1?)'}
         assert results['NM_001363850.1:c.1A>C']['submitted_variant'] == '16-89574826-A-C'
@@ -10462,7 +9941,6 @@ class TestVariants(object):
         assert results['NM_199367.2:c.1A>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_199367.2:c.1A>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_199367.2:c.1A>C']['alt_genomic_loci'] == []
-        assert results['NM_199367.2:c.1A>C']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 2, mRNA'
         assert results['NM_199367.2:c.1A>C']['gene_symbol'] == 'SPG7'
         assert results['NM_199367.2:c.1A>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_955399.1:p.(Met1?)', 'slr': 'NP_955399.1:p.(M1?)'}
         assert results['NM_199367.2:c.1A>C']['submitted_variant'] == '16-89574826-A-C'
@@ -10481,7 +9959,6 @@ class TestVariants(object):
         assert results['NM_003119.3:c.1A>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.3:c.1A>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003119.3:c.1A>C']['alt_genomic_loci'] == []
-        assert results['NM_003119.3:c.1A>C']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.3:c.1A>C']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.3:c.1A>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.(Met1?)', 'slr': 'NP_003110.1:p.(M1?)'}
         assert results['NM_003119.3:c.1A>C']['submitted_variant'] == '16-89574826-A-C'
@@ -10505,7 +9982,6 @@ class TestVariants(object):
         assert results['NM_001363850.1:c.90dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001363850.1:c.90dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001363850.1:c.90dup']['alt_genomic_loci'] == []
-        assert results['NM_001363850.1:c.90dup']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 3, mRNA'
         assert results['NM_001363850.1:c.90dup']['gene_symbol'] == 'SPG7'
         assert results['NM_001363850.1:c.90dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001350779.1:p.(Pro31SerfsTer43)', 'slr': 'NP_001350779.1:p.(P31Sfs*43)'}
         assert results['NM_001363850.1:c.90dup']['submitted_variant'] == '16-89574914-G-GT'
@@ -10523,7 +9999,6 @@ class TestVariants(object):
         assert results['NM_199367.1:c.90dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_199367.1:c.90dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_199367.1:c.90dup']['alt_genomic_loci'] == []
-        assert results['NM_199367.1:c.90dup']['transcript_description'] == 'Homo sapiens spastic paraplegia 7 (pure and complicated autosomal recessive) (SPG7), transcript variant 2, mRNA'
         assert results['NM_199367.1:c.90dup']['gene_symbol'] == 'SPG7'
         assert results['NM_199367.1:c.90dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_955399.1:p.(Pro31SerfsTer43)', 'slr': 'NP_955399.1:p.(P31Sfs*43)'}
         assert results['NM_199367.1:c.90dup']['submitted_variant'] == '16-89574914-G-GT'
@@ -10541,7 +10016,6 @@ class TestVariants(object):
         assert results['NM_003119.2:c.90dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.2:c.90dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003119.2:c.90dup']['alt_genomic_loci'] == []
-        assert results['NM_003119.2:c.90dup']['transcript_description'] == 'Homo sapiens spastic paraplegia 7 (pure and complicated autosomal recessive) (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.2:c.90dup']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.2:c.90dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.(Pro31SerfsTer43)', 'slr': 'NP_003110.1:p.(P31Sfs*43)'}
         assert results['NM_003119.2:c.90dup']['submitted_variant'] == '16-89574914-G-GT'
@@ -10559,7 +10033,6 @@ class TestVariants(object):
         assert results['NM_199367.2:c.90dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_199367.2:c.90dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_199367.2:c.90dup']['alt_genomic_loci'] == []
-        assert results['NM_199367.2:c.90dup']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 2, mRNA'
         assert results['NM_199367.2:c.90dup']['gene_symbol'] == 'SPG7'
         assert results['NM_199367.2:c.90dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_955399.1:p.(Pro31SerfsTer43)', 'slr': 'NP_955399.1:p.(P31Sfs*43)'}
         assert results['NM_199367.2:c.90dup']['submitted_variant'] == '16-89574914-G-GT'
@@ -10578,7 +10051,6 @@ class TestVariants(object):
         assert results['NM_003119.3:c.90dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.3:c.90dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003119.3:c.90dup']['alt_genomic_loci'] == []
-        assert results['NM_003119.3:c.90dup']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.3:c.90dup']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.3:c.90dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.(Pro31SerfsTer43)', 'slr': 'NP_003110.1:p.(P31Sfs*43)'}
         assert results['NM_003119.3:c.90dup']['submitted_variant'] == '16-89574914-G-GT'
@@ -10602,7 +10074,6 @@ class TestVariants(object):
         assert results['NM_199367.2:c.89_91dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_199367.2:c.89_91dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_199367.2:c.89_91dup']['alt_genomic_loci'] == []
-        assert results['NM_199367.2:c.89_91dup']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 2, mRNA'
         assert results['NM_199367.2:c.89_91dup']['gene_symbol'] == 'SPG7'
         assert results['NM_199367.2:c.89_91dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_955399.1:p.(Ser30_Pro31insArg)', 'slr': 'NP_955399.1:p.(S30_P31insR)'}
         assert results['NM_199367.2:c.89_91dup']['submitted_variant'] == '16-89574916-C-CGTC'
@@ -10620,7 +10091,6 @@ class TestVariants(object):
         assert results['NM_003119.3:c.89_91dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.3:c.89_91dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003119.3:c.89_91dup']['alt_genomic_loci'] == []
-        assert results['NM_003119.3:c.89_91dup']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.3:c.89_91dup']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.3:c.89_91dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.(Ser30_Pro31insArg)', 'slr': 'NP_003110.1:p.(S30_P31insR)'}
         assert results['NM_003119.3:c.89_91dup']['submitted_variant'] == '16-89574916-C-CGTC'
@@ -10638,7 +10108,6 @@ class TestVariants(object):
         assert results['NM_001363850.1:c.89_91dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001363850.1:c.89_91dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001363850.1:c.89_91dup']['alt_genomic_loci'] == []
-        assert results['NM_001363850.1:c.89_91dup']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 3, mRNA'
         assert results['NM_001363850.1:c.89_91dup']['gene_symbol'] == 'SPG7'
         assert results['NM_001363850.1:c.89_91dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001350779.1:p.(Ser30_Pro31insArg)', 'slr': 'NP_001350779.1:p.(S30_P31insR)'}
         assert results['NM_001363850.1:c.89_91dup']['submitted_variant'] == '16-89574916-C-CGTC'
@@ -10657,7 +10126,6 @@ class TestVariants(object):
         assert results['NM_199367.1:c.89_91dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_199367.1:c.89_91dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_199367.1:c.89_91dup']['alt_genomic_loci'] == []
-        assert results['NM_199367.1:c.89_91dup']['transcript_description'] == 'Homo sapiens spastic paraplegia 7 (pure and complicated autosomal recessive) (SPG7), transcript variant 2, mRNA'
         assert results['NM_199367.1:c.89_91dup']['gene_symbol'] == 'SPG7'
         assert results['NM_199367.1:c.89_91dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_955399.1:p.(Ser30_Pro31insArg)', 'slr': 'NP_955399.1:p.(S30_P31insR)'}
         assert results['NM_199367.1:c.89_91dup']['submitted_variant'] == '16-89574916-C-CGTC'
@@ -10675,7 +10143,6 @@ class TestVariants(object):
         assert results['NM_003119.2:c.89_91dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.2:c.89_91dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003119.2:c.89_91dup']['alt_genomic_loci'] == []
-        assert results['NM_003119.2:c.89_91dup']['transcript_description'] == 'Homo sapiens spastic paraplegia 7 (pure and complicated autosomal recessive) (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.2:c.89_91dup']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.2:c.89_91dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.(Ser30_Pro31insArg)', 'slr': 'NP_003110.1:p.(S30_P31insR)'}
         assert results['NM_003119.2:c.89_91dup']['submitted_variant'] == '16-89574916-C-CGTC'
@@ -10699,7 +10166,6 @@ class TestVariants(object):
         assert results['NM_199367.2:c.183+1G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_199367.2:c.183+1G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_199367.2:c.183+1G>A']['alt_genomic_loci'] == []
-        assert results['NM_199367.2:c.183+1G>A']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 2, mRNA'
         assert results['NM_199367.2:c.183+1G>A']['gene_symbol'] == 'SPG7'
         assert results['NM_199367.2:c.183+1G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_955399.1:p.?', 'slr': 'NP_955399.1:p.?'}
         assert results['NM_199367.2:c.183+1G>A']['submitted_variant'] == '16-89575009-G-A'
@@ -10717,7 +10183,6 @@ class TestVariants(object):
         assert results['NM_003119.2:c.183+1G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.2:c.183+1G>A']['refseqgene_context_intronic_sequence'] == 'NG_008082.1(NM_003119.2):c.183+1G>A'
         assert results['NM_003119.2:c.183+1G>A']['alt_genomic_loci'] == []
-        assert results['NM_003119.2:c.183+1G>A']['transcript_description'] == 'Homo sapiens spastic paraplegia 7 (pure and complicated autosomal recessive) (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.2:c.183+1G>A']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.2:c.183+1G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.?', 'slr': 'NP_003110.1:p.?'}
         assert results['NM_003119.2:c.183+1G>A']['submitted_variant'] == '16-89575009-G-A'
@@ -10736,7 +10201,6 @@ class TestVariants(object):
         assert results['NM_199367.1:c.183+1G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_199367.1:c.183+1G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_199367.1:c.183+1G>A']['alt_genomic_loci'] == []
-        assert results['NM_199367.1:c.183+1G>A']['transcript_description'] == 'Homo sapiens spastic paraplegia 7 (pure and complicated autosomal recessive) (SPG7), transcript variant 2, mRNA'
         assert results['NM_199367.1:c.183+1G>A']['gene_symbol'] == 'SPG7'
         assert results['NM_199367.1:c.183+1G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_955399.1:p.?', 'slr': 'NP_955399.1:p.?'}
         assert results['NM_199367.1:c.183+1G>A']['submitted_variant'] == '16-89575009-G-A'
@@ -10754,7 +10218,6 @@ class TestVariants(object):
         assert results['NM_001363850.1:c.183+1G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001363850.1:c.183+1G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001363850.1:c.183+1G>A']['alt_genomic_loci'] == []
-        assert results['NM_001363850.1:c.183+1G>A']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 3, mRNA'
         assert results['NM_001363850.1:c.183+1G>A']['gene_symbol'] == 'SPG7'
         assert results['NM_001363850.1:c.183+1G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001350779.1:p.?', 'slr': 'NP_001350779.1:p.?'}
         assert results['NM_001363850.1:c.183+1G>A']['submitted_variant'] == '16-89575009-G-A'
@@ -10772,7 +10235,6 @@ class TestVariants(object):
         assert results['NM_003119.3:c.183+1G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.3:c.183+1G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003119.3:c.183+1G>A']['alt_genomic_loci'] == []
-        assert results['NM_003119.3:c.183+1G>A']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.3:c.183+1G>A']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.3:c.183+1G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.?', 'slr': 'NP_003110.1:p.?'}
         assert results['NM_003119.3:c.183+1G>A']['submitted_variant'] == '16-89575009-G-A'
@@ -10796,7 +10258,6 @@ class TestVariants(object):
         assert results['NM_199367.1:c.183+32_183+33insA']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_199367.1:c.183+32_183+33insA']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_199367.1:c.183+32_183+33insA']['alt_genomic_loci'] == []
-        assert results['NM_199367.1:c.183+32_183+33insA']['transcript_description'] == 'Homo sapiens spastic paraplegia 7 (pure and complicated autosomal recessive) (SPG7), transcript variant 2, mRNA'
         assert results['NM_199367.1:c.183+32_183+33insA']['gene_symbol'] == 'SPG7'
         assert results['NM_199367.1:c.183+32_183+33insA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_955399.1:p.?', 'slr': 'NP_955399.1:p.?'}
         assert results['NM_199367.1:c.183+32_183+33insA']['submitted_variant'] == '16-89575040-C-A,CA'
@@ -10814,7 +10275,6 @@ class TestVariants(object):
         assert results['NM_001363850.1:c.183+32C>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001363850.1:c.183+32C>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001363850.1:c.183+32C>A']['alt_genomic_loci'] == []
-        assert results['NM_001363850.1:c.183+32C>A']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 3, mRNA'
         assert results['NM_001363850.1:c.183+32C>A']['gene_symbol'] == 'SPG7'
         assert results['NM_001363850.1:c.183+32C>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001350779.1:p.?', 'slr': 'NP_001350779.1:p.?'}
         assert results['NM_001363850.1:c.183+32C>A']['submitted_variant'] == '16-89575040-C-A,CA'
@@ -10832,7 +10292,6 @@ class TestVariants(object):
         assert results['NM_001363850.1:c.183+32_183+33insA']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001363850.1:c.183+32_183+33insA']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001363850.1:c.183+32_183+33insA']['alt_genomic_loci'] == []
-        assert results['NM_001363850.1:c.183+32_183+33insA']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 3, mRNA'
         assert results['NM_001363850.1:c.183+32_183+33insA']['gene_symbol'] == 'SPG7'
         assert results['NM_001363850.1:c.183+32_183+33insA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001350779.1:p.?', 'slr': 'NP_001350779.1:p.?'}
         assert results['NM_001363850.1:c.183+32_183+33insA']['submitted_variant'] == '16-89575040-C-A,CA'
@@ -10850,7 +10309,6 @@ class TestVariants(object):
         assert results['NM_199367.2:c.183+32C>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_199367.2:c.183+32C>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_199367.2:c.183+32C>A']['alt_genomic_loci'] == []
-        assert results['NM_199367.2:c.183+32C>A']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 2, mRNA'
         assert results['NM_199367.2:c.183+32C>A']['gene_symbol'] == 'SPG7'
         assert results['NM_199367.2:c.183+32C>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_955399.1:p.?', 'slr': 'NP_955399.1:p.?'}
         assert results['NM_199367.2:c.183+32C>A']['submitted_variant'] == '16-89575040-C-A,CA'
@@ -10868,7 +10326,6 @@ class TestVariants(object):
         assert results['NM_003119.3:c.183+32_183+33insA']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.3:c.183+32_183+33insA']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003119.3:c.183+32_183+33insA']['alt_genomic_loci'] == []
-        assert results['NM_003119.3:c.183+32_183+33insA']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.3:c.183+32_183+33insA']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.3:c.183+32_183+33insA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.?', 'slr': 'NP_003110.1:p.?'}
         assert results['NM_003119.3:c.183+32_183+33insA']['submitted_variant'] == '16-89575040-C-A,CA'
@@ -10887,7 +10344,6 @@ class TestVariants(object):
         assert results['NM_003119.2:c.183+32_183+33insA']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.2:c.183+32_183+33insA']['refseqgene_context_intronic_sequence'] == 'NG_008082.1(NM_003119.2):c.183+32_183+33insA'
         assert results['NM_003119.2:c.183+32_183+33insA']['alt_genomic_loci'] == []
-        assert results['NM_003119.2:c.183+32_183+33insA']['transcript_description'] == 'Homo sapiens spastic paraplegia 7 (pure and complicated autosomal recessive) (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.2:c.183+32_183+33insA']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.2:c.183+32_183+33insA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.?', 'slr': 'NP_003110.1:p.?'}
         assert results['NM_003119.2:c.183+32_183+33insA']['submitted_variant'] == '16-89575040-C-A,CA'
@@ -10905,7 +10361,6 @@ class TestVariants(object):
         assert results['NM_199367.1:c.183+32C>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_199367.1:c.183+32C>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_199367.1:c.183+32C>A']['alt_genomic_loci'] == []
-        assert results['NM_199367.1:c.183+32C>A']['transcript_description'] == 'Homo sapiens spastic paraplegia 7 (pure and complicated autosomal recessive) (SPG7), transcript variant 2, mRNA'
         assert results['NM_199367.1:c.183+32C>A']['gene_symbol'] == 'SPG7'
         assert results['NM_199367.1:c.183+32C>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_955399.1:p.?', 'slr': 'NP_955399.1:p.?'}
         assert results['NM_199367.1:c.183+32C>A']['submitted_variant'] == '16-89575040-C-A,CA'
@@ -10923,7 +10378,6 @@ class TestVariants(object):
         assert results['NM_003119.3:c.183+32C>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.3:c.183+32C>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003119.3:c.183+32C>A']['alt_genomic_loci'] == []
-        assert results['NM_003119.3:c.183+32C>A']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.3:c.183+32C>A']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.3:c.183+32C>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.?', 'slr': 'NP_003110.1:p.?'}
         assert results['NM_003119.3:c.183+32C>A']['submitted_variant'] == '16-89575040-C-A,CA'
@@ -10941,7 +10395,6 @@ class TestVariants(object):
         assert results['NM_199367.2:c.183+32_183+33insA']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_199367.2:c.183+32_183+33insA']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_199367.2:c.183+32_183+33insA']['alt_genomic_loci'] == []
-        assert results['NM_199367.2:c.183+32_183+33insA']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 2, mRNA'
         assert results['NM_199367.2:c.183+32_183+33insA']['gene_symbol'] == 'SPG7'
         assert results['NM_199367.2:c.183+32_183+33insA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_955399.1:p.?', 'slr': 'NP_955399.1:p.?'}
         assert results['NM_199367.2:c.183+32_183+33insA']['submitted_variant'] == '16-89575040-C-A,CA'
@@ -10959,7 +10412,6 @@ class TestVariants(object):
         assert results['NM_003119.2:c.183+32C>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.2:c.183+32C>A']['refseqgene_context_intronic_sequence'] == 'NG_008082.1(NM_003119.2):c.183+32C>A'
         assert results['NM_003119.2:c.183+32C>A']['alt_genomic_loci'] == []
-        assert results['NM_003119.2:c.183+32C>A']['transcript_description'] == 'Homo sapiens spastic paraplegia 7 (pure and complicated autosomal recessive) (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.2:c.183+32C>A']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.2:c.183+32C>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.?', 'slr': 'NP_003110.1:p.?'}
         assert results['NM_003119.2:c.183+32C>A']['submitted_variant'] == '16-89575040-C-A,CA'
@@ -10983,7 +10435,6 @@ class TestVariants(object):
         assert results['NM_199367.2:c.184-2A>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_199367.2:c.184-2A>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_199367.2:c.184-2A>C']['alt_genomic_loci'] == []
-        assert results['NM_199367.2:c.184-2A>C']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 2, mRNA'
         assert results['NM_199367.2:c.184-2A>C']['gene_symbol'] == 'SPG7'
         assert results['NM_199367.2:c.184-2A>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_955399.1:p.?', 'slr': 'NP_955399.1:p.?'}
         assert results['NM_199367.2:c.184-2A>C']['submitted_variant'] == '16-89576896-A-C'
@@ -11001,7 +10452,6 @@ class TestVariants(object):
         assert results['NM_003119.2:c.184-2A>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.2:c.184-2A>C']['refseqgene_context_intronic_sequence'] == 'NG_008082.1(NM_003119.2):c.184-2A>C'
         assert results['NM_003119.2:c.184-2A>C']['alt_genomic_loci'] == []
-        assert results['NM_003119.2:c.184-2A>C']['transcript_description'] == 'Homo sapiens spastic paraplegia 7 (pure and complicated autosomal recessive) (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.2:c.184-2A>C']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.2:c.184-2A>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.?', 'slr': 'NP_003110.1:p.?'}
         assert results['NM_003119.2:c.184-2A>C']['submitted_variant'] == '16-89576896-A-C'
@@ -11019,7 +10469,6 @@ class TestVariants(object):
         assert results['NM_003119.3:c.184-2A>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.3:c.184-2A>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003119.3:c.184-2A>C']['alt_genomic_loci'] == []
-        assert results['NM_003119.3:c.184-2A>C']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.3:c.184-2A>C']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.3:c.184-2A>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.?', 'slr': 'NP_003110.1:p.?'}
         assert results['NM_003119.3:c.184-2A>C']['submitted_variant'] == '16-89576896-A-C'
@@ -11037,7 +10486,6 @@ class TestVariants(object):
         assert results['NM_001363850.1:c.184-2A>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001363850.1:c.184-2A>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001363850.1:c.184-2A>C']['alt_genomic_loci'] == []
-        assert results['NM_001363850.1:c.184-2A>C']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 3, mRNA'
         assert results['NM_001363850.1:c.184-2A>C']['gene_symbol'] == 'SPG7'
         assert results['NM_001363850.1:c.184-2A>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001350779.1:p.?', 'slr': 'NP_001350779.1:p.?'}
         assert results['NM_001363850.1:c.184-2A>C']['submitted_variant'] == '16-89576896-A-C'
@@ -11056,7 +10504,6 @@ class TestVariants(object):
         assert results['NM_199367.1:c.184-2A>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_199367.1:c.184-2A>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_199367.1:c.184-2A>C']['alt_genomic_loci'] == []
-        assert results['NM_199367.1:c.184-2A>C']['transcript_description'] == 'Homo sapiens spastic paraplegia 7 (pure and complicated autosomal recessive) (SPG7), transcript variant 2, mRNA'
         assert results['NM_199367.1:c.184-2A>C']['gene_symbol'] == 'SPG7'
         assert results['NM_199367.1:c.184-2A>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_955399.1:p.?', 'slr': 'NP_955399.1:p.?'}
         assert results['NM_199367.1:c.184-2A>C']['submitted_variant'] == '16-89576896-A-C'
@@ -11080,7 +10527,6 @@ class TestVariants(object):
         assert results['NM_003119.3:c.216dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.3:c.216dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003119.3:c.216dup']['alt_genomic_loci'] == []
-        assert results['NM_003119.3:c.216dup']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.3:c.216dup']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.3:c.216dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.(Glu73Ter)', 'slr': 'NP_003110.1:p.(E73*)'}
         assert results['NM_003119.3:c.216dup']['submitted_variant'] == '16-89576930-T-TA,TT'
@@ -11098,7 +10544,6 @@ class TestVariants(object):
         assert results['NM_003119.2:c.216_217insA']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.2:c.216_217insA']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003119.2:c.216_217insA']['alt_genomic_loci'] == []
-        assert results['NM_003119.2:c.216_217insA']['transcript_description'] == 'Homo sapiens spastic paraplegia 7 (pure and complicated autosomal recessive) (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.2:c.216_217insA']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.2:c.216_217insA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.(Glu73ArgfsTer30)', 'slr': 'NP_003110.1:p.(E73Rfs*30)'}
         assert results['NM_003119.2:c.216_217insA']['submitted_variant'] == '16-89576930-T-TA,TT'
@@ -11116,7 +10561,6 @@ class TestVariants(object):
         assert results['NM_199367.2:c.216dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_199367.2:c.216dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_199367.2:c.216dup']['alt_genomic_loci'] == []
-        assert results['NM_199367.2:c.216dup']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 2, mRNA'
         assert results['NM_199367.2:c.216dup']['gene_symbol'] == 'SPG7'
         assert results['NM_199367.2:c.216dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_955399.1:p.(Glu73Ter)', 'slr': 'NP_955399.1:p.(E73*)'}
         assert results['NM_199367.2:c.216dup']['submitted_variant'] == '16-89576930-T-TA,TT'
@@ -11134,7 +10578,6 @@ class TestVariants(object):
         assert results['NM_199367.2:c.216_217insA']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_199367.2:c.216_217insA']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_199367.2:c.216_217insA']['alt_genomic_loci'] == []
-        assert results['NM_199367.2:c.216_217insA']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 2, mRNA'
         assert results['NM_199367.2:c.216_217insA']['gene_symbol'] == 'SPG7'
         assert results['NM_199367.2:c.216_217insA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_955399.1:p.(Glu73ArgfsTer30)', 'slr': 'NP_955399.1:p.(E73Rfs*30)'}
         assert results['NM_199367.2:c.216_217insA']['submitted_variant'] == '16-89576930-T-TA,TT'
@@ -11152,7 +10595,6 @@ class TestVariants(object):
         assert results['NM_001363850.1:c.216dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001363850.1:c.216dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001363850.1:c.216dup']['alt_genomic_loci'] == []
-        assert results['NM_001363850.1:c.216dup']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 3, mRNA'
         assert results['NM_001363850.1:c.216dup']['gene_symbol'] == 'SPG7'
         assert results['NM_001363850.1:c.216dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001350779.1:p.(Glu73Ter)', 'slr': 'NP_001350779.1:p.(E73*)'}
         assert results['NM_001363850.1:c.216dup']['submitted_variant'] == '16-89576930-T-TA,TT'
@@ -11171,7 +10613,6 @@ class TestVariants(object):
         assert results['NM_001363850.1:c.216_217insA']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001363850.1:c.216_217insA']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001363850.1:c.216_217insA']['alt_genomic_loci'] == []
-        assert results['NM_001363850.1:c.216_217insA']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 3, mRNA'
         assert results['NM_001363850.1:c.216_217insA']['gene_symbol'] == 'SPG7'
         assert results['NM_001363850.1:c.216_217insA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001350779.1:p.(Glu73ArgfsTer30)', 'slr': 'NP_001350779.1:p.(E73Rfs*30)'}
         assert results['NM_001363850.1:c.216_217insA']['submitted_variant'] == '16-89576930-T-TA,TT'
@@ -11189,7 +10630,6 @@ class TestVariants(object):
         assert results['NM_199367.1:c.216_217insA']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_199367.1:c.216_217insA']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_199367.1:c.216_217insA']['alt_genomic_loci'] == []
-        assert results['NM_199367.1:c.216_217insA']['transcript_description'] == 'Homo sapiens spastic paraplegia 7 (pure and complicated autosomal recessive) (SPG7), transcript variant 2, mRNA'
         assert results['NM_199367.1:c.216_217insA']['gene_symbol'] == 'SPG7'
         assert results['NM_199367.1:c.216_217insA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_955399.1:p.(Glu73ArgfsTer30)', 'slr': 'NP_955399.1:p.(E73Rfs*30)'}
         assert results['NM_199367.1:c.216_217insA']['submitted_variant'] == '16-89576930-T-TA,TT'
@@ -11207,7 +10647,6 @@ class TestVariants(object):
         assert results['NM_199367.1:c.216dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_199367.1:c.216dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_199367.1:c.216dup']['alt_genomic_loci'] == []
-        assert results['NM_199367.1:c.216dup']['transcript_description'] == 'Homo sapiens spastic paraplegia 7 (pure and complicated autosomal recessive) (SPG7), transcript variant 2, mRNA'
         assert results['NM_199367.1:c.216dup']['gene_symbol'] == 'SPG7'
         assert results['NM_199367.1:c.216dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_955399.1:p.(Glu73Ter)', 'slr': 'NP_955399.1:p.(E73*)'}
         assert results['NM_199367.1:c.216dup']['submitted_variant'] == '16-89576930-T-TA,TT'
@@ -11225,7 +10664,6 @@ class TestVariants(object):
         assert results['NM_003119.3:c.216_217insA']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.3:c.216_217insA']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003119.3:c.216_217insA']['alt_genomic_loci'] == []
-        assert results['NM_003119.3:c.216_217insA']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.3:c.216_217insA']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.3:c.216_217insA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.(Glu73ArgfsTer30)', 'slr': 'NP_003110.1:p.(E73Rfs*30)'}
         assert results['NM_003119.3:c.216_217insA']['submitted_variant'] == '16-89576930-T-TA,TT'
@@ -11243,7 +10681,6 @@ class TestVariants(object):
         assert results['NM_003119.2:c.216dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.2:c.216dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003119.2:c.216dup']['alt_genomic_loci'] == []
-        assert results['NM_003119.2:c.216dup']['transcript_description'] == 'Homo sapiens spastic paraplegia 7 (pure and complicated autosomal recessive) (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.2:c.216dup']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.2:c.216dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.(Glu73Ter)', 'slr': 'NP_003110.1:p.(E73*)'}
         assert results['NM_003119.2:c.216dup']['submitted_variant'] == '16-89576930-T-TA,TT'
@@ -11267,7 +10704,6 @@ class TestVariants(object):
         assert results['NM_199367.1:c.216_217dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_199367.1:c.216_217dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_199367.1:c.216_217dup']['alt_genomic_loci'] == []
-        assert results['NM_199367.1:c.216_217dup']['transcript_description'] == 'Homo sapiens spastic paraplegia 7 (pure and complicated autosomal recessive) (SPG7), transcript variant 2, mRNA'
         assert results['NM_199367.1:c.216_217dup']['gene_symbol'] == 'SPG7'
         assert results['NM_199367.1:c.216_217dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_955399.1:p.(Glu73ValfsTer9)', 'slr': 'NP_955399.1:p.(E73Vfs*9)'}
         assert results['NM_199367.1:c.216_217dup']['submitted_variant'] == '16-89576931-G-GTG'
@@ -11285,7 +10721,6 @@ class TestVariants(object):
         assert results['NM_003119.3:c.216_217dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.3:c.216_217dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003119.3:c.216_217dup']['alt_genomic_loci'] == []
-        assert results['NM_003119.3:c.216_217dup']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.3:c.216_217dup']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.3:c.216_217dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.(Glu73ValfsTer9)', 'slr': 'NP_003110.1:p.(E73Vfs*9)'}
         assert results['NM_003119.3:c.216_217dup']['submitted_variant'] == '16-89576931-G-GTG'
@@ -11303,7 +10738,6 @@ class TestVariants(object):
         assert results['NM_199367.2:c.216_217dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_199367.2:c.216_217dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_199367.2:c.216_217dup']['alt_genomic_loci'] == []
-        assert results['NM_199367.2:c.216_217dup']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 2, mRNA'
         assert results['NM_199367.2:c.216_217dup']['gene_symbol'] == 'SPG7'
         assert results['NM_199367.2:c.216_217dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_955399.1:p.(Glu73ValfsTer9)', 'slr': 'NP_955399.1:p.(E73Vfs*9)'}
         assert results['NM_199367.2:c.216_217dup']['submitted_variant'] == '16-89576931-G-GTG'
@@ -11321,7 +10755,6 @@ class TestVariants(object):
         assert results['NM_003119.2:c.216_217dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.2:c.216_217dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003119.2:c.216_217dup']['alt_genomic_loci'] == []
-        assert results['NM_003119.2:c.216_217dup']['transcript_description'] == 'Homo sapiens spastic paraplegia 7 (pure and complicated autosomal recessive) (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.2:c.216_217dup']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.2:c.216_217dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.(Glu73ValfsTer9)', 'slr': 'NP_003110.1:p.(E73Vfs*9)'}
         assert results['NM_003119.2:c.216_217dup']['submitted_variant'] == '16-89576931-G-GTG'
@@ -11340,7 +10773,6 @@ class TestVariants(object):
         assert results['NM_001363850.1:c.216_217dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001363850.1:c.216_217dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001363850.1:c.216_217dup']['alt_genomic_loci'] == []
-        assert results['NM_001363850.1:c.216_217dup']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 3, mRNA'
         assert results['NM_001363850.1:c.216_217dup']['gene_symbol'] == 'SPG7'
         assert results['NM_001363850.1:c.216_217dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001350779.1:p.(Glu73ValfsTer9)', 'slr': 'NP_001350779.1:p.(E73Vfs*9)'}
         assert results['NM_001363850.1:c.216_217dup']['submitted_variant'] == '16-89576931-G-GTG'
@@ -11364,7 +10796,6 @@ class TestVariants(object):
         assert results['NM_199367.1:c.1046_1071del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_199367.1:c.1046_1071del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_199367.1:c.1046_1071del']['alt_genomic_loci'] == []
-        assert results['NM_199367.1:c.1046_1071del']['transcript_description'] == 'Homo sapiens spastic paraplegia 7 (pure and complicated autosomal recessive) (SPG7), transcript variant 2, mRNA'
         assert results['NM_199367.1:c.1046_1071del']['gene_symbol'] == 'SPG7'
         assert results['NM_199367.1:c.1046_1071del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_955399.1:p.(Gly349AlafsTer38)', 'slr': 'NP_955399.1:p.(G349Afs*38)'}
         assert results['NM_199367.1:c.1046_1071del']['submitted_variant'] == '16-89598368-CGGCCCCCCCGGCTGTGGGAAGACGCT-C'
@@ -11382,7 +10813,6 @@ class TestVariants(object):
         assert results['NM_001363850.1:c.1046_1071del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001363850.1:c.1046_1071del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001363850.1:c.1046_1071del']['alt_genomic_loci'] == []
-        assert results['NM_001363850.1:c.1046_1071del']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 3, mRNA'
         assert results['NM_001363850.1:c.1046_1071del']['gene_symbol'] == 'SPG7'
         assert results['NM_001363850.1:c.1046_1071del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001350779.1:p.(Gly349AlafsTer38)', 'slr': 'NP_001350779.1:p.(G349Afs*38)'}
         assert results['NM_001363850.1:c.1046_1071del']['submitted_variant'] == '16-89598368-CGGCCCCCCCGGCTGTGGGAAGACGCT-C'
@@ -11400,7 +10830,6 @@ class TestVariants(object):
         assert results['NM_199367.2:c.1046_1071del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_199367.2:c.1046_1071del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_199367.2:c.1046_1071del']['alt_genomic_loci'] == []
-        assert results['NM_199367.2:c.1046_1071del']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 2, mRNA'
         assert results['NM_199367.2:c.1046_1071del']['gene_symbol'] == 'SPG7'
         assert results['NM_199367.2:c.1046_1071del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_955399.1:p.(Gly349AlafsTer38)', 'slr': 'NP_955399.1:p.(G349Afs*38)'}
         assert results['NM_199367.2:c.1046_1071del']['submitted_variant'] == '16-89598368-CGGCCCCCCCGGCTGTGGGAAGACGCT-C'
@@ -11419,7 +10848,6 @@ class TestVariants(object):
         assert results['NM_003119.2:c.1046_1071del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.2:c.1046_1071del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003119.2:c.1046_1071del']['alt_genomic_loci'] == []
-        assert results['NM_003119.2:c.1046_1071del']['transcript_description'] == 'Homo sapiens spastic paraplegia 7 (pure and complicated autosomal recessive) (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.2:c.1046_1071del']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.2:c.1046_1071del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.(Gly349AlafsTer38)', 'slr': 'NP_003110.1:p.(G349Afs*38)'}
         assert results['NM_003119.2:c.1046_1071del']['submitted_variant'] == '16-89598368-CGGCCCCCCCGGCTGTGGGAAGACGCT-C'
@@ -11437,7 +10865,6 @@ class TestVariants(object):
         assert results['NM_003119.3:c.1046_1071del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.3:c.1046_1071del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003119.3:c.1046_1071del']['alt_genomic_loci'] == []
-        assert results['NM_003119.3:c.1046_1071del']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.3:c.1046_1071del']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.3:c.1046_1071del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.(Gly349AlafsTer38)', 'slr': 'NP_003110.1:p.(G349Afs*38)'}
         assert results['NM_003119.3:c.1046_1071del']['submitted_variant'] == '16-89598368-CGGCCCCCCCGGCTGTGGGAAGACGCT-C'
@@ -11461,7 +10888,6 @@ class TestVariants(object):
         assert results['NM_001363850.1:c.1450-1_1457delinsT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001363850.1:c.1450-1_1457delinsT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001363850.1:c.1450-1_1457delinsT']['alt_genomic_loci'] == []
-        assert results['NM_001363850.1:c.1450-1_1457delinsT']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 3, mRNA'
         assert results['NM_001363850.1:c.1450-1_1457delinsT']['gene_symbol'] == 'SPG7'
         assert results['NM_001363850.1:c.1450-1_1457delinsT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001350779.1:p.?', 'slr': 'NP_001350779.1:p.?'}
         assert results['NM_001363850.1:c.1450-1_1457delinsT']['submitted_variant'] == '16-89613064-AGGAGAGGCG-AT'
@@ -11480,7 +10906,6 @@ class TestVariants(object):
         assert results['NM_003119.2:c.1450-1_1457delinsT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.2:c.1450-1_1457delinsT']['refseqgene_context_intronic_sequence'] == 'NG_008082.1(NM_003119.2):c.1450-1_1457delinsT'
         assert results['NM_003119.2:c.1450-1_1457delinsT']['alt_genomic_loci'] == []
-        assert results['NM_003119.2:c.1450-1_1457delinsT']['transcript_description'] == 'Homo sapiens spastic paraplegia 7 (pure and complicated autosomal recessive) (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.2:c.1450-1_1457delinsT']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.2:c.1450-1_1457delinsT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.?', 'slr': 'NP_003110.1:p.?'}
         assert results['NM_003119.2:c.1450-1_1457delinsT']['submitted_variant'] == '16-89613064-AGGAGAGGCG-AT'
@@ -11498,7 +10923,6 @@ class TestVariants(object):
         assert results['NM_003119.3:c.1450-1_1457delinsT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.3:c.1450-1_1457delinsT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003119.3:c.1450-1_1457delinsT']['alt_genomic_loci'] == []
-        assert results['NM_003119.3:c.1450-1_1457delinsT']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.3:c.1450-1_1457delinsT']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.3:c.1450-1_1457delinsT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.?', 'slr': 'NP_003110.1:p.?'}
         assert results['NM_003119.3:c.1450-1_1457delinsT']['submitted_variant'] == '16-89613064-AGGAGAGGCG-AT'
@@ -11522,7 +10946,6 @@ class TestVariants(object):
         assert results['NM_003119.2:c.1454_1462delinsT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.2:c.1454_1462delinsT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003119.2:c.1454_1462delinsT']['alt_genomic_loci'] == []
-        assert results['NM_003119.2:c.1454_1462delinsT']['transcript_description'] == 'Homo sapiens spastic paraplegia 7 (pure and complicated autosomal recessive) (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.2:c.1454_1462delinsT']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.2:c.1454_1462delinsT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.(Arg485IlefsTer3)', 'slr': 'NP_003110.1:p.(R485Ifs*3)'}
         assert results['NM_003119.2:c.1454_1462delinsT']['submitted_variant'] == '16-89613069-AGGCGGGAGA-AT'
@@ -11541,7 +10964,6 @@ class TestVariants(object):
         assert results['NM_001363850.1:c.1454_1462delinsT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001363850.1:c.1454_1462delinsT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001363850.1:c.1454_1462delinsT']['alt_genomic_loci'] == []
-        assert results['NM_001363850.1:c.1454_1462delinsT']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 3, mRNA'
         assert results['NM_001363850.1:c.1454_1462delinsT']['gene_symbol'] == 'SPG7'
         assert results['NM_001363850.1:c.1454_1462delinsT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001350779.1:p.(Arg485IlefsTer3)', 'slr': 'NP_001350779.1:p.(R485Ifs*3)'}
         assert results['NM_001363850.1:c.1454_1462delinsT']['submitted_variant'] == '16-89613069-AGGCGGGAGA-AT'
@@ -11559,7 +10981,6 @@ class TestVariants(object):
         assert results['NM_003119.3:c.1454_1462delinsT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.3:c.1454_1462delinsT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003119.3:c.1454_1462delinsT']['alt_genomic_loci'] == []
-        assert results['NM_003119.3:c.1454_1462delinsT']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.3:c.1454_1462delinsT']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.3:c.1454_1462delinsT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.(Arg485IlefsTer3)', 'slr': 'NP_003110.1:p.(R485Ifs*3)'}
         assert results['NM_003119.3:c.1454_1462delinsT']['submitted_variant'] == '16-89613069-AGGCGGGAGA-AT'
@@ -11583,7 +11004,6 @@ class TestVariants(object):
         assert results['NM_001363850.1:c.1529C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001363850.1:c.1529C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001363850.1:c.1529C>T']['alt_genomic_loci'] == []
-        assert results['NM_001363850.1:c.1529C>T']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 3, mRNA'
         assert results['NM_001363850.1:c.1529C>T']['gene_symbol'] == 'SPG7'
         assert results['NM_001363850.1:c.1529C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001350779.1:p.(Ala510Val)', 'slr': 'NP_001350779.1:p.(A510V)'}
         assert results['NM_001363850.1:c.1529C>T']['submitted_variant'] == '16-89613145-C-T'
@@ -11601,7 +11021,6 @@ class TestVariants(object):
         assert results['NM_003119.3:c.1529C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.3:c.1529C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003119.3:c.1529C>T']['alt_genomic_loci'] == []
-        assert results['NM_003119.3:c.1529C>T']['transcript_description'] == 'Homo sapiens SPG7, paraplegin matrix AAA peptidase subunit (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.3:c.1529C>T']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.3:c.1529C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.(Ala510Val)', 'slr': 'NP_003110.1:p.(A510V)'}
         assert results['NM_003119.3:c.1529C>T']['submitted_variant'] == '16-89613145-C-T'
@@ -11620,7 +11039,6 @@ class TestVariants(object):
         assert results['NM_003119.2:c.1529C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003119.2:c.1529C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003119.2:c.1529C>T']['alt_genomic_loci'] == []
-        assert results['NM_003119.2:c.1529C>T']['transcript_description'] == 'Homo sapiens spastic paraplegia 7 (pure and complicated autosomal recessive) (SPG7), transcript variant 1, mRNA'
         assert results['NM_003119.2:c.1529C>T']['gene_symbol'] == 'SPG7'
         assert results['NM_003119.2:c.1529C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003110.1:p.(Ala510Val)', 'slr': 'NP_003110.1:p.(A510V)'}
         assert results['NM_003119.2:c.1529C>T']['submitted_variant'] == '16-89613145-C-T'
@@ -11644,7 +11062,6 @@ class TestVariants(object):
         assert results['NM_001276695.1:c.535_537del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001276695.1:c.535_537del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001276695.1:c.535_537del']['alt_genomic_loci'] == []
-        assert results['NM_001276695.1:c.535_537del']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 4, mRNA'
         assert results['NM_001276695.1:c.535_537del']['gene_symbol'] == 'TP53'
         assert results['NM_001276695.1:c.535_537del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001263624.1:p.(Val179del)', 'slr': 'NP_001263624.1:p.(V179del)'}
         assert results['NM_001276695.1:c.535_537del']['submitted_variant'] == '17-7578194-GCAC-G'
@@ -11662,7 +11079,6 @@ class TestVariants(object):
         assert results['NM_001126113.2:c.652_654del']['hgvs_lrg_transcript_variant'] == 'LRG_321t4:c.652_654del'
         assert results['NM_001126113.2:c.652_654del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001126113.2:c.652_654del']['alt_genomic_loci'] == []
-        assert results['NM_001126113.2:c.652_654del']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 4, mRNA'
         assert results['NM_001126113.2:c.652_654del']['gene_symbol'] == 'TP53'
         assert results['NM_001126113.2:c.652_654del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001119585.1:p.(Val218del)', 'slr': 'NP_001119585.1:p.(V218del)'}
         assert results['NM_001126113.2:c.652_654del']['submitted_variant'] == '17-7578194-GCAC-G'
@@ -11680,7 +11096,6 @@ class TestVariants(object):
         assert results['NM_001126118.1:c.535_537del']['hgvs_lrg_transcript_variant'] == 'LRG_321t8:c.535_537del'
         assert results['NM_001126118.1:c.535_537del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001126118.1:c.535_537del']['alt_genomic_loci'] == []
-        assert results['NM_001126118.1:c.535_537del']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 8, mRNA'
         assert results['NM_001126118.1:c.535_537del']['gene_symbol'] == 'TP53'
         assert results['NM_001126118.1:c.535_537del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001119590.1:p.(Val179del)', 'slr': 'NP_001119590.1:p.(V179del)'}
         assert results['NM_001126118.1:c.535_537del']['submitted_variant'] == '17-7578194-GCAC-G'
@@ -11698,7 +11113,6 @@ class TestVariants(object):
         assert results['NM_001126116.1:c.256_258del']['hgvs_lrg_transcript_variant'] == 'LRG_321t6:c.256_258del'
         assert results['NM_001126116.1:c.256_258del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001126116.1:c.256_258del']['alt_genomic_loci'] == []
-        assert results['NM_001126116.1:c.256_258del']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 6, mRNA'
         assert results['NM_001126116.1:c.256_258del']['gene_symbol'] == 'TP53'
         assert results['NM_001126116.1:c.256_258del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001119588.1:p.(Val86del)', 'slr': 'NP_001119588.1:p.(V86del)'}
         assert results['NM_001126116.1:c.256_258del']['submitted_variant'] == '17-7578194-GCAC-G'
@@ -11716,7 +11130,6 @@ class TestVariants(object):
         assert results['NM_001126117.1:c.256_258del']['hgvs_lrg_transcript_variant'] == 'LRG_321t7:c.256_258del'
         assert results['NM_001126117.1:c.256_258del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001126117.1:c.256_258del']['alt_genomic_loci'] == []
-        assert results['NM_001126117.1:c.256_258del']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 7, mRNA'
         assert results['NM_001126117.1:c.256_258del']['gene_symbol'] == 'TP53'
         assert results['NM_001126117.1:c.256_258del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001119589.1:p.(Val86del)', 'slr': 'NP_001119589.1:p.(V86del)'}
         assert results['NM_001126117.1:c.256_258del']['submitted_variant'] == '17-7578194-GCAC-G'
@@ -11734,7 +11147,6 @@ class TestVariants(object):
         assert results['NM_001276761.1:c.535_537del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001276761.1:c.535_537del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001276761.1:c.535_537del']['alt_genomic_loci'] == []
-        assert results['NM_001276761.1:c.535_537del']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 2, mRNA'
         assert results['NM_001276761.1:c.535_537del']['gene_symbol'] == 'TP53'
         assert results['NM_001276761.1:c.535_537del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001263690.1:p.(Val179del)', 'slr': 'NP_001263690.1:p.(V179del)'}
         assert results['NM_001276761.1:c.535_537del']['submitted_variant'] == '17-7578194-GCAC-G'
@@ -11752,7 +11164,6 @@ class TestVariants(object):
         assert results['NM_001126112.2:c.652_654del']['hgvs_lrg_transcript_variant'] == 'LRG_321t2:c.652_654del'
         assert results['NM_001126112.2:c.652_654del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001126112.2:c.652_654del']['alt_genomic_loci'] == []
-        assert results['NM_001126112.2:c.652_654del']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 2, mRNA'
         assert results['NM_001126112.2:c.652_654del']['gene_symbol'] == 'TP53'
         assert results['NM_001126112.2:c.652_654del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001119584.1:p.(Val218del)', 'slr': 'NP_001119584.1:p.(V218del)'}
         assert results['NM_001126112.2:c.652_654del']['submitted_variant'] == '17-7578194-GCAC-G'
@@ -11771,7 +11182,6 @@ class TestVariants(object):
         assert results['NM_001276697.1:c.175_177del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001276697.1:c.175_177del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001276697.1:c.175_177del']['alt_genomic_loci'] == []
-        assert results['NM_001276697.1:c.175_177del']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 5, mRNA'
         assert results['NM_001276697.1:c.175_177del']['gene_symbol'] == 'TP53'
         assert results['NM_001276697.1:c.175_177del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001263626.1:p.(Val59del)', 'slr': 'NP_001263626.1:p.(V59del)'}
         assert results['NM_001276697.1:c.175_177del']['submitted_variant'] == '17-7578194-GCAC-G'
@@ -11789,7 +11199,6 @@ class TestVariants(object):
         assert results['NM_001276696.1:c.535_537del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001276696.1:c.535_537del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001276696.1:c.535_537del']['alt_genomic_loci'] == []
-        assert results['NM_001276696.1:c.535_537del']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 3, mRNA'
         assert results['NM_001276696.1:c.535_537del']['gene_symbol'] == 'TP53'
         assert results['NM_001276696.1:c.535_537del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001263625.1:p.(Val179del)', 'slr': 'NP_001263625.1:p.(V179del)'}
         assert results['NM_001276696.1:c.535_537del']['submitted_variant'] == '17-7578194-GCAC-G'
@@ -11807,7 +11216,6 @@ class TestVariants(object):
         assert results['NM_001276698.1:c.175_177del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001276698.1:c.175_177del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001276698.1:c.175_177del']['alt_genomic_loci'] == []
-        assert results['NM_001276698.1:c.175_177del']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 6, mRNA'
         assert results['NM_001276698.1:c.175_177del']['gene_symbol'] == 'TP53'
         assert results['NM_001276698.1:c.175_177del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001263627.1:p.(Val59del)', 'slr': 'NP_001263627.1:p.(V59del)'}
         assert results['NM_001276698.1:c.175_177del']['submitted_variant'] == '17-7578194-GCAC-G'
@@ -11825,7 +11233,6 @@ class TestVariants(object):
         assert results['NM_001126115.1:c.256_258del']['hgvs_lrg_transcript_variant'] == 'LRG_321t5:c.256_258del'
         assert results['NM_001126115.1:c.256_258del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001126115.1:c.256_258del']['alt_genomic_loci'] == []
-        assert results['NM_001126115.1:c.256_258del']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 5, mRNA'
         assert results['NM_001126115.1:c.256_258del']['gene_symbol'] == 'TP53'
         assert results['NM_001126115.1:c.256_258del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001119587.1:p.(Val86del)', 'slr': 'NP_001119587.1:p.(V86del)'}
         assert results['NM_001126115.1:c.256_258del']['submitted_variant'] == '17-7578194-GCAC-G'
@@ -11843,7 +11250,6 @@ class TestVariants(object):
         assert results['NM_001126114.2:c.652_654del']['hgvs_lrg_transcript_variant'] == 'LRG_321t3:c.652_654del'
         assert results['NM_001126114.2:c.652_654del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001126114.2:c.652_654del']['alt_genomic_loci'] == []
-        assert results['NM_001126114.2:c.652_654del']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 3, mRNA'
         assert results['NM_001126114.2:c.652_654del']['gene_symbol'] == 'TP53'
         assert results['NM_001126114.2:c.652_654del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001119586.1:p.(Val218del)', 'slr': 'NP_001119586.1:p.(V218del)'}
         assert results['NM_001126114.2:c.652_654del']['submitted_variant'] == '17-7578194-GCAC-G'
@@ -11861,7 +11267,6 @@ class TestVariants(object):
         assert results['NM_001276699.1:c.175_177del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001276699.1:c.175_177del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001276699.1:c.175_177del']['alt_genomic_loci'] == []
-        assert results['NM_001276699.1:c.175_177del']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 7, mRNA'
         assert results['NM_001276699.1:c.175_177del']['gene_symbol'] == 'TP53'
         assert results['NM_001276699.1:c.175_177del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001263628.1:p.(Val59del)', 'slr': 'NP_001263628.1:p.(V59del)'}
         assert results['NM_001276699.1:c.175_177del']['submitted_variant'] == '17-7578194-GCAC-G'
@@ -11879,7 +11284,6 @@ class TestVariants(object):
         assert results['NM_001276760.1:c.535_537del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001276760.1:c.535_537del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001276760.1:c.535_537del']['alt_genomic_loci'] == []
-        assert results['NM_001276760.1:c.535_537del']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 1, mRNA'
         assert results['NM_001276760.1:c.535_537del']['gene_symbol'] == 'TP53'
         assert results['NM_001276760.1:c.535_537del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001263689.1:p.(Val179del)', 'slr': 'NP_001263689.1:p.(V179del)'}
         assert results['NM_001276760.1:c.535_537del']['submitted_variant'] == '17-7578194-GCAC-G'
@@ -11897,7 +11301,6 @@ class TestVariants(object):
         assert results['NM_000546.5:c.652_654del']['hgvs_lrg_transcript_variant'] == 'LRG_321t1:c.652_654del'
         assert results['NM_000546.5:c.652_654del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000546.5:c.652_654del']['alt_genomic_loci'] == []
-        assert results['NM_000546.5:c.652_654del']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 1, mRNA'
         assert results['NM_000546.5:c.652_654del']['gene_symbol'] == 'TP53'
         assert results['NM_000546.5:c.652_654del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000537.3(LRG_321p1):p.(Val218del)', 'slr': 'NP_000537.3:p.(V218del)'}
         assert results['NM_000546.5:c.652_654del']['submitted_variant'] == '17-7578194-GCAC-G'
@@ -11921,7 +11324,6 @@ class TestVariants(object):
         assert results['NM_001276760.1:c.289dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001276760.1:c.289dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001276760.1:c.289dup']['alt_genomic_loci'] == []
-        assert results['NM_001276760.1:c.289dup']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 1, mRNA'
         assert results['NM_001276760.1:c.289dup']['gene_symbol'] == 'TP53'
         assert results['NM_001276760.1:c.289dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001263689.1:p.(Gln97ProfsTer13)', 'slr': 'NP_001263689.1:p.(Q97Pfs*13)'}
         assert results['NM_001276760.1:c.289dup']['submitted_variant'] == '17-7578523-T-TG'
@@ -11939,7 +11341,6 @@ class TestVariants(object):
         assert results['NM_001126118.1:c.289dup']['hgvs_lrg_transcript_variant'] == 'LRG_321t8:c.289dup'
         assert results['NM_001126118.1:c.289dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001126118.1:c.289dup']['alt_genomic_loci'] == []
-        assert results['NM_001126118.1:c.289dup']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 8, mRNA'
         assert results['NM_001126118.1:c.289dup']['gene_symbol'] == 'TP53'
         assert results['NM_001126118.1:c.289dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001119590.1:p.(Gln97ProfsTer13)', 'slr': 'NP_001119590.1:p.(Q97Pfs*13)'}
         assert results['NM_001126118.1:c.289dup']['submitted_variant'] == '17-7578523-T-TG'
@@ -11957,7 +11358,6 @@ class TestVariants(object):
         assert results['NM_001276695.1:c.289dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001276695.1:c.289dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001276695.1:c.289dup']['alt_genomic_loci'] == []
-        assert results['NM_001276695.1:c.289dup']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 4, mRNA'
         assert results['NM_001276695.1:c.289dup']['gene_symbol'] == 'TP53'
         assert results['NM_001276695.1:c.289dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001263624.1:p.(Gln97ProfsTer13)', 'slr': 'NP_001263624.1:p.(Q97Pfs*13)'}
         assert results['NM_001276695.1:c.289dup']['submitted_variant'] == '17-7578523-T-TG'
@@ -11975,7 +11375,6 @@ class TestVariants(object):
         assert results['NM_001276699.1:c.-72dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001276699.1:c.-72dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001276699.1:c.-72dup']['alt_genomic_loci'] == []
-        assert results['NM_001276699.1:c.-72dup']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 7, mRNA'
         assert results['NM_001276699.1:c.-72dup']['gene_symbol'] == 'TP53'
         assert results['NM_001276699.1:c.-72dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001263628.1:p.?', 'slr': 'NP_001263628.1:p.?'}
         assert results['NM_001276699.1:c.-72dup']['submitted_variant'] == '17-7578523-T-TG'
@@ -11993,7 +11392,6 @@ class TestVariants(object):
         assert results['NM_001126115.1:c.10dup']['hgvs_lrg_transcript_variant'] == 'LRG_321t5:c.10dup'
         assert results['NM_001126115.1:c.10dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001126115.1:c.10dup']['alt_genomic_loci'] == []
-        assert results['NM_001126115.1:c.10dup']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 5, mRNA'
         assert results['NM_001126115.1:c.10dup']['gene_symbol'] == 'TP53'
         assert results['NM_001126115.1:c.10dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001119587.1:p.(Gln4ProfsTer13)', 'slr': 'NP_001119587.1:p.(Q4Pfs*13)'}
         assert results['NM_001126115.1:c.10dup']['submitted_variant'] == '17-7578523-T-TG'
@@ -12011,7 +11409,6 @@ class TestVariants(object):
         assert results['NM_001276697.1:c.-72dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001276697.1:c.-72dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001276697.1:c.-72dup']['alt_genomic_loci'] == []
-        assert results['NM_001276697.1:c.-72dup']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 5, mRNA'
         assert results['NM_001276697.1:c.-72dup']['gene_symbol'] == 'TP53'
         assert results['NM_001276697.1:c.-72dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001263626.1:p.?', 'slr': 'NP_001263626.1:p.?'}
         assert results['NM_001276697.1:c.-72dup']['submitted_variant'] == '17-7578523-T-TG'
@@ -12029,7 +11426,6 @@ class TestVariants(object):
         assert results['NM_001126117.1:c.10dup']['hgvs_lrg_transcript_variant'] == 'LRG_321t7:c.10dup'
         assert results['NM_001126117.1:c.10dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001126117.1:c.10dup']['alt_genomic_loci'] == []
-        assert results['NM_001126117.1:c.10dup']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 7, mRNA'
         assert results['NM_001126117.1:c.10dup']['gene_symbol'] == 'TP53'
         assert results['NM_001126117.1:c.10dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001119589.1:p.(Gln4ProfsTer13)', 'slr': 'NP_001119589.1:p.(Q4Pfs*13)'}
         assert results['NM_001126117.1:c.10dup']['submitted_variant'] == '17-7578523-T-TG'
@@ -12047,7 +11443,6 @@ class TestVariants(object):
         assert results['NM_000546.5:c.406dup']['hgvs_lrg_transcript_variant'] == 'LRG_321t1:c.406dup'
         assert results['NM_000546.5:c.406dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000546.5:c.406dup']['alt_genomic_loci'] == []
-        assert results['NM_000546.5:c.406dup']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 1, mRNA'
         assert results['NM_000546.5:c.406dup']['gene_symbol'] == 'TP53'
         assert results['NM_000546.5:c.406dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000537.3(LRG_321p1):p.(Gln136ProfsTer13)', 'slr': 'NP_000537.3:p.(Q136Pfs*13)'}
         assert results['NM_000546.5:c.406dup']['submitted_variant'] == '17-7578523-T-TG'
@@ -12066,7 +11461,6 @@ class TestVariants(object):
         assert results['NM_001276696.1:c.289dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001276696.1:c.289dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001276696.1:c.289dup']['alt_genomic_loci'] == []
-        assert results['NM_001276696.1:c.289dup']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 3, mRNA'
         assert results['NM_001276696.1:c.289dup']['gene_symbol'] == 'TP53'
         assert results['NM_001276696.1:c.289dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001263625.1:p.(Gln97ProfsTer13)', 'slr': 'NP_001263625.1:p.(Q97Pfs*13)'}
         assert results['NM_001276696.1:c.289dup']['submitted_variant'] == '17-7578523-T-TG'
@@ -12084,7 +11478,6 @@ class TestVariants(object):
         assert results['NM_001276698.1:c.-72dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001276698.1:c.-72dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001276698.1:c.-72dup']['alt_genomic_loci'] == []
-        assert results['NM_001276698.1:c.-72dup']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 6, mRNA'
         assert results['NM_001276698.1:c.-72dup']['gene_symbol'] == 'TP53'
         assert results['NM_001276698.1:c.-72dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001263627.1:p.?', 'slr': 'NP_001263627.1:p.?'}
         assert results['NM_001276698.1:c.-72dup']['submitted_variant'] == '17-7578523-T-TG'
@@ -12102,7 +11495,6 @@ class TestVariants(object):
         assert results['NM_001276761.1:c.289dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001276761.1:c.289dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001276761.1:c.289dup']['alt_genomic_loci'] == []
-        assert results['NM_001276761.1:c.289dup']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 2, mRNA'
         assert results['NM_001276761.1:c.289dup']['gene_symbol'] == 'TP53'
         assert results['NM_001276761.1:c.289dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001263690.1:p.(Gln97ProfsTer13)', 'slr': 'NP_001263690.1:p.(Q97Pfs*13)'}
         assert results['NM_001276761.1:c.289dup']['submitted_variant'] == '17-7578523-T-TG'
@@ -12120,7 +11512,6 @@ class TestVariants(object):
         assert results['NM_001126113.2:c.406dup']['hgvs_lrg_transcript_variant'] == 'LRG_321t4:c.406dup'
         assert results['NM_001126113.2:c.406dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001126113.2:c.406dup']['alt_genomic_loci'] == []
-        assert results['NM_001126113.2:c.406dup']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 4, mRNA'
         assert results['NM_001126113.2:c.406dup']['gene_symbol'] == 'TP53'
         assert results['NM_001126113.2:c.406dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001119585.1:p.(Gln136ProfsTer13)', 'slr': 'NP_001119585.1:p.(Q136Pfs*13)'}
         assert results['NM_001126113.2:c.406dup']['submitted_variant'] == '17-7578523-T-TG'
@@ -12138,7 +11529,6 @@ class TestVariants(object):
         assert results['NM_001126116.1:c.10dup']['hgvs_lrg_transcript_variant'] == 'LRG_321t6:c.10dup'
         assert results['NM_001126116.1:c.10dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001126116.1:c.10dup']['alt_genomic_loci'] == []
-        assert results['NM_001126116.1:c.10dup']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 6, mRNA'
         assert results['NM_001126116.1:c.10dup']['gene_symbol'] == 'TP53'
         assert results['NM_001126116.1:c.10dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001119588.1:p.(Gln4ProfsTer13)', 'slr': 'NP_001119588.1:p.(Q4Pfs*13)'}
         assert results['NM_001126116.1:c.10dup']['submitted_variant'] == '17-7578523-T-TG'
@@ -12156,7 +11546,6 @@ class TestVariants(object):
         assert results['NM_001126112.2:c.406dup']['hgvs_lrg_transcript_variant'] == 'LRG_321t2:c.406dup'
         assert results['NM_001126112.2:c.406dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001126112.2:c.406dup']['alt_genomic_loci'] == []
-        assert results['NM_001126112.2:c.406dup']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 2, mRNA'
         assert results['NM_001126112.2:c.406dup']['gene_symbol'] == 'TP53'
         assert results['NM_001126112.2:c.406dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001119584.1:p.(Gln136ProfsTer13)', 'slr': 'NP_001119584.1:p.(Q136Pfs*13)'}
         assert results['NM_001126112.2:c.406dup']['submitted_variant'] == '17-7578523-T-TG'
@@ -12174,7 +11563,6 @@ class TestVariants(object):
         assert results['NM_001126114.2:c.406dup']['hgvs_lrg_transcript_variant'] == 'LRG_321t3:c.406dup'
         assert results['NM_001126114.2:c.406dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001126114.2:c.406dup']['alt_genomic_loci'] == []
-        assert results['NM_001126114.2:c.406dup']['transcript_description'] == 'Homo sapiens tumor protein p53 (TP53), transcript variant 3, mRNA'
         assert results['NM_001126114.2:c.406dup']['gene_symbol'] == 'TP53'
         assert results['NM_001126114.2:c.406dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001119586.1:p.(Gln136ProfsTer13)', 'slr': 'NP_001119586.1:p.(Q136Pfs*13)'}
         assert results['NM_001126114.2:c.406dup']['submitted_variant'] == '17-7578523-T-TG'
@@ -12198,7 +11586,6 @@ class TestVariants(object):
         assert results['NM_144997.6:c.1300+2T>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_144997.6:c.1300+2T>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_144997.6:c.1300+2T>G']['alt_genomic_loci'] == []
-        assert results['NM_144997.6:c.1300+2T>G']['transcript_description'] == 'Homo sapiens folliculin (FLCN), transcript variant 1, mRNA'
         assert results['NM_144997.6:c.1300+2T>G']['gene_symbol'] == 'FLCN'
         assert results['NM_144997.6:c.1300+2T>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_659434.2(LRG_325p1):p.?', 'slr': 'NP_659434.2:p.?'}
         assert results['NM_144997.6:c.1300+2T>G']['submitted_variant'] == '17-17119692-A-C'
@@ -12216,7 +11603,6 @@ class TestVariants(object):
         assert results['NM_001353230.1:c.1300+2T>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001353230.1:c.1300+2T>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001353230.1:c.1300+2T>G']['alt_genomic_loci'] == []
-        assert results['NM_001353230.1:c.1300+2T>G']['transcript_description'] == 'Homo sapiens folliculin (FLCN), transcript variant 4, mRNA'
         assert results['NM_001353230.1:c.1300+2T>G']['gene_symbol'] == 'FLCN'
         assert results['NM_001353230.1:c.1300+2T>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001340159.1:p.?', 'slr': 'NP_001340159.1:p.?'}
         assert results['NM_001353230.1:c.1300+2T>G']['submitted_variant'] == '17-17119692-A-C'
@@ -12234,7 +11620,6 @@ class TestVariants(object):
         assert results['NM_001353229.1:c.1354+2T>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001353229.1:c.1354+2T>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001353229.1:c.1354+2T>G']['alt_genomic_loci'] == []
-        assert results['NM_001353229.1:c.1354+2T>G']['transcript_description'] == 'Homo sapiens folliculin (FLCN), transcript variant 3, mRNA'
         assert results['NM_001353229.1:c.1354+2T>G']['gene_symbol'] == 'FLCN'
         assert results['NM_001353229.1:c.1354+2T>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001340158.1:p.?', 'slr': 'NP_001340158.1:p.?'}
         assert results['NM_001353229.1:c.1354+2T>G']['submitted_variant'] == '17-17119692-A-C'
@@ -12253,7 +11638,6 @@ class TestVariants(object):
         assert results['NM_144997.5:c.1300+2T>G']['hgvs_lrg_transcript_variant'] == 'LRG_325t1:c.1300+2T>G'
         assert results['NM_144997.5:c.1300+2T>G']['refseqgene_context_intronic_sequence'] == 'NG_008001.2(NM_144997.5):c.1300+2T>G'
         assert results['NM_144997.5:c.1300+2T>G']['alt_genomic_loci'] == []
-        assert results['NM_144997.5:c.1300+2T>G']['transcript_description'] == 'Homo sapiens folliculin (FLCN), transcript variant 1, mRNA'
         assert results['NM_144997.5:c.1300+2T>G']['gene_symbol'] == 'FLCN'
         assert results['NM_144997.5:c.1300+2T>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_659434.2(LRG_325p1):p.?', 'slr': 'NP_659434.2:p.?'}
         assert results['NM_144997.5:c.1300+2T>G']['submitted_variant'] == '17-17119692-A-C'
@@ -12271,7 +11655,6 @@ class TestVariants(object):
         assert results['NM_001353231.1:c.1300+2T>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001353231.1:c.1300+2T>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001353231.1:c.1300+2T>G']['alt_genomic_loci'] == []
-        assert results['NM_001353231.1:c.1300+2T>G']['transcript_description'] == 'Homo sapiens folliculin (FLCN), transcript variant 5, mRNA'
         assert results['NM_001353231.1:c.1300+2T>G']['gene_symbol'] == 'FLCN'
         assert results['NM_001353231.1:c.1300+2T>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001340160.1:p.?', 'slr': 'NP_001340160.1:p.?'}
         assert results['NM_001353231.1:c.1300+2T>G']['submitted_variant'] == '17-17119692-A-C'
@@ -12295,7 +11678,6 @@ class TestVariants(object):
         assert results['NM_007294.3:c.*103_*106del']['hgvs_lrg_transcript_variant'] == 'LRG_292t1:c.*103_*106del'
         assert results['NM_007294.3:c.*103_*106del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_007294.3:c.*103_*106del']['alt_genomic_loci'] == []
-        assert results['NM_007294.3:c.*103_*106del']['transcript_description'] == 'Homo sapiens BRCA1, DNA repair associated (BRCA1), transcript variant 1, mRNA'
         assert results['NM_007294.3:c.*103_*106del']['gene_symbol'] == 'BRCA1'
         assert results['NM_007294.3:c.*103_*106del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_009225.1(LRG_292p1):p.?', 'slr': 'NP_009225.1:p.?'}
         assert results['NM_007294.3:c.*103_*106del']['submitted_variant'] == '17-41197588-GGACA-G'
@@ -12313,7 +11695,6 @@ class TestVariants(object):
         assert results['NM_007297.3:c.*103_*106del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_007297.3:c.*103_*106del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_007297.3:c.*103_*106del']['alt_genomic_loci'] == []
-        assert results['NM_007297.3:c.*103_*106del']['transcript_description'] == 'Homo sapiens BRCA1, DNA repair associated (BRCA1), transcript variant 3, mRNA'
         assert results['NM_007297.3:c.*103_*106del']['gene_symbol'] == 'BRCA1'
         assert results['NM_007297.3:c.*103_*106del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_009228.2:p.?', 'slr': 'NP_009228.2:p.?'}
         assert results['NM_007297.3:c.*103_*106del']['submitted_variant'] == '17-41197588-GGACA-G'
@@ -12331,7 +11712,6 @@ class TestVariants(object):
         assert results['NR_027676.1:n.5831_5834del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_027676.1:n.5831_5834del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_027676.1:n.5831_5834del']['alt_genomic_loci'] == []
-        assert results['NR_027676.1:n.5831_5834del']['transcript_description'] == 'Homo sapiens BRCA1, DNA repair associated (BRCA1), transcript variant 6, non-coding RNA'
         assert results['NR_027676.1:n.5831_5834del']['gene_symbol'] == 'BRCA1'
         assert results['NR_027676.1:n.5831_5834del']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_027676.1:n.5831_5834del']['submitted_variant'] == '17-41197588-GGACA-G'
@@ -12349,7 +11729,6 @@ class TestVariants(object):
         assert results['NM_007300.3:c.*103_*106del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_007300.3:c.*103_*106del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_007300.3:c.*103_*106del']['alt_genomic_loci'] == []
-        assert results['NM_007300.3:c.*103_*106del']['transcript_description'] == 'Homo sapiens BRCA1, DNA repair associated (BRCA1), transcript variant 2, mRNA'
         assert results['NM_007300.3:c.*103_*106del']['gene_symbol'] == 'BRCA1'
         assert results['NM_007300.3:c.*103_*106del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_009231.2:p.?', 'slr': 'NP_009231.2:p.?'}
         assert results['NM_007300.3:c.*103_*106del']['submitted_variant'] == '17-41197588-GGACA-G'
@@ -12368,7 +11747,6 @@ class TestVariants(object):
         assert results['NM_007299.3:c.*209_*212del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_007299.3:c.*209_*212del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_007299.3:c.*209_*212del']['alt_genomic_loci'] == []
-        assert results['NM_007299.3:c.*209_*212del']['transcript_description'] == 'Homo sapiens BRCA1, DNA repair associated (BRCA1), transcript variant 5, mRNA'
         assert results['NM_007299.3:c.*209_*212del']['gene_symbol'] == 'BRCA1'
         assert results['NM_007299.3:c.*209_*212del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_009230.2:p.?', 'slr': 'NP_009230.2:p.?'}
         assert results['NM_007299.3:c.*209_*212del']['submitted_variant'] == '17-41197588-GGACA-G'
@@ -12386,7 +11764,6 @@ class TestVariants(object):
         assert results['NM_007298.3:c.*103_*106del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_007298.3:c.*103_*106del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_007298.3:c.*103_*106del']['alt_genomic_loci'] == []
-        assert results['NM_007298.3:c.*103_*106del']['transcript_description'] == 'Homo sapiens BRCA1, DNA repair associated (BRCA1), transcript variant 4, mRNA'
         assert results['NM_007298.3:c.*103_*106del']['gene_symbol'] == 'BRCA1'
         assert results['NM_007298.3:c.*103_*106del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_009229.2:p.?', 'slr': 'NP_009229.2:p.?'}
         assert results['NM_007298.3:c.*103_*106del']['submitted_variant'] == '17-41197588-GGACA-G'
@@ -12410,7 +11787,6 @@ class TestVariants(object):
         assert results['NM_007299.3:c.301+1G>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_007299.3:c.301+1G>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_007299.3:c.301+1G>C']['alt_genomic_loci'] == []
-        assert results['NM_007299.3:c.301+1G>C']['transcript_description'] == 'Homo sapiens BRCA1, DNA repair associated (BRCA1), transcript variant 5, mRNA'
         assert results['NM_007299.3:c.301+1G>C']['gene_symbol'] == 'BRCA1'
         assert results['NM_007299.3:c.301+1G>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_009230.2:p.?', 'slr': 'NP_009230.2:p.?'}
         assert results['NM_007299.3:c.301+1G>C']['submitted_variant'] == '17-41256884-C-G'
@@ -12428,7 +11804,6 @@ class TestVariants(object):
         assert results['NR_027676.1:n.440+1G>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_027676.1:n.440+1G>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_027676.1:n.440+1G>C']['alt_genomic_loci'] == []
-        assert results['NR_027676.1:n.440+1G>C']['transcript_description'] == 'Homo sapiens BRCA1, DNA repair associated (BRCA1), transcript variant 6, non-coding RNA'
         assert results['NR_027676.1:n.440+1G>C']['gene_symbol'] == 'BRCA1'
         assert results['NR_027676.1:n.440+1G>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_027676.1:n.440+1G>C']['submitted_variant'] == '17-41256884-C-G'
@@ -12446,7 +11821,6 @@ class TestVariants(object):
         assert results['NM_007300.3:c.301+1G>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_007300.3:c.301+1G>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_007300.3:c.301+1G>C']['alt_genomic_loci'] == []
-        assert results['NM_007300.3:c.301+1G>C']['transcript_description'] == 'Homo sapiens BRCA1, DNA repair associated (BRCA1), transcript variant 2, mRNA'
         assert results['NM_007300.3:c.301+1G>C']['gene_symbol'] == 'BRCA1'
         assert results['NM_007300.3:c.301+1G>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_009231.2:p.?', 'slr': 'NP_009231.2:p.?'}
         assert results['NM_007300.3:c.301+1G>C']['submitted_variant'] == '17-41256884-C-G'
@@ -12464,7 +11838,6 @@ class TestVariants(object):
         assert results['NM_007298.3:c.301+1G>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_007298.3:c.301+1G>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_007298.3:c.301+1G>C']['alt_genomic_loci'] == []
-        assert results['NM_007298.3:c.301+1G>C']['transcript_description'] == 'Homo sapiens BRCA1, DNA repair associated (BRCA1), transcript variant 4, mRNA'
         assert results['NM_007298.3:c.301+1G>C']['gene_symbol'] == 'BRCA1'
         assert results['NM_007298.3:c.301+1G>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_009229.2:p.?', 'slr': 'NP_009229.2:p.?'}
         assert results['NM_007298.3:c.301+1G>C']['submitted_variant'] == '17-41256884-C-G'
@@ -12482,7 +11855,6 @@ class TestVariants(object):
         assert results['NM_007297.3:c.160+1G>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_007297.3:c.160+1G>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_007297.3:c.160+1G>C']['alt_genomic_loci'] == []
-        assert results['NM_007297.3:c.160+1G>C']['transcript_description'] == 'Homo sapiens BRCA1, DNA repair associated (BRCA1), transcript variant 3, mRNA'
         assert results['NM_007297.3:c.160+1G>C']['gene_symbol'] == 'BRCA1'
         assert results['NM_007297.3:c.160+1G>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_009228.2:p.?', 'slr': 'NP_009228.2:p.?'}
         assert results['NM_007297.3:c.160+1G>C']['submitted_variant'] == '17-41256884-C-G'
@@ -12501,7 +11873,6 @@ class TestVariants(object):
         assert results['NM_007294.3:c.301+1G>C']['hgvs_lrg_transcript_variant'] == 'LRG_292t1:c.301+1G>C'
         assert results['NM_007294.3:c.301+1G>C']['refseqgene_context_intronic_sequence'] == 'NG_005905.2(NM_007294.3):c.301+1G>C'
         assert results['NM_007294.3:c.301+1G>C']['alt_genomic_loci'] == []
-        assert results['NM_007294.3:c.301+1G>C']['transcript_description'] == 'Homo sapiens BRCA1, DNA repair associated (BRCA1), transcript variant 1, mRNA'
         assert results['NM_007294.3:c.301+1G>C']['gene_symbol'] == 'BRCA1'
         assert results['NM_007294.3:c.301+1G>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_009225.1(LRG_292p1):p.?', 'slr': 'NP_009225.1:p.?'}
         assert results['NM_007294.3:c.301+1G>C']['submitted_variant'] == '17-41256884-C-G'
@@ -12525,7 +11896,6 @@ class TestVariants(object):
         assert results['NM_001363846.1:c.490G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001363846.1:c.490G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001363846.1:c.490G>T']['alt_genomic_loci'] == []
-        assert results['NM_001363846.1:c.490G>T']['transcript_description'] == 'Homo sapiens glial fibrillary acidic protein (GFAP), transcript variant 4, mRNA'
         assert results['NM_001363846.1:c.490G>T']['gene_symbol'] == 'GFAP'
         assert results['NM_001363846.1:c.490G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001350775.1:p.(Glu164Ter)', 'slr': 'NP_001350775.1:p.(E164*)'}
         assert results['NM_001363846.1:c.490G>T']['submitted_variant'] == '17-42991428-C-A'
@@ -12543,7 +11913,6 @@ class TestVariants(object):
         assert results['NM_001131019.2:c.490G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001131019.2:c.490G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001131019.2:c.490G>T']['alt_genomic_loci'] == []
-        assert results['NM_001131019.2:c.490G>T']['transcript_description'] == 'Homo sapiens glial fibrillary acidic protein (GFAP), transcript variant 2, mRNA'
         assert results['NM_001131019.2:c.490G>T']['gene_symbol'] == 'GFAP'
         assert results['NM_001131019.2:c.490G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001124491.1:p.(Glu164Ter)', 'slr': 'NP_001124491.1:p.(E164*)'}
         assert results['NM_001131019.2:c.490G>T']['submitted_variant'] == '17-42991428-C-A'
@@ -12562,7 +11931,6 @@ class TestVariants(object):
         assert results['NM_001242376.1:c.490G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001242376.1:c.490G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001242376.1:c.490G>T']['alt_genomic_loci'] == []
-        assert results['NM_001242376.1:c.490G>T']['transcript_description'] == 'Homo sapiens glial fibrillary acidic protein (GFAP), transcript variant 3, mRNA'
         assert results['NM_001242376.1:c.490G>T']['gene_symbol'] == 'GFAP'
         assert results['NM_001242376.1:c.490G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001229305.1:p.(Glu164Ter)', 'slr': 'NP_001229305.1:p.(E164*)'}
         assert results['NM_001242376.1:c.490G>T']['submitted_variant'] == '17-42991428-C-A'
@@ -12580,7 +11948,6 @@ class TestVariants(object):
         assert results['NM_002055.4:c.490G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_002055.4:c.490G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_002055.4:c.490G>T']['alt_genomic_loci'] == []
-        assert results['NM_002055.4:c.490G>T']['transcript_description'] == 'Homo sapiens glial fibrillary acidic protein (GFAP), transcript variant 1, mRNA'
         assert results['NM_002055.4:c.490G>T']['gene_symbol'] == 'GFAP'
         assert results['NM_002055.4:c.490G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_002046.1:p.(Glu164Ter)', 'slr': 'NP_002046.1:p.(E164*)'}
         assert results['NM_002055.4:c.490G>T']['submitted_variant'] == '17-42991428-C-A'
@@ -12604,7 +11971,6 @@ class TestVariants(object):
         assert results['NR_135553.1:n.1022A>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_135553.1:n.1022A>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_135553.1:n.1022A>T']['alt_genomic_loci'] == []
-        assert results['NR_135553.1:n.1022A>T']['transcript_description'] == 'Homo sapiens sarcoglycan alpha (SGCA), transcript variant 3, non-coding RNA'
         assert results['NR_135553.1:n.1022A>T']['gene_symbol'] == 'SGCA'
         assert results['NR_135553.1:n.1022A>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_135553.1:n.1022A>T']['submitted_variant'] == '17-48252809-A-T'
@@ -12622,7 +11988,6 @@ class TestVariants(object):
         assert results['NM_001135697.1:c.*11A>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001135697.1:c.*11A>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001135697.1:c.*11A>T']['alt_genomic_loci'] == []
-        assert results['NM_001135697.1:c.*11A>T']['transcript_description'] == 'Homo sapiens sarcoglycan alpha (SGCA), transcript variant 2, mRNA'
         assert results['NM_001135697.1:c.*11A>T']['gene_symbol'] == 'SGCA'
         assert results['NM_001135697.1:c.*11A>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001129169.1:p.?', 'slr': 'NP_001129169.1:p.?'}
         assert results['NM_001135697.1:c.*11A>T']['submitted_variant'] == '17-48252809-A-T'
@@ -12641,7 +12006,6 @@ class TestVariants(object):
         assert results['NM_000023.2:c.*11A>T']['hgvs_lrg_transcript_variant'] == 'LRG_203t1:c.*11A>T'
         assert results['NM_000023.2:c.*11A>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000023.2:c.*11A>T']['alt_genomic_loci'] == []
-        assert results['NM_000023.2:c.*11A>T']['transcript_description'] == 'Homo sapiens sarcoglycan alpha (SGCA), transcript variant 1, mRNA'
         assert results['NM_000023.2:c.*11A>T']['gene_symbol'] == 'SGCA'
         assert results['NM_000023.2:c.*11A>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000014.1(LRG_203p1):p.?', 'slr': 'NP_000014.1:p.?'}
         assert results['NM_000023.2:c.*11A>T']['submitted_variant'] == '17-48252809-A-T'
@@ -12659,7 +12023,6 @@ class TestVariants(object):
         assert results['NM_001135697.2:c.*11A>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001135697.2:c.*11A>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001135697.2:c.*11A>T']['alt_genomic_loci'] == []
-        assert results['NM_001135697.2:c.*11A>T']['transcript_description'] == 'Homo sapiens sarcoglycan alpha (SGCA), transcript variant 2, mRNA'
         assert results['NM_001135697.2:c.*11A>T']['gene_symbol'] == 'SGCA'
         assert results['NM_001135697.2:c.*11A>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001129169.1:p.?', 'slr': 'NP_001129169.1:p.?'}
         assert results['NM_001135697.2:c.*11A>T']['submitted_variant'] == '17-48252809-A-T'
@@ -12677,7 +12040,6 @@ class TestVariants(object):
         assert results['NM_000023.3:c.*11A>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000023.3:c.*11A>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000023.3:c.*11A>T']['alt_genomic_loci'] == []
-        assert results['NM_000023.3:c.*11A>T']['transcript_description'] == 'Homo sapiens sarcoglycan alpha (SGCA), transcript variant 1, mRNA'
         assert results['NM_000023.3:c.*11A>T']['gene_symbol'] == 'SGCA'
         assert results['NM_000023.3:c.*11A>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000014.1(LRG_203p1):p.?', 'slr': 'NP_000014.1:p.?'}
         assert results['NM_000023.3:c.*11A>T']['submitted_variant'] == '17-48252809-A-T'
@@ -12702,7 +12064,6 @@ class TestVariants(object):
         assert results['NM_000334.4:c.3720+9_3720+10dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000334.4:c.3720+9_3720+10dup']['refseqgene_context_intronic_sequence'] == 'NG_011699.1(NM_000334.4):c.3720+9_3720+10dup'
         assert results['NM_000334.4:c.3720+9_3720+10dup']['alt_genomic_loci'] == []
-        assert results['NM_000334.4:c.3720+9_3720+10dup']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 4 (SCN4A), mRNA'
         assert results['NM_000334.4:c.3720+9_3720+10dup']['gene_symbol'] == 'SCN4A'
         assert results['NM_000334.4:c.3720+9_3720+10dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000325.4:p.?', 'slr': 'NP_000325.4:p.?'}
         assert results['NM_000334.4:c.3720+9_3720+10dup']['submitted_variant'] == '17-62022709-G-GTC'
@@ -12727,7 +12088,6 @@ class TestVariants(object):
         assert results['NM_000334.4:c.3720+8_3720+9insA']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000334.4:c.3720+8_3720+9insA']['refseqgene_context_intronic_sequence'] == 'NG_011699.1(NM_000334.4):c.3720+8_3720+9insA'
         assert results['NM_000334.4:c.3720+8_3720+9insA']['alt_genomic_loci'] == []
-        assert results['NM_000334.4:c.3720+8_3720+9insA']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 4 (SCN4A), mRNA'
         assert results['NM_000334.4:c.3720+8_3720+9insA']['gene_symbol'] == 'SCN4A'
         assert results['NM_000334.4:c.3720+8_3720+9insA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000325.4:p.?', 'slr': 'NP_000325.4:p.?'}
         assert results['NM_000334.4:c.3720+8_3720+9insA']['submitted_variant'] == '17-62022711-C-CT'
@@ -12752,7 +12112,6 @@ class TestVariants(object):
         assert results['NM_000334.4:c.3442-8_3442-7insGC']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000334.4:c.3442-8_3442-7insGC']['refseqgene_context_intronic_sequence'] == 'NG_011699.1(NM_000334.4):c.3442-8_3442-7insGC'
         assert results['NM_000334.4:c.3442-8_3442-7insGC']['alt_genomic_loci'] == []
-        assert results['NM_000334.4:c.3442-8_3442-7insGC']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 4 (SCN4A), mRNA'
         assert results['NM_000334.4:c.3442-8_3442-7insGC']['gene_symbol'] == 'SCN4A'
         assert results['NM_000334.4:c.3442-8_3442-7insGC']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000325.4:p.?', 'slr': 'NP_000325.4:p.?'}
         assert results['NM_000334.4:c.3442-8_3442-7insGC']['submitted_variant'] == '17-62023005-G-GGC'
@@ -12777,7 +12136,6 @@ class TestVariants(object):
         assert results['NM_000334.4:c.3442-8G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000334.4:c.3442-8G>T']['refseqgene_context_intronic_sequence'] == 'NG_011699.1(NM_000334.4):c.3442-8G>T'
         assert results['NM_000334.4:c.3442-8G>T']['alt_genomic_loci'] == []
-        assert results['NM_000334.4:c.3442-8G>T']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 4 (SCN4A), mRNA'
         assert results['NM_000334.4:c.3442-8G>T']['gene_symbol'] == 'SCN4A'
         assert results['NM_000334.4:c.3442-8G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000325.4:p.?', 'slr': 'NP_000325.4:p.?'}
         assert results['NM_000334.4:c.3442-8G>T']['submitted_variant'] == '17-62023006-C-A'
@@ -12802,7 +12160,6 @@ class TestVariants(object):
         assert results['NM_000334.4:c.2111C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000334.4:c.2111C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000334.4:c.2111C>T']['alt_genomic_loci'] == []
-        assert results['NM_000334.4:c.2111C>T']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 4 (SCN4A), mRNA'
         assert results['NM_000334.4:c.2111C>T']['gene_symbol'] == 'SCN4A'
         assert results['NM_000334.4:c.2111C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000325.4:p.(Thr704Met)', 'slr': 'NP_000325.4:p.(T704M)'}
         assert results['NM_000334.4:c.2111C>T']['submitted_variant'] == '17-62034787-G-A'
@@ -12826,7 +12183,6 @@ class TestVariants(object):
         assert results['NM_001351443.1:c.-16+941_-16+946del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001351443.1:c.-16+941_-16+946del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001351443.1:c.-16+941_-16+946del']['alt_genomic_loci'] == []
-        assert results['NM_001351443.1:c.-16+941_-16+946del']['transcript_description'] == 'Homo sapiens potassium channel tetramerization domain containing 1 (KCTD1), transcript variant 6, mRNA'
         assert results['NM_001351443.1:c.-16+941_-16+946del']['gene_symbol'] == 'KCTD1'
         assert results['NM_001351443.1:c.-16+941_-16+946del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001338372.1:p.?', 'slr': 'NP_001338372.1:p.?'}
         assert results['NM_001351443.1:c.-16+941_-16+946del']['submitted_variant'] == '18-24128261-GTCCTCC-G'
@@ -12844,7 +12200,6 @@ class TestVariants(object):
         assert results['NM_001258222.1:c.10-47053_10-47048del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001258222.1:c.10-47053_10-47048del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001258222.1:c.10-47053_10-47048del']['alt_genomic_loci'] == []
-        assert results['NM_001258222.1:c.10-47053_10-47048del']['transcript_description'] == 'Homo sapiens potassium channel tetramerization domain containing 1 (KCTD1), transcript variant 5, mRNA'
         assert results['NM_001258222.1:c.10-47053_10-47048del']['gene_symbol'] == 'KCTD1'
         assert results['NM_001258222.1:c.10-47053_10-47048del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001245151.1:p.?', 'slr': 'NP_001245151.1:p.?'}
         assert results['NM_001258222.1:c.10-47053_10-47048del']['submitted_variant'] == '18-24128261-GTCCTCC-G'
@@ -12862,7 +12217,6 @@ class TestVariants(object):
         assert results['NM_001258221.1:c.-16+1426_-16+1431del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001258221.1:c.-16+1426_-16+1431del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001258221.1:c.-16+1426_-16+1431del']['alt_genomic_loci'] == []
-        assert results['NM_001258221.1:c.-16+1426_-16+1431del']['transcript_description'] == 'Homo sapiens potassium channel tetramerization domain containing 1 (KCTD1), transcript variant 4, mRNA'
         assert results['NM_001258221.1:c.-16+1426_-16+1431del']['gene_symbol'] == 'KCTD1'
         assert results['NM_001258221.1:c.-16+1426_-16+1431del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001245150.1:p.?', 'slr': 'NP_001245150.1:p.?'}
         assert results['NM_001258221.1:c.-16+1426_-16+1431del']['submitted_variant'] == '18-24128261-GTCCTCC-G'
@@ -12880,7 +12234,6 @@ class TestVariants(object):
         assert results['NM_001258222.2:c.10-47053_10-47048del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001258222.2:c.10-47053_10-47048del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001258222.2:c.10-47053_10-47048del']['alt_genomic_loci'] == []
-        assert results['NM_001258222.2:c.10-47053_10-47048del']['transcript_description'] == 'Homo sapiens potassium channel tetramerization domain containing 1 (KCTD1), transcript variant 5, mRNA'
         assert results['NM_001258222.2:c.10-47053_10-47048del']['gene_symbol'] == 'KCTD1'
         assert results['NM_001258222.2:c.10-47053_10-47048del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001245151.1:p.?', 'slr': 'NP_001245151.1:p.?'}
         assert results['NM_001258222.2:c.10-47053_10-47048del']['submitted_variant'] == '18-24128261-GTCCTCC-G'
@@ -12899,7 +12252,6 @@ class TestVariants(object):
         assert results['NM_001136205.2:c.-16+588_-16+593del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001136205.2:c.-16+588_-16+593del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001136205.2:c.-16+588_-16+593del']['alt_genomic_loci'] == []
-        assert results['NM_001136205.2:c.-16+588_-16+593del']['transcript_description'] == 'Homo sapiens potassium channel tetramerization domain containing 1 (KCTD1), transcript variant 1, mRNA'
         assert results['NM_001136205.2:c.-16+588_-16+593del']['gene_symbol'] == 'KCTD1'
         assert results['NM_001136205.2:c.-16+588_-16+593del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001129677.1:p.?', 'slr': 'NP_001129677.1:p.?'}
         assert results['NM_001136205.2:c.-16+588_-16+593del']['submitted_variant'] == '18-24128261-GTCCTCC-G'
@@ -12917,7 +12269,6 @@ class TestVariants(object):
         assert results['NM_198991.3:c.-15-47053_-15-47048del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_198991.3:c.-15-47053_-15-47048del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_198991.3:c.-15-47053_-15-47048del']['alt_genomic_loci'] == []
-        assert results['NM_198991.3:c.-15-47053_-15-47048del']['transcript_description'] == 'Homo sapiens potassium channel tetramerization domain containing 1 (KCTD1), transcript variant 2, mRNA'
         assert results['NM_198991.3:c.-15-47053_-15-47048del']['gene_symbol'] == 'KCTD1'
         assert results['NM_198991.3:c.-15-47053_-15-47048del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_945342.1:p.?', 'slr': 'NP_945342.1:p.?'}
         assert results['NM_198991.3:c.-15-47053_-15-47048del']['submitted_variant'] == '18-24128261-GTCCTCC-G'
@@ -12935,7 +12286,6 @@ class TestVariants(object):
         assert results['NM_001142730.2:c.234_239del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001142730.2:c.234_239del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001142730.2:c.234_239del']['alt_genomic_loci'] == []
-        assert results['NM_001142730.2:c.234_239del']['transcript_description'] == 'Homo sapiens potassium channel tetramerization domain containing 1 (KCTD1), transcript variant 3, mRNA'
         assert results['NM_001142730.2:c.234_239del']['gene_symbol'] == 'KCTD1'
         assert results['NM_001142730.2:c.234_239del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001136202.1:p.(Glu78_Glu79del)', 'slr': 'NP_001136202.1:p.(E78_E79del)'}
         assert results['NM_001142730.2:c.234_239del']['submitted_variant'] == '18-24128261-GTCCTCC-G'
@@ -12960,7 +12310,6 @@ class TestVariants(object):
         assert results['NM_000435.2:c.2992C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000435.2:c.2992C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000435.2:c.2992C>T']['alt_genomic_loci'] == []
-        assert results['NM_000435.2:c.2992C>T']['transcript_description'] == 'Homo sapiens notch 3 (NOTCH3), mRNA'
         assert results['NM_000435.2:c.2992C>T']['gene_symbol'] == 'NOTCH3'
         assert results['NM_000435.2:c.2992C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000426.2:p.(Gln998Ter)', 'slr': 'NP_000426.2:p.(Q998*)'}
         assert results['NM_000435.2:c.2992C>T']['submitted_variant'] == '19-15291774-G-A'
@@ -12985,7 +12334,6 @@ class TestVariants(object):
         assert results['Intergenic_Variant_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['Intergenic_Variant_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['Intergenic_Variant_1']['alt_genomic_loci'] == []
-        assert results['Intergenic_Variant_1']['transcript_description'] == ''
         assert results['Intergenic_Variant_1']['gene_symbol'] == ''
         assert results['Intergenic_Variant_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['Intergenic_Variant_1']['submitted_variant'] == '19-15311794-A-G'
@@ -13010,7 +12358,6 @@ class TestVariants(object):
         assert results['NM_000540.2:c.14818G>A']['hgvs_lrg_transcript_variant'] == 'LRG_766t1:c.14818G>A'
         assert results['NM_000540.2:c.14818G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000540.2:c.14818G>A']['alt_genomic_loci'] == []
-        assert results['NM_000540.2:c.14818G>A']['transcript_description'] == 'Homo sapiens ryanodine receptor 1 (RYR1), transcript variant 1, mRNA'
         assert results['NM_000540.2:c.14818G>A']['gene_symbol'] == 'RYR1'
         assert results['NM_000540.2:c.14818G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000531.2(LRG_766p1):p.(Ala4940Thr)', 'slr': 'NP_000531.2:p.(A4940T)'}
         assert results['NM_000540.2:c.14818G>A']['submitted_variant'] == '19-39076592-G-A'
@@ -13028,7 +12375,6 @@ class TestVariants(object):
         assert results['NM_001042723.1:c.14803G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001042723.1:c.14803G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001042723.1:c.14803G>A']['alt_genomic_loci'] == []
-        assert results['NM_001042723.1:c.14803G>A']['transcript_description'] == 'Homo sapiens ryanodine receptor 1 (RYR1), transcript variant 2, mRNA'
         assert results['NM_001042723.1:c.14803G>A']['gene_symbol'] == 'RYR1'
         assert results['NM_001042723.1:c.14803G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001036188.1:p.(Ala4935Thr)', 'slr': 'NP_001036188.1:p.(A4935T)'}
         assert results['NM_001042723.1:c.14803G>A']['submitted_variant'] == '19-39076592-G-A'
@@ -13052,7 +12398,6 @@ class TestVariants(object):
         assert results['NM_001330086.1:c.4245A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330086.1:c.4245A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330086.1:c.4245A>G']['alt_genomic_loci'] == []
-        assert results['NM_001330086.1:c.4245A>G']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha9, mRNA'
         assert results['NM_001330086.1:c.4245A>G']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330086.1:c.4245A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317015.1:p.(Pro1415=)', 'slr': 'NP_001317015.1:p.(P1415=)'}
         assert results['NM_001330086.1:c.4245A>G']['submitted_variant'] == '2-50149352-T-C'
@@ -13070,7 +12415,6 @@ class TestVariants(object):
         assert results['NM_001330083.1:c.4089A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330083.1:c.4089A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330083.1:c.4089A>G']['alt_genomic_loci'] == []
-        assert results['NM_001330083.1:c.4089A>G']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha6, mRNA'
         assert results['NM_001330083.1:c.4089A>G']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330083.1:c.4089A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317012.1:p.(Pro1363=)', 'slr': 'NP_001317012.1:p.(P1363=)'}
         assert results['NM_001330083.1:c.4089A>G']['submitted_variant'] == '2-50149352-T-C'
@@ -13088,7 +12432,6 @@ class TestVariants(object):
         assert results['NM_001330095.1:c.4113A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330095.1:c.4113A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330095.1:c.4113A>G']['alt_genomic_loci'] == []
-        assert results['NM_001330095.1:c.4113A>G']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha14, mRNA'
         assert results['NM_001330095.1:c.4113A>G']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330095.1:c.4113A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317024.1:p.(Pro1371=)', 'slr': 'NP_001317024.1:p.(P1371=)'}
         assert results['NM_001330095.1:c.4113A>G']['submitted_variant'] == '2-50149352-T-C'
@@ -13106,7 +12449,6 @@ class TestVariants(object):
         assert results['NM_138735.2:c.1059A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_138735.2:c.1059A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_138735.2:c.1059A>G']['alt_genomic_loci'] == []
-        assert results['NM_138735.2:c.1059A>G']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant beta, mRNA'
         assert results['NM_138735.2:c.1059A>G']['gene_symbol'] == 'NRXN1'
         assert results['NM_138735.2:c.1059A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_620072.1:p.(Pro353=)', 'slr': 'NP_620072.1:p.(P353=)'}
         assert results['NM_138735.2:c.1059A>G']['submitted_variant'] == '2-50149352-T-C'
@@ -13124,7 +12466,6 @@ class TestVariants(object):
         assert results['NM_001330078.1:c.4254A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330078.1:c.4254A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330078.1:c.4254A>G']['alt_genomic_loci'] == []
-        assert results['NM_001330078.1:c.4254A>G']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha4, mRNA'
         assert results['NM_001330078.1:c.4254A>G']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330078.1:c.4254A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317007.1:p.(Pro1418=)', 'slr': 'NP_001317007.1:p.(P1418=)'}
         assert results['NM_001330078.1:c.4254A>G']['submitted_variant'] == '2-50149352-T-C'
@@ -13142,7 +12483,6 @@ class TestVariants(object):
         assert results['NM_001330094.1:c.4233A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330094.1:c.4233A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330094.1:c.4233A>G']['alt_genomic_loci'] == []
-        assert results['NM_001330094.1:c.4233A>G']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha13, mRNA'
         assert results['NM_001330094.1:c.4233A>G']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330094.1:c.4233A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317023.1:p.(Pro1411=)', 'slr': 'NP_001317023.1:p.(P1411=)'}
         assert results['NM_001330094.1:c.4233A>G']['submitted_variant'] == '2-50149352-T-C'
@@ -13160,7 +12500,6 @@ class TestVariants(object):
         assert results['NM_001320157.3:c.150A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001320157.3:c.150A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001320157.3:c.150A>G']['alt_genomic_loci'] == []
-        assert results['NM_001320157.3:c.150A>G']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant gamma2, mRNA'
         assert results['NM_001320157.3:c.150A>G']['gene_symbol'] == 'NRXN1'
         assert results['NM_001320157.3:c.150A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001307086.1:p.(Pro50=)', 'slr': 'NP_001307086.1:p.(P50=)'}
         assert results['NM_001320157.3:c.150A>G']['submitted_variant'] == '2-50149352-T-C'
@@ -13178,7 +12517,6 @@ class TestVariants(object):
         assert results['NM_001330088.1:c.4074A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330088.1:c.4074A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330088.1:c.4074A>G']['alt_genomic_loci'] == []
-        assert results['NM_001330088.1:c.4074A>G']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha11, mRNA'
         assert results['NM_001330088.1:c.4074A>G']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330088.1:c.4074A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317017.1:p.(Pro1358=)', 'slr': 'NP_001317017.1:p.(P1358=)'}
         assert results['NM_001330088.1:c.4074A>G']['submitted_variant'] == '2-50149352-T-C'
@@ -13196,7 +12534,6 @@ class TestVariants(object):
         assert results['NM_001330092.1:c.1149A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330092.1:c.1149A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330092.1:c.1149A>G']['alt_genomic_loci'] == []
-        assert results['NM_001330092.1:c.1149A>G']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant beta3, mRNA'
         assert results['NM_001330092.1:c.1149A>G']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330092.1:c.1149A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317021.1:p.(Pro383=)', 'slr': 'NP_001317021.1:p.(P383=)'}
         assert results['NM_001330092.1:c.1149A>G']['submitted_variant'] == '2-50149352-T-C'
@@ -13214,7 +12551,6 @@ class TestVariants(object):
         assert results['NM_138735.4:c.1059A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_138735.4:c.1059A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_138735.4:c.1059A>G']['alt_genomic_loci'] == []
-        assert results['NM_138735.4:c.1059A>G']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant beta1, mRNA'
         assert results['NM_138735.4:c.1059A>G']['gene_symbol'] == 'NRXN1'
         assert results['NM_138735.4:c.1059A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_620072.1:p.(Pro353=)', 'slr': 'NP_620072.1:p.(P353=)'}
         assert results['NM_138735.4:c.1059A>G']['submitted_variant'] == '2-50149352-T-C'
@@ -13232,7 +12568,6 @@ class TestVariants(object):
         assert results['NM_001330096.1:c.4044A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330096.1:c.4044A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330096.1:c.4044A>G']['alt_genomic_loci'] == []
-        assert results['NM_001330096.1:c.4044A>G']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha15, mRNA'
         assert results['NM_001330096.1:c.4044A>G']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330096.1:c.4044A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317025.1:p.(Pro1348=)', 'slr': 'NP_001317025.1:p.(P1348=)'}
         assert results['NM_001330096.1:c.4044A>G']['submitted_variant'] == '2-50149352-T-C'
@@ -13250,7 +12585,6 @@ class TestVariants(object):
         assert results['NM_001135659.2:c.4374A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001135659.2:c.4374A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001135659.2:c.4374A>G']['alt_genomic_loci'] == []
-        assert results['NM_001135659.2:c.4374A>G']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha2, mRNA'
         assert results['NM_001135659.2:c.4374A>G']['gene_symbol'] == 'NRXN1'
         assert results['NM_001135659.2:c.4374A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001129131.1:p.(Pro1458=)', 'slr': 'NP_001129131.1:p.(P1458=)'}
         assert results['NM_001135659.2:c.4374A>G']['submitted_variant'] == '2-50149352-T-C'
@@ -13268,7 +12602,6 @@ class TestVariants(object):
         assert results['NM_001330085.1:c.4227A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330085.1:c.4227A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330085.1:c.4227A>G']['alt_genomic_loci'] == []
-        assert results['NM_001330085.1:c.4227A>G']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha8, mRNA'
         assert results['NM_001330085.1:c.4227A>G']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330085.1:c.4227A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317014.1:p.(Pro1409=)', 'slr': 'NP_001317014.1:p.(P1409=)'}
         assert results['NM_001330085.1:c.4227A>G']['submitted_variant'] == '2-50149352-T-C'
@@ -13286,7 +12619,6 @@ class TestVariants(object):
         assert results['NM_001320156.1:c.159A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001320156.1:c.159A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001320156.1:c.159A>G']['alt_genomic_loci'] == []
-        assert results['NM_001320156.1:c.159A>G']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant gamma1, mRNA'
         assert results['NM_001320156.1:c.159A>G']['gene_symbol'] == 'NRXN1'
         assert results['NM_001320156.1:c.159A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001307085.1:p.(Pro53=)', 'slr': 'NP_001307085.1:p.(P53=)'}
         assert results['NM_001320156.1:c.159A>G']['submitted_variant'] == '2-50149352-T-C'
@@ -13304,7 +12636,6 @@ class TestVariants(object):
         assert results['NM_001330077.1:c.4230A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330077.1:c.4230A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330077.1:c.4230A>G']['alt_genomic_loci'] == []
-        assert results['NM_001330077.1:c.4230A>G']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha3, mRNA'
         assert results['NM_001330077.1:c.4230A>G']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330077.1:c.4230A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317006.1:p.(Pro1410=)', 'slr': 'NP_001317006.1:p.(P1410=)'}
         assert results['NM_001330077.1:c.4230A>G']['submitted_variant'] == '2-50149352-T-C'
@@ -13322,7 +12653,6 @@ class TestVariants(object):
         assert results['NM_001330093.1:c.4251A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330093.1:c.4251A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330093.1:c.4251A>G']['alt_genomic_loci'] == []
-        assert results['NM_001330093.1:c.4251A>G']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha12, mRNA'
         assert results['NM_001330093.1:c.4251A>G']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330093.1:c.4251A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317022.1:p.(Pro1417=)', 'slr': 'NP_001317022.1:p.(P1417=)'}
         assert results['NM_001330093.1:c.4251A>G']['submitted_variant'] == '2-50149352-T-C'
@@ -13340,7 +12670,6 @@ class TestVariants(object):
         assert results['NM_001135659.1:c.4374A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001135659.1:c.4374A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001135659.1:c.4374A>G']['alt_genomic_loci'] == []
-        assert results['NM_001135659.1:c.4374A>G']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha2, mRNA'
         assert results['NM_001135659.1:c.4374A>G']['gene_symbol'] == 'NRXN1'
         assert results['NM_001135659.1:c.4374A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001129131.1:p.(Pro1458=)', 'slr': 'NP_001129131.1:p.(P1458=)'}
         assert results['NM_001135659.1:c.4374A>G']['submitted_variant'] == '2-50149352-T-C'
@@ -13358,7 +12687,6 @@ class TestVariants(object):
         assert results['NM_001320157.1:c.150A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001320157.1:c.150A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001320157.1:c.150A>G']['alt_genomic_loci'] == []
-        assert results['NM_001320157.1:c.150A>G']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant gamma2, mRNA'
         assert results['NM_001320157.1:c.150A>G']['gene_symbol'] == 'NRXN1'
         assert results['NM_001320157.1:c.150A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001307086.1:p.(Pro50=)', 'slr': 'NP_001307086.1:p.(P50=)'}
         assert results['NM_001320157.1:c.150A>G']['submitted_variant'] == '2-50149352-T-C'
@@ -13376,7 +12704,6 @@ class TestVariants(object):
         assert results['NM_001330084.1:c.4188A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330084.1:c.4188A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330084.1:c.4188A>G']['alt_genomic_loci'] == []
-        assert results['NM_001330084.1:c.4188A>G']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha7, mRNA'
         assert results['NM_001330084.1:c.4188A>G']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330084.1:c.4188A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317013.1:p.(Pro1396=)', 'slr': 'NP_001317013.1:p.(P1396=)'}
         assert results['NM_001330084.1:c.4188A>G']['submitted_variant'] == '2-50149352-T-C'
@@ -13394,7 +12721,6 @@ class TestVariants(object):
         assert results['NM_004801.4:c.4164A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_004801.4:c.4164A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004801.4:c.4164A>G']['alt_genomic_loci'] == []
-        assert results['NM_004801.4:c.4164A>G']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha1, mRNA'
         assert results['NM_004801.4:c.4164A>G']['gene_symbol'] == 'NRXN1'
         assert results['NM_004801.4:c.4164A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_004792.1:p.(Pro1388=)', 'slr': 'NP_004792.1:p.(P1388=)'}
         assert results['NM_004801.4:c.4164A>G']['submitted_variant'] == '2-50149352-T-C'
@@ -13412,7 +12738,6 @@ class TestVariants(object):
         assert results['NM_001330082.1:c.4221A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330082.1:c.4221A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330082.1:c.4221A>G']['alt_genomic_loci'] == []
-        assert results['NM_001330082.1:c.4221A>G']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha5, mRNA'
         assert results['NM_001330082.1:c.4221A>G']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330082.1:c.4221A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317011.1:p.(Pro1407=)', 'slr': 'NP_001317011.1:p.(P1407=)'}
         assert results['NM_001330082.1:c.4221A>G']['submitted_variant'] == '2-50149352-T-C'
@@ -13431,7 +12756,6 @@ class TestVariants(object):
         assert results['NM_001330091.1:c.1140A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330091.1:c.1140A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330091.1:c.1140A>G']['alt_genomic_loci'] == []
-        assert results['NM_001330091.1:c.1140A>G']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant beta2, mRNA'
         assert results['NM_001330091.1:c.1140A>G']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330091.1:c.1140A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317020.1:p.(Pro380=)', 'slr': 'NP_001317020.1:p.(P380=)'}
         assert results['NM_001330091.1:c.1140A>G']['submitted_variant'] == '2-50149352-T-C'
@@ -13449,7 +12773,6 @@ class TestVariants(object):
         assert results['NM_001320156.3:c.159A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001320156.3:c.159A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001320156.3:c.159A>G']['alt_genomic_loci'] == []
-        assert results['NM_001320156.3:c.159A>G']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant gamma1, mRNA'
         assert results['NM_001320156.3:c.159A>G']['gene_symbol'] == 'NRXN1'
         assert results['NM_001320156.3:c.159A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001307085.1:p.(Pro53=)', 'slr': 'NP_001307085.1:p.(P53=)'}
         assert results['NM_001320156.3:c.159A>G']['submitted_variant'] == '2-50149352-T-C'
@@ -13467,7 +12790,6 @@ class TestVariants(object):
         assert results['NM_001330087.1:c.4053A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330087.1:c.4053A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330087.1:c.4053A>G']['alt_genomic_loci'] == []
-        assert results['NM_001330087.1:c.4053A>G']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha10, mRNA'
         assert results['NM_001330087.1:c.4053A>G']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330087.1:c.4053A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317016.1:p.(Pro1351=)', 'slr': 'NP_001317016.1:p.(P1351=)'}
         assert results['NM_001330087.1:c.4053A>G']['submitted_variant'] == '2-50149352-T-C'
@@ -13485,7 +12807,6 @@ class TestVariants(object):
         assert results['NM_001330097.1:c.1050A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330097.1:c.1050A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330097.1:c.1050A>G']['alt_genomic_loci'] == []
-        assert results['NM_001330097.1:c.1050A>G']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant beta4, mRNA'
         assert results['NM_001330097.1:c.1050A>G']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330097.1:c.1050A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317026.1:p.(Pro350=)', 'slr': 'NP_001317026.1:p.(P350=)'}
         assert results['NM_001330097.1:c.1050A>G']['submitted_variant'] == '2-50149352-T-C'
@@ -13503,7 +12824,6 @@ class TestVariants(object):
         assert results['NM_004801.5:c.4164A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_004801.5:c.4164A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004801.5:c.4164A>G']['alt_genomic_loci'] == []
-        assert results['NM_004801.5:c.4164A>G']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha1, mRNA'
         assert results['NM_004801.5:c.4164A>G']['gene_symbol'] == 'NRXN1'
         assert results['NM_004801.5:c.4164A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_004792.1:p.(Pro1388=)', 'slr': 'NP_004792.1:p.(P1388=)'}
         assert results['NM_004801.5:c.4164A>G']['submitted_variant'] == '2-50149352-T-C'
@@ -13527,7 +12847,6 @@ class TestVariants(object):
         assert results['NM_001330096.1:c.1201C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330096.1:c.1201C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330096.1:c.1201C>T']['alt_genomic_loci'] == []
-        assert results['NM_001330096.1:c.1201C>T']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha15, mRNA'
         assert results['NM_001330096.1:c.1201C>T']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330096.1:c.1201C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317025.1:p.(Pro401Ser)', 'slr': 'NP_001317025.1:p.(P401S)'}
         assert results['NM_001330096.1:c.1201C>T']['submitted_variant'] == '2-50847195-G-A'
@@ -13545,7 +12864,6 @@ class TestVariants(object):
         assert results['NM_001330084.1:c.1246C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330084.1:c.1246C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330084.1:c.1246C>T']['alt_genomic_loci'] == []
-        assert results['NM_001330084.1:c.1246C>T']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha7, mRNA'
         assert results['NM_001330084.1:c.1246C>T']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330084.1:c.1246C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317013.1:p.(Pro416Ser)', 'slr': 'NP_001317013.1:p.(P416S)'}
         assert results['NM_001330084.1:c.1246C>T']['submitted_variant'] == '2-50847195-G-A'
@@ -13563,7 +12881,6 @@ class TestVariants(object):
         assert results['NM_001330077.1:c.1261C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330077.1:c.1261C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330077.1:c.1261C>T']['alt_genomic_loci'] == []
-        assert results['NM_001330077.1:c.1261C>T']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha3, mRNA'
         assert results['NM_001330077.1:c.1261C>T']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330077.1:c.1261C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317006.1:p.(Pro421Ser)', 'slr': 'NP_001317006.1:p.(P421S)'}
         assert results['NM_001330077.1:c.1261C>T']['submitted_variant'] == '2-50847195-G-A'
@@ -13581,7 +12898,6 @@ class TestVariants(object):
         assert results['NM_001330086.1:c.1285C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330086.1:c.1285C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330086.1:c.1285C>T']['alt_genomic_loci'] == []
-        assert results['NM_001330086.1:c.1285C>T']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha9, mRNA'
         assert results['NM_001330086.1:c.1285C>T']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330086.1:c.1285C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317015.1:p.(Pro429Ser)', 'slr': 'NP_001317015.1:p.(P429S)'}
         assert results['NM_001330086.1:c.1285C>T']['submitted_variant'] == '2-50847195-G-A'
@@ -13599,7 +12915,6 @@ class TestVariants(object):
         assert results['NM_001330088.1:c.1231C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330088.1:c.1231C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330088.1:c.1231C>T']['alt_genomic_loci'] == []
-        assert results['NM_001330088.1:c.1231C>T']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha11, mRNA'
         assert results['NM_001330088.1:c.1231C>T']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330088.1:c.1231C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317017.1:p.(Pro411Ser)', 'slr': 'NP_001317017.1:p.(P411S)'}
         assert results['NM_001330088.1:c.1231C>T']['submitted_variant'] == '2-50847195-G-A'
@@ -13617,7 +12932,6 @@ class TestVariants(object):
         assert results['NM_001330093.1:c.1282C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330093.1:c.1282C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330093.1:c.1282C>T']['alt_genomic_loci'] == []
-        assert results['NM_001330093.1:c.1282C>T']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha12, mRNA'
         assert results['NM_001330093.1:c.1282C>T']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330093.1:c.1282C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317022.1:p.(Pro428Ser)', 'slr': 'NP_001317022.1:p.(P428S)'}
         assert results['NM_001330093.1:c.1282C>T']['submitted_variant'] == '2-50847195-G-A'
@@ -13635,7 +12949,6 @@ class TestVariants(object):
         assert results['NM_001330087.1:c.1201C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330087.1:c.1201C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330087.1:c.1201C>T']['alt_genomic_loci'] == []
-        assert results['NM_001330087.1:c.1201C>T']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha10, mRNA'
         assert results['NM_001330087.1:c.1201C>T']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330087.1:c.1201C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317016.1:p.(Pro401Ser)', 'slr': 'NP_001317016.1:p.(P401S)'}
         assert results['NM_001330087.1:c.1201C>T']['submitted_variant'] == '2-50847195-G-A'
@@ -13653,7 +12966,6 @@ class TestVariants(object):
         assert results['NM_001330082.1:c.1261C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330082.1:c.1261C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330082.1:c.1261C>T']['alt_genomic_loci'] == []
-        assert results['NM_001330082.1:c.1261C>T']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha5, mRNA'
         assert results['NM_001330082.1:c.1261C>T']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330082.1:c.1261C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317011.1:p.(Pro421Ser)', 'slr': 'NP_001317011.1:p.(P421S)'}
         assert results['NM_001330082.1:c.1261C>T']['submitted_variant'] == '2-50847195-G-A'
@@ -13671,7 +12983,6 @@ class TestVariants(object):
         assert results['NM_001330078.1:c.1285C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330078.1:c.1285C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330078.1:c.1285C>T']['alt_genomic_loci'] == []
-        assert results['NM_001330078.1:c.1285C>T']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha4, mRNA'
         assert results['NM_001330078.1:c.1285C>T']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330078.1:c.1285C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317007.1:p.(Pro429Ser)', 'slr': 'NP_001317007.1:p.(P429S)'}
         assert results['NM_001330078.1:c.1285C>T']['submitted_variant'] == '2-50847195-G-A'
@@ -13689,7 +13000,6 @@ class TestVariants(object):
         assert results['NM_001330094.1:c.1273C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330094.1:c.1273C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330094.1:c.1273C>T']['alt_genomic_loci'] == []
-        assert results['NM_001330094.1:c.1273C>T']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha13, mRNA'
         assert results['NM_001330094.1:c.1273C>T']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330094.1:c.1273C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317023.1:p.(Pro425Ser)', 'slr': 'NP_001317023.1:p.(P425S)'}
         assert results['NM_001330094.1:c.1273C>T']['submitted_variant'] == '2-50847195-G-A'
@@ -13708,7 +13018,6 @@ class TestVariants(object):
         assert results['NM_001135659.2:c.1405C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001135659.2:c.1405C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001135659.2:c.1405C>T']['alt_genomic_loci'] == []
-        assert results['NM_001135659.2:c.1405C>T']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha2, mRNA'
         assert results['NM_001135659.2:c.1405C>T']['gene_symbol'] == 'NRXN1'
         assert results['NM_001135659.2:c.1405C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001129131.1:p.(Pro469Ser)', 'slr': 'NP_001129131.1:p.(P469S)'}
         assert results['NM_001135659.2:c.1405C>T']['submitted_variant'] == '2-50847195-G-A'
@@ -13726,7 +13035,6 @@ class TestVariants(object):
         assert results['NM_001330083.1:c.1246C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330083.1:c.1246C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330083.1:c.1246C>T']['alt_genomic_loci'] == []
-        assert results['NM_001330083.1:c.1246C>T']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha6, mRNA'
         assert results['NM_001330083.1:c.1246C>T']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330083.1:c.1246C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317012.1:p.(Pro416Ser)', 'slr': 'NP_001317012.1:p.(P416S)'}
         assert results['NM_001330083.1:c.1246C>T']['submitted_variant'] == '2-50847195-G-A'
@@ -13744,7 +13052,6 @@ class TestVariants(object):
         assert results['NM_004801.5:c.1285C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_004801.5:c.1285C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004801.5:c.1285C>T']['alt_genomic_loci'] == []
-        assert results['NM_004801.5:c.1285C>T']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha1, mRNA'
         assert results['NM_004801.5:c.1285C>T']['gene_symbol'] == 'NRXN1'
         assert results['NM_004801.5:c.1285C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_004792.1:p.(Pro429Ser)', 'slr': 'NP_004792.1:p.(P429S)'}
         assert results['NM_004801.5:c.1285C>T']['submitted_variant'] == '2-50847195-G-A'
@@ -13762,7 +13069,6 @@ class TestVariants(object):
         assert results['NM_001330085.1:c.1285C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330085.1:c.1285C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330085.1:c.1285C>T']['alt_genomic_loci'] == []
-        assert results['NM_001330085.1:c.1285C>T']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha8, mRNA'
         assert results['NM_001330085.1:c.1285C>T']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330085.1:c.1285C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317014.1:p.(Pro429Ser)', 'slr': 'NP_001317014.1:p.(P429S)'}
         assert results['NM_001330085.1:c.1285C>T']['submitted_variant'] == '2-50847195-G-A'
@@ -13780,7 +13086,6 @@ class TestVariants(object):
         assert results['NM_001330095.1:c.1261C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330095.1:c.1261C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330095.1:c.1261C>T']['alt_genomic_loci'] == []
-        assert results['NM_001330095.1:c.1261C>T']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha14, mRNA'
         assert results['NM_001330095.1:c.1261C>T']['gene_symbol'] == 'NRXN1'
         assert results['NM_001330095.1:c.1261C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317024.1:p.(Pro421Ser)', 'slr': 'NP_001317024.1:p.(P421S)'}
         assert results['NM_001330095.1:c.1261C>T']['submitted_variant'] == '2-50847195-G-A'
@@ -13798,7 +13103,6 @@ class TestVariants(object):
         assert results['NM_004801.4:c.1285C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_004801.4:c.1285C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004801.4:c.1285C>T']['alt_genomic_loci'] == []
-        assert results['NM_004801.4:c.1285C>T']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha1, mRNA'
         assert results['NM_004801.4:c.1285C>T']['gene_symbol'] == 'NRXN1'
         assert results['NM_004801.4:c.1285C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_004792.1:p.(Pro429Ser)', 'slr': 'NP_004792.1:p.(P429S)'}
         assert results['NM_004801.4:c.1285C>T']['submitted_variant'] == '2-50847195-G-A'
@@ -13816,7 +13120,6 @@ class TestVariants(object):
         assert results['NM_001135659.1:c.1405C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001135659.1:c.1405C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001135659.1:c.1405C>T']['alt_genomic_loci'] == []
-        assert results['NM_001135659.1:c.1405C>T']['transcript_description'] == 'Homo sapiens neurexin 1 (NRXN1), transcript variant alpha2, mRNA'
         assert results['NM_001135659.1:c.1405C>T']['gene_symbol'] == 'NRXN1'
         assert results['NM_001135659.1:c.1405C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001129131.1:p.(Pro469Ser)', 'slr': 'NP_001129131.1:p.(P469S)'}
         assert results['NM_001135659.1:c.1405C>T']['submitted_variant'] == '2-50847195-G-A'
@@ -13840,7 +13143,6 @@ class TestVariants(object):
         assert results['NM_001130976.1:c.3582C>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001130976.1:c.3582C>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001130976.1:c.3582C>G']['alt_genomic_loci'] == []
-        assert results['NM_001130976.1:c.3582C>G']['transcript_description'] == 'Homo sapiens dysferlin (DYSF), transcript variant 9, mRNA'
         assert results['NM_001130976.1:c.3582C>G']['gene_symbol'] == 'DYSF'
         assert results['NM_001130976.1:c.3582C>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001124448.1:p.(Ile1194Met)', 'slr': 'NP_001124448.1:p.(I1194M)'}
         assert results['NM_001130976.1:c.3582C>G']['submitted_variant'] == '2-71825797-C-G'
@@ -13858,7 +13160,6 @@ class TestVariants(object):
         assert results['NM_001130981.1:c.3675C>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001130981.1:c.3675C>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001130981.1:c.3675C>G']['alt_genomic_loci'] == []
-        assert results['NM_001130981.1:c.3675C>G']['transcript_description'] == 'Homo sapiens dysferlin (DYSF), transcript variant 14, mRNA'
         assert results['NM_001130981.1:c.3675C>G']['gene_symbol'] == 'DYSF'
         assert results['NM_001130981.1:c.3675C>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001124453.1:p.(Ile1225Met)', 'slr': 'NP_001124453.1:p.(I1225M)'}
         assert results['NM_001130981.1:c.3675C>G']['submitted_variant'] == '2-71825797-C-G'
@@ -13876,7 +13177,6 @@ class TestVariants(object):
         assert results['NM_001130979.1:c.3717C>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001130979.1:c.3717C>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001130979.1:c.3717C>G']['alt_genomic_loci'] == []
-        assert results['NM_001130979.1:c.3717C>G']['transcript_description'] == 'Homo sapiens dysferlin (DYSF), transcript variant 12, mRNA'
         assert results['NM_001130979.1:c.3717C>G']['gene_symbol'] == 'DYSF'
         assert results['NM_001130979.1:c.3717C>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001124451.1:p.(Ile1239Met)', 'slr': 'NP_001124451.1:p.(I1239M)'}
         assert results['NM_001130979.1:c.3717C>G']['submitted_variant'] == '2-71825797-C-G'
@@ -13894,7 +13194,6 @@ class TestVariants(object):
         assert results['NM_001130985.1:c.3678C>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001130985.1:c.3678C>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001130985.1:c.3678C>G']['alt_genomic_loci'] == []
-        assert results['NM_001130985.1:c.3678C>G']['transcript_description'] == 'Homo sapiens dysferlin (DYSF), transcript variant 4, mRNA'
         assert results['NM_001130985.1:c.3678C>G']['gene_symbol'] == 'DYSF'
         assert results['NM_001130985.1:c.3678C>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001124457.1:p.(Ile1226Met)', 'slr': 'NP_001124457.1:p.(I1226M)'}
         assert results['NM_001130985.1:c.3678C>G']['submitted_variant'] == '2-71825797-C-G'
@@ -13912,7 +13211,6 @@ class TestVariants(object):
         assert results['NM_001130987.1:c.3678C>G']['hgvs_lrg_transcript_variant'] == 'LRG_845t2:c.3678C>G'
         assert results['NM_001130987.1:c.3678C>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001130987.1:c.3678C>G']['alt_genomic_loci'] == []
-        assert results['NM_001130987.1:c.3678C>G']['transcript_description'] == 'Homo sapiens dysferlin (DYSF), transcript variant 1, mRNA'
         assert results['NM_001130987.1:c.3678C>G']['gene_symbol'] == 'DYSF'
         assert results['NM_001130987.1:c.3678C>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001124459.1:p.(Ile1226Met)', 'slr': 'NP_001124459.1:p.(I1226M)'}
         assert results['NM_001130987.1:c.3678C>G']['submitted_variant'] == '2-71825797-C-G'
@@ -13930,7 +13228,6 @@ class TestVariants(object):
         assert results['NM_001130983.1:c.3627C>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001130983.1:c.3627C>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001130983.1:c.3627C>G']['alt_genomic_loci'] == []
-        assert results['NM_001130983.1:c.3627C>G']['transcript_description'] == 'Homo sapiens dysferlin (DYSF), transcript variant 6, mRNA'
         assert results['NM_001130983.1:c.3627C>G']['gene_symbol'] == 'DYSF'
         assert results['NM_001130983.1:c.3627C>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001124455.1:p.(Ile1209Met)', 'slr': 'NP_001124455.1:p.(I1209M)'}
         assert results['NM_001130983.1:c.3627C>G']['submitted_variant'] == '2-71825797-C-G'
@@ -13949,7 +13246,6 @@ class TestVariants(object):
         assert results['NM_001130980.1:c.3675C>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001130980.1:c.3675C>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001130980.1:c.3675C>G']['alt_genomic_loci'] == []
-        assert results['NM_001130980.1:c.3675C>G']['transcript_description'] == 'Homo sapiens dysferlin (DYSF), transcript variant 13, mRNA'
         assert results['NM_001130980.1:c.3675C>G']['gene_symbol'] == 'DYSF'
         assert results['NM_001130980.1:c.3675C>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001124452.1:p.(Ile1225Met)', 'slr': 'NP_001124452.1:p.(I1225M)'}
         assert results['NM_001130980.1:c.3675C>G']['submitted_variant'] == '2-71825797-C-G'
@@ -13967,7 +13263,6 @@ class TestVariants(object):
         assert results['NM_003494.3:c.3624C>G']['hgvs_lrg_transcript_variant'] == 'LRG_845t1:c.3624C>G'
         assert results['NM_003494.3:c.3624C>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003494.3:c.3624C>G']['alt_genomic_loci'] == []
-        assert results['NM_003494.3:c.3624C>G']['transcript_description'] == 'Homo sapiens dysferlin (DYSF), transcript variant 8, mRNA'
         assert results['NM_003494.3:c.3624C>G']['gene_symbol'] == 'DYSF'
         assert results['NM_003494.3:c.3624C>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003485.1(LRG_845p1):p.(Ile1208Met)', 'slr': 'NP_003485.1:p.(I1208M)'}
         assert results['NM_003494.3:c.3624C>G']['submitted_variant'] == '2-71825797-C-G'
@@ -13985,7 +13280,6 @@ class TestVariants(object):
         assert results['NM_001130984.1:c.3585C>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001130984.1:c.3585C>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001130984.1:c.3585C>G']['alt_genomic_loci'] == []
-        assert results['NM_001130984.1:c.3585C>G']['transcript_description'] == 'Homo sapiens dysferlin (DYSF), transcript variant 5, mRNA'
         assert results['NM_001130984.1:c.3585C>G']['gene_symbol'] == 'DYSF'
         assert results['NM_001130984.1:c.3585C>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001124456.1:p.(Ile1195Met)', 'slr': 'NP_001124456.1:p.(I1195M)'}
         assert results['NM_001130984.1:c.3585C>G']['submitted_variant'] == '2-71825797-C-G'
@@ -14003,7 +13297,6 @@ class TestVariants(object):
         assert results['NM_001130977.1:c.3582C>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001130977.1:c.3582C>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001130977.1:c.3582C>G']['alt_genomic_loci'] == []
-        assert results['NM_001130977.1:c.3582C>G']['transcript_description'] == 'Homo sapiens dysferlin (DYSF), transcript variant 10, mRNA'
         assert results['NM_001130977.1:c.3582C>G']['gene_symbol'] == 'DYSF'
         assert results['NM_001130977.1:c.3582C>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001124449.1:p.(Ile1194Met)', 'slr': 'NP_001124449.1:p.(I1194M)'}
         assert results['NM_001130977.1:c.3582C>G']['submitted_variant'] == '2-71825797-C-G'
@@ -14021,7 +13314,6 @@ class TestVariants(object):
         assert results['NM_001130455.1:c.3627C>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001130455.1:c.3627C>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001130455.1:c.3627C>G']['alt_genomic_loci'] == []
-        assert results['NM_001130455.1:c.3627C>G']['transcript_description'] == 'Homo sapiens dysferlin (DYSF), transcript variant 2, mRNA'
         assert results['NM_001130455.1:c.3627C>G']['gene_symbol'] == 'DYSF'
         assert results['NM_001130455.1:c.3627C>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001123927.1:p.(Ile1209Met)', 'slr': 'NP_001123927.1:p.(I1209M)'}
         assert results['NM_001130455.1:c.3627C>G']['submitted_variant'] == '2-71825797-C-G'
@@ -14039,7 +13331,6 @@ class TestVariants(object):
         assert results['NM_001130978.1:c.3624C>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001130978.1:c.3624C>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001130978.1:c.3624C>G']['alt_genomic_loci'] == []
-        assert results['NM_001130978.1:c.3624C>G']['transcript_description'] == 'Homo sapiens dysferlin (DYSF), transcript variant 11, mRNA'
         assert results['NM_001130978.1:c.3624C>G']['gene_symbol'] == 'DYSF'
         assert results['NM_001130978.1:c.3624C>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001124450.1:p.(Ile1208Met)', 'slr': 'NP_001124450.1:p.(I1208M)'}
         assert results['NM_001130978.1:c.3624C>G']['submitted_variant'] == '2-71825797-C-G'
@@ -14057,7 +13348,6 @@ class TestVariants(object):
         assert results['NM_001130982.1:c.3720C>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001130982.1:c.3720C>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001130982.1:c.3720C>G']['alt_genomic_loci'] == []
-        assert results['NM_001130982.1:c.3720C>G']['transcript_description'] == 'Homo sapiens dysferlin (DYSF), transcript variant 7, mRNA'
         assert results['NM_001130982.1:c.3720C>G']['gene_symbol'] == 'DYSF'
         assert results['NM_001130982.1:c.3720C>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001124454.1:p.(Ile1240Met)', 'slr': 'NP_001124454.1:p.(I1240M)'}
         assert results['NM_001130982.1:c.3720C>G']['submitted_variant'] == '2-71825797-C-G'
@@ -14075,7 +13365,6 @@ class TestVariants(object):
         assert results['NM_001130986.1:c.3585C>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001130986.1:c.3585C>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001130986.1:c.3585C>G']['alt_genomic_loci'] == []
-        assert results['NM_001130986.1:c.3585C>G']['transcript_description'] == 'Homo sapiens dysferlin (DYSF), transcript variant 3, mRNA'
         assert results['NM_001130986.1:c.3585C>G']['gene_symbol'] == 'DYSF'
         assert results['NM_001130986.1:c.3585C>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001124458.1:p.(Ile1195Met)', 'slr': 'NP_001124458.1:p.(I1195M)'}
         assert results['NM_001130986.1:c.3585C>G']['submitted_variant'] == '2-71825797-C-G'
@@ -14099,7 +13388,6 @@ class TestVariants(object):
         assert results['NM_021007.2:c.1718G>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_021007.2:c.1718G>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_021007.2:c.1718G>C']['alt_genomic_loci'] == []
-        assert results['NM_021007.2:c.1718G>C']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 2 (SCN2A), transcript variant 1, mRNA'
         assert results['NM_021007.2:c.1718G>C']['gene_symbol'] == 'SCN2A'
         assert results['NM_021007.2:c.1718G>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_066287.2:p.(Ser573Thr)', 'slr': 'NP_066287.2:p.(S573T)'}
         assert results['NM_021007.2:c.1718G>C']['submitted_variant'] == '2-166179712-G-C'
@@ -14118,7 +13406,6 @@ class TestVariants(object):
         assert results['NM_001040143.1:c.1718G>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001040143.1:c.1718G>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001040143.1:c.1718G>C']['alt_genomic_loci'] == []
-        assert results['NM_001040143.1:c.1718G>C']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 2 (SCN2A), transcript variant 3, mRNA'
         assert results['NM_001040143.1:c.1718G>C']['gene_symbol'] == 'SCN2A'
         assert results['NM_001040143.1:c.1718G>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001035233.1:p.(Ser573Thr)', 'slr': 'NP_001035233.1:p.(S573T)'}
         assert results['NM_001040143.1:c.1718G>C']['submitted_variant'] == '2-166179712-G-C'
@@ -14136,7 +13423,6 @@ class TestVariants(object):
         assert results['NM_001040142.1:c.1718G>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001040142.1:c.1718G>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001040142.1:c.1718G>C']['alt_genomic_loci'] == []
-        assert results['NM_001040142.1:c.1718G>C']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 2 (SCN2A), transcript variant 2, mRNA'
         assert results['NM_001040142.1:c.1718G>C']['gene_symbol'] == 'SCN2A'
         assert results['NM_001040142.1:c.1718G>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001035232.1:p.(Ser573Thr)', 'slr': 'NP_001035232.1:p.(S573T)'}
         assert results['NM_001040142.1:c.1718G>C']['submitted_variant'] == '2-166179712-G-C'
@@ -14160,7 +13446,6 @@ class TestVariants(object):
         assert results['NM_021007.2:c.2026A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_021007.2:c.2026A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_021007.2:c.2026A>G']['alt_genomic_loci'] == []
-        assert results['NM_021007.2:c.2026A>G']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 2 (SCN2A), transcript variant 1, mRNA'
         assert results['NM_021007.2:c.2026A>G']['gene_symbol'] == 'SCN2A'
         assert results['NM_021007.2:c.2026A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_066287.2:p.(Thr676Ala)', 'slr': 'NP_066287.2:p.(T676A)'}
         assert results['NM_021007.2:c.2026A>G']['submitted_variant'] == '2-166183371-A-G'
@@ -14179,7 +13464,6 @@ class TestVariants(object):
         assert results['NM_001040143.1:c.2026A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001040143.1:c.2026A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001040143.1:c.2026A>G']['alt_genomic_loci'] == []
-        assert results['NM_001040143.1:c.2026A>G']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 2 (SCN2A), transcript variant 3, mRNA'
         assert results['NM_001040143.1:c.2026A>G']['gene_symbol'] == 'SCN2A'
         assert results['NM_001040143.1:c.2026A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001035233.1:p.(Thr676Ala)', 'slr': 'NP_001035233.1:p.(T676A)'}
         assert results['NM_001040143.1:c.2026A>G']['submitted_variant'] == '2-166183371-A-G'
@@ -14197,7 +13481,6 @@ class TestVariants(object):
         assert results['NM_001040142.1:c.2026A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001040142.1:c.2026A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001040142.1:c.2026A>G']['alt_genomic_loci'] == []
-        assert results['NM_001040142.1:c.2026A>G']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 2 (SCN2A), transcript variant 2, mRNA'
         assert results['NM_001040142.1:c.2026A>G']['gene_symbol'] == 'SCN2A'
         assert results['NM_001040142.1:c.2026A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001035232.1:p.(Thr676Ala)', 'slr': 'NP_001035232.1:p.(T676A)'}
         assert results['NM_001040142.1:c.2026A>G']['submitted_variant'] == '2-166183371-A-G'
@@ -14221,7 +13504,6 @@ class TestVariants(object):
         assert results['NM_001353951.1:c.233_242delinsGT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001353951.1:c.233_242delinsGT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001353951.1:c.233_242delinsGT']['alt_genomic_loci'] == []
-        assert results['NM_001353951.1:c.233_242delinsGT']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 8, mRNA'
         assert results['NM_001353951.1:c.233_242delinsGT']['gene_symbol'] == 'SCN1A'
         assert results['NM_001353951.1:c.233_242delinsGT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001340880.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001340880.1:p.(E78Gfs*7)'}
         assert results['NM_001353951.1:c.233_242delinsGT']['submitted_variant'] == '2-166929889-GTCCAGGTCCT-GAC'
@@ -14239,7 +13521,6 @@ class TestVariants(object):
         assert results['NM_001353958.1:c.233_242delinsGT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001353958.1:c.233_242delinsGT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001353958.1:c.233_242delinsGT']['alt_genomic_loci'] == []
-        assert results['NM_001353958.1:c.233_242delinsGT']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 13, mRNA'
         assert results['NM_001353958.1:c.233_242delinsGT']['gene_symbol'] == 'SCN1A'
         assert results['NM_001353958.1:c.233_242delinsGT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001340887.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001340887.1:p.(E78Gfs*7)'}
         assert results['NM_001353958.1:c.233_242delinsGT']['submitted_variant'] == '2-166929889-GTCCAGGTCCT-GAC'
@@ -14257,7 +13538,6 @@ class TestVariants(object):
         assert results['NM_001202435.1:c.233_242delinsGT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001202435.1:c.233_242delinsGT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001202435.1:c.233_242delinsGT']['alt_genomic_loci'] == []
-        assert results['NM_001202435.1:c.233_242delinsGT']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 4, mRNA'
         assert results['NM_001202435.1:c.233_242delinsGT']['gene_symbol'] == 'SCN1A'
         assert results['NM_001202435.1:c.233_242delinsGT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001189364.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001189364.1:p.(E78Gfs*7)'}
         assert results['NM_001202435.1:c.233_242delinsGT']['submitted_variant'] == '2-166929889-GTCCAGGTCCT-GAC'
@@ -14275,7 +13555,6 @@ class TestVariants(object):
         assert results['NR_148667.1:n.638_647delinsGT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_148667.1:n.638_647delinsGT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_148667.1:n.638_647delinsGT']['alt_genomic_loci'] == []
-        assert results['NR_148667.1:n.638_647delinsGT']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 16, non-coding RNA'
         assert results['NR_148667.1:n.638_647delinsGT']['gene_symbol'] == 'SCN1A'
         assert results['NR_148667.1:n.638_647delinsGT']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_148667.1:n.638_647delinsGT']['submitted_variant'] == '2-166929889-GTCCAGGTCCT-GAC'
@@ -14293,7 +13572,6 @@ class TestVariants(object):
         assert results['NM_001165964.1:c.233_242delinsGT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001165964.1:c.233_242delinsGT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001165964.1:c.233_242delinsGT']['alt_genomic_loci'] == []
-        assert results['NM_001165964.1:c.233_242delinsGT']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 3, mRNA'
         assert results['NM_001165964.1:c.233_242delinsGT']['gene_symbol'] == 'SCN1A'
         assert results['NM_001165964.1:c.233_242delinsGT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001159436.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001159436.1:p.(E78Gfs*7)'}
         assert results['NM_001165964.1:c.233_242delinsGT']['submitted_variant'] == '2-166929889-GTCCAGGTCCT-GAC'
@@ -14311,7 +13589,6 @@ class TestVariants(object):
         assert results['NM_001202435.2:c.233_242delinsGT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001202435.2:c.233_242delinsGT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001202435.2:c.233_242delinsGT']['alt_genomic_loci'] == []
-        assert results['NM_001202435.2:c.233_242delinsGT']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 4, mRNA'
         assert results['NM_001202435.2:c.233_242delinsGT']['gene_symbol'] == 'SCN1A'
         assert results['NM_001202435.2:c.233_242delinsGT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001189364.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001189364.1:p.(E78Gfs*7)'}
         assert results['NM_001202435.2:c.233_242delinsGT']['submitted_variant'] == '2-166929889-GTCCAGGTCCT-GAC'
@@ -14329,7 +13606,6 @@ class TestVariants(object):
         assert results['NM_006920.5:c.233_242delinsGT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_006920.5:c.233_242delinsGT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_006920.5:c.233_242delinsGT']['alt_genomic_loci'] == []
-        assert results['NM_006920.5:c.233_242delinsGT']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 2, mRNA'
         assert results['NM_006920.5:c.233_242delinsGT']['gene_symbol'] == 'SCN1A'
         assert results['NM_006920.5:c.233_242delinsGT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_008851.3(LRG_8p1):p.(Glu78GlyfsTer7)', 'slr': 'NP_008851.3:p.(E78Gfs*7)'}
         assert results['NM_006920.5:c.233_242delinsGT']['submitted_variant'] == '2-166929889-GTCCAGGTCCT-GAC'
@@ -14347,7 +13623,6 @@ class TestVariants(object):
         assert results['NM_001165963.1:c.233_242delinsGT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001165963.1:c.233_242delinsGT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001165963.1:c.233_242delinsGT']['alt_genomic_loci'] == []
-        assert results['NM_001165963.1:c.233_242delinsGT']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 1, mRNA'
         assert results['NM_001165963.1:c.233_242delinsGT']['gene_symbol'] == 'SCN1A'
         assert results['NM_001165963.1:c.233_242delinsGT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001159435.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001159435.1:p.(E78Gfs*7)'}
         assert results['NM_001165963.1:c.233_242delinsGT']['submitted_variant'] == '2-166929889-GTCCAGGTCCT-GAC'
@@ -14365,7 +13640,6 @@ class TestVariants(object):
         assert results['NM_001353955.1:c.233_242delinsGT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001353955.1:c.233_242delinsGT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001353955.1:c.233_242delinsGT']['alt_genomic_loci'] == []
-        assert results['NM_001353955.1:c.233_242delinsGT']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 11, mRNA'
         assert results['NM_001353955.1:c.233_242delinsGT']['gene_symbol'] == 'SCN1A'
         assert results['NM_001353955.1:c.233_242delinsGT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001340884.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001340884.1:p.(E78Gfs*7)'}
         assert results['NM_001353955.1:c.233_242delinsGT']['submitted_variant'] == '2-166929889-GTCCAGGTCCT-GAC'
@@ -14383,7 +13657,6 @@ class TestVariants(object):
         assert results['NM_001353961.1:c.-2193_-2184delinsGT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001353961.1:c.-2193_-2184delinsGT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001353961.1:c.-2193_-2184delinsGT']['alt_genomic_loci'] == []
-        assert results['NM_001353961.1:c.-2193_-2184delinsGT']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 15, mRNA'
         assert results['NM_001353961.1:c.-2193_-2184delinsGT']['gene_symbol'] == 'SCN1A'
         assert results['NM_001353961.1:c.-2193_-2184delinsGT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001340890.1:p.?', 'slr': 'NP_001340890.1:p.?'}
         assert results['NM_001353961.1:c.-2193_-2184delinsGT']['submitted_variant'] == '2-166929889-GTCCAGGTCCT-GAC'
@@ -14401,7 +13674,6 @@ class TestVariants(object):
         assert results['NM_001165963.2:c.233_242delinsGT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001165963.2:c.233_242delinsGT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001165963.2:c.233_242delinsGT']['alt_genomic_loci'] == []
-        assert results['NM_001165963.2:c.233_242delinsGT']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 1, mRNA'
         assert results['NM_001165963.2:c.233_242delinsGT']['gene_symbol'] == 'SCN1A'
         assert results['NM_001165963.2:c.233_242delinsGT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001159435.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001159435.1:p.(E78Gfs*7)'}
         assert results['NM_001165963.2:c.233_242delinsGT']['submitted_variant'] == '2-166929889-GTCCAGGTCCT-GAC'
@@ -14419,7 +13691,6 @@ class TestVariants(object):
         assert results['NM_001353950.1:c.233_242delinsGT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001353950.1:c.233_242delinsGT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001353950.1:c.233_242delinsGT']['alt_genomic_loci'] == []
-        assert results['NM_001353950.1:c.233_242delinsGT']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 7, mRNA'
         assert results['NM_001353950.1:c.233_242delinsGT']['gene_symbol'] == 'SCN1A'
         assert results['NM_001353950.1:c.233_242delinsGT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001340879.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001340879.1:p.(E78Gfs*7)'}
         assert results['NM_001353950.1:c.233_242delinsGT']['submitted_variant'] == '2-166929889-GTCCAGGTCCT-GAC'
@@ -14438,7 +13709,6 @@ class TestVariants(object):
         assert results['NM_001353948.1:c.233_242delinsGT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001353948.1:c.233_242delinsGT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001353948.1:c.233_242delinsGT']['alt_genomic_loci'] == []
-        assert results['NM_001353948.1:c.233_242delinsGT']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 5, mRNA'
         assert results['NM_001353948.1:c.233_242delinsGT']['gene_symbol'] == 'SCN1A'
         assert results['NM_001353948.1:c.233_242delinsGT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001340877.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001340877.1:p.(E78Gfs*7)'}
         assert results['NM_001353948.1:c.233_242delinsGT']['submitted_variant'] == '2-166929889-GTCCAGGTCCT-GAC'
@@ -14456,7 +13726,6 @@ class TestVariants(object):
         assert results['NM_001353949.1:c.233_242delinsGT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001353949.1:c.233_242delinsGT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001353949.1:c.233_242delinsGT']['alt_genomic_loci'] == []
-        assert results['NM_001353949.1:c.233_242delinsGT']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 6, mRNA'
         assert results['NM_001353949.1:c.233_242delinsGT']['gene_symbol'] == 'SCN1A'
         assert results['NM_001353949.1:c.233_242delinsGT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001340878.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001340878.1:p.(E78Gfs*7)'}
         assert results['NM_001353949.1:c.233_242delinsGT']['submitted_variant'] == '2-166929889-GTCCAGGTCCT-GAC'
@@ -14474,7 +13743,6 @@ class TestVariants(object):
         assert results['NM_001353957.1:c.233_242delinsGT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001353957.1:c.233_242delinsGT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001353957.1:c.233_242delinsGT']['alt_genomic_loci'] == []
-        assert results['NM_001353957.1:c.233_242delinsGT']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 12, mRNA'
         assert results['NM_001353957.1:c.233_242delinsGT']['gene_symbol'] == 'SCN1A'
         assert results['NM_001353957.1:c.233_242delinsGT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001340886.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001340886.1:p.(E78Gfs*7)'}
         assert results['NM_001353957.1:c.233_242delinsGT']['submitted_variant'] == '2-166929889-GTCCAGGTCCT-GAC'
@@ -14492,7 +13760,6 @@ class TestVariants(object):
         assert results['NM_001353952.1:c.233_242delinsGT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001353952.1:c.233_242delinsGT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001353952.1:c.233_242delinsGT']['alt_genomic_loci'] == []
-        assert results['NM_001353952.1:c.233_242delinsGT']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 9, mRNA'
         assert results['NM_001353952.1:c.233_242delinsGT']['gene_symbol'] == 'SCN1A'
         assert results['NM_001353952.1:c.233_242delinsGT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001340881.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001340881.1:p.(E78Gfs*7)'}
         assert results['NM_001353952.1:c.233_242delinsGT']['submitted_variant'] == '2-166929889-GTCCAGGTCCT-GAC'
@@ -14510,7 +13777,6 @@ class TestVariants(object):
         assert results['NM_001353954.1:c.233_242delinsGT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001353954.1:c.233_242delinsGT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001353954.1:c.233_242delinsGT']['alt_genomic_loci'] == []
-        assert results['NM_001353954.1:c.233_242delinsGT']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 10, mRNA'
         assert results['NM_001353954.1:c.233_242delinsGT']['gene_symbol'] == 'SCN1A'
         assert results['NM_001353954.1:c.233_242delinsGT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001340883.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001340883.1:p.(E78Gfs*7)'}
         assert results['NM_001353954.1:c.233_242delinsGT']['submitted_variant'] == '2-166929889-GTCCAGGTCCT-GAC'
@@ -14528,7 +13794,6 @@ class TestVariants(object):
         assert results['NM_006920.4:c.233_242delinsGT']['hgvs_lrg_transcript_variant'] == 'LRG_8t1:c.233_242delinsGT'
         assert results['NM_006920.4:c.233_242delinsGT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_006920.4:c.233_242delinsGT']['alt_genomic_loci'] == []
-        assert results['NM_006920.4:c.233_242delinsGT']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 2, mRNA'
         assert results['NM_006920.4:c.233_242delinsGT']['gene_symbol'] == 'SCN1A'
         assert results['NM_006920.4:c.233_242delinsGT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_008851.3(LRG_8p1):p.(Glu78GlyfsTer7)', 'slr': 'NP_008851.3:p.(E78Gfs*7)'}
         assert results['NM_006920.4:c.233_242delinsGT']['submitted_variant'] == '2-166929889-GTCCAGGTCCT-GAC'
@@ -14546,7 +13811,6 @@ class TestVariants(object):
         assert results['NM_001353960.1:c.233_242delinsGT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001353960.1:c.233_242delinsGT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001353960.1:c.233_242delinsGT']['alt_genomic_loci'] == []
-        assert results['NM_001353960.1:c.233_242delinsGT']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 14, mRNA'
         assert results['NM_001353960.1:c.233_242delinsGT']['gene_symbol'] == 'SCN1A'
         assert results['NM_001353960.1:c.233_242delinsGT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001340889.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001340889.1:p.(E78Gfs*7)'}
         assert results['NM_001353960.1:c.233_242delinsGT']['submitted_variant'] == '2-166929889-GTCCAGGTCCT-GAC'
@@ -14564,7 +13828,6 @@ class TestVariants(object):
         assert results['NM_001165964.2:c.233_242delinsGT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001165964.2:c.233_242delinsGT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001165964.2:c.233_242delinsGT']['alt_genomic_loci'] == []
-        assert results['NM_001165964.2:c.233_242delinsGT']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 3, mRNA'
         assert results['NM_001165964.2:c.233_242delinsGT']['gene_symbol'] == 'SCN1A'
         assert results['NM_001165964.2:c.233_242delinsGT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001159436.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001159436.1:p.(E78Gfs*7)'}
         assert results['NM_001165964.2:c.233_242delinsGT']['submitted_variant'] == '2-166929889-GTCCAGGTCCT-GAC'
@@ -14588,7 +13851,6 @@ class TestVariants(object):
         assert results['NR_148667.1:n.638_645del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_148667.1:n.638_645del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_148667.1:n.638_645del']['alt_genomic_loci'] == []
-        assert results['NR_148667.1:n.638_645del']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 16, non-coding RNA'
         assert results['NR_148667.1:n.638_645del']['gene_symbol'] == 'SCN1A'
         assert results['NR_148667.1:n.638_645del']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_148667.1:n.638_645del']['submitted_variant'] == '2-166929891-CCAGGTCCT-C'
@@ -14606,7 +13868,6 @@ class TestVariants(object):
         assert results['NM_001165964.2:c.233_240del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001165964.2:c.233_240del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001165964.2:c.233_240del']['alt_genomic_loci'] == []
-        assert results['NM_001165964.2:c.233_240del']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 3, mRNA'
         assert results['NM_001165964.2:c.233_240del']['gene_symbol'] == 'SCN1A'
         assert results['NM_001165964.2:c.233_240del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001159436.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001159436.1:p.(E78Gfs*7)'}
         assert results['NM_001165964.2:c.233_240del']['submitted_variant'] == '2-166929891-CCAGGTCCT-C'
@@ -14624,7 +13885,6 @@ class TestVariants(object):
         assert results['NM_001353951.1:c.233_240del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001353951.1:c.233_240del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001353951.1:c.233_240del']['alt_genomic_loci'] == []
-        assert results['NM_001353951.1:c.233_240del']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 8, mRNA'
         assert results['NM_001353951.1:c.233_240del']['gene_symbol'] == 'SCN1A'
         assert results['NM_001353951.1:c.233_240del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001340880.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001340880.1:p.(E78Gfs*7)'}
         assert results['NM_001353951.1:c.233_240del']['submitted_variant'] == '2-166929891-CCAGGTCCT-C'
@@ -14642,7 +13902,6 @@ class TestVariants(object):
         assert results['NM_001353954.1:c.233_240del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001353954.1:c.233_240del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001353954.1:c.233_240del']['alt_genomic_loci'] == []
-        assert results['NM_001353954.1:c.233_240del']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 10, mRNA'
         assert results['NM_001353954.1:c.233_240del']['gene_symbol'] == 'SCN1A'
         assert results['NM_001353954.1:c.233_240del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001340883.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001340883.1:p.(E78Gfs*7)'}
         assert results['NM_001353954.1:c.233_240del']['submitted_variant'] == '2-166929891-CCAGGTCCT-C'
@@ -14660,7 +13919,6 @@ class TestVariants(object):
         assert results['NM_001353961.1:c.-2193_-2186del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001353961.1:c.-2193_-2186del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001353961.1:c.-2193_-2186del']['alt_genomic_loci'] == []
-        assert results['NM_001353961.1:c.-2193_-2186del']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 15, mRNA'
         assert results['NM_001353961.1:c.-2193_-2186del']['gene_symbol'] == 'SCN1A'
         assert results['NM_001353961.1:c.-2193_-2186del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001340890.1:p.?', 'slr': 'NP_001340890.1:p.?'}
         assert results['NM_001353961.1:c.-2193_-2186del']['submitted_variant'] == '2-166929891-CCAGGTCCT-C'
@@ -14678,7 +13936,6 @@ class TestVariants(object):
         assert results['NM_001353948.1:c.233_240del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001353948.1:c.233_240del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001353948.1:c.233_240del']['alt_genomic_loci'] == []
-        assert results['NM_001353948.1:c.233_240del']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 5, mRNA'
         assert results['NM_001353948.1:c.233_240del']['gene_symbol'] == 'SCN1A'
         assert results['NM_001353948.1:c.233_240del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001340877.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001340877.1:p.(E78Gfs*7)'}
         assert results['NM_001353948.1:c.233_240del']['submitted_variant'] == '2-166929891-CCAGGTCCT-C'
@@ -14696,7 +13953,6 @@ class TestVariants(object):
         assert results['NM_001353960.1:c.233_240del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001353960.1:c.233_240del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001353960.1:c.233_240del']['alt_genomic_loci'] == []
-        assert results['NM_001353960.1:c.233_240del']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 14, mRNA'
         assert results['NM_001353960.1:c.233_240del']['gene_symbol'] == 'SCN1A'
         assert results['NM_001353960.1:c.233_240del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001340889.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001340889.1:p.(E78Gfs*7)'}
         assert results['NM_001353960.1:c.233_240del']['submitted_variant'] == '2-166929891-CCAGGTCCT-C'
@@ -14714,7 +13970,6 @@ class TestVariants(object):
         assert results['NM_001202435.1:c.233_240del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001202435.1:c.233_240del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001202435.1:c.233_240del']['alt_genomic_loci'] == []
-        assert results['NM_001202435.1:c.233_240del']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 4, mRNA'
         assert results['NM_001202435.1:c.233_240del']['gene_symbol'] == 'SCN1A'
         assert results['NM_001202435.1:c.233_240del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001189364.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001189364.1:p.(E78Gfs*7)'}
         assert results['NM_001202435.1:c.233_240del']['submitted_variant'] == '2-166929891-CCAGGTCCT-C'
@@ -14732,7 +13987,6 @@ class TestVariants(object):
         assert results['NM_001202435.2:c.233_240del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001202435.2:c.233_240del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001202435.2:c.233_240del']['alt_genomic_loci'] == []
-        assert results['NM_001202435.2:c.233_240del']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 4, mRNA'
         assert results['NM_001202435.2:c.233_240del']['gene_symbol'] == 'SCN1A'
         assert results['NM_001202435.2:c.233_240del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001189364.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001189364.1:p.(E78Gfs*7)'}
         assert results['NM_001202435.2:c.233_240del']['submitted_variant'] == '2-166929891-CCAGGTCCT-C'
@@ -14750,7 +14004,6 @@ class TestVariants(object):
         assert results['NM_006920.5:c.233_240del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_006920.5:c.233_240del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_006920.5:c.233_240del']['alt_genomic_loci'] == []
-        assert results['NM_006920.5:c.233_240del']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 2, mRNA'
         assert results['NM_006920.5:c.233_240del']['gene_symbol'] == 'SCN1A'
         assert results['NM_006920.5:c.233_240del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_008851.3(LRG_8p1):p.(Glu78GlyfsTer7)', 'slr': 'NP_008851.3:p.(E78Gfs*7)'}
         assert results['NM_006920.5:c.233_240del']['submitted_variant'] == '2-166929891-CCAGGTCCT-C'
@@ -14768,7 +14021,6 @@ class TestVariants(object):
         assert results['NM_001353955.1:c.233_240del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001353955.1:c.233_240del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001353955.1:c.233_240del']['alt_genomic_loci'] == []
-        assert results['NM_001353955.1:c.233_240del']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 11, mRNA'
         assert results['NM_001353955.1:c.233_240del']['gene_symbol'] == 'SCN1A'
         assert results['NM_001353955.1:c.233_240del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001340884.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001340884.1:p.(E78Gfs*7)'}
         assert results['NM_001353955.1:c.233_240del']['submitted_variant'] == '2-166929891-CCAGGTCCT-C'
@@ -14786,7 +14038,6 @@ class TestVariants(object):
         assert results['NM_001353952.1:c.233_240del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001353952.1:c.233_240del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001353952.1:c.233_240del']['alt_genomic_loci'] == []
-        assert results['NM_001353952.1:c.233_240del']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 9, mRNA'
         assert results['NM_001353952.1:c.233_240del']['gene_symbol'] == 'SCN1A'
         assert results['NM_001353952.1:c.233_240del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001340881.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001340881.1:p.(E78Gfs*7)'}
         assert results['NM_001353952.1:c.233_240del']['submitted_variant'] == '2-166929891-CCAGGTCCT-C'
@@ -14804,7 +14055,6 @@ class TestVariants(object):
         assert results['NM_001353957.1:c.233_240del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001353957.1:c.233_240del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001353957.1:c.233_240del']['alt_genomic_loci'] == []
-        assert results['NM_001353957.1:c.233_240del']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 12, mRNA'
         assert results['NM_001353957.1:c.233_240del']['gene_symbol'] == 'SCN1A'
         assert results['NM_001353957.1:c.233_240del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001340886.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001340886.1:p.(E78Gfs*7)'}
         assert results['NM_001353957.1:c.233_240del']['submitted_variant'] == '2-166929891-CCAGGTCCT-C'
@@ -14823,7 +14073,6 @@ class TestVariants(object):
         assert results['NM_006920.4:c.233_240del']['hgvs_lrg_transcript_variant'] == 'LRG_8t1:c.233_240del'
         assert results['NM_006920.4:c.233_240del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_006920.4:c.233_240del']['alt_genomic_loci'] == []
-        assert results['NM_006920.4:c.233_240del']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 2, mRNA'
         assert results['NM_006920.4:c.233_240del']['gene_symbol'] == 'SCN1A'
         assert results['NM_006920.4:c.233_240del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_008851.3(LRG_8p1):p.(Glu78GlyfsTer7)', 'slr': 'NP_008851.3:p.(E78Gfs*7)'}
         assert results['NM_006920.4:c.233_240del']['submitted_variant'] == '2-166929891-CCAGGTCCT-C'
@@ -14841,7 +14090,6 @@ class TestVariants(object):
         assert results['NM_001353950.1:c.233_240del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001353950.1:c.233_240del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001353950.1:c.233_240del']['alt_genomic_loci'] == []
-        assert results['NM_001353950.1:c.233_240del']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 7, mRNA'
         assert results['NM_001353950.1:c.233_240del']['gene_symbol'] == 'SCN1A'
         assert results['NM_001353950.1:c.233_240del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001340879.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001340879.1:p.(E78Gfs*7)'}
         assert results['NM_001353950.1:c.233_240del']['submitted_variant'] == '2-166929891-CCAGGTCCT-C'
@@ -14859,7 +14107,6 @@ class TestVariants(object):
         assert results['NM_001165963.2:c.233_240del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001165963.2:c.233_240del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001165963.2:c.233_240del']['alt_genomic_loci'] == []
-        assert results['NM_001165963.2:c.233_240del']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 1, mRNA'
         assert results['NM_001165963.2:c.233_240del']['gene_symbol'] == 'SCN1A'
         assert results['NM_001165963.2:c.233_240del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001159435.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001159435.1:p.(E78Gfs*7)'}
         assert results['NM_001165963.2:c.233_240del']['submitted_variant'] == '2-166929891-CCAGGTCCT-C'
@@ -14877,7 +14124,6 @@ class TestVariants(object):
         assert results['NM_001165963.1:c.233_240del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001165963.1:c.233_240del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001165963.1:c.233_240del']['alt_genomic_loci'] == []
-        assert results['NM_001165963.1:c.233_240del']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 1, mRNA'
         assert results['NM_001165963.1:c.233_240del']['gene_symbol'] == 'SCN1A'
         assert results['NM_001165963.1:c.233_240del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001159435.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001159435.1:p.(E78Gfs*7)'}
         assert results['NM_001165963.1:c.233_240del']['submitted_variant'] == '2-166929891-CCAGGTCCT-C'
@@ -14895,7 +14141,6 @@ class TestVariants(object):
         assert results['NM_001165964.1:c.233_240del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001165964.1:c.233_240del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001165964.1:c.233_240del']['alt_genomic_loci'] == []
-        assert results['NM_001165964.1:c.233_240del']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 3, mRNA'
         assert results['NM_001165964.1:c.233_240del']['gene_symbol'] == 'SCN1A'
         assert results['NM_001165964.1:c.233_240del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001159436.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001159436.1:p.(E78Gfs*7)'}
         assert results['NM_001165964.1:c.233_240del']['submitted_variant'] == '2-166929891-CCAGGTCCT-C'
@@ -14913,7 +14158,6 @@ class TestVariants(object):
         assert results['NM_001353958.1:c.233_240del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001353958.1:c.233_240del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001353958.1:c.233_240del']['alt_genomic_loci'] == []
-        assert results['NM_001353958.1:c.233_240del']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 13, mRNA'
         assert results['NM_001353958.1:c.233_240del']['gene_symbol'] == 'SCN1A'
         assert results['NM_001353958.1:c.233_240del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001340887.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001340887.1:p.(E78Gfs*7)'}
         assert results['NM_001353958.1:c.233_240del']['submitted_variant'] == '2-166929891-CCAGGTCCT-C'
@@ -14931,7 +14175,6 @@ class TestVariants(object):
         assert results['NM_001353949.1:c.233_240del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001353949.1:c.233_240del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001353949.1:c.233_240del']['alt_genomic_loci'] == []
-        assert results['NM_001353949.1:c.233_240del']['transcript_description'] == 'Homo sapiens sodium voltage-gated channel alpha subunit 1 (SCN1A), transcript variant 6, mRNA'
         assert results['NM_001353949.1:c.233_240del']['gene_symbol'] == 'SCN1A'
         assert results['NM_001353949.1:c.233_240del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001340878.1:p.(Glu78GlyfsTer7)', 'slr': 'NP_001340878.1:p.(E78Gfs*7)'}
         assert results['NM_001353949.1:c.233_240del']['submitted_variant'] == '2-166929891-CCAGGTCCT-C'
@@ -14955,7 +14198,6 @@ class TestVariants(object):
         assert results['NM_001256850.1:c.102051C>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001256850.1:c.102051C>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001256850.1:c.102051C>A']['alt_genomic_loci'] == []
-        assert results['NM_001256850.1:c.102051C>A']['transcript_description'] == 'Homo sapiens titin (TTN), transcript variant N2BA, mRNA'
         assert results['NM_001256850.1:c.102051C>A']['gene_symbol'] == 'TTN'
         assert results['NM_001256850.1:c.102051C>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001243779.1:p.(Ser34017Arg)', 'slr': 'NP_001243779.1:p.(S34017R)'}
         assert results['NM_001256850.1:c.102051C>A']['submitted_variant'] == '2-179393504-G-T'
@@ -14973,7 +14215,6 @@ class TestVariants(object):
         assert results['NR_038271.1:n.446+5141G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_038271.1:n.446+5141G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_038271.1:n.446+5141G>T']['alt_genomic_loci'] == []
-        assert results['NR_038271.1:n.446+5141G>T']['transcript_description'] == 'Homo sapiens TTN antisense RNA 1 (TTN-AS1), transcript variant 2, long non-coding RNA'
         assert results['NR_038271.1:n.446+5141G>T']['gene_symbol'] == 'TTN-AS1'
         assert results['NR_038271.1:n.446+5141G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_038271.1:n.446+5141G>T']['submitted_variant'] == '2-179393504-G-T'
@@ -14991,7 +14232,6 @@ class TestVariants(object):
         assert results['NM_133432.3:c.80154C>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_133432.3:c.80154C>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_133432.3:c.80154C>A']['alt_genomic_loci'] == []
-        assert results['NM_133432.3:c.80154C>A']['transcript_description'] == 'Homo sapiens titin (TTN), transcript variant novex-1, mRNA'
         assert results['NM_133432.3:c.80154C>A']['gene_symbol'] == 'TTN'
         assert results['NM_133432.3:c.80154C>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_597676.3:p.(Ser26718Arg)', 'slr': 'NP_597676.3:p.(S26718R)'}
         assert results['NM_133432.3:c.80154C>A']['submitted_variant'] == '2-179393504-G-T'
@@ -15009,7 +14249,6 @@ class TestVariants(object):
         assert results['NM_001267550.1:c.106974C>A']['hgvs_lrg_transcript_variant'] == 'LRG_391t1:c.106974C>A'
         assert results['NM_001267550.1:c.106974C>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001267550.1:c.106974C>A']['alt_genomic_loci'] == []
-        assert results['NM_001267550.1:c.106974C>A']['transcript_description'] == 'Homo sapiens titin (TTN), transcript variant IC, mRNA'
         assert results['NM_001267550.1:c.106974C>A']['gene_symbol'] == 'TTN'
         assert results['NM_001267550.1:c.106974C>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001254479.1:p.(Ser35658Arg)', 'slr': 'NP_001254479.1:p.(S35658R)'}
         assert results['NM_001267550.1:c.106974C>A']['submitted_variant'] == '2-179393504-G-T'
@@ -15027,7 +14266,6 @@ class TestVariants(object):
         assert results['NR_038272.1:n.219+5141G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_038272.1:n.219+5141G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_038272.1:n.219+5141G>T']['alt_genomic_loci'] == []
-        assert results['NR_038272.1:n.219+5141G>T']['transcript_description'] == 'Homo sapiens TTN antisense RNA 1 (TTN-AS1), transcript variant 1, long non-coding RNA'
         assert results['NR_038272.1:n.219+5141G>T']['gene_symbol'] == 'TTN-AS1'
         assert results['NR_038272.1:n.219+5141G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_038272.1:n.219+5141G>T']['submitted_variant'] == '2-179393504-G-T'
@@ -15045,7 +14283,6 @@ class TestVariants(object):
         assert results['NM_133437.4:c.80355C>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_133437.4:c.80355C>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_133437.4:c.80355C>A']['alt_genomic_loci'] == []
-        assert results['NM_133437.4:c.80355C>A']['transcript_description'] == 'Homo sapiens titin (TTN), transcript variant novex-2, mRNA'
         assert results['NM_133437.4:c.80355C>A']['gene_symbol'] == 'TTN'
         assert results['NM_133437.4:c.80355C>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_597681.4:p.(Ser26785Arg)', 'slr': 'NP_597681.4:p.(S26785R)'}
         assert results['NM_133437.4:c.80355C>A']['submitted_variant'] == '2-179393504-G-T'
@@ -15064,7 +14301,6 @@ class TestVariants(object):
         assert results['NM_133378.4:c.99270C>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_133378.4:c.99270C>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_133378.4:c.99270C>A']['alt_genomic_loci'] == []
-        assert results['NM_133378.4:c.99270C>A']['transcript_description'] == 'Homo sapiens titin (TTN), transcript variant N2-A, mRNA'
         assert results['NM_133378.4:c.99270C>A']['gene_symbol'] == 'TTN'
         assert results['NM_133378.4:c.99270C>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_596869.4:p.(Ser33090Arg)', 'slr': 'NP_596869.4:p.(S33090R)'}
         assert results['NM_133378.4:c.99270C>A']['submitted_variant'] == '2-179393504-G-T'
@@ -15082,7 +14318,6 @@ class TestVariants(object):
         assert results['NM_001267550.2:c.106974C>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001267550.2:c.106974C>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001267550.2:c.106974C>A']['alt_genomic_loci'] == []
-        assert results['NM_001267550.2:c.106974C>A']['transcript_description'] == 'Homo sapiens titin (TTN), transcript variant IC, mRNA'
         assert results['NM_001267550.2:c.106974C>A']['gene_symbol'] == 'TTN'
         assert results['NM_001267550.2:c.106974C>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001254479.2:p.(Ser35658Arg)', 'slr': 'NP_001254479.2:p.(S35658R)'}
         assert results['NM_001267550.2:c.106974C>A']['submitted_variant'] == '2-179393504-G-T'
@@ -15100,7 +14335,6 @@ class TestVariants(object):
         assert results['NM_133437.3:c.80355C>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_133437.3:c.80355C>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_133437.3:c.80355C>A']['alt_genomic_loci'] == []
-        assert results['NM_133437.3:c.80355C>A']['transcript_description'] == 'Homo sapiens titin (TTN), transcript variant novex-2, mRNA'
         assert results['NM_133437.3:c.80355C>A']['gene_symbol'] == 'TTN'
         assert results['NM_133437.3:c.80355C>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_597681.3:p.(Ser26785Arg)', 'slr': 'NP_597681.3:p.(S26785R)'}
         assert results['NM_133437.3:c.80355C>A']['submitted_variant'] == '2-179393504-G-T'
@@ -15118,7 +14352,6 @@ class TestVariants(object):
         assert results['NM_003319.4:c.79779C>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003319.4:c.79779C>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003319.4:c.79779C>A']['alt_genomic_loci'] == []
-        assert results['NM_003319.4:c.79779C>A']['transcript_description'] == 'Homo sapiens titin (TTN), transcript variant N2-B, mRNA'
         assert results['NM_003319.4:c.79779C>A']['gene_symbol'] == 'TTN'
         assert results['NM_003319.4:c.79779C>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003310.4:p.(Ser26593Arg)', 'slr': 'NP_003310.4:p.(S26593R)'}
         assert results['NM_003319.4:c.79779C>A']['submitted_variant'] == '2-179393504-G-T'
@@ -15143,7 +14376,6 @@ class TestVariants(object):
         assert results['NM_194250.1:c.3324_3347del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_194250.1:c.3324_3347del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_194250.1:c.3324_3347del']['alt_genomic_loci'] == []
-        assert results['NM_194250.1:c.3324_3347del']['transcript_description'] == 'Homo sapiens zinc finger protein 804A (ZNF804A), mRNA'
         assert results['NM_194250.1:c.3324_3347del']['gene_symbol'] == 'ZNF804A'
         assert results['NM_194250.1:c.3324_3347del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_919226.1:p.(Ala1112_Ala1119del)', 'slr': 'NP_919226.1:p.(A1112_A1119del)'}
         assert results['NM_194250.1:c.3324_3347del']['submitted_variant'] == '2-185803444-TGCAGCTGCTGCAGCTGCAGCTGCA-T'
@@ -15168,7 +14400,6 @@ class TestVariants(object):
         assert results['NM_002491.2:c.208G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_002491.2:c.208G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_002491.2:c.208G>T']['alt_genomic_loci'] == []
-        assert results['NM_002491.2:c.208G>T']['transcript_description'] == 'Homo sapiens NADH:ubiquinone oxidoreductase subunit B3 (NDUFB3), transcript variant 1, mRNA'
         assert results['NM_002491.2:c.208G>T']['gene_symbol'] == 'NDUFB3'
         assert results['NM_002491.2:c.208G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_002482.1:p.(Gly70Ter)', 'slr': 'NP_002482.1:p.(G70*)'}
         assert results['NM_002491.2:c.208G>T']['submitted_variant'] == '2-201950249-G-T'
@@ -15186,7 +14417,6 @@ class TestVariants(object):
         assert results['NM_001257102.1:c.208G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001257102.1:c.208G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001257102.1:c.208G>T']['alt_genomic_loci'] == []
-        assert results['NM_001257102.1:c.208G>T']['transcript_description'] == 'Homo sapiens NADH:ubiquinone oxidoreductase subunit B3 (NDUFB3), transcript variant 2, mRNA'
         assert results['NM_001257102.1:c.208G>T']['gene_symbol'] == 'NDUFB3'
         assert results['NM_001257102.1:c.208G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001244031.1:p.(Gly70Ter)', 'slr': 'NP_001244031.1:p.(G70*)'}
         assert results['NM_001257102.1:c.208G>T']['submitted_variant'] == '2-201950249-G-T'
@@ -15210,7 +14440,6 @@ class TestVariants(object):
         assert results['NM_004369.3:c.6282+1G>T']['hgvs_lrg_transcript_variant'] == 'LRG_473t1:c.6282+1G>T'
         assert results['NM_004369.3:c.6282+1G>T']['refseqgene_context_intronic_sequence'] == 'NG_008676.1(NM_004369.3):c.6282+1G>T'
         assert results['NM_004369.3:c.6282+1G>T']['alt_genomic_loci'] == []
-        assert results['NM_004369.3:c.6282+1G>T']['transcript_description'] == 'Homo sapiens collagen type VI alpha 3 chain (COL6A3), transcript variant 1, mRNA'
         assert results['NM_004369.3:c.6282+1G>T']['gene_symbol'] == 'COL6A3'
         assert results['NM_004369.3:c.6282+1G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_004360.2(LRG_473p1):p.?', 'slr': 'NP_004360.2:p.?'}
         assert results['NM_004369.3:c.6282+1G>T']['submitted_variant'] == '2-238268730-C-A'
@@ -15229,7 +14458,6 @@ class TestVariants(object):
         assert results['NM_057166.4:c.4461+1G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_057166.4:c.4461+1G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_057166.4:c.4461+1G>T']['alt_genomic_loci'] == []
-        assert results['NM_057166.4:c.4461+1G>T']['transcript_description'] == 'Homo sapiens collagen type VI alpha 3 chain (COL6A3), transcript variant 4, mRNA'
         assert results['NM_057166.4:c.4461+1G>T']['gene_symbol'] == 'COL6A3'
         assert results['NM_057166.4:c.4461+1G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_476507.3:p.?', 'slr': 'NP_476507.3:p.?'}
         assert results['NM_057166.4:c.4461+1G>T']['submitted_variant'] == '2-238268730-C-A'
@@ -15247,7 +14475,6 @@ class TestVariants(object):
         assert results['NM_057167.3:c.5664+1G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_057167.3:c.5664+1G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_057167.3:c.5664+1G>T']['alt_genomic_loci'] == []
-        assert results['NM_057167.3:c.5664+1G>T']['transcript_description'] == 'Homo sapiens collagen type VI alpha 3 chain (COL6A3), transcript variant 5, mRNA'
         assert results['NM_057167.3:c.5664+1G>T']['gene_symbol'] == 'COL6A3'
         assert results['NM_057167.3:c.5664+1G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_476508.2:p.?', 'slr': 'NP_476508.2:p.?'}
         assert results['NM_057167.3:c.5664+1G>T']['submitted_variant'] == '2-238268730-C-A'
@@ -15271,7 +14498,6 @@ class TestVariants(object):
         assert results['NM_080860.2:c.727+5G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_080860.2:c.727+5G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_080860.2:c.727+5G>A']['alt_genomic_loci'] == []
-        assert results['NM_080860.2:c.727+5G>A']['transcript_description'] == 'Homo sapiens radial spoke head 1 homolog (Chlamydomonas) (RSPH1), mRNA'
         assert results['NM_080860.2:c.727+5G>A']['gene_symbol'] == 'RSPH1'
         assert results['NM_080860.2:c.727+5G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_543136.1:p.?', 'slr': 'NP_543136.1:p.?'}
         assert results['NM_080860.2:c.727+5G>A']['submitted_variant'] == '21-43897396-C-T'
@@ -15290,7 +14516,6 @@ class TestVariants(object):
         assert results['NM_080860.3:c.727+5G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_080860.3:c.727+5G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_080860.3:c.727+5G>A']['alt_genomic_loci'] == []
-        assert results['NM_080860.3:c.727+5G>A']['transcript_description'] == 'Homo sapiens radial spoke head component 1 (RSPH1), transcript variant 1, mRNA'
         assert results['NM_080860.3:c.727+5G>A']['gene_symbol'] == 'RSPH1'
         assert results['NM_080860.3:c.727+5G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_543136.1:p.?', 'slr': 'NP_543136.1:p.?'}
         assert results['NM_080860.3:c.727+5G>A']['submitted_variant'] == '21-43897396-C-T'
@@ -15308,7 +14533,6 @@ class TestVariants(object):
         assert results['NM_001286506.1:c.613+5G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001286506.1:c.613+5G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001286506.1:c.613+5G>A']['alt_genomic_loci'] == []
-        assert results['NM_001286506.1:c.613+5G>A']['transcript_description'] == 'Homo sapiens radial spoke head component 1 (RSPH1), transcript variant 2, mRNA'
         assert results['NM_001286506.1:c.613+5G>A']['gene_symbol'] == 'RSPH1'
         assert results['NM_001286506.1:c.613+5G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001273435.1:p.?', 'slr': 'NP_001273435.1:p.?'}
         assert results['NM_001286506.1:c.613+5G>A']['submitted_variant'] == '21-43897396-C-T'
@@ -15332,7 +14556,6 @@ class TestVariants(object):
         assert results['NM_000268.3:c.924_925insCGACGC']['hgvs_lrg_transcript_variant'] == 'LRG_511t1:c.924_925insCGACGC'
         assert results['NM_000268.3:c.924_925insCGACGC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000268.3:c.924_925insCGACGC']['alt_genomic_loci'] == []
-        assert results['NM_000268.3:c.924_925insCGACGC']['transcript_description'] == 'Homo sapiens neurofibromin 2 (NF2), transcript variant 1, mRNA'
         assert results['NM_000268.3:c.924_925insCGACGC']['gene_symbol'] == 'NF2'
         assert results['NM_000268.3:c.924_925insCGACGC']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000259.1(LRG_511p1):p.(Arg310_Arg311dup)', 'slr': 'NP_000259.1:p.(R310_R311dup)'}
         assert results['NM_000268.3:c.924_925insCGACGC']['submitted_variant'] == '22-30064360-G-GCGACGC'
@@ -15350,7 +14573,6 @@ class TestVariants(object):
         assert results['NM_181828.2:c.798_799insCGACGC']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_181828.2:c.798_799insCGACGC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_181828.2:c.798_799insCGACGC']['alt_genomic_loci'] == []
-        assert results['NM_181828.2:c.798_799insCGACGC']['transcript_description'] == 'Homo sapiens neurofibromin 2 (NF2), transcript variant 5, mRNA'
         assert results['NM_181828.2:c.798_799insCGACGC']['gene_symbol'] == 'NF2'
         assert results['NM_181828.2:c.798_799insCGACGC']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_861966.1:p.(Arg268_Arg269dup)', 'slr': 'NP_861966.1:p.(R268_R269dup)'}
         assert results['NM_181828.2:c.798_799insCGACGC']['submitted_variant'] == '22-30064360-G-GCGACGC'
@@ -15368,7 +14590,6 @@ class TestVariants(object):
         assert results['NM_181830.2:c.675_676insCGACGC']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_181830.2:c.675_676insCGACGC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_181830.2:c.675_676insCGACGC']['alt_genomic_loci'] == []
-        assert results['NM_181830.2:c.675_676insCGACGC']['transcript_description'] == 'Homo sapiens neurofibromin 2 (NF2), transcript variant 7, mRNA'
         assert results['NM_181830.2:c.675_676insCGACGC']['gene_symbol'] == 'NF2'
         assert results['NM_181830.2:c.675_676insCGACGC']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_861968.1:p.(Arg227_Arg228dup)', 'slr': 'NP_861968.1:p.(R227_R228dup)'}
         assert results['NM_181830.2:c.675_676insCGACGC']['submitted_variant'] == '22-30064360-G-GCGACGC'
@@ -15386,7 +14607,6 @@ class TestVariants(object):
         assert results['NM_181825.2:c.924_925insCGACGC']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_181825.2:c.924_925insCGACGC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_181825.2:c.924_925insCGACGC']['alt_genomic_loci'] == []
-        assert results['NM_181825.2:c.924_925insCGACGC']['transcript_description'] == 'Homo sapiens neurofibromin 2 (NF2), transcript variant 12, mRNA'
         assert results['NM_181825.2:c.924_925insCGACGC']['gene_symbol'] == 'NF2'
         assert results['NM_181825.2:c.924_925insCGACGC']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_861546.1:p.(Arg310_Arg311dup)', 'slr': 'NP_861546.1:p.(R310_R311dup)'}
         assert results['NM_181825.2:c.924_925insCGACGC']['submitted_variant'] == '22-30064360-G-GCGACGC'
@@ -15404,7 +14624,6 @@ class TestVariants(object):
         assert results['NM_181832.2:c.924_925insCGACGC']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_181832.2:c.924_925insCGACGC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_181832.2:c.924_925insCGACGC']['alt_genomic_loci'] == []
-        assert results['NM_181832.2:c.924_925insCGACGC']['transcript_description'] == 'Homo sapiens neurofibromin 2 (NF2), transcript variant 8, mRNA'
         assert results['NM_181832.2:c.924_925insCGACGC']['gene_symbol'] == 'NF2'
         assert results['NM_181832.2:c.924_925insCGACGC']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_861970.1:p.(Arg310_Arg311dup)', 'slr': 'NP_861970.1:p.(R310_R311dup)'}
         assert results['NM_181832.2:c.924_925insCGACGC']['submitted_variant'] == '22-30064360-G-GCGACGC'
@@ -15422,7 +14641,6 @@ class TestVariants(object):
         assert results['NM_181833.2:c.447+26086_447+26087insCGACGC']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_181833.2:c.447+26086_447+26087insCGACGC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_181833.2:c.447+26086_447+26087insCGACGC']['alt_genomic_loci'] == []
-        assert results['NM_181833.2:c.447+26086_447+26087insCGACGC']['transcript_description'] == 'Homo sapiens neurofibromin 2 (NF2), transcript variant 9, mRNA'
         assert results['NM_181833.2:c.447+26086_447+26087insCGACGC']['gene_symbol'] == 'NF2'
         assert results['NM_181833.2:c.447+26086_447+26087insCGACGC']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_861971.1:p.?', 'slr': 'NP_861971.1:p.?'}
         assert results['NM_181833.2:c.447+26086_447+26087insCGACGC']['submitted_variant'] == '22-30064360-G-GCGACGC'
@@ -15440,7 +14658,6 @@ class TestVariants(object):
         assert results['NM_016418.5:c.924_925insCGACGC']['hgvs_lrg_transcript_variant'] == 'LRG_511t2:c.924_925insCGACGC'
         assert results['NM_016418.5:c.924_925insCGACGC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_016418.5:c.924_925insCGACGC']['alt_genomic_loci'] == []
-        assert results['NM_016418.5:c.924_925insCGACGC']['transcript_description'] == 'Homo sapiens neurofibromin 2 (NF2), transcript variant 2, mRNA'
         assert results['NM_016418.5:c.924_925insCGACGC']['gene_symbol'] == 'NF2'
         assert results['NM_016418.5:c.924_925insCGACGC']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_057502.2(LRG_511p2):p.(Arg310_Arg311dup)', 'slr': 'NP_057502.2:p.(R310_R311dup)'}
         assert results['NM_016418.5:c.924_925insCGACGC']['submitted_variant'] == '22-30064360-G-GCGACGC'
@@ -15458,7 +14675,6 @@ class TestVariants(object):
         assert results['NM_181829.2:c.801_802insCGACGC']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_181829.2:c.801_802insCGACGC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_181829.2:c.801_802insCGACGC']['alt_genomic_loci'] == []
-        assert results['NM_181829.2:c.801_802insCGACGC']['transcript_description'] == 'Homo sapiens neurofibromin 2 (NF2), transcript variant 6, mRNA'
         assert results['NM_181829.2:c.801_802insCGACGC']['gene_symbol'] == 'NF2'
         assert results['NM_181829.2:c.801_802insCGACGC']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_861967.1:p.(Arg269_Arg270dup)', 'slr': 'NP_861967.1:p.(R269_R270dup)'}
         assert results['NM_181829.2:c.801_802insCGACGC']['submitted_variant'] == '22-30064360-G-GCGACGC'
@@ -15477,7 +14693,6 @@ class TestVariants(object):
         assert results['NR_156186.1:n.1483_1484insCGACGC']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_156186.1:n.1483_1484insCGACGC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_156186.1:n.1483_1484insCGACGC']['alt_genomic_loci'] == []
-        assert results['NR_156186.1:n.1483_1484insCGACGC']['transcript_description'] == 'Homo sapiens neurofibromin 2 (NF2), transcript variant 14, non-coding RNA'
         assert results['NR_156186.1:n.1483_1484insCGACGC']['gene_symbol'] == 'NF2'
         assert results['NR_156186.1:n.1483_1484insCGACGC']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_156186.1:n.1483_1484insCGACGC']['submitted_variant'] == '22-30064360-G-GCGACGC'
@@ -15495,7 +14710,6 @@ class TestVariants(object):
         assert results['NM_181831.2:c.675_676insCGACGC']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_181831.2:c.675_676insCGACGC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_181831.2:c.675_676insCGACGC']['alt_genomic_loci'] == []
-        assert results['NM_181831.2:c.675_676insCGACGC']['transcript_description'] == 'Homo sapiens neurofibromin 2 (NF2), transcript variant 13, mRNA'
         assert results['NM_181831.2:c.675_676insCGACGC']['gene_symbol'] == 'NF2'
         assert results['NM_181831.2:c.675_676insCGACGC']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_861969.1:p.(Arg227_Arg228dup)', 'slr': 'NP_861969.1:p.(R227_R228dup)'}
         assert results['NM_181831.2:c.675_676insCGACGC']['submitted_variant'] == '22-30064360-G-GCGACGC'
@@ -15519,7 +14733,6 @@ class TestVariants(object):
         assert results['NM_198156.2:c.341-3280_341-3271del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_198156.2:c.341-3280_341-3271del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_198156.2:c.341-3280_341-3271del']['alt_genomic_loci'] == []
-        assert results['NM_198156.2:c.341-3280_341-3271del']['transcript_description'] == 'Homo sapiens von Hippel-Lindau tumor suppressor (VHL), transcript variant 2, mRNA'
         assert results['NM_198156.2:c.341-3280_341-3271del']['gene_symbol'] == 'VHL'
         assert results['NM_198156.2:c.341-3280_341-3271del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_937799.1:p.?', 'slr': 'NP_937799.1:p.?'}
         assert results['NM_198156.2:c.341-3280_341-3271del']['submitted_variant'] == '3-10188187-TGTCCCGATAG-T'
@@ -15538,7 +14751,6 @@ class TestVariants(object):
         assert results['NM_001354723.1:c.*18-3280_*18-3271del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001354723.1:c.*18-3280_*18-3271del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001354723.1:c.*18-3280_*18-3271del']['alt_genomic_loci'] == []
-        assert results['NM_001354723.1:c.*18-3280_*18-3271del']['transcript_description'] == 'Homo sapiens von Hippel-Lindau tumor suppressor (VHL), transcript variant 3, mRNA'
         assert results['NM_001354723.1:c.*18-3280_*18-3271del']['gene_symbol'] == 'VHL'
         assert results['NM_001354723.1:c.*18-3280_*18-3271del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001341652.1:p.?', 'slr': 'NP_001341652.1:p.?'}
         assert results['NM_001354723.1:c.*18-3280_*18-3271del']['submitted_variant'] == '3-10188187-TGTCCCGATAG-T'
@@ -15556,7 +14768,6 @@ class TestVariants(object):
         assert results['NM_000551.3:c.341-7_343del']['hgvs_lrg_transcript_variant'] == 'LRG_322t1:c.341-7_343del'
         assert results['NM_000551.3:c.341-7_343del']['refseqgene_context_intronic_sequence'] == 'NG_008212.3(NM_000551.3):c.341-7_343del'
         assert results['NM_000551.3:c.341-7_343del']['alt_genomic_loci'] == []
-        assert results['NM_000551.3:c.341-7_343del']['transcript_description'] == 'Homo sapiens von Hippel-Lindau tumor suppressor (VHL), transcript variant 1, mRNA'
         assert results['NM_000551.3:c.341-7_343del']['gene_symbol'] == 'VHL'
         assert results['NM_000551.3:c.341-7_343del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000542.1(LRG_322p1):p.?', 'slr': 'NP_000542.1:p.?'}
         assert results['NM_000551.3:c.341-7_343del']['submitted_variant'] == '3-10188187-TGTCCCGATAG-T'
@@ -15580,7 +14791,6 @@ class TestVariants(object):
         assert results['NM_001005505.2:c.3408A>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001005505.2:c.3408A>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001005505.2:c.3408A>C']['alt_genomic_loci'] == []
-        assert results['NM_001005505.2:c.3408A>C']['transcript_description'] == 'Homo sapiens calcium voltage-gated channel auxiliary subunit alpha2delta 2 (CACNA2D2), transcript variant 1, mRNA'
         assert results['NM_001005505.2:c.3408A>C']['gene_symbol'] == 'CACNA2D2'
         assert results['NM_001005505.2:c.3408A>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001005505.1:p.(Gln1136His)', 'slr': 'NP_001005505.1:p.(Q1136H)'}
         assert results['NM_001005505.2:c.3408A>C']['submitted_variant'] == '3-50402127-T-G'
@@ -15598,7 +14808,6 @@ class TestVariants(object):
         assert results['NM_006030.2:c.3402A>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_006030.2:c.3402A>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_006030.2:c.3402A>C']['alt_genomic_loci'] == []
-        assert results['NM_006030.2:c.3402A>C']['transcript_description'] == 'Homo sapiens calcium channel, voltage-dependent, alpha 2/delta subunit 2 (CACNA2D2), transcript variant 2, mRNA'
         assert results['NM_006030.2:c.3402A>C']['gene_symbol'] == 'CACNA2D2'
         assert results['NM_006030.2:c.3402A>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_006021.2:p.(Gln1134His)', 'slr': 'NP_006021.2:p.(Q1134H)'}
         assert results['NM_006030.2:c.3402A>C']['submitted_variant'] == '3-50402127-T-G'
@@ -15616,7 +14825,6 @@ class TestVariants(object):
         assert results['NM_001174051.1:c.3423A>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001174051.1:c.3423A>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001174051.1:c.3423A>C']['alt_genomic_loci'] == []
-        assert results['NM_001174051.1:c.3423A>C']['transcript_description'] == 'Homo sapiens calcium channel, voltage-dependent, alpha 2/delta subunit 2 (CACNA2D2), transcript variant 3, mRNA'
         assert results['NM_001174051.1:c.3423A>C']['gene_symbol'] == 'CACNA2D2'
         assert results['NM_001174051.1:c.3423A>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001167522.1:p.(Gln1141His)', 'slr': 'NP_001167522.1:p.(Q1141H)'}
         assert results['NM_001174051.1:c.3423A>C']['submitted_variant'] == '3-50402127-T-G'
@@ -15634,7 +14842,6 @@ class TestVariants(object):
         assert results['NM_001174051.2:c.3423A>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001174051.2:c.3423A>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001174051.2:c.3423A>C']['alt_genomic_loci'] == []
-        assert results['NM_001174051.2:c.3423A>C']['transcript_description'] == 'Homo sapiens calcium voltage-gated channel auxiliary subunit alpha2delta 2 (CACNA2D2), transcript variant 3, mRNA'
         assert results['NM_001174051.2:c.3423A>C']['gene_symbol'] == 'CACNA2D2'
         assert results['NM_001174051.2:c.3423A>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001167522.1:p.(Gln1141His)', 'slr': 'NP_001167522.1:p.(Q1141H)'}
         assert results['NM_001174051.2:c.3423A>C']['submitted_variant'] == '3-50402127-T-G'
@@ -15652,7 +14859,6 @@ class TestVariants(object):
         assert results['NM_006030.3:c.3402A>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_006030.3:c.3402A>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_006030.3:c.3402A>C']['alt_genomic_loci'] == []
-        assert results['NM_006030.3:c.3402A>C']['transcript_description'] == 'Homo sapiens calcium voltage-gated channel auxiliary subunit alpha2delta 2 (CACNA2D2), transcript variant 2, mRNA'
         assert results['NM_006030.3:c.3402A>C']['gene_symbol'] == 'CACNA2D2'
         assert results['NM_006030.3:c.3402A>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_006021.2:p.(Gln1134His)', 'slr': 'NP_006021.2:p.(Q1134H)'}
         assert results['NM_006030.3:c.3402A>C']['submitted_variant'] == '3-50402127-T-G'
@@ -15670,7 +14876,6 @@ class TestVariants(object):
         assert results['NM_001291101.1:c.3201A>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001291101.1:c.3201A>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001291101.1:c.3201A>C']['alt_genomic_loci'] == []
-        assert results['NM_001291101.1:c.3201A>C']['transcript_description'] == 'Homo sapiens calcium voltage-gated channel auxiliary subunit alpha2delta 2 (CACNA2D2), transcript variant 4, mRNA'
         assert results['NM_001291101.1:c.3201A>C']['gene_symbol'] == 'CACNA2D2'
         assert results['NM_001291101.1:c.3201A>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001278030.1:p.(Gln1067His)', 'slr': 'NP_001278030.1:p.(Q1067H)'}
         assert results['NM_001291101.1:c.3201A>C']['submitted_variant'] == '3-50402127-T-G'
@@ -15689,7 +14894,6 @@ class TestVariants(object):
         assert results['NR_111912.1:n.443-1601T>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_111912.1:n.443-1601T>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_111912.1:n.443-1601T>G']['alt_genomic_loci'] == []
-        assert results['NR_111912.1:n.443-1601T>G']['transcript_description'] == 'Homo sapiens cytochrome b561 family member D2 (CYB561D2), transcript variant 3, non-coding RNA'
         assert results['NR_111912.1:n.443-1601T>G']['gene_symbol'] == 'CYB561D2'
         assert results['NR_111912.1:n.443-1601T>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_111912.1:n.443-1601T>G']['submitted_variant'] == '3-50402127-T-G'
@@ -15707,7 +14911,6 @@ class TestVariants(object):
         assert results['NM_001005505.1:c.3408A>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001005505.1:c.3408A>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001005505.1:c.3408A>C']['alt_genomic_loci'] == []
-        assert results['NM_001005505.1:c.3408A>C']['transcript_description'] == 'Homo sapiens calcium channel, voltage-dependent, alpha 2/delta subunit 2 (CACNA2D2), transcript variant 1, mRNA'
         assert results['NM_001005505.1:c.3408A>C']['gene_symbol'] == 'CACNA2D2'
         assert results['NM_001005505.1:c.3408A>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001005505.1:p.(Gln1136His)', 'slr': 'NP_001005505.1:p.(Q1136H)'}
         assert results['NM_001005505.1:c.3408A>C']['submitted_variant'] == '3-50402127-T-G'
@@ -15731,7 +14934,6 @@ class TestVariants(object):
         assert results['NR_111913.1:n.126G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_111913.1:n.126G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_111913.1:n.126G>A']['alt_genomic_loci'] == []
-        assert results['NR_111913.1:n.126G>A']['transcript_description'] == 'Homo sapiens cytochrome b561 family member D2 (CYB561D2), transcript variant 4, non-coding RNA'
         assert results['NR_111913.1:n.126G>A']['gene_symbol'] == 'CYB561D2'
         assert results['NR_111913.1:n.126G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_111913.1:n.126G>A']['submitted_variant'] == '3-50402890-G-A'
@@ -15749,7 +14951,6 @@ class TestVariants(object):
         assert results['NR_111912.1:n.443-838G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_111912.1:n.443-838G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_111912.1:n.443-838G>A']['alt_genomic_loci'] == []
-        assert results['NR_111912.1:n.443-838G>A']['transcript_description'] == 'Homo sapiens cytochrome b561 family member D2 (CYB561D2), transcript variant 3, non-coding RNA'
         assert results['NR_111912.1:n.443-838G>A']['gene_symbol'] == 'CYB561D2'
         assert results['NR_111912.1:n.443-838G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_111912.1:n.443-838G>A']['submitted_variant'] == '3-50402890-G-A'
@@ -15767,7 +14968,6 @@ class TestVariants(object):
         assert results['NM_001291101.1:c.2788C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001291101.1:c.2788C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001291101.1:c.2788C>T']['alt_genomic_loci'] == []
-        assert results['NM_001291101.1:c.2788C>T']['transcript_description'] == 'Homo sapiens calcium voltage-gated channel auxiliary subunit alpha2delta 2 (CACNA2D2), transcript variant 4, mRNA'
         assert results['NM_001291101.1:c.2788C>T']['gene_symbol'] == 'CACNA2D2'
         assert results['NM_001291101.1:c.2788C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001278030.1:p.(Pro930Ser)', 'slr': 'NP_001278030.1:p.(P930S)'}
         assert results['NM_001291101.1:c.2788C>T']['submitted_variant'] == '3-50402890-G-A'
@@ -15785,7 +14985,6 @@ class TestVariants(object):
         assert results['NM_006030.2:c.2995C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_006030.2:c.2995C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_006030.2:c.2995C>T']['alt_genomic_loci'] == []
-        assert results['NM_006030.2:c.2995C>T']['transcript_description'] == 'Homo sapiens calcium channel, voltage-dependent, alpha 2/delta subunit 2 (CACNA2D2), transcript variant 2, mRNA'
         assert results['NM_006030.2:c.2995C>T']['gene_symbol'] == 'CACNA2D2'
         assert results['NM_006030.2:c.2995C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_006021.2:p.(Pro999Ser)', 'slr': 'NP_006021.2:p.(P999S)'}
         assert results['NM_006030.2:c.2995C>T']['submitted_variant'] == '3-50402890-G-A'
@@ -15803,7 +15002,6 @@ class TestVariants(object):
         assert results['NR_111914.1:n.126G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_111914.1:n.126G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_111914.1:n.126G>A']['alt_genomic_loci'] == []
-        assert results['NR_111914.1:n.126G>A']['transcript_description'] == 'Homo sapiens cytochrome b561 family member D2 (CYB561D2), transcript variant 5, non-coding RNA'
         assert results['NR_111914.1:n.126G>A']['gene_symbol'] == 'CYB561D2'
         assert results['NR_111914.1:n.126G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_111914.1:n.126G>A']['submitted_variant'] == '3-50402890-G-A'
@@ -15821,7 +15019,6 @@ class TestVariants(object):
         assert results['NM_001005505.2:c.2995C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001005505.2:c.2995C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001005505.2:c.2995C>T']['alt_genomic_loci'] == []
-        assert results['NM_001005505.2:c.2995C>T']['transcript_description'] == 'Homo sapiens calcium voltage-gated channel auxiliary subunit alpha2delta 2 (CACNA2D2), transcript variant 1, mRNA'
         assert results['NM_001005505.2:c.2995C>T']['gene_symbol'] == 'CACNA2D2'
         assert results['NM_001005505.2:c.2995C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001005505.1:p.(Pro999Ser)', 'slr': 'NP_001005505.1:p.(P999S)'}
         assert results['NM_001005505.2:c.2995C>T']['submitted_variant'] == '3-50402890-G-A'
@@ -15840,7 +15037,6 @@ class TestVariants(object):
         assert results['NM_001174051.1:c.3016C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001174051.1:c.3016C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001174051.1:c.3016C>T']['alt_genomic_loci'] == []
-        assert results['NM_001174051.1:c.3016C>T']['transcript_description'] == 'Homo sapiens calcium channel, voltage-dependent, alpha 2/delta subunit 2 (CACNA2D2), transcript variant 3, mRNA'
         assert results['NM_001174051.1:c.3016C>T']['gene_symbol'] == 'CACNA2D2'
         assert results['NM_001174051.1:c.3016C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001167522.1:p.(Pro1006Ser)', 'slr': 'NP_001167522.1:p.(P1006S)'}
         assert results['NM_001174051.1:c.3016C>T']['submitted_variant'] == '3-50402890-G-A'
@@ -15858,7 +15054,6 @@ class TestVariants(object):
         assert results['NM_001174051.2:c.3016C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001174051.2:c.3016C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001174051.2:c.3016C>T']['alt_genomic_loci'] == []
-        assert results['NM_001174051.2:c.3016C>T']['transcript_description'] == 'Homo sapiens calcium voltage-gated channel auxiliary subunit alpha2delta 2 (CACNA2D2), transcript variant 3, mRNA'
         assert results['NM_001174051.2:c.3016C>T']['gene_symbol'] == 'CACNA2D2'
         assert results['NM_001174051.2:c.3016C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001167522.1:p.(Pro1006Ser)', 'slr': 'NP_001167522.1:p.(P1006S)'}
         assert results['NM_001174051.2:c.3016C>T']['submitted_variant'] == '3-50402890-G-A'
@@ -15876,7 +15071,6 @@ class TestVariants(object):
         assert results['NM_006030.3:c.2995C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_006030.3:c.2995C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_006030.3:c.2995C>T']['alt_genomic_loci'] == []
-        assert results['NM_006030.3:c.2995C>T']['transcript_description'] == 'Homo sapiens calcium voltage-gated channel auxiliary subunit alpha2delta 2 (CACNA2D2), transcript variant 2, mRNA'
         assert results['NM_006030.3:c.2995C>T']['gene_symbol'] == 'CACNA2D2'
         assert results['NM_006030.3:c.2995C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_006021.2:p.(Pro999Ser)', 'slr': 'NP_006021.2:p.(P999S)'}
         assert results['NM_006030.3:c.2995C>T']['submitted_variant'] == '3-50402890-G-A'
@@ -15894,7 +15088,6 @@ class TestVariants(object):
         assert results['NM_001005505.1:c.2995C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001005505.1:c.2995C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001005505.1:c.2995C>T']['alt_genomic_loci'] == []
-        assert results['NM_001005505.1:c.2995C>T']['transcript_description'] == 'Homo sapiens calcium channel, voltage-dependent, alpha 2/delta subunit 2 (CACNA2D2), transcript variant 1, mRNA'
         assert results['NM_001005505.1:c.2995C>T']['gene_symbol'] == 'CACNA2D2'
         assert results['NM_001005505.1:c.2995C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001005505.1:p.(Pro999Ser)', 'slr': 'NP_001005505.1:p.(P999S)'}
         assert results['NM_001005505.1:c.2995C>T']['submitted_variant'] == '3-50402890-G-A'
@@ -15918,7 +15111,6 @@ class TestVariants(object):
         assert results['NM_007159.4:c.1135+565del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_007159.4:c.1135+565del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_007159.4:c.1135+565del']['alt_genomic_loci'] == []
-        assert results['NM_007159.4:c.1135+565del']['transcript_description'] == 'Homo sapiens sarcolemma associated protein (SLMAP), transcript variant 2, mRNA'
         assert results['NM_007159.4:c.1135+565del']['gene_symbol'] == 'SLMAP'
         assert results['NM_007159.4:c.1135+565del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_009090.2:p.?', 'slr': 'NP_009090.2:p.?'}
         assert results['NM_007159.4:c.1135+565del']['submitted_variant'] == '3-57851007-AG-A'
@@ -15936,7 +15128,6 @@ class TestVariants(object):
         assert results['NM_001304420.2:c.1186+424del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001304420.2:c.1186+424del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001304420.2:c.1186+424del']['alt_genomic_loci'] == []
-        assert results['NM_001304420.2:c.1186+424del']['transcript_description'] == 'Homo sapiens sarcolemma associated protein (SLMAP), transcript variant 1, mRNA'
         assert results['NM_001304420.2:c.1186+424del']['gene_symbol'] == 'SLMAP'
         assert results['NM_001304420.2:c.1186+424del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001291349.1:p.?', 'slr': 'NP_001291349.1:p.?'}
         assert results['NM_001304420.2:c.1186+424del']['submitted_variant'] == '3-57851007-AG-A'
@@ -15954,7 +15145,6 @@ class TestVariants(object):
         assert results['NM_001304421.2:c.1135+565del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001304421.2:c.1135+565del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001304421.2:c.1135+565del']['alt_genomic_loci'] == []
-        assert results['NM_001304421.2:c.1135+565del']['transcript_description'] == 'Homo sapiens sarcolemma associated protein (SLMAP), transcript variant 3, mRNA'
         assert results['NM_001304421.2:c.1135+565del']['gene_symbol'] == 'SLMAP'
         assert results['NM_001304421.2:c.1135+565del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001291350.1:p.?', 'slr': 'NP_001291350.1:p.?'}
         assert results['NM_001304421.2:c.1135+565del']['submitted_variant'] == '3-57851007-AG-A'
@@ -15973,7 +15163,6 @@ class TestVariants(object):
         assert results['NM_007159.2:c.1135+565del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_007159.2:c.1135+565del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_007159.2:c.1135+565del']['alt_genomic_loci'] == []
-        assert results['NM_007159.2:c.1135+565del']['transcript_description'] == 'Homo sapiens sarcolemma associated protein (SLMAP), mRNA'
         assert results['NM_007159.2:c.1135+565del']['gene_symbol'] == 'SLMAP'
         assert results['NM_007159.2:c.1135+565del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_009090.2:p.?', 'slr': 'NP_009090.2:p.?'}
         assert results['NM_007159.2:c.1135+565del']['submitted_variant'] == '3-57851007-AG-A'
@@ -15991,7 +15180,6 @@ class TestVariants(object):
         assert results['obsolete_record_3']['hgvs_lrg_transcript_variant'] == ''
         assert results['obsolete_record_3']['refseqgene_context_intronic_sequence'] == ''
         assert results['obsolete_record_3']['alt_genomic_loci'] == []
-        assert results['obsolete_record_3']['transcript_description'] == ''
         assert results['obsolete_record_3']['gene_symbol'] == ''
         assert results['obsolete_record_3']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['obsolete_record_3']['submitted_variant'] == '3-57851007-AG-A'
@@ -16009,7 +15197,6 @@ class TestVariants(object):
         assert results['obsolete_record_2']['hgvs_lrg_transcript_variant'] == ''
         assert results['obsolete_record_2']['refseqgene_context_intronic_sequence'] == ''
         assert results['obsolete_record_2']['alt_genomic_loci'] == []
-        assert results['obsolete_record_2']['transcript_description'] == ''
         assert results['obsolete_record_2']['gene_symbol'] == ''
         assert results['obsolete_record_2']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['obsolete_record_2']['submitted_variant'] == '3-57851007-AG-A'
@@ -16027,7 +15214,6 @@ class TestVariants(object):
         assert results['obsolete_record_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['obsolete_record_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['obsolete_record_1']['alt_genomic_loci'] == []
-        assert results['obsolete_record_1']['transcript_description'] == ''
         assert results['obsolete_record_1']['gene_symbol'] == ''
         assert results['obsolete_record_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['obsolete_record_1']['submitted_variant'] == '3-57851007-AG-A'
@@ -16051,7 +15237,6 @@ class TestVariants(object):
         assert results['NM_001178065.1:c.3061C=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001178065.1:c.3061C=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001178065.1:c.3061C=']['alt_genomic_loci'] == []
-        assert results['NM_001178065.1:c.3061C=']['transcript_description'] == 'Homo sapiens calcium sensing receptor (CASR), transcript variant 1, mRNA'
         assert results['NM_001178065.1:c.3061C=']['gene_symbol'] == 'CASR'
         assert results['NM_001178065.1:c.3061C=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001171536.1:p.(Gln1021=)', 'slr': 'NP_001171536.1:p.(Q1021=)'}
         assert results['NM_001178065.1:c.3061C=']['submitted_variant'] == '3-122003832-G-C'
@@ -16070,7 +15255,6 @@ class TestVariants(object):
         assert results['NM_000388.3:c.3031C=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000388.3:c.3031C=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000388.3:c.3031C=']['alt_genomic_loci'] == []
-        assert results['NM_000388.3:c.3031C=']['transcript_description'] == 'Homo sapiens calcium sensing receptor (CASR), transcript variant 2, mRNA'
         assert results['NM_000388.3:c.3031C=']['gene_symbol'] == 'CASR'
         assert results['NM_000388.3:c.3031C=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000379.2:p.(Gln1011=)', 'slr': 'NP_000379.2:p.(Q1011=)'}
         assert results['NM_000388.3:c.3031C=']['submitted_variant'] == '3-122003832-G-C'
@@ -16094,7 +15278,6 @@ class TestVariants(object):
         assert results['NM_001349798.1:c.45_46insCCT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001349798.1:c.45_46insCCT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001349798.1:c.45_46insCCT']['alt_genomic_loci'] == []
-        assert results['NM_001349798.1:c.45_46insCCT']['transcript_description'] == 'Homo sapiens F-box and WD repeat domain containing 7 (FBXW7), transcript variant 5, mRNA'
         assert results['NM_001349798.1:c.45_46insCCT']['gene_symbol'] == 'FBXW7'
         assert results['NM_001349798.1:c.45_46insCCT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_361014.1:p.(Thr15_Gly16insPro)', 'slr': 'NP_361014.1:p.(T15_G16insP)'}
         assert results['NM_001349798.1:c.45_46insCCT']['submitted_variant'] == '4-153332910-C-CAGG'
@@ -16112,7 +15295,6 @@ class TestVariants(object):
         assert results['NM_033632.3:c.45_46insCCT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_033632.3:c.45_46insCCT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_033632.3:c.45_46insCCT']['alt_genomic_loci'] == []
-        assert results['NM_033632.3:c.45_46insCCT']['transcript_description'] == 'Homo sapiens F-box and WD repeat domain containing 7 (FBXW7), transcript variant 1, mRNA'
         assert results['NM_033632.3:c.45_46insCCT']['gene_symbol'] == 'FBXW7'
         assert results['NM_033632.3:c.45_46insCCT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_361014.1:p.(Thr15_Gly16insPro)', 'slr': 'NP_361014.1:p.(T15_G16insP)'}
         assert results['NM_033632.3:c.45_46insCCT']['submitted_variant'] == '4-153332910-C-CAGG'
@@ -16130,7 +15312,6 @@ class TestVariants(object):
         assert results['NM_001257069.1:c.45_46insCCT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001257069.1:c.45_46insCCT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001257069.1:c.45_46insCCT']['alt_genomic_loci'] == []
-        assert results['NM_001257069.1:c.45_46insCCT']['transcript_description'] == 'Homo sapiens F-box and WD repeat domain containing 7 (FBXW7), transcript variant 4, mRNA'
         assert results['NM_001257069.1:c.45_46insCCT']['gene_symbol'] == 'FBXW7'
         assert results['NM_001257069.1:c.45_46insCCT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001243998.1:p.(Thr15_Gly16insPro)', 'slr': 'NP_001243998.1:p.(T15_G16insP)'}
         assert results['NM_001257069.1:c.45_46insCCT']['submitted_variant'] == '4-153332910-C-CAGG'
@@ -16149,7 +15330,6 @@ class TestVariants(object):
         assert results['NM_001349798.2:c.45_46insCCT']['hgvs_lrg_transcript_variant'] == 'LRG_1141t1:c.45_46insCCT'
         assert results['NM_001349798.2:c.45_46insCCT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001349798.2:c.45_46insCCT']['alt_genomic_loci'] == []
-        assert results['NM_001349798.2:c.45_46insCCT']['transcript_description'] == 'Homo sapiens F-box and WD repeat domain containing 7 (FBXW7), transcript variant 5, mRNA'
         assert results['NM_001349798.2:c.45_46insCCT']['gene_symbol'] == 'FBXW7'
         assert results['NM_001349798.2:c.45_46insCCT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001336727.1:p.(Thr15_Gly16insPro)', 'slr': 'NP_001336727.1:p.(T15_G16insP)'}
         assert results['NM_001349798.2:c.45_46insCCT']['submitted_variant'] == '4-153332910-C-CAGG'
@@ -16174,7 +15354,6 @@ class TestVariants(object):
         assert results['Intergenic_Variant_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['Intergenic_Variant_1']['refseqgene_context_intronic_sequence'] == ''
         assert results['Intergenic_Variant_1']['alt_genomic_loci'] == []
-        assert results['Intergenic_Variant_1']['transcript_description'] == ''
         assert results['Intergenic_Variant_1']['gene_symbol'] == ''
         assert results['Intergenic_Variant_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['Intergenic_Variant_1']['submitted_variant'] == '5-1295183-G-A'
@@ -16198,7 +15377,6 @@ class TestVariants(object):
         assert results['NM_003664.4:c.2409_2411del']['hgvs_lrg_transcript_variant'] == 'LRG_170t1:c.2409_2411del'
         assert results['NM_003664.4:c.2409_2411del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003664.4:c.2409_2411del']['alt_genomic_loci'] == []
-        assert results['NM_003664.4:c.2409_2411del']['transcript_description'] == 'Homo sapiens adaptor related protein complex 3 subunit beta 1 (AP3B1), transcript variant 1, mRNA'
         assert results['NM_003664.4:c.2409_2411del']['gene_symbol'] == 'AP3B1'
         assert results['NM_003664.4:c.2409_2411del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003655.3(LRG_170p1):p.(Lys804del)', 'slr': 'NP_003655.3:p.(K804del)'}
         assert results['NM_003664.4:c.2409_2411del']['submitted_variant'] == '5-77396835-TTTC-T'
@@ -16217,7 +15395,6 @@ class TestVariants(object):
         assert results['NM_003664.3:c.2409_2411del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003664.3:c.2409_2411del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003664.3:c.2409_2411del']['alt_genomic_loci'] == []
-        assert results['NM_003664.3:c.2409_2411del']['transcript_description'] == 'Homo sapiens adaptor-related protein complex 3, beta 1 subunit (AP3B1), mRNA'
         assert results['NM_003664.3:c.2409_2411del']['gene_symbol'] == 'AP3B1'
         assert results['NM_003664.3:c.2409_2411del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003655.3(LRG_170p1):p.(Lys804del)', 'slr': 'NP_003655.3:p.(K804del)'}
         assert results['NM_003664.3:c.2409_2411del']['submitted_variant'] == '5-77396835-TTTC-T'
@@ -16235,7 +15412,6 @@ class TestVariants(object):
         assert results['NM_001271769.1:c.2262_2264del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001271769.1:c.2262_2264del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001271769.1:c.2262_2264del']['alt_genomic_loci'] == []
-        assert results['NM_001271769.1:c.2262_2264del']['transcript_description'] == 'Homo sapiens adaptor related protein complex 3 subunit beta 1 (AP3B1), transcript variant 2, mRNA'
         assert results['NM_001271769.1:c.2262_2264del']['gene_symbol'] == 'AP3B1'
         assert results['NM_001271769.1:c.2262_2264del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001258698.1:p.(Lys755del)', 'slr': 'NP_001258698.1:p.(K755del)'}
         assert results['NM_001271769.1:c.2262_2264del']['submitted_variant'] == '5-77396835-TTTC-T'
@@ -16259,7 +15435,6 @@ class TestVariants(object):
         assert results['NM_000414.3:c.302+3_302+6del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000414.3:c.302+3_302+6del']['refseqgene_context_intronic_sequence'] == 'NG_008182.1(NM_000414.3):c.302+3_302+6del'
         assert results['NM_000414.3:c.302+3_302+6del']['alt_genomic_loci'] == []
-        assert results['NM_000414.3:c.302+3_302+6del']['transcript_description'] == 'Homo sapiens hydroxysteroid 17-beta dehydrogenase 4 (HSD17B4), transcript variant 2, mRNA'
         assert results['NM_000414.3:c.302+3_302+6del']['gene_symbol'] == 'HSD17B4'
         assert results['NM_000414.3:c.302+3_302+6del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000405.1:p.?', 'slr': 'NP_000405.1:p.?'}
         assert results['NM_000414.3:c.302+3_302+6del']['submitted_variant'] == '5-118811422-GGTGA-G'
@@ -16277,7 +15452,6 @@ class TestVariants(object):
         assert results['NM_001292028.1:c.-110+3_-110+6del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001292028.1:c.-110+3_-110+6del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001292028.1:c.-110+3_-110+6del']['alt_genomic_loci'] == []
-        assert results['NM_001292028.1:c.-110+3_-110+6del']['transcript_description'] == 'Homo sapiens hydroxysteroid 17-beta dehydrogenase 4 (HSD17B4), transcript variant 5, mRNA'
         assert results['NM_001292028.1:c.-110+3_-110+6del']['gene_symbol'] == 'HSD17B4'
         assert results['NM_001292028.1:c.-110+3_-110+6del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001278957.1:p.?', 'slr': 'NP_001278957.1:p.?'}
         assert results['NM_001292028.1:c.-110+3_-110+6del']['submitted_variant'] == '5-118811422-GGTGA-G'
@@ -16295,7 +15469,6 @@ class TestVariants(object):
         assert results['NM_001199291.2:c.377+3_377+6del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001199291.2:c.377+3_377+6del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001199291.2:c.377+3_377+6del']['alt_genomic_loci'] == []
-        assert results['NM_001199291.2:c.377+3_377+6del']['transcript_description'] == 'Homo sapiens hydroxysteroid 17-beta dehydrogenase 4 (HSD17B4), transcript variant 1, mRNA'
         assert results['NM_001199291.2:c.377+3_377+6del']['gene_symbol'] == 'HSD17B4'
         assert results['NM_001199291.2:c.377+3_377+6del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001186220.1:p.?', 'slr': 'NP_001186220.1:p.?'}
         assert results['NM_001199291.2:c.377+3_377+6del']['submitted_variant'] == '5-118811422-GGTGA-G'
@@ -16314,7 +15487,6 @@ class TestVariants(object):
         assert results['NM_001292027.1:c.230+3_230+6del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001292027.1:c.230+3_230+6del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001292027.1:c.230+3_230+6del']['alt_genomic_loci'] == []
-        assert results['NM_001292027.1:c.230+3_230+6del']['transcript_description'] == 'Homo sapiens hydroxysteroid 17-beta dehydrogenase 4 (HSD17B4), transcript variant 4, mRNA'
         assert results['NM_001292027.1:c.230+3_230+6del']['gene_symbol'] == 'HSD17B4'
         assert results['NM_001292027.1:c.230+3_230+6del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001278956.1:p.?', 'slr': 'NP_001278956.1:p.?'}
         assert results['NM_001292027.1:c.230+3_230+6del']['submitted_variant'] == '5-118811422-GGTGA-G'
@@ -16332,7 +15504,6 @@ class TestVariants(object):
         assert results['NM_001199291.1:c.377+3_377+6del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001199291.1:c.377+3_377+6del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001199291.1:c.377+3_377+6del']['alt_genomic_loci'] == []
-        assert results['NM_001199291.1:c.377+3_377+6del']['transcript_description'] == 'Homo sapiens hydroxysteroid (17-beta) dehydrogenase 4 (HSD17B4), transcript variant 1, mRNA'
         assert results['NM_001199291.1:c.377+3_377+6del']['gene_symbol'] == 'HSD17B4'
         assert results['NM_001199291.1:c.377+3_377+6del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001186220.1:p.?', 'slr': 'NP_001186220.1:p.?'}
         assert results['NM_001199291.1:c.377+3_377+6del']['submitted_variant'] == '5-118811422-GGTGA-G'
@@ -16350,7 +15521,6 @@ class TestVariants(object):
         assert results['NM_001199292.1:c.248+3_248+6del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001199292.1:c.248+3_248+6del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001199292.1:c.248+3_248+6del']['alt_genomic_loci'] == []
-        assert results['NM_001199292.1:c.248+3_248+6del']['transcript_description'] == 'Homo sapiens hydroxysteroid 17-beta dehydrogenase 4 (HSD17B4), transcript variant 3, mRNA'
         assert results['NM_001199292.1:c.248+3_248+6del']['gene_symbol'] == 'HSD17B4'
         assert results['NM_001199292.1:c.248+3_248+6del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001186221.1:p.?', 'slr': 'NP_001186221.1:p.?'}
         assert results['NM_001199292.1:c.248+3_248+6del']['submitted_variant'] == '5-118811422-GGTGA-G'
@@ -16374,7 +15544,6 @@ class TestVariants(object):
         assert results['NM_001292028.1:c.-110+1_-110+5del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001292028.1:c.-110+1_-110+5del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001292028.1:c.-110+1_-110+5del']['alt_genomic_loci'] == []
-        assert results['NM_001292028.1:c.-110+1_-110+5del']['transcript_description'] == 'Homo sapiens hydroxysteroid 17-beta dehydrogenase 4 (HSD17B4), transcript variant 5, mRNA'
         assert results['NM_001292028.1:c.-110+1_-110+5del']['gene_symbol'] == 'HSD17B4'
         assert results['NM_001292028.1:c.-110+1_-110+5del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001278957.1:p.?', 'slr': 'NP_001278957.1:p.?'}
         assert results['NM_001292028.1:c.-110+1_-110+5del']['submitted_variant'] == '5-118811422-GGTGAG-G'
@@ -16392,7 +15561,6 @@ class TestVariants(object):
         assert results['NM_000414.3:c.302+1_302+5del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000414.3:c.302+1_302+5del']['refseqgene_context_intronic_sequence'] == 'NG_008182.1(NM_000414.3):c.302+1_302+5del'
         assert results['NM_000414.3:c.302+1_302+5del']['alt_genomic_loci'] == []
-        assert results['NM_000414.3:c.302+1_302+5del']['transcript_description'] == 'Homo sapiens hydroxysteroid 17-beta dehydrogenase 4 (HSD17B4), transcript variant 2, mRNA'
         assert results['NM_000414.3:c.302+1_302+5del']['gene_symbol'] == 'HSD17B4'
         assert results['NM_000414.3:c.302+1_302+5del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000405.1:p.?', 'slr': 'NP_000405.1:p.?'}
         assert results['NM_000414.3:c.302+1_302+5del']['submitted_variant'] == '5-118811422-GGTGAG-G'
@@ -16410,7 +15578,6 @@ class TestVariants(object):
         assert results['NM_001199291.2:c.377+1_377+5del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001199291.2:c.377+1_377+5del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001199291.2:c.377+1_377+5del']['alt_genomic_loci'] == []
-        assert results['NM_001199291.2:c.377+1_377+5del']['transcript_description'] == 'Homo sapiens hydroxysteroid 17-beta dehydrogenase 4 (HSD17B4), transcript variant 1, mRNA'
         assert results['NM_001199291.2:c.377+1_377+5del']['gene_symbol'] == 'HSD17B4'
         assert results['NM_001199291.2:c.377+1_377+5del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001186220.1:p.?', 'slr': 'NP_001186220.1:p.?'}
         assert results['NM_001199291.2:c.377+1_377+5del']['submitted_variant'] == '5-118811422-GGTGAG-G'
@@ -16428,7 +15595,6 @@ class TestVariants(object):
         assert results['NM_001199292.1:c.248+1_248+5del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001199292.1:c.248+1_248+5del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001199292.1:c.248+1_248+5del']['alt_genomic_loci'] == []
-        assert results['NM_001199292.1:c.248+1_248+5del']['transcript_description'] == 'Homo sapiens hydroxysteroid 17-beta dehydrogenase 4 (HSD17B4), transcript variant 3, mRNA'
         assert results['NM_001199292.1:c.248+1_248+5del']['gene_symbol'] == 'HSD17B4'
         assert results['NM_001199292.1:c.248+1_248+5del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001186221.1:p.?', 'slr': 'NP_001186221.1:p.?'}
         assert results['NM_001199292.1:c.248+1_248+5del']['submitted_variant'] == '5-118811422-GGTGAG-G'
@@ -16447,7 +15613,6 @@ class TestVariants(object):
         assert results['NM_001199291.1:c.377+1_377+5del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001199291.1:c.377+1_377+5del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001199291.1:c.377+1_377+5del']['alt_genomic_loci'] == []
-        assert results['NM_001199291.1:c.377+1_377+5del']['transcript_description'] == 'Homo sapiens hydroxysteroid (17-beta) dehydrogenase 4 (HSD17B4), transcript variant 1, mRNA'
         assert results['NM_001199291.1:c.377+1_377+5del']['gene_symbol'] == 'HSD17B4'
         assert results['NM_001199291.1:c.377+1_377+5del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001186220.1:p.?', 'slr': 'NP_001186220.1:p.?'}
         assert results['NM_001199291.1:c.377+1_377+5del']['submitted_variant'] == '5-118811422-GGTGAG-G'
@@ -16465,7 +15630,6 @@ class TestVariants(object):
         assert results['NM_001292027.1:c.230+1_230+5del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001292027.1:c.230+1_230+5del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001292027.1:c.230+1_230+5del']['alt_genomic_loci'] == []
-        assert results['NM_001292027.1:c.230+1_230+5del']['transcript_description'] == 'Homo sapiens hydroxysteroid 17-beta dehydrogenase 4 (HSD17B4), transcript variant 4, mRNA'
         assert results['NM_001292027.1:c.230+1_230+5del']['gene_symbol'] == 'HSD17B4'
         assert results['NM_001292027.1:c.230+1_230+5del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001278956.1:p.?', 'slr': 'NP_001278956.1:p.?'}
         assert results['NM_001292027.1:c.230+1_230+5del']['submitted_variant'] == '5-118811422-GGTGAG-G'
@@ -16490,7 +15654,6 @@ class TestVariants(object):
         assert results['NR_110997.1:n.21del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_110997.1:n.21del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_110997.1:n.21del']['alt_genomic_loci'] == []
-        assert results['NR_110997.1:n.21del']['transcript_description'] == 'Homo sapiens MIR3936 host gene (MIR3936HG), long non-coding RNA'
         assert results['NR_110997.1:n.21del']['gene_symbol'] == 'MIR3936HG'
         assert results['NR_110997.1:n.21del']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_110997.1:n.21del']['submitted_variant'] == '5-131705587-CG-C'
@@ -16508,7 +15671,6 @@ class TestVariants(object):
         assert results['NM_003060.3:c.-75del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003060.3:c.-75del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003060.3:c.-75del']['alt_genomic_loci'] == []
-        assert results['NM_003060.3:c.-75del']['transcript_description'] == 'Homo sapiens solute carrier family 22 member 5 (SLC22A5), transcript variant 2, mRNA'
         assert results['NM_003060.3:c.-75del']['gene_symbol'] == 'SLC22A5'
         assert results['NM_003060.3:c.-75del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003051.1:p.?', 'slr': 'NP_003051.1:p.?'}
         assert results['NM_003060.3:c.-75del']['submitted_variant'] == '5-131705587-CG-C'
@@ -16526,7 +15688,6 @@ class TestVariants(object):
         assert results['NM_001308122.1:c.-75del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001308122.1:c.-75del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001308122.1:c.-75del']['alt_genomic_loci'] == []
-        assert results['NM_001308122.1:c.-75del']['transcript_description'] == 'Homo sapiens solute carrier family 22 member 5 (SLC22A5), transcript variant 1, mRNA'
         assert results['NM_001308122.1:c.-75del']['gene_symbol'] == 'SLC22A5'
         assert results['NM_001308122.1:c.-75del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001295051.1:p.?', 'slr': 'NP_001295051.1:p.?'}
         assert results['NM_001308122.1:c.-75del']['submitted_variant'] == '5-131705587-CG-C'
@@ -16551,7 +15712,6 @@ class TestVariants(object):
         assert results['NM_024577.3:c.2813A>G']['hgvs_lrg_transcript_variant'] == 'LRG_269t1:c.2813A>G'
         assert results['NM_024577.3:c.2813A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_024577.3:c.2813A>G']['alt_genomic_loci'] == []
-        assert results['NM_024577.3:c.2813A>G']['transcript_description'] == 'Homo sapiens SH3 domain and tetratricopeptide repeats 2 (SH3TC2), mRNA'
         assert results['NM_024577.3:c.2813A>G']['gene_symbol'] == 'SH3TC2'
         assert results['NM_024577.3:c.2813A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_078853.2(LRG_269p1):p.(His938Arg)', 'slr': 'NP_078853.2:p.(H938R)'}
         assert results['NM_024577.3:c.2813A>G']['submitted_variant'] == '5-148406482-T-C'
@@ -16575,7 +15735,6 @@ class TestVariants(object):
         assert results['NM_014845.5:c.123_124insCAG']['hgvs_lrg_transcript_variant'] == 'LRG_241t1:c.123_124insCAG'
         assert results['NM_014845.5:c.123_124insCAG']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_014845.5:c.123_124insCAG']['alt_genomic_loci'] == []
-        assert results['NM_014845.5:c.123_124insCAG']['transcript_description'] == 'Homo sapiens FIG4 phosphoinositide 5-phosphatase (FIG4), mRNA'
         assert results['NM_014845.5:c.123_124insCAG']['gene_symbol'] == 'FIG4'
         assert results['NM_014845.5:c.123_124insCAG']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055660.1(LRG_241p1):p.(Ile41_Asp42insGln)', 'slr': 'NP_055660.1:p.(I41_D42insQ)'}
         assert results['NM_014845.5:c.123_124insCAG']['submitted_variant'] == '6-110036337-T-TCAG'
@@ -16600,7 +15759,6 @@ class TestVariants(object):
         assert results['NM_014845.5:c.124_126del']['hgvs_lrg_transcript_variant'] == 'LRG_241t1:c.124_126del'
         assert results['NM_014845.5:c.124_126del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_014845.5:c.124_126del']['alt_genomic_loci'] == []
-        assert results['NM_014845.5:c.124_126del']['transcript_description'] == 'Homo sapiens FIG4 phosphoinositide 5-phosphatase (FIG4), mRNA'
         assert results['NM_014845.5:c.124_126del']['gene_symbol'] == 'FIG4'
         assert results['NM_014845.5:c.124_126del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055660.1(LRG_241p1):p.(Asp42del)', 'slr': 'NP_055660.1:p.(D42del)'}
         assert results['NM_014845.5:c.124_126del']['submitted_variant'] == '6-110036337-TGAT-T'
@@ -16626,7 +15784,6 @@ class TestVariants(object):
         assert results['NM_182961.3:c.14018G>T']['hgvs_lrg_transcript_variant'] == 'LRG_427t1:c.14018G>T'
         assert results['NM_182961.3:c.14018G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_182961.3:c.14018G>T']['alt_genomic_loci'] == []
-        assert results['NM_182961.3:c.14018G>T']['transcript_description'] == 'Homo sapiens spectrin repeat containing nuclear envelope protein 1 (SYNE1), transcript variant 1, mRNA'
         assert results['NM_182961.3:c.14018G>T']['gene_symbol'] == 'SYNE1'
         assert results['NM_182961.3:c.14018G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_892006.3(LRG_427p1):p.(Arg4673Leu)', 'slr': 'NP_892006.3:p.(R4673L)'}
         assert results['NM_182961.3:c.14018G>T']['submitted_variant'] == '6-152651802-C-A'
@@ -16644,7 +15801,6 @@ class TestVariants(object):
         assert results['NM_033071.3:c.13805G>T']['hgvs_lrg_transcript_variant'] == 'LRG_427t2:c.13805G>T'
         assert results['NM_033071.3:c.13805G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_033071.3:c.13805G>T']['alt_genomic_loci'] == []
-        assert results['NM_033071.3:c.13805G>T']['transcript_description'] == 'Homo sapiens spectrin repeat containing nuclear envelope protein 1 (SYNE1), transcript variant 2, mRNA'
         assert results['NM_033071.3:c.13805G>T']['gene_symbol'] == 'SYNE1'
         assert results['NM_033071.3:c.13805G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_149062.1(LRG_427p2):p.(Arg4602Leu)', 'slr': 'NP_149062.1:p.(R4602L)'}
         assert results['NM_033071.3:c.13805G>T']['submitted_variant'] == '6-152651802-C-A'
@@ -16669,7 +15825,6 @@ class TestVariants(object):
         assert results['NM_033071.3:c.5950G>C']['hgvs_lrg_transcript_variant'] == 'LRG_427t2:c.5950G>C'
         assert results['NM_033071.3:c.5950G>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_033071.3:c.5950G>C']['alt_genomic_loci'] == []
-        assert results['NM_033071.3:c.5950G>C']['transcript_description'] == 'Homo sapiens spectrin repeat containing nuclear envelope protein 1 (SYNE1), transcript variant 2, mRNA'
         assert results['NM_033071.3:c.5950G>C']['gene_symbol'] == 'SYNE1'
         assert results['NM_033071.3:c.5950G>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_149062.1(LRG_427p2):p.(Ala1984Pro)', 'slr': 'NP_149062.1:p.(A1984P)'}
         assert results['NM_033071.3:c.5950G>C']['submitted_variant'] == '6-152737643-C-G'
@@ -16687,7 +15842,6 @@ class TestVariants(object):
         assert results['NM_182961.3:c.5929G>C']['hgvs_lrg_transcript_variant'] == 'LRG_427t1:c.5929G>C'
         assert results['NM_182961.3:c.5929G>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_182961.3:c.5929G>C']['alt_genomic_loci'] == []
-        assert results['NM_182961.3:c.5929G>C']['transcript_description'] == 'Homo sapiens spectrin repeat containing nuclear envelope protein 1 (SYNE1), transcript variant 1, mRNA'
         assert results['NM_182961.3:c.5929G>C']['gene_symbol'] == 'SYNE1'
         assert results['NM_182961.3:c.5929G>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_892006.3(LRG_427p1):p.(Ala1977Pro)', 'slr': 'NP_892006.3:p.(A1977P)'}
         assert results['NM_182961.3:c.5929G>C']['submitted_variant'] == '6-152737643-C-G'
@@ -16711,7 +15865,6 @@ class TestVariants(object):
         assert results['NM_001322012.1:c.688A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001322012.1:c.688A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001322012.1:c.688A>G']['alt_genomic_loci'] == []
-        assert results['NM_001322012.1:c.688A>G']['transcript_description'] == 'Homo sapiens PMS1 homolog 2, mismatch repair system component (PMS2), transcript variant 11, mRNA'
         assert results['NM_001322012.1:c.688A>G']['gene_symbol'] == 'PMS2'
         assert results['NM_001322012.1:c.688A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001308941.1:p.(Lys230Glu)', 'slr': 'NP_001308941.1:p.(K230E)'}
         assert results['NM_001322012.1:c.688A>G']['submitted_variant'] == '7-6026775-T-C'
@@ -16729,7 +15882,6 @@ class TestVariants(object):
         assert results['NM_001322010.1:c.1060A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001322010.1:c.1060A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001322010.1:c.1060A>G']['alt_genomic_loci'] == []
-        assert results['NM_001322010.1:c.1060A>G']['transcript_description'] == 'Homo sapiens PMS1 homolog 2, mismatch repair system component (PMS2), transcript variant 9, mRNA'
         assert results['NM_001322010.1:c.1060A>G']['gene_symbol'] == 'PMS2'
         assert results['NM_001322010.1:c.1060A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001308939.1:p.(Lys354Glu)', 'slr': 'NP_001308939.1:p.(K354E)'}
         assert results['NM_001322010.1:c.1060A>G']['submitted_variant'] == '7-6026775-T-C'
@@ -16747,7 +15899,6 @@ class TestVariants(object):
         assert results['NM_001322015.1:c.1312A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001322015.1:c.1312A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001322015.1:c.1312A>G']['alt_genomic_loci'] == []
-        assert results['NM_001322015.1:c.1312A>G']['transcript_description'] == 'Homo sapiens PMS1 homolog 2, mismatch repair system component (PMS2), transcript variant 14, mRNA'
         assert results['NM_001322015.1:c.1312A>G']['gene_symbol'] == 'PMS2'
         assert results['NM_001322015.1:c.1312A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001308944.1:p.(Lys438Glu)', 'slr': 'NP_001308944.1:p.(K438E)'}
         assert results['NM_001322015.1:c.1312A>G']['submitted_variant'] == '7-6026775-T-C'
@@ -16765,7 +15916,6 @@ class TestVariants(object):
         assert results['NM_001322003.1:c.1216A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001322003.1:c.1216A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001322003.1:c.1216A>G']['alt_genomic_loci'] == []
-        assert results['NM_001322003.1:c.1216A>G']['transcript_description'] == 'Homo sapiens PMS1 homolog 2, mismatch repair system component (PMS2), transcript variant 2, mRNA'
         assert results['NM_001322003.1:c.1216A>G']['gene_symbol'] == 'PMS2'
         assert results['NM_001322003.1:c.1216A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001308932.1:p.(Lys406Glu)', 'slr': 'NP_001308932.1:p.(K406E)'}
         assert results['NM_001322003.1:c.1216A>G']['submitted_variant'] == '7-6026775-T-C'
@@ -16783,7 +15933,6 @@ class TestVariants(object):
         assert results['NM_001322014.1:c.1621A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001322014.1:c.1621A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001322014.1:c.1621A>G']['alt_genomic_loci'] == []
-        assert results['NM_001322014.1:c.1621A>G']['transcript_description'] == 'Homo sapiens PMS1 homolog 2, mismatch repair system component (PMS2), transcript variant 13, mRNA'
         assert results['NM_001322014.1:c.1621A>G']['gene_symbol'] == 'PMS2'
         assert results['NM_001322014.1:c.1621A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001308943.1:p.(Lys541Glu)', 'slr': 'NP_001308943.1:p.(K541E)'}
         assert results['NM_001322014.1:c.1621A>G']['submitted_variant'] == '7-6026775-T-C'
@@ -16801,7 +15950,6 @@ class TestVariants(object):
         assert results['NM_001322004.1:c.1216A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001322004.1:c.1216A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001322004.1:c.1216A>G']['alt_genomic_loci'] == []
-        assert results['NM_001322004.1:c.1216A>G']['transcript_description'] == 'Homo sapiens PMS1 homolog 2, mismatch repair system component (PMS2), transcript variant 3, mRNA'
         assert results['NM_001322004.1:c.1216A>G']['gene_symbol'] == 'PMS2'
         assert results['NM_001322004.1:c.1216A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001308933.1:p.(Lys406Glu)', 'slr': 'NP_001308933.1:p.(K406E)'}
         assert results['NM_001322004.1:c.1216A>G']['submitted_variant'] == '7-6026775-T-C'
@@ -16819,7 +15967,6 @@ class TestVariants(object):
         assert results['NM_001322008.1:c.1303A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001322008.1:c.1303A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001322008.1:c.1303A>G']['alt_genomic_loci'] == []
-        assert results['NM_001322008.1:c.1303A>G']['transcript_description'] == 'Homo sapiens PMS1 homolog 2, mismatch repair system component (PMS2), transcript variant 7, mRNA'
         assert results['NM_001322008.1:c.1303A>G']['gene_symbol'] == 'PMS2'
         assert results['NM_001322008.1:c.1303A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001308937.1:p.(Lys435Glu)', 'slr': 'NP_001308937.1:p.(K435E)'}
         assert results['NM_001322008.1:c.1303A>G']['submitted_variant'] == '7-6026775-T-C'
@@ -16837,7 +15984,6 @@ class TestVariants(object):
         assert results['NM_001322006.1:c.1465A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001322006.1:c.1465A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001322006.1:c.1465A>G']['alt_genomic_loci'] == []
-        assert results['NM_001322006.1:c.1465A>G']['transcript_description'] == 'Homo sapiens PMS1 homolog 2, mismatch repair system component (PMS2), transcript variant 5, mRNA'
         assert results['NM_001322006.1:c.1465A>G']['gene_symbol'] == 'PMS2'
         assert results['NM_001322006.1:c.1465A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001308935.1:p.(Lys489Glu)', 'slr': 'NP_001308935.1:p.(K489E)'}
         assert results['NM_001322006.1:c.1465A>G']['submitted_variant'] == '7-6026775-T-C'
@@ -16855,7 +16001,6 @@ class TestVariants(object):
         assert results['NM_001322013.1:c.1048A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001322013.1:c.1048A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001322013.1:c.1048A>G']['alt_genomic_loci'] == []
-        assert results['NM_001322013.1:c.1048A>G']['transcript_description'] == 'Homo sapiens PMS1 homolog 2, mismatch repair system component (PMS2), transcript variant 12, mRNA'
         assert results['NM_001322013.1:c.1048A>G']['gene_symbol'] == 'PMS2'
         assert results['NM_001322013.1:c.1048A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001308942.1:p.(Lys350Glu)', 'slr': 'NP_001308942.1:p.(K350E)'}
         assert results['NM_001322013.1:c.1048A>G']['submitted_variant'] == '7-6026775-T-C'
@@ -16873,7 +16018,6 @@ class TestVariants(object):
         assert results['NM_001322009.1:c.1216A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001322009.1:c.1216A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001322009.1:c.1216A>G']['alt_genomic_loci'] == []
-        assert results['NM_001322009.1:c.1216A>G']['transcript_description'] == 'Homo sapiens PMS1 homolog 2, mismatch repair system component (PMS2), transcript variant 8, mRNA'
         assert results['NM_001322009.1:c.1216A>G']['gene_symbol'] == 'PMS2'
         assert results['NM_001322009.1:c.1216A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001308938.1:p.(Lys406Glu)', 'slr': 'NP_001308938.1:p.(K406E)'}
         assert results['NM_001322009.1:c.1216A>G']['submitted_variant'] == '7-6026775-T-C'
@@ -16891,7 +16035,6 @@ class TestVariants(object):
         assert results['NR_003085.2:n.1703G=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_003085.2:n.1703G=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_003085.2:n.1703G=']['alt_genomic_loci'] == []
-        assert results['NR_003085.2:n.1703G=']['transcript_description'] == 'Homo sapiens PMS1 homolog 2, mismatch repair system component (PMS2), transcript variant 2, non-coding RNA'
         assert results['NR_003085.2:n.1703G=']['gene_symbol'] == 'PMS2'
         assert results['NR_003085.2:n.1703G=']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_003085.2:n.1703G=']['submitted_variant'] == '7-6026775-T-C'
@@ -16910,7 +16053,6 @@ class TestVariants(object):
         assert results['NM_001322005.1:c.1216A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001322005.1:c.1216A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001322005.1:c.1216A>G']['alt_genomic_loci'] == []
-        assert results['NM_001322005.1:c.1216A>G']['transcript_description'] == 'Homo sapiens PMS1 homolog 2, mismatch repair system component (PMS2), transcript variant 4, mRNA'
         assert results['NM_001322005.1:c.1216A>G']['gene_symbol'] == 'PMS2'
         assert results['NM_001322005.1:c.1216A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001308934.1:p.(Lys406Glu)', 'slr': 'NP_001308934.1:p.(K406E)'}
         assert results['NM_001322005.1:c.1216A>G']['submitted_variant'] == '7-6026775-T-C'
@@ -16928,7 +16070,6 @@ class TestVariants(object):
         assert results['NM_001322007.1:c.1303A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001322007.1:c.1303A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001322007.1:c.1303A>G']['alt_genomic_loci'] == []
-        assert results['NM_001322007.1:c.1303A>G']['transcript_description'] == 'Homo sapiens PMS1 homolog 2, mismatch repair system component (PMS2), transcript variant 6, mRNA'
         assert results['NM_001322007.1:c.1303A>G']['gene_symbol'] == 'PMS2'
         assert results['NM_001322007.1:c.1303A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001308936.1:p.(Lys435Glu)', 'slr': 'NP_001308936.1:p.(K435E)'}
         assert results['NM_001322007.1:c.1303A>G']['submitted_variant'] == '7-6026775-T-C'
@@ -16946,7 +16087,6 @@ class TestVariants(object):
         assert results['NM_000535.5:c.1621G=']['hgvs_lrg_transcript_variant'] == 'LRG_161t1:c.1621G='
         assert results['NM_000535.5:c.1621G=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000535.5:c.1621G=']['alt_genomic_loci'] == []
-        assert results['NM_000535.5:c.1621G=']['transcript_description'] == 'Homo sapiens PMS1 homolog 2, mismatch repair system component (PMS2), transcript variant 1, mRNA'
         assert results['NM_000535.5:c.1621G=']['gene_symbol'] == 'PMS2'
         assert results['NM_000535.5:c.1621G=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000526.1(LRG_161p1):p.(Glu541=)', 'slr': 'NP_000526.1:p.(E541=)'}
         assert results['NM_000535.5:c.1621G=']['submitted_variant'] == '7-6026775-T-C'
@@ -16964,7 +16104,6 @@ class TestVariants(object):
         assert results['NR_136154.1:n.1708A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_136154.1:n.1708A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_136154.1:n.1708A>G']['alt_genomic_loci'] == []
-        assert results['NR_136154.1:n.1708A>G']['transcript_description'] == 'Homo sapiens PMS1 homolog 2, mismatch repair system component (PMS2), transcript variant 15, non-coding RNA'
         assert results['NR_136154.1:n.1708A>G']['gene_symbol'] == 'PMS2'
         assert results['NR_136154.1:n.1708A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_136154.1:n.1708A>G']['submitted_variant'] == '7-6026775-T-C'
@@ -16982,7 +16121,6 @@ class TestVariants(object):
         assert results['NM_001322011.1:c.688A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001322011.1:c.688A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001322011.1:c.688A>G']['alt_genomic_loci'] == []
-        assert results['NM_001322011.1:c.688A>G']['transcript_description'] == 'Homo sapiens PMS1 homolog 2, mismatch repair system component (PMS2), transcript variant 10, mRNA'
         assert results['NM_001322011.1:c.688A>G']['gene_symbol'] == 'PMS2'
         assert results['NM_001322011.1:c.688A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001308940.1:p.(Lys230Glu)', 'slr': 'NP_001308940.1:p.(K230E)'}
         assert results['NM_001322011.1:c.688A>G']['submitted_variant'] == '7-6026775-T-C'
@@ -17000,7 +16138,6 @@ class TestVariants(object):
         assert results['NM_000535.6:c.1621A>G']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000535.6:c.1621A>G']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000535.6:c.1621A>G']['alt_genomic_loci'] == []
-        assert results['NM_000535.6:c.1621A>G']['transcript_description'] == 'Homo sapiens PMS1 homolog 2, mismatch repair system component (PMS2), transcript variant 1, mRNA'
         assert results['NM_000535.6:c.1621A>G']['gene_symbol'] == 'PMS2'
         assert results['NM_000535.6:c.1621A>G']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000526.2:p.(Lys541Glu)', 'slr': 'NP_000526.2:p.(K541E)'}
         assert results['NM_000535.6:c.1621A>G']['submitted_variant'] == '7-6026775-T-C'
@@ -17024,7 +16161,6 @@ class TestVariants(object):
         assert results['NM_001346900.1:c.2077_2091del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001346900.1:c.2077_2091del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001346900.1:c.2077_2091del']['alt_genomic_loci'] == []
-        assert results['NM_001346900.1:c.2077_2091del']['transcript_description'] == 'Homo sapiens epidermal growth factor receptor (EGFR), transcript variant 8, mRNA'
         assert results['NM_001346900.1:c.2077_2091del']['gene_symbol'] == 'EGFR'
         assert results['NM_001346900.1:c.2077_2091del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001333829.1:p.(Glu693_Ala697del)', 'slr': 'NP_001333829.1:p.(E693_A697del)'}
         assert results['NM_001346900.1:c.2077_2091del']['submitted_variant'] == '7-55242465-GGAATTAAGAGAAGCA-G'
@@ -17042,7 +16178,6 @@ class TestVariants(object):
         assert results['NM_001346898.1:c.2236_2250del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001346898.1:c.2236_2250del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001346898.1:c.2236_2250del']['alt_genomic_loci'] == []
-        assert results['NM_001346898.1:c.2236_2250del']['transcript_description'] == 'Homo sapiens epidermal growth factor receptor (EGFR), transcript variant 6, mRNA'
         assert results['NM_001346898.1:c.2236_2250del']['gene_symbol'] == 'EGFR'
         assert results['NM_001346898.1:c.2236_2250del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001333827.1:p.(Glu746_Ala750del)', 'slr': 'NP_001333827.1:p.(E746_A750del)'}
         assert results['NM_001346898.1:c.2236_2250del']['submitted_variant'] == '7-55242465-GGAATTAAGAGAAGCA-G'
@@ -17060,7 +16195,6 @@ class TestVariants(object):
         assert results['NM_001346941.1:c.1435_1449del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001346941.1:c.1435_1449del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001346941.1:c.1435_1449del']['alt_genomic_loci'] == []
-        assert results['NM_001346941.1:c.1435_1449del']['transcript_description'] == 'Homo sapiens epidermal growth factor receptor (EGFR), transcript variant EGFRvIII, mRNA'
         assert results['NM_001346941.1:c.1435_1449del']['gene_symbol'] == 'EGFR'
         assert results['NM_001346941.1:c.1435_1449del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001333870.1:p.(Glu479_Ala483del)', 'slr': 'NP_001333870.1:p.(E479_A483del)'}
         assert results['NM_001346941.1:c.1435_1449del']['submitted_variant'] == '7-55242465-GGAATTAAGAGAAGCA-G'
@@ -17079,7 +16213,6 @@ class TestVariants(object):
         assert results['NM_001346899.1:c.2101_2115del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001346899.1:c.2101_2115del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001346899.1:c.2101_2115del']['alt_genomic_loci'] == []
-        assert results['NM_001346899.1:c.2101_2115del']['transcript_description'] == 'Homo sapiens epidermal growth factor receptor (EGFR), transcript variant 7, mRNA'
         assert results['NM_001346899.1:c.2101_2115del']['gene_symbol'] == 'EGFR'
         assert results['NM_001346899.1:c.2101_2115del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001333828.1:p.(Glu701_Ala705del)', 'slr': 'NP_001333828.1:p.(E701_A705del)'}
         assert results['NM_001346899.1:c.2101_2115del']['submitted_variant'] == '7-55242465-GGAATTAAGAGAAGCA-G'
@@ -17097,7 +16230,6 @@ class TestVariants(object):
         assert results['NM_001346897.1:c.2101_2115del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001346897.1:c.2101_2115del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001346897.1:c.2101_2115del']['alt_genomic_loci'] == []
-        assert results['NM_001346897.1:c.2101_2115del']['transcript_description'] == 'Homo sapiens epidermal growth factor receptor (EGFR), transcript variant 5, mRNA'
         assert results['NM_001346897.1:c.2101_2115del']['gene_symbol'] == 'EGFR'
         assert results['NM_001346897.1:c.2101_2115del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001333826.1:p.(Glu701_Ala705del)', 'slr': 'NP_001333826.1:p.(E701_A705del)'}
         assert results['NM_001346897.1:c.2101_2115del']['submitted_variant'] == '7-55242465-GGAATTAAGAGAAGCA-G'
@@ -17115,7 +16247,6 @@ class TestVariants(object):
         assert results['NM_005228.3:c.2236_2250del']['hgvs_lrg_transcript_variant'] == 'LRG_304t1:c.2236_2250del'
         assert results['NM_005228.3:c.2236_2250del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_005228.3:c.2236_2250del']['alt_genomic_loci'] == []
-        assert results['NM_005228.3:c.2236_2250del']['transcript_description'] == 'Homo sapiens epidermal growth factor receptor (EGFR), transcript variant 1, mRNA'
         assert results['NM_005228.3:c.2236_2250del']['gene_symbol'] == 'EGFR'
         assert results['NM_005228.3:c.2236_2250del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_005219.2(LRG_304p1):p.(Glu746_Ala750del)', 'slr': 'NP_005219.2:p.(E746_A750del)'}
         assert results['NM_005228.3:c.2236_2250del']['submitted_variant'] == '7-55242465-GGAATTAAGAGAAGCA-G'
@@ -17133,7 +16264,6 @@ class TestVariants(object):
         assert results['NM_005228.4:c.2236_2250del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_005228.4:c.2236_2250del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_005228.4:c.2236_2250del']['alt_genomic_loci'] == []
-        assert results['NM_005228.4:c.2236_2250del']['transcript_description'] == 'Homo sapiens epidermal growth factor receptor (EGFR), transcript variant 1, mRNA'
         assert results['NM_005228.4:c.2236_2250del']['gene_symbol'] == 'EGFR'
         assert results['NM_005228.4:c.2236_2250del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_005219.2(LRG_304p1):p.(Glu746_Ala750del)', 'slr': 'NP_005219.2:p.(E746_A750del)'}
         assert results['NM_005228.4:c.2236_2250del']['submitted_variant'] == '7-55242465-GGAATTAAGAGAAGCA-G'
@@ -17157,7 +16287,6 @@ class TestVariants(object):
         assert results['NM_005228.3:c.2284-5_2290dup']['hgvs_lrg_transcript_variant'] == 'LRG_304t1:c.2284-5_2290dup'
         assert results['NM_005228.3:c.2284-5_2290dup']['refseqgene_context_intronic_sequence'] == 'NG_007726.3(NM_005228.3):c.2284-5_2290dup'
         assert results['NM_005228.3:c.2284-5_2290dup']['alt_genomic_loci'] == []
-        assert results['NM_005228.3:c.2284-5_2290dup']['transcript_description'] == 'Homo sapiens epidermal growth factor receptor (EGFR), transcript variant 1, mRNA'
         assert results['NM_005228.3:c.2284-5_2290dup']['gene_symbol'] == 'EGFR'
         assert results['NM_005228.3:c.2284-5_2290dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_005219.2(LRG_304p1):p.?', 'slr': 'NP_005219.2:p.?'}
         assert results['NM_005228.3:c.2284-5_2290dup']['submitted_variant'] == '7-55248992-T-TTCCAGGAAGCCT'
@@ -17175,7 +16304,6 @@ class TestVariants(object):
         assert results['NM_001346899.1:c.2149-5_2155dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001346899.1:c.2149-5_2155dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001346899.1:c.2149-5_2155dup']['alt_genomic_loci'] == []
-        assert results['NM_001346899.1:c.2149-5_2155dup']['transcript_description'] == 'Homo sapiens epidermal growth factor receptor (EGFR), transcript variant 7, mRNA'
         assert results['NM_001346899.1:c.2149-5_2155dup']['gene_symbol'] == 'EGFR'
         assert results['NM_001346899.1:c.2149-5_2155dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001333828.1:p.?', 'slr': 'NP_001333828.1:p.?'}
         assert results['NM_001346899.1:c.2149-5_2155dup']['submitted_variant'] == '7-55248992-T-TTCCAGGAAGCCT'
@@ -17193,7 +16321,6 @@ class TestVariants(object):
         assert results['NM_005228.4:c.2284-5_2290dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_005228.4:c.2284-5_2290dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_005228.4:c.2284-5_2290dup']['alt_genomic_loci'] == []
-        assert results['NM_005228.4:c.2284-5_2290dup']['transcript_description'] == 'Homo sapiens epidermal growth factor receptor (EGFR), transcript variant 1, mRNA'
         assert results['NM_005228.4:c.2284-5_2290dup']['gene_symbol'] == 'EGFR'
         assert results['NM_005228.4:c.2284-5_2290dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_005219.2(LRG_304p1):p.?', 'slr': 'NP_005219.2:p.?'}
         assert results['NM_005228.4:c.2284-5_2290dup']['submitted_variant'] == '7-55248992-T-TTCCAGGAAGCCT'
@@ -17211,7 +16338,6 @@ class TestVariants(object):
         assert results['NM_001346898.1:c.2284-5_2290dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001346898.1:c.2284-5_2290dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001346898.1:c.2284-5_2290dup']['alt_genomic_loci'] == []
-        assert results['NM_001346898.1:c.2284-5_2290dup']['transcript_description'] == 'Homo sapiens epidermal growth factor receptor (EGFR), transcript variant 6, mRNA'
         assert results['NM_001346898.1:c.2284-5_2290dup']['gene_symbol'] == 'EGFR'
         assert results['NM_001346898.1:c.2284-5_2290dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001333827.1:p.?', 'slr': 'NP_001333827.1:p.?'}
         assert results['NM_001346898.1:c.2284-5_2290dup']['submitted_variant'] == '7-55248992-T-TTCCAGGAAGCCT'
@@ -17229,7 +16355,6 @@ class TestVariants(object):
         assert results['NM_001346941.1:c.1483-5_1489dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001346941.1:c.1483-5_1489dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001346941.1:c.1483-5_1489dup']['alt_genomic_loci'] == []
-        assert results['NM_001346941.1:c.1483-5_1489dup']['transcript_description'] == 'Homo sapiens epidermal growth factor receptor (EGFR), transcript variant EGFRvIII, mRNA'
         assert results['NM_001346941.1:c.1483-5_1489dup']['gene_symbol'] == 'EGFR'
         assert results['NM_001346941.1:c.1483-5_1489dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001333870.1:p.?', 'slr': 'NP_001333870.1:p.?'}
         assert results['NM_001346941.1:c.1483-5_1489dup']['submitted_variant'] == '7-55248992-T-TTCCAGGAAGCCT'
@@ -17248,7 +16373,6 @@ class TestVariants(object):
         assert results['NM_001346900.1:c.2125-5_2131dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001346900.1:c.2125-5_2131dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001346900.1:c.2125-5_2131dup']['alt_genomic_loci'] == []
-        assert results['NM_001346900.1:c.2125-5_2131dup']['transcript_description'] == 'Homo sapiens epidermal growth factor receptor (EGFR), transcript variant 8, mRNA'
         assert results['NM_001346900.1:c.2125-5_2131dup']['gene_symbol'] == 'EGFR'
         assert results['NM_001346900.1:c.2125-5_2131dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001333829.1:p.?', 'slr': 'NP_001333829.1:p.?'}
         assert results['NM_001346900.1:c.2125-5_2131dup']['submitted_variant'] == '7-55248992-T-TTCCAGGAAGCCT'
@@ -17266,7 +16390,6 @@ class TestVariants(object):
         assert results['NR_047551.1:n.1272_1283dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_047551.1:n.1272_1283dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_047551.1:n.1272_1283dup']['alt_genomic_loci'] == []
-        assert results['NR_047551.1:n.1272_1283dup']['transcript_description'] == 'Homo sapiens EGFR antisense RNA 1 (EGFR-AS1), long non-coding RNA'
         assert results['NR_047551.1:n.1272_1283dup']['gene_symbol'] == 'EGFR-AS1'
         assert results['NR_047551.1:n.1272_1283dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_047551.1:n.1272_1283dup']['submitted_variant'] == '7-55248992-T-TTCCAGGAAGCCT'
@@ -17284,7 +16407,6 @@ class TestVariants(object):
         assert results['NM_001346897.1:c.2149-5_2155dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001346897.1:c.2149-5_2155dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001346897.1:c.2149-5_2155dup']['alt_genomic_loci'] == []
-        assert results['NM_001346897.1:c.2149-5_2155dup']['transcript_description'] == 'Homo sapiens epidermal growth factor receptor (EGFR), transcript variant 5, mRNA'
         assert results['NM_001346897.1:c.2149-5_2155dup']['gene_symbol'] == 'EGFR'
         assert results['NM_001346897.1:c.2149-5_2155dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001333826.1:p.?', 'slr': 'NP_001333826.1:p.?'}
         assert results['NM_001346897.1:c.2149-5_2155dup']['submitted_variant'] == '7-55248992-T-TTCCAGGAAGCCT'
@@ -17308,7 +16430,6 @@ class TestVariants(object):
         assert results['NM_001540.4:c.82C>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001540.4:c.82C>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001540.4:c.82C>A']['alt_genomic_loci'] == []
-        assert results['NM_001540.4:c.82C>A']['transcript_description'] == 'Homo sapiens heat shock protein family B (small) member 1 (HSPB1), mRNA'
         assert results['NM_001540.4:c.82C>A']['gene_symbol'] == 'HSPB1'
         assert results['NM_001540.4:c.82C>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001531.1(LRG_248p1):p.(Leu28Ile)', 'slr': 'NP_001531.1:p.(L28I)'}
         assert results['NM_001540.4:c.82C>A']['submitted_variant'] == '7-75932111-C-A'
@@ -17327,7 +16448,6 @@ class TestVariants(object):
         assert results['NM_001540.3:c.82C>A']['hgvs_lrg_transcript_variant'] == 'LRG_248t1:c.82C>A'
         assert results['NM_001540.3:c.82C>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001540.3:c.82C>A']['alt_genomic_loci'] == []
-        assert results['NM_001540.3:c.82C>A']['transcript_description'] == 'Homo sapiens heat shock protein family B (small) member 1 (HSPB1), mRNA'
         assert results['NM_001540.3:c.82C>A']['gene_symbol'] == 'HSPB1'
         assert results['NM_001540.3:c.82C>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001531.1(LRG_248p1):p.(Leu28Ile)', 'slr': 'NP_001531.1:p.(L28I)'}
         assert results['NM_001540.3:c.82C>A']['submitted_variant'] == '7-75932111-C-A'
@@ -17352,7 +16472,6 @@ class TestVariants(object):
         assert results['NM_005751.4:c.4004_4006dup']['hgvs_lrg_transcript_variant'] == 'LRG_331t1:c.4004_4006dup'
         assert results['NM_005751.4:c.4004_4006dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_005751.4:c.4004_4006dup']['alt_genomic_loci'] == []
-        assert results['NM_005751.4:c.4004_4006dup']['transcript_description'] == 'Homo sapiens A-kinase anchoring protein 9 (AKAP9), transcript variant 2, mRNA'
         assert results['NM_005751.4:c.4004_4006dup']['gene_symbol'] == 'AKAP9'
         assert results['NM_005751.4:c.4004_4006dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_005742.4(LRG_331p1):p.(Lys1335_Leu1336insGln)', 'slr': 'NP_005742.4:p.(K1335_L1336insQ)'}
         assert results['NM_005751.4:c.4004_4006dup']['submitted_variant'] == '7-91652178-A-AAAC'
@@ -17370,7 +16489,6 @@ class TestVariants(object):
         assert results['NM_147185.2:c.4004_4006dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_147185.2:c.4004_4006dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_147185.2:c.4004_4006dup']['alt_genomic_loci'] == []
-        assert results['NM_147185.2:c.4004_4006dup']['transcript_description'] == 'Homo sapiens A-kinase anchoring protein 9 (AKAP9), transcript variant 3, mRNA'
         assert results['NM_147185.2:c.4004_4006dup']['gene_symbol'] == 'AKAP9'
         assert results['NM_147185.2:c.4004_4006dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_671714.1:p.(Lys1335_Leu1336insGln)', 'slr': 'NP_671714.1:p.(K1335_L1336insQ)'}
         assert results['NM_147185.2:c.4004_4006dup']['submitted_variant'] == '7-91652178-A-AAAC'
@@ -17395,7 +16513,6 @@ class TestVariants(object):
         assert results['NR_149084.1:n.221+1140_221+1142del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_149084.1:n.221+1140_221+1142del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_149084.1:n.221+1140_221+1142del']['alt_genomic_loci'] == []
-        assert results['NR_149084.1:n.221+1140_221+1142del']['transcript_description'] == 'Homo sapiens CFTR antisense RNA 1 (CFTR-AS1), long non-coding RNA'
         assert results['NR_149084.1:n.221+1140_221+1142del']['gene_symbol'] == 'CFTR-AS1'
         assert results['NR_149084.1:n.221+1140_221+1142del']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_149084.1:n.221+1140_221+1142del']['submitted_variant'] == '7-117199644-ATCT-A'
@@ -17413,7 +16530,6 @@ class TestVariants(object):
         assert results['NM_000492.3:c.1521_1523del']['hgvs_lrg_transcript_variant'] == 'LRG_663t1:c.1521_1523del'
         assert results['NM_000492.3:c.1521_1523del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000492.3:c.1521_1523del']['alt_genomic_loci'] == []
-        assert results['NM_000492.3:c.1521_1523del']['transcript_description'] == 'Homo sapiens cystic fibrosis transmembrane conductance regulator (CFTR), mRNA'
         assert results['NM_000492.3:c.1521_1523del']['gene_symbol'] == 'CFTR'
         assert results['NM_000492.3:c.1521_1523del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000483.3(LRG_663p1):p.(Phe508del)', 'slr': 'NP_000483.3:p.(F508del)'}
         assert results['NM_000492.3:c.1521_1523del']['submitted_variant'] == '7-117199644-ATCT-A'
@@ -17437,7 +16553,6 @@ class TestVariants(object):
         assert results['NR_148928.1:n.2896_2897delinsAG']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_148928.1:n.2896_2897delinsAG']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_148928.1:n.2896_2897delinsAG']['alt_genomic_loci'] == []
-        assert results['NR_148928.1:n.2896_2897delinsAG']['transcript_description'] == 'Homo sapiens B-Raf proto-oncogene, serine/threonine kinase (BRAF), transcript variant 3, non-coding RNA'
         assert results['NR_148928.1:n.2896_2897delinsAG']['gene_symbol'] == 'BRAF'
         assert results['NR_148928.1:n.2896_2897delinsAG']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_148928.1:n.2896_2897delinsAG']['submitted_variant'] == '7-140453136-AC-CT'
@@ -17455,7 +16570,6 @@ class TestVariants(object):
         assert results['NM_004333.4:c.1798_1799delinsAG']['hgvs_lrg_transcript_variant'] == 'LRG_299t1:c.1798_1799delinsAG'
         assert results['NM_004333.4:c.1798_1799delinsAG']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004333.4:c.1798_1799delinsAG']['alt_genomic_loci'] == []
-        assert results['NM_004333.4:c.1798_1799delinsAG']['transcript_description'] == 'Homo sapiens B-Raf proto-oncogene, serine/threonine kinase (BRAF), mRNA'
         assert results['NM_004333.4:c.1798_1799delinsAG']['gene_symbol'] == 'BRAF'
         assert results['NM_004333.4:c.1798_1799delinsAG']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_004324.2(LRG_299p1):p.(Val600Arg)', 'slr': 'NP_004324.2:p.(V600R)'}
         assert results['NM_004333.4:c.1798_1799delinsAG']['submitted_variant'] == '7-140453136-AC-CT'
@@ -17473,7 +16587,6 @@ class TestVariants(object):
         assert results['NM_004333.5:c.1798_1799delinsAG']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_004333.5:c.1798_1799delinsAG']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004333.5:c.1798_1799delinsAG']['alt_genomic_loci'] == []
-        assert results['NM_004333.5:c.1798_1799delinsAG']['transcript_description'] == 'Homo sapiens B-Raf proto-oncogene, serine/threonine kinase (BRAF), transcript variant 1, mRNA'
         assert results['NM_004333.5:c.1798_1799delinsAG']['gene_symbol'] == 'BRAF'
         assert results['NM_004333.5:c.1798_1799delinsAG']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_004324.2(LRG_299p1):p.(Val600Arg)', 'slr': 'NP_004324.2:p.(V600R)'}
         assert results['NM_004333.5:c.1798_1799delinsAG']['submitted_variant'] == '7-140453136-AC-CT'
@@ -17492,7 +16605,6 @@ class TestVariants(object):
         assert results['NM_001354609.1:c.1798_1799delinsAG']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001354609.1:c.1798_1799delinsAG']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001354609.1:c.1798_1799delinsAG']['alt_genomic_loci'] == []
-        assert results['NM_001354609.1:c.1798_1799delinsAG']['transcript_description'] == 'Homo sapiens B-Raf proto-oncogene, serine/threonine kinase (BRAF), transcript variant 2, mRNA'
         assert results['NM_001354609.1:c.1798_1799delinsAG']['gene_symbol'] == 'BRAF'
         assert results['NM_001354609.1:c.1798_1799delinsAG']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001341538.1:p.(Val600Arg)', 'slr': 'NP_001341538.1:p.(V600R)'}
         assert results['NM_001354609.1:c.1798_1799delinsAG']['submitted_variant'] == '7-140453136-AC-CT'
@@ -17516,7 +16628,6 @@ class TestVariants(object):
         assert results['NM_001354609.1:c.1799T>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001354609.1:c.1799T>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001354609.1:c.1799T>A']['alt_genomic_loci'] == []
-        assert results['NM_001354609.1:c.1799T>A']['transcript_description'] == 'Homo sapiens B-Raf proto-oncogene, serine/threonine kinase (BRAF), transcript variant 2, mRNA'
         assert results['NM_001354609.1:c.1799T>A']['gene_symbol'] == 'BRAF'
         assert results['NM_001354609.1:c.1799T>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001341538.1:p.(Val600Glu)', 'slr': 'NP_001341538.1:p.(V600E)'}
         assert results['NM_001354609.1:c.1799T>A']['submitted_variant'] == '7-140453136-A-T'
@@ -17534,7 +16645,6 @@ class TestVariants(object):
         assert results['NR_148928.1:n.2897T>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_148928.1:n.2897T>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_148928.1:n.2897T>A']['alt_genomic_loci'] == []
-        assert results['NR_148928.1:n.2897T>A']['transcript_description'] == 'Homo sapiens B-Raf proto-oncogene, serine/threonine kinase (BRAF), transcript variant 3, non-coding RNA'
         assert results['NR_148928.1:n.2897T>A']['gene_symbol'] == 'BRAF'
         assert results['NR_148928.1:n.2897T>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_148928.1:n.2897T>A']['submitted_variant'] == '7-140453136-A-T'
@@ -17552,7 +16662,6 @@ class TestVariants(object):
         assert results['NM_004333.5:c.1799T>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_004333.5:c.1799T>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004333.5:c.1799T>A']['alt_genomic_loci'] == []
-        assert results['NM_004333.5:c.1799T>A']['transcript_description'] == 'Homo sapiens B-Raf proto-oncogene, serine/threonine kinase (BRAF), transcript variant 1, mRNA'
         assert results['NM_004333.5:c.1799T>A']['gene_symbol'] == 'BRAF'
         assert results['NM_004333.5:c.1799T>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_004324.2(LRG_299p1):p.(Val600Glu)', 'slr': 'NP_004324.2:p.(V600E)'}
         assert results['NM_004333.5:c.1799T>A']['submitted_variant'] == '7-140453136-A-T'
@@ -17571,7 +16680,6 @@ class TestVariants(object):
         assert results['NM_004333.4:c.1799T>A']['hgvs_lrg_transcript_variant'] == 'LRG_299t1:c.1799T>A'
         assert results['NM_004333.4:c.1799T>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004333.4:c.1799T>A']['alt_genomic_loci'] == []
-        assert results['NM_004333.4:c.1799T>A']['transcript_description'] == 'Homo sapiens B-Raf proto-oncogene, serine/threonine kinase (BRAF), mRNA'
         assert results['NM_004333.4:c.1799T>A']['gene_symbol'] == 'BRAF'
         assert results['NM_004333.4:c.1799T>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_004324.2(LRG_299p1):p.(Val600Glu)', 'slr': 'NP_004324.2:p.(V600E)'}
         assert results['NM_004333.4:c.1799T>A']['submitted_variant'] == '7-140453136-A-T'
@@ -17595,7 +16703,6 @@ class TestVariants(object):
         assert results['NR_148928.1:n.2896G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_148928.1:n.2896G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_148928.1:n.2896G>A']['alt_genomic_loci'] == []
-        assert results['NR_148928.1:n.2896G>A']['transcript_description'] == 'Homo sapiens B-Raf proto-oncogene, serine/threonine kinase (BRAF), transcript variant 3, non-coding RNA'
         assert results['NR_148928.1:n.2896G>A']['gene_symbol'] == 'BRAF'
         assert results['NR_148928.1:n.2896G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_148928.1:n.2896G>A']['submitted_variant'] == '7-140453137-C-T'
@@ -17613,7 +16720,6 @@ class TestVariants(object):
         assert results['NM_004333.5:c.1798G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_004333.5:c.1798G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004333.5:c.1798G>A']['alt_genomic_loci'] == []
-        assert results['NM_004333.5:c.1798G>A']['transcript_description'] == 'Homo sapiens B-Raf proto-oncogene, serine/threonine kinase (BRAF), transcript variant 1, mRNA'
         assert results['NM_004333.5:c.1798G>A']['gene_symbol'] == 'BRAF'
         assert results['NM_004333.5:c.1798G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_004324.2(LRG_299p1):p.(Val600Met)', 'slr': 'NP_004324.2:p.(V600M)'}
         assert results['NM_004333.5:c.1798G>A']['submitted_variant'] == '7-140453137-C-T'
@@ -17631,7 +16737,6 @@ class TestVariants(object):
         assert results['NM_004333.4:c.1798G>A']['hgvs_lrg_transcript_variant'] == 'LRG_299t1:c.1798G>A'
         assert results['NM_004333.4:c.1798G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004333.4:c.1798G>A']['alt_genomic_loci'] == []
-        assert results['NM_004333.4:c.1798G>A']['transcript_description'] == 'Homo sapiens B-Raf proto-oncogene, serine/threonine kinase (BRAF), mRNA'
         assert results['NM_004333.4:c.1798G>A']['gene_symbol'] == 'BRAF'
         assert results['NM_004333.4:c.1798G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_004324.2(LRG_299p1):p.(Val600Met)', 'slr': 'NP_004324.2:p.(V600M)'}
         assert results['NM_004333.4:c.1798G>A']['submitted_variant'] == '7-140453137-C-T'
@@ -17649,7 +16754,6 @@ class TestVariants(object):
         assert results['NM_001354609.1:c.1798G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001354609.1:c.1798G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001354609.1:c.1798G>A']['alt_genomic_loci'] == []
-        assert results['NM_001354609.1:c.1798G>A']['transcript_description'] == 'Homo sapiens B-Raf proto-oncogene, serine/threonine kinase (BRAF), transcript variant 2, mRNA'
         assert results['NM_001354609.1:c.1798G>A']['gene_symbol'] == 'BRAF'
         assert results['NM_001354609.1:c.1798G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001341538.1:p.(Val600Met)', 'slr': 'NP_001341538.1:p.(V600M)'}
         assert results['NM_001354609.1:c.1798G>A']['submitted_variant'] == '7-140453137-C-T'
@@ -17675,7 +16779,6 @@ class TestVariants(object):
         assert results['NM_000083.2:c.180+3A>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000083.2:c.180+3A>T']['refseqgene_context_intronic_sequence'] == 'NG_009815.1(NM_000083.2):c.180+3A>T'
         assert results['NM_000083.2:c.180+3A>T']['alt_genomic_loci'] == []
-        assert results['NM_000083.2:c.180+3A>T']['transcript_description'] == 'Homo sapiens chloride voltage-gated channel 1 (CLCN1), transcript variant 1, mRNA'
         assert results['NM_000083.2:c.180+3A>T']['gene_symbol'] == 'CLCN1'
         assert results['NM_000083.2:c.180+3A>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000074.2:p.?', 'slr': 'NP_000074.2:p.?'}
         assert results['NM_000083.2:c.180+3A>T']['submitted_variant'] == '7-143013488-A-T'
@@ -17693,7 +16796,6 @@ class TestVariants(object):
         assert results['NR_046453.1:n.267+3A>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_046453.1:n.267+3A>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_046453.1:n.267+3A>T']['alt_genomic_loci'] == []
-        assert results['NR_046453.1:n.267+3A>T']['transcript_description'] == 'Homo sapiens chloride voltage-gated channel 1 (CLCN1), transcript variant 2, non-coding RNA'
         assert results['NR_046453.1:n.267+3A>T']['gene_symbol'] == 'CLCN1'
         assert results['NR_046453.1:n.267+3A>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_046453.1:n.267+3A>T']['submitted_variant'] == '7-143013488-A-T'
@@ -17717,7 +16819,6 @@ class TestVariants(object):
         assert results['NR_046453.1:n.776G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_046453.1:n.776G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_046453.1:n.776G>A']['alt_genomic_loci'] == []
-        assert results['NR_046453.1:n.776G>A']['transcript_description'] == 'Homo sapiens chloride voltage-gated channel 1 (CLCN1), transcript variant 2, non-coding RNA'
         assert results['NR_046453.1:n.776G>A']['gene_symbol'] == 'CLCN1'
         assert results['NR_046453.1:n.776G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_046453.1:n.776G>A']['submitted_variant'] == '7-143018934-G-A'
@@ -17736,7 +16837,6 @@ class TestVariants(object):
         assert results['NM_000083.2:c.689G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000083.2:c.689G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000083.2:c.689G>A']['alt_genomic_loci'] == []
-        assert results['NM_000083.2:c.689G>A']['transcript_description'] == 'Homo sapiens chloride voltage-gated channel 1 (CLCN1), transcript variant 1, mRNA'
         assert results['NM_000083.2:c.689G>A']['gene_symbol'] == 'CLCN1'
         assert results['NM_000083.2:c.689G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000074.2:p.(Gly230Glu)', 'slr': 'NP_000074.2:p.(G230E)'}
         assert results['NM_000083.2:c.689G>A']['submitted_variant'] == '7-143018934-G-A'
@@ -17761,7 +16861,6 @@ class TestVariants(object):
         assert results['NR_046453.1:n.2620C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_046453.1:n.2620C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_046453.1:n.2620C>T']['alt_genomic_loci'] == []
-        assert results['NR_046453.1:n.2620C>T']['transcript_description'] == 'Homo sapiens chloride voltage-gated channel 1 (CLCN1), transcript variant 2, non-coding RNA'
         assert results['NR_046453.1:n.2620C>T']['gene_symbol'] == 'CLCN1'
         assert results['NR_046453.1:n.2620C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_046453.1:n.2620C>T']['submitted_variant'] == '7-143048771-C-T'
@@ -17779,7 +16878,6 @@ class TestVariants(object):
         assert results['NM_000083.2:c.2680C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000083.2:c.2680C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000083.2:c.2680C>T']['alt_genomic_loci'] == []
-        assert results['NM_000083.2:c.2680C>T']['transcript_description'] == 'Homo sapiens chloride voltage-gated channel 1 (CLCN1), transcript variant 1, mRNA'
         assert results['NM_000083.2:c.2680C>T']['gene_symbol'] == 'CLCN1'
         assert results['NM_000083.2:c.2680C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000074.2:p.(Arg894Ter)', 'slr': 'NP_000074.2:p.(R894*)'}
         assert results['NM_000083.2:c.2680C>T']['submitted_variant'] == '7-143048771-C-T'
@@ -17803,7 +16901,6 @@ class TestVariants(object):
         assert results['NM_014629.3:c.2399C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_014629.3:c.2399C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_014629.3:c.2399C>T']['alt_genomic_loci'] == [{'grch38': {'hgvs_genomic_description': 'NT_187576.1:g.107161C>T', 'vcf': {'chr': 'HSCHR8_8_CTG1', 'ref': 'C', 'pos': '107161', 'alt': 'T'}}}, {'hg38': {'hgvs_genomic_description': 'NT_187576.1:g.107161C>T', 'vcf': {'chr': 'chr8_KI270821v1_alt', 'ref': 'C', 'pos': '107161', 'alt': 'T'}}}]
-        assert results['NM_014629.3:c.2399C>T']['transcript_description'] == 'Homo sapiens Rho guanine nucleotide exchange factor 10 (ARHGEF10), transcript variant 1, mRNA'
         assert results['NM_014629.3:c.2399C>T']['gene_symbol'] == 'ARHGEF10'
         assert results['NM_014629.3:c.2399C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055444.2(LRG_234p1):p.(Pro800Leu)', 'slr': 'NP_055444.2:p.(P800L)'}
         assert results['NM_014629.3:c.2399C>T']['submitted_variant'] == '8-1871951-C-T'
@@ -17821,7 +16918,6 @@ class TestVariants(object):
         assert results['NM_014629.2:c.2399C>T']['hgvs_lrg_transcript_variant'] == 'LRG_234t1:c.2399C>T'
         assert results['NM_014629.2:c.2399C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_014629.2:c.2399C>T']['alt_genomic_loci'] == []
-        assert results['NM_014629.2:c.2399C>T']['transcript_description'] == 'Homo sapiens Rho guanine nucleotide exchange factor (GEF) 10 (ARHGEF10), mRNA'
         assert results['NM_014629.2:c.2399C>T']['gene_symbol'] == 'ARHGEF10'
         assert results['NM_014629.2:c.2399C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_055444.2(LRG_234p1):p.(Pro800Leu)', 'slr': 'NP_055444.2:p.(P800L)'}
         assert results['NM_014629.2:c.2399C>T']['submitted_variant'] == '8-1871951-C-T'
@@ -17839,7 +16935,6 @@ class TestVariants(object):
         assert results['NM_001308153.1:c.2471C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001308153.1:c.2471C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001308153.1:c.2471C>T']['alt_genomic_loci'] == [{'grch38': {'hgvs_genomic_description': 'NT_187576.1:g.107161C>T', 'vcf': {'chr': 'HSCHR8_8_CTG1', 'ref': 'C', 'pos': '107161', 'alt': 'T'}}}, {'hg38': {'hgvs_genomic_description': 'NT_187576.1:g.107161C>T', 'vcf': {'chr': 'chr8_KI270821v1_alt', 'ref': 'C', 'pos': '107161', 'alt': 'T'}}}]
-        assert results['NM_001308153.1:c.2471C>T']['transcript_description'] == 'Homo sapiens Rho guanine nucleotide exchange factor 10 (ARHGEF10), transcript variant 3, mRNA'
         assert results['NM_001308153.1:c.2471C>T']['gene_symbol'] == 'ARHGEF10'
         assert results['NM_001308153.1:c.2471C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001295082.1:p.(Pro824Leu)', 'slr': 'NP_001295082.1:p.(P824L)'}
         assert results['NM_001308153.1:c.2471C>T']['submitted_variant'] == '8-1871951-C-T'
@@ -17858,7 +16953,6 @@ class TestVariants(object):
         assert results['NM_001308152.1:c.2285C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001308152.1:c.2285C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001308152.1:c.2285C>T']['alt_genomic_loci'] == [{'grch38': {'hgvs_genomic_description': 'NT_187576.1:g.107161C>T', 'vcf': {'chr': 'HSCHR8_8_CTG1', 'ref': 'C', 'pos': '107161', 'alt': 'T'}}}, {'hg38': {'hgvs_genomic_description': 'NT_187576.1:g.107161C>T', 'vcf': {'chr': 'chr8_KI270821v1_alt', 'ref': 'C', 'pos': '107161', 'alt': 'T'}}}]
-        assert results['NM_001308152.1:c.2285C>T']['transcript_description'] == 'Homo sapiens Rho guanine nucleotide exchange factor 10 (ARHGEF10), transcript variant 2, mRNA'
         assert results['NM_001308152.1:c.2285C>T']['gene_symbol'] == 'ARHGEF10'
         assert results['NM_001308152.1:c.2285C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001295081.1:p.(Pro762Leu)', 'slr': 'NP_001295081.1:p.(P762L)'}
         assert results['NM_001308152.1:c.2285C>T']['submitted_variant'] == '8-1871951-C-T'
@@ -17882,7 +16976,6 @@ class TestVariants(object):
         assert results['NM_001261407.1:c.5504dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001261407.1:c.5504dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001261407.1:c.5504dup']['alt_genomic_loci'] == []
-        assert results['NM_001261407.1:c.5504dup']['transcript_description'] == 'Homo sapiens multiple PDZ domain crumbs cell polarity complex component (MPDZ), transcript variant 3, mRNA'
         assert results['NM_001261407.1:c.5504dup']['gene_symbol'] == 'MPDZ'
         assert results['NM_001261407.1:c.5504dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001248336.1:p.(Thr1836AsnfsTer15)', 'slr': 'NP_001248336.1:p.(T1836Nfs*15)'}
         assert results['NM_001261407.1:c.5504dup']['submitted_variant'] == '9-13112056-T-TG'
@@ -17900,7 +16993,6 @@ class TestVariants(object):
         assert results['NM_001330637.1:c.5690dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001330637.1:c.5690dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001330637.1:c.5690dup']['alt_genomic_loci'] == []
-        assert results['NM_001330637.1:c.5690dup']['transcript_description'] == 'Homo sapiens multiple PDZ domain crumbs cell polarity complex component (MPDZ), transcript variant 4, mRNA'
         assert results['NM_001330637.1:c.5690dup']['gene_symbol'] == 'MPDZ'
         assert results['NM_001330637.1:c.5690dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001317566.1:p.(Thr1898AsnfsTer15)', 'slr': 'NP_001317566.1:p.(T1898Nfs*15)'}
         assert results['NM_001330637.1:c.5690dup']['submitted_variant'] == '9-13112056-T-TG'
@@ -17918,7 +17010,6 @@ class TestVariants(object):
         assert results['NM_001261406.1:c.5591dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001261406.1:c.5591dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001261406.1:c.5591dup']['alt_genomic_loci'] == []
-        assert results['NM_001261406.1:c.5591dup']['transcript_description'] == 'Homo sapiens multiple PDZ domain crumbs cell polarity complex component (MPDZ), transcript variant 2, mRNA'
         assert results['NM_001261406.1:c.5591dup']['gene_symbol'] == 'MPDZ'
         assert results['NM_001261406.1:c.5591dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001248335.1:p.(Thr1865AsnfsTer15)', 'slr': 'NP_001248335.1:p.(T1865Nfs*15)'}
         assert results['NM_001261406.1:c.5591dup']['submitted_variant'] == '9-13112056-T-TG'
@@ -17937,7 +17028,6 @@ class TestVariants(object):
         assert results['NM_003829.4:c.5603dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003829.4:c.5603dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003829.4:c.5603dup']['alt_genomic_loci'] == []
-        assert results['NM_003829.4:c.5603dup']['transcript_description'] == 'Homo sapiens multiple PDZ domain crumbs cell polarity complex component (MPDZ), transcript variant 1, mRNA'
         assert results['NM_003829.4:c.5603dup']['gene_symbol'] == 'MPDZ'
         assert results['NM_003829.4:c.5603dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003820.2:p.(Thr1869AsnfsTer15)', 'slr': 'NP_003820.2:p.(T1869Nfs*15)'}
         assert results['NM_003829.4:c.5603dup']['submitted_variant'] == '9-13112056-T-TG'
@@ -17961,7 +17051,6 @@ class TestVariants(object):
         assert results['NM_058197.4:c.*74-1G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_058197.4:c.*74-1G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_058197.4:c.*74-1G>T']['alt_genomic_loci'] == []
-        assert results['NM_058197.4:c.*74-1G>T']['transcript_description'] == 'Homo sapiens cyclin dependent kinase inhibitor 2A (CDKN2A), transcript variant 3, mRNA'
         assert results['NM_058197.4:c.*74-1G>T']['gene_symbol'] == 'CDKN2A'
         assert results['NM_058197.4:c.*74-1G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_478104.2:p.?', 'slr': 'NP_478104.2:p.?'}
         assert results['NM_058197.4:c.*74-1G>T']['submitted_variant'] == '9-21971208-C-A'
@@ -17979,7 +17068,6 @@ class TestVariants(object):
         assert results['NM_000077.4:c.151-1G>T']['hgvs_lrg_transcript_variant'] == 'LRG_11t1:c.151-1G>T'
         assert results['NM_000077.4:c.151-1G>T']['refseqgene_context_intronic_sequence'] == 'NG_007485.1(NM_000077.4):c.151-1G>T'
         assert results['NM_000077.4:c.151-1G>T']['alt_genomic_loci'] == []
-        assert results['NM_000077.4:c.151-1G>T']['transcript_description'] == 'Homo sapiens cyclin dependent kinase inhibitor 2A (CDKN2A), transcript variant 1, mRNA'
         assert results['NM_000077.4:c.151-1G>T']['gene_symbol'] == 'CDKN2A'
         assert results['NM_000077.4:c.151-1G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000068.1(LRG_11p1):p.?', 'slr': 'NP_000068.1:p.?'}
         assert results['NM_000077.4:c.151-1G>T']['submitted_variant'] == '9-21971208-C-A'
@@ -17997,7 +17085,6 @@ class TestVariants(object):
         assert results['NM_001363763.1:c.-3-1G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001363763.1:c.-3-1G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001363763.1:c.-3-1G>T']['alt_genomic_loci'] == []
-        assert results['NM_001363763.1:c.-3-1G>T']['transcript_description'] == 'Homo sapiens cyclin dependent kinase inhibitor 2A (CDKN2A), transcript variant 6, mRNA'
         assert results['NM_001363763.1:c.-3-1G>T']['gene_symbol'] == 'CDKN2A'
         assert results['NM_001363763.1:c.-3-1G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001350692.1:p.?', 'slr': 'NP_001350692.1:p.?'}
         assert results['NM_001363763.1:c.-3-1G>T']['submitted_variant'] == '9-21971208-C-A'
@@ -18015,7 +17102,6 @@ class TestVariants(object):
         assert results['NM_001195132.1:c.151-1G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001195132.1:c.151-1G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001195132.1:c.151-1G>T']['alt_genomic_loci'] == []
-        assert results['NM_001195132.1:c.151-1G>T']['transcript_description'] == 'Homo sapiens cyclin dependent kinase inhibitor 2A (CDKN2A), transcript variant 5, mRNA'
         assert results['NM_001195132.1:c.151-1G>T']['gene_symbol'] == 'CDKN2A'
         assert results['NM_001195132.1:c.151-1G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001182061.1:p.?', 'slr': 'NP_001182061.1:p.?'}
         assert results['NM_001195132.1:c.151-1G>T']['submitted_variant'] == '9-21971208-C-A'
@@ -18033,7 +17119,6 @@ class TestVariants(object):
         assert results['NM_058195.3:c.194-1G>T']['hgvs_lrg_transcript_variant'] == 'LRG_11t2:c.194-1G>T'
         assert results['NM_058195.3:c.194-1G>T']['refseqgene_context_intronic_sequence'] == 'NG_007485.1(NM_058195.3):c.194-1G>T'
         assert results['NM_058195.3:c.194-1G>T']['alt_genomic_loci'] == []
-        assert results['NM_058195.3:c.194-1G>T']['transcript_description'] == 'Homo sapiens cyclin dependent kinase inhibitor 2A (CDKN2A), transcript variant 4, mRNA'
         assert results['NM_058195.3:c.194-1G>T']['gene_symbol'] == 'CDKN2A'
         assert results['NM_058195.3:c.194-1G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_478102.2(LRG_11p2):p.?', 'slr': 'NP_478102.2:p.?'}
         assert results['NM_058195.3:c.194-1G>T']['submitted_variant'] == '9-21971208-C-A'
@@ -18058,7 +17143,6 @@ class TestVariants(object):
         assert results['NM_001301227.1:c.773-3dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001301227.1:c.773-3dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001301227.1:c.773-3dup']['alt_genomic_loci'] == []
-        assert results['NM_001301227.1:c.773-3dup']['transcript_description'] == 'Homo sapiens tropomyosin 2 (TPM2), transcript variant Tpm2.4, mRNA'
         assert results['NM_001301227.1:c.773-3dup']['gene_symbol'] == 'TPM2'
         assert results['NM_001301227.1:c.773-3dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001288156.1:p.?', 'slr': 'NP_001288156.1:p.?'}
         assert results['NM_001301227.1:c.773-3dup']['submitted_variant'] == '9-35683240-T-TG'
@@ -18076,7 +17160,6 @@ class TestVariants(object):
         assert results['NM_001301226.1:c.772+1002dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001301226.1:c.772+1002dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001301226.1:c.772+1002dup']['alt_genomic_loci'] == []
-        assert results['NM_001301226.1:c.772+1002dup']['transcript_description'] == 'Homo sapiens tropomyosin 2 (TPM2), transcript variant Tpm2.3, mRNA'
         assert results['NM_001301226.1:c.772+1002dup']['gene_symbol'] == 'TPM2'
         assert results['NM_001301226.1:c.772+1002dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001288155.1:p.?', 'slr': 'NP_001288155.1:p.?'}
         assert results['NM_001301226.1:c.772+1002dup']['submitted_variant'] == '9-35683240-T-TG'
@@ -18094,7 +17177,6 @@ class TestVariants(object):
         assert results['NM_213674.1:c.772+1002dup']['hgvs_lrg_transcript_variant'] == 'LRG_680t1:c.772+1002dup'
         assert results['NM_213674.1:c.772+1002dup']['refseqgene_context_intronic_sequence'] == 'NG_011620.1(NM_213674.1):c.772+1002dup'
         assert results['NM_213674.1:c.772+1002dup']['alt_genomic_loci'] == []
-        assert results['NM_213674.1:c.772+1002dup']['transcript_description'] == 'Homo sapiens tropomyosin 2 (TPM2), transcript variant Tpm2.1, mRNA'
         assert results['NM_213674.1:c.772+1002dup']['gene_symbol'] == 'TPM2'
         assert results['NM_213674.1:c.772+1002dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_998839.1(LRG_680p1):p.?', 'slr': 'NP_998839.1:p.?'}
         assert results['NM_213674.1:c.772+1002dup']['submitted_variant'] == '9-35683240-T-TG'
@@ -18112,7 +17194,6 @@ class TestVariants(object):
         assert results['NM_003289.3:c.773-3dup']['hgvs_lrg_transcript_variant'] == 'LRG_680t2:c.773-3dup'
         assert results['NM_003289.3:c.773-3dup']['refseqgene_context_intronic_sequence'] == 'NG_011620.1(NM_003289.3):c.773-3dup'
         assert results['NM_003289.3:c.773-3dup']['alt_genomic_loci'] == []
-        assert results['NM_003289.3:c.773-3dup']['transcript_description'] == 'Homo sapiens tropomyosin 2 (TPM2), transcript variant Tpm2.2, mRNA'
         assert results['NM_003289.3:c.773-3dup']['gene_symbol'] == 'TPM2'
         assert results['NM_003289.3:c.773-3dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003280.2(LRG_680p2):p.?', 'slr': 'NP_003280.2:p.?'}
         assert results['NM_003289.3:c.773-3dup']['submitted_variant'] == '9-35683240-T-TG'
@@ -18137,7 +17218,6 @@ class TestVariants(object):
         assert results['NM_000368.4:c.733C>T']['hgvs_lrg_transcript_variant'] == 'LRG_486t1:c.733C>T'
         assert results['NM_000368.4:c.733C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000368.4:c.733C>T']['alt_genomic_loci'] == []
-        assert results['NM_000368.4:c.733C>T']['transcript_description'] == 'Homo sapiens TSC complex subunit 1 (TSC1), transcript variant 1, mRNA'
         assert results['NM_000368.4:c.733C>T']['gene_symbol'] == 'TSC1'
         assert results['NM_000368.4:c.733C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000359.1(LRG_486p1):p.(Arg245Ter)', 'slr': 'NP_000359.1:p.(R245*)'}
         assert results['NM_000368.4:c.733C>T']['submitted_variant'] == '9-135796754-G-A'
@@ -18155,7 +17235,6 @@ class TestVariants(object):
         assert results['NM_001162426.1:c.733C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001162426.1:c.733C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001162426.1:c.733C>T']['alt_genomic_loci'] == []
-        assert results['NM_001162426.1:c.733C>T']['transcript_description'] == 'Homo sapiens TSC complex subunit 1 (TSC1), transcript variant 3, mRNA'
         assert results['NM_001162426.1:c.733C>T']['gene_symbol'] == 'TSC1'
         assert results['NM_001162426.1:c.733C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001155898.1:p.(Arg245Ter)', 'slr': 'NP_001155898.1:p.(R245*)'}
         assert results['NM_001162426.1:c.733C>T']['submitted_variant'] == '9-135796754-G-A'
@@ -18174,7 +17253,6 @@ class TestVariants(object):
         assert results['NM_001362177.1:c.370C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001362177.1:c.370C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001362177.1:c.370C>T']['alt_genomic_loci'] == []
-        assert results['NM_001362177.1:c.370C>T']['transcript_description'] == 'Homo sapiens TSC complex subunit 1 (TSC1), transcript variant 5, mRNA'
         assert results['NM_001362177.1:c.370C>T']['gene_symbol'] == 'TSC1'
         assert results['NM_001362177.1:c.370C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001349106.1:p.(Arg124Ter)', 'slr': 'NP_001349106.1:p.(R124*)'}
         assert results['NM_001362177.1:c.370C>T']['submitted_variant'] == '9-135796754-G-A'
@@ -18192,7 +17270,6 @@ class TestVariants(object):
         assert results['NM_001162427.1:c.580C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001162427.1:c.580C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001162427.1:c.580C>T']['alt_genomic_loci'] == []
-        assert results['NM_001162427.1:c.580C>T']['transcript_description'] == 'Homo sapiens TSC complex subunit 1 (TSC1), transcript variant 4, mRNA'
         assert results['NM_001162427.1:c.580C>T']['gene_symbol'] == 'TSC1'
         assert results['NM_001162427.1:c.580C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001155899.1:p.(Arg194Ter)', 'slr': 'NP_001155899.1:p.(R194*)'}
         assert results['NM_001162427.1:c.580C>T']['submitted_variant'] == '9-135796754-G-A'
@@ -18217,19 +17294,18 @@ class TestVariants(object):
         assert results['NM_005247.2:c.616del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_005247.2:c.616del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_005247.2:c.616del']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003571046.1:g.10392del', 'vcf': {'chr': 'HG536_PATCH', 'ref': 'AC', 'pos': '10391', 'alt': 'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003571046.1:g.10392del', 'vcf': {'chr': 'NW_003571046.1', 'ref': 'AC', 'pos': '10391', 'alt': 'A'}}}]
-        assert results['NM_005247.2:c.616del']['transcript_description'] == 'Homo sapiens fibroblast growth factor 3 (FGF3), mRNA'
         assert results['NM_005247.2:c.616del']['gene_symbol'] == 'FGF3'
-        assert results['NM_005247.2:c.616del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_005238.1:p.(Val206SerfsTer117)', 'slr': 'NP_005238.1:p.(V206Sfs*117)'}
+        assert results['NM_005247.2:c.616del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_005238.1(LRG_1303p1):p.(Val206SerfsTer117)', 'slr': 'NP_005238.1:p.(V206Sfs*117)'}
         assert results['NM_005247.2:c.616del']['submitted_variant'] == 'HG536_PATCH-10391-AC-A'
         assert results['NM_005247.2:c.616del']['genome_context_intronic_sequence'] == ''
-        assert results['NM_005247.2:c.616del']['hgvs_lrg_variant'] == ''
+        assert results['NM_005247.2:c.616del']['hgvs_lrg_variant'] == 'LRG_1303:g.14016del'
         assert results['NM_005247.2:c.616del']['hgvs_transcript_variant'] == 'NM_005247.2:c.616del'
         assert results['NM_005247.2:c.616del']['hgvs_refseqgene_variant'] == 'NG_009016.1:g.14016del'
         assert results['NM_005247.2:c.616del']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': 'NC_000011.9:g.69625177del', 'vcf': {'chr': 'chr11', 'ref': 'AC', 'pos': '69625176', 'alt': 'A'}}
         assert results['NM_005247.2:c.616del']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': 'NC_000011.10:g.69810409del', 'vcf': {'chr': 'chr11', 'ref': 'AC', 'pos': '69810408', 'alt': 'A'}}
         assert results['NM_005247.2:c.616del']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_000011.9:g.69625177del', 'vcf': {'chr': '11', 'ref': 'AC', 'pos': '69625176', 'alt': 'A'}}
         assert results['NM_005247.2:c.616del']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': 'NC_000011.10:g.69810409del', 'vcf': {'chr': '11', 'ref': 'AC', 'pos': '69810408', 'alt': 'A'}}
-        assert results['NM_005247.2:c.616del']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_009016.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_005238.1', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_005247.2'}
+        assert results['NM_005247.2:c.616del']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_009016.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_005238.1', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_005247.2', 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/pending/LRG_1303.xml'}
 
 
     def test_variant314(self):
@@ -18241,7 +17317,6 @@ class TestVariants(object):
         assert results['NR_110766.1:n.833+969C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NR_110766.1:n.833+969C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_110766.1:n.833+969C>T']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_004070871.1:g.33547G>A', 'vcf': {'chr': 'HG865_PATCH', 'ref': u'G', 'pos': '33547', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_004070871.1:g.33547G>A', 'vcf': {'chr': 'NW_004070871.1', 'ref': u'G', 'pos': '33547', 'alt': u'A'}}}]
-        assert results['NR_110766.1:n.833+969C>T']['transcript_description'] == 'Homo sapiens SH3 and multiple ankyrin repeat domains 2 (SHANK2), transcript variant 3, non-coding RNA'
         assert results['NR_110766.1:n.833+969C>T']['gene_symbol'] == 'SHANK2'
         assert results['NR_110766.1:n.833+969C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'Non-coding :n.', 'slr': 'Non-coding :n.'}
         assert results['NR_110766.1:n.833+969C>T']['submitted_variant'] == 'HG865_PATCH-33547-G-A'
@@ -18259,7 +17334,6 @@ class TestVariants(object):
         assert results['NM_012309.4:c.2566C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_012309.4:c.2566C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_012309.4:c.2566C>T']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_004070871.1:g.33547G>A', 'vcf': {'chr': 'HG865_PATCH', 'ref': u'G', 'pos': '33547', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_004070871.1:g.33547G>A', 'vcf': {'chr': 'NW_004070871.1', 'ref': u'G', 'pos': '33547', 'alt': u'A'}}}]
-        assert results['NM_012309.4:c.2566C>T']['transcript_description'] == 'Homo sapiens SH3 and multiple ankyrin repeat domains 2 (SHANK2), transcript variant 1, mRNA'
         assert results['NM_012309.4:c.2566C>T']['gene_symbol'] == 'SHANK2'
         assert results['NM_012309.4:c.2566C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_036441.2:p.(Leu856=)', 'slr': 'NP_036441.2:p.(L856=)'}
         assert results['NM_012309.4:c.2566C>T']['submitted_variant'] == 'HG865_PATCH-33547-G-A'
@@ -18277,7 +17351,6 @@ class TestVariants(object):
         assert results['NM_133266.4:c.802C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_133266.4:c.802C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_133266.4:c.802C>T']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_004070871.1:g.33547G>A', 'vcf': {'chr': 'HG865_PATCH', 'ref': u'G', 'pos': '33547', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_004070871.1:g.33547G>A', 'vcf': {'chr': 'NW_004070871.1', 'ref': u'G', 'pos': '33547', 'alt': u'A'}}}]
-        assert results['NM_133266.4:c.802C>T']['transcript_description'] == 'Homo sapiens SH3 and multiple ankyrin repeat domains 2 (SHANK2), transcript variant 2, mRNA'
         assert results['NM_133266.4:c.802C>T']['gene_symbol'] == 'SHANK2'
         assert results['NM_133266.4:c.802C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_573573.2:p.(Leu268=)', 'slr': 'NP_573573.2:p.(L268=)'}
         assert results['NM_133266.4:c.802C>T']['submitted_variant'] == 'HG865_PATCH-33547-G-A'
@@ -18296,7 +17369,6 @@ class TestVariants(object):
         assert results['NM_133266.3:c.802C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_133266.3:c.802C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_133266.3:c.802C>T']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_004070871.1:g.33547G>A', 'vcf': {'chr': 'HG865_PATCH', 'ref': u'G', 'pos': '33547', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_004070871.1:g.33547G>A', 'vcf': {'chr': 'NW_004070871.1', 'ref': u'G', 'pos': '33547', 'alt': u'A'}}}]
-        assert results['NM_133266.3:c.802C>T']['transcript_description'] == 'Homo sapiens SH3 and multiple ankyrin repeat domains 2 (SHANK2), transcript variant 2, mRNA'
         assert results['NM_133266.3:c.802C>T']['gene_symbol'] == 'SHANK2'
         assert results['NM_133266.3:c.802C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_573573.2:p.(Leu268=)', 'slr': 'NP_573573.2:p.(L268=)'}
         assert results['NM_133266.3:c.802C>T']['submitted_variant'] == 'HG865_PATCH-33547-G-A'
@@ -18321,7 +17393,6 @@ class TestVariants(object):
         assert results['NM_012309.4:c.960C>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_012309.4:c.960C>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_012309.4:c.960C>A']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_004070871.1:g.569441G>T', 'vcf': {'chr': 'HG865_PATCH', 'ref': u'G', 'pos': '569441', 'alt': u'T'}}}, {'hg19': {'hgvs_genomic_description': 'NW_004070871.1:g.569441G>T', 'vcf': {'chr': 'NW_004070871.1', 'ref': u'G', 'pos': '569441', 'alt': u'T'}}}]
-        assert results['NM_012309.4:c.960C>A']['transcript_description'] == 'Homo sapiens SH3 and multiple ankyrin repeat domains 2 (SHANK2), transcript variant 1, mRNA'
         assert results['NM_012309.4:c.960C>A']['gene_symbol'] == 'SHANK2'
         assert results['NM_012309.4:c.960C>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_036441.2:p.(Tyr320Ter)', 'slr': 'NP_036441.2:p.(Y320*)'}
         assert results['NM_012309.4:c.960C>A']['submitted_variant'] == 'HG865_PATCH-569441-G-T'
@@ -18346,7 +17417,6 @@ class TestVariants(object):
         assert results['NM_012309.4:c.913-5058G>A']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_012309.4:c.913-5058G>A']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_012309.4:c.913-5058G>A']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_004070871.1:g.574546C>T', 'vcf': {'chr': 'HG865_PATCH', 'ref': u'C', 'pos': '574546', 'alt': u'T'}}}, {'hg19': {'hgvs_genomic_description': 'NW_004070871.1:g.574546C>T', 'vcf': {'chr': 'NW_004070871.1', 'ref': u'C', 'pos': '574546', 'alt': u'T'}}}]
-        assert results['NM_012309.4:c.913-5058G>A']['transcript_description'] == 'Homo sapiens SH3 and multiple ankyrin repeat domains 2 (SHANK2), transcript variant 1, mRNA'
         assert results['NM_012309.4:c.913-5058G>A']['gene_symbol'] == 'SHANK2'
         assert results['NM_012309.4:c.913-5058G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_036441.2:p.?', 'slr': 'NP_036441.2:p.?'}
         assert results['NM_012309.4:c.913-5058G>A']['submitted_variant'] == 'HG865_PATCH-574546-C-T'
@@ -18371,7 +17441,6 @@ class TestVariants(object):
         assert results['NM_020699.2:c.802_803insTT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_020699.2:c.802_803insTT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_020699.2:c.802_803insTT']['alt_genomic_loci'] == []
-        assert results['NM_020699.2:c.802_803insTT']['transcript_description'] == 'Homo sapiens GATA zinc finger domain containing 2B (GATAD2B), mRNA'
         assert results['NM_020699.2:c.802_803insTT']['gene_symbol'] == 'GATAD2B'
         assert results['NM_020699.2:c.802_803insTT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_065750.1:p.(Pro268LeufsTer26)', 'slr': 'NP_065750.1:p.(P268Lfs*26)'}
         assert results['NM_020699.2:c.802_803insTT']['submitted_variant'] == 'HSCHR1_1_CTG31-133178-TAG-T'
@@ -18396,7 +17465,6 @@ class TestVariants(object):
         assert results['NM_021983.4:c.490G>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_021983.4:c.490G>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_021983.4:c.490G>C']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NT_167246.1:g.3848158T>G', 'vcf': {'chr': 'HSCHR6_MHC_MANN_CTG1', 'ref': 'T', 'pos': '3848158', 'alt': u'G'}}}, {'hg19': {'hgvs_genomic_description': 'NT_167246.1:g.3848158T>G', 'vcf': {'chr': 'chr6_mann_hap4', 'ref': 'T', 'pos': '3848158', 'alt': u'G'}}}, {'grch38': {'hgvs_genomic_description': 'NT_167246.2:g.3842538T>G', 'vcf': {'chr': 'HSCHR6_MHC_MANN_CTG1', 'ref': 'T', 'pos': '3842538', 'alt': u'G'}}}, {'hg38': {'hgvs_genomic_description': 'NT_167246.2:g.3842538T>G', 'vcf': {'chr': 'chr6_GL000253v2_alt', 'ref': 'T', 'pos': '3842538', 'alt': u'G'}}}, {'grch37': {'hgvs_genomic_description': 'NT_167247.1:g.3884432C>G', 'vcf': {'chr': 'HSCHR6_MHC_MCF_CTG1', 'ref': u'C', 'pos': '3884432', 'alt': u'G'}}}, {'hg19': {'hgvs_genomic_description': 'NT_167247.1:g.3884432C>G', 'vcf': {'chr': 'chr6_mcf_hap5', 'ref': u'C', 'pos': '3884432', 'alt': u'G'}}}, {'grch37': {'hgvs_genomic_description': 'NT_167249.1:g.3852542C>G', 'vcf': {'chr': 'HSCHR6_MHC_SSTO_CTG1', 'ref': u'C', 'pos': '3852542', 'alt': u'G'}}}, {'hg19': {'hgvs_genomic_description': 'NT_167249.1:g.3852542C>G', 'vcf': {'chr': 'chr6_ssto_hap7', 'ref': u'C', 'pos': '3852542', 'alt': u'G'}}}, {'grch38': {'hgvs_genomic_description': 'NT_167249.2:g.3853244C>G', 'vcf': {'chr': 'HSCHR6_MHC_SSTO_CTG1', 'ref': u'C', 'pos': '3853244', 'alt': u'G'}}}, {'hg38': {'hgvs_genomic_description': 'NT_167249.2:g.3853244C>G', 'vcf': {'chr': 'chr6_GL000256v2_alt', 'ref': u'C', 'pos': '3853244', 'alt': u'G'}}}]
-        assert results['NM_021983.4:c.490G>C']['transcript_description'] == 'Homo sapiens major histocompatibility complex, class II, DR beta 4 (HLA-DRB4), mRNA'
         assert results['NM_021983.4:c.490G>C']['gene_symbol'] == 'HLA-DRB4'
         assert results['NM_021983.4:c.490G>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_068818.4:p.(Gly164Arg)', 'slr': 'NP_068818.4:p.(G164R)'}
         assert results['NM_021983.4:c.490G>C']['submitted_variant'] == 'HSCHR6_MHC_MANN_CTG1-3848158-T-G'
@@ -18421,7 +17489,6 @@ class TestVariants(object):
         assert results['NM_021983.4:c.346G>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_021983.4:c.346G>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_021983.4:c.346G>T']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NT_167246.1:g.3851043C>A', 'vcf': {'chr': 'HSCHR6_MHC_MANN_CTG1', 'ref': u'C', 'pos': '3851043', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NT_167246.1:g.3851043C>A', 'vcf': {'chr': 'chr6_mann_hap4', 'ref': u'C', 'pos': '3851043', 'alt': u'A'}}}, {'grch38': {'hgvs_genomic_description': 'NT_167246.2:g.3845423C>A', 'vcf': {'chr': 'HSCHR6_MHC_MANN_CTG1', 'ref': u'C', 'pos': '3845423', 'alt': u'A'}}}, {'hg38': {'hgvs_genomic_description': 'NT_167246.2:g.3845423C>A', 'vcf': {'chr': 'chr6_GL000253v2_alt', 'ref': u'C', 'pos': '3845423', 'alt': u'A'}}}, {'grch37': {'hgvs_genomic_description': 'NT_167247.1:g.3887313C>A', 'vcf': {'chr': 'HSCHR6_MHC_MCF_CTG1', 'ref': u'C', 'pos': '3887313', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NT_167247.1:g.3887313C>A', 'vcf': {'chr': 'chr6_mcf_hap5', 'ref': u'C', 'pos': '3887313', 'alt': u'A'}}}, {'grch37': {'hgvs_genomic_description': 'NT_167249.1:g.3855423C>A', 'vcf': {'chr': 'HSCHR6_MHC_SSTO_CTG1', 'ref': u'C', 'pos': '3855423', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NT_167249.1:g.3855423C>A', 'vcf': {'chr': 'chr6_ssto_hap7', 'ref': u'C', 'pos': '3855423', 'alt': u'A'}}}, {'grch38': {'hgvs_genomic_description': 'NT_167249.2:g.3856125C>A', 'vcf': {'chr': 'HSCHR6_MHC_SSTO_CTG1', 'ref': u'C', 'pos': '3856125', 'alt': u'A'}}}, {'hg38': {'hgvs_genomic_description': 'NT_167249.2:g.3856125C>A', 'vcf': {'chr': 'chr6_GL000256v2_alt', 'ref': u'C', 'pos': '3856125', 'alt': u'A'}}}]
-        assert results['NM_021983.4:c.346G>T']['transcript_description'] == 'Homo sapiens major histocompatibility complex, class II, DR beta 4 (HLA-DRB4), mRNA'
         assert results['NM_021983.4:c.346G>T']['gene_symbol'] == 'HLA-DRB4'
         assert results['NM_021983.4:c.346G>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_068818.4:p.(Glu116Ter)', 'slr': 'NP_068818.4:p.(E116*)'}
         assert results['NM_021983.4:c.346G>T']['submitted_variant'] == 'HSCHR6_MHC_MANN_CTG1-3851043-C-A'
@@ -18446,7 +17513,6 @@ class TestVariants(object):
         assert results['NM_001097642.2:c.-16-441C>T']['hgvs_lrg_transcript_variant'] == 'LRG_245t1:c.-16-441C>T'
         assert results['NM_001097642.2:c.-16-441C>T']['refseqgene_context_intronic_sequence'] == 'NG_008357.1(NM_001097642.2):c.-16-441C>T'
         assert results['NM_001097642.2:c.-16-441C>T']['alt_genomic_loci'] == []
-        assert results['NM_001097642.2:c.-16-441C>T']['transcript_description'] == 'Homo sapiens gap junction protein beta 1 (GJB1), transcript variant 1, mRNA'
         assert results['NM_001097642.2:c.-16-441C>T']['gene_symbol'] == 'GJB1'
         assert results['NM_001097642.2:c.-16-441C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001091111.1:p.?', 'slr': 'NP_001091111.1:p.?'}
         assert results['NM_001097642.2:c.-16-441C>T']['submitted_variant'] == 'X-70443101-C-T'
@@ -18464,7 +17530,6 @@ class TestVariants(object):
         assert results['NM_000166.5:c.-101C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000166.5:c.-101C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000166.5:c.-101C>T']['alt_genomic_loci'] == []
-        assert results['NM_000166.5:c.-101C>T']['transcript_description'] == 'Homo sapiens gap junction protein beta 1 (GJB1), transcript variant 2, mRNA'
         assert results['NM_000166.5:c.-101C>T']['gene_symbol'] == 'GJB1'
         assert results['NM_000166.5:c.-101C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000157.1:p.?', 'slr': 'NP_000157.1:p.?'}
         assert results['NM_000166.5:c.-101C>T']['submitted_variant'] == 'X-70443101-C-T'
@@ -18488,7 +17553,6 @@ class TestVariants(object):
         assert results['NM_033380.2:c.2130_2135del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_033380.2:c.2130_2135del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_033380.2:c.2130_2135del']['alt_genomic_loci'] == []
-        assert results['NM_033380.2:c.2130_2135del']['transcript_description'] == 'Homo sapiens collagen type IV alpha 5 chain (COL4A5), transcript variant 2, mRNA'
         assert results['NM_033380.2:c.2130_2135del']['gene_symbol'] == 'COL4A5'
         assert results['NM_033380.2:c.2130_2135del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_203699.1(LRG_232p2):p.(Pro711_Pro712del)', 'slr': 'NP_203699.1:p.(P711_P712del)'}
         assert results['NM_033380.2:c.2130_2135del']['submitted_variant'] == 'X-107845202-GACCACC-GACC,G'
@@ -18506,7 +17570,6 @@ class TestVariants(object):
         assert results['NM_000495.4:c.2130_2135del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000495.4:c.2130_2135del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000495.4:c.2130_2135del']['alt_genomic_loci'] == []
-        assert results['NM_000495.4:c.2130_2135del']['transcript_description'] == 'Homo sapiens collagen type IV alpha 5 chain (COL4A5), transcript variant 1, mRNA'
         assert results['NM_000495.4:c.2130_2135del']['gene_symbol'] == 'COL4A5'
         assert results['NM_000495.4:c.2130_2135del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000486.1(LRG_232p1):p.(Pro711_Pro712del)', 'slr': 'NP_000486.1:p.(P711_P712del)'}
         assert results['NM_000495.4:c.2130_2135del']['submitted_variant'] == 'X-107845202-GACCACC-GACC,G'
@@ -18525,7 +17588,6 @@ class TestVariants(object):
         assert results['NM_000495.4:c.2133_2135del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000495.4:c.2133_2135del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000495.4:c.2133_2135del']['alt_genomic_loci'] == []
-        assert results['NM_000495.4:c.2133_2135del']['transcript_description'] == 'Homo sapiens collagen type IV alpha 5 chain (COL4A5), transcript variant 1, mRNA'
         assert results['NM_000495.4:c.2133_2135del']['gene_symbol'] == 'COL4A5'
         assert results['NM_000495.4:c.2133_2135del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000486.1(LRG_232p1):p.(Pro712del)', 'slr': 'NP_000486.1:p.(P712del)'}
         assert results['NM_000495.4:c.2133_2135del']['submitted_variant'] == 'X-107845202-GACCACC-GACC,G'
@@ -18543,7 +17605,6 @@ class TestVariants(object):
         assert results['NM_033380.2:c.2133_2135del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_033380.2:c.2133_2135del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_033380.2:c.2133_2135del']['alt_genomic_loci'] == []
-        assert results['NM_033380.2:c.2133_2135del']['transcript_description'] == 'Homo sapiens collagen type IV alpha 5 chain (COL4A5), transcript variant 2, mRNA'
         assert results['NM_033380.2:c.2133_2135del']['gene_symbol'] == 'COL4A5'
         assert results['NM_033380.2:c.2133_2135del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_203699.1(LRG_232p2):p.(Pro712del)', 'slr': 'NP_203699.1:p.(P712del)'}
         assert results['NM_033380.2:c.2133_2135del']['submitted_variant'] == 'X-107845202-GACCACC-GACC,G'
@@ -18567,7 +17628,6 @@ class TestVariants(object):
         assert results['NM_004992.3:c.502C>T']['hgvs_lrg_transcript_variant'] == 'LRG_764t2:c.502C>T'
         assert results['NM_004992.3:c.502C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004992.3:c.502C>T']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003871103.3:g.1465305G>A', 'vcf': {'chr': 'HG1497_PATCH', 'ref': u'G', 'pos': '1465305', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003871103.3:g.1465305G>A', 'vcf': {'chr': 'NW_003871103.3', 'ref': u'G', 'pos': '1465305', 'alt': u'A'}}}]
-        assert results['NM_004992.3:c.502C>T']['transcript_description'] == 'Homo sapiens methyl-CpG binding protein 2 (MECP2), transcript variant 1, mRNA'
         assert results['NM_004992.3:c.502C>T']['gene_symbol'] == 'MECP2'
         assert results['NM_004992.3:c.502C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_004983.1(LRG_764p2):p.(Arg168Ter)', 'slr': 'NP_004983.1:p.(R168*)'}
         assert results['NM_004992.3:c.502C>T']['submitted_variant'] == 'X-153296777-G-A'
@@ -18586,7 +17646,6 @@ class TestVariants(object):
         assert results['NM_001316337.1:c.223C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001316337.1:c.223C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001316337.1:c.223C>T']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003871103.3:g.1465305G>A', 'vcf': {'chr': 'HG1497_PATCH', 'ref': u'G', 'pos': '1465305', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003871103.3:g.1465305G>A', 'vcf': {'chr': 'NW_003871103.3', 'ref': u'G', 'pos': '1465305', 'alt': u'A'}}}]
-        assert results['NM_001316337.1:c.223C>T']['transcript_description'] == 'Homo sapiens methyl-CpG binding protein 2 (MECP2), transcript variant 3, mRNA'
         assert results['NM_001316337.1:c.223C>T']['gene_symbol'] == 'MECP2'
         assert results['NM_001316337.1:c.223C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001303266.1:p.(Arg75Ter)', 'slr': 'NP_001303266.1:p.(R75*)'}
         assert results['NM_001316337.1:c.223C>T']['submitted_variant'] == 'X-153296777-G-A'
@@ -18604,7 +17663,6 @@ class TestVariants(object):
         assert results['NM_001110792.1:c.538C>T']['hgvs_lrg_transcript_variant'] == 'LRG_764t1:c.538C>T'
         assert results['NM_001110792.1:c.538C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001110792.1:c.538C>T']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003871103.3:g.1465305G>A', 'vcf': {'chr': 'HG1497_PATCH', 'ref': u'G', 'pos': '1465305', 'alt': u'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003871103.3:g.1465305G>A', 'vcf': {'chr': 'NW_003871103.3', 'ref': u'G', 'pos': '1465305', 'alt': u'A'}}}]
-        assert results['NM_001110792.1:c.538C>T']['transcript_description'] == 'Homo sapiens methyl-CpG binding protein 2 (MECP2), transcript variant 2, mRNA'
         assert results['NM_001110792.1:c.538C>T']['gene_symbol'] == 'MECP2'
         assert results['NM_001110792.1:c.538C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001104262.1:p.(Arg180Ter)', 'slr': 'NP_001104262.1:p.(R180*)'}
         assert results['NM_001110792.1:c.538C>T']['submitted_variant'] == 'X-153296777-G-A'
@@ -18629,7 +17687,6 @@ class TestVariants(object):
         assert results['NM_198180.2:c.408_410del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_198180.2:c.408_410del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_198180.2:c.408_410del']['alt_genomic_loci'] == []
-        assert results['NM_198180.2:c.408_410del']['transcript_description'] == 'Homo sapiens pyroglutamylated RFamide peptide (QRFP), mRNA'
         assert results['NM_198180.2:c.408_410del']['gene_symbol'] == 'QRFP'
         assert results['NM_198180.2:c.408_410del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_937823.1:p.?', 'slr': 'NP_937823.1:p.?'}
         assert results['NM_198180.2:c.408_410del']['submitted_variant'] == 'NM_198180.2:c.408_410delGTG'
@@ -18653,7 +17710,6 @@ class TestVariants(object):
         assert results['NM_080877.2:c.1733_1735delinsTTT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_080877.2:c.1733_1735delinsTTT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_080877.2:c.1733_1735delinsTTT']['alt_genomic_loci'] == []
-        assert results['NM_080877.2:c.1733_1735delinsTTT']['transcript_description'] == 'Homo sapiens solute carrier family 34 member 3 (SLC34A3), transcript variant 3, mRNA'
         assert results['NM_080877.2:c.1733_1735delinsTTT']['gene_symbol'] == 'SLC34A3'
         assert results['NM_080877.2:c.1733_1735delinsTTT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_543153.1:p.(Pro578_Lys579delinsLeuTer)', 'slr': 'NP_543153.1:p.(P578_K579delinsL*)'}
         assert results['NM_080877.2:c.1733_1735delinsTTT']['submitted_variant'] == 'NM_080877.2:c.1733_1735delinsTTT'
@@ -18678,7 +17734,6 @@ class TestVariants(object):
         assert results['NM_080877.2:c.1735_1737delinsTGA']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_080877.2:c.1735_1737delinsTGA']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_080877.2:c.1735_1737delinsTGA']['alt_genomic_loci'] == []
-        assert results['NM_080877.2:c.1735_1737delinsTGA']['transcript_description'] == 'Homo sapiens solute carrier family 34 member 3 (SLC34A3), transcript variant 3, mRNA'
         assert results['NM_080877.2:c.1735_1737delinsTGA']['gene_symbol'] == 'SLC34A3'
         assert results['NM_080877.2:c.1735_1737delinsTGA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_543153.1:p.(Lys579Ter)', 'slr': 'NP_543153.1:p.(K579*)'}
         assert results['NM_080877.2:c.1735_1737delinsTGA']['submitted_variant'] == 'NM_080877.2:c.1735_1737delinsTGA'
@@ -18704,7 +17759,6 @@ class TestVariants(object):
         assert results['NM_080877.2:c.1735_1737delinsTAATTGTTC']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_080877.2:c.1735_1737delinsTAATTGTTC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_080877.2:c.1735_1737delinsTAATTGTTC']['alt_genomic_loci'] == []
-        assert results['NM_080877.2:c.1735_1737delinsTAATTGTTC']['transcript_description'] == 'Homo sapiens solute carrier family 34 member 3 (SLC34A3), transcript variant 3, mRNA'
         assert results['NM_080877.2:c.1735_1737delinsTAATTGTTC']['gene_symbol'] == 'SLC34A3'
         assert results['NM_080877.2:c.1735_1737delinsTAATTGTTC']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_543153.1:p.(Lys579Ter)', 'slr': 'NP_543153.1:p.(K579*)'}
         assert results['NM_080877.2:c.1735_1737delinsTAATTGTTC']['submitted_variant'] == 'NM_080877.2:c.1735_1737delinsTAATTGTTC'
@@ -18729,7 +17783,6 @@ class TestVariants(object):
         assert results['NM_080877.2:c.1737delinsATTGTTC']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_080877.2:c.1737delinsATTGTTC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_080877.2:c.1737delinsATTGTTC']['alt_genomic_loci'] == []
-        assert results['NM_080877.2:c.1737delinsATTGTTC']['transcript_description'] == 'Homo sapiens solute carrier family 34 member 3 (SLC34A3), transcript variant 3, mRNA'
         assert results['NM_080877.2:c.1737delinsATTGTTC']['gene_symbol'] == 'SLC34A3'
         assert results['NM_080877.2:c.1737delinsATTGTTC']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_543153.1:p.(Lys579_Ala580insLeuPhe)', 'slr': 'NP_543153.1:p.(K579_A580insLF)'}
         assert results['NM_080877.2:c.1737delinsATTGTTC']['submitted_variant'] == 'NM_080877.2:c.1737delinsATTGTTC'
@@ -18754,7 +17807,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.4392_*2delinsAGAG']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.4392_*2delinsAGAG'
         assert results['NM_000088.3:c.4392_*2delinsAGAG']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000088.3:c.4392_*2delinsAGAG']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.4392_*2delinsAGAG']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.4392_*2delinsAGAG']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.4392_*2delinsAGAG']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.(Ter1465GluextTer84)', 'slr': 'NP_000079.2:p.(*1465Eext*84)'}
         assert results['NM_000088.3:c.4392_*2delinsAGAG']['submitted_variant'] == 'NM_000088.3:c.4392_*2delinsAGAG'
@@ -18779,7 +17831,6 @@ class TestVariants(object):
         assert results['NM_000088.3:c.589_591delinsAGAAGC']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.589_591delinsAGAAGC'
         assert results['NM_000088.3:c.589_591delinsAGAAGC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000088.3:c.589_591delinsAGAAGC']['alt_genomic_loci'] == []
-        assert results['NM_000088.3:c.589_591delinsAGAAGC']['transcript_description'] == 'Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA'
         assert results['NM_000088.3:c.589_591delinsAGAAGC']['gene_symbol'] == 'COL1A1'
         assert results['NM_000088.3:c.589_591delinsAGAAGC']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.(Gly197delinsArgSer)', 'slr': 'NP_000079.2:p.(G197delinsRS)'}
         assert results['NM_000088.3:c.589_591delinsAGAAGC']['submitted_variant'] == 'NM_000088.3:c.589_591delinsAGAAGC'
@@ -18803,7 +17854,6 @@ class TestVariants(object):
         assert results['NM_000885.5:c.*2536delinsAGAAAAATCA']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000885.5:c.*2536delinsAGAAAAATCA']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000885.5:c.*2536delinsAGAAAAATCA']['alt_genomic_loci'] == []
-        assert results['NM_000885.5:c.*2536delinsAGAAAAATCA']['transcript_description'] == 'Homo sapiens integrin subunit alpha 4 (ITGA4), transcript variant 1, mRNA'
         assert results['NM_000885.5:c.*2536delinsAGAAAAATCA']['gene_symbol'] == 'ITGA4'
         assert results['NM_000885.5:c.*2536delinsAGAAAAATCA']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000876.3:p.?', 'slr': 'NP_000876.3:p.?'}
         assert results['NM_000885.5:c.*2536delinsAGAAAAATCA']['submitted_variant'] == 'NM_000885.5:c.*2536delinsAGAAAAATCA'
@@ -18828,7 +17878,6 @@ class TestVariants(object):
         assert results['NM_002693.2:c.-186_-185delinsCC']['hgvs_lrg_transcript_variant'] == 'LRG_765t1:c.-186_-185delinsCC'
         assert results['NM_002693.2:c.-186_-185delinsCC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_002693.2:c.-186_-185delinsCC']['alt_genomic_loci'] == []
-        assert results['NM_002693.2:c.-186_-185delinsCC']['transcript_description'] == 'Homo sapiens DNA polymerase gamma, catalytic subunit (POLG), transcript variant 1, mRNA'
         assert results['NM_002693.2:c.-186_-185delinsCC']['gene_symbol'] == 'POLG'
         assert results['NM_002693.2:c.-186_-185delinsCC']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_002684.1(LRG_765p1):p.?', 'slr': 'NP_002684.1:p.?'}
         assert results['NM_002693.2:c.-186_-185delinsCC']['submitted_variant'] == 'NM_002693.2:c.-186_-185delinsCC'
@@ -18854,7 +17903,6 @@ class TestVariants(object):
         assert results['NM_001287344.1:c.690_690+1insCTACATAG']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001287344.1:c.690_690+1insCTACATAG']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001287344.1:c.690_690+1insCTACATAG']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_004070883.1:g.43848_43849insCTATGTAG', 'vcf': {'chr': 'HG1439_PATCH', 'ref': 'C', 'pos': '43848', 'alt': u'CCTATGTAG'}}}, {'hg19': {'hgvs_genomic_description': 'NW_004070883.1:g.43848_43849insCTATGTAG', 'vcf': {'chr': 'NW_004070883.1', 'ref': 'C', 'pos': '43848', 'alt': u'CCTATGTAG'}}}]
-        assert results['NM_001287344.1:c.690_690+1insCTACATAG']['transcript_description'] == 'Homo sapiens Bruton tyrosine kinase (BTK), transcript variant 3, mRNA'
         assert results['NM_001287344.1:c.690_690+1insCTACATAG']['gene_symbol'] == 'BTK'
         assert results['NM_001287344.1:c.690_690+1insCTACATAG']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001274273.1:p.?', 'slr': 'NP_001274273.1:p.?'}
         assert results['NM_001287344.1:c.690_690+1insCTACATAG']['submitted_variant'] == 'NG_009616.1:g.29052_29053insCTACATAG'
@@ -18872,7 +17920,6 @@ class TestVariants(object):
         assert results['NM_001287345.1:c.588_588+1insCTACATAG']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001287345.1:c.588_588+1insCTACATAG']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001287345.1:c.588_588+1insCTACATAG']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_004070883.1:g.43848_43849insCTATGTAG', 'vcf': {'chr': 'HG1439_PATCH', 'ref': 'C', 'pos': '43848', 'alt': u'CCTATGTAG'}}}, {'hg19': {'hgvs_genomic_description': 'NW_004070883.1:g.43848_43849insCTATGTAG', 'vcf': {'chr': 'NW_004070883.1', 'ref': 'C', 'pos': '43848', 'alt': u'CCTATGTAG'}}}]
-        assert results['NM_001287345.1:c.588_588+1insCTACATAG']['transcript_description'] == 'Homo sapiens Bruton tyrosine kinase (BTK), transcript variant 2, mRNA'
         assert results['NM_001287345.1:c.588_588+1insCTACATAG']['gene_symbol'] == 'BTK'
         assert results['NM_001287345.1:c.588_588+1insCTACATAG']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001274274.1:p.?', 'slr': 'NP_001274274.1:p.?'}
         assert results['NM_001287345.1:c.588_588+1insCTACATAG']['submitted_variant'] == 'NG_009616.1:g.29052_29053insCTACATAG'
@@ -18890,7 +17937,6 @@ class TestVariants(object):
         assert results['NM_000061.2:c.588_588+1insCTACATAG']['hgvs_lrg_transcript_variant'] == 'LRG_128t1:c.588_588+1insCTACATAG'
         assert results['NM_000061.2:c.588_588+1insCTACATAG']['refseqgene_context_intronic_sequence'] == 'NG_009616.1(NM_000061.2):c.588_588+1insCTACATAG'
         assert results['NM_000061.2:c.588_588+1insCTACATAG']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_004070883.1:g.43848_43849insCTATGTAG', 'vcf': {'chr': 'HG1439_PATCH', 'ref': 'C', 'pos': '43848', 'alt': u'CCTATGTAG'}}}, {'hg19': {'hgvs_genomic_description': 'NW_004070883.1:g.43848_43849insCTATGTAG', 'vcf': {'chr': 'NW_004070883.1', 'ref': 'C', 'pos': '43848', 'alt': u'CCTATGTAG'}}}]
-        assert results['NM_000061.2:c.588_588+1insCTACATAG']['transcript_description'] == 'Homo sapiens Bruton tyrosine kinase (BTK), transcript variant 1, mRNA'
         assert results['NM_000061.2:c.588_588+1insCTACATAG']['gene_symbol'] == 'BTK'
         assert results['NM_000061.2:c.588_588+1insCTACATAG']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000052.1(LRG_128p1):p.?', 'slr': 'NP_000052.1:p.?'}
         assert results['NM_000061.2:c.588_588+1insCTACATAG']['submitted_variant'] == 'NG_009616.1:g.29052_29053insCTACATAG'
@@ -18915,7 +17961,6 @@ class TestVariants(object):
         assert results['NM_000061.2:c.588_588+1insCTACATAG']['hgvs_lrg_transcript_variant'] == 'LRG_128t1:c.588_588+1insCTACATAG'
         assert results['NM_000061.2:c.588_588+1insCTACATAG']['refseqgene_context_intronic_sequence'] == 'NG_009616.1(NM_000061.2):c.588_588+1insCTACATAG'
         assert results['NM_000061.2:c.588_588+1insCTACATAG']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_004070883.1:g.43848_43849insCTATGTAG', 'vcf': {'chr': 'HG1439_PATCH', 'ref': 'C', 'pos': '43848', 'alt': u'CCTATGTAG'}}}, {'hg19': {'hgvs_genomic_description': 'NW_004070883.1:g.43848_43849insCTATGTAG', 'vcf': {'chr': 'NW_004070883.1', 'ref': 'C', 'pos': '43848', 'alt': u'CCTATGTAG'}}}]
-        assert results['NM_000061.2:c.588_588+1insCTACATAG']['transcript_description'] == 'Homo sapiens Bruton tyrosine kinase (BTK), transcript variant 1, mRNA'
         assert results['NM_000061.2:c.588_588+1insCTACATAG']['gene_symbol'] == 'BTK'
         assert results['NM_000061.2:c.588_588+1insCTACATAG']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000052.1(LRG_128p1):p.?', 'slr': 'NP_000052.1:p.?'}
         assert results['NM_000061.2:c.588_588+1insCTACATAG']['submitted_variant'] == 'NM_000061.2:c.588_588+1insCTACATAG'
@@ -18940,7 +17985,6 @@ class TestVariants(object):
         assert results['NM_000061.2:c.588_589insCTACATAG']['hgvs_lrg_transcript_variant'] == 'LRG_128t1:c.588_589insCTACATAG'
         assert results['NM_000061.2:c.588_589insCTACATAG']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000061.2:c.588_589insCTACATAG']['alt_genomic_loci'] == []
-        assert results['NM_000061.2:c.588_589insCTACATAG']['transcript_description'] == 'Homo sapiens Bruton tyrosine kinase (BTK), transcript variant 1, mRNA'
         assert results['NM_000061.2:c.588_589insCTACATAG']['gene_symbol'] == 'BTK'
         assert results['NM_000061.2:c.588_589insCTACATAG']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000052.1(LRG_128p1):p.(Ile197LeufsTer5)', 'slr': 'NP_000052.1:p.(I197Lfs*5)'}
         assert results['NM_000061.2:c.588_589insCTACATAG']['submitted_variant'] == 'NM_000061.2:c.588_589insCTACATAG'

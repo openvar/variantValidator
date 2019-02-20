@@ -1,6 +1,0 @@
-(dp0
-S'ERROR'
-p1
-S'Validation error'
-p2
-s.
