@@ -56,6 +56,7 @@ In the `VariantValidator/data` folder is a copy of the empty mysql database need
 $ mysql validator < VariantValidator/data/emptyValidatorDump.sql 
 ```
 
+To populate the database you'll need to run `bin/update_vdb.py` which will download the latest RefSeq data and populate the validator database. Note, you may wish to re-run this update process every month.
 
 ## Setting up UTA database (PostGreSQL >=9.5, <10)
 

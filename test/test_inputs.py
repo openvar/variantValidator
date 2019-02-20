@@ -2862,21 +2862,21 @@ class TestVariants(object):
 
         assert results['flag'] == 'gene_variant'
         assert 'NM_020469.2:c.260_262=' in results.keys()
-        assert results['NM_020469.2:c.260_262=']['hgvs_lrg_transcript_variant'] == 'LRG_792t1:c.260_262='
+        assert results['NM_020469.2:c.260_262=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_020469.2:c.260_262=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_020469.2:c.260_262=']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003315925.1:g.83614_83616=', 'vcf': {'chr': 'HG79_PATCH', 'ref': u'TCA', 'pos': '83614', 'alt': u'TCA'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003315925.1:g.83614_83616=', 'vcf': {'chr': 'NW_003315925.1', 'ref': u'TCA', 'pos': '83614', 'alt': u'TCA'}}}, {'grch38': {'hgvs_genomic_description': 'NW_009646201.1:g.83614_83616=', 'vcf': {'chr': 'HG2030_PATCH', 'ref': u'TCA', 'pos': '83614', 'alt': u'TCA'}}}, {'hg38': {'hgvs_genomic_description': 'NW_009646201.1:g.83614_83616=', 'vcf': {'chr': 'NW_009646201.1', 'ref': u'TCA', 'pos': '83614', 'alt': u'TCA'}}}]
         assert results['NM_020469.2:c.260_262=']['gene_symbol'] == 'ABO'
         assert results['NM_020469.2:c.260_262=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_065202.2(LRG_792p1):p.(Val87=)', 'slr': 'NP_065202.2:p.(V87=)'}
         assert results['NM_020469.2:c.260_262=']['submitted_variant'] == '9-136132908-T-TC'
         assert results['NM_020469.2:c.260_262=']['genome_context_intronic_sequence'] == ''
-        assert results['NM_020469.2:c.260_262=']['hgvs_lrg_variant'] == 'LRG_792:g.20145_20147='
+        assert results['NM_020469.2:c.260_262=']['hgvs_lrg_variant'] == ''
         assert results['NM_020469.2:c.260_262=']['hgvs_transcript_variant'] == 'NM_020469.2:c.260_262='
         assert results['NM_020469.2:c.260_262=']['hgvs_refseqgene_variant'] == 'NG_006669.1:g.20145_20147='
         assert results['NM_020469.2:c.260_262=']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132908_136132909insC', 'vcf': {'chr': 'chr9', 'ref': 'T', 'pos': '136132908', 'alt': u'TC'}}
         assert results['NM_020469.2:c.260_262=']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257521_133257522insC', 'vcf': {'chr': 'chr9', 'ref': 'T', 'pos': '133257521', 'alt': u'TC'}}
         assert results['NM_020469.2:c.260_262=']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132908_136132909insC', 'vcf': {'chr': '9', 'ref': 'T', 'pos': '136132908', 'alt': u'TC'}}
         assert results['NM_020469.2:c.260_262=']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257521_133257522insC', 'vcf': {'chr': '9', 'ref': 'T', 'pos': '133257521', 'alt': u'TC'}}
-        assert results['NM_020469.2:c.260_262=']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2', 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/pending/LRG_792.xml'}
+        assert results['NM_020469.2:c.260_262=']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2'}
 
 
     def test_variant91(self):
@@ -2886,21 +2886,21 @@ class TestVariants(object):
 
         assert results['flag'] == 'gene_variant'
         assert 'NM_020469.2:c.259del' in results.keys()
-        assert results['NM_020469.2:c.259del']['hgvs_lrg_transcript_variant'] == 'LRG_792t1:c.259del'
+        assert results['NM_020469.2:c.259del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_020469.2:c.259del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_020469.2:c.259del']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003315925.1:g.83618del', 'vcf': {'chr': 'HG79_PATCH', 'ref': 'AC', 'pos': '83616', 'alt': 'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003315925.1:g.83618del', 'vcf': {'chr': 'NW_003315925.1', 'ref': 'AC', 'pos': '83616', 'alt': 'A'}}}, {'grch38': {'hgvs_genomic_description': 'NW_009646201.1:g.83618del', 'vcf': {'chr': 'HG2030_PATCH', 'ref': 'AC', 'pos': '83616', 'alt': 'A'}}}, {'hg38': {'hgvs_genomic_description': 'NW_009646201.1:g.83618del', 'vcf': {'chr': 'NW_009646201.1', 'ref': 'AC', 'pos': '83616', 'alt': 'A'}}}]
         assert results['NM_020469.2:c.259del']['gene_symbol'] == 'ABO'
         assert results['NM_020469.2:c.259del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_065202.2(LRG_792p1):p.(Val87Ter)', 'slr': 'NP_065202.2:p.(V87*)'}
         assert results['NM_020469.2:c.259del']['submitted_variant'] == '9-136132908-TAC-TCA'
         assert results['NM_020469.2:c.259del']['genome_context_intronic_sequence'] == ''
-        assert results['NM_020469.2:c.259del']['hgvs_lrg_variant'] == 'LRG_792:g.20144del'
+        assert results['NM_020469.2:c.259del']['hgvs_lrg_variant'] == ''
         assert results['NM_020469.2:c.259del']['hgvs_transcript_variant'] == 'NM_020469.2:c.259del'
         assert results['NM_020469.2:c.259del']['hgvs_refseqgene_variant'] == 'NG_006669.1:g.20144del'
         assert results['NM_020469.2:c.259del']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132909_136132910delinsCA', 'vcf': {'chr': 'chr9', 'ref': 'AC', 'pos': '136132909', 'alt': u'CA'}}
         assert results['NM_020469.2:c.259del']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257522_133257523delinsCA', 'vcf': {'chr': 'chr9', 'ref': 'AC', 'pos': '133257522', 'alt': u'CA'}}
         assert results['NM_020469.2:c.259del']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132909_136132910delinsCA', 'vcf': {'chr': '9', 'ref': 'AC', 'pos': '136132909', 'alt': u'CA'}}
         assert results['NM_020469.2:c.259del']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257522_133257523delinsCA', 'vcf': {'chr': '9', 'ref': 'AC', 'pos': '133257522', 'alt': u'CA'}}
-        assert results['NM_020469.2:c.259del']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2', 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/pending/LRG_792.xml'}
+        assert results['NM_020469.2:c.259del']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2'}
 
 
     def test_variant92(self):
@@ -2909,21 +2909,21 @@ class TestVariants(object):
         print results
 
         assert 'NM_020469.2:c.261del' in results.keys()
-        assert results['NM_020469.2:c.261del']['hgvs_lrg_transcript_variant'] == 'LRG_792t1:c.261del'
+        assert results['NM_020469.2:c.261del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_020469.2:c.261del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_020469.2:c.261del']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003315925.1:g.83615del', 'vcf': {'chr': 'HG79_PATCH', 'ref': 'TC', 'pos': '83614', 'alt': 'T'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003315925.1:g.83615del', 'vcf': {'chr': 'NW_003315925.1', 'ref': 'TC', 'pos': '83614', 'alt': 'T'}}}, {'grch38': {'hgvs_genomic_description': 'NW_009646201.1:g.83615del', 'vcf': {'chr': 'HG2030_PATCH', 'ref': 'TC', 'pos': '83614', 'alt': 'T'}}}, {'hg38': {'hgvs_genomic_description': 'NW_009646201.1:g.83615del', 'vcf': {'chr': 'NW_009646201.1', 'ref': 'TC', 'pos': '83614', 'alt': 'T'}}}]
         assert results['NM_020469.2:c.261del']['gene_symbol'] == 'ABO'
         assert results['NM_020469.2:c.261del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_065202.2(LRG_792p1):p.(Thr88ProfsTer31)', 'slr': 'NP_065202.2:p.(T88Pfs*31)'}
         assert results['NM_020469.2:c.261del']['submitted_variant'] == '9-136132908-TA-TA'
         assert results['NM_020469.2:c.261del']['genome_context_intronic_sequence'] == ''
-        assert results['NM_020469.2:c.261del']['hgvs_lrg_variant'] == 'LRG_792:g.20146del'
+        assert results['NM_020469.2:c.261del']['hgvs_lrg_variant'] == ''
         assert results['NM_020469.2:c.261del']['hgvs_transcript_variant'] == 'NM_020469.2:c.261del'
         assert results['NM_020469.2:c.261del']['hgvs_refseqgene_variant'] == 'NG_006669.1:g.20146del'
         assert results['NM_020469.2:c.261del']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132908_136132909=', 'vcf': {'chr': 'chr9', 'ref': 'TA', 'pos': '136132908', 'alt': 'TA'}}
         assert results['NM_020469.2:c.261del']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257521_133257522=', 'vcf': {'chr': 'chr9', 'ref': 'TA', 'pos': '133257521', 'alt': 'TA'}}
         assert results['NM_020469.2:c.261del']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132908_136132909=', 'vcf': {'chr': '9', 'ref': 'TA', 'pos': '136132908', 'alt': 'TA'}}
         assert results['NM_020469.2:c.261del']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257521_133257522=', 'vcf': {'chr': '9', 'ref': 'TA', 'pos': '133257521', 'alt': 'TA'}}
-        assert results['NM_020469.2:c.261del']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2', 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/pending/LRG_792.xml'}
+        assert results['NM_020469.2:c.261del']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2'}
 
         assert results['flag'] == 'gene_variant'
 
@@ -2934,21 +2934,21 @@ class TestVariants(object):
 
         assert results['flag'] == 'gene_variant'
         assert 'NM_020469.2:c.259del' in results.keys()
-        assert results['NM_020469.2:c.259del']['hgvs_lrg_transcript_variant'] == 'LRG_792t1:c.259del'
+        assert results['NM_020469.2:c.259del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_020469.2:c.259del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_020469.2:c.259del']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003315925.1:g.83618del', 'vcf': {'chr': 'HG79_PATCH', 'ref': 'AC', 'pos': '83616', 'alt': 'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003315925.1:g.83618del', 'vcf': {'chr': 'NW_003315925.1', 'ref': 'AC', 'pos': '83616', 'alt': 'A'}}}, {'grch38': {'hgvs_genomic_description': 'NW_009646201.1:g.83618del', 'vcf': {'chr': 'HG2030_PATCH', 'ref': 'AC', 'pos': '83616', 'alt': 'A'}}}, {'hg38': {'hgvs_genomic_description': 'NW_009646201.1:g.83618del', 'vcf': {'chr': 'NW_009646201.1', 'ref': 'AC', 'pos': '83616', 'alt': 'A'}}}]
         assert results['NM_020469.2:c.259del']['gene_symbol'] == 'ABO'
         assert results['NM_020469.2:c.259del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_065202.2(LRG_792p1):p.(Val87Ter)', 'slr': 'NP_065202.2:p.(V87*)'}
         assert results['NM_020469.2:c.259del']['submitted_variant'] == 'NM_020469.2:c.258delG'
         assert results['NM_020469.2:c.259del']['genome_context_intronic_sequence'] == ''
-        assert results['NM_020469.2:c.259del']['hgvs_lrg_variant'] == 'LRG_792:g.20144del'
+        assert results['NM_020469.2:c.259del']['hgvs_lrg_variant'] == ''
         assert results['NM_020469.2:c.259del']['hgvs_transcript_variant'] == 'NM_020469.2:c.259del'
         assert results['NM_020469.2:c.259del']['hgvs_refseqgene_variant'] == 'NG_006669.1:g.20144del'
         assert results['NM_020469.2:c.259del']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132909_136132910delinsCA', 'vcf': {'chr': 'chr9', 'ref': 'AC', 'pos': '136132909', 'alt': u'CA'}}
         assert results['NM_020469.2:c.259del']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257522_133257523delinsCA', 'vcf': {'chr': 'chr9', 'ref': 'AC', 'pos': '133257522', 'alt': u'CA'}}
         assert results['NM_020469.2:c.259del']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132909_136132910delinsCA', 'vcf': {'chr': '9', 'ref': 'AC', 'pos': '136132909', 'alt': u'CA'}}
         assert results['NM_020469.2:c.259del']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257522_133257523delinsCA', 'vcf': {'chr': '9', 'ref': 'AC', 'pos': '133257522', 'alt': u'CA'}}
-        assert results['NM_020469.2:c.259del']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2', 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/pending/LRG_792.xml'}
+        assert results['NM_020469.2:c.259del']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2'}
 
 
     def test_variant94(self):
@@ -2958,21 +2958,21 @@ class TestVariants(object):
 
         assert results['flag'] == 'gene_variant'
         assert 'NM_020469.2:c.260_262=' in results.keys()
-        assert results['NM_020469.2:c.260_262=']['hgvs_lrg_transcript_variant'] == 'LRG_792t1:c.260_262='
+        assert results['NM_020469.2:c.260_262=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_020469.2:c.260_262=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_020469.2:c.260_262=']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003315925.1:g.83614_83616=', 'vcf': {'chr': 'HG79_PATCH', 'ref': u'TCA', 'pos': '83614', 'alt': u'TCA'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003315925.1:g.83614_83616=', 'vcf': {'chr': 'NW_003315925.1', 'ref': u'TCA', 'pos': '83614', 'alt': u'TCA'}}}, {'grch38': {'hgvs_genomic_description': 'NW_009646201.1:g.83614_83616=', 'vcf': {'chr': 'HG2030_PATCH', 'ref': u'TCA', 'pos': '83614', 'alt': u'TCA'}}}, {'hg38': {'hgvs_genomic_description': 'NW_009646201.1:g.83614_83616=', 'vcf': {'chr': 'NW_009646201.1', 'ref': u'TCA', 'pos': '83614', 'alt': u'TCA'}}}]
         assert results['NM_020469.2:c.260_262=']['gene_symbol'] == 'ABO'
         assert results['NM_020469.2:c.260_262=']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_065202.2(LRG_792p1):p.(Val87=)', 'slr': 'NP_065202.2:p.(V87=)'}
         assert results['NM_020469.2:c.260_262=']['submitted_variant'] == 'NM_020469.2:c.260_262TGA='
         assert results['NM_020469.2:c.260_262=']['genome_context_intronic_sequence'] == ''
-        assert results['NM_020469.2:c.260_262=']['hgvs_lrg_variant'] == 'LRG_792:g.20145_20147='
+        assert results['NM_020469.2:c.260_262=']['hgvs_lrg_variant'] == ''
         assert results['NM_020469.2:c.260_262=']['hgvs_transcript_variant'] == 'NM_020469.2:c.260_262='
         assert results['NM_020469.2:c.260_262=']['hgvs_refseqgene_variant'] == 'NG_006669.1:g.20145_20147='
         assert results['NM_020469.2:c.260_262=']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132908_136132909insC', 'vcf': {'chr': 'chr9', 'ref': 'T', 'pos': '136132908', 'alt': u'TC'}}
         assert results['NM_020469.2:c.260_262=']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257521_133257522insC', 'vcf': {'chr': 'chr9', 'ref': 'T', 'pos': '133257521', 'alt': u'TC'}}
         assert results['NM_020469.2:c.260_262=']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132908_136132909insC', 'vcf': {'chr': '9', 'ref': 'T', 'pos': '136132908', 'alt': u'TC'}}
         assert results['NM_020469.2:c.260_262=']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257521_133257522insC', 'vcf': {'chr': '9', 'ref': 'T', 'pos': '133257521', 'alt': u'TC'}}
-        assert results['NM_020469.2:c.260_262=']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2', 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/pending/LRG_792.xml'}
+        assert results['NM_020469.2:c.260_262=']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2'}
 
 
     def test_variant95(self):
@@ -2981,21 +2981,21 @@ class TestVariants(object):
         print results
 
         assert 'NM_020469.2:c.261del' in results.keys()
-        assert results['NM_020469.2:c.261del']['hgvs_lrg_transcript_variant'] == 'LRG_792t1:c.261del'
+        assert results['NM_020469.2:c.261del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_020469.2:c.261del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_020469.2:c.261del']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003315925.1:g.83615del', 'vcf': {'chr': 'HG79_PATCH', 'ref': 'TC', 'pos': '83614', 'alt': 'T'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003315925.1:g.83615del', 'vcf': {'chr': 'NW_003315925.1', 'ref': 'TC', 'pos': '83614', 'alt': 'T'}}}, {'grch38': {'hgvs_genomic_description': 'NW_009646201.1:g.83615del', 'vcf': {'chr': 'HG2030_PATCH', 'ref': 'TC', 'pos': '83614', 'alt': 'T'}}}, {'hg38': {'hgvs_genomic_description': 'NW_009646201.1:g.83615del', 'vcf': {'chr': 'NW_009646201.1', 'ref': 'TC', 'pos': '83614', 'alt': 'T'}}}]
         assert results['NM_020469.2:c.261del']['gene_symbol'] == 'ABO'
         assert results['NM_020469.2:c.261del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_065202.2(LRG_792p1):p.(Thr88ProfsTer31)', 'slr': 'NP_065202.2:p.(T88Pfs*31)'}
         assert results['NM_020469.2:c.261del']['submitted_variant'] == 'NM_020469.2:c.261delG'
         assert results['NM_020469.2:c.261del']['genome_context_intronic_sequence'] == ''
-        assert results['NM_020469.2:c.261del']['hgvs_lrg_variant'] == 'LRG_792:g.20146del'
+        assert results['NM_020469.2:c.261del']['hgvs_lrg_variant'] == ''
         assert results['NM_020469.2:c.261del']['hgvs_transcript_variant'] == 'NM_020469.2:c.261del'
         assert results['NM_020469.2:c.261del']['hgvs_refseqgene_variant'] == 'NG_006669.1:g.20146del'
         assert results['NM_020469.2:c.261del']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132908_136132909=', 'vcf': {'chr': 'chr9', 'ref': 'TA', 'pos': '136132908', 'alt': 'TA'}}
         assert results['NM_020469.2:c.261del']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257521_133257522=', 'vcf': {'chr': 'chr9', 'ref': 'TA', 'pos': '133257521', 'alt': 'TA'}}
         assert results['NM_020469.2:c.261del']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132908_136132909=', 'vcf': {'chr': '9', 'ref': 'TA', 'pos': '136132908', 'alt': 'TA'}}
         assert results['NM_020469.2:c.261del']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257521_133257522=', 'vcf': {'chr': '9', 'ref': 'TA', 'pos': '133257521', 'alt': 'TA'}}
-        assert results['NM_020469.2:c.261del']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2', 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/pending/LRG_792.xml'}
+        assert results['NM_020469.2:c.261del']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2'}
 
         assert results['flag'] == 'gene_variant'
 
@@ -3006,21 +3006,21 @@ class TestVariants(object):
 
         assert results['flag'] == 'gene_variant'
         assert 'NM_020469.2:c.261dup' in results.keys()
-        assert results['NM_020469.2:c.261dup']['hgvs_lrg_transcript_variant'] == 'LRG_792t1:c.261dup'
+        assert results['NM_020469.2:c.261dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_020469.2:c.261dup']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_020469.2:c.261dup']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003315925.1:g.83615dup', 'vcf': {'chr': 'HG79_PATCH', 'ref': 'T', 'pos': '83614', 'alt': 'TC'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003315925.1:g.83615dup', 'vcf': {'chr': 'NW_003315925.1', 'ref': 'T', 'pos': '83614', 'alt': 'TC'}}}, {'grch38': {'hgvs_genomic_description': 'NW_009646201.1:g.83615dup', 'vcf': {'chr': 'HG2030_PATCH', 'ref': 'T', 'pos': '83614', 'alt': 'TC'}}}, {'hg38': {'hgvs_genomic_description': 'NW_009646201.1:g.83615dup', 'vcf': {'chr': 'NW_009646201.1', 'ref': 'T', 'pos': '83614', 'alt': 'TC'}}}]
         assert results['NM_020469.2:c.261dup']['gene_symbol'] == 'ABO'
         assert results['NM_020469.2:c.261dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_065202.2(LRG_792p1):p.(Thr88AspfsTer107)', 'slr': 'NP_065202.2:p.(T88Dfs*107)'}
         assert results['NM_020469.2:c.261dup']['submitted_variant'] == 'NM_020469.2:c.261dupG'
         assert results['NM_020469.2:c.261dup']['genome_context_intronic_sequence'] == ''
-        assert results['NM_020469.2:c.261dup']['hgvs_lrg_variant'] == 'LRG_792:g.20146dup'
+        assert results['NM_020469.2:c.261dup']['hgvs_lrg_variant'] == ''
         assert results['NM_020469.2:c.261dup']['hgvs_transcript_variant'] == 'NM_020469.2:c.261dup'
         assert results['NM_020469.2:c.261dup']['hgvs_refseqgene_variant'] == 'NG_006669.1:g.20146dup'
         assert results['NM_020469.2:c.261dup']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132908_136132909insCC', 'vcf': {'chr': 'chr9', 'ref': 'T', 'pos': '136132908', 'alt': u'TCC'}}
         assert results['NM_020469.2:c.261dup']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257521_133257522insCC', 'vcf': {'chr': 'chr9', 'ref': 'T', 'pos': '133257521', 'alt': u'TCC'}}
         assert results['NM_020469.2:c.261dup']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132908_136132909insCC', 'vcf': {'chr': '9', 'ref': 'T', 'pos': '136132908', 'alt': u'TCC'}}
         assert results['NM_020469.2:c.261dup']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257521_133257522insCC', 'vcf': {'chr': '9', 'ref': 'T', 'pos': '133257521', 'alt': u'TCC'}}
-        assert results['NM_020469.2:c.261dup']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2', 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/pending/LRG_792.xml'}
+        assert results['NM_020469.2:c.261dup']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2'}
 
 
     def test_variant97(self):
@@ -3030,21 +3030,21 @@ class TestVariants(object):
 
         assert results['flag'] == 'gene_variant'
         assert 'NM_020469.2:c.261_262insTT' in results.keys()
-        assert results['NM_020469.2:c.261_262insTT']['hgvs_lrg_transcript_variant'] == 'LRG_792t1:c.261_262insTT'
+        assert results['NM_020469.2:c.261_262insTT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_020469.2:c.261_262insTT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_020469.2:c.261_262insTT']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003315925.1:g.83614_83615insAA', 'vcf': {'chr': 'HG79_PATCH', 'ref': 'T', 'pos': '83614', 'alt': u'TAA'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003315925.1:g.83614_83615insAA', 'vcf': {'chr': 'NW_003315925.1', 'ref': 'T', 'pos': '83614', 'alt': u'TAA'}}}, {'grch38': {'hgvs_genomic_description': 'NW_009646201.1:g.83614_83615insAA', 'vcf': {'chr': 'HG2030_PATCH', 'ref': 'T', 'pos': '83614', 'alt': u'TAA'}}}, {'hg38': {'hgvs_genomic_description': 'NW_009646201.1:g.83614_83615insAA', 'vcf': {'chr': 'NW_009646201.1', 'ref': 'T', 'pos': '83614', 'alt': u'TAA'}}}]
         assert results['NM_020469.2:c.261_262insTT']['gene_symbol'] == 'ABO'
         assert results['NM_020469.2:c.261_262insTT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_065202.2(LRG_792p1):p.(Thr88LeufsTer32)', 'slr': 'NP_065202.2:p.(T88Lfs*32)'}
         assert results['NM_020469.2:c.261_262insTT']['submitted_variant'] == 'NM_020469.2:c.261_262insTT'
         assert results['NM_020469.2:c.261_262insTT']['genome_context_intronic_sequence'] == ''
-        assert results['NM_020469.2:c.261_262insTT']['hgvs_lrg_variant'] == 'LRG_792:g.20146_20147insTT'
+        assert results['NM_020469.2:c.261_262insTT']['hgvs_lrg_variant'] == ''
         assert results['NM_020469.2:c.261_262insTT']['hgvs_transcript_variant'] == 'NM_020469.2:c.261_262insTT'
         assert results['NM_020469.2:c.261_262insTT']['hgvs_refseqgene_variant'] == 'NG_006669.1:g.20146_20147insTT'
         assert results['NM_020469.2:c.261_262insTT']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132909_136132910insACA', 'vcf': {'chr': 'chr9', 'ref': 'T', 'pos': '136132908', 'alt': u'TAAC'}}
         assert results['NM_020469.2:c.261_262insTT']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257522_133257523insACA', 'vcf': {'chr': 'chr9', 'ref': 'T', 'pos': '133257521', 'alt': u'TAAC'}}
         assert results['NM_020469.2:c.261_262insTT']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_000009.11:g.136132909_136132910insACA', 'vcf': {'chr': '9', 'ref': 'T', 'pos': '136132908', 'alt': u'TAAC'}}
         assert results['NM_020469.2:c.261_262insTT']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': 'NC_000009.12:g.133257522_133257523insACA', 'vcf': {'chr': '9', 'ref': 'T', 'pos': '133257521', 'alt': u'TAAC'}}
-        assert results['NM_020469.2:c.261_262insTT']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2', 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/pending/LRG_792.xml'}
+        assert results['NM_020469.2:c.261_262insTT']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_006669.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_065202.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_020469.2'}
 
 
     def test_variant98(self):
@@ -17295,17 +17295,17 @@ class TestVariants(object):
         assert results['NM_005247.2:c.616del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_005247.2:c.616del']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_003571046.1:g.10392del', 'vcf': {'chr': 'HG536_PATCH', 'ref': 'AC', 'pos': '10391', 'alt': 'A'}}}, {'hg19': {'hgvs_genomic_description': 'NW_003571046.1:g.10392del', 'vcf': {'chr': 'NW_003571046.1', 'ref': 'AC', 'pos': '10391', 'alt': 'A'}}}]
         assert results['NM_005247.2:c.616del']['gene_symbol'] == 'FGF3'
-        assert results['NM_005247.2:c.616del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_005238.1:p.(Val206SerfsTer117)', 'slr': 'NP_005238.1:p.(V206Sfs*117)'}
+        assert results['NM_005247.2:c.616del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_005238.1(LRG_1303p1):p.(Val206SerfsTer117)', 'slr': 'NP_005238.1:p.(V206Sfs*117)'}
         assert results['NM_005247.2:c.616del']['submitted_variant'] == 'HG536_PATCH-10391-AC-A'
         assert results['NM_005247.2:c.616del']['genome_context_intronic_sequence'] == ''
-        assert results['NM_005247.2:c.616del']['hgvs_lrg_variant'] == ''
+        assert results['NM_005247.2:c.616del']['hgvs_lrg_variant'] == 'LRG_1303:g.14016del'
         assert results['NM_005247.2:c.616del']['hgvs_transcript_variant'] == 'NM_005247.2:c.616del'
         assert results['NM_005247.2:c.616del']['hgvs_refseqgene_variant'] == 'NG_009016.1:g.14016del'
         assert results['NM_005247.2:c.616del']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': 'NC_000011.9:g.69625177del', 'vcf': {'chr': 'chr11', 'ref': 'AC', 'pos': '69625176', 'alt': 'A'}}
         assert results['NM_005247.2:c.616del']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': 'NC_000011.10:g.69810409del', 'vcf': {'chr': 'chr11', 'ref': 'AC', 'pos': '69810408', 'alt': 'A'}}
         assert results['NM_005247.2:c.616del']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_000011.9:g.69625177del', 'vcf': {'chr': '11', 'ref': 'AC', 'pos': '69625176', 'alt': 'A'}}
         assert results['NM_005247.2:c.616del']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': 'NC_000011.10:g.69810409del', 'vcf': {'chr': '11', 'ref': 'AC', 'pos': '69810408', 'alt': 'A'}}
-        assert results['NM_005247.2:c.616del']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_009016.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_005238.1', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_005247.2'}
+        assert results['NM_005247.2:c.616del']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_009016.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_005238.1', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_005247.2', 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/pending/LRG_1303.xml'}
 
 
     def test_variant314(self):

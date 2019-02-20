@@ -170,24 +170,7 @@ def update():
         # Create the entry and append to db
         db.append(ml)
 
-    # Known missing identifiers
-    known = {
-            'NG_021289.1' : {'symbol' : 'CFAP47', 'gene_id' : '286464'},
-            'NG_027707.1' : {'symbol' : 'DUX4L1', 'gene_id' : '22947'},
-            'NG_033266.1' : {'symbol' : 'DSE', 'gene_id': '29940'},
-            'NG_061543.1' : {'symbol' : 'CYP1A2', 'gene_id': '1544'},
-            'NG_061374.1' : {'symbol' : 'CYP1A1', 'gene_id': '1543'},
-            'NG_059281.1' : {'symbol' : 'HBB', 'gene_id': '3043'},
-            'NG_012639.1' : {'symbol' : 'VHLL', 'gene_id': '391104'},
-            'NG_059186.1' : {'symbol' : 'HBA1', 'gene_id': '3040'},
-            'NG_059271.1' : {'symbol' : 'HBA2', 'gene_id': '3040'}
-            }
-
-    # Known Obsolete identifiers
-    obsolete = {
-        'NG_016553.1': 'OBSOLETE',
-        'NG_012639.1': 'Removed due to questionable status'
-    }
+    missing = []
 
     # Identify lines with missing data e.g. gene symbols
     for line in db:
@@ -200,19 +183,15 @@ def update():
                 line.append(rsg_to_symbol[identifier]['symbol'])
                 line.append(rsg_to_symbol[identifier]['gene_id'])
             except KeyError:
-                try:
-                    line.append(known[line[0]]['symbol'])
-                    line.append(known[line[0]]['gene_id'])
-                except KeyError:
-                    check = obsolete[line[0]]
-                    print str(line[0]) + ' : ' + check
+                print "Can't identify gene symbol for %s" % line[0]
+                missing.append(line[0])
 
     # Open a text file to be used as a simple database and write the database
     # rsg_db = open(os.path.join(ROOT, 'rsg_chr_db.txt'), 'w')
 
     to_mysql = []
     for line in db:
-        if line[0] in obsolete.keys():
+        if line[0] in missing:
             continue
         # Only gap-less RefSeqGenes will have passed. The rest will be alternatively curated
         write = []
