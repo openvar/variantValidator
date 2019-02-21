@@ -3136,6 +3136,8 @@ class Mixin(vvMixinConverters.Mixin):
                             logger.warning("Continue reached when mapping transcript types to variants")
                             # Call next description
                             continue
+
+
                     # TYPE = :c.
 
                     if type == ':c.' or type == ':n.':
