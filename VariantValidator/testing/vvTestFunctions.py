@@ -48,7 +48,7 @@ def saveValidationsAsJSON(path,validations):
     jOut=json.dumps(validations)
     with open(path,"w") as f:
         f.write(jOut)
-    print("JSON saved to "+path)
+    print(("JSON saved to "+path))
 
 def loadVariantFile(path):
     out=[]
@@ -99,14 +99,14 @@ def validateBatch(variantArray,val):
     selectTranscripts='all'
     selectedAssembly='GRCh37'
     for i,v in enumerate(variantArray):
-        print("VALIDATING Variant"+str(i)+" "+str(i+1)+"/"+str(len(variantArray))+" "+str(v))
+        print(("VALIDATING Variant"+str(i)+" "+str(i+1)+"/"+str(len(variantArray))+" "+str(v)))
         try:
             out.append(val.validate(v,selectedAssembly,selectTranscripts))
         except KeyboardInterrupt:
             print("Exiting...")
             sys.exit()
         except Exception as e:
-            print("FATAL error processing variant: "+str(e))
+            print(("FATAL error processing variant: "+str(e)))
             out.append({"ERROR":str(e)})
             raise #debug - uncomment this line to ensure the test leaves a traceback and fails the first time there's a critical error.
     return out
@@ -114,9 +114,9 @@ def validateBatch(variantArray,val):
 def retrieveVariant(validation):
     #Returns the variant string (if possible) from a validation.
     out=None
-    for v in validation.values():
+    for v in list(validation.values()):
         try:
-            if type(v)==type({}) and "submitted_variant" in v.keys():
+            if type(v)==type({}) and "submitted_variant" in list(v.keys()):
                 out=v["submitted_variant"]
                 return out
         except (KeyError, TypeError, AttributeError):
@@ -126,32 +126,32 @@ def retrieveVariant(validation):
 def compareValidations(v1,v2,id):
     #print(v1,v2)
     #Remove metadata
-    v1Keys=v1.keys()
+    v1Keys=list(v1.keys())
     if "metadata" in v1Keys:
         v1Keys.remove("metadata")
     else:
-        print("Variant "+str(id)+": metadata not found in first variant")
-    v2Keys=v2.keys()
+        print(("Variant "+str(id)+": metadata not found in first variant"))
+    v2Keys=list(v2.keys())
     if "metadata" in v2Keys:
         v2Keys.remove("metadata")
     else:
-        print("Variant "+str(id)+": metadata not found in second variant")
+        print(("Variant "+str(id)+": metadata not found in second variant"))
     for vk in v1Keys:
         if not (vk in v2Keys):
 #            print("tag "+vk+" : "+str(v1[vk])+" not found in second variant")
-            print("Variant "+str(id)+": Tag "+vk+" not found in second variant")
+            print(("Variant "+str(id)+": Tag "+vk+" not found in second variant"))
             return False
     for vk in v2Keys:
         if not (vk in v1Keys):
 #            print("tag "+vk+" : "+str(v2[vk])+" not found in first variant")
-            print("Variant "+str(id)+": Tag "+vk+" not found in first variant")
+            print(("Variant "+str(id)+": Tag "+vk+" not found in first variant"))
             return False
     for vk in v1Keys:
         if not (v1[vk]==v2[vk]):
             if type(v1[vk])==type(dict()) or type(v2[vk])==type(dict()):
-                print("Variant " + str(id) + ": Different tag values for key " + str(vk))
+                print(("Variant " + str(id) + ": Different tag values for key " + str(vk)))
             else:
-                print("Variant "+str(id)+": Different tag values - "+str(vk)+" : "+str(v1[vk])+" vs. "+str(vk)+" : "+str(v2[vk]))
+                print(("Variant "+str(id)+": Different tag values - "+str(vk)+" : "+str(v1[vk])+" vs. "+str(vk)+" : "+str(v2[vk])))
             return False
     return True
 
@@ -169,10 +169,10 @@ def compareBatches(v1path,v2path):
             passScore+=1
     if passScore==len(v1batch):
         #Test passed.
-        print("Validation sets are identical, "+str(passScore)+" passed")
+        print(("Validation sets are identical, "+str(passScore)+" passed"))
         return True
     else:
-        print("Validation sets are NOT identical, passed " + str(passScore) + "/" + str(len(v1batch)))
+        print(("Validation sets are NOT identical, passed " + str(passScore) + "/" + str(len(v1batch))))
         #for i,v in enumerate(v1batch):
             #if not outFlags[i]:
                 #print("Mismatch in validation "+str(i))

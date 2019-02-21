@@ -19,6 +19,7 @@ class Mixin():
         self.val=val
         self.pool=mysql.connector.pooling.MySQLConnectionPool(pool_size=10, **self.dbConfig)
         self.conn=self.pool.get_connection()
+
     def __del__(self):
         if self.conn:
             self.conn.close()
@@ -26,8 +27,5 @@ class Mixin():
         if self.pool:
             self.pool.close()
             self.pool=None
-        if self.cursor:
-            self.cursor.close()
-            self.cursor=None
         if self.val:
             self.val=None

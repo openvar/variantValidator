@@ -10,9 +10,9 @@ import hgvs.exceptions
 import hgvs.sequencevariant
 import re
 import os
-import vvChromosomes
-import vvHGVS
-from vvLogging import logger
+from . import vvChromosomes
+from . import vvHGVS
+from .vvLogging import logger
 from pyliftover import LiftOver
 from Bio.Seq import Seq
 
@@ -120,7 +120,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp, reverse_no
     for tx_dat_2 in rts_list_2:
         rts_dict[tx_dat_2] = True
     if rts_dict != {}:
-        tx_list = rts_dict.keys()
+        tx_list = list(rts_dict.keys())
 
     # Try to liftover
     if tx_list is not False:
@@ -157,12 +157,12 @@ def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp, reverse_no
         filtered_1 = {}
         if selected:
             for chroms in selected:
-                if chroms[1] in filtered_1.keys():
+                if chroms[1] in list(filtered_1.keys()):
                     pass
                 else:
                     filtered_1[chroms[1]] = chroms[0]
             added_data = False
-            for key, val in filtered_1.iteritems():
+            for key, val in list(filtered_1.items()):
                 try:
                     # Note, due to 0 base positions in UTA (I think) occasionally tx will
                     # be identified that cannot be mapped to.

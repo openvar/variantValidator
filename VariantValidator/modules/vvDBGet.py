@@ -1,6 +1,6 @@
-from vvFunctions import handleCursor
-from vvLogging import logger
-import vvDBInit
+from .vvFunctions import handleCursor
+from .vvLogging import logger
+from . import vvDBInit
 
 class Mixin(vvDBInit.Mixin):
     '''

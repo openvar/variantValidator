@@ -2,7 +2,7 @@ import re
 import os
 import sys
 import copy
-from vvLogging import logger
+from .vvLogging import logger
 import hgvs
 import hgvs.exceptions
 from hgvs.dataproviders import uta
@@ -12,14 +12,14 @@ import hgvs.validator
 import hgvs.parser
 import hgvs.variantmapper
 import hgvs.sequencevariant
-import vvMixinInit
-import vvChromosomes
-import vvHGVS
-from urlparse import urlparse
+from . import vvMixinInit
+from . import vvChromosomes
+from . import vvHGVS
+from urllib.parse import urlparse
 import httplib2 as http
 import json
 from Bio import Entrez,SeqIO
-import vvFunctions as fn
+from . import vvFunctions as fn
 
 
 #Error setup
@@ -357,7 +357,7 @@ class Mixin(vvMixinInit.Mixin):
                         except Exception as e:
                             attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + option[
                                 1] + '~'
-                            print e
+                            print(e)
                             continue
 
             # If not mapped, raise error
@@ -379,7 +379,7 @@ class Mixin(vvMixinInit.Mixin):
                                 else:
                                     attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + option[
                                         1] + '~'
-                                print e
+                                print(e)
                                 continue
                 try:
                     hn.normalize(hgvs_genomic)
@@ -396,7 +396,7 @@ class Mixin(vvMixinInit.Mixin):
                                 except Exception as e:
                                     attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + option[
                                         1] + '~'
-                                    print e
+                                    print(e)
                                     continue
                     try:
                         hn.normalize(hgvs_genomic)
@@ -415,7 +415,7 @@ class Mixin(vvMixinInit.Mixin):
                                         attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + \
                                                                   option[
                                                                       1] + '~'
-                                        print e
+                                        print(e)
                                         continue
                         try:
                             hn.normalize(hgvs_genomic)
@@ -433,7 +433,7 @@ class Mixin(vvMixinInit.Mixin):
                                         except Exception as e:
                                             attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + \
                                                                       option[1] + '~'
-                                            print e
+                                            print(e)
                                             continue
                             try:
                                 hn.normalize(hgvs_genomic)
@@ -452,7 +452,7 @@ class Mixin(vvMixinInit.Mixin):
                                                 attempted_mapping_error = attempted_mapping_error + str(
                                                     e) + "/" + hgvs_c.ac + "/" + \
                                                                           option[1] + '~'
-                                                print e
+                                                print(e)
                                                 continue
 
                                 # Only a RefSeqGene available
@@ -469,7 +469,7 @@ class Mixin(vvMixinInit.Mixin):
                                             except Exception as e:
                                                 attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + \
                                                                           option[1] + '~'
-                                                print e
+                                                print(e)
                                                 continue
 
         # If not mapped, raise error
@@ -656,7 +656,7 @@ class Mixin(vvMixinInit.Mixin):
                         alternate_sequence_bases = []
                         for int in range(transcript_gap_n.posedit.pos.start.base, transcript_gap_n.posedit.pos.end.base + 1,
                                          1):
-                            if int in alt_base_dict.keys():
+                            if int in list(alt_base_dict.keys()):
                                 alternate_sequence_bases.append(alt_base_dict[int])
                             else:
                                 alternate_sequence_bases.append(ref_base_dict[int])
@@ -804,7 +804,7 @@ class Mixin(vvMixinInit.Mixin):
                     # Generate the alt sequence
                     alternate_sequence_bases = []
                     for int in range(transcript_gap_n.posedit.pos.start.base, transcript_gap_n.posedit.pos.end.base + 1, 1):
-                        if int in alt_base_dict.keys():
+                        if int in list(alt_base_dict.keys()):
                             alternate_sequence_bases.append(alt_base_dict[int])
                         else:
                             alternate_sequence_bases.append(ref_base_dict[int])
@@ -903,7 +903,7 @@ class Mixin(vvMixinInit.Mixin):
                         except Exception as e:
                             attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + option[
                                 1] + '~'
-                            print e
+                            print(e)
                             continue
 
             # If not mapped, raise error
@@ -922,7 +922,7 @@ class Mixin(vvMixinInit.Mixin):
                             except Exception as e:
                                 attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + option[
                                     1] + '~'
-                                print e
+                                print(e)
                                 continue
 
                 # If not mapped, raise error
@@ -945,7 +945,7 @@ class Mixin(vvMixinInit.Mixin):
                                         attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + \
                                                                   option[
                                                                       1] + '~'
-                                    print e
+                                    print(e)
                                     continue
                     try:
                         hn.normalize(hgvs_genomic)
@@ -964,7 +964,7 @@ class Mixin(vvMixinInit.Mixin):
                                         attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + \
                                                                   option[
                                                                       1] + '~'
-                                        print e
+                                        print(e)
                                         continue
                         try:
                             hn.normalize(hgvs_genomic)
@@ -984,7 +984,7 @@ class Mixin(vvMixinInit.Mixin):
                                                 e) + "/" + hgvs_c.ac + "/" + \
                                                                       option[
                                                                           1] + '~'
-                                            print e
+                                            print(e)
                                             continue
                             try:
                                 hn.normalize(hgvs_genomic)
@@ -1003,7 +1003,7 @@ class Mixin(vvMixinInit.Mixin):
                                                 attempted_mapping_error = attempted_mapping_error + str(
                                                     e) + "/" + hgvs_c.ac + "/" + \
                                                                           option[1] + '~'
-                                                print e
+                                                print(e)
                                                 continue
                                 try:
                                     hn.normalize(hgvs_genomic)
@@ -1022,7 +1022,7 @@ class Mixin(vvMixinInit.Mixin):
                                                     attempted_mapping_error = attempted_mapping_error + str(
                                                         e) + "/" + hgvs_c.ac + "/" + \
                                                                               option[1] + '~'
-                                                    print e
+                                                    print(e)
                                                     continue
 
                                     # Only a RefSeqGene available
@@ -1040,7 +1040,7 @@ class Mixin(vvMixinInit.Mixin):
                                                     attempted_mapping_error = attempted_mapping_error + str(
                                                         e) + "/" + hgvs_c.ac + "/" + \
                                                                               option[1] + '~'
-                                                    print e
+                                                    print(e)
                                                     continue
         try:
             hgvs_genomic
@@ -1400,7 +1400,7 @@ class Mixin(vvMixinInit.Mixin):
                         alternate_sequence_bases = []
                         for int in range(transcript_gap_n.posedit.pos.start.base, transcript_gap_n.posedit.pos.end.base + 1,
                                          1):
-                            if int in alt_base_dict.keys():
+                            if int in list(alt_base_dict.keys()):
                                 alternate_sequence_bases.append(alt_base_dict[int])
                             else:
                                 alternate_sequence_bases.append(ref_base_dict[int])
@@ -1548,7 +1548,7 @@ class Mixin(vvMixinInit.Mixin):
                     # Generate the alt sequence
                     alternate_sequence_bases = []
                     for int in range(transcript_gap_n.posedit.pos.start.base, transcript_gap_n.posedit.pos.end.base + 1, 1):
-                        if int in alt_base_dict.keys():
+                        if int in list(alt_base_dict.keys()):
                             alternate_sequence_bases.append(alt_base_dict[int])
                         else:
                             alternate_sequence_bases.append(ref_base_dict[int])
@@ -1773,7 +1773,7 @@ class Mixin(vvMixinInit.Mixin):
         rts_list_2 = evm.relevant_transcripts(hgvs_genomic)
         for tx_dat_2 in rts_list_2:
             rts_dict[tx_dat_2] = True
-        rts = rts_dict.keys()
+        rts = list(rts_dict.keys())
 
         # Project genomic variants to new transcripts
         # and  populate a code_var list
@@ -1976,7 +1976,7 @@ class Mixin(vvMixinInit.Mixin):
             try:
                 hgvs_v = self.hp.parse_hgvs_variant(hgvs_v)
             except Exception as e:
-                print e
+                print(e)
                 pass
 
             # Validate

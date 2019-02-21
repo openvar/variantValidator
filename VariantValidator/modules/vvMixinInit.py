@@ -18,9 +18,9 @@ from Bio.Seq import Seq
 import re
 import copy
 #import io
-from vvDatabase import vvDatabase
-from vvLogging import logger
-import vvFunctions as fn
+from .vvDatabase import vvDatabase
+from .vvLogging import logger
+from . import vvFunctions as fn
 
 
 

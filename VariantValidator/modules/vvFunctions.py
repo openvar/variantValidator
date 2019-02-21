@@ -3,11 +3,11 @@ from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
 import httplib2 as http
 import json
-from urlparse import urlparse #Python 2
+from urllib.parse import urlparse #Python 2
 import functools
 import traceback
 import sys
-from vvLogging import logger
+from .vvLogging import logger
 import re
 import copy
 import mysql

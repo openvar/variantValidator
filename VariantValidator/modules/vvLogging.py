@@ -2,7 +2,7 @@
 import logging
 import datetime
 import os
-from StringIO import StringIO
+from io import StringIO
 
 VALIDATOR_DEBUG=os.environ.get('VALIDATOR_DEBUG')
 

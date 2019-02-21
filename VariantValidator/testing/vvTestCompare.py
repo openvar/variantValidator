@@ -6,6 +6,6 @@ masterDirectory="testOutputsMasterITS	"
 testDirectories=["testOutputs"]
 
 for d in testDirectories:
-    print("Comparing "+masterDirectory+" and "+d)
+    print(("Comparing "+masterDirectory+" and "+d))
     fn.compareBatches(masterDirectory,d)
 

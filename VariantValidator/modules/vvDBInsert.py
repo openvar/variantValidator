@@ -1,5 +1,5 @@
-from vvFunctions import handleCursor
-import vvDBGet
+from .vvFunctions import handleCursor
+from . import vvDBGet
 
 class Mixin(vvDBGet.Mixin):
     '''

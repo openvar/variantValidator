@@ -6,7 +6,7 @@ Each function has a slightly difference emphasis
 # Import modules
 import re
 import copy
-import vvChromosomes
+from . import vvChromosomes
 
 # Import Biopython modules
 from Bio.Seq import Seq

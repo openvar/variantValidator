@@ -1,10 +1,10 @@
-from vvLogging import logger
-import vvFunctions as fn
-from vvFunctions import handleCursor
+from .vvLogging import logger
+from . import vvFunctions as fn
+from .vvFunctions import handleCursor
 #from vvDBInsert import vvDBInsert
 #from vvDBGet import vvDBGet
-import vvDBInsert
-import urllib2
+from . import vvDBInsert
+import urllib.request, urllib.error, urllib.parse
 import copy
 
 import re
@@ -185,8 +185,8 @@ class vvDatabase(vvDBInsert.Mixin):
 
         # Download data from RefSeqGene
         # Download data
-        rsg = urllib2.Request('http://ftp.ncbi.nih.gov/refseq/H_sapiens/RefSeqGene/gene_RefSeqGene')
-        response = urllib2.urlopen(rsg)
+        rsg = urllib.request.Request('http://ftp.ncbi.nih.gov/refseq/H_sapiens/RefSeqGene/gene_RefSeqGene')
+        response = urllib.request.urlopen(rsg)
         rsg_file = response.read()
         rsg_data_line = rsg_file.split('\n')
         rsg_data = []
@@ -194,9 +194,9 @@ class vvDatabase(vvDBInsert.Mixin):
             rsg_data.append(data)
 
         # Download data
-        grch37 = urllib2.Request(
+        grch37 = urllib.request.Request(
             'http://ftp.ncbi.nih.gov/refseq/H_sapiens/RefSeqGene/GCF_000001405.25_refseqgene_alignments.gff3')
-        response = urllib2.urlopen(grch37)
+        response = urllib.request.urlopen(grch37)
         grch37_file = response.read()
         grch37_data_line = grch37_file.split('\n')
         grch37_align_data = []
@@ -204,9 +204,9 @@ class vvDatabase(vvDBInsert.Mixin):
             grch37_align_data.append(data)
 
         # Download data
-        grch38 = urllib2.Request(
+        grch38 = urllib.request.Request(
             'http://ftp.ncbi.nih.gov/refseq/H_sapiens/RefSeqGene/GCF_000001405.28_refseqgene_alignments.gff3')
-        response = urllib2.urlopen(grch38)
+        response = urllib.request.urlopen(grch38)
         grch38_file = response.read()
         grch38_data_line = grch38_file.split('\n')
         grch38_align_data = []
@@ -380,7 +380,7 @@ class vvDatabase(vvDBInsert.Mixin):
 
         to_mysql = []
         for line in db:
-            if line[0] in obsolete.keys():
+            if line[0] in list(obsolete.keys()):
                 continue
             # Only gap-less RefSeqGenes will have passed. The rest will be alternatively curated
             write = []
@@ -427,36 +427,36 @@ class vvDatabase(vvDBInsert.Mixin):
     #from compile_lrg_data, this function was originally just called "update"
     def update_lrg(self):
         logger.info('Updating LRG lookup tables')
-        lr2rs_download = urllib2.Request('http://ftp.ebi.ac.uk/pub/databases/lrgex/list_LRGs_transcripts_xrefs.txt')
+        lr2rs_download = urllib.request.Request('http://ftp.ebi.ac.uk/pub/databases/lrgex/list_LRGs_transcripts_xrefs.txt')
         # Open and read
-        lr2rs_data = urllib2.urlopen(lr2rs_download)
+        lr2rs_data = urllib.request.urlopen(lr2rs_download)
         lr2rs = lr2rs_data.read()
         # List the data
         lr2rs = lr2rs.strip()
         lr2rs = lr2rs.split('\n')
 
         # Download
-        lrg_status_download = urllib2.Request('http://ftp.ebi.ac.uk/pub/databases/lrgex/list_LRGs_GRCh38.txt')
+        lrg_status_download = urllib.request.Request('http://ftp.ebi.ac.uk/pub/databases/lrgex/list_LRGs_GRCh38.txt')
         # Open and read
-        lrg_status_data = urllib2.urlopen(lrg_status_download)
+        lrg_status_data = urllib.request.urlopen(lrg_status_download)
         lrg_status = lrg_status_data.read()
         # List the data
         lrg_status = lrg_status.strip()
         lrg_status = lrg_status.split('\n')
 
         # Download
-        rs2lr_download = urllib2.Request('http://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/RefSeqGene/LRG_RefSeqGene')
+        rs2lr_download = urllib.request.Request('http://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/RefSeqGene/LRG_RefSeqGene')
         # Open and read
-        rs2lr_data = urllib2.urlopen(rs2lr_download)
+        rs2lr_data = urllib.request.urlopen(rs2lr_download)
         rs2lr = rs2lr_data.read()
         # List the data
         rs2lr = rs2lr.strip()
         rs2lr = rs2lr.split('\n')
 
         # Download LRG transcript (_t) to LRG Protein (__p) data file
-        lr_t2p_downloaded = urllib2.Request('http://ftp.ebi.ac.uk/pub/databases/lrgex/list_LRGs_proteins_RefSeq.txt')
+        lr_t2p_downloaded = urllib.request.Request('http://ftp.ebi.ac.uk/pub/databases/lrgex/list_LRGs_proteins_RefSeq.txt')
         # Open and read
-        lr_t2p_data = urllib2.urlopen(lr_t2p_downloaded)
+        lr_t2p_data = urllib.request.urlopen(lr_t2p_downloaded)
         lr_t2p = lr_t2p_data.read()
         # List the data
         lr_t2p = lr_t2p.strip()

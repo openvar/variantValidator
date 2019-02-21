@@ -35,9 +35,9 @@ import traceback
 #import external
 #import output_formatter
 #import variantanalyser
-from vvLogging import logger
+from .vvLogging import logger
 import hgvs
-import vvHGVS
+from . import vvHGVS
 #from variantanalyser import functions as va_func
 #from variantanalyser import dbControls as va_dbCrl
 #from variantanalyser import hgvs2vcf as vvHGVS
@@ -45,13 +45,13 @@ import vvHGVS
 #from variantanalyser import g_to_g as va_g2g
 #from variantanalyser import supported_chromosome_builds as va_scb
 #from variantanalyser.liftover import liftover as lift_over
-from vvLiftover import liftover as lift_over #???
+from .vvLiftover import liftover as lift_over #???
 
-import vvFunctions as fn
-import vvDatabase
-import vvChromosomes
-import vvMixinConverters
-from vvFunctions import VariantValidatorError
+from . import vvFunctions as fn
+from . import vvDatabase
+from . import vvChromosomes
+from . import vvMixinConverters
+from .vvFunctions import VariantValidatorError
 
 
 class Mixin(vvMixinConverters.Mixin):
@@ -179,7 +179,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                     # Test for rich text unicode characters
                     try:
-                        unicode_test = u"{}".format(input)
+                        unicode_test = "{}".format(input)
                     except UnicodeDecodeError as e:
                         # Format the trapped character into unicode for styled printing
                         my_unicode = e[1]
@@ -203,23 +203,23 @@ class Mixin(vvMixinConverters.Mixin):
                                     found_at = found_unicode.encode('raw_unicode_escape')
                                     break
                             # Extract character from the error
-                            unicode = re.findall("u'\\\\\w+'", found_error)
-                            character = unicode[0]
+                            chars = re.findall(r"u'\\\\\w+'", found_error)
+                            character = chars[0]
                             search_term = character.replace("u'", '')
                             search_term = search_term.replace("'", '')
                             found_at_decoded = found_at.decode('raw_unicode_escape')
                             found_at = found_at_decoded.encode('raw_unicode_escape')
                             string_char = str(character)
                             # Create a human readable U+ representation
-                            human_code = re.sub("u'\\\\\w", 'U+', string_char)
+                            human_code = re.sub(r"u'\\\\\w", 'U+', string_char)
                             human_code = human_code.replace("'", "")
-                            format_human = u"{}".format(human_code)
+                            format_human = "{}".format(human_code)
                             format_human = format_human.upper()
-                            found_at = re.sub(search_term, u'<' + format_human + u'>', found_at)
+                            found_at = re.sub(search_term, '<' + format_human + '>', found_at)
                             slasher = re.compile("\\\\")
                             found_at = re.sub(slasher, '', found_at)
                             validation['id'] = found_at
-                            error = u'Submitted variant description contains an invalid character which is represented by Unicode character ' + format_human + u' at position ' + found_at + u': Please remove this character and re-submit: A useful search function for Unicode characters can be found at https://unicode-search.net/'
+                            error = 'Submitted variant description contains an invalid character which is represented by Unicode character ' + format_human + ' at position ' + found_at + ': Please remove this character and re-submit: A useful search function for Unicode characters can be found at https://unicode-search.net/'
                             validation['warnings'] = validation['warnings'] + ': ' + error
                             logger.warning(error)
                             continue
@@ -276,20 +276,20 @@ class Mixin(vvMixinConverters.Mixin):
                     The output format is a common mistake caused by inaccurate conversion of 
                     VCF variants into HGVS - hence the need for conversion step 2
                     """
-                    if re.search('[-:]\d+[-:][GATC]+[-:][GATC]+', input):
+                    if re.search(r'[-:]\d+[-:][GATC]+[-:][GATC]+', input):
                         input = input.replace(':', '-')
                         # Extract primary_assembly if provided
-                        if re.match('GRCh3\d+-', input) or re.match('hg\d+-', input):
+                        if re.match(r'GRCh3\d+-', input) or re.match(r'hg\d+-', input):
                             in_list = input.split('-')
                             selected_assembly = in_list[0]
                             input = '-'.join(in_list[1:])
                         pre_input = copy.deepcopy(input)
                         vcf_elements = pre_input.split('-')
                         input = '%s:%s%s>%s' % (vcf_elements[0], vcf_elements[1], vcf_elements[2], vcf_elements[3])
-                    elif re.search('[-:]\d+[-:][GATC]+[-:]', input):
+                    elif re.search(r'[-:]\d+[-:][GATC]+[-:]', input):
                         input = input.replace(':', '-')
                         # Extract primary_assembly if provided
-                        if re.match('GRCh3\d+-', input) or re.match('hg\d+-', input):
+                        if re.match(r'GRCh3\d+-', input) or re.match(r'hg\d+-', input):
                             in_list = input.split('-')
                             selected_assembly = in_list[0]
                             input = '-'.join(in_list[1:])
@@ -313,14 +313,14 @@ class Mixin(vvMixinConverters.Mixin):
                         batch_list.append(queryA)
                         batch_list.append(queryB)
                         continue
-                    elif re.search('[-:]\d+[-:][-:][GATC]+', input) or re.search('[-:]\d+[-:][.][-:][GATC]+', input):
+                    elif re.search(r'[-:]\d+[-:][-:][GATC]+', input) or re.search(r'[-:]\d+[-:][.][-:][GATC]+', input):
                         input = input.replace(':', '-')
                         if re.search('-.-', input):
                             input = input.replace('-.-', '-ins-')
                         if re.search('--', input):
                             input = input.replace('--', '-ins-')
                         # Extract primary_assembly if provided
-                        if re.match('GRCh3\d+-', input) or re.match('hg\d+-', input):
+                        if re.match(r'GRCh3\d+-', input) or re.match(r'hg\d+-', input):
                             in_list = input.split('-')
                             selected_assembly = in_list[0]
                             input = '-'.join(in_list[1:])
@@ -341,8 +341,8 @@ class Mixin(vvMixinConverters.Mixin):
                     The LRG ID data ia stored in the VariantValidator MySQL database.
                     The reference sequence type is also assigned. 
                     """
-                    if re.search('\w+\:', input) and not re.search('\w+\:[gcnmrp]\.', input):
-                        if re.search('\w+\:[gcnmrp]', input) and not re.search('\w+\:[gcnmrp]\.', input):
+                    if re.search(r'\w+\:', input) and not re.search(r'\w+\:[gcnmrp]\.', input):
+                        if re.search(r'\w+\:[gcnmrp]', input) and not re.search(r'\w+\:[gcnmrp]\.', input):
                             # Missing dot
                             pass
                         else:
@@ -355,7 +355,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 input_list = input.split(':')
                                 pos_ref_alt = str(input_list[1])
                                 positionAndEdit = input_list[1]
-                                if not re.match('N[CGTWMRP]_', input) and not re.match('LRG_', input):
+                                if not re.match(r'N[CGTWMRP]_', input) and not re.match(r'LRG_', input):
                                     chr_num = str(input_list[0])
                                     chr_num = chr_num.upper()
                                     chr_num = chr_num.strip()
@@ -373,7 +373,7 @@ class Mixin(vvMixinConverters.Mixin):
                                     accession = input_list[0]
                                 if re.search('>', pre_input):
                                     if re.search('del', pre_input):
-                                        pos = re.match('\d+', pos_ref_alt)
+                                        pos = re.match(r'\d+', pos_ref_alt)
                                         position = pos.group(0)
                                         old_ref, old_alt = pos_ref_alt.split('>')
                                         old_ref = old_ref.replace(position, '')
@@ -383,7 +383,7 @@ class Mixin(vvMixinConverters.Mixin):
                                         alt = required_base
                                         positionAndEdit = str(position) + ref + '>' + alt
                                     elif re.search('ins', pre_input):
-                                        pos = re.match('\d+', pos_ref_alt)
+                                        pos = re.match(r'\d+', pos_ref_alt)
                                         position = pos.group(0)
                                         old_ref, old_alt = pos_ref_alt.split('>')
                                         # old_ref = old_ref.replace(position, '')
@@ -407,7 +407,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 fn.exceptPass(validation)
 
                     # Descriptions lacking the colon :
-                    if re.search('[gcnmrp]\.', input) and not re.search(':[gcnmrp]\.', input):
+                    if re.search(r'[gcnmrp]\.', input) and not re.search(r':[gcnmrp]\.', input):
                         error = 'Unable to identify a colon (:) in the variant description %s. A colon is required in HGVS variant descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. e.g. :c.' % (
                             input)
                         validation['warnings'] = validation['warnings'] + ': ' + error
@@ -421,7 +421,7 @@ class Mixin(vvMixinConverters.Mixin):
                     formats like Chr16:g.2099572TC>T which are provided by Alamut and other
                     software
                     """
-                    if re.search('\w+:[gcnmrp]\.', input) and not re.match('N[CGTWMRP]_', input):
+                    if re.search(r'\w+:[gcnmrp]\.', input) and not re.match(r'N[CGTWMRP]_', input):
                         # Take out lowercase Accession characters
                         lower_cased_list = input.split(':')
                         if re.search('LRG', lower_cased_list[0], re.IGNORECASE):
@@ -480,7 +480,7 @@ class Mixin(vvMixinConverters.Mixin):
                     of knowing which the users intended reference sequence was, and the exon 
                     boundaries etc of the alternative transcript variants may not be equivalent 
                     """
-                    if re.search('\w+\:[cn]\.', input):
+                    if re.search(r'\w+\:[cn]\.', input):
                         try:
                             pre_input = copy.deepcopy(input)
                             query_a_symbol = pre_input.split(':')[0]
@@ -492,16 +492,16 @@ class Mixin(vvMixinConverters.Mixin):
                                 select_from_these_transcripts = {}
                                 for tx in available_transcripts:
                                     if re.match('NM_', tx[3]) or re.match('NR_', tx[3]):
-                                        if tx[3] not in select_from_these_transcripts.keys():
+                                        if tx[3] not in list(select_from_these_transcripts.keys()):
                                             select_from_these_transcripts[tx[3]] = ''
                                         else:
                                             continue
                                     else:
                                         continue
-                                select_from_these_transcripts = '|'.join(select_from_these_transcripts.keys())
+                                select_from_these_transcripts = '|'.join(list(select_from_these_transcripts.keys()))
                                 if select_transcripts != 'all':
                                     validation['write'] = 'false'
-                                    for transcript in select_transcripts_dict_plus_version.keys():
+                                    for transcript in list(select_transcripts_dict_plus_version.keys()):
                                         validation[
                                             'warnings'] = 'HGVS variant nomenclature does not allow the use of a gene symbol (' + \
                                                           query_a_symbol + ') in place of a valid reference sequence'
@@ -534,9 +534,9 @@ class Mixin(vvMixinConverters.Mixin):
                     Chromosomal reference sequence identifiers used in the context of c. variant
                     descriptions
                     """
-                    if re.search('\w+\:[cn]', input):
+                    if re.search(r'\w+\:[cn]', input):
                         try:
-                            if re.match('^NG_', input):
+                            if re.match(r'^NG_', input):
                                 refSeqGeneID = input.split(':')[0]
                                 tx_edit = input.split(':')[1]
                                 gene_symbol = self.db.get_gene_symbol_from_refSeqGeneID(refSeqGeneID)
@@ -546,16 +546,16 @@ class Mixin(vvMixinConverters.Mixin):
                                     select_from_these_transcripts = {}
                                     for tx in available_transcripts:
                                         if re.match('NM_', tx[3]) or re.match('NR_', tx[3]):
-                                            if tx[3] not in select_from_these_transcripts.keys():
+                                            if tx[3] not in list(select_from_these_transcripts.keys()):
                                                 select_from_these_transcripts[tx[3]] = ''
                                             else:
                                                 continue
                                         else:
                                             continue
-                                    select_from_these_transcripts = '|'.join(select_from_these_transcripts.keys())
+                                    select_from_these_transcripts = '|'.join(list(select_from_these_transcripts.keys()))
                                     if select_transcripts != 'all':
                                         validation['write'] = 'false'
-                                        for transcript in select_transcripts_dict_plus_version.keys():
+                                        for transcript in list(select_transcripts_dict_plus_version.keys()):
                                             validation[
                                                 'warnings'] = 'NG_:c.PositionVariation descriptions should not be used unless a transcript reference sequence has also been provided e.g. NG_(NM_):c.PositionVariation'
                                             refreshed_description = refSeqGeneID + '(' + transcript + ')' + ':' + tx_edit
@@ -604,15 +604,15 @@ class Mixin(vvMixinConverters.Mixin):
                     automatically submits them for validation  
                     """
                     not_sub = copy.deepcopy(input)
-                    not_sub_find = re.compile("([GATCgatc]+)>([GATCgatc]+)")
+                    not_sub_find = re.compile(r"([GATCgatc]+)>([GATCgatc]+)")
                     if not_sub_find.search(not_sub):
                         try:
                             # If the length of either side of the substitution delimer (>) is >1
                             matches = not_sub_find.search(not_sub)
                             if len(matches.group(1)) > 1 or len(matches.group(2)) > 1 or re.search(
-                                    "([GATCgatc]+)>([GATCgatc]+),([GATCgatc]+)", input):
+                                    r"([GATCgatc]+)>([GATCgatc]+),([GATCgatc]+)", input):
                                 # Search for and remove range
-                                interval_range = re.compile("([0-9]+)_([0-9]+)")
+                                interval_range = re.compile(r"([0-9]+)_([0-9]+)")
                                 if interval_range.search(not_sub):
                                     m = not_sub_find.search(not_sub)
                                     start = m.group(1)
@@ -633,7 +633,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 insert = split_greater[1]
                                 remainder = split_greater[0]
                                 # Split remainder using matches
-                                r = re.compile("([0-9]+)([GATCgatc]+)")
+                                r = re.compile(r"([0-9]+)([GATCgatc]+)")
                                 try:
                                     m = r.search(remainder)
                                     start = m.group(1)
@@ -643,7 +643,7 @@ class Mixin(vvMixinConverters.Mixin):
                                     hgvs_re_try = self.hp.parse_hgvs_variant(re_try)
                                     hgvs_re_try.posedit.edit.ref = delete
                                     start_pos = str(hgvs_re_try.posedit.pos.start)
-                                    if re.search('\-', start_pos):
+                                    if re.search(r'\-', start_pos):
                                         base, offset = start_pos.split('-')
                                         new_offset = 0 - int(offset) + (len(delete))
                                         end_pos = int(base)
@@ -651,7 +651,7 @@ class Mixin(vvMixinConverters.Mixin):
                                         hgvs_re_try.posedit.pos.end.offset = int(new_offset) - 1
                                         not_delins = ref_ac + ':' + ref_type + '.' + start_pos + '_' + str(
                                             hgvs_re_try.posedit.pos.end) + 'del' + delete + 'ins' + insert
-                                    elif re.search('\+', start_pos):
+                                    elif re.search(r'\+', start_pos):
                                         base, offset = start_pos.split('+')
                                         end_pos = int(base) + (len(delete) - int(offset) - 1)
                                         new_offset = 0 + int(offset) + (len(delete) - 1)
@@ -671,7 +671,7 @@ class Mixin(vvMixinConverters.Mixin):
                                     hgvs_not_delins = self.hp.parse_hgvs_variant(not_delins)
                                 except hgvs.exceptions.HGVSError as e:
                                     # Sort out multiple ALTS from VCF inputs
-                                    if re.search("([GATCgatc]+)>([GATCgatc]+),([GATCgatc]+)", not_delins):
+                                    if re.search(r"([GATCgatc]+)>([GATCgatc]+),([GATCgatc]+)", not_delins):
                                         header, alts = not_delins.split('>')
                                         # Split up the alts into a list
                                         alt_list = alts.split(',')
@@ -733,8 +733,8 @@ class Mixin(vvMixinConverters.Mixin):
                     continues validation
                     If not, an error message is generated and the loop continues
                     """
-                    edit_pass = re.compile('_\d+$')
-                    edit_fail = re.compile('\d+$')
+                    edit_pass = re.compile(r'_\d+$')
+                    edit_fail = re.compile(r'\d+$')
                     if edit_fail.search(input):
                         if edit_pass.search(input):
                             pass
@@ -751,7 +751,7 @@ class Mixin(vvMixinConverters.Mixin):
                             except hgvs.exceptions.HGVSError as e:
                                 error = str(e)
                                 error = 'The syntax of the input variant description is invalid '
-                                if re.search('ins\d+', failed):
+                                if re.search(r'ins\d+', failed):
                                     issue_link = 'http://varnomen.hgvs.org/recommendations/DNA/variant/insertion/'
                                     error = error + ' please refer to ' + issue_link
                                 validation['warnings'] = validation['warnings'] + error
@@ -780,8 +780,8 @@ class Mixin(vvMixinConverters.Mixin):
                     hgvs can now parse the string into an hgvs variant object and manipulate it
                     """
                     caution = ''
-                    compounder = re.compile('\(NM_')
-                    compounder_b = re.compile('\(ENST')
+                    compounder = re.compile(r'\(NM_')
+                    compounder_b = re.compile(r'\(ENST')
                     if compounder.search(input):
                         # Find pattern e.g. +0000 and assign to a variable
                         transy = re.search(r"(NM_.+)", input)
@@ -800,20 +800,20 @@ class Mixin(vvMixinConverters.Mixin):
                     containing intronic variant descriptions. In such instances, allele
                     descriptions should be re-submitted by the user at the gene or genome level 
                     """
-                    if (re.search(':[gcnr].\[', input) and re.search('\;', input)) or (
-                            re.search(':[gcrn].\d+\[', input) and re.search('\;', input)) or (re.search('\(\;\)', input)):
+                    if (re.search(r':[gcnr].\[', input) and re.search(r'\;', input)) or (
+                            re.search(r':[gcrn].\d+\[', input) and re.search(r'\;', input)) or (re.search(r'\(\;\)', input)):
                         # handle LRG inputs
-                        if re.match('^LRG', input):
-                            if re.match('^LRG\d+', input):
+                        if re.match(r'^LRG', input):
+                            if re.match(r'^LRG\d+', input):
                                 string, remainder = input.split(':')
                                 reference = string.replace('LRG', 'LRG_')
                                 input = reference + ':' + remainder
                                 caution = string + ' updated to ' + reference
-                            if not re.match('^LRG_\d+', input):
+                            if not re.match(r'^LRG_\d+', input):
                                 pass
-                            elif re.match('^LRG_\d+:g.', input) or re.match('^LRG_\d+:p.', input) or re.match('^LRG_\d+:c.',
+                            elif re.match(r'^LRG_\d+:g.', input) or re.match(r'^LRG_\d+:p.', input) or re.match(r'^LRG_\d+:c.',
                                                                                                               input) or re.match(
-                                '^LRG_\d+:n.', input):
+                                r'^LRG_\d+:n.', input):
                                 lrg_reference, variation = input.split(':')
                                 refseqgene_reference = self.db.get_RefSeqGeneID_from_lrgID(lrg_reference)
                                 if refseqgene_reference != 'none':
@@ -824,8 +824,8 @@ class Mixin(vvMixinConverters.Mixin):
                                         caution = caution + ': ' + lrg_reference + ':' + variation + ' automapped to ' + refseqgene_reference + ':' + variation
                                     validation['warnings'] = validation['warnings'] + ': ' + str(caution)
                                     logger.warning(str(caution))
-                            elif re.match('^LRG_\d+t\d+:c.', input) or re.match('^LRG_\d+t\d+:n.', input) or re.match(
-                                    '^LRG_\d+t\d+:p.', input) or re.match('^LRG_\d+t\d+:g.', input):
+                            elif re.match(r'^LRG_\d+t\d+:c.', input) or re.match(r'^LRG_\d+t\d+:n.', input) or re.match(
+                                    r'^LRG_\d+t\d+:p.', input) or re.match(r'^LRG_\d+t\d+:g.', input):
                                 lrg_reference, variation = input.split(':')
                                 refseqtranscript_reference = self.db.get_RefSeqTranscriptID_from_lrgTranscriptID(
                                     lrg_reference)
@@ -894,7 +894,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                     # Check the initial validity of the input
                     if formatted == 'invalid':
-                        if re.search('\w+\:[gcnmrp]', input) and not re.search('\w+\:[gcnmrp]\.', input):
+                        if re.search(r'\w+\:[gcnmrp]', input) and not re.search(r'\w+\:[gcnmrp]\.', input):
                             error = 'Variant description ' + input + ' lacks the . character between <type> and <position> in the expected pattern <accession>:<type>.<position>'
                         else:
                             error = 'Variant description ' + input + ' is not in an accepted format'
@@ -906,7 +906,7 @@ class Mixin(vvMixinConverters.Mixin):
                         variant = formatted['variant']
                         input = formatted['variant']
                         stash_input = formatted['variant']
-                        type = formatted['type']
+                        format_type = formatted['type']
                     logger.trace("Variant input formatted, proceeding to validate.", validation)
                     # Conversions
                     """
@@ -922,7 +922,7 @@ class Mixin(vvMixinConverters.Mixin):
                     # Primary check that hgvs will accept the variant
                     error = 'false'
                     # Change RNA bases to upper case but nothing else
-                    if type == ":r.":
+                    if format_type == ":r.":
                         variant = variant.upper()
                         variant = variant.replace(':R.', ':r.')
                         # lowercase the supported variant types
@@ -1028,7 +1028,7 @@ class Mixin(vvMixinConverters.Mixin):
                     Also identifies some variants which span into the downstream sequence
                     i.e. out of bounds
                     """
-                    astr = re.compile('\*')
+                    astr = re.compile(r'\*')
                     if astr.search(str(input_parses.posedit)):
                         input_parses_copy = copy.deepcopy(input_parses)
                         input_parses_copy.type = "c"
@@ -1055,10 +1055,10 @@ class Mixin(vvMixinConverters.Mixin):
                         pass
 
                     # Catch missing version number in refseq
-                    ref_type = re.compile("^N\w\w\d")
-                    is_version = re.compile("\d\.\d")
-                    en_type = re.compile('^ENS')
-                    lrg_type = re.compile('LRG')
+                    ref_type = re.compile(r"^N\w\w\d")
+                    is_version = re.compile(r"\d\.\d")
+                    en_type = re.compile(r'^ENS')
+                    lrg_type = re.compile(r'LRG')
                     if (ref_type.search(str(input_parses)) and is_version.search(str(input_parses))) or (
                             en_type.search(str(input_parses))):
                         pass
@@ -1077,17 +1077,17 @@ class Mixin(vvMixinConverters.Mixin):
                     equivalent RefSeq identifiers. The lookup data is stored in the 
                     VariantValidator  MySQL database
                     """
-                    if re.match('^LRG', str(input_parses)):
-                        if re.match('^LRG\d+', str(input_parses.ac)):
+                    if re.match(r'^LRG', str(input_parses)):
+                        if re.match(r'^LRG\d+', str(input_parses.ac)):
                             string = str(input_parses.ac)
                             reference = string.replace('LRG', 'LRG_')
                             input_parses.ac = reference
                             caution = string + ' updated to ' + reference
-                        if not re.match('^LRG_\d+', str(input_parses)):
+                        if not re.match(r'^LRG_\d+', str(input_parses)):
                             pass
-                        elif re.match('^LRG_\d+:g.', str(input_parses)) or re.match('^LRG_\d+:p.',
+                        elif re.match(r'^LRG_\d+:g.', str(input_parses)) or re.match(r'^LRG_\d+:p.',
                                                                                     str(input_parses)) or re.match(
-                            '^LRG_\d+:c.', str(input_parses)) or re.match('^LRG_\d+:n.', str(input_parses)):
+                            r'^LRG_\d+:c.', str(input_parses)) or re.match(r'^LRG_\d+:n.', str(input_parses)):
                             lrg_reference, variation = str(input_parses).split(':')
                             refseqgene_reference = self.db.get_RefSeqGeneID_from_lrgID(lrg_reference)
                             if refseqgene_reference != 'none':
@@ -1101,9 +1101,9 @@ class Mixin(vvMixinConverters.Mixin):
                                     caution = caution + ': ' + lrg_reference + ':' + variation + ' automapped to ' + refseqgene_reference + ':' + variation
                                 validation['warnings'] = validation['warnings'] + ': ' + str(caution)
                                 logger.warning(str(caution))
-                        elif re.match('^LRG_\d+t\d+:c.', str(input_parses)) or re.match('^LRG_\d+t\d+:n.',
+                        elif re.match(r'^LRG_\d+t\d+:c.', str(input_parses)) or re.match(r'^LRG_\d+t\d+:n.',
                                                                                         str(input_parses)) or re.match(
-                            '^LRG_\d+t\d+:p.', str(input_parses)) or re.match('^LRG_\d+t\d+:g.', str(input_parses)):
+                            r'^LRG_\d+t\d+:p.', str(input_parses)) or re.match(r'^LRG_\d+t\d+:g.', str(input_parses)):
                             lrg_reference, variation = str(input_parses).split(':')
                             refseqtranscript_reference = self.db.get_RefSeqTranscriptID_from_lrgTranscriptID(
                                 lrg_reference)
@@ -1126,21 +1126,21 @@ class Mixin(vvMixinConverters.Mixin):
                     Evolving list of common mistakes, see sections below
                     """
                     # NM_ .g
-                    if (re.search('^NM_', variant) or re.search('^NR_', variant)) and re.search(':g.', variant):
+                    if (re.search(r'^NM_', variant) or re.search(r'^NR_', variant)) and re.search(r':g.', variant):
                         suggestion = input.replace(':g.', ':c.')
                         error = 'Transcript reference sequence input as genomic (g.) reference sequence. Did you mean ' + suggestion + '?'
                         validation['warnings'] = validation['warnings'] + ': ' + error
                         logger.warning(error)
                         continue
                     # NR_ c.
-                    if re.search('^NR_', input) and re.search(':c.', input):
+                    if re.search(r'^NR_', input) and re.search(r':c.', input):
                         suggestion = input.replace(':c.', ':n.')
                         error = 'Non-coding transcript reference sequence input as coding (c.) reference sequence. Did you mean ' + suggestion + '?'
                         validation['warnings'] = validation['warnings'] + ': ' + error
                         logger.warning(error)
                         continue
                     # NM_ n.
-                    if re.search('^NM_', input) and re.search(':n.', input):
+                    if re.search(r'^NM_', input) and re.search(r':n.', input):
                         suggestion = input.replace(':n.', ':c.')
                         error = 'Coding transcript reference sequence input as non-coding transcript (n.) reference sequence. Did you mean ' + suggestion + '?'
                         validation['warnings'] = validation['warnings'] + ': ' + error
@@ -1148,8 +1148,8 @@ class Mixin(vvMixinConverters.Mixin):
                         continue
 
                     # NM_ NC_ NG_ NR_ p.
-                    if (re.search('^NM_', variant) or re.search('^NR_', variant) or re.search('^NC_', variant) or re.search(
-                            '^NG_', variant)) and re.search(':p.', variant):
+                    if (re.search(r'^NM_', variant) or re.search(r'^NR_', variant) or re.search(r'^NC_', variant) or re.search(
+                            r'^NG_', variant)) and re.search(r':p.', variant):
                         issue_link = 'http://varnomen.hgvs.org/recommendations/protein/'
                         error = 'Using a nucleotide reference sequence (NM_ NR_ NG_ NC_) to specify protein-level (p.) variation is not HGVS compliant. Please select an appropriate protein reference sequence (NP_)'
                         validation['warnings'] = validation['warnings'] + ': ' + error
@@ -1157,7 +1157,7 @@ class Mixin(vvMixinConverters.Mixin):
                         continue
 
                     # NG_ c or NC_c..
-                    if (re.search('^NG_', variant) or re.search('^NC_', variant)) and re.search(':c.', variant):
+                    if (re.search(r'^NG_', variant) or re.search(r'^NC_', variant)) and re.search(r':c.', variant):
                         suggestion = ': For additional assistance, submit ' + str(variant) + ' to VariantValidator'
                         error = 'NG_:c.PositionVariation descriptions should not be used unless a transcript reference sequence has also been provided e.g. NG_(NM_):c.PositionVariation' + suggestion
                         validation['warnings'] = validation['warnings'] + ': ' + error
@@ -1207,14 +1207,14 @@ class Mixin(vvMixinConverters.Mixin):
                             fn.exceptPass()
 
                     elif input_parses.type == 'c':
-                        if re.search('\*', str(input_parses)) or re.search('c.\-', str(input_parses)):
+                        if re.search(r'\*', str(input_parses)) or re.search(r'c.\-', str(input_parses)):
                             # Catch variation in UTRs
                             # These should be in the sequence so can be directly validated. Need to pass to n.
                             try:
                                 self.vr.validate(input_parses)
                             except hgvs.exceptions.HGVSError as e:
                                 error = str(e)
-                                if re.search('datums is ill-defined', error):
+                                if re.search(r'datums is ill-defined', error):
                                     called_ref = input_parses.posedit.edit.ref
                                     try:
                                         to_n = evm.c_to_n(input_parses)
@@ -1238,25 +1238,25 @@ class Mixin(vvMixinConverters.Mixin):
                                             hn.normalize(input_parses)
                                         except hgvs.exceptions.HGVSError as e:
                                             fn.exceptPass()
-                                        if re.search('bounds', str(e)):
+                                        if re.search('bounds', str(error)):
                                             try:
                                                 identity_info = self.hdp.get_tx_identity_info(input_parses.ac)
                                                 ref_start = identity_info[3]
                                                 ref_end = identity_info[4]
-                                                if re.match('-', str(
+                                                if re.match(r'-', str(
                                                         input_parses.posedit.pos.start)) and input_parses.posedit.pos.start.offset == 0:
                                                     # upstream positions
                                                     boundary = int('-' + str(ref_start))
                                                     remainder = int(str(input_parses.posedit.pos.start)) - boundary
                                                     input_parses.posedit.pos.start.base = boundary
                                                     input_parses.posedit.pos.start.offset = remainder
-                                                if re.match('-', str(
+                                                if re.match(r'-', str(
                                                         input_parses.posedit.pos.end)) and input_parses.posedit.pos.end.offset == 0:
                                                     boundary = int('-' + str(ref_start))
                                                     remainder = int(str(input_parses.posedit.pos.end)) - boundary
                                                     input_parses.posedit.pos.end.base = boundary
                                                     input_parses.posedit.pos.end.offset = remainder
-                                                if re.match('\*', str(
+                                                if re.match(r'\*', str(
                                                         input_parses.posedit.pos.start)) and input_parses.posedit.pos.start.offset == 0:
                                                     # downstream positions
                                                     tot_end_pos = str(input_parses.posedit.pos.start).replace('*', '')
@@ -1265,7 +1265,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                     input_parses.posedit.pos.start.base = boundary
                                                     offset = int(tot_end_pos) - int(boundary)
                                                     input_parses.posedit.pos.start.offset = offset
-                                                if re.match('\*', str(
+                                                if re.match(r'\*', str(
                                                         input_parses.posedit.pos.end)) and input_parses.posedit.pos.end.offset == 0:
                                                     tot_end_pos = str(input_parses.posedit.pos.end).replace('*', '')
                                                     ts_seq = self.sf.fetch_seq(input_parses.ac)
@@ -1303,7 +1303,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 logger.warning(str(e))
                                 continue
 
-                            if re.search('n.1-', str(input_parses)):
+                            if re.search(r'n.1-', str(input_parses)):
                                 input_parses = evm.n_to_c(input_parses)
                                 error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use '
                                 genomic_position = self.myevm_t_to_g(input_parses, no_norm_evm, primary_assembly,
@@ -1319,7 +1319,7 @@ class Mixin(vvMixinConverters.Mixin):
                             input_parses = evm.n_to_c(input_parses)
 
                             # Intronic positions in UTRs
-                            if re.search('\d\-\d', str(input_parses)) or re.search('\d\+\d', str(input_parses)):
+                            if re.search(r'\d\-\d', str(input_parses)) or re.search(r'\d\+\d', str(input_parses)):
                                 # Can we go c-g-c
                                 try:
                                     to_genome = self.myevm_t_to_g(input_parses, no_norm_evm, primary_assembly,
@@ -1332,18 +1332,18 @@ class Mixin(vvMixinConverters.Mixin):
                                             identity_info = self.hdp.get_tx_identity_info(input_parses.ac)
                                             ref_start = identity_info[3]
                                             ref_end = identity_info[4]
-                                            if re.match('-', str(input_parses.posedit.pos.start)):
+                                            if re.match(r'-', str(input_parses.posedit.pos.start)):
                                                 # upstream positions
                                                 boundary = int('-' + str(ref_start))
                                                 remainder = int(str(input_parses.posedit.pos.start)) - boundary
                                                 input_parses.posedit.pos.start.base = boundary
                                                 input_parses.posedit.pos.start.offset = remainder
-                                            if re.match('-', str(input_parses.posedit.pos.end)):
+                                            if re.match(r'-', str(input_parses.posedit.pos.end)):
                                                 boundary = int('-' + str(ref_start))
                                                 remainder = int(str(input_parses.posedit.pos.end)) - boundary
                                                 input_parses.posedit.pos.end.base = boundary
                                                 input_parses.posedit.pos.end.offset = remainder
-                                            if re.match('\*', str(input_parses.posedit.pos.start)):
+                                            if re.match(r'\*', str(input_parses.posedit.pos.start)):
                                                 # downstream positions
                                                 tot_end_pos = str(input_parses.posedit.pos.start).replace('*', '')
                                                 ts_seq = self.sf.fetch_seq(input_parses.ac)
@@ -1353,7 +1353,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                 tot_end_pos = int(te1) + int(te2)
                                                 offset = int(tot_end_pos) - int(boundary)
                                                 input_parses.posedit.pos.start.offset = offset
-                                            if re.match('\*', str(input_parses.posedit.pos.end)):
+                                            if re.match(r'\*', str(input_parses.posedit.pos.end)):
                                                 tot_end_pos = str(input_parses.posedit.pos.end).replace('*', '')
                                                 ts_seq = self.sf.fetch_seq(input_parses.ac)
                                                 boundary = len(ts_seq) - ref_end
@@ -1394,7 +1394,7 @@ class Mixin(vvMixinConverters.Mixin):
                                         logger.warning(str(error))
                                         continue
 
-                        elif re.search('\d\-', str(input_parses)) or re.search('\d\+', str(input_parses)):
+                        elif re.search(r'\d\-', str(input_parses)) or re.search(r'\d\+', str(input_parses)):
                             # Quick look at syntax validation
                             try:
                                 self.vr.validate(input_parses)
@@ -1548,7 +1548,7 @@ class Mixin(vvMixinConverters.Mixin):
 
 
                     elif input_parses.type == 'n':
-                        if re.search('\+', str(input_parses)) or re.search('\-', str(input_parses)):
+                        if re.search(r'\+', str(input_parses)) or re.search(r'\-', str(input_parses)):
                             # Catch variation in UTRs
                             # These should be in the sequence so can be directly validated. Need to pass to n.
                             try:
@@ -1601,7 +1601,7 @@ class Mixin(vvMixinConverters.Mixin):
                                     logger.warning(str(error))
                                     continue
 
-                        if re.search('n.1-', str(input_parses)):
+                        if re.search(r'n.1-', str(input_parses)):
                             error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use '
                             genomic_position = self.myevm_t_to_g(input_parses, no_norm_evm, primary_assembly,
                                                                     hn)
@@ -1612,7 +1612,7 @@ class Mixin(vvMixinConverters.Mixin):
                         else:
                             pass
 
-                        if re.search('\d\-', str(input_parses)) or re.search('\d\+', str(input_parses)):
+                        if re.search(r'\d\-', str(input_parses)) or re.search(r'\d\+', str(input_parses)):
                             # Quick look at syntax validation
                             try:
                                 self.vr.validate(input_parses)
@@ -1777,7 +1777,7 @@ class Mixin(vvMixinConverters.Mixin):
                     """
                     Reformat m. into the new HGVS standard which is now m again!
                     """
-                    if type == ':m.' or re.match('NC_012920.1', str(input_parses.ac)) or re.match('NC_001807.4',
+                    if format_type == ':m.' or re.match('NC_012920.1', str(input_parses.ac)) or re.match('NC_001807.4',
                                                                                                   str(input_parses.ac)):
                         hgvs_mito = copy.deepcopy(input_parses)
                         if (re.match('NC_012920.1', str(hgvs_mito.ac)) and hgvs_mito.type == 'g') or (
@@ -1811,7 +1811,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 pass
 
                     # handle :p.
-                    if type == ':p.':
+                    if format_type == ':p.':
                         error = 'false'
                         # Try to validate the variant
                         try:
@@ -1859,10 +1859,10 @@ class Mixin(vvMixinConverters.Mixin):
                     convert r, into c.
                     """
                     trapped_input = input
-                    if type == ':r.':
+                    if format_type == ':r.':
                         hgvs_input = self.hp.parse_hgvs_variant(input)  # Traps the hgvs variant of r. for further use
                         # Change to coding variant
-                        type = ':c.'
+                        format_type = ':c.'
                         # Change input to reflect!
                         try:
                             hgvs_c = self.va_func.hgvs_r_to_c(hgvs_input)
@@ -1880,7 +1880,7 @@ class Mixin(vvMixinConverters.Mixin):
                     """
                     Identifies the transcript reference sequence name and HGNC gene symbol
                     """
-                    if (type != ':g.'):
+                    if (format_type != ':g.'):
                         error = 'false'
                         hgvs_vt = self.hp.parse_hgvs_variant(variant)
                         try:
@@ -2036,7 +2036,7 @@ class Mixin(vvMixinConverters.Mixin):
                     all relevant transcripts
                     """
 
-                    if (type == ':g.'):
+                    if (format_type == ':g.'):
                         g_query = self.hp.parse_hgvs_variant(variant)
 
                         # Genomic coordinates can be validated immediately
@@ -2108,7 +2108,7 @@ class Mixin(vvMixinConverters.Mixin):
                         if len(rel_var) == 0:
 
                             # Check for NG_
-                            rsg = re.compile('^NG_')
+                            rsg = re.compile(r'^NG_')
                             if rsg.search(variant):
                                 # parse
                                 hgvs_refseqgene = self.hp.parse_hgvs_variant(variant)
@@ -2264,7 +2264,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 if select_transcripts != 'all':
                                     tx_ac = saved_hgvs_coding.ac
                                     # If it's in the selected tx dict, keep it
-                                    if tx_ac.split('.')[0] in select_transcripts_dict.keys():
+                                    if tx_ac.split('.')[0] in list(select_transcripts_dict.keys()):
                                         pass
                                     # If not get rid of it!
                                     else:
@@ -2345,9 +2345,9 @@ class Mixin(vvMixinConverters.Mixin):
                                                     intronic_variant = 'true'
 
                                 if intronic_variant != 'hard_fail':
-                                    if re.search('\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search('\d+\-', str(
-                                            hgvs_seek_var.posedit.pos)) or re.search('\*\d+\+', str(
-                                        hgvs_seek_var.posedit.pos)) or re.search('\*\d+\-',
+                                    if re.search(r'\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search(r'\d+\-', str(
+                                            hgvs_seek_var.posedit.pos)) or re.search(r'\*\d+\+', str(
+                                        hgvs_seek_var.posedit.pos)) or re.search(r'\*\d+\-',
                                                                                  str(hgvs_seek_var.posedit.pos)):
                                         # Double check to see whether the variant is actually intronic?
                                         for exon in ori:
@@ -2361,9 +2361,9 @@ class Mixin(vvMixinConverters.Mixin):
                                             else:
                                                 intronic_variant = 'true'
 
-                                if re.search('\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search('\d+\-', str(
-                                        hgvs_seek_var.posedit.pos)) or re.search('\*\d+\+', str(
-                                    hgvs_seek_var.posedit.pos)) or re.search('\*\d+\-', str(hgvs_seek_var.posedit.pos)):
+                                if re.search(r'\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search(r'\d+\-', str(
+                                        hgvs_seek_var.posedit.pos)) or re.search(r'\*\d+\+', str(
+                                    hgvs_seek_var.posedit.pos)) or re.search(r'\*\d+\-', str(hgvs_seek_var.posedit.pos)):
                                     # Double check to see whether the variant is actually intronic?
                                     for exon in ori:
                                         genomic_start = int(exon['alt_start_i'])
@@ -2462,11 +2462,11 @@ class Mixin(vvMixinConverters.Mixin):
                                         # Create normalized version of tx_hgvs_not_delins
                                         rn_tx_hgvs_not_delins = copy.deepcopy(tx_hgvs_not_delins)
                                         # Check for +ve base and adjust
-                                        if (re.search('\+', str(rn_tx_hgvs_not_delins.posedit.pos.start)) or re.search('\-',
+                                        if (re.search(r'\+', str(rn_tx_hgvs_not_delins.posedit.pos.start)) or re.search(r'\-',
                                                                                                                        str(
                                                                                                                            rn_tx_hgvs_not_delins.posedit.pos.start))) and (
-                                                re.search('\+', str(rn_tx_hgvs_not_delins.posedit.pos.end)) or re.search(
-                                            '\-', str(rn_tx_hgvs_not_delins.posedit.pos.end))):
+                                                re.search(r'\+', str(rn_tx_hgvs_not_delins.posedit.pos.end)) or re.search(
+                                            r'\-', str(rn_tx_hgvs_not_delins.posedit.pos.end))):
                                             # Remove offsetting to span the gap
                                             rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
                                             rn_tx_hgvs_not_delins.posedit.pos.end.offset = 0
@@ -2476,7 +2476,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                 rn_tx_hgvs_not_delins.posedit.edit.alt = ''
                                             except:
                                                 fn.exceptPass()
-                                        elif re.search('\+', str(rn_tx_hgvs_not_delins.posedit.pos.end)):
+                                        elif re.search(r'\+', str(rn_tx_hgvs_not_delins.posedit.pos.end)):
                                             # move tx end base to next available non-offset base
                                             rn_tx_hgvs_not_delins.posedit.pos.end.base = tx_hgvs_not_delins.posedit.pos.end.base + 1
                                             rn_tx_hgvs_not_delins.posedit.pos.end.offset = 0
@@ -2490,7 +2490,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                                                    primary_assembly, hn)
                                             rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                        str(saved_hgvs_coding.ac))
-                                        elif re.search('\+', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
+                                        elif re.search(r'\+', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
                                             # move tx start base to previous available non-offset base
                                             rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
                                             rn_tx_hgvs_not_delins.posedit.edit.ref = ''
@@ -2508,7 +2508,7 @@ class Mixin(vvMixinConverters.Mixin):
                                         #                                         pass
 
                                         # Check for -ve base and adjust
-                                        elif re.search('\-', str(rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search('\-',
+                                        elif re.search(r'\-', str(rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search(r'\-',
                                                                                                                        str(
                                                                                                                            rn_tx_hgvs_not_delins.posedit.pos.start)):
                                             # Remove offsetting to span the gap
@@ -2520,7 +2520,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                 rn_tx_hgvs_not_delins.posedit.edit.alt = ''
                                             except:
                                                 fn.exceptPass()
-                                        elif re.search('\-', str(rn_tx_hgvs_not_delins.posedit.pos.end)):
+                                        elif re.search(r'\-', str(rn_tx_hgvs_not_delins.posedit.pos.end)):
                                             # move tx end base back to next available non-offset base
                                             rn_tx_hgvs_not_delins.posedit.pos.end.offset = 0
                                             # Delete the ref
@@ -2539,7 +2539,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                                                    primary_assembly, hn)
                                             rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                        str(saved_hgvs_coding.ac))
-                                        elif re.search('\-', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
+                                        elif re.search(r'\-', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
                                             # move tx start base to previous available non-offset base
                                             rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
                                             rn_tx_hgvs_not_delins.posedit.pos.start.base = rn_tx_hgvs_not_delins.posedit.pos.start.base - 1
@@ -2639,10 +2639,10 @@ class Mixin(vvMixinConverters.Mixin):
                                             hgvs_genomic_5pr) + ' does not represent a true variant because it is an artefact of aligning the transcripts listed below with genome build ' + primary_assembly
 
                                         # ANY VARIANT WHOLLY WITHIN THE GAP
-                                        if (re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)) or re.search('\-',
+                                        if (re.search(r'\+', str(tx_hgvs_not_delins.posedit.pos.start)) or re.search(r'\-',
                                                                                                                     str(
                                                                                                                         tx_hgvs_not_delins.posedit.pos.start))) and (
-                                                re.search('\+', str(tx_hgvs_not_delins.posedit.pos.end)) or re.search('\-',
+                                                re.search(r'\+', str(tx_hgvs_not_delins.posedit.pos.end)) or re.search(r'\-',
                                                                                                                       str(
                                                                                                                           tx_hgvs_not_delins.posedit.pos.end))):
                                             gapped_transcripts = gapped_transcripts + ' ' + str(tx_hgvs_not_delins.ac)
@@ -2660,13 +2660,13 @@ class Mixin(vvMixinConverters.Mixin):
                                                         tx_gap_fill_variant_delins_from_dup)
 
                                             # Identify which half of the NOT-intron the start position of the variant is in
-                                            if re.search('\-', str(tx_gap_fill_variant.posedit.pos.start)):
+                                            if re.search(r'\-', str(tx_gap_fill_variant.posedit.pos.start)):
                                                 tx_gap_fill_variant.posedit.pos.start.base = tx_gap_fill_variant.posedit.pos.start.base - 1
                                                 tx_gap_fill_variant.posedit.pos.start.offset = int('0')  # int('+1')
                                                 tx_gap_fill_variant.posedit.pos.end.offset = int('0')  # int('-1')
                                                 tx_gap_fill_variant.posedit.edit.alt = ''
                                                 tx_gap_fill_variant.posedit.edit.ref = ''
-                                            elif re.search('\+', str(tx_gap_fill_variant.posedit.pos.start)):
+                                            elif re.search(r'\+', str(tx_gap_fill_variant.posedit.pos.start)):
                                                 tx_gap_fill_variant.posedit.pos.start.offset = int('0')  # int('+1')
                                                 tx_gap_fill_variant.posedit.pos.end.base = tx_gap_fill_variant.posedit.pos.end.base + 1
                                                 tx_gap_fill_variant.posedit.pos.end.offset = int('0')  # int('-1')
@@ -2751,7 +2751,7 @@ class Mixin(vvMixinConverters.Mixin):
                                             alternate_sequence_bases = []
                                             for integer in range(genomic_gap_fill_variant.posedit.pos.start.base,
                                                                  genomic_gap_fill_variant.posedit.pos.end.base + 1, 1):
-                                                if integer in alt_base_dict.keys():
+                                                if integer in list(alt_base_dict.keys()):
                                                     alternate_sequence_bases.append(alt_base_dict[integer])
                                                 else:
                                                     alternate_sequence_bases.append(ref_base_dict[integer])
@@ -2775,7 +2775,7 @@ class Mixin(vvMixinConverters.Mixin):
                                             for_location_c = copy.deepcopy(hgvs_refreshed_variant)
                                             if re.match('NM_', str(for_location_c)):
                                                 for_location_c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
-                                            if re.match('\-', str(for_location_c.posedit.pos.start.offset)):
+                                            if re.match(r'\-', str(for_location_c.posedit.pos.start.offset)):
                                                 gps = for_location_c.posedit.pos.start.base - 1
                                                 gpe = for_location_c.posedit.pos.start.base
                                             else:
@@ -2811,8 +2811,8 @@ class Mixin(vvMixinConverters.Mixin):
                                                 except hgvs.exceptions.HGVSInvalidVariantError:
                                                     fn.exceptPass()
 
-                                            if re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search(
-                                                    '\+', str(tx_hgvs_not_delins.posedit.pos.end)):
+                                            if re.search(r'\+', str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search(
+                                                    r'\+', str(tx_hgvs_not_delins.posedit.pos.end)):
                                                 auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(
                                                     stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(
                                                     disparity_deletion_in[
@@ -2854,8 +2854,8 @@ class Mixin(vvMixinConverters.Mixin):
                                                 gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
                                                 # Warn update
                                                 auto_info = auto_info + '%s' % (gap_position)
-                                            elif re.search('\+', str(tx_hgvs_not_delins.posedit.pos.end)) and not re.search(
-                                                    '\+', str(tx_hgvs_not_delins.posedit.pos.start)):
+                                            elif re.search(r'\+', str(tx_hgvs_not_delins.posedit.pos.end)) and not re.search(
+                                                    r'\+', str(tx_hgvs_not_delins.posedit.pos.start)):
                                                 auto_info = auto_info + 'Genome position ' + str(
                                                     stored_hgvs_not_delins.ac) + ':g.' + str(
                                                     stored_hgvs_not_delins.posedit.pos.end.base + 1) + ' aligns within a ' + str(
@@ -2898,9 +2898,9 @@ class Mixin(vvMixinConverters.Mixin):
                                                 gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
                                                 # Warn update
                                                 auto_info = auto_info + '%s' % (gap_position)
-                                            elif re.search('\-',
+                                            elif re.search(r'\-',
                                                            str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search(
-                                                '\-', str(tx_hgvs_not_delins.posedit.pos.end)):
+                                                r'\-', str(tx_hgvs_not_delins.posedit.pos.end)):
                                                 auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(
                                                     stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(
                                                     disparity_deletion_in[
@@ -2942,8 +2942,8 @@ class Mixin(vvMixinConverters.Mixin):
                                                 gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
                                                 # Warn update
                                                 auto_info = auto_info + '%s' % (gap_position)
-                                            elif re.search('\-', str(tx_hgvs_not_delins.posedit.pos.end)) and not re.search(
-                                                    '\-', str(tx_hgvs_not_delins.posedit.pos.start)):
+                                            elif re.search(r'\-', str(tx_hgvs_not_delins.posedit.pos.end)) and not re.search(
+                                                    r'\-', str(tx_hgvs_not_delins.posedit.pos.start)):
                                                 auto_info = auto_info + 'Genome position ' + str(
                                                     stored_hgvs_not_delins.ac) + ':g.' + str(
                                                     stored_hgvs_not_delins.posedit.pos.end.base + 1) + ' aligns within a ' + str(
@@ -3137,7 +3137,7 @@ class Mixin(vvMixinConverters.Mixin):
                             continue
                     # TYPE = :c.
 
-                    if type == ':c.' or type == ':n.':
+                    if format_type == ':c.' or format_type == ':n.':
 
                         # Flag for validation
                         valid = 'false'
@@ -3148,7 +3148,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                         # Do we keep it?
                         if select_transcripts != 'all':
-                            if tx_ac in select_transcripts_dict_plus_version.keys():
+                            if tx_ac in list(select_transcripts_dict_plus_version.keys()):
                                 pass
                             # If not get rid of it!
                             else:
@@ -3214,12 +3214,12 @@ class Mixin(vvMixinConverters.Mixin):
                         # INTRONIC OFFSETS - Required for Exon table
                         # Variable to collect offset to exon boundary
                         ex_offset = 0
-                        plus = re.compile("\d\+\d")  # finds digit + digit
-                        minus = re.compile("\d\-\d")  # finds digit - digit
+                        plus = re.compile(r"\d\+\d")  # finds digit + digit
+                        minus = re.compile(r"\d\-\d")  # finds digit - digit
 
-                        geno = re.compile(':g.')
+                        geno = re.compile(r':g.')
                         if plus.search(input) or minus.search(input):
-                            es = re.compile('error')
+                            es = re.compile(r'error')
                             if es.search(str(to_g)):
                                 if alt_aln_method != 'genebuild':
                                     error = "If the following error message does not address the issue and the problem persists please contact admin: " + to_g
@@ -3252,7 +3252,7 @@ class Mixin(vvMixinConverters.Mixin):
                         elif geno.search(input):
                             if plus.search(variant) or minus.search(variant):
                                 to_g = self.genomic(variant, no_norm_evm, primary_assembly,hn)
-                                es = re.compile('error')
+                                es = re.compile(r'error')
                                 if es.search(str(to_g)):
                                     if alt_aln_method != 'genebuild':
                                         error = "If the following error message does not address the issue and the problem persists please contact admin: " + to_g
@@ -3329,7 +3329,7 @@ class Mixin(vvMixinConverters.Mixin):
                         cck = 'false'
                         if (plus.search(input)):
                             # Regular expression catches the start of the interval only based on .00+00 pattern
-                            inv_start = re.compile("\.\d+\+\d")
+                            inv_start = re.compile(r"\.\d+\+\d")
                             if (inv_start.search(input)):
                                 # Find pattern e.g. +0000 and assign to a variable
                                 off_value = re.search(r"(\+\d+)", input)
@@ -3339,7 +3339,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 cck = 'true'
                         if (minus.search(input)):
                             # Regular expression catches the start of the interval only based on .00-00 pattern
-                            inv_start = re.compile("\.\d+\-\d")
+                            inv_start = re.compile(r"\.\d+\-\d")
                             if (inv_start.search(input)):
                                 # Find pattern e.g. -0000 and assign to a variable
                                 off_value = re.search(r"(\-\d+)", input)
@@ -3709,8 +3709,8 @@ class Mixin(vvMixinConverters.Mixin):
                                 trapped_input)  # Traps the hgvs variant of r. for further use
                             inp = str(self.hgvs_r_to_c(hgvs_rna_input))
                             # Regex
-                            plus = re.compile("\d\+\d")  # finds digit + digit
-                            minus = re.compile("\d\-\d")  # finds digit - digit
+                            plus = re.compile(r"\d\+\d")  # finds digit + digit
+                            minus = re.compile(r"\d\-\d")  # finds digit - digit
                             if plus.search(input) or minus.search(input):
                                 to_g = self.genomic(inp, no_norm_evm, primary_assembly,hn)
                                 es = re.compile('error')
@@ -3873,11 +3873,11 @@ class Mixin(vvMixinConverters.Mixin):
                             error = 'false'
                             genomic_validation = str(
                                 self.genomic(input, no_norm_evm, primary_assembly,hn) )
-                            del_end = re.compile('\ddel$')
-                            delins = re.compile('delins')
-                            inv = re.compile('inv')
+                            del_end = re.compile(r'\ddel$')
+                            delins = re.compile(r'delins')
+                            inv = re.compile(r'inv')
                             if fn.valstr(pre_valid) != fn.valstr(post_valid):
-                                if type != ':g.':
+                                if format_type != ':g.':
                                     if caution == '':
                                         caution = fn.valstr(pre_valid) + ' automapped to ' + fn.valstr(post_valid)
                                     else:
@@ -3905,7 +3905,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                             # v0.1a1 edit
                             if fn.valstr(pre_valid) != fn.valstr(post_valid):
-                                if type == ':g.':
+                                if format_type == ':g.':
                                     if caution == '':
                                         caution = fn.valstr(pre_valid) + ' automapped to ' + fn.valstr(post_valid)
                                     else:
@@ -4459,9 +4459,9 @@ class Mixin(vvMixinConverters.Mixin):
                                                         intronic_variant = 'true'
 
                                     if intronic_variant != 'hard_fail':
-                                        if re.search('\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search('\d+\-', str(
-                                                hgvs_seek_var.posedit.pos)) or re.search('\*\d+\+', str(
-                                            hgvs_seek_var.posedit.pos)) or re.search('\*\d+\-',
+                                        if re.search(r'\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search(r'\d+\-', str(
+                                                hgvs_seek_var.posedit.pos)) or re.search(r'\*\d+\+', str(
+                                            hgvs_seek_var.posedit.pos)) or re.search(r'\*\d+\-',
                                                                                      str(hgvs_seek_var.posedit.pos)):
                                             # Double check to see whether the variant is actually intronic?
                                             for exon in ori:
@@ -4475,9 +4475,9 @@ class Mixin(vvMixinConverters.Mixin):
                                                 else:
                                                     intronic_variant = 'true'
 
-                                    if re.search('\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search('\d+\-', str(
-                                            hgvs_seek_var.posedit.pos)) or re.search('\*\d+\+', str(
-                                        hgvs_seek_var.posedit.pos)) or re.search('\*\d+\-', str(hgvs_seek_var.posedit.pos)):
+                                    if re.search(r'\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search(r'\d+\-', str(
+                                            hgvs_seek_var.posedit.pos)) or re.search(r'\*\d+\+', str(
+                                        hgvs_seek_var.posedit.pos)) or re.search(r'\*\d+\-', str(hgvs_seek_var.posedit.pos)):
                                         # Double check to see whether the variant is actually intronic?
                                         for exon in ori:
                                             genomic_start = int(exon['alt_start_i'])
@@ -4575,8 +4575,8 @@ class Mixin(vvMixinConverters.Mixin):
                                             rn_tx_hgvs_not_delins = copy.deepcopy(tx_hgvs_not_delins)
 
                                             # Check for +1 base and adjust
-                                            if re.search('\+', str(rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search(
-                                                    '\+',
+                                            if re.search(r'\+', str(rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search(
+                                                    r'\+',
                                                     str(
                                                         rn_tx_hgvs_not_delins.posedit.pos.start)):
                                                 # Remove offsetting to span the gap
@@ -4589,7 +4589,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                 except:
                                                     pass
 
-                                            elif re.search('\+', str(rn_tx_hgvs_not_delins.posedit.pos.end)):
+                                            elif re.search(r'\+', str(rn_tx_hgvs_not_delins.posedit.pos.end)):
                                                 # move tx end base to next available non-offset base
                                                 rn_tx_hgvs_not_delins.posedit.pos.end.base = tx_hgvs_not_delins.posedit.pos.end.base + 1
                                                 rn_tx_hgvs_not_delins.posedit.pos.end.offset = 0
@@ -4606,7 +4606,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                                                            str(saved_hgvs_coding.ac))
 
                                             # tx_hgvs_not_delins = rn_tx_hgvs_not_delins
-                                            elif re.search('\+', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
+                                            elif re.search(r'\+', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
                                                 # move tx start base to previous available non-offset base
                                                 rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
                                                 rn_tx_hgvs_not_delins.posedit.edit.ref = ''
@@ -4624,8 +4624,8 @@ class Mixin(vvMixinConverters.Mixin):
                                             #                                             pass
 
                                             # Check for -ve base and adjust
-                                            elif re.search('\-', str(rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search(
-                                                    '\-',
+                                            elif re.search(r'\-', str(rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search(
+                                                    r'\-',
                                                     str(
                                                         rn_tx_hgvs_not_delins.posedit.pos.start)):
                                                 # Remove offsetting to span the gap
@@ -4637,7 +4637,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                     rn_tx_hgvs_not_delins.posedit.edit.alt = ''
                                                 except:
                                                     pass
-                                            elif re.search('\-', str(rn_tx_hgvs_not_delins.posedit.pos.end)):
+                                            elif re.search(r'\-', str(rn_tx_hgvs_not_delins.posedit.pos.end)):
                                                 rn_tx_hgvs_not_delins.posedit.pos.end.offset = 0
                                                 # Delete the ref
                                                 rn_tx_hgvs_not_delins.posedit.edit.ref = ''
@@ -4655,7 +4655,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                                                        primary_assembly, hn)
                                                 rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                            str(saved_hgvs_coding.ac))
-                                            elif re.search('\-', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
+                                            elif re.search(r'\-', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
                                                 # move tx start base to previous available non-offset base
                                                 rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
                                                 rn_tx_hgvs_not_delins.posedit.pos.start.base = rn_tx_hgvs_not_delins.posedit.pos.start.base - 1
@@ -4806,12 +4806,12 @@ class Mixin(vvMixinConverters.Mixin):
                                             suppress_c_normalization = 'true'
                                             # amend_RefSeqGene = 'true'
                                             # ANY VARIANT WHOLLY WITHIN THE GAP
-                                            if (re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)) or re.search(
-                                                    '\-',
+                                            if (re.search(r'\+', str(tx_hgvs_not_delins.posedit.pos.start)) or re.search(
+                                                    r'\-',
                                                     str(
                                                         tx_hgvs_not_delins.posedit.pos.start))) and (
-                                                    re.search('\+', str(tx_hgvs_not_delins.posedit.pos.end)) or re.search(
-                                                '\-',
+                                                    re.search(r'\+', str(tx_hgvs_not_delins.posedit.pos.end)) or re.search(
+                                                r'\-',
                                                 str(
                                                     tx_hgvs_not_delins.posedit.pos.end))):
 
@@ -4831,13 +4831,13 @@ class Mixin(vvMixinConverters.Mixin):
                                                             tx_gap_fill_variant_delins_from_dup)
 
                                                         # Identify which half of the NOT-intron the start position of the variant is in
-                                                if re.search('\-', str(tx_gap_fill_variant.posedit.pos.start)):
+                                                if re.search(r'\-', str(tx_gap_fill_variant.posedit.pos.start)):
                                                     tx_gap_fill_variant.posedit.pos.start.base = tx_gap_fill_variant.posedit.pos.start.base - 1
                                                     tx_gap_fill_variant.posedit.pos.start.offset = int('0')  # int('+1')
                                                     tx_gap_fill_variant.posedit.pos.end.offset = int('0')  # int('-1')
                                                     tx_gap_fill_variant.posedit.edit.alt = ''
                                                     tx_gap_fill_variant.posedit.edit.ref = ''
-                                                elif re.search('\+', str(tx_gap_fill_variant.posedit.pos.start)):
+                                                elif re.search(r'\+', str(tx_gap_fill_variant.posedit.pos.start)):
                                                     tx_gap_fill_variant.posedit.pos.start.offset = int('0')  # int('+1')
                                                     tx_gap_fill_variant.posedit.pos.end.base = tx_gap_fill_variant.posedit.pos.end.base + 1
                                                     tx_gap_fill_variant.posedit.pos.end.offset = int('0')  # int('-1')
@@ -4924,7 +4924,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                 alternate_sequence_bases = []
                                                 for integer in range(genomic_gap_fill_variant.posedit.pos.start.base,
                                                                      genomic_gap_fill_variant.posedit.pos.end.base + 1, 1):
-                                                    if integer in alt_base_dict.keys():
+                                                    if integer in list(alt_base_dict.keys()):
                                                         alternate_sequence_bases.append(alt_base_dict[integer])
                                                     else:
                                                         alternate_sequence_bases.append(ref_base_dict[integer])
@@ -4948,7 +4948,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                 for_location_c = copy.deepcopy(hgvs_refreshed_variant)
                                                 if re.match('NM_', str(for_location_c)):
                                                     for_location_c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
-                                                if re.match('\-', str(for_location_c.posedit.pos.start.offset)):
+                                                if re.match(r'\-', str(for_location_c.posedit.pos.start.offset)):
                                                     gps = for_location_c.posedit.pos.start.base - 1
                                                     gpe = for_location_c.posedit.pos.start.base
                                                 else:
@@ -4985,9 +4985,9 @@ class Mixin(vvMixinConverters.Mixin):
                                                     except hgvs.exceptions.HGVSInvalidVariantError:
                                                         fn.exceptPass()
 
-                                                if re.search('\+',
+                                                if re.search(r'\+',
                                                              str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search(
-                                                    '\+', str(tx_hgvs_not_delins.posedit.pos.end)):
+                                                    r'\+', str(tx_hgvs_not_delins.posedit.pos.end)):
                                                     auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(
                                                         stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(
                                                         disparity_deletion_in[
@@ -5030,9 +5030,9 @@ class Mixin(vvMixinConverters.Mixin):
                                                         gpe) + '\n'
                                                     # Warn update
                                                     auto_info = auto_info + '%s' % (gap_position)
-                                                elif re.search('\+',
+                                                elif re.search(r'\+',
                                                                str(tx_hgvs_not_delins.posedit.pos.end)) and not re.search(
-                                                    '\+', str(tx_hgvs_not_delins.posedit.pos.start)):
+                                                    r'\+', str(tx_hgvs_not_delins.posedit.pos.start)):
                                                     auto_info = auto_info + 'Genome position ' + str(
                                                         stored_hgvs_not_delins.ac) + ':g.' + str(
                                                         stored_hgvs_not_delins.posedit.pos.end.base + 1) + ' aligns within a ' + str(
@@ -5077,9 +5077,9 @@ class Mixin(vvMixinConverters.Mixin):
                                                         gpe) + '\n'
                                                     # Warn update
                                                     auto_info = auto_info + '%s' % (gap_position)
-                                                elif re.search('\-',
+                                                elif re.search(r'\-',
                                                                str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search(
-                                                    '\-', str(tx_hgvs_not_delins.posedit.pos.end)):
+                                                    r'\-', str(tx_hgvs_not_delins.posedit.pos.end)):
                                                     auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(
                                                         stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(
                                                         disparity_deletion_in[
@@ -5122,9 +5122,9 @@ class Mixin(vvMixinConverters.Mixin):
                                                         gpe) + '\n'
                                                     # Warn update
                                                     auto_info = auto_info + '%s' % (gap_position)
-                                                elif re.search('\-',
+                                                elif re.search(r'\-',
                                                                str(tx_hgvs_not_delins.posedit.pos.end)) and not re.search(
-                                                    '\-', str(tx_hgvs_not_delins.posedit.pos.start)):
+                                                    r'\-', str(tx_hgvs_not_delins.posedit.pos.start)):
                                                     auto_info = auto_info + 'Genome position ' + str(
                                                         stored_hgvs_not_delins.ac) + ':g.' + str(
                                                         stored_hgvs_not_delins.posedit.pos.end.base + 1) + ' aligns within a ' + str(
@@ -5267,7 +5267,7 @@ class Mixin(vvMixinConverters.Mixin):
                                     info_out = []
                                     info_out.append(
                                         'The displayed variants may be artefacts of aligning ' + hgvs_coding.ac + ' with genome build ' + primary_assembly)
-                                    for ky in info_keys.keys():
+                                    for ky in list(info_keys.keys()):
                                         info_out.append(ky)
                                     auto_info = '\n'.join(info_out)
                                     auto_info = auto_info + '\nCaution should be used when reporting the displayed variant descriptions: If you are unsure, please contact admin'
@@ -5495,7 +5495,7 @@ class Mixin(vvMixinConverters.Mixin):
                                         # Create normalized version of tx_hgvs_not_delins
                                         rn_tx_hgvs_not_delins = copy.deepcopy(tx_hgvs_not_delins)
                                         # Check for +ve base and adjust
-                                        if re.search('\+', str(rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search('\+',
+                                        if re.search(r'\+', str(rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search(r'\+',
                                                                                                                      str(
                                                                                                                          rn_tx_hgvs_not_delins.posedit.pos.start)):
                                             # Remove offsetting to span the gap
@@ -5508,7 +5508,7 @@ class Mixin(vvMixinConverters.Mixin):
                                             except:
                                                 fn.exceptPass()
 
-                                        elif re.search('\+', str(rn_tx_hgvs_not_delins.posedit.pos.end)):
+                                        elif re.search(r'\+', str(rn_tx_hgvs_not_delins.posedit.pos.end)):
                                             # move tx end base to next available non-offset base
                                             rn_tx_hgvs_not_delins.posedit.pos.end.base = tx_hgvs_not_delins.posedit.pos.end.base + 1
                                             rn_tx_hgvs_not_delins.posedit.pos.end.offset = 0
@@ -5522,7 +5522,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                                                    primary_assembly, hn)
                                             rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                        str(saved_hgvs_coding.ac))
-                                        elif re.search('\+', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
+                                        elif re.search(r'\+', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
                                             rn_tx_hgvs_not_delins.posedit.edit.ref = ''
                                             # move tx start base to previous available non-offset base
                                             rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
@@ -5540,7 +5540,7 @@ class Mixin(vvMixinConverters.Mixin):
                                         #                                         pass
 
                                         # Check for -ve base and adjust
-                                        elif re.search('\-', str(rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search('\-',
+                                        elif re.search(r'\-', str(rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search(r'\-',
                                                                                                                        str(
                                                                                                                            rn_tx_hgvs_not_delins.posedit.pos.start)):
                                             # Remove offsetting to span the gap
@@ -5552,7 +5552,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                 rn_tx_hgvs_not_delins.posedit.edit.alt = ''
                                             except:
                                                 fn.exceptPass()
-                                        elif re.search('\-', str(rn_tx_hgvs_not_delins.posedit.pos.end)):
+                                        elif re.search(r'\-', str(rn_tx_hgvs_not_delins.posedit.pos.end)):
                                             # move tx end base back to next available non-offset base
                                             # rn_tx_hgvs_not_delins.posedit.pos.end.base = tx_hgvs_not_delins.posedit.pos.end.base - 1
                                             rn_tx_hgvs_not_delins.posedit.pos.end.offset = 0
@@ -5572,7 +5572,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                                                    primary_assembly, hn)
                                             rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                        str(saved_hgvs_coding.ac))
-                                        elif re.search('\-', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
+                                        elif re.search(r'\-', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
                                             # move tx start base to previous available non-offset base
                                             rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
                                             rn_tx_hgvs_not_delins.posedit.pos.start.base = rn_tx_hgvs_not_delins.posedit.pos.start.base - 1
@@ -5702,10 +5702,10 @@ class Mixin(vvMixinConverters.Mixin):
                                             hgvs_genomic_5pr) + ' does not represent a true variant because it is an artefact of aligning the transcripts listed below with genome build ' + primary_assembly
 
                                         # ANY VARIANT WHOLLY WITHIN THE GAP
-                                        if (re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)) or re.search('\-',
+                                        if (re.search(r'\+', str(tx_hgvs_not_delins.posedit.pos.start)) or re.search(r'\-',
                                                                                                                     str(
                                                                                                                         tx_hgvs_not_delins.posedit.pos.start))) and (
-                                                re.search('\+', str(tx_hgvs_not_delins.posedit.pos.end)) or re.search('\-',
+                                                re.search(r'\+', str(tx_hgvs_not_delins.posedit.pos.end)) or re.search(r'\-',
                                                                                                                       str(
                                                                                                                           tx_hgvs_not_delins.posedit.pos.end))):
                                             gapped_transcripts = gapped_transcripts + ' ' + str(tx_hgvs_not_delins.ac)
@@ -5724,13 +5724,13 @@ class Mixin(vvMixinConverters.Mixin):
                                                         tx_gap_fill_variant_delins_from_dup)
 
                                             # Identify which half of the NOT-intron the start position of the variant is in
-                                            if re.search('\-', str(tx_gap_fill_variant.posedit.pos.start)):
+                                            if re.search(r'\-', str(tx_gap_fill_variant.posedit.pos.start)):
                                                 tx_gap_fill_variant.posedit.pos.start.base = tx_gap_fill_variant.posedit.pos.start.base - 1
                                                 tx_gap_fill_variant.posedit.pos.start.offset = int('0')  # int('+1')
                                                 tx_gap_fill_variant.posedit.pos.end.offset = int('0')  # int('-1')
                                                 tx_gap_fill_variant.posedit.edit.alt = ''
                                                 tx_gap_fill_variant.posedit.edit.ref = ''
-                                            elif re.search('\+', str(tx_gap_fill_variant.posedit.pos.start)):
+                                            elif re.search(r'\+', str(tx_gap_fill_variant.posedit.pos.start)):
                                                 tx_gap_fill_variant.posedit.pos.start.offset = int('0')  # int('+1')
                                                 tx_gap_fill_variant.posedit.pos.end.base = tx_gap_fill_variant.posedit.pos.end.base + 1
                                                 tx_gap_fill_variant.posedit.pos.end.offset = int('0')  # int('-1')
@@ -5815,7 +5815,7 @@ class Mixin(vvMixinConverters.Mixin):
                                             alternate_sequence_bases = []
                                             for integer in range(genomic_gap_fill_variant.posedit.pos.start.base,
                                                                  genomic_gap_fill_variant.posedit.pos.end.base + 1, 1):
-                                                if integer in alt_base_dict.keys():
+                                                if integer in list(alt_base_dict.keys()):
                                                     alternate_sequence_bases.append(alt_base_dict[integer])
                                                 else:
                                                     alternate_sequence_bases.append(ref_base_dict[integer])
@@ -5839,7 +5839,7 @@ class Mixin(vvMixinConverters.Mixin):
                                             for_location_c = copy.deepcopy(hgvs_refreshed_variant)
                                             if re.match('NM_', str(for_location_c)):
                                                 for_location_c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
-                                            if re.match('\-', str(for_location_c.posedit.pos.start.offset)):
+                                            if re.match(r'\-', str(for_location_c.posedit.pos.start.offset)):
                                                 gps = for_location_c.posedit.pos.start.base - 1
                                                 gpe = for_location_c.posedit.pos.start.base
                                             else:
@@ -5876,8 +5876,8 @@ class Mixin(vvMixinConverters.Mixin):
                                                 except hgvs.exceptions.HGVSInvalidVariantError:
                                                     fn.exceptPass()
 
-                                            if re.search('\+', str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search(
-                                                    '\+', str(tx_hgvs_not_delins.posedit.pos.end)):
+                                            if re.search(r'\+', str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search(
+                                                    r'\+', str(tx_hgvs_not_delins.posedit.pos.end)):
                                                 auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(
                                                     stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(
                                                     disparity_deletion_in[
@@ -5919,8 +5919,8 @@ class Mixin(vvMixinConverters.Mixin):
                                                 gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
                                                 # Warn update
                                                 auto_info = auto_info + '%s' % (gap_position)
-                                            elif re.search('\+', str(tx_hgvs_not_delins.posedit.pos.end)) and not re.search(
-                                                    '\+', str(tx_hgvs_not_delins.posedit.pos.start)):
+                                            elif re.search(r'\+', str(tx_hgvs_not_delins.posedit.pos.end)) and not re.search(
+                                                    r'\+', str(tx_hgvs_not_delins.posedit.pos.start)):
                                                 auto_info = auto_info + 'Genome position ' + str(
                                                     stored_hgvs_not_delins.ac) + ':g.' + str(
                                                     stored_hgvs_not_delins.posedit.pos.end.base + 1) + ' aligns within a ' + str(
@@ -5963,9 +5963,9 @@ class Mixin(vvMixinConverters.Mixin):
                                                 gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
                                                 # Warn update
                                                 auto_info = auto_info + '%s' % (gap_position)
-                                            elif re.search('\-',
+                                            elif re.search(r'\-',
                                                            str(tx_hgvs_not_delins.posedit.pos.start)) and not re.search(
-                                                '\-', str(tx_hgvs_not_delins.posedit.pos.end)):
+                                                r'\-', str(tx_hgvs_not_delins.posedit.pos.end)):
                                                 auto_info = auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(
                                                     stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(
                                                     disparity_deletion_in[
@@ -6007,8 +6007,8 @@ class Mixin(vvMixinConverters.Mixin):
                                                 gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
                                                 # Warn update
                                                 auto_info = auto_info + '%s' % (gap_position)
-                                            elif re.search('\-', str(tx_hgvs_not_delins.posedit.pos.end)) and not re.search(
-                                                    '\-', str(tx_hgvs_not_delins.posedit.pos.start)):
+                                            elif re.search(r'\-', str(tx_hgvs_not_delins.posedit.pos.end)) and not re.search(
+                                                    r'\-', str(tx_hgvs_not_delins.posedit.pos.start)):
                                                 auto_info = auto_info + 'Genome position ' + str(
                                                     stored_hgvs_not_delins.ac) + ':g.' + str(
                                                     stored_hgvs_not_delins.posedit.pos.end.base + 1) + ' aligns within a ' + str(
@@ -6342,7 +6342,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 except hgvs.exceptions.HGVSError as e:
                                     error = str(e)
                                     if re.search('does not agree with reference sequence', str(error)):
-                                        match = re.findall('\(([GATC]+)\)', error)
+                                        match = re.findall(r'\(([GATC]+)\)', error)
                                         new_ref = match[1]
                                         hgvs_updated.posedit.edit.ref = new_ref
                                         self.vr.validate(hgvs_updated)
@@ -6393,7 +6393,7 @@ class Mixin(vvMixinConverters.Mixin):
             by_order = sorted(batch_list, key=itemgetter('order'))
 
             for valid in by_order:
-                if 'write' in valid.keys():
+                if 'write' in list(valid.keys()):
                     if valid['write'] == 'true':
                         # Blank VCF
                         #                     chr = ''
@@ -7079,11 +7079,11 @@ class Mixin(vvMixinConverters.Mixin):
                                                                 intronic_variant = 'true'
 
                                             if intronic_variant != 'hard_fail':
-                                                if re.search('\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search('\d+\-',
+                                                if re.search(r'\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search(r'\d+\-',
                                                                                                                    str(
                                                                                                                        hgvs_seek_var.posedit.pos)) or re.search(
-                                                    '\*\d+\+', str(
-                                                        hgvs_seek_var.posedit.pos)) or re.search('\*\d+\-', str(
+                                                    r'\*\d+\+', str(
+                                                        hgvs_seek_var.posedit.pos)) or re.search(r'\*\d+\-', str(
                                                     hgvs_seek_var.posedit.pos)):
                                                     # Double check to see whether the variant is actually intronic?
                                                     for exon in ori:
@@ -7191,9 +7191,9 @@ class Mixin(vvMixinConverters.Mixin):
                                                     # Create normalized version of tx_hgvs_not_delins
                                                     rn_tx_hgvs_not_delins = copy.deepcopy(tx_hgvs_not_delins)
                                                     # Check for +1 base and adjust
-                                                    if re.search('\+',
+                                                    if re.search(r'\+',
                                                                  str(rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search(
-                                                        '\+',
+                                                        r'\+',
                                                         str(
                                                             rn_tx_hgvs_not_delins.posedit.pos.start)):
                                                         # Remove offsetting to span the gap
@@ -7206,7 +7206,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                         except:
                                                             fn.exceptPass()
 
-                                                    elif re.search('\+', str(rn_tx_hgvs_not_delins.posedit.pos.end)):
+                                                    elif re.search(r'\+', str(rn_tx_hgvs_not_delins.posedit.pos.end)):
                                                         # move tx end base to next available non-offset base
                                                         rn_tx_hgvs_not_delins.posedit.pos.end.base = tx_hgvs_not_delins.posedit.pos.end.base + 1
                                                         rn_tx_hgvs_not_delins.posedit.pos.end.offset = 0
@@ -7221,7 +7221,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                         rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                                    str(
                                                                                                        saved_hgvs_coding.ac))
-                                                    elif re.search('\+', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
+                                                    elif re.search(r'\+', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
                                                         # move tx start base to previous available non-offset base
                                                         rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
                                                         rn_tx_hgvs_not_delins.posedit.edit.ref = ''
@@ -7240,10 +7240,10 @@ class Mixin(vvMixinConverters.Mixin):
                                                     #                                                     pass
 
                                                     # Check for -ve base and adjust
-                                                    elif re.search('\-',
+                                                    elif re.search(r'\-',
                                                                    str(
                                                                        rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search(
-                                                        '\-',
+                                                        r'\-',
                                                         str(
                                                             rn_tx_hgvs_not_delins.posedit.pos.start)):
                                                         # Remove offsetting to span the gap
@@ -7255,7 +7255,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                             rn_tx_hgvs_not_delins.posedit.edit.alt = ''
                                                         except:
                                                             fn.exceptPass()
-                                                    elif re.search('\-', str(rn_tx_hgvs_not_delins.posedit.pos.end)):
+                                                    elif re.search(r'\-', str(rn_tx_hgvs_not_delins.posedit.pos.end)):
                                                         # move tx end base back to next available non-offset base
                                                         rn_tx_hgvs_not_delins.posedit.pos.end.offset = 0
                                                         # Delete the ref
@@ -7275,7 +7275,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                         rn_tx_hgvs_not_delins = no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                                    str(
                                                                                                        saved_hgvs_coding.ac))
-                                                    elif re.search('\-', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
+                                                    elif re.search(r'\-', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
                                                         # move tx start base to previous available non-offset base
                                                         rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
                                                         rn_tx_hgvs_not_delins.posedit.pos.start.base = rn_tx_hgvs_not_delins.posedit.pos.start.base - 1
@@ -7427,12 +7427,12 @@ class Mixin(vvMixinConverters.Mixin):
                                                 if disparity_deletion_in[0] == 'transcript':
                                                     # amend_RefSeqGene = 'true'
                                                     # ANY VARIANT WHOLLY WITHIN THE GAP
-                                                    if (re.search('\+',
+                                                    if (re.search(r'\+',
                                                                   str(tx_hgvs_not_delins.posedit.pos.start)) or re.search(
-                                                        '\-', str(tx_hgvs_not_delins.posedit.pos.start))) and (
-                                                            re.search('\+',
+                                                        r'\-', str(tx_hgvs_not_delins.posedit.pos.start))) and (
+                                                            re.search(r'\+',
                                                                       str(tx_hgvs_not_delins.posedit.pos.end)) or re.search(
-                                                        '\-', str(tx_hgvs_not_delins.posedit.pos.end))):
+                                                        r'\-', str(tx_hgvs_not_delins.posedit.pos.end))):
                                                         gapped_transcripts = gapped_transcripts + ' ' + str(
                                                             tx_hgvs_not_delins.ac)
 
@@ -7450,7 +7450,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                                     tx_gap_fill_variant_delins_from_dup)
 
                                                         # Identify which half of the NOT-intron the start position of the variant is in
-                                                        if re.search('\-', str(tx_gap_fill_variant.posedit.pos.start)):
+                                                        if re.search(r'\-', str(tx_gap_fill_variant.posedit.pos.start)):
                                                             tx_gap_fill_variant.posedit.pos.start.base = tx_gap_fill_variant.posedit.pos.start.base - 1
                                                             tx_gap_fill_variant.posedit.pos.start.offset = int(
                                                                 '0')  # int('+1')
@@ -7458,7 +7458,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                                 '0')  # int('-1')
                                                             tx_gap_fill_variant.posedit.edit.alt = ''
                                                             tx_gap_fill_variant.posedit.edit.ref = ''
-                                                        elif re.search('\+', str(tx_gap_fill_variant.posedit.pos.start)):
+                                                        elif re.search(r'\+', str(tx_gap_fill_variant.posedit.pos.start)):
                                                             tx_gap_fill_variant.posedit.pos.start.offset = int(
                                                                 '0')  # int('+1')
                                                             tx_gap_fill_variant.posedit.pos.end.base = tx_gap_fill_variant.posedit.pos.end.base + 1
@@ -7550,7 +7550,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                                 genomic_gap_fill_variant.posedit.pos.start.base,
                                                                 genomic_gap_fill_variant.posedit.pos.end.base + 1,
                                                                 1):
-                                                            if integer in alt_base_dict.keys():
+                                                            if integer in list(alt_base_dict.keys()):
                                                                 alternate_sequence_bases.append(alt_base_dict[integer])
                                                             else:
                                                                 alternate_sequence_bases.append(ref_base_dict[integer])
@@ -7575,7 +7575,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                         for_location_c = copy.deepcopy(hgvs_refreshed_variant)
                                                         if re.match('NM_', str(for_location_c)):
                                                             for_location_c = no_norm_evm.n_to_c(tx_hgvs_not_delins)
-                                                        if re.match('\-', str(for_location_c.posedit.pos.start.offset)):
+                                                        if re.match(r'\-', str(for_location_c.posedit.pos.start.offset)):
                                                             gps = for_location_c.posedit.pos.start.base - 1
                                                             gpe = for_location_c.posedit.pos.start.base
                                                         else:
@@ -7613,9 +7613,9 @@ class Mixin(vvMixinConverters.Mixin):
                                                             except hgvs.exceptions.HGVSInvalidVariantError:
                                                                 fn.exceptPass()
 
-                                                        if re.search('\+', str(
+                                                        if re.search(r'\+', str(
                                                                 tx_hgvs_not_delins.posedit.pos.start)) and not re.search(
-                                                            '\+',
+                                                            r'\+',
                                                             str(
                                                                 tx_hgvs_not_delins.posedit.pos.end)):
                                                             auto_info = auto_info + str(
@@ -7661,8 +7661,8 @@ class Mixin(vvMixinConverters.Mixin):
                                                                 gpe) + '\n'
                                                             # Warn update
                                                             auto_info = auto_info + '%s' % (gap_position)
-                                                        elif re.search('\+', str(
-                                                                tx_hgvs_not_delins.posedit.pos.end)) and not re.search('\+',
+                                                        elif re.search(r'\+', str(
+                                                                tx_hgvs_not_delins.posedit.pos.end)) and not re.search(r'\+',
                                                                                                                        str(
                                                                                                                            tx_hgvs_not_delins.posedit.pos.start)):
                                                             auto_info = auto_info + 'Genome position ' + str(
@@ -7709,9 +7709,9 @@ class Mixin(vvMixinConverters.Mixin):
                                                                 gpe) + '\n'
                                                             # Warn update
                                                             auto_info = auto_info + '%s' % (gap_position)
-                                                        elif re.search('\-', str(
+                                                        elif re.search(r'\-', str(
                                                                 tx_hgvs_not_delins.posedit.pos.start)) and not re.search(
-                                                            '\-',
+                                                            r'\-',
                                                             str(
                                                                 tx_hgvs_not_delins.posedit.pos.end)):
                                                             auto_info = auto_info + str(
@@ -7757,8 +7757,8 @@ class Mixin(vvMixinConverters.Mixin):
                                                                 gpe) + '\n'
                                                             # Warn update
                                                             auto_info = auto_info + '%s' % (gap_position)
-                                                        elif re.search('\-', str(
-                                                                tx_hgvs_not_delins.posedit.pos.end)) and not re.search('\-',
+                                                        elif re.search(r'\-', str(
+                                                                tx_hgvs_not_delins.posedit.pos.end)) and not re.search(r'\-',
                                                                                                                        str(
                                                                                                                            tx_hgvs_not_delins.posedit.pos.start)):
                                                             auto_info = auto_info + 'Genome position ' + str(
@@ -7943,7 +7943,8 @@ class Mixin(vvMixinConverters.Mixin):
                                     continue
 
                             if multi_g != []:
-                                multi_g.sort()
+                                print((multi_g, type(multi_g)))
+
                                 multi_gen_vars = multi_g  # '|'.join(multi_g)
                             else:
                                 multi_gen_vars = []
@@ -8045,7 +8046,7 @@ class Mixin(vvMixinConverters.Mixin):
                         # Warn not directly mapped to specified genome build
                         if genomic_accession != '':
                             caution = ''
-                            if primary_assembly.lower() not in primary_genomic_dicts.keys():
+                            if primary_assembly.lower() not in list(primary_genomic_dicts.keys()):
                                 warnings = warnings + ': ' + str(
                                     hgvs_coding) + ' cannot be mapped directly to genome build ' + primary_assembly + ': See alternative genomic loci or alternative genome builds for aligned genomic positions'
 
@@ -8076,7 +8077,7 @@ class Mixin(vvMixinConverters.Mixin):
                             if not 'Non-coding :n.' in predicted_protein_variant:
                                 try:
                                     format_p = predicted_protein_variant
-                                    format_p = re.sub('\(LRG_.+?\)', '', format_p)
+                                    format_p = re.sub(r'\(LRG_.+?\)', '', format_p)
                                     re_parse_protein = self.hp.parse_hgvs_variant(format_p)
                                     re_parse_protein_singleAA = fn.single_letter_protein(re_parse_protein)
                                     predicted_protein_variant_dict["slr"] = str(re_parse_protein_singleAA)
@@ -8180,7 +8181,7 @@ class Mixin(vvMixinConverters.Mixin):
                     # Note: pyliftover uses the UCSC liftOver tool.
                     # https://pypi.org/project/pyliftover/
                     genomic_position_info = valid_v['primary_assembly_loci']
-                    for g_p_key in genomic_position_info.keys():
+                    for g_p_key in list(genomic_position_info.keys()):
 
                         # Identify the current build and hgvs_genomic descripsion
                         if re.match('hg', g_p_key):
@@ -8208,9 +8209,9 @@ class Mixin(vvMixinConverters.Mixin):
                         # Sort the respomse into primary assembly and ALT
                         primary_assembly_loci = {}
                         alt_genomic_loci = []
-                        for build_key, accession_dict in lifted_response.iteritems():
+                        for build_key, accession_dict in list(lifted_response.items()):
                             try:
-                                accession_key = accession_dict.keys()[0]
+                                accession_key = list(accession_dict.keys())[0]
                                 if re.match('NC_', accession_dict[accession_key]['hgvs_genomic_description']):
                                     primary_assembly_loci[build_key.lower()] = accession_dict[accession_key]
                                 else:

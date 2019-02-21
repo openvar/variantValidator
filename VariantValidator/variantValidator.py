@@ -1,4 +1,4 @@
-import modules.vvMixinCore as vvMixinCore
+from .modules import vvMixinCore as vvMixinCore
 
 class Validation():
     '''
