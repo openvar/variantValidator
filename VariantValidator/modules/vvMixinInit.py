@@ -439,7 +439,7 @@ class Mixin():
                                         # Nucleotide variant range aligns to the Termination codon
                                         if ins_thr[-3:] == 'Ter':
                                             posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + str(
-                                                ins_thr[:3]) + 'ext' + str(ins_thr[-3:]) + str((len(ins_thr) / 3) - 1) + ')'
+                                                ins_thr[:3]) + 'ext' + str(ins_thr[-3:]) + str(int((len(ins_thr) / 3)) - 1) + ')'
                                         # Nucleotide variant range spans the Termination codon
                                         else:
                                             posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + str(
