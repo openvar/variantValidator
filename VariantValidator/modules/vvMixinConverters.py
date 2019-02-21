@@ -2279,7 +2279,6 @@ class Mixin(vvMixinInit.Mixin):
                         merge.append(allele)
                         for variant in each_allele:
                             merged_alleles.append([variant])
-                        merged_alleles.append(merge)
                     my_alleles = merged_alleles
 
                 elif re.search('\(;\)', remainder):
@@ -2330,7 +2329,6 @@ class Mixin(vvMixinInit.Mixin):
                         merge.append(allele)
                         for variant in each_allele:
                             merged_alleles.append([variant])
-                        merged_alleles.append(merge)
                     my_alleles = merged_alleles
 
             # Extract alleles into strings
