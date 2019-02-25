@@ -22,7 +22,7 @@ before_install:
   - bash miniconda.sh -b -p "$HOME"/miniconda
   - ls -ltrha
   - ls -R "$HOME"/miniconda
-  - source "$HOME"/miniconda/etc/profile.d/conda.sh
+  - export PATH="$HOME/miniconda/bin:$PATH"
   - conda config --set always_yes yes --set changeps1 no --set auto_update_conda false
 
     # Set up the databases - install seqrepo and UTA
@@ -41,7 +41,7 @@ install:
   # should not need changing.
 
   - conda create -n vvenv python=$TRAVIS_PYTHON_VERSION
-  - conda activate vvenv
+  - source activate vvenv
 
   # Below, include the dependencies you want to install with conda, optionally
   # specifying versions used in the matrix above. If you split this into
