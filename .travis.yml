@@ -19,8 +19,9 @@ before_install:
   # Here we just install Miniconda, which you shouldn't have to change.
 
   - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
-  - chmod +x miniconda.sh
   - bash miniconda.sh -b -p "$HOME"/miniconda
+  - ls -ltrha
+  - ls -R "$HOME"/miniconda
   - source "$HOME"/miniconda/etc/profile.d/conda.sh
   - conda config --set always_yes yes --set changeps1 no --set auto_update_conda false
 
