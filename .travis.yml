@@ -20,8 +20,6 @@ before_install:
 
   - wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda3.sh
   - bash miniconda3.sh -b -p "$HOME"/miniconda3
-  - ls -ltrha
-  - ls -R "$HOME"/miniconda3
   - echo . "$HOME"/miniconda3/etc/profile.d/conda.sh >> "$HOME"/.bashrc
   - source "$HOME"/.bashrc
 
