@@ -1862,6 +1862,13 @@ class TestVariants(object):
         results = vv.validator(variant, 'GRCh37', 'all')
         print results
 
+        """
+        This variant is taken from https://doi.org/10.1186/s13073-016-0396-7
+        Chromosome 19 of GRCh37 has an additional base not found in Three overlapping transcripts
+        The gap is NOT seen in GRCh38 chr 19
+        Approved by PCF, 2019-02-26 13:39 
+        """
+
         assert results['flag'] == 'gene_variant'
         assert 'NM_001042544.1:c.3233_3235=' in results.keys()
         assert results['NM_001042544.1:c.3233_3235=']['hgvs_lrg_transcript_variant'] == ''
@@ -1919,6 +1926,14 @@ class TestVariants(object):
         variant = '15-72105928-AC-A'
         results = vv.validator(variant, 'GRCh37', 'all')
         print results
+
+        """
+        This variant is taken from https://doi.org/10.1186/s13073-016-0396-7
+        Chromosome 15 of GRCh37 has an absent base which is found in Four overlapping transcripts
+        The gap is NOT seen in GRCh38 chr 15
+        Note, the .2 versions of the transcript do not have alignment data for GRCh38
+        Approved by PCF, 2019-02-26 13:39 
+        """
 
         assert 'NM_014249.2:c.946_949=' in results.keys()
         assert results['NM_014249.2:c.946_949=']['hgvs_lrg_transcript_variant'] == ''
@@ -1995,6 +2010,22 @@ class TestVariants(object):
         results = vv.validator(variant, 'GRCh37', 'all')
         print results
 
+        """
+        This variant represents the common allele in ExAc  http://exac.broadinstitute.org/variant/12-122064773-CCCGCCA-C
+        The GRCh37 chr12 has an additional 6 bases not found in the transcript
+        GRCh38 chr12 has been corrected at this position
+        
+                                                      126    127
+                                                      |      |
+        NM_032790.3  c        108 > CGGGGAGCCCCCGGGGGCC------CCGCCACCGCCGCCGT
+                                    |||||||||||||||||||------||||||||||||||||
+        NC_000012.11 g  122064755 > CGGGGAGCCCCCGGGGGCCCCGCCACCGCCACCGCCGCCGT
+                                                      |      |
+                                              122064773      122064780        
+        
+        Approved by PCF, 2019-02-28 11:53   
+        """
+
         assert results['flag'] == 'gene_variant'
         assert 'NM_032790.3:c.126_128=' in results.keys()
         assert results['NM_032790.3:c.126_128=']['hgvs_lrg_transcript_variant'] == 'LRG_93t1:c.126_128='
@@ -2019,6 +2050,23 @@ class TestVariants(object):
         results = vv.validator(variant, 'GRCh37', 'all')
         print results
 
+        """
+        This variant represents the false negative of http://exac.broadinstitute.org/variant/12-122064773-CCCGCCA-C
+        The GRCh37 chr12 has an additional 6 bases not found in the transcript
+        GRCh38 chr12 has been corrected
+
+                                                      126    127
+                                                      |      |
+        NM_032790.3  c        108 > CGGGGAGCCCCCGGGGGCC------CCGCCACCGCCGCCGT
+                                    |||||||||||||||||||------||||||||||||||||
+        NC_000012.11 g  122064755 > CGGGGAGCCCCCGGGGGCCCCGCCACCGCCACCGCCGCCGT
+                                                      |      |
+                                              122064773      122064780
+
+
+        Approved by PCF, 2019-02-28 11:58   
+        """
+
         assert 'NM_032790.3:c.132_137dup' in results.keys()
         assert results['NM_032790.3:c.132_137dup']['hgvs_lrg_transcript_variant'] == 'LRG_93t1:c.132_137dup'
         assert results['NM_032790.3:c.132_137dup']['refseqgene_context_intronic_sequence'] == ''
@@ -2039,26 +2087,62 @@ class TestVariants(object):
         assert results['flag'] == 'gene_variant'
 
     def test_variant68(self):
-        variant = '12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC'
+        #variant = '12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC'
+        variant = 'NM_032790.3:c.121_122='
         results = vv.validator(variant, 'GRCh37', 'all')
         print results
 
+        """
+        Variant changed to reflect a real use case
+        
+        Variant deleted
+        HGVS guidelines would recommend that we do-not try to interpret 12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC as a single variant
+        by PCF, 2019-02-28 14:57
+        
+        Variant added NM_032790.3:c.121_122=
+
+                                                      126    127
+                                                 ==   |      |
+        NM_032790.3  c        108 > CGGGGAGCCCCCGGGGGCC------CCGCCACCGCCGCCGT
+                                    |||||||||||||||||||------||||||||||||||||
+        NC_000012.11 g  122064755 > CGGGGAGCCCCCGGGGGCCCCGCCACCGCCACCGCCGCCGT
+                                                      |      |
+                                              122064773      122064780
+
+                                               121     122
+                                                 |     |
+        NM_032790.3  c        108 > CGGGGAGCCCCCGG-----GGGCCCCGCCACCGCCGCCGT
+                                    ||||||||||||||-----|||||||||||||||||||||
+        NC_000012.12  g             CGGGGAGCCCCCGGGGGCCCCGCCCCGCCACCGCCGCCGT
+                                                 |     |
+                                          21626873     21626879
+ 
+        This transcript variant identifies a 5 bp gap in the ORA1 gene in chr 12 of GRCh38
+        This variant was identified by curration of variant number 73
+        by PCF 2019-03-01 09:36
+        
+        
+        Variant requires a final test before passing to ensure data are correctly copied across
+        Copied by PCF 2019-03-01 09:43
+        
+        """
+
         assert results['flag'] == 'gene_variant'
-        assert 'NM_032790.3:c.132_135delinsGCCGT' in results.keys()
-        assert results['NM_032790.3:c.132_135delinsGCCGT']['hgvs_lrg_transcript_variant'] == 'LRG_93t1:c.132_135delinsGCCGT'
+        assert 'NM_032790.3:c.121_122=' in results.keys()
+        assert results['NM_032790.3:c.132_135delinsGCCGT']['hgvs_lrg_transcript_variant'] == 'LRG_93t1:c.121_122='
         assert results['NM_032790.3:c.132_135delinsGCCGT']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NM_032790.3:c.132_135delinsGCCGT']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_004504303.2:g.302883_302886delinsGCCGT', 'vcf': {'chr': 'HG1595_PATCH', 'ref': 'ACCG', 'pos': '302883', 'alt': u'GCCGT'}}}, {'hg19': {'hgvs_genomic_description': 'NW_004504303.2:g.302883_302886delinsGCCGT', 'vcf': {'chr': 'NW_004504303.2', 'ref': 'ACCG', 'pos': '302883', 'alt': u'GCCGT'}}}]
+        assert results['NM_032790.3:c.132_135delinsGCCGT']['alt_genomic_loci'] == [{'grch37': {'hgvs_genomic_description': 'NW_004504303.2:g.302883_302888del', 'vcf': {'chr': 'HG1595_PATCH', 'ref': 'CCCGCCA', 'pos': '302871', 'alt': u'C'}}}, {'hg19': {'hgvs_genomic_description': 'NW_004504303.2:g.302883_302888del', 'vcf': {'chr': 'NW_004504303.2', 'ref': 'CCCGCCA', 'pos': '302871', 'alt': u'C'}}}]
         assert results['NM_032790.3:c.132_135delinsGCCGT']['gene_symbol'] == 'ORAI1'
-        assert results['NM_032790.3:c.132_135delinsGCCGT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_116179.2(LRG_93p1):p.(Pro46SerfsTer42)', 'slr': 'NP_116179.2:p.(P46Sfs*42)'}
-        assert results['NM_032790.3:c.132_135delinsGCCGT']['submitted_variant'] == '12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC'
+        assert results['NM_032790.3:c.132_135delinsGCCGT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_116179.2(LRG_93p1):p.(Gly41=)', 'slr': 'NP_116179.2:p.(G41=)'}
+        assert results['NM_032790.3:c.132_135delinsGCCGT']['submitted_variant'] == 'NM_032790.3:c.121_122='
         assert results['NM_032790.3:c.132_135delinsGCCGT']['genome_context_intronic_sequence'] == ''
-        assert results['NM_032790.3:c.132_135delinsGCCGT']['hgvs_lrg_variant'] == 'LRG_93:g.5305_5308delinsGCCGT'
-        assert results['NM_032790.3:c.132_135delinsGCCGT']['hgvs_transcript_variant'] == 'NM_032790.3:c.132_135delinsGCCGT'
-        assert results['NM_032790.3:c.132_135delinsGCCGT']['hgvs_refseqgene_variant'] == 'NG_007500.1:g.5305_5308delinsGCCGT'
-        assert results['NM_032790.3:c.132_135delinsGCCGT']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': 'NC_000012.11:g.122064785_122064788delinsGCCGT', 'vcf': {'chr': 'chr12', 'ref': 'ACCG', 'pos': '122064785', 'alt': u'GCCGT'}}
-        assert results['NM_032790.3:c.132_135delinsGCCGT']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': 'NC_000012.12:g.121626879_121626882delinsGCCGT', 'vcf': {'chr': 'chr12', 'ref': 'ACCG', 'pos': '121626879', 'alt': u'GCCGT'}}
-        assert results['NM_032790.3:c.132_135delinsGCCGT']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_000012.11:g.122064785_122064788delinsGCCGT', 'vcf': {'chr': '12', 'ref': 'ACCG', 'pos': '122064785', 'alt': u'GCCGT'}}
-        assert results['NM_032790.3:c.132_135delinsGCCGT']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': 'NC_000012.12:g.121626879_121626882delinsGCCGT', 'vcf': {'chr': '12', 'ref': 'ACCG', 'pos': '121626879', 'alt': u'GCCGT'}}
+        assert results['NM_032790.3:c.132_135delinsGCCGT']['hgvs_lrg_variant'] == 'LRG_93:g.5294_5295='
+        assert results['NM_032790.3:c.132_135delinsGCCGT']['hgvs_transcript_variant'] == 'NM_032790.3:c.121_122='
+        assert results['NM_032790.3:c.132_135delinsGCCGT']['hgvs_refseqgene_variant'] == 'NG_007500.1:g.5294_5295='
+        assert results['NM_032790.3:c.132_135delinsGCCGT']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': 'NC_000012.11:g.122064768_122064769=', 'vcf': {'chr': 'chr12', 'ref': u'GG', 'pos': '122064768', 'alt': u'GG'}}
+        assert results['NM_032790.3:c.132_135delinsGCCGT']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': 'NC_000012.12:g.121626874_121626878del', 'vcf': {'chr': 'chr12', 'ref': 'GGCCCC', 'pos': '121626865', 'alt': 'G'}}
+        assert results['NM_032790.3:c.132_135delinsGCCGT']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_000012.11:g.122064768_122064769=', 'vcf': {'chr': '12', 'ref': u'GG', 'pos': '122064768', 'alt': u'GG'}}
+        assert results['NM_032790.3:c.132_135delinsGCCGT']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': 'NC_000012.12:g.121626874_121626878del', 'vcf': {'chr': '12', 'ref': 'GGCCCC', 'pos': '121626865', 'alt': 'G'}}
         assert results['NM_032790.3:c.132_135delinsGCCGT']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_007500.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_116179.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_032790.3', 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_93.xml'}
 
 
@@ -2066,6 +2150,23 @@ class TestVariants(object):
         variant = 'NC_000012.11:g.122064777C>A'
         results = vv.validator(variant, 'GRCh37', 'all')
         print results
+
+        """
+        This variant represents possible variation of the ExAc variant http://exac.broadinstitute.org/variant/12-122064773-CCCGCCA-C
+        The GRCh37 chr12 has an additional 6 bases not found in the transcript
+        In this example, the HGVS genomic GRCh37 asserts that the 6 genomic bases exist, thus an insertion into the transcript
+ 
+                                                       126    127
+                                                      |      |
+        NM_032790.3  c        108 > CGGGGAGCCCCCGGGGGCC------CCGCCACCGCCGCCGT
+                                    |||||||||||||||||||------||||||||||||||||
+        NC_000012.11 g  122064755 > CGGGGAGCCCCCGGGGGCCCCGCCACCGCCACCGCCGCCGT
+                                                      |      |
+                                              122064773      122064780
+ 
+        GRCh38 chr12 has been corrected (AT THIS POSITION, see variant 68)
+        Approved by PCF, 2019-02-28 15:04   
+        """
 
         assert results['flag'] == 'gene_variant'
         assert 'NM_032790.3:c.129_130insACACCG' in results.keys()
@@ -2091,6 +2192,23 @@ class TestVariants(object):
         results = vv.validator(variant, 'GRCh37', 'all')
         print results
 
+        """
+        This variant represents possible variation of the ExAc variant http://exac.broadinstitute.org/variant/12-122064773-CCCGCCA-C
+        The GRCh37 chr12 has an additional 6 bases not found in the transcript
+        In this example, the HGVS genomic GRCh37 asserts that the 6 genomic bases exist, thus an insertion into the transcript
+
+                                                      126    127
+                                                      |      |
+        NM_032790.3  c        108 > CGGGGAGCCCCCGGGGGCC------CCGCCACCGCCGCCGT
+                                    |||||||||||||||||||------||||||||||||||||
+        NC_000012.11 g  122064755 > CGGGGAGCCCCCGGGGGCCCCGCCACCGCCACCGCCGCCGT
+                                                      |      |
+                                              122064773      122064780
+
+        GRCh38 chr12 has been corrected (AT THIS POSITION, see variant 68)
+        Approved by PCF, 2019-02-28 15:09   
+        """
+
         assert results['flag'] == 'gene_variant'
         assert 'NM_032790.3:c.128_129insCCACC' in results.keys()
         assert results['NM_032790.3:c.128_129insCCACC']['hgvs_lrg_transcript_variant'] == 'LRG_93t1:c.128_129insCCACC'
@@ -2114,6 +2232,23 @@ class TestVariants(object):
         variant = 'NC_000012.11:g.122064776dupG'
         results = vv.validator(variant, 'GRCh37', 'all')
         print results
+
+        """
+        This variant represents possible variation of the ExAc variant http://exac.broadinstitute.org/variant/12-122064773-CCCGCCA-C
+        The GRCh37 chr12 has an additional 6 bases not found in the transcript
+        In this example, the HGVS genomic GRCh37 asserts that the 6 genomic bases exist, thus an insertion into the transcript
+
+                                                      126    127
+                                                      |      |
+        NM_032790.3  c        108 > CGGGGAGCCCCCGGGGGCC------CCGCCACCGCCGCCGT
+                                    |||||||||||||||||||------||||||||||||||||
+        NC_000012.11 g  122064755 > CGGGGAGCCCCCGGGGGCCCCGCCACCGCCACCGCCGCCGT
+                                                      |      |
+                                              122064773      122064780
+
+        GRCh38 chr12 has been corrected (AT THIS POSITION, see variant 68)
+        Approved by PCF, 2019-02-28 15:15  
+        """
 
         assert results['flag'] == 'gene_variant'
         assert 'NM_032790.3:c.129_130insGCCACCG' in results.keys()
@@ -2139,6 +2274,23 @@ class TestVariants(object):
         results = vv.validator(variant, 'GRCh37', 'all')
         print results
 
+        """
+        This variant represents possible variation of the ExAc variant http://exac.broadinstitute.org/variant/12-122064773-CCCGCCA-C
+        The GRCh37 chr12 has an additional 6 bases not found in the transcript
+        In this example, the HGVS genomic GRCh37 asserts that the 6 genomic bases exist, thus an insertion into the transcript
+
+                                                      126    127
+                                                      |      |
+        NM_032790.3  c        108 > CGGGGAGCCCCCGGGGGCC------CCGCCACCGCCGCCGT
+                                    |||||||||||||||||||------||||||||||||||||
+        NC_000012.11 g  122064755 > CGGGGAGCCCCCGGGGGCCCCGCCACCGCCACCGCCGCCGT
+                                                      |      |
+                                              122064773      122064780
+
+        GRCh38 chr12 has been corrected (AT THIS POSITION, see variant 68)
+        Approved by PCF, 2019-02-28 15:31  
+        """
+
         assert results['flag'] == 'gene_variant'
         assert 'NM_032790.3:c.129_130insTTTCCACCG' in results.keys()
         assert results['NM_032790.3:c.129_130insTTTCCACCG']['hgvs_lrg_transcript_variant'] == 'LRG_93t1:c.129_130insTTTCCACCG'
@@ -2162,6 +2314,23 @@ class TestVariants(object):
         variant = 'NC_000012.11:g.122064772_122064775del'
         results = vv.validator(variant, 'GRCh37', 'all')
         print results
+
+        """
+        This variant represents possible variation of the ExAc variant http://exac.broadinstitute.org/variant/12-122064773-CCCGCCA-C
+        The GRCh37 chr12 has an additional 6 bases not found in the transcript
+        In this example, the HGVS genomic GRCh37 spans the 5' flank of the gap
+
+                                                      126    127
+                                                      |      |
+        NM_032790.3  c        108 > CGGGGAGCCCCCGGGGGCC------CCGCCACCGCCGCCGT
+                                    |||||||||||||||||||------||||||||||||||||
+        NC_000012.11 g  122064755 > CGGGGAGCCCCCGGGGGCCCCGCCACCGCCACCGCCGCCGT
+                                                      |      |
+                                              122064773      122064780
+                                              
+        GRCh38 chr12 has a different gap position, refer to variant 68
+        Approved by PCF, 2019-02-28 15:31  
+        """
 
         assert results['flag'] == 'gene_variant'
         assert 'NM_032790.3:c.125_126delinsGCCA' in results.keys()
@@ -2187,6 +2356,23 @@ class TestVariants(object):
         results = vv.validator(variant, 'GRCh37', 'all')
         print results
 
+        """
+        This variant represents possible variation of the ExAc variant http://exac.broadinstitute.org/variant/12-122064773-CCCGCCA-C
+        The GRCh37 chr12 has an additional 6 bases not found in the transcript
+        In this example, the HGVS genomic GRCh37 spans the 5' flank of the gap
+        
+                                                    126    127
+                                                      |      |
+        NM_032790.3  c        108 > CGGGGAGCCCCCGGGGGCC------CCGCCACCGCCGCCGT
+                                    |||||||||||||||||||------||||||||||||||||
+        NC_000012.11 g  122064755 > CGGGGAGCCCCCGGGGGCCCCGCCACCGCCACCGCCGCCGT
+                                                      |      |
+                                              122064773      122064780
+        
+        GRCh38 chr12 has a different gap position, refer to variant 68
+        Approved by PCF, 2019-03-04 10:41  
+        """
+
         assert results['flag'] == 'gene_variant'
         assert 'NM_032790.3:c.128_129insCCCCGCCACC' in results.keys()
         assert results['NM_032790.3:c.128_129insCCCCGCCACC']['hgvs_lrg_transcript_variant'] == 'LRG_93t1:c.128_129insCCCCGCCACC'
@@ -2210,6 +2396,23 @@ class TestVariants(object):
         variant = 'NC_000012.11:g.122064773_122064774insTTTT'
         results = vv.validator(variant, 'GRCh37', 'all')
         print results
+
+        """
+        This variant represents possible variation of the ExAc variant http://exac.broadinstitute.org/variant/12-122064773-CCCGCCA-C
+        The GRCh37 chr12 has an additional 6 bases not found in the transcript
+        In this example, the HGVS genomic GRCh37 spans the 5' flank of the gap
+
+                                                      126    127
+                                                      |      |
+        NM_032790.3  c        108 > CGGGGAGCCCCCGGGGGCC------CCGCCACCGCCGCCGT
+                                    |||||||||||||||||||------||||||||||||||||
+        NC_000012.11 g  122064755 > CGGGGAGCCCCCGGGGGCCCCGCCACCGCCACCGCCGCCGT
+                                                      |      |
+                                              122064773      122064780
+
+        GRCh38 chr12 has a different gap position, refer to variant 68
+        Approved by PCF, 2019-03-04 10:46  
+        """
 
         assert 'NM_032790.3:c.126_127insTTTTCCGCCA' in results.keys()
         assert results['NM_032790.3:c.126_127insTTTTCCGCCA']['hgvs_lrg_transcript_variant'] == 'LRG_93t1:c.126_127insTTTTCCGCCA'
@@ -2235,6 +2438,23 @@ class TestVariants(object):
         results = vv.validator(variant, 'GRCh37', 'all')
         print results
 
+        """
+        This variant represents possible variation of the ExAc variant http://exac.broadinstitute.org/variant/12-122064773-CCCGCCA-C
+        The GRCh37 chr12 has an additional 6 bases not found in the transcript
+        In this example, the HGVS genomic GRCh37 spans 5' flank of the gap
+
+                                                      126    127
+                                                      |      |
+        NM_032790.3  c        108 > CGGGGAGCCCCCGGGGGCC------CCGCCACCGCCGCCGT
+                                    |||||||||||||||||||------||||||||||||||||
+        NC_000012.11 g  122064755 > CGGGGAGCCCCCGGGGGCCCCGCCACCGCCACCGCCGCCGT
+                                                      |      |
+                                              122064773      122064780
+
+        GRCh38 chr12 has a different gap position, refer to variant 68
+        Approved by PCF, 2019-03-04 10:51  
+        """
+
         assert 'NM_032790.3:c.126C>A' in results.keys()
         assert results['NM_032790.3:c.126C>A']['hgvs_lrg_transcript_variant'] == 'LRG_93t1:c.126C>A'
         assert results['NM_032790.3:c.126C>A']['refseqgene_context_intronic_sequence'] == ''
@@ -2258,6 +2478,23 @@ class TestVariants(object):
         variant = 'NC_000012.11:g.122064772_122064777dup'
         results = vv.validator(variant, 'GRCh37', 'all')
         print results
+
+        """
+        This variant represents possible variation of the ExAc variant http://exac.broadinstitute.org/variant/12-122064773-CCCGCCA-C
+        The GRCh37 chr12 has an additional 6 bases not found in the transcript
+        In this example, the HGVS genomic GRCh37 spans the 5'flank of the gap
+
+                                                      126    127
+                                                      |      |
+        NM_032790.3  c        108 > CGGGGAGCCCCCGGGGGCC------CCGCCACCGCCGCCGT
+                                    |||||||||||||||||||------||||||||||||||||
+        NC_000012.11 g  122064755 > CGGGGAGCCCCCGGGGGCCCCGCCACCGCCACCGCCGCCGT
+                                                      |      |
+                                              122064773      122064780
+
+        GRCh38 chr12 has a different gap position, refer to variant 68
+        Approved by PCF, 2019-03-04 11:01 
+        """
 
         assert results['flag'] == 'gene_variant'
         assert 'NM_032790.3:c.131_132insCCCGCCACCGCC' in results.keys()
@@ -2283,6 +2520,23 @@ class TestVariants(object):
         results = vv.validator(variant, 'GRCh37', 'all')
         print results
 
+        """
+        This variant represents possible variation of the ExAc variant http://exac.broadinstitute.org/variant/12-122064773-CCCGCCA-C
+        The GRCh37 chr12 has an additional 6 bases not found in the transcript
+        In this example, the HGVS genomic GRCh37 spans the 3' flank of the gap
+        
+                                                      126    127
+                                                      |      |
+        NM_032790.3  c        108 > CGGGGAGCCCCCGGGGGCC------CCGCCACCGCCGCCGT
+                                    |||||||||||||||||||------||||||||||||||||
+        NC_000012.11 g  122064755 > CGGGGAGCCCCCGGGGGCCCCGCCACCGCCACCGCCGCCGT
+                                                      |      |
+                                              122064773      122064780        
+        
+        GRCh38 chr12 has a different gap position, refer to variant 68
+        Approved by PCF, 2019-03-04 11:05 
+        """
+
         assert 'NM_032790.3:c.135_136insACCGCCACCG' in results.keys()
         assert results['NM_032790.3:c.135_136insACCGCCACCG']['hgvs_lrg_transcript_variant'] == 'LRG_93t1:c.135_136insACCGCCACCG'
         assert results['NM_032790.3:c.135_136insACCGCCACCG']['refseqgene_context_intronic_sequence'] == ''
@@ -2307,6 +2561,23 @@ class TestVariants(object):
         results = vv.validator(variant, 'GRCh37', 'all')
         print results
 
+        """
+        This variant represents possible variation of the ExAc variant http://exac.broadinstitute.org/variant/12-122064773-CCCGCCA-C
+        The GRCh37 chr12 has an additional 6 bases not found in the transcript
+        This variant spans the entire gap
+
+                                                      126    127
+                                                      |      |
+        NM_032790.3  c        108 > CGGGGAGCCCCCGGGGGCC------CCGCCACCGCCGCCGT
+                                    |||||||||||||||||||------||||||||||||||||
+        NC_000012.11 g  122064755 > CGGGGAGCCCCCGGGGGCCCCGCCACCGCCACCGCCGCCGT
+                                                      |      |
+                                              122064773      122064780
+
+        GRCh38 chr12 has a different gap position, refer to variant 68
+        Approved by PCF, 2019-03-04 11:05 
+        """
+
         assert results['flag'] == 'gene_variant'
         assert 'NM_032790.3:c.126_127insA' in results.keys()
         assert results['NM_032790.3:c.126_127insA']['hgvs_lrg_transcript_variant'] == 'LRG_93t1:c.126_127insA'
@@ -2330,6 +2601,14 @@ class TestVariants(object):
         variant = 'NC_000002.11:g.95847041_95847043GCG='
         results = vv.validator(variant, 'GRCh37', 'all')
         print results
+
+        """
+        This variant represents a 3bp gap in the transcript
+        This is the false negative of the ExAc variant http://exac.broadinstitute.org/variant/2-95847040-TGCG-T
+        The GRCh37 chr2 has an additional 3 bases not found in the transcript
+        Cannot map this transcript to GRCh38
+        Approved by PCF, 2019-03-04 11:53 
+        """
 
         assert 'NM_021088.3:c.471_473dup' in results.keys()
         assert results['NM_021088.3:c.471_473dup']['hgvs_lrg_transcript_variant'] == ''
@@ -2457,6 +2736,16 @@ class TestVariants(object):
         results = vv.validator(variant, 'GRCh37', 'all')
         print results
 
+        """
+        This variant represents a 25bp gap in the transcript
+        This is the false negative variant, but is not found in ExAC, probably due to the size of the deletion
+        The exact deletion position is 17:5286861:GTAGTGTTTGGAATTTTCTGTTCATA:G
+                                       NM_001291581.1:c.*343_*344=
+        The GRCh37 chr17 has an additional 25 bases not found in the transcript
+        GRCh38 is a perfect alignment
+        Approved by PCF, 2019-03-04 12:07
+        """
+
         assert 'NM_001083585.1:c.*344_*368dup' in results.keys()
         assert results['NM_001083585.1:c.*344_*368dup']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001083585.1:c.*344_*368dup']['refseqgene_context_intronic_sequence'] == ''
@@ -2549,6 +2838,16 @@ class TestVariants(object):
         results = vv.validator(variant, 'GRCh37', 'all')
         print results
 
+        """
+        This variant represents a 1bp gap in the genome
+        This is the false negative variant of http://exac.broadinstitute.org/variant/3-14561627-A-AG
+        The exact deletion position is 3:14561627:A:AG 
+                                       NM_001080423.2:c.1307_1311=
+        The GRCh37 chr3 has 1 base less than the transcript
+        GRCh38 is a perfect alignment
+        Approved by PCF, 2019-03-04 13:32
+        """
+
         assert 'NM_001080423.3:c.1020del' in results.keys()
         assert results['NM_001080423.3:c.1020del']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001080423.3:c.1020del']['refseqgene_context_intronic_sequence'] == ''
@@ -2590,6 +2889,17 @@ class TestVariants(object):
         results = vv.validator(variant, 'GRCh37', 'all')
         print results
 
+        """
+        This variant represents a 1bp gap in the genome
+        This is ExAC variant ExAC http://exac.broadinstitute.org/variant/3-14561627-A-AG
+        The exact deletion position is 3:14561627:A:AG
+                                       NM_001080423.2:c.1307_1311=
+        This variant demonstrates the normalizationm of an inseetion into the correct descriptions which is a duplication
+        The GRCh37 chr3 has 1 base less than the transcript
+        GRCh38 is a perfect alignment
+        Approved by PCF, 2019-03-04 13:32
+        """
+
         assert 'NM_001080423.3:c.1016_1020=' in results.keys()
         assert results['NM_001080423.3:c.1016_1020=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001080423.3:c.1016_1020=']['refseqgene_context_intronic_sequence'] == ''
@@ -2630,6 +2940,14 @@ class TestVariants(object):
         variant = 'NC_000004.11:g.140811111_140811122del'
         results = vv.validator(variant, 'GRCh37', 'all')
         print results
+
+        """
+        This variant represents a 12bp gap in the transcript
+        This is ExAC variant ExAC http://exac.broadinstitute.org/variant/4-140811063-TTGCTGCTGCTGC-T
+        The GRCh37 chr4 has an additional 12 bases not found in the transcript
+        GRCh38 also harbours a 12bp gap. Note the gap in each case is wrt NM_018717.4. NM_018717.5 is corrected to match the genome
+        Approved by PCF, 2019-03-04 13:32
+        """
 
         assert results['flag'] == 'gene_variant'
         assert 'NM_018717.5:c.1515_1526del' in results.keys()
