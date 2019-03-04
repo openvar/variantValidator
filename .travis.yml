@@ -33,9 +33,8 @@ before_install:
   - gzip -cdq uta_20180821.pgd.gz | PGPASSWORD=uta_admin psql -U uta_admin -v ON_ERROR_STOP=0 -d uta -Eae
 
   # Set up seqrepo
-  - pip install biocommons.seqrepo
   - mkdir "$HOME"/seqrepo
-  - seqrepo --root-directory "$HOME"/seqrepo pull -i 2018-08-21
+  - rsync -HavP dl.biocommons.org::seqrepo/2018-08-21/ /tmp/seqrepo/2018-08-21/
 
 
 install:
