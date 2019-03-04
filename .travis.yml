@@ -18,11 +18,12 @@ before_install:
 
   # Here we just install Miniconda, which you shouldn't have to change.
 
-  - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
-  - bash miniconda.sh -b -p "$HOME"/miniconda
+  - wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda3.sh
+  - bash miniconda3.sh -b -p "$HOME"/miniconda3
   - ls -ltrha
-  - ls -R "$HOME"/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
+  - ls -R "$HOME"/miniconda3
+  - echo . "$HOME"/miniconda3/etc/profile.d/conda.sh >> "$HOME"/.bashrc
+  - source "$HOME"/.bashrc
 
     # Set up the databases - install seqrepo and UTA
 
