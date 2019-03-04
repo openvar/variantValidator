@@ -34,7 +34,7 @@ before_install:
 
   # Set up seqrepo
   - mkdir "$HOME"/seqrepo
-  - rsync -HavP dl.biocommons.org::seqrepo/2018-08-21/ /tmp/seqrepo/2018-08-21/
+  - rsync -HavP dl.biocommons.org::seqrepo/2018-08-21/ "$HOME"/seqrepo/2018-08-21/
 
 
 install:
