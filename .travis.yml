@@ -32,6 +32,11 @@ before_install:
   - wget http://dl.biocommons.org/uta/uta_20180821.pgd.gz
   - gzip -cdq uta_20180821.pgd.gz | PGPASSWORD=uta_admin psql -U uta_admin -v ON_ERROR_STOP=0 -d uta -Eae
 
+  # Set up seqrepo
+  - pip install biocommons.seqrepo
+  - mkdir "$HOME"/seqrepo
+  - seqrepo --root-directory "$HOME"/seqrepo pull -i 2018-08-21
+
 
 install:
 
@@ -54,14 +59,10 @@ install:
   - pip install biotools hgvs==1.1.3
   - pip install .
 
-  # Set up seqrepo
-  - mkdir "$HOME"/seqrepo
-  - seqrepo --root-directory "$HOME"/seqrepo pull -i 2018-08-21
-
   # Set up validator database
   #- mysql validator < VariantValidator/data/emptyValidatorDump.sql
 
 script:
 
-  - ls
+  - conda activate vvenv
   - pytest  # will run all tests in the package
