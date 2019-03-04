@@ -43,7 +43,7 @@ install:
   # should not need changing.
 
   - conda create --yes -n vvenv python=$TRAVIS_PYTHON_VERSION
-  - source activate vvenv
+  - conda activate vvenv
 
   # Below, include the dependencies you want to install with conda, optionally
   # specifying versions used in the matrix above. If you split this into
