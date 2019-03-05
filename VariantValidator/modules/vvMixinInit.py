@@ -21,6 +21,7 @@ import copy
 from .vvDatabase import vvDatabase
 from .vvLogging import logger
 from . import vvFunctions as fn
+from VariantValidator.configure import CONFIG_DIR
 
 
 
@@ -57,22 +58,11 @@ class Mixin():
         'uta_schema': str(hdp.data_version()),           #self.uta_schema
         'seqrepo_db': HGVS_SEQREPO_DIR.split('/')[-1]    #self.seqrepoVersion
         '''
-        # First load from the configuration file, if it exists.
-        configName="config.ini"
-        homePath=os.path.expanduser("~")
-        configPath=os.path.join(homePath,".config","VariantValidator")
-        if not os.path.isdir(configPath):
-            os.makedirs(configPath)
-        # Now configpath points to the config file itself.
-        configPath=os.path.join(configPath,configName)
-        # Does the file exist?
-        if not os.path.exists(configPath):
-            self.createConfig(configPath)
 
         # Load the configuration file.
-        config=RawConfigParser(allow_no_value=True)
-        with open(configPath) as file:
-            config.read_file(file)
+        config = ConfigParser()
+        config.read(CONFIG_DIR)
+
         # The custom vvLogging module will set itself up using the VALDIATOR_DEBUG environment variable.
         levelString = config["logging"]['level']
         consoleString = config["logging"]['console']
@@ -88,15 +78,20 @@ class Mixin():
         os.environ["VALIDATOR_DEBUG"] = logString
 
         # Handle databases
-        self.entrezID=config["EntrezID"]["entrezID"]
-        if config["seqrepo"]["location"]!=None:
-            self.seqrepoVersion=config["seqrepo"]["version"]
-            self.seqrepoPath=config["seqrepo"]["location"]+self.seqrepoVersion
-            os.environ['HGVS_SEQREPO_DIR']=self.seqrepoPath
-        else:
-            raise ValueError("The seqrepo location has not been set in ~/.config/VariantValidator/config.ini")
-        os.environ['UTA_DB_URL']=config["uta"]["location"]+config["uta"]["version"]
-        self.utaPath=config["uta"]["location"]+config["uta"]["version"]
+        self.entrezID = config["EntrezID"]["entrezID"]
+        self.seqrepoVersion = config["seqrepo"]["version"]
+        self.seqrepoPath = os.path.join(config["seqrepo"]["location"], self.seqrepoVersion)
+        os.environ['HGVS_SEQREPO_DIR'] = self.seqrepoPath
+
+        os.environ['UTA_DB_URL']= "postgresql://%s:%s@%s/%s/%s" % (
+            config["postgres"]["user"],
+            config["postgres"]["password"],
+            config['postgres']['host'],
+            config['postgres']['database'],
+            config['postgres']['version']
+        )
+        self.utaPath = os.environ.get('UTA_DB_URL')
+
         self.dbConfig = {
             'user':    config["mysql"]["user"],
             'password':config["mysql"]["password"],
@@ -118,7 +113,7 @@ class Mixin():
 
         # Set up other configuration variables
         self.liftoverPath=config["liftover"]["location"]
-        if not self.liftoverPath==None:
+        if not self.liftoverPath == 'PATH/TO/LIFTOVER':
             os.environ['PYLIFTOVER_DIR']=self.liftoverPath
         self.entrezID=config["EntrezID"]['entrezid']
 
@@ -190,21 +185,7 @@ class Mixin():
             'uta_schema': self.utaSchema,
             'seqrepo_db': self.seqrepoPath
         }
-    def createConfig(self,outPath):
-        '''
-        # This function reads from the default configuration file stored in the same folder as this module,
-        # and transfers it to outPath.
-        # Outpath should include a filename.
-        '''
-        lines=[]
-        inPath=os.path.join(os.path.dirname(os.path.realpath(__file__)),"defaultConfig.ini")
-#        print(os.path.join(inPath,"defaultConfig.ini"))
-        with open(inPath) as file:
-            for l in file:
-                lines.append(l)
-        with open(outPath, "w") as file:
-            for l in lines:
-                file.write(l)
+
     def protein(self,variant, evm, hpUnused):
         # Set regular expressions for if statements
         pat_c = re.compile("\:c\.")  # Pattern looks for :c. Note (gene) has been removed
