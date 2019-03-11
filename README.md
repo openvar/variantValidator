@@ -1,4 +1,4 @@
-# About Variant Validator
+# About VariantValidator
 
 VariantValidator is a user-friendly software tool designed to validate the syntax and 
 parameters of DNA variant descriptions according to the HGVS Sequence Variant 
@@ -31,14 +31,14 @@ For sequence variations falling within the open reading frames of genes, Variant
 
 ## Pre-requisites
 
-Variant Validator will work on Mac OS X or Linux-compatiable computers.
+VariantValidator will work on Mac OS X or Linux-compatiable computers.
 
 Required software:
 * MySQL
 * Python 2.7
 
 Optional software:
-* Postgres version 9.5 or above, Postgres 10 is not supported.
+* Postgres version 9.5 or above
 * SQLite version 3.8.0 or above
 
 For installation instructions please see [INSTALLATION.md](INSTALLATION.md)
