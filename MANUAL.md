@@ -1,4 +1,4 @@
-# Variant Validator Operation Manual
+# VariantValidator Operation Manual
 
 ## Configuration
 
