@@ -2,7 +2,7 @@
 
 ## Configuration
 
-Presently Variant Validator uses a combination of environment variables to configure itself. The configuration file is in /VariantValidator/configuration/config.ini and should be edited with the current user's details. Specifically, the section:
+Presently VariantValidator uses a combination of environment variables to configure itself. The configuration file is in /VariantValidator/configuration/config.ini and should be edited with the current user's details. Specifically, the section:
 ```
 [mysql]
 host = 127.0.0.1
@@ -10,7 +10,7 @@ database = validator
 user = vvadmin  
 password = var1ant
 ```
-needs to be changed if the variant validator database login details are different.
+needs to be changed if the VariantValidator database login details are different.
 
 The section
 ```
@@ -32,7 +32,7 @@ The validator itself will set environment variables to allow for the correct ope
 
 ## Operation
 
-Python scripts importing variant validator will have to set up a last few configuration variables before they can proceed. These variables must be set in such a way that they don't go out of scope - otherwise the validator won't work.
+Python scripts importing VariantValidator will have to set up a last few configuration variables before they can proceed. These variables must be set in such a way that they don't go out of scope - otherwise the validator won't work.
 
 This example script will validate the variant NM_000088.3:c.589G>T and then print the output as a json file. You might need to change it to point to the correct seqrepo directory.
 
@@ -71,25 +71,27 @@ chr17:50198002C>A (GRCh38)
 Possible assemblies are:
 ```
 GRCh37
+GRCh38
 hg19
 hg38
 ```
 You can select all transcripts by passing 'all', or use multiple transcripts with: `select_transcripts = 'NM_022356.3| NM_001146289.1| NM_001243246.1' `
 
-Variant validator produces a dictionary output that contain all possible interpretations of the input variant.
+VariantValidator produces a dictionary output that contain all possible interpretations of the input variant.
 
 View supported transcripts for a gene example: HGNC gene symbol https://www.genenames.org/
 ```
-variantValidator.validator.gene2transcripts ('HTT') 
+variantValidator.validator.gene2transcripts('HTT') 
 # RefSeq Transcript
-variantValidator.validator.gene2transcripts (' NM_002111.8') 
+variantValidator.validator.gene2transcripts(' NM_002111.8') 
+
 # Get reference sequence for HGVS variant description
 variantValidator.validator.hgvs2ref('NM_000088.3:c.589_594del')
 ```
 
 ## Unit testing
 
-Variant Validator is written to be pytest-compatible. Run
+VariantValidator is written to be pytest-compatible. Run
 `pytest`
 in the variant validator root folder, the same as that in which this file resides. The test will take several minutes to complete, but runs through over three hundred common and malformed variants.
 
