@@ -1,16 +1,16 @@
-# Variant Validator Installation
+# VariantValidator Installation
 
 These instructions will allow you to configure the software on Linux and Mac OS X computers.
 
-There are several steps involved in setting up variant validator:
+There are several steps involved in setting up VariantValidator:
 * The python environment must be set up with the correct packages
 * The variantValidator files themselves must be downloaded and installed.
 * The databases must be downloaded and set up
-* The configuration files must be changed to point the validator at those databases.
+* The configuration files must be changed to point VariantValidator at those databases.
 
 ## Virtual environment (Python 2.7)
 
-When installing Variant Validator it is wise to use a virtual environment, as it requires specific versions of several libraries.
+When installing VariantValidator it is wise to use a virtual environment, as it requires specific versions of several libraries.
 We recommend using conda.
 ```
 $ conda create -n VVenv
@@ -42,8 +42,8 @@ to ensure any changes you make in the local variant validator folder is reflecte
 
 ## Setting up validator database (MySQL)
 
-A MySQL database is required to run variantValidator. We recommend creating a user and password specific to the
-variant Validator database.
+A MySQL database is required to run VariantValidator. We recommend creating a user and password specific to the
+VariantValidator database.
 
 ```mysql
 CREATE USER 'vvadmin'@'localhost' IDENTIFIED BY 'var1ant';
@@ -58,7 +58,7 @@ $ mysql validator < VariantValidator/data/emptyValidatorDump.sql
 
 To populate the database you'll need to run `bin/update_vdb.py` which will download the latest RefSeq data and populate the validator database. Note, you may wish to re-run this update process every month.
 
-## Setting up UTA database (PostGreSQL >=9.5, <10)
+## Setting up UTA database (PostGreSQL >=9.5)
 
 It's recommended for performance reasons to use a local version of the UTA database. We again recommend creating a specific user account.
 ```
@@ -77,7 +77,7 @@ $ gzip -cdq uta_20180821.pgd.gz | psql -U uta_admin -v ON_ERROR_STOP=0 -d uta -E
 
 ## Setting up Seqrepo (SQLite >=3.8)
 
-Similarly, things run much faster with a local SeqRepo database. The seqrepo library is already installed, but you'll need to download an actual sequence repository. These instructions assume you are using your home directory; you can put it anywhere so long as you modify the config.ini file, and environment variables accordingly.
+VariantValidator requires a local SeqRepo databas,. The seqrepo library is already installed, but you'll need to download an actual seqrepo database. These instructions assume you are using your home directory; you can put it anywhere so long as you modify the config.ini file, and environment variables accordingly.
 ```
 $ mkdir seqrepo
 $ seqrepo --root-directory ~/seqrepo pull -i 2018-08-21
