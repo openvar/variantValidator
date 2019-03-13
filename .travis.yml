@@ -36,6 +36,9 @@ before_install:
   - mkdir "$HOME"/seqrepo
   - rsync -HavP dl.biocommons.org::seqrepo/2018-08-21/ "$HOME"/seqrepo/2018-08-21/
 
+  # Copy configuration file
+  - cp configuration/travis.ini "$HOME"/.variantvalidator
+
 
 install:
 
@@ -59,7 +62,8 @@ install:
   - pip install .
 
   # Set up validator database
-  #- mysql validator < VariantValidator/data/emptyValidatorDump.sql
+  - mysql validator < configuration/empty_vv_db.sql
+  - python bin/update_db.py
 
 script:
 
