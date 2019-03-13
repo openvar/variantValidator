@@ -1947,7 +1947,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 if entry['expiry'] == 'true':
                                     dbaction = 'update'
                                     try:
-                                        entry = self.db.data_add(accession=accession)
+                                        entry = self.db.data_add(accession=accession, validator=self)
                                     except hgvs.exceptions.HGVSError as e:
                                         error = 'Transcript %s is not currently supported' % (accession)
                                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
@@ -1965,7 +1965,7 @@ class Mixin(vvMixinConverters.Mixin):
                             elif 'none' in entry:
                                 dbaction = 'insert'
                                 try:
-                                    entry = self.db.data_add(accession=accession)
+                                    entry = self.db.data_add(accession=accession, validator=self)
                                 except Exception as e:
                                     logger.warning(str(e))
                                     error = 'Unable to assign transcript identity records to ' + accession + ', potentially an obsolete record :'
@@ -2008,7 +2008,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 # If the current entry is too old
                                 if entry['expiry'] == 'true':
                                     dbaction = 'update'
-                                    entry = self.db.data_add(accession=accession)
+                                    entry = self.db.data_add(accession=accession, validator=self)
                                     hgnc_gene_info = entry['description']
                                 else:
                                     hgnc_gene_info = entry['description']
@@ -2016,7 +2016,7 @@ class Mixin(vvMixinConverters.Mixin):
                             elif 'none' in entry:
                                 dbaction = 'insert'
                                 try:
-                                        entry = self.db.data_add(accession=accession)
+                                        entry = self.db.data_add(accession=accession, validator=self)
                                 except Exception as e:
                                     logger.warning(str(e))
                                     error = 'Unable to assign transcript identity records to ' + accession + ', potentially an obsolete record :'

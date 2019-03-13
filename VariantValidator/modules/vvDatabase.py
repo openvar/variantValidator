@@ -35,13 +35,13 @@ class vvDatabase(vvDBInsert.Mixin):
             logger.debug("No data returned from query "+str(query))
         return row
     # From data
-    def data_add(self, accession):
+    def data_add(self, accession, validator):
         '''
         # Add accurate transcript descriptions to the database
         :param accession:
         :return:
         '''
-        self.update_transcript_info_record(accession, self.val.hdp)
+        self.update_transcript_info_record(accession, validator)
         entry = self.in_entries(accession, 'transcript_info')
         return entry
 
@@ -71,7 +71,7 @@ class vvDatabase(vvDBInsert.Mixin):
                 data['updated'] = row[6]
                 data['expiry'] = row[7]
         return data
-    def update_transcript_info_record(self,accession, hdp):
+    def update_transcript_info_record(self,accession, validator):
         '''
         # Search Entrez for corresponding record for the RefSeq ID
         '''
@@ -84,7 +84,7 @@ class vvDatabase(vvDBInsert.Mixin):
         hgnc_symbol = previous_entry['hgnc_symbol']
         uta_symbol = previous_entry['uta_symbol']
         try:
-            record = self.val.entrez_efetch(db="nucleotide", id=accession, rettype="gb", retmode="text")
+            record = validator.entrez_efetch(db="nucleotide", id=accession, rettype="gb", retmode="text")
             version = record.id
             description = record.description
             variant = '0'
@@ -100,11 +100,11 @@ class vvDatabase(vvDBInsert.Mixin):
 
             # Get information from UTA
             try:
-                uta_info = hdp.get_tx_identity_info(version)
+                uta_info = validator.hdp.get_tx_identity_info(version)
             except:
                 version_ac_ver = version.split('.')
                 version = version_ac_ver[0] + '.' + str(int(version_ac_ver[1]) - 1)
-                uta_info = hdp.get_tx_identity_info(version)
+                uta_info = validator.hdp.get_tx_identity_info(version)
 
             uta_symbol = str(uta_info[6])
 

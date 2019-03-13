@@ -5,7 +5,6 @@ import urllib.request, urllib.error, urllib.parse
 import copy
 from configparser import ConfigParser
 from .modules import vvDatabase
-from . import variantValidator
 from . import configure
 
 
@@ -22,7 +21,7 @@ def update():
         'raise_on_warnings': True
     }
     # Create database access objects
-    db = vvDatabase.vvDatabase(variantValidator.Validator(), dbConfig)
+    db = vvDatabase.vvDatabase(dbConfig)
 
     update_refseq(db)
     update_lrg(db)

@@ -98,7 +98,7 @@ class Mixin:
     	    'raise_on_warnings': True
         }
         #Create database access objects
-        self.db = vvDatabase(self, self.dbConfig)
+        self.db = vvDatabase(self.dbConfig)
         # Set up versions
         __version__ = config["variantValidator"]['version']
         self.version = __version__
