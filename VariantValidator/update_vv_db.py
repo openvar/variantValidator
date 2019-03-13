@@ -148,20 +148,18 @@ def update_refseq(dbcnx):
         # Take the mapping data
         write = copy.deepcopy(line[0:6])
         # add RSG ranges
-        write.append('1')
         end_rsg = int(line[4]) - int(line[3]) + 1
         end_rsg = str(end_rsg)
         write.append(end_rsg)
         # Create block data chr then rsg
         chr_block = str(line[3]) + '-' + str(line[4])
         write.append(chr_block)
-        rsg_block = str(write[6]) + '-' + str(write[7])
+        rsg_block = '1-' + str(write[6])
         write.append(rsg_block)
         # Add gene ID and Gene symbol(s)
         write.append(line[7])
         write.append(line[6])
 
-        del write[6]
         to_mysql.append(write)
 
     # Set up code to write to database
