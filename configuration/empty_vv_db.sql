@@ -42,7 +42,7 @@ DROP TABLE IF EXISTS `LRG_proteins`;
 CREATE TABLE `LRG_proteins` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `LRGproteinID` varchar(10) DEFAULT NULL,
-  `RefSeqProteinID` varchar(11) DEFAULT NULL,
+  `RefSeqProteinID` varchar(15) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1381 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;

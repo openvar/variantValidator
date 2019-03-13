@@ -16,14 +16,14 @@ services:
 
 before_install:
 
-  # Here we just install Miniconda, which you shouldn't have to change.
+  # Install Miniconda
 
   - wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda3.sh
   - bash miniconda3.sh -b -p "$HOME"/miniconda3
   - echo . "$HOME"/miniconda3/etc/profile.d/conda.sh >> "$HOME"/.bashrc
   - source "$HOME"/.bashrc
 
-    # Set up the databases - install seqrepo and UTA
+  # Set up the databases - install seqrepo and UTA
 
   - mysql -e 'CREATE DATABASE validator;'
 
@@ -32,7 +32,6 @@ before_install:
   - wget http://dl.biocommons.org/uta/uta_20180821.pgd.gz
   - gzip -cdq uta_20180821.pgd.gz | PGPASSWORD=uta_admin psql -U uta_admin -v ON_ERROR_STOP=0 -d uta -Eae
 
-  # Set up seqrepo
   - mkdir "$HOME"/seqrepo
   - rsync -HavP dl.biocommons.org::seqrepo/2018-08-21/ "$HOME"/seqrepo/2018-08-21/
 
