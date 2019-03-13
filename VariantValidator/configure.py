@@ -6,7 +6,6 @@ CONFIG_DIR = os.path.join(os.path.expanduser('~'), '.variantvalidator')
 
 
 def read_configuration():
-    print("Going to read configuration here")
     config = configparser.ConfigParser()
     config.read(CONFIG_DIR)
 
@@ -30,7 +29,6 @@ def exit_with_message():
 
 
 if os.path.exists(CONFIG_DIR):
-    print("Configuration already set up for this user")
     read_configuration()
 else:
     print("*-----------------------------*")
