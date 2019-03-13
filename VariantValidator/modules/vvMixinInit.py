@@ -1,5 +1,5 @@
 import os
-from configparser import ConfigParser,RawConfigParser
+from configparser import ConfigParser
 import hgvs
 import hgvs.parser
 import hgvs.dataproviders.uta
@@ -17,15 +17,14 @@ from Bio.Seq import Seq
 
 import re
 import copy
-#import io
 from .vvDatabase import vvDatabase
 from .vvLogging import logger
 from . import vvFunctions as fn
+from VariantValidator.configure import CONFIG_DIR
 
 
-
-class Mixin():
-    '''
+class Mixin:
+    """
     # This object contains configuration options for the validator, but it inherits the mixin
     # class in vvCore that contains the enormous validator function.
 
@@ -43,7 +42,7 @@ class Mixin():
     val=Validator()
     val.validate("some kind of gene situation","The genome version","the transcripts to use")
 
-    '''
+    """
     def __init__(self):
         '''
         Renaming of variables :
@@ -57,154 +56,139 @@ class Mixin():
         'uta_schema': str(hdp.data_version()),           #self.uta_schema
         'seqrepo_db': HGVS_SEQREPO_DIR.split('/')[-1]    #self.seqrepoVersion
         '''
-        # First load from the configuration file, if it exists.
-        configName="config.ini"
-        homePath=os.path.expanduser("~")
-        configPath=os.path.join(homePath,".config","VariantValidator")
-        if not os.path.isdir(configPath):
-            os.makedirs(configPath)
-        # Now configpath points to the config file itself.
-        configPath=os.path.join(configPath,configName)
-        # Does the file exist?
-        if not os.path.exists(configPath):
-            self.createConfig(configPath)
 
         # Load the configuration file.
-        config=RawConfigParser(allow_no_value=True)
-        with open(configPath) as file:
-            config.read_file(file)
+        config = ConfigParser()
+        config.read(CONFIG_DIR)
+
         # The custom vvLogging module will set itself up using the VALDIATOR_DEBUG environment variable.
         levelString = config["logging"]['level']
         consoleString = config["logging"]['console']
-        if consoleString.lower()=="true":
-            consoleString="console"
+        if consoleString.lower() == "true":
+            consoleString = "console"
         fileString = config["logging"]['file']
-        if fileString.lower()=="true":
-            fileString="file"
+        if fileString.lower() == "true":
+            fileString = "file"
         traceString = config["logging"]['trace']
-        if traceString.lower()=="true":
-            traceString="trace"
+        if traceString.lower() == "true":
+            traceString = "trace"
         logString = levelString+" "+consoleString+" "+fileString+" "+traceString
         os.environ["VALIDATOR_DEBUG"] = logString
 
         # Handle databases
-        self.entrezID=config["EntrezID"]["entrezID"]
-        if config["seqrepo"]["location"]!=None:
-            self.seqrepoVersion=config["seqrepo"]["version"]
-            self.seqrepoPath=config["seqrepo"]["location"]+self.seqrepoVersion
-            os.environ['HGVS_SEQREPO_DIR']=self.seqrepoPath
-        else:
-            raise ValueError("The seqrepo location has not been set in ~/.config/VariantValidator/config.ini")
-        os.environ['UTA_DB_URL']=config["uta"]["location"]+config["uta"]["version"]
-        self.utaPath=config["uta"]["location"]+config["uta"]["version"]
+        self.entrezID = config["EntrezID"]["entrezID"]
+        self.seqrepoVersion = config["seqrepo"]["version"]
+        self.seqrepoPath = os.path.join(config["seqrepo"]["location"], self.seqrepoVersion)
+        os.environ['HGVS_SEQREPO_DIR'] = self.seqrepoPath
+
+        os.environ['UTA_DB_URL'] = "postgresql://%s:%s@%s/%s/%s" % (
+            config["postgres"]["user"],
+            config["postgres"]["password"],
+            config['postgres']['host'],
+            config['postgres']['database'],
+            config['postgres']['version']
+        )
+        self.utaPath = os.environ.get('UTA_DB_URL')
+
         self.dbConfig = {
-            'user':    config["mysql"]["user"],
-            'password':config["mysql"]["password"],
-            'host':    config["mysql"]["host"],
-            'database':config["mysql"]["database"],
+            'user':     config["mysql"]["user"],
+            'password': config["mysql"]["password"],
+            'host':     config["mysql"]["host"],
+            'database': config["mysql"]["database"],
     	    'raise_on_warnings': True
         }
         #Create database access objects
-        self.db=vvDatabase(self,self.dbConfig)
+        self.db = vvDatabase(self.dbConfig)
         # Set up versions
         __version__ = config["variantValidator"]['version']
-        self.version=__version__
-        if re.match('^\d+\.\d+\.\d+$', __version__) is not None:
-            self.releasedVersion=True
+        self.version = __version__
+        if re.match(r'^\d+\.\d+\.\d+$', __version__) is not None:
+            self.releasedVersion = True
             _is_released_version = True
         else:
-            self.releasedVersion=False
-        self.hgvsVersion=hgvs.__version__
+            self.releasedVersion = False
+        self.hgvsVersion = hgvs.__version__
 
         # Set up other configuration variables
-        self.liftoverPath=config["liftover"]["location"]
-        if not self.liftoverPath==None:
-            os.environ['PYLIFTOVER_DIR']=self.liftoverPath
-        self.entrezID=config["EntrezID"]['entrezid']
+        self.liftoverPath = config["liftover"]["location"]
+        if not self.liftoverPath == 'PATH/TO/LIFTOVER':
+            os.environ['PYLIFTOVER_DIR'] = self.liftoverPath
+        self.entrezID = config["EntrezID"]['entrezid']
 
         # Set up HGVS
         # Configure hgvs package global settings
         hgvs.global_config.uta.pool_max = 25
         hgvs.global_config.formatting.max_ref_length = 1000000
+
         # Create HGVS objects
         self.hdp = hgvs.dataproviders.uta.connect(pooling=True)
-        self.hp = hgvs.parser.Parser() #Parser
-        self.vr = hgvs.validator.Validator(self.hdp) # Validator
-        self.vm = hgvs.variantmapper.VariantMapper(self.hdp) # Variant mapper
+        self.hp = hgvs.parser.Parser()  # Parser
+        self.vr = hgvs.validator.Validator(self.hdp)  # Validator
+        self.vm = hgvs.variantmapper.VariantMapper(self.hdp)  # Variant mapper
+
         # Create a lose vm instance
         self.lose_vm = hgvs.variantmapper.VariantMapper(self.hdp,
-                                                   replace_reference=True,
-                                                   prevalidation_level=None
-                                                   )
-        self.nr_vm = hgvs.variantmapper.VariantMapper(self.hdp, replace_reference=False) #No reverse variant mapper
-        self.sf = hgvs.dataproviders.seqfetcher.SeqFetcher() # Seqfetcher
+                                                        replace_reference=True,
+                                                        prevalidation_level=None
+                                                        )
+
+        self.nr_vm = hgvs.variantmapper.VariantMapper(self.hdp, replace_reference=False)  # No reverse variant mapper
+        self.sf = hgvs.dataproviders.seqfetcher.SeqFetcher()  # Seqfetcher
+
         # Set standard genome builds
         self.genome_builds = ['GRCh37', 'hg19', 'GRCh38']
         self.utaSchema = str(self.hdp.data_version())
 
         # Create normalizer
         self.reverse_hn = hgvs.normalizer.Normalizer(self.hdp,
-                                                cross_boundaries=False,
-                                                shuffle_direction=5,
-                                                alt_aln_method='splign'
-                                                )
+                                                     cross_boundaries=False,
+                                                     shuffle_direction=5,
+                                                     alt_aln_method='splign'
+                                                     )
 
         # Create normalizer
         self.merge_normalizer = hgvs.normalizer.Normalizer(self.hdp,
-                                                      cross_boundaries=False,
-                                                      shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
-                                                      alt_aln_method='splign',
-                                                      validate=False
-                                                      )
+                                                           cross_boundaries=False,
+                                                           shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
+                                                           alt_aln_method='splign',
+                                                           validate=False
+                                                           )
         self.reverse_merge_normalizer = hgvs.normalizer.Normalizer(self.hdp,
-                                                              cross_boundaries=False,
-                                                              shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
-                                                              alt_aln_method='splign',
-                                                              validate=False
-                                                              )
+                                                                   cross_boundaries=False,
+                                                                   shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
+                                                                   alt_aln_method='splign',
+                                                                   validate=False
+                                                                   )
         #create no_norm_evm
         self.no_norm_evm_38 = hgvs.assemblymapper.AssemblyMapper(self.hdp,
-                                                            assembly_name='GRCh38',
-                                                            alt_aln_method='splign',
-                                                            normalize=False,
-                                                            replace_reference=True
-                                                            )
+                                                                 assembly_name='GRCh38',
+                                                                 alt_aln_method='splign',
+                                                                 normalize=False,
+                                                                 replace_reference=True
+                                                                 )
 
         self.no_norm_evm_37 = hgvs.assemblymapper.AssemblyMapper(self.hdp,
-                                                            assembly_name='GRCh37',
-                                                            alt_aln_method='splign',
-                                                            normalize=False,
-                                                            replace_reference=True
-                                                            )
+                                                                 assembly_name='GRCh37',
+                                                                 alt_aln_method='splign',
+                                                                 normalize=False,
+                                                                 replace_reference=True
+                                                                 )
 
     def __del__(self):
         del self.db
+
     def myConfig(self):
-        '''
-        #Returns configuration:
-        #version, hgvs version, uta schema, seqrepo db.
-        '''
+        """
+        Returns configuration:
+        version, hgvs version, uta schema, seqrepo db.
+        """
         return {
             'variantvalidator_version': self.version,
             'variantvalidator_hgvs_version': self.hgvsVersion,
             'uta_schema': self.utaSchema,
             'seqrepo_db': self.seqrepoPath
         }
-    def createConfig(self,outPath):
-        '''
-        # This function reads from the default configuration file stored in the same folder as this module,
-        # and transfers it to outPath.
-        # Outpath should include a filename.
-        '''
-        lines=[]
-        inPath=os.path.join(os.path.dirname(os.path.realpath(__file__)),"defaultConfig.ini")
-#        print(os.path.join(inPath,"defaultConfig.ini"))
-        with open(inPath) as file:
-            for l in file:
-                lines.append(l)
-        with open(outPath, "w") as file:
-            for l in lines:
-                file.write(l)
+
     def protein(self,variant, evm, hpUnused):
         # Set regular expressions for if statements
         pat_c = re.compile("\:c\.")  # Pattern looks for :c. Note (gene) has been removed
@@ -233,6 +217,7 @@ class Mixin():
             var_p.ac = 'Non-coding transcript'
             var_p.posedit = ''
             return var_p
+
     def myc_to_p(self,hgvs_transcript, evm, re_to_p):
         # Create dictionary to store the information
         hgvs_transcript_to_hgvs_protein = {'error': '', 'hgvs_protein': '', 'ref_residues': ''}

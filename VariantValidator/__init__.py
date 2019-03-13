@@ -1,3 +1,5 @@
-from .variantValidator import *
+from . import configure
 
-__all__=["Validator","Validation"]
+from .variantValidator import Validator
+
+__all__ = ["Validator"]
