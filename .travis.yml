@@ -12,7 +12,7 @@ matrix:
 
 services:
   - mysql
-  - postgresql
+#  - postgresql
 
 before_install:
 
@@ -27,10 +27,10 @@ before_install:
 
   - mysql -e 'CREATE DATABASE validator;'
 
-  - psql -c "CREATE USER uta_admin WITH ENCRYPTED PASSWORD 'uta_admin'"
-  - psql -c 'CREATE DATABASE uta WITH OWNER=uta_admin TEMPLATE=template0;' -U postgres
-  - wget http://dl.biocommons.org/uta/uta_20180821.pgd.gz
-  - gzip -cdq uta_20180821.pgd.gz | PGPASSWORD=uta_admin psql -U uta_admin -v ON_ERROR_STOP=0 -d uta -Eae
+#  - psql -c "CREATE USER uta_admin WITH ENCRYPTED PASSWORD 'uta_admin'"
+#  - psql -c 'CREATE DATABASE uta WITH OWNER=uta_admin TEMPLATE=template0;' -U postgres
+#  - wget http://dl.biocommons.org/uta/uta_20180821.pgd.gz
+#  - gzip -cdq uta_20180821.pgd.gz | PGPASSWORD=uta_admin psql -U uta_admin -v ON_ERROR_STOP=0 -d uta -Eae
 
   - df -h
 
