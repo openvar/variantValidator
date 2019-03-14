@@ -12,7 +12,6 @@ matrix:
 
 services:
   - mysql
-#  - postgresql
 
 before_install:
 
@@ -22,21 +21,14 @@ before_install:
   - bash miniconda3.sh -b -p "$HOME"/miniconda3
   - echo . "$HOME"/miniconda3/etc/profile.d/conda.sh >> "$HOME"/.bashrc
   - source "$HOME"/.bashrc
+  - conda config --set always_yes yes
 
   # Set up the databases - install seqrepo and UTA
 
   - mysql -e 'CREATE DATABASE validator;'
 
-#  - psql -c "CREATE USER uta_admin WITH ENCRYPTED PASSWORD 'uta_admin'"
-#  - psql -c 'CREATE DATABASE uta WITH OWNER=uta_admin TEMPLATE=template0;' -U postgres
-#  - wget http://dl.biocommons.org/uta/uta_20180821.pgd.gz
-#  - gzip -cdq uta_20180821.pgd.gz | PGPASSWORD=uta_admin psql -U uta_admin -v ON_ERROR_STOP=0 -d uta -Eae
-
-  - df -h
-
   - mkdir "$HOME"/seqrepo
   - rsync -HavP dl.biocommons.org::seqrepo/2018-08-21/ "$HOME"/seqrepo/2018-08-21/
-  - df -h
 
   # Copy configuration file
   - cp configuration/travis.ini "$HOME"/.variantvalidator
@@ -47,28 +39,17 @@ install:
   # We just set up a conda environment with the right Python version. This
   # should not need changing.
 
-  - conda create --yes -n vvenv python=$TRAVIS_PYTHON_VERSION
+  - sed -i -E 's/(python=)(.*)/\1'$TRAVIS_PYTHON_VERSION'/' environment.yml
+  - conda env create -f environment.yml
   - conda activate vvenv
 
-  # Below, include the dependencies you want to install with conda, optionally
-  # specifying versions used in the matrix above. If you split this into
-  # multiple conda install commands, you should always include numpy=$NUMPY as
-  # the first package to install (for every conda install command) otherwise
-  # numpy may be automatically upgraded.
-
-  - conda install --yes -c conda-forge -c bioconda numpy pytest protobuf=3.5.1 httplib2 mysql-connector-python pysam pyliftover
-
-  # You can also install some dependencies with pip if not available in conda
-
-  - pip install biotools hgvs==1.1.3
-  - pip install .
+  # Test dependencies
+  - conda install pytest
 
   # Set up validator database
   - mysql validator < configuration/empty_vv_db.sql
   - python bin/update_db.py
-  - df -h
 
 script:
 
-  - conda activate vvenv
   - pytest  # will run all tests in the package
