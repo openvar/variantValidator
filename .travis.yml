@@ -47,7 +47,7 @@ before_install:
   - df -h
 
 
-  - if [ ! -d "/path/to/dir" ]; then mkdir "$HOME"/seqrepo; rsync -HavP dl.biocommons.org::seqrepo/2018-08-21/ "$HOME"/seqrepo/2018-08-21/; fi
+  - if [ ! -d "$HOME/seqrepo" ]; then mkdir "$HOME"/seqrepo; rsync -HavP dl.biocommons.org::seqrepo/2018-08-21/ "$HOME"/seqrepo/2018-08-21/; fi
 
   # Copy configuration file
   - cp configuration/travis.ini "$HOME"/.variantvalidator
