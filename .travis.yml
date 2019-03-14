@@ -32,8 +32,11 @@ before_install:
   - wget http://dl.biocommons.org/uta/uta_20180821.pgd.gz
   - gzip -cdq uta_20180821.pgd.gz | PGPASSWORD=uta_admin psql -U uta_admin -v ON_ERROR_STOP=0 -d uta -Eae
 
+  - df -h
+
   - mkdir "$HOME"/seqrepo
   - rsync -HavP dl.biocommons.org::seqrepo/2018-08-21/ "$HOME"/seqrepo/2018-08-21/
+  - df -h
 
   # Copy configuration file
   - cp configuration/travis.ini "$HOME"/.variantvalidator
@@ -63,6 +66,7 @@ install:
   # Set up validator database
   - mysql validator < configuration/empty_vv_db.sql
   - python bin/update_db.py
+  - df -h
 
 script:
 
