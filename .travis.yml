@@ -58,7 +58,7 @@ install:
   # We just set up a conda environment with the right Python version.
 
   - sed -i -E 's/(python=)(.*)/\1'$TRAVIS_PYTHON_VERSION'/' environment.yml
-  - conda env create -f environment.yml
+  - travis_retry conda env create -f environment.yml
   - conda activate vvenv
 
   # Test dependencies
