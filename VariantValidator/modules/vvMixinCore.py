@@ -52,6 +52,7 @@ from . import vvDatabase
 from . import vvChromosomes
 from . import vvMixinConverters
 from .vvFunctions import VariantValidatorError
+from . import variant
 
 
 class Mixin(vvMixinConverters.Mixin):
@@ -156,72 +157,27 @@ class Mixin(vvMixinConverters.Mixin):
                                                                 alt_aln_method=alt_aln_method
                                                                 )
 
-                # Blank cautions
-                caution = ''
-                automap = ''
-
                 # This will be used to order the final output
                 if str(validation['order']) == 'false':
                     ordering = ordering + 1
                     validation['order'] = ordering
-                else:
-                    pass
+
+                my_variant = variant.Variant(validation['id'])
+
                 # Bug catcher
                 try:
                     # Note, ID is not touched. It is always the input variant description. Quibble will be altered but id will not if type = g.
                     input = validation['quibble']
                     logger.trace("Commenced validation of " + str(input), validation)
 
-                    # Test for rich text unicode characters
-                    try:
-                        unicode_test = "{}".format(input)
-                    except UnicodeDecodeError as e:
-                        # Format the trapped character into unicode for styled printing
-                        my_unicode = e[1]
-                        my_unicode = my_unicode.decode('utf-8')
-
-                        # Test for rich text unicode characters
-                        try:
-                            str(my_unicode)
-                        except UnicodeEncodeError as e:
-                            # Format the trapped character into unicode for styled printing
-                            unicoded_it = e[1]
-                            unicoded_it_list = unicoded_it.split()
-                            found_error=""
-                            found_at=None
-                            for try_me in unicoded_it_list:
-                                try:
-                                    str(try_me)
-                                except UnicodeEncodeError as e:
-                                    found_unicode = try_me
-                                    found_error = str(e)
-                                    found_at = found_unicode.encode('raw_unicode_escape')
-                                    break
-                            # Extract character from the error
-                            chars = re.findall(r"u'\\\\\w+'", found_error)
-                            character = chars[0]
-                            search_term = character.replace("u'", '')
-                            search_term = search_term.replace("'", '')
-                            found_at_decoded = found_at.decode('raw_unicode_escape')
-                            found_at = found_at_decoded.encode('raw_unicode_escape')
-                            string_char = str(character)
-                            # Create a human readable U+ representation
-                            human_code = re.sub(r"u'\\\\\w", 'U+', string_char)
-                            human_code = human_code.replace("'", "")
-                            format_human = "{}".format(human_code)
-                            format_human = format_human.upper()
-                            found_at = re.sub(search_term, '<' + format_human + '>', found_at)
-                            slasher = re.compile("\\\\")
-                            found_at = re.sub(slasher, '', found_at)
-                            validation['id'] = found_at
-                            error = 'Submitted variant description contains an invalid character which is represented by Unicode character ' + format_human + ' at position ' + found_at + ': Please remove this character and re-submit: A useful search function for Unicode characters can be found at https://unicode-search.net/'
-                            validation['warnings'] = validation['warnings'] + ': ' + error
-                            logger.warning(error)
-                            continue
-                        else:
-                            pass
-                    else:
-                        pass
+                    if not my_variant.is_ascii():
+                        chars, positions = my_variant.get_non_ascii()
+                        error = 'Submitted variant description contains an invalid character(s) %s at position(s) %s: '\
+                                'Please remove this character and re-submit: A useful search function for ' \
+                                'Unicode characters can be found at https://unicode-search.net/' % (chars, positions)
+                        validation['warnings'] = validation['warnings'] + ': ' + error
+                        logger.warning(error)
+                        continue
 
                     # Remove whitespace
                     ws = copy.copy(input)
@@ -902,7 +858,7 @@ class Mixin(vvMixinConverters.Mixin):
                         logger.warning(error)
                         continue
                     else:
-                        variant = formatted['variant']
+                        formatted_variant = formatted['variant']
                         input = formatted['variant']
                         stash_input = formatted['variant']
                         format_type = formatted['type']
@@ -913,7 +869,7 @@ class Mixin(vvMixinConverters.Mixin):
                     is rarely seen wrt genomic sequencing data and needs to be re-evaluated
                     """
                     conversion = re.compile('con')
-                    if conversion.search(variant):
+                    if conversion.search(formatted_variant):
                         validation['warnings'] = validation['warnings'] + ': ' + 'Gene conversions currently unsupported'
                         logger.warning('Gene conversions currently unsupported')
                         continue
@@ -922,16 +878,16 @@ class Mixin(vvMixinConverters.Mixin):
                     error = 'false'
                     # Change RNA bases to upper case but nothing else
                     if format_type == ":r.":
-                        variant = variant.upper()
-                        variant = variant.replace(':R.', ':r.')
+                        formatted_variant = formatted_variant.upper()
+                        formatted_variant = formatted_variant.replace(':R.', ':r.')
                         # lowercase the supported variant types
-                        variant = variant.replace('DEL', 'del')
-                        variant = variant.replace('INS', 'ins')
-                        variant = variant.replace('INV', 'inv')
-                        variant = variant.replace('DUP', 'dup')
+                        formatted_variant = formatted_variant.replace('DEL', 'del')
+                        formatted_variant = formatted_variant.replace('INS', 'ins')
+                        formatted_variant = formatted_variant.replace('INV', 'inv')
+                        formatted_variant = formatted_variant.replace('DUP', 'dup')
 
                     try:
-                        input_parses = self.hp.parse_hgvs_variant(variant)
+                        input_parses = self.hp.parse_hgvs_variant(formatted_variant)
                     except hgvs.exceptions.HGVSError as e:
                         error = str(e)
                     if error == 'false':
@@ -945,7 +901,7 @@ class Mixin(vvMixinConverters.Mixin):
                         if hasattr(input_parses.posedit.edit, 'ref'):
                             if input_parses.posedit.edit.ref is not None:
                                 input_parses.posedit.edit.ref = input_parses.posedit.edit.ref.upper()
-                        variant = str(input_parses)
+                        formatted_variant = str(input_parses)
                         input = str(input_parses)
                         pass
                     else:
@@ -965,7 +921,7 @@ class Mixin(vvMixinConverters.Mixin):
                                     line[5]) == 'True' and str(line[6]) == 'True':
                                 input_parses.ac = (line[1])
                                 input = str(input_parses)
-                                variant = input
+                                formatted_variant = input
                                 break
                         if re.match('^ENST', str(input_parses)):
                             error = 'Unable to map ' + str(input_parses.ac) + ' to an equivalent RefSeq transcript'
@@ -974,8 +930,8 @@ class Mixin(vvMixinConverters.Mixin):
                             continue
                         else:
                             validation['warnings'] = validation['warnings'] + ': ' + str(
-                                trap_ens_in) + ' automapped to equivalent RefSeq transcript ' + variant
-                            logger.warning(str(trap_ens_in) + ' automapped to equivalent RefSeq transcript ' + variant)
+                                trap_ens_in) + ' automapped to equivalent RefSeq transcript ' + formatted_variant
+                            logger.warning(str(trap_ens_in) + ' automapped to equivalent RefSeq transcript ' + formatted_variant)
                     logger.trace("HVGS acceptance test passed", validation)
                     # Check whether supported genome build is requested for non g. descriptions
                     historic_assembly = 'false'
@@ -1016,7 +972,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                                      )
 
                     else:
-                        error = 'Mapping of ' + variant + ' to genome assembly ' + primary_assembly + ' is not supported'
+                        error = 'Mapping of ' + formatted_variant + ' to genome assembly ' + primary_assembly + ' is not supported'
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
                         logger.warning(str(error))
                         continue
@@ -1091,7 +1047,7 @@ class Mixin(vvMixinConverters.Mixin):
                             refseqgene_reference = self.db.get_RefSeqGeneID_from_lrgID(lrg_reference)
                             if refseqgene_reference != 'none':
                                 input_parses.ac = refseqgene_reference
-                                variant = str(input_parses)
+                                formatted_variant = str(input_parses)
                                 input = str(input_parses)
                                 stash_input = input
                                 if caution == '':
@@ -1108,7 +1064,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 lrg_reference)
                             if refseqtranscript_reference != 'none':
                                 input_parses.ac = refseqtranscript_reference
-                                variant = str(input_parses)
+                                formatted_variant = str(input_parses)
                                 input = str(input_parses)
                                 stash_input = input
                                 if caution == '':
@@ -1125,7 +1081,7 @@ class Mixin(vvMixinConverters.Mixin):
                     Evolving list of common mistakes, see sections below
                     """
                     # NM_ .g
-                    if (re.search(r'^NM_', variant) or re.search(r'^NR_', variant)) and re.search(r':g.', variant):
+                    if (re.search(r'^NM_', formatted_variant) or re.search(r'^NR_', formatted_variant)) and re.search(r':g.', formatted_variant):
                         suggestion = input.replace(':g.', ':c.')
                         error = 'Transcript reference sequence input as genomic (g.) reference sequence. Did you mean ' + suggestion + '?'
                         validation['warnings'] = validation['warnings'] + ': ' + error
@@ -1147,8 +1103,8 @@ class Mixin(vvMixinConverters.Mixin):
                         continue
 
                     # NM_ NC_ NG_ NR_ p.
-                    if (re.search(r'^NM_', variant) or re.search(r'^NR_', variant) or re.search(r'^NC_', variant) or re.search(
-                            r'^NG_', variant)) and re.search(r':p.', variant):
+                    if (re.search(r'^NM_', formatted_variant) or re.search(r'^NR_', formatted_variant) or re.search(r'^NC_', formatted_variant) or re.search(
+                            r'^NG_', formatted_variant)) and re.search(r':p.', formatted_variant):
                         issue_link = 'http://varnomen.hgvs.org/recommendations/protein/'
                         error = 'Using a nucleotide reference sequence (NM_ NR_ NG_ NC_) to specify protein-level (p.) variation is not HGVS compliant. Please select an appropriate protein reference sequence (NP_)'
                         validation['warnings'] = validation['warnings'] + ': ' + error
@@ -1156,8 +1112,8 @@ class Mixin(vvMixinConverters.Mixin):
                         continue
 
                     # NG_ c or NC_c..
-                    if (re.search(r'^NG_', variant) or re.search(r'^NC_', variant)) and re.search(r':c.', variant):
-                        suggestion = ': For additional assistance, submit ' + str(variant) + ' to VariantValidator'
+                    if (re.search(r'^NG_', formatted_variant) or re.search(r'^NC_', formatted_variant)) and re.search(r':c.', formatted_variant):
+                        suggestion = ': For additional assistance, submit ' + str(formatted_variant) + ' to VariantValidator'
                         error = 'NG_:c.PositionVariation descriptions should not be used unless a transcript reference sequence has also been provided e.g. NG_(NM_):c.PositionVariation' + suggestion
                         validation['warnings'] = validation['warnings'] + ': ' + error
                         logger.warning(error)
@@ -1230,7 +1186,7 @@ class Mixin(vvMixinConverters.Mixin):
                                         continue
                                     else:
                                         input_parses.posedit.edit.ref = ''
-                                        variant = str(input_parses)
+                                        formatted_variant = str(input_parses)
                                 else:
                                     if re.search('bounds', error) or re.search('intronic variant', error):
                                         try:
@@ -1567,7 +1523,7 @@ class Mixin(vvMixinConverters.Mixin):
                                         continue
                                     else:
                                         input_parses.posedit.edit.ref = ''
-                                        variant = str(input_parses)
+                                        formatted_variant = str(input_parses)
 
                                 elif re.search('base must be >=1 for datum = SEQ_START or CDS_END', error):
                                     error = 'The given coordinate is outside the bounds of the reference sequence.'
@@ -1814,7 +1770,7 @@ class Mixin(vvMixinConverters.Mixin):
                         error = 'false'
                         # Try to validate the variant
                         try:
-                            hgvs_object = self.hp.parse_hgvs_variant(variant)
+                            hgvs_object = self.hp.parse_hgvs_variant(formatted_variant)
                         except hgvs.exceptions.HGVSError as e:
                             error = str(e)
                         try:
@@ -1831,7 +1787,7 @@ class Mixin(vvMixinConverters.Mixin):
                             if alt_aln_method != 'genebuild':
                                 # Gene description  - requires GenBank search to get all the required info, i.e. transcript variant ID
                                 # accession number
-                                hgvs_object = self.hp.parse_hgvs_variant(variant)
+                                hgvs_object = self.hp.parse_hgvs_variant(formatted_variant)
                                 accession = hgvs_object.ac
                                 # Look for the accession in our database
                                 # Connect to database and send request
@@ -1871,7 +1827,7 @@ class Mixin(vvMixinConverters.Mixin):
                             logger.warning(str(error))
                             continue
                         input = str(hgvs_c)
-                        variant = str(hgvs_c)
+                        formatted_variant = str(hgvs_c)
 
                     # COLLECT gene symbol, name and ACCESSION INFORMATION
                     # Gene symbol
@@ -1881,7 +1837,7 @@ class Mixin(vvMixinConverters.Mixin):
                     """
                     if (format_type != ':g.'):
                         error = 'false'
-                        hgvs_vt = self.hp.parse_hgvs_variant(variant)
+                        hgvs_vt = self.hp.parse_hgvs_variant(formatted_variant)
                         try:
                             tx_id_info = self.hdp.get_tx_identity_info(str(hgvs_vt.ac))
                         except hgvs.exceptions.HGVSError as e:
@@ -1919,7 +1875,7 @@ class Mixin(vvMixinConverters.Mixin):
                         if alt_aln_method != 'genebuild':
                             # Gene description  - requires GenBank search to get all the required info, i.e. transcript variant ID
                             # accession number
-                            hgvs_object = self.hp.parse_hgvs_variant(variant)
+                            hgvs_object = self.hp.parse_hgvs_variant(formatted_variant)
                             accession = hgvs_object.ac
                             # Look for the accession in our database
                             # Connect to database and send request
@@ -1981,7 +1937,7 @@ class Mixin(vvMixinConverters.Mixin):
                         # Ensembl databases
                         else:
                             # accession number
-                            hgvs_object = self.hp.parse_hgvs_variant(variant)
+                            hgvs_object = self.hp.parse_hgvs_variant(formatted_variant)
                             accession = hgvs_object.ac
                             # Look for the accession in our database
                             # Connect to database and send request
@@ -2036,7 +1992,7 @@ class Mixin(vvMixinConverters.Mixin):
                     """
 
                     if (format_type == ':g.'):
-                        g_query = self.hp.parse_hgvs_variant(variant)
+                        g_query = self.hp.parse_hgvs_variant(formatted_variant)
 
                         # Genomic coordinates can be validated immediately
                         error = 'false'
@@ -2108,9 +2064,9 @@ class Mixin(vvMixinConverters.Mixin):
 
                             # Check for NG_
                             rsg = re.compile(r'^NG_')
-                            if rsg.search(variant):
+                            if rsg.search(formatted_variant):
                                 # parse
-                                hgvs_refseqgene = self.hp.parse_hgvs_variant(variant)
+                                hgvs_refseqgene = self.hp.parse_hgvs_variant(formatted_variant)
                                 # Convert to chromosomal position
                                 refseqgene_data = self.rsg_to_chr(hgvs_refseqgene, primary_assembly, hn, self.vr)
                                 # There should only ever be one description returned
@@ -2122,7 +2078,7 @@ class Mixin(vvMixinConverters.Mixin):
                                     # re_submit
                                     # Tag the line so that it is not written out
                                     validation['warnings'] = validation[
-                                                                 'warnings'] + ': ' + variant + ' automapped to genome position ' + str(
+                                                                 'warnings'] + ': ' + formatted_variant + ' automapped to genome position ' + str(
                                         input)
                                     query = {'quibble': input, 'id': validation['id'], 'warnings': validation['warnings'],
                                              'description': '', 'coding': '', 'coding_g': '', 'genomic_r': '',
@@ -2131,7 +2087,7 @@ class Mixin(vvMixinConverters.Mixin):
                                     coding = 'intergenic'
                                     batch_list.append(query)
                                 else:
-                                    error = 'Mapping unavailable for RefSeqGene ' + variant + ' using alignment method = ' + alt_aln_method
+                                    error = 'Mapping unavailable for RefSeqGene ' + formatted_variant + ' using alignment method = ' + alt_aln_method
                                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                     logger.warning(str(error))
                                     continue
@@ -3141,7 +3097,7 @@ class Mixin(vvMixinConverters.Mixin):
                         # Flag for validation
                         valid = 'false'
                         # Collect information for genomic level validation
-                        obj = self.hp.parse_hgvs_variant(variant)
+                        obj = self.hp.parse_hgvs_variant(formatted_variant)
 
                         tx_ac = obj.ac
 
@@ -3223,7 +3179,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 if alt_aln_method != 'genebuild':
                                     error = "If the following error message does not address the issue and the problem persists please contact admin: " + to_g
                                     reason = "An error has occurred"
-                                    excep = "%s -- %s -- %s\n" % (time.ctime(), reason, variant)
+                                    excep = "%s -- %s -- %s\n" % (time.ctime(), reason, formatted_variant)
                                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                     logger.warning(str(error))
                                     continue
@@ -3231,7 +3187,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 else:
                                     error = "If the following error message does not address the issue and the problem persists please contact admin: " + to_g
                                     reason = "An error has occurred"
-                                    excep = "%s -- %s -- %s\n" % (time.ctime(), reason, variant)
+                                    excep = "%s -- %s -- %s\n" % (time.ctime(), reason, formatted_variant)
                                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                     logger.warning(str(error))
                                     continue
@@ -3241,22 +3197,22 @@ class Mixin(vvMixinConverters.Mixin):
                                 if (
                                         obj.posedit.edit.type == 'ins' and obj.posedit.pos.start.offset == 0 and obj.posedit.pos.end.offset != 0) or (
                                         obj.posedit.edit.type == 'ins' and obj.posedit.pos.start.offset != 0 and obj.posedit.pos.end.offset == 0):
-                                    variant = str(obj)
+                                    formatted_variant = str(obj)
                                 else:
                                     # Normalize was I believe to replace ref. Mapping does this anyway
                                     # to_g = hn.normalize(to_g)
-                                    variant = str(self.myevm_g_to_t(evm, to_g, tx_ac))
+                                    formatted_variant = str(self.myevm_g_to_t(evm, to_g, tx_ac))
                                     tx_ac = ''
 
                         elif geno.search(input):
-                            if plus.search(variant) or minus.search(variant):
-                                to_g = self.genomic(variant, no_norm_evm, primary_assembly,hn)
+                            if plus.search(formatted_variant) or minus.search(formatted_variant):
+                                to_g = self.genomic(formatted_variant, no_norm_evm, primary_assembly,hn)
                                 es = re.compile(r'error')
                                 if es.search(str(to_g)):
                                     if alt_aln_method != 'genebuild':
                                         error = "If the following error message does not address the issue and the problem persists please contact admin: " + to_g
                                         reason = "An error has occurred"
-                                        excep = "%s -- %s -- %s\n" % (time.ctime(), reason, variant)
+                                        excep = "%s -- %s -- %s\n" % (time.ctime(), reason, formatted_variant)
                                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                         logger.warning(str(error))
                                         continue
@@ -3264,7 +3220,7 @@ class Mixin(vvMixinConverters.Mixin):
                                     else:
                                         error = "If the following error message does not address the issue and the problem persists please contact admin: " + to_g
                                         reason = "An error has occurred"
-                                        excep = "%s -- %s -- %s\n" % (time.ctime(), reason, variant)
+                                        excep = "%s -- %s -- %s\n" % (time.ctime(), reason, formatted_variant)
                                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                         logger.warning(str(error))
                                         continue
@@ -3273,11 +3229,11 @@ class Mixin(vvMixinConverters.Mixin):
                                 if (
                                         obj.posedit.edit.type == 'ins' and obj.posedit.pos.start.offset == 0 and obj.posedit.pos.end.offset != 0) or (
                                         obj.posedit.edit.type == 'ins' and obj.posedit.pos.start.offset != 0 and obj.posedit.pos.end.offset == 0):
-                                    variant = str(obj)
+                                    formatted_variant = str(obj)
                                 else:
                                     # Normalize was I believe to replace ref. Mapping does this anyway
                                     # to_g = hn.normalize(to_g)
-                                    variant = str(self.myevm_g_to_t(evm, to_g, tx_ac))
+                                    formatted_variant = str(self.myevm_g_to_t(evm, to_g, tx_ac))
                                     tx_ac = ''
 
                         else:
@@ -3290,19 +3246,19 @@ class Mixin(vvMixinConverters.Mixin):
                                 if re.match('Unsupported normalization of variants spanning the exon-intron boundary',
                                             error):
                                     h_variant = obj
-                                    variant = variant
+                                    formatted_variant = formatted_variant
                                     caution = 'This coding sequence variant description spans at least one intron'
                                     automap = 'Use of the corresponding genomic sequence variant descriptions may be invalid. Please refer to https://www35.lamp.le.ac.uk/recommendations/'
                                     validation['warnings'] = validation['warnings'] + ': ' + str(caution) + ': ' + str(
                                         automap)
                                     logger.warning(str(caution) + ": " + str(automap))
                             else:
-                                variant = str(h_variant)
+                                formatted_variant = str(h_variant)
 
                             tx_ac = ''
                             # Create a crosser (exon boundary crossed) variant
                             crossed_variant = str(evm._maybe_normalize(obj))
-                            if variant == crossed_variant:
+                            if formatted_variant == crossed_variant:
                                 cross_variant = 'false'
                             else:
                                 hgvs_crossed_variant = evm._maybe_normalize(obj)
@@ -3315,11 +3271,11 @@ class Mixin(vvMixinConverters.Mixin):
                             if boundary == 'false':
                                 cross_variant = 'false'
 
-                                error = self.validateHGVS(variant)
+                                error = self.validateHGVS(formatted_variant)
                                 if error == 'false':
                                     valid = 'true'
                                 else:
-                                    excep = "%s -- %s -- %s\n" % (time.ctime(), error, variant)
+                                    excep = "%s -- %s -- %s\n" % (time.ctime(), error, formatted_variant)
                                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                     logger.warning(str(error))
                                     continue
@@ -3356,14 +3312,14 @@ class Mixin(vvMixinConverters.Mixin):
                         if cck == 'true':
                             dl = re.compile('del')
                             # This should only ever hit coding and RNA variants
-                            if dl.search(variant):
+                            if dl.search(formatted_variant):
                                 # RNA
                                 if pat_r.search(trapped_input):
 
-                                    coding = self.coding(variant, self.hp)
+                                    coding = self.coding(formatted_variant, self.hp)
                                     trans_acc = coding.ac
                                     # c to Genome coordinates - Map the variant to the genome
-                                    pre_var = self.genomic(variant, no_norm_evm, primary_assembly,hn)
+                                    pre_var = self.genomic(formatted_variant, no_norm_evm, primary_assembly,hn)
                                     # genome back to C coordinates
                                     post_var = self.myevm_g_to_t(evm, pre_var, trans_acc)
 
@@ -3459,10 +3415,10 @@ class Mixin(vvMixinConverters.Mixin):
 
                                 # Coding
                                 else:
-                                    coding = self.coding(variant, self.hp)
+                                    coding = self.coding(formatted_variant, self.hp)
                                     trans_acc = coding.ac
                                     # c to Genome coordinates - Map the variant to the genome
-                                    pre_var = self.hp.parse_hgvs_variant(variant)
+                                    pre_var = self.hp.parse_hgvs_variant(formatted_variant)
                                     try:
                                         pre_var = self.myevm_t_to_g(pre_var, no_norm_evm, primary_assembly,
                                                                        hn)
@@ -3573,10 +3529,10 @@ class Mixin(vvMixinConverters.Mixin):
 
                             else:
                                 if pat_r.search(trapped_input):
-                                    coding = self.coding(variant, self.hp)
+                                    coding = self.coding(formatted_variant, self.hp)
                                     trans_acc = coding.ac
                                     # c to Genome coordinates - Map the variant to the genome
-                                    pre_var = self.genomic(variant, no_norm_evm, primary_assembly,hn)
+                                    pre_var = self.genomic(formatted_variant, no_norm_evm, primary_assembly,hn)
                                     # genome back to C coordinates
                                     post_var = self.myevm_g_to_t(evm, pre_var, trans_acc)
 
@@ -3639,10 +3595,10 @@ class Mixin(vvMixinConverters.Mixin):
                                         batch_list.append(query)
 
                                 else:
-                                    coding = self.coding(variant, self.hp)
+                                    coding = self.coding(formatted_variant, self.hp)
                                     trans_acc = coding.ac
                                     # c to Genome coordinates - Map the variant to the genome
-                                    pre_var = self.genomic(variant, no_norm_evm, primary_assembly,hn)
+                                    pre_var = self.genomic(formatted_variant, no_norm_evm, primary_assembly,hn)
 
                                     # genome back to C coordinates
                                     post_var = self.myevm_g_to_t(evm, pre_var, trans_acc)
@@ -3717,7 +3673,7 @@ class Mixin(vvMixinConverters.Mixin):
                                     if alt_aln_method != 'genebuild':
                                         error = "If the following error message does not address the issue and the problem persists please contact admin: " + to_g
                                         reason = "An error has occurred"
-                                        excep = "%s -- %s -- %s\n" % (time.ctime(), reason, variant)
+                                        excep = "%s -- %s -- %s\n" % (time.ctime(), reason, formatted_variant)
                                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                         logger.warning(str(error))
                                         continue
@@ -3725,7 +3681,7 @@ class Mixin(vvMixinConverters.Mixin):
                                     else:
                                         error = "If the following error message does not address the issue and the problem persists please contact admin: " + to_g
                                         reason = "An error has occurred"
-                                        excep = "%s -- %s -- %s\n" % (time.ctime(), reason, variant)
+                                        excep = "%s -- %s -- %s\n" % (time.ctime(), reason, formatted_variant)
                                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                         logger.warning(str(error))
                                         continue
@@ -3812,7 +3768,7 @@ class Mixin(vvMixinConverters.Mixin):
                             pass
 
                         else:
-                            query = self.hp.parse_hgvs_variant(variant)
+                            query = self.hp.parse_hgvs_variant(formatted_variant)
                             test = self.hp.parse_hgvs_variant(input)
                             if query.posedit.pos != test.posedit.pos:
                                 caution = 'The variant description ' + input + ' requires alteration to comply with HGVS variant nomenclature:'
@@ -3867,7 +3823,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                         # VALIDATION of intronic variants
                         pre_valid = self.hp.parse_hgvs_variant(input)
-                        post_valid = self.hp.parse_hgvs_variant(variant)
+                        post_valid = self.hp.parse_hgvs_variant(formatted_variant)
                         if valid == 'false':
                             error = 'false'
                             genomic_validation = str(
@@ -3894,7 +3850,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 valid = 'true'
                             else:
 
-                                excep = "%s -- %s -- %s\n" % (time.ctime(), error, variant)
+                                excep = "%s -- %s -- %s\n" % (time.ctime(), error, formatted_variant)
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                 continue
 
@@ -3919,7 +3875,7 @@ class Mixin(vvMixinConverters.Mixin):
                             ##############################
 
                             # Coding sequence - BASED ON NORMALIZED VARIANT IF EXONIC
-                            hgvs_coding = self.coding(variant, self.hp)
+                            hgvs_coding = self.coding(formatted_variant, self.hp)
                             boundary = re.compile('exon-intron boundary')
                             spanning = re.compile('exon/intron')
 
@@ -6120,7 +6076,7 @@ class Mixin(vvMixinConverters.Mixin):
                                     else:
                                         hgvs_coding = copy.deepcopy(hgvs_refreshed_variant)
                                     coding = fn.valstr(hgvs_coding)
-                                    variant = coding
+                                    formatted_variant = coding
 
                             # OBTAIN THE RefSeqGene coordinates
                             # Attempt 1 = UTA
