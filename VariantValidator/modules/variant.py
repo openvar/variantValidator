@@ -42,3 +42,10 @@ class Variant(object):
 
         return chars, positions
 
+    def remove_whitespace(self):
+        """
+        Will remove all whitespace from quibble
+        :return:
+        """
+        self.quibble = ''.join(self.quibble.split())
+

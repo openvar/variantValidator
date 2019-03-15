@@ -180,13 +180,12 @@ class Mixin(vvMixinConverters.Mixin):
                         continue
 
                     # Remove whitespace
-                    ws = copy.copy(input)
-                    input = input.strip()
-                    input = ''.join(input.split())
-                    if input != ws:
-                        caution = 'Whitespace removed from variant description ' + str(ws)
+                    my_variant.remove_whitespace()
+                    if my_variant.quibble != my_variant.original:
+                        caution = 'Whitespace removed from variant description %s' % my_variant.original
                         validation['warnings'] = validation['warnings'] + ': ' + caution
                         logger.info(caution)
+
                     stash_input = copy.copy(input)
                     # Set the primary_assembly
                     if validation['primary_assembly'] == 'false':
@@ -202,21 +201,17 @@ class Mixin(vvMixinConverters.Mixin):
                             selected_assembly = selected_assembly.replace('H', 'h')
                             primary_assembly = selected_assembly
                         # Catch invalid genome build
-                        valid_build = False
-                        for genome_build in self.genome_builds:
-                            if primary_assembly == genome_build:
-                                valid_build = True
-                        if valid_build is False:
+                        if primary_assembly in self.genome_builds:
+                            validation['primary_assembly'] = primary_assembly
+                        else:
                             primary_assembly = 'GRCh38'
-                            validation['warnings'] = validation[
-                                                         'warnings'] + ': Invalid genome build has been specified. Automap has selected the default build (GRCh38)'
+                            validation['warnings'] = validation['warnings'] + ': Invalid genome build has been specified. Automap has selected the default build (GRCh38)'
                             logger.warning(
                                 'Invalid genome build has been specified. Automap has selected the default build ' + primary_assembly)
-                        else:
-                            validation['primary_assembly'] = primary_assembly
                     else:
                         primary_assembly = validation['primary_assembly']
                     logger.trace("Completed string formatting", validation)
+
                     # Set variables that batch will not use but are required
                     crossing = 'false'
                     boundary = 'false'
