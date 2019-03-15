@@ -113,19 +113,16 @@ class Mixin(vvMixinConverters.Mixin):
             batch_queries = batch_variant.split('|')
 
             # Turn each variant into a dictionary. The dictionary will be compiled during validation
-            batch_list = []
+            self.batch_list = []
             for queries in batch_queries:
                 queries = queries.strip()
                 query = {'quibble': queries, 'id': queries, 'warnings': '', 'description': '', 'coding': '', 'coding_g': '',
                          'genomic_r': '', 'genomic_g': '', 'protein': '', 'write': 'true', 'primary_assembly': 'false',
                          'order': 'false'}
-                batch_list.append(query)
+                self.batch_list.append(query)
 
             # Create List to carry batch data
             batch_out = []
-
-            # Ensure batch_list is pulled into the function so that it can be appended to
-            batch_list = batch_list
 
             # Enter the validation loop
             ###########################
@@ -140,8 +137,8 @@ class Mixin(vvMixinConverters.Mixin):
             flag : gene
             """
             set_output_type_flag = 'warning'
-            logger.debug("Batch list length " + str(len(batch_list)))
-            for validation in batch_list:
+            logger.debug("Batch list length " + str(len(self.batch_list)))
+            for validation in self.batch_list:
                 # Start timing
                 logger.traceStart(validation)
 
@@ -256,8 +253,8 @@ class Mixin(vvMixinConverters.Mixin):
                         queryB = {'quibble': input_B, 'id': validation['id'], 'warnings': validation['warnings'],
                                   'description': '', 'coding': '', 'coding_g': '', 'genomic_r': '', 'genomic_g': '',
                                   'protein': '', 'write': 'true', 'primary_assembly': primary_assembly, 'order': ordering}
-                        batch_list.append(queryA)
-                        batch_list.append(queryB)
+                        self.batch_list.append(queryA)
+                        self.batch_list.append(queryB)
                         continue
                     elif re.search(r'[-:]\d+[-:][-:][GATC]+', input) or re.search(r'[-:]\d+[-:][.][-:][GATC]+', input):
                         input = input.replace(':', '-')
@@ -456,7 +453,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                  'warnings': validation['warnings'], 'description': '', 'coding': '',
                                                  'coding_g': '', 'genomic_r': '', 'genomic_g': '', 'protein': '',
                                                  'write': 'true', 'primary_assembly': primary_assembly, 'order': ordering}
-                                        batch_list.append(query)
+                                        self.batch_list.append(query)
                                         logger.resub('HGVS variant nomenclature does not allow the use of a gene symbol (' + \
                                                      query_a_symbol + ') in place of a valid reference sequence')
                                 else:
@@ -512,7 +509,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                      'order': ordering}
                                             logger.resub(
                                                 'NG_:c.PositionVariation descriptions should not be used unless a transcript reference sequence has also been provided e.g. NG_(NM_):c.PositionVariation. Resubmitting corrected version.')
-                                            batch_list.append(query)
+                                            self.batch_list.append(query)
                                     else:
                                         validation['warnings'] = validation[
                                                                      'warnings'] + ': ' + 'A transcript reference sequence has not been provided e.g. NG_(NM_):c.PositionVariation. Re-submit ' + input + ' but also specify transcripts from the following: ' + 'select_transcripts=' + select_from_these_transcripts
@@ -632,7 +629,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                      'coding_g': '', 'genomic_r': '', 'genomic_g': '', 'protein': '',
                                                      'write': 'true', 'primary_assembly': primary_assembly,
                                                      'order': ordering}
-                                            batch_list.append(query)
+                                            self.batch_list.append(query)
                                             logger.resub(
                                                 'Multiple ALT sequences detected. Auto-submitting all possible combinations.')
                                         continue
@@ -801,7 +798,7 @@ class Mixin(vvMixinConverters.Mixin):
                                          'protein': '', 'write': 'true', 'primary_assembly': primary_assembly,
                                          'order': ordering}
                                 coding = 'intergenic'
-                                batch_list.append(query)
+                                self.batch_list.append(query)
                             validation['write'] = 'false'
                             continue
                         except fn.alleleVariantError as e:
@@ -2080,7 +2077,7 @@ class Mixin(vvMixinConverters.Mixin):
                                              'genomic_g': '', 'protein': '', 'write': 'true',
                                              'primary_assembly': primary_assembly, 'order': ordering}
                                     coding = 'intergenic'
-                                    batch_list.append(query)
+                                    self.batch_list.append(query)
                                 else:
                                     error = 'Mapping unavailable for RefSeqGene ' + formatted_variant + ' using alignment method = ' + alt_aln_method
                                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
@@ -3081,7 +3078,7 @@ class Mixin(vvMixinConverters.Mixin):
                                          'warnings': validation['warnings'], 'description': '', 'coding': '',
                                          'coding_g': '', 'genomic_r': '', 'genomic_g': '', 'protein': '', 'write': 'true',
                                          'primary_assembly': primary_assembly, 'order': ordering}
-                                batch_list.append(query)
+                                self.batch_list.append(query)
                             logger.warning("Continue reached when mapping transcript types to variants")
                             # Call next description
                             continue
@@ -3406,7 +3403,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                  'description': '', 'coding': '', 'coding_g': '', 'genomic_r': '',
                                                  'genomic_g': '', 'protein': '', 'write': 'true',
                                                  'primary_assembly': primary_assembly, 'order': ordering}
-                                        batch_list.append(query)
+                                        self.batch_list.append(query)
 
                                 # Coding
                                 else:
@@ -3520,7 +3517,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                  'description': '', 'coding': '', 'coding_g': '', 'genomic_r': '',
                                                  'genomic_g': '', 'protein': '', 'write': 'true',
                                                  'primary_assembly': primary_assembly, 'order': ordering}
-                                        batch_list.append(query)
+                                        self.batch_list.append(query)
 
                             else:
                                 if pat_r.search(trapped_input):
@@ -3587,7 +3584,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                  'description': '', 'coding': '', 'coding_g': '', 'genomic_r': '',
                                                  'genomic_g': '', 'protein': '', 'write': 'true',
                                                  'primary_assembly': primary_assembly, 'order': ordering}
-                                        batch_list.append(query)
+                                        self.batch_list.append(query)
 
                                 else:
                                     coding = self.coding(formatted_variant, self.hp)
@@ -3649,7 +3646,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                  'description': '', 'coding': '', 'coding_g': '', 'genomic_r': '',
                                                  'genomic_g': '', 'protein': '', 'write': 'true',
                                                  'primary_assembly': primary_assembly, 'order': ordering}
-                                        batch_list.append(query)
+                                        self.batch_list.append(query)
 
 
                         # If cck not true
@@ -3757,7 +3754,7 @@ class Mixin(vvMixinConverters.Mixin):
                                          'description': '', 'coding': '', 'coding_g': '', 'genomic_r': '', 'genomic_g': '',
                                          'protein': '', 'write': 'true', 'primary_assembly': primary_assembly,
                                          'order': ordering}
-                                batch_list.append(query)
+                                self.batch_list.append(query)
 
                         elif pat_g.search(input):
                             pass
@@ -3814,7 +3811,7 @@ class Mixin(vvMixinConverters.Mixin):
                                          'description': '', 'coding': '', 'coding_g': '', 'genomic_r': '', 'genomic_g': '',
                                          'protein': '', 'write': 'true', 'primary_assembly': primary_assembly,
                                          'order': ordering}
-                                batch_list.append(query)
+                                self.batch_list.append(query)
 
                         # VALIDATION of intronic variants
                         pre_valid = self.hp.parse_hgvs_variant(input)
@@ -6340,7 +6337,7 @@ class Mixin(vvMixinConverters.Mixin):
             logger.trace("End of for loop")
             # order the rows
             # from operator import itemgetter
-            by_order = sorted(batch_list, key=itemgetter('order'))
+            by_order = sorted(self.batch_list, key=itemgetter('order'))
 
             for valid in by_order:
                 if 'write' in list(valid.keys()):
