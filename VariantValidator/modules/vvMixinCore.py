@@ -55,17 +55,27 @@ from .vvFunctions import VariantValidatorError
 
 
 class Mixin(vvMixinConverters.Mixin):
-    def validate(self, batch_variant, selected_assembly, select_transcripts, transcriptSet="refseq"):
+    def validate(self, batch_variant, selected_assembly, select_transcripts, transcriptSet = "refseq"):
         '''
         This is the main validator function.
         :param batch_variant: A string containing the variant to be validated
         :param selected_assembly: The version of the genome assembly to use.
         :param select_transcripts: Can be an array of different transcripts, or 'all'
         Selecting multiple transcripts will lead to a multiple variant outputs.
-        :param transcriptSet:
+        :param transcriptSet: 'refseq' or 'ensembl'. Currently only 'refseq' is supported
         :return:
         '''
         logger.info(batch_variant + ' : ' + selected_assembly)
+
+        if transcriptSet == "refseq":
+            alt_aln_method = 'splign'
+        elif transcriptSet == "ensembl":
+            alt_aln_method = 'genebuild'
+            logger.warning("Ensembl is currently not supported")
+            raise Exception("Ensembl is currently not supported")
+        else:
+            raise Exception("The transcriptSet variable '%s' is invalid, it must be 'refseq' or 'ensembl'" % transcriptSet)
+
         # Take start time
         start_time = time.time()
 
@@ -133,21 +143,6 @@ class Mixin(vvMixinConverters.Mixin):
             for validation in batch_list:
                 # Start timing
                 logger.traceStart(validation)
-                # Re-set cautions and automaps
-
-                if transcriptSet == "refseq":
-                    alt_aln_method = 'splign'
-                elif transcriptSet == "ensembl":
-                    alt_aln_method = 'genebuild'
-                    logger.warning("Ensembl is currently not supported")
-                    validation['warnings'] += ': ' + "Ensembl is currently not supported"
-                    continue
-                else:
-                    logger.warning(
-                        "The transcript set variable " + transcriptSet + " is invalid, it needs to be 'refseq' or 'ensembl'")
-                    validation[
-                        'warnings'] += ': ' + "The transcript set variable " + transcriptSet + " is invalid, it needs to be 'refseq' or 'ensembl'"
-                    continue
 
                 # Create Normalizers
                 hn = hgvs.normalizer.Normalizer(self.hdp,
