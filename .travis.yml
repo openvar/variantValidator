@@ -46,8 +46,8 @@ before_install:
   - gzip -cdq uta_20180821.pgd.gz | PGPASSWORD=uta_admin psql -U uta_admin -v ON_ERROR_STOP=0 -d uta -Eae
   - df -h
 
-
-  - if [ ! -d "$HOME/seqrepo" ]; then mkdir "$HOME"/seqrepo; rsync -HavP dl.biocommons.org::seqrepo/2018-08-21/ "$HOME"/seqrepo/2018-08-21/; fi
+  - ls "$HOME"/seqrepo
+  - if [ ! -d "$HOME/seqrepo/2018-08-21" ]; then rsync -HavP dl.biocommons.org::seqrepo/2018-08-21/ "$HOME"/seqrepo/2018-08-21/; fi
 
   # Copy configuration file
   - cp configuration/travis.ini "$HOME"/.variantvalidator
