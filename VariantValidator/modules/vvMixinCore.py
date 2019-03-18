@@ -53,6 +53,7 @@ from . import vvChromosomes
 from . import vvMixinConverters
 from .vvFunctions import VariantValidatorError
 from . import variant
+from . import format_converters
 
 
 class Mixin(vvMixinConverters.Mixin):
@@ -85,15 +86,18 @@ class Mixin(vvMixinConverters.Mixin):
         # sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
         primary_assembly=None
 
+        self.selected_assembly = selected_assembly
+        self.select_transcripts = select_transcripts
+
         try:
             # Validation
             ############
 
             # Create a dictionary of transcript ID : ''
+            select_transcripts_dict = {}
+            select_transcripts_dict_plus_version = {}
             if select_transcripts != 'all':
                 select_transcripts_list = select_transcripts.split('|')
-                select_transcripts_dict = {}
-                select_transcripts_dict_plus_version = {}
                 for id in select_transcripts_list:
                     id = id.strip()
                     if re.match('LRG', id):
@@ -159,7 +163,8 @@ class Mixin(vvMixinConverters.Mixin):
 
                 # Bug catcher
                 try:
-                    # Note, ID is not touched. It is always the input variant description. Quibble will be altered but id will not if type = g.
+                    # Note, ID is not touched. It is always the input variant description.
+                    # Quibble will be altered but id will not if type = g.
                     input = my_variant.quibble
                     logger.trace("Commenced validation of " + str(my_variant.quibble), my_variant)
 
@@ -210,506 +215,43 @@ class Mixin(vvMixinConverters.Mixin):
                     boundary = 'false'
 
                     # VCF type 1
-                    """
-                    VCF2HGVS stage 1. converts chr-pos-ref-alt into chr:posRef>Alt
-                    The output format is a common mistake caused by inaccurate conversion of 
-                    VCF variants into HGVS - hence the need for conversion step 2
-                    """
-                    if re.search(r'[-:]\d+[-:][GATC]+[-:][GATC]+', input):
-                        input = input.replace(':', '-')
-                        # Extract primary_assembly if provided
-                        if re.match(r'GRCh3\d+-', input) or re.match(r'hg\d+-', input):
-                            in_list = input.split('-')
-                            selected_assembly = in_list[0]
-                            input = '-'.join(in_list[1:])
-                        pre_input = copy.deepcopy(input)
-                        vcf_elements = pre_input.split('-')
-                        input = '%s:%s%s>%s' % (vcf_elements[0], vcf_elements[1], vcf_elements[2], vcf_elements[3])
-                    elif re.search(r'[-:]\d+[-:][GATC]+[-:]', input):
-                        input = input.replace(':', '-')
-                        # Extract primary_assembly if provided
-                        if re.match(r'GRCh3\d+-', input) or re.match(r'hg\d+-', input):
-                            in_list = input.split('-')
-                            selected_assembly = in_list[0]
-                            input = '-'.join(in_list[1:])
-                        pre_input = copy.deepcopy(input)
-                        vcf_elements = pre_input.split('-')
-                        my_variant.warnings = 'Not stating ALT bases is ambiguous because VCF specification 4.0 would treat ' + pre_input + ' as a deletion whereas VCF specification 4.1 onwards would treat ' + pre_input + ' as ALT = REF'
-                        my_variant.warnings += ': VariantValidator has output both alternatives'
-                        logger.resub('Not stating ALT bases is ambiguous because VCF specification 4.0 would treat ' +
-                                     pre_input + ' as a deletion whereas VCF specification 4.1 onwards would treat ' + pre_input +
-                                     ' as ALT = REF. Validator will output both alternatives.')
-                        my_variant.write = False
-                        input_A = '%s:%s%s>%s' % (vcf_elements[0], vcf_elements[1], vcf_elements[2], 'del')
-                        input_B = '%s:%s%s>%s' % (vcf_elements[0], vcf_elements[1], vcf_elements[2], vcf_elements[2])
-                        queryA = variant.Variant(my_variant.original, quibble=input_A, warnings=my_variant.warnings, primary_assembly=primary_assembly, order=ordering)
-                        queryB = variant.Variant(my_variant.original, quibble=input_B, warnings=my_variant.warnings, primary_assembly=primary_assembly, order=ordering)
-                        self.batch_list.append(queryA)
-                        self.batch_list.append(queryB)
+                    toskip = format_converters.vcf2hgvs_stage1(my_variant, self)
+                    if toskip:
                         continue
-                    elif re.search(r'[-:]\d+[-:][-:][GATC]+', input) or re.search(r'[-:]\d+[-:][.][-:][GATC]+', input):
-                        input = input.replace(':', '-')
-                        if re.search('-.-', input):
-                            input = input.replace('-.-', '-ins-')
-                        if re.search('--', input):
-                            input = input.replace('--', '-ins-')
-                        # Extract primary_assembly if provided
-                        if re.match(r'GRCh3\d+-', input) or re.match(r'hg\d+-', input):
-                            in_list = input.split('-')
-                            selected_assembly = in_list[0]
-                            input = '-'.join(in_list[1:])
-                        pre_input = copy.deepcopy(input)
-                        vcf_elements = pre_input.split('-')
-                        input = '%s:%s%s>%s' % (vcf_elements[0], vcf_elements[1], vcf_elements[2], vcf_elements[3])
-                        stash_input = input
-                    logger.trace("Completed VCF-HVGS step 1", my_variant)
+
                     # API type non-HGVS
                     # e.g. Chr16:2099572TC>T
-                    """
-                    VCF2HGVS conversion step 2 identifies the correct chromosomal reference 
-                    sequence based upon the non compliant identifier e.g. <Chr16>:2099572TC>T.
-                    The data is currently stored in variantanalyser.supported_chromosome_builds. 
-                    Anticipated future builds will be transferred to MySQL which can be more 
-                    easily updated and maintained.
-                    LRGs and LRG_ts also need to be assigned the correct reference sequence identifier.
-                    The LRG ID data ia stored in the VariantValidator MySQL database.
-                    The reference sequence type is also assigned. 
-                    """
-                    if re.search(r'\w+\:', input) and not re.search(r'\w+\:[gcnmrp]\.', input):
-                        if re.search(r'\w+\:[gcnmrp]', input) and not re.search(r'\w+\:[gcnmrp]\.', input):
-                            # Missing dot
-                            pass
-                        else:
-                            try:
-                                if re.search('GRCh37', input) or re.search('hg19', input):
-                                    primary_assembly = 'GRCh37'
-                                elif re.search('GRCh38', input) or re.search('hg38', input):
-                                    primary_assembly = 'GRCh38'
-                                pre_input = copy.deepcopy(input)
-                                input_list = input.split(':')
-                                pos_ref_alt = str(input_list[1])
-                                positionAndEdit = input_list[1]
-                                if not re.match(r'N[CGTWMRP]_', input) and not re.match(r'LRG_', input):
-                                    chr_num = str(input_list[0])
-                                    chr_num = chr_num.upper()
-                                    chr_num = chr_num.strip()
-                                    if re.match('CHR', chr_num):
-                                        chr_num = chr_num.replace('CHR', '')
-                                    # Use selected assembly
-                                    accession = vvChromosomes.to_accession(chr_num, selected_assembly)
-                                    if accession is None:
-                                        my_variant.warnings += ': ' + chr_num + \
-                                                                 ' is not part of genome build ' + selected_assembly
-                                        logger.warning(chr_num + ' is not part of genome build ' + selected_assembly)
-                                        continue
-                                else:
-                                    accession = input_list[0]
-                                if re.search('>', pre_input):
-                                    if re.search('del', pre_input):
-                                        pos = re.match(r'\d+', pos_ref_alt)
-                                        position = pos.group(0)
-                                        old_ref, old_alt = pos_ref_alt.split('>')
-                                        old_ref = old_ref.replace(position, '')
-                                        position = int(position) - 1
-                                        required_base = self.sf.fetch_seq(accession, start_i=position - 1, end_i=position)
-                                        ref = required_base + old_ref
-                                        alt = required_base
-                                        positionAndEdit = str(position) + ref + '>' + alt
-                                    elif re.search('ins', pre_input):
-                                        pos = re.match(r'\d+', pos_ref_alt)
-                                        position = pos.group(0)
-                                        old_ref, old_alt = pos_ref_alt.split('>')
-                                        # old_ref = old_ref.replace(position, '')
-                                        position = int(position) - 1
-                                        required_base = self.sf.fetch_seq(accession, start_i=position - 1, end_i=position)
-                                        ref = required_base
-                                        alt = required_base + old_alt
-                                        positionAndEdit = str(position) + ref + '>' + alt
-                                # Assign reference sequence type
-                                ref_type = self.db.ref_type_assign(accession)
-                                if re.match('LRG_', accession):
-                                    if ref_type == ':g.':
-                                        accession = self.db.get_RefSeqGeneID_from_lrgID(accession)
-                                    else:
-                                        accession = self.db.get_RefSeqTranscriptID_from_lrgTranscriptID(accession)
-                                else:
-                                    accession = accession
-                                input = str(accession) + ref_type + str(positionAndEdit)
-                                stash_input = input
-                            except:
-                                fn.exceptPass(my_variant)
-
-                    # Descriptions lacking the colon :
-                    if re.search(r'[gcnmrp]\.', input) and not re.search(r':[gcnmrp]\.', input):
-                        error = 'Unable to identify a colon (:) in the variant description %s. A colon is required in HGVS variant descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. e.g. :c.' % (
-                            input)
-                        my_variant.warnings += ': ' + error
-                        logger.warning(error)
+                    toskip = format_converters.vcf2hgvs_stage2(my_variant, self)
+                    if toskip:
                         continue
 
-                    # Ambiguous chr reference
-                    logger.trace("Completed VCF-HVGS step 2", my_variant)
-                    """
-                    VCF2HGVS conversion step 3 is similar to step 2 but handles 
-                    formats like Chr16:g.2099572TC>T which are provided by Alamut and other
-                    software
-                    """
-                    if re.search(r'\w+:[gcnmrp]\.', input) and not re.match(r'N[CGTWMRP]_', input):
-                        # Take out lowercase Accession characters
-                        lower_cased_list = input.split(':')
-                        if re.search('LRG', lower_cased_list[0], re.IGNORECASE):
-                            lower_case_accession = lower_cased_list[0]
-                            lower_case_accession = lower_case_accession.replace('l', 'L')
-                            lower_case_accession = lower_case_accession.replace('r', 'R')
-                            lower_case_accession = lower_case_accession.replace('g', 'G')
-                        else:
-                            lower_case_accession = lower_cased_list[0]
-                            lower_case_accession = lower_case_accession.upper()
-                        input = ''.join(lower_cased_list[1:])
-                        input = lower_case_accession + ':' + input
-                        if not re.match('LRG_', input) and not re.match('ENS', input) and not re.match('N[MRPC]_', input):
-                            try:
-                                if re.search('GRCh37', input) or re.search('hg19', input):
-                                    primary_assembly = 'GRCh37'
-                                elif re.search('GRCh38', input) or re.search('hg38', input):
-                                    primary_assembly = 'GRCh38'
-                                pre_input = copy.deepcopy(input)
-                                input_list = input.split(':')
-                                query_a_symbol = input_list[0]
-                                is_it_a_gene = self.db.get_hgnc_symbol(query_a_symbol)
-                                if is_it_a_gene == 'none':
-                                    pos_ref_alt = str(input_list[1])
-                                    positionAndEdit = input_list[1]
-                                    chr_num = str(input_list[0])
-                                    chr_num = chr_num.upper()
-                                    chr_num = chr_num.strip()
-                                    if re.match('CHR', chr_num):
-                                        chr_num = chr_num.replace('CHR', '')  # Use selected assembly
-                                    accession = vvChromosomes.to_accession(chr_num, selected_assembly)
-                                    if accession is None:
-                                        my_variant.warnings += ': ' + chr_num + \
-                                                                 ' is not part of genome build ' + selected_assembly
-                                        continue
-                                    input = str(accession) + ':' + str(positionAndEdit)
-                                    stash_input = input
-                                else:
-                                    pass
-                            except Exception as e:
-                                exc_type, exc_value, last_traceback = sys.exc_info()
-                                te = traceback.format_exc()
-                                tbk = [str(exc_type), str(exc_value), str(te)]
-                                er = str('\n'.join(tbk))
-                                logger.warning(str(exc_type) + " " + str(exc_value))
-                                logger.debug(er)
+                    toskip = format_converters.vcf2hgvs_stage3(my_variant, self)
+                    if toskip:
+                        continue
 
-                    # GENE_SYMBOL:c. n. types
-                    logger.trace("Completed VCF-HGVS step 3", my_variant)
-                    """
-                    Searches for gene symbols that have been used as reference sequence
-                    identifiers. Provides a sufficiently repremanding warning, but also provides
-                    correctly formatted variant descriptions with appropriate transcript 
-                    reference sequence identifiers i.e. NM_ ....
-                    Note: the output from the function must be validated because VV has no way
-                    of knowing which the users intended reference sequence was, and the exon 
-                    boundaries etc of the alternative transcript variants may not be equivalent 
-                    """
-                    if re.search(r'\w+\:[cn]\.', input):
-                        try:
-                            pre_input = copy.deepcopy(input)
-                            query_a_symbol = pre_input.split(':')[0]
-                            tx_edit = pre_input.split(':')[1]
-                            is_it_a_gene = self.db.get_hgnc_symbol(query_a_symbol)
-                            if is_it_a_gene != 'none':
-                                uta_symbol = self.db.get_uta_symbol(is_it_a_gene)
-                                available_transcripts = self.hdp.get_tx_for_gene(uta_symbol)
-                                select_from_these_transcripts = {}
-                                for tx in available_transcripts:
-                                    if re.match('NM_', tx[3]) or re.match('NR_', tx[3]):
-                                        if tx[3] not in list(select_from_these_transcripts.keys()):
-                                            select_from_these_transcripts[tx[3]] = ''
-                                        else:
-                                            continue
-                                    else:
-                                        continue
-                                select_from_these_transcripts = '|'.join(list(select_from_these_transcripts.keys()))
-                                if select_transcripts != 'all':
-                                    my_variant.write = False
-                                    for transcript in list(select_transcripts_dict_plus_version.keys()):
-                                        my_variant.warnings = 'HGVS variant nomenclature does not allow the use of a gene symbol (' + \
-                                                          query_a_symbol + ') in place of a valid reference sequence'
-                                        refreshed_description = transcript + ':' + tx_edit
-                                        query = variant.Variant(my_variant.original, quibble=refreshed_description, warnings=my_variant.warnings, primary_assembly=primary_assembly, order=ordering)
-                                        self.batch_list.append(query)
-                                        logger.resub('HGVS variant nomenclature does not allow the use of a gene symbol (' + \
-                                                     query_a_symbol + ') in place of a valid reference sequence')
-                                else:
-                                    my_variant.warnings += ': ' + 'HGVS variant nomenclature does not allow the use of a gene symbol (' + \
-                                                             query_a_symbol + ') in place of a valid reference sequence: Re-submit ' + input + \
-                                                             ' and specify transcripts from the following: ' + 'select_transcripts=' + select_from_these_transcripts
-                                    logger.warning('HGVS variant nomenclature does not allow the use of a gene symbol (' + \
-                                                   query_a_symbol + ') in place of a valid reference sequence: Re-submit ' + input + \
-                                                   ' and specify transcripts from the following: ' + 'select_transcripts=' + select_from_these_transcripts)
-                                continue
-                            else:
-                                pass
-                        except:
-                            fn.exceptPass()
-                    logger.trace("Gene symbol reference catching complete", my_variant)
+                    toskip = format_converters.gene_symbol_catch(my_variant, self, select_transcripts_dict_plus_version)
+                    if toskip:
+                        continue
 
                     # NG_:c. or NC_:c.
-                    """
-                    Similar to the GENE_SYMBOL:c. n. types function, but spots RefSeqGene or
-                    Chromosomal reference sequence identifiers used in the context of c. variant
-                    descriptions
-                    """
-                    if re.search(r'\w+\:[cn]', input):
-                        try:
-                            if re.match(r'^NG_', input):
-                                refSeqGeneID = input.split(':')[0]
-                                tx_edit = input.split(':')[1]
-                                gene_symbol = self.db.get_gene_symbol_from_refSeqGeneID(refSeqGeneID)
-                                if gene_symbol != 'none':
-                                    uta_symbol = self.db.get_uta_symbol(gene_symbol)
-                                    available_transcripts = self.hdp.get_tx_for_gene(uta_symbol)
-                                    select_from_these_transcripts = {}
-                                    for tx in available_transcripts:
-                                        if re.match('NM_', tx[3]) or re.match('NR_', tx[3]):
-                                            if tx[3] not in list(select_from_these_transcripts.keys()):
-                                                select_from_these_transcripts[tx[3]] = ''
-                                            else:
-                                                continue
-                                        else:
-                                            continue
-                                    select_from_these_transcripts = '|'.join(list(select_from_these_transcripts.keys()))
-                                    if select_transcripts != 'all':
-                                        my_variant.write = False
-                                        for transcript in list(select_transcripts_dict_plus_version.keys()):
-                                            my_variant.warnings = 'NG_:c.PositionVariation descriptions should not be used unless a transcript reference sequence has also been provided e.g. NG_(NM_):c.PositionVariation'
-                                            refreshed_description = refSeqGeneID + '(' + transcript + ')' + ':' + tx_edit
-                                            query = variant.Variant(my_variant.original, quibble=refreshed_description, warnings=my_variant.warnings, primary_assembly=primary_assembly, order=ordering)
+                    toskip = format_converters.refseq_catch(my_variant, self, select_transcripts_dict_plus_version)
+                    if toskip:
+                        continue
 
-                                            logger.resub(
-                                                'NG_:c.PositionVariation descriptions should not be used unless a transcript reference sequence has also been provided e.g. NG_(NM_):c.PositionVariation. Resubmitting corrected version.')
-                                            self.batch_list.append(query)
-                                    else:
-                                        my_variant.warnings += ': ' + 'A transcript reference sequence has not been provided e.g. NG_(NM_):c.PositionVariation. Re-submit ' + input + ' but also specify transcripts from the following: ' + 'select_transcripts=' + select_from_these_transcripts
-                                        logger.warning(
-                                            + 'A transcript reference sequence has not been provided e.g. NG_(NM_):c.PositionVariation. Re-submit ' +
-                                            str(
-                                                input) + ' but also specify transcripts from the following: ' + 'select_transcripts=' + str(
-                                                select_from_these_transcripts))
-                                    continue
-                                else:
-                                    my_variant.warnings += ': ' + 'A transcript reference sequence has not been provided e.g. NG_(NM_):c.PositionVariation'
-                                    logger.warning(
-                                        'A transcript reference sequence has not been provided e.g. NG_(NM_):c.PositionVariation')
-                                continue
-                            elif re.match('^NC_', input):
-                                my_variant.warnings += ': ' + 'A transcript reference sequence has not been provided e.g. NC_(NM_):c.PositionVariation. Unable to predict available transripts because chromosomal position is not specified'
-                                logger.warning(
-                                    'A transcript reference sequence has not been provided e.g. NC_(NM_):c.PositionVariation. Unable to predict available transripts because chromosomal position is not specified')
-                                continue
-                            else:
-                                pass
-                        except:
-                            fn.exceptPass()
-
-                    logger.trace("Chromosomal/RefSeqGene reference catching complete", my_variant)
                     # Find not_sub type in input e.g. GGGG>G
-                    """
-                    VCF2HGVS conversion step 4 has two purposes
-                    1. VCF is frequently inappropriately converted into HGVS like descriptions
-                    such as GGGG>G which is actually a delins, del or ins. The function assigns 
-                    the correct edit type
-                    2. Detects and extracts multiple ALT sequences into HGVS descriptions and
-                    automatically submits them for validation  
-                    """
-                    not_sub = copy.deepcopy(input)
-                    not_sub_find = re.compile(r"([GATCgatc]+)>([GATCgatc]+)")
-                    if not_sub_find.search(not_sub):
-                        try:
-                            # If the length of either side of the substitution delimer (>) is >1
-                            matches = not_sub_find.search(not_sub)
-                            if len(matches.group(1)) > 1 or len(matches.group(2)) > 1 or re.search(
-                                    r"([GATCgatc]+)>([GATCgatc]+),([GATCgatc]+)", input):
-                                # Search for and remove range
-                                interval_range = re.compile(r"([0-9]+)_([0-9]+)")
-                                if interval_range.search(not_sub):
-                                    m = not_sub_find.search(not_sub)
-                                    start = m.group(1)
-                                    delete = m.group(2)
-                                    beginning_string, middle_string = not_sub.split(':')
-                                    middle_string = middle_string.split('_')[0]
-                                    end_string = start + '>' + delete
-                                    not_sub = beginning_string + ':' + middle_string + end_string
-                                # Split description
-                                split_colon = not_sub.split(':')
-                                ref_ac = split_colon[0]
-                                remainder = split_colon[1]
-                                split_dot = remainder.split('.')
-                                ref_type = split_dot[0]
-                                remainder = split_dot[1]
-                                posedit = remainder
-                                split_greater = remainder.split('>')
-                                insert = split_greater[1]
-                                remainder = split_greater[0]
-                                # Split remainder using matches
-                                r = re.compile(r"([0-9]+)([GATCgatc]+)")
-                                try:
-                                    m = r.search(remainder)
-                                    start = m.group(1)
-                                    delete = m.group(2)
-                                    starts = posedit.split(delete)[0]
-                                    re_try = ref_ac + ':' + ref_type + '.' + starts + 'del' + delete[0] + 'ins' + insert
-                                    hgvs_re_try = self.hp.parse_hgvs_variant(re_try)
-                                    hgvs_re_try.posedit.edit.ref = delete
-                                    start_pos = str(hgvs_re_try.posedit.pos.start)
-                                    if re.search(r'\-', start_pos):
-                                        base, offset = start_pos.split('-')
-                                        new_offset = 0 - int(offset) + (len(delete))
-                                        end_pos = int(base)
-                                        hgvs_re_try.posedit.pos.end.base = int(end_pos)
-                                        hgvs_re_try.posedit.pos.end.offset = int(new_offset) - 1
-                                        not_delins = ref_ac + ':' + ref_type + '.' + start_pos + '_' + str(
-                                            hgvs_re_try.posedit.pos.end) + 'del' + delete + 'ins' + insert
-                                    elif re.search(r'\+', start_pos):
-                                        base, offset = start_pos.split('+')
-                                        end_pos = int(base) + (len(delete) - int(offset) - 1)
-                                        new_offset = 0 + int(offset) + (len(delete) - 1)
-                                        hgvs_re_try.posedit.pos.end.base = int(end_pos)
-                                        hgvs_re_try.posedit.pos.end.offset = int(new_offset)
-                                        not_delins = ref_ac + ':' + ref_type + '.' + start_pos + '_' + str(
-                                            hgvs_re_try.posedit.pos.end) + 'del' + delete + 'ins' + insert
-                                    else:
-                                        end_pos = int(start_pos) + (len(delete) - 1)
-                                        not_delins = ref_ac + ':' + ref_type + '.' + start_pos + '_' + str(
-                                            end_pos) + 'del' + delete + 'ins' + insert
-                                except:
-                                    fn.exceptPass()
-                                    not_delins = not_sub
-                                # Parse into hgvs object
-                                try:
-                                    hgvs_not_delins = self.hp.parse_hgvs_variant(not_delins)
-                                except hgvs.exceptions.HGVSError as e:
-                                    # Sort out multiple ALTS from VCF inputs
-                                    if re.search(r"([GATCgatc]+)>([GATCgatc]+),([GATCgatc]+)", not_delins):
-                                        header, alts = not_delins.split('>')
-                                        # Split up the alts into a list
-                                        alt_list = alts.split(',')
-                                        # Assemble and re-submit
-                                        for alt in alt_list:
-                                            my_variant.warnings = 'Multiple ALT sequences detected: auto-submitting all possible combinations'
-                                            my_variant.write = False
-                                            refreshed_description = header + '>' + alt
-                                            query = variant.Variant(my_variant.original, quibble=refreshed_description, warnings=my_variant.warnings, primary_assembly=primary_assembly, order=ordering)
+                    toskip = format_converters.vcf2hgvs_stage4(my_variant, self, hn)
+                    if toskip:
+                        continue
 
-                                            self.batch_list.append(query)
-                                            logger.resub(
-                                                'Multiple ALT sequences detected. Auto-submitting all possible combinations.')
-                                        continue
-                                    else:
-                                        error = str(e)
-                                        issue_link = ''
-                                        my_variant.warnings += ': ' + error
-                                        logger.warning(str(e))
-                                        continue
+                    input = my_variant.quibble
 
-                                # Re-Stash the input as an HGVS
-                                stash_input = copy.copy(hgvs_not_delins)
-                                try:
-                                    not_delins = str(hn.normalize(hgvs_not_delins))
-                                except hgvs.exceptions.HGVSError as e:
-                                    error = str(e)
-                                    if re.search('Normalization of intronic variants is not supported', error):
-                                        not_delins = not_delins
-                                    else:
-                                        issue_link = ''
-                                        my_variant.warnings += ': ' + str(error)
-                                        logger.warning(str(e))
-                                        continue
-                                # Create warning
-                                caution = 'Variant description ' + input + ' is not HGVS compliant'
-                                automap = input + ' automapped to ' + not_delins
-                                my_variant.warnings += ': ' + automap
-                                # Change input to normalized variant
-                                input = not_delins
-                            else:
-                                pass
-                        except:
-                            fn.exceptPass()
-                    else:
-                        pass
-                    logger.trace("Completed VCF-HVGS step 4", my_variant)
+                    toskip = format_converters.indel_catching(my_variant, self)
+                    if toskip:
+                        continue
 
-                    # Tackle edit1234 type
-                    """
-                    Warns that descriptions such as c.ins12 or g.del69 are not HGVS compliant
-                    Strips the trailing numbers and tries to parse the description into an
-                    hgvs object.
-                    If parses, provides a warning including links to the VarNomen web page, but
-                    continues validation
-                    If not, an error message is generated and the loop continues
-                    """
-                    edit_pass = re.compile(r'_\d+$')
-                    edit_fail = re.compile(r'\d+$')
-                    if edit_fail.search(input):
-                        if edit_pass.search(input):
-                            pass
-                        else:
-                            error = 'false'
-                            issue_link = 'false'
-                            failed = copy.deepcopy(input)
-                            # Catch the trailing digits
-                            digits = re.search(r"(\d+$)", failed)
-                            digits = digits.group(1)
-                            remove = str(digits) + 'end_anchor'
-                            failed = failed + 'end_anchor'
-                            failed = failed.replace(remove, '')
-
-                            # Remove them so that the string SHOULD parse
-                            try:
-                                hgvs_failed = self.hp.parse_hgvs_variant(failed)
-                            except hgvs.exceptions.HGVSError as e:
-                                error = str(e)
-                                error = 'The syntax of the input variant description is invalid '
-                                if re.search(r'ins$', failed):
-                                    issue_link = 'http://varnomen.hgvs.org/recommendations/DNA/variant/insertion/'
-                                    error = error + ' please refer to ' + issue_link
-                                my_variant.warnings += error
-                                logger.warning(str(error) + " " + str(e))
-                                continue
-
-                            hgvs_failed.posedit.edit = str(hgvs_failed.posedit.edit).replace(digits, '')
-                            failed = str(hgvs_failed)
-                            hgvs_failed = self.hp.parse_hgvs_variant(failed)
-                            automap = 'Non HGVS compliant variant description ' + input + ' automapped to ' + failed
-                            my_variant.warnings += ': ' + automap
-                            logger.warning(automap)
-                            input = failed
-
-                    logger.trace("Ins/Del reference catching complete", my_variant)
                     # Tackle compound variant descriptions NG or NC (NM_) i.e. correctly input NG/NC_(NM_):c.
-                    """
-                    Fully HGVS compliant intronic variant descriptions take the format e.g
-                    NG_007400.1(NM_000088.3):c.589-1G>T. However, hgvs cannot parse and map
-                    these variant strings. 
-                    This function:
-                    Removes the g. reference sequence
-                    NG_007400.1(NM_000088.3):c.589-1G>T ---> (NM_000088.3):c.589-1G>T
-                    Removes the parintheses
-                    (NM_000088.3):c.589-1G>T ---> NM_000088.3:c.589-1G>T
-                    hgvs can now parse the string into an hgvs variant object and manipulate it
-                    """
-                    caution = ''
-                    compounder = re.compile(r'\(NM_')
-                    compounder_b = re.compile(r'\(ENST')
-                    if compounder.search(input):
-                        # Find pattern e.g. +0000 and assign to a variable
-                        transy = re.search(r"(NM_.+)", input)
-                        transy = transy.group(1)
-                        transy = transy.replace(')', '')
-                        input = transy
-                    logger.trace("HVGS typesetting complete", my_variant)
+                    format_converters.intronic_converter(my_variant)
+
                     # Extract variants from HGVS allele descriptions
                     # http://varnomen.hgvs.org/recommendations/DNA/variant/alleles/
                     """

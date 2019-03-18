@@ -1532,6 +1532,7 @@ def to_accession(chr_num, primary_assembly):
     }
     # Convert call line to rs line
     chr_num = chr_num.upper()
+    chr_accession = None
     if 'CHR' in chr_num[:3]:
         chr_num = chr_num[3:]
     if primary_assembly == 'GRCh37':
