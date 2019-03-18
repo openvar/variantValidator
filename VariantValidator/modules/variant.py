@@ -8,10 +8,29 @@ class Variant(object):
     relevant to what kind of variant it is.
     """
 
-    def __init__(self, original):
+    def __init__(self, original, quibble=None, warnings='', write=True, primary_assembly=False, order=False):
         self.original = original
-        self.quibble = original
+        if quibble is None:
+            self.quibble = original
+        else:
+            self.quibble = quibble
         self.hgvs_formatted = original
+
+        self.warnings = warnings
+        self.description = ''
+        self.coding = ''
+        self.coding_g = ''
+        self.genomic_r = ''
+        self.genomic_g = ''
+        self.protein = ''
+        self.write = write
+        self.primary_assembly = primary_assembly
+        self.order = order
+
+        self.test_stash_tx_left = None
+        self.test_stash_tx_right = None
+
+        self.timing = {}
 
     def is_ascii(self):
         """

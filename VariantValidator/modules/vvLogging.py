@@ -91,8 +91,8 @@ class logger():
         logger.loggingSetup()
         logger.logger.critical("CRIT : "+s)
     @staticmethod
-    def trace(s,v=None):
-        #v should be a dictionary with a 'timing' key.
+    def trace(s, v=None):
+        #v should be a variant object with a 'timing' attribute.
         #global VALIDATOR_DEBUG
         #print(VALIDATOR_DEBUG)
         #if "trace" in VALIDATOR_DEBUG:
@@ -101,9 +101,9 @@ class logger():
             logger.logger.debug("TRACE: "+s)
         else:
             logger.logger.debug("TRACE: "+s)
-            v['timing']['traceLabels'].append(s)
-            v['timing']['traceTimes'].append(str((datetime.datetime.now()-v['timing']['checkDT']).microseconds//1000))
-            v['timing']['checkDT']=datetime.datetime.now()
+            v.timing['traceLabels'].append(s)
+            v.timing['traceTimes'].append(str((datetime.datetime.now() - v.timing['checkDT']).microseconds//1000))
+            v.timing['checkDT'] = datetime.datetime.now()
     @staticmethod
     def resub(s):
         #Resubmit one or multiple variants
@@ -121,21 +121,21 @@ class logger():
 #        global VALIDATOR_DEBUG
 #        if "trace" in VALIDATOR_DEBUG:
         if True:
-            v['timing']={}
-            v['timing']['traceLabels']=[]
-            v['timing']['traceTimes']=[]
-            v['timing']['startDT']=datetime.datetime.now()
-            v['timing']['checkDT']=datetime.datetime.now()
+            v.timing = {}
+            v.timing['traceLabels'] = []
+            v.timing['traceTimes'] = []
+            v.timing['startDT'] = datetime.datetime.now()
+            v.timing['checkDT'] = datetime.datetime.now()
     @staticmethod
     def traceEnd(v):
         logger.loggingSetup()
         #global VALIDATOR_DEBUG
         #if "trace" in VALIDATOR_DEBUG:
         if True:
-            v['timing']['traceLabels'].append("complete")
-            v['timing']['traceTimes'].append((datetime.datetime.now()-v['timing']['startDT']).microseconds//1000)
-            del v['timing']['startDT']
-            del v['timing']['checkDT']
+            v.timing['traceLabels'].append("complete")
+            v.timing['traceTimes'].append((datetime.datetime.now() - v.timing['startDT']).microseconds//1000)
+            del v.timing['startDT']
+            del v.timing['checkDT']
 
 #Test
 #logger.debug("Message D")
