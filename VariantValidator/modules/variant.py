@@ -1,5 +1,5 @@
 import re
-import string
+from . import vvFunctions as fn
 
 
 class Variant(object):
@@ -14,7 +14,7 @@ class Variant(object):
             self.quibble = original
         else:
             self.quibble = quibble
-        self.hgvs_formatted = original
+        self.hgvs_formatted = None
 
         self.warnings = warnings
         self.description = ''
@@ -31,6 +31,9 @@ class Variant(object):
         self.test_stash_tx_right = None
 
         self.timing = {}
+
+        self.refsource = None
+        self.reftype = None
 
     def is_ascii(self):
         """
@@ -68,3 +71,75 @@ class Variant(object):
         """
         self.quibble = ''.join(self.quibble.split())
 
+    def format_quibble(self):
+        """
+        Removes whitespace from the ends of the string
+        Removes anything in brackets
+        Identifies variant type (p. c. etc)
+        Accepts c, g, n, r currently. And now P also 15.07.15
+        """
+        # Set regular expressions for if statements
+        pat_gene = re.compile(r'\(.+?\)')  # Pattern looks for (....)
+
+        if pat_gene.search(self.quibble):
+            self.quibble = pat_gene.sub('', self.quibble)
+
+        try:
+            self.set_refsource()
+        except fn.VariantValidatorError:
+            return True
+
+        try:
+            self.set_reftype()
+        except fn.VariantValidatorError:
+            return True
+
+        return False
+
+    def set_reftype(self):
+        """
+        Method will set the reftype based on the quibble
+        :return:
+        """
+        pat_est = re.compile(r'\d\:\d')
+
+        if ':g.' in self.quibble:
+            self.reftype = ':g.'
+        elif ':r.' in self.quibble:
+            self.reftype = ':r.'
+        elif ':n.' in self.quibble:
+            self.reftype = ':n.'
+        elif ':c.' in self.quibble:
+            self.reftype = ':c.'
+        elif ':p.' in self.quibble:
+            self.reftype = ':p.'
+        elif ':m.' in self.quibble:
+            self.reftype = ':m.'
+        elif pat_est.search(self.quibble):
+            self.reftype = 'est'
+        else:
+            raise fn.VariantValidatorError("Unable to identity reference type from %s" % self.quibble)
+
+    def set_refsource(self):
+        """
+        Method will set the refsource based on the quibble
+        :return:
+        """
+        if self.quibble.startswith('LRG'):
+            self.refsource = 'LRG'
+        elif self.quibble.startswith('ENS'):
+            self.refsource = 'ENS'
+        elif self.quibble.startswith('N'):
+            self.refsource = 'RefSeq'
+        else:
+            raise fn.VariantValidatorError("Unable to identify reference source from %s" % self.quibble)
+
+    def set_quibble(self, newval):
+        """
+        Method will set the quibble and reset the refsource and reftype
+        :param newval:
+        :return:
+        """
+        self.quibble = newval
+        self.set_refsource()
+        self.set_reftype()

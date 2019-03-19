@@ -520,3 +520,112 @@ def intronic_converter(variant):
         variant.quibble = transy
     logger.trace("HVGS typesetting complete", variant)
 
+
+def allele_parser(variant, validation, hn):
+    """
+    HGVS allele string parsing function Occurance #1
+    Takes a single HGVS allele description and separates each allele into a
+    list of HGVS variants. The variants are then automatically submitted for
+    validation.
+    Note: In this context, it is inappropriate to validate descriptions
+    containing intronic variant descriptions. In such instances, allele
+    descriptions should be re-submitted by the user at the gene or genome level
+    """
+    caution = ''
+    if (re.search(r':[gcnr].\[', variant.quibble) and re.search(r'\;', variant.quibble)) or (
+            re.search(r':[gcrn].\d+\[', variant.quibble) and re.search(r'\;', variant.quibble)) or (re.search(r'\(\;\)', variant.quibble)):
+        # handle LRG inputs
+        if re.match(r'^LRG', variant.quibble):
+            if re.match(r'^LRG\d+', variant.quibble):
+                string, remainder = variant.quibble.split(':')
+                reference = string.replace('LRG', 'LRG_')
+                variant.quibble = reference + ':' + remainder
+                caution = string + ' updated to ' + reference
+            if not re.match(r'^LRG_\d+', variant.quibble):
+                pass
+            elif re.match(r'^LRG_\d+:g.', variant.quibble) or re.match(r'^LRG_\d+:p.', variant.quibble) or re.match(r'^LRG_\d+:c.',
+                                                                                                                    variant.quibble) or re.match(
+                r'^LRG_\d+:n.', variant.quibble):
+                lrg_reference, variation = variant.quibble.split(':')
+                refseqgene_reference = validation.db.get_RefSeqGeneID_from_lrgID(lrg_reference)
+                if refseqgene_reference != 'none':
+                    variant.quibble = refseqgene_reference + ':' + variation
+                    if caution == '':
+                        caution = lrg_reference + ':' + variation + ' automapped to ' + refseqgene_reference + ':' + variation
+                    else:
+                        caution = caution + ': ' + lrg_reference + ':' + variation + ' automapped to ' + refseqgene_reference + ':' + variation
+                    variant.warnings += ': ' + str(caution)
+                    logger.warning(str(caution))
+            elif re.match(r'^LRG_\d+t\d+:c.', variant.quibble) or re.match(r'^LRG_\d+t\d+:n.', variant.quibble) or re.match(
+                    r'^LRG_\d+t\d+:p.', variant.quibble) or re.match(r'^LRG_\d+t\d+:g.', variant.quibble):
+                lrg_reference, variation = variant.quibble.split(':')
+                refseqtranscript_reference = validation.db.get_RefSeqTranscriptID_from_lrgTranscriptID(
+                    lrg_reference)
+                if refseqtranscript_reference != 'none':
+                    variant.quibble = refseqtranscript_reference + ':' + variation
+                    if caution == '':
+                        caution = lrg_reference + ':' + variation + ' automapped to ' + refseqtranscript_reference + ':' + variation
+                    else:
+                        caution = caution + ': ' + lrg_reference + ':' + variation + ' automapped to ' + refseqtranscript_reference + ':' + variation
+                    variant.warnings += ': ' + str(caution)
+                    logger.warning(str(caution))
+            else:
+                pass
+        try:
+            # Submit to allele extraction function
+            alleles = validation.hgvs_alleles(variant.quibble, hn)
+            variant.warnings += ': ' + 'Automap has extracted possible variant descriptions'
+            logger.resub('Automap has extracted possible variant descriptions, resubmitting')
+            for allele in alleles:
+                query = Variant(variant.original, quibble=allele, warnings=variant.warnings, write=True,
+                                        primary_assembly=variant.primary_assembly, order=variant.order)
+                validation.batch_list.append(query)
+            variant.write = False
+            return True
+        except fn.alleleVariantError as e:
+            if re.search("Cannot validate sequence of an intronic variant", str(e)):
+                variant.warnings += ': ' + 'Intronic positions not supported for HGVS Allele descriptions'
+                logger.warning('Intronic positions not supported for HGVS Allele descriptions')
+                return True
+            elif re.search("No transcript definition for ", str(e)):
+                variant.warnings += ': ' + str(e)
+                logger.warning(str(e))
+                return True
+            else:
+                raise fn.VariantValidatorError(str(e))
+    logger.trace("HVGS String allele parsing pass 1 complete", variant)
+    return False
+
+
+def lrg_to_refseq(variant, validator):
+    """
+    LRG and LRG_t reference sequence identifiers need to be replaced with
+    equivalent RefSeq identifiers. The lookup data is stored in the
+    VariantValidator  MySQL database
+    """
+    caution = ''
+    if variant.refsource == 'LRG':
+        if re.match(r'^LRG\d+', variant.hgvs_formatted.ac):
+            reference = variant.hgvs_formatted.ac.replace('LRG', 'LRG_')
+            caution = variant.hgvs_formatted.ac + ' updated to ' + reference + ': '
+            variant.hgvs_formatted.ac = reference
+            variant.set_quibble(str(variant.hgvs_formatted))
+
+        if re.match(r'^LRG_\d+t\d+:', variant.quibble):
+            lrg_reference, variation = variant.quibble.split(':')
+            refseqtrans_reference = validator.db.get_RefSeqTranscriptID_from_lrgTranscriptID(lrg_reference)
+            if refseqtrans_reference != 'none':
+                variant.hgvs_formatted.ac = refseqtrans_reference
+                variant.set_quibble(str(variant.hgvs_formatted))
+                caution += lrg_reference + ':' + variation + ' automapped to ' + refseqtrans_reference + ':' + variation
+                variant.warnings += ': ' + caution
+                logger.warning(caution)
+        elif re.match(r'^LRG_\d+:', variant.quibble):
+            lrg_reference, variation = variant.quibble.split(':')
+            refseqgene_reference = validator.db.get_RefSeqGeneID_from_lrgID(lrg_reference)
+            if refseqgene_reference != 'none':
+                variant.hgvs_formatted.ac = refseqgene_reference
+                variant.set_quibble(str(variant.hgvs_formatted))
+                caution += lrg_reference + ':' + variation + ' automapped to ' + refseqgene_reference + ':' + variation
+                variant.warnings += ': ' + caution
+                logger.warning(caution)

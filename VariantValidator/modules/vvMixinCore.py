@@ -202,10 +202,11 @@ class Mixin(vvMixinConverters.Mixin):
                         if primary_assembly in self.genome_builds:
                             my_variant.primary_assembly = primary_assembly
                         else:
+                            my_variant.primary_assembly = 'GRCh38'
                             primary_assembly = 'GRCh38'
                             my_variant.warnings += ': Invalid genome build has been specified. Automap has selected the default build (GRCh38)'
                             logger.warning(
-                                'Invalid genome build has been specified. Automap has selected the default build ' + primary_assembly)
+                                'Invalid genome build has been specified. Automap has selected the default build ' + my_variant.primary_assembly)
                     else:
                         primary_assembly = my_variant.primary_assembly
                     logger.trace("Completed string formatting", my_variant)
@@ -243,8 +244,6 @@ class Mixin(vvMixinConverters.Mixin):
                     if toskip:
                         continue
 
-                    input = my_variant.quibble
-
                     toskip = format_converters.indel_catching(my_variant, self)
                     if toskip:
                         continue
@@ -254,86 +253,31 @@ class Mixin(vvMixinConverters.Mixin):
 
                     # Extract variants from HGVS allele descriptions
                     # http://varnomen.hgvs.org/recommendations/DNA/variant/alleles/
-                    """
-                    HGVS allele string parsing function Occurance #1
-                    Takes a single HGVS allele description and separates each allele into a 
-                    list of HGVS variants. The variants are then automatically submitted for
-                    validation. 
-                    Note: In this context, it is inappropriate to validate descriptions
-                    containing intronic variant descriptions. In such instances, allele
-                    descriptions should be re-submitted by the user at the gene or genome level 
-                    """
-                    if (re.search(r':[gcnr].\[', input) and re.search(r'\;', input)) or (
-                            re.search(r':[gcrn].\d+\[', input) and re.search(r'\;', input)) or (re.search(r'\(\;\)', input)):
-                        # handle LRG inputs
-                        if re.match(r'^LRG', input):
-                            if re.match(r'^LRG\d+', input):
-                                string, remainder = input.split(':')
-                                reference = string.replace('LRG', 'LRG_')
-                                input = reference + ':' + remainder
-                                caution = string + ' updated to ' + reference
-                            if not re.match(r'^LRG_\d+', input):
-                                pass
-                            elif re.match(r'^LRG_\d+:g.', input) or re.match(r'^LRG_\d+:p.', input) or re.match(r'^LRG_\d+:c.',
-                                                                                                              input) or re.match(
-                                r'^LRG_\d+:n.', input):
-                                lrg_reference, variation = input.split(':')
-                                refseqgene_reference = self.db.get_RefSeqGeneID_from_lrgID(lrg_reference)
-                                if refseqgene_reference != 'none':
-                                    input = refseqgene_reference + ':' + variation
-                                    if caution == '':
-                                        caution = lrg_reference + ':' + variation + ' automapped to ' + refseqgene_reference + ':' + variation
-                                    else:
-                                        caution = caution + ': ' + lrg_reference + ':' + variation + ' automapped to ' + refseqgene_reference + ':' + variation
-                                    my_variant.warnings += ': ' + str(caution)
-                                    logger.warning(str(caution))
-                            elif re.match(r'^LRG_\d+t\d+:c.', input) or re.match(r'^LRG_\d+t\d+:n.', input) or re.match(
-                                    r'^LRG_\d+t\d+:p.', input) or re.match(r'^LRG_\d+t\d+:g.', input):
-                                lrg_reference, variation = input.split(':')
-                                refseqtranscript_reference = self.db.get_RefSeqTranscriptID_from_lrgTranscriptID(
-                                    lrg_reference)
-                                if refseqtranscript_reference != 'none':
-                                    input = refseqtranscript_reference + ':' + variation
-                                    if caution == '':
-                                        caution = lrg_reference + ':' + variation + ' automapped to ' + refseqtranscript_reference + ':' + variation
-                                    else:
-                                        caution = caution + ': ' + lrg_reference + ':' + variation + ' automapped to ' + refseqtranscript_reference + ':' + variation
-                                    my_variant.warnings += ': ' + str(caution)
-                                    logger.warning(str(caution))
-                            else:
-                                pass
-                        try:
-                            # Submit to allele extraction function
-                            alleles = self.hgvs_alleles(input,hn)
-                            my_variant.warnings += ': ' + 'Automap has extracted possible variant descriptions'
-                            logger.resub('Automap has extracted possible variant descriptions, resubmitting')
-                            for allele in alleles:
-                                query = variant.Variant(my_variant.original, quibble=allele, warnings=my_variant.warnings, write=True, primary_assembly=my_variant.primary_assembly, order=ordering)
-                                coding = 'intergenic'
-                                self.batch_list.append(query)
-                            my_variant.write = False
-                            continue
-                        except fn.alleleVariantError as e:
-                            if re.search("Cannot validate sequence of an intronic variant", str(e)):
-                                my_variant.warnings += ': ' + 'Intronic positions not supported for HGVS Allele descriptions'
-                                logger.warning('Intronic positions not supported for HGVS Allele descriptions')
-                                continue
-                            elif re.search("No transcript definition for ",str(e)):
-                                my_variant.warnings += ': ' + str(e)
-                                logger.warning(str(e))
-                                continue
-                            else:
-                                raise VariantValidatorError(str(e))
-                    logger.trace("HVGS String allele parsing pass 1 complete", my_variant)
+                    toskip = format_converters.allele_parser(my_variant, self, hn)
+                    if toskip:
+                        continue
+
+                    input = my_variant.quibble
+
+                    print("Original: %s" % my_variant.original)
+                    print("Quibble: %s" % my_variant.quibble)
+
+                    caution = ''
                     # INITIAL USER INPUT FORMATTING
-                    """
-                    Removes whitespace from the ends of the string
-                    Removes anything in brackets
-                    Identifies variant type
-                    Returns a dictionary containing the formatted input string and the variant type
-                    Accepts c, g, n, r currently
-                    """
-                    formatted = fn.user_input(input)
+                    invalid = my_variant.format_quibble()
+                    if invalid:
+                        if re.search(r'\w+\:[gcnmrp]', my_variant.quibble) and not re.search(r'\w+\:[gcnmrp]\.', my_variant.quibble):
+                            error = 'Variant description ' + my_variant.quibble + ' lacks the . character between <type> and <position> in the expected pattern <accession>:<type>.<position>'
+                        else:
+                            error = 'Variant description ' + my_variant.quibble + ' is not in an accepted format'
+                        my_variant.warnings += ': ' + error
+                        logger.warning(error)
+                        continue
+
+                    formatted_variant = my_variant.quibble
+                    input = my_variant.quibble
+                    stash_input = my_variant.quibble
+                    format_type = my_variant.reftype
 
                     # Validator specific variables, note, not all will be necessary for batch, but keep to ensure that batch works
                     # vars = []
@@ -349,28 +293,12 @@ class Mixin(vvMixinConverters.Mixin):
                     # cr_available = 'false'
                     # rcmds_tab = 'false'
 
-                    # Check the initial validity of the input
-                    if formatted == 'invalid':
-                        if re.search(r'\w+\:[gcnmrp]', input) and not re.search(r'\w+\:[gcnmrp]\.', input):
-                            error = 'Variant description ' + input + ' lacks the . character between <type> and <position> in the expected pattern <accession>:<type>.<position>'
-                        else:
-                            error = 'Variant description ' + input + ' is not in an accepted format'
-                        my_variant.warnings += ': ' + error
-                        logger.warning(error)
-                        continue
-                    else:
-                        formatted_variant = formatted['variant']
-                        input = formatted['variant']
-                        stash_input = formatted['variant']
-                        format_type = formatted['type']
                     logger.trace("Variant input formatted, proceeding to validate.", my_variant)
+
                     # Conversions
-                    """
-                    Conversions are not currently supported. The HGVS format for conversions
-                    is rarely seen wrt genomic sequencing data and needs to be re-evaluated
-                    """
-                    conversion = re.compile('con')
-                    if conversion.search(formatted_variant):
+                    # Conversions are not currently supported. The HGVS format for conversions
+                    # is rarely seen wrt genomic sequencing data and needs to be re-evaluated
+                    if 'con' in my_variant.quibble:
                         my_variant.warnings += ': ' + 'Gene conversions currently unsupported'
                         logger.warning('Gene conversions currently unsupported')
                         continue
@@ -389,59 +317,60 @@ class Mixin(vvMixinConverters.Mixin):
 
                     try:
                         input_parses = self.hp.parse_hgvs_variant(formatted_variant)
+                        print(input_parses, input_parses.ac, type(input_parses.ac))
+                        my_variant.hgvs_formatted = input_parses
                     except hgvs.exceptions.HGVSError as e:
-                        error = str(e)
-                    if error == 'false':
-                        if 'LRG' in input_parses.ac:
-                            input_parses.ac.replace('T', 't')
-                        else:
-                            input_parses.ac = input_parses.ac.upper()
-                        if hasattr(input_parses.posedit.edit, 'alt'):
-                            if input_parses.posedit.edit.alt is not None:
-                                input_parses.posedit.edit.alt = input_parses.posedit.edit.alt.upper()
-                        if hasattr(input_parses.posedit.edit, 'ref'):
-                            if input_parses.posedit.edit.ref is not None:
-                                input_parses.posedit.edit.ref = input_parses.posedit.edit.ref.upper()
-                        formatted_variant = str(input_parses)
-                        input = str(input_parses)
-                        pass
-                    else:
-                        my_variant.warnings += ': ' + str(error)
+                        my_variant.warnings += ': ' + str(e)
                         logger.warning(error)
                         continue
 
-                    """
-                    ENST support needs to be re-evaluated, but is very low priority
-                    ENST not supported by ACMG and is under review by HGVS
-                    """
-                    if re.match('^ENST', str(input_parses)):
-                        trap_ens_in = str(input_parses)
-                        sim_tx = self.hdp.get_similar_transcripts(input_parses.ac)
+                    if 'LRG' in my_variant.hgvs_formatted.ac:
+                        my_variant.hgvs_formatted.ac.replace('T', 't')
+                    else:
+                        my_variant.hgvs_formatted.ac = my_variant.hgvs_formatted.ac.upper()
+                    if hasattr(my_variant.hgvs_formatted.posedit.edit, 'alt'):
+                        if my_variant.hgvs_formatted.posedit.edit.alt is not None:
+                            my_variant.hgvs_formatted.posedit.edit.alt = my_variant.hgvs_formatted.posedit.edit.alt.upper()
+                    if hasattr(my_variant.hgvs_formatted.posedit.edit, 'ref'):
+                        if my_variant.hgvs_formatted.posedit.edit.ref is not None:
+                            my_variant.hgvs_formatted.posedit.edit.ref = my_variant.hgvs_formatted.posedit.edit.ref.upper()
+                    formatted_variant = str(my_variant.hgvs_formatted)
+                    input = str(my_variant.hgvs_formatted)
+
+                    my_variant.set_quibble(str(my_variant.hgvs_formatted))
+
+                    # ENST support needs to be re-evaluated, but is very low priority
+                    # ENST not supported by ACMG and is under review by HGVS
+                    if my_variant.refsource == 'ENS':
+                        trap_ens_in = str(my_variant.hgvs_formatted)
+                        sim_tx = self.hdp.get_similar_transcripts(my_variant.hgvs_formatted.ac)
                         for line in sim_tx:
-                            if str(line[2]) == 'True' and str(line[3]) == 'True' and str(line[4]) == 'True' and str(
-                                    line[5]) == 'True' and str(line[6]) == 'True':
-                                input_parses.ac = (line[1])
-                                input = str(input_parses)
-                                formatted_variant = input
+                            print(line)
+                            if line[2] and line[3] and line[4] and line[5] and line[6]:
+                                print("RESET")
+                                my_variant.hgvs_formatted.ac = line[1]
+                                my_variant.set_quibble(str(my_variant.hgvs_formatted))
+                                formatted_variant = my_variant.quibble
                                 break
-                        if re.match('^ENST', str(input_parses)):
-                            error = 'Unable to map ' + str(input_parses.ac) + ' to an equivalent RefSeq transcript'
-                            my_variant.warnings += ': ' + str(error)
-                            logger.warning(str(error))
+                        if my_variant.refsource == 'ENS':
+                            error = 'Unable to map ' + my_variant.hgvs_formatted.ac + ' to an equivalent RefSeq transcript'
+                            my_variant.warnings += ': ' + error
+                            logger.warning(error)
                             continue
                         else:
-                            my_variant.warnings += ': ' + str(trap_ens_in) + ' automapped to equivalent RefSeq transcript ' + formatted_variant
-                            logger.warning(str(trap_ens_in) + ' automapped to equivalent RefSeq transcript ' + formatted_variant)
+                            my_variant.warnings += ': ' + str(trap_ens_in) + ' automapped to equivalent RefSeq transcript ' + my_variant.quibble
+                            logger.warning(str(trap_ens_in) + ' automapped to equivalent RefSeq transcript ' + my_variant.quibble)
                     logger.trace("HVGS acceptance test passed", my_variant)
+
                     # Check whether supported genome build is requested for non g. descriptions
                     historic_assembly = 'false'
                     mapable_assemblies = {
-                        'GRCh37': 'true',
-                        'GRCh38': 'true',
-                        'NCBI36': 'false'
+                        'GRCh37': True,
+                        'GRCh38': True,
+                        'NCBI36': False
                     }
                     is_mapable = mapable_assemblies.get(primary_assembly)
-                    if is_mapable == 'true':
+                    if is_mapable:
 
                         # These objects cannot be moved outside of the main function because they gather data from the
                         # iuser input e.g. alignment method and genome build
@@ -473,19 +402,18 @@ class Mixin(vvMixinConverters.Mixin):
 
                     else:
                         error = 'Mapping of ' + formatted_variant + ' to genome assembly ' + primary_assembly + ' is not supported'
-                        my_variant.warnings += ': ' + str(error)
-                        logger.warning(str(error))
+                        my_variant.warnings += ': ' + error
+                        logger.warning(error)
                         continue
+
                     # Catch interval end > interval start
-                    """
-                    hgvs did/does not handle 3' UTR position ordering well. This function
-                    ensures that end pos is not > start pos wrt 3' UTRs. 
-                    Also identifies some variants which span into the downstream sequence
-                    i.e. out of bounds
-                    """
+                    # hgvs did/does not handle 3' UTR position ordering well. This function
+                    # ensures that end pos is not > start pos wrt 3' UTRs.
+                    # Also identifies some variants which span into the downstream sequence
+                    # i.e. out of bounds
                     astr = re.compile(r'\*')
-                    if astr.search(str(input_parses.posedit)):
-                        input_parses_copy = copy.deepcopy(input_parses)
+                    if '*' in str(my_variant.hgvs_formatted.posedit):
+                        input_parses_copy = copy.deepcopy(my_variant.hgvs_formatted)
                         input_parses_copy.type = "c"
                         # Map to n. position
                         # Create easy variant mapper (over variant mapper) and splign locked evm
@@ -496,86 +424,36 @@ class Mixin(vvMixinConverters.Mixin):
                         else:
                             if to_n.posedit.pos.end.base < to_n.posedit.pos.start.base:
                                 error = 'Interval end position < interval start position '
-                                my_variant.warnings += ': ' + str(error)
-                                logger.warning(str(error))
+                                my_variant.warnings += ': ' + error
+                                logger.warning(error)
                                 continue
-                    elif input_parses.posedit.pos.end.base < input_parses.posedit.pos.start.base:
-                        error = 'Interval end position ' + str(
-                            input_parses.posedit.pos.end.base) + ' < interval start position ' + str(
-                            input_parses.posedit.pos.start.base)
-                        my_variant.warnings += ': ' + str(error)
-                        logger.warning(str(error))
+                    elif my_variant.hgvs_formatted.posedit.pos.end.base < my_variant.hgvs_formatted.posedit.pos.start.base:
+                        error = 'Interval end position ' + str(my_variant.hgvs_formatted.posedit.pos.end.base) + \
+                                ' < interval start position ' + str(my_variant.hgvs_formatted.posedit.pos.start.base)
+                        my_variant.warnings += ': ' + error
+                        logger.warning(error)
                         continue
-                    else:
-                        pass
 
                     # Catch missing version number in refseq
                     ref_type = re.compile(r"^N\w\w\d")
                     is_version = re.compile(r"\d\.\d")
                     en_type = re.compile(r'^ENS')
                     lrg_type = re.compile(r'LRG')
-                    if (ref_type.search(str(input_parses)) and is_version.search(str(input_parses))) or (
-                            en_type.search(str(input_parses))):
-                        pass
-                    else:
-                        if lrg_type.search(str(input_parses)):
-                            pass
-                        if ref_type.search(str(input_parses)):
-                            error = 'RefSeq variant accession numbers MUST include a version number'
-                            my_variant.warnings += ': ' + str(error)
-                            continue
+                    if my_variant.refsource == 'RefSeq' and not is_version.search(str(my_variant.hgvs_formatted)):
+                        error = 'RefSeq variant accession numbers MUST include a version number'
+                        my_variant.warnings += ': ' + str(error)
+                        continue
                     logger.trace("HVGS interval/version mapping complete", my_variant)
 
                     # handle LRG inputs
-                    """
-                    LRG and LRG_t reference sequence identifiers need to be replaced with 
-                    equivalent RefSeq identifiers. The lookup data is stored in the 
-                    VariantValidator  MySQL database
-                    """
-                    if re.match(r'^LRG', str(input_parses)):
-                        if re.match(r'^LRG\d+', str(input_parses.ac)):
-                            string = str(input_parses.ac)
-                            reference = string.replace('LRG', 'LRG_')
-                            input_parses.ac = reference
-                            caution = string + ' updated to ' + reference
-                        if not re.match(r'^LRG_\d+', str(input_parses)):
-                            pass
-                        elif re.match(r'^LRG_\d+:g.', str(input_parses)) or re.match(r'^LRG_\d+:p.',
-                                                                                    str(input_parses)) or re.match(
-                            r'^LRG_\d+:c.', str(input_parses)) or re.match(r'^LRG_\d+:n.', str(input_parses)):
-                            lrg_reference, variation = str(input_parses).split(':')
-                            refseqgene_reference = self.db.get_RefSeqGeneID_from_lrgID(lrg_reference)
-                            if refseqgene_reference != 'none':
-                                input_parses.ac = refseqgene_reference
-                                formatted_variant = str(input_parses)
-                                input = str(input_parses)
-                                stash_input = input
-                                if caution == '':
-                                    caution = lrg_reference + ':' + variation + ' automapped to ' + refseqgene_reference + ':' + variation
-                                else:
-                                    caution = caution + ': ' + lrg_reference + ':' + variation + ' automapped to ' + refseqgene_reference + ':' + variation
-                                my_variant.warnings += ': ' + str(caution)
-                                logger.warning(str(caution))
-                        elif re.match(r'^LRG_\d+t\d+:c.', str(input_parses)) or re.match(r'^LRG_\d+t\d+:n.',
-                                                                                        str(input_parses)) or re.match(
-                            r'^LRG_\d+t\d+:p.', str(input_parses)) or re.match(r'^LRG_\d+t\d+:g.', str(input_parses)):
-                            lrg_reference, variation = str(input_parses).split(':')
-                            refseqtranscript_reference = self.db.get_RefSeqTranscriptID_from_lrgTranscriptID(
-                                lrg_reference)
-                            if refseqtranscript_reference != 'none':
-                                input_parses.ac = refseqtranscript_reference
-                                formatted_variant = str(input_parses)
-                                input = str(input_parses)
-                                stash_input = input
-                                if caution == '':
-                                    caution = lrg_reference + ':' + variation + ' automapped to ' + refseqtranscript_reference + ':' + variation
-                                else:
-                                    caution = caution + ': ' + lrg_reference + ':' + variation + ' automapped to ' + refseqtranscript_reference + ':' + variation
-                                my_variant.warnings += ': ' + str(caution)
-                                logger.warning(str(caution))
-                        else:
-                            pass
-                    logger.trace("LRG check for conversion to refseq completed", my_variant)
+
+                    if my_variant.refsource == 'LRG':
+                        format_converters.lrg_to_refseq(my_variant, self)
+                        formatted_variant = my_variant.quibble
+                        input = str(my_variant.hgvs_formatted)
+                        stash_input = input
+                        logger.trace("LRG check for conversion to refseq completed", my_variant)
+
                     # Additional Incorrectly input variant capture training
                     """
                     Evolving list of common mistakes, see sections below
@@ -7365,7 +7243,6 @@ class Mixin(vvMixinConverters.Mixin):
                                 continue
 
                         if multi_g != []:
-                            print((multi_g, type(multi_g)))
 
                             multi_gen_vars = multi_g  # '|'.join(multi_g)
                         else:
