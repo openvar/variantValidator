@@ -2989,6 +2989,14 @@ class TestVariants(object):
         variant = 'NC_000004.11:g.140811111_140811122CTGCTGCTGCTG='
         results = vv.validator(variant, 'GRCh37', 'all')
         print results
+        
+        """
+        This variant represents a 12bp gap in the transcript
+        This is the false negative of ExAC variant ExAC http://exac.broadinstitute.org/variant/4-140811063-TTGCTGCTGCTGC-T
+        The GRCh37 chr4 has an additional 12 bases not found in the transcript
+        GRCh38 also harbours a 12bp gap. Note the gap in each case is wrt NM_018717.4. NM_018717.5 is corrected to match the genome
+        Approved by PCF, 2019-03-19 07:45
+        """        
 
         assert 'NM_018717.5:c.1468_1479=' in results.keys()
         assert results['NM_018717.5:c.1468_1479=']['hgvs_lrg_transcript_variant'] == ''
@@ -3030,6 +3038,14 @@ class TestVariants(object):
         variant = 'NC_000004.11:g.140811117_140811122del'
         results = vv.validator(variant, 'GRCh37', 'all')
         print results
+        
+        """
+        This variant represents a 12bp gap in the transcript
+        This variant spans into the 3' flank of ExAC variant ExAC http://exac.broadinstitute.org/variant/4-140811063-TTGCTGCTGCTGC-T
+        The GRCh37 chr4 has an additional 12 bases not found in the transcript
+        GRCh38 also harbours a 12bp gap. Note the gap in each case is wrt NM_018717.4. NM_018717.5 is corrected to match the genome
+        Approved by PCF, 2019-03-19 07:52
+        """
 
         assert results['flag'] == 'gene_variant'
         assert 'NM_018717.5:c.1521_1526del' in results.keys()
@@ -3071,6 +3087,14 @@ class TestVariants(object):
         variant = 'NC_000004.11:g.140811111_140811117del'
         results = vv.validator(variant, 'GRCh37', 'all')
         print results
+        
+        """
+        This variant represents a 12bp gap in the transcript
+        This variant spans into the 5' flank of ExAC variant ExAC http://exac.broadinstitute.org/variant/4-140811063-TTGCTGCTGCTGC-T
+        The GRCh37 chr4 has an additional 12 bases not found in the transcript
+        GRCh38 also harbours a 12bp gap. Note the gap in each case is wrt NM_018717.4. NM_018717.5 is corrected to match the genome
+        Approved by PCF, 2019-03-19 07:57
+        """
 
         assert 'NM_018717.5:c.1473_1479del' in results.keys()
         assert results['NM_018717.5:c.1473_1479del']['hgvs_lrg_transcript_variant'] == ''
@@ -3113,6 +3137,14 @@ class TestVariants(object):
         results = vv.validator(variant, 'GRCh37', 'all')
         print results
 
+        """
+        This variant represents a 12bp gap in the transcript
+        This variant os a base substitution close to the 3' flank of ExAC variant ExAC http://exac.broadinstitute.org/variant/4-140811063-TTGCTGCTGCTGC-T
+        The GRCh37 chr4 has an additional 12 bases not found in the transcript
+        GRCh38 also harbours a 12bp gap. Note the gap in each case is wrt NM_018717.4. NM_018717.5 is corrected to match the genome
+        Approved by PCF, 2019-03-19 08:02
+        """
+
         assert results['flag'] == 'gene_variant'
         assert 'NM_018717.4:c.1472_1473insTCAGCAGCAGCA' in results.keys()
         assert results['NM_018717.4:c.1472_1473insTCAGCAGCAGCA']['hgvs_lrg_transcript_variant'] == ''
@@ -3154,6 +3186,14 @@ class TestVariants(object):
         results = vv.validator(variant, 'GRCh37', 'all')
         print results
 
+        """
+        This variant represents a 3bp gap in the chromosome
+        GRCh38 chr 2 lacks 3 bases found in the overlapping transcript
+		GRCh38 is corrected
+		The variant also shows correction of the ins into a dup
+        Approved by PCF, 2019-03-19 08:06
+        """
+
         assert 'NM_015120.4:c.1573_1579=' in results.keys()
         assert results['NM_015120.4:c.1573_1579=']['hgvs_lrg_transcript_variant'] == 'LRG_741t1:c.1573_1579='
         assert results['NM_015120.4:c.1573_1579=']['refseqgene_context_intronic_sequence'] == ''
@@ -3177,6 +3217,15 @@ class TestVariants(object):
         variant = '9-136132908-T-TC'
         results = vv.validator(variant, 'GRCh37', 'all')
         print results
+
+        """
+        This variant represents shows the location od a gap in the ABO gene
+        
+        GRCh38 chr 2 lacks 3 bases found in the overlapping transcript
+		GRCh38 is corrected
+		The variant also shows correction of the ins into a dup
+        Approved by PCF, 2019-03-19 08:06
+        """		
 
         assert results['flag'] == 'gene_variant'
         assert 'NM_020469.2:c.260_262=' in results.keys()
