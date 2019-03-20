@@ -35,6 +35,13 @@ class Variant(object):
         self.refsource = None
         self.reftype = None
 
+        self.hn = None
+        self.reverse_normalizer = None
+        self.evm = None
+        self.no_norm_evm = None
+        self.min_evm = None
+        self.lose_vm = None
+
     def is_ascii(self):
         """
         Instead of the previous test for unicode rich text characters.

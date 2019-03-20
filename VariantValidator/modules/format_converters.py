@@ -331,7 +331,7 @@ def refseq_catch(variant, validator, select_transcripts_dict_plus_version):
     return skipvar
 
 
-def vcf2hgvs_stage4(variant, validator, hn):
+def vcf2hgvs_stage4(variant, validator):
     """
     VCF2HGVS conversion step 4 has two purposes
     1. VCF is frequently inappropriately converted into HGVS like descriptions
@@ -433,7 +433,7 @@ def vcf2hgvs_stage4(variant, validator, hn):
                         skipvar = True
 
                 try:
-                    not_delins = str(hn.normalize(hgvs_not_delins))
+                    not_delins = str(variant.hn.normalize(hgvs_not_delins))
                 except hgvs.exceptions.HGVSError as e:
                     error = str(e)
                     if re.search('Normalization of intronic variants is not supported', error):
@@ -521,7 +521,7 @@ def intronic_converter(variant):
     logger.trace("HVGS typesetting complete", variant)
 
 
-def allele_parser(variant, validation, hn):
+def allele_parser(variant, validation):
     """
     HGVS allele string parsing function Occurance #1
     Takes a single HGVS allele description and separates each allele into a
@@ -573,7 +573,7 @@ def allele_parser(variant, validation, hn):
                 pass
         try:
             # Submit to allele extraction function
-            alleles = validation.hgvs_alleles(variant.quibble, hn)
+            alleles = validation.hgvs_alleles(variant.quibble, variant.hn)
             variant.warnings += ': ' + 'Automap has extracted possible variant descriptions'
             logger.resub('Automap has extracted possible variant descriptions, resubmitting')
             for allele in alleles:

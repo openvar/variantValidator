@@ -54,6 +54,7 @@ from . import vvMixinConverters
 from .vvFunctions import VariantValidatorError
 from . import variant
 from . import format_converters
+from . import use_checking
 
 
 class Mixin(vvMixinConverters.Mixin):
@@ -145,17 +146,26 @@ class Mixin(vvMixinConverters.Mixin):
                 logger.traceStart(my_variant)
 
                 # Create Normalizers
+                my_variant.hn = hgvs.normalizer.Normalizer(self.hdp,
+                                                cross_boundaries=False,
+                                                shuffle_direction=3,
+                                                alt_aln_method=alt_aln_method
+                                                )
                 hn = hgvs.normalizer.Normalizer(self.hdp,
                                                 cross_boundaries=False,
                                                 shuffle_direction=3,
                                                 alt_aln_method=alt_aln_method
                                                 )
+                my_variant.reverse_normalizer = hgvs.normalizer.Normalizer(self.hdp,
+                                                                cross_boundaries=False,
+                                                                shuffle_direction=5,
+                                                                alt_aln_method=alt_aln_method
+                                                                )
                 reverse_normalizer = hgvs.normalizer.Normalizer(self.hdp,
                                                                 cross_boundaries=False,
                                                                 shuffle_direction=5,
                                                                 alt_aln_method=alt_aln_method
                                                                 )
-
                 # This will be used to order the final output
                 if not my_variant.order:
                     ordering = ordering + 1
@@ -240,7 +250,7 @@ class Mixin(vvMixinConverters.Mixin):
                         continue
 
                     # Find not_sub type in input e.g. GGGG>G
-                    toskip = format_converters.vcf2hgvs_stage4(my_variant, self, hn)
+                    toskip = format_converters.vcf2hgvs_stage4(my_variant, self)
                     if toskip:
                         continue
 
@@ -253,7 +263,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                     # Extract variants from HGVS allele descriptions
                     # http://varnomen.hgvs.org/recommendations/DNA/variant/alleles/
-                    toskip = format_converters.allele_parser(my_variant, self, hn)
+                    toskip = format_converters.allele_parser(my_variant, self)
                     if toskip:
                         continue
 
@@ -377,6 +387,13 @@ class Mixin(vvMixinConverters.Mixin):
                         # They initiate quickly, so no need to move them unnecessarily
 
                         # Create easy variant mapper (over variant mapper) and splign locked evm
+                        my_variant.evm = hgvs.assemblymapper.AssemblyMapper(self.hdp,
+                                                                 assembly_name=primary_assembly,
+                                                                 alt_aln_method=alt_aln_method,
+                                                                 normalize=True,
+                                                                 replace_reference=True
+                                                                 )
+
                         evm = hgvs.assemblymapper.AssemblyMapper(self.hdp,
                                                                  assembly_name=primary_assembly,
                                                                  alt_aln_method=alt_aln_method,
@@ -385,6 +402,12 @@ class Mixin(vvMixinConverters.Mixin):
                                                                  )
 
                         # Setup a reverse normalize instance and non-normalize evm
+                        my_variant.no_norm_evm = hgvs.assemblymapper.AssemblyMapper(self.hdp,
+                                                                         assembly_name=primary_assembly,
+                                                                         alt_aln_method=alt_aln_method,
+                                                                         normalize=False,
+                                                                         replace_reference=True
+                                                                         )
                         no_norm_evm = hgvs.assemblymapper.AssemblyMapper(self.hdp,
                                                                          assembly_name=primary_assembly,
                                                                          alt_aln_method=alt_aln_method,
@@ -393,7 +416,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                                          )
 
                         # Create a specific minimal evm with no normalizer and no replace_reference
-                        min_evm = hgvs.assemblymapper.AssemblyMapper(self.hdp,
+                        my_variant.min_evm = hgvs.assemblymapper.AssemblyMapper(self.hdp,
                                                                      assembly_name=primary_assembly,
                                                                      alt_aln_method=alt_aln_method,
                                                                      normalize=False,
@@ -455,50 +478,16 @@ class Mixin(vvMixinConverters.Mixin):
                         logger.trace("LRG check for conversion to refseq completed", my_variant)
 
                     # Additional Incorrectly input variant capture training
-                    """
-                    Evolving list of common mistakes, see sections below
-                    """
-                    # NM_ .g
-                    if (re.search(r'^NM_', formatted_variant) or re.search(r'^NR_', formatted_variant)) and re.search(r':g.', formatted_variant):
-                        suggestion = input.replace(':g.', ':c.')
-                        error = 'Transcript reference sequence input as genomic (g.) reference sequence. Did you mean ' + suggestion + '?'
-                        my_variant.warnings += ': ' + error
-                        logger.warning(error)
-                        continue
-                    # NR_ c.
-                    if re.search(r'^NR_', input) and re.search(r':c.', input):
-                        suggestion = input.replace(':c.', ':n.')
-                        error = 'Non-coding transcript reference sequence input as coding (c.) reference sequence. Did you mean ' + suggestion + '?'
-                        my_variant.warnings += ': ' + error
-                        logger.warning(error)
-                        continue
-                    # NM_ n.
-                    if re.search(r'^NM_', input) and re.search(r':n.', input):
-                        suggestion = input.replace(':n.', ':c.')
-                        error = 'Coding transcript reference sequence input as non-coding transcript (n.) reference sequence. Did you mean ' + suggestion + '?'
-                        my_variant.warnings += ': ' + error
-                        logger.warning(error)
-                        continue
+                    if my_variant.refsource == 'RefSeq':
+                        toskip = use_checking.refseq_common_mistakes(my_variant)
+                        if toskip:
+                            continue
+                        logger.trace("Passed 'common mistakes' catcher", my_variant)
 
-                    # NM_ NC_ NG_ NR_ p.
-                    if (re.search(r'^NM_', formatted_variant) or re.search(r'^NR_', formatted_variant) or re.search(r'^NC_', formatted_variant) or re.search(
-                            r'^NG_', formatted_variant)) and re.search(r':p.', formatted_variant):
-                        issue_link = 'http://varnomen.hgvs.org/recommendations/protein/'
-                        error = 'Using a nucleotide reference sequence (NM_ NR_ NG_ NC_) to specify protein-level (p.) variation is not HGVS compliant. Please select an appropriate protein reference sequence (NP_)'
-                        my_variant.warnings += ': ' + error
-                        logger.warning(error)
-                        continue
-
-                    # NG_ c or NC_c..
-                    if (re.search(r'^NG_', formatted_variant) or re.search(r'^NC_', formatted_variant)) and re.search(r':c.', formatted_variant):
-                        suggestion = ': For additional assistance, submit ' + str(formatted_variant) + ' to VariantValidator'
-                        error = 'NG_:c.PositionVariation descriptions should not be used unless a transcript reference sequence has also been provided e.g. NG_(NM_):c.PositionVariation' + suggestion
-                        my_variant.warnings += ': ' + error
-                        logger.warning(error)
-                        continue
-
-                    logger.trace("Passed 'common mistakes' catcher", my_variant)
                     # Primary validation of the input
+                    toskip = use_checking.structure_checks(my_variant, self)
+                    print(toskip, my_variant.hgvs_formatted, my_variant.quibble)
+
                     """
                     An evolving set of variant structure and content searches which identify 
                     and warn users about inappropriate use of HGVS
