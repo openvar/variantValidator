@@ -1474,13 +1474,6 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                                 offset = int(tot_end_pos) - int(boundary)
                                                 input_parses.posedit.pos.end.offset = offset
 
-                                            # Create a lose vm instance
-                                            lose_vm = hgvs.variantmapper.VariantMapper(hdp,
-                                                                                       replace_reference=True,
-                                                                                       prevalidation_level=None
-                                                                                       )
-
-
                                             report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm,
                                                                               primary_assembly, lose_vm, hp, hn, sf, nr_vm)
                                             error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant: Instead use ' + valstr(

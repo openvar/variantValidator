@@ -575,7 +575,7 @@ def myc_to_p(hgvs_transcript, evm, hdp, hp, hn, vm, sf, re_to_p):
                                     hgvs_transcript.posedit.pos.end.base >= 1 and hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset == 0)) \
                                 and not re.search('\*', str(hgvs_transcript.posedit.pos)):
                             residue_one = sf.fetch_seq(associated_protein_accession, start_i=1 - 1, end_i=1)
-                            threed_residue_one # was (MET1?) = links.one_to_three(residue_one)
+                            threed_residue_one = links.one_to_three(residue_one)  # was (MET1?) = links.one_to_three(residue_one)
                             r_one_report = '(%s1?)' % threed_residue_one # was (MET1?)
                             hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
                                                                                 type='p', posedit=r_one_report)
