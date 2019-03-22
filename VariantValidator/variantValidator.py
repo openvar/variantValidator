@@ -8173,7 +8173,10 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
 
                     if len(multi_gen_vars) != 0:
                         for alt_gen_var in multi_gen_vars:
-                            alt_gen_var = hn.normalize(alt_gen_var)
+                            try:
+                                alt_gen_var = hn.normalize(alt_gen_var)
+                            except hgvs.exceptions.HGVSInvalidVariantError:
+                                continue
                             for build in genome_builds:
                                 test = va_scb.supported_for_mapping(alt_gen_var.ac, build)
                                 if test == 'true':
