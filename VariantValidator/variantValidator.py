@@ -104,7 +104,6 @@ else:
     CONF_ROOT = os.environ.get('CONF_ROOT')
 # Define global configuration variables
 HGVS_SEQREPO_DIR = "Unspecified"
-HGVS_SEQREPO_DIR = "Unspecified"
 UTA_DB_URL = 'Unspecified'
 VALIDATOR_DB_URL = 'Unspecified'
 PYLIFTOVER_DIR = 'Unspecified'
@@ -163,9 +162,6 @@ def loadConfigFile():
         traceString="trace"
     logString = levelString+" "+consoleString+" "+fileString+" "+traceString
     os.environ["VALIDATOR_DEBUG"] = logString
-    #print "ac", os.environ["VALIDATOR_DEBUG"]
-    #print("ls", logString)
-
 
 # Custom Exceptions
 class variantValidatorError(Exception):
@@ -1473,13 +1469,6 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                                 input_parses.posedit.pos.end.base = boundary
                                                 offset = int(tot_end_pos) - int(boundary)
                                                 input_parses.posedit.pos.end.offset = offset
-
-                                            # Create a lose vm instance
-                                            lose_vm = hgvs.variantmapper.VariantMapper(hdp,
-                                                                                       replace_reference=True,
-                                                                                       prevalidation_level=None
-                                                                                       )
-
 
                                             report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm,
                                                                               primary_assembly, lose_vm, hp, hn, sf, nr_vm)
@@ -8184,6 +8173,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
 
                     if len(multi_gen_vars) != 0:
                         for alt_gen_var in multi_gen_vars:
+                            alt_gen_var = hn.normalize(alt_gen_var)
                             for build in genome_builds:
                                 test = va_scb.supported_for_mapping(alt_gen_var.ac, build)
                                 if test == 'true':
