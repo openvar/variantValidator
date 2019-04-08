@@ -40,14 +40,15 @@ before_install:
   - mysql -e 'CREATE DATABASE validator;'
   - df -h
 
-  - psql -c "CREATE USER uta_admin WITH ENCRYPTED PASSWORD 'uta_admin'"
-  - psql -c 'CREATE DATABASE uta WITH OWNER=uta_admin TEMPLATE=template0;' -U postgres
-  - wget http://dl.biocommons.org/uta/uta_20180821.pgd.gz
-  - gzip -cdq uta_20180821.pgd.gz | PGPASSWORD=uta_admin psql -U uta_admin -v ON_ERROR_STOP=0 -d uta -Eae
-  - df -h
+#  - psql -c "CREATE USER uta_admin WITH ENCRYPTED PASSWORD 'uta_admin'"
+#  - psql -c 'CREATE DATABASE uta WITH OWNER=uta_admin TEMPLATE=template0;' -U postgres
+#  - wget http://dl.biocommons.org/uta/uta_20180821.pgd.gz
+#  - gzip -cdq uta_20180821.pgd.gz | PGPASSWORD=uta_admin psql -U uta_admin -v ON_ERROR_STOP=0 -d uta -Eae
+#  - df -h
 
   - ls "$HOME"/seqrepo
   - if [ ! -d "$HOME/seqrepo/2018-08-21" ]; then rsync -HavP dl.biocommons.org::seqrepo/2018-08-21/ "$HOME"/seqrepo/2018-08-21/; fi
+  - ls "$HOME"/seqrepo
 
   # Copy configuration file
   - cp configuration/travis.ini "$HOME"/.variantvalidator
