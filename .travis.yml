@@ -20,7 +20,7 @@ addons:
 cache:
   directories:
     - $HOME/seqrepo
-  timeout: 1000
+  timeout: 10000
 
 before_install:
 
