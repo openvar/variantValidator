@@ -15,9 +15,11 @@ class Variant(object):
         else:
             self.quibble = quibble
         self.hgvs_formatted = None
+        self.hgvs_genomic = None
+        self.stashed = None
 
         self.warnings = warnings
-        self.description = ''
+        self.description = ''  # hgnc_gene_info variable
         self.coding = ''
         self.coding_g = ''
         self.genomic_r = ''
@@ -26,6 +28,7 @@ class Variant(object):
         self.write = write
         self.primary_assembly = primary_assembly
         self.order = order
+        self.output_type_flag = 'warning'
 
         self.test_stash_tx_left = None
         self.test_stash_tx_right = None

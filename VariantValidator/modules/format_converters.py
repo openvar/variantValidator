@@ -1,5 +1,6 @@
 import re
 import hgvs
+import copy
 from .vvLogging import logger
 from .variant import Variant
 from . import vvChromosomes
@@ -629,3 +630,102 @@ def lrg_to_refseq(variant, validator):
                 caution += lrg_reference + ':' + variation + ' automapped to ' + refseqgene_reference + ':' + variation
                 variant.warnings += ': ' + caution
                 logger.warning(caution)
+
+
+def mitochondrial(variant, validator):
+    """Will check if variant is mitochondrial and if so it will reformat the type to 'm' and save a value to the variant
+    hgvs_genomic attribute"""
+
+    if variant.reftype == ':m.' or variant.hgvs_formatted.ac == 'NC_012920.1' or \
+            variant.hgvs_formatted.ac == 'NC_001807.4':
+
+        hgvs_mito = copy.deepcopy(variant.hgvs_formatted)
+        if hgvs_mito.type == 'g' and (hgvs_mito.ac == 'NC_012920.1' or hgvs_mito.ac == 'NC_001807.4'):
+            hgvs_mito.type = 'm'
+        try:
+            validator.vr.validate(hgvs_mito)
+        except hgvs.exceptions.HGVSError as e:
+            error = str(e)
+            variant.warnings += ': ' + error
+            logger.warning(error)
+            return True
+        except KeyError as e:
+            error = 'Currently unable to validate ' + hgvs_mito.ac + ' sequence variation'
+            variant.warnings += ': ' + error
+            logger.warning(error)
+            return True
+        else:
+            # Any transcripts?
+            rel_var = validator.relevant_transcripts(hgvs_mito, variant.evm, validator.alt_aln_method,
+                                                     variant.reverse_normalizer)
+            variant.hgvs_genomic = hgvs_mito
+            if len(rel_var) == 0:
+                variant.genomic_g = fn.valstr(hgvs_mito)
+                variant.description = 'Homo sapiens mitochondrion, complete genome'
+                logger.info('Homo sapiens mitochondrion, complete genome')
+                return True
+    return False
+
+
+def proteins(variant, validator):
+    """Handle protein sequences"""
+    if variant.reftype == ':p.':
+        error = None
+        # Try to validate the variant
+        try:
+            hgvs_object = validator.hp.parse_hgvs_variant(variant.hgvs_formatted)
+        except hgvs.exceptions.HGVSError as e:
+            error = str(e)
+        try:
+            validator.vr.validate(hgvs_object)
+        except hgvs.exceptions.HGVSError as e:
+            error = str(e)
+        if error:
+            variant.warnings += ': ' + error
+            logger.warning(error)
+            return True
+        else:
+            # Get accurate descriptions from the relevant databases
+            # RefSeq databases
+            if validator.alt_aln_method != 'genebuild':
+                # Gene description  - requires GenBank search to get all the required info, i.e. transcript variant ID
+                # accession number
+                accession = hgvs_object.ac
+                # Look for the accession in our database
+                # Connect to database and send request
+                # record = validator.entrez_efetch(db="nuccore", id=accession, rettype="gb", retmode="text")
+
+                try:
+                    validator.vr.validate(hgvs_object)
+                except hgvs.exceptions.HGVSError as e:
+                    error = str(e)
+                else:
+                    error = str(
+                        hgvs_object) + ' is HGVS compliant and contains a valid reference amino acid description'
+                reason = 'Protein level variant descriptions are not fully supported due to redundancy in the genetic code'
+                variant.warnings += ': ' + reason + ': ' + error
+                variant.protein = str(hgvs_object)
+                logger.warning(reason + ": " + error)
+                return True
+    return False
+
+
+def rna(variant, validator):
+    """
+    convert r, into c.
+    """
+    if variant.reftype == ':r.':
+        hgvs_input = validator.hp.parse_hgvs_variant(str(variant.hgvs_formatted))  # Traps the hgvs variant of r. for further use
+        # Change to coding variant
+        variant.reftype = ':c.'
+        # Change input to reflect!
+        try:
+            hgvs_c = validator.va_func.hgvs_r_to_c(hgvs_input)
+        except hgvs.exceptions.HGVSDataNotAvailableError as e:
+            error = str(e)
+            variant.warnings += ': ' + str(error)
+            logger.warning(str(error))
+            return True
+        variant.hgvs_formatted = hgvs_c
+
+    return False
