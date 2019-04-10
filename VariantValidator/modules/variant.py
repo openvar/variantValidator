@@ -18,6 +18,7 @@ class Variant(object):
         self.hgvs_genomic = None
         self.stashed = None
         self.trapped = None
+        self.input_parses = None
 
         self.warnings = warnings
         self.description = ''  # hgnc_gene_info variable

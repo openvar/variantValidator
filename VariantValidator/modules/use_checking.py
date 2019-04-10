@@ -64,6 +64,7 @@ def structure_checks(variant, validator):
     auto corrected and will cause the downstream functions to return errors
     """
     input_parses = validator.hp.parse_hgvs_variant(variant.quibble)
+    variant.input_parses = input_parses
     if input_parses.type == 'g':
         check = structure_checks_g(variant, validator)
         if check:
@@ -88,13 +89,13 @@ def structure_checks_g(variant, validator):
     """
     if not variant.quibble.startswith('NC_') and not variant.quibble.startswith('NG_') \
             and not variant.quibble.startswith('NT_') and not variant.quibble.startswith('NW_'):
-        error = 'Invalid reference sequence identifier (' + variant.hgvs_formatted.ac + ')'
+        error = 'Invalid reference sequence identifier (' + variant.input_parses.ac + ')'
         variant.warnings += ': ' + str(error)
         logger.warning(error)
         return True
 
     try:
-        validator.vr.validate(variant.hgvs_formatted)
+        validator.vr.validate(variant.input_parses)
     except Exception as e:
         error = str(e)
         variant.warnings += ': ' + str(error)
@@ -103,7 +104,7 @@ def structure_checks_g(variant, validator):
 
     # Additional test
     try:
-        variant.hn.normalize(variant.hgvs_formatted)
+        variant.hn.normalize(variant.input_parses)
     except hgvs.exceptions.HGVSError as e:
         error = str(e)
         variant.warnings += ': ' + str(error)
@@ -122,17 +123,17 @@ def structure_checks_c(variant, validator):
     :return:
     """
 
-    if '*' in str(variant.hgvs_formatted) or 'c.-' in str(variant.hgvs_formatted):
+    if '*' in str(variant.input_parses) or 'c.-' in str(variant.input_parses):
         # Catch variation in UTRs
         # These should be in the sequence so can be directly validated. Need to pass to n.
         try:
-            validator.vr.validate(variant.hgvs_formatted)
+            validator.vr.validate(variant.input_parses)
         except hgvs.exceptions.HGVSError as e:
             error = str(e)
             if 'datums is ill-defined' in error:
-                called_ref = variant.hgvs_formatted.posedit.edit.ref
+                called_ref = variant.input_parses.posedit.edit.ref
                 try:
-                    to_n = variant.evm.c_to_n(variant.hgvs_formatted)
+                    to_n = variant.evm.c_to_n(variant.input_parses)
                 except hgvs.exceptions.HGVSInvalidVariantError as e:
                     error = str(e)
                     variant.warnings += ': ' + error
@@ -146,45 +147,46 @@ def structure_checks_c(variant, validator):
                     logger.warning(error)
                     return True
                 else:
-                    variant.hgvs_formatted.posedit.edit.ref = ''
+                    variant.input_parses.posedit.edit.ref = ''
+                    variant.hgvs_formatted = variant.input_parses
             else:
                 if 'bounds' in error or 'intronic variant' in error:
                     try:
-                        variant.hn.normalize(variant.hgvs_formatted)
+                        variant.hn.normalize(variant.input_parses)
                     except hgvs.exceptions.HGVSError:
                         fn.exceptPass()
 
                     if 'bounds' in error:
                         try:
-                            identity_info = validator.hdp.get_tx_identity_info(variant.hgvs_formatted.ac)
+                            identity_info = validator.hdp.get_tx_identity_info(variant.input_parses.ac)
                             ref_start = identity_info[3]
                             ref_end = identity_info[4]
-                            if '-' in str(variant.hgvs_formatted.posedit.pos.start) and variant.hgvs_formatted.posedit.pos.start.offset == 0:
+                            if '-' in str(variant.input_parses.posedit.pos.start) and variant.input_parses.posedit.pos.start.offset == 0:
                                 # upstream positions
                                 boundary = -ref_start
-                                remainder = variant.hgvs_formatted.posedit.pos.start.base - boundary
-                                variant.hgvs_formatted.posedit.pos.start.base = boundary
-                                variant.hgvs_formatted.posedit.pos.start.offset = remainder
-                            if '-' in str(variant.hgvs_formatted.posedit.pos.end) and variant.hgvs_formatted.posedit.pos.end.offset == 0:
+                                remainder = variant.input_parses.posedit.pos.start.base - boundary
+                                variant.input_parses.posedit.pos.start.base = boundary
+                                variant.input_parses.posedit.pos.start.offset = remainder
+                            if '-' in str(variant.input_parses.posedit.pos.end) and variant.input_parses.posedit.pos.end.offset == 0:
                                 boundary = -ref_start
-                                remainder = variant.hgvs_formatted.posedit.pos.end.base - boundary
-                                variant.hgvs_formatted.posedit.pos.end.base = boundary
-                                variant.hgvs_formatted.posedit.pos.end.offset = remainder
-                            if '*' in str(variant.hgvs_formatted.posedit.pos.start) and variant.hgvs_formatted.posedit.pos.start.offset == 0:
+                                remainder = variant.input_parses.posedit.pos.end.base - boundary
+                                variant.input_parses.posedit.pos.end.base = boundary
+                                variant.input_parses.posedit.pos.end.offset = remainder
+                            if '*' in str(variant.input_parses.posedit.pos.start) and variant.input_parses.posedit.pos.start.offset == 0:
                                 # downstream positions
-                                tot_end_pos = str(variant.hgvs_formatted.posedit.pos.start).replace('*', '')
-                                ts_seq = validator.sf.fetch_seq(variant.hgvs_formatted.ac)
+                                tot_end_pos = str(variant.input_parses.posedit.pos.start).replace('*', '')
+                                ts_seq = validator.sf.fetch_seq(variant.input_parses.ac)
                                 boundary = len(ts_seq) - ref_end
-                                variant.hgvs_formatted.posedit.pos.start.base = boundary
+                                variant.input_parses.posedit.pos.start.base = boundary
                                 offset = int(tot_end_pos) - boundary
-                                variant.hgvs_formatted.posedit.pos.start.offset = offset
-                            if '*' in str(variant.hgvs_formatted.posedit.pos.end) and variant.hgvs_formatted.posedit.pos.end.offset == 0:
-                                tot_end_pos = str(variant.hgvs_formatted.posedit.pos.end).replace('*', '')
-                                ts_seq = validator.sf.fetch_seq(variant.hgvs_formatted.ac)
+                                variant.input_parses.posedit.pos.start.offset = offset
+                            if '*' in str(variant.input_parses.posedit.pos.end) and variant.input_parses.posedit.pos.end.offset == 0:
+                                tot_end_pos = str(variant.input_parses.posedit.pos.end).replace('*', '')
+                                ts_seq = validator.sf.fetch_seq(variant.input_parses.ac)
                                 boundary = len(ts_seq) - ref_end
-                                variant.hgvs_formatted.posedit.pos.end.base = boundary
+                                variant.input_parses.posedit.pos.end.base = boundary
                                 offset = int(tot_end_pos) - boundary
-                                variant.hgvs_formatted.posedit.pos.end.offset = offset
+                                variant.input_parses.posedit.pos.end.offset = offset
 
                             # Create a lose vm instance
                             variant.lose_vm = hgvs.variantmapper.VariantMapper(validator.hdp,
@@ -192,7 +194,7 @@ def structure_checks_c(variant, validator):
                                                                                prevalidation_level=None
                                                                                )
 
-                            report_gen = validator.myevm_t_to_g(variant.hgvs_formatted, variant.no_norm_evm,
+                            report_gen = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm,
                                                                 variant.primary_assembly, variant.hn)
                             error = 'Using a transcript reference sequence to specify a variant position that lies ' \
                                     'outside of the reference sequence is not HGVS-compliant: ' \
@@ -204,15 +206,15 @@ def structure_checks_c(variant, validator):
                         return True
 
         try:
-            variant.hgvs_formatted = variant.evm.c_to_n(variant.hgvs_formatted)
+            variant.input_parses = variant.evm.c_to_n(variant.input_parses)
         except hgvs.exceptions.HGVSError as e:
             error = str(e)
             variant.warnings += ': ' + error
             logger.warning(e)
             return True
 
-        if 'n.1-' in str(variant.hgvs_formatted):
-            input_parses = variant.evm.n_to_c(variant.hgvs_formatted)
+        if 'n.1-' in str(variant.input_parses):
+            input_parses = variant.evm.n_to_c(variant.input_parses)
             error = 'Using a transcript reference sequence to specify a variant position that lies outside of the ' \
                     'reference sequence is not HGVS-compliant. Instead use '
             genomic_position = validator.myevm_t_to_g(input_parses, variant.no_norm_evm, variant.primary_assembly,
@@ -223,54 +225,54 @@ def structure_checks_c(variant, validator):
             return True
 
         # Re-map input_parses back to c. variant
-        variant.hgvs_formatted = variant.evm.n_to_c(variant.hgvs_formatted)
+        variant.input_parses = variant.evm.n_to_c(variant.input_parses)
 
         # Intronic positions in UTRs
-        if re.search(r'\d\-\d', str(variant.hgvs_formatted)) or re.search(r'\d\+\d', str(variant.hgvs_formatted)):
+        if re.search(r'\d\-\d', str(variant.input_parses)) or re.search(r'\d\+\d', str(variant.input_parses)):
             # Can we go c-g-c
             try:
-                to_genome = validator.myevm_t_to_g(variant.hgvs_formatted, variant.no_norm_evm,
+                to_genome = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm,
                                                    variant.primary_assembly, variant.hn)
-                to_tx = variant.evm.g_to_t(to_genome, variant.hgvs_formatted.ac)
+                to_tx = variant.evm.g_to_t(to_genome, variant.input_parses.ac)
             except hgvs.exceptions.HGVSInvalidIntervalError as e:
                 error = str(e)
                 if 'bounds' in error:
                     try:
-                        identity_info = validator.hdp.get_tx_identity_info(variant.hgvs_formatted.ac)
+                        identity_info = validator.hdp.get_tx_identity_info(variant.input_parses.ac)
                         ref_start = identity_info[3]
                         ref_end = identity_info[4]
-                        if '-' in str(variant.hgvs_formatted.posedit.pos.start):
+                        if '-' in str(variant.input_parses.posedit.pos.start):
                             # upstream positions
                             boundary = -ref_start
-                            remainder = variant.hgvs_formatted.posedit.pos.start.base - boundary
-                            variant.hgvs_formatted.posedit.pos.start.base = boundary
-                            variant.hgvs_formatted.posedit.pos.start.offset = remainder
-                        if '-' in str(variant.hgvs_formatted.posedit.pos.end):
+                            remainder = variant.input_parses.posedit.pos.start.base - boundary
+                            variant.input_parses.posedit.pos.start.base = boundary
+                            variant.input_parses.posedit.pos.start.offset = remainder
+                        if '-' in str(variant.input_parses.posedit.pos.end):
                             boundary = -ref_start
-                            remainder = variant.hgvs_formatted.posedit.pos.end.base - boundary
-                            variant.hgvs_formatted.posedit.pos.end.base = boundary
-                            variant.hgvs_formatted.posedit.pos.end.offset = remainder
-                        if '*' in str(variant.hgvs_formatted.posedit.pos.start):
+                            remainder = variant.input_parses.posedit.pos.end.base - boundary
+                            variant.input_parses.posedit.pos.end.base = boundary
+                            variant.input_parses.posedit.pos.end.offset = remainder
+                        if '*' in str(variant.input_parses.posedit.pos.start):
                             # downstream positions
-                            tot_end_pos = str(variant.hgvs_formatted.posedit.pos.start).replace('*', '')
-                            ts_seq = validator.sf.fetch_seq(variant.hgvs_formatted.ac)
+                            tot_end_pos = str(variant.input_parses.posedit.pos.start).replace('*', '')
+                            ts_seq = validator.sf.fetch_seq(variant.input_parses.ac)
                             boundary = len(ts_seq) - ref_end
-                            variant.hgvs_formatted.posedit.pos.start.base = boundary
+                            variant.input_parses.posedit.pos.start.base = boundary
                             te1, te2 = tot_end_pos.split('+')
                             tot_end_pos = int(te1) + int(te2)
                             offset = tot_end_pos - boundary
-                            variant.hgvs_formatted.posedit.pos.start.offset = offset
-                        if '*' in str(variant.hgvs_formatted.posedit.pos.end):
-                            tot_end_pos = str(variant.hgvs_formatted.posedit.pos.end).replace('*', '')
-                            ts_seq = validator.sf.fetch_seq(variant.hgvs_formatted.ac)
+                            variant.input_parses.posedit.pos.start.offset = offset
+                        if '*' in str(variant.input_parses.posedit.pos.end):
+                            tot_end_pos = str(variant.input_parses.posedit.pos.end).replace('*', '')
+                            ts_seq = validator.sf.fetch_seq(variant.input_parses.ac)
                             boundary = len(ts_seq) - ref_end
-                            variant.hgvs_formatted.posedit.pos.end.base = boundary
+                            variant.input_parses.posedit.pos.end.base = boundary
                             te1, te2 = tot_end_pos.split('+')
                             tot_end_pos = int(te1) + int(te2)
                             offset = tot_end_pos - boundary
-                            variant.hgvs_formatted.posedit.pos.end.offset = offset
+                            variant.input_parses.posedit.pos.end.offset = offset
 
-                        report_gen = validator.myevm_t_to_g(variant.hgvs_formatted, variant.no_norm_evm,
+                        report_gen = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm,
                                                        variant.primary_assembly, variant.hn)
                         error = 'Using a transcript reference sequence to specify a variant position that lies ' \
                                 'outside of the reference sequence is not HGVS-compliant. Instead use '\
@@ -292,22 +294,22 @@ def structure_checks_c(variant, validator):
                             continue
                         gens.append(el_l[-1])
                     acs = '; '.join(gens)
-                    error = 'Cannot map ' + fn.valstr(variant.hgvs_formatted) + ' to a genomic position. '\
-                            + variant.hgvs_formatted.ac + ' can only be partially aligned to genomic reference ' \
+                    error = 'Cannot map ' + fn.valstr(variant.input_parses) + ' to a genomic position. '\
+                            + variant.input_parses.ac + ' can only be partially aligned to genomic reference ' \
                                                           'sequences ' + acs
                     variant.warnings += ': ' + error
                     logger.warning(error)
                     return True
 
-    elif re.search(r'\d-', str(variant.hgvs_formatted)) or re.search(r'\d\+', str(variant.hgvs_formatted)):
+    elif re.search(r'\d-', str(variant.input_parses)) or re.search(r'\d\+', str(variant.input_parses)):
         # Quick look at syntax validation
         try:
-            validator.vr.validate(variant.hgvs_formatted)
+            validator.vr.validate(variant.input_parses)
         except hgvs.exceptions.HGVSInvalidVariantError as e:
             error = str(e)
             if 'bounds' in error:
                 try:
-                    report_gen = validator.myevm_t_to_g(variant.hgvs_formatted, variant.no_norm_evm,
+                    report_gen = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm,
                                                         variant.primary_assembly, variant.hn)
                 except hgvs.exceptions.HGVSError:
                     fn.exceptPass()
@@ -322,9 +324,9 @@ def structure_checks_c(variant, validator):
                 logger.warning(error)
                 return True
             elif 'base start position must be <= end position' in error:
-                correction = copy.deepcopy(variant.hgvs_formatted)
-                st = variant.hgvs_formatted.posedit.pos.start
-                ed = variant.hgvs_formatted.posedit.pos.end
+                correction = copy.deepcopy(variant.input_parses)
+                st = variant.input_parses.posedit.pos.start
+                ed = variant.input_parses.posedit.pos.end
                 correction.posedit.pos.start = ed
                 correction.posedit.pos.end = st
                 error = error + ': Did you mean ' + str(correction) + '?'
@@ -335,11 +337,11 @@ def structure_checks_c(variant, validator):
         # Create a specific minimal evm with no normalizer and no replace_reference
         # Have to use this method due to potential multi chromosome error, note normalizes but does not replace sequence
         try:
-            output = validator.noreplace_myevm_t_to_g(variant.hgvs_formatted, variant.evm, validator.hdp,
+            output = validator.noreplace_myevm_t_to_g(variant.input_parses, variant.evm, validator.hdp,
                                                       variant.primary_assembly, validator.vm, variant.hn, validator.hp,
                                                       validator.sf, variant.no_norm_evm)
         except hgvs.exceptions.HGVSDataNotAvailableError:
-            tx_ac = variant.hgvs_formatted.ac
+            tx_ac = variant.input_parses.ac
             try:
                 gene_symbol = validator.db.get_gene_symbol_from_transcriptID(tx_ac)
             except:
@@ -357,22 +359,22 @@ def structure_checks_c(variant, validator):
         except ValueError as e:
             error = str(e)
             if '> end' in error:
-                error = 'Interval start position ' + str(variant.hgvs_formatted.posedit.pos.start) + ' > interval end '\
-                        'position ' + str(variant.hgvs_formatted.posedit.pos.end)
+                error = 'Interval start position ' + str(variant.input_parses.posedit.pos.start) + ' > interval end '\
+                        'position ' + str(variant.input_parses.posedit.pos.end)
                 variant.warnings += ': ' + error
                 logger.warning(error)
                 return True
         except hgvs.exceptions.HGVSInvalidVariantError as e:
             error = str(e)
             if 'base start position must be <= end position' in error:
-                # correction = copy.deepcopy(variant.hgvs_formatted)
-                # st = variant.hgvs_formatted.posedit.pos.start
-                # ed = variant.hgvs_formatted.posedit.pos.end
+                # correction = copy.deepcopy(variant.input_parses)
+                # st = variant.input_parses.posedit.pos.start
+                # ed = variant.input_parses.posedit.pos.end
                 # correction.posedit.pos.start = ed
                 # correction.posedit.pos.end = st
                 # error = error + ': Did you mean ' + str(correction) + '?'
-                error = 'Interval start position ' + str(variant.hgvs_formatted.posedit.pos.start) + ' > interval end' \
-                        ' position ' + str(variant.hgvs_formatted.posedit.pos.end)
+                error = 'Interval start position ' + str(variant.input_parses.posedit.pos.start) + ' > interval end' \
+                        ' position ' + str(variant.input_parses.posedit.pos.end)
                 variant.warnings += ': ' + error
                 logger.warning(error)
                 return True
@@ -382,7 +384,7 @@ def structure_checks_c(variant, validator):
                 return True
 
         try:
-            variant.evm.g_to_t(output, variant.hgvs_formatted.ac)
+            variant.evm.g_to_t(output, variant.input_parses.ac)
         except hgvs.exceptions.HGVSError as e:
             error = str(e)
             variant.warnings += ': ' + error
@@ -400,21 +402,21 @@ def structure_checks_c(variant, validator):
     else:
         # All other variation
         try:
-            validator.vr.validate(variant.hgvs_formatted)
+            validator.vr.validate(variant.input_parses)
         except hgvs.exceptions.HGVSUnsupportedOperationError:
             fn.exceptPass()
         except hgvs.exceptions.HGVSInvalidVariantError as e:
             error = str(e)
             # This catches errors in introns
             if 'base start position must be <= end position' in error:
-                # correction = variant.hgvs_formatted
-                # st = variant.hgvs_formatted.posedit.pos.start
-                # ed = variant.hgvs_formatted.posedit.pos.end
+                # correction = variant.input_parses
+                # st = variant.input_parses.posedit.pos.start
+                # ed = variant.input_parses.posedit.pos.end
                 # correction.posedit.pos.start = ed
                 # correction.posedit.pos.end = st
                 # error = error + ': Did you mean ' + str(correction) + '?'
-                error = 'Interval start position ' + str(variant.hgvs_formatted.posedit.pos.start) + ' > interval end '\
-                        'position ' + str(variant.hgvs_formatted.posedit.pos.end)
+                error = 'Interval start position ' + str(variant.input_parses.posedit.pos.start) + ' > interval end '\
+                        'position ' + str(variant.input_parses.posedit.pos.end)
             variant.warnings += ': ' + error
             logger.warning(error)
             return True
@@ -427,7 +429,7 @@ def structure_checks_c(variant, validator):
         except hgvs.exceptions.HGVSError as e:
             error = str(e)
             if 'bounds' in error:
-                error += ' (' + variant.hgvs_formatted.ac + ')'
+                error += ' (' + variant.input_parses.ac + ')'
                 variant.warnings += ': ' + error
                 logger.warning(error)
                 return True
@@ -441,18 +443,18 @@ def structure_checks_n(variant, validator):
     :param validator:
     :return:
     """
-    if '+' in str(variant.hgvs_formatted) or '-' in str(variant.hgvs_formatted):
+    if '+' in str(variant.input_parses) or '-' in str(variant.input_parses):
         # Catch variation in UTRs
         # These should be in the sequence so can be directly validated. Need to pass to n.
         try:
-            validator.vr.validate(variant.hgvs_formatted)
+            validator.vr.validate(variant.input_parses)
         except hgvs.exceptions.HGVSError as e:
             error = str(e)
             if 'intronic variant' in error:
                 pass
             elif 'datums is ill-defined' in error:
-                called_ref = variant.hgvs_formatted.posedit.edit.ref
-                to_n = variant.evm.c_to_n(variant.hgvs_formatted)
+                called_ref = variant.input_parses.posedit.edit.ref
+                to_n = variant.evm.c_to_n(variant.input_parses)
                 actual_ref = to_n.posedit.edit.ref
                 if called_ref != actual_ref:
                     error = 'Variant reference (' + called_ref + ') does not agree with reference sequence (' + actual_ref + ')'
@@ -460,27 +462,27 @@ def structure_checks_n(variant, validator):
                     logger.warning(str(error))
                     return True
                 else:
-                    variant.hgvs_formatted.posedit.edit.ref = ''
-                    formatted_variant = str(variant.hgvs_formatted)
+                    variant.input_parses.posedit.edit.ref = ''
+                    variant.hgvs_formatted = variant.input_parses
 
             elif 'base must be >=1 for datum = SEQ_START or CDS_END' in error:
                 error = 'The given coordinate is outside the bounds of the reference sequence.'
 
                 try:
-                    if '-' in str(variant.hgvs_formatted.posedit.pos.start):
+                    if '-' in str(variant.input_parses.posedit.pos.start):
                         # upstream positions
                         boundary = 1
-                        remainder = variant.hgvs_formatted.posedit.pos.start.base - boundary
+                        remainder = variant.input_parses.posedit.pos.start.base - boundary
                         remainder = remainder + 1
-                        variant.hgvs_formatted.posedit.pos.start.base = boundary
-                        variant.hgvs_formatted.posedit.pos.start.offset = remainder
-                    if '-' in str(variant.hgvs_formatted.posedit.pos.end):
+                        variant.input_parses.posedit.pos.start.base = boundary
+                        variant.input_parses.posedit.pos.start.offset = remainder
+                    if '-' in str(variant.input_parses.posedit.pos.end):
                         boundary = 1
-                        remainder = variant.hgvs_formatted.posedit.pos.end.base - boundary
+                        remainder = variant.input_parses.posedit.pos.end.base - boundary
                         remainder = remainder + 1
-                        variant.hgvs_formatted.posedit.pos.end.base = boundary
-                        variant.hgvs_formatted.posedit.pos.end.offset = remainder
-                    report_gen = validator.myevm_t_to_g(variant.hgvs_formatted, variant.no_norm_evm, variant.primary_assembly,
+                        variant.input_parses.posedit.pos.end.base = boundary
+                        variant.input_parses.posedit.pos.end.offset = remainder
+                    report_gen = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm, variant.primary_assembly,
                                                    variant.hn)
                     error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + fn.valstr(
                         report_gen)
@@ -494,24 +496,24 @@ def structure_checks_n(variant, validator):
                 logger.warning(error)
                 return True
 
-    if 'n.1-' in str(variant.hgvs_formatted):
+    if 'n.1-' in str(variant.input_parses):
         error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use '
-        genomic_position = validator.myevm_t_to_g(variant.hgvs_formatted, variant.no_norm_evm, variant.primary_assembly,
+        genomic_position = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm, variant.primary_assembly,
                                              variant.hn)
         error = error + fn.valstr(genomic_position)
         variant.warnings += ': ' + error
         logger.warning(error)
         return True
 
-    if re.search(r'\d-', str(variant.hgvs_formatted)) or re.search(r'\d\+', str(variant.hgvs_formatted)):
+    if re.search(r'\d-', str(variant.input_parses)) or re.search(r'\d\+', str(variant.input_parses)):
         # Quick look at syntax validation
         try:
-            validator.vr.validate(variant.hgvs_formatted)
+            validator.vr.validate(variant.input_parses)
         except hgvs.exceptions.HGVSInvalidVariantError as e:
             error = str(e)
             if 'bounds' in error:
                 try:
-                    report_gen = validator.myevm_t_to_g(variant.hgvs_formatted, variant.no_norm_evm, variant.primary_assembly,
+                    report_gen = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm, variant.primary_assembly,
                                                    variant.hn)
                 except hgvs.exceptions.HGVSError as e:
                     fn.exceptPass()
@@ -526,9 +528,9 @@ def structure_checks_n(variant, validator):
                 logger.warning(error)
                 return True
             elif 'base start position must be <= end position' in error:
-                correction = copy.deepcopy(variant.hgvs_formatted)
-                st = variant.hgvs_formatted.posedit.pos.start
-                ed = variant.hgvs_formatted.posedit.pos.end
+                correction = copy.deepcopy(variant.input_parses)
+                st = variant.input_parses.posedit.pos.start
+                ed = variant.input_parses.posedit.pos.end
                 correction.posedit.pos.start = ed
                 correction.posedit.pos.end = st
                 error = error + ': Did you mean ' + str(correction) + '?'
@@ -538,13 +540,13 @@ def structure_checks_n(variant, validator):
                 return True
             elif 'Cannot validate sequence of an intronic variant' in error:
                 try:
-                    test_g = validator.myevm_t_to_g(variant.hgvs_formatted, variant.no_norm_evm, variant.primary_assembly,
+                    test_g = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm, variant.primary_assembly,
                                                variant.hn)
-                    back_to_n = variant.evm.g_to_t(test_g, variant.hgvs_formatted.ac)
+                    back_to_n = variant.evm.g_to_t(test_g, variant.input_parses.ac)
                 except hgvs.exceptions.HGVSError as e:
                     error = str(e)
                     if 'bounds' in error:
-                        report_gen = validator.myevm_t_to_g(variant.hgvs_formatted, variant.no_norm_evm,
+                        report_gen = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm,
                                                        variant.primary_assembly, variant.hn)
                         error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + fn.valstr(
                             report_gen)
@@ -555,10 +557,10 @@ def structure_checks_n(variant, validator):
         # Create a specific minimal evm with no normalizer and no replace_reference
         # Have to use this method due to potential multi chromosome error, note, normalizes but does not replace sequence
         try:
-            output = validator.noreplace_myevm_t_to_g(variant.hgvs_formatted, variant.evm, validator.hdp, variant.primary_assembly, validator.vm, variant.hn,
+            output = validator.noreplace_myevm_t_to_g(variant.input_parses, variant.evm, validator.hdp, variant.primary_assembly, validator.vm, variant.hn,
                                                  validator.hp, validator.sf, variant.no_norm_evm)
         except hgvs.exceptions.HGVSDataNotAvailableError as e:
-            tx_ac = variant.hgvs_formatted.ac
+            tx_ac = variant.input_parses.ac
             try:
                 gene_symbol = validator.db.get_gene_symbol_from_transcriptID(tx_ac)
             except:
@@ -574,23 +576,23 @@ def structure_checks_n(variant, validator):
             error = str(e)
             if '> end' in error:
                 error = 'Interval start position ' + str(
-                    variant.hgvs_formatted.posedit.pos.start) + ' > interval end position ' + str(
-                    variant.hgvs_formatted.posedit.pos.end)
+                    variant.input_parses.posedit.pos.start) + ' > interval end position ' + str(
+                    variant.input_parses.posedit.pos.end)
                 variant.warnings += ': ' + error
                 logger.warning(error)
                 return True
         except hgvs.exceptions.HGVSInvalidVariantError as e:
             error = str(e)
             if 'base start position must be <= end position' in error:
-                correction = copy.deepcopy(variant.hgvs_formatted)
-                st = variant.hgvs_formatted.posedit.pos.start
-                ed = variant.hgvs_formatted.posedit.pos.end
+                correction = copy.deepcopy(variant.input_parses)
+                st = variant.input_parses.posedit.pos.start
+                ed = variant.input_parses.posedit.pos.end
                 correction.posedit.pos.start = ed
                 correction.posedit.pos.end = st
                 error = error + ': Did you mean ' + str(correction) + '?'
                 error = 'Interval start position ' + str(
-                    variant.hgvs_formatted.posedit.pos.start) + ' > interval end position ' + str(
-                    variant.hgvs_formatted.posedit.pos.end)
+                    variant.input_parses.posedit.pos.start) + ' > interval end position ' + str(
+                    variant.input_parses.posedit.pos.end)
                 variant.warnings += ': ' + error
                 logger.warning(error)
                 return True
@@ -605,7 +607,7 @@ def structure_checks_n(variant, validator):
     else:
         # All other variation
         try:
-            validator.vr.validate(variant.hgvs_formatted)
+            validator.vr.validate(variant.input_parses)
         except hgvs.exceptions.HGVSUnsupportedOperationError:
             fn.exceptPass()
         except hgvs.exceptions.HGVSInvalidVariantError as e:
@@ -629,15 +631,15 @@ def structure_checks_n(variant, validator):
             #     continue
             # This catches errors in introns
             if 'base start position must be <= end position' in error:
-                # correction = copy.deepcopy(variant.hgvs_formatted)
-                # st = variant.hgvs_formatted.posedit.pos.start
-                # ed = variant.hgvs_formatted.posedit.pos.end
+                # correction = copy.deepcopy(variant.input_parses)
+                # st = variant.input_parses.posedit.pos.start
+                # ed = variant.input_parses.posedit.pos.end
                 # correction.posedit.pos.start = ed
                 # correction.posedit.pos.end = st
                 # error = error + ': Did you mean ' + str(correction) + '?'
                 error = 'Interval start position ' + str(
-                    variant.hgvs_formatted.posedit.pos.start) + ' > interval end position ' + str(
-                    variant.hgvs_formatted.posedit.pos.end)
+                    variant.input_parses.posedit.pos.start) + ' > interval end position ' + str(
+                    variant.input_parses.posedit.pos.end)
                 logger.warning(error)
                 variant.warnings += ': ' + error
                 return True
@@ -652,7 +654,7 @@ def structure_checks_n(variant, validator):
         except hgvs.exceptions.HGVSError as e:
             error = str(e)
             if 'bounds' in error:
-                error = error + ' (' + variant.hgvs_formatted.ac + ')'
+                error = error + ' (' + variant.input_parses.ac + ')'
                 variant.warnings += ': ' + error
                 logger.warning(error)
                 return True
