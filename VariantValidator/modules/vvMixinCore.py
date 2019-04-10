@@ -505,6 +505,7 @@ class Mixin(vvMixinConverters.Mixin):
                         continue
 
                     trapped_input = str(my_variant.hgvs_formatted)
+                    my_variant.trapped = trapped_input
                     toskip = format_converters.rna(my_variant, self)
                     if toskip:
                         continue
@@ -528,6 +529,17 @@ class Mixin(vvMixinConverters.Mixin):
                     # TYPE = :c.
 
                     if format_type == ':c.' or format_type == ':n.':
+                        print('hgvs_formatted:', my_variant.hgvs_formatted)
+                        print('input:', input)
+                        print('trapped:', my_variant.trapped)
+                        print('quibble:', my_variant.quibble)
+                        print('formatted_variant', formatted_variant)
+                        #print(my_variant.hgvs_formatted, my_variant.trapped, input)
+                        toskip = mappers.transcripts_to_gene(my_variant, self)
+                        print(toskip, my_variant.hgvs_formatted)
+                        if toskip:
+                            print("CARRYING ON")
+                            continue
 
                         # Flag for validation
                         valid = 'false'
