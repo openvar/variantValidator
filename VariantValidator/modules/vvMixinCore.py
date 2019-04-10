@@ -351,6 +351,8 @@ class Mixin(vvMixinConverters.Mixin):
                     formatted_variant = str(my_variant.hgvs_formatted)
                     input = str(my_variant.hgvs_formatted)
 
+                    assert formatted_variant == str(my_variant.hgvs_formatted)
+
                     my_variant.set_quibble(str(my_variant.hgvs_formatted))
 
                     # ENST support needs to be re-evaluated, but is very low priority
@@ -461,6 +463,8 @@ class Mixin(vvMixinConverters.Mixin):
                         logger.warning(error)
                         continue
 
+                    assert formatted_variant == str(my_variant.hgvs_formatted)
+
                     # Catch missing version number in refseq
                     ref_type = re.compile(r"^N\w\w\d")
                     is_version = re.compile(r"\d\.\d")
@@ -488,12 +492,16 @@ class Mixin(vvMixinConverters.Mixin):
                             continue
                         logger.trace("Passed 'common mistakes' catcher", my_variant)
 
+                    assert formatted_variant == str(my_variant.hgvs_formatted)
+
                     # Primary validation of the input
                     toskip = use_checking.structure_checks(my_variant, self)
                     print(toskip, my_variant.hgvs_formatted, my_variant.quibble)
                     if toskip:
                         continue
                     logger.trace("Variant structure and contents searches passed", my_variant)
+
+                    assert formatted_variant == str(my_variant.hgvs_formatted)
 
                     # Mitochondrial variants
                     toskip = format_converters.mitochondrial(my_variant, self)
@@ -510,14 +518,17 @@ class Mixin(vvMixinConverters.Mixin):
                     if toskip:
                         continue
 
+                    assert formatted_variant == str(my_variant.hgvs_formatted)
+
                     # COLLECT gene symbol, name and ACCESSION INFORMATION
                     # Gene symbol
                     if my_variant.reftype != ':g.':
                         toskip = collect_info.get_transcript_info(my_variant, self)
                         print(toskip, my_variant.hgvs_formatted, my_variant.hgvs_genomic)
                         if toskip:
-                            continue    
+                            continue
 
+                    assert formatted_variant == str(my_variant.hgvs_formatted)
                     # Now start mapping from genome to transcripts
 
                     if my_variant.reftype == ':g.':
@@ -526,6 +537,7 @@ class Mixin(vvMixinConverters.Mixin):
                         if toskip:
                             continue
 
+                    assert formatted_variant == str(my_variant.hgvs_formatted)
                     # TYPE = :c.
 
                     if format_type == ':c.' or format_type == ':n.':

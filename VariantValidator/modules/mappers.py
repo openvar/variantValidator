@@ -181,17 +181,17 @@ def transcripts_to_gene(variant, validator):
     """This seems to use the quibble and not the HGVS formatted variant format."""
 
     # Flag for validation
-    valid = 'false'
+    valid = False
     boundary = 'false'
     warning = ''
     caution = ''
     # Collect information for genomic level validation
-    obj = validator.hp.parse_hgvs_variant(str(variant.quibble))
+    obj = validator.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
 
     tx_ac = obj.ac
 
     input = str(variant.quibble)
-    formatted_variant = str(variant.quibble)
+    formatted_variant = str(variant.hgvs_formatted)
 
     # Do we keep it?
     if validator.select_transcripts != 'all':
@@ -318,29 +318,28 @@ def transcripts_to_gene(variant, validator):
 
     elif ':g.' in input:
         if plus.search(formatted_variant) or minus.search(formatted_variant):
-            to_g = validator.genomic(formatted_variant, variant.no_norm_evm, variant.primary_assembly,variant.hn)
-            es = re.compile(r'error')
-            if es.search(str(to_g)):
+            to_g = validator.genomic(formatted_variant, variant.no_norm_evm, variant.primary_assembly, variant.hn)
+            if 'error' in str(to_g):
                 if validator.alt_aln_method != 'genebuild':
-                    error = "If the following error message does not address the issue and the problem persists please contact admin: " + to_g
-                    reason = "An error has occurred"
-                    excep = "%s -- %s -- %s\n" % (time.ctime(), reason, formatted_variant)
-                    variant.warnings += ': ' + str(error)
-                    logger.warning(str(error))
+                    error = "If the following error message does not address the issue and the problem persists " \
+                            "please contact admin: " + str(to_g)
+                    variant.warnings += ': ' + error
+                    logger.warning(error)
                     return True
 
                 else:
-                    error = "If the following error message does not address the issue and the problem persists please contact admin: " + to_g
-                    reason = "An error has occurred"
-                    excep = "%s -- %s -- %s\n" % (time.ctime(), reason, formatted_variant)
-                    variant.warnings += ': ' + str(error)
-                    logger.warning(str(error))
+                    error = "If the following error message does not address the issue and the problem persists " \
+                            "please contact admin: " + str(to_g)
+                    variant.warnings += ': ' + error
+                    logger.warning(error)
                     return True
         else:
             # Insertions at exon boundaries are miss-handled by vm.g_to_t
-            if (
-                    obj.posedit.edit.type == 'ins' and obj.posedit.pos.start.offset == 0 and obj.posedit.pos.end.offset != 0) or (
-                    obj.posedit.edit.type == 'ins' and obj.posedit.pos.start.offset != 0 and obj.posedit.pos.end.offset == 0):
+            if (obj.posedit.edit.type == 'ins' and
+                obj.posedit.pos.start.offset == 0 and
+                obj.posedit.pos.end.offset != 0) or (obj.posedit.edit.type == 'ins' and
+                                                     obj.posedit.pos.start.offset != 0 and
+                                                     obj.posedit.pos.end.offset == 0):
                 formatted_variant = str(obj)
             else:
                 # Normalize was I believe to replace ref. Mapping does this anyway
@@ -355,65 +354,65 @@ def transcripts_to_gene(variant, validator):
             h_variant = variant.hn.normalize(obj)
         except hgvs.exceptions.HGVSUnsupportedOperationError as e:
             error = str(e)
-            if re.match('Unsupported normalization of variants spanning the exon-intron boundary',
-                        error):
+            if 'Unsupported normalization of variants spanning the exon-intron boundary' in error:
                 h_variant = obj
                 formatted_variant = formatted_variant
                 caution = 'This coding sequence variant description spans at least one intron'
-                automap = 'Use of the corresponding genomic sequence variant descriptions may be invalid. Please refer to https://www35.lamp.le.ac.uk/recommendations/'
-                variant.warnings += ': ' + str(caution) + ': ' + str(
-                    automap)
-                logger.warning(str(caution) + ": " + str(automap))
+                automap = 'Use of the corresponding genomic sequence variant descriptions may be invalid. ' \
+                          'Please refer to https://www35.lamp.le.ac.uk/recommendations/'
+                variant.warnings += ': ' + caution + ': ' + automap
+                logger.warning(caution + ": " + automap)
         else:
             formatted_variant = str(h_variant)
 
-        tx_ac = ''
-        # Create a crosser (exon boundary crossed) variant
-        crossed_variant = str(variant.evm._maybe_normalize(obj))
-        if formatted_variant == crossed_variant:
-            cross_variant = 'false'
+        # tx_ac = ''
+        # # Create a crosser (exon boundary crossed) variant
+        # crossed_variant = str(variant.evm._maybe_normalize(obj))
+        # if formatted_variant == crossed_variant:
+        #     cross_variant = 'false'
+        # else:
+        #     hgvs_crossed_variant = variant.evm._maybe_normalize(obj)
+        #     cross_variant = [
+        #         "Coding sequence allowing for exon boundary crossing (default = no crossing)",
+        #         crossed_variant, hgvs_crossed_variant.ac]
+        #     cr_available = 'true'
+        #
+        # # control of cross_variant
+        # if boundary == 'false':
+        #     cross_variant = 'false'
+
+        # Moved this forwards and removed the previous section as it doesn't seem to be used anywhere
+
+        error = validator.validateHGVS(formatted_variant)
+        if error == 'false':
+            valid = True
         else:
-            hgvs_crossed_variant = variant.evm._maybe_normalize(obj)
-            cross_variant = [
-                "Coding sequence allowing for exon boundary crossing (default = no crossing)",
-                crossed_variant, hgvs_crossed_variant.ac]
-            cr_available = 'true'
-
-        # control of cross_variant
-        if boundary == 'false':
-            cross_variant = 'false'
-
-            error = validator.validateHGVS(formatted_variant)
-            if error == 'false':
-                valid = 'true'
-            else:
-                excep = "%s -- %s -- %s\n" % (time.ctime(), error, formatted_variant)
-                variant.warnings += ': ' + str(error)
-                logger.warning(str(error))
-                return True
+            variant.warnings += ': ' + str(error)
+            logger.warning(str(error))
+            return True
 
     # Tackle the plus intronic offset
-    cck = 'false'
-    if (plus.search(input)):
+    cck = False
+    if plus.search(input):
         # Regular expression catches the start of the interval only based on .00+00 pattern
         inv_start = re.compile(r"\.\d+\+\d")
-        if (inv_start.search(input)):
+        if inv_start.search(input):
             # Find pattern e.g. +0000 and assign to a variable
             off_value = re.search(r"(\+\d+)", input)
             off_value = off_value.group(1)
             # Integerise the value and assign to ex_offset
-            ex_offset = int(off_value)
-            cck = 'true'
-    if (minus.search(input)):
+            #ex_offset = int(off_value)
+            cck = True
+    if minus.search(input):
         # Regular expression catches the start of the interval only based on .00-00 pattern
         inv_start = re.compile(r"\.\d+\-\d")
-        if (inv_start.search(input)):
+        if inv_start.search(input):
             # Find pattern e.g. -0000 and assign to a variable
             off_value = re.search(r"(\-\d+)", input)
             off_value = off_value.group(1)
             # Integerise the value and assign to ex_offset
-            ex_offset = int(off_value)
-            cck = 'true'
+            #ex_offset = int(off_value)
+            cck = True
 
     # COORDINATE CHECKER
     # hgvs will handle incorrect coordinates so need to automap errors
@@ -421,13 +420,13 @@ def transcripts_to_gene(variant, validator):
     # Get the desired transcript
     pat_r = re.compile(':r.')
     pat_g = re.compile(':g.')
-    if cck == 'true':
+    if cck:
         dl = re.compile('del')
         # This should only ever hit coding and RNA variants
-        if dl.search(formatted_variant):
-            # RNA
-            if pat_r.search(variant.trapped):
-
+        if 'del' in formatted_variant:
+            # RNA - looking at trapped variant which was saved before RNA converted to cDNA
+            #TODO: rename variant.trapped to variant.pre_RNA_conversion or something similar so it makes sense.
+            if ':r.' in variant.trapped:
                 coding = validator.coding(formatted_variant, validator.hp)
                 trans_acc = coding.ac
                 # c to Genome coordinates - Map the variant to the genome
@@ -436,13 +435,16 @@ def transcripts_to_gene(variant, validator):
                 post_var = validator.myevm_g_to_t(variant.evm, pre_var, trans_acc)
 
                 test = validator.hp.parse_hgvs_variant(input)
-                if post_var.posedit.pos.start.base != test.posedit.pos.start.base or post_var.posedit.pos.end.base != test.posedit.pos.end.base:
-                    caution = 'The entered coordinates do not agree with the intron/exon boundaries for the selected transcript:'
-                    automap = 'Automap has corrected the coordinates to match the intron/exon boundaries for the selected transcript'
+                if post_var.posedit.pos.start.base != test.posedit.pos.start.base or \
+                        post_var.posedit.pos.end.base != test.posedit.pos.end.base:
+                    caution = 'The entered coordinates do not agree with the intron/exon boundaries for the selected ' \
+                              'transcript:'
+                    automap = 'Automap has corrected the coordinates to match the intron/exon boundaries for the ' \
+                              'selected transcript'
                     # automapping of variant completed
                     # Change to rna variant
                     # THERE IS NO SUCH THING AS QUERY. THIS WOULDN'T HAVE WORKED AND ISN'T RUN IN ANY TESTS
-                    query = variant
+                    query = variant  # Deliberately won't work so I can fix this once I have an appropriate test.
                     posedit = query.posedit
                     posedit = posedit.lower()
                     query.posedit = posedit
@@ -521,7 +523,8 @@ def transcripts_to_gene(variant, validator):
                     # Tag the line so that it is not written out
                     variant.write = False
                     # Set the values and append to batch_list
-                    query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=automap, primary_assembly=variant.primary_assembly, order=variant.order)
+                    query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=automap,
+                                    primary_assembly=variant.primary_assembly, order=variant.order)
                     validator.batch_list.append(query)
 
             # Coding
@@ -533,18 +536,15 @@ def transcripts_to_gene(variant, validator):
                 try:
                     pre_var = validator.myevm_t_to_g(pre_var, variant.no_norm_evm, variant.primary_assembly,
                                                 variant.hn)
-                except:
-                    e = sys.exc_info()[1]
+                except Exception as e:
                     error = str(e)
-                    reason = 'Input coordinates may be invalid'
                     if error == 'expected from_start_i <= from_end_i':
-                        error = 'Automap is unable to correct the input exon/intron boundary coordinates, please check your variant description'
-                        variant.warnings += ': ' + str(error)
+                        error = 'Automap is unable to correct the input exon/intron boundary coordinates, ' \
+                                'please check your variant description'
+                        variant.warnings += ': ' + error
                         return True
                     else:
                         fn.exceptPass()
-                else:
-                    fn.exceptPass()
                 # genome back to C coordinates
                 try:
                     post_var = validator.myevm_g_to_t(variant.evm, pre_var, trans_acc)
@@ -554,9 +554,13 @@ def transcripts_to_gene(variant, validator):
                     return True
                 query = post_var
                 test = validator.hp.parse_hgvs_variant(input)
-                if post_var.posedit.pos.start.base != test.posedit.pos.start.base or post_var.posedit.pos.end.base != test.posedit.pos.end.base:
-                    caution = 'The entered coordinates do not agree with the intron/exon boundaries for the selected transcript:'
-                    automap = 'Automap has corrected the coordinates to match the intron/exon boundaries for the selected transcript'
+
+                if post_var.posedit.pos.start.base != test.posedit.pos.start.base or \
+                        post_var.posedit.pos.end.base != test.posedit.pos.end.base:
+                    caution = 'The entered coordinates do not agree with the intron/exon boundaries for the ' \
+                              'selected transcript:'
+                    automap = 'Automap has corrected the coordinates to match the intron/exon boundaries for the ' \
+                              'selected transcript'
                     # automapping of variant completed
                     automap = variant.trapped + ' automapped to ' + str(post_var)
                     variant.warnings += str(caution) + ': ' + str(automap)
@@ -634,7 +638,7 @@ def transcripts_to_gene(variant, validator):
                     query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=automap, primary_assembly=variant.primary_assembly, order=variant.order)
                     validator.batch_list.append(query)
 
-        else:
+        else:  # del not in formatted_variant
             if pat_r.search(variant.trapped):
                 coding = validator.coding(formatted_variant, validator.hp)
                 trans_acc = coding.ac
@@ -879,12 +883,22 @@ def transcripts_to_gene(variant, validator):
             relevant = "Select the automapped transcript and click Submit to analyse"
             rel_var = []
             rel_var.append(query)
+            print(rel_var)
             # Add gene symbols to the link
             cp_rel = copy.copy(rel_var)
+            print(cp_rel)
             del rel_var[:]
+            print(rel_var)
+
+            # TODO: This whole loop is very strange and I don't know what it's supposed to be doing.
+            # It's also repeated in four other places although only this one is run in the tests.
+            # Test variant 197 goes into this loop, but I don't think it's ever going to loop more than once.
+            # Would perhaps be worth testing in a seperate little bit of code or perhaps email Pete?
             for accessions in cp_rel:
+                print(accessions)
                 error = 'false'
                 hgvs_vt = validator.hp.parse_hgvs_variant(str(accessions))
+                print(hgvs_vt)
                 try:
                     tx_id_info = validator.hdp.get_tx_identity_info(str(hgvs_vt.ac))
                 except hgvs.exceptions.HGVSError as e:
@@ -911,8 +925,13 @@ def transcripts_to_gene(variant, validator):
                             current = data['record']['response']['docs'][0]['symbol']
                     accessions = [str(current), str(hgvs_vt)]
                     rel_var.append(accessions)
+                    print(rel_var)
             # Kill current line and append for re-submission
             # Tag the line so that it is not written out
+            print('out of loop')
+            print(hgvs_vt)
+            print(rel_var)
+            raise SystemExit
             variant.write = False
             # Set the values and append to batch_list
             query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=automap, primary_assembly=variant.primary_assembly, order=variant.order)
@@ -921,7 +940,7 @@ def transcripts_to_gene(variant, validator):
     # VALIDATION of intronic variants
     pre_valid = validator.hp.parse_hgvs_variant(input)
     post_valid = validator.hp.parse_hgvs_variant(formatted_variant)
-    if valid == 'false':
+    if not valid:
         error = 'false'
         genomic_validation = str(
             validator.genomic(input, variant.no_norm_evm, variant.primary_assembly,variant.hn) )
@@ -944,14 +963,14 @@ def transcripts_to_gene(variant, validator):
         # Apply validation to intronic variant descriptions (should be valid but make sure)
         error = validator.validateHGVS(genomic_validation)
         if error == 'false':
-            valid = 'true'
+            valid = True
         else:
 
             excep = "%s -- %s -- %s\n" % (time.ctime(), error, formatted_variant)
             variant.warnings += ': ' + str(error)
             return True
 
-    if valid == 'true':
+    if valid:
         var_tab = 'true'
         cores = "HGVS-compliant variant descriptions" + warning
 
