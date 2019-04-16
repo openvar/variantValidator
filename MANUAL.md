@@ -36,7 +36,7 @@ Python scripts importing VariantValidator will have to set up a last few configu
 
 This example script will validate the variant NM_000088.3:c.589G>T and then print the output as a json file. You might need to change it to point to the correct seqrepo directory.
 
-```
+```python
 import json
 import os
 seqrepo_current_version = '2018-08-21'
@@ -49,12 +49,11 @@ from VariantValidator import variantValidator
 variantValidator.my_config()
 ```
 From this point onward, 
-```
+```python
 variant = 'NM_000088.3:c.589G>T'
 select_transcripts = 'all'
 selected_assembly = 'GRCh37'
-validation = variantValidator.validator(variant, selected_assembly, select_transcripts)
-print json.dumps(validation, sort_keys=True, indent=4, separators=(',', ': '))
+variantValidator.validator(variant, selected_assembly, select_transcripts)
 ```
 Much of the script is currently related to setting up environment variables. In future versions, this information will be stored in a local configuration file.
 
@@ -80,7 +79,7 @@ You can select all transcripts by passing 'all', or use multiple transcripts wit
 VariantValidator produces a dictionary output that contain all possible interpretations of the input variant.
 
 View supported transcripts for a gene example: HGNC gene symbol https://www.genenames.org/
-```
+```python
 variantValidator.validator.gene2transcripts('HTT') 
 # RefSeq Transcript
 variantValidator.validator.gene2transcripts(' NM_002111.8') 
@@ -95,7 +94,7 @@ VariantValidator is written to be pytest-compatible. Run
 `pytest`
 in the variant validator root folder, the same as that in which this file resides. The test will take several minutes to complete, but runs through over three hundred common and malformed variants.
 
-Note that you will need to set the environment variables first. 
+Note that you will need to set the environment variables first, and install pytest into your virtual environment. 
 
 ```
 export UTA_DB_URL="postgresql://uta_admin:uta_admin@127.0.0.1/uta/uta_20180821"

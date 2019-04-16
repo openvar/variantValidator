@@ -25,7 +25,7 @@ When installing VariantValidator we recommend using a virtual environment, as it
 #### Via conda  
 After [installing conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/) you can create a new virtual environment with the correct python and sqlite versions by running:
 ```
-$ conda env -f environment.yml
+$ conda env create -f environment.yml
 $ conda activate vvenv
 ```
 The packages required for variant validator to function are now set up in the environment "vvenv".
@@ -46,7 +46,7 @@ To install VariantValidator within your virtual environment run:
 ```
 $ python setup.py install
 ```
-For development purposes, you can install 
+For development purposes, you can use 
 ```
 $ pip install -e .
 ```
@@ -86,10 +86,11 @@ $ wget http://dl.biocommons.org/uta/uta_20180821.pgd.gz
 $ gzip -cdq uta_20180821.pgd.gz | psql -U uta_admin -v ON_ERROR_STOP=0 -d uta -Eae
 ```
 
+If you wish to use the remote, public UTA database, see the instructions [here](https://github.com/biocommons/uta#accessing-the-public-uta-instance).
 
 ## Setting up Seqrepo (SQLite >=3.8)
 
-VariantValidator requires a local SeqRepo databas,. The seqrepo library is already installed, but you'll need to download an actual seqrepo database. These instructions assume you are using your home directory; you can put it anywhere so long as you modify the config.ini file, and environment variables accordingly.
+VariantValidator requires a local SeqRepo database. The seqrepo library is already installed, but you'll need to download an actual seqrepo database. These instructions assume you are using your home directory; you can put it anywhere so long as you modify the config.ini file, and environment variables accordingly.
 ```
 $ mkdir seqrepo
 $ seqrepo --root-directory ~/seqrepo pull -i 2018-08-21
