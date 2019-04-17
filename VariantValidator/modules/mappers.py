@@ -454,75 +454,13 @@ def transcripts_to_gene(variant, validator):
                     variant.warnings += ': ' + str(caution) + ': ' + str(
                         automap)
                     relevant = "Select the automapped transcript and click Submit to analyse"
-                    rel_var = []
-                    rel_var.append(post_var)
-                    # Add gene symbols to the link
-                    cp_rel = copy.copy(rel_var)
-                    del rel_var[:]
-                    for accessions in cp_rel:
-                        error = 'false'
-                        hgvs_vt = validator.hp.parse_hgvs_variant(str(accessions))
-                        try:
-                            tx_id_info = validator.hdp.get_tx_identity_info(str(hgvs_vt.ac))
-                        except hgvs.exceptions.HGVSError as e:
-                            error = str(e)
-                        if error != 'false':
-                            accessions = ['', str(hgvs_vt)]
-                            rel_var.append(accessions)
 
-                        else:
-                            # Get hgnc Gene name from command
-                            data = validator.hgnc_rest(path="/search/prev_symbol/" + tx_id_info[6])
-                            if data['error'] != 'false':
-                                error = data['error']
-                                variant.warnings += ': ' + str(error)
-                                logger.warning(str(error))
-                                continue
-                            else:
-                                # Set the hgnc name correctly
-                                # If the name is correct no record will be found
-                                if int(data['record']['response']['numFound']) == 0:
-                                    current = tx_id_info[6]
-                                else:
-                                    current = data['record']['response']['docs'][0]['symbol']
-                            accessions = [str(current), str(hgvs_vt)]
-                            rel_var.append(accessions)
-                            # Add gene symbols to the link
-                            cp_rel = copy.copy(rel_var)
-                            del rel_var[:]
-                            for accessions in cp_rel:
-                                error = 'false'
-                                hgvs_vt = validator.hp.parse_hgvs_variant(str(accessions[1]))
-                                try:
-                                    tx_id_info = validator.hdp.get_tx_identity_info(str(hgvs_vt.ac))
-                                except hgvs.exceptions.HGVSError as e:
-                                    error = str(e)
-                                if error != 'false':
-                                    accessions = ['', str(hgvs_vt)]
-                                    rel_var.append(accessions)
-                                else:
-                                    # Get hgnc Gene name from command
-                                    data = validator.hgnc_rest(
-                                        path="/search/prev_symbol/" + tx_id_info[6])
-                                    if data['error'] != 'false':
-                                        error = data['error']
-                                        variant.warnings += ': ' + str(
-                                            error)
-                                        logger.warning(str(error))
-                                        continue
-                                    else:
-                                        # Set the hgnc name correctly
-                                        # If the name is correct no record will be found
-                                        if int(data['record']['response']['numFound']) == 0:
-                                            current = tx_id_info[6]
-                                        else:
-                                            current = data['record']['response']['docs'][0]['symbol']
-                                    accessions = [str(current), str(hgvs_vt)]
-                                    rel_var.append(accessions)
                     # Kill current line and append for re-submission
                     # Tag the line so that it is not written out
                     variant.write = False
                     # Set the values and append to batch_list
+                    hgvs_vt = validator.hp.parse_hgvs_variant(str(post_var))
+                    assert str(hgvs_vt) == str(post_var)
                     query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=automap,
                                     primary_assembly=variant.primary_assembly, order=variant.order)
                     validator.batch_list.append(query)
@@ -565,76 +503,13 @@ def transcripts_to_gene(variant, validator):
                     automap = variant.trapped + ' automapped to ' + str(post_var)
                     variant.warnings += str(caution) + ': ' + str(automap)
                     relevant = "Select the automapped transcript and click Submit to analyse"
-                    rel_var = []
-                    rel_var.append(post_var)
-                    # Add gene symbols to the link
-                    cp_rel = copy.copy(rel_var)
-                    del rel_var[:]
-                    for accessions in cp_rel:
-                        error = 'false'
-                        hgvs_vt = validator.hp.parse_hgvs_variant(str(accessions))
-                        try:
-                            tx_id_info = validator.hdp.get_tx_identity_info(str(hgvs_vt.ac))
-                        except hgvs.exceptions.HGVSError as e:
-                            error = str(e)
-                        if error != 'false':
-                            accessions = ['', str(hgvs_vt)]
-                            rel_var.append(accessions)
-                        else:
-                            # Get hgnc Gene name from command
-                            data = validator.hgnc_rest(path="/search/prev_symbol/" + tx_id_info[6])
-                            if data['error'] != 'false':
-                                error = data['error']
-                                variant.warnings += ': ' + str(error)
-                                logger.warning(str(error))
-                                continue
 
-                            else:
-                                # Set the hgnc name correctly
-                                # If the name is correct no record will be found
-                                if int(data['record']['response']['numFound']) == 0:
-                                    current = tx_id_info[6]
-                                else:
-                                    current = data['record']['response']['docs'][0]['symbol']
-                            accessions = [str(current), str(hgvs_vt)]
-                            rel_var.append(accessions)
-                            # Add gene symbols to the link
-                            cp_rel = copy.copy(rel_var)
-                            del rel_var[:]
-                            for accessions in cp_rel:
-                                error = 'false'
-                                hgvs_vt = validator.parse_hgvs_variant(str(accessions[1]))
-                                try:
-                                    tx_id_info = validator.hdp.get_tx_identity_info(str(hgvs_vt.ac))
-                                except hgvs.exceptions.HGVSError as e:
-                                    error = str(e)
-                                if error != 'false':
-                                    accessions = ['', str(hgvs_vt)]
-                                    rel_var.append(accessions)
-                                else:
-                                    # Get hgnc Gene name from command
-                                    data = validator.hgnc_rest(
-                                        path="/search/prev_symbol/" + tx_id_info[6])
-                                    if data['error'] != 'false':
-                                        error = data['error']
-                                        variant.warnings += ': ' + str(
-                                            error)
-                                        logger.warning(str(error))
-                                        continue
-
-                                    else:
-                                        # Set the hgnc name correctly
-                                        # If the name is correct no record will be found
-                                        if int(data['record']['response']['numFound']) == 0:
-                                            current = tx_id_info[6]
-                                        else:
-                                            current = data['record']['response']['docs'][0]['symbol']
-                                    accessions = [str(current), str(hgvs_vt)]
-                                    rel_var.append(accessions)
                     # Kill current line and append for re-submission
                     # Tag the line so that it is not written out
                     variant.write = False
                     # Set the values and append to batch_list
+                    hgvs_vt = validator.hp.parse_hgvs_variant(str(post_var))
+                    assert str(hgvs_vt) == str(post_var)
                     query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=automap, primary_assembly=variant.primary_assembly, order=variant.order)
                     validator.batch_list.append(query)
 
@@ -664,43 +539,13 @@ def transcripts_to_gene(variant, validator):
                     variant.warnings += ': ' + str(caution) + ': ' + str(
                         automap)
                     relevant = "Select the automapped transcript and click Submit to analyse"
-                    rel_var = []
-                    rel_var.append(post_var)
-                    # Add gene symbols to the link
-                    cp_rel = copy.copy(rel_var)
-                    del rel_var[:]
-                    for accessions in cp_rel:
-                        error = 'false'
-                        hgvs_vt = validator.hp.parse_hgvs_variant(str(accessions))
-                        try:
-                            tx_id_info = validator.hdp.get_tx_identity_info(str(hgvs_vt.ac))
-                        except hgvs.exceptions.HGVSError as e:
-                            error = str(e)
-                        if error != 'false':
-                            accessions = ['', str(hgvs_vt)]
-                            rel_var.append(accessions)
-                        else:
-                            # Get hgnc Gene name from command
-                            data = validator.va_func.hgnc_rest(path="/search/prev_symbol/" + tx_id_info[6])
-                            if data['error'] != 'false':
-                                error = data['error']
-                                variant.warnings += ': ' + str(error)
-                                logger.warning(str(error))
-                                continue
 
-                            else:
-                                # Set the hgnc name correctly
-                                # If the name is correct no record will be found
-                                if int(data['record']['response']['numFound']) == 0:
-                                    current = tx_id_info[6]
-                                else:
-                                    current = data['record']['response']['docs'][0]['symbol']
-                            accessions = [str(current), str(hgvs_vt)]
-                            rel_var.append(accessions)
                     # Kill current line and append for re-submission
                     # Tag the line so that it is not written out
                     variant.write = False
                     # Set the values and append to batch_list
+                    hgvs_vt = validator.hp.parse_hgvs_variant(str(post_var))
+                    assert str(hgvs_vt) == str(post_var)
                     query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=automap, primary_assembly=variant.primary_assembly, order=variant.order)
                     validator.batch_list.append(query)
 
@@ -722,44 +567,13 @@ def transcripts_to_gene(variant, validator):
                     variant.warnings += ': ' + str(caution) + ': ' + str(
                         automap)
                     relevant = "Select the automapped transcript and click Submit to analyse"
-                    rel_var = []
-                    rel_var.append(post_var)
-                    # Add gene symbols to the link
-                    cp_rel = copy.copy(rel_var)
-                    del rel_var[:]
-                    for accessions in cp_rel:
-                        error = 'false'
-                        hgvs_vt = validator.hp.parse_hgvs_variant(str(accessions))
-                        try:
-                            tx_id_info = validator.hdp.get_tx_identity_info(str(hgvs_vt.ac))
-                        except hgvs.exceptions.HGVSError as e:
-                            error = str(e)
-                        if error != 'false':
-                            accessions = ['', str(hgvs_vt)]
-                            rel_var.append(accessions)
-                        else:
-                            # Get hgnc Gene name from command
-                            data = validator.hgnc_rest(path="/search/prev_symbol/" + tx_id_info[6])
-                            if data['error'] != 'false':
-                                reason = 'Cannot currently display the required information:'
-                                error = data['error']
-                                variant.warnings += ': ' + str(error)
-                                logger.warning(str(error))
-                                continue
 
-                            else:
-                                # Set the hgnc name correctly
-                                # If the name is correct no record will be found
-                                if int(data['record']['response']['numFound']) == 0:
-                                    current = tx_id_info[6]
-                                else:
-                                    current = data['record']['response']['docs'][0]['symbol']
-                            accessions = [str(current), str(hgvs_vt)]
-                            rel_var.append(accessions)
                     # Kill current line and append for re-submission
                     # Tag the line so that it is not written out
                     variant.write = False
                     # Set the values and append to batch_list
+                    hgvs_vt = validator.hp.parse_hgvs_variant(str(post_var))
+                    assert str(hgvs_vt) == str(post_var)
                     query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=automap, primary_assembly=variant.primary_assembly, order=variant.order)
                     validator.batch_list.append(query)
 
@@ -828,43 +642,13 @@ def transcripts_to_gene(variant, validator):
             automap = variant.trapped + ' automapped to ' + output
             variant.warnings += ': ' + str(caution) + ': ' + str(automap)
             relevant = "Select the automapped transcript and click Submit to analyse"
-            rel_var = []
-            rel_var.append(output)
-            # Add gene symbols to the link
-            cp_rel = copy.copy(rel_var)
-            del rel_var[:]
-            for accessions in cp_rel:
-                error = 'false'
-                hgvs_vt = validator.hp.parse_hgvs_variant(str(accessions))
-                try:
-                    tx_id_info = validator.hdp.get_tx_identity_info(str(hgvs_vt.ac))
-                except hgvs.exceptions.HGVSError as e:
-                    error = str(e)
-                if error != 'false':
-                    accessions = ['', str(hgvs_vt)]
-                    rel_var.append(accessions)
-                else:
-                    # Get hgnc Gene name from command
-                    data = validator.hgnc_rest(path="/search/prev_symbol/" + tx_id_info[6])
-                    if data['error'] != 'false':
-                        error = data['error']
-                        variant.warnings += ': ' + str(error)
-                        logger.warning(str(error))
-                        continue
 
-                    else:
-                        # Set the hgnc name correctly
-                        # If the name is correct no record will be found
-                        if int(data['record']['response']['numFound']) == 0:
-                            current = tx_id_info[6]
-                        else:
-                            current = data['record']['response']['docs'][0]['symbol']
-                    accessions = [str(current), str(hgvs_vt)]
-                    rel_var.append(accessions)
             # Kill current line and append for re-submission
             # Tag the line so that it is not written out
             variant.write = False
             # Set the values and append to batch_list
+            hgvs_vt = validator.hp.parse_hgvs_variant(str(query))
+            assert str(hgvs_vt) == str(query)
             query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=automap, primary_assembly=variant.primary_assembly, order=variant.order)
             validator.batch_list.append(query)
 
@@ -873,7 +657,9 @@ def transcripts_to_gene(variant, validator):
 
     else:
         query = validator.hp.parse_hgvs_variant(formatted_variant)
+        print('Query:', query)
         test = validator.hp.parse_hgvs_variant(input)
+        print('Test:', test)
         if query.posedit.pos != test.posedit.pos:
             caution = 'The variant description ' + input + ' requires alteration to comply with HGVS variant nomenclature:'
             automap = 'Automap has corrected the variant description'
@@ -881,65 +667,21 @@ def transcripts_to_gene(variant, validator):
             automap = str(test) + ' automapped to ' + str(query)
             variant.warnings += ': ' + str(caution) + ': ' + str(automap)
             relevant = "Select the automapped transcript and click Submit to analyse"
-            rel_var = []
-            rel_var.append(query)
-            print(rel_var)
-            # Add gene symbols to the link
-            cp_rel = copy.copy(rel_var)
-            print(cp_rel)
-            del rel_var[:]
-            print(rel_var)
 
-            # TODO: This whole loop is very strange and I don't know what it's supposed to be doing.
-            # It's also repeated in four other places although only this one is run in the tests.
-            # Test variant 197 goes into this loop, but I don't think it's ever going to loop more than once.
-            # Would perhaps be worth testing in a seperate little bit of code or perhaps email Pete?
-            for accessions in cp_rel:
-                print(accessions)
-                error = 'false'
-                hgvs_vt = validator.hp.parse_hgvs_variant(str(accessions))
-                print(hgvs_vt)
-                try:
-                    tx_id_info = validator.hdp.get_tx_identity_info(str(hgvs_vt.ac))
-                except hgvs.exceptions.HGVSError as e:
-                    error = str(e)
-                if error != 'false':
-                    accessions = ['', str(hgvs_vt)]
-                    rel_var.append(accessions)
-                else:
-                    # Get hgnc Gene name from command
-                    data = validator.hgnc_rest(path="/search/prev_symbol/" + tx_id_info[6])
-                    if data['error'] != 'false':
-                        reason = 'Cannot currently display the required information:'
-                        error = data['error']
-                        variant.warnings += ': ' + str(error)
-                        logger.warning(str(error))
-                        continue
-
-                    else:
-                        # Set the hgnc name correctly
-                        # If the name is correct no record will be found
-                        if int(data['record']['response']['numFound']) == 0:
-                            current = tx_id_info[6]
-                        else:
-                            current = data['record']['response']['docs'][0]['symbol']
-                    accessions = [str(current), str(hgvs_vt)]
-                    rel_var.append(accessions)
-                    print(rel_var)
             # Kill current line and append for re-submission
             # Tag the line so that it is not written out
-            print('out of loop')
-            print(hgvs_vt)
-            print(rel_var)
-            raise SystemExit
             variant.write = False
             # Set the values and append to batch_list
+            hgvs_vt = validator.hp.parse_hgvs_variant(str(query))
+            assert str(hgvs_vt) == str(query)
             query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=automap, primary_assembly=variant.primary_assembly, order=variant.order)
             validator.batch_list.append(query)
 
     # VALIDATION of intronic variants
     pre_valid = validator.hp.parse_hgvs_variant(input)
     post_valid = validator.hp.parse_hgvs_variant(formatted_variant)
+
+    # valid is false if the input contains a \d+\d, \d-\d or :g.
     if not valid:
         error = 'false'
         genomic_validation = str(
@@ -3424,5 +3166,14 @@ def transcripts_to_gene(variant, validator):
             variant.warnings += ': ' + 'A more recent version of the selected reference sequence ' + hgvs_coding.ac + ' is available (' + updated_transcript_variant.ac + ')' + ': ' + str(
                 updated_transcript_variant) + ' MUST be fully validated prior to use in reports: select_variants=' + fn.valstr(
                 updated_transcript_variant)
+
+    variant.coding = str(hgvs_coding)
+    variant.genomic_r = str(hgvs_refseq)
+    variant.genomic_g = str(hgvs_genomic)
+    variant.protein = str(hgvs_protein)
+
+    if gap_compensation is True:
+        variant.test_stash_tx_left = test_stash_tx_left
+        variant.test_stash_tx_right = test_stash_tx_right
 
     return False
