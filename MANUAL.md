@@ -92,7 +92,7 @@ variantValidator.validator.hgvs2ref('NM_000088.3:c.589_594del')
 ## Unit testing
 
 VariantValidator is written to be pytest-compatible. Run
-`pytest`
+`pytest -v`
 in the variant validator root folder, the same as that in which this file resides. The test will take several minutes to complete, but runs through over three hundred common and malformed variants.
 
 Note that you will need to set the environment variables first. 

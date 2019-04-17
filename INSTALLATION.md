@@ -15,11 +15,9 @@ We recommend using conda.
 ```
 $ conda create -n VVenv
 $ conda activate VVenv
-$ conda install -c conda-forge sqlite python=2.7 pytest protobuf=3.5.1 docutils python-daemon httplib2 mysql-connector-python mysql-python 
-$ conda install -c auto biotools
+$ conda install -c conda-forge setuptools numpy sqlite pytest protobuf=3.5.1 docutils mysql-connector-python
+$ conda install python=2.7
 $ conda install -c bioconda pyliftover pysam
-$ conda install -c conda-forge setuptools numpy
-$ pip install hgvs==1.1.3
 ```
 The packages required for variant validator to function are now set up in the environment "VVenv".
 
