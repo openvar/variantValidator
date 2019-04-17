@@ -1,0 +1,6 @@
+hgvs==1.1.3
+biocommons.seqrepo>=0.3.5
+httplib2>=0.9.0
+configparser>=3.5.0
+pyliftover>=0.3
+biotools>=0.3.0

@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='VariantValidator',
-    version='0.2.3',
+    version='0.2.3_post1',
     description='API for accurate, mapping and formatting of sequence variants using HGVS nomenclature',
     long_description=open('README.md').read(),
     url='',
@@ -47,13 +47,11 @@ setup(
 
 	# List run-time dependencies here.  These will be installed by pip when the project is installed.
     install_requires=[
-        "hgvs == 1.1.3", # This will install BioPython
-		"biocommons.seqrepo >= 0.3.5",
-		"httplib2 >= 0.9.0",
-		"configparser >= 3.5.0",
-		"pyliftover >= 0.3",
-		"biotools >= 0.3.0",
-		# "mysql_connector >= 2.1.4",  Required but is OS specific. https://dev.mysql.com/downloads/connector/python/
+        "hgvs == 1.1.3",
+		"biocommons.seqrepo >= 0.4.4",
+		"configparser",
+        "mysql-python",
+        "httplib2",
     ],
 )
 
