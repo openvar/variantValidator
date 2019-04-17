@@ -6399,6 +6399,10 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 query_genomic = reverse_normalizer.normalize(hgvs_genomic)
                             except:
                                 query_genomic = hgvs_genomic
+                            # Normalize intronic
+                            if hgvs_coding.posedit.pos.start.offset != 0 and hgvs_coding.posedit.pos.start.offset != 0:
+                                hgvs_coding = evm.g_to_t(query_genomic, saved_hgvs_coding.ac)
+                                coding = valstr(hgvs_coding)
                             # Map to the transcript and test for movement
                             try:
                                 hgvs_seek_var = evm.g_to_t(query_genomic, saved_hgvs_coding.ac)
@@ -6458,6 +6462,10 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 query_genomic = hn.normalize(hgvs_genomic)
                             except:
                                 query_genomic = hgvs_genomic
+                            # Normalize intronic
+                            if hgvs_coding.posedit.pos.start.offset != 0 and hgvs_coding.posedit.pos.start.offset != 0:
+                                hgvs_coding = evm.g_to_t(query_genomic, saved_hgvs_coding.ac)
+                                coding = valstr(hgvs_coding)
                             # Map to the transcript and test for movement
                             try:
                                 hgvs_seek_var = evm.g_to_t(query_genomic, saved_hgvs_coding.ac)
@@ -6487,6 +6495,11 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     validation['warnings'] = validation['warnings'] + ': ' + automap
                                 except NotImplementedError:
                                     exceptPass()
+                            elif hgvs_coding.posedit.pos.start.offset != 0 and hgvs_coding.posedit.pos.start.offset != 0:
+                                print 'yarp'
+                                hgvs_seek_var = evm.g_to_t(query_genomic, saved_hgvs_coding.ac)
+                                seek_var = valstr(hgvs_seek_var)
+                                seek_ac = str(hgvs_seek_var.ac)
                             else:
                                 # Double check protein position by reverse_norm genomic, and normalize back to c. for normalize or not to normalize issue
                                 coding = valstr(hgvs_coding)
