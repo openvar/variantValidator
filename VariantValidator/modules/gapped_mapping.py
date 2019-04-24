@@ -2288,13 +2288,34 @@ def g_to_t_compensation(variant, validator, ori, hgvs_coding, rec_var):
 
     print('in gapped_mapping', hgvs_coding)
 
-    return hgvs_genomic, gapped_transcripts, auto_info, suppress_c_normalization, hgvs_coding
+    return hgvs_genomic, gapped_transcripts, auto_info, suppress_c_normalization, hgvs_coding, hgvs_genomic_possibilities
 
 
-def g_to_t_gapped_mapping_stage2(validator, variant, ori, hgvs_coding, hgvs_genomic_5pr, saved_hgvs_coding, stored_hgvs_not_delins, gapped_transcripts, hgvs_genomic_possibilities, auto_info, reverse_normalized_hgvs_genomic, hgvs_genomic):
+def g_to_t_gapped_mapping_stage2(validator, variant, ori, hgvs_coding, hgvs_genomic, gapped_transcripts, hgvs_genomic_possibilities, auto_info):
     logger.warning('g_to_t gap code 2 active')
 
+    hgvs_genomic_variant = hgvs_genomic
+    reverse_normalized_hgvs_genomic = variant.reverse_normalizer.normalize(hgvs_genomic_variant)
+    hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
+    vcf_dict = vvHGVS.hgvs2vcf(reverse_normalized_hgvs_genomic, variant.primary_assembly,
+                               variant.reverse_normalizer, validator.sf)
+    chr = vcf_dict['chr']
+    pos = vcf_dict['pos']
+    ref = vcf_dict['ref']
+    alt = vcf_dict['alt']
+
+    # Create a VCF call
+    vcf_component_list = [str(chr), str(pos), str(ref), (alt)]
+    vcf_genomic = '-'.join(vcf_component_list)
+
+    # DO NOT DELETE
+    # Generate an end position
+    end = str(int(pos) + len(ref) - 1)
+    pos = str(pos)
+    stored_hgvs_not_delins = validator.hp.parse_hgvs_variant(str(
+        hgvs_genomic_5pr.ac) + ':' + hgvs_genomic_5pr.type + '.' + pos + '_' + end + 'del' + ref + 'ins' + alt)
     orientation = int(ori[0]['alt_strand'])
+    saved_hgvs_coding = copy.deepcopy(hgvs_coding)
 
     # is it in an exon?
     is_it_in_an_exon = 'no'
@@ -2500,6 +2521,7 @@ def g_to_t_gapped_mapping_stage2(validator, variant, ori, hgvs_coding, hgvs_geno
                 disparity_deletion_in = ['transcript', gap_length]
             else:
                 re_capture_tx_variant = []
+                # TODO: Need to check if hgvs_genomic_possibilities is ever not empty!
                 for internal_possibility in hgvs_genomic_possibilities:
 
                     if internal_possibility == '':

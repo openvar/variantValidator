@@ -186,6 +186,7 @@ def transcripts_to_gene(variant, validator):
     warning = ''
     caution = ''
     error = ''
+    gapped_transcripts = ''
     # Collect information for genomic level validation
     obj = validator.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
 
@@ -734,8 +735,9 @@ def transcripts_to_gene(variant, validator):
 
     # Loop out gap finding code under these circumstances!
     if gap_compensation is True:
-
-        hgvs_genomic, gapped_transcripts, auto_info, suppress_c_normalization, hgvs_coding = gapped_mapping.g_to_t_compensation(variant, validator, ori, hgvs_coding, rec_var)
+        print(hgvs_genomic_possibilities)
+        assert hgvs_genomic_possibilities == []
+        hgvs_genomic, gapped_transcripts, auto_info, suppress_c_normalization, hgvs_coding, hgvs_genomic_possibilities = gapped_mapping.g_to_t_compensation(variant, validator, ori, hgvs_coding, rec_var)
 
     else:
         stored_hgvs_genomic_variant = hgvs_genomic
@@ -745,44 +747,44 @@ def transcripts_to_gene(variant, validator):
         genomic = fn.valstr(hgvs_genomic)
 
     # Create pseudo VCF based on amended hgvs_genomic
-    hgvs_genomic_variant = hgvs_genomic
+    # hgvs_genomic_variant = hgvs_genomic
     # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
-    reverse_normalized_hgvs_genomic = variant.reverse_normalizer.normalize(hgvs_genomic_variant)
+    reverse_normalized_hgvs_genomic = variant.reverse_normalizer.normalize(hgvs_genomic)
 
-    hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
-
+    # hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
+    #
     # Create vcf
-    vcf_dict = vvHGVS.hgvs2vcf(reverse_normalized_hgvs_genomic, variant.primary_assembly,
-                               variant.reverse_normalizer, validator.sf)
-    chr = vcf_dict['chr']
-    pos = vcf_dict['pos']
-    ref = vcf_dict['ref']
-    alt = vcf_dict['alt']
+    # vcf_dict = vvHGVS.hgvs2vcf(reverse_normalized_hgvs_genomic, variant.primary_assembly,
+    #                            variant.reverse_normalizer, validator.sf)
+    # chr = vcf_dict['chr']
+    # pos = vcf_dict['pos']
+    # ref = vcf_dict['ref']
+    # alt = vcf_dict['alt']
 
     # Create a VCF call
-    vcf_component_list = [str(chr), str(pos), str(ref), (alt)]
-    vcf_genomic = '-'.join(vcf_component_list)
+    # vcf_component_list = [str(chr), str(pos), str(ref), (alt)]
+    # vcf_genomic = '-'.join(vcf_component_list)
+    #
+    # # DO NOT DELETE
+    # # Generate an end position
+    # end = str(int(pos) + len(ref) - 1)
+    # pos = str(pos)
 
     # DO NOT DELETE
-    # Generate an end position
-    end = str(int(pos) + len(ref) - 1)
-    pos = str(pos)
-
-    # DO NOT DELETE
-    stored_hgvs_not_delins = validator.hp.parse_hgvs_variant(str(
-        hgvs_genomic_5pr.ac) + ':' + hgvs_genomic_5pr.type + '.' + pos + '_' + end + 'del' + ref + 'ins' + alt)
+    #stored_hgvs_not_delins = validator.hp.parse_hgvs_variant(str(
+    #    hgvs_genomic_5pr.ac) + ':' + hgvs_genomic_5pr.type + '.' + pos + '_' + end + 'del' + ref + 'ins' + alt)
 
     # Apply gap code to re-format hgvs_coding
     # Store the current hgvs:c. description
     saved_hgvs_coding = copy.deepcopy(hgvs_coding)
 
     # Get orientation of the gene wrt genome and a list of exons mapped to the genome
-    ori = validator.tx_exons(tx_ac=saved_hgvs_coding.ac, alt_ac=hgvs_genomic_5pr.ac,
+    ori = validator.tx_exons(tx_ac=saved_hgvs_coding.ac, alt_ac=reverse_normalized_hgvs_genomic.ac,
                         alt_aln_method=validator.alt_aln_method)
     orientation = int(ori[0]['alt_strand'])
 
     # Look for normalized variant options that do not match hgvs_coding
-    hgvs_genomic = copy.deepcopy(hgvs_genomic_variant)
+    # hgvs_genomic = copy.deepcopy(hgvs_genomic_variant)
     if orientation == -1:
         # position genomic at its most 5 prime position
         try:
@@ -831,8 +833,8 @@ def transcripts_to_gene(variant, validator):
     logger.warning("gap_compensation_2 = " + str(gap_compensation))
     if gap_compensation is True:
         hgvs_coding = gapped_mapping.g_to_t_gapped_mapping_stage2(
-            validator, variant, ori, hgvs_coding, hgvs_genomic_5pr, saved_hgvs_coding, stored_hgvs_not_delins,
-            gapped_transcripts, hgvs_genomic_possibilities, auto_info, reverse_normalized_hgvs_genomic, hgvs_genomic
+            validator, variant, ori, hgvs_coding, hgvs_genomic, gapped_transcripts, hgvs_genomic_possibilities,
+            auto_info
         )
 
     # OBTAIN THE RefSeqGene coordinates
