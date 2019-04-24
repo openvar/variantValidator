@@ -276,18 +276,10 @@ def transcripts_to_gene(variant, validator):
 
     # Get orientation of the gene wrt genome and a list of exons mapped to the genome
     ori = validator.tx_exons(tx_ac=tx_ac, alt_ac=genomic_ac, alt_aln_method=validator.alt_aln_method)
-    #print('exons:', ori)
-    orientation = int(ori[0]['alt_strand'])
-    intronic_variant = 'false'
 
-    # Collect variant sequence information via normalisation (normalizer) or if intronic via mapping
-    # INTRONIC OFFSETS - Required for Exon table
-    # Variable to collect offset to exon boundary
-    ex_offset = 0
     plus = re.compile(r"\d\+\d")  # finds digit + digit
     minus = re.compile(r"\d\-\d")  # finds digit - digit
 
-    geno = re.compile(r':g.')
     if plus.search(input) or minus.search(input):
         if 'error' in str(to_g):
             if validator.alt_aln_method != 'genebuild':
@@ -410,8 +402,7 @@ def transcripts_to_gene(variant, validator):
     # hgvs will handle incorrect coordinates so need to automap errors
     # Make sure any input intronic coordinates are correct
     # Get the desired transcript
-    pat_r = re.compile(':r.')
-    pat_g = re.compile(':g.')
+
     if cck:
         # This should only ever hit coding and RNA variants
         if 'del' in formatted_variant:
@@ -492,7 +483,6 @@ def transcripts_to_gene(variant, validator):
                     # automapping of variant completed
                     automap = variant.trapped + ' automapped to ' + str(post_var)
                     variant.warnings += str(caution) + ': ' + str(automap)
-                    relevant = "Select the automapped transcript and click Submit to analyse"
 
                     # Kill current line and append for re-submission
                     # Tag the line so that it is not written out
@@ -504,7 +494,7 @@ def transcripts_to_gene(variant, validator):
                     validator.batch_list.append(query)
 
         else:  # del not in formatted_variant
-            if pat_r.search(variant.trapped):
+            if ':r.' in variant.trapped:
                 coding = validator.coding(formatted_variant, validator.hp)
                 trans_acc = coding.ac
                 # c to Genome coordinates - Map the variant to the genome
@@ -529,7 +519,6 @@ def transcripts_to_gene(variant, validator):
                     automap = input + ' automapped to ' + post_var
                     variant.warnings += ': ' + str(caution) + ': ' + str(
                         automap)
-                    relevant = "Select the automapped transcript and click Submit to analyse"
 
                     # Kill current line and append for re-submission
                     # Tag the line so that it is not written out
@@ -557,7 +546,6 @@ def transcripts_to_gene(variant, validator):
                     automap = str(variant.trapped) + ' automapped to ' + str(post_var)
                     variant.warnings += ': ' + str(caution) + ': ' + str(
                         automap)
-                    relevant = "Select the automapped transcript and click Submit to analyse"
 
                     # Kill current line and append for re-submission
                     # Tag the line so that it is not written out
@@ -569,7 +557,7 @@ def transcripts_to_gene(variant, validator):
                     validator.batch_list.append(query)
 
     # If cck not true
-    elif pat_r.search(variant.trapped):
+    elif ':r.' in variant.trapped:
         # set input hgvs object
         hgvs_rna_input = validator.hp.parse_hgvs_variant(variant.trapped)  # Traps the hgvs variant of r. for further use
         inp = str(validator.hgvs_r_to_c(hgvs_rna_input))
@@ -623,7 +611,7 @@ def transcripts_to_gene(variant, validator):
             query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=automap, primary_assembly=variant.primary_assembly, order=variant.order)
             validator.batch_list.append(query)
 
-    elif pat_g.search(input):
+    elif ':g.' in input:
         pass
 
     else:
@@ -670,9 +658,6 @@ def transcripts_to_gene(variant, validator):
     assert valid is True
     # If valid is False we won't reach this part, so I can remove the if condition
 
-    var_tab = 'true'
-    cores = "HGVS-compliant variant descriptions" + warning
-
     # v0.1a1 edit
     if fn.valstr(pre_valid) != fn.valstr(post_valid):
         if variant.reftype == ':g.':
@@ -685,8 +670,6 @@ def transcripts_to_gene(variant, validator):
 
     # Coding sequence - BASED ON NORMALIZED VARIANT IF EXONIC
     hgvs_coding = validator.coding(formatted_variant, validator.hp)
-    boundary = re.compile('exon-intron boundary')
-    spanning = re.compile('exon/intron')
 
     try:
         hgvs_coding = variant.hn.normalize(hgvs_coding)
@@ -717,16 +700,9 @@ def transcripts_to_gene(variant, validator):
 
     # Warn status
     logger.warning("gap_compensation_1 = " + str(gap_compensation))
-    coding = fn.valstr(hgvs_coding)
-
-    # RNA sequence
-    hgvs_rna = copy.deepcopy(hgvs_coding)
-    hgvs_rna = validator.hgvs_c_to_r(hgvs_rna)
-    rna = str(hgvs_rna)
 
     # Genomic sequence
     hgvs_genomic = validator.myevm_t_to_g(hgvs_coding, variant.no_norm_evm, variant.primary_assembly, variant.hn)
-    final_hgvs_genomic = hgvs_genomic
 
     # genomic_possibilities
     # 1. take the simple 3 pr normalized hgvs_genomic
@@ -735,99 +711,21 @@ def transcripts_to_gene(variant, validator):
 
     # Loop out gap finding code under these circumstances!
     if gap_compensation is True:
-        print(hgvs_genomic_possibilities)
-        assert hgvs_genomic_possibilities == []
-        hgvs_genomic, gapped_transcripts, auto_info, suppress_c_normalization, hgvs_coding, hgvs_genomic_possibilities = gapped_mapping.g_to_t_compensation(variant, validator, ori, hgvs_coding, rec_var)
+        hgvs_genomic, gapped_transcripts, auto_info, suppress_c_normalization, hgvs_coding, \
+        hgvs_genomic_possibilities = gapped_mapping.g_to_t_compensation(variant, validator, ori, hgvs_coding, rec_var)
 
     else:
-        stored_hgvs_genomic_variant = hgvs_genomic
         suppress_c_normalization = 'false'
-        gapped_alignment_warning = ''
         auto_info = ''
-        genomic = fn.valstr(hgvs_genomic)
 
     # Create pseudo VCF based on amended hgvs_genomic
     # hgvs_genomic_variant = hgvs_genomic
     # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
     reverse_normalized_hgvs_genomic = variant.reverse_normalizer.normalize(hgvs_genomic)
 
-    # hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
-    #
-    # Create vcf
-    # vcf_dict = vvHGVS.hgvs2vcf(reverse_normalized_hgvs_genomic, variant.primary_assembly,
-    #                            variant.reverse_normalizer, validator.sf)
-    # chr = vcf_dict['chr']
-    # pos = vcf_dict['pos']
-    # ref = vcf_dict['ref']
-    # alt = vcf_dict['alt']
-
-    # Create a VCF call
-    # vcf_component_list = [str(chr), str(pos), str(ref), (alt)]
-    # vcf_genomic = '-'.join(vcf_component_list)
-    #
-    # # DO NOT DELETE
-    # # Generate an end position
-    # end = str(int(pos) + len(ref) - 1)
-    # pos = str(pos)
-
-    # DO NOT DELETE
-    #stored_hgvs_not_delins = validator.hp.parse_hgvs_variant(str(
-    #    hgvs_genomic_5pr.ac) + ':' + hgvs_genomic_5pr.type + '.' + pos + '_' + end + 'del' + ref + 'ins' + alt)
-
-    # Apply gap code to re-format hgvs_coding
-    # Store the current hgvs:c. description
-    saved_hgvs_coding = copy.deepcopy(hgvs_coding)
-
     # Get orientation of the gene wrt genome and a list of exons mapped to the genome
-    ori = validator.tx_exons(tx_ac=saved_hgvs_coding.ac, alt_ac=reverse_normalized_hgvs_genomic.ac,
+    ori = validator.tx_exons(tx_ac=hgvs_coding.ac, alt_ac=reverse_normalized_hgvs_genomic.ac,
                         alt_aln_method=validator.alt_aln_method)
-    orientation = int(ori[0]['alt_strand'])
-
-    # Look for normalized variant options that do not match hgvs_coding
-    # hgvs_genomic = copy.deepcopy(hgvs_genomic_variant)
-    if orientation == -1:
-        # position genomic at its most 5 prime position
-        try:
-            query_genomic = variant.reverse_normalizer.normalize(hgvs_genomic)
-        except:
-            query_genomic = hgvs_genomic
-        # Map to the transcript ant test for movement
-        try:
-            hgvs_seek_var = variant.evm.g_to_t(query_genomic, hgvs_coding.ac)
-        except hgvs.exceptions.HGVSError as e:
-            hgvs_seek_var = saved_hgvs_coding
-        else:
-            seek_var = fn.valstr(hgvs_seek_var)
-            seek_ac = str(hgvs_seek_var.ac)
-        if (hgvs_seek_var.posedit.pos.start.base + hgvs_seek_var.posedit.pos.start.offset) > (
-                hgvs_coding.posedit.pos.start.base + hgvs_coding.posedit.pos.start.offset) and (
-                hgvs_seek_var.posedit.pos.end.base + hgvs_seek_var.posedit.pos.end.offset) > (
-                hgvs_coding.posedit.pos.end.base + hgvs_coding.posedit.pos.end.offset) and rec_var != 'false':
-            pass
-        else:
-            hgvs_seek_var = saved_hgvs_coding
-
-    elif orientation != -1:
-        # position genomic at its most 3 prime position
-        try:
-            query_genomic = variant.hn.normalize(hgvs_genomic)
-        except:
-            query_genomic = hgvs_genomic
-        # Map to the transcript ant test for movement
-        try:
-            hgvs_seek_var = variant.evm.g_to_t(query_genomic, saved_hgvs_coding.ac)
-        except hgvs.exceptions.HGVSError as e:
-            hgvs_seek_var = saved_hgvs_coding
-        else:
-            seek_var = fn.valstr(hgvs_seek_var)
-            seek_ac = str(hgvs_seek_var.ac)
-        if (hgvs_seek_var.posedit.pos.start.base + hgvs_seek_var.posedit.pos.start.offset) > (
-                saved_hgvs_coding.posedit.pos.start.base + saved_hgvs_coding.posedit.pos.start.offset) and (
-                hgvs_seek_var.posedit.pos.end.base + hgvs_seek_var.posedit.pos.end.offset) > (
-                saved_hgvs_coding.posedit.pos.end.base + saved_hgvs_coding.posedit.pos.end.offset):
-            pass
-        else:
-            hgvs_seek_var = saved_hgvs_coding
 
     # Loop out gap finding code under these circumstances!
     logger.warning("gap_compensation_2 = " + str(gap_compensation))
@@ -862,28 +760,18 @@ def transcripts_to_gene(variant, validator):
         except Exception as e:
             # if re.search('insertion length must be 1', error):
             hgvs_refseq = 'RefSeqGene record not available'
-            refseq = 'RefSeqGene record not available'
-            hgvs_refseq_ac = 'RefSeqGene record not available'
-            pass
-        else:
-            refseq = fn.valstr(hgvs_refseq)
-            hgvs_refseq_ac = hgvs_refseq.ac
     else:
         hgvs_refseq = 'RefSeqGene record not available'
-        refseq = 'RefSeqGene record not available'
-        hgvs_refseq_ac = 'RefSeqGene record not available'
 
     # Predicted effect on protein
     protein_dict = validator.myc_to_p(hgvs_coding, variant.evm, re_to_p=False)
     if protein_dict['error'] == '':
         hgvs_protein = protein_dict['hgvs_protein']
-        protein = str(hgvs_protein)
     else:
         error = protein_dict['error']
         variant.warnings += ': ' + str(error)
         if error == 'Cannot identify an in-frame Termination codon in the variant mRNA sequence':
             hgvs_protein = protein_dict['hgvs_protein']
-            protein = str(hgvs_protein)
         else:
             logger.error(error)
             return True
@@ -895,10 +783,6 @@ def transcripts_to_gene(variant, validator):
 
     # Look for normalized variant options that do not match hgvs_coding
     # boundary crossing normalization
-    # Re-Save the required variants
-    hgvs_seek_var = copy.deepcopy(hgvs_coding)
-    saved_hgvs_coding = copy.deepcopy(hgvs_coding)
-
     if ori == -1:
         # position genomic at its most 5 prime position
         try:
@@ -907,58 +791,42 @@ def transcripts_to_gene(variant, validator):
             query_genomic = hgvs_genomic
         # Map to the transcript and test for movement
         try:
-            hgvs_seek_var = variant.evm.g_to_t(query_genomic, saved_hgvs_coding.ac)
+            hgvs_seek_var = variant.evm.g_to_t(query_genomic, hgvs_coding.ac)
         except hgvs.exceptions.HGVSError as e:
-            hgvs_seek_var = saved_hgvs_coding
-        else:
-            seek_var = fn.valstr(hgvs_seek_var)
-            seek_ac = str(hgvs_seek_var.ac)
-        if saved_hgvs_coding.posedit.edit.type != hgvs_seek_var.posedit.edit.type:
-            rec_var = 'false'
-            hgvs_seek_var = saved_hgvs_coding
-            seek_var = fn.valstr(hgvs_seek_var)
-            seek_ac = str(hgvs_seek_var.ac)
+            hgvs_seek_var = hgvs_coding
+
+        if hgvs_coding.posedit.edit.type != hgvs_seek_var.posedit.edit.type:
+            pass
         elif suppress_c_normalization == 'true':
-            rec_var = 'false'
-            hgvs_seek_var = saved_hgvs_coding
-            seek_var = fn.valstr(hgvs_seek_var)
-            seek_ac = str(hgvs_seek_var.ac)
+            pass
         elif (hgvs_seek_var.posedit.pos.start.base + hgvs_seek_var.posedit.pos.start.offset) > (
-                saved_hgvs_coding.posedit.pos.start.base + saved_hgvs_coding.posedit.pos.start.offset) and (
+                hgvs_coding.posedit.pos.start.base + hgvs_coding.posedit.pos.start.offset) and (
                 hgvs_seek_var.posedit.pos.end.base + hgvs_seek_var.posedit.pos.end.offset) > (
-                saved_hgvs_coding.posedit.pos.end.base + saved_hgvs_coding.posedit.pos.end.offset) and rec_var != 'false':
+                hgvs_coding.posedit.pos.end.base + hgvs_coding.posedit.pos.end.offset) and rec_var != 'false':
             try:
-                automap = fn.valstr(saved_hgvs_coding) + ' normalized to ' + fn.valstr(hgvs_seek_var)
+                automap = fn.valstr(hgvs_coding) + ' normalized to ' + fn.valstr(hgvs_seek_var)
                 hgvs_coding = hgvs_seek_var
-                coding = fn.valstr(hgvs_coding)
                 variant.warnings += ': ' + automap
                 rng = variant.hn.normalize(query_genomic)
             except NotImplementedError:
-                pass
+                fn.exceptPass()
             try:
                 c_for_p = validator.vm.g_to_t(rng, hgvs_coding.ac)
             except hgvs.exceptions.HGVSInvalidIntervalError as e:
-                c_for_p = seek_var
+                c_for_p = fn.valstr(hgvs_seek_var)
             try:
                 # Predicted effect on protein
                 protein_dict = validator.myc_to_p(c_for_p, variant.evm, re_to_p=False)
                 if protein_dict['error'] == '':
                     hgvs_protein = protein_dict['hgvs_protein']
-                    protein = str(hgvs_protein)
                 else:
                     error = protein_dict['error']
                     if error == 'Cannot identify an in-frame Termination codon in the variant mRNA sequence':
                         hgvs_protein = protein_dict['hgvs_protein']
                         variant.warnings += ': ' + str(error)
-                # Replace protein description in vars table
-                protein = str(hgvs_protein)
             except NotImplementedError:
                 fn.exceptPass()
-        else:
-            # Double check protein position by normalize genomic, and normalize back to c. for normalize or not to normalize issue
-            coding = fn.valstr(hgvs_coding)
-
-    elif ori != -1:
+    else:
         # position genomic at its most 3 prime position
         try:
             query_genomic = variant.hn.normalize(hgvs_genomic)
@@ -966,36 +834,26 @@ def transcripts_to_gene(variant, validator):
             query_genomic = hgvs_genomic
         # Map to the transcript and test for movement
         try:
-            hgvs_seek_var = variant.evm.g_to_t(query_genomic, saved_hgvs_coding.ac)
+            hgvs_seek_var = variant.evm.g_to_t(query_genomic, hgvs_coding.ac)
         except hgvs.exceptions.HGVSError as e:
-            hgvs_seek_var = saved_hgvs_coding
-        else:
-            seek_var = fn.valstr(hgvs_seek_var)
-            seek_ac = str(hgvs_seek_var.ac)
-        if saved_hgvs_coding.posedit.edit.type != hgvs_seek_var.posedit.edit.type:
-            rec_var = 'false'
-            hgvs_seek_var = saved_hgvs_coding
-            seek_var = fn.valstr(hgvs_seek_var)
-            seek_ac = str(hgvs_seek_var.ac)
+            hgvs_seek_var = hgvs_coding
+
+        if hgvs_coding.posedit.edit.type != hgvs_seek_var.posedit.edit.type:
+            pass
         elif suppress_c_normalization == 'true':
-            rec_var = 'false'
-            hgvs_seek_var = saved_hgvs_coding
-            seek_var = fn.valstr(hgvs_seek_var)
-            seek_ac = str(hgvs_seek_var.ac)
+            pass
         elif (hgvs_seek_var.posedit.pos.start.base + hgvs_seek_var.posedit.pos.start.offset) > (
-                saved_hgvs_coding.posedit.pos.start.base + saved_hgvs_coding.posedit.pos.start.offset) and (
+                hgvs_coding.posedit.pos.start.base + hgvs_coding.posedit.pos.start.offset) and (
                 hgvs_seek_var.posedit.pos.end.base + hgvs_seek_var.posedit.pos.end.offset) > (
-                saved_hgvs_coding.posedit.pos.end.base + saved_hgvs_coding.posedit.pos.end.offset) and rec_var != 'false':
+                hgvs_coding.posedit.pos.end.base + hgvs_coding.posedit.pos.end.offset) and rec_var != 'false':
             try:
-                automap = fn.valstr(saved_hgvs_coding) + ' normalized to ' + fn.valstr(hgvs_seek_var)
+                automap = fn.valstr(hgvs_coding) + ' normalized to ' + fn.valstr(hgvs_seek_var)
                 hgvs_coding = hgvs_seek_var
-                coding = fn.valstr(hgvs_coding)
                 variant.warnings += ': ' + automap
             except NotImplementedError:
                 fn.exceptPass()
         else:
             # Double check protein position by reverse_norm genomic, and normalize back to c. for normalize or not to normalize issue
-            coding = fn.valstr(hgvs_coding)
             rng = variant.reverse_normalizer.normalize(query_genomic)
             try:
                 # Diagram where - = intron and E = Exon
@@ -1017,19 +875,16 @@ def transcripts_to_gene(variant, validator):
                     protein_dict = validator.myc_to_p(c_for_p, variant.evm, re_to_p=False)
                     if protein_dict['error'] == '':
                         hgvs_protein = protein_dict['hgvs_protein']
-                        protein = str(hgvs_protein)
                     else:
                         error = protein_dict['error']
                         if error == 'Cannot identify an in-frame Termination codon in the variant mRNA sequence':
                             hgvs_protein = protein_dict['hgvs_protein']
                             variant.warnings += ': ' + str(error)
                     # Replace protein description in vars table
-                    protein = str(hgvs_protein)
             except Exception:
                 fn.exceptPass()
 
     # Check for up-to-date transcript version
-    updated_transcript_variant = 'None'
     tx_id_info = validator.hdp.get_tx_identity_info(hgvs_coding.ac)
     uta_gene_symbol = tx_id_info[6]
     tx_for_gene = validator.hdp.get_tx_for_gene(uta_gene_symbol)
@@ -1060,9 +915,7 @@ def transcripts_to_gene(variant, validator):
                 new_ref = match[1]
                 hgvs_updated.posedit.edit.ref = new_ref
                 validator.vr.validate(hgvs_updated)
-                updated_transcript_variant = hgvs_updated
-            else:
-                pass
+
         updated_transcript_variant = hgvs_updated
         variant.warnings += ': ' + 'A more recent version of the selected reference sequence ' + hgvs_coding.ac + ' is available (' + updated_transcript_variant.ac + ')' + ': ' + str(
             updated_transcript_variant) + ' MUST be fully validated prior to use in reports: select_variants=' + fn.valstr(
@@ -1072,9 +925,5 @@ def transcripts_to_gene(variant, validator):
     variant.genomic_r = str(hgvs_refseq)
     variant.genomic_g = str(hgvs_genomic)
     variant.protein = str(hgvs_protein)
-
-    # if gap_compensation is True:
-    #     variant.test_stash_tx_left = test_stash_tx_left
-    #     variant.test_stash_tx_right = test_stash_tx_right
 
     return False
