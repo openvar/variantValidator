@@ -8608,7 +8608,14 @@ def gene2transcripts(query):
         cp_genes_and_tx = copy.deepcopy(genes_and_tx)
         genes_and_tx = []
         for tx in cp_genes_and_tx:
-            tx_d = {'reference': tx[0],
+            if 'not applicable' in str(tx[2]):
+                tx_d = {'reference': tx[0],
+                        'description': tx[1],
+                        'coding_start': 'non-coding',
+                        'coding_end': 'non-coding'
+                        }
+            else:
+                tx_d = {'reference': tx[0],
                     'description': tx[1],
                     'coding_start': tx[2] + 1,
                     'coding_end': tx[3]
