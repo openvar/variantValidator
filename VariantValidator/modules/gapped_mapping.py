@@ -1039,8 +1039,7 @@ class GapMapper(object):
                                     internal_possibility.posedit.edit.ref):
                                 gap_length = len(internal_possibility.posedit.edit.ref) - len(
                                     hgvs_t_possibility.posedit.edit.ref)
-                                re_capture_tx_variant = ['transcript', gap_length,
-                                                         hgvs_t_possibility]
+                                re_capture_tx_variant = ['transcript', gap_length, hgvs_t_possibility]
                                 hgvs_not_delins = internal_possibility
                                 hgvs_genomic_5pr = internal_possibility
                                 break
@@ -1352,7 +1351,6 @@ class GapMapper(object):
                 else:
                     re_capture_tx_variant = []
                     for internal_possibility in hgvs_genomic_possibilities:
-
                         if internal_possibility == '':
                             continue
 
@@ -1996,3 +1994,66 @@ class GapMapper(object):
             else:
                 pass
         return hgvs_refreshed_variant
+
+    def logic_check(self, hgvs_not_delins, rn_tx_hgvs_not_delins, hgvs_genomic_possibilities, hgvs_coding):
+        # Logic
+        if len(hgvs_not_delins.posedit.edit.ref) < len(
+                rn_tx_hgvs_not_delins.posedit.edit.ref):
+            gap_length = len(rn_tx_hgvs_not_delins.posedit.edit.ref) - len(
+                hgvs_not_delins.posedit.edit.ref)
+            disparity_deletion_in = ['chromosome', gap_length]
+        elif len(hgvs_not_delins.posedit.edit.ref) > len(
+                rn_tx_hgvs_not_delins.posedit.edit.ref):
+            gap_length = len(hgvs_not_delins.posedit.edit.ref) - len(
+                rn_tx_hgvs_not_delins.posedit.edit.ref)
+            disparity_deletion_in = ['transcript', gap_length]
+        else:
+            re_capture_tx_variant = []
+            for internal_possibility in hgvs_genomic_possibilities:
+                if internal_possibility == '':
+                    continue
+
+                hgvs_t_possibility = self.validator.vm.g_to_t(internal_possibility, hgvs_coding.ac)
+                if hgvs_t_possibility.posedit.edit.type == 'ins':
+                    try:
+                        hgvs_t_possibility = self.validator.vm.c_to_n(hgvs_t_possibility)
+                    except:
+                        fn.exceptPass()
+                    ins_ref = self.validator.sf.fetch_seq(hgvs_t_possibility.ac,
+                                                          hgvs_t_possibility.posedit.pos.start.base - 1,
+                                                          hgvs_t_possibility.posedit.pos.start.base + 1)
+                    try:
+                        hgvs_t_possibility = self.validator.vm.n_to_c(hgvs_t_possibility)
+                    except:
+                        fn.exceptPass()
+                    hgvs_t_possibility.posedit.edit.ref = ins_ref
+                    hgvs_t_possibility.posedit.edit.alt = ins_ref[
+                                                              0] + hgvs_t_possibility.posedit.edit.alt + \
+                                                          ins_ref[1]
+                if internal_possibility.posedit.edit.type == 'ins':
+                    ins_ref = self.validator.sf.fetch_seq(internal_possibility.ac,
+                                                          internal_possibility.posedit.pos.start.base - 1,
+                                                          internal_possibility.posedit.pos.end.base)
+                    internal_possibility.posedit.edit.ref = ins_ref
+                    internal_possibility.posedit.edit.alt = ins_ref[
+                                                                0] + internal_possibility.posedit.edit.alt + \
+                                                            ins_ref[1]
+
+                if len(hgvs_t_possibility.posedit.edit.ref) < len(
+                        internal_possibility.posedit.edit.ref):
+                    gap_length = len(internal_possibility.posedit.edit.ref) - len(
+                        hgvs_t_possibility.posedit.edit.ref)
+                    re_capture_tx_variant = ['transcript', gap_length, hgvs_t_possibility]
+                    hgvs_not_delins = internal_possibility
+                    hgvs_genomic_5pr = internal_possibility
+                    break
+
+            if re_capture_tx_variant != []:
+                try:
+                    tx_hgvs_not_delins = self.validator.vm.c_to_n(re_capture_tx_variant[2])
+                except:
+                    tx_hgvs_not_delins = re_capture_tx_variant[2]
+                disparity_deletion_in = re_capture_tx_variant[0:-1]
+            else:
+                pass
+        return disparity_deletion_in, tx_hgvs_not_delins, hgvs_not_delins, hgvs_genomic_5pr
