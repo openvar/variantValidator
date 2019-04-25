@@ -736,8 +736,7 @@ def transcripts_to_gene(variant, validator):
     logger.warning("gap_compensation_2 = " + str(gap_compensation))
     if gap_compensation is True:
         hgvs_coding = gap_mapper.g_to_t_gapped_mapping_stage2(
-            ori, hgvs_coding, hgvs_genomic, gapped_transcripts, hgvs_genomic_possibilities,
-            auto_info
+            ori, hgvs_coding, hgvs_genomic
         )
 
     # OBTAIN THE RefSeqGene coordinates
