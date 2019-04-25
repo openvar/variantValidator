@@ -833,42 +833,43 @@ class GapMapper(object):
                         hgvs_refreshed_variant = saved_hgvs_coding
 
                 # Edit the output
-                if re.match('NM_', str(hgvs_refreshed_variant.ac)) and not re.search('c', str(
-                        hgvs_refreshed_variant.type)):
-                    hgvs_refreshed_variant = self.variant.evm.n_to_c(hgvs_refreshed_variant)
-                else:
-                    pass
-                try:
-                    hgvs_refreshed_variant = self.variant.hn.normalize(hgvs_refreshed_variant)
-                    if hgvs_refreshed_variant.posedit.edit.type == 'delins' and \
-                            hgvs_refreshed_variant.posedit.edit.ref[-1] == \
-                            hgvs_refreshed_variant.posedit.edit.alt[-1]:
-                        hgvs_refreshed_variant.posedit.edit.ref = hgvs_refreshed_variant.posedit.edit.ref[
-                                                                  0:-1]
-                        hgvs_refreshed_variant.posedit.edit.alt = hgvs_refreshed_variant.posedit.edit.alt[
-                                                                  0:-1]
-                        hgvs_refreshed_variant.posedit.pos.end.base = hgvs_refreshed_variant.posedit.pos.end.base - 1
-                        hgvs_refreshed_variant = self.variant.hn.normalize(hgvs_refreshed_variant)
-                    elif hgvs_refreshed_variant.posedit.edit.type == 'delins' and \
-                            hgvs_refreshed_variant.posedit.edit.ref[0] == \
-                            hgvs_refreshed_variant.posedit.edit.alt[0]:
-                        hgvs_refreshed_variant.posedit.edit.ref = hgvs_refreshed_variant.posedit.edit.ref[
-                                                                  1:]
-                        hgvs_refreshed_variant.posedit.edit.alt = hgvs_refreshed_variant.posedit.edit.alt[
-                                                                  1:]
-                        hgvs_refreshed_variant.posedit.pos.start.base = hgvs_refreshed_variant.posedit.pos.start.base + 1
-                        hgvs_refreshed_variant = self.variant.hn.normalize(hgvs_refreshed_variant)
-                except Exception as e:
-                    error = str(e)
-                    # Ensure the final variant is not intronic nor does it cross exon boundaries
-                    if re.match('Normalization of intronic variants is not supported',
-                                error) or re.match(
-                        'Unsupported normalization of variants spanning the exon-intron boundary',
-                        error):
-                        hgvs_refreshed_variant = saved_hgvs_coding
-                    else:
-                        pass
-                    fn.exceptPass()
+                hgvs_refreshed_variant = self.edit_output(hgvs_refreshed_variant, saved_hgvs_coding)
+                # if re.match('NM_', str(hgvs_refreshed_variant.ac)) and not re.search('c', str(
+                #         hgvs_refreshed_variant.type)):
+                #     hgvs_refreshed_variant = self.variant.evm.n_to_c(hgvs_refreshed_variant)
+                # else:
+                #     pass
+                # try:
+                #     hgvs_refreshed_variant = self.variant.hn.normalize(hgvs_refreshed_variant)
+                #     if hgvs_refreshed_variant.posedit.edit.type == 'delins' and \
+                #             hgvs_refreshed_variant.posedit.edit.ref[-1] == \
+                #             hgvs_refreshed_variant.posedit.edit.alt[-1]:
+                #         hgvs_refreshed_variant.posedit.edit.ref = hgvs_refreshed_variant.posedit.edit.ref[
+                #                                                   0:-1]
+                #         hgvs_refreshed_variant.posedit.edit.alt = hgvs_refreshed_variant.posedit.edit.alt[
+                #                                                   0:-1]
+                #         hgvs_refreshed_variant.posedit.pos.end.base = hgvs_refreshed_variant.posedit.pos.end.base - 1
+                #         hgvs_refreshed_variant = self.variant.hn.normalize(hgvs_refreshed_variant)
+                #     elif hgvs_refreshed_variant.posedit.edit.type == 'delins' and \
+                #             hgvs_refreshed_variant.posedit.edit.ref[0] == \
+                #             hgvs_refreshed_variant.posedit.edit.alt[0]:
+                #         hgvs_refreshed_variant.posedit.edit.ref = hgvs_refreshed_variant.posedit.edit.ref[
+                #                                                   1:]
+                #         hgvs_refreshed_variant.posedit.edit.alt = hgvs_refreshed_variant.posedit.edit.alt[
+                #                                                   1:]
+                #         hgvs_refreshed_variant.posedit.pos.start.base = hgvs_refreshed_variant.posedit.pos.start.base + 1
+                #         hgvs_refreshed_variant = self.variant.hn.normalize(hgvs_refreshed_variant)
+                # except Exception as e:
+                #     error = str(e)
+                #     # Ensure the final variant is not intronic nor does it cross exon boundaries
+                #     if re.match('Normalization of intronic variants is not supported',
+                #                 error) or re.match(
+                #         'Unsupported normalization of variants spanning the exon-intron boundary',
+                #         error):
+                #         hgvs_refreshed_variant = saved_hgvs_coding
+                #     else:
+                #         pass
+                #     fn.exceptPass()
                 # Send to empty nw_rel_var
                 nw_rel_var.append(hgvs_refreshed_variant)
 
@@ -2743,41 +2744,42 @@ class GapMapper(object):
                 hgvs_refreshed_variant = saved_hgvs_coding
 
             # Edit the output
-            if re.match('NM_', str(hgvs_refreshed_variant.ac)) and not re.search('c', str(
-                    hgvs_refreshed_variant.type)):
-                hgvs_refreshed_variant = self.variant.evm.n_to_c(hgvs_refreshed_variant)
-            else:
-                pass
-            try:
-                hgvs_refreshed_variant = self.variant.hn.normalize(hgvs_refreshed_variant)
-                if hgvs_refreshed_variant.posedit.edit.type == 'delins' and \
-                        hgvs_refreshed_variant.posedit.edit.ref[-1] == \
-                        hgvs_refreshed_variant.posedit.edit.alt[-1]:
-                    hgvs_refreshed_variant.posedit.edit.ref = hgvs_refreshed_variant.posedit.edit.ref[
-                                                              0:-1]
-                    hgvs_refreshed_variant.posedit.edit.alt = hgvs_refreshed_variant.posedit.edit.alt[
-                                                              0:-1]
-                    hgvs_refreshed_variant.posedit.pos.end.base = hgvs_refreshed_variant.posedit.pos.end.base - 1
-                    hgvs_refreshed_variant = self.variant.hn.normalize(hgvs_refreshed_variant)
-                elif hgvs_refreshed_variant.posedit.edit.type == 'delins' and \
-                        hgvs_refreshed_variant.posedit.edit.ref[0] == \
-                        hgvs_refreshed_variant.posedit.edit.alt[0]:
-                    hgvs_refreshed_variant.posedit.edit.ref = hgvs_refreshed_variant.posedit.edit.ref[
-                                                              1:]
-                    hgvs_refreshed_variant.posedit.edit.alt = hgvs_refreshed_variant.posedit.edit.alt[
-                                                              1:]
-                    hgvs_refreshed_variant.posedit.pos.start.base = hgvs_refreshed_variant.posedit.pos.start.base + 1
-                    hgvs_refreshed_variant = self.variant.hn.normalize(hgvs_refreshed_variant)
-            except Exception as e:
-                error = str(e)
-                # Ensure the final variant is not intronic nor does it cross exon boundaries
-                if re.match('Normalization of intronic variants is not supported',
-                            error) or re.match(
-                    'Unsupported normalization of variants spanning the exon-intron boundary',
-                    error):
-                    hgvs_refreshed_variant = saved_hgvs_coding
-                else:
-                    pass
+            hgvs_refreshed_variant = self.edit_output(hgvs_refreshed_variant, saved_hgvs_coding)
+            # if re.match('NM_', str(hgvs_refreshed_variant.ac)) and not re.search('c', str(
+            #         hgvs_refreshed_variant.type)):
+            #     hgvs_refreshed_variant = self.variant.evm.n_to_c(hgvs_refreshed_variant)
+            # else:
+            #     pass
+            # try:
+            #     hgvs_refreshed_variant = self.variant.hn.normalize(hgvs_refreshed_variant)
+            #     if hgvs_refreshed_variant.posedit.edit.type == 'delins' and \
+            #             hgvs_refreshed_variant.posedit.edit.ref[-1] == \
+            #             hgvs_refreshed_variant.posedit.edit.alt[-1]:
+            #         hgvs_refreshed_variant.posedit.edit.ref = hgvs_refreshed_variant.posedit.edit.ref[
+            #                                                   0:-1]
+            #         hgvs_refreshed_variant.posedit.edit.alt = hgvs_refreshed_variant.posedit.edit.alt[
+            #                                                   0:-1]
+            #         hgvs_refreshed_variant.posedit.pos.end.base = hgvs_refreshed_variant.posedit.pos.end.base - 1
+            #         hgvs_refreshed_variant = self.variant.hn.normalize(hgvs_refreshed_variant)
+            #     elif hgvs_refreshed_variant.posedit.edit.type == 'delins' and \
+            #             hgvs_refreshed_variant.posedit.edit.ref[0] == \
+            #             hgvs_refreshed_variant.posedit.edit.alt[0]:
+            #         hgvs_refreshed_variant.posedit.edit.ref = hgvs_refreshed_variant.posedit.edit.ref[
+            #                                                   1:]
+            #         hgvs_refreshed_variant.posedit.edit.alt = hgvs_refreshed_variant.posedit.edit.alt[
+            #                                                   1:]
+            #         hgvs_refreshed_variant.posedit.pos.start.base = hgvs_refreshed_variant.posedit.pos.start.base + 1
+            #         hgvs_refreshed_variant = self.variant.hn.normalize(hgvs_refreshed_variant)
+            # except Exception as e:
+            #     error = str(e)
+            #     # Ensure the final variant is not intronic nor does it cross exon boundaries
+            #     if re.match('Normalization of intronic variants is not supported',
+            #                 error) or re.match(
+            #         'Unsupported normalization of variants spanning the exon-intron boundary',
+            #         error):
+            #         hgvs_refreshed_variant = saved_hgvs_coding
+            #     else:
+            #         pass
 
             # Sort out equality to equality c. events where the code will add 2 additional bases
             if hgvs_coding.posedit.edit.type == 'identity' and hgvs_refreshed_variant.posedit.edit.type == 'identity':  # and len(hgvs_refreshed_variant.posedit.edit.ref) ==  (len(hgvs_coding.posedit.edit.ref) + 2):
@@ -3367,3 +3369,41 @@ class GapMapper(object):
                     gapped_transcripts = gapped_transcripts + ' ' + str(tx_hgvs_not_delins.ac)
 
         return hgvs_refreshed_variant, gapped_transcripts, auto_info
+
+    def edit_output(self, hgvs_refreshed_variant, saved_hgvs_coding):
+        if re.match('NM_', str(hgvs_refreshed_variant.ac)) and not re.search('c', str(
+                hgvs_refreshed_variant.type)):
+            hgvs_refreshed_variant = self.variant.evm.n_to_c(hgvs_refreshed_variant)
+        else:
+            pass
+        try:
+            hgvs_refreshed_variant = self.variant.hn.normalize(hgvs_refreshed_variant)
+            if hgvs_refreshed_variant.posedit.edit.type == 'delins' and \
+                    hgvs_refreshed_variant.posedit.edit.ref[-1] == \
+                    hgvs_refreshed_variant.posedit.edit.alt[-1]:
+                hgvs_refreshed_variant.posedit.edit.ref = hgvs_refreshed_variant.posedit.edit.ref[
+                                                          0:-1]
+                hgvs_refreshed_variant.posedit.edit.alt = hgvs_refreshed_variant.posedit.edit.alt[
+                                                          0:-1]
+                hgvs_refreshed_variant.posedit.pos.end.base = hgvs_refreshed_variant.posedit.pos.end.base - 1
+                hgvs_refreshed_variant = self.variant.hn.normalize(hgvs_refreshed_variant)
+            elif hgvs_refreshed_variant.posedit.edit.type == 'delins' and \
+                    hgvs_refreshed_variant.posedit.edit.ref[0] == \
+                    hgvs_refreshed_variant.posedit.edit.alt[0]:
+                hgvs_refreshed_variant.posedit.edit.ref = hgvs_refreshed_variant.posedit.edit.ref[
+                                                          1:]
+                hgvs_refreshed_variant.posedit.edit.alt = hgvs_refreshed_variant.posedit.edit.alt[
+                                                          1:]
+                hgvs_refreshed_variant.posedit.pos.start.base = hgvs_refreshed_variant.posedit.pos.start.base + 1
+                hgvs_refreshed_variant = self.variant.hn.normalize(hgvs_refreshed_variant)
+        except Exception as e:
+            error = str(e)
+            # Ensure the final variant is not intronic nor does it cross exon boundaries
+            if re.match('Normalization of intronic variants is not supported',
+                        error) or re.match(
+                'Unsupported normalization of variants spanning the exon-intron boundary',
+                error):
+                hgvs_refreshed_variant = saved_hgvs_coding
+            else:
+                pass
+        return hgvs_refreshed_variant
