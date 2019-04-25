@@ -147,7 +147,9 @@ def gene_to_transcripts(variant, validator):
         # Tag the line so that it is not written out
         variant.write = False
 
-        data, nw_rel_var = gapped_mapping.gapped_g_to_c(variant, validator, rel_var)
+        gap_mapper = gapped_mapping.GapMapper(variant, validator)
+
+        data, nw_rel_var = gap_mapper.gapped_g_to_c(rel_var)
 
         # Warn the user that the g. description is not valid
         if data['gapped_alignment_warning'] != '':
@@ -709,10 +711,13 @@ def transcripts_to_gene(variant, validator):
     # 2. Lock in hgvs_genomic at its most 5 prime position wrt genome
     hgvs_genomic_possibilities = []
 
+    # Create gap_mapper object instance
+    gap_mapper = gapped_mapping.GapMapper(variant, validator)
+
     # Loop out gap finding code under these circumstances!
     if gap_compensation is True:
         hgvs_genomic, gapped_transcripts, auto_info, suppress_c_normalization, hgvs_coding, \
-        hgvs_genomic_possibilities = gapped_mapping.g_to_t_compensation(variant, validator, ori, hgvs_coding, rec_var)
+        hgvs_genomic_possibilities = gap_mapper.g_to_t_compensation(ori, hgvs_coding, rec_var)
 
     else:
         suppress_c_normalization = 'false'
@@ -730,8 +735,8 @@ def transcripts_to_gene(variant, validator):
     # Loop out gap finding code under these circumstances!
     logger.warning("gap_compensation_2 = " + str(gap_compensation))
     if gap_compensation is True:
-        hgvs_coding = gapped_mapping.g_to_t_gapped_mapping_stage2(
-            validator, variant, ori, hgvs_coding, hgvs_genomic, gapped_transcripts, hgvs_genomic_possibilities,
+        hgvs_coding = gap_mapper.g_to_t_gapped_mapping_stage2(
+            ori, hgvs_coding, hgvs_genomic, gapped_transcripts, hgvs_genomic_possibilities,
             auto_info
         )
 
