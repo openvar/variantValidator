@@ -779,33 +779,25 @@ def transcripts_to_gene(variant, validator):
 
     # Look for normalized variant options that do not match hgvs_coding
     # boundary crossing normalization
-    if ori == -1:
-        # position genomic at its most 5 prime position
-        try:
-            query_genomic = variant.reverse_normalizer.normalize(hgvs_genomic)
-        except:
-            query_genomic = hgvs_genomic
-        # Map to the transcript and test for movement
-        try:
-            hgvs_seek_var = variant.evm.g_to_t(query_genomic, hgvs_coding.ac)
-        except hgvs.exceptions.HGVSError as e:
-            hgvs_seek_var = hgvs_coding
+    hgvs_seek_var, query_genomic = gap_mapper.get_hgvs_seek_var(hgvs_genomic, hgvs_coding,
+                                                                ori=ori, with_query_genomic=True)
 
-        if hgvs_coding.posedit.edit.type != hgvs_seek_var.posedit.edit.type:
-            pass
-        elif suppress_c_normalization == 'true':
-            pass
-        elif (hgvs_seek_var.posedit.pos.start.base + hgvs_seek_var.posedit.pos.start.offset) > (
-                hgvs_coding.posedit.pos.start.base + hgvs_coding.posedit.pos.start.offset) and (
-                hgvs_seek_var.posedit.pos.end.base + hgvs_seek_var.posedit.pos.end.offset) > (
-                hgvs_coding.posedit.pos.end.base + hgvs_coding.posedit.pos.end.offset) and rec_var != 'false':
-            try:
-                automap = fn.valstr(hgvs_coding) + ' normalized to ' + fn.valstr(hgvs_seek_var)
-                hgvs_coding = hgvs_seek_var
-                variant.warnings += ': ' + automap
-                rng = variant.hn.normalize(query_genomic)
-            except NotImplementedError:
-                fn.exceptPass()
+    if hgvs_coding.posedit.edit.type != hgvs_seek_var.posedit.edit.type:
+        pass
+    elif suppress_c_normalization == 'true':
+        pass
+    elif (hgvs_seek_var.posedit.pos.start.base + hgvs_seek_var.posedit.pos.start.offset) > (
+            hgvs_coding.posedit.pos.start.base + hgvs_coding.posedit.pos.start.offset) and (
+            hgvs_seek_var.posedit.pos.end.base + hgvs_seek_var.posedit.pos.end.offset) > (
+            hgvs_coding.posedit.pos.end.base + hgvs_coding.posedit.pos.end.offset) and rec_var != 'false':
+        try:
+            automap = fn.valstr(hgvs_coding) + ' normalized to ' + fn.valstr(hgvs_seek_var)
+            hgvs_coding = hgvs_seek_var
+            variant.warnings += ': ' + automap
+        except NotImplementedError:
+            fn.exceptPass()
+        if ori == -1:
+            rng = variant.hn.normalize(query_genomic)
             try:
                 c_for_p = validator.vm.g_to_t(rng, hgvs_coding.ac)
             except hgvs.exceptions.HGVSInvalidIntervalError as e:
@@ -822,63 +814,37 @@ def transcripts_to_gene(variant, validator):
                         variant.warnings += ': ' + str(error)
             except NotImplementedError:
                 fn.exceptPass()
-    else:
-        # position genomic at its most 3 prime position
+    elif ori == 1:
+        # Double check protein position by reverse_norm genomic, and normalize back to c. for normalize or not to normalize issue
+        rng = variant.reverse_normalizer.normalize(query_genomic)
         try:
-            query_genomic = variant.hn.normalize(hgvs_genomic)
-        except:
-            query_genomic = hgvs_genomic
-        # Map to the transcript and test for movement
-        try:
-            hgvs_seek_var = variant.evm.g_to_t(query_genomic, hgvs_coding.ac)
-        except hgvs.exceptions.HGVSError as e:
-            hgvs_seek_var = hgvs_coding
+            # Diagram where - = intron and E = Exon
 
-        if hgvs_coding.posedit.edit.type != hgvs_seek_var.posedit.edit.type:
-            pass
-        elif suppress_c_normalization == 'true':
-            pass
-        elif (hgvs_seek_var.posedit.pos.start.base + hgvs_seek_var.posedit.pos.start.offset) > (
-                hgvs_coding.posedit.pos.start.base + hgvs_coding.posedit.pos.start.offset) and (
-                hgvs_seek_var.posedit.pos.end.base + hgvs_seek_var.posedit.pos.end.offset) > (
-                hgvs_coding.posedit.pos.end.base + hgvs_coding.posedit.pos.end.offset) and rec_var != 'false':
+            # 3 prime
+            # ---------EEEEEEEEEEEEEEEEE-----------
+            #          <
+            # Result, normalize of new variant will baulk at intronic
+            # 5 prime
+            #                          <
+            # Result, normalize of new variant will be happy
+            c_for_p = validator.vm.g_to_t(rng, hgvs_coding.ac)
             try:
-                automap = fn.valstr(hgvs_coding) + ' normalized to ' + fn.valstr(hgvs_seek_var)
-                hgvs_coding = hgvs_seek_var
-                variant.warnings += ': ' + automap
-            except NotImplementedError:
+                variant.hn.normalize(c_for_p)
+            except hgvs.exceptions.HGVSError as e:
                 fn.exceptPass()
-        else:
-            # Double check protein position by reverse_norm genomic, and normalize back to c. for normalize or not to normalize issue
-            rng = variant.reverse_normalizer.normalize(query_genomic)
-            try:
-                # Diagram where - = intron and E = Exon
-
-                # 3 prime
-                # ---------EEEEEEEEEEEEEEEEE-----------
-                #          <
-                # Result, normalize of new variant will baulk at intronic
-                # 5 prime
-                #                          <
-                # Result, normalize of new variant will be happy
-                c_for_p = validator.vm.g_to_t(rng, hgvs_coding.ac)
-                try:
-                    variant.hn.normalize(c_for_p)
-                except hgvs.exceptions.HGVSError as e:
-                    fn.exceptPass()
+            else:
+                # hgvs_protein = va_func.protein(str(c_for_p), variant.evm, hp)
+                protein_dict = validator.myc_to_p(c_for_p, variant.evm, re_to_p=False)
+                if protein_dict['error'] == '':
+                    hgvs_protein = protein_dict['hgvs_protein']
                 else:
-                    # hgvs_protein = va_func.protein(str(c_for_p), variant.evm, hp)
-                    protein_dict = validator.myc_to_p(c_for_p, variant.evm, re_to_p=False)
-                    if protein_dict['error'] == '':
+                    error = protein_dict['error']
+                    if error == 'Cannot identify an in-frame Termination codon in the variant mRNA sequence':
                         hgvs_protein = protein_dict['hgvs_protein']
-                    else:
-                        error = protein_dict['error']
-                        if error == 'Cannot identify an in-frame Termination codon in the variant mRNA sequence':
-                            hgvs_protein = protein_dict['hgvs_protein']
-                            variant.warnings += ': ' + str(error)
-                    # Replace protein description in vars table
-            except Exception:
-                fn.exceptPass()
+                        variant.warnings += ': ' + str(error)
+                # Replace protein description in vars table
+        except Exception:
+            fn.exceptPass()
 
     # Check for up-to-date transcript version
     tx_id_info = validator.hdp.get_tx_identity_info(hgvs_coding.ac)

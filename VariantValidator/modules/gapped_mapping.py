@@ -125,49 +125,15 @@ class GapMapper(object):
             self.orientation = int(ori[0]['alt_strand'])
             intronic_variant = 'false'
 
-            if self.orientation == -1:
-                # position genomic at its most 5 prime position
-                try:
-                    query_genomic = self.variant.reverse_normalizer.normalize(self.variant.hgvs_genomic)
-                except:
-                    query_genomic = self.variant.hgvs_genomic
-                # Map to the transcript ant test for movement
-                try:
-                    hgvs_seek_var = self.variant.evm.g_to_t(query_genomic, saved_hgvs_coding.ac)
-                except hgvs.exceptions.HGVSError as e:
-                    hgvs_seek_var = saved_hgvs_coding
-                else:
-                    seek_var = fn.valstr(hgvs_seek_var)
-                    seek_ac = str(hgvs_seek_var.ac)
-                if (hgvs_seek_var.posedit.pos.start.base + hgvs_seek_var.posedit.pos.start.offset) > (
-                        saved_hgvs_coding.posedit.pos.start.base + saved_hgvs_coding.posedit.pos.start.offset) and (
-                        hgvs_seek_var.posedit.pos.end.base + hgvs_seek_var.posedit.pos.end.offset) > (
-                        saved_hgvs_coding.posedit.pos.end.base + saved_hgvs_coding.posedit.pos.end.offset):
-                    pass
-                else:
-                    hgvs_seek_var = saved_hgvs_coding
+            hgvs_seek_var = self.get_hgvs_seek_var(self.variant.hgvs_genomic, saved_hgvs_coding)
 
-            elif self.orientation != -1:
-                # position genomic at its most 3 prime position
-                try:
-                    query_genomic = self.variant.hn.normalize(self.variant.hgvs_genomic)
-                except:
-                    query_genomic = self.variant.hgvs_genomic
-            # Map to the transcript and test for movement
-            try:
-                hgvs_seek_var = self.variant.evm.g_to_t(query_genomic, saved_hgvs_coding.ac)
-            except hgvs.exceptions.HGVSError as e:
-                hgvs_seek_var = saved_hgvs_coding
+            if (hgvs_seek_var.posedit.pos.start.base + hgvs_seek_var.posedit.pos.start.offset) > (
+                    saved_hgvs_coding.posedit.pos.start.base + saved_hgvs_coding.posedit.pos.start.offset) and (
+                    hgvs_seek_var.posedit.pos.end.base + hgvs_seek_var.posedit.pos.end.offset) > (
+                    saved_hgvs_coding.posedit.pos.end.base + saved_hgvs_coding.posedit.pos.end.offset):
+                pass
             else:
-                seek_var = fn.valstr(hgvs_seek_var)
-                seek_ac = str(hgvs_seek_var.ac)
-                if (hgvs_seek_var.posedit.pos.start.base + hgvs_seek_var.posedit.pos.start.offset) > (
-                        saved_hgvs_coding.posedit.pos.start.base + saved_hgvs_coding.posedit.pos.start.offset) and (
-                        hgvs_seek_var.posedit.pos.end.base + hgvs_seek_var.posedit.pos.end.offset) > (
-                        saved_hgvs_coding.posedit.pos.end.base + saved_hgvs_coding.posedit.pos.end.offset):
-                    pass
-                else:
-                    hgvs_seek_var = saved_hgvs_coding
+                hgvs_seek_var = saved_hgvs_coding
 
             try:
                 intron_test = self.variant.hn.normalize(hgvs_seek_var)
@@ -850,45 +816,16 @@ class GapMapper(object):
                                                                    hgvs_coding.ac)
 
             # Look for normalized variant options that do not match hgvs_coding
-            if self.orientation == -1:
-                # position genomic at its most 5 prime position
-                try:
-                    query_genomic = self.variant.reverse_normalizer.normalize(hgvs_genomic)
-                except:
-                    query_genomic = hgvs_genomic
-                # Map to the transcript and test for movement
-                try:
-                    hgvs_seek_var = self.variant.evm.g_to_t(query_genomic, hgvs_coding.ac)
-                except hgvs.exceptions.HGVSError as e:
-                    hgvs_seek_var = saved_hgvs_coding
-                if (
-                        hgvs_seek_var.posedit.pos.start.base + hgvs_seek_var.posedit.pos.start.offset) > (
-                        hgvs_coding.posedit.pos.start.base + hgvs_coding.posedit.pos.start.offset) and (
-                        hgvs_seek_var.posedit.pos.end.base + hgvs_seek_var.posedit.pos.end.offset) > (
-                        hgvs_coding.posedit.pos.end.base + hgvs_coding.posedit.pos.end.offset) and rec_var != 'false':
-                    pass
-                else:
-                    hgvs_seek_var = saved_hgvs_coding
+            hgvs_seek_var = self.get_hgvs_seek_var(hgvs_genomic, hgvs_coding)
 
-            elif self.orientation != -1:
-                # position genomic at its most 3 prime position
-                try:
-                    query_genomic = self.variant.hn.normalize(hgvs_genomic)
-                except:
-                    query_genomic = hgvs_genomic
-                # Map to the transcript ant test for movement
-                try:
-                    hgvs_seek_var = self.variant.evm.g_to_t(query_genomic, saved_hgvs_coding.ac)
-                except hgvs.exceptions.HGVSError as e:
-                    hgvs_seek_var = saved_hgvs_coding
-                if (
-                        hgvs_seek_var.posedit.pos.start.base + hgvs_seek_var.posedit.pos.start.offset) > (
-                        hgvs_coding.posedit.pos.start.base + hgvs_coding.posedit.pos.start.offset) and (
-                        hgvs_seek_var.posedit.pos.end.base + hgvs_seek_var.posedit.pos.end.offset) > (
-                        hgvs_coding.posedit.pos.end.base + hgvs_coding.posedit.pos.end.offset) and rec_var != 'false':
-                    pass
-                else:
-                    hgvs_seek_var = saved_hgvs_coding
+            if (
+                    hgvs_seek_var.posedit.pos.start.base + hgvs_seek_var.posedit.pos.start.offset) > (
+                    hgvs_coding.posedit.pos.start.base + hgvs_coding.posedit.pos.start.offset) and (
+                    hgvs_seek_var.posedit.pos.end.base + hgvs_seek_var.posedit.pos.end.offset) > (
+                    hgvs_coding.posedit.pos.end.base + hgvs_coding.posedit.pos.end.offset) and rec_var != 'false':
+                pass
+            else:
+                hgvs_seek_var = saved_hgvs_coding
 
             try:
                 intron_test = self.variant.hn.normalize(hgvs_seek_var)
@@ -1949,3 +1886,29 @@ class GapMapper(object):
             else:
                 pass
         return hgvs_not_delins
+
+    def get_hgvs_seek_var(self, hgvs_genomic, hgvs_coding, ori=None, with_query_genomic=False):
+        if not ori:
+            ori = self.orientation
+
+        if ori == -1:
+            try:
+                query_genomic = self.variant.reverse_normalizer.normalize(hgvs_genomic)
+            except:
+                query_genomic = hgvs_genomic
+        else:
+            # position genomic at its most 3 prime position
+            try:
+                query_genomic = self.variant.hn.normalize(hgvs_genomic)
+            except:
+                query_genomic = hgvs_genomic
+        # Map to the transcript and test for movement
+        try:
+            hgvs_seek_var = self.variant.evm.g_to_t(query_genomic, hgvs_coding.ac)
+        except hgvs.exceptions.HGVSError as e:
+            hgvs_seek_var = hgvs_coding
+
+        if with_query_genomic:
+            return hgvs_seek_var, query_genomic
+
+        return hgvs_seek_var
