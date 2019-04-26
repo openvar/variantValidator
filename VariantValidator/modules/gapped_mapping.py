@@ -1260,7 +1260,7 @@ class GapMapper(object):
 
         print('in gapped_mapping', hgvs_coding)
 
-        return hgvs_genomic, self.gapped_transcripts, self.auto_info, suppress_c_normalization, hgvs_coding, self.hgvs_genomic_possibilities
+        return hgvs_genomic, suppress_c_normalization, hgvs_coding
 
     def g_to_t_gapped_mapping_stage2(self, ori, hgvs_coding, hgvs_genomic):
         logger.warning('g_to_t gap code 2 active')

@@ -188,7 +188,6 @@ def transcripts_to_gene(variant, validator):
     warning = ''
     caution = ''
     error = ''
-    gapped_transcripts = ''
     # Collect information for genomic level validation
     obj = validator.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
 
@@ -706,22 +705,16 @@ def transcripts_to_gene(variant, validator):
     # Genomic sequence
     hgvs_genomic = validator.myevm_t_to_g(hgvs_coding, variant.no_norm_evm, variant.primary_assembly, variant.hn)
 
-    # genomic_possibilities
-    # 1. take the simple 3 pr normalized hgvs_genomic
-    # 2. Lock in hgvs_genomic at its most 5 prime position wrt genome
-    hgvs_genomic_possibilities = []
-
     # Create gap_mapper object instance
     gap_mapper = gapped_mapping.GapMapper(variant, validator)
 
+    # --- GAP MAPPING 1 ---
     # Loop out gap finding code under these circumstances!
     if gap_compensation is True:
-        hgvs_genomic, gapped_transcripts, auto_info, suppress_c_normalization, hgvs_coding, \
-        hgvs_genomic_possibilities = gap_mapper.g_to_t_compensation(ori, hgvs_coding, rec_var)
+        hgvs_genomic, suppress_c_normalization, hgvs_coding = gap_mapper.g_to_t_compensation(ori, hgvs_coding, rec_var)
 
     else:
         suppress_c_normalization = 'false'
-        auto_info = ''
 
     # Create pseudo VCF based on amended hgvs_genomic
     # hgvs_genomic_variant = hgvs_genomic
@@ -732,12 +725,11 @@ def transcripts_to_gene(variant, validator):
     ori = validator.tx_exons(tx_ac=hgvs_coding.ac, alt_ac=reverse_normalized_hgvs_genomic.ac,
                         alt_aln_method=validator.alt_aln_method)
 
+    # --- GAP MAPPING 2 ---
     # Loop out gap finding code under these circumstances!
     logger.warning("gap_compensation_2 = " + str(gap_compensation))
     if gap_compensation is True:
-        hgvs_coding = gap_mapper.g_to_t_gapped_mapping_stage2(
-            ori, hgvs_coding, hgvs_genomic
-        )
+        hgvs_coding = gap_mapper.g_to_t_gapped_mapping_stage2(ori, hgvs_coding, hgvs_genomic)
 
     # OBTAIN THE RefSeqGene coordinates
     # Attempt 1 = UTA
