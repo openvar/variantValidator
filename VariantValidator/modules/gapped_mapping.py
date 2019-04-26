@@ -917,24 +917,8 @@ class GapMapper(object):
                         rn_tx_hgvs_not_delins = self.remove_offsetting_to_span_gap(rn_tx_hgvs_not_delins)
 
                     elif re.search(r'\-', str(rn_tx_hgvs_not_delins.posedit.pos.end)):
-                        ## TODO: check this if should be move_tx_end_base_to_next
-                        rn_tx_hgvs_not_delins.posedit.pos.end.offset = 0
-                        # Delete the ref
-                        rn_tx_hgvs_not_delins.posedit.edit.ref = ''
-                        # Add the additional base to the ALT
-                        start = rn_tx_hgvs_not_delins.posedit.pos.end.base - 1
-                        end = rn_tx_hgvs_not_delins.posedit.pos.end.base
-                        ref_bases = self.validator.sf.fetch_seq(str(self.tx_hgvs_not_delins.ac), start, end)
-                        rn_tx_hgvs_not_delins.posedit.edit.alt = rn_tx_hgvs_not_delins.posedit.edit.alt + ref_bases
-                        if re.match('NM_', str(rn_tx_hgvs_not_delins)):
-                            test_tx_var = self.variant.no_norm_evm.n_to_c(rn_tx_hgvs_not_delins)
-                        else:
-                            test_tx_var = rn_tx_hgvs_not_delins
-                        # re-make genomic and tx
-                        hgvs_not_delins = self.validator.myevm_t_to_g(test_tx_var, self.variant.no_norm_evm,
-                                                                 self.variant.primary_assembly, self.variant.hn)
-                        rn_tx_hgvs_not_delins = self.variant.no_norm_evm.g_to_n(hgvs_not_delins,
-                                                                           str(saved_hgvs_coding.ac))
+                        rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_end_base_to_next_nonoffset(rn_tx_hgvs_not_delins, saved_hgvs_coding)
+
                     elif re.search(r'\-', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
                         rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_start_base_to_previous_nonoffset(rn_tx_hgvs_not_delins, saved_hgvs_coding, with_base_subtract=True)
 
