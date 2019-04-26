@@ -52,7 +52,7 @@ from . import vvDatabase
 from . import vvChromosomes
 from . import vvMixinConverters
 from .vvFunctions import VariantValidatorError
-from . import variant
+from .variant import Variant
 from . import format_converters
 from . import use_checking
 from . import collect_info
@@ -124,7 +124,7 @@ class Mixin(vvMixinConverters.Mixin):
             self.batch_list = []
             for queries in batch_queries:
                 queries = queries.strip()
-                query = variant.Variant(queries)
+                query = Variant(queries)
                 self.batch_list.append(query)
 
             # Create List to carry batch data
@@ -591,8 +591,8 @@ class Mixin(vvMixinConverters.Mixin):
             # order the rows
             by_order = sorted(self.batch_list, key=lambda x: x.order)
 
-            for valid in by_order:
-                if not valid.write:
+            for variant in by_order:
+                if not variant.write:
                     continue
 
                 # Blank VCF
@@ -608,16 +608,16 @@ class Mixin(vvMixinConverters.Mixin):
                 gap_compensation = True
 
                 # warngins
-                warnings = valid.warnings
+                warnings = variant.warnings
                 warnings = re.sub('del[GATC][GATC][GATC][GATC]+', 'del', warnings)
                 warnings = re.sub('^: ', '', warnings)
                 warnings = re.sub('::', ':', warnings)
 
                 # Submitted variant
-                submitted = valid.original
+                submitted = variant.original
 
                 # Genomic sequence variation
-                genomic_variant = valid.genomic_g
+                genomic_variant = variant.genomic_g
 
                 # genomic accession
                 if genomic_variant != '':
@@ -628,9 +628,9 @@ class Mixin(vvMixinConverters.Mixin):
                     genomic_accession = ''
 
                 # RefSeqGene variation
-                refseqgene_variant = valid.genomic_r
+                refseqgene_variant = variant.genomic_r
                 refseqgene_variant = refseqgene_variant.strip()
-                if re.search('RefSeqGene', refseqgene_variant) or refseqgene_variant == '':
+                if 'RefSeqGene' in refseqgene_variant or refseqgene_variant == '':
                     warnings = warnings + ': ' + refseqgene_variant
                     refseqgene_variant = ''
                     lrg_variant = ''
@@ -651,7 +651,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 hgvs_lrg.ac) + ' is pending therefore changes may be made to the LRG reference sequence'
 
                 # Transcript sequence variation
-                tx_variant = valid.coding
+                tx_variant = variant.coding
                 if tx_variant != '':
                     if '(' in tx_variant and ')' in tx_variant:
                         tx_variant = tx_variant.split('(')[1]
@@ -699,7 +699,7 @@ class Mixin(vvMixinConverters.Mixin):
                         self.vr.validate(hgvs_transcript_variant)
                     except hgvs.exceptions.HGVSError as e:
                         error = str(e)
-                        if re.search('intronic variant', error):
+                        if 'intronic variant' in error:
                             genome_context_transcript_variant = genomic_accession + '(' + transcript_accession + '):c.' + str(
                                 hgvs_transcript_variant.posedit)
                             if refseqgene_variant != '':
@@ -725,11 +725,11 @@ class Mixin(vvMixinConverters.Mixin):
                     RefSeqGene_context_transcript_variant = ''
 
                 # Protein description
-                predicted_protein_variant = valid.protein
-                if re.match('NP_', predicted_protein_variant):
+                predicted_protein_variant = variant.protein
+                if 'NP_' in predicted_protein_variant:
                     rs_p, pred_prot_posedit = predicted_protein_variant.split(':')
                     lrg_p = self.db.get_lrgProteinID_from_RefSeqProteinID(rs_p)
-                    if re.match('LRG', lrg_p):
+                    if 'LRG' in lrg_p:
                         predicted_protein_variant = rs_p + '(' + lrg_p + '):' + pred_prot_posedit
 
                 # Gene
@@ -742,7 +742,7 @@ class Mixin(vvMixinConverters.Mixin):
                     gene_symbol = ''
 
                 # Transcript description
-                transcript_description = valid.description
+                transcript_description = variant.description
 
                 # Stashed variants
                 # if valid.test_stash_tx_left:
