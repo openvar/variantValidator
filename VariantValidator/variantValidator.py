@@ -1403,6 +1403,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         exceptPass()
 
                 elif input_parses.type == 'c':
+
                     if re.search('\*', str(input_parses)) or re.search('c.\-', str(input_parses)):
                         # Catch variation in UTRs
                         # These should be in the sequence so can be directly validated. Need to pass to n.
@@ -1410,6 +1411,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             vr.validate(input_parses)
                         except hgvs.exceptions.HGVSError as e:
                             error = str(e)
+
                             if re.search('datums is ill-defined', error):
                                 called_ref = input_parses.posedit.edit.ref
                                 try:
@@ -1435,6 +1437,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     except hgvs.exceptions.HGVSError as e:
                                         exceptPass()
                                     if re.search('bounds', str(e)):
+                                        error = str(e)
                                         try:
                                             identity_info = hdp.get_tx_identity_info(input_parses.ac)
                                             ref_start = identity_info[3]
@@ -6508,7 +6511,6 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 except NotImplementedError:
                                     exceptPass()
                             elif hgvs_coding.posedit.pos.start.offset != 0 and hgvs_coding.posedit.pos.start.offset != 0:
-                                print 'yarp'
                                 hgvs_seek_var = evm.g_to_t(query_genomic, saved_hgvs_coding.ac)
                                 seek_var = valstr(hgvs_seek_var)
                                 seek_ac = str(hgvs_seek_var.ac)
