@@ -2767,7 +2767,16 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                             rn_tx_hgvs_not_delins.posedit.edit.ref)
                                         disparity_deletion_in = ['transcript', gap_length]
                                     else:
-                                        hgvs_stash_t = vm.g_to_t(stash_hgvs_not_delins, saved_hgvs_coding.ac)
+                                        # store stash_hgvs_not_delins for restorstion after error below
+                                        restore_stash_hgvs_not_delins = copy.copy(stash_hgvs_not_delins)
+                                        try:
+                                            hgvs_stash_t = vm.g_to_t(stash_hgvs_not_delins, saved_hgvs_coding.ac)
+                                        except hgvs.exceptions.HGVSError as e:
+                                            if 'bounds' in str(e):
+                                                stash_hgvs_not_delins = copy.copy(stored_hgvs_not_delins)
+                                                hgvs_stash_t = vm.g_to_t(stash_hgvs_not_delins, saved_hgvs_coding.ac)
+
+                                        # Apply tests
                                         if len(stash_hgvs_not_delins.posedit.edit.ref) > len(
                                                 hgvs_stash_t.posedit.edit.ref):
                                             try:
@@ -2793,6 +2802,9 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                             hgvs_genomic_5pr = stash_hgvs_not_delins
                                         else:
                                             pass
+
+                                        # Restore stash_hgvs_not_delins
+                                        stash_hgvs_not_delins = restore_stash_hgvs_not_delins
 
                                 # Final sanity checks
                                 try:
