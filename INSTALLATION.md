@@ -4,37 +4,49 @@ These instructions will allow you to configure the software on Linux and Mac OS 
 
 There are several steps involved in setting up VariantValidator:
 * The python environment must be set up with the correct packages
-* The variantValidator files themselves must be downloaded and installed.
+* The variantValidator files themselves must installed.
 * The databases must be downloaded and set up
 * The configuration files must be changed to point VariantValidator at those databases.
 
-## Virtual environment (Python 2.7)
+## Download the source code
 
-When installing VariantValidator it is wise to use a virtual environment, as it requires specific versions of several libraries.
-We recommend using conda.
-```
-$ conda create -n VVenv
-$ conda activate VVenv
-$ conda install -c conda-forge sqlite python=2.7 pytest protobuf=3.5.1 docutils python-daemon httplib2 mysql-connector-python mysql-python 
-$ conda install -c auto biotools
-$ conda install -c bioconda pyliftover pysam
-$ conda install -c conda-forge setuptools numpy
-$ pip install hgvs==1.1.3
-```
-The packages required for variant validator to function are now set up in the environment "VVenv".
+To download the VariantValidator source code simply clone the master branch.
 
-## Installing validator code
-
-To clone this software from GIT, use:
 ```
-$ git clone https://github.com/UniOfLeicester/variantValidator.git
+$ git clone https://github.com/openvar/variantValidator.git
 $ cd variantValidator/
 ```
-Run the installation script to integrate variant validator with python's site packages.
+
+
+## Virtual environment (Python 2.7)
+
+When installing VariantValidator we recommend using a virtual environment, as it requires specific versions of several libraries including python and sqlite. This can be done either via conda or pip.
+
+#### Via conda  
+After [installing conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/) you can create a new virtual environment with the correct python and sqlite versions by running:
+```
+$ conda env create -f environment.yml
+$ conda activate vvenv
+```
+The packages required for variant validator to function are now set up in the environment "vvenv".
+
+#### Via pip
+
+If you already have the right versions of python (2.7) and sqlite (>=3.8), then you can use pip to install the remaining packages.
+
+```
+$ python -m venv vvenv
+$ source activate vvenv
+$ pip install -r requirements.txt
+```
+
+## Installing Variant Validator
+
+To install VariantValidator within your virtual environment run:
 ```
 $ python setup.py install
 ```
-For development purposes, you can use
+For development purposes, you can use 
 ```
 $ pip install -e .
 ```
@@ -74,10 +86,11 @@ $ wget http://dl.biocommons.org/uta/uta_20180821.pgd.gz
 $ gzip -cdq uta_20180821.pgd.gz | psql -U uta_admin -v ON_ERROR_STOP=0 -d uta -Eae
 ```
 
+If you wish to use the remote, public UTA database, see the instructions [here](https://github.com/biocommons/uta#accessing-the-public-uta-instance).
 
 ## Setting up Seqrepo (SQLite >=3.8)
 
-VariantValidator requires a local SeqRepo databas,. The seqrepo library is already installed, but you'll need to download an actual seqrepo database. These instructions assume you are using your home directory; you can put it anywhere so long as you modify the config.ini file, and environment variables accordingly.
+VariantValidator requires a local SeqRepo database. The seqrepo library is already installed, but you'll need to download an actual seqrepo database. These instructions assume you are using your home directory; you can put it anywhere so long as you modify the config.ini file, and environment variables accordingly.
 ```
 $ mkdir seqrepo
 $ seqrepo --root-directory ~/seqrepo pull -i 2018-08-21

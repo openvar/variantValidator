@@ -1403,6 +1403,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         exceptPass()
 
                 elif input_parses.type == 'c':
+
                     if re.search('\*', str(input_parses)) or re.search('c.\-', str(input_parses)):
                         # Catch variation in UTRs
                         # These should be in the sequence so can be directly validated. Need to pass to n.
@@ -1410,6 +1411,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             vr.validate(input_parses)
                         except hgvs.exceptions.HGVSError as e:
                             error = str(e)
+
                             if re.search('datums is ill-defined', error):
                                 called_ref = input_parses.posedit.edit.ref
                                 try:
@@ -1435,6 +1437,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     except hgvs.exceptions.HGVSError as e:
                                         exceptPass()
                                     if re.search('bounds', str(e)):
+                                        error = str(e)
                                         try:
                                             identity_info = hdp.get_tx_identity_info(input_parses.ac)
                                             ref_start = identity_info[3]
@@ -2767,7 +2770,16 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                             rn_tx_hgvs_not_delins.posedit.edit.ref)
                                         disparity_deletion_in = ['transcript', gap_length]
                                     else:
-                                        hgvs_stash_t = vm.g_to_t(stash_hgvs_not_delins, saved_hgvs_coding.ac)
+                                        # store stash_hgvs_not_delins for restorstion after error below
+                                        restore_stash_hgvs_not_delins = copy.copy(stash_hgvs_not_delins)
+                                        try:
+                                            hgvs_stash_t = vm.g_to_t(stash_hgvs_not_delins, saved_hgvs_coding.ac)
+                                        except hgvs.exceptions.HGVSError as e:
+                                            if 'bounds' in str(e):
+                                                stash_hgvs_not_delins = copy.copy(stored_hgvs_not_delins)
+                                                hgvs_stash_t = vm.g_to_t(stash_hgvs_not_delins, saved_hgvs_coding.ac)
+
+                                        # Apply tests
                                         if len(stash_hgvs_not_delins.posedit.edit.ref) > len(
                                                 hgvs_stash_t.posedit.edit.ref):
                                             try:
@@ -2793,6 +2805,9 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                             hgvs_genomic_5pr = stash_hgvs_not_delins
                                         else:
                                             pass
+
+                                        # Restore stash_hgvs_not_delins
+                                        stash_hgvs_not_delins = restore_stash_hgvs_not_delins
 
                                 # Final sanity checks
                                 try:
@@ -6399,6 +6414,10 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 query_genomic = reverse_normalizer.normalize(hgvs_genomic)
                             except:
                                 query_genomic = hgvs_genomic
+                            # Normalize intronic
+                            if hgvs_coding.posedit.pos.start.offset != 0 and hgvs_coding.posedit.pos.start.offset != 0:
+                                hgvs_coding = evm.g_to_t(query_genomic, saved_hgvs_coding.ac)
+                                coding = valstr(hgvs_coding)
                             # Map to the transcript and test for movement
                             try:
                                 hgvs_seek_var = evm.g_to_t(query_genomic, saved_hgvs_coding.ac)
@@ -6458,6 +6477,10 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 query_genomic = hn.normalize(hgvs_genomic)
                             except:
                                 query_genomic = hgvs_genomic
+                            # Normalize intronic
+                            if hgvs_coding.posedit.pos.start.offset != 0 and hgvs_coding.posedit.pos.start.offset != 0:
+                                hgvs_coding = evm.g_to_t(query_genomic, saved_hgvs_coding.ac)
+                                coding = valstr(hgvs_coding)
                             # Map to the transcript and test for movement
                             try:
                                 hgvs_seek_var = evm.g_to_t(query_genomic, saved_hgvs_coding.ac)
@@ -6487,6 +6510,10 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     validation['warnings'] = validation['warnings'] + ': ' + automap
                                 except NotImplementedError:
                                     exceptPass()
+                            elif hgvs_coding.posedit.pos.start.offset != 0 and hgvs_coding.posedit.pos.start.offset != 0:
+                                hgvs_seek_var = evm.g_to_t(query_genomic, saved_hgvs_coding.ac)
+                                seek_var = valstr(hgvs_seek_var)
+                                seek_ac = str(hgvs_seek_var.ac)
                             else:
                                 # Double check protein position by reverse_norm genomic, and normalize back to c. for normalize or not to normalize issue
                                 coding = valstr(hgvs_coding)
@@ -8595,7 +8622,14 @@ def gene2transcripts(query):
         cp_genes_and_tx = copy.deepcopy(genes_and_tx)
         genes_and_tx = []
         for tx in cp_genes_and_tx:
-            tx_d = {'reference': tx[0],
+            if 'not applicable' in str(tx[2]):
+                tx_d = {'reference': tx[0],
+                        'description': tx[1],
+                        'coding_start': 'non-coding',
+                        'coding_end': 'non-coding'
+                        }
+            else:
+                tx_d = {'reference': tx[0],
                     'description': tx[1],
                     'coding_start': tx[2] + 1,
                     'coding_end': tx[3]

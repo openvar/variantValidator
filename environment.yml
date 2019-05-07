@@ -1,0 +1,17 @@
+name: vvenv
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=2.7
+  - sqlite>=3.8
+  - protobuf=3.5.1
+  - mysql-connector-python
+  - pysam
+  - pyliftover>=0.3
+  - numpy
+  - httplib2>=0.9.0
+  - configparser>=3.5.0
+  - pip:
+    - hgvs==1.1.3
+    - biotools>=0.3.0

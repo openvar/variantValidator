@@ -31,15 +31,15 @@ For sequence variations falling within the open reading frames of genes, Variant
 
 ## Pre-requisites
 
-VariantValidator will work on Mac OS X or Linux-compatiable computers.
+VariantValidator will work on Mac OS X or Linux operating systems.
 
 Required software:
 * MySQL
 * Python 2.7
+* SQLite version 3.8.0 or above
 
 Optional software:
 * Postgres version 9.5 or above
-* SQLite version 3.8.0 or above
 
 For installation instructions please see [INSTALLATION.md](INSTALLATION.md)
 
