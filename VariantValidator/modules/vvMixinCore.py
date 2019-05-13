@@ -763,96 +763,91 @@ class Mixin(vvMixinConverters.Mixin):
                 alt_genomic_dicts = []
                 primary_genomic_dicts = {}
 
-                if len(multi_gen_vars) != 0:
-                    for alt_gen_var in multi_gen_vars:
-                        for build in self.genome_builds:
-                            test = vvChromosomes.supported_for_mapping(alt_gen_var.ac, build)
-                            if test == 'true':
-                                try:
-                                    vcf_dict = vvHGVS.report_hgvs2vcf(alt_gen_var, build, reverse_normalizer, self.sf)
-                                except hgvs.exceptions.HGVSInvalidVariantError as e:
-                                    continue
-                                # Identify primary assembly positions
-                                if re.match('NC_', alt_gen_var.ac):
-                                    if re.match('GRC', build):
-                                        primary_genomic_dicts[build.lower()] = {
-                                            'hgvs_genomic_description': fn.valstr(alt_gen_var),
-                                            'vcf': {'chr': vcf_dict['grc_chr'],
-                                                    'pos': vcf_dict['pos'],
-                                                    'ref': vcf_dict['ref'],
-                                                    'alt': vcf_dict['alt']
-                                                    }
-                                        }
-
-                                    else:
-                                        primary_genomic_dicts[build.lower()] = {
-                                            'hgvs_genomic_description': fn.valstr(alt_gen_var),
-                                            'vcf': {'chr': vcf_dict['ucsc_chr'],
-                                                    'pos': vcf_dict['pos'],
-                                                    'ref': vcf_dict['ref'],
-                                                    'alt': vcf_dict['alt']
-                                                    }
-                                        }
-                                    if build == 'GRCh38':
-                                        vcf_dict = vvHGVS.report_hgvs2vcf(alt_gen_var, 'hg38', reverse_normalizer,
-                                                                          self.sf)
-                                        primary_genomic_dicts['hg38'] = {
-                                            'hgvs_genomic_description': fn.valstr(alt_gen_var),
-                                            'vcf': {'chr': vcf_dict['ucsc_chr'],
-                                                    'pos': vcf_dict['pos'],
-                                                    'ref': vcf_dict['ref'],
-                                                    'alt': vcf_dict['alt']
-                                                    }
-                                        }
-
-                                    continue
+                for alt_gen_var in multi_gen_vars:
+                    for build in self.genome_builds:
+                        test = vvChromosomes.supported_for_mapping(alt_gen_var.ac, build)
+                        if test == 'true':
+                            try:
+                                vcf_dict = vvHGVS.report_hgvs2vcf(alt_gen_var, build, variant.reverse_normalizer,
+                                                                  self.sf)
+                            except hgvs.exceptions.HGVSInvalidVariantError:
+                                continue
+                            # Identify primary assembly positions
+                            if 'NC_' in alt_gen_var.ac:
+                                if 'GRC' in build:
+                                    primary_genomic_dicts[build.lower()] = {
+                                        'hgvs_genomic_description': fn.valstr(alt_gen_var),
+                                        'vcf': {'chr': vcf_dict['grc_chr'],
+                                                'pos': vcf_dict['pos'],
+                                                'ref': vcf_dict['ref'],
+                                                'alt': vcf_dict['alt']
+                                                }
+                                    }
 
                                 else:
-                                    if re.match('GRC', build):
-                                        dict = {build.lower(): {'hgvs_genomic_description': fn.valstr(alt_gen_var),
-                                                                'vcf': {'chr': vcf_dict['grc_chr'],
-                                                                        'pos': vcf_dict['pos'],
-                                                                        'ref': vcf_dict['ref'],
-                                                                        'alt': vcf_dict['alt']
-                                                                        }
-                                                                }
+                                    primary_genomic_dicts[build.lower()] = {
+                                        'hgvs_genomic_description': fn.valstr(alt_gen_var),
+                                        'vcf': {'chr': vcf_dict['ucsc_chr'],
+                                                'pos': vcf_dict['pos'],
+                                                'ref': vcf_dict['ref'],
+                                                'alt': vcf_dict['alt']
                                                 }
-                                    else:
-                                        dict = {build.lower(): {'hgvs_genomic_description': fn.valstr(alt_gen_var),
-                                                                'vcf': {'chr': vcf_dict['ucsc_chr'],
-                                                                        'pos': vcf_dict['pos'],
-                                                                        'ref': vcf_dict['ref'],
-                                                                        'alt': vcf_dict['alt']
-                                                                        }
-                                                                }
+                                    }
+                                if build == 'GRCh38':
+                                    vcf_dict = vvHGVS.report_hgvs2vcf(alt_gen_var, 'hg38', variant.reverse_normalizer,
+                                                                      self.sf)
+                                    primary_genomic_dicts['hg38'] = {
+                                        'hgvs_genomic_description': fn.valstr(alt_gen_var),
+                                        'vcf': {'chr': vcf_dict['ucsc_chr'],
+                                                'pos': vcf_dict['pos'],
+                                                'ref': vcf_dict['ref'],
+                                                'alt': vcf_dict['alt']
                                                 }
-                                    # Append
-                                    alt_genomic_dicts.append(dict)
+                                    }
 
-                                    if build == 'GRCh38':
-                                        vcf_dict = vvHGVS.report_hgvs2vcf(alt_gen_var, 'hg38', reverse_normalizer,
-                                                                          self.sf)
-                                        dict = {'hg38': {'hgvs_genomic_description': fn.valstr(alt_gen_var),
-                                                         'vcf': {'chr': vcf_dict['ucsc_chr'],
-                                                                 'pos': vcf_dict['pos'],
-                                                                 'ref': vcf_dict['ref'],
-                                                                 'alt': vcf_dict['alt']
-                                                                 }
-                                                         }
-                                                }
-                                        # Append
-                                        alt_genomic_dicts.append(dict)
-                                        continue
                             else:
-                                # May need to account for ALT NC_
-                                pass
+                                if 'GRC' in build:
+                                    alt_dict = {build.lower(): {'hgvs_genomic_description': fn.valstr(alt_gen_var),
+                                                            'vcf': {'chr': vcf_dict['grc_chr'],
+                                                                    'pos': vcf_dict['pos'],
+                                                                    'ref': vcf_dict['ref'],
+                                                                    'alt': vcf_dict['alt']
+                                                                    }
+                                                            }
+                                            }
+                                else:
+                                    alt_dict = {build.lower(): {'hgvs_genomic_description': fn.valstr(alt_gen_var),
+                                                            'vcf': {'chr': vcf_dict['ucsc_chr'],
+                                                                    'pos': vcf_dict['pos'],
+                                                                    'ref': vcf_dict['ref'],
+                                                                    'alt': vcf_dict['alt']
+                                                                    }
+                                                            }
+                                            }
+                                # Append
+                                alt_genomic_dicts.append(alt_dict)
+
+                                if build == 'GRCh38':
+                                    vcf_dict = vvHGVS.report_hgvs2vcf(alt_gen_var, 'hg38', variant.reverse_normalizer,
+                                                                      self.sf)
+                                    alt_dict = {'hg38': {'hgvs_genomic_description': fn.valstr(alt_gen_var),
+                                                     'vcf': {'chr': vcf_dict['ucsc_chr'],
+                                                             'pos': vcf_dict['pos'],
+                                                             'ref': vcf_dict['ref'],
+                                                             'alt': vcf_dict['alt']
+                                                             }
+                                                     }
+                                            }
+                                    # Append
+                                    alt_genomic_dicts.append(alt_dict)
 
                 # Warn not directly mapped to specified genome build
                 if genomic_accession != '':
                     caution = ''
                     if primary_assembly.lower() not in list(primary_genomic_dicts.keys()):
                         warnings = warnings + ': ' + str(
-                            hgvs_coding) + ' cannot be mapped directly to genome build ' + primary_assembly + ': See alternative genomic loci or alternative genome builds for aligned genomic positions'
+                            hgvs_coding) + ' cannot be mapped directly to genome build ' + primary_assembly + \
+                            ': See alternative genomic loci or alternative genome builds for aligned genomic positions'
 
                 warn_list = warnings.split(': ')
                 warnings_out = []
@@ -878,7 +873,7 @@ class Mixin(vvMixinConverters.Mixin):
                 # Add single letter AA code to protein descriptions
                 predicted_protein_variant_dict = {"tlr": str(predicted_protein_variant), "slr": ''}
                 if predicted_protein_variant != '':
-                    if not 'Non-coding :n.' in predicted_protein_variant:
+                    if 'Non-coding :n.' not in predicted_protein_variant:
                         try:
                             format_p = predicted_protein_variant
                             format_p = re.sub(r'\(LRG_.+?\)', '', format_p)
