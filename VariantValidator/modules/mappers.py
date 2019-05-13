@@ -891,9 +891,10 @@ def transcripts_to_gene(variant, validator):
     return False
 
 
-def final_tx_to_multiple_genomic(variant, validator, tx_variant, rec_var):
+def final_tx_to_multiple_genomic(variant, validator, tx_variant):
 
     warnings = ''
+    rec_var = ''
 
     # Multiple genomic variants
     # multi_gen_vars = []

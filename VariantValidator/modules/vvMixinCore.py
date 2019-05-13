@@ -553,9 +553,6 @@ class Mixin(vvMixinConverters.Mixin):
                             print("CARRYING ON")
                             continue
 
-                        # TODO: Need to check this as it's only being using outside of this loop as well as inside!
-                        rec_var = ''
-
                     # Set the data
                     my_variant.output_type_flag = 'gene'
                     my_variant.description = hgnc_gene_info
@@ -753,7 +750,7 @@ class Mixin(vvMixinConverters.Mixin):
                 # Multiple genomic variants
                 # multi_gen_vars = []
                 if tx_variant != '':
-                    multi_gen_vars, hgvs_coding = mappers.final_tx_to_multiple_genomic(variant, self, tx_variant, rec_var)
+                    multi_gen_vars, hgvs_coding = mappers.final_tx_to_multiple_genomic(variant, self, tx_variant)
 
                 else:
                     # HGVS genomic in the absence of a transcript variant
