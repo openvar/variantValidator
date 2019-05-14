@@ -47,6 +47,20 @@ class Variant(object):
         self.min_evm = None
         self.lose_vm = None
 
+        self.gene_symbol = None
+        self.hgvs_transcript_variant = None
+        self.genome_context_intronic_sequence = None
+        self.refseqgene_context_intronic_sequence = None
+        self.hgvs_refseqgene_variant = None
+        self.hgvs_predicted_protein_consequence = None
+        self.validation_warnings = None
+        self.hgvs_lrg_transcript_variant = None
+        self.hgvs_lrg_variant = None
+        self.alt_genomic_loci = None
+        self.primary_assembly_loci = None
+        self.reference_sequence_records = None
+        self.validated = False
+
     def is_ascii(self):
         """
         Instead of the previous test for unicode rich text characters.
@@ -155,3 +169,33 @@ class Variant(object):
         self.quibble = newval
         self.set_refsource()
         self.set_reftype()
+
+    def output_dict(self):
+        """
+        Method will return the output values as a dictionary
+        :return: dict
+        """
+        dict_out = {
+            'submitted_variant': self.original,
+            'gene_symbol': self.gene_symbol,
+            'transcript_description': self.description,
+            'hgvs_transcript_variant': self.hgvs_transcript_variant,
+            'genome_context_intronic_sequence': self.genome_context_intronic_sequence,
+            'refseqgene_context_intronic_sequence': self.refseqgene_context_intronic_sequence,
+            'hgvs_refseqgene_variant': self.hgvs_refseqgene_variant,
+            'hgvs_predicted_protein_consequence': self.hgvs_predicted_protein_consequence,
+            'validation_warnings': self.validation_warnings,
+            'hgvs_lrg_transcript_variant': self.hgvs_lrg_transcript_variant,
+            'hgvs_lrg_variant': self.hgvs_lrg_variant,
+            'alt_genomic_loci': self.alt_genomic_loci,
+            'primary_assembly_loci': self.primary_assembly_loci,
+            'reference_sequence_records': self.reference_sequence_records,
+        }
+        return dict_out
+
+    def is_obsolete(self):
+        """
+        Checks whether the keyword 'obsolete' appears within the validation warnings
+        :return:
+        """
+        return any('obsolete' in warning for warning in self.validation_warnings)

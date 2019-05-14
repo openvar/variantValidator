@@ -9,7 +9,7 @@ class TestVariants(TestCase):
 
     def test_variant1(self):
         variant = 'NM_015120.4:c.35T>C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_015120.4:c.35T>C' in list(results.keys())
@@ -33,7 +33,7 @@ class TestVariants(TestCase):
 
     def test_variant2(self):
         variant = 'NM_015120.4:c.39G>C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -57,7 +57,7 @@ class TestVariants(TestCase):
 
     def test_variant3(self):
         variant = 'NM_015120.4:c.34C>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -81,7 +81,7 @@ class TestVariants(TestCase):
 
     def test_variant4(self):
         variant = 'NC_000002.11:g.73613030C>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -105,7 +105,7 @@ class TestVariants(TestCase):
 
     def test_variant5(self):
         variant = 'NC_000023.10:g.33229673A>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -146,7 +146,7 @@ class TestVariants(TestCase):
 
     def test_variant6(self):
         variant = 'NM_001145026.1:c.715A>G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -170,7 +170,7 @@ class TestVariants(TestCase):
 
     def test_variant7(self):
         variant = 'NC_000016.9:g.2099572TC>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_000548.4:c.138+821del' in list(results.keys())
@@ -381,7 +381,7 @@ class TestVariants(TestCase):
 
     def test_variant8(self):
         variant = 'NM_000088.3:c.589GG>CT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -405,7 +405,7 @@ class TestVariants(TestCase):
 
     def test_variant9(self):
         variant = 'NM_000094.3:c.6751-2_6751-3del'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -429,7 +429,7 @@ class TestVariants(TestCase):
 
     def test_variant10(self):
         variant = 'COL5A1:c.5071A>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -453,7 +453,7 @@ class TestVariants(TestCase):
 
     def test_variant11(self):
         variant = 'NG_007400.1:c.5071A>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -477,7 +477,7 @@ class TestVariants(TestCase):
 
     def test_variant12(self):
         variant = 'chr16:15832508_15832509delinsAC'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_002474.2:c.3034_3035inv' in list(results.keys())
@@ -552,7 +552,7 @@ class TestVariants(TestCase):
 
     def test_variant13(self):
         variant = 'NM_000088.3:c.589-1GG>G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -576,7 +576,7 @@ class TestVariants(TestCase):
 
     def test_variant14(self):
         variant = 'NM_000088.3:c.642+1GT>G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -600,7 +600,7 @@ class TestVariants(TestCase):
 
     def test_variant15(self):
         variant = 'NM_000088.3:c.589-2AG>G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -624,7 +624,7 @@ class TestVariants(TestCase):
 
     def test_variant16(self):
         variant = 'NC_000017.10:g.48279242G>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'intergenic'
@@ -648,7 +648,7 @@ class TestVariants(TestCase):
 
     def test_variant17(self):
         variant = 'NM_000500.7:c.-107-19C>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -672,7 +672,7 @@ class TestVariants(TestCase):
 
     def test_variant18(self):
         variant = 'NM_000518.4:c.-130C>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -696,7 +696,7 @@ class TestVariants(TestCase):
 
     def test_variant19(self):
         variant = 'NM_000518.4:c.-50-80C>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -720,7 +720,7 @@ class TestVariants(TestCase):
 
     def test_variant20(self):
         variant = 'NM_000518.4:c.316_*342delinsCTACTT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -744,7 +744,7 @@ class TestVariants(TestCase):
 
     def test_variant21(self):
         variant = 'NM_000518.4:c.316_*100del'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -768,7 +768,7 @@ class TestVariants(TestCase):
 
     def test_variant22(self):
         variant = 'NM_000518.4:c.*2000C>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -792,7 +792,7 @@ class TestVariants(TestCase):
 
     def test_variant23(self):
         variant = 'NM_000518.4:c.*132+1868C>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -816,7 +816,7 @@ class TestVariants(TestCase):
 
     def test_variant24(self):
         variant = 'NM_000518.4:c.-130_*2000='
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -840,7 +840,7 @@ class TestVariants(TestCase):
 
     def test_variant25(self):
         variant = 'NM_000518.4:c.-50-80_*132+1868='
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -864,7 +864,7 @@ class TestVariants(TestCase):
 
     def test_variant26(self):
         variant = 'NR_138595.1:n.-810C>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -888,7 +888,7 @@ class TestVariants(TestCase):
 
     def test_variant27(self):
         variant = 'NR_138595.1:n.1-810C>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -912,7 +912,7 @@ class TestVariants(TestCase):
 
     def test_variant28(self):
         variant = 'NR_138595.1:n.1071+1A='
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -935,7 +935,7 @@ class TestVariants(TestCase):
 
     def test_variant29(self):
         variant = 'NR_138595.1:n.-810_1071+1='
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -959,7 +959,7 @@ class TestVariants(TestCase):
 
     def test_variant30(self):
         variant = 'NC_000017.10:g.48261457_48261463TTATGTT='
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -983,7 +983,7 @@ class TestVariants(TestCase):
 
     def test_variant31(self):
         variant = 'NC_000017.10:g.48275363C>A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -1007,7 +1007,7 @@ class TestVariants(TestCase):
 
     def test_variant32(self):
         variant = 'NM_000088.3:c.589-1G>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -1031,7 +1031,7 @@ class TestVariants(TestCase):
 
     def test_variant33(self):
         variant = 'NM_000088.3:c.591_593inv'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_000088.3:c.591_593inv' in list(results.keys())
@@ -1055,7 +1055,7 @@ class TestVariants(TestCase):
 
     def test_variant34(self):
         variant = '11-5248232-T-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -1096,7 +1096,7 @@ class TestVariants(TestCase):
 
     def test_variant35(self):
         variant = 'NG_007400.1(NM_000088.3):c.589-1G>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -1120,7 +1120,7 @@ class TestVariants(TestCase):
 
     def test_variant36(self):
         variant = '1:150550916G>A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -1178,7 +1178,7 @@ class TestVariants(TestCase):
 
     def test_variant37(self):
         variant = '1-150550916-G-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -1236,7 +1236,7 @@ class TestVariants(TestCase):
 
     def test_variant38(self):
         variant = 'NG_008123.1(LEPRE1_v003):c.2055+18G>A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -1260,7 +1260,7 @@ class TestVariants(TestCase):
 
     def test_variant39(self):
         variant = 'NG_008123.1:c.2055+18G>A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -1284,7 +1284,7 @@ class TestVariants(TestCase):
 
     def test_variant40(self):
         variant = 'NG_008123.1(NM_022356.3):c.2055+18G>A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -1308,7 +1308,7 @@ class TestVariants(TestCase):
 
     def test_variant41(self):
         variant = 'NM_021983.4:c.490G>C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -1332,7 +1332,7 @@ class TestVariants(TestCase):
 
     def test_variant42(self):
         variant = 'NM_032470.3:c.4del'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -1356,7 +1356,7 @@ class TestVariants(TestCase):
 
     def test_variant43(self):
         variant = 'NM_001194958.2:c.20C>A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001194958.2:c.20C>A' in list(results.keys())
@@ -1380,7 +1380,7 @@ class TestVariants(TestCase):
 
     def test_variant44(self):
         variant = 'NM_000022.2:c.534A>G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -1404,7 +1404,7 @@ class TestVariants(TestCase):
 
     def test_variant45(self):
         variant = 'HSCHR6_MHC_SSTO_CTG1-3852542-C-G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -1428,7 +1428,7 @@ class TestVariants(TestCase):
 
     def test_variant46(self):
         variant = 'NM_000368.4:c.363+1dupG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -1452,7 +1452,7 @@ class TestVariants(TestCase):
 
     def test_variant47(self):
         variant = 'NM_000368.4:c.363dupG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -1476,7 +1476,7 @@ class TestVariants(TestCase):
 
     def test_variant48(self):
         variant = 'NM_000089.3:c.1033_1035delGTT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -1500,7 +1500,7 @@ class TestVariants(TestCase):
 
     def test_variant49(self):
         variant = 'NM_000089.3:c.1035_1035+2delTGT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -1524,7 +1524,7 @@ class TestVariants(TestCase):
 
     def test_variant50(self):
         variant = 'NM_000088.3:c.2023_2028delGCAAGA'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -1548,7 +1548,7 @@ class TestVariants(TestCase):
 
     def test_variant51(self):
         variant = 'NM_000089.3:c.938-1delG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -1572,7 +1572,7 @@ class TestVariants(TestCase):
 
     def test_variant52(self):
         variant = 'NM_000088.3:c.589G='
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -1596,7 +1596,7 @@ class TestVariants(TestCase):
 
     def test_variant53(self):
         variant = 'NM_000088.3:c.642A='
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -1620,7 +1620,7 @@ class TestVariants(TestCase):
 
     def test_variant54(self):
         variant = 'NM_000088.3:c.642+1GG>G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -1644,7 +1644,7 @@ class TestVariants(TestCase):
 
     def test_variant55(self):
         variant = 'NM_000088.3:c.589-2GG>G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -1668,7 +1668,7 @@ class TestVariants(TestCase):
 
     def test_variant56(self):
         variant = 'NM_000088.3:c.589-6_589-5insTTTT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -1692,7 +1692,7 @@ class TestVariants(TestCase):
 
     def test_variant57(self):
         variant = 'NM_000088.3:c.642+3_642+4insAAAA'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -1716,7 +1716,7 @@ class TestVariants(TestCase):
 
     def test_variant58(self):
         variant = 'NM_000088.3:c.589-4_589-3insTT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -1740,7 +1740,7 @@ class TestVariants(TestCase):
 
     def test_variant59(self):
         variant = 'NM_000088.3:c.589-8del'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -1764,7 +1764,7 @@ class TestVariants(TestCase):
 
     def test_variant60(self):
         variant = 'NM_000527.4:c.-187_-185delCTC'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_000527.4:c.-187_-185del' in list(results.keys())
@@ -1788,7 +1788,7 @@ class TestVariants(TestCase):
 
     def test_variant61(self):
         variant = 'NM_206933.2:c.6317C>G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -1812,7 +1812,7 @@ class TestVariants(TestCase):
 
     def test_variant62(self):
         variant = 'NC_000013.10:g.32929387T>C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_000059.3:c.7397C=' in list(results.keys())
@@ -1836,7 +1836,7 @@ class TestVariants(TestCase):
 
     def test_variant63(self):
         variant = 'NM_015102.3:c.2818-2T>A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_015102.3:c.2818-2T>A' in list(results.keys())
@@ -1860,7 +1860,7 @@ class TestVariants(TestCase):
 
     def test_variant64(self):
         variant = '19-41123094-G-GG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -1918,7 +1918,7 @@ class TestVariants(TestCase):
 
     def test_variant65(self):
         variant = '15-72105928-AC-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_014249.2:c.946_949=' in list(results.keys())
@@ -1993,7 +1993,7 @@ class TestVariants(TestCase):
 
     def test_variant66(self):
         variant = '12-122064773-CCCGCCA-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -2017,7 +2017,7 @@ class TestVariants(TestCase):
 
     def test_variant67(self):
         variant = '12-122064774-CCGCCA-CCGCCA'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_032790.3:c.132_137dup' in list(results.keys())
@@ -2041,7 +2041,7 @@ class TestVariants(TestCase):
 
     def test_variant68(self):
         variant = '12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -2065,7 +2065,7 @@ class TestVariants(TestCase):
 
     def test_variant69(self):
         variant = 'NC_000012.11:g.122064777C>A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -2089,7 +2089,7 @@ class TestVariants(TestCase):
 
     def test_variant70(self):
         variant = 'NC_000012.11:g.122064776delG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -2113,7 +2113,7 @@ class TestVariants(TestCase):
 
     def test_variant71(self):
         variant = 'NC_000012.11:g.122064776dupG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -2137,7 +2137,7 @@ class TestVariants(TestCase):
 
     def test_variant72(self):
         variant = 'NC_000012.11:g.122064776_122064777insTTT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -2161,7 +2161,7 @@ class TestVariants(TestCase):
 
     def test_variant73(self):
         variant = 'NC_000012.11:g.122064772_122064775del'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -2185,7 +2185,7 @@ class TestVariants(TestCase):
 
     def test_variant74(self):
         variant = 'NC_000012.11:g.122064772_122064775dup'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -2209,7 +2209,7 @@ class TestVariants(TestCase):
 
     def test_variant75(self):
         variant = 'NC_000012.11:g.122064773_122064774insTTTT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_032790.3:c.126_127insTTTTCCGCCA' in list(results.keys())
@@ -2233,7 +2233,7 @@ class TestVariants(TestCase):
 
     def test_variant76(self):
         variant = 'NC_000012.11:g.122064772_122064777del'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_032790.3:c.126C>A' in list(results.keys())
@@ -2257,7 +2257,7 @@ class TestVariants(TestCase):
 
     def test_variant77(self):
         variant = 'NC_000012.11:g.122064772_122064777dup'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -2281,7 +2281,7 @@ class TestVariants(TestCase):
 
     def test_variant78(self):
         variant = 'NC_000012.11:g.122064779_122064782dup'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_032790.3:c.135_136insACCGCCACCG' in list(results.keys())
@@ -2305,7 +2305,7 @@ class TestVariants(TestCase):
 
     def test_variant79(self):
         variant = 'NC_000012.11:g.122064772_122064782del'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -2329,7 +2329,7 @@ class TestVariants(TestCase):
 
     def test_variant80(self):
         variant = 'NC_000002.11:g.95847041_95847043GCG='
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_021088.3:c.471_473dup' in list(results.keys())
@@ -2455,7 +2455,7 @@ class TestVariants(TestCase):
 
     def test_variant81(self):
         variant = 'NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG='
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001083585.1:c.*344_*368dup' in list(results.keys())
@@ -2547,7 +2547,7 @@ class TestVariants(TestCase):
 
     def test_variant82(self):
         variant = 'NC_000003.11:g.14561629_14561630GC='
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001080423.3:c.1020del' in list(results.keys())
@@ -2588,7 +2588,7 @@ class TestVariants(TestCase):
 
     def test_variant83(self):
         variant = 'NC_000003.11:g.14561629_14561630insG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001080423.3:c.1016_1020=' in list(results.keys())
@@ -2629,7 +2629,7 @@ class TestVariants(TestCase):
 
     def test_variant84(self):
         variant = 'NC_000004.11:g.140811111_140811122del'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -2670,7 +2670,7 @@ class TestVariants(TestCase):
 
     def test_variant85(self):
         variant = 'NC_000004.11:g.140811111_140811122CTGCTGCTGCTG='
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_018717.5:c.1468_1479=' in list(results.keys())
@@ -2711,7 +2711,7 @@ class TestVariants(TestCase):
 
     def test_variant86(self):
         variant = 'NC_000004.11:g.140811117_140811122del'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -2752,7 +2752,7 @@ class TestVariants(TestCase):
 
     def test_variant87(self):
         variant = 'NC_000004.11:g.140811111_140811117del'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_018717.5:c.1473_1479del' in list(results.keys())
@@ -2793,7 +2793,7 @@ class TestVariants(TestCase):
 
     def test_variant88(self):
         variant = 'NC_000004.11:g.140811117C>A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -2834,7 +2834,7 @@ class TestVariants(TestCase):
 
     def test_variant89(self):
         variant = 'NC_000002.11:g.73675227_73675228insCTC'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_015120.4:c.1573_1579=' in list(results.keys())
@@ -2858,7 +2858,7 @@ class TestVariants(TestCase):
 
     def test_variant90(self):
         variant = '9-136132908-T-TC'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -2882,7 +2882,7 @@ class TestVariants(TestCase):
 
     def test_variant91(self):
         variant = '9-136132908-TAC-TCA'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -2906,7 +2906,7 @@ class TestVariants(TestCase):
 
     def test_variant92(self):
         variant = '9-136132908-TA-TA'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_020469.2:c.261del' in list(results.keys())
@@ -2930,7 +2930,7 @@ class TestVariants(TestCase):
 
     def test_variant93(self):
         variant = 'NM_020469.2:c.258delG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -2954,7 +2954,7 @@ class TestVariants(TestCase):
 
     def test_variant94(self):
         variant = 'NM_020469.2:c.260_262TGA='
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -2978,7 +2978,7 @@ class TestVariants(TestCase):
 
     def test_variant95(self):
         variant = 'NM_020469.2:c.261delG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_020469.2:c.261del' in list(results.keys())
@@ -3002,7 +3002,7 @@ class TestVariants(TestCase):
 
     def test_variant96(self):
         variant = 'NM_020469.2:c.261dupG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -3026,7 +3026,7 @@ class TestVariants(TestCase):
 
     def test_variant97(self):
         variant = 'NM_020469.2:c.261_262insTT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -3050,7 +3050,7 @@ class TestVariants(TestCase):
 
     def test_variant98(self):
         variant = 'NC_000019.10:g.50378563_50378564insTAC'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -3091,7 +3091,7 @@ class TestVariants(TestCase):
 
     def test_variant99(self):
         variant = 'NC_000019.10:g.50378563_50378564insC'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -3132,7 +3132,7 @@ class TestVariants(TestCase):
 
     def test_variant100(self):
         variant = 'NC_000019.10:g.50378564_50378565insTACA'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -3173,7 +3173,7 @@ class TestVariants(TestCase):
 
     def test_variant101(self):
         variant = 'NC_000019.10:g.50378565_50378567dup'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_007121.5:c.514_520=' in list(results.keys())
@@ -3214,7 +3214,7 @@ class TestVariants(TestCase):
 
     def test_variant102(self):
         variant = 'NC_000019.10:g.50378563_50378564='
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -3255,7 +3255,7 @@ class TestVariants(TestCase):
 
     def test_variant103(self):
         variant = 'NC_000019.10:g.50378563_50378564insTCGG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001256647.1:c.224_226delinsTCGG' in list(results.keys())
@@ -3296,7 +3296,7 @@ class TestVariants(TestCase):
 
     def test_variant104(self):
         variant = 'NC_000019.10:g.50378563delinsTTAC'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -3337,7 +3337,7 @@ class TestVariants(TestCase):
 
     def test_variant105(self):
         variant = 'NC_000019.10:g.50378563_50378564insTAAC'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_007121.5:c.514_515insT' in list(results.keys())
@@ -3378,7 +3378,7 @@ class TestVariants(TestCase):
 
     def test_variant106(self):
         variant = 'NC_000019.10:g.50378562_50378565del'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -3419,7 +3419,7 @@ class TestVariants(TestCase):
 
     def test_variant107(self):
         variant = 'NC_000019.10:g.50378562_50378565delinsTC'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001256647.1:c.222_228delinsTC' in list(results.keys())
@@ -3460,7 +3460,7 @@ class TestVariants(TestCase):
 
     def test_variant108(self):
         variant = 'NC_000007.14:g.149779575_149779577delinsT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -3484,7 +3484,7 @@ class TestVariants(TestCase):
 
     def test_variant109(self):
         variant = 'NC_000007.14:g.149779575_149779577='
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -3508,7 +3508,7 @@ class TestVariants(TestCase):
 
     def test_variant110(self):
         variant = 'NC_000007.14:g.149779576_149779578del'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -3532,7 +3532,7 @@ class TestVariants(TestCase):
 
     def test_variant111(self):
         variant = 'NC_000007.14:g.149779577del'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -3556,7 +3556,7 @@ class TestVariants(TestCase):
 
     def test_variant112(self):
         variant = 'NC_000007.14:g.149779573_149779579del'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_198455.2:c.1114_1117del' in list(results.keys())
@@ -3580,7 +3580,7 @@ class TestVariants(TestCase):
 
     def test_variant113(self):
         variant = 'NC_000007.14:g.149779573_149779579delinsCA'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_198455.2:c.1114_1117delinsCA' in list(results.keys())
@@ -3604,7 +3604,7 @@ class TestVariants(TestCase):
 
     def test_variant114(self):
         variant = 'NM_000088.3:c.590_591inv'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_000088.3:c.590_591inv' in list(results.keys())
@@ -3628,7 +3628,7 @@ class TestVariants(TestCase):
 
     def test_variant115(self):
         variant = 'NM_024989.3:c.1778_1779inv'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_024989.3:c.1778_1779inv' in list(results.keys())
@@ -3652,7 +3652,7 @@ class TestVariants(TestCase):
 
     def test_variant116(self):
         variant = 'NM_032815.3:c.555_556inv'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -3675,7 +3675,7 @@ class TestVariants(TestCase):
 
     def test_variant117(self):
         variant = 'NM_006138.4:c.3_4inv'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_006138.4:c.3_4inv' in list(results.keys())
@@ -3698,7 +3698,7 @@ class TestVariants(TestCase):
 
     def test_variant118(self):
         variant = 'NM_000038.5:c.3927_3928delAAinsTT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -3722,7 +3722,7 @@ class TestVariants(TestCase):
 
     def test_variant119(self):
         variant = 'NM_001034853.1:c.2847_2848delAGinsCT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -3746,7 +3746,7 @@ class TestVariants(TestCase):
 
     def test_variant120(self):
         variant = 'NM_000088.3:c.4392_*2inv'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_000088.3:c.4394_4395inv' in list(results.keys())
@@ -3770,7 +3770,7 @@ class TestVariants(TestCase):
 
     def test_variant121(self):
         variant = 'NM_000088.3:c.4392_*5inv'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -3794,7 +3794,7 @@ class TestVariants(TestCase):
 
     def test_variant122(self):
         variant = 'NM_000088.3:c.4390_*7inv'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -3818,7 +3818,7 @@ class TestVariants(TestCase):
 
     def test_variant123(self):
         variant = 'NM_005732.3:c.2923-5insT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -3842,7 +3842,7 @@ class TestVariants(TestCase):
 
     def test_variant124(self):
         variant = 'NM_198283.1(EYS):c.*743120C>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -3866,7 +3866,7 @@ class TestVariants(TestCase):
 
     def test_variant125(self):
         variant = 'NM_133379.4(TTN):c.*265+26591C>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -3890,7 +3890,7 @@ class TestVariants(TestCase):
 
     def test_variant126(self):
         variant = 'NM_000088.3:c.589-2_589-1AG>G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -3914,7 +3914,7 @@ class TestVariants(TestCase):
 
     def test_variant127(self):
         variant = 'NM_000088.3:c.642+1_642+2delGTinsG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -3938,7 +3938,7 @@ class TestVariants(TestCase):
 
     def test_variant128(self):
         variant = 'NM_004415.3:c.1-1insA'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -3962,7 +3962,7 @@ class TestVariants(TestCase):
 
     def test_variant129(self):
         variant = 'NM_004415.3:c.-1_1insA'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -3986,7 +3986,7 @@ class TestVariants(TestCase):
 
     def test_variant130(self):
         variant = 'NM_000273.2:c.1-5028_253del'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -4010,7 +4010,7 @@ class TestVariants(TestCase):
 
     def test_variant131(self):
         variant = 'NM_002929.2:c.1006C>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -4034,7 +4034,7 @@ class TestVariants(TestCase):
 
     def test_variant132(self):
         variant = 'NR_125367.1:n.167+18165G>A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -4058,7 +4058,7 @@ class TestVariants(TestCase):
 
     def test_variant133(self):
         variant = 'NM_006005.3:c.3071_3073delinsTTA'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -4082,7 +4082,7 @@ class TestVariants(TestCase):
 
     def test_variant134(self):
         variant = 'NM_000089.3:n.1504_1506del'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -4106,7 +4106,7 @@ class TestVariants(TestCase):
 
     def test_variant135(self):
         variant = 'NC_012920.1:m.1011C>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -4130,7 +4130,7 @@ class TestVariants(TestCase):
 
     def test_variant136(self):
         variant = 'NC_000006.11:g.90403795G='
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -4171,7 +4171,7 @@ class TestVariants(TestCase):
 
     def test_variant137(self):
         variant = '1-169519049-T-.'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_000130.4:c.1602del' in list(results.keys())
@@ -4212,7 +4212,7 @@ class TestVariants(TestCase):
 
     def test_variant138(self):
         variant = 'NC_000005.9:g.35058667_35058668AG='
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001204317.1:c.856-9155_856-9154=' in list(results.keys())
@@ -4355,7 +4355,7 @@ class TestVariants(TestCase):
 
     def test_variant139(self):
         variant = 'NM_000251.1:c.1296_1348del'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -4379,7 +4379,7 @@ class TestVariants(TestCase):
 
     def test_variant140(self):
         variant = 'NM_000088.3:c.2023_2028del'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -4403,7 +4403,7 @@ class TestVariants(TestCase):
 
     def test_variant141(self):
         variant = 'NM_000088.3:c.2024_2028+1del'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -4427,7 +4427,7 @@ class TestVariants(TestCase):
 
     def test_variant142(self):
         variant = 'ENST00000450616.1:n.31+1G>C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -4451,7 +4451,7 @@ class TestVariants(TestCase):
 
     def test_variant143(self):
         variant = 'ENST00000491747:c.5071A>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -4475,7 +4475,7 @@ class TestVariants(TestCase):
 
     def test_variant144(self):
         variant = 'NM_000088.3:c.589G>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -4499,7 +4499,7 @@ class TestVariants(TestCase):
 
     def test_variant145(self):
         variant = 'NG_007400.1:g.8638G>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -4523,7 +4523,7 @@ class TestVariants(TestCase):
 
     def test_variant146(self):
         variant = 'LRG_1:g.8638G>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -4547,7 +4547,7 @@ class TestVariants(TestCase):
 
     def test_variant147(self):
         variant = 'LRG_1t1:c.589G>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -4571,7 +4571,7 @@ class TestVariants(TestCase):
 
     def test_variant148(self):
         variant = 'chr16:g.15832508_15832509delinsAC'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_002474.2:c.3034_3035inv' in list(results.keys())
@@ -4646,7 +4646,7 @@ class TestVariants(TestCase):
 
     def test_variant149(self):
         variant = 'NG_012386.1:g.24048dupG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001162427.1:c.210+1615dup' in list(results.keys())
@@ -4721,7 +4721,7 @@ class TestVariants(TestCase):
 
     def test_variant150(self):
         variant = 'NM_033517.1:c.1307_1309delCGA'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -4745,7 +4745,7 @@ class TestVariants(TestCase):
 
     def test_variant151(self):
         variant = 'HG1311_PATCH-33720-CCGA-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -4769,7 +4769,7 @@ class TestVariants(TestCase):
 
     def test_variant152(self):
         variant = '2-73675227-TCTC-TCTCCTC'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_015120.4:c.1573_1579=' in list(results.keys())
@@ -4793,7 +4793,7 @@ class TestVariants(TestCase):
 
     def test_variant153(self):
         variant = '2-73675227-TC-TC'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_015120.4:c.1577_1579del' in list(results.keys())
@@ -4817,7 +4817,7 @@ class TestVariants(TestCase):
 
     def test_variant154(self):
         variant = '3-14561627-AG-AGG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001080423.3:c.1016_1020=' in list(results.keys())
@@ -4858,7 +4858,7 @@ class TestVariants(TestCase):
 
     def test_variant155(self):
         variant = '3-14561630-CC-CC'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001080423.3:c.1020del' in list(results.keys())
@@ -4899,7 +4899,7 @@ class TestVariants(TestCase):
 
     def test_variant156(self):
         variant = '6-90403795-G-G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -4940,7 +4940,7 @@ class TestVariants(TestCase):
 
     def test_variant157(self):
         variant = '6-90403795-G-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_014611.2:c.9879C>T' in list(results.keys())
@@ -4981,7 +4981,7 @@ class TestVariants(TestCase):
 
     def test_variant158(self):
         variant = '6-32012992-CG-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -5056,7 +5056,7 @@ class TestVariants(TestCase):
 
     def test_variant159(self):
         variant = '17-48275363-C-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -5080,7 +5080,7 @@ class TestVariants(TestCase):
 
     def test_variant160(self):
         variant = '17-48275364-C-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -5104,7 +5104,7 @@ class TestVariants(TestCase):
 
     def test_variant161(self):
         variant = '17-48275359-GGA-TCC'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_000088.3:c.591_593inv' in list(results.keys())
@@ -5128,7 +5128,7 @@ class TestVariants(TestCase):
 
     def test_variant162(self):
         variant = '7-94039128-CTTG-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -5152,7 +5152,7 @@ class TestVariants(TestCase):
 
     def test_variant163(self):
         variant = '9-135800972-AC-ACC'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001162427.1:c.210+1615dup' in list(results.keys())
@@ -5227,7 +5227,7 @@ class TestVariants(TestCase):
 
     def test_variant164(self):
         variant = '1-43212925-C-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -5285,7 +5285,7 @@ class TestVariants(TestCase):
 
     def test_variant165(self):
         variant = 'HG987_PATCH-355171-C-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001194958.2:c.20C>A' in list(results.keys())
@@ -5309,7 +5309,7 @@ class TestVariants(TestCase):
 
     def test_variant166(self):
         variant = '20-43252915-T-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_000022.3:c.534A>G' in list(results.keys())
@@ -5401,7 +5401,7 @@ class TestVariants(TestCase):
 
     def test_variant167(self):
         variant = '1-216219781-A-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -5425,7 +5425,7 @@ class TestVariants(TestCase):
 
     def test_variant168(self):
         variant = '2-209113113-G-A,C,T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_005896.3:c.394C>G' in list(results.keys())
@@ -5636,7 +5636,7 @@ class TestVariants(TestCase):
 
     def test_variant169(self):
         variant = 'NC_000005.9:g.35058665_35058666CA='
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001204314.1:c.*6525_*6526=' in list(results.keys())
@@ -5779,7 +5779,7 @@ class TestVariants(TestCase):
 
     def test_variant170(self):
         variant = 'NC_000002.11:g.73675227_73675229delTCTinsTCTCTC'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -5803,7 +5803,7 @@ class TestVariants(TestCase):
 
     def test_variant171(self):
         variant = 'NM_000828.4:c.-2dupG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -5827,7 +5827,7 @@ class TestVariants(TestCase):
 
     def test_variant172(self):
         variant = 'X-122318386-A-AGG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_007325.4:c.-2dup' in list(results.keys())
@@ -5885,7 +5885,7 @@ class TestVariants(TestCase):
 
     def test_variant173(self):
         variant = 'NM_000828.4:c.-2G>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -5909,7 +5909,7 @@ class TestVariants(TestCase):
 
     def test_variant174(self):
         variant = 'NM_000828.4:c.-2G='
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_000828.4:c.-2G=' in list(results.keys())
@@ -5933,7 +5933,7 @@ class TestVariants(TestCase):
 
     def test_variant175(self):
         variant = 'X-122318386-A-AT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -5991,7 +5991,7 @@ class TestVariants(TestCase):
 
     def test_variant176(self):
         variant = 'NM_000828.4:c.-2_-1insT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -6015,7 +6015,7 @@ class TestVariants(TestCase):
 
     def test_variant177(self):
         variant = 'NM_000828.4:c.-3_-2insT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_000828.4:c.-3_-2insT' in list(results.keys())
@@ -6039,7 +6039,7 @@ class TestVariants(TestCase):
 
     def test_variant178(self):
         variant = 'NM_000828.4:c.-2delGinsTT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -6063,7 +6063,7 @@ class TestVariants(TestCase):
 
     def test_variant179(self):
         variant = 'NM_000828.4:c.-2_-1delGCinsTT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -6087,7 +6087,7 @@ class TestVariants(TestCase):
 
     def test_variant180(self):
         variant = 'NM_000828.4:c.-3_-2delAGinsTT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_000828.4:c.-3_-2delinsTT' in list(results.keys())
@@ -6111,7 +6111,7 @@ class TestVariants(TestCase):
 
     def test_variant181(self):
         variant = '15-72105929-C-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_014249.3:c.951dup' in list(results.keys())
@@ -6186,7 +6186,7 @@ class TestVariants(TestCase):
 
     def test_variant182(self):
         variant = '15-72105928-AC-ATT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_014249.2:c.947_948insTT' in list(results.keys())
@@ -6261,7 +6261,7 @@ class TestVariants(TestCase):
 
     def test_variant183(self):
         variant = '15-72105928-ACC-ATT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_014249.2:c.947_948insTT' in list(results.keys())
@@ -6336,7 +6336,7 @@ class TestVariants(TestCase):
 
     def test_variant184(self):
         variant = '15-72105927-GACC-GTT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_014249.3:c.947delinsTT' in list(results.keys())
@@ -6411,7 +6411,7 @@ class TestVariants(TestCase):
 
     def test_variant185(self):
         variant = '19-41123093-A-AG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -6469,7 +6469,7 @@ class TestVariants(TestCase):
 
     def test_variant186(self):
         variant = '19-41123093-A-AT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_003573.2:c.3123G>T' in list(results.keys())
@@ -6527,7 +6527,7 @@ class TestVariants(TestCase):
 
     def test_variant187(self):
         variant = '19-41123093-AG-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001042544.1:c.3235_3236del' in list(results.keys())
@@ -6585,7 +6585,7 @@ class TestVariants(TestCase):
 
     def test_variant188(self):
         variant = '19-41123093-AG-AG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001042545.1:c.3035del' in list(results.keys())
@@ -6643,7 +6643,7 @@ class TestVariants(TestCase):
 
     def test_variant189(self):
         variant = 'NM_012309.4:c.913-5058G>A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -6667,7 +6667,7 @@ class TestVariants(TestCase):
 
     def test_variant190(self):
         variant = 'LRG_199t1:c.2376[G>C];[G>C]'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -6691,7 +6691,7 @@ class TestVariants(TestCase):
 
     def test_variant191(self):
         variant = 'LRG_199t1:c.[2376G>C];[3103del]'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_004006.2:c.3103del' in list(results.keys())
@@ -6732,7 +6732,7 @@ class TestVariants(TestCase):
 
     def test_variant192(self):
         variant = 'LRG_199t1:c.[4358_4359del;4361_4372del]'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -6774,7 +6774,7 @@ class TestVariants(TestCase):
 
     def test_variant193(self):
         variant = 'LRG_199t1:c.2376G>C(;)3103del'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_004006.2:c.3103del' in list(results.keys())
@@ -6815,7 +6815,7 @@ class TestVariants(TestCase):
 
     def test_variant194(self):
         variant = 'LRG_199t1:c.2376[G>C];[(G>C)]'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -6839,7 +6839,7 @@ class TestVariants(TestCase):
 
     def test_variant195(self):
         variant = 'LRG_199t1:c.[2376G>C];[?]'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -6863,7 +6863,7 @@ class TestVariants(TestCase):
 
     def test_variant196(self):
         variant = 'LRG_199t1:c.[296T>G;476T=];[476T=](;)1083A>C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_004006.2:c.476T=' in list(results.keys())
@@ -6921,7 +6921,7 @@ class TestVariants(TestCase):
 
     def test_variant197(self):
         variant = 'LRG_199t1:c.[296T>G];[476T>C](;)1083A>C(;)1406del'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_004006.2:c.1408del' in list(results.keys())
@@ -6996,7 +6996,7 @@ class TestVariants(TestCase):
 
     def test_variant198(self):
         variant = 'LRG_199t1:c.[976-20T>A;976-17_976-1dup]'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'validation_warning_1' in list(results.keys())
@@ -7020,7 +7020,7 @@ class TestVariants(TestCase):
 
     def test_variant199(self):
         variant = '1-5935162-A-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_015102.3:c.2818-2T>A' in list(results.keys())
@@ -7112,7 +7112,7 @@ class TestVariants(TestCase):
 
     def test_variant200(self):
         variant = '1-12065948-C-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -7153,7 +7153,7 @@ class TestVariants(TestCase):
 
     def test_variant201(self):
         variant = '1-46655125-CTCAC-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001290129.1:c.1829+5_1829+8del' in list(results.keys())
@@ -7228,7 +7228,7 @@ class TestVariants(TestCase):
 
     def test_variant202(self):
         variant = '1-68912523-TGAGCCAGAG-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_000329.2:c.106_114del' in list(results.keys())
@@ -7252,7 +7252,7 @@ class TestVariants(TestCase):
 
     def test_variant203(self):
         variant = '1-68912526-GCCAGAG-G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_000329.2:c.109_114del' in list(results.keys())
@@ -7276,7 +7276,7 @@ class TestVariants(TestCase):
 
     def test_variant204(self):
         variant = '1-109817590-G-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -7300,7 +7300,7 @@ class TestVariants(TestCase):
 
     def test_variant205(self):
         variant = '1-145597475-GAAGT-G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -7358,7 +7358,7 @@ class TestVariants(TestCase):
 
     def test_variant206(self):
         variant = '1-153791300-CTG-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -7399,7 +7399,7 @@ class TestVariants(TestCase):
 
     def test_variant207(self):
         variant = '1-156104666-TTGAGAGCCGGCTGGCGGATGCGCT-TCCCC'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_005572.3:c.711_734delinsCCCC' in list(results.keys())
@@ -7542,7 +7542,7 @@ class TestVariants(TestCase):
 
     def test_variant208(self):
         variant = '1-156108541-G-GG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_170707.3:c.1961dup' in list(results.keys())
@@ -7634,7 +7634,7 @@ class TestVariants(TestCase):
 
     def test_variant209(self):
         variant = '1-161279695-T-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -7692,7 +7692,7 @@ class TestVariants(TestCase):
 
     def test_variant210(self):
         variant = '1-169519049-T-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -7716,7 +7716,7 @@ class TestVariants(TestCase):
 
     def test_variant211(self):
         variant = '1-226125468-G-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_003240.4:c.774C>T' in list(results.keys())
@@ -7791,7 +7791,7 @@ class TestVariants(TestCase):
 
     def test_variant212(self):
         variant = '10-89623035-CGCA-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -7815,7 +7815,7 @@ class TestVariants(TestCase):
 
     def test_variant213(self):
         variant = '11-62457852-C-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NR_037946.1:n.3896G>T' in list(results.keys())
@@ -7924,7 +7924,7 @@ class TestVariants(TestCase):
 
     def test_variant214(self):
         variant = '11-108178710-A-AT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001351834.1:c.5761_5762insT' in list(results.keys())
@@ -7965,7 +7965,7 @@ class TestVariants(TestCase):
 
     def test_variant215(self):
         variant = '11-111735981-G-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001352419.1:c.-108-7C>T' in list(results.keys())
@@ -8312,7 +8312,7 @@ class TestVariants(TestCase):
 
     def test_variant216(self):
         variant = '12-11023080-C-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -8336,7 +8336,7 @@ class TestVariants(TestCase):
 
     def test_variant217(self):
         variant = '12-22018712-TC-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_020297.3:c.2199-1302del' in list(results.keys())
@@ -8411,7 +8411,7 @@ class TestVariants(TestCase):
 
     def test_variant218(self):
         variant = '12-52912946-T-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -8435,7 +8435,7 @@ class TestVariants(TestCase):
 
     def test_variant219(self):
         variant = '12-103234292-TC-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001354304.1:c.1200del' in list(results.keys())
@@ -8493,7 +8493,7 @@ class TestVariants(TestCase):
 
     def test_variant220(self):
         variant = '12-103311124-T-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001354304.1:c.-95-121A>G' in list(results.keys())
@@ -8551,7 +8551,7 @@ class TestVariants(TestCase):
 
     def test_variant221(self):
         variant = '12-111064166-G-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001319681.1:c.-366-1G>A' in list(results.keys())
@@ -8728,7 +8728,7 @@ class TestVariants(TestCase):
 
     def test_variant222(self):
         variant = '12-123738430-CA-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001194995.1:c.210del' in list(results.keys())
@@ -8786,7 +8786,7 @@ class TestVariants(TestCase):
 
     def test_variant223(self):
         variant = '13-31789169-CT-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -8810,7 +8810,7 @@ class TestVariants(TestCase):
 
     def test_variant224(self):
         variant = '14-62187287-G-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NR_144368.1:n.214-3552C>T' in list(results.keys())
@@ -8885,7 +8885,7 @@ class TestVariants(TestCase):
 
     def test_variant225(self):
         variant = '14-62188231-TT-GA'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NR_144368.1:n.214-4497_214-4496delinsTC' in list(results.keys())
@@ -8960,7 +8960,7 @@ class TestVariants(TestCase):
 
     def test_variant226(self):
         variant = '14-63174827-C-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_139318.3:c.2366G>T' in list(results.keys())
@@ -9035,7 +9035,7 @@ class TestVariants(TestCase):
 
     def test_variant227(self):
         variant = '15-42680000-CA-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_000070.2:c.550del' in list(results.keys())
@@ -9093,7 +9093,7 @@ class TestVariants(TestCase):
 
     def test_variant228(self):
         variant = '15-42680000-CA-CAA'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_024344.1:c.550dup' in list(results.keys())
@@ -9151,7 +9151,7 @@ class TestVariants(TestCase):
 
     def test_variant229(self):
         variant = '15-42703179-T-TTCA'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_173088.1:c.825_826insTCA' in list(results.keys())
@@ -9260,7 +9260,7 @@ class TestVariants(TestCase):
 
     def test_variant230(self):
         variant = '15-42703179-TAG-TTCATCT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_024344.1:c.2344_2345delinsTCATCT' in list(results.keys())
@@ -9369,7 +9369,7 @@ class TestVariants(TestCase):
 
     def test_variant231(self):
         variant = '15-48782203-C-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_000138.4:c.2927G>A' in list(results.keys())
@@ -9393,7 +9393,7 @@ class TestVariants(TestCase):
 
     def test_variant232(self):
         variant = '15-72105929-CC-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_014249.2:c.946_949=' in list(results.keys())
@@ -9468,7 +9468,7 @@ class TestVariants(TestCase):
 
     def test_variant233(self):
         variant = '15-89873415-G-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_002693.2:c.752C>T' in list(results.keys())
@@ -9509,7 +9509,7 @@ class TestVariants(TestCase):
 
     def test_variant234(self):
         variant = '16-2103394-C-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_000548.3:c.277C>T' in list(results.keys())
@@ -9720,7 +9720,7 @@ class TestVariants(TestCase):
 
     def test_variant235(self):
         variant = '16-3779300-C-G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -9761,7 +9761,7 @@ class TestVariants(TestCase):
 
     def test_variant236(self):
         variant = '16-5128843-C-G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001330504.1:c.493C>G' in list(results.keys())
@@ -9802,7 +9802,7 @@ class TestVariants(TestCase):
 
     def test_variant237(self):
         variant = '16-74808559-C-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_024306.4:c.95G>A' in list(results.keys())
@@ -9826,7 +9826,7 @@ class TestVariants(TestCase):
 
     def test_variant238(self):
         variant = '16-89574804-C-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_003119.3:c.-22C>A' in list(results.keys())
@@ -9884,7 +9884,7 @@ class TestVariants(TestCase):
 
     def test_variant239(self):
         variant = '16-89574826-A-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_003119.2:c.1A>C' in list(results.keys())
@@ -9976,7 +9976,7 @@ class TestVariants(TestCase):
 
     def test_variant240(self):
         variant = '16-89574914-G-GT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001363850.1:c.90dup' in list(results.keys())
@@ -10068,7 +10068,7 @@ class TestVariants(TestCase):
 
     def test_variant241(self):
         variant = '16-89574916-C-CGTC'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_199367.2:c.89_91dup' in list(results.keys())
@@ -10160,7 +10160,7 @@ class TestVariants(TestCase):
 
     def test_variant242(self):
         variant = '16-89575009-G-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_199367.2:c.183+1G>A' in list(results.keys())
@@ -10252,7 +10252,7 @@ class TestVariants(TestCase):
 
     def test_variant243(self):
         variant = '16-89575040-C-A,CA'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_199367.1:c.183+32_183+33insA' in list(results.keys())
@@ -10429,7 +10429,7 @@ class TestVariants(TestCase):
 
     def test_variant244(self):
         variant = '16-89576896-A-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_199367.2:c.184-2A>C' in list(results.keys())
@@ -10521,7 +10521,7 @@ class TestVariants(TestCase):
 
     def test_variant245(self):
         variant = '16-89576930-T-TA,TT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_003119.3:c.216dup' in list(results.keys())
@@ -10698,7 +10698,7 @@ class TestVariants(TestCase):
 
     def test_variant246(self):
         variant = '16-89576931-G-GTG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_199367.1:c.216_217dup' in list(results.keys())
@@ -10790,7 +10790,7 @@ class TestVariants(TestCase):
 
     def test_variant247(self):
         variant = '16-89598368-CGGCCCCCCCGGCTGTGGGAAGACGCT-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_199367.1:c.1046_1071del' in list(results.keys())
@@ -10882,7 +10882,7 @@ class TestVariants(TestCase):
 
     def test_variant248(self):
         variant = '16-89613064-AGGAGAGGCG-AT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001363850.1:c.1450-1_1457delinsT' in list(results.keys())
@@ -10940,7 +10940,7 @@ class TestVariants(TestCase):
 
     def test_variant249(self):
         variant = '16-89613069-AGGCGGGAGA-AT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_003119.2:c.1454_1462delinsT' in list(results.keys())
@@ -10998,7 +10998,7 @@ class TestVariants(TestCase):
 
     def test_variant250(self):
         variant = '16-89613145-C-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001363850.1:c.1529C>T' in list(results.keys())
@@ -11056,7 +11056,7 @@ class TestVariants(TestCase):
 
     def test_variant251(self):
         variant = '17-7578194-GCAC-G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001276695.1:c.535_537del' in list(results.keys())
@@ -11318,7 +11318,7 @@ class TestVariants(TestCase):
 
     def test_variant252(self):
         variant = '17-7578523-T-TG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001276760.1:c.289dup' in list(results.keys())
@@ -11580,7 +11580,7 @@ class TestVariants(TestCase):
 
     def test_variant253(self):
         variant = '17-17119692-A-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_144997.6:c.1300+2T>G' in list(results.keys())
@@ -11672,7 +11672,7 @@ class TestVariants(TestCase):
 
     def test_variant254(self):
         variant = '17-41197588-GGACA-G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_007294.3:c.*103_*106del' in list(results.keys())
@@ -11781,7 +11781,7 @@ class TestVariants(TestCase):
 
     def test_variant255(self):
         variant = '17-41256884-C-G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_007299.3:c.301+1G>C' in list(results.keys())
@@ -11890,7 +11890,7 @@ class TestVariants(TestCase):
 
     def test_variant256(self):
         variant = '17-42991428-C-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001363846.1:c.490G>T' in list(results.keys())
@@ -11965,7 +11965,7 @@ class TestVariants(TestCase):
 
     def test_variant257(self):
         variant = '17-48252809-A-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NR_135553.1:n.1022A>T' in list(results.keys())
@@ -12057,7 +12057,7 @@ class TestVariants(TestCase):
 
     def test_variant258(self):
         variant = '17-62022709-G-GTC'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -12081,7 +12081,7 @@ class TestVariants(TestCase):
 
     def test_variant259(self):
         variant = '17-62022711-C-CT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -12105,7 +12105,7 @@ class TestVariants(TestCase):
 
     def test_variant260(self):
         variant = '17-62023005-G-GGC'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -12129,7 +12129,7 @@ class TestVariants(TestCase):
 
     def test_variant261(self):
         variant = '17-62023006-C-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -12153,7 +12153,7 @@ class TestVariants(TestCase):
 
     def test_variant262(self):
         variant = '17-62034787-G-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -12177,7 +12177,7 @@ class TestVariants(TestCase):
 
     def test_variant263(self):
         variant = '18-24128261-GTCCTCC-G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001351443.1:c.-16+941_-16+946del' in list(results.keys())
@@ -12303,7 +12303,7 @@ class TestVariants(TestCase):
 
     def test_variant264(self):
         variant = '19-15291774-G-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -12327,7 +12327,7 @@ class TestVariants(TestCase):
 
     def test_variant265(self):
         variant = '19-15311794-A-G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'intergenic'
@@ -12351,7 +12351,7 @@ class TestVariants(TestCase):
 
     def test_variant266(self):
         variant = '19-39076592-G-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -12392,7 +12392,7 @@ class TestVariants(TestCase):
 
     def test_variant267(self):
         variant = '2-50149352-T-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001330086.1:c.4245A>G' in list(results.keys())
@@ -12841,7 +12841,7 @@ class TestVariants(TestCase):
 
     def test_variant268(self):
         variant = '2-50847195-G-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001330096.1:c.1201C>T' in list(results.keys())
@@ -13137,7 +13137,7 @@ class TestVariants(TestCase):
 
     def test_variant269(self):
         variant = '2-71825797-C-G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001130976.1:c.3582C>G' in list(results.keys())
@@ -13382,7 +13382,7 @@ class TestVariants(TestCase):
 
     def test_variant270(self):
         variant = '2-166179712-G-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_021007.2:c.1718G>C' in list(results.keys())
@@ -13440,7 +13440,7 @@ class TestVariants(TestCase):
 
     def test_variant271(self):
         variant = '2-166183371-A-G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_021007.2:c.2026A>G' in list(results.keys())
@@ -13498,7 +13498,7 @@ class TestVariants(TestCase):
 
     def test_variant272(self):
         variant = '2-166929889-GTCCAGGTCCT-GAC'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001353951.1:c.233_242delinsGT' in list(results.keys())
@@ -13845,7 +13845,7 @@ class TestVariants(TestCase):
 
     def test_variant273(self):
         variant = '2-166929891-CCAGGTCCT-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NR_148667.1:n.638_645del' in list(results.keys())
@@ -14192,7 +14192,7 @@ class TestVariants(TestCase):
 
     def test_variant274(self):
         variant = '2-179393504-G-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001256850.1:c.102051C>A' in list(results.keys())
@@ -14369,7 +14369,7 @@ class TestVariants(TestCase):
 
     def test_variant275(self):
         variant = '2-185803444-TGCAGCTGCTGCAGCTGCAGCTGCA-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -14393,7 +14393,7 @@ class TestVariants(TestCase):
 
     def test_variant276(self):
         variant = '2-201950249-G-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -14434,7 +14434,7 @@ class TestVariants(TestCase):
 
     def test_variant277(self):
         variant = '2-238268730-C-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_004369.3:c.6282+1G>T' in list(results.keys())
@@ -14492,7 +14492,7 @@ class TestVariants(TestCase):
 
     def test_variant278(self):
         variant = '21-43897396-C-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_080860.2:c.727+5G>A' in list(results.keys())
@@ -14550,7 +14550,7 @@ class TestVariants(TestCase):
 
     def test_variant279(self):
         variant = '22-30064360-G-GCGACGC'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_000268.3:c.924_925insCGACGC' in list(results.keys())
@@ -14727,7 +14727,7 @@ class TestVariants(TestCase):
 
     def test_variant280(self):
         variant = '3-10188187-TGTCCCGATAG-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_198156.2:c.341-3280_341-3271del' in list(results.keys())
@@ -14785,7 +14785,7 @@ class TestVariants(TestCase):
 
     def test_variant281(self):
         variant = '3-50402127-T-G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001005505.2:c.3408A>C' in list(results.keys())
@@ -14928,7 +14928,7 @@ class TestVariants(TestCase):
 
     def test_variant282(self):
         variant = '3-50402890-G-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NR_111913.1:n.126G>A' in list(results.keys())
@@ -15105,7 +15105,7 @@ class TestVariants(TestCase):
 
     def test_variant283(self):
         variant = '3-57851007-AG-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_007159.4:c.1135+565del' in list(results.keys())
@@ -15231,7 +15231,7 @@ class TestVariants(TestCase):
 
     def test_variant284(self):
         variant = '3-122003832-G-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001178065.1:c.3061C=' in list(results.keys())
@@ -15272,7 +15272,7 @@ class TestVariants(TestCase):
 
     def test_variant285(self):
         variant = '4-153332910-C-CAGG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001349798.1:c.45_46insCCT' in list(results.keys())
@@ -15347,7 +15347,7 @@ class TestVariants(TestCase):
 
     def test_variant286(self):
         variant = '5-1295183-G-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'intergenic'
@@ -15371,7 +15371,7 @@ class TestVariants(TestCase):
 
     def test_variant287(self):
         variant = '5-77396835-TTTC-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_003664.4:c.2409_2411del' in list(results.keys())
@@ -15429,7 +15429,7 @@ class TestVariants(TestCase):
 
     def test_variant288(self):
         variant = '5-118811422-GGTGA-G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_000414.3:c.302+3_302+6del' in list(results.keys())
@@ -15538,7 +15538,7 @@ class TestVariants(TestCase):
 
     def test_variant289(self):
         variant = '5-118811422-GGTGAG-G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001292028.1:c.-110+1_-110+5del' in list(results.keys())
@@ -15647,7 +15647,7 @@ class TestVariants(TestCase):
 
     def test_variant290(self):
         variant = '5-131705587-CG-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -15705,7 +15705,7 @@ class TestVariants(TestCase):
 
     def test_variant291(self):
         variant = '5-148406482-T-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -15729,7 +15729,7 @@ class TestVariants(TestCase):
 
     def test_variant292(self):
         variant = '6-110036337-T-TCAG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_014845.5:c.123_124insCAG' in list(results.keys())
@@ -15753,7 +15753,7 @@ class TestVariants(TestCase):
 
     def test_variant293(self):
         variant = '6-110036337-TGAT-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_014845.5:c.124_126del' in list(results.keys())
@@ -15777,7 +15777,7 @@ class TestVariants(TestCase):
 
     def test_variant294(self):
         variant = '6-152651802-C-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -15818,7 +15818,7 @@ class TestVariants(TestCase):
 
     def test_variant295(self):
         variant = '6-152737643-C-G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -15859,7 +15859,7 @@ class TestVariants(TestCase):
 
     def test_variant296(self):
         variant = '7-6026775-T-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001322012.1:c.688A>G' in list(results.keys())
@@ -16155,7 +16155,7 @@ class TestVariants(TestCase):
 
     def test_variant297(self):
         variant = '7-55242465-GGAATTAAGAGAAGCA-G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001346900.1:c.2077_2091del' in list(results.keys())
@@ -16281,7 +16281,7 @@ class TestVariants(TestCase):
 
     def test_variant298(self):
         variant = '7-55248992-T-TTCCAGGAAGCCT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_005228.3:c.2284-5_2290dup' in list(results.keys())
@@ -16424,7 +16424,7 @@ class TestVariants(TestCase):
 
     def test_variant299(self):
         variant = '7-75932111-C-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001540.4:c.82C>A' in list(results.keys())
@@ -16465,7 +16465,7 @@ class TestVariants(TestCase):
 
     def test_variant300(self):
         variant = '7-91652178-A-AAAC'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -16506,7 +16506,7 @@ class TestVariants(TestCase):
 
     def test_variant301(self):
         variant = '7-117199644-ATCT-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -16547,7 +16547,7 @@ class TestVariants(TestCase):
 
     def test_variant302(self):
         variant = '7-140453136-AC-CT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NR_148928.1:n.2896_2897delinsAG' in list(results.keys())
@@ -16622,7 +16622,7 @@ class TestVariants(TestCase):
 
     def test_variant303(self):
         variant = '7-140453136-A-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001354609.1:c.1799T>A' in list(results.keys())
@@ -16697,7 +16697,7 @@ class TestVariants(TestCase):
 
     def test_variant304(self):
         variant = '7-140453137-C-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NR_148928.1:n.2896G>A' in list(results.keys())
@@ -16772,7 +16772,7 @@ class TestVariants(TestCase):
 
     def test_variant305(self):
         variant = '7-143013488-A-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -16813,7 +16813,7 @@ class TestVariants(TestCase):
 
     def test_variant306(self):
         variant = '7-143018934-G-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NR_046453.1:n.776G>A' in list(results.keys())
@@ -16854,7 +16854,7 @@ class TestVariants(TestCase):
 
     def test_variant307(self):
         variant = '7-143048771-C-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -16895,7 +16895,7 @@ class TestVariants(TestCase):
 
     def test_variant308(self):
         variant = '8-1871951-C-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_014629.3:c.2399C>T' in list(results.keys())
@@ -16970,7 +16970,7 @@ class TestVariants(TestCase):
 
     def test_variant309(self):
         variant = '9-13112056-T-TG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001261407.1:c.5504dup' in list(results.keys())
@@ -17045,7 +17045,7 @@ class TestVariants(TestCase):
 
     def test_variant310(self):
         variant = '9-21971208-C-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_058197.4:c.*74-1G>T' in list(results.keys())
@@ -17137,7 +17137,7 @@ class TestVariants(TestCase):
 
     def test_variant311(self):
         variant = '9-35683240-T-TG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_001301227.1:c.773-3dup' in list(results.keys())
@@ -17212,7 +17212,7 @@ class TestVariants(TestCase):
 
     def test_variant312(self):
         variant = '9-135796754-G-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_000368.4:c.733C>T' in list(results.keys())
@@ -17287,7 +17287,7 @@ class TestVariants(TestCase):
 
     def test_variant313(self):
         variant = 'HG536_PATCH-10391-AC-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -17311,7 +17311,7 @@ class TestVariants(TestCase):
 
     def test_variant314(self):
         variant = 'HG865_PATCH-33547-G-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NR_110766.1:n.833+969C>T' in list(results.keys())
@@ -17386,7 +17386,7 @@ class TestVariants(TestCase):
 
     def test_variant315(self):
         variant = 'HG865_PATCH-569441-G-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -17410,7 +17410,7 @@ class TestVariants(TestCase):
 
     def test_variant316(self):
         variant = 'HG865_PATCH-574546-C-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -17434,7 +17434,7 @@ class TestVariants(TestCase):
 
     def test_variant317(self):
         variant = 'HSCHR1_1_CTG31-133178-TAG-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -17458,7 +17458,7 @@ class TestVariants(TestCase):
 
     def test_variant318(self):
         variant = 'HSCHR6_MHC_MANN_CTG1-3848158-T-G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -17482,7 +17482,7 @@ class TestVariants(TestCase):
 
     def test_variant319(self):
         variant = 'HSCHR6_MHC_MANN_CTG1-3851043-C-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -17506,7 +17506,7 @@ class TestVariants(TestCase):
 
     def test_variant320(self):
         variant = 'X-70443101-C-T'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -17547,7 +17547,7 @@ class TestVariants(TestCase):
 
     def test_variant321(self):
         variant = 'X-107845202-GACCACC-GACC,G'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_033380.2:c.2130_2135del' in list(results.keys())
@@ -17622,7 +17622,7 @@ class TestVariants(TestCase):
 
     def test_variant322(self):
         variant = 'X-153296777-G-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_004992.3:c.502C>T' in list(results.keys())
@@ -17680,7 +17680,7 @@ class TestVariants(TestCase):
 
     def test_variant323(self):
         variant = 'NM_198180.2:c.408_410delGTG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -17704,7 +17704,7 @@ class TestVariants(TestCase):
 
     def test_variant324(self):
         variant = 'NM_080877.2:c.1733_1735delinsTTT'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_080877.2:c.1733_1735delinsTTT' in list(results.keys())
@@ -17728,7 +17728,7 @@ class TestVariants(TestCase):
 
     def test_variant325(self):
         variant = 'NM_080877.2:c.1735_1737delinsTGA'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_080877.2:c.1735_1737delinsTGA' in list(results.keys())
@@ -17752,7 +17752,7 @@ class TestVariants(TestCase):
 
     def test_variant326(self):
         variant = 'NM_080877.2:c.1735_1737delinsTAATTGTTC'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -17776,7 +17776,7 @@ class TestVariants(TestCase):
 
     def test_variant327(self):
         variant = 'NM_080877.2:c.1737delinsATTGTTC'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -17800,7 +17800,7 @@ class TestVariants(TestCase):
 
     def test_variant328(self):
         variant = 'NM_000088.3:c.4392_*2delinsAGAG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -17824,7 +17824,7 @@ class TestVariants(TestCase):
 
     def test_variant329(self):
         variant = 'NM_000088.3:c.589_591delinsAGAAGC'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -17848,7 +17848,7 @@ class TestVariants(TestCase):
 
     def test_variant330(self):
         variant = 'NM_000885.5:c.*2536delinsAGAAAAATCA'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_000885.5:c.*2536delinsAGAAAAATCA' in list(results.keys())
@@ -17872,7 +17872,7 @@ class TestVariants(TestCase):
 
     def test_variant331(self):
         variant = 'NM_002693.2:c.-186_-185delinsCC'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert 'NM_002693.2:c.-186_-185delinsCC' in list(results.keys())
@@ -17896,7 +17896,7 @@ class TestVariants(TestCase):
 
     def test_variant332(self):
         variant = 'NG_009616.1:g.29052_29053insCTACATAG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -17954,7 +17954,7 @@ class TestVariants(TestCase):
 
     def test_variant333(self):
         variant = 'NM_000061.2:c.588_588+1insCTACATAG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -17978,7 +17978,7 @@ class TestVariants(TestCase):
 
     def test_variant334(self):
         variant = 'NM_000061.2:c.588_589insCTACATAG'
-        results = self.vv.validate(variant, 'GRCh37', 'all')
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict()
         print(results)
 
         assert results['flag'] == 'gene_variant'

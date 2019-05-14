@@ -57,6 +57,7 @@ from . import format_converters
 from . import use_checking
 from . import collect_info
 from . import mappers
+from . import valoutput
 
 
 class Mixin(vvMixinConverters.Mixin):
@@ -856,11 +857,9 @@ class Mixin(vvMixinConverters.Mixin):
                     warning = warning.replace("'", "")
                     if warning == '':
                         continue
-                    warnings_out.append(warning)
-                # Remove duplicate elements but maintain the order
-                seen = {}
-                no_rep_list = [seen.setdefault(x, x) for x in warnings_out if x not in seen]
-                warnings_out = no_rep_list
+                    if warning not in warnings_out:
+                        # Remove duplicate elements but maintain the order
+                        warnings_out.append(warning)
 
                 # Ensure Variants have had the refs removed.
                 # if not hasattr(posedit, refseqgene_variant):
@@ -885,179 +884,47 @@ class Mixin(vvMixinConverters.Mixin):
                     else:
                         predicted_protein_variant_dict["slr"] = str(predicted_protein_variant)
 
-                # Populate the dictionary
-                dict_out['submitted_variant'] = submitted
-                dict_out['gene_symbol'] = gene_symbol
-                dict_out['transcript_description'] = transcript_description
-                dict_out['hgvs_transcript_variant'] = tx_variant
-                dict_out['genome_context_intronic_sequence'] = genome_context_transcript_variant
-                dict_out['refseqgene_context_intronic_sequence'] = RefSeqGene_context_transcript_variant
-                dict_out['hgvs_refseqgene_variant'] = refseqgene_variant
-                dict_out['hgvs_predicted_protein_consequence'] = predicted_protein_variant_dict
-                dict_out['validation_warnings'] = warnings_out
-                dict_out['hgvs_lrg_transcript_variant'] = lrg_transcript_variant
-                dict_out['hgvs_lrg_variant'] = lrg_variant
-                dict_out['alt_genomic_loci'] = alt_genomic_dicts
-                dict_out['primary_assembly_loci'] = primary_genomic_dicts
-                dict_out['reference_sequence_records'] = ''
+                # # Populate the dictionary
+                # dict_out['submitted_variant'] = submitted
+                # dict_out['gene_symbol'] = gene_symbol
+                # dict_out['transcript_description'] = transcript_description
+                # dict_out['hgvs_transcript_variant'] = tx_variant
+                # dict_out['genome_context_intronic_sequence'] = genome_context_transcript_variant
+                # dict_out['refseqgene_context_intronic_sequence'] = RefSeqGene_context_transcript_variant
+                # dict_out['hgvs_refseqgene_variant'] = refseqgene_variant
+                # dict_out['hgvs_predicted_protein_consequence'] = predicted_protein_variant_dict
+                # dict_out['validation_warnings'] = warnings_out
+                # dict_out['hgvs_lrg_transcript_variant'] = lrg_transcript_variant
+                # dict_out['hgvs_lrg_variant'] = lrg_variant
+                # dict_out['alt_genomic_loci'] = alt_genomic_dicts
+                # dict_out['primary_assembly_loci'] = primary_genomic_dicts
+                # dict_out['reference_sequence_records'] = ''
+
+                variant.gene_symbol = gene_symbol
+                variant.hgvs_transcript_variant = tx_variant
+                variant.genome_context_intronic_sequence = genome_context_transcript_variant
+                variant.refseqgene_context_intronic_sequence = RefSeqGene_context_transcript_variant
+                variant.hgvs_refseqgene_variant = refseqgene_variant
+                variant.hgvs_predicted_protein_consequence = predicted_protein_variant_dict
+                variant.validation_warnings = warnings_out
+                variant.hgvs_lrg_transcript_variant = lrg_transcript_variant
+                variant.hgvs_lrg_variant = lrg_variant
+                variant.alt_genomic_loci = alt_genomic_dicts
+                variant.primary_assembly_loci = primary_genomic_dicts
+                variant.reference_sequence_records = ''
+                variant.validated = True
 
                 # Add links to reference_sequence_records
-                ref_records = self.db.get_urls(dict_out)
+                ref_records = self.db.get_urls(variant.output_dict())
                 if ref_records != {}:
-                    dict_out['reference_sequence_records'] = ref_records
+                    variant.reference_sequence_records = ref_records
 
                 # Append to a list for return
-                batch_out.append(dict_out)
+                batch_out.append(variant)
 
-
-            """
-            Structure the output into dictionaries rather than a list with descriptive keys
-            and a validation type flag
-            """
-            logger.trace("Populating output dictionary")
-            # Create output dictionary
-            validation_output = {'flag': None}
-
-            # For gene outputs, i.e. those that hit transcripts
-            # dotter = ''
-            if my_variant.output_type_flag == 'gene':
-                validation_output['flag'] = 'gene_variant'
-                validation_error_counter = 0
-                validation_obsolete_counter = 0
-                for valid_v in batch_out:
-                    if valid_v['validation_warnings'] == ['Validation error']:
-                        validation_error_counter = validation_error_counter + 1
-                        identification_key = 'Validation_Error_%s' % (str(validation_error_counter))
-                    else:
-                        obs_obs = False
-                        for ob_rec in valid_v['validation_warnings']:
-                            if 'obsolete' in ob_rec:
-                                validation_obsolete_counter = validation_obsolete_counter + 1
-                                obs_obs = True
-                                break
-                        if obs_obs is True:
-                            identification_key = 'obsolete_record_%s' % (str(validation_obsolete_counter))
-                        else:
-                            identification_key = '%s' % (str(valid_v['hgvs_transcript_variant']))
-
-                    # if identification_key not in validation_output.keys():
-                    validation_output[identification_key] = valid_v
-                    # else:
-                    # dotter = dotter + ' '
-                    # validation_output[identification_key + dotter] = valid_v
-
-            # For warning only outputs
-            # Should only ever be 1 output as an error or a warning of the following types
-            # Gene symbol as reference sequence
-            # Gene as transcript reference sequence
-            if my_variant.output_type_flag == 'warning':
-                validation_output['flag'] = 'warning'
-                validation_error_counter = 0
-                validation_warning_counter = 0
-                if len(batch_out) == 0:
-                    validation_output['flag'] = 'empty_result'
-                for valid_v in batch_out:
-                    if valid_v['validation_warnings'] == ['Validation error']:
-                        validation_error_counter = validation_error_counter + 1
-                        identification_key = 'validation_error_%s' % (str(validation_error_counter))
-                    else:
-                        validation_warning_counter = validation_warning_counter + 1
-                        identification_key = 'validation_warning_%s' % (str(validation_warning_counter))
-                    validation_output[identification_key] = valid_v
-
-            # Intergenic variants
-            validation_intergenic_counter = 0
-            if my_variant.output_type_flag == 'intergenic':
-                validation_output['flag'] = 'intergenic'
-                for valid_v in batch_out:
-                    validation_intergenic_counter = validation_intergenic_counter + 1
-                    identification_key = 'Intergenic_Variant_%s' % (str(validation_intergenic_counter))
-
-                    # Attempt to liftover between genome builds
-                    # Note: pyliftover uses the UCSC liftOver tool.
-                    # https://pypi.org/project/pyliftover/
-                    genomic_position_info = valid_v['primary_assembly_loci']
-                    for g_p_key in list(genomic_position_info.keys()):
-
-                        # Identify the current build and hgvs_genomic descripsion
-                        if re.match('hg', g_p_key):
-                            # incoming_vcf = genomic_position_info[g_p_key]['vcf']
-                            # set builds
-                            if g_p_key == 'hg38':
-                                build_to = 'hg19'
-                                build_from = 'hg38'
-                            if g_p_key == 'hg19':
-                                build_to = 'hg38'
-                                build_from = 'hg19'
-                        elif re.match('grc', g_p_key):
-                            # incoming_vcf = genomic_position_info[g_p_key]['vcf']
-                            # set builds
-                            if g_p_key == 'grch38':
-                                build_to = 'GRCh37'
-                                build_from = 'GRCh38'
-                            if g_p_key == 'grch37':
-                                build_to = 'GRCh38'
-                                build_from = 'GRCh37'
-
-                        # Liftover
-                        lifted_response = lift_over(genomic_position_info[g_p_key]['hgvs_genomic_description'], build_from, build_to, hn, self.vm, self.vr, self.hdp, self.hp, reverse_normalizer, self.sf, evm)
-
-                        # Sort the respomse into primary assembly and ALT
-                        primary_assembly_loci = {}
-                        alt_genomic_loci = []
-                        for build_key, accession_dict in list(lifted_response.items()):
-                            try:
-                                accession_key = list(accession_dict.keys())[0]
-                                if re.match('NC_', accession_dict[accession_key]['hgvs_genomic_description']):
-                                    primary_assembly_loci[build_key.lower()] = accession_dict[accession_key]
-                                else:
-                                    alt_genomic_loci.append({build_key.lower(): accession_dict[accession_key]})
-
-                            # KeyError if the dicts are empty
-                            except KeyError:
-                                continue
-
-                        # Add the dictionaries from lifted response to the output
-                        if primary_assembly_loci != {}:
-                            valid_v['primary_assembly_loci'] = primary_assembly_loci
-                        if alt_genomic_loci != []:
-                            valid_v['alt_genomic_loci'] = alt_genomic_loci
-
-                    # Finalise the output dictionary
-                    validation_output[identification_key] = valid_v
-
-            # Add error strings to validation output
-            # '''
-            metadata = {}
-            logger.info("Variant successfully validated")
-            logs = []
-            logString = logger.getString()
-            for l in logger.getString().split("\n"):
-                logs.append(l)
-
-            if os.environ.get("ADD_LOGS")=="True":
-                metadata["logs"] = logs
-            metadata["variant"] = batch_variant
-            #metadata["assembly"] = selected_assembly
-            #metadata["transcripts"] = select_transcripts
-            #metadata['seqrepo_directory'] = self.seqrepoPath
-            #metadata['uta_url'] = self.utaPath
-            #metadata['py_liftover_directory'] = self.liftoverPath
-            #metadata['variantvalidator_data_url'] = self.db.path
-            #metadata['entrez_id'] = self.entrezID
-            metadata['variantvalidator_version'] = self.version
-            metadata['variantvalidator_hgvs_version'] = self.hgvsVersion
-            metadata['uta_schema'] = self.utaSchema
-            metadata['seqrepo_db'] = self.seqrepoVersion
-            validation_output["metadata"] = metadata
-            # '''
-            # Measure time elapsed
-            time_now = time.time()
-            elapsed_time = time_now - start_time
-            logger.debug('validation time = ' + str(elapsed_time))
-
-            # return batch_out
-            return validation_output
+            print('Creating Output object')
+            output = valoutput.ValOutput(batch_out, self)
+            return output
 
         # Bug catcher
         except KeyboardInterrupt:
@@ -1074,4 +941,3 @@ class Mixin(vvMixinConverters.Mixin):
             # return
             logger.critical(str(exc_type) + " " + str(exc_value))
             raise
-            logger.debug(str(er))
