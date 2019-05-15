@@ -592,7 +592,6 @@ def myc_to_p(hgvs_transcript, evm, hdp, hp, hn, vm, sf, re_to_p):
                             pro_inv_info = links.pro_inv_info(prot_ref_seq, prot_var_seq)
                         else:
                             pro_inv_info = links.pro_delins_info(prot_ref_seq, prot_var_seq)
-
                         # Error has occurred
                         if pro_inv_info['error'] == 'true':
                             error = 'Translation error occurred, please contact admin'
@@ -618,6 +617,8 @@ def myc_to_p(hgvs_transcript, evm, hdp, hp, hn, vm, sf, re_to_p):
                             # Recode the single letter del and ins sequences into three letter amino acid codes
                             del_thr = links.one_to_three(pro_inv_info['prot_del_seq'])
                             ins_thr = links.one_to_three(pro_inv_info['prot_ins_seq'])
+
+
 
                             # Write the HGVS position and edit
                             del_len = len(del_thr)
