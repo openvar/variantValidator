@@ -14,7 +14,6 @@ from . import vvMixinConverters
 from .variant import Variant
 from . import format_converters
 from . import use_checking
-from . import collect_info
 from . import mappers
 from . import valoutput
 
@@ -377,7 +376,7 @@ class Mixin(vvMixinConverters.Mixin):
                     # COLLECT gene symbol, name and ACCESSION INFORMATION
                     # Gene symbol
                     if my_variant.reftype != ':g.':
-                        toskip = collect_info.get_transcript_info(my_variant, self)
+                        toskip = self.get_transcript_info(my_variant)
                         if toskip:
                             continue
 
@@ -717,3 +716,128 @@ class Mixin(vvMixinConverters.Mixin):
             exc_type, exc_value, last_traceback = sys.exc_info()
             logger.critical(str(exc_type) + " " + str(exc_value))
             raise
+
+    def get_transcript_info(self, variant):
+        """Collect transcript information from a non-genomic variant"""
+
+        hgvs_vt = self.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
+        try:
+            self.hdp.get_tx_identity_info(str(hgvs_vt.ac))
+        except hgvs.exceptions.HGVSError as e:
+            error = 'Please inform UTA admin of the following error: ' + str(e)
+            reason = "VariantValidator cannot recover information for transcript " + str(
+                hgvs_vt.ac) + ' because it is not available in the Universal Transcript Archive'
+            variant.warnings += ': ' + str(reason)
+            logger.warning(str(reason) + ": " + str(error))
+            return True
+
+        # Get accurate transcript descriptions from the relevant databases
+        # RefSeq databases
+        if self.alt_aln_method != 'genebuild':
+            # Gene description  - requires GenBank search to get all the required info, i.e. transcript variant ID
+            # accession number
+            hgvs_object = self.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
+            accession = hgvs_object.ac
+            # Look for the accession in our database
+            # Connect to database and send request
+            entry = self.db.in_entries(accession, 'transcript_info')
+
+            # Analyse the returned data and take the necessary actions
+            # If the error key exists
+            if 'error' in entry:
+                # Open a hgvs exception log file in append mode
+                error = entry['description']
+                variant.warnings += ': ' + str(
+                    error) + ': A Database error occurred, please contact admin'
+                logger.warning(str(error) + ": A Database error occurred, please contact admin")
+                return True
+
+            # If the accession key is found
+            elif 'accession' in entry:
+                # If the current entry is too old
+                if entry['expiry'] == 'true':
+                    try:
+                        entry = self.db.data_add(accession=accession, validator=self)
+                    except hgvs.exceptions.HGVSError:
+                        error = 'Transcript %s is not currently supported' % accession
+                        variant.warnings += ': ' + error
+                        logger.warning(error)
+                        return True
+                    except Exception:
+                        error = 'Unable to assign transcript identity records to ' + accession + \
+                                ', potentially an obsolete record :'
+                        variant.warnings += ': ' + error
+                        logger.warning(error)
+                        return True
+                    variant.description = entry['description']
+                else:
+                    variant.description = entry['description']
+            # If the none key is found add the description to the database
+            elif 'none' in entry:
+                try:
+                    entry = self.db.data_add(accession=accession, validator=self)
+                except Exception as e:
+                    logger.warning(str(e))
+                    error = 'Unable to assign transcript identity records to ' + accession + \
+                            ', potentially an obsolete record :'
+                    variant.warnings += ': ' + error
+                    logger.warning(error)
+                    return True
+                variant.description = entry['description']
+
+            # If no correct keys are found
+            else:
+                # Open a hgvs exception log file in append mode
+                error = 'Unknown error type'
+                variant.warnings += ': ' + error + ': A Database error occurred, please contact admin'
+                logger.warning(error)
+                return True
+
+        # Ensembl databases
+        else:
+            # accession number
+            hgvs_object = self.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
+            accession = hgvs_object.ac
+            # Look for the accession in our database
+            # Connect to database and send request
+            entry = self.db.in_entries(accession, 'transcript_info')
+
+            # Analyse the returned data and take the necessary actions
+            # If the error key exists
+            if 'error' in entry:
+                # Open a hgvs exception log file in append mode
+                error = entry['description']
+                variant.warnings += ': ' + str(
+                    error) + ': A Database error occurred, please contact admin'
+                logger.warning(str(error))
+                return True
+
+            # If the accession key is found
+            elif 'accession' in entry:
+                # If the current entry is too old
+                if entry['expiry'] == 'true':
+                    entry = self.db.data_add(accession=accession, validator=self)
+                    variant.description = entry['description']
+                else:
+                    variant.description = entry['description']
+            # If the none key is found add the description to the database
+            elif 'none' in entry:
+                try:
+                    entry = self.db.data_add(accession=accession, validator=self)
+                except Exception as e:
+                    logger.warning(str(e))
+                    error = 'Unable to assign transcript identity records to ' + accession + \
+                            ', potentially an obsolete record :'
+                    variant.warnings += ': ' + error
+                    logger.warning(error)
+                    return True
+                variant.description = entry['description']
+
+            # If no correct keys are found
+            else:
+                # Open a hgvs exception log file in append mode
+                error = 'Unknown error type'
+                variant.warnings += ': ' + error + ': A Database error occurred, please contact admin'
+                logger.warning(error)
+                return True
+        return False
