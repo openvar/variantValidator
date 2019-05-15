@@ -1,57 +1,16 @@
-'''
-This module contains the main function for variant validator. It's added to the Validator object in the vvObjects file.
-'''
-
 import hgvs
-import hgvs.parser
-import hgvs.dataproviders.uta
-import hgvs.dataproviders.seqfetcher
-import hgvs.assemblymapper
-import hgvs.variantmapper
-import hgvs.sequencevariant
-import hgvs.validator
 import hgvs.exceptions
-import hgvs.location
-import hgvs.posedit
-import hgvs.edit
 import hgvs.normalizer
-
-# IMPORT PYTHON MODULES
 import re
-import time
-#import datetime
 import copy
-import os
 import sys
-from operator import itemgetter
-#from pyliftover import LiftOver
 import traceback
-#from configparser import ConfigParser
-
-#from Bio.Seq import Seq
-
-# Import variantanalyser and peripheral VV modules
-#import ref_seq_type
-#import external
-#import output_formatter
-#import variantanalyser
+from hgvs.assemblymapper import AssemblyMapper
 from .vvLogging import logger
-import hgvs
 from . import vvHGVS
-#from variantanalyser import functions as va_func
-#from variantanalyser import dbControls as va_dbCrl
-#from variantanalyser import hgvs2vcf as vvHGVS
-#from variantanalyser import batch as va_btch
-#from variantanalyser import g_to_g as va_g2g
-#from variantanalyser import supported_chromosome_builds as va_scb
-#from variantanalyser.liftover import liftover as lift_over
-from .vvLiftover import liftover as lift_over #???
-
 from . import vvFunctions as fn
-from . import vvDatabase
 from . import vvChromosomes
 from . import vvMixinConverters
-from .vvFunctions import VariantValidatorError
 from .variant import Variant
 from . import format_converters
 from . import use_checking
@@ -61,38 +20,37 @@ from . import valoutput
 
 
 class Mixin(vvMixinConverters.Mixin):
-    def validate(self, batch_variant, selected_assembly, select_transcripts, transcriptSet = "refseq"):
-        '''
+    """
+    This module contains the main function for variant validator.
+    It's added to the Validator object in the vvObjects file.
+    """
+
+    def validate(self, batch_variant, selected_assembly, select_transcripts, transcript_set="refseq"):
+        """
         This is the main validator function.
         :param batch_variant: A string containing the variant to be validated
         :param selected_assembly: The version of the genome assembly to use.
         :param select_transcripts: Can be an array of different transcripts, or 'all'
         Selecting multiple transcripts will lead to a multiple variant outputs.
-        :param transcriptSet: 'refseq' or 'ensembl'. Currently only 'refseq' is supported
+        :param transcript_set: 'refseq' or 'ensembl'. Currently only 'refseq' is supported
         :return:
-        '''
+        """
         logger.info(batch_variant + ' : ' + selected_assembly)
 
-        if transcriptSet == "refseq":
-            alt_aln_method = 'splign'
-        elif transcriptSet == "ensembl":
-            alt_aln_method = 'genebuild'
+        if transcript_set == "refseq":
+            self.alt_aln_method = 'splign'
+        elif transcript_set == "ensembl":
+            self.alt_aln_method = 'genebuild'
             logger.warning("Ensembl is currently not supported")
             raise Exception("Ensembl is currently not supported")
         else:
-            raise Exception("The transcriptSet variable '%s' is invalid, it must be 'refseq' or 'ensembl'" % transcriptSet)
+            raise Exception("The transcriptSet variable '%s' is invalid, it must be 'refseq' or 'ensembl'" %
+                            transcript_set)
 
-        # Take start time
-        start_time = time.time()
-
-        # Set pre defined variables
-        # SeqFetcher
-        # sf = hgvs.dataproviders.seqfetcher.SeqFetcher()
-        primary_assembly=None
+        primary_assembly = None
 
         self.selected_assembly = selected_assembly
         self.select_transcripts = select_transcripts
-        self.alt_aln_method = alt_aln_method
 
         try:
             # Validation
@@ -103,20 +61,15 @@ class Mixin(vvMixinConverters.Mixin):
             select_transcripts_dict_plus_version = {}
             if select_transcripts != 'all':
                 select_transcripts_list = select_transcripts.split('|')
-                for id in select_transcripts_list:
-                    id = id.strip()
-                    if re.match('LRG', id):
-                        id = self.db.get_RefSeqTranscriptID_from_lrgTranscriptID(id)
-                        if id == 'none':
+                for trans_id in select_transcripts_list:
+                    trans_id = trans_id.strip()
+                    if 'LRG' in trans_id:
+                        trans_id = self.db.get_RefSeqTranscriptID_from_lrgTranscriptID(trans_id)
+                        if trans_id == 'none':
                             continue
-                    select_transcripts_dict_plus_version[id] = ''
-                    id = id.split('.')[0]
-                    select_transcripts_dict[id] = ''
-            # Set up gene list dictionary
-            input_genes = {}
-
-            # Remove genes if transcripts selected
-            # if select_transcripts != 'all':
+                    select_transcripts_dict_plus_version[trans_id] = ''
+                    trans_id = trans_id.split('.')[0]
+                    select_transcripts_dict[trans_id] = ''
 
             # split the batch queries into a list
             batch_queries = batch_variant.split('|')
@@ -128,7 +81,7 @@ class Mixin(vvMixinConverters.Mixin):
                 query = Variant(queries)
                 self.batch_list.append(query)
 
-            # Create List to carry batch data
+            # Create List to carry batch data output
             batch_out = []
 
             # Enter the validation loop
@@ -151,25 +104,15 @@ class Mixin(vvMixinConverters.Mixin):
 
                 # Create Normalizers
                 my_variant.hn = hgvs.normalizer.Normalizer(self.hdp,
-                                                cross_boundaries=False,
-                                                shuffle_direction=3,
-                                                alt_aln_method=alt_aln_method
-                                                )
-                hn = hgvs.normalizer.Normalizer(self.hdp,
-                                                cross_boundaries=False,
-                                                shuffle_direction=3,
-                                                alt_aln_method=alt_aln_method
-                                                )
+                                                           cross_boundaries=False,
+                                                           shuffle_direction=3,
+                                                           alt_aln_method=self.alt_aln_method
+                                                           )
                 my_variant.reverse_normalizer = hgvs.normalizer.Normalizer(self.hdp,
-                                                                cross_boundaries=False,
-                                                                shuffle_direction=5,
-                                                                alt_aln_method=alt_aln_method
-                                                                )
-                reverse_normalizer = hgvs.normalizer.Normalizer(self.hdp,
-                                                                cross_boundaries=False,
-                                                                shuffle_direction=5,
-                                                                alt_aln_method=alt_aln_method
-                                                                )
+                                                                           cross_boundaries=False,
+                                                                           shuffle_direction=5,
+                                                                           alt_aln_method=self.alt_aln_method
+                                                                           )
                 # This will be used to order the final output
                 if not my_variant.order:
                     ordering = ordering + 1
@@ -179,7 +122,6 @@ class Mixin(vvMixinConverters.Mixin):
                 try:
                     # Note, ID is not touched. It is always the input variant description.
                     # Quibble will be altered but id will not if type = g.
-                    input = my_variant.quibble
                     logger.trace("Commenced validation of " + str(my_variant.quibble), my_variant)
 
                     if not my_variant.is_ascii():
@@ -198,7 +140,6 @@ class Mixin(vvMixinConverters.Mixin):
                         my_variant.warnings += ': ' + caution
                         logger.info(caution)
 
-                    stash_input = copy.copy(input)
                     # Set the primary_assembly
                     if not my_variant.primary_assembly:
                         if selected_assembly == 'hg19':
@@ -218,16 +159,14 @@ class Mixin(vvMixinConverters.Mixin):
                         else:
                             my_variant.primary_assembly = 'GRCh38'
                             primary_assembly = 'GRCh38'
-                            my_variant.warnings += ': Invalid genome build has been specified. Automap has selected the default build (GRCh38)'
+                            my_variant.warnings += ': Invalid genome build has been specified. ' \
+                                                   'Automap has selected the default build (GRCh38)'
                             logger.warning(
-                                'Invalid genome build has been specified. Automap has selected the default build ' + my_variant.primary_assembly)
+                                'Invalid genome build has been specified. Automap has selected the '
+                                'default build ' + my_variant.primary_assembly)
                     else:
                         primary_assembly = my_variant.primary_assembly
                     logger.trace("Completed string formatting", my_variant)
-
-                    # Set variables that batch will not use but are required
-                    crossing = 'false'
-                    boundary = 'false'
 
                     # VCF type 1
                     toskip = format_converters.vcf2hgvs_stage1(my_variant, self)
@@ -271,17 +210,13 @@ class Mixin(vvMixinConverters.Mixin):
                     if toskip:
                         continue
 
-                    input = my_variant.quibble
-
-                    print("Original: %s" % my_variant.original)
-                    print("Quibble: %s" % my_variant.quibble)
-
-                    caution = ''
                     # INITIAL USER INPUT FORMATTING
                     invalid = my_variant.format_quibble()
                     if invalid:
-                        if re.search(r'\w+\:[gcnmrp]', my_variant.quibble) and not re.search(r'\w+\:[gcnmrp]\.', my_variant.quibble):
-                            error = 'Variant description ' + my_variant.quibble + ' lacks the . character between <type> and <position> in the expected pattern <accession>:<type>.<position>'
+                        if re.search(r'\w+:[gcnmrp]', my_variant.quibble) and not \
+                                re.search(r'\w+:[gcnmrp]\.', my_variant.quibble):
+                            error = 'Variant description ' + my_variant.quibble + ' lacks the . character between ' \
+                                    '<type> and <position> in the expected pattern <accession>:<type>.<position>'
                         else:
                             error = 'Variant description ' + my_variant.quibble + ' is not in an accepted format'
                         my_variant.warnings += ': ' + error
@@ -289,24 +224,11 @@ class Mixin(vvMixinConverters.Mixin):
                         continue
 
                     formatted_variant = my_variant.quibble
-                    input = my_variant.quibble
                     stash_input = my_variant.quibble
                     my_variant.stashed = stash_input
                     format_type = my_variant.reftype
 
-                    # Validator specific variables, note, not all will be necessary for batch, but keep to ensure that batch works
-                    # vars = []
-                    # refseq_gene = ''
-                    # relevant = ''
-                    warning = ''
-                    automap = 'false'
-                    # vmapped = 'false'
-                    # coords = 'false'
-                    # ensembl_gene = 'false'
                     hgnc_gene_info = 'false'
-                    # issue_link = 'false'
-                    # cr_available = 'false'
-                    # rcmds_tab = 'false'
 
                     logger.trace("Variant input formatted, proceeding to validate.", my_variant)
 
@@ -318,8 +240,6 @@ class Mixin(vvMixinConverters.Mixin):
                         logger.warning('Gene conversions currently unsupported')
                         continue
 
-                    # Primary check that hgvs will accept the variant
-                    error = 'false'
                     # Change RNA bases to upper case but nothing else
                     if format_type == ":r.":
                         formatted_variant = formatted_variant.upper()
@@ -332,11 +252,10 @@ class Mixin(vvMixinConverters.Mixin):
 
                     try:
                         input_parses = self.hp.parse_hgvs_variant(formatted_variant)
-                        print(input_parses, input_parses.ac, type(input_parses.ac))
                         my_variant.hgvs_formatted = input_parses
                     except hgvs.exceptions.HGVSError as e:
                         my_variant.warnings += ': ' + str(e)
-                        logger.warning(error)
+                        logger.warning(str(e))
                         continue
 
                     if 'LRG' in my_variant.hgvs_formatted.ac:
@@ -345,14 +264,13 @@ class Mixin(vvMixinConverters.Mixin):
                         my_variant.hgvs_formatted.ac = my_variant.hgvs_formatted.ac.upper()
                     if hasattr(my_variant.hgvs_formatted.posedit.edit, 'alt'):
                         if my_variant.hgvs_formatted.posedit.edit.alt is not None:
-                            my_variant.hgvs_formatted.posedit.edit.alt = my_variant.hgvs_formatted.posedit.edit.alt.upper()
+                            my_variant.hgvs_formatted.posedit.edit.alt = \
+                                my_variant.hgvs_formatted.posedit.edit.alt.upper()
                     if hasattr(my_variant.hgvs_formatted.posedit.edit, 'ref'):
                         if my_variant.hgvs_formatted.posedit.edit.ref is not None:
-                            my_variant.hgvs_formatted.posedit.edit.ref = my_variant.hgvs_formatted.posedit.edit.ref.upper()
+                            my_variant.hgvs_formatted.posedit.edit.ref = \
+                                my_variant.hgvs_formatted.posedit.edit.ref.upper()
                     formatted_variant = str(my_variant.hgvs_formatted)
-                    input = str(my_variant.hgvs_formatted)
-
-                    assert formatted_variant == str(my_variant.hgvs_formatted)
 
                     my_variant.set_quibble(str(my_variant.hgvs_formatted))
 
@@ -362,25 +280,25 @@ class Mixin(vvMixinConverters.Mixin):
                         trap_ens_in = str(my_variant.hgvs_formatted)
                         sim_tx = self.hdp.get_similar_transcripts(my_variant.hgvs_formatted.ac)
                         for line in sim_tx:
-                            print(line)
                             if line[2] and line[3] and line[4] and line[5] and line[6]:
-                                print("RESET")
                                 my_variant.hgvs_formatted.ac = line[1]
                                 my_variant.set_quibble(str(my_variant.hgvs_formatted))
                                 formatted_variant = my_variant.quibble
                                 break
                         if my_variant.refsource == 'ENS':
-                            error = 'Unable to map ' + my_variant.hgvs_formatted.ac + ' to an equivalent RefSeq transcript'
+                            error = 'Unable to map ' + my_variant.hgvs_formatted.ac + \
+                                    ' to an equivalent RefSeq transcript'
                             my_variant.warnings += ': ' + error
                             logger.warning(error)
                             continue
                         else:
-                            my_variant.warnings += ': ' + str(trap_ens_in) + ' automapped to equivalent RefSeq transcript ' + my_variant.quibble
-                            logger.warning(str(trap_ens_in) + ' automapped to equivalent RefSeq transcript ' + my_variant.quibble)
+                            my_variant.warnings += ': ' + str(trap_ens_in) + ' automapped to equivalent ' \
+                                                                             'RefSeq transcript ' + my_variant.quibble
+                            logger.warning(str(trap_ens_in) + ' automapped to equivalent RefSeq '
+                                                              'transcript ' + my_variant.quibble)
                     logger.trace("HVGS acceptance test passed", my_variant)
 
                     # Check whether supported genome build is requested for non g. descriptions
-                    historic_assembly = 'false'
                     mapable_assemblies = {
                         'GRCh37': True,
                         'GRCh38': True,
@@ -394,44 +312,32 @@ class Mixin(vvMixinConverters.Mixin):
                         # They initiate quickly, so no need to move them unnecessarily
 
                         # Create easy variant mapper (over variant mapper) and splign locked evm
-                        my_variant.evm = hgvs.assemblymapper.AssemblyMapper(self.hdp,
-                                                                 assembly_name=primary_assembly,
-                                                                 alt_aln_method=alt_aln_method,
-                                                                 normalize=True,
-                                                                 replace_reference=True
-                                                                 )
-
-                        evm = hgvs.assemblymapper.AssemblyMapper(self.hdp,
-                                                                 assembly_name=primary_assembly,
-                                                                 alt_aln_method=alt_aln_method,
-                                                                 normalize=True,
-                                                                 replace_reference=True
-                                                                 )
+                        my_variant.evm = AssemblyMapper(self.hdp,
+                                                        assembly_name=primary_assembly,
+                                                        alt_aln_method=self.alt_aln_method,
+                                                        normalize=True,
+                                                        replace_reference=True
+                                                        )
 
                         # Setup a reverse normalize instance and non-normalize evm
-                        my_variant.no_norm_evm = hgvs.assemblymapper.AssemblyMapper(self.hdp,
-                                                                         assembly_name=primary_assembly,
-                                                                         alt_aln_method=alt_aln_method,
-                                                                         normalize=False,
-                                                                         replace_reference=True
-                                                                         )
-                        no_norm_evm = hgvs.assemblymapper.AssemblyMapper(self.hdp,
-                                                                         assembly_name=primary_assembly,
-                                                                         alt_aln_method=alt_aln_method,
-                                                                         normalize=False,
-                                                                         replace_reference=True
-                                                                         )
+                        my_variant.no_norm_evm = AssemblyMapper(self.hdp,
+                                                                assembly_name=primary_assembly,
+                                                                alt_aln_method=self.alt_aln_method,
+                                                                normalize=False,
+                                                                replace_reference=True
+                                                                )
 
                         # Create a specific minimal evm with no normalizer and no replace_reference
-                        my_variant.min_evm = hgvs.assemblymapper.AssemblyMapper(self.hdp,
-                                                                     assembly_name=primary_assembly,
-                                                                     alt_aln_method=alt_aln_method,
-                                                                     normalize=False,
-                                                                     replace_reference=False
-                                                                     )
+                        my_variant.min_evm = AssemblyMapper(self.hdp,
+                                                            assembly_name=primary_assembly,
+                                                            alt_aln_method=self.alt_aln_method,
+                                                            normalize=False,
+                                                            replace_reference=False
+                                                            )
 
                     else:
-                        error = 'Mapping of ' + formatted_variant + ' to genome assembly ' + primary_assembly + ' is not supported'
+                        error = 'Mapping of ' + formatted_variant + ' to genome assembly ' + \
+                                primary_assembly + ' is not supported'
                         my_variant.warnings += ': ' + error
                         logger.warning(error)
                         continue
@@ -441,15 +347,14 @@ class Mixin(vvMixinConverters.Mixin):
                     # ensures that end pos is not > start pos wrt 3' UTRs.
                     # Also identifies some variants which span into the downstream sequence
                     # i.e. out of bounds
-                    astr = re.compile(r'\*')
                     if '*' in str(my_variant.hgvs_formatted.posedit):
                         input_parses_copy = copy.deepcopy(my_variant.hgvs_formatted)
                         input_parses_copy.type = "c"
                         # Map to n. position
                         # Create easy variant mapper (over variant mapper) and splign locked evm
                         try:
-                            to_n = evm.c_to_n(input_parses_copy)
-                        except hgvs.exceptions.HGVSError as e:
+                            to_n = my_variant.evm.c_to_n(input_parses_copy)
+                        except hgvs.exceptions.HGVSError:
                             fn.exceptPass()
                         else:
                             if to_n.posedit.pos.end.base < to_n.posedit.pos.start.base:
@@ -464,13 +369,8 @@ class Mixin(vvMixinConverters.Mixin):
                         logger.warning(error)
                         continue
 
-                    assert formatted_variant == str(my_variant.hgvs_formatted)
-
                     # Catch missing version number in refseq
-                    ref_type = re.compile(r"^N\w\w\d")
                     is_version = re.compile(r"\d\.\d")
-                    en_type = re.compile(r'^ENS')
-                    lrg_type = re.compile(r'LRG')
                     if my_variant.refsource == 'RefSeq' and not is_version.search(str(my_variant.hgvs_formatted)):
                         error = 'RefSeq variant accession numbers MUST include a version number'
                         my_variant.warnings += ': ' + str(error)
@@ -481,9 +381,6 @@ class Mixin(vvMixinConverters.Mixin):
 
                     if my_variant.refsource == 'LRG':
                         format_converters.lrg_to_refseq(my_variant, self)
-                        formatted_variant = my_variant.quibble
-                        input = str(my_variant.hgvs_formatted)
-                        stash_input = input
                         logger.trace("LRG check for conversion to refseq completed", my_variant)
 
                     # Additional Incorrectly input variant capture training
@@ -493,16 +390,11 @@ class Mixin(vvMixinConverters.Mixin):
                             continue
                         logger.trace("Passed 'common mistakes' catcher", my_variant)
 
-                    assert formatted_variant == str(my_variant.hgvs_formatted)
-
                     # Primary validation of the input
                     toskip = use_checking.structure_checks(my_variant, self)
-                    print(toskip, my_variant.hgvs_formatted, my_variant.quibble)
                     if toskip:
                         continue
                     logger.trace("Variant structure and contents searches passed", my_variant)
-
-                    assert formatted_variant == str(my_variant.hgvs_formatted)
 
                     # Mitochondrial variants
                     toskip = format_converters.mitochondrial(my_variant, self)
@@ -519,58 +411,33 @@ class Mixin(vvMixinConverters.Mixin):
                     if toskip:
                         continue
 
-                    assert formatted_variant == str(my_variant.hgvs_formatted)
-
                     # COLLECT gene symbol, name and ACCESSION INFORMATION
                     # Gene symbol
                     if my_variant.reftype != ':g.':
                         toskip = collect_info.get_transcript_info(my_variant, self)
-                        print(toskip, my_variant.hgvs_formatted, my_variant.hgvs_genomic)
                         if toskip:
                             continue
 
-                    assert formatted_variant == str(my_variant.hgvs_formatted)
                     # Now start mapping from genome to transcripts
-
                     if my_variant.reftype == ':g.':
                         toskip = mappers.gene_to_transcripts(my_variant, self)
-                        print(toskip, my_variant.hgvs_formatted, my_variant.hgvs_genomic)
                         if toskip:
                             continue
 
-                    assert formatted_variant == str(my_variant.hgvs_formatted)
-                    # TYPE = :c.
-
                     if format_type == ':c.' or format_type == ':n.':
-                        print('hgvs_formatted:', my_variant.hgvs_formatted)
-                        print('input:', input)
-                        print('trapped:', my_variant.trapped)
-                        print('quibble:', my_variant.quibble)
-                        print('formatted_variant', formatted_variant)
-                        #print(my_variant.hgvs_formatted, my_variant.trapped, input)
                         toskip = mappers.transcripts_to_gene(my_variant, self)
-                        print(toskip, my_variant.hgvs_formatted)
                         if toskip:
-                            print("CARRYING ON")
                             continue
 
                     # Set the data
                     my_variant.output_type_flag = 'gene'
                     my_variant.description = hgnc_gene_info
-                    # my_variant.coding = str(hgvs_coding)
-                    # my_variant.genomic_r = str(hgvs_refseq)
-                    # my_variant.genomic_g = str(hgvs_genomic)
-                    # my_variant.protein = str(hgvs_protein)
                     my_variant.primary_assembly = primary_assembly
-                    # if gap_compensation is True:
-                    #     my_variant.test_stash_tx_left = test_stash_tx_left
-                    #     my_variant.test_stash_tx_right = test_stash_tx_right
-                    # finish timing
                     logger.traceEnd(my_variant)
                 # Report errors to User and VV admin
                 except KeyboardInterrupt:
                     raise
-                except:
+                except Exception:
                     my_variant.output_type_flag = 'error'
                     error = 'Validation error'
                     my_variant.warnings = str(error)
@@ -580,7 +447,6 @@ class Mixin(vvMixinConverters.Mixin):
                     er = str('\n'.join(tbk))
                     logger.error(str(exc_type) + " " + str(exc_value))
                     logger.debug(er)
-                    #debug
                     raise
 
             # Outside the for loop
@@ -593,29 +459,15 @@ class Mixin(vvMixinConverters.Mixin):
                 if not variant.write:
                     continue
 
-                # Blank VCF
-                #                     chr = ''
-                #                     pos = ''
-                #                     ref = ''
-                #                     alt = ''
-
-                # Fromulate a json type response
-                dict_out = {}
-
-                # Set gap compensation bool
-                gap_compensation = True
-
                 # warngins
                 warnings = variant.warnings
                 warnings = re.sub('del[GATC][GATC][GATC][GATC]+', 'del', warnings)
                 warnings = re.sub('^: ', '', warnings)
                 warnings = re.sub('::', ':', warnings)
 
-                # Submitted variant
-                submitted = variant.original
-
                 # Genomic sequence variation
                 genomic_variant = variant.genomic_g
+                hgvs_genomic_variant = genomic_variant
 
                 # genomic accession
                 if genomic_variant != '':
@@ -642,14 +494,13 @@ class Mixin(vvMixinConverters.Mixin):
                         hgvs_lrg = copy.deepcopy(hgvs_refseqgene_variant)
                         hgvs_lrg.ac = rsg_ac[0]
                         lrg_variant = fn.valstr(hgvs_lrg)
-                        if rsg_ac[1] == 'public':
-                            pass
-                        else:
+                        if rsg_ac[1] != 'public':
                             warnings = warnings + ': The current status of ' + str(
                                 hgvs_lrg.ac) + ' is pending therefore changes may be made to the LRG reference sequence'
 
                 # Transcript sequence variation
                 tx_variant = variant.coding
+                hgvs_transcript_variant = tx_variant
                 if tx_variant != '':
                     if '(' in tx_variant and ')' in tx_variant:
                         tx_variant = tx_variant.split('(')[1]
@@ -662,7 +513,6 @@ class Mixin(vvMixinConverters.Mixin):
                     transcript_accession = hgvs_transcript_variant.ac
 
                     # Handle LRG
-                    lrg_status = 'public'
                     lrg_transcript = self.db.get_lrgTranscriptID_from_RefSeqTranscriptID(transcript_accession)
                     if lrg_transcript == 'none':
                         lrg_transcript_variant = ''
@@ -671,14 +521,13 @@ class Mixin(vvMixinConverters.Mixin):
                         # instances we will be able to display the LRG_tx without being able to
                         # display the LRG gene data
 
-                        # if not re.search('RefSeqGene', refseqgene_variant) or refseqgene_variant != '':
-                        # if hgvs_refseqgene_variant != 'RefSeqGene record not available' and hgvs_refseqgene_variant != 'false':
                         try:
                             hgvs_lrg_t = self.vm.g_to_t(hgvs_refseqgene_variant, transcript_accession)
                             hgvs_lrg_t.ac = lrg_transcript
                             lrg_transcript_variant = fn.valstr(hgvs_lrg_t)
-                        except:
-                            if hgvs_transcript_variant.posedit.pos.start.offset == 0 and hgvs_transcript_variant.posedit.pos.end.offset == 0:
+                        except Exception:
+                            if hgvs_transcript_variant.posedit.pos.start.offset == 0 and \
+                                    hgvs_transcript_variant.posedit.pos.end.offset == 0:
                                 hgvs_lrg_t = copy.copy(hgvs_transcript_variant)
                                 hgvs_lrg_t.ac = lrg_transcript
                                 lrg_transcript_variant = fn.valstr(hgvs_lrg_t)
@@ -698,29 +547,29 @@ class Mixin(vvMixinConverters.Mixin):
                     except hgvs.exceptions.HGVSError as e:
                         error = str(e)
                         if 'intronic variant' in error:
-                            genome_context_transcript_variant = genomic_accession + '(' + transcript_accession + '):c.' + str(
-                                hgvs_transcript_variant.posedit)
+                            genome_context_transcript_variant = genomic_accession + '(' + transcript_accession +\
+                                                                '):c.' + str(hgvs_transcript_variant.posedit)
                             if refseqgene_variant != '':
                                 hgvs_refseqgene_variant = self.hp.parse_hgvs_variant(refseqgene_variant)
                                 refseqgene_accession = hgvs_refseqgene_variant.ac
                                 hgvs_coding_from_refseqgene = self.vm.g_to_t(hgvs_refseqgene_variant,
-                                                                        hgvs_transcript_variant.ac)
+                                                                             hgvs_transcript_variant.ac)
                                 hgvs_coding_from_refseqgene = fn.valstr(hgvs_coding_from_refseqgene)
                                 hgvs_coding_from_refseqgene = self.hp.parse_hgvs_variant(hgvs_coding_from_refseqgene)
-                                RefSeqGene_context_transcript_variant = refseqgene_accession + '(' + transcript_accession + '):c.' + str(
-                                    hgvs_coding_from_refseqgene.posedit.pos) + str(
-                                    hgvs_coding_from_refseqgene.posedit.edit)
+                                refseqgene_context_transcript_variant = refseqgene_accession + '(' + \
+                                    transcript_accession + '):c.' + str(hgvs_coding_from_refseqgene.posedit.pos) + str(
+                                        hgvs_coding_from_refseqgene.posedit.edit)
                             else:
-                                RefSeqGene_context_transcript_variant = ''
+                                refseqgene_context_transcript_variant = ''
                         else:
                             genome_context_transcript_variant = ''  # transcript_variant
-                            RefSeqGene_context_transcript_variant = ''
+                            refseqgene_context_transcript_variant = ''
                     else:
                         genome_context_transcript_variant = ''  # transcript_variant
-                        RefSeqGene_context_transcript_variant = ''
+                        refseqgene_context_transcript_variant = ''
                 else:
                     genome_context_transcript_variant = ''
-                    RefSeqGene_context_transcript_variant = ''
+                    refseqgene_context_transcript_variant = ''
 
                 # Protein description
                 predicted_protein_variant = variant.protein
@@ -739,19 +588,8 @@ class Mixin(vvMixinConverters.Mixin):
                 else:
                     gene_symbol = ''
 
-                # Transcript description
-                transcript_description = variant.description
-
-                # Stashed variants
-                # if valid.test_stash_tx_left:
-                #     test_stash_tx_left = valid.test_stash_tx_left
-                # if valid.test_stash_tx_right:
-                #     test_stash_tx_right = valid.test_stash_tx_right
-
-                # Multiple genomic variants
-                # multi_gen_vars = []
                 if tx_variant != '':
-                    multi_gen_vars, hgvs_coding = mappers.final_tx_to_multiple_genomic(variant, self, tx_variant)
+                    multi_gen_vars = mappers.final_tx_to_multiple_genomic(variant, self, tx_variant)
 
                 else:
                     # HGVS genomic in the absence of a transcript variant
@@ -809,22 +647,22 @@ class Mixin(vvMixinConverters.Mixin):
                             else:
                                 if 'GRC' in build:
                                     alt_dict = {build.lower(): {'hgvs_genomic_description': fn.valstr(alt_gen_var),
-                                                            'vcf': {'chr': vcf_dict['grc_chr'],
-                                                                    'pos': vcf_dict['pos'],
-                                                                    'ref': vcf_dict['ref'],
-                                                                    'alt': vcf_dict['alt']
-                                                                    }
-                                                            }
-                                            }
+                                                                'vcf': {'chr': vcf_dict['grc_chr'],
+                                                                        'pos': vcf_dict['pos'],
+                                                                        'ref': vcf_dict['ref'],
+                                                                        'alt': vcf_dict['alt']
+                                                                        }
+                                                                }
+                                                }
                                 else:
                                     alt_dict = {build.lower(): {'hgvs_genomic_description': fn.valstr(alt_gen_var),
-                                                            'vcf': {'chr': vcf_dict['ucsc_chr'],
-                                                                    'pos': vcf_dict['pos'],
-                                                                    'ref': vcf_dict['ref'],
-                                                                    'alt': vcf_dict['alt']
-                                                                    }
-                                                            }
-                                            }
+                                                                'vcf': {'chr': vcf_dict['ucsc_chr'],
+                                                                        'pos': vcf_dict['pos'],
+                                                                        'ref': vcf_dict['ref'],
+                                                                        'alt': vcf_dict['alt']
+                                                                        }
+                                                                }
+                                                }
                                 # Append
                                 alt_genomic_dicts.append(alt_dict)
 
@@ -832,22 +670,21 @@ class Mixin(vvMixinConverters.Mixin):
                                     vcf_dict = vvHGVS.report_hgvs2vcf(alt_gen_var, 'hg38', variant.reverse_normalizer,
                                                                       self.sf)
                                     alt_dict = {'hg38': {'hgvs_genomic_description': fn.valstr(alt_gen_var),
-                                                     'vcf': {'chr': vcf_dict['ucsc_chr'],
-                                                             'pos': vcf_dict['pos'],
-                                                             'ref': vcf_dict['ref'],
-                                                             'alt': vcf_dict['alt']
-                                                             }
-                                                     }
-                                            }
+                                                         'vcf': {'chr': vcf_dict['ucsc_chr'],
+                                                                 'pos': vcf_dict['pos'],
+                                                                 'ref': vcf_dict['ref'],
+                                                                 'alt': vcf_dict['alt']
+                                                                 }
+                                                         }
+                                                }
                                     # Append
                                     alt_genomic_dicts.append(alt_dict)
 
                 # Warn not directly mapped to specified genome build
                 if genomic_accession != '':
-                    caution = ''
                     if primary_assembly.lower() not in list(primary_genomic_dicts.keys()):
                         warnings = warnings + ': ' + str(
-                            hgvs_coding) + ' cannot be mapped directly to genome build ' + primary_assembly + \
+                            variant.hgvs_coding) + ' cannot be mapped directly to genome build ' + primary_assembly + \
                             ': See alternative genomic loci or alternative genome builds for aligned genomic positions'
 
                 warn_list = warnings.split(': ')
@@ -877,33 +714,17 @@ class Mixin(vvMixinConverters.Mixin):
                             format_p = predicted_protein_variant
                             format_p = re.sub(r'\(LRG_.+?\)', '', format_p)
                             re_parse_protein = self.hp.parse_hgvs_variant(format_p)
-                            re_parse_protein_singleAA = fn.single_letter_protein(re_parse_protein)
-                            predicted_protein_variant_dict["slr"] = str(re_parse_protein_singleAA)
+                            re_parse_protein_single_aa = fn.single_letter_protein(re_parse_protein)
+                            predicted_protein_variant_dict["slr"] = str(re_parse_protein_single_aa)
                         except hgvs.exceptions.HGVSParseError:
                             fn.exceptPass()
                     else:
                         predicted_protein_variant_dict["slr"] = str(predicted_protein_variant)
 
-                # # Populate the dictionary
-                # dict_out['submitted_variant'] = submitted
-                # dict_out['gene_symbol'] = gene_symbol
-                # dict_out['transcript_description'] = transcript_description
-                # dict_out['hgvs_transcript_variant'] = tx_variant
-                # dict_out['genome_context_intronic_sequence'] = genome_context_transcript_variant
-                # dict_out['refseqgene_context_intronic_sequence'] = RefSeqGene_context_transcript_variant
-                # dict_out['hgvs_refseqgene_variant'] = refseqgene_variant
-                # dict_out['hgvs_predicted_protein_consequence'] = predicted_protein_variant_dict
-                # dict_out['validation_warnings'] = warnings_out
-                # dict_out['hgvs_lrg_transcript_variant'] = lrg_transcript_variant
-                # dict_out['hgvs_lrg_variant'] = lrg_variant
-                # dict_out['alt_genomic_loci'] = alt_genomic_dicts
-                # dict_out['primary_assembly_loci'] = primary_genomic_dicts
-                # dict_out['reference_sequence_records'] = ''
-
                 variant.gene_symbol = gene_symbol
                 variant.hgvs_transcript_variant = tx_variant
                 variant.genome_context_intronic_sequence = genome_context_transcript_variant
-                variant.refseqgene_context_intronic_sequence = RefSeqGene_context_transcript_variant
+                variant.refseqgene_context_intronic_sequence = refseqgene_context_transcript_variant
                 variant.hgvs_refseqgene_variant = refseqgene_variant
                 variant.hgvs_predicted_protein_consequence = predicted_protein_variant_dict
                 variant.validation_warnings = warnings_out
@@ -922,22 +743,14 @@ class Mixin(vvMixinConverters.Mixin):
                 # Append to a list for return
                 batch_out.append(variant)
 
-            print('Creating Output object')
             output = valoutput.ValOutput(batch_out, self)
             return output
 
         # Bug catcher
         except KeyboardInterrupt:
             raise
-        except BaseException as e:
+        except BaseException:
             # Debug mode
             exc_type, exc_value, last_traceback = sys.exc_info()
-            te = traceback.format_exc()
-            # tr = ''.join(traceback.format_stack())
-            tbk = [str(exc_type), str(exc_value), str(te)]
-            er = '\n'.join(tbk)
-            # raise VariantValidatorError('Validation error')
-            # Return
-            # return
             logger.critical(str(exc_type) + " " + str(exc_value))
             raise

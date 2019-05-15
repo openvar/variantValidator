@@ -1,8 +1,7 @@
 import hgvs
 import re
 import copy
-import time
-import sys
+import hgvs.exceptions
 from .vvLogging import logger
 from . import vvHGVS
 from .variant import Variant
@@ -279,7 +278,7 @@ def transcripts_to_gene(variant, validator):
     ori = validator.tx_exons(tx_ac=tx_ac, alt_ac=genomic_ac, alt_aln_method=validator.alt_aln_method)
 
     plus = re.compile(r"\d\+\d")  # finds digit + digit
-    minus = re.compile(r"\d\-\d")  # finds digit - digit
+    minus = re.compile(r"\d-\d")  # finds digit - digit
 
     if plus.search(input) or minus.search(input):
         if 'error' in str(to_g):
@@ -395,7 +394,7 @@ def transcripts_to_gene(variant, validator):
             cck = True
     if minus.search(input):
         # Regular expression catches the start of the interval only based on .00-00 pattern
-        inv_start = re.compile(r"\.\d+\-\d")
+        inv_start = re.compile(r"\.\d+-\d")
         if inv_start.search(input):
             cck = True
 
@@ -895,13 +894,14 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant):
 
     warnings = ''
     rec_var = ''
+    gap_compensation = True
 
     # Multiple genomic variants
     # multi_gen_vars = []
-    hgvs_coding = validator.hp.parse_hgvs_variant(str(tx_variant))
+    variant.hgvs_coding = validator.hp.parse_hgvs_variant(str(tx_variant))
     # Gap gene black list
     try:
-        gene_symbol = validator.db.get_gene_symbol_from_transcriptID(hgvs_coding.ac)
+        gene_symbol = validator.db.get_gene_symbol_from_transcriptID(variant.hgvs_coding.ac)
     except Exception:
         fn.exceptPass()
     else:
@@ -910,13 +910,12 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant):
 
     # Look for variants spanning introns
     try:
-        hgvs_coding = variant.hn.normalize(hgvs_coding)
+        hgvs_coding = variant.hn.normalize(variant.hgvs_coding)
     except hgvs.exceptions.HGVSUnsupportedOperationError as e:
         error = str(e)
-        if re.search('boundary', str(error)) or re.search('spanning', str(error)):
+        if 'boundary' in error or 'spanning' in error:
             gap_compensation = False
-        else:
-            pass
+
     except hgvs.exceptions.HGVSError:
         fn.exceptPass()
 
@@ -924,57 +923,40 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant):
     logger.warning("gap_compensation_3 = " + str(gap_compensation))
     multi_g = []
     multi_list = []
-    mapping_options = validator.hdp.get_tx_mapping_options(hgvs_coding.ac)
+    mapping_options = validator.hdp.get_tx_mapping_options(variant.hgvs_coding.ac)
     for alt_chr in mapping_options:
-        if (re.match('NC_', alt_chr[1]) or re.match('NT_', alt_chr[1]) or re.match('NW_',
-                                                                                   alt_chr[1])) and \
+        if ('NC_' in alt_chr[1] or 'NT_' in alt_chr[1] or 'NW_' in alt_chr[1]) and \
                 alt_chr[2] == validator.alt_aln_method:
             multi_list.append(alt_chr[1])
 
     for alt_chr in multi_list:
         try:
             # Re set ori
-            ori = validator.tx_exons(tx_ac=hgvs_coding.ac, alt_ac=alt_chr,
-                                alt_aln_method=validator.alt_aln_method)
-            orientation = int(ori[0]['alt_strand'])
-            hgvs_alt_genomic = validator.myvm_t_to_g(hgvs_coding, alt_chr, variant.no_norm_evm, variant.hn)
-            # Set hgvs_genomic accordingly
-            hgvs_genomic = copy.deepcopy(hgvs_alt_genomic)
+            ori = validator.tx_exons(tx_ac=variant.hgvs_coding.ac, alt_ac=alt_chr,
+                                     alt_aln_method=validator.alt_aln_method)
 
-            # genomic_possibilities
-            # 1. take the simple 3 pr normalized hgvs_genomic
-            # 2. Lock in hgvs_genomic at its most 5 prime position wrt genome
-            hgvs_genomic_possibilities = []
+            hgvs_alt_genomic = validator.myvm_t_to_g(variant.hgvs_coding, alt_chr, variant.no_norm_evm, variant.hn)
 
             gap_mapper = gapped_mapping.GapMapper(variant, validator)
 
             # Loop out gap code under these circumstances!
-            if gap_compensation is True:
-
-                hgvs_alt_genomic, hgvs_coding = gap_mapper.g_to_t_gap_compensation_version3(hgvs_alt_genomic, hgvs_coding, ori, alt_chr, rec_var)
+            if gap_compensation:
+                hgvs_alt_genomic, hgvs_coding = gap_mapper.g_to_t_gap_compensation_version3(
+                    hgvs_alt_genomic, variant.hgvs_coding, ori, alt_chr, rec_var)
+                variant.hgvs_coding = hgvs_coding
 
                 # Refresh the :g. variant
                 multi_g.append(hgvs_alt_genomic)
             else:
                 multi_g.append(hgvs_alt_genomic)
-                corrective_action_taken = 'false'
 
         # In this instance, the gap code has generally found an incomplete-alignment rather than a
         # truly gapped alignment.
         except KeyError:
             warnings = warnings + ': Suspected incomplete alignment between transcript %s and ' \
-                                  'genomic reference sequence %s' % (hgvs_coding.ac,
-                                                                     alt_chr)
-            continue
+                                  'genomic reference sequence %s' % (variant.hgvs_coding.ac, alt_chr)
         except hgvs.exceptions.HGVSError as e:
             logger.error(str(e))
             logger.debug(str(e))
-            continue
 
-    if multi_g != []:
-
-        multi_gen_vars = multi_g  # '|'.join(multi_g)
-    else:
-        multi_gen_vars = []
-
-    return multi_gen_vars, hgvs_coding
+    return multi_g

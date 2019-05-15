@@ -173,6 +173,11 @@ class Mixin:
                                                                  normalize=False,
                                                                  replace_reference=True
                                                                  )
+        # Created during validate method
+        self.selected_assembly = None
+        self.select_transcripts = None
+        self.alt_aln_method = None
+        self.batch_list = []
 
     def __del__(self):
         del self.db

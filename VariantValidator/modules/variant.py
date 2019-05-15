@@ -16,6 +16,7 @@ class Variant(object):
             self.quibble = quibble
         self.hgvs_formatted = None
         self.hgvs_genomic = None
+        self.hgvs_coding = None
         self.stashed = None
         self.trapped = None
         self.input_parses = None

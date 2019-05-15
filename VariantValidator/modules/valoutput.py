@@ -4,8 +4,8 @@ from .vvLogging import logger
 
 
 class ValOutput(object):
-    """This object will hold the all final, validated outputs and provide methods to return this into a number of formats,
-    with or without extra data"""
+    """This object will hold the all final, validated outputs (Variant objects) and provide methods to return this
+    into a number of formats, with or without meta data"""
 
     def __init__(self, outputlist, validator):
         self.output_list = outputlist
@@ -70,6 +70,8 @@ class ValOutput(object):
                 # https://pypi.org/project/pyliftover/
                 genomic_position_info = variant.primary_assembly_loci
                 for g_p_key in list(genomic_position_info.keys()):
+                    build_to = ''
+                    build_from = ''
 
                     # Identify the current build and hgvs_genomic descripsion
                     if 'hg' in g_p_key:
@@ -136,7 +138,6 @@ class ValOutput(object):
 
         if os.environ.get("ADD_LOGS") == "True":
             logs = []
-            logString = logger.getString()
             for l in logger.getString().split("\n"):
                 logs.append(l)
             metadata["logs"] = logs
