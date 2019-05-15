@@ -168,45 +168,8 @@ class Mixin(vvMixinConverters.Mixin):
                         primary_assembly = my_variant.primary_assembly
                     logger.trace("Completed string formatting", my_variant)
 
-                    # VCF type 1
-                    toskip = format_converters.vcf2hgvs_stage1(my_variant, self)
-                    if toskip:
-                        continue
-
-                    # API type non-HGVS
-                    # e.g. Chr16:2099572TC>T
-                    toskip = format_converters.vcf2hgvs_stage2(my_variant, self)
-                    if toskip:
-                        continue
-
-                    toskip = format_converters.vcf2hgvs_stage3(my_variant, self)
-                    if toskip:
-                        continue
-
-                    toskip = format_converters.gene_symbol_catch(my_variant, self, select_transcripts_dict_plus_version)
-                    if toskip:
-                        continue
-
-                    # NG_:c. or NC_:c.
-                    toskip = format_converters.refseq_catch(my_variant, self, select_transcripts_dict_plus_version)
-                    if toskip:
-                        continue
-
-                    # Find not_sub type in input e.g. GGGG>G
-                    toskip = format_converters.vcf2hgvs_stage4(my_variant, self)
-                    if toskip:
-                        continue
-
-                    toskip = format_converters.indel_catching(my_variant, self)
-                    if toskip:
-                        continue
-
-                    # Tackle compound variant descriptions NG or NC (NM_) i.e. correctly input NG/NC_(NM_):c.
-                    format_converters.intronic_converter(my_variant)
-
-                    # Extract variants from HGVS allele descriptions
-                    # http://varnomen.hgvs.org/recommendations/DNA/variant/alleles/
-                    toskip = format_converters.allele_parser(my_variant, self)
+                    toskip = format_converters.initial_format_conversions(my_variant, self,
+                                                                          select_transcripts_dict_plus_version)
                     if toskip:
                         continue
 
