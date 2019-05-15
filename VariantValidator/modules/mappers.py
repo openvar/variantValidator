@@ -407,8 +407,7 @@ def transcripts_to_gene(variant, validator):
         # This should only ever hit coding and RNA variants
         if 'del' in formatted_variant:
             # RNA - looking at trapped variant which was saved before RNA converted to cDNA
-            #TODO: rename variant.trapped to variant.pre_RNA_conversion or something similar so it makes sense.
-            if ':r.' in variant.trapped:
+            if ':r.' in variant.pre_RNA_conversion:
                 coding = validator.coding(formatted_variant, validator.hp)
                 trans_acc = coding.ac
                 # c to Genome coordinates - Map the variant to the genome
@@ -433,7 +432,7 @@ def transcripts_to_gene(variant, validator):
                     query.posedit = posedit
                     query.type = 'r'
                     post_var = str(query)
-                    automap = variant.trapped + ' automapped to ' + str(post_var)
+                    automap = variant.pre_RNA_conversion + ' automapped to ' + str(post_var)
                     variant.warnings += ': ' + str(caution) + ': ' + str(automap)
 
                     # Kill current line and append for re-submission
@@ -481,7 +480,7 @@ def transcripts_to_gene(variant, validator):
                     automap = 'Automap has corrected the coordinates to match the intron/exon boundaries for the ' \
                               'selected transcript'
                     # automapping of variant completed
-                    automap = variant.trapped + ' automapped to ' + str(post_var)
+                    automap = variant.pre_RNA_conversion + ' automapped to ' + str(post_var)
                     variant.warnings += str(caution) + ': ' + str(automap)
 
                     # Kill current line and append for re-submission
@@ -494,7 +493,7 @@ def transcripts_to_gene(variant, validator):
                     validator.batch_list.append(query)
 
         else:  # del not in formatted_variant
-            if ':r.' in variant.trapped:
+            if ':r.' in variant.pre_RNA_conversion:
                 coding = validator.coding(formatted_variant, validator.hp)
                 trans_acc = coding.ac
                 # c to Genome coordinates - Map the variant to the genome
@@ -543,7 +542,7 @@ def transcripts_to_gene(variant, validator):
                     caution = 'The entered coordinates do not agree with the intron/exon boundaries for the selected transcript:'
                     automap = 'Automap has corrected the coordinates to match the intron/exon boundaries for the selected transcript'
                     # automapping of variant completed
-                    automap = str(variant.trapped) + ' automapped to ' + str(post_var)
+                    automap = str(variant.pre_RNA_conversion) + ' automapped to ' + str(post_var)
                     variant.warnings += ': ' + str(caution) + ': ' + str(
                         automap)
 
@@ -557,9 +556,9 @@ def transcripts_to_gene(variant, validator):
                     validator.batch_list.append(query)
 
     # If cck not true
-    elif ':r.' in variant.trapped:
+    elif ':r.' in variant.pre_RNA_conversion:
         # set input hgvs object
-        hgvs_rna_input = validator.hp.parse_hgvs_variant(variant.trapped)  # Traps the hgvs variant of r. for further use
+        hgvs_rna_input = validator.hp.parse_hgvs_variant(variant.pre_RNA_conversion)  # Traps the hgvs variant of r. for further use
         inp = str(validator.hgvs_r_to_c(hgvs_rna_input))
         # Regex
         if plus.search(input) or minus.search(input):
@@ -599,7 +598,7 @@ def transcripts_to_gene(variant, validator):
             caution = 'The variant description ' + input + ' requires alteration to comply with HGVS variant ' \
                                                            'nomenclature:'
             # automapping of variant completed
-            automap = variant.trapped + ' automapped to ' + output
+            automap = variant.pre_RNA_conversion + ' automapped to ' + output
             variant.warnings += ': ' + caution + ': ' + automap
 
             # Kill current line and append for re-submission

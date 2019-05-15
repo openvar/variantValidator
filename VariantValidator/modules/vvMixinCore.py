@@ -369,7 +369,7 @@ class Mixin(vvMixinConverters.Mixin):
                         continue
 
                     trapped_input = str(my_variant.hgvs_formatted)
-                    my_variant.trapped = trapped_input
+                    my_variant.pre_RNA_conversion = trapped_input
                     toskip = format_converters.rna(my_variant, self)
                     if toskip:
                         continue

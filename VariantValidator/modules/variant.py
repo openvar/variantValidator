@@ -18,7 +18,7 @@ class Variant(object):
         self.hgvs_genomic = None
         self.hgvs_coding = None
         self.stashed = None
-        self.trapped = None
+        self.pre_RNA_conversion = None
         self.input_parses = None
 
         self.warnings = warnings
