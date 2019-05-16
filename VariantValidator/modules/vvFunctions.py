@@ -456,6 +456,20 @@ def n_inversion(ref_seq, del_seq, inv_seq, interval_start, interval_end):
         return sequence
 
 
+def hgvs_dup2indel(hgvs_seq):
+    """Will convert hgvs variant object dup into a string with del and ins"""
+    string = "%s:%s.%s_%sdel%sins%s%s" % (
+        hgvs_seq.ac,
+        hgvs_seq.type,
+        hgvs_seq.posedit.pos.start.base,
+        hgvs_seq.posedit.pos.end.base,
+        hgvs_seq.posedit.edit.ref,
+        hgvs_seq.posedit.edit.ref,
+        hgvs_seq.posedit.edit.ref
+        )
+    return string
+
+
 # Custom Exceptions
 class VariantValidatorError(Exception):
     pass
@@ -463,4 +477,3 @@ class mergeHGVSerror(Exception):
     pass
 class alleleVariantError(Exception):
     pass
-

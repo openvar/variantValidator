@@ -613,13 +613,9 @@ class Mixin(vvMixinInit.Mixin):
                                 transcript_gap_alt_n.posedit.edit.alt = 'X'
                         except Exception as e:
                             if str(e) == "'Dup' object has no attribute 'alt'":
-                                transcript_gap_n_delins_from_dup = transcript_gap_n.ac + ':' + transcript_gap_n.type + '.' + str(
-                                    transcript_gap_n.posedit.pos.start.base) + '_' + str(
-                                    transcript_gap_n.posedit.pos.end.base) + 'del' + transcript_gap_n.posedit.edit.ref + 'ins' + transcript_gap_n.posedit.edit.ref + transcript_gap_n.posedit.edit.ref
+                                transcript_gap_n_delins_from_dup = fn.hgvs_dup2indel(transcript_gap_n)
                                 transcript_gap_n = self.hp.parse_hgvs_variant(transcript_gap_n_delins_from_dup)
-                                transcript_gap_alt_n_delins_from_dup = transcript_gap_alt_n.ac + ':' + transcript_gap_alt_n.type + '.' + str(
-                                    transcript_gap_alt_n.posedit.pos.start.base) + '_' + str(
-                                    transcript_gap_alt_n.posedit.pos.end.base) + 'del' + transcript_gap_alt_n.posedit.edit.ref + 'ins' + transcript_gap_alt_n.posedit.edit.ref + transcript_gap_alt_n.posedit.edit.ref
+                                transcript_gap_alt_n_delins_from_dup = fn.hgvs_dup2indel(transcript_gap_alt_n)
                                 transcript_gap_alt_n = self.hp.parse_hgvs_variant(transcript_gap_alt_n_delins_from_dup)
 
                         # Split the reference and replacing alt sequence into a dictionary
@@ -762,13 +758,9 @@ class Mixin(vvMixinInit.Mixin):
                             transcript_gap_alt_n.posedit.edit.alt = 'X'
                     except Exception as e:
                         if str(e) == "'Dup' object has no attribute 'alt'":
-                            transcript_gap_n_delins_from_dup = transcript_gap_n.ac + ':' + transcript_gap_n.type + '.' + str(
-                                transcript_gap_n.posedit.pos.start.base) + '_' + str(
-                                transcript_gap_n.posedit.pos.end.base) + 'del' + transcript_gap_n.posedit.edit.ref + 'ins' + transcript_gap_n.posedit.edit.ref + transcript_gap_n.posedit.edit.ref
+                            transcript_gap_n_delins_from_dup = fn.hgvs_dup2indel(transcript_gap_n)
                             transcript_gap_n = self.hp.parse_hgvs_variant(transcript_gap_n_delins_from_dup)
-                            transcript_gap_alt_n_delins_from_dup = transcript_gap_alt_n.ac + ':' + transcript_gap_alt_n.type + '.' + str(
-                                transcript_gap_alt_n.posedit.pos.start.base) + '_' + str(
-                                transcript_gap_alt_n.posedit.pos.end.base) + 'del' + transcript_gap_alt_n.posedit.edit.ref + 'ins' + transcript_gap_alt_n.posedit.edit.ref + transcript_gap_alt_n.posedit.edit.ref
+                            transcript_gap_alt_n_delins_from_dup = fn.hgvs_dup2indel(transcript_gap_alt_n)
                             transcript_gap_alt_n = self.hp.parse_hgvs_variant(transcript_gap_alt_n_delins_from_dup)
 
                     # Split the reference and replacing alt sequence into a dictionary
@@ -1357,13 +1349,9 @@ class Mixin(vvMixinInit.Mixin):
                                 transcript_gap_alt_n.posedit.edit.alt = 'X'
                         except Exception as e:
                             if str(e) == "'Dup' object has no attribute 'alt'":
-                                transcript_gap_n_delins_from_dup = transcript_gap_n.ac + ':' + transcript_gap_n.type + '.' + str(
-                                    transcript_gap_n.posedit.pos.start.base) + '_' + str(
-                                    transcript_gap_n.posedit.pos.end.base) + 'del' + transcript_gap_n.posedit.edit.ref + 'ins' + transcript_gap_n.posedit.edit.ref + transcript_gap_n.posedit.edit.ref
+                                transcript_gap_n_delins_from_dup = fn.hgvs_dup2indel(transcript_gap_n)
                                 transcript_gap_n = self.hp.parse_hgvs_variant(transcript_gap_n_delins_from_dup)
-                                transcript_gap_alt_n_delins_from_dup = transcript_gap_alt_n.ac + ':' + transcript_gap_alt_n.type + '.' + str(
-                                    transcript_gap_alt_n.posedit.pos.start.base) + '_' + str(
-                                    transcript_gap_alt_n.posedit.pos.end.base) + 'del' + transcript_gap_alt_n.posedit.edit.ref + 'ins' + transcript_gap_alt_n.posedit.edit.ref + transcript_gap_alt_n.posedit.edit.ref
+                                transcript_gap_alt_n_delins_from_dup = fn.hgvs_dup2indel(transcript_gap_alt_n)
                                 transcript_gap_alt_n = self.hp.parse_hgvs_variant(transcript_gap_alt_n_delins_from_dup)
 
                         # Split the reference and replacing alt sequence into a dictionary
@@ -1506,13 +1494,9 @@ class Mixin(vvMixinInit.Mixin):
                             transcript_gap_alt_n.posedit.edit.alt = 'X'
                     except Exception as e:
                         if str(e) == "'Dup' object has no attribute 'alt'":
-                            transcript_gap_n_delins_from_dup = transcript_gap_n.ac + ':' + transcript_gap_n.type + '.' + str(
-                                transcript_gap_n.posedit.pos.start.base) + '_' + str(
-                                transcript_gap_n.posedit.pos.end.base) + 'del' + transcript_gap_n.posedit.edit.ref + 'ins' + transcript_gap_n.posedit.edit.ref + transcript_gap_n.posedit.edit.ref
+                            transcript_gap_n_delins_from_dup = fn.hgvs_dup2indel(transcript_gap_n)
                             transcript_gap_n = self.hp.parse_hgvs_variant(transcript_gap_n_delins_from_dup)
-                            transcript_gap_alt_n_delins_from_dup = transcript_gap_alt_n.ac + ':' + transcript_gap_alt_n.type + '.' + str(
-                                transcript_gap_alt_n.posedit.pos.start.base) + '_' + str(
-                                transcript_gap_alt_n.posedit.pos.end.base) + 'del' + transcript_gap_alt_n.posedit.edit.ref + 'ins' + transcript_gap_alt_n.posedit.edit.ref + transcript_gap_alt_n.posedit.edit.ref
+                            transcript_gap_alt_n_delins_from_dup = fn.hgvs_dup2indel(transcript_gap_alt_n)
                             transcript_gap_alt_n = self.hp.parse_hgvs_variant(transcript_gap_alt_n_delins_from_dup)
 
                     # Split the reference and replacing alt sequence into a dictionary

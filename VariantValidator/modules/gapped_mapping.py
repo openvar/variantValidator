@@ -285,9 +285,7 @@ class GapMapper(object):
                         self.tx_hgvs_not_delins.posedit.edit.alt = ''
                 except Exception as e:
                     if str(e) == "'Dup' object has no attribute 'alt'":
-                        tx_hgvs_not_delins_delins_from_dup = self.tx_hgvs_not_delins.ac + ':' + self.tx_hgvs_not_delins.type + '.' + str(
-                            self.tx_hgvs_not_delins.posedit.pos.start) + '_' + str(
-                            self.tx_hgvs_not_delins.posedit.pos.end) + 'del' + self.tx_hgvs_not_delins.posedit.edit.ref + 'ins' + self.tx_hgvs_not_delins.posedit.edit.ref + self.tx_hgvs_not_delins.posedit.edit.ref
+                        tx_hgvs_not_delins_delins_from_dup = fn.hgvs_dup2indel(self.tx_hgvs_not_delins)
                         self.tx_hgvs_not_delins = self.validator.hp.parse_hgvs_variant(tx_hgvs_not_delins_delins_from_dup)
 
                 # GAP IN THE TRANSCRIPT DISPARITY DETECTED
@@ -848,11 +846,7 @@ class GapMapper(object):
                         self.tx_hgvs_not_delins.posedit.edit.alt = ''
                 except Exception as e:
                     if str(e) == "'Dup' object has no attribute 'alt'":
-                        tx_hgvs_not_delins_delins_from_dup = self.tx_hgvs_not_delins.ac + ':' + \
-                                                             self.tx_hgvs_not_delins.type + '.' + str(
-                            self.tx_hgvs_not_delins.posedit.pos.start) + '_' + str(
-                            self.tx_hgvs_not_delins.posedit.pos.end) + 'del' + self.tx_hgvs_not_delins.posedit.edit.ref\
-                            + 'ins' + self.tx_hgvs_not_delins.posedit.edit.ref + self.tx_hgvs_not_delins.posedit.edit.ref
+                        tx_hgvs_not_delins_delins_from_dup = fn.hgvs_dup2indel(self.tx_hgvs_not_delins)
                         self.tx_hgvs_not_delins = self.validator.hp.parse_hgvs_variant(
                             tx_hgvs_not_delins_delins_from_dup)
 
@@ -1101,11 +1095,7 @@ class GapMapper(object):
                     self.tx_hgvs_not_delins.posedit.edit.alt = ''
             except Exception as e:
                 if str(e) == "'Dup' object has no attribute 'alt'":
-                    tx_hgvs_not_delins_delins_from_dup = self.tx_hgvs_not_delins.ac + ':' + \
-                                                         self.tx_hgvs_not_delins.type + '.' + str(
-                        self.tx_hgvs_not_delins.posedit.pos.start) + '_' + str(
-                        self.tx_hgvs_not_delins.posedit.pos.end) + 'del' + self.tx_hgvs_not_delins.posedit.edit.ref + \
-                        'ins' + self.tx_hgvs_not_delins.posedit.edit.ref + self.tx_hgvs_not_delins.posedit.edit.ref
+                    tx_hgvs_not_delins_delins_from_dup = fn.hgvs_dup2indel(self.tx_hgvs_not_delins)
                     self.tx_hgvs_not_delins = self.validator.hp.parse_hgvs_variant(tx_hgvs_not_delins_delins_from_dup)
 
             # GAP IN THE TRANSCRIPT DISPARITY DETECTED
@@ -1564,12 +1554,7 @@ class GapMapper(object):
                         self.tx_hgvs_not_delins.posedit.edit.alt = ''
                 except Exception as e:
                     if str(e) == "'Dup' object has no attribute 'alt'":
-                        tx_hgvs_not_delins_delins_from_dup = self.tx_hgvs_not_delins.ac + ':' + \
-                                                             self.tx_hgvs_not_delins.type + '.' + str(
-                            self.tx_hgvs_not_delins.posedit.pos.start) + '_' + str(
-                            self.tx_hgvs_not_delins.posedit.pos.end) + 'del' + self.tx_hgvs_not_delins.posedit.edit.ref\
-                            + 'ins' + self.tx_hgvs_not_delins.posedit.edit.ref + \
-                                                             self.tx_hgvs_not_delins.posedit.edit.ref
+                        tx_hgvs_not_delins_delins_from_dup = fn.hgvs_dup2indel(self.tx_hgvs_not_delins)
                         self.tx_hgvs_not_delins = self.validator.hp.parse_hgvs_variant(
                             tx_hgvs_not_delins_delins_from_dup)
 
@@ -1866,11 +1851,7 @@ class GapMapper(object):
                     tx_gap_fill_variant.posedit.edit.alt = ''
             except Exception as e:
                 if str(e) == "'Dup' object has no attribute 'alt'":
-                    tx_gap_fill_variant_delins_from_dup = tx_gap_fill_variant.ac + ':' + tx_gap_fill_variant.type + \
-                                                          '.' + str(
-                        tx_gap_fill_variant.posedit.pos.start) + '_' + str(
-                        tx_gap_fill_variant.posedit.pos.end) + 'del' + tx_gap_fill_variant.posedit.edit.ref + \
-                        'ins' + tx_gap_fill_variant.posedit.edit.ref + tx_gap_fill_variant.posedit.edit.ref
+                    tx_gap_fill_variant_delins_from_dup = fn.hgvs_dup2indel(tx_gap_fill_variant)
                     tx_gap_fill_variant = self.validator.hp.parse_hgvs_variant(
                         tx_gap_fill_variant_delins_from_dup)
 
@@ -1907,20 +1888,10 @@ class GapMapper(object):
                     genomic_gap_fill_variant_alt.posedit.edit.alt = 'X'
             except Exception as e:
                 if str(e) == "'Dup' object has no attribute 'alt'":
-                    genomic_gap_fill_variant_delins_from_dup = genomic_gap_fill_variant.ac + ':' \
-                                                               + genomic_gap_fill_variant.type + '.' + str(
-                        genomic_gap_fill_variant.posedit.pos.start.base) + '_' + str(
-                        genomic_gap_fill_variant.posedit.pos.end.base) + 'del' + \
-                        genomic_gap_fill_variant.posedit.edit.ref + 'ins' + genomic_gap_fill_variant.posedit.edit.ref \
-                                                               + genomic_gap_fill_variant.posedit.edit.ref
+                    genomic_gap_fill_variant_delins_from_dup = fn.hgvs_dup2indel(genomic_gap_fill_variant)
                     genomic_gap_fill_variant = self.validator.hp.parse_hgvs_variant(
                         genomic_gap_fill_variant_delins_from_dup)
-                    genomic_gap_fill_variant_alt_delins_from_dup = genomic_gap_fill_variant_alt.ac + ':' \
-                                                                   + genomic_gap_fill_variant_alt.type + '.' + str(
-                        genomic_gap_fill_variant_alt.posedit.pos.start.base) + '_' + str(
-                        genomic_gap_fill_variant_alt.posedit.pos.end.base) + 'del' + \
-                        genomic_gap_fill_variant_alt.posedit.edit.ref + 'ins' + \
-                        genomic_gap_fill_variant_alt.posedit.edit.ref + genomic_gap_fill_variant_alt.posedit.edit.ref
+                    genomic_gap_fill_variant_alt_delins_from_dup = fn.hgvs_dup2indel(genomic_gap_fill_variant_alt)
                     genomic_gap_fill_variant_alt = self.validator.hp.parse_hgvs_variant(
                         genomic_gap_fill_variant_alt_delins_from_dup)
 
@@ -2324,9 +2295,8 @@ class GapMapper(object):
                         genomic_from_most_3pr_hgvs_transcript_variant.posedit.edit.alt = ''
                 except Exception as e:
                     if str(e) == "'Dup' object has no attribute 'alt'":
-                        genomic_from_most_3pr_hgvs_transcript_variant_delins_from_dup = genomic_from_most_3pr_hgvs_transcript_variant.ac + ':' + genomic_from_most_3pr_hgvs_transcript_variant.type + '.' + str(
-                            genomic_from_most_3pr_hgvs_transcript_variant.posedit.pos.start.base) + '_' + str(
-                            genomic_from_most_3pr_hgvs_transcript_variant.posedit.pos.end.base) + 'del' + genomic_from_most_3pr_hgvs_transcript_variant.posedit.edit.ref + 'ins' + genomic_from_most_3pr_hgvs_transcript_variant.posedit.edit.ref + genomic_from_most_3pr_hgvs_transcript_variant.posedit.edit.ref
+                        genomic_from_most_3pr_hgvs_transcript_variant_delins_from_dup = fn.hgvs_dup2indel(
+                            genomic_from_most_3pr_hgvs_transcript_variant)
                         genomic_from_most_3pr_hgvs_transcript_variant = self.validator.hp.parse_hgvs_variant(
                             genomic_from_most_3pr_hgvs_transcript_variant_delins_from_dup)
 
@@ -2335,9 +2305,8 @@ class GapMapper(object):
                         most_3pr_hgvs_transcript_variant.posedit.edit.alt = ''
                 except Exception as e:
                     if str(e) == "'Dup' object has no attribute 'alt'":
-                        most_3pr_hgvs_transcript_variant_delins_from_dup = most_3pr_hgvs_transcript_variant.ac + ':' + most_3pr_hgvs_transcript_variant.type + '.' + str(
-                            most_3pr_hgvs_transcript_variant.posedit.pos.start.base) + '_' + str(
-                            most_3pr_hgvs_transcript_variant.posedit.pos.end.base) + 'del' + most_3pr_hgvs_transcript_variant.posedit.edit.ref + 'ins' + most_3pr_hgvs_transcript_variant.posedit.edit.ref + most_3pr_hgvs_transcript_variant.posedit.edit.ref
+                        most_3pr_hgvs_transcript_variant_delins_from_dup = fn.hgvs_dup2indel(
+                            most_3pr_hgvs_transcript_variant)
                         most_3pr_hgvs_transcript_variant = self.validator.hp.parse_hgvs_variant(
                             most_3pr_hgvs_transcript_variant_delins_from_dup)
 
@@ -2346,9 +2315,8 @@ class GapMapper(object):
                         genomic_from_most_5pr_hgvs_transcript_variant.posedit.edit.alt = ''
                 except Exception as e:
                     if str(e) == "'Dup' object has no attribute 'alt'":
-                        genomic_from_most_5pr_hgvs_transcript_variant_delins_from_dup = genomic_from_most_5pr_hgvs_transcript_variant.ac + ':' + genomic_from_most_5pr_hgvs_transcript_variant.type + '.' + str(
-                            genomic_from_most_5pr_hgvs_transcript_variant.posedit.pos.start.base) + '_' + str(
-                            genomic_from_most_5pr_hgvs_transcript_variant.posedit.pos.end.base) + 'del' + genomic_from_most_5pr_hgvs_transcript_variant.posedit.edit.ref + 'ins' + genomic_from_most_5pr_hgvs_transcript_variant.posedit.edit.ref + genomic_from_most_5pr_hgvs_transcript_variant.posedit.edit.ref
+                        genomic_from_most_5pr_hgvs_transcript_variant_delins_from_dup = fn.hgvs_dup2indel(
+                            genomic_from_most_5pr_hgvs_transcript_variant)
                         genomic_from_most_5pr_hgvs_transcript_variant = self.validator.hp.parse_hgvs_variant(
                             genomic_from_most_5pr_hgvs_transcript_variant_delins_from_dup)
 
@@ -2357,9 +2325,8 @@ class GapMapper(object):
                         most_5pr_hgvs_transcript_variant.posedit.edit.alt = ''
                 except Exception as e:
                     if str(e) == "'Dup' object has no attribute 'alt'":
-                        most_5pr_hgvs_transcript_variant_delins_from_dup = most_5pr_hgvs_transcript_variant.ac + ':' + most_5pr_hgvs_transcript_variant.type + '.' + str(
-                            most_5pr_hgvs_transcript_variant.posedit.pos.start.base) + '_' + str(
-                            most_5pr_hgvs_transcript_variant.posedit.pos.end.base) + 'del' + most_5pr_hgvs_transcript_variant.posedit.edit.ref + 'ins' + most_5pr_hgvs_transcript_variant.posedit.edit.ref + most_5pr_hgvs_transcript_variant.posedit.edit.ref
+                        most_5pr_hgvs_transcript_variant_delins_from_dup = fn.hgvs_dup2indel(
+                            most_5pr_hgvs_transcript_variant)
                         most_5pr_hgvs_transcript_variant = self.validator.hp.parse_hgvs_variant(
                             most_5pr_hgvs_transcript_variant_delins_from_dup)
 
