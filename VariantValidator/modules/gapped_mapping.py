@@ -1,7 +1,7 @@
 import copy
 import re
 
-import hgvs
+import hgvs.exceptions
 
 from . import vvFunctions as fn
 from . import vvHGVS
@@ -184,10 +184,10 @@ class GapMapper(object):
                 # Attempt to find gaps in reference sequence by catching disparity in genome length and
                 # overlapping transcript lengths
                 self.disparity_deletion_in = ['false', 'false']
+                hgvs_not_delins = ''
                 if stored_hgvs_not_delins != '':
                     # Refresh hgvs_not_delins from stored_hgvs_not_delins
-                    hgvs_not_delins = self.dup_ins_5prime_shift(stored_hgvs_not_delins, self.hgvs_genomic_5pr,
-                                                                saved_hgvs_coding)
+                    hgvs_not_delins = self.dup_ins_5prime_shift(stored_hgvs_not_delins, saved_hgvs_coding)
 
                     try:
                         self.tx_hgvs_not_delins = self.variant.no_norm_evm.g_to_n(hgvs_not_delins, saved_hgvs_coding.ac)
@@ -395,7 +395,8 @@ class GapMapper(object):
     def g_to_t_compensation(self, ori, hgvs_coding, rec_var):
         self.orientation = int(ori[0]['alt_strand'])
         self.hgvs_genomic_possibilities = []
-        hgvs_genomic = self.validator.myevm_t_to_g(hgvs_coding, self.variant.no_norm_evm, self.variant.primary_assembly, self.variant.hn)
+        hgvs_genomic = self.validator.myevm_t_to_g(hgvs_coding, self.variant.no_norm_evm, self.variant.primary_assembly,
+                                                   self.variant.hn)
 
         logger.warning('g_to_t gap code 1 active')
         rn_hgvs_genomic = self.variant.reverse_normalizer.normalize(hgvs_genomic)
@@ -417,6 +418,8 @@ class GapMapper(object):
         # MAKE A NO NORM HGVS2VCF
         # First to the right
         hgvs_stash = copy.deepcopy(hgvs_coding)
+        stash_tx_right = ''
+        stash_tx_left = ''
         try:
             hgvs_stash = self.variant.no_norm_evm.c_to_n(hgvs_stash)
         except:
@@ -440,7 +443,8 @@ class GapMapper(object):
 
             test_stash_tx_right = copy.deepcopy(stash_hgvs_not_delins)
             # stash_genomic = vm.t_to_g(test_stash_tx_right, hgvs_genomic.ac)
-            stash_genomic = self.validator.myvm_t_to_g(test_stash_tx_right, hgvs_genomic.ac, self.variant.no_norm_evm, self.variant.hn)
+            stash_genomic = self.validator.myvm_t_to_g(test_stash_tx_right, hgvs_genomic.ac, self.variant.no_norm_evm,
+                                                       self.variant.hn)
             # Stash the outputs if required
             # test variants = NC_000006.11:g.90403795G= (causes double identity)
             #                 NC_000002.11:g.73675227_73675228insCTC (? incorrect assumed insertion position)
@@ -504,8 +508,8 @@ class GapMapper(object):
             fn.exceptPass()
         try:
             stash_ac = hgvs_stash.ac
-            stash_dict = vvHGVS.hard_left_hgvs2vcf(hgvs_stash, self.variant.primary_assembly, self.variant.reverse_normalizer,
-                                                   self.validator.sf)
+            stash_dict = vvHGVS.hard_left_hgvs2vcf(hgvs_stash, self.variant.primary_assembly,
+                                                   self.variant.reverse_normalizer, self.validator.sf)
             stash_pos = int(stash_dict['pos'])
             stash_ref = stash_dict['ref']
             stash_alt = stash_dict['alt']
@@ -522,16 +526,17 @@ class GapMapper(object):
                 # Store a tx copy for later use
             test_stash_tx_left = copy.deepcopy(stash_hgvs_not_delins)
             # stash_genomic = vm.t_to_g(test_stash_tx_left, hgvs_genomic.ac)
-            stash_genomic = self.validator.myvm_t_to_g(test_stash_tx_left, hgvs_genomic.ac, self.variant.no_norm_evm, self.variant.hn)
+            stash_genomic = self.validator.myvm_t_to_g(test_stash_tx_left, hgvs_genomic.ac, self.variant.no_norm_evm,
+                                                       self.variant.hn)
             # Stash the outputs if required
             # test variants = NC_000006.11:g.90403795G= (causes double identity)
             #                 NC_000002.11:g.73675227_73675228insCTC
             #                 NC_000003.11:g.14561629_14561630GC= NC_000003.11:g.14561629_14561630insG (Odd gap position)
             # if test_stash_tx_left.posedit.edit.type == 'identity' and stash_genomic.posedit.edit.type == 'identity':
             # pass
-            if len(test_stash_tx_left.posedit.edit.ref) == ((
-                                                                    stash_genomic.posedit.pos.end.base - stash_genomic.posedit.pos.start.base) + 1):  # len(stash_genomic.posedit.edit.ref):
-                stash_tx_left = test_stash_tx_left
+            # len(stash_genomic.posedit.edit.ref):
+            if len(test_stash_tx_left.posedit.edit.ref) == ((stash_genomic.posedit.pos.end.base -
+                                                             stash_genomic.posedit.pos.start.base) + 1):
                 if hasattr(test_stash_tx_left.posedit.edit,
                            'alt') and test_stash_tx_left.posedit.edit.alt is not None:
                     alt = test_stash_tx_left.posedit.edit.alt
@@ -612,7 +617,7 @@ class GapMapper(object):
 
             # Use VCF generation code to push hgvs_genomic as for 5 prime as possible to uncover gaps
             hgvs_genomic_variant = copy.deepcopy(possibility)
-
+            reverse_normalized_hgvs_genomic = ''
             # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
             try:
                 reverse_normalized_hgvs_genomic = self.variant.reverse_normalizer.normalize(hgvs_genomic_variant)
@@ -713,9 +718,9 @@ class GapMapper(object):
                                 intronic_variant = 'true'
 
             if intronic_variant != 'hard_fail':
-                if re.search(r'\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search(r'\d+\-', str(
+                if re.search(r'\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search(r'\d+-', str(
                         hgvs_seek_var.posedit.pos)) or re.search(r'\*\d+\+', str(
-                        hgvs_seek_var.posedit.pos)) or re.search(r'\*\d+\-', str(hgvs_seek_var.posedit.pos)):
+                        hgvs_seek_var.posedit.pos)) or re.search(r'\*\d+-', str(hgvs_seek_var.posedit.pos)):
                     # Double check to see whether the variant is actually intronic?
                     for exon in ori:
                         genomic_start = int(exon['alt_start_i'])
@@ -727,9 +732,9 @@ class GapMapper(object):
                         else:
                             intronic_variant = 'true'
 
-            if re.search(r'\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search(r'\d+\-', str(
+            if re.search(r'\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search(r'\d+-', str(
                     hgvs_seek_var.posedit.pos)) or re.search(r'\*\d+\+', str(
-                    hgvs_seek_var.posedit.pos)) or re.search(r'\*\d+\-', str(hgvs_seek_var.posedit.pos)):
+                    hgvs_seek_var.posedit.pos)) or re.search(r'\*\d+-', str(hgvs_seek_var.posedit.pos)):
                 # Double check to see whether the variant is actually intronic?
                 for exon in ori:
                     genomic_start = int(exon['alt_start_i'])
@@ -745,10 +750,10 @@ class GapMapper(object):
                 # Flag RefSeqGene for ammendment
                 # amend_RefSeqGene = 'false'
                 # Attempt to find gaps in reference sequence by catching disparity in genome length and overlapping transcript lengths
+                hgvs_not_delins = ''
                 if stored_hgvs_not_delins != '':
                     # Refresh hgvs_not_delins from stored_hgvs_not_delins
-                    hgvs_not_delins = self.dup_ins_5prime_shift(stored_hgvs_not_delins, self.hgvs_genomic_5pr,
-                                                                saved_hgvs_coding)
+                    hgvs_not_delins = self.dup_ins_5prime_shift(stored_hgvs_not_delins, saved_hgvs_coding)
 
                     try:
                         self.tx_hgvs_not_delins = self.variant.no_norm_evm.g_to_n(hgvs_not_delins,
@@ -765,20 +770,25 @@ class GapMapper(object):
                         rn_tx_hgvs_not_delins = self.remove_offsetting_to_span_gap(rn_tx_hgvs_not_delins)
 
                     elif '+' in str(rn_tx_hgvs_not_delins.posedit.pos.end):
-                        rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_end_base_to_next_nonoffset(rn_tx_hgvs_not_delins, saved_hgvs_coding, back=False)
+                        rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_end_base_to_next_nonoffset(
+                            rn_tx_hgvs_not_delins, saved_hgvs_coding, back=False)
 
                     elif '+' in str(rn_tx_hgvs_not_delins.posedit.pos.start):
-                        rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_start_base_to_previous_nonoffset(rn_tx_hgvs_not_delins, saved_hgvs_coding)
+                        rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_start_base_to_previous_nonoffset(
+                            rn_tx_hgvs_not_delins, saved_hgvs_coding)
 
                     # Check for -ve base and adjust
-                    elif '-' in str(rn_tx_hgvs_not_delins.posedit.pos.end) and '-' in str(rn_tx_hgvs_not_delins.posedit.pos.start):
+                    elif '-' in str(rn_tx_hgvs_not_delins.posedit.pos.end) and '-' in str(
+                            rn_tx_hgvs_not_delins.posedit.pos.start):
                         rn_tx_hgvs_not_delins = self.remove_offsetting_to_span_gap(rn_tx_hgvs_not_delins)
 
                     elif '-' in str(rn_tx_hgvs_not_delins.posedit.pos.end):
-                        rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_end_base_to_next_nonoffset(rn_tx_hgvs_not_delins, saved_hgvs_coding)
+                        rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_end_base_to_next_nonoffset(
+                            rn_tx_hgvs_not_delins, saved_hgvs_coding)
 
                     elif '-' in str(rn_tx_hgvs_not_delins.posedit.pos.start):
-                        rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_start_base_to_previous_nonoffset(rn_tx_hgvs_not_delins, saved_hgvs_coding, with_base_subtract=True)
+                        rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_start_base_to_previous_nonoffset(
+                            rn_tx_hgvs_not_delins, saved_hgvs_coding, with_base_subtract=True)
 
                     # Logic
                     hgvs_not_delins = self.logic_check(hgvs_not_delins, rn_tx_hgvs_not_delins, hgvs_coding)
@@ -815,7 +825,8 @@ class GapMapper(object):
                     ftx = self.validator.vm.g_to_t(fg, self.tx_hgvs_not_delins.ac)
                     if (rtx.posedit.pos.start.offset == 0 and rtx.posedit.pos.end.offset == 0) and (
                             ftx.posedit.pos.start.offset != 0 and ftx.posedit.pos.end.offset != 0):
-                        exons = self.validator.hdp.get_tx_exons(ftx.ac, hgvs_not_delins.ac, self.validator.alt_aln_method)
+                        exons = self.validator.hdp.get_tx_exons(ftx.ac, hgvs_not_delins.ac,
+                                                                self.validator.alt_aln_method)
                         exonic = False
                         for ex_test in exons:
                             if ftx.posedit.pos.start.base in range(ex_test[6], ex_test[
@@ -837,9 +848,11 @@ class GapMapper(object):
                         self.tx_hgvs_not_delins.posedit.edit.alt = ''
                 except Exception as e:
                     if str(e) == "'Dup' object has no attribute 'alt'":
-                        tx_hgvs_not_delins_delins_from_dup = self.tx_hgvs_not_delins.ac + ':' + self.tx_hgvs_not_delins.type + '.' + str(
+                        tx_hgvs_not_delins_delins_from_dup = self.tx_hgvs_not_delins.ac + ':' + \
+                                                             self.tx_hgvs_not_delins.type + '.' + str(
                             self.tx_hgvs_not_delins.posedit.pos.start) + '_' + str(
-                            self.tx_hgvs_not_delins.posedit.pos.end) + 'del' + self.tx_hgvs_not_delins.posedit.edit.ref + 'ins' + self.tx_hgvs_not_delins.posedit.edit.ref + self.tx_hgvs_not_delins.posedit.edit.ref
+                            self.tx_hgvs_not_delins.posedit.pos.end) + 'del' + self.tx_hgvs_not_delins.posedit.edit.ref\
+                            + 'ins' + self.tx_hgvs_not_delins.posedit.edit.ref + self.tx_hgvs_not_delins.posedit.edit.ref
                         self.tx_hgvs_not_delins = self.validator.hp.parse_hgvs_variant(
                             tx_hgvs_not_delins_delins_from_dup)
 
@@ -965,9 +978,6 @@ class GapMapper(object):
                     hgvs_genomic.posedit.pos.start.base = end
                     hgvs_genomic.posedit.pos.end.base = start
                     hgvs_genomic = self.variant.hn.normalize(hgvs_genomic)
-        genomic = fn.valstr(hgvs_genomic)
-
-        print('in gapped_mapping', hgvs_coding)
 
         return hgvs_genomic, suppress_c_normalization, hgvs_coding
 
@@ -993,7 +1003,8 @@ class GapMapper(object):
         end = str(int(pos) + len(ref) - 1)
         pos = str(pos)
         stored_hgvs_not_delins = self.validator.hp.parse_hgvs_variant(str(
-            self.hgvs_genomic_5pr.ac) + ':' + self.hgvs_genomic_5pr.type + '.' + pos + '_' + end + 'del' + ref + 'ins' + alt)
+            self.hgvs_genomic_5pr.ac) + ':' + self.hgvs_genomic_5pr.type + '.' + pos + '_' + end + 'del' + ref +
+                                                                      'ins' + alt)
         self.orientation = int(ori[0]['alt_strand'])
         saved_hgvs_coding = copy.deepcopy(hgvs_coding)
 
@@ -1004,21 +1015,21 @@ class GapMapper(object):
             genomic_end = int(exon['alt_end_i'])
             # Take from stored copy
             # hgvs_genomic_5pr = copy.deepcopy(stored_hgvs_genomic_5pr)
-            if (
-                    self.hgvs_genomic_5pr.posedit.pos.start.base > genomic_start and self.hgvs_genomic_5pr.posedit.pos.start.base <= genomic_end) and (
-                    self.hgvs_genomic_5pr.posedit.pos.end.base > genomic_start and self.hgvs_genomic_5pr.posedit.pos.end.base <= genomic_end):
+            if (genomic_start < self.hgvs_genomic_5pr.posedit.pos.start.base <= genomic_end) and (
+                    genomic_start < self.hgvs_genomic_5pr.posedit.pos.end.base <= genomic_end):
                 is_it_in_an_exon = 'yes'
         if is_it_in_an_exon == 'yes':
             # map form reverse normalized g. to c.
-            hgvs_from_5n_g = self.variant.no_norm_evm.g_to_t(self.hgvs_genomic_5pr, saved_hgvs_coding.ac)
+            # hgvs_from_5n_g = self.variant.no_norm_evm.g_to_t(self.hgvs_genomic_5pr, saved_hgvs_coding.ac)
 
-            # Attempt to find gaps in reference sequence by catching disparity in genome length and overlapping transcript lengths
+            # Attempt to find gaps in reference sequence by catching disparity in genome length and
+            # overlapping transcript lengths
             self.disparity_deletion_in = ['false', 'false']
+            hgvs_not_delins = ''
+            hard_fail = 'false'
             if stored_hgvs_not_delins != '':
                 # Refresh hgvs_not_delins from stored_hgvs_not_delins
-                hgvs_not_delins = self.dup_ins_5prime_shift(stored_hgvs_not_delins, self.hgvs_genomic_5pr, saved_hgvs_coding)
-
-                hard_fail = 'false'
+                hgvs_not_delins = self.dup_ins_5prime_shift(stored_hgvs_not_delins, saved_hgvs_coding)
                 try:
                     self.tx_hgvs_not_delins = self.variant.no_norm_evm.g_to_n(hgvs_not_delins, saved_hgvs_coding.ac)
                 except Exception as e:
@@ -1029,27 +1040,30 @@ class GapMapper(object):
                 # Create normalized version of self.tx_hgvs_not_delins
                 rn_tx_hgvs_not_delins = copy.deepcopy(self.tx_hgvs_not_delins)
                 # Check for +ve base and adjust
-                if re.search(r'\+', str(rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search(r'\+',
-                                                                                              str(
-                                                                                                  rn_tx_hgvs_not_delins.posedit.pos.start)):
+                if '+' in str(rn_tx_hgvs_not_delins.posedit.pos.end) and '+' in \
+                        str(rn_tx_hgvs_not_delins.posedit.pos.start):
                     rn_tx_hgvs_not_delins = self.remove_offsetting_to_span_gap(rn_tx_hgvs_not_delins)
 
-                elif re.search(r'\+', str(rn_tx_hgvs_not_delins.posedit.pos.end)):
-                    rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_end_base_to_next_nonoffset(rn_tx_hgvs_not_delins, saved_hgvs_coding, back=False)
+                elif '+' in str(rn_tx_hgvs_not_delins.posedit.pos.end):
+                    rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_end_base_to_next_nonoffset(
+                        rn_tx_hgvs_not_delins, saved_hgvs_coding, back=False)
 
-                elif re.search(r'\+', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
-                    rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_start_base_to_previous_nonoffset(rn_tx_hgvs_not_delins, saved_hgvs_coding)
+                elif '+' in str(rn_tx_hgvs_not_delins.posedit.pos.start):
+                    rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_start_base_to_previous_nonoffset(
+                        rn_tx_hgvs_not_delins, saved_hgvs_coding)
 
                 # Check for -ve base and adjust
-                elif re.search(r'\-', str(rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search(r'\-', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
+                elif '-' in str(rn_tx_hgvs_not_delins.posedit.pos.end) and '-' in str(
+                        rn_tx_hgvs_not_delins.posedit.pos.start):
                     rn_tx_hgvs_not_delins = self.remove_offsetting_to_span_gap(rn_tx_hgvs_not_delins)
 
-                elif re.search(r'\-', str(rn_tx_hgvs_not_delins.posedit.pos.end)):
-                    rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_end_base_to_next_nonoffset(rn_tx_hgvs_not_delins, saved_hgvs_coding)
+                elif '-' in str(rn_tx_hgvs_not_delins.posedit.pos.end):
+                    rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_end_base_to_next_nonoffset(
+                        rn_tx_hgvs_not_delins, saved_hgvs_coding)
 
-                elif re.search(r'\-', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
-                    rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_start_base_to_previous_nonoffset(rn_tx_hgvs_not_delins, saved_hgvs_coding,
-                                                             with_base_subtract=True)
+                elif '-' in str(rn_tx_hgvs_not_delins.posedit.pos.start):
+                    rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_start_base_to_previous_nonoffset(
+                        rn_tx_hgvs_not_delins, saved_hgvs_coding, with_base_subtract=True)
 
                 # Logic
                 hgvs_not_delins = self.logic_check(hgvs_not_delins, rn_tx_hgvs_not_delins, hgvs_coding)
@@ -1065,16 +1079,12 @@ class GapMapper(object):
                 self.variant.hn.normalize(self.tx_hgvs_not_delins)
             except hgvs.exceptions.HGVSUnsupportedOperationError as e:
                 error = str(e)
-                if re.match('Normalization of intronic variants is not supported',
-                            error) or re.match(
-                    'Unsupported normalization of variants spanning the exon-intron boundary',
-                    error):
-                    if re.match(
-                            'Unsupported normalization of variants spanning the exon-intron boundary',
-                            error):
+                if 'Normalization of intronic variants is not supported' in error or \
+                        'Unsupported normalization of variants spanning the exon-intron boundary' in error:
+                    if 'Unsupported normalization of variants spanning the exon-intron boundary' in error:
                         logger.warning(error)
                         return True
-                    elif re.match('Normalization of intronic variants is not supported', error):
+                    elif 'Normalization of intronic variants is not supported' in error:
                         # We know that this cannot be because of an intronic variant, so must be aligned to tx gap
                         self.disparity_deletion_in = ['transcript', 'Requires Analysis']
 
@@ -1091,32 +1101,26 @@ class GapMapper(object):
                     self.tx_hgvs_not_delins.posedit.edit.alt = ''
             except Exception as e:
                 if str(e) == "'Dup' object has no attribute 'alt'":
-                    tx_hgvs_not_delins_delins_from_dup = self.tx_hgvs_not_delins.ac + ':' + self.tx_hgvs_not_delins.type + '.' + str(
+                    tx_hgvs_not_delins_delins_from_dup = self.tx_hgvs_not_delins.ac + ':' + \
+                                                         self.tx_hgvs_not_delins.type + '.' + str(
                         self.tx_hgvs_not_delins.posedit.pos.start) + '_' + str(
-                        self.tx_hgvs_not_delins.posedit.pos.end) + 'del' + self.tx_hgvs_not_delins.posedit.edit.ref + 'ins' + self.tx_hgvs_not_delins.posedit.edit.ref + self.tx_hgvs_not_delins.posedit.edit.ref
+                        self.tx_hgvs_not_delins.posedit.pos.end) + 'del' + self.tx_hgvs_not_delins.posedit.edit.ref + \
+                        'ins' + self.tx_hgvs_not_delins.posedit.edit.ref + self.tx_hgvs_not_delins.posedit.edit.ref
                     self.tx_hgvs_not_delins = self.validator.hp.parse_hgvs_variant(tx_hgvs_not_delins_delins_from_dup)
 
             # GAP IN THE TRANSCRIPT DISPARITY DETECTED
             if self.disparity_deletion_in[0] == 'transcript':
-                gap_position = ''
-                gapped_alignment_warning = str(
-                    self.hgvs_genomic_5pr) + ' does not represent a true variant because it is an artefact of aligning the transcripts listed below with genome build ' + self.variant.primary_assembly
-
                 # ANY VARIANT WHOLLY WITHIN THE GAP
-                hgvs_refreshed_variant = self.transcript_disparity(reverse_normalized_hgvs_genomic, stored_hgvs_not_delins, hgvs_genomic, 3)
+                hgvs_refreshed_variant = self.transcript_disparity(reverse_normalized_hgvs_genomic,
+                                                                   stored_hgvs_not_delins, hgvs_genomic, 3)
 
             # GAP IN THE CHROMOSOME
             elif self.disparity_deletion_in[0] == 'chromosome':
-                # Set warning variables
-                gap_position = ''
-                gapped_alignment_warning = str(
-                    self.hgvs_genomic_5pr) + ' does not represent a true variant because it is an artefact of aligning the transcripts listed below with genome build ' + self.variant.primary_assembly
                 hgvs_refreshed_variant = self.tx_hgvs_not_delins
                 # Warn
                 self.auto_info = self.auto_info + str(hgvs_refreshed_variant.ac) + ':c.' + str(
-                    hgvs_refreshed_variant.posedit.pos) + ' contains ' + str(self.disparity_deletion_in[
-                                                                                 1]) + ' transcript base(s) that fail to align to chromosome ' + str(
-                    hgvs_genomic.ac) + '\n'
+                    hgvs_refreshed_variant.posedit.pos) + ' contains ' + str(self.disparity_deletion_in[1]) + \
+                    ' transcript base(s) that fail to align to chromosome ' + str(hgvs_genomic.ac) + '\n'
                 self.gapped_transcripts = self.gapped_transcripts + str(hgvs_refreshed_variant.ac) + ' '
             else:
                 # Keep the same by re-setting rel_var
@@ -1126,12 +1130,10 @@ class GapMapper(object):
             hgvs_refreshed_variant = self.edit_output(hgvs_refreshed_variant, saved_hgvs_coding)
 
             # Sort out equality to equality c. events where the code will add 2 additional bases
-            if hgvs_coding.posedit.edit.type == 'identity' and hgvs_refreshed_variant.posedit.edit.type == 'identity':  # and len(hgvs_refreshed_variant.posedit.edit.ref) ==  (len(hgvs_coding.posedit.edit.ref) + 2):
+            if hgvs_coding.posedit.edit.type == 'identity' and hgvs_refreshed_variant.posedit.edit.type == 'identity':
                 pass
             else:
                 hgvs_coding = copy.deepcopy(hgvs_refreshed_variant)
-            coding = fn.valstr(hgvs_coding)
-            formatted_variant = coding
 
         return hgvs_coding
 
@@ -1147,29 +1149,30 @@ class GapMapper(object):
             try:
                 chromosome_normalized_hgvs_coding = self.variant.reverse_normalizer.normalize(
                     hgvs_coding)
-            except hgvs.exceptions.HGVSUnsupportedOperationError as e:
+            except hgvs.exceptions.HGVSUnsupportedOperationError:
                 chromosome_normalized_hgvs_coding = hgvs_coding
         else:
             try:
                 chromosome_normalized_hgvs_coding = self.variant.hn.normalize(hgvs_coding)
-            except hgvs.exceptions.HGVSUnsupportedOperationError as e:
-                error = str(e)
+            except hgvs.exceptions.HGVSUnsupportedOperationError:
                 chromosome_normalized_hgvs_coding = hgvs_coding
 
-        most_3pr_hgvs_genomic = self.validator.myvm_t_to_g(chromosome_normalized_hgvs_coding,
-                                                      alt_chr,
-                                                      self.variant.no_norm_evm, self.variant.hn)
+        most_3pr_hgvs_genomic = self.validator.myvm_t_to_g(chromosome_normalized_hgvs_coding, alt_chr,
+                                                           self.variant.no_norm_evm, self.variant.hn)
         self.hgvs_genomic_possibilities.append(most_3pr_hgvs_genomic)
 
         # First to the right
         hgvs_stash = copy.deepcopy(hgvs_coding)
+        stash_tx_right = ''
+        stash_tx_left = ''
         try:
             hgvs_stash = self.variant.no_norm_evm.c_to_n(hgvs_stash)
         except:
             fn.exceptPass()
         try:
             stash_ac = hgvs_stash.ac
-            stash_dict = vvHGVS.hard_right_hgvs2vcf(hgvs_stash, self.variant.primary_assembly, self.variant.hn, self.validator.sf)
+            stash_dict = vvHGVS.hard_right_hgvs2vcf(hgvs_stash, self.variant.primary_assembly, self.variant.hn,
+                                                    self.validator.sf)
             stash_pos = int(stash_dict['pos'])
             stash_ref = stash_dict['ref']
             stash_alt = stash_dict['alt']
@@ -1186,15 +1189,15 @@ class GapMapper(object):
                 # Store a tx copy for later use
             test_stash_tx_right = copy.deepcopy(stash_hgvs_not_delins)
             stash_genomic = self.validator.myvm_t_to_g(test_stash_tx_right, hgvs_alt_genomic.ac,
-                                                  self.variant.no_norm_evm, self.variant.hn)
+                                                       self.variant.no_norm_evm, self.variant.hn)
             # Stash the outputs if required
             # test variants = NC_000006.11:g.90403795G= (causes double identity)
             #                 NC_000002.11:g.73675227_73675228insCTC (? incorrect assumed insertion position)
-            #                 NC_000003.11:g.14561629_14561630GC= NC_000003.11:g.14561629_14561630insG (Odd gap position)
+            #                 NC_000003.11:g.14561629_14561630GC= NC_000003.11:g.14561629_14561630insG (Odd gap position
             # if test_stash_tx_right.posedit.edit.type == 'identity' and stash_genomic.posedit.edit.type == 'identity':
             # pass
-            if len(test_stash_tx_right.posedit.edit.ref) == ((
-                                                                     stash_genomic.posedit.pos.end.base - stash_genomic.posedit.pos.start.base) + 1):
+            if len(test_stash_tx_right.posedit.edit.ref) == ((stash_genomic.posedit.pos.end.base -
+                                                              stash_genomic.posedit.pos.start.base) + 1):
                 stash_tx_right = test_stash_tx_right
                 if hasattr(test_stash_tx_right.posedit.edit,
                            'alt') and test_stash_tx_right.posedit.edit.alt is not None:
@@ -1222,7 +1225,7 @@ class GapMapper(object):
                     self.variant.hn.normalize(hgvs_reform_ident)
                 except hgvs.exceptions.HGVSError as e:
                     error = str(e)
-                    if re.search('spanning the exon-intron boundary', error):
+                    if 'spanning the exon-intron boundary' in error:
                         stash_tx_right = test_stash_tx_right
                         self.hgvs_genomic_possibilities.append('')
                 else:
@@ -1236,7 +1239,7 @@ class GapMapper(object):
                 else:
                     stash_tx_right = test_stash_tx_right
                     self.hgvs_genomic_possibilities.append(stash_genomic)
-        except hgvs.exceptions.HGVSError as e:
+        except hgvs.exceptions.HGVSError:
             fn.exceptPass()
         except ValueError:
             fn.exceptPass()
@@ -1271,11 +1274,11 @@ class GapMapper(object):
             # Stash the outputs if required
             # test variants = NC_000006.11:g.90403795G= (causes double identity)
             #                 NC_000002.11:g.73675227_73675228insCTC
-            #                 NC_000003.11:g.14561629_14561630GC= NC_000003.11:g.14561629_14561630insG (Odd gap position)
+            #                 NC_000003.11:g.14561629_14561630GC= NC_000003.11:g.14561629_14561630insG (Odd gap position
             # if test_stash_tx_left.posedit.edit.type == 'identity' and stash_genomic.posedit.edit.type == 'identity':
             # pass
-            if len(test_stash_tx_left.posedit.edit.ref) == ((
-                                                                    stash_genomic.posedit.pos.end.base - stash_genomic.posedit.pos.start.base) + 1):  # len(stash_genomic.posedit.edit.ref):
+            if len(test_stash_tx_left.posedit.edit.ref) == ((stash_genomic.posedit.pos.end.base -
+                                                             stash_genomic.posedit.pos.start.base) + 1):
                 stash_tx_left = test_stash_tx_left
                 if hasattr(test_stash_tx_left.posedit.edit,
                            'alt') and test_stash_tx_left.posedit.edit.alt is not None:
@@ -1303,7 +1306,7 @@ class GapMapper(object):
                     self.variant.hn.normalize(hgvs_reform_ident)
                 except hgvs.exceptions.HGVSError as e:
                     error = str(e)
-                    if re.search('spanning the exon-intron boundary', error):
+                    if 'spanning the exon-intron boundary' in error:
                         stash_tx_left = test_stash_tx_left
                         self.hgvs_genomic_possibilities.append('')
                 else:
@@ -1326,8 +1329,6 @@ class GapMapper(object):
         self.rev_norm_ins(hgvs_coding, hgvs_genomic)
 
         # Set variables for problem specific warnings
-        gapped_alignment_warning = ''
-        corrective_action_taken = ''
         self.gapped_transcripts = ''
         self.auto_info = ''
 
@@ -1343,7 +1344,7 @@ class GapMapper(object):
 
             # Use VCF generation code to push hgvs_genomic as for 5 prime as possible to uncover gaps
             hgvs_genomic_variant = possibility
-            stored_hgvs_genomic_variant = copy.deepcopy(hgvs_genomic_variant)
+            reverse_normalized_hgvs_genomic = ''
 
             # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
             try:
@@ -1352,7 +1353,7 @@ class GapMapper(object):
             except hgvs.exceptions.HGVSError as e:
                 # Strange error caused by gap in genomic
                 error = str(e)
-                if re.search('base start position must be <= end position', error):
+                if 'base start position must be <= end position' in error:
                     if hgvs_genomic.posedit.edit.type == 'delins':
                         start = hgvs_genomic.posedit.pos.start.base
                         end = hgvs_genomic.posedit.pos.end.base
@@ -1375,7 +1376,7 @@ class GapMapper(object):
                         hgvs_genomic.posedit.pos.end.base = start
                         reverse_normalized_hgvs_genomic = self.variant.reverse_normalizer.normalize(
                             hgvs_genomic)
-                if re.search('insertion length must be 1', error):
+                if 'insertion length must be 1' in error:
                     if hgvs_genomic.posedit.edit.type == 'ins':
                         start = hgvs_genomic.posedit.pos.start.base
                         end = hgvs_genomic.posedit.pos.end.base
@@ -1389,7 +1390,6 @@ class GapMapper(object):
 
             self.hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
             # Store a copy for later use
-            stored_hgvs_genomic_5pr = copy.deepcopy(self.hgvs_genomic_5pr)
 
             # Make VCF
             vcf_dict = vvHGVS.hgvs2vcf(reverse_normalized_hgvs_genomic, self.variant.primary_assembly,
@@ -1400,7 +1400,6 @@ class GapMapper(object):
             alt = vcf_dict['alt']
 
             # Look for exonic gaps within transcript or chromosome
-            no_normalized_c = 'false'  # Mark true to not produce an additional normalization of c.
 
             # Generate an end position
             end = str(int(pos) + len(ref) - 1)
@@ -1408,16 +1407,15 @@ class GapMapper(object):
 
             # Store a not real deletion insertion to test for gapping
             stored_hgvs_not_delins = self.validator.hp.parse_hgvs_variant(str(
-                self.hgvs_genomic_5pr.ac) + ':' + self.hgvs_genomic_5pr.type + '.' + pos + '_' + end + 'del' + ref + 'ins' + alt)
-            v = [chr, pos, ref, alt]
-
+                self.hgvs_genomic_5pr.ac) + ':' + self.hgvs_genomic_5pr.type + '.' + pos + '_' + end + 'del' +
+                                                                          ref + 'ins' + alt)
             # Save a copy of current hgvs_coding
+            saved_hgvs_coding = ''
             try:
                 saved_hgvs_coding = self.variant.no_norm_evm.g_to_t(stored_hgvs_not_delins,
                                                                hgvs_coding.ac)
             except Exception as e:
-                if str(
-                        e) == 'start or end or both are beyond the bounds of transcript record':
+                if str(e) == 'start or end or both are beyond the bounds of transcript record':
                     saved_hgvs_coding = hgvs_coding
                     continue
 
@@ -1435,44 +1433,35 @@ class GapMapper(object):
                 hgvs_seek_var = saved_hgvs_coding
 
             try:
-                intron_test = self.variant.hn.normalize(hgvs_seek_var)
+                self.variant.hn.normalize(hgvs_seek_var)
             except hgvs.exceptions.HGVSUnsupportedOperationError as e:
                 error = str(e)
-                if re.match('Normalization of intronic variants is not supported',
-                            error) or re.match(
-                    'Unsupported normalization of variants spanning the exon-intron boundary',
-                    error):
-                    if re.match(
-                            'Unsupported normalization of variants spanning the exon-intron boundary',
-                            error):
+                if 'Normalization of intronic variants is not supported' in error or \
+                        'Unsupported normalization of variants spanning the exon-intron boundary' in error:
+                    if 'Unsupported normalization of variants spanning the exon-intron boundary' in error:
                         intronic_variant = 'hard_fail'
                     else:
                         # Double check to see whether the variant is actually intronic?
                         for exon in ori:
                             genomic_start = int(exon['alt_start_i'])
                             genomic_end = int(exon['alt_end_i'])
-                            if (
-                                    self.hgvs_genomic_5pr.posedit.pos.start.base > genomic_start and self.hgvs_genomic_5pr.posedit.pos.start.base <= genomic_end) and (
-                                    self.hgvs_genomic_5pr.posedit.pos.end.base > genomic_start and self.hgvs_genomic_5pr.posedit.pos.end.base <= genomic_end):
+                            if (genomic_start < self.hgvs_genomic_5pr.posedit.pos.start.base <= genomic_end) and (
+                                    genomic_start < self.hgvs_genomic_5pr.posedit.pos.end.base <= genomic_end):
                                 intronic_variant = 'false'
                                 break
                             else:
                                 intronic_variant = 'true'
 
             if intronic_variant != 'hard_fail':
-                if re.search(r'\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search(r'\d+\-',
-                                                                                    str(
-                                                                                        hgvs_seek_var.posedit.pos)) or re.search(
-                    r'\*\d+\+', str(
-                        hgvs_seek_var.posedit.pos)) or re.search(r'\*\d+\-', str(
-                    hgvs_seek_var.posedit.pos)):
+                if re.search(r'\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search(r'\d+-',
+                    str(hgvs_seek_var.posedit.pos)) or re.search(r'\*\d+\+', str(
+                        hgvs_seek_var.posedit.pos)) or re.search(r'\*\d+-', str(hgvs_seek_var.posedit.pos)):
                     # Double check to see whether the variant is actually intronic?
                     for exon in ori:
                         genomic_start = int(exon['alt_start_i'])
                         genomic_end = int(exon['alt_end_i'])
-                        if (
-                                self.hgvs_genomic_5pr.posedit.pos.start.base > genomic_start and self.hgvs_genomic_5pr.posedit.pos.start.base <= genomic_end) and (
-                                self.hgvs_genomic_5pr.posedit.pos.end.base > genomic_start and self.hgvs_genomic_5pr.posedit.pos.end.base <= genomic_end):
+                        if (genomic_start < self.hgvs_genomic_5pr.posedit.pos.start.base <= genomic_end) and (
+                                genomic_start < self.hgvs_genomic_5pr.posedit.pos.end.base <= genomic_end):
                             intronic_variant = 'false'
                             break
                         else:
@@ -1481,70 +1470,62 @@ class GapMapper(object):
             if intronic_variant != 'true':
                 # Flag RefSeqGene for ammendment
                 # amend_RefSeqGene = 'false'
-                # Attempt to find gaps in reference sequence by catching disparity in genome length and overlapping transcript lengths
+                # Attempt to find gaps in reference sequence by catching disparity in genome length and overlapping
+                # transcript lengths
+                hgvs_not_delins = ''
                 if stored_hgvs_not_delins != '':
                     # Refresh hgvs_not_delins from stored_hgvs_not_delins
-                    hgvs_not_delins = self.dup_ins_5prime_shift(stored_hgvs_not_delins, self.hgvs_genomic_5pr, saved_hgvs_coding)
+                    hgvs_not_delins = self.dup_ins_5prime_shift(stored_hgvs_not_delins, saved_hgvs_coding)
 
-                    self.tx_hgvs_not_delins = self.variant.no_norm_evm.g_to_n(hgvs_not_delins,
-                                                                    saved_hgvs_coding.ac)
+                    self.tx_hgvs_not_delins = self.variant.no_norm_evm.g_to_n(hgvs_not_delins, saved_hgvs_coding.ac)
                     # Create normalized version of tx_hgvs_not_delins
                     rn_tx_hgvs_not_delins = copy.deepcopy(self.tx_hgvs_not_delins)
                     # Check for +1 base and adjust
-                    if re.search(r'\+',
-                                 str(rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search(
-                        r'\+',
-                        str(
-                            rn_tx_hgvs_not_delins.posedit.pos.start)):
+                    if '+' in str(rn_tx_hgvs_not_delins.posedit.pos.end) and '+' in str(
+                            rn_tx_hgvs_not_delins.posedit.pos.start):
                         rn_tx_hgvs_not_delins = self.remove_offsetting_to_span_gap(rn_tx_hgvs_not_delins)
 
-                    elif re.search(r'\+', str(rn_tx_hgvs_not_delins.posedit.pos.end)):
-                        rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_end_base_to_next_nonoffset(rn_tx_hgvs_not_delins, saved_hgvs_coding, back=False)
+                    elif '+' in str(rn_tx_hgvs_not_delins.posedit.pos.end):
+                        rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_end_base_to_next_nonoffset(
+                            rn_tx_hgvs_not_delins, saved_hgvs_coding, back=False)
 
-                    elif re.search(r'\+', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
-                        rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_start_base_to_previous_nonoffset(rn_tx_hgvs_not_delins, saved_hgvs_coding)
+                    elif '+' in str(rn_tx_hgvs_not_delins.posedit.pos.start):
+                        rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_start_base_to_previous_nonoffset(
+                            rn_tx_hgvs_not_delins, saved_hgvs_coding)
 
                     # Check for -ve base and adjust
-                    elif re.search(r'\-',
-                                   str(
-                                       rn_tx_hgvs_not_delins.posedit.pos.end)) and re.search(
-                        r'\-',
-                        str(
-                            rn_tx_hgvs_not_delins.posedit.pos.start)):
+                    elif '-' in str(rn_tx_hgvs_not_delins.posedit.pos.end) and '-' in str(
+                            rn_tx_hgvs_not_delins.posedit.pos.start):
                         rn_tx_hgvs_not_delins = self.remove_offsetting_to_span_gap(rn_tx_hgvs_not_delins)
 
-                    elif re.search(r'\-', str(rn_tx_hgvs_not_delins.posedit.pos.end)):
-                        rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_end_base_to_next_nonoffset(rn_tx_hgvs_not_delins, saved_hgvs_coding)
+                    elif '-' in str(rn_tx_hgvs_not_delins.posedit.pos.end):
+                        rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_end_base_to_next_nonoffset(
+                            rn_tx_hgvs_not_delins, saved_hgvs_coding)
 
-                    elif re.search(r'\-', str(rn_tx_hgvs_not_delins.posedit.pos.start)):
-                        rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_start_base_to_previous_nonoffset(rn_tx_hgvs_not_delins, saved_hgvs_coding, with_base_subtract=True)
+                    elif '-' in str(rn_tx_hgvs_not_delins.posedit.pos.start):
+                        rn_tx_hgvs_not_delins, hgvs_not_delins = self.move_tx_start_base_to_previous_nonoffset(
+                            rn_tx_hgvs_not_delins, saved_hgvs_coding, with_base_subtract=True)
 
                     # Logic
 
-                    hgvs_not_delins = self.logic_check(hgvs_not_delins, rn_tx_hgvs_not_delins, hgvs_coding, do_continue=True, offset_check=True)
+                    hgvs_not_delins = self.logic_check(hgvs_not_delins, rn_tx_hgvs_not_delins, hgvs_coding,
+                                                       do_continue=True, offset_check=True)
 
                 # Final sanity checks
                 try:
                     self.validator.vm.g_to_t(hgvs_not_delins, self.tx_hgvs_not_delins.ac)
                 except Exception as e:
-                    if str(
-                            e) == 'start or end or both are beyond the bounds of transcript record':
+                    if str(e) == 'start or end or both are beyond the bounds of transcript record':
                         continue
                 try:
                     self.variant.hn.normalize(self.tx_hgvs_not_delins)
                 except hgvs.exceptions.HGVSUnsupportedOperationError as e:
                     error = str(e)
-
-                    if re.match('Normalization of intronic variants is not supported',
-                                error) or re.match(
-                        'Unsupported normalization of variants spanning the exon-intron boundary',
-                        error):
-                        if re.match(
-                                'Unsupported normalization of variants spanning the exon-intron boundary',
-                                error):
+                    if 'Normalization of intronic variants is not supported' in error or \
+                            'Unsupported normalization of variants spanning the exon-intron boundary' in error:
+                        if 'Unsupported normalization of variants spanning the exon-intron boundary' in error:
                             continue
-                        elif re.match('Normalization of intronic variants is not supported',
-                                      error):
+                        elif 'Normalization of intronic variants is not supported' in error:
                             # We know that this cannot be because of an intronic variant, so must be aligned to tx gap
                             self.disparity_deletion_in = ['transcript', 'Requires Analysis']
 
@@ -1559,18 +1540,16 @@ class GapMapper(object):
                     rtx = self.validator.vm.g_to_t(rg, self.tx_hgvs_not_delins.ac)
                     fg = self.variant.hn.normalize(hgvs_not_delins)
                     ftx = self.validator.vm.g_to_t(fg, self.tx_hgvs_not_delins.ac)
-                    if (
-                            rtx.posedit.pos.start.offset == 0 and rtx.posedit.pos.end.offset == 0) and (
+                    if (rtx.posedit.pos.start.offset == 0 and rtx.posedit.pos.end.offset == 0) and (
                             ftx.posedit.pos.start.offset != 0 and ftx.posedit.pos.end.offset != 0):
-                        exons = self.validator.hdp.get_tx_exons(ftx.ac, hgvs_not_delins.ac, self.validator.alt_aln_method)
+                        exons = self.validator.hdp.get_tx_exons(ftx.ac, hgvs_not_delins.ac,
+                                                                self.validator.alt_aln_method)
                         exonic = False
                         for ex_test in exons:
-                            if ftx.posedit.pos.start.base in range(ex_test[6], ex_test[
-                                7]) and ftx.posedit.pos.end.base in range(ex_test[6],
-                                                                          ex_test[7]):
+                            if ftx.posedit.pos.start.base in range(ex_test[6], ex_test[7]) and \
+                                    ftx.posedit.pos.end.base in range(ex_test[6], ex_test[7]):
                                 exonic = True
                         if exonic is True:
-                            hgvs_not_delins = fg
                             hgvs_genomic = fg
                             self.hgvs_genomic_5pr = fg
                             try:
@@ -1585,16 +1564,20 @@ class GapMapper(object):
                         self.tx_hgvs_not_delins.posedit.edit.alt = ''
                 except Exception as e:
                     if str(e) == "'Dup' object has no attribute 'alt'":
-                        tx_hgvs_not_delins_delins_from_dup = self.tx_hgvs_not_delins.ac + ':' + self.tx_hgvs_not_delins.type + '.' + str(
+                        tx_hgvs_not_delins_delins_from_dup = self.tx_hgvs_not_delins.ac + ':' + \
+                                                             self.tx_hgvs_not_delins.type + '.' + str(
                             self.tx_hgvs_not_delins.posedit.pos.start) + '_' + str(
-                            self.tx_hgvs_not_delins.posedit.pos.end) + 'del' + self.tx_hgvs_not_delins.posedit.edit.ref + 'ins' + self.tx_hgvs_not_delins.posedit.edit.ref + self.tx_hgvs_not_delins.posedit.edit.ref
+                            self.tx_hgvs_not_delins.posedit.pos.end) + 'del' + self.tx_hgvs_not_delins.posedit.edit.ref\
+                            + 'ins' + self.tx_hgvs_not_delins.posedit.edit.ref + \
+                                                             self.tx_hgvs_not_delins.posedit.edit.ref
                         self.tx_hgvs_not_delins = self.validator.hp.parse_hgvs_variant(
                             tx_hgvs_not_delins_delins_from_dup)
 
                 if self.disparity_deletion_in[0] == 'transcript':
                     # amend_RefSeqGene = 'true'
                     # ANY VARIANT WHOLLY WITHIN THE GAP
-                    hgvs_refreshed_variant = self.transcript_disparity(reverse_normalized_hgvs_genomic, stored_hgvs_not_delins, hgvs_genomic, 4)
+                    hgvs_refreshed_variant = self.transcript_disparity(reverse_normalized_hgvs_genomic,
+                                                                       stored_hgvs_not_delins, hgvs_genomic, 4)
 
                 # GAP IN THE CHROMOSOME
                 elif self.disparity_deletion_in[0] == 'chromosome':
@@ -1614,25 +1597,18 @@ class GapMapper(object):
                 else:
                     # Keep the same by re-setting rel_var
                     hgvs_refreshed_variant = hgvs_coding
-                # amend_RefSeqGene = 'false'
 
                 # Edit the output
-                if re.match('NM_', str(hgvs_refreshed_variant.ac)) and not re.search('c',
-                                                                                     str(
-                                                                                         hgvs_refreshed_variant.type)):
+                if 'NM_' in str(hgvs_refreshed_variant.ac) and 'c' not in str(hgvs_refreshed_variant.type):
                     hgvs_refreshed_variant = self.variant.no_norm_evm.n_to_c(hgvs_refreshed_variant)
-                else:
-                    pass
 
                 try:
                     self.variant.hn.normalize(hgvs_refreshed_variant)
                 except Exception as e:
                     error = str(e)
                     # Ensure the final variant is not intronic nor does it cross exon boundaries
-                    if re.match('Normalization of intronic variants is not supported',
-                                error) or re.match(
-                        'Unsupported normalization of variants spanning the exon-intron boundary',
-                        error):
+                    if 'Normalization of intronic variants is not supported' in error or \
+                            'Unsupported normalization of variants spanning the exon-intron boundary' in error:
                         hgvs_refreshed_variant = saved_hgvs_coding
                     else:
                         continue
@@ -1651,7 +1627,7 @@ class GapMapper(object):
 
                 # Update hgvs_genomic
                 hgvs_alt_genomic = self.validator.myvm_t_to_g(hgvs_refreshed_variant, alt_chr,
-                                                         self.variant.no_norm_evm, self.variant.hn)
+                                                              self.variant.no_norm_evm, self.variant.hn)
                 if hgvs_alt_genomic.posedit.edit.type == 'identity':
                     re_c = self.validator.vm.g_to_t(hgvs_alt_genomic, hgvs_refreshed_variant.ac)
                     if (self.variant.hn.normalize(re_c)) != (self.variant.hn.normalize(hgvs_refreshed_variant)):
@@ -1666,9 +1642,6 @@ class GapMapper(object):
                             hgvs_alt_genomic = shuffle_left_g
 
                             # If it is intronic, these vairables will not have been set
-            else:
-                # amend_RefSeqGene = 'false'
-                no_normalized_c = 'false'
 
             # Break if gap has been detected
             if self.disparity_deletion_in[0] != 'false':
@@ -1680,8 +1653,7 @@ class GapMapper(object):
         except hgvs.exceptions.HGVSError as e:
             # Strange error caused by gap in genomic
             error = str(e)
-            if re.search('base start position must be <= end position', error) and \
-                    self.disparity_deletion_in[0] == 'chromosome':
+            if 'base start position must be <= end position' in error and self.disparity_deletion_in[0] == 'chromosome':
                 if hgvs_alt_genomic.posedit.edit.type == 'delins':
                     start = hgvs_alt_genomic.posedit.pos.start.base
                     end = hgvs_alt_genomic.posedit.pos.end.base
@@ -1705,72 +1677,60 @@ class GapMapper(object):
 
         return hgvs_alt_genomic, hgvs_coding
 
-    def dup_ins_5prime_shift(self, stored_hgvs_not_delins, hgvs_genomic_5pr, saved_hgvs_coding):
+    def dup_ins_5prime_shift(self, stored_hgvs_not_delins, saved_hgvs_coding):
         hgvs_not_delins = copy.deepcopy(stored_hgvs_not_delins)
         # This test will only occur in dup of single base, insertion or substitution
-        if not re.search('_', str(hgvs_not_delins.posedit.pos)):
-            if re.search('dup', self.hgvs_genomic_5pr.posedit.edit.type) or re.search('ins',
-                                                                                 self.hgvs_genomic_5pr.posedit.edit.type):
-                # For gap in chr, map to t. - but becaouse we have pushed to 5 prime by norm, add 1 to end pos
+        if '_' not in str(hgvs_not_delins.posedit.pos):
+            if 'dup' in self.hgvs_genomic_5pr.posedit.edit.type or 'ins' in self.hgvs_genomic_5pr.posedit.edit.type:
+                # For gap in chr, map to t. - but because we have pushed to 5 prime by norm, add 1 to end pos
                 plussed_hgvs_not_delins = copy.deepcopy(hgvs_not_delins)
                 plussed_hgvs_not_delins.posedit.pos.end.base = plussed_hgvs_not_delins.posedit.pos.end.base + 1
                 plussed_hgvs_not_delins.posedit.edit.ref = ''
                 transcript_variant = self.variant.no_norm_evm.g_to_t(plussed_hgvs_not_delins,
-                                                                str(saved_hgvs_coding.ac))
-                if ((
-                        transcript_variant.posedit.pos.end.base - transcript_variant.posedit.pos.start.base) > (
+                                                                     str(saved_hgvs_coding.ac))
+                if ((transcript_variant.posedit.pos.end.base - transcript_variant.posedit.pos.start.base) > (
                         self.hgvs_genomic_5pr.posedit.pos.end.base - self.hgvs_genomic_5pr.posedit.pos.start.base)):
-                    if re.search('dup', str(self.hgvs_genomic_5pr.posedit.edit)):
+                    if 'dup' in str(self.hgvs_genomic_5pr.posedit.edit):
                         hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
                         start = hgvs_not_delins.posedit.pos.start.base - 1
                         end = hgvs_not_delins.posedit.pos.end.base
                         ref_bases = self.validator.sf.fetch_seq(str(hgvs_not_delins.ac), start, end)
                         hgvs_not_delins.posedit.edit.ref = ref_bases
-                        hgvs_not_delins.posedit.edit.alt = ref_bases[
-                                                           :1] + hgvs_not_delins.posedit.edit.alt[
+                        hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[
                                                                  1:] + ref_bases[1:]
-                    elif re.search('ins', str(self.hgvs_genomic_5pr.posedit.edit)) and re.search(
-                            'del', str(self.hgvs_genomic_5pr.posedit.edit)):
+                    elif 'ins' in str(self.hgvs_genomic_5pr.posedit.edit) and \
+                            'del' in str(self.hgvs_genomic_5pr.posedit.edit):
                         hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-                    elif re.search('ins',
-                                   str(self.hgvs_genomic_5pr.posedit.edit)) and not re.search(
-                        'del', str(self.hgvs_genomic_5pr.posedit.edit)):
+                    elif 'ins' in str(self.hgvs_genomic_5pr.posedit.edit) and \
+                            'del' not in str(self.hgvs_genomic_5pr.posedit.edit):
                         hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
                         start = hgvs_not_delins.posedit.pos.start.base - 1
                         end = hgvs_not_delins.posedit.pos.end.base
                         ref_bases = self.validator.sf.fetch_seq(str(hgvs_not_delins.ac), start, end)
                         hgvs_not_delins.posedit.edit.ref = ref_bases
-                        hgvs_not_delins.posedit.edit.alt = ref_bases[
-                                                           :1] + hgvs_not_delins.posedit.edit.alt[
+                        hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[
                                                                  1:] + ref_bases[1:]
                 else:
-                    if re.search('dup', str(self.hgvs_genomic_5pr.posedit.edit)):
+                    if 'dup' in str(self.hgvs_genomic_5pr.posedit.edit):
                         hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
                         start = hgvs_not_delins.posedit.pos.start.base - 1
                         end = hgvs_not_delins.posedit.pos.end.base
                         ref_bases = self.validator.sf.fetch_seq(str(hgvs_not_delins.ac), start, end)
                         hgvs_not_delins.posedit.edit.ref = ref_bases
-                        hgvs_not_delins.posedit.edit.alt = ref_bases[
-                                                           :1] + hgvs_not_delins.posedit.edit.alt[
+                        hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[
                                                                  1:] + ref_bases[1:]
-                    elif re.search('ins', str(self.hgvs_genomic_5pr.posedit.edit)) and re.search(
-                            'del', str(self.hgvs_genomic_5pr.posedit.edit)):
+                    elif 'ins' in str(self.hgvs_genomic_5pr.posedit.edit) and \
+                            'del' in str(self.hgvs_genomic_5pr.posedit.edit):
                         hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
-                    elif re.search('ins',
-                                   str(self.hgvs_genomic_5pr.posedit.edit)) and not re.search(
-                        'del', str(self.hgvs_genomic_5pr.posedit.edit)):
+                    elif 'ins' in str(self.hgvs_genomic_5pr.posedit.edit) and \
+                            'del' not in str(self.hgvs_genomic_5pr.posedit.edit):
                         hgvs_not_delins.posedit.pos.end.base = hgvs_not_delins.posedit.pos.start.base + 1
                         start = hgvs_not_delins.posedit.pos.start.base - 1
                         end = hgvs_not_delins.posedit.pos.end.base
                         ref_bases = self.validator.sf.fetch_seq(str(hgvs_not_delins.ac), start, end)
                         hgvs_not_delins.posedit.edit.ref = ref_bases
-                        hgvs_not_delins.posedit.edit.alt = ref_bases[
-                                                           :1] + hgvs_not_delins.posedit.edit.alt[
+                        hgvs_not_delins.posedit.edit.alt = ref_bases[:1] + hgvs_not_delins.posedit.edit.alt[
                                                                  1:] + ref_bases[1:]
-            else:
-                pass
-        else:
-            pass
 
         return hgvs_not_delins
 
@@ -1800,7 +1760,7 @@ class GapMapper(object):
         else:
             # move tx end base to next available non-offset base
             rn_tx_hgvs_not_delins.posedit.pos.end.base = self.tx_hgvs_not_delins.posedit.pos.end.base + 1
-        if re.match('NM_', str(rn_tx_hgvs_not_delins)):
+        if 'NM_' in str(rn_tx_hgvs_not_delins):
             test_tx_var = self.variant.no_norm_evm.n_to_c(rn_tx_hgvs_not_delins)
         else:
             test_tx_var = rn_tx_hgvs_not_delins
@@ -1811,13 +1771,14 @@ class GapMapper(object):
                                                                 str(saved_hgvs_coding.ac))
         return rn_tx_hgvs_not_delins, hgvs_not_delins
 
-    def move_tx_start_base_to_previous_nonoffset(self, rn_tx_hgvs_not_delins, saved_hgvs_coding, with_base_subtract=False):
+    def move_tx_start_base_to_previous_nonoffset(self, rn_tx_hgvs_not_delins, saved_hgvs_coding,
+                                                 with_base_subtract=False):
         # move tx start base to previous available non-offset base
         rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
         if with_base_subtract:
             rn_tx_hgvs_not_delins.posedit.pos.start.base = rn_tx_hgvs_not_delins.posedit.pos.start.base - 1
         rn_tx_hgvs_not_delins.posedit.edit.ref = ''
-        if re.match('NM_', str(rn_tx_hgvs_not_delins)):
+        if 'NM_' in str(rn_tx_hgvs_not_delins):
             test_tx_var = self.variant.no_norm_evm.n_to_c(rn_tx_hgvs_not_delins)
         else:
             test_tx_var = rn_tx_hgvs_not_delins
@@ -1890,11 +1851,12 @@ class GapMapper(object):
 
         return hgvs_refreshed_variant
 
-    def transcript_disparity(self, reverse_normalized_hgvs_genomic, stored_hgvs_not_delins, hgvs_genomic, running_option):
-        if (re.search(r'\+', str(self.tx_hgvs_not_delins.posedit.pos.start)) or re.search(r'\-', str(
-                self.tx_hgvs_not_delins.posedit.pos.start))) and (
-                re.search(r'\+', str(self.tx_hgvs_not_delins.posedit.pos.end)) or re.search(r'\-', str(
-                self.tx_hgvs_not_delins.posedit.pos.end))):
+    def transcript_disparity(self, reverse_normalized_hgvs_genomic, stored_hgvs_not_delins, hgvs_genomic,
+                             running_option):
+        if ('+' in str(self.tx_hgvs_not_delins.posedit.pos.start) or '-' in str(
+                self.tx_hgvs_not_delins.posedit.pos.start)) and (
+                '+' in str(self.tx_hgvs_not_delins.posedit.pos.end) or '-' in str(
+                self.tx_hgvs_not_delins.posedit.pos.end)):
             self.gapped_transcripts = self.gapped_transcripts + ' ' + str(self.tx_hgvs_not_delins.ac)
 
             # Copy the current variant
@@ -1904,20 +1866,22 @@ class GapMapper(object):
                     tx_gap_fill_variant.posedit.edit.alt = ''
             except Exception as e:
                 if str(e) == "'Dup' object has no attribute 'alt'":
-                    tx_gap_fill_variant_delins_from_dup = tx_gap_fill_variant.ac + ':' + tx_gap_fill_variant.type + '.' + str(
+                    tx_gap_fill_variant_delins_from_dup = tx_gap_fill_variant.ac + ':' + tx_gap_fill_variant.type + \
+                                                          '.' + str(
                         tx_gap_fill_variant.posedit.pos.start) + '_' + str(
-                        tx_gap_fill_variant.posedit.pos.end) + 'del' + tx_gap_fill_variant.posedit.edit.ref + 'ins' + tx_gap_fill_variant.posedit.edit.ref + tx_gap_fill_variant.posedit.edit.ref
+                        tx_gap_fill_variant.posedit.pos.end) + 'del' + tx_gap_fill_variant.posedit.edit.ref + \
+                        'ins' + tx_gap_fill_variant.posedit.edit.ref + tx_gap_fill_variant.posedit.edit.ref
                     tx_gap_fill_variant = self.validator.hp.parse_hgvs_variant(
                         tx_gap_fill_variant_delins_from_dup)
 
             # Identify which half of the NOT-intron the start position of the variant is in
-            if re.search(r'\-', str(tx_gap_fill_variant.posedit.pos.start)):
+            if '-' in str(tx_gap_fill_variant.posedit.pos.start):
                 tx_gap_fill_variant.posedit.pos.start.base = tx_gap_fill_variant.posedit.pos.start.base - 1
                 tx_gap_fill_variant.posedit.pos.start.offset = int('0')  # int('+1')
                 tx_gap_fill_variant.posedit.pos.end.offset = int('0')  # int('-1')
                 tx_gap_fill_variant.posedit.edit.alt = ''
                 tx_gap_fill_variant.posedit.edit.ref = ''
-            elif re.search(r'\+', str(tx_gap_fill_variant.posedit.pos.start)):
+            elif '+' in str(tx_gap_fill_variant.posedit.pos.start):
                 tx_gap_fill_variant.posedit.pos.start.offset = int('0')  # int('+1')
                 tx_gap_fill_variant.posedit.pos.end.base = tx_gap_fill_variant.posedit.pos.end.base + 1
                 tx_gap_fill_variant.posedit.pos.end.offset = int('0')  # int('-1')
@@ -1928,16 +1892,14 @@ class GapMapper(object):
                 tx_gap_fill_variant = self.validator.vm.n_to_c(tx_gap_fill_variant)
             except:
                 fn.exceptPass()
-            genomic_gap_fill_variant = self.validator.vm.t_to_g(tx_gap_fill_variant,
-                                                                reverse_normalized_hgvs_genomic.ac)
+            genomic_gap_fill_variant = self.validator.vm.t_to_g(tx_gap_fill_variant, reverse_normalized_hgvs_genomic.ac)
             genomic_gap_fill_variant.posedit.edit.alt = genomic_gap_fill_variant.posedit.edit.ref
 
             try:
                 c_tx_hgvs_not_delins = self.validator.vm.n_to_c(self.tx_hgvs_not_delins)
             except Exception:
                 c_tx_hgvs_not_delins = copy.copy(self.tx_hgvs_not_delins)
-            genomic_gap_fill_variant_alt = self.validator.vm.t_to_g(c_tx_hgvs_not_delins,
-                                                                    self.hgvs_genomic_5pr.ac)
+            genomic_gap_fill_variant_alt = self.validator.vm.t_to_g(c_tx_hgvs_not_delins, self.hgvs_genomic_5pr.ac)
 
             # Ensure an ALT exists
             try:
@@ -1945,14 +1907,20 @@ class GapMapper(object):
                     genomic_gap_fill_variant_alt.posedit.edit.alt = 'X'
             except Exception as e:
                 if str(e) == "'Dup' object has no attribute 'alt'":
-                    genomic_gap_fill_variant_delins_from_dup = genomic_gap_fill_variant.ac + ':' + genomic_gap_fill_variant.type + '.' + str(
+                    genomic_gap_fill_variant_delins_from_dup = genomic_gap_fill_variant.ac + ':' \
+                                                               + genomic_gap_fill_variant.type + '.' + str(
                         genomic_gap_fill_variant.posedit.pos.start.base) + '_' + str(
-                        genomic_gap_fill_variant.posedit.pos.end.base) + 'del' + genomic_gap_fill_variant.posedit.edit.ref + 'ins' + genomic_gap_fill_variant.posedit.edit.ref + genomic_gap_fill_variant.posedit.edit.ref
+                        genomic_gap_fill_variant.posedit.pos.end.base) + 'del' + \
+                        genomic_gap_fill_variant.posedit.edit.ref + 'ins' + genomic_gap_fill_variant.posedit.edit.ref \
+                                                               + genomic_gap_fill_variant.posedit.edit.ref
                     genomic_gap_fill_variant = self.validator.hp.parse_hgvs_variant(
                         genomic_gap_fill_variant_delins_from_dup)
-                    genomic_gap_fill_variant_alt_delins_from_dup = genomic_gap_fill_variant_alt.ac + ':' + genomic_gap_fill_variant_alt.type + '.' + str(
+                    genomic_gap_fill_variant_alt_delins_from_dup = genomic_gap_fill_variant_alt.ac + ':' \
+                                                                   + genomic_gap_fill_variant_alt.type + '.' + str(
                         genomic_gap_fill_variant_alt.posedit.pos.start.base) + '_' + str(
-                        genomic_gap_fill_variant_alt.posedit.pos.end.base) + 'del' + genomic_gap_fill_variant_alt.posedit.edit.ref + 'ins' + genomic_gap_fill_variant_alt.posedit.edit.ref + genomic_gap_fill_variant_alt.posedit.edit.ref
+                        genomic_gap_fill_variant_alt.posedit.pos.end.base) + 'del' + \
+                        genomic_gap_fill_variant_alt.posedit.edit.ref + 'ins' + \
+                        genomic_gap_fill_variant_alt.posedit.edit.ref + genomic_gap_fill_variant_alt.posedit.edit.ref
                     genomic_gap_fill_variant_alt = self.validator.hp.parse_hgvs_variant(
                         genomic_gap_fill_variant_alt_delins_from_dup)
 
@@ -1961,9 +1929,8 @@ class GapMapper(object):
                 append_ref = self.validator.sf.fetch_seq(genomic_gap_fill_variant_alt.ac,
                                                          genomic_gap_fill_variant_alt.posedit.pos.start.base - 1,
                                                          genomic_gap_fill_variant_alt.posedit.pos.end.base)
-                genomic_gap_fill_variant_alt.posedit.edit.alt = append_ref[
-                                                                    0] + genomic_gap_fill_variant_alt.posedit.edit.alt + \
-                                                                append_ref[1]
+                genomic_gap_fill_variant_alt.posedit.edit.alt = append_ref[0] + \
+                    genomic_gap_fill_variant_alt.posedit.edit.alt + append_ref[1]
 
             # Split the reference and replacing alt sequence into a dictionary
             reference_bases = list(genomic_gap_fill_variant.posedit.edit.ref)
@@ -2011,22 +1978,20 @@ class GapMapper(object):
 
             # Add the new alt to the gap fill variant and generate transcript variant
             genomic_gap_fill_variant.posedit.edit.alt = alternate_sequence
-            hgvs_refreshed_variant = self.validator.vm.g_to_t(genomic_gap_fill_variant,
-                                                              tx_gap_fill_variant.ac)
+            hgvs_refreshed_variant = self.validator.vm.g_to_t(genomic_gap_fill_variant, tx_gap_fill_variant.ac)
 
             # Set warning
             gap_size = str(len(genomic_gap_fill_variant.posedit.edit.ref) - 2)
             self.disparity_deletion_in[1] = [gap_size]
             self.auto_info = self.auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(
-                stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + gap_size + ' genomic base(s) that fail to align to transcript ' + str(
-                self.tx_hgvs_not_delins.ac)
-            non_valid_caution = 'true'
+                stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + gap_size + \
+                ' genomic base(s) that fail to align to transcript ' + str(self.tx_hgvs_not_delins.ac)
 
             # Alignment position
             for_location_c = copy.deepcopy(hgvs_refreshed_variant)
-            if re.match('NM_', str(for_location_c)):
+            if 'NM_' in str(for_location_c):
                 for_location_c = self.variant.no_norm_evm.n_to_c(self.tx_hgvs_not_delins)
-            if re.match(r'\-', str(for_location_c.posedit.pos.start.offset)):
+            if '-' in str(for_location_c.posedit.pos.start.offset):
                 gps = for_location_c.posedit.pos.start.base - 1
                 gpe = for_location_c.posedit.pos.start.base
             else:
@@ -2036,7 +2001,8 @@ class GapMapper(object):
             self.auto_info = self.auto_info + '%s' % (gap_position)
 
         else:
-            if self.tx_hgvs_not_delins.posedit.pos.start.offset == 0 and self.tx_hgvs_not_delins.posedit.pos.end.offset == 0:
+            if self.tx_hgvs_not_delins.posedit.pos.start.offset == 0 and \
+                    self.tx_hgvs_not_delins.posedit.pos.end.offset == 0:
                 # In this instance, we have identified a transcript gap but the n. version of
                 # the transcript variant but do not have a position which actually hits the gap,
                 # so the variant likely spans the gap, and is not picked up by an offset.
@@ -2048,8 +2014,7 @@ class GapMapper(object):
                 g3 = self.validator.nr_vm.t_to_g(c1, hgvs_genomic.ac)
                 g2 = self.validator.vm.t_to_g(c1, hgvs_genomic.ac)
                 ng2 = self.variant.hn.normalize(g2)
-                g3.posedit.pos.end.base = g3.posedit.pos.start.base + (
-                        len(g3.posedit.edit.ref) - 1)
+                g3.posedit.pos.end.base = g3.posedit.pos.start.base + (len(g3.posedit.edit.ref) - 1)
                 try:
                     c2 = self.validator.vm.g_to_t(g3, c1.ac)
                     if c2.posedit.pos.start.offset == 0 and c2.posedit.pos.end.offset == 0:
@@ -2063,76 +2028,71 @@ class GapMapper(object):
                 except hgvs.exceptions.HGVSInvalidVariantError:
                     fn.exceptPass()
 
-            if re.search(r'\+', str(self.tx_hgvs_not_delins.posedit.pos.start)) and not re.search(
-                    r'\+', str(self.tx_hgvs_not_delins.posedit.pos.end)):
+            if '+' in str(self.tx_hgvs_not_delins.posedit.pos.start) and \
+                    '+' not in str(self.tx_hgvs_not_delins.posedit.pos.end):
                 self.auto_info = self.auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(
                     stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(
                     self.disparity_deletion_in[
                         1]) + ' genomic base(s) that fail to align to transcript ' + str(
                     self.tx_hgvs_not_delins.ac)
-                non_valid_caution = 'true'
                 hgvs_refreshed_variant = self.c2_pos_edit(hgvs_genomic)
 
                 # Alignment position
                 for_location_c = copy.deepcopy(hgvs_refreshed_variant)
-                if re.match('NM_', str(for_location_c)):
+                if 'NM_' in str(for_location_c):
                     for_location_c = self.variant.no_norm_evm.n_to_c(self.tx_hgvs_not_delins)
-                    gps = for_location_c.posedit.pos.start.base
-                    gpe = for_location_c.posedit.pos.start.base + 1
+                gps = for_location_c.posedit.pos.start.base
+                gpe = for_location_c.posedit.pos.start.base + 1
                 gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
                 # Warn update
-                self.auto_info = self.auto_info + '%s' % (gap_position)
-            elif re.search(r'\+', str(self.tx_hgvs_not_delins.posedit.pos.end)) and not re.search(
-                    r'\+', str(self.tx_hgvs_not_delins.posedit.pos.start)):
+                self.auto_info = self.auto_info + '%s' % gap_position
+            elif '+' in str(self.tx_hgvs_not_delins.posedit.pos.end) and \
+                    '+' not in str(self.tx_hgvs_not_delins.posedit.pos.start):
                 self.auto_info = self.auto_info + 'Genome position ' + str(
                     stored_hgvs_not_delins.ac) + ':g.' + str(
                     stored_hgvs_not_delins.posedit.pos.end.base + 1) + ' aligns within a ' + str(
                     self.disparity_deletion_in[1]) + '-bp gap in transcript ' + str(
                     self.tx_hgvs_not_delins.ac)
                 self.gapped_transcripts = self.gapped_transcripts + ' ' + str(self.tx_hgvs_not_delins.ac)
-                non_valid_caution = 'true'
                 hgvs_refreshed_variant = self.c1_pos_edit(hgvs_genomic)
 
                 # Alignment position
                 for_location_c = copy.deepcopy(hgvs_refreshed_variant)
-                if re.match('NM_', str(for_location_c)):
+                if 'NM_' in str(for_location_c):
                     for_location_c = self.variant.no_norm_evm.n_to_c(self.tx_hgvs_not_delins)
                 gps = for_location_c.posedit.pos.end.base
                 gpe = for_location_c.posedit.pos.end.base + 1
                 gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
                 # Warn update
-                self.auto_info = self.auto_info + '%s' % (gap_position)
-            elif re.search(r'\-',
-                           str(self.tx_hgvs_not_delins.posedit.pos.start)) and not re.search(
-                r'\-', str(self.tx_hgvs_not_delins.posedit.pos.end)):
+                self.auto_info = self.auto_info + '%s' % gap_position
+            elif '-' in str(self.tx_hgvs_not_delins.posedit.pos.start) and \
+                    '-' not in str(self.tx_hgvs_not_delins.posedit.pos.end):
                 self.auto_info = self.auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(
                     stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(
                     self.disparity_deletion_in[
                         1]) + ' genomic base(s) that fail to align to transcript ' + str(
                     self.tx_hgvs_not_delins.ac)
-                non_valid_caution = 'true'
                 hgvs_refreshed_variant = self.c2_pos_edit(hgvs_genomic)
 
                 # Alignment position
                 for_location_c = copy.deepcopy(hgvs_refreshed_variant)
-                if re.match('NM_', str(for_location_c)):
+                if 'NM_' in str(for_location_c):
                     for_location_c = self.variant.no_norm_evm.n_to_c(self.tx_hgvs_not_delins)
                 gps = for_location_c.posedit.pos.start.base - 1
                 gpe = for_location_c.posedit.pos.start.base
                 gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
                 # Warn update
-                self.auto_info = self.auto_info + '%s' % (gap_position)
-            elif re.search(r'\-', str(self.tx_hgvs_not_delins.posedit.pos.end)) and not re.search(
-                    r'\-', str(self.tx_hgvs_not_delins.posedit.pos.start)):
+                self.auto_info = self.auto_info + '%s' % gap_position
+            elif '-' in str(self.tx_hgvs_not_delins.posedit.pos.end) and \
+                    '-' not in str(self.tx_hgvs_not_delins.posedit.pos.start):
                 self.auto_info = self.auto_info + 'Genome position ' + str(
                     stored_hgvs_not_delins.ac) + ':g.' + str(
                     stored_hgvs_not_delins.posedit.pos.end.base + 1) + ' aligns within a ' + str(
                     self.disparity_deletion_in[1]) + '-bp gap in transcript ' + str(
                     self.tx_hgvs_not_delins.ac)
                 self.gapped_transcripts = self.gapped_transcripts + ' ' + str(self.tx_hgvs_not_delins.ac)
-                non_valid_caution = 'true'
 
-                ## Have variation in first copy here!
+                # Have variation in first copy here!
                 if running_option == 1:
                     try:
                         c1 = self.validator.vm.n_to_c(self.tx_hgvs_not_delins)
@@ -2158,7 +2118,7 @@ class GapMapper(object):
 
                 # Alignment position
                 for_location_c = copy.deepcopy(hgvs_refreshed_variant)
-                if re.match('NM_', str(for_location_c)):
+                if 'NM_' in str(for_location_c):
                     for_location_c = self.variant.no_norm_evm.n_to_c(self.tx_hgvs_not_delins)
                 gps = for_location_c.posedit.pos.end.base - 1
                 gpe = for_location_c.posedit.pos.end.base
@@ -2184,11 +2144,9 @@ class GapMapper(object):
         return hgvs_refreshed_variant
 
     def edit_output(self, hgvs_refreshed_variant, saved_hgvs_coding):
-        if re.match('NM_', str(hgvs_refreshed_variant.ac)) and not re.search('c', str(
-                hgvs_refreshed_variant.type)):
+        if 'NM_' in str(hgvs_refreshed_variant.ac) and 'c' not in str(hgvs_refreshed_variant.type):
             hgvs_refreshed_variant = self.variant.evm.n_to_c(hgvs_refreshed_variant)
-        else:
-            pass
+
         try:
             hgvs_refreshed_variant = self.variant.hn.normalize(hgvs_refreshed_variant)
             if hgvs_refreshed_variant.posedit.edit.type == 'delins' and \
@@ -2212,26 +2170,19 @@ class GapMapper(object):
         except Exception as e:
             error = str(e)
             # Ensure the final variant is not intronic nor does it cross exon boundaries
-            if re.match('Normalization of intronic variants is not supported',
-                        error) or re.match(
-                'Unsupported normalization of variants spanning the exon-intron boundary',
-                error):
+            if 'Normalization of intronic variants is not supported' in error or \
+                    'Unsupported normalization of variants spanning the exon-intron boundary' in error:
                 hgvs_refreshed_variant = saved_hgvs_coding
-            else:
-                pass
+
         return hgvs_refreshed_variant
 
     def logic_check(self, hgvs_not_delins, rn_tx_hgvs_not_delins, hgvs_coding, do_continue=False, offset_check=False):
         # Logic
-        if len(hgvs_not_delins.posedit.edit.ref) < len(
-                rn_tx_hgvs_not_delins.posedit.edit.ref):
-            gap_length = len(rn_tx_hgvs_not_delins.posedit.edit.ref) - len(
-                hgvs_not_delins.posedit.edit.ref)
+        if len(hgvs_not_delins.posedit.edit.ref) < len(rn_tx_hgvs_not_delins.posedit.edit.ref):
+            gap_length = len(rn_tx_hgvs_not_delins.posedit.edit.ref) - len(hgvs_not_delins.posedit.edit.ref)
             self.disparity_deletion_in = ['chromosome', gap_length]
-        elif len(hgvs_not_delins.posedit.edit.ref) > len(
-                rn_tx_hgvs_not_delins.posedit.edit.ref):
-            gap_length = len(hgvs_not_delins.posedit.edit.ref) - len(
-                rn_tx_hgvs_not_delins.posedit.edit.ref)
+        elif len(hgvs_not_delins.posedit.edit.ref) > len(rn_tx_hgvs_not_delins.posedit.edit.ref):
+            gap_length = len(hgvs_not_delins.posedit.edit.ref) - len(rn_tx_hgvs_not_delins.posedit.edit.ref)
             self.disparity_deletion_in = ['transcript', gap_length]
         else:
             re_capture_tx_variant = []
@@ -2248,7 +2199,8 @@ class GapMapper(object):
                             continue
                         fn.exceptPass()
                     if offset_check:
-                        if hgvs_t_possibility.posedit.pos.start.offset != 0 or hgvs_t_possibility.posedit.pos.end.offset != 0:
+                        if hgvs_t_possibility.posedit.pos.start.offset != 0 or \
+                                hgvs_t_possibility.posedit.pos.end.offset != 0:
                             continue
                     ins_ref = self.validator.sf.fetch_seq(hgvs_t_possibility.ac,
                                                           hgvs_t_possibility.posedit.pos.start.base - 1,
@@ -2261,34 +2213,29 @@ class GapMapper(object):
                         fn.exceptPass()
                     hgvs_t_possibility.posedit.edit.ref = ins_ref
                     hgvs_t_possibility.posedit.edit.alt = ins_ref[
-                                                              0] + hgvs_t_possibility.posedit.edit.alt + \
-                                                          ins_ref[1]
+                                                              0] + hgvs_t_possibility.posedit.edit.alt + ins_ref[1]
                 if internal_possibility.posedit.edit.type == 'ins':
                     ins_ref = self.validator.sf.fetch_seq(internal_possibility.ac,
                                                           internal_possibility.posedit.pos.start.base - 1,
                                                           internal_possibility.posedit.pos.end.base)
                     internal_possibility.posedit.edit.ref = ins_ref
                     internal_possibility.posedit.edit.alt = ins_ref[
-                                                                0] + internal_possibility.posedit.edit.alt + \
-                                                            ins_ref[1]
+                                                                0] + internal_possibility.posedit.edit.alt + ins_ref[1]
 
-                if len(hgvs_t_possibility.posedit.edit.ref) < len(
-                        internal_possibility.posedit.edit.ref):
-                    gap_length = len(internal_possibility.posedit.edit.ref) - len(
-                        hgvs_t_possibility.posedit.edit.ref)
+                if len(hgvs_t_possibility.posedit.edit.ref) < len(internal_possibility.posedit.edit.ref):
+                    gap_length = len(internal_possibility.posedit.edit.ref) - len(hgvs_t_possibility.posedit.edit.ref)
                     re_capture_tx_variant = ['transcript', gap_length, hgvs_t_possibility]
                     hgvs_not_delins = internal_possibility
                     self.hgvs_genomic_5pr = internal_possibility
                     break
 
-            if re_capture_tx_variant != []:
+            if re_capture_tx_variant:
                 try:
                     self.tx_hgvs_not_delins = self.validator.vm.c_to_n(re_capture_tx_variant[2])
                 except:
                     self.tx_hgvs_not_delins = re_capture_tx_variant[2]
                 self.disparity_deletion_in = re_capture_tx_variant[0:-1]
-            else:
-                pass
+
         return hgvs_not_delins
 
     def get_hgvs_seek_var(self, hgvs_genomic, hgvs_coding, ori=None, with_query_genomic=False):
@@ -2309,7 +2256,7 @@ class GapMapper(object):
         # Map to the transcript and test for movement
         try:
             hgvs_seek_var = self.variant.evm.g_to_t(query_genomic, hgvs_coding.ac)
-        except hgvs.exceptions.HGVSError as e:
+        except hgvs.exceptions.HGVSError:
             hgvs_seek_var = hgvs_coding
 
         if with_query_genomic:
@@ -2337,11 +2284,9 @@ class GapMapper(object):
                 most_3pr_hgvs_transcript_variant.posedit.edit.ref = pr3_ref
                 most_5pr_hgvs_transcript_variant.posedit.edit.ref = pr5_ref
                 most_3pr_hgvs_transcript_variant.posedit.edit.alt = pr3_ref[0] + \
-                                                                    most_3pr_hgvs_transcript_variant.posedit.edit.alt + \
-                                                                    pr3_ref[1]
+                    most_3pr_hgvs_transcript_variant.posedit.edit.alt + pr3_ref[1]
                 most_5pr_hgvs_transcript_variant.posedit.edit.alt = pr5_ref[0] + \
-                                                                    most_5pr_hgvs_transcript_variant.posedit.edit.alt + \
-                                                                    pr5_ref[1]
+                    most_5pr_hgvs_transcript_variant.posedit.edit.alt + pr5_ref[1]
                 # Map to the genome
                 genomic_from_most_3pr_hgvs_transcript_variant = self.validator.vm.t_to_g(
                     most_3pr_hgvs_transcript_variant, hgvs_genomic.ac)
