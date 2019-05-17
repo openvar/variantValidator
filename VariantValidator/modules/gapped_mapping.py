@@ -11,6 +11,11 @@ from .vvLogging import logger
 class GapMapper(object):
 
     def __init__(self, variant, validator):
+        """
+        Sets initial values
+        :param variant: variant.Variant()
+        :param validator: Validator()
+        """
         self.variant = variant
         self.validator = validator
 
@@ -58,7 +63,7 @@ class GapMapper(object):
         stash_ref = vcf_dict['ref']
         stash_alt = vcf_dict['alt']
         stash_end = end
-        stash_input = str(self.variant.stashed)
+        stash_input = str(self.variant.post_format_conversion)
         # Re-Analyse genomic positions
         if 'NG_' in str(self.variant.hgvs_formatted):
             c = self.validator.hp.parse_hgvs_variant(rel_var[0])

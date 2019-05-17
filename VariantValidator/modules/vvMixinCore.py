@@ -187,7 +187,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                     formatted_variant = my_variant.quibble
                     stash_input = my_variant.quibble
-                    my_variant.stashed = stash_input
+                    my_variant.post_format_conversion = stash_input
                     format_type = my_variant.reftype
 
                     hgnc_gene_info = 'false'

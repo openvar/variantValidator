@@ -17,9 +17,9 @@ class Variant(object):
         self.hgvs_formatted = None
         self.hgvs_genomic = None
         self.hgvs_coding = None
-        self.stashed = None
+        self.post_format_conversion = None  # Used for first gapped_mapping function
         self.pre_RNA_conversion = None
-        self.input_parses = None
+        self.input_parses = None  # quibble as hgvs variant object
 
         self.warnings = warnings
         self.description = ''  # hgnc_gene_info variable
@@ -32,15 +32,14 @@ class Variant(object):
         self.primary_assembly = primary_assembly
         self.order = order
         self.output_type_flag = 'warning'
-
-        self.test_stash_tx_left = None
-        self.test_stash_tx_right = None
+        self.gene_symbol = None
 
         self.timing = {}
 
         self.refsource = None
         self.reftype = None
 
+        # Normalizers
         self.hn = None
         self.reverse_normalizer = None
         self.evm = None
@@ -48,15 +47,15 @@ class Variant(object):
         self.min_evm = None
         self.lose_vm = None
 
-        self.gene_symbol = None
-        self.hgvs_transcript_variant = None
+        # Required for output
+        self.hgvs_transcript_variant = None  # variant.coding
         self.genome_context_intronic_sequence = None
         self.refseqgene_context_intronic_sequence = None
-        self.hgvs_refseqgene_variant = None
+        self.hgvs_refseqgene_variant = None  # genomic_r
         self.hgvs_predicted_protein_consequence = None
-        self.validation_warnings = None
+        self.validation_warnings = None  # warnings but duplicates removed
         self.hgvs_lrg_transcript_variant = None
-        self.hgvs_lrg_variant = None
+        self.hgvs_lrg_variant = None  # Same as hgvs_refseqgene_variant ?
         self.alt_genomic_loci = None
         self.primary_assembly_loci = None
         self.reference_sequence_records = None
@@ -128,7 +127,7 @@ class Variant(object):
         Method will set the reftype based on the quibble
         :return:
         """
-        pat_est = re.compile(r'\d\:\d')
+        pat_est = re.compile(r'\d:\d')
 
         if ':g.' in self.quibble:
             self.reftype = ':g.'
