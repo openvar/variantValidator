@@ -442,6 +442,8 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     for genome_build in genome_builds:
                         if selected_assembly == genome_build:
                             valid_build = True
+                        elif selected_assembly == 'hg38':
+                            valid_build = True
                     if valid_build is False:
                         selected_assembly = 'GRCh38'
                         primary_assembly = selected_assembly

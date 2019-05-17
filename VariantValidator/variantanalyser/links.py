@@ -140,81 +140,65 @@ def pro_delins_info(prot_ref_seq, prot_var_seq):
         if term.search(prot_var_seq):
             # Set the termination reporter to true
             info['terminate'] = 'true'
-            # The termination position will be equal to the length of the variant sequence because it's a TERMINATOR!!!
-            info['ter_pos'] = len(prot_var_seq)
+
+            # Set the terminal pos dependant on the shortest sequence
+            if len(prot_var_seq) <= len(prot_ref_seq):
+                info['ter_pos'] = len(prot_ref_seq)
+            else:
+                info['ter_pos'] = len(prot_var_seq)
+
             # cut the ref sequence to == size
             prot_ref_seq = prot_ref_seq[0:info['ter_pos']]
-            prot_var_seq = prot_var_seq[0:info['ter_pos']] 
-        
-            # Whether terminated or not, the sequences should now be the same length
-            # Unless the termination codon has been disrupted
-            if len(prot_var_seq) < len(prot_ref_seq):
-                info['error'] = 'true'
-                return info
-            else:
-                # Set the counter
-                aa_counter = 0
+            prot_var_seq = prot_var_seq[0:info['ter_pos']]
 
-                # Make list copies of the sequences to gather the required info
-                ref = list(prot_ref_seq)
-                var = list(prot_var_seq)
-                
-                # Loop through ref list to find the first missmatch position
-                for aa in ref:
-                    if ref[aa_counter] == var[aa_counter]:
-                        aa_counter = aa_counter + 1
-                    else:
-                        break
-                
-                # Enter the start position
-                info['edit_start'] = aa_counter + 1
-                # Remove those elements form the list
-                del ref[0:aa_counter]
-                del var[0:aa_counter]
+            # Set the counter
+            aa_counter = 0
 
-                # the sequences should now be the same length
-                # Except if the termination codon was removed
-                if len(ref) > len(var):
-                    info['error'] = 'true'
-                    return info
+            # Make list copies of the sequences to gather the required info
+            ref = list(prot_ref_seq)
+            var = list(prot_var_seq)
+
+            # Loop through ref list to find the first missmatch position
+            for aa in ref:
+                if ref[aa_counter] == var[aa_counter]:
+                    aa_counter = aa_counter + 1
                 else:
-                    # Reset the aa_counter but to go backwards
-                    aa_counter = 0
-                    # reverse the lists
-                    ref = ref[::-1]
-                    var = var[::-1]
-                    # Reverse loop through ref list to find the first missmatch position
-                    for aa in ref:
-                        if var[aa_counter] == '\*':
-                            break
-                        if aa == var[aa_counter]:
-                            aa_counter = aa_counter + 1
-                        else:
-                            break
-                    # Remove those elements form the list
-                    del ref[0:aa_counter]
-                    del var[0:aa_counter]
-                    # re-reverse the lists  
-                    ref = ref[::-1]
-                    var = var[::-1]
-                    
-                    # If the var is > ref, the ter has been removed, need to re-add ter to each
-#                   if len(ref) < len(var):
-#                       ref.append('*')
-#                       if prot_var_seq[-1] == '*':
-#                           var.append('*')
+                    break
 
-                    # the sequences should now be the same length
-                    # Except if the ter was removed
-                    if len(ref) > len(var):
-                        info['error'] = 'true'
-                        return info             
-                    else:
-                        # Enter the sequences
-                        info['prot_del_seq'] = ''.join(ref)
-                        info['prot_ins_seq'] = ''.join(var)
-                        info['edit_end'] = info['edit_start'] + len(ref) -1 
-                        return info
+            # Enter the start position
+            info['edit_start'] = aa_counter + 1
+            # Remove those elements form the list
+            del ref[0:aa_counter]
+            del var[0:aa_counter]
+
+            # Reset the aa_counter but to go backwards
+            aa_counter = 0
+            # reverse the lists
+            ref = ref[::-1]
+            var = var[::-1]
+            # Reverse loop through ref list to find the first missmatch position
+            for aa in ref:
+                try:
+                    if var[aa_counter] == '\*':
+                        break
+                except IndexError:
+                    break
+                if aa == var[aa_counter]:
+                    aa_counter = aa_counter + 1
+                else:
+                    break
+            # Remove those elements form the list
+            del ref[0:aa_counter]
+            del var[0:aa_counter]
+            # re-reverse the lists
+            ref = ref[::-1]
+            var = var[::-1]
+
+            # Enter the sequences
+            info['prot_del_seq'] = ''.join(ref)
+            info['prot_ins_seq'] = ''.join(var)
+            info['edit_end'] = info['edit_start'] + len(ref) - 1
+            return info
 
 
 
