@@ -17,6 +17,9 @@ services:
 addons:
   postgresql: "9.6"
 
+env:
+  - CODECOV_TOKEN="50dd5c2e-4259-4cfa-97a7-b4429e0d179e"
+
 before_install:
 
   # Increase size of database drive
@@ -52,6 +55,8 @@ install:
 
   # Test dependencies
   - conda install pytest
+  - pip install pytest-cov
+  - pip install codecov
 
   - pip install .
 
@@ -62,4 +67,7 @@ install:
 
 script:
 
-  - pytest  # will run all tests in the package
+  - pytest --cov-report=term --cov=VariantValidator/ # will run all tests in the package
+
+after_success:
+  - codecov
