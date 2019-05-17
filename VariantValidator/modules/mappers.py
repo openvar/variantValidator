@@ -230,35 +230,29 @@ def transcripts_to_gene(variant, validator):
             variant.warnings += ': ' + error
             logger.warning(error)
             return True
-        try:
-            gene_symbol = validator.db.get_gene_symbol_from_transcriptID(tx_ac)
-        except:
-            gene_symbol = None
-        if gene_symbol is None:
+
+        if variant.gene_symbol:
+            error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, ' \
+                    'please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' or ' + \
+                    variant.gene_symbol + ' to  https://variantvalidator.org/ref_finder/, ' \
+                                          'or select an alternative genome build'
+        else:
             error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, ' \
                     'please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' to  ' \
                     'https://variantvalidator.org/ref_finder/, or select an alternative genome build'
-        else:
-            error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, ' \
-                    'please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' or ' + \
-                    gene_symbol + ' to  https://variantvalidator.org/ref_finder/, or select an alternative genome build'
-
         variant.warnings += ': ' + error
         logger.warning(error)
         return True
     except TypeError:
-        try:
-            gene_symbol = validator.db.get_gene_symbol_from_transcriptID(tx_ac)
-        except:
-            gene_symbol = 'none'
-        if gene_symbol == 'none':
+        if variant.gene_symbol:
+            error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, ' \
+                    'please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' or ' + \
+                    variant.gene_symbol + ' to  https://variantvalidator.org/ref_finder/, ' \
+                                          'or select an alternative genome build'
+        else:
             error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, ' \
                     'please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' to  ' \
                     'https://variantvalidator.org/ref_finder/, or select an alternative genome build'
-        else:
-            error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, ' \
-                    'please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' or ' + \
-                    gene_symbol + ' to  https://variantvalidator.org/ref_finder/, or select an alternative genome build'
         variant.warnings += ': ' + error
         logger.warning(error)
         return True
@@ -646,13 +640,9 @@ def transcripts_to_gene(variant, validator):
     gap_compensation = True
 
     # Gap gene black list
-    try:
-        gene_symbol = validator.db.get_gene_symbol_from_transcriptID(hgvs_coding.ac)
-    except Exception:
-        fn.exceptPass()
-    else:
+    if variant.gene_symbol:
         # If the gene symbol is not in the list, the value False will be returned
-        gap_compensation = vvChromosomes.gap_black_list(gene_symbol)
+        gap_compensation = vvChromosomes.gap_black_list(variant.gene_symbol)
 
     # Intron spanning variants
     if 'boundary' in str(error) or 'spanning' in str(error):
@@ -868,13 +858,9 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant):
     # multi_gen_vars = []
     variant.hgvs_coding = validator.hp.parse_hgvs_variant(str(tx_variant))
     # Gap gene black list
-    try:
-        gene_symbol = validator.db.get_gene_symbol_from_transcriptID(variant.hgvs_coding.ac)
-    except Exception:
-        fn.exceptPass()
-    else:
+    if variant.gene_symbol:
         # If the gene symbol is not in the list, the value False will be returned
-        gap_compensation = vvChromosomes.gap_black_list(gene_symbol)
+        gap_compensation = vvChromosomes.gap_black_list(variant.gene_symbol)
 
     # Look for variants spanning introns
     try:

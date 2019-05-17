@@ -542,13 +542,8 @@ class Mixin(vvMixinConverters.Mixin):
                         predicted_protein_variant = rs_p + '(' + lrg_p + '):' + pred_prot_posedit
 
                 # Gene
-                if transcript_accession != '':
-                    try:
-                        gene_symbol = self.db.get_gene_symbol_from_transcriptID(transcript_accession)
-                    except:
-                        gene_symbol = 'Unable to verify gene symbol for ' + str(transcript_accession)
-                else:
-                    gene_symbol = ''
+                if transcript_accession == '':
+                    variant.gene_symbol = ''
 
                 if tx_variant != '':
                     multi_gen_vars = mappers.final_tx_to_multiple_genomic(variant, self, tx_variant)
@@ -683,7 +678,6 @@ class Mixin(vvMixinConverters.Mixin):
                     else:
                         predicted_protein_variant_dict["slr"] = str(predicted_protein_variant)
 
-                variant.gene_symbol = gene_symbol
                 variant.hgvs_transcript_variant = tx_variant
                 variant.genome_context_intronic_sequence = genome_context_transcript_variant
                 variant.refseqgene_context_intronic_sequence = refseqgene_context_transcript_variant

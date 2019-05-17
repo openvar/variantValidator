@@ -65,6 +65,9 @@ def structure_checks(variant, validator):
     """
     input_parses = validator.hp.parse_hgvs_variant(variant.quibble)
     variant.input_parses = input_parses
+    variant.gene_symbol = validator.db.get_gene_symbol_from_transcriptID(variant.input_parses.ac)
+    if variant.gene_symbol == 'none':
+        variant.gene_symbol = ''
     if input_parses.type == 'g':
         check = structure_checks_g(variant, validator)
         if check:
@@ -341,18 +344,16 @@ def structure_checks_c(variant, validator):
                                                       variant.primary_assembly, validator.vm, variant.hn, validator.hp,
                                                       validator.sf, variant.no_norm_evm)
         except hgvs.exceptions.HGVSDataNotAvailableError:
-            tx_ac = variant.input_parses.ac
-            try:
-                gene_symbol = validator.db.get_gene_symbol_from_transcriptID(tx_ac)
-            except:
-                error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, ' \
-                        'please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' to  ' \
+            if variant.gene_symbol:
+                error = 'Required information for ' + variant.input_parses.ac + ' is missing from the Universal ' \
+                        'Transcript Archive, please select an alternative version of ' + variant.input_parses.ac + \
+                        ' by submitting ' + variant.input_parses.ac + ' or ' + variant.gene_symbol + ' to  ' \
                         'https://variantvalidator.org/ref_finder/, or select an alternative genome build'
             else:
-                error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, ' \
-                        'please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' or ' \
-                        + gene_symbol + ' to  https://variantvalidator.org/ref_finder/, or select an alternative ' \
-                                        'genome build'
+                error = 'Required information for ' + variant.input_parses.ac + ' is missing from the Universal ' \
+                        'Transcript Archive, please select an alternative version of ' + variant.input_parses.ac + \
+                        ' by submitting ' + variant.input_parses.ac + ' to https://variantvalidator.org/ref_finder/, ' \
+                        'or select an alternative genome build'
             variant.warnings += ': ' + error
             logger.warning(error)
             return True
@@ -560,15 +561,16 @@ def structure_checks_n(variant, validator):
             output = validator.noreplace_myevm_t_to_g(variant.input_parses, variant.evm, validator.hdp, variant.primary_assembly, validator.vm, variant.hn,
                                                  validator.hp, validator.sf, variant.no_norm_evm)
         except hgvs.exceptions.HGVSDataNotAvailableError as e:
-            tx_ac = variant.input_parses.ac
-            try:
-                gene_symbol = validator.db.get_gene_symbol_from_transcriptID(tx_ac)
-            except:
-                gene_symbol = None
-            if gene_symbol is None:
-                error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' to  https://variantvalidator.org/ref_finder/, or select an alternative genome build'
+            if variant.gene_symbol:
+                error = 'Required information for ' + variant.input_parses.ac + ' is missing from the Universal ' \
+                        'Transcript Archive, please select an alternative version of ' + variant.input_parses.ac + \
+                        ' by submitting ' + variant.input_parses.ac + ' or ' + variant.gene_symbol + ' to  ' \
+                        'https://variantvalidator.org/ref_finder/, or select an alternative genome build'
             else:
-                error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' or ' + gene_symbol + ' to  https://variantvalidator.org/ref_finder/, or select an alternative genome build'
+                error = 'Required information for ' + variant.input_parses.ac + ' is missing from the Universal ' \
+                        'Transcript Archive, please select an alternative version of ' + variant.input_parses.ac + \
+                        ' by submitting ' + variant.input_parses.ac + ' to  https://variantvalidator.org/ref_finder/,' \
+                        ' or select an alternative genome build'
             variant.warnings += ': ' + error
             logger.warning(error)
             return True

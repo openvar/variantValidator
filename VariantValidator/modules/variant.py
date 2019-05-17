@@ -32,7 +32,7 @@ class Variant(object):
         self.primary_assembly = primary_assembly
         self.order = order
         self.output_type_flag = 'warning'
-        self.gene_symbol = None
+        self.gene_symbol = ''
 
         self.timing = {}
 
