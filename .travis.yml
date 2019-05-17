@@ -35,6 +35,7 @@ before_install:
   - mysql -e 'CREATE DATABASE validator;'
   - df -h
 
+  - mkdir "$HOME"/seqrepo
   - rsync -HavP dl.biocommons.org::seqrepo/2018-08-21/ "$HOME"/seqrepo/2018-08-21/
 
   # Copy configuration file
