@@ -17713,7 +17713,7 @@ class TestVariants(object):
         assert results['NM_080877.2:c.1733_1735delinsTTT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_080877.2:c.1733_1735delinsTTT']['alt_genomic_loci'] == []
         assert results['NM_080877.2:c.1733_1735delinsTTT']['gene_symbol'] == 'SLC34A3'
-        assert results['NM_080877.2:c.1733_1735delinsTTT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_543153.1:p.(Pro578_Lys579delinsLeuTer)', 'slr': 'NP_543153.1:p.(P578_K579delinsL*)'}
+        assert results['NM_080877.2:c.1733_1735delinsTTT']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_543153.1:p.(Pro578_Gln598del)', 'slr': 'NP_543153.1:p.(P578_Q598del)'}
         assert results['NM_080877.2:c.1733_1735delinsTTT']['submitted_variant'] == 'NM_080877.2:c.1733_1735delinsTTT'
         assert results['NM_080877.2:c.1733_1735delinsTTT']['genome_context_intronic_sequence'] == ''
         assert results['NM_080877.2:c.1733_1735delinsTTT']['hgvs_lrg_variant'] == ''
