@@ -48,14 +48,14 @@ class Variant(object):
         self.lose_vm = None
 
         # Required for output
-        self.hgvs_transcript_variant = None  # variant.coding
+        self.hgvs_transcript_variant = None  # variant.coding but edited
         self.genome_context_intronic_sequence = None
         self.refseqgene_context_intronic_sequence = None
-        self.hgvs_refseqgene_variant = None  # genomic_r
+        self.hgvs_refseqgene_variant = None  # genomic_r but edited
         self.hgvs_predicted_protein_consequence = None
         self.validation_warnings = None  # warnings but duplicates removed
         self.hgvs_lrg_transcript_variant = None
-        self.hgvs_lrg_variant = None  # Same as hgvs_refseqgene_variant ?
+        self.hgvs_lrg_variant = None  # Same as hgvs_refseqgene_variant but with LRG accession
         self.alt_genomic_loci = None
         self.primary_assembly_loci = None
         self.reference_sequence_records = None
