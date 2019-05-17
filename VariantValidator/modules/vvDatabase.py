@@ -78,11 +78,12 @@ class vvDatabase(vvDBInsert.Mixin):
         # Prime these entries, just in case.
         previous_entry = self.in_entries(accession, 'transcript_info')
         accession = accession
-        description = previous_entry['description']
-        variant = previous_entry['variant']
-        version = previous_entry['version']
-        hgnc_symbol = previous_entry['hgnc_symbol']
-        uta_symbol = previous_entry['uta_symbol']
+        if 'none' not in previous_entry.keys():
+            description = previous_entry['description']
+            variant = previous_entry['variant']
+            version = previous_entry['version']
+            hgnc_symbol = previous_entry['hgnc_symbol']
+            uta_symbol = previous_entry['uta_symbol']
         try:
             record = validator.entrez_efetch(db="nucleotide", id=accession, rettype="gb", retmode="text")
             version = record.id
