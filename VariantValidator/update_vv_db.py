@@ -8,8 +8,7 @@ from .modules import vvDatabase
 from . import configure
 
 
-def update():
-
+def connect():
     config = ConfigParser()
     config.read(configure.CONFIG_DIR)
 
@@ -22,6 +21,23 @@ def update():
     }
     # Create database access objects
     db = vvDatabase.vvDatabase(dbConfig)
+    return db
+
+
+def delete():
+
+    db = connect()
+
+    db.execute('DELETE FROM transcript_info')
+    db.execute('DELETE FROM refSeqGene_loci')
+    db.execute('DELETE FROM LRG_transcripts')
+    db.execute('DELETE FROM LRG_proteins')
+    db.execute('DELETE FROM LRG_RSG_lookup')
+
+
+def update():
+
+    db = connect()
 
     update_refseq(db)
     update_lrg(db)
@@ -174,6 +190,7 @@ def update_refseq(dbcnx):
     print('Gaps within NG_ to NC_ alignments = ' + str(total_rsg_to_nc_rejected))
 
     return
+
 
 def update_lrg(dbcnx):
     print('Updating LRG lookup tables')
