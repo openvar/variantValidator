@@ -22,8 +22,8 @@ def gene_to_transcripts(variant, validator):
     except KeyError:
         error = 'Reference sequence ' + variant.hgvs_genomic.ac + ' is either not supported or does not exist'
     if error != 'false':
-        variant.warnings += ': ' + str(error)
-        logger.warning(str(error))
+        variant.warnings.append(error)
+        logger.warning(error)
         return True
 
     # Set test to see if Norm alters the coords
@@ -94,8 +94,8 @@ def gene_to_transcripts(variant, validator):
                 genomic_input = refseqgene_data['hgvs_genomic']
                 # re_submit
                 # Tag the line so that it is not written out
-                variant.warnings += ': ' + str(variant.hgvs_formatted) + ' automapped to genome position ' + \
-                                    str(genomic_input)
+                variant.warnings.append(str(variant.hgvs_formatted) + ' automapped to genome position ' +
+                                        str(genomic_input))
                 query = Variant(variant.original, quibble=genomic_input, warnings=variant.warnings,
                                 primary_assembly=variant.primary_assembly, order=variant.order)
 
@@ -103,7 +103,7 @@ def gene_to_transcripts(variant, validator):
             else:
                 error = 'Mapping unavailable for RefSeqGene ' + str(variant.hgvs_formatted) + \
                         ' using alignment method = ' + validator.alt_aln_method
-                variant.warnings += ': ' + str(error)
+                variant.warnings.append(error)
                 logger.warning(str(error))
                 return True
 
@@ -115,7 +115,7 @@ def gene_to_transcripts(variant, validator):
                     validator.vr.validate(variant.hgvs_genomic)
                 except hgvs.exceptions.HGVSError as e:
                     error = str(e)
-                    variant.warnings += ': ' + str(error)
+                    variant.warnings.append(error)
                     logger.warning(str(error))
                     return True
                 else:
@@ -134,7 +134,7 @@ def gene_to_transcripts(variant, validator):
                     # set output type flag
                     variant.output_type_flag = 'intergenic'
                     # set genomic and where available RefSeqGene outputs
-                    variant.warnings += ': ' + str(error)
+                    variant.warnings.append(error)
                     variant.genomic_g = fn.valstr(variant.hgvs_genomic)
                     variant.genomic_r = str(rsg_data.split('(')[0])
                     logger.warning(str(error))
@@ -142,7 +142,7 @@ def gene_to_transcripts(variant, validator):
             else:
                 error = 'Please ensure the requested chromosome version relates to a supported genome build. ' \
                         'Supported genome builds are: GRCh37, GRCh38, hg19 and hg38'
-                variant.warnings += ': ' + str(error)
+                variant.warnings.append(error)
                 logger.warning(str(error))
                 return True
 
@@ -227,7 +227,7 @@ def transcripts_to_gene(variant, validator):
                 error = error + ': Consequently the input variant description cannot be fully validated and is not ' \
                                 'supported: Use the Gene to Transcripts function to determine whether an updated ' \
                                 'transcript reference sequence is available'
-            variant.warnings += ': ' + error
+            variant.warnings.append(error)
             logger.warning(error)
             return True
 
@@ -240,7 +240,7 @@ def transcripts_to_gene(variant, validator):
             error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, ' \
                     'please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' to  ' \
                     'https://variantvalidator.org/ref_finder/, or select an alternative genome build'
-        variant.warnings += ': ' + error
+        variant.warnings.append(error)
         logger.warning(error)
         return True
     except TypeError:
@@ -253,7 +253,7 @@ def transcripts_to_gene(variant, validator):
             error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, ' \
                     'please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' to  ' \
                     'https://variantvalidator.org/ref_finder/, or select an alternative genome build'
-        variant.warnings += ': ' + error
+        variant.warnings.append(error)
         logger.warning(error)
         return True
 
@@ -268,14 +268,14 @@ def transcripts_to_gene(variant, validator):
             if validator.alt_aln_method != 'genebuild':
                 error = "If the following error message does not address the issue and the problem persists please " \
                         "contact admin: " + str(to_g)
-                variant.warnings += ': ' + error
+                variant.warnings.append(error)
                 logger.warning(error)
                 return True
 
             else:
                 error = "If the following error message does not address the issue and the problem persists please " \
                         "contact admin: " + str(to_g)
-                variant.warnings += ': ' + error
+                variant.warnings.append(error)
                 logger.warning(error)
                 return True
 
@@ -299,14 +299,14 @@ def transcripts_to_gene(variant, validator):
                 if validator.alt_aln_method != 'genebuild':
                     error = "If the following error message does not address the issue and the problem persists " \
                             "please contact admin: " + str(to_g)
-                    variant.warnings += ': ' + error
+                    variant.warnings.append(error)
                     logger.warning(error)
                     return True
 
                 else:
                     error = "If the following error message does not address the issue and the problem persists " \
                             "please contact admin: " + str(to_g)
-                    variant.warnings += ': ' + error
+                    variant.warnings.append(error)
                     logger.warning(error)
                     return True
         else:
@@ -333,7 +333,7 @@ def transcripts_to_gene(variant, validator):
                 caution = 'This coding sequence variant description spans at least one intron'
                 automap = 'Use of the corresponding genomic sequence variant descriptions may be invalid. ' \
                           'Please refer to https://www35.lamp.le.ac.uk/recommendations/'
-                variant.warnings += ': ' + caution + ': ' + automap
+                variant.warnings.extend([caution, automap])
                 logger.warning(caution + ": " + automap)
         else:
             formatted_variant = str(h_variant)
@@ -342,7 +342,7 @@ def transcripts_to_gene(variant, validator):
         if error == 'false':
             valid = True
         else:
-            variant.warnings += ': ' + str(error)
+            variant.warnings.append(str(error))
             logger.warning(str(error))
             return True
 
@@ -395,7 +395,7 @@ def transcripts_to_gene(variant, validator):
                     query.type = 'r'
                     post_var = str(query)
                     automap = variant.pre_RNA_conversion + ' automapped to ' + str(post_var)
-                    variant.warnings += ': ' + str(caution) + ': ' + str(automap)
+                    variant.warnings.extend([str(caution), str(automap)])
 
                     # Kill current line and append for re-submission
                     # Tag the line so that it is not written out
@@ -403,7 +403,7 @@ def transcripts_to_gene(variant, validator):
                     # Set the values and append to batch_list
                     hgvs_vt = validator.hp.parse_hgvs_variant(str(post_var))
                     assert str(hgvs_vt) == str(post_var)
-                    query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=automap,
+                    query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=[automap],
                                     primary_assembly=variant.primary_assembly, order=variant.order)
                     validator.batch_list.append(query)
 
@@ -421,7 +421,7 @@ def transcripts_to_gene(variant, validator):
                     if error == 'expected from_start_i <= from_end_i':
                         error = 'Automap is unable to correct the input exon/intron boundary coordinates, ' \
                                 'please check your variant description'
-                        variant.warnings += ': ' + error
+                        variant.warnings.append(error)
                         return True
                     else:
                         fn.exceptPass()
@@ -429,7 +429,7 @@ def transcripts_to_gene(variant, validator):
                 try:
                     post_var = validator.myevm_g_to_t(variant.evm, pre_var, trans_acc)
                 except hgvs.exceptions.HGVSError as error:
-                    variant.warnings += ': ' + str(error)
+                    variant.warnings.append(str(error))
                     logger.warning(str(error))
                     return True
                 test = validator.hp.parse_hgvs_variant(quibble_input)
@@ -440,7 +440,7 @@ def transcripts_to_gene(variant, validator):
                               'selected transcript:'
                     # automapping of variant completed
                     automap = variant.pre_RNA_conversion + ' automapped to ' + str(post_var)
-                    variant.warnings += str(caution) + ': ' + str(automap)
+                    variant.warnings.extend([caution, automap])
 
                     # Kill current line and append for re-submission
                     # Tag the line so that it is not written out
@@ -448,7 +448,7 @@ def transcripts_to_gene(variant, validator):
                     # Set the values and append to batch_list
                     hgvs_vt = validator.hp.parse_hgvs_variant(str(post_var))
                     assert str(hgvs_vt) == str(post_var)
-                    query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=automap,
+                    query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=[automap],
                                     primary_assembly=variant.primary_assembly, order=variant.order)
                     validator.batch_list.append(query)
 
@@ -477,8 +477,7 @@ def transcripts_to_gene(variant, validator):
                     query.type = 'r'
                     post_var = str(query)
                     automap = quibble_input + ' automapped to ' + post_var
-                    variant.warnings += ': ' + str(caution) + ': ' + str(
-                        automap)
+                    variant.warnings.extend([caution, automap])
 
                     # Kill current line and append for re-submission
                     # Tag the line so that it is not written out
@@ -486,7 +485,7 @@ def transcripts_to_gene(variant, validator):
                     # Set the values and append to batch_list
                     hgvs_vt = validator.hp.parse_hgvs_variant(str(post_var))
                     assert str(hgvs_vt) == str(post_var)
-                    query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=automap,
+                    query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=[automap],
                                     primary_assembly=variant.primary_assembly, order=variant.order)
                     validator.batch_list.append(query)
 
@@ -507,8 +506,7 @@ def transcripts_to_gene(variant, validator):
                               'selected transcript:'
                     # automapping of variant completed
                     automap = str(variant.pre_RNA_conversion) + ' automapped to ' + str(post_var)
-                    variant.warnings += ': ' + str(caution) + ': ' + str(
-                        automap)
+                    variant.warnings.extend([caution, automap])
 
                     # Kill current line and append for re-submission
                     # Tag the line so that it is not written out
@@ -516,7 +514,7 @@ def transcripts_to_gene(variant, validator):
                     # Set the values and append to batch_list
                     hgvs_vt = validator.hp.parse_hgvs_variant(str(post_var))
                     assert str(hgvs_vt) == str(post_var)
-                    query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=automap,
+                    query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=[automap],
                                     primary_assembly=variant.primary_assembly, order=variant.order)
                     validator.batch_list.append(query)
 
@@ -532,7 +530,7 @@ def transcripts_to_gene(variant, validator):
             if 'error' in str(to_g):
                 error = "If the following error message does not address the issue and the problem persists " \
                         "please contact admin: " + to_g
-                variant.warnings += ': ' + error
+                variant.warnings.append(error)
                 logger.warning(error)
                 return True
 
@@ -565,7 +563,7 @@ def transcripts_to_gene(variant, validator):
                                                            'nomenclature:'
             # automapping of variant completed
             automap = variant.pre_RNA_conversion + ' automapped to ' + output
-            variant.warnings += ': ' + caution + ': ' + automap
+            variant.warnings.extend([caution, automap])
 
             # Kill current line and append for re-submission
             # Tag the line so that it is not written out
@@ -573,7 +571,7 @@ def transcripts_to_gene(variant, validator):
             # Set the values and append to batch_list
             hgvs_vt = validator.hp.parse_hgvs_variant(str(query))
             assert str(hgvs_vt) == str(query)
-            query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=automap,
+            query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=[automap],
                             primary_assembly=variant.primary_assembly, order=variant.order)
             validator.batch_list.append(query)
 
@@ -585,7 +583,7 @@ def transcripts_to_gene(variant, validator):
                                                            'nomenclature:'
             # automapping of variant completed
             automap = str(test) + ' automapped to ' + str(query)
-            variant.warnings += ': ' + caution + ': ' + automap
+            variant.warnings.extend([caution, automap])
 
             # Kill current line and append for re-submission
             # Tag the line so that it is not written out
@@ -593,7 +591,7 @@ def transcripts_to_gene(variant, validator):
             # Set the values and append to batch_list
             hgvs_vt = validator.hp.parse_hgvs_variant(str(query))
             assert str(hgvs_vt) == str(query)
-            query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=automap,
+            query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=[automap],
                             primary_assembly=variant.primary_assembly, order=variant.order)
             validator.batch_list.append(query)
 
@@ -609,13 +607,13 @@ def transcripts_to_gene(variant, validator):
             if variant.reftype != ':g.':
                 if caution == '':
                     caution = fn.valstr(pre_valid) + ' automapped to ' + fn.valstr(post_valid)
-                variant.warnings += ': ' + caution
+                variant.warnings.append(caution)
                 logger.warning(caution)
 
         # Apply validation to intronic variant descriptions (should be valid but make sure)
         error = validator.validateHGVS(genomic_validation)
         if error != 'false':
-            variant.warnings += ': ' + error
+            variant.warnings.append(error)
             return True
 
     # v0.1a1 edit
@@ -623,7 +621,7 @@ def transcripts_to_gene(variant, validator):
         if variant.reftype == ':g.':
             if caution == '':
                 caution = fn.valstr(pre_valid) + ' automapped to ' + fn.valstr(post_valid)
-            variant.warnings += ': ' + str(caution)
+            variant.warnings.append(caution)
 
     # COLLECT VARIANT DESCRIPTIONS
     ##############################
@@ -650,7 +648,7 @@ def transcripts_to_gene(variant, validator):
             hgvs_coding = variant.evm._maybe_normalize(hgvs_coding)
             gap_compensation = False
         except hgvs.exceptions.HGVSError as error:
-            variant.warnings += ': ' + str(error)
+            variant.warnings.append(str(error))
             logger.warning(str(error))
             return True
 
@@ -720,7 +718,7 @@ def transcripts_to_gene(variant, validator):
         hgvs_protein = protein_dict['hgvs_protein']
     else:
         error = protein_dict['error']
-        variant.warnings += ': ' + str(error)
+        variant.warnings.append(str(error))
         if error == 'Cannot identify an in-frame Termination codon in the variant mRNA sequence':
             hgvs_protein = protein_dict['hgvs_protein']
         else:
@@ -748,7 +746,7 @@ def transcripts_to_gene(variant, validator):
         try:
             automap = fn.valstr(hgvs_coding) + ' normalized to ' + fn.valstr(hgvs_seek_var)
             hgvs_coding = hgvs_seek_var
-            variant.warnings += ': ' + automap
+            variant.warnings.append(automap)
         except NotImplementedError:
             fn.exceptPass()
         if ori == -1:
@@ -766,7 +764,7 @@ def transcripts_to_gene(variant, validator):
                     error = protein_dict['error']
                     if error == 'Cannot identify an in-frame Termination codon in the variant mRNA sequence':
                         hgvs_protein = protein_dict['hgvs_protein']
-                        variant.warnings += ': ' + str(error)
+                        variant.warnings.append(error)
             except NotImplementedError:
                 fn.exceptPass()
     elif ori == 1:
@@ -797,7 +795,7 @@ def transcripts_to_gene(variant, validator):
                     error = protein_dict['error']
                     if error == 'Cannot identify an in-frame Termination codon in the variant mRNA sequence':
                         hgvs_protein = protein_dict['hgvs_protein']
-                        variant.warnings += ': ' + str(error)
+                        variant.warnings.append(error)
                 # Replace protein description in vars table
         except Exception:
             fn.exceptPass()
@@ -835,10 +833,10 @@ def transcripts_to_gene(variant, validator):
                 validator.vr.validate(hgvs_updated)
 
         updated_transcript_variant = hgvs_updated
-        variant.warnings += ': ' + 'A more recent version of the selected reference sequence ' + hgvs_coding.ac + \
-                            ' is available (' + updated_transcript_variant.ac + ')' + ': ' + \
-                            str(updated_transcript_variant) + ' MUST be fully validated prior to use in reports: ' \
-                            'select_variants=' + fn.valstr(updated_transcript_variant)
+        variant.warnings.append('A more recent version of the selected reference sequence ' + hgvs_coding.ac +
+                                ' is available (' + updated_transcript_variant.ac + ')' + ': ' +
+                                str(updated_transcript_variant) + ' MUST be fully validated prior to use in reports: '
+                                'select_variants=' + fn.valstr(updated_transcript_variant))
 
     variant.coding = str(hgvs_coding)
     variant.genomic_r = str(hgvs_refseq)

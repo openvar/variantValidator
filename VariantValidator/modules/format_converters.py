@@ -80,10 +80,10 @@ def vcf2hgvs_stage1(variant, validator):
             variant.quibble = '-'.join(in_list[1:])
         pre_input = variant.quibble
         vcf_elements = pre_input.split('-')
-        variant.warnings = 'Not stating ALT bases is ambiguous because VCF specification 4.0 would treat ' + \
-                           pre_input + ' as a deletion whereas VCF specification 4.1 onwards would treat ' + \
-                           pre_input + ' as ALT = REF'
-        variant.warnings += ': VariantValidator has output both alternatives'
+        variant.warnings = ['Not stating ALT bases is ambiguous because VCF specification 4.0 would treat ' +
+                                pre_input + ' as a deletion whereas VCF specification 4.1 onwards would treat ' +
+                                pre_input + ' as ALT = REF']
+        variant.warnings.append('VariantValidator has output both alternatives')
         logger.resub('Not stating ALT bases is ambiguous because VCF specification 4.0 would treat ' +
                      pre_input + ' as a deletion whereas VCF specification 4.1 onwards would treat ' + pre_input +
                      ' as ALT = REF. Validator will output both alternatives.')
@@ -150,8 +150,7 @@ def vcf2hgvs_stage2(variant, validator):
                     # Use selected assembly
                     accession = vvChromosomes.to_accession(chr_num, validator.selected_assembly)
                     if accession is None:
-                        variant.warnings += ': ' + chr_num + \
-                                                 ' is not part of genome build ' + validator.selected_assembly
+                        variant.warnings.append(chr_num + ' is not part of genome build ' + validator.selected_assembly)
                         logger.warning(chr_num + ' is not part of genome build ' + validator.selected_assembly)
                         skipvar = True
                 else:
@@ -196,7 +195,7 @@ def vcf2hgvs_stage2(variant, validator):
         error = 'Unable to identify a colon (:) in the variant description %s. A colon is required in HGVS variant ' \
                 'descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. ' \
                 'e.g. :c.' % variant.quibble
-        variant.warnings += ': ' + error
+        variant.warnings.append(error)
         logger.warning(error)
         skipvar = True
 
@@ -243,8 +242,7 @@ def vcf2hgvs_stage3(variant, validator):
                         chr_num = chr_num.replace('CHR', '')  # Use selected assembly
                     accession = vvChromosomes.to_accession(chr_num, validator.selected_assembly)
                     if accession is None:
-                        variant.warnings += ': ' + chr_num + \
-                                               ' is not part of genome build ' + validator.selected_assembly
+                        variant.warnings.append(chr_num + ' is not part of genome build ' + validator.selected_assembly)
                         skipvar = True
                     variant.quibble = str(accession) + ':' + str(position_and_edit)
             except Exception:
@@ -283,8 +281,8 @@ def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version):
                 if validator.select_transcripts != 'all':
                     variant.write = False
                     for transcript in list(select_transcripts_dict_plus_version.keys()):
-                        variant.warnings = 'HGVS variant nomenclature does not allow the use of a gene symbol (' + \
-                                              query_a_symbol + ') in place of a valid reference sequence'
+                        variant.warnings = ['HGVS variant nomenclature does not allow the use of a gene symbol (' +
+                                            query_a_symbol + ') in place of a valid reference sequence']
                         refreshed_description = transcript + ':' + tx_edit
                         query = Variant(variant.original, quibble=refreshed_description,
                                         warnings=variant.warnings, primary_assembly=variant.primary_assembly,
@@ -293,10 +291,10 @@ def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version):
                         logger.resub('HGVS variant nomenclature does not allow the use of a gene symbol (' +
                                      query_a_symbol + ') in place of a valid reference sequence')
                 else:
-                    variant.warnings += ': ' + 'HGVS variant nomenclature does not allow the use of a gene symbol ('\
-                                        + query_a_symbol + ') in place of a valid reference sequence: Re-submit ' + \
-                                        variant.quibble + ' and specify transcripts from the following: ' + \
-                                        'select_transcripts=' + select_from_these_transcripts
+                    variant.warnings.append('HGVS variant nomenclature does not allow the use of a gene symbol ('
+                                            + query_a_symbol + ') in place of a valid reference sequence: Re-submit ' +
+                                            variant.quibble + ' and specify transcripts from the following: ' +
+                                            'select_transcripts=' + select_from_these_transcripts)
                     logger.warning('HGVS variant nomenclature does not allow the use of a gene symbol (' +
                                    query_a_symbol + ') in place of a valid reference sequence: Re-submit ' +
                                    variant.quibble + ' and specify transcripts from the following: ' +
@@ -333,9 +331,9 @@ def refseq_catch(variant, validator, select_transcripts_dict_plus_version):
                     if validator.select_transcripts != 'all':
                         variant.write = False
                         for transcript in list(select_transcripts_dict_plus_version.keys()):
-                            variant.warnings = 'NG_:c.PositionVariation descriptions should not be used unless a ' \
-                                               'transcript reference sequence has also been provided e.g. ' \
-                                               'NG_(NM_):c.PositionVariation'
+                            variant.warnings = ['NG_:c.PositionVariation descriptions should not be used unless a '
+                                                'transcript reference sequence has also been provided e.g. '
+                                                'NG_(NM_):c.PositionVariation']
                             refreshed_description = ref_seq_gene_id + '(' + transcript + ')' + ':' + tx_edit
                             query = Variant(variant.original, quibble=refreshed_description,
                                             warnings=variant.warnings, primary_assembly=variant.primary_assembly,
@@ -346,25 +344,25 @@ def refseq_catch(variant, validator, select_transcripts_dict_plus_version):
                                          'Resubmitting corrected version.')
                             validator.batch_list.append(query)
                     else:
-                        variant.warnings += ': ' + 'A transcript reference sequence has not been provided e.g. ' \
-                                                   'NG_(NM_):c.PositionVariation. Re-submit ' + variant.quibble + \
-                                            ' but also specify transcripts from the following: ' + \
-                                            'select_transcripts=' + select_from_these_transcripts
+                        variant.warnings.append('A transcript reference sequence has not been provided e.g. '
+                                                'NG_(NM_):c.PositionVariation. Re-submit ' + variant.quibble +
+                                                ' but also specify transcripts from the following: ' +
+                                                'select_transcripts=' + select_from_these_transcripts)
                         logger.warning('A transcript reference sequence has not been provided e.g. '
                                        'NG_(NM_):c.PositionVariation. Re-submit ' + variant.quibble + ' but also '
                                        'specify transcripts from the following: select_transcripts=' +
                                        select_from_these_transcripts)
                     skipvar = True
                 else:
-                    variant.warnings += ': ' + 'A transcript reference sequence has not been provided e.g. ' \
-                                               'NG_(NM_):c.PositionVariation'
+                    variant.warnings.append('A transcript reference sequence has not been provided e.g. '
+                                            'NG_(NM_):c.PositionVariation')
                     logger.warning(
                         'A transcript reference sequence has not been provided e.g. NG_(NM_):c.PositionVariation')
                 skipvar = True
             elif variant.quibble.startswith('NC_'):
-                variant.warnings += ': ' + 'A transcript reference sequence has not been provided e.g. ' \
-                                           'NC_(NM_):c.PositionVariation. Unable to predict available transcripts ' \
-                                           'because chromosomal position is not specified'
+                variant.warnings.append('A transcript reference sequence has not been provided e.g. '
+                                        'NC_(NM_):c.PositionVariation. Unable to predict available transcripts '
+                                        'because chromosomal position is not specified')
                 logger.warning(
                     'A transcript reference sequence has not been provided e.g. NC_(NM_):c.PositionVariation. '
                     'Unable to predict available transcripts because chromosomal position is not specified')
@@ -461,8 +459,8 @@ def vcf2hgvs_stage4(variant, validator):
                         alt_list = alts.split(',')
                         # Assemble and re-submit
                         for alt in alt_list:
-                            variant.warnings = 'Multiple ALT sequences detected: ' \
-                                               'auto-submitting all possible combinations'
+                            variant.warnings = ['Multiple ALT sequences detected: '
+                                               'auto-submitting all possible combinations']
                             variant.write = False
                             refreshed_description = header + '>' + alt
                             query = Variant(variant.original, quibble=refreshed_description,
@@ -475,7 +473,7 @@ def vcf2hgvs_stage4(variant, validator):
                         skipvar = True
                     else:
                         error = str(e)
-                        variant.warnings += ': ' + error
+                        variant.warnings.append(error)
                         logger.warning(str(e))
                         skipvar = True
 
@@ -486,12 +484,12 @@ def vcf2hgvs_stage4(variant, validator):
                     if 'Normalization of intronic variants is not supported' in error:
                         not_delins = not_delins
                     else:
-                        variant.warnings += ': ' + str(error)
+                        variant.warnings.append(error)
                         logger.warning(str(e))
                         skipvar = True
                 # Create warning
                 automap = variant.quibble + ' automapped to ' + not_delins
-                variant.warnings += ': ' + automap
+                variant.warnings.append(automap)
                 # Change input to normalized variant
                 variant.quibble = not_delins
         except:
@@ -529,14 +527,14 @@ def indel_catching(variant, validator):
                 if failed.endswith('ins'):
                     issue_link = 'http://varnomen.hgvs.org/recommendations/DNA/variant/insertion/'
                     error = error + ' please refer to ' + issue_link
-                variant.warnings += error
+                variant.warnings.append(error)
                 logger.warning(str(error) + " " + str(e))
                 return True
 
             hgvs_failed.posedit.edit = str(hgvs_failed.posedit.edit).replace(digits, '')
             failed = str(hgvs_failed)
             automap = 'Non HGVS compliant variant description ' + variant.quibble + ' automapped to ' + failed
-            variant.warnings += ': ' + automap
+            variant.warnings.append(automap)
             logger.warning(automap)
             variant.quibble = failed
 
@@ -600,7 +598,7 @@ def allele_parser(variant, validation):
                     else:
                         caution = caution + ': ' + lrg_reference + ':' + variation + ' automapped to ' + \
                                   refseqgene_reference + ':' + variation
-                    variant.warnings += ': ' + str(caution)
+                    variant.warnings.append(caution)
                     logger.warning(str(caution))
             elif re.match(r'^LRG_\d+t\d+:c.', variant.quibble) or re.match(r'^LRG_\d+t\d+:n.', variant.quibble) or \
                     re.match(r'^LRG_\d+t\d+:p.', variant.quibble) or re.match(r'^LRG_\d+t\d+:g.', variant.quibble):
@@ -615,14 +613,14 @@ def allele_parser(variant, validation):
                     else:
                         caution = caution + ': ' + lrg_reference + ':' + variation + ' automapped to ' + \
                                   refseqtranscript_reference + ':' + variation
-                    variant.warnings += ': ' + str(caution)
+                    variant.warnings.append(caution)
                     logger.warning(str(caution))
             else:
                 pass
         try:
             # Submit to allele extraction function
             alleles = validation.hgvs_alleles(variant.quibble, variant.hn)
-            variant.warnings += ': ' + 'Automap has extracted possible variant descriptions'
+            variant.warnings.append('Automap has extracted possible variant descriptions')
             logger.resub('Automap has extracted possible variant descriptions, resubmitting')
             for allele in alleles:
                 query = Variant(variant.original, quibble=allele, warnings=variant.warnings, write=True,
@@ -632,11 +630,11 @@ def allele_parser(variant, validation):
             return True
         except fn.alleleVariantError as e:
             if "Cannot validate sequence of an intronic variant" in str(e):
-                variant.warnings += ': ' + 'Intronic positions not supported for HGVS Allele descriptions'
+                variant.warnings.append('Intronic positions not supported for HGVS Allele descriptions')
                 logger.warning('Intronic positions not supported for HGVS Allele descriptions')
                 return True
             elif "No transcript definition for " in str(e):
-                variant.warnings += ': ' + str(e)
+                variant.warnings.append(str(e))
                 logger.warning(str(e))
                 return True
             else:
@@ -666,7 +664,7 @@ def lrg_to_refseq(variant, validator):
                 variant.hgvs_formatted.ac = refseqtrans_reference
                 variant.set_quibble(str(variant.hgvs_formatted))
                 caution += lrg_reference + ':' + variation + ' automapped to ' + refseqtrans_reference + ':' + variation
-                variant.warnings += ': ' + caution
+                variant.warnings.append(caution)
                 logger.warning(caution)
         elif re.match(r'^LRG_\d+:', variant.quibble):
             lrg_reference, variation = variant.quibble.split(':')
@@ -675,7 +673,7 @@ def lrg_to_refseq(variant, validator):
                 variant.hgvs_formatted.ac = refseqgene_reference
                 variant.set_quibble(str(variant.hgvs_formatted))
                 caution += lrg_reference + ':' + variation + ' automapped to ' + refseqgene_reference + ':' + variation
-                variant.warnings += ': ' + caution
+                variant.warnings.append(caution)
                 logger.warning(caution)
 
 
@@ -693,12 +691,12 @@ def mitochondrial(variant, validator):
             validator.vr.validate(hgvs_mito)
         except hgvs.exceptions.HGVSError as e:
             error = str(e)
-            variant.warnings += ': ' + error
+            variant.warnings.append(error)
             logger.warning(error)
             return True
         except KeyError:
             error = 'Currently unable to validate ' + hgvs_mito.ac + ' sequence variation'
-            variant.warnings += ': ' + error
+            variant.warnings.append(error)
             logger.warning(error)
             return True
         else:
@@ -729,7 +727,7 @@ def proteins(variant, validator):
         except hgvs.exceptions.HGVSError as e:
             error = str(e)
         if error:
-            variant.warnings += ': ' + error
+            variant.warnings.append(error)
             logger.warning(error)
             return True
         else:
@@ -750,7 +748,7 @@ def proteins(variant, validator):
                         hgvs_object) + ' is HGVS compliant and contains a valid reference amino acid description'
                 reason = 'Protein level variant descriptions are not fully supported due to redundancy' \
                          ' in the genetic code'
-                variant.warnings += ': ' + reason + ': ' + error
+                variant.warnings.extend([reason, error])
                 variant.protein = str(hgvs_object)
                 logger.warning(reason + ": " + error)
                 return True
@@ -770,7 +768,7 @@ def rna(variant, validator):
             hgvs_c = validator.va_func.hgvs_r_to_c(hgvs_input)
         except hgvs.exceptions.HGVSDataNotAvailableError as e:
             error = str(e)
-            variant.warnings += ': ' + str(error)
+            variant.warnings.append(error)
             logger.warning(str(error))
             return True
         variant.hgvs_formatted = hgvs_c

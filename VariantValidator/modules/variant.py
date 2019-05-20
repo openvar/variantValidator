@@ -8,7 +8,7 @@ class Variant(object):
     relevant to what kind of variant it is.
     """
 
-    def __init__(self, original, quibble=None, warnings='', write=True, primary_assembly=False, order=False):
+    def __init__(self, original, quibble=None, warnings=None, write=True, primary_assembly=False, order=False):
         self.original = original
         if quibble is None:
             self.quibble = original
@@ -21,7 +21,10 @@ class Variant(object):
         self.pre_RNA_conversion = None
         self.input_parses = None  # quibble as hgvs variant object
 
-        self.warnings = warnings
+        if warnings is None:
+            self.warnings = []
+        else:
+            self.warnings = warnings
         self.description = ''  # hgnc_gene_info variable
         self.coding = ''
         self.coding_g = ''
@@ -53,7 +56,6 @@ class Variant(object):
         self.refseqgene_context_intronic_sequence = None
         self.hgvs_refseqgene_variant = None  # genomic_r but edited
         self.hgvs_predicted_protein_consequence = None
-        self.validation_warnings = None  # warnings but duplicates removed
         self.hgvs_lrg_transcript_variant = None
         self.hgvs_lrg_variant = None  # Same as hgvs_refseqgene_variant but with LRG accession
         self.alt_genomic_loci = None
@@ -184,7 +186,7 @@ class Variant(object):
             'refseqgene_context_intronic_sequence': self.refseqgene_context_intronic_sequence,
             'hgvs_refseqgene_variant': self.hgvs_refseqgene_variant,
             'hgvs_predicted_protein_consequence': self.hgvs_predicted_protein_consequence,
-            'validation_warnings': self.validation_warnings,
+            'validation_warnings': self.process_warnings(),
             'hgvs_lrg_transcript_variant': self.hgvs_lrg_transcript_variant,
             'hgvs_lrg_variant': self.hgvs_lrg_variant,
             'alt_genomic_loci': self.alt_genomic_loci,
@@ -198,4 +200,16 @@ class Variant(object):
         Checks whether the keyword 'obsolete' appears within the validation warnings
         :return:
         """
-        return any('obsolete' in warning for warning in self.validation_warnings)
+        return any('obsolete' in warning for warning in self.warnings)
+
+    def process_warnings(self):
+        refined = []
+        for warning in self.warnings:
+            warning = re.sub('del[GATC][GATC][GATC][GATC]+', 'del', warning)
+            warning.strip()
+            warning = warning.replace("'", "")
+            if warning == '':
+                continue
+            if warning not in refined:
+                refined.append(warning)
+        return refined

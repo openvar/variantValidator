@@ -128,7 +128,7 @@ class Mixin(vvMixinConverters.Mixin):
                         error = 'Submitted variant description contains an invalid character(s) %s at position(s) %s: '\
                                 'Please remove this character and re-submit: A useful search function for ' \
                                 'Unicode characters can be found at https://unicode-search.net/' % (chars, positions)
-                        my_variant.warnings += ': ' + error
+                        my_variant.warnings.append(error)
                         logger.warning(error)
                         continue
 
@@ -136,7 +136,7 @@ class Mixin(vvMixinConverters.Mixin):
                     my_variant.remove_whitespace()
                     if my_variant.quibble != my_variant.original:
                         caution = 'Whitespace removed from variant description %s' % my_variant.original
-                        my_variant.warnings += ': ' + caution
+                        my_variant.warnings.append(caution)
                         logger.info(caution)
 
                     # Set the primary_assembly
@@ -158,8 +158,8 @@ class Mixin(vvMixinConverters.Mixin):
                         else:
                             my_variant.primary_assembly = 'GRCh38'
                             primary_assembly = 'GRCh38'
-                            my_variant.warnings += ': Invalid genome build has been specified. ' \
-                                                   'Automap has selected the default build (GRCh38)'
+                            my_variant.warnings.append('Invalid genome build has been specified. Automap has selected '
+                                                       'the default build (GRCh38)')
                             logger.warning(
                                 'Invalid genome build has been specified. Automap has selected the '
                                 'default build ' + my_variant.primary_assembly)
@@ -181,7 +181,7 @@ class Mixin(vvMixinConverters.Mixin):
                                     '<type> and <position> in the expected pattern <accession>:<type>.<position>'
                         else:
                             error = 'Variant description ' + my_variant.quibble + ' is not in an accepted format'
-                        my_variant.warnings += ': ' + error
+                        my_variant.warnings.append(error)
                         logger.warning(error)
                         continue
 
@@ -198,7 +198,7 @@ class Mixin(vvMixinConverters.Mixin):
                     # Conversions are not currently supported. The HGVS format for conversions
                     # is rarely seen wrt genomic sequencing data and needs to be re-evaluated
                     if 'con' in my_variant.quibble:
-                        my_variant.warnings += ': ' + 'Gene conversions currently unsupported'
+                        my_variant.warnings.append('Gene conversions currently unsupported')
                         logger.warning('Gene conversions currently unsupported')
                         continue
 
@@ -216,7 +216,7 @@ class Mixin(vvMixinConverters.Mixin):
                         input_parses = self.hp.parse_hgvs_variant(formatted_variant)
                         my_variant.hgvs_formatted = input_parses
                     except hgvs.exceptions.HGVSError as e:
-                        my_variant.warnings += ': ' + str(e)
+                        my_variant.warnings.append(str(e))
                         logger.warning(str(e))
                         continue
 
@@ -250,12 +250,12 @@ class Mixin(vvMixinConverters.Mixin):
                         if my_variant.refsource == 'ENS':
                             error = 'Unable to map ' + my_variant.hgvs_formatted.ac + \
                                     ' to an equivalent RefSeq transcript'
-                            my_variant.warnings += ': ' + error
+                            my_variant.warnings.append(error)
                             logger.warning(error)
                             continue
                         else:
-                            my_variant.warnings += ': ' + str(trap_ens_in) + ' automapped to equivalent ' \
-                                                                             'RefSeq transcript ' + my_variant.quibble
+                            my_variant.warnings.append(str(trap_ens_in) + ' automapped to equivalent RefSeq transcript '
+                                                       + my_variant.quibble)
                             logger.warning(str(trap_ens_in) + ' automapped to equivalent RefSeq '
                                                               'transcript ' + my_variant.quibble)
                     logger.trace("HVGS acceptance test passed", my_variant)
@@ -300,7 +300,7 @@ class Mixin(vvMixinConverters.Mixin):
                     else:
                         error = 'Mapping of ' + formatted_variant + ' to genome assembly ' + \
                                 primary_assembly + ' is not supported'
-                        my_variant.warnings += ': ' + error
+                        my_variant.warnings.append(error)
                         logger.warning(error)
                         continue
 
@@ -321,13 +321,13 @@ class Mixin(vvMixinConverters.Mixin):
                         else:
                             if to_n.posedit.pos.end.base < to_n.posedit.pos.start.base:
                                 error = 'Interval end position < interval start position '
-                                my_variant.warnings += ': ' + error
+                                my_variant.warnings.append(error)
                                 logger.warning(error)
                                 continue
                     elif my_variant.hgvs_formatted.posedit.pos.end.base < my_variant.hgvs_formatted.posedit.pos.start.base:
                         error = 'Interval end position ' + str(my_variant.hgvs_formatted.posedit.pos.end.base) + \
                                 ' < interval start position ' + str(my_variant.hgvs_formatted.posedit.pos.start.base)
-                        my_variant.warnings += ': ' + error
+                        my_variant.warnings.append(error)
                         logger.warning(error)
                         continue
 
@@ -335,7 +335,7 @@ class Mixin(vvMixinConverters.Mixin):
                     is_version = re.compile(r"\d\.\d")
                     if my_variant.refsource == 'RefSeq' and not is_version.search(str(my_variant.hgvs_formatted)):
                         error = 'RefSeq variant accession numbers MUST include a version number'
-                        my_variant.warnings += ': ' + str(error)
+                        my_variant.warnings.append(error)
                         continue
                     logger.trace("HVGS interval/version mapping complete", my_variant)
 
@@ -402,7 +402,7 @@ class Mixin(vvMixinConverters.Mixin):
                 except Exception:
                     my_variant.output_type_flag = 'error'
                     error = 'Validation error'
-                    my_variant.warnings = str(error)
+                    my_variant.warnings.append(error)
                     exc_type, exc_value, last_traceback = sys.exc_info()
                     te = traceback.format_exc()
                     tbk = [str(exc_type), str(exc_value), str(te)]
@@ -421,12 +421,6 @@ class Mixin(vvMixinConverters.Mixin):
                 if not variant.write:
                     continue
 
-                # warngins
-                warnings = variant.warnings
-                warnings = re.sub('del[GATC][GATC][GATC][GATC]+', 'del', warnings)
-                warnings = re.sub('^: ', '', warnings)
-                warnings = re.sub('::', ':', warnings)
-
                 # Genomic sequence variation
                 genomic_variant = variant.genomic_g
                 hgvs_genomic_variant = genomic_variant
@@ -443,7 +437,7 @@ class Mixin(vvMixinConverters.Mixin):
                 refseqgene_variant = variant.genomic_r
                 refseqgene_variant = refseqgene_variant.strip()
                 if 'RefSeqGene' in refseqgene_variant or refseqgene_variant == '':
-                    warnings = warnings + ': ' + refseqgene_variant
+                    variant.warnings.append(refseqgene_variant)
                     refseqgene_variant = ''
                     lrg_variant = ''
                     hgvs_refseqgene_variant = 'false'
@@ -457,8 +451,8 @@ class Mixin(vvMixinConverters.Mixin):
                         hgvs_lrg.ac = rsg_ac[0]
                         lrg_variant = fn.valstr(hgvs_lrg)
                         if rsg_ac[1] != 'public':
-                            warnings = warnings + ': The current status of ' + str(
-                                hgvs_lrg.ac) + ' is pending therefore changes may be made to the LRG reference sequence'
+                            variant.warnings.append('The current status of ' + str(hgvs_lrg.ac) + ' is pending '
+                                                    'therefore changes may be made to the LRG reference sequence')
 
                 # Transcript sequence variation
                 tx_variant = variant.coding
@@ -640,20 +634,10 @@ class Mixin(vvMixinConverters.Mixin):
                 # Warn not directly mapped to specified genome build
                 if genomic_accession != '':
                     if primary_assembly.lower() not in list(primary_genomic_dicts.keys()):
-                        warnings = warnings + ': ' + str(
-                            variant.hgvs_coding) + ' cannot be mapped directly to genome build ' + primary_assembly + \
-                            ': See alternative genomic loci or alternative genome builds for aligned genomic positions'
-
-                warn_list = warnings.split(': ')
-                warnings_out = []
-                for warning in warn_list:
-                    warning.strip()
-                    warning = warning.replace("'", "")
-                    if warning == '':
-                        continue
-                    if warning not in warnings_out:
-                        # Remove duplicate elements but maintain the order
-                        warnings_out.append(warning)
+                        variant.warnings.extend([
+                            str(variant.hgvs_coding) + ' cannot be mapped directly to genome build ' + primary_assembly,
+                            'See alternative genomic loci or alternative genome builds for aligned genomic positions'
+                        ])
 
                 # Ensure Variants have had the refs removed.
                 # if not hasattr(posedit, refseqgene_variant):
@@ -683,7 +667,6 @@ class Mixin(vvMixinConverters.Mixin):
                 variant.refseqgene_context_intronic_sequence = refseqgene_context_transcript_variant
                 variant.hgvs_refseqgene_variant = refseqgene_variant
                 variant.hgvs_predicted_protein_consequence = predicted_protein_variant_dict
-                variant.validation_warnings = warnings_out
                 variant.hgvs_lrg_transcript_variant = lrg_transcript_variant
                 variant.hgvs_lrg_variant = lrg_variant
                 variant.alt_genomic_loci = alt_genomic_dicts
@@ -721,7 +704,7 @@ class Mixin(vvMixinConverters.Mixin):
             error = 'Please inform UTA admin of the following error: ' + str(e)
             reason = "VariantValidator cannot recover information for transcript " + str(
                 hgvs_vt.ac) + ' because it is not available in the Universal Transcript Archive'
-            variant.warnings += ': ' + str(reason)
+            variant.warnings.append(reason)
             logger.warning(str(reason) + ": " + str(error))
             return True
 
@@ -741,8 +724,7 @@ class Mixin(vvMixinConverters.Mixin):
             if 'error' in entry:
                 # Open a hgvs exception log file in append mode
                 error = entry['description']
-                variant.warnings += ': ' + str(
-                    error) + ': A Database error occurred, please contact admin'
+                variant.warnings.extend([str(error), 'A Database error occurred, please contact admin'])
                 logger.warning(str(error) + ": A Database error occurred, please contact admin")
                 return True
 
@@ -754,13 +736,13 @@ class Mixin(vvMixinConverters.Mixin):
                         entry = self.db.data_add(accession=accession, validator=self)
                     except hgvs.exceptions.HGVSError:
                         error = 'Transcript %s is not currently supported' % accession
-                        variant.warnings += ': ' + error
+                        variant.warnings.append(error)
                         logger.warning(error)
                         return True
                     except Exception:
                         error = 'Unable to assign transcript identity records to ' + accession + \
                                 ', potentially an obsolete record :'
-                        variant.warnings += ': ' + error
+                        variant.warnings.append(error)
                         logger.warning(error)
                         return True
                     variant.description = entry['description']
@@ -774,7 +756,7 @@ class Mixin(vvMixinConverters.Mixin):
                     logger.warning(str(e))
                     error = 'Unable to assign transcript identity records to ' + accession + \
                             ', potentially an obsolete record :'
-                    variant.warnings += ': ' + error
+                    variant.warnings.append(error)
                     logger.warning(error)
                     return True
                 variant.description = entry['description']
@@ -783,7 +765,7 @@ class Mixin(vvMixinConverters.Mixin):
             else:
                 # Open a hgvs exception log file in append mode
                 error = 'Unknown error type'
-                variant.warnings += ': ' + error + ': A Database error occurred, please contact admin'
+                variant.warnings.extend([error, ': A Database error occurred, please contact admin'])
                 logger.warning(error)
                 return True
 
@@ -801,8 +783,7 @@ class Mixin(vvMixinConverters.Mixin):
             if 'error' in entry:
                 # Open a hgvs exception log file in append mode
                 error = entry['description']
-                variant.warnings += ': ' + str(
-                    error) + ': A Database error occurred, please contact admin'
+                variant.warnings.extend([str(error), ': A Database error occurred, please contact admin'])
                 logger.warning(str(error))
                 return True
 
@@ -822,7 +803,7 @@ class Mixin(vvMixinConverters.Mixin):
                     logger.warning(str(e))
                     error = 'Unable to assign transcript identity records to ' + accession + \
                             ', potentially an obsolete record :'
-                    variant.warnings += ': ' + error
+                    variant.warnings.append(error)
                     logger.warning(error)
                     return True
                 variant.description = entry['description']
@@ -831,7 +812,7 @@ class Mixin(vvMixinConverters.Mixin):
             else:
                 # Open a hgvs exception log file in append mode
                 error = 'Unknown error type'
-                variant.warnings += ': ' + error + ': A Database error occurred, please contact admin'
+                variant.warnings.extend([error, ': A Database error occurred, please contact admin'])
                 logger.warning(error)
                 return True
         return False

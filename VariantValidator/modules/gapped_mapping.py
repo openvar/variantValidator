@@ -947,7 +947,7 @@ class GapMapper(object):
             self.auto_info = self.auto_info + '\nCaution should be used when reporting the displayed variant ' \
                                               'descriptions: If you are unsure, please contact admin'
             self.auto_info = self.auto_info.replace('\n', ': ')
-            self.variant.warnings += ': ' + self.auto_info
+            self.variant.warnings.append(self.auto_info)
             logger.warning(self.auto_info)
         # Normailse hgvs_genomic
         try:
