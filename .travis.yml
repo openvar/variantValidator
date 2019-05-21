@@ -25,14 +25,6 @@ before_install:
   # Increase size of database drive
   - sudo mount -o remount,size=50% /var/ramfs
 
-  # Install Miniconda
-
-  - wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda3.sh
-  - bash miniconda3.sh -b -p "$HOME"/miniconda3
-  - echo . "$HOME"/miniconda3/etc/profile.d/conda.sh >> "$HOME"/.bashrc
-  - source "$HOME"/.bashrc
-  - conda config --set always_yes yes
-
   # Set up the databases - install seqrepo and UTA
 
   - mysql -e 'CREATE DATABASE validator;'
@@ -47,17 +39,8 @@ before_install:
 
 install:
 
-  # We just set up a conda environment with the right Python version.
-
-  - sed -i -E 's/(python=)(.*)/\1'$TRAVIS_PYTHON_VERSION'/' environment.yml
-  - travis_retry conda env create -f environment.yml
-  - conda activate vvenv
-
   # Test dependencies
-  - conda install pytest
-  - pip install pytest-cov
-  - pip install codecov
-
+  - pip install -r requirements_dev.txt
   - pip install .
 
   # Set up validator database
