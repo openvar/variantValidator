@@ -930,7 +930,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                 edit_pass = re.compile('_\d+$')
                 edit_fail = re.compile('\d+$')
                 if edit_fail.search(input):
-                    if edit_pass.search(input):
+                    if edit_pass.search(input) or 'fs' in input:
                         pass
                     else:
                         error = 'false'
