@@ -1,3 +1,5 @@
+#! /usr/bin/env python
+
 from VariantValidator import update_vv_db
 import argparse
 

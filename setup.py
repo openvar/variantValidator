@@ -8,7 +8,7 @@ setup(
     version=open('VERSION.txt').read().strip(),
     description='API for accurate, mapping and formatting of sequence variants using HGVS nomenclature',
     long_description=open('README.md').read(),
-    url='',
+    url='https://variantvalidator.org',
     author='Peter J. Causey-Freeman',
     author_email='pjf9@leicester.ac.uk',
     packages=['VariantValidator', 'VariantValidator.modules'],
@@ -29,7 +29,12 @@ setup(
         # Specify the Python versions
         'Programming Language :: Python :: 3.6',
     ],
-
+    scripts=[
+        'bin/update_vdb.py',
+    ],
+    data_files=[
+        ('configuration', ['configuration/default.ini', 'configuration/empty_vv_db.sql'])
+    ],
     # What does your project relate to?
     keywords=[
         "bioinformatics",

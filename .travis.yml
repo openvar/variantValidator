@@ -62,7 +62,7 @@ install:
 
   # Set up validator database
   - mysql validator < configuration/empty_vv_db.sql
-  - python bin/update_db.py
+  - python bin/update_vdb.py
   - df -h
 
 script:
