@@ -69,5 +69,5 @@ script:
 
   - pytest --cov-report=term --cov=VariantValidator/ # will run all tests in the package
 
-after_success:
+after_script:
   - codecov
