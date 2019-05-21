@@ -5,13 +5,13 @@ from setuptools import setup, find_packages
 
 setup(
     name='VariantValidator',
-    version='0.9',
+    version=open('VERSION.txt').read().strip(),
     description='API for accurate, mapping and formatting of sequence variants using HGVS nomenclature',
     long_description=open('README.md').read(),
     url='',
     author='Peter J. Causey-Freeman',
     author_email='pjf9@leicester.ac.uk',
-    packages=['VariantValidator','VariantValidator.modules'],
+    packages=['VariantValidator', 'VariantValidator.modules'],
     include_package_data=True,
     license="GNU AFFERO GENERAL PUBLIC LICENSE, Version 3 (https://www.gnu.org/licenses/agpl-3.0.en.html)",
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
@@ -27,35 +27,33 @@ setup(
         'Topic :: Software Development :: Build Tools',
 
         # Specify the Python versions
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.6',
     ],
- 
-    # What does your project relate to?
-      keywords=[
-          "bioinformatics",
-          "computational biology",
-          "genome variants",
-          "genome variation",
-          "genomic variants",
-          "genomic variation",
-          "genomics",
-          "hgvs",
-          "HGVS",
-          "sequencevariants",
-      ],
 
-	# List run-time dependencies here.  These will be installed by pip when the project is installed.
+    # What does your project relate to?
+    keywords=[
+        "bioinformatics",
+        "computational biology",
+        "genome variants",
+        "genome variation",
+        "genomic variants",
+        "genomic variation",
+        "genomics",
+        "hgvs",
+        "HGVS",
+        "sequencevariants",
+    ],
+
+    # List run-time dependencies here.  These will be installed by pip when the project is installed.
     install_requires=[
-        "hgvs == 1.1.3", # This will install BioPython
-		"biocommons.seqrepo >= 0.3.5",
-		"httplib2 >= 0.9.0",
-		"configparser >= 3.5.0",
-		"pyliftover >= 0.3",
-		"biotools >= 0.3.0",
-		# "mysql_connector >= 2.1.4",  Required but is OS specific. https://dev.mysql.com/downloads/connector/python/
+        "hgvs == 1.1.3",  # This will install BioPython
+        "biocommons.seqrepo >= 0.3.5",
+        "httplib2 >= 0.9.0",
+        "configparser >= 3.5.0",
+        "pyliftover >= 0.3",
+        "biotools >= 0.3.0",
     ],
 )
-
 
 # <LICENSE>
 # Copyright (C) 2018  Peter Causey-Freeman, University of Leicester
