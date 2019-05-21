@@ -5,6 +5,6 @@ configparser>=3.5.0
 pyliftover>=0.3
 biotools>=0.3.0
 mysql-connector-python
-pytest
+pytest>=3.6
 pytest-cov
 codecov
