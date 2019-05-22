@@ -1,4 +1,5 @@
 from . import configure
+from .version import __version__
 
 from .variantValidator import Validator
 

@@ -21,6 +21,7 @@ from .vvDatabase import vvDatabase
 from .vvLogging import logger
 from . import vvFunctions as fn
 from VariantValidator.configure import CONFIG_DIR
+from VariantValidator.version import __version__
 
 
 class Mixin:
@@ -100,7 +101,6 @@ class Mixin:
         #Create database access objects
         self.db = vvDatabase(self.dbConfig)
         # Set up versions
-        __version__ = config["variantValidator"]['version']
         self.version = __version__
         if re.match(r'^\d+\.\d+\.\d+$', __version__) is not None:
             self.releasedVersion = True
