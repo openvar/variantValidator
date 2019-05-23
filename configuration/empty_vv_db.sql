@@ -23,10 +23,10 @@ DROP TABLE IF EXISTS `LRG_RSG_lookup`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `LRG_RSG_lookup` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `lrgID` varchar(10) NOT NULL DEFAULT '',
-  `hgncSymbol` varchar(10) NOT NULL,
-  `RefSeqGeneID` varchar(15) NOT NULL DEFAULT '',
+  `id` int(25) unsigned NOT NULL AUTO_INCREMENT,
+  `lrgID` varchar(25) NOT NULL DEFAULT '',
+  `hgncSymbol` varchar(25) NOT NULL,
+  `RefSeqGeneID` varchar(25) NOT NULL DEFAULT '',
   `status` text NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2092 DEFAULT CHARSET=utf8;
@@ -40,9 +40,9 @@ DROP TABLE IF EXISTS `LRG_proteins`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `LRG_proteins` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `LRGproteinID` varchar(10) DEFAULT NULL,
-  `RefSeqProteinID` varchar(15) DEFAULT NULL,
+  `id` int(25) unsigned NOT NULL AUTO_INCREMENT,
+  `LRGproteinID` varchar(25) DEFAULT NULL,
+  `RefSeqProteinID` varchar(25) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1381 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -55,9 +55,9 @@ DROP TABLE IF EXISTS `LRG_transcripts`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `LRG_transcripts` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `LRGtranscriptID` varchar(10) NOT NULL DEFAULT '',
-  `RefSeqTranscriptID` varchar(15) NOT NULL DEFAULT '',
+  `id` int(25) unsigned NOT NULL AUTO_INCREMENT,
+  `LRGtranscriptID` varchar(25) NOT NULL DEFAULT '',
+  `RefSeqTranscriptID` varchar(25) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2607 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
