@@ -153,7 +153,7 @@ class Mixin(vvMixinConverters.Mixin):
                             selected_assembly = selected_assembly.replace('H', 'h')
                             primary_assembly = selected_assembly
                         # Catch invalid genome build
-                        if primary_assembly in self.genome_builds:
+                        if primary_assembly in self.genome_builds or primary_assembly == 'hg38':
                             my_variant.primary_assembly = primary_assembly
                         else:
                             my_variant.primary_assembly = 'GRCh38'
