@@ -239,7 +239,15 @@ class GapMapper(object):
                             rn_tx_hgvs_not_delins.posedit.edit.ref)
                         self.disparity_deletion_in = ['transcript', gap_length]
                     else:
-                        hgvs_stash_t = self.validator.vm.g_to_t(stash_hgvs_not_delins, saved_hgvs_coding.ac)
+                        # store stash_hgvs_not_delins for restorstion after error below
+                        restore_stash_hgvs_not_delins = copy.copy(stash_hgvs_not_delins)
+                        try:
+                            hgvs_stash_t = self.validator.vm.g_to_t(stash_hgvs_not_delins, saved_hgvs_coding.ac)
+                        except hgvs.exceptions.HGVSError as e:
+                            if 'bounds' in str(e):
+                                stash_hgvs_not_delins = copy.copy(stored_hgvs_not_delins)
+                                hgvs_stash_t = self.validator.vm.g_to_t(stash_hgvs_not_delins, saved_hgvs_coding.ac)
+
                         if len(stash_hgvs_not_delins.posedit.edit.ref) > len(hgvs_stash_t.posedit.edit.ref):
                             try:
                                 self.variant.hn.normalize(hgvs_stash_t)
@@ -262,6 +270,9 @@ class GapMapper(object):
                                 self.tx_hgvs_not_delins = hgvs_stash_t
                             hgvs_not_delins = stash_hgvs_not_delins
                             self.hgvs_genomic_5pr = stash_hgvs_not_delins
+
+                        # Restore stash_hgvs_not_delins
+                        stash_hgvs_not_delins = restore_stash_hgvs_not_delins
 
                 # Final sanity checks
                 try:
