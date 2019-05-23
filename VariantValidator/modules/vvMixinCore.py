@@ -554,6 +554,10 @@ class Mixin(vvMixinConverters.Mixin):
                 primary_genomic_dicts = {}
 
                 for alt_gen_var in multi_gen_vars:
+                    try:
+                        alt_gen_var = variant.hn.normalize(alt_gen_var)
+                    except hgvs.exceptions.HGVSInvalidVariantError:
+                        continue
                     for build in self.genome_builds:
                         test = vvChromosomes.supported_for_mapping(alt_gen_var.ac, build)
                         if test == 'true':
