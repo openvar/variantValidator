@@ -2229,6 +2229,12 @@ class GapMapper(object):
                 query_genomic = self.variant.hn.normalize(hgvs_genomic)
             except:
                 query_genomic = hgvs_genomic
+
+        # Normalise intronic, if called with query_genomic
+        if with_query_genomic:
+            if hgvs_coding.posedit.pos.start.offset != 0:
+                hgvs_coding = self.variant.evm.g_to_t(query_genomic, hgvs_coding.ac)
+
         # Map to the transcript and test for movement
         try:
             hgvs_seek_var = self.variant.evm.g_to_t(query_genomic, hgvs_coding.ac)
@@ -2236,7 +2242,7 @@ class GapMapper(object):
             hgvs_seek_var = hgvs_coding
 
         if with_query_genomic:
-            return hgvs_seek_var, query_genomic
+            return hgvs_seek_var, query_genomic, hgvs_coding
 
         return hgvs_seek_var
 

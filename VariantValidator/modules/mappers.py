@@ -732,7 +732,7 @@ def transcripts_to_gene(variant, validator):
 
     # Look for normalized variant options that do not match hgvs_coding
     # boundary crossing normalization
-    hgvs_seek_var, query_genomic = gap_mapper.get_hgvs_seek_var(hgvs_genomic, hgvs_coding,
+    hgvs_seek_var, query_genomic, hgvs_coding = gap_mapper.get_hgvs_seek_var(hgvs_genomic, hgvs_coding,
                                                                 ori=ori, with_query_genomic=True)
 
     if hgvs_coding.posedit.edit.type != hgvs_seek_var.posedit.edit.type:
