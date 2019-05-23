@@ -1820,7 +1820,14 @@ class Mixin(vvMixinInit.Mixin):
                     rev_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic)
                     # map back to coding
                     variant = evm.g_to_t(rev_hgvs_genomic, tx_ac)
-            code_var.append(str(variant))
+            try:
+                self.hp.parse_hgvs_variant(str(variant))
+            except hgvs.exceptions.HGVSError:
+                continue
+            except TypeError:
+                continue
+            else:
+                code_var.append(str(variant))
         return code_var
 
     def validateHGVS(self, input):
