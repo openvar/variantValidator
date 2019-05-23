@@ -31,7 +31,8 @@ setup(
     ],
     scripts=[
         'bin/update_vdb.py',
-        'bin/variant_validator.py'
+        'bin/variant_validator.py',
+        'bin/vv_configure.py'
     ],
     data_files=[
         ('configuration', ['configuration/default.ini', 'configuration/empty_vv_db.sql'])

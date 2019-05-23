@@ -1,8 +1,7 @@
 import os
 import shutil
 import configparser
-
-CONFIG_DIR = os.path.join(os.path.expanduser('~'), '.variantvalidator')
+from .settings import CONFIG_DIR
 
 
 def read_configuration():
@@ -34,10 +33,10 @@ else:
     print("*-----------------------------*")
     print("| Welcome to VariantValidator |")
     print("*-----------------------------*")
-    shutil.copyfile(os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'configuration', 'default.ini'), CONFIG_DIR)
+    shutil.copyfile(os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'configuration',
+                                 'default.ini'), CONFIG_DIR)
     print("A configuration file has been copied into your home directory (%s)." % CONFIG_DIR)
     print("Please edit this file with your database connection settings prior to continuing.")
     print("Items that must be changed are highlighted in capitals.")
     print()
     raise SystemExit
-
