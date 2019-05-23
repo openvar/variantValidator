@@ -20,7 +20,7 @@ import copy
 from .vvDatabase import vvDatabase
 from .vvLogging import logger
 from . import vvFunctions as fn
-from VariantValidator.configure import CONFIG_DIR
+from VariantValidator.settings import CONFIG_DIR
 from VariantValidator.version import __version__
 
 
