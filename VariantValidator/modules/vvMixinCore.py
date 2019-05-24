@@ -560,7 +560,7 @@ class Mixin(vvMixinConverters.Mixin):
                         continue
                     for build in self.genome_builds:
                         test = vvChromosomes.supported_for_mapping(alt_gen_var.ac, build)
-                        if test == 'true':
+                        if test:
                             try:
                                 vcf_dict = vvHGVS.report_hgvs2vcf(alt_gen_var, build, variant.reverse_normalizer,
                                                                   self.sf)

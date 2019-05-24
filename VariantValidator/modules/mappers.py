@@ -110,7 +110,7 @@ def gene_to_transcripts(variant, validator):
         # Chromosome build is not supported or intergenic???
         else:
             sfm = vvChromosomes.supported_for_mapping(variant.hgvs_genomic.ac, variant.primary_assembly)
-            if sfm == 'true':
+            if sfm:
                 try:
                     validator.vr.validate(variant.hgvs_genomic)
                 except hgvs.exceptions.HGVSError as e:
