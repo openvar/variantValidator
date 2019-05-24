@@ -13,7 +13,7 @@ import hgvs.parser
 import hgvs.variantmapper
 import hgvs.sequencevariant
 from . import vvMixinInit
-from . import vvChromosomes
+from . import seq_data
 from . import vvHGVS
 from urllib.parse import urlparse
 import httplib2 as http
@@ -205,7 +205,7 @@ class Mixin(vvMixinInit.Mixin):
             utilise_gap_code = False
         else:
             # If the gene symbol is not in the list, the value False will be returned
-            utilise_gap_code = vvChromosomes.gap_black_list(gene_symbol)
+            utilise_gap_code = seq_data.gap_black_list(gene_symbol)
         # Warn gap code in use
         logger.warning("gap_compensation_myevm = " + str(utilise_gap_code))
 
@@ -349,7 +349,7 @@ class Mixin(vvMixinInit.Mixin):
                 if re.match('blat', option[2]):
                     continue
                 if re.match('NC_', option[1]):
-                    chr_num = vvChromosomes.supported_for_mapping(str(option[1]), primary_assembly)
+                    chr_num = seq_data.supported_for_mapping(str(option[1]), primary_assembly)
                     if chr_num != 'false':
                         try:
                             hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
@@ -368,7 +368,7 @@ class Mixin(vvMixinInit.Mixin):
                     if re.match('blat', option[2]):
                         continue
                     if re.match('NC_', option[1]):
-                        chr_num = vvChromosomes.supported_for_mapping(str(option[1]), primary_assembly)
+                        chr_num = seq_data.supported_for_mapping(str(option[1]), primary_assembly)
                         if chr_num == 'false':
                             try:
                                 hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
@@ -388,7 +388,7 @@ class Mixin(vvMixinInit.Mixin):
                         if re.match('blat', option[2]):
                             continue
                         if re.match('NT_', option[1]):
-                            chr_num = vvChromosomes.supported_for_mapping(str(option[1]), primary_assembly)
+                            chr_num = seq_data.supported_for_mapping(str(option[1]), primary_assembly)
                             if chr_num != 'false':
                                 try:
                                     hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
@@ -405,8 +405,8 @@ class Mixin(vvMixinInit.Mixin):
                             if re.match('blat', option[2]):
                                 continue
                             if re.match('NT_', option[1]):
-                                chr_num = vvChromosomes.supported_for_mapping(str(option[1]),
-                                                                                            primary_assembly)
+                                chr_num = seq_data.supported_for_mapping(str(option[1]),
+                                                                         primary_assembly)
                                 if chr_num == 'false':
                                     try:
                                         hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
@@ -424,8 +424,8 @@ class Mixin(vvMixinInit.Mixin):
                                 if re.match('blat', option[2]):
                                     continue
                                 if re.match('NW_', option[1]):
-                                    chr_num = vvChromosomes.supported_for_mapping(str(option[1]),
-                                                                                                primary_assembly)
+                                    chr_num = seq_data.supported_for_mapping(str(option[1]),
+                                                                             primary_assembly)
                                     if chr_num != 'false':
                                         try:
                                             hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
@@ -442,8 +442,8 @@ class Mixin(vvMixinInit.Mixin):
                                     if re.match('blat', option[2]):
                                         continue
                                     if re.match('NW_', option[1]):
-                                        chr_num = vvChromosomes.supported_for_mapping(str(option[1]),
-                                                                                                    primary_assembly)
+                                        chr_num = seq_data.supported_for_mapping(str(option[1]),
+                                                                                 primary_assembly)
                                         if chr_num == 'false':
                                             try:
                                                 hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
@@ -887,7 +887,7 @@ class Mixin(vvMixinInit.Mixin):
                 if re.match('blat', option[2]):
                     continue
                 if re.match('NC_', option[1]):
-                    chr_num = vvChromosomes.supported_for_mapping(str(option[1]), primary_assembly)
+                    chr_num = seq_data.supported_for_mapping(str(option[1]), primary_assembly)
                     if chr_num != 'false':
                         try:
                             hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
@@ -906,7 +906,7 @@ class Mixin(vvMixinInit.Mixin):
                     if re.match('blat', option[2]):
                         continue
                     if re.match('NC_', option[1]):
-                        chr_num = vvChromosomes.supported_for_mapping(str(option[1]), primary_assembly)
+                        chr_num = seq_data.supported_for_mapping(str(option[1]), primary_assembly)
                         if chr_num != 'false':
                             try:
                                 hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
@@ -925,7 +925,7 @@ class Mixin(vvMixinInit.Mixin):
                         if re.match('blat', option[2]):
                             continue
                         if re.match('NC_', option[1]):
-                            chr_num = vvChromosomes.supported_for_mapping(str(option[1]), primary_assembly)
+                            chr_num = seq_data.supported_for_mapping(str(option[1]), primary_assembly)
                             if chr_num == 'false':
                                 try:
                                     hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
@@ -946,8 +946,8 @@ class Mixin(vvMixinInit.Mixin):
                             if re.match('blat', option[2]):
                                 continue
                             if re.match('NT_', option[1]):
-                                chr_num = vvChromosomes.supported_for_mapping(str(option[1]),
-                                                                                            primary_assembly)
+                                chr_num = seq_data.supported_for_mapping(str(option[1]),
+                                                                         primary_assembly)
                                 if chr_num != 'false':
                                     try:
                                         hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
@@ -965,8 +965,8 @@ class Mixin(vvMixinInit.Mixin):
                                 if re.match('blat', option[2]):
                                     continue
                                 if re.match('NT_', option[1]):
-                                    chr_num = vvChromosomes.supported_for_mapping(str(option[1]),
-                                                                                                primary_assembly)
+                                    chr_num = seq_data.supported_for_mapping(str(option[1]),
+                                                                             primary_assembly)
                                     if chr_num == 'false':
                                         try:
                                             hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
@@ -985,8 +985,8 @@ class Mixin(vvMixinInit.Mixin):
                                     if re.match('blat', option[2]):
                                         continue
                                     if re.match('NW_', option[1]):
-                                        chr_num = vvChromosomes.supported_for_mapping(str(option[1]),
-                                                                                                    primary_assembly)
+                                        chr_num = seq_data.supported_for_mapping(str(option[1]),
+                                                                                 primary_assembly)
                                         if chr_num != 'false':
                                             try:
                                                 hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
@@ -1004,8 +1004,8 @@ class Mixin(vvMixinInit.Mixin):
                                         if re.match('blat', option[2]):
                                             continue
                                         if re.match('NW_', option[1]):
-                                            chr_num = vvChromosomes.supported_for_mapping(str(option[1]),
-                                                                                                        primary_assembly)
+                                            chr_num = seq_data.supported_for_mapping(str(option[1]),
+                                                                                     primary_assembly)
                                             if chr_num == 'false':
                                                 try:
                                                     hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
@@ -1089,7 +1089,7 @@ class Mixin(vvMixinInit.Mixin):
             utilise_gap_code = False
         else:
             # If the gene symbol is not in the list, the value False will be returned
-            utilise_gap_code = vvChromosomes.gap_black_list(gene_symbol)
+            utilise_gap_code = seq_data.gap_black_list(gene_symbol)
         # Warn gap code in use
         logger.warning("gap_compensation_mvm = " + str(utilise_gap_code))
 

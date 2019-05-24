@@ -3,7 +3,7 @@ import hgvs.exceptions
 import copy
 from .vvLogging import logger
 from .variant import Variant
-from . import vvChromosomes
+from . import seq_data
 from . import vvFunctions as fn
 
 
@@ -148,7 +148,7 @@ def vcf2hgvs_stage2(variant, validator):
                     if re.match('CHR', chr_num):
                         chr_num = chr_num.replace('CHR', '')
                     # Use selected assembly
-                    accession = vvChromosomes.to_accession(chr_num, validator.selected_assembly)
+                    accession = seq_data.to_accession(chr_num, validator.selected_assembly)
                     if accession is None:
                         variant.warnings.append(chr_num + ' is not part of genome build ' + validator.selected_assembly)
                         logger.warning(chr_num + ' is not part of genome build ' + validator.selected_assembly)
@@ -240,7 +240,7 @@ def vcf2hgvs_stage3(variant, validator):
                     chr_num = chr_num.upper().strip()
                     if re.match('CHR', chr_num):
                         chr_num = chr_num.replace('CHR', '')  # Use selected assembly
-                    accession = vvChromosomes.to_accession(chr_num, validator.selected_assembly)
+                    accession = seq_data.to_accession(chr_num, validator.selected_assembly)
                     if accession is None:
                         variant.warnings.append(chr_num + ' is not part of genome build ' + validator.selected_assembly)
                         skipvar = True

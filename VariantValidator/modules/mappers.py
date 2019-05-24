@@ -5,7 +5,7 @@ import hgvs.exceptions
 from .vvLogging import logger
 from . import vvHGVS
 from .variant import Variant
-from . import vvChromosomes
+from . import seq_data
 from . import vvFunctions as fn
 from . import gapped_mapping
 
@@ -109,7 +109,7 @@ def gene_to_transcripts(variant, validator):
 
         # Chromosome build is not supported or intergenic???
         else:
-            sfm = vvChromosomes.supported_for_mapping(variant.hgvs_genomic.ac, variant.primary_assembly)
+            sfm = seq_data.supported_for_mapping(variant.hgvs_genomic.ac, variant.primary_assembly)
             if sfm:
                 try:
                     validator.vr.validate(variant.hgvs_genomic)
@@ -640,7 +640,7 @@ def transcripts_to_gene(variant, validator):
     # Gap gene black list
     if variant.gene_symbol:
         # If the gene symbol is not in the list, the value False will be returned
-        gap_compensation = vvChromosomes.gap_black_list(variant.gene_symbol)
+        gap_compensation = seq_data.gap_black_list(variant.gene_symbol)
 
     # Intron spanning variants
     if 'boundary' in str(error) or 'spanning' in str(error):
@@ -858,7 +858,7 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant):
     # Gap gene black list
     if variant.gene_symbol:
         # If the gene symbol is not in the list, the value False will be returned
-        gap_compensation = vvChromosomes.gap_black_list(variant.gene_symbol)
+        gap_compensation = seq_data.gap_black_list(variant.gene_symbol)
 
     # Look for variants spanning introns
     try:

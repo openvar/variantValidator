@@ -10,7 +10,7 @@ import hgvs.exceptions
 import hgvs.sequencevariant
 import re
 import os
-from . import vvChromosomes
+from . import seq_data
 from . import vvHGVS
 from .vvLogging import logger
 from pyliftover import LiftOver
@@ -131,25 +131,25 @@ def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp, reverse_no
             for op in options:
                 if re.match('NC_', op[1]):
                     if re.match('GRC', build_to):
-                        sfm = vvChromosomes.to_chr_num_refseq(op[1], build_to)
+                        sfm = seq_data.to_chr_num_refseq(op[1], build_to)
                     if re.match('hg', build_to):
-                        sfm = vvChromosomes.to_chr_num_ucsc(op[1], build_to)
+                        sfm = seq_data.to_chr_num_ucsc(op[1], build_to)
                     if sfm is not None:
                         selected.append([op[0], op[1]])
             for op in options:
                 if re.match('NT_', op[1]):
                     if re.match('GRC', build_to):
-                        sfm = vvChromosomes.to_chr_num_refseq(op[1], build_to)
+                        sfm = seq_data.to_chr_num_refseq(op[1], build_to)
                     if re.match('hg', build_to):
-                        sfm = vvChromosomes.to_chr_num_ucsc(op[1], build_to)
+                        sfm = seq_data.to_chr_num_ucsc(op[1], build_to)
                     if sfm is not None:
                         selected.append([op[0], op[1]])
             for op in options:
                 if re.match('NW_', op[1]):
                     if re.match('GRC', build_to):
-                        sfm = vvChromosomes.to_chr_num_refseq(op[1], build_to)
+                        sfm = seq_data.to_chr_num_refseq(op[1], build_to)
                     if re.match('hg', build_to):
-                        sfm = vvChromosomes.to_chr_num_ucsc(op[1], build_to)
+                        sfm = seq_data.to_chr_num_ucsc(op[1], build_to)
                     if sfm is not None:
                         selected.append([op[0], op[1]])
 
@@ -247,7 +247,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp, reverse_no
             lifted_ref_bases = my_seq.reverse_complement()
             your_seq = Seq(lifted_alt_bases)
             lifted_alt_bases = your_seq.reverse_complement()
-        accession = vvChromosomes.to_accession(chr, lo_to)
+        accession = seq_data.to_accession(chr, lo_to)
         if accession is None:
             wrn = 'Unable to identify an equivalent %s chromosome ID for %s' % (str(lo_to), str(chr))
             logger.warning(wrn)

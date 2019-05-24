@@ -6,7 +6,7 @@ Each function has a slightly difference emphasis
 # Import modules
 import re
 import copy
-from . import vvChromosomes
+from . import seq_data
 
 # Import Biopython modules
 from Bio.Seq import Seq
@@ -62,7 +62,7 @@ def pvcf_to_hgvs(input, selected_assembly, normalization_direction, reverse_norm
             if re.match('CHR', chr_num):
                 chr_num = chr_num.replace('CHR', '')
             # Use selected assembly
-            accession = vvChromosomes.to_accession(chr_num, selected_assembly)
+            accession = seq_data.to_accession(chr_num, selected_assembly)
             if accession is None:
                 error = chr_num + ' is not part of genome build ' + selected_assembly + ' or is not supported'
                 raise pseudoVCF2HGVSError(error)
@@ -199,7 +199,7 @@ def hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
     # hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
     # Chr
-    chr = vvChromosomes.to_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, primary_assembly)
+    chr = seq_data.to_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, primary_assembly)
     if chr is not None:
         pass
     else:
@@ -371,14 +371,14 @@ def report_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
             grc_pa = 'GRCh38'
 
     # UCSC Chr
-    ucsc_chr = vvChromosomes.to_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, ucsc_pa)
+    ucsc_chr = seq_data.to_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, ucsc_pa)
     if ucsc_chr is not None:
         pass
     else:
         ucsc_chr = reverse_normalized_hgvs_genomic.ac
 
     # GRC Chr
-    grc_chr = vvChromosomes.to_chr_num_refseq(reverse_normalized_hgvs_genomic.ac, grc_pa)
+    grc_chr = seq_data.to_chr_num_refseq(reverse_normalized_hgvs_genomic.ac, grc_pa)
     if grc_chr is not None:
         pass
     else:
@@ -533,7 +533,7 @@ def pos_lock_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
     # hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
     # Chr
-    chr = vvChromosomes.to_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, primary_assembly)
+    chr = seq_data.to_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, primary_assembly)
     if chr is not None:
         pass
     else:
@@ -671,7 +671,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, sf):
     normalized_hgvs_genomic = hn.normalize(hgvs_genomic_variant)
 
     # Chr
-    chr = vvChromosomes.to_chr_num_ucsc(normalized_hgvs_genomic.ac, primary_assembly)
+    chr = seq_data.to_chr_num_ucsc(normalized_hgvs_genomic.ac, primary_assembly)
     if chr is not None:
         pass
     else:
@@ -826,7 +826,7 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
     hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
     # Chr
-    chr = vvChromosomes.to_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, primary_assembly)
+    chr = seq_data.to_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, primary_assembly)
     if chr is not None:
         pass
     else:

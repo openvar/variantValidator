@@ -9,7 +9,7 @@ from hgvs.assemblymapper import AssemblyMapper
 from .vvLogging import logger
 from . import vvHGVS
 from . import vvFunctions as fn
-from . import vvChromosomes
+from . import seq_data
 from . import vvMixinConverters
 from .variant import Variant
 from . import format_converters
@@ -559,7 +559,7 @@ class Mixin(vvMixinConverters.Mixin):
                     except hgvs.exceptions.HGVSInvalidVariantError:
                         continue
                     for build in self.genome_builds:
-                        test = vvChromosomes.supported_for_mapping(alt_gen_var.ac, build)
+                        test = seq_data.supported_for_mapping(alt_gen_var.ac, build)
                         if test:
                             try:
                                 vcf_dict = vvHGVS.report_hgvs2vcf(alt_gen_var, build, variant.reverse_normalizer,
