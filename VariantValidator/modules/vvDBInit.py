@@ -20,8 +20,11 @@ class Mixin():
         self.conn = self.pool.get_connection()
 
     def __del__(self):
-        if self.conn:
-            self.conn.close()
+        if self.conn.is_connected():
+            try:
+                self.conn.close()
+            except mysql.connector.errors.NotSupportedError:
+                pass
             self.conn = None
         if self.pool:
             self.pool = None
