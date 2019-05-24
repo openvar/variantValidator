@@ -376,7 +376,7 @@ class Mixin(vvMixinConverters.Mixin):
                     # COLLECT gene symbol, name and ACCESSION INFORMATION
                     # Gene symbol
                     if my_variant.reftype != ':g.':
-                        toskip = self.get_transcript_info(my_variant)
+                        toskip = self._get_transcript_info(my_variant)
                         if toskip:
                             continue
 
@@ -698,8 +698,244 @@ class Mixin(vvMixinConverters.Mixin):
             logger.critical(str(exc_type) + " " + str(exc_value))
             raise
 
-    def get_transcript_info(self, variant):
-        """Collect transcript information from a non-genomic variant"""
+    def gene2transcripts(self, query):
+        """
+        Generates a list of transcript (UTA supported) and transcript names from a gene symbol or RefSeq transcript ID
+        :param query: string gene symbol or RefSeq ID (e.g. NANOG or NM_024865.3)
+        :return: dictionary of transcript information
+        """
+        input = query
+        input = input.upper()
+        if re.search('\d+ORF\d+', input):
+            input = input.replace('ORF', 'orf')
+        # Quick check for blank form
+        if input == '':
+            caution = {'error': 'Please enter HGNC gene name or transcript identifier (NM_, NR_, or ENST)'}
+            return caution
+        else:
+            hgnc = input
+            if re.match('NM_', hgnc) or re.match('NR_', hgnc):  # or re.match('ENST', hgnc):
+                try:
+                    tx_info = self.hdp.get_tx_identity_info(hgnc)
+                    hgnc = tx_info[6]
+                except hgvs.exceptions.HGVSError as e:
+                    caution = {'error': str(e)}
+                    return caution
+
+            # First perform a search against the input gene symbol or the symbol inferred from UTA
+            initial = fn.hgnc_rest(path="/fetch/symbol/" + hgnc)
+            # Check for a record
+            if str(initial['record']['response']['numFound']) != '0':
+                current_sym = hgnc
+                previous = initial
+            # No record found, is it a previous symbol?
+            else:
+                # Look up current name
+                current = fn.hgnc_rest(path="/search/prev_symbol/" + hgnc)
+                # Look for historic names
+                # If historic names = 0
+                if str(current['record']['response']['numFound']) == '0':
+                    current_sym = hgnc
+                else:
+                    current_sym = current['record']['response']['docs'][0]['symbol']
+                # Look up previous symbols and gene name
+                # Re-set the previous variable
+                previous = fn.hgnc_rest(path="/fetch/symbol/" + current_sym)
+
+            # Extract the relevant data
+            try:
+                previous_sym = previous['record']['response']['docs'][0]['prev_symbol'][0]
+            except:
+                previous_sym = current_sym
+
+            # Get gene name
+            try:
+                gene_name = previous['record']['response']['docs'][0]['name']
+            except:
+                # error = current_sym + ' is not a valid HGNC gene symbol'
+                gene_name = 'Gene symbol %s not found in the HGNC database of human gene names www.genenames.org' % query
+                return {'error': gene_name}
+
+            # Look up previous name
+            try:
+                previous_name = previous['record']['response']['docs'][0]['prev_name'][0]
+            except:
+                previous_name = gene_name
+
+            # Get transcripts
+            tx_for_gene = self.hdp.get_tx_for_gene(current_sym)
+            if len(tx_for_gene) == 0:
+                tx_for_gene = self.hdp.get_tx_for_gene(previous_sym)
+            if len(tx_for_gene) == 0:
+                tx_for_gene = {'error': 'Unable to retrieve data from the UTA, please contact admin'}
+                return tx_for_gene
+
+            # Loop through each transcript and get the relevant transcript description
+            genes_and_tx = []
+            recovered_dict = {}
+            for line in tx_for_gene:
+                if re.match('^NM_', line[3]) or re.match('^NR_', line[3]):
+                    # Transcript ID
+                    tx = line[3]
+                    tx_description = self.db.get_transcript_description(tx)
+                    if tx_description == 'none':
+                        self.db.update_transcript_info_record(tx, self)
+                        tx_description = self.db.get_transcript_description(tx)
+                    # Check for duplicates
+                    if tx in list(recovered_dict.keys()):
+                        continue
+                    else:
+                        try:
+                            # Add to recovered_dict
+                            recovered_dict[tx] = ''
+                            genes_and_tx.append([tx, tx_description, line[1] + 1, line[2]])
+                        except:
+                            # Add to recovered_dict
+                            recovered_dict[tx] = ''
+                            genes_and_tx.append([tx, tx_description, 'not applicable', 'not applicable'])
+                        # LRG information
+                        lrg_transcript = self.db.get_lrgTranscriptID_from_RefSeqTranscriptID(tx)
+                        if lrg_transcript == 'none':
+                            pass
+                        else:
+                            genes_and_tx.append([lrg_transcript, tx_description, line[1] + 1, line[2]])
+
+            cp_genes_and_tx = copy.deepcopy(genes_and_tx)
+            genes_and_tx = []
+            for tx in cp_genes_and_tx:
+                if 'not applicable' in str(tx[2]):
+                    tx_d = {'reference': tx[0],
+                            'description': tx[1],
+                            'coding_start': 'non-coding',
+                            'coding_end': 'non-coding'
+                            }
+                else:
+                    tx_d = {'reference': tx[0],
+                            'description': tx[1],
+                            'coding_start': tx[2] + 1,
+                            'coding_end': tx[3]
+                            }
+                genes_and_tx.append(tx_d)
+
+            # Return data table
+            g2d_data = {'current_symbol': current_sym,
+                        'previous_symbol': previous_sym,
+                        'current_name': gene_name,
+                        'previous_name': previous_name,
+                        'transcripts': genes_and_tx
+                        }
+
+            return g2d_data
+
+    def hgvs2ref(self, query):
+        """
+        Fetch reference sequence from a HGVS variant description
+        :param query:
+        :return:
+        """
+        logger.info('Fetching reference sequence for ' + query)
+        # Dictionary to store the data
+        reference = {'variant': query,
+                     'start_position': '',
+                     'end_position': '',
+                     'warning': '',
+                     'sequence': '',
+                     'error': ''}
+        # Step 1: parse the query. Dictionary the parse error if parsing fails
+        try:
+            input_hgvs_query = self.hp.parse_hgvs_variant(query)
+        except Exception as e:
+            reference['error'] = str(e)
+            return reference
+        # Step 2: If the variant is a c., it needs to transferred to n.
+        try:
+            hgvs_query = self.vm.c_to_n(input_hgvs_query)
+        except:
+            hgvs_query = input_hgvs_query
+
+        # For transcript reference sequences
+        if hgvs_query.type == 'c' or hgvs_query.type == 'n':
+            # Step 4: Check for intronic sequence
+            if hgvs_query.posedit.pos.start.offset != 0 and hgvs_query.posedit.pos.end.offset != 0:
+                reference['warning'] = 'Intronic sequence variation: Use genomic reference sequence'
+            elif hgvs_query.posedit.pos.start.offset != 0 or hgvs_query.posedit.pos.end.offset != 0:
+                reference['warning'] = 'Partial intronic sequence variation: Returning exonic and/or UTR sequence only'
+
+                # Step 3: split the variant description into the parts required for seqfetching
+                accession = hgvs_query.ac
+                start = hgvs_query.posedit.pos.start.base - 1
+                end = hgvs_query.posedit.pos.end.base
+
+                # Step 5: try and fetch the sequence using SeqFetcher. Dictionary an error if this fails
+                try:
+                    sequence = self.sf.fetch_seq(accession, start, end)
+                except Exception as e:
+                    reference['error'] = str(e)
+                    exc_type, exc_value, last_traceback = sys.exc_info()
+                    te = traceback.format_exc()
+                    # tr = ''.join(traceback.format_stack())
+                    tbk = [str(exc_type), str(exc_value), str(te)]
+                    er = '\n'.join(tbk)
+                    logger.info(str(exc_type) + " " + str(exc_value))
+                    logger.debug(er)
+                else:
+                    reference['start_position'] = str(input_hgvs_query.posedit.pos.start.base)
+                    reference['end_position'] = str(input_hgvs_query.posedit.pos.end.base)
+                    reference['sequence'] = sequence
+            else:
+                # Step 3: split the variant description into the parts required for seqfetching
+                accession = hgvs_query.ac
+                start = hgvs_query.posedit.pos.start.base - 1
+                end = hgvs_query.posedit.pos.end.base
+
+                # Step 5: try and fetch the sequence using SeqFetcher. Dictionary an error if this fails
+                try:
+                    sequence = self.sf.fetch_seq(accession, start, end)
+                except Exception as e:
+                    reference['error'] = str(e)
+                    exc_type, exc_value, last_traceback = sys.exc_info()
+                    te = traceback.format_exc()
+                    # tr = ''.join(traceback.format_stack())
+                    tbk = [str(exc_type), str(exc_value), str(te)]
+                    er = '\n'.join(tbk)
+                    logger.info(er)
+                else:
+                    reference['start_position'] = str(input_hgvs_query.posedit.pos.start.base)
+                    reference['end_position'] = str(input_hgvs_query.posedit.pos.end.base)
+                    reference['sequence'] = sequence
+
+        # Genomic reference sequence
+        elif hgvs_query.type == 'g' or hgvs_query.type == 'p':
+            # Step 3: split the variant description into the parts required for seqfetching
+            accession = hgvs_query.ac
+            start = hgvs_query.posedit.pos.start.base - 1
+            end = hgvs_query.posedit.pos.end.base
+
+            # Step 5: try and fetch the sequence using SeqFetcher. Dictionary an error if this fails
+            try:
+                sequence = self.sf.fetch_seq(accession, start, end)
+            except Exception as e:
+                reference['error'] = str(e)
+                exc_type, exc_value, last_traceback = sys.exc_info()
+                te = traceback.format_exc()
+                # tr = ''.join(traceback.format_stack())
+                tbk = [str(exc_type), str(exc_value), str(te)]
+                er = '\n'.join(tbk)
+                logger.info(str(exc_type) + " " + str(exc_value))
+                logger.debug(er)
+            else:
+                reference['start_position'] = str(input_hgvs_query.posedit.pos.start.base)
+                reference['end_position'] = str(input_hgvs_query.posedit.pos.end.base)
+                reference['sequence'] = sequence
+
+        # Return the resulting reference sequence or error message
+        return reference
+
+    def _get_transcript_info(self, variant):
+        """
+        Collect transcript information from a non-genomic variant.
+        Should only be called during the validator process
+        """
 
         hgvs_vt = self.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
         try:
