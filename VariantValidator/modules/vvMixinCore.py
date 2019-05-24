@@ -842,77 +842,31 @@ class Mixin(vvMixinConverters.Mixin):
             # Step 4: Check for intronic sequence
             if hgvs_query.posedit.pos.start.offset != 0 and hgvs_query.posedit.pos.end.offset != 0:
                 reference['warning'] = 'Intronic sequence variation: Use genomic reference sequence'
+                return reference
+
             elif hgvs_query.posedit.pos.start.offset != 0 or hgvs_query.posedit.pos.end.offset != 0:
                 reference['warning'] = 'Partial intronic sequence variation: Returning exonic and/or UTR sequence only'
 
-                # Step 3: split the variant description into the parts required for seqfetching
-                accession = hgvs_query.ac
-                start = hgvs_query.posedit.pos.start.base - 1
-                end = hgvs_query.posedit.pos.end.base
+        elif hgvs_query.type != 'g' and hgvs_query.type != 'p':
+            return reference
 
-                # Step 5: try and fetch the sequence using SeqFetcher. Dictionary an error if this fails
-                try:
-                    sequence = self.sf.fetch_seq(accession, start, end)
-                except Exception as e:
-                    reference['error'] = str(e)
-                    exc_type, exc_value, last_traceback = sys.exc_info()
-                    te = traceback.format_exc()
-                    # tr = ''.join(traceback.format_stack())
-                    tbk = [str(exc_type), str(exc_value), str(te)]
-                    er = '\n'.join(tbk)
-                    logger.info(str(exc_type) + " " + str(exc_value))
-                    logger.debug(er)
-                else:
-                    reference['start_position'] = str(input_hgvs_query.posedit.pos.start.base)
-                    reference['end_position'] = str(input_hgvs_query.posedit.pos.end.base)
-                    reference['sequence'] = sequence
-            else:
-                # Step 3: split the variant description into the parts required for seqfetching
-                accession = hgvs_query.ac
-                start = hgvs_query.posedit.pos.start.base - 1
-                end = hgvs_query.posedit.pos.end.base
+        # Step 3: split the variant description into the parts required for seqfetching
+        accession = hgvs_query.ac
+        start = hgvs_query.posedit.pos.start.base - 1
+        end = hgvs_query.posedit.pos.end.base
 
-                # Step 5: try and fetch the sequence using SeqFetcher. Dictionary an error if this fails
-                try:
-                    sequence = self.sf.fetch_seq(accession, start, end)
-                except Exception as e:
-                    reference['error'] = str(e)
-                    exc_type, exc_value, last_traceback = sys.exc_info()
-                    te = traceback.format_exc()
-                    # tr = ''.join(traceback.format_stack())
-                    tbk = [str(exc_type), str(exc_value), str(te)]
-                    er = '\n'.join(tbk)
-                    logger.info(er)
-                else:
-                    reference['start_position'] = str(input_hgvs_query.posedit.pos.start.base)
-                    reference['end_position'] = str(input_hgvs_query.posedit.pos.end.base)
-                    reference['sequence'] = sequence
+        # Step 5: try and fetch the sequence using SeqFetcher. Dictionary an error if this fails
+        try:
+            sequence = self.sf.fetch_seq(accession, start, end)
+        except Exception as e:
+            reference['error'] = str(e)
+            logger.warning(str(e))
+        else:
+            reference['start_position'] = str(input_hgvs_query.posedit.pos.start.base)
+            reference['end_position'] = str(input_hgvs_query.posedit.pos.end.base)
+            reference['sequence'] = sequence
 
-        # Genomic reference sequence
-        elif hgvs_query.type == 'g' or hgvs_query.type == 'p':
-            # Step 3: split the variant description into the parts required for seqfetching
-            accession = hgvs_query.ac
-            start = hgvs_query.posedit.pos.start.base - 1
-            end = hgvs_query.posedit.pos.end.base
-
-            # Step 5: try and fetch the sequence using SeqFetcher. Dictionary an error if this fails
-            try:
-                sequence = self.sf.fetch_seq(accession, start, end)
-            except Exception as e:
-                reference['error'] = str(e)
-                exc_type, exc_value, last_traceback = sys.exc_info()
-                te = traceback.format_exc()
-                # tr = ''.join(traceback.format_stack())
-                tbk = [str(exc_type), str(exc_value), str(te)]
-                er = '\n'.join(tbk)
-                logger.info(str(exc_type) + " " + str(exc_value))
-                logger.debug(er)
-            else:
-                reference['start_position'] = str(input_hgvs_query.posedit.pos.start.base)
-                reference['end_position'] = str(input_hgvs_query.posedit.pos.end.base)
-                reference['sequence'] = sequence
-
-        # Return the resulting reference sequence or error message
+        # Return the resulting reference sequence and error message
         return reference
 
     def _get_transcript_info(self, variant):
