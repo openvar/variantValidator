@@ -1477,7 +1477,8 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
 
                                             report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm,
                                                                               primary_assembly, lose_vm, hp, hn, sf, nr_vm)
-                                            error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant: Instead use ' + valstr(
+                                            report_gen = hn.normalize(report_gen)
+                                            error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant: Instead re-submit ' + valstr(
                                                 report_gen)
                                         except Exception as e:
                                             exceptPass()
@@ -1499,9 +1500,10 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
 
                         if re.search('n.1-', str(input_parses)):
                             input_parses = evm.n_to_c(input_parses)
-                            error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use '
+                            error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead re-submit '
                             genomic_position = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly,
                                                                     vm, hp, hn, sf, nr_vm)
+                            genomic_position = hn.normalize(genomic_position)
                             error = error + valstr(genomic_position)
                             validation['warnings'] = validation['warnings'] + ': ' + str(error)
                             logger.warning(str(error))
@@ -1559,7 +1561,8 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
 
                                         report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm,
                                                                           primary_assembly, lose_vm, hp, hn, sf, nr_vm)
-                                        error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(
+                                        report_gen = hn.normalize(report_gen)
+                                        error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead re-submit ' + valstr(
                                             report_gen)
                                     except Exception as e:
                                         exceptPass()
@@ -1598,10 +1601,11 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 try:
                                     report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly,
                                                                       lose_vm, hp, hn, sf, nr_vm)
+                                    report_gen = hn.normalize(report_gen)
                                 except hgvs.exceptions.HGVSError as e:
                                     exceptPass()
                                 else:
-                                    error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(
+                                    error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead re-submit ' + valstr(
                                         report_gen)
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                 logger.warning(str(error))
@@ -1783,7 +1787,8 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                         input_parses.posedit.pos.end.offset = remainder
                                     report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly,
                                                                       lose_vm, hp, hn, sf, nr_vm)
-                                    error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(
+                                    report_gen = hn.normalize(report_gen)
+                                    error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead re-submit ' + valstr(
                                         report_gen)
                                 except Exception as e:
                                     exceptPass()
@@ -1796,9 +1801,10 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 continue
 
                     if re.search('n.1-', str(input_parses)):
-                        error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use '
+                        error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead re-submit '
                         genomic_position = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly, vm,
                                                                 hp, hn, sf, nr_vm)
+                        genomic_position = hn.normalize(genomic_position)
                         error = error + valstr(genomic_position)
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
                         logger.warning(str(error))
@@ -1816,10 +1822,11 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 try:
                                     report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly,
                                                                       lose_vm, hp, hn, sf, nr_vm)
+                                    report_gen = hn.normalize(report_gen)
                                 except hgvs.exceptions.HGVSError as e:
                                     exceptPass()
                                 else:
-                                    error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(
+                                    error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead re-submit ' + valstr(
                                         report_gen)
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                 logger.warning(str(error))
@@ -1849,7 +1856,8 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     if re.search('bounds', error):
                                         report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm,
                                                                           primary_assembly, lose_vm, hp, hn, sf, nr_vm)
-                                        error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(
+                                        report_gen = hn.normalize(report_gen)
+                                        error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead re-submit ' + valstr(
                                             report_gen)
                                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                         logger.warning(str(error))
