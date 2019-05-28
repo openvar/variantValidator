@@ -1633,14 +1633,9 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                                                     hp, sf, no_norm_evm)
                         except hgvs.exceptions.HGVSDataNotAvailableError as e:
                             tx_ac = input_parses.ac
-                            try:
-                                gene_symbol = va_dbCrl.data.get_gene_symbol_from_transcriptID(tx_ac)
-                            except:
-                                gene_symbol = 'none'
-                            if gene_symbol == 'none':
-                                error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' to  https://variantvalidator.org/ref_finder/, or select an alternative genome build'
-                            else:
-                                error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' or ' + gene_symbol + ' to  https://variantvalidator.org/ref_finder/, or select an alternative genome build'
+                            tx_unver = tx_ac.split('.')[0]
+                            error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive'
+                            error = error + ': ' + 'Query https://rest.variantvalidator.org/tools/gene2transcripts/%s for available transcripts' % tx_unver
                             validation['warnings'] = validation['warnings'] + ': ' + str(error)
                             logger.warning(str(error))
                             continue
@@ -1872,14 +1867,9 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                                                     hp, sf, no_norm_evm)
                         except hgvs.exceptions.HGVSDataNotAvailableError as e:
                             tx_ac = input_parses.ac
-                            try:
-                                gene_symbol = va_dbCrl.data.get_gene_symbol_from_transcriptID(tx_ac)
-                            except:
-                                gene_symbol = 'none'
-                            if gene_symbol == 'none':
-                                error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' to  https://variantvalidator.org/ref_finder/, or select an alternative genome build'
-                            else:
-                                error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' or ' + gene_symbol + ' to  https://variantvalidator.org/ref_finder/, or select an alternative genome build'
+                            tx_unver = tx_ac.split('.')[0]
+                            error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive'
+                            error = error + ': ' + 'Query https://rest.variantvalidator.org/tools/gene2transcripts/%s for available transcripts' % tx_unver
                             validation['warnings'] = validation['warnings'] + ': ' + str(error)
                             logger.warning(str(error))
                             continue
@@ -3404,26 +3394,18 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             validation['warnings'] = validation['warnings'] + ': ' + str(error)
                             logger.warning(str(error))
                             continue
-                        try:
-                            gene_symbol = va_dbCrl.data.get_gene_symbol_from_transcriptID(tx_ac)
-                        except:
-                            gene_symbol = 'none'
-                        if gene_symbol == 'none':
-                            error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' to  https://variantvalidator.org/ref_finder/, or select an alternative genome build'
-                        else:
-                            error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' or ' + gene_symbol + ' to  https://variantvalidator.org/ref_finder/, or select an alternative genome build'
+                        tx_ver = obj.ac
+                        tx_unver = tx_ver.split('.')[0]
+                        error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive'
+                        error = error + ': ' + 'Query https://rest.variantvalidator.org/tools/gene2transcripts/%s for available transcripts' % tx_unver
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
                         logger.warning(str(error))
                         continue
                     except TypeError as e:
-                        try:
-                            gene_symbol = va_dbCrl.data.get_gene_symbol_from_transcriptID(tx_ac)
-                        except:
-                            gene_symbol = 'none'
-                        if gene_symbol == 'none':
-                            error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' to  https://variantvalidator.org/ref_finder/, or select an alternative genome build'
-                        else:
-                            error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' or ' + gene_symbol + ' to  https://variantvalidator.org/ref_finder/, or select an alternative genome build'
+                        tx_ver = obj.ac
+                        tx_unver = tx_ver.split('.')[0]
+                        error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive'
+                        error = error + ': ' + 'Query https://rest.variantvalidator.org/tools/gene2transcripts/%s for available transcripts' % tx_unver
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
                         logger.warning(str(error))
                         continue
@@ -8446,7 +8428,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
             validation_output['flag'] = 'intergenic'
             for valid_v in batch_out:
                 validation_intergenic_counter = validation_intergenic_counter + 1
-                identification_key = 'Intergenic_Variant_%s' % (str(validation_intergenic_counter))
+                identification_key = 'intergenic_variant_%s' % (str(validation_intergenic_counter))
 
                 # Attempt to liftover between genome builds
                 # Note: pyliftover uses the UCSC liftOver tool.
@@ -8555,6 +8537,13 @@ def gene2transcripts(query):
     input = input.upper()
     if re.search('\d+ORF\d+', input):
         input = input.replace('ORF', 'orf')
+
+    # Quick check for LRG
+    elif 'LRG' in input:
+        lrg_id = input.split('T')[0]
+        lrg_to_hgnc = va_dbCrl.data.get_LRG_data_from_LRGid(lrg_id)
+        input = lrg_to_hgnc[2]
+
     # Quick check for blank form
     if input == '':
         caution = {'error': 'Please enter HGNC gene name or transcript identifier (NM_, NR_, or ENST)'}
@@ -8562,12 +8551,23 @@ def gene2transcripts(query):
     else:
         hgnc = input
         if re.match('NM_', hgnc) or re.match('NR_', hgnc):  # or re.match('ENST', hgnc):
-            try:
-                tx_info = hdp.get_tx_identity_info(hgnc)
-                hgnc = tx_info[6]
-            except hgvs.exceptions.HGVSError as e:
-                caution = {'error': str(e)}
-                return caution
+            if '.' in hgnc:
+                try:
+                    tx_info = hdp.get_tx_identity_info(hgnc)
+                    hgnc = tx_info[6]
+                except hgvs.exceptions.HGVSError as e:
+                    caution = {'error': str(e)}
+                    return caution
+            else:
+                for version in range(25):
+                    refresh_hgnc = hgnc + '.' + str(version)
+                    try:
+                        tx_info = hdp.get_tx_identity_info(refresh_hgnc)
+                        hgnc = tx_info[6]
+                        break
+                    except hgvs.exceptions.HGVSError as e:
+                        caution = {'error':'No transcript definition for (tx_ac=' + hgnc + ')'}
+                        continue
 
         # First perform a search against the input gene symbol or the symbol inferred from UTA
         initial = va_func.hgnc_rest(path="/fetch/symbol/" + hgnc)
