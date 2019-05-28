@@ -6455,7 +6455,6 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 except hgvs.exceptions.HGVSInvalidIntervalError as e:
                                     c_for_p = seek_var
                                 try:
-                                    # Predicted effect on protein
                                     protein_dict = va_func.myc_to_p(c_for_p, evm, hdp, hp, hn, vm, sf, re_to_p=False)
                                     if protein_dict['error'] == '':
                                         hgvs_protein = protein_dict['hgvs_protein']
@@ -6552,6 +6551,24 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 except Exception:
                                     exceptPass()
 
+                        # Final protein check, i.e. does the output make sense
+                        # We are looking for exonic c. descriptioms labelled as p.?
+                        # This code is triggered by variant NM_000088.3:c.589-1GG>G
+                        # Note, this will not correct read-through stop codons, but it will try!
+                        if hgvs_coding.posedit.pos.start.offset == 0 and hgvs_coding.posedit.pos.start.offset == 0 and '?' in protein:
+                            protein_dict = va_func.myc_to_p(hgvs_coding, evm, hdp, hp, hn, vm, sf,
+                                                            re_to_p=False)
+                            if protein_dict['error'] == '':
+                                hgvs_protein = protein_dict['hgvs_protein']
+                                protein = str(hgvs_protein)
+                            else:
+                                error = protein_dict['error']
+                                if error == 'Cannot identify an in-frame Termination codon in the variant mRNA sequence':
+                                    hgvs_protein = protein_dict['hgvs_protein']
+                                    validation['warnings'] = validation['warnings'] + ': ' + str(error)
+                            # Replace protein description in vars table
+                            protein = str(hgvs_protein)
+
                         # Check for up-to-date transcript version
                         updated_transcript_variant = 'None'
                         tx_id_info = hdp.get_tx_identity_info(hgvs_coding.ac)
@@ -6606,6 +6623,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     validation['test_stash_tx_right'] = test_stash_tx_right
                 # finish timing
                 logger.traceEnd(validation)
+
             # Report errors to User and VV admin
             except KeyboardInterrupt:
                 raise
