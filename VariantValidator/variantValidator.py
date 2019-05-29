@@ -2010,9 +2010,14 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         hgvs_object = hp.parse_hgvs_variant(variant)
                     except hgvs.exceptions.HGVSError as e:
                         error = str(e)
+                        print 'At parse'
+                        print error
+
                     try:
                         vr.validate(hgvs_object)
                     except hgvs.exceptions.HGVSError as e:
+                        print 'At validate'
+                        print e
                         error = str(e)
                     if error != 'false':
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
@@ -2026,13 +2031,6 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             # accession number
                             hgvs_object = hp.parse_hgvs_variant(variant)
                             accession = hgvs_object.ac
-                            # Look for the accession in our database
-                            # Connect to database and send request
-                            record = va_func.entrez_efetch(db="nuccore", id=accession, rettype="gb", retmode="text")
-                            try:
-                                description = record.description
-                            except:
-                                description = 'Unable to recover the description of ' + accession + ' from Entrez'
                             try:
                                 vr.validate(hgvs_object)
                             except hgvs.exceptions.HGVSError as e:
