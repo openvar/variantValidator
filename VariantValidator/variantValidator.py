@@ -8473,6 +8473,8 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         # KeyError if the dicts are empty
                         except KeyError:
                             continue
+                        except IndexError:
+                            continue
 
                     # Add the dictionaries from lifted response to the output
                     if primary_assembly_loci != {}:
