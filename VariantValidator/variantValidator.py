@@ -8525,11 +8525,9 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
         # tr = ''.join(traceback.format_stack())
         tbk = [str(exc_type), str(exc_value), str(te)]
         er = '\n'.join(tbk)
-        # raise variantValidatorError('Validation error')
-        # Return
-        # return
         logger.critical(str(exc_type) + " " + str(exc_value))
         logger.debug(str(er))
+        raise variantValidatorError('Validation error')
 
 # Generates a list of transcript (UTA supported) and transcript names from a gene symbol or RefSeq transcript ID
 def gene2transcripts(query):
