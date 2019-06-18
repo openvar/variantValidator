@@ -2142,7 +2142,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     logger.warning(str(error))
                                     continue
                                 except Exception as e:
-                                    error = 'Unable to assign transcript identity records to ' + accession + ', potentially an obsolete record :'
+                                    error = 'Unable to assign transcript identity records to ' + accession + ', potentially an obsolete record or there is an issue retrieving data from NCBI : Please try again later and if the problem persists contact admin :'
                                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                     logger.warning(str(error))
                                     continue
@@ -2158,7 +2158,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                                          hdp=hdp)
                             except Exception as e:
                                 logger.warning(str(e))
-                                error = 'Unable to assign transcript identity records to ' + accession + ', potentially an obsolete record :'
+                                error = 'Unable to assign transcript identity records to ' + accession + ', potentially an obsolete record or there is an issue retrieving data from NCBI : Please try again later and if the problem persists contact admin :'
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                 logger.warning(str(error))
                                 continue
@@ -2213,7 +2213,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                                          hdp=hdp)
                             except Exception as e:
                                 logger.warning(str(e))
-                                error = 'Unable to assign transcript identity records to ' + accession + ', potentially an obsolete record :'
+                                error = 'Unable to assign transcript identity records to ' + accession + ', potentially an obsolete record or there is an issue retrieving data from NCBI : Please try again later and if the problem persists contact admin :'
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                 logger.warning(str(error))
                                 continue
