@@ -2,7 +2,7 @@ import hgvs
 import re
 import copy
 import hgvs.exceptions
-from .vvLogging import logger
+from .logger import Logger
 from . import vvHGVS
 from .variant import Variant
 from . import seq_data
@@ -23,7 +23,7 @@ def gene_to_transcripts(variant, validator):
         error = 'Reference sequence ' + variant.hgvs_genomic.ac + ' is either not supported or does not exist'
     if error != 'false':
         variant.warnings.append(error)
-        logger.warning(error)
+        Logger.warning(error)
         return True
 
     # Set test to see if Norm alters the coords
@@ -104,7 +104,7 @@ def gene_to_transcripts(variant, validator):
                 error = 'Mapping unavailable for RefSeqGene ' + str(variant.hgvs_formatted) + \
                         ' using alignment method = ' + validator.alt_aln_method
                 variant.warnings.append(error)
-                logger.warning(str(error))
+                Logger.warning(str(error))
                 return True
 
         # Chromosome build is not supported or intergenic???
@@ -116,7 +116,7 @@ def gene_to_transcripts(variant, validator):
                 except hgvs.exceptions.HGVSError as e:
                     error = str(e)
                     variant.warnings.append(error)
-                    logger.warning(str(error))
+                    Logger.warning(str(error))
                     return True
                 else:
                     # Map to RefSeqGene if available
@@ -137,13 +137,13 @@ def gene_to_transcripts(variant, validator):
                     variant.warnings.append(error)
                     variant.genomic_g = fn.valstr(variant.hgvs_genomic)
                     variant.genomic_r = str(rsg_data.split('(')[0])
-                    logger.warning(str(error))
+                    Logger.warning(str(error))
                     return True
             else:
                 error = 'Please ensure the requested chromosome version relates to a supported genome build. ' \
                         'Supported genome builds are: GRCh37, GRCh38, hg19 and hg38'
                 variant.warnings.append(error)
-                logger.warning(str(error))
+                Logger.warning(str(error))
                 return True
 
     else:
@@ -178,7 +178,7 @@ def gene_to_transcripts(variant, validator):
             query = Variant(variant.original, quibble=str(c_description), warnings=variant.warnings,
                             primary_assembly=variant.primary_assembly, order=variant.order)
             validator.batch_list.append(query)
-        logger.warning("Continue reached when mapping transcript types to variants")
+        Logger.warning("Continue reached when mapping transcript types to variants")
         # Call next description
         return True
     return False
@@ -228,21 +228,21 @@ def transcripts_to_gene(variant, validator):
                                 'supported: Use the Gene to Transcripts function to determine whether an updated ' \
                                 'transcript reference sequence is available'
             variant.warnings.append(error)
-            logger.warning(error)
+            Logger.warning(error)
             return True
 
         errors = ['Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive',
                   'Query https://rest.variantvalidator.org/tools/gene2transcripts/%s for '
                   'available transcripts' % tx_ac.split('.')[0]]
         variant.warnings.extend(errors)
-        logger.warning(str(errors))
+        Logger.warning(str(errors))
         return True
     except TypeError:
         errors = ['Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive',
                   'Query https://rest.variantvalidator.org/tools/gene2transcripts/%s for '
                   'available transcripts' % tx_ac.split('.')[0]]
         variant.warnings.extend(errors)
-        logger.warning(str(errors))
+        Logger.warning(str(errors))
         return True
 
     # Get orientation of the gene wrt genome and a list of exons mapped to the genome
@@ -257,14 +257,14 @@ def transcripts_to_gene(variant, validator):
                 error = "If the following error message does not address the issue and the problem persists please " \
                         "contact admin: " + str(to_g)
                 variant.warnings.append(error)
-                logger.warning(error)
+                Logger.warning(error)
                 return True
 
             else:
                 error = "If the following error message does not address the issue and the problem persists please " \
                         "contact admin: " + str(to_g)
                 variant.warnings.append(error)
-                logger.warning(error)
+                Logger.warning(error)
                 return True
 
         else:
@@ -288,14 +288,14 @@ def transcripts_to_gene(variant, validator):
                     error = "If the following error message does not address the issue and the problem persists " \
                             "please contact admin: " + str(to_g)
                     variant.warnings.append(error)
-                    logger.warning(error)
+                    Logger.warning(error)
                     return True
 
                 else:
                     error = "If the following error message does not address the issue and the problem persists " \
                             "please contact admin: " + str(to_g)
                     variant.warnings.append(error)
-                    logger.warning(error)
+                    Logger.warning(error)
                     return True
         else:
             # Insertions at exon boundaries are miss-handled by vm.g_to_t
@@ -322,7 +322,7 @@ def transcripts_to_gene(variant, validator):
                 automap = 'Use of the corresponding genomic sequence variant descriptions may be invalid. ' \
                           'Please refer to https://www35.lamp.le.ac.uk/recommendations/'
                 variant.warnings.extend([caution, automap])
-                logger.warning(caution + ": " + automap)
+                Logger.warning(caution + ": " + automap)
         else:
             formatted_variant = str(h_variant)
 
@@ -331,7 +331,7 @@ def transcripts_to_gene(variant, validator):
             valid = True
         else:
             variant.warnings.append(str(error))
-            logger.warning(str(error))
+            Logger.warning(str(error))
             return True
 
     # Tackle the plus intronic offset
@@ -418,7 +418,7 @@ def transcripts_to_gene(variant, validator):
                     post_var = validator.myevm_g_to_t(variant.evm, pre_var, trans_acc)
                 except hgvs.exceptions.HGVSError as error:
                     variant.warnings.append(str(error))
-                    logger.warning(str(error))
+                    Logger.warning(str(error))
                     return True
                 test = validator.hp.parse_hgvs_variant(quibble_input)
 
@@ -519,7 +519,7 @@ def transcripts_to_gene(variant, validator):
                 error = "If the following error message does not address the issue and the problem persists " \
                         "please contact admin: " + to_g
                 variant.warnings.append(error)
-                logger.warning(error)
+                Logger.warning(error)
                 return True
 
             else:
@@ -596,7 +596,7 @@ def transcripts_to_gene(variant, validator):
                 if caution == '':
                     caution = fn.valstr(pre_valid) + ' automapped to ' + fn.valstr(post_valid)
                 variant.warnings.append(caution)
-                logger.warning(caution)
+                Logger.warning(caution)
 
         # Apply validation to intronic variant descriptions (should be valid but make sure)
         error = validator.validateHGVS(genomic_validation)
@@ -637,11 +637,11 @@ def transcripts_to_gene(variant, validator):
             gap_compensation = False
         except hgvs.exceptions.HGVSError as error:
             variant.warnings.append(str(error))
-            logger.warning(str(error))
+            Logger.warning(str(error))
             return True
 
     # Warn status
-    logger.warning("gap_compensation_1 = " + str(gap_compensation))
+    Logger.warning("gap_compensation_1 = " + str(gap_compensation))
 
     # Genomic sequence
     hgvs_genomic = validator.myevm_t_to_g(hgvs_coding, variant.no_norm_evm, variant.primary_assembly, variant.hn)
@@ -668,7 +668,7 @@ def transcripts_to_gene(variant, validator):
 
     # --- GAP MAPPING 2 ---
     # Loop out gap finding code under these circumstances!
-    logger.warning("gap_compensation_2 = " + str(gap_compensation))
+    Logger.warning("gap_compensation_2 = " + str(gap_compensation))
     if gap_compensation is True:
         hgvs_coding = gap_mapper.g_to_t_gapped_mapping_stage2(ori, hgvs_coding, hgvs_genomic)
 
@@ -710,7 +710,7 @@ def transcripts_to_gene(variant, validator):
         if error == 'Cannot identify an in-frame Termination codon in the variant mRNA sequence':
             hgvs_protein = protein_dict['hgvs_protein']
         else:
-            logger.error(error)
+            Logger.error(error)
             return True
 
     # Gene orientation wrt genome
@@ -875,7 +875,7 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant):
         fn.exceptPass()
 
     # Warn gap code status
-    logger.warning("gap_compensation_3 = " + str(gap_compensation))
+    Logger.warning("gap_compensation_3 = " + str(gap_compensation))
     multi_g = []
     multi_list = []
     mapping_options = validator.hdp.get_tx_mapping_options(variant.hgvs_coding.ac)
@@ -911,7 +911,7 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant):
             warnings = warnings + ': Suspected incomplete alignment between transcript %s and ' \
                                   'genomic reference sequence %s' % (variant.hgvs_coding.ac, alt_chr)
         except hgvs.exceptions.HGVSError as e:
-            logger.error(str(e))
-            logger.debug(str(e))
+            Logger.error(str(e))
+            Logger.debug(str(e))
 
     return multi_g

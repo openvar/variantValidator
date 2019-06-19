@@ -1,5 +1,5 @@
 from .vvFunctions import handleCursor
-from .vvLogging import logger
+from .logger import Logger
 from . import vvDBInit
 
 
@@ -13,7 +13,7 @@ class Mixin(vvDBInit.Mixin):
         self.cursor.execute(query)
         row = self.cursor.fetchone()
         if row is None:
-            logger.debug("No data returned from query "+str(query))
+            Logger.debug("No data returned from query " + str(query))
             row = ['none', 'No data']
         return row
 
@@ -22,7 +22,7 @@ class Mixin(vvDBInit.Mixin):
         self.cursor.execute(query)
         rows = self.cursor.fetchall()
         if rows == []:
-            logger.debug("No data returned from query "+str(query))
+            Logger.debug("No data returned from query " + str(query))
             rows = ['none', 'No data']
         return rows
 

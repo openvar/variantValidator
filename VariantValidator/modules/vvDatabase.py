@@ -1,4 +1,4 @@
-from .vvLogging import logger
+from .logger import Logger
 from . import vvFunctions as fn
 from .vvFunctions import handleCursor
 #from vvDBInsert import vvDBInsert
@@ -32,7 +32,7 @@ class vvDatabase(vvDBInsert.Mixin):
         row = self.cursor.fetchone()
         if row is None:
             row = ['none', 'No data']
-            logger.debug("No data returned from query "+str(query))
+            Logger.debug("No data returned from query " + str(query))
         return row
     # From data
     def data_add(self, accession, validator):
@@ -179,7 +179,7 @@ class vvDatabase(vvDBInsert.Mixin):
         self.update_lrg()
     # From update_refseqgene_nomissmatch.py
     def update_rsg(self):
-        logger.info('Updating RefSeqGene no Missmatch MySQL data')
+        Logger.info('Updating RefSeqGene no Missmatch MySQL data')
         # Set os path
         # Set up os paths data and log folders
         ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -374,7 +374,7 @@ class vvDatabase(vvDBInsert.Mixin):
                         line.append(known[line[0]]['gene_id'])
                     except KeyError:
                         check = obsolete[line[0]]
-                        logger.info(str(line[0]) + ' : ' + check)
+                        Logger.info(str(line[0]) + ' : ' + check)
 
         # Open a text file to be used as a simple database and write the database
         # rsg_db = open(os.path.join(ROOT, 'rsg_chr_db.txt'), 'w')
@@ -420,14 +420,14 @@ class vvDatabase(vvDBInsert.Mixin):
         # Close database
         # rsg_db.close()
 
-        logger.info( 'Total NG_ to NC_ alignments = ' + str(total_rsg_to_nc))
-        logger.info( 'Gapps within NG_ to NC_ alignments = ' + str(total_rsg_to_nc_rejected))
+        Logger.info('Total NG_ to NC_ alignments = ' + str(total_rsg_to_nc))
+        Logger.info('Gapps within NG_ to NC_ alignments = ' + str(total_rsg_to_nc_rejected))
 
-        logger.info( 'complete')
+        Logger.info('complete')
         return
     #from compile_lrg_data, this function was originally just called "update"
     def update_lrg(self):
-        logger.info('Updating LRG lookup tables')
+        Logger.info('Updating LRG lookup tables')
         lr2rs_download = urllib.request.Request('http://ftp.ebi.ac.uk/pub/databases/lrgex/list_LRGs_transcripts_xrefs.txt')
         # Open and read
         lr2rs_data = urllib.request.urlopen(lr2rs_download)
@@ -480,7 +480,7 @@ class vvDatabase(vvDBInsert.Mixin):
         # LRG_ID	RefSeqTranscriptID
         # LRG_T2LRG_P
 
-        logger.info( 'Update LRG and LRG_transcript lookup tables' )
+        Logger.info('Update LRG and LRG_transcript lookup tables')
         # Populate lists lrg_rs_lookup (LRG to RefSeqGene) and lrg_t2nm_ (LRG Transcript to RefSeq Transcript)
         for line in lr2rs:
             if re.search('^#', line):
@@ -506,7 +506,7 @@ class vvDatabase(vvDBInsert.Mixin):
                 # update database
                 self.update_lrgt_rst(lrgtx_to_rstID)
 
-        logger.info( 'Update LRG protein lookup table')
+        Logger.info('Update LRG protein lookup table')
         # Populate LRG protein RefSeqProtein lokup table
         for line in lr_t2p:
             if re.search('^#', line):
@@ -519,7 +519,7 @@ class vvDatabase(vvDBInsert.Mixin):
                 # update LRG to RefSeqGene database
                 self.update_lrg_p_rs_p_lookup(lrg_p, rs_p)
 
-        logger.info('LRG lookup tables updated')
+        Logger.info('LRG lookup tables updated')
         return
     #From ref_seq_type
     def ref_type_assign(self,accession):

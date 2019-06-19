@@ -2,7 +2,7 @@ import re
 import os
 import sys
 import copy
-from .vvLogging import logger
+from .logger import Logger
 import hgvs
 import hgvs.exceptions
 from hgvs.dataproviders import uta
@@ -207,7 +207,7 @@ class Mixin(vvMixinInit.Mixin):
             # If the gene symbol is not in the list, the value False will be returned
             utilise_gap_code = seq_data.gap_black_list(gene_symbol)
         # Warn gap code in use
-        logger.warning("gap_compensation_myevm = " + str(utilise_gap_code))
+        Logger.warning("gap_compensation_myevm = " + str(utilise_gap_code))
 
         if utilise_gap_code is True and (
                 hgvs_c.posedit.edit.type == 'identity' or hgvs_c.posedit.edit.type == 'del' or hgvs_c.posedit.edit.type == 'delins' or hgvs_c.posedit.edit.type == 'dup' or hgvs_c.posedit.edit.type == 'sub' or hgvs_c.posedit.edit.type == 'ins' or hgvs_c.posedit.edit.type == 'inv'):
@@ -534,7 +534,7 @@ class Mixin(vvMixinInit.Mixin):
 
                     # Warn of variant location wrt the gap
                     if re.match('Length implied by coordinates must equal sequence deletion length', str(e)):
-                        logger.warning('Variant is proximal to the flank of a genomic gap')
+                        Logger.warning('Variant is proximal to the flank of a genomic gap')
                         genomic_gap_variant = self.vm.t_to_g(stored_hgvs_c, hgvs_genomic.ac)
                         try:
                             hn.normalize(genomic_gap_variant)
@@ -553,7 +553,7 @@ class Mixin(vvMixinInit.Mixin):
                             genomic_gap_variant = self.nr_vm.t_to_g(hgvs_c, hgvs_genomic.ac)
 
                     if error_type_1 == 'base start position must be <= end position':
-                        logger.warning('Variant is fully within a genomic gap')
+                        Logger.warning('Variant is fully within a genomic gap')
                         genomic_gap_variant = self.vm.t_to_g(stored_hgvs_c, hgvs_genomic.ac)
 
                     # Logic
@@ -571,7 +571,7 @@ class Mixin(vvMixinInit.Mixin):
                         if re.match('Length implied by coordinates must equal sequence deletion length', str(e)):
                             # This will only happen if the variant is flanking the gap but is
                             # not inside the gap
-                            logger.warning('Variant is on the flank of a genomic gap but not within the gap')
+                            Logger.warning('Variant is on the flank of a genomic gap but not within the gap')
                             gap_start = genomic_gap_variant.posedit.pos.start.base - 1
                             gap_end = genomic_gap_variant.posedit.pos.end.base + 1
                             genomic_gap_variant.posedit.pos.start.base = gap_start
@@ -856,7 +856,7 @@ class Mixin(vvMixinInit.Mixin):
                         hgvs_genomic = no_norm_evm.t_to_g(hgvs_c)
                     except Exception as e:
                         error = str(e)
-                        logger.warning('Ins mapping error in myt_to_g ' + error)
+                        Logger.warning('Ins mapping error in myt_to_g ' + error)
 
         return hgvs_genomic
 
@@ -1063,7 +1063,7 @@ class Mixin(vvMixinInit.Mixin):
                         hgvs_genomic = no_norm_evm.t_to_g(hgvs_c)
                     except Exception as e:
                         error = str(e)
-                        logger.warning('Ins mapping error in myt_to_g ' + error)
+                        Logger.warning('Ins mapping error in myt_to_g ' + error)
 
         return hgvs_genomic
 
@@ -1091,7 +1091,7 @@ class Mixin(vvMixinInit.Mixin):
             # If the gene symbol is not in the list, the value False will be returned
             utilise_gap_code = seq_data.gap_black_list(gene_symbol)
         # Warn gap code in use
-        logger.warning("gap_compensation_mvm = " + str(utilise_gap_code))
+        Logger.warning("gap_compensation_mvm = " + str(utilise_gap_code))
 
         if utilise_gap_code is True and (
                 hgvs_c.posedit.edit.type == 'identity' or hgvs_c.posedit.edit.type == 'del' or hgvs_c.posedit.edit.type == 'delins' or hgvs_c.posedit.edit.type == 'dup' or hgvs_c.posedit.edit.type == 'sub' or hgvs_c.posedit.edit.type == 'ins' or hgvs_c.posedit.edit.type == 'inv'):
@@ -1272,7 +1272,7 @@ class Mixin(vvMixinInit.Mixin):
 
                     # Warn of variant location wrt the gap
                     if re.match('Length implied by coordinates must equal sequence deletion length', str(e)):
-                        logger.warning('Variant is proximal to the flank of a genomic gap')
+                        Logger.warning('Variant is proximal to the flank of a genomic gap')
                         genomic_gap_variant = self.vm.t_to_g(stored_hgvs_c, hgvs_genomic.ac)
                         try:
                             hn.normalize(genomic_gap_variant)
@@ -1290,7 +1290,7 @@ class Mixin(vvMixinInit.Mixin):
                             genomic_gap_variant = self.nr_vm.t_to_g(hgvs_c, hgvs_genomic.ac)
 
                     if error_type_1 == 'base start position must be <= end position':
-                        logger.warning('Variant is fully within a genomic gap')
+                        Logger.warning('Variant is fully within a genomic gap')
                         genomic_gap_variant = self.vm.t_to_g(stored_hgvs_c, hgvs_genomic.ac)
 
                     # Logic
@@ -1308,7 +1308,7 @@ class Mixin(vvMixinInit.Mixin):
                         if re.match('Length implied by coordinates must equal sequence deletion length', str(e)):
                             # This will only happen if the variant is flanking the gap but is
                             # not inside the gap
-                            logger.warning('Variant is on the flank of a genomic gap but not within the gap')
+                            Logger.warning('Variant is on the flank of a genomic gap but not within the gap')
                             gap_start = genomic_gap_variant.posedit.pos.start.base - 1
                             gap_end = genomic_gap_variant.posedit.pos.end.base + 1
                             genomic_gap_variant.posedit.pos.start.base = gap_start
@@ -1592,7 +1592,7 @@ class Mixin(vvMixinInit.Mixin):
                         hgvs_genomic = no_norm_evm.t_to_g(hgvs_c)
                     except Exception as e:
                         error = str(e)
-                        logger.warning('Ins mapping error in myt_to_g ' + error)
+                        Logger.warning('Ins mapping error in myt_to_g ' + error)
 
         return hgvs_genomic
 

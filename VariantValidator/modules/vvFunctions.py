@@ -7,7 +7,7 @@ from urllib.parse import urlparse #Python 2
 import functools
 import traceback
 import sys
-from .vvLogging import logger
+from .logger import Logger
 import re
 import copy
 import mysql
@@ -99,11 +99,11 @@ def exceptPass(validation=None):
     tbk = [str(exc_type), str(exc_value), str(te)]
     er = str('\n'.join(tbk))
     if last_traceback:
-        logger.warning(
+        Logger.warning(
             "Except pass for " + str(exc_type) + " " + str(exc_value) + " at line " + str(last_traceback.tb_lineno))
     else:
-        logger.warning("Except pass for " + str(exc_type) + " " + str(exc_value))
-    logger.debug(er)
+        Logger.warning("Except pass for " + str(exc_type) + " " + str(exc_value))
+    Logger.debug(er)
 
 # From functions.py
 def user_input(input):

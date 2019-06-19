@@ -12,7 +12,7 @@ import re
 import os
 from . import seq_data
 from . import vvHGVS
-from .vvLogging import logger
+from .logger import Logger
 from pyliftover import LiftOver
 from Bio.Seq import Seq
 
@@ -250,7 +250,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp, reverse_no
         accession = seq_data.to_accession(chr, lo_to)
         if accession is None:
             wrn = 'Unable to identify an equivalent %s chromosome ID for %s' % (str(lo_to), str(chr))
-            logger.warning(wrn)
+            Logger.warning(wrn)
             continue
         else:
             not_delins = accession + ':g.' + str(pos) + '_' + str(
@@ -260,7 +260,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp, reverse_no
             try:
                 vr.validate(hgvs_not_delins)
             except hgvs.exceptions.HGVSError as e:
-                logger.warning(str(e))
+                Logger.warning(str(e))
                 # Most likely incorrect bases
                 continue
             else:

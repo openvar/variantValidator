@@ -18,7 +18,7 @@ from Bio.Seq import Seq
 import re
 import copy
 from .vvDatabase import vvDatabase
-from .vvLogging import logger
+from .logger import Logger
 from . import vvFunctions as fn
 from VariantValidator.settings import CONFIG_DIR
 from VariantValidator.version import __version__

@@ -5,7 +5,7 @@ import hgvs.exceptions
 
 from . import vvFunctions as fn
 from . import vvHGVS
-from .vvLogging import logger
+from .logger import Logger
 
 
 class GapMapper(object):
@@ -281,7 +281,7 @@ class GapMapper(object):
                     if str(e) == 'start or end or both are beyond the bounds of transcript record':
                         hgvs_not_delins = saved_hgvs_coding
                         self.disparity_deletion_in = ['false', 'false']
-                    logger.warning(str(e))
+                    Logger.warning(str(e))
                 try:
                     self.variant.hn.normalize(self.tx_hgvs_not_delins)
                 except hgvs.exceptions.HGVSUnsupportedOperationError as e:
@@ -294,7 +294,7 @@ class GapMapper(object):
                         elif 'Normalization of intronic variants is not supported' in error:
                             # We know that this cannot be because of an intronic variant, so must be aligned to tx gap
                             self.disparity_deletion_in = ['transcript', 'Requires Analysis']
-                    logger.warning(error)
+                    Logger.warning(error)
                 # Pre-processing of self.tx_hgvs_not_delins
                 try:
                     if self.tx_hgvs_not_delins.posedit.edit.alt is None:
@@ -412,7 +412,7 @@ class GapMapper(object):
         hgvs_genomic = self.validator.myevm_t_to_g(hgvs_coding, self.variant.no_norm_evm, self.variant.primary_assembly,
                                                    self.variant.hn)
 
-        logger.warning('g_to_t gap code 1 active')
+        Logger.warning('g_to_t gap code 1 active')
         rn_hgvs_genomic = self.variant.reverse_normalizer.normalize(hgvs_genomic)
         self.hgvs_genomic_possibilities.append(rn_hgvs_genomic)
 
@@ -600,14 +600,14 @@ class GapMapper(object):
         # direct mapping from reverse_normalized transcript insertions in the delins format
         self.rev_norm_ins(hgvs_coding, hgvs_genomic)
 
-        logger.info('\nGENOMIC POSSIBILITIES')
+        Logger.info('\nGENOMIC POSSIBILITIES')
         for possibility in self.hgvs_genomic_possibilities:
             if possibility == '':
-                logger.info('X')
+                Logger.info('X')
             else:
-                logger.info(fn.valstr(possibility))
+                Logger.info(fn.valstr(possibility))
 
-        logger.info('\n')
+        Logger.info('\n')
 
         # Set variables for problem specific warnings
         self.gapped_transcripts = ''
@@ -909,7 +909,7 @@ class GapMapper(object):
                             'Unsupported normalization of variants spanning the exon-intron boundary' in error:
                         hgvs_refreshed_variant = saved_hgvs_coding
                     else:
-                        logger.warning(error)
+                        Logger.warning(error)
                         continue
 
                 # Quick check to make sure the coding variant has not changed
@@ -959,7 +959,7 @@ class GapMapper(object):
                                               'descriptions: If you are unsure, please contact admin'
             self.auto_info = self.auto_info.replace('\n', ': ')
             self.variant.warnings.append(self.auto_info)
-            logger.warning(self.auto_info)
+            Logger.warning(self.auto_info)
         # Normailse hgvs_genomic
         try:
             hgvs_genomic = self.variant.hn.normalize(hgvs_genomic)
@@ -992,7 +992,7 @@ class GapMapper(object):
         return hgvs_genomic, suppress_c_normalization, hgvs_coding
 
     def g_to_t_gapped_mapping_stage2(self, ori, hgvs_coding, hgvs_genomic):
-        logger.warning('g_to_t gap code 2 active')
+        Logger.warning('g_to_t gap code 2 active')
 
         hgvs_genomic_variant = hgvs_genomic
         reverse_normalized_hgvs_genomic = self.variant.reverse_normalizer.normalize(hgvs_genomic_variant)
@@ -1083,7 +1083,7 @@ class GapMapper(object):
                 self.validator.vm.g_to_t(hgvs_not_delins, self.tx_hgvs_not_delins.ac)
             except Exception as e:
                 if str(e) == 'start or end or both are beyond the bounds of transcript record':
-                    logger.warning(str(e))
+                    Logger.warning(str(e))
                     return True
             try:
                 self.variant.hn.normalize(self.tx_hgvs_not_delins)
@@ -1092,7 +1092,7 @@ class GapMapper(object):
                 if 'Normalization of intronic variants is not supported' in error or \
                         'Unsupported normalization of variants spanning the exon-intron boundary' in error:
                     if 'Unsupported normalization of variants spanning the exon-intron boundary' in error:
-                        logger.warning(error)
+                        Logger.warning(error)
                         return True
                     elif 'Normalization of intronic variants is not supported' in error:
                         # We know that this cannot be because of an intronic variant, so must be aligned to tx gap
@@ -1148,7 +1148,7 @@ class GapMapper(object):
         self.orientation = int(ori[0]['alt_strand'])
         hgvs_genomic = copy.deepcopy(hgvs_alt_genomic)
 
-        logger.warning('g_to_t gap code 3 active')
+        Logger.warning('g_to_t gap code 3 active')
         rn_hgvs_genomic = self.variant.reverse_normalizer.normalize(hgvs_alt_genomic)
         self.hgvs_genomic_possibilities.append(rn_hgvs_genomic)
         if self.orientation != -1:

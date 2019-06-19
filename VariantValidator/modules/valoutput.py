@@ -1,6 +1,6 @@
 import os
 from .vvLiftover import liftover as lift_over
-from .vvLogging import logger
+from .logger import Logger
 
 
 class ValOutput(object):
@@ -140,7 +140,7 @@ class ValOutput(object):
 
         if os.environ.get("ADD_LOGS") == "True":
             logs = []
-            for l in logger.getString().split("\n"):
+            for l in Logger.getString().split("\n"):
                 logs.append(l)
             metadata["logs"] = logs
 
