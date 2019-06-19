@@ -52,6 +52,7 @@ setup(
 		"configparser",
         "mysql-python",
         "httplib2",
+        "biopython == 1.73",
     ],
 )
 
