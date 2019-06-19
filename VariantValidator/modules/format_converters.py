@@ -510,7 +510,7 @@ def indel_catching(variant, validator):
     edit_pass = re.compile(r'_\d+$')
     edit_fail = re.compile(r'\d+$')
     if edit_fail.search(variant.quibble):
-        if not edit_pass.search(variant.quibble):
+        if not edit_pass.search(variant.quibble) and 'fs' not in variant.quibble:
             failed = variant.quibble
             # Catch the trailing digits
             digits = re.search(r"(\d+$)", failed)
