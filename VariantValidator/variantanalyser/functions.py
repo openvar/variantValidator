@@ -2586,7 +2586,6 @@ Search Entrez databases with efetch and SeqIO
 
 
 def entrez_efetch(db, id, rettype, retmode):
-    print('Entrez A')
     # IMPORT Bio modules
     # from Bio import Entrez
     Entrez.email = ENTREZ_ID
@@ -2607,7 +2606,6 @@ search Entrez databases with efetch and read
 
 
 def entrez_read(db, id, retmode):
-    print('Entrez B')
     # IMPORT Bio modules
     # from Bio import Entrez
     Entrez.email = ENTREZ_ID
