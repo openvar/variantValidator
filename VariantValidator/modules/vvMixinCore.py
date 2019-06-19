@@ -696,7 +696,7 @@ class Mixin(vvMixinConverters.Mixin):
             # Debug mode
             exc_type, exc_value, last_traceback = sys.exc_info()
             logger.critical(str(exc_type) + " " + str(exc_value))
-            raise
+            raise fn.VariantValidatorError('Validation error')
 
     def gene2transcripts(self, query):
         """
