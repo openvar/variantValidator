@@ -1,6 +1,6 @@
 import re
 import hgvs
-from . import vvFunctions as fn
+from . import utils as fn
 from .logger import Logger
 import copy
 

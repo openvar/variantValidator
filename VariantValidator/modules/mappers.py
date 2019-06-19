@@ -6,7 +6,7 @@ from .logger import Logger
 from . import hgvs_utils
 from .variant import Variant
 from . import seq_data
-from . import vvFunctions as fn
+from . import utils as fn
 from . import gapped_mapping
 
 

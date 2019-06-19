@@ -3,7 +3,7 @@ import re
 
 import hgvs.exceptions
 
-from . import vvFunctions as fn
+from . import utils as fn
 from . import hgvs_utils
 from .logger import Logger
 

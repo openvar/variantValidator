@@ -1,6 +1,6 @@
 from .logger import Logger
-from . import vvFunctions as fn
-from .vvFunctions import handleCursor
+from . import utils as fn
+from .utils import handleCursor
 #from vvDBInsert import vvDBInsert
 #from vvDBGet import vvDBGet
 from . import vvDBInsert

@@ -1,5 +1,5 @@
 import re
-from . import vvFunctions as fn
+from . import utils as fn
 
 
 class Variant(object):

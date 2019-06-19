@@ -1,4 +1,4 @@
-from .vvFunctions import handleCursor
+from .utils import handleCursor
 from . import vvDBGet
 
 class Mixin(vvDBGet.Mixin):

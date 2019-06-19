@@ -8,7 +8,7 @@ import traceback
 from hgvs.assemblymapper import AssemblyMapper
 from .logger import Logger
 from . import hgvs_utils
-from . import vvFunctions as fn
+from . import utils as fn
 from . import seq_data
 from . import vvMixinConverters
 from .variant import Variant

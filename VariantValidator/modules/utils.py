@@ -1,40 +1,28 @@
-from Bio import Entrez,SeqIO
 from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
 import httplib2 as http
 import json
-from urllib.parse import urlparse #Python 2
+from urllib.parse import urlparse  # Python 3
 import functools
 import traceback
 import sys
 from .logger import Logger
 import re
 import copy
-import mysql
-import time
 
-#from urllib.parse import urlparse #Python 3
 
 def handleCursor(func):
-    '''
+    """
     Decorator function for handling opening and closing cursors.
-    '''
+    """
     @functools.wraps(func)
-    def wrapper(self,*args,**kwargs):
-#        if self.pool==None:
-#            self.pool=mysql.connector.pooling.MySQLConnectionPool(pool_size=10, **self.dbConfig)
-#        self.conn=self.pool.get_connection()
+    def wrapper(self, *args, **kwargs):
         self.cursor = self.conn.cursor(buffered=True)
-        out=func(self,*args,**kwargs)
+        out = func(self, *args, **kwargs)
         if self.cursor:
             self.cursor.close()
-#        if self.conn:
-#            self.conn.close()
-        #self.cursor=None
         return out
     return wrapper
-
-
 
 
 def hgnc_rest(path):
@@ -65,9 +53,10 @@ def hgnc_rest(path):
         data['error'] = "Unable to contact the HGNC database: Please try again later"
     return data
 
-# method for final validation and stringifying parsed hgvs variants prior to printing/passing to html
+
 def valstr(hgvs_variant):
     """
+    Required for final validation and stringifying parsed hgvs variants prior to printing/passing to html.
     Function to ensure the required number of reference bases are displayed in descriptions
     """
     cp_hgvs_variant = copy.deepcopy(hgvs_variant)
@@ -80,18 +69,21 @@ def valstr(hgvs_variant):
         cp_hgvs_variant = str(cp_hgvs_variant)
     return cp_hgvs_variant
 
-# From output_formatter
+
 def single_letter_protein(hgvs_protein):
     """
     format protein description into single letter aa code
     """
     return hgvs_protein.format({'p_3_letter': False})
+
+
 def remove_reference(hgvs_nucleotide):
     """
     format nucleotide descriptions to not display reference base
     """
     hgvs_nucleotide_refless = hgvs_nucleotide.format({'max_ref_length': 0})
     return hgvs_nucleotide_refless
+
 
 def exceptPass(validation=None):
     exc_type, exc_value, last_traceback = sys.exc_info()
@@ -105,8 +97,8 @@ def exceptPass(validation=None):
         Logger.warning("Except pass for " + str(exc_type) + " " + str(exc_value))
     Logger.debug(er)
 
-# From functions.py
-def user_input(input):
+
+def user_input(query):
     """
     user_input
     collect the input from the form and convert to a hgvs readable string
@@ -116,23 +108,22 @@ def user_input(input):
         parsing and the variant type
         Accepts c, g, n, r currently. And now P also 15.07.15
     """
-    raw_variant = input.strip()
+    raw_variant = query.strip()
 
     # Set regular expressions for if statements
-    pat_g = re.compile("\:g\.")  # Pattern looks for :g.
-    pat_gene = re.compile('\(.+?\)')  # Pattern looks for (....)
-    pat_c = re.compile("\:c\.")  # Pattern looks for :c.
-    pat_r = re.compile("\:r\.")  # Pattern looks for :r.
-    pat_n = re.compile("\:n\.")  # Pattern looks for :n.
-    pat_p = re.compile("\:p\.")  # Pattern looks for :p.
-    pat_m = re.compile("\:m\.")  # Pattern looks for :m.
-    pat_est = re.compile("\d\:\d")  # Pattern looks for number:number
+    pat_g = re.compile(r":g\.")  # Pattern looks for :g.
+    pat_gene = re.compile(r'\(.+?\)')  # Pattern looks for (....)
+    pat_c = re.compile(r":c\.")  # Pattern looks for :c.
+    pat_r = re.compile(r":r\.")  # Pattern looks for :r.
+    pat_n = re.compile(r":n\.")  # Pattern looks for :n.
+    pat_p = re.compile(r":p\.")  # Pattern looks for :p.
+    pat_m = re.compile(r":m\.")  # Pattern looks for :m.
+    pat_est = re.compile(r"\d:\d")  # Pattern looks for number:number
 
     # If statements
     if pat_g.search(raw_variant):  # If the :g. pattern is present in the raw_variant, g_in is linked to the raw_variant
         if pat_gene.search(raw_variant):  # If pat gene is present in the raw_variant
-            variant = pat_gene.sub('',
-                                   raw_variant)  # variant is set to the raw_variant string with the pattern (...) substituted out
+            variant = pat_gene.sub('', raw_variant)  # variant is set to the raw_variant string with the pattern (...) substituted out
             formated = {'variant': variant, 'type': ':g.'}
             return formated
         else:
@@ -187,7 +178,7 @@ def user_input(input):
         formatted = 'invalid'
         return formatted
 
-# From links.py
+
 def pro_inv_info(prot_ref_seq, prot_var_seq):
     """
     Function which predicts the protein effect of c. inversions
@@ -208,8 +199,7 @@ def pro_inv_info(prot_ref_seq, prot_var_seq):
         info['variant'] = 'false'
     else:
         # Deal with terminations
-        term = re.compile("\*")
-        if term.search(prot_var_seq):
+        if '*' in prot_var_seq:
             # Set the termination reporter to true
             info['terminate'] = 'true'
             # The termination position will be equal to the length of the variant sequence because it's a TERMINATOR!!!
@@ -287,16 +277,17 @@ def pro_inv_info(prot_ref_seq, prot_var_seq):
                         info['edit_end'] = info['edit_start'] + len(ref) - 1
                         return info
 
+
 def pro_delins_info(prot_ref_seq, prot_var_seq):
     info = {
-            'variant' : 'true',
-            'prot_del_seq' : '',
-            'prot_ins_seq' : '',
-            'edit_start' : 0,
-            'edit_end' : 0,
-            'terminate' : 'false',
-            'ter_pos' : 0,
-            'error' : 'false'
+            'variant': 'true',
+            'prot_del_seq': '',
+            'prot_ins_seq': '',
+            'edit_start': 0,
+            'edit_end': 0,
+            'terminate': 'false',
+            'ter_pos': 0,
+            'error': 'false'
             }
 
     # Is there actually any variation?
@@ -304,8 +295,8 @@ def pro_delins_info(prot_ref_seq, prot_var_seq):
         info['variant'] = 'false'
     else:
         # Deal with terminations
-        term = re.compile("\*")
-        if term.search(prot_var_seq):
+
+        if '*' in prot_var_seq:
             # Set the termination reporter to true
             info['terminate'] = 'true'
 
@@ -400,6 +391,7 @@ def translate(ed_seq, cds_start):
         translation = 'error'
         return translation
 
+
 def one_to_three(seq):
     """
     Convert single letter amino acid code to 3 letter code
@@ -428,7 +420,6 @@ def n_inversion(ref_seq, del_seq, inv_seq, interval_start, interval_end):
     """
     Takes a reference sequence and inverts the specified position
     """
-    sequence = ''
     # Use string indexing to check whether the sequences are the same
     test = ref_seq[interval_start - 1:interval_end]
     if test == del_seq:
@@ -456,7 +447,11 @@ def hgvs_dup2indel(hgvs_seq):
 # Custom Exceptions
 class VariantValidatorError(Exception):
     pass
+
+
 class mergeHGVSerror(Exception):
     pass
+
+
 class alleleVariantError(Exception):
     pass

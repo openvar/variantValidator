@@ -19,7 +19,7 @@ from urllib.parse import urlparse
 import httplib2 as http
 import json
 from Bio import Entrez,SeqIO
-from . import vvFunctions as fn
+from . import utils as fn
 
 
 #Error setup

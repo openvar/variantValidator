@@ -4,7 +4,7 @@ import copy
 from .logger import Logger
 from .variant import Variant
 from . import seq_data
-from . import vvFunctions as fn
+from . import utils as fn
 
 
 def initial_format_conversions(variant, validator, select_transcripts_dict_plus_version):
