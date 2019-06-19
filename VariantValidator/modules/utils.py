@@ -247,7 +247,7 @@ def pro_inv_info(prot_ref_seq, prot_var_seq):
                     var = var[::-1]
                     # Reverse loop through ref list to find the first missmatch position
                     for aa in ref:
-                        if var[aa_counter] == '\*':
+                        if var[aa_counter] == r'\*':
                             break
                         if aa == var[aa_counter]:
                             aa_counter = aa_counter + 1
@@ -336,7 +336,7 @@ def pro_delins_info(prot_ref_seq, prot_var_seq):
             # Reverse loop through ref list to find the first missmatch position
             for aa in ref:
                 try:
-                    if var[aa_counter] == '\*':
+                    if var[aa_counter] == r'\*':
                         break
                 except IndexError:
                     break
