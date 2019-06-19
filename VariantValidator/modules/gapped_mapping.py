@@ -4,7 +4,7 @@ import re
 import hgvs.exceptions
 
 from . import vvFunctions as fn
-from . import vvHGVS
+from . import hgvs_utils
 from .logger import Logger
 
 
@@ -47,8 +47,8 @@ class GapMapper(object):
         self.hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
         # VCF
-        vcf_dict = vvHGVS.hgvs2vcf(reverse_normalized_hgvs_genomic, self.variant.primary_assembly,
-                                   self.variant.reverse_normalizer, self.validator.sf)
+        vcf_dict = hgvs_utils.hgvs2vcf(reverse_normalized_hgvs_genomic, self.variant.primary_assembly,
+                                       self.variant.reverse_normalizer, self.validator.sf)
         pos = vcf_dict['pos']
         ref = vcf_dict['ref']
         alt = vcf_dict['alt']
@@ -84,8 +84,8 @@ class GapMapper(object):
                 hgvs_stash.posedit.edit.alt = hgvs_stash.posedit.edit.alt.upper()
 
             # MAKE A NO NORM HGVS2VCF
-            stash_dict = vvHGVS.pos_lock_hgvs2vcf(hgvs_stash, self.variant.primary_assembly,
-                                                  self.variant.reverse_normalizer, self.validator.sf)
+            stash_dict = hgvs_utils.pos_lock_hgvs2vcf(hgvs_stash, self.variant.primary_assembly,
+                                                      self.variant.reverse_normalizer, self.validator.sf)
             stash_ac = hgvs_stash.ac
             stash_pos = int(stash_dict['pos'])
             stash_ref = stash_dict['ref']
@@ -332,8 +332,8 @@ class GapMapper(object):
                     hgvs_stash = copy.deepcopy(stash_hgvs_not_delins)
                     stash_ac = hgvs_stash.ac
                     # Make a hard left and hard right not delins g.
-                    stash_dict_right = vvHGVS.hard_right_hgvs2vcf(hgvs_stash, self.variant.primary_assembly,
-                                                                  self.variant.hn, self.validator.sf)
+                    stash_dict_right = hgvs_utils.hard_right_hgvs2vcf(hgvs_stash, self.variant.primary_assembly,
+                                                                      self.variant.hn, self.validator.sf)
                     stash_pos_right = int(stash_dict_right['pos'])
                     stash_ref_right = stash_dict_right['ref']
                     stash_alt_right = stash_dict_right['alt']
@@ -341,8 +341,8 @@ class GapMapper(object):
                     stash_hgvs_not_delins_right = self.validator.hp.parse_hgvs_variant(stash_ac + ':' +
                         hgvs_stash.type + '.' + str(stash_pos_right) + '_' + stash_end_right + 'del' +
                         stash_ref_right + 'ins' + stash_alt_right)
-                    stash_dict_left = vvHGVS.hard_left_hgvs2vcf(hgvs_stash, self.variant.primary_assembly,
-                                                                self.variant.reverse_normalizer, self.validator.sf)
+                    stash_dict_left = hgvs_utils.hard_left_hgvs2vcf(hgvs_stash, self.variant.primary_assembly,
+                                                                    self.variant.reverse_normalizer, self.validator.sf)
                     stash_pos_left = int(stash_dict_left['pos'])
                     stash_ref_left = stash_dict_left['ref']
                     stash_alt_left = stash_dict_left['alt']
@@ -440,7 +440,7 @@ class GapMapper(object):
             fn.exceptPass()
         try:
             stash_ac = hgvs_stash.ac
-            stash_dict = vvHGVS.hard_right_hgvs2vcf(hgvs_stash, self.variant.primary_assembly, self.variant.hn, self.validator.sf)
+            stash_dict = hgvs_utils.hard_right_hgvs2vcf(hgvs_stash, self.variant.primary_assembly, self.variant.hn, self.validator.sf)
             stash_pos = int(stash_dict['pos'])
             stash_ref = stash_dict['ref']
             stash_alt = stash_dict['alt']
@@ -522,8 +522,8 @@ class GapMapper(object):
             fn.exceptPass()
         try:
             stash_ac = hgvs_stash.ac
-            stash_dict = vvHGVS.hard_left_hgvs2vcf(hgvs_stash, self.variant.primary_assembly,
-                                                   self.variant.reverse_normalizer, self.validator.sf)
+            stash_dict = hgvs_utils.hard_left_hgvs2vcf(hgvs_stash, self.variant.primary_assembly,
+                                                       self.variant.reverse_normalizer, self.validator.sf)
             stash_pos = int(stash_dict['pos'])
             stash_ref = stash_dict['ref']
             stash_alt = stash_dict['alt']
@@ -672,8 +672,8 @@ class GapMapper(object):
             self.hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
             # Create VCF
-            vcf_dict = vvHGVS.hgvs2vcf(reverse_normalized_hgvs_genomic, self.variant.primary_assembly,
-                                       self.variant.reverse_normalizer, self.validator.sf)
+            vcf_dict = hgvs_utils.hgvs2vcf(reverse_normalized_hgvs_genomic, self.variant.primary_assembly,
+                                           self.variant.reverse_normalizer, self.validator.sf)
             pos = vcf_dict['pos']
             ref = vcf_dict['ref']
             alt = vcf_dict['alt']
@@ -997,8 +997,8 @@ class GapMapper(object):
         hgvs_genomic_variant = hgvs_genomic
         reverse_normalized_hgvs_genomic = self.variant.reverse_normalizer.normalize(hgvs_genomic_variant)
         self.hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
-        vcf_dict = vvHGVS.hgvs2vcf(reverse_normalized_hgvs_genomic, self.variant.primary_assembly,
-                                   self.variant.reverse_normalizer, self.validator.sf)
+        vcf_dict = hgvs_utils.hgvs2vcf(reverse_normalized_hgvs_genomic, self.variant.primary_assembly,
+                                       self.variant.reverse_normalizer, self.validator.sf)
         chr = vcf_dict['chr']
         pos = vcf_dict['pos']
         ref = vcf_dict['ref']
@@ -1177,8 +1177,8 @@ class GapMapper(object):
             fn.exceptPass()
         try:
             stash_ac = hgvs_stash.ac
-            stash_dict = vvHGVS.hard_right_hgvs2vcf(hgvs_stash, self.variant.primary_assembly, self.variant.hn,
-                                                    self.validator.sf)
+            stash_dict = hgvs_utils.hard_right_hgvs2vcf(hgvs_stash, self.variant.primary_assembly, self.variant.hn,
+                                                        self.validator.sf)
             stash_pos = int(stash_dict['pos'])
             stash_ref = stash_dict['ref']
             stash_alt = stash_dict['alt']
@@ -1258,8 +1258,8 @@ class GapMapper(object):
             fn.exceptPass()
         try:
             stash_ac = hgvs_stash.ac
-            stash_dict = vvHGVS.hard_left_hgvs2vcf(hgvs_stash, self.variant.primary_assembly,
-                                                   self.variant.reverse_normalizer, self.validator.sf)
+            stash_dict = hgvs_utils.hard_left_hgvs2vcf(hgvs_stash, self.variant.primary_assembly,
+                                                       self.variant.reverse_normalizer, self.validator.sf)
             stash_pos = int(stash_dict['pos'])
             stash_ref = stash_dict['ref']
             stash_alt = stash_dict['alt']
@@ -1398,8 +1398,8 @@ class GapMapper(object):
             # Store a copy for later use
 
             # Make VCF
-            vcf_dict = vvHGVS.hgvs2vcf(reverse_normalized_hgvs_genomic, self.variant.primary_assembly,
-                                       self.variant.reverse_normalizer, self.validator.sf)
+            vcf_dict = hgvs_utils.hgvs2vcf(reverse_normalized_hgvs_genomic, self.variant.primary_assembly,
+                                           self.variant.reverse_normalizer, self.validator.sf)
             chr = vcf_dict['chr']
             pos = vcf_dict['pos']
             ref = vcf_dict['ref']

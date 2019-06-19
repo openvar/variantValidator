@@ -14,7 +14,7 @@ import hgvs.variantmapper
 import hgvs.sequencevariant
 from . import vvMixinInit
 from . import seq_data
-from . import vvHGVS
+from . import hgvs_utils
 from urllib.parse import urlparse
 import httplib2 as http
 import json
@@ -2041,7 +2041,7 @@ class Mixin(vvMixinInit.Mixin):
         # Generate the alt sequence
         alt_sequence = ''
         for hgvs_v in full_list:
-            ref_alt = vvHGVS.hgvs_ref_alt(hgvs_v, self.sf)
+            ref_alt = hgvs_utils.hgvs_ref_alt(hgvs_v, self.sf)
             alt_sequence = alt_sequence + ref_alt['alt']
 
         # Fetch the reference sequence and copy it for the basis of the alt sequence
@@ -2150,7 +2150,7 @@ class Mixin(vvMixinInit.Mixin):
         # Generate the alt sequence
         alt_sequence = ''
         for hgvs_v in full_list:
-            ref_alt = vvHGVS.hgvs_ref_alt(hgvs_v, self.sf)
+            ref_alt = hgvs_utils.hgvs_ref_alt(hgvs_v, self.sf)
             alt_sequence = alt_sequence + ref_alt['alt']
 
         # Fetch the reference sequence and copy it for the basis of the alt sequence
@@ -2183,7 +2183,7 @@ class Mixin(vvMixinInit.Mixin):
         hgvs_list = []
         # Convert pseudo_vcf list into a HGVS list
         for call in vcf_list:
-            x55hgvs = vvHGVS.pvcf_to_hgvs(call, genome_build, normalization_direction=5, validator=self)
+            x55hgvs = hgvs_utils.pvcf_to_hgvs(call, genome_build, normalization_direction=5, validator=self)
             hgvs_list.append(x55hgvs)
         # Merge
         hgvs_delins = self.merge_hgvs_5pr(hgvs_list)

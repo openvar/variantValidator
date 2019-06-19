@@ -3,7 +3,7 @@ import re
 import copy
 import hgvs.exceptions
 from .logger import Logger
-from . import vvHGVS
+from . import hgvs_utils
 from .variant import Variant
 from . import seq_data
 from . import vvFunctions as fn
@@ -65,8 +65,8 @@ def gene_to_transcripts(variant, validator):
 
     #  Tripple check this assumption by querying the gene position database
     if len(rel_var) == 0:
-        vcf_dict = vvHGVS.hgvs2vcf(variant.hgvs_genomic, variant.primary_assembly, variant.reverse_normalizer,
-                                   validator.sf)
+        vcf_dict = hgvs_utils.hgvs2vcf(variant.hgvs_genomic, variant.primary_assembly, variant.reverse_normalizer,
+                                       validator.sf)
         not_di = str(variant.hgvs_genomic.ac) + ':g.' + str(vcf_dict['pos']) + '_' + str(
             int(vcf_dict['pos']) + (len(vcf_dict['ref']) - 1)) + 'del' + vcf_dict['ref'] + 'ins' + \
             vcf_dict['alt']

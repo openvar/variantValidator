@@ -7,7 +7,7 @@ import sys
 import traceback
 from hgvs.assemblymapper import AssemblyMapper
 from .logger import Logger
-from . import vvHGVS
+from . import hgvs_utils
 from . import vvFunctions as fn
 from . import seq_data
 from . import vvMixinConverters
@@ -562,8 +562,8 @@ class Mixin(vvMixinConverters.Mixin):
                         test = seq_data.supported_for_mapping(alt_gen_var.ac, build)
                         if test:
                             try:
-                                vcf_dict = vvHGVS.report_hgvs2vcf(alt_gen_var, build, variant.reverse_normalizer,
-                                                                  self.sf)
+                                vcf_dict = hgvs_utils.report_hgvs2vcf(alt_gen_var, build, variant.reverse_normalizer,
+                                                                      self.sf)
                             except hgvs.exceptions.HGVSInvalidVariantError:
                                 continue
                             # Identify primary assembly positions
@@ -588,8 +588,8 @@ class Mixin(vvMixinConverters.Mixin):
                                                 }
                                     }
                                 if build == 'GRCh38':
-                                    vcf_dict = vvHGVS.report_hgvs2vcf(alt_gen_var, 'hg38', variant.reverse_normalizer,
-                                                                      self.sf)
+                                    vcf_dict = hgvs_utils.report_hgvs2vcf(alt_gen_var, 'hg38', variant.reverse_normalizer,
+                                                                          self.sf)
                                     primary_genomic_dicts['hg38'] = {
                                         'hgvs_genomic_description': fn.valstr(alt_gen_var),
                                         'vcf': {'chr': vcf_dict['ucsc_chr'],
@@ -622,8 +622,8 @@ class Mixin(vvMixinConverters.Mixin):
                                 alt_genomic_dicts.append(alt_dict)
 
                                 if build == 'GRCh38':
-                                    vcf_dict = vvHGVS.report_hgvs2vcf(alt_gen_var, 'hg38', variant.reverse_normalizer,
-                                                                      self.sf)
+                                    vcf_dict = hgvs_utils.report_hgvs2vcf(alt_gen_var, 'hg38', variant.reverse_normalizer,
+                                                                          self.sf)
                                     alt_dict = {'hg38': {'hgvs_genomic_description': fn.valstr(alt_gen_var),
                                                          'vcf': {'chr': vcf_dict['ucsc_chr'],
                                                                  'pos': vcf_dict['pos'],
