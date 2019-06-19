@@ -189,7 +189,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp, reverse_no
                                                                           'alt': alt_vcf['alt']}
                                                                       }
                     added_data = True
-                except hgvs.exceptions.HGVSInvalidIntervalError as e:
+                except hgvs.exceptions.HGVSError as e:
                     continue
 
             if lifted_response != {} and added_data is not False:
@@ -255,6 +255,8 @@ def liftover(hgvs_genomic, build_from, build_to, hn, vm, vr, hdp, hp, reverse_no
         else:
             not_delins = accession + ':g.' + str(pos) + '_' + str(
                 (pos - 1) + len(lifted_ref_bases)) + 'del' + lifted_ref_bases + 'ins' + lifted_alt_bases
+
+            not_delins = str(not_delins)
             hgvs_not_delins = hp.parse_hgvs_variant(not_delins)
             try:
                 vr.validate(hgvs_not_delins)

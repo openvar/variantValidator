@@ -560,7 +560,7 @@ class TestVariants(object):
         assert results['NM_000088.3:c.590del']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000088.3:c.590del']['alt_genomic_loci'] == []
         assert results['NM_000088.3:c.590del']['gene_symbol'] == 'COL1A1'
-        assert results['NM_000088.3:c.590del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.?', 'slr': 'NP_000079.2:p.?'}
+        assert results['NM_000088.3:c.590del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.(Gly197ValfsTer68)', 'slr': 'NP_000079.2:p.(G197Vfs*68)'}
         assert results['NM_000088.3:c.590del']['submitted_variant'] == 'NM_000088.3:c.589-1GG>G'
         assert results['NM_000088.3:c.590del']['genome_context_intronic_sequence'] == ''
         assert results['NM_000088.3:c.590del']['hgvs_lrg_variant'] == 'LRG_1:g.8639del'
@@ -627,22 +627,22 @@ class TestVariants(object):
         print results
 
         assert results['flag'] == 'intergenic'
-        assert 'Intergenic_Variant_1' in results.keys()
-        assert results['Intergenic_Variant_1']['hgvs_lrg_transcript_variant'] == ''
-        assert results['Intergenic_Variant_1']['refseqgene_context_intronic_sequence'] == ''
-        assert results['Intergenic_Variant_1']['alt_genomic_loci'] == []
-        assert results['Intergenic_Variant_1']['gene_symbol'] == ''
-        assert results['Intergenic_Variant_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
-        assert results['Intergenic_Variant_1']['submitted_variant'] == 'NC_000017.10:g.48279242G>T'
-        assert results['Intergenic_Variant_1']['genome_context_intronic_sequence'] == ''
-        assert results['Intergenic_Variant_1']['hgvs_lrg_variant'] == 'LRG_1:g.4759C>A'
-        assert results['Intergenic_Variant_1']['hgvs_transcript_variant'] == ''
-        assert results['Intergenic_Variant_1']['hgvs_refseqgene_variant'] == 'NG_007400.1:g.4759C>A'
-        assert results['Intergenic_Variant_1']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': u'NC_000017.10:g.48279242G>T', 'vcf': {'chr': 'chr17', 'ref': 'G', 'pos': '48279242', 'alt': 'T'}}
-        assert results['Intergenic_Variant_1']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': u'NC_000017.11:g.50201881G>T', 'vcf': {'chr': 'chr17', 'ref': 'G', 'pos': '50201881', 'alt': 'T'}}
-        assert results['Intergenic_Variant_1']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': u'NC_000017.10:g.48279242G>T', 'vcf': {'chr': '17', 'ref': 'G', 'pos': '48279242', 'alt': 'T'}}
-        assert results['Intergenic_Variant_1']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': u'NC_000017.11:g.50201881G>T', 'vcf': {'chr': '17', 'ref': 'G', 'pos': '50201881', 'alt': 'T'}}
-        assert results['Intergenic_Variant_1']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_007400.1', 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_1.xml'}
+        assert 'intergenic_variant_1' in results.keys()
+        assert results['intergenic_variant_1']['hgvs_lrg_transcript_variant'] == ''
+        assert results['intergenic_variant_1']['refseqgene_context_intronic_sequence'] == ''
+        assert results['intergenic_variant_1']['alt_genomic_loci'] == []
+        assert results['intergenic_variant_1']['gene_symbol'] == ''
+        assert results['intergenic_variant_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
+        assert results['intergenic_variant_1']['submitted_variant'] == 'NC_000017.10:g.48279242G>T'
+        assert results['intergenic_variant_1']['genome_context_intronic_sequence'] == ''
+        assert results['intergenic_variant_1']['hgvs_lrg_variant'] == 'LRG_1:g.4759C>A'
+        assert results['intergenic_variant_1']['hgvs_transcript_variant'] == ''
+        assert results['intergenic_variant_1']['hgvs_refseqgene_variant'] == 'NG_007400.1:g.4759C>A'
+        assert results['intergenic_variant_1']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': u'NC_000017.10:g.48279242G>T', 'vcf': {'chr': 'chr17', 'ref': 'G', 'pos': '48279242', 'alt': 'T'}}
+        assert results['intergenic_variant_1']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': u'NC_000017.11:g.50201881G>T', 'vcf': {'chr': 'chr17', 'ref': 'G', 'pos': '50201881', 'alt': 'T'}}
+        assert results['intergenic_variant_1']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': u'NC_000017.10:g.48279242G>T', 'vcf': {'chr': '17', 'ref': 'G', 'pos': '48279242', 'alt': 'T'}}
+        assert results['intergenic_variant_1']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': u'NC_000017.11:g.50201881G>T', 'vcf': {'chr': '17', 'ref': 'G', 'pos': '50201881', 'alt': 'T'}}
+        assert results['intergenic_variant_1']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_007400.1', 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_1.xml'}
 
 
     def test_variant17(self):
@@ -12332,22 +12332,22 @@ class TestVariants(object):
         print results
 
         assert results['flag'] == 'intergenic'
-        assert 'Intergenic_Variant_1' in results.keys()
-        assert results['Intergenic_Variant_1']['hgvs_lrg_transcript_variant'] == ''
-        assert results['Intergenic_Variant_1']['refseqgene_context_intronic_sequence'] == ''
-        assert results['Intergenic_Variant_1']['alt_genomic_loci'] == []
-        assert results['Intergenic_Variant_1']['gene_symbol'] == ''
-        assert results['Intergenic_Variant_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
-        assert results['Intergenic_Variant_1']['submitted_variant'] == '19-15311794-A-G'
-        assert results['Intergenic_Variant_1']['genome_context_intronic_sequence'] == ''
-        assert results['Intergenic_Variant_1']['hgvs_lrg_variant'] == ''
-        assert results['Intergenic_Variant_1']['hgvs_transcript_variant'] == ''
-        assert results['Intergenic_Variant_1']['hgvs_refseqgene_variant'] == 'NG_009819.1:g.4999T>C'
-        assert results['Intergenic_Variant_1']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': u'NC_000019.9:g.15311794A>G', 'vcf': {'chr': 'chr19', 'ref': 'A', 'pos': '15311794', 'alt': 'G'}}
-        assert results['Intergenic_Variant_1']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': u'NC_000019.10:g.15200983A>G', 'vcf': {'chr': 'chr19', 'ref': 'A', 'pos': '15200983', 'alt': 'G'}}
-        assert results['Intergenic_Variant_1']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': u'NC_000019.9:g.15311794A>G', 'vcf': {'chr': '19', 'ref': 'A', 'pos': '15311794', 'alt': 'G'}}
-        assert results['Intergenic_Variant_1']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': u'NC_000019.10:g.15200983A>G', 'vcf': {'chr': '19', 'ref': 'A', 'pos': '15200983', 'alt': 'G'}}
-        assert results['Intergenic_Variant_1']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_009819.1'}
+        assert 'intergenic_variant_1' in results.keys()
+        assert results['intergenic_variant_1']['hgvs_lrg_transcript_variant'] == ''
+        assert results['intergenic_variant_1']['refseqgene_context_intronic_sequence'] == ''
+        assert results['intergenic_variant_1']['alt_genomic_loci'] == []
+        assert results['intergenic_variant_1']['gene_symbol'] == ''
+        assert results['intergenic_variant_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
+        assert results['intergenic_variant_1']['submitted_variant'] == '19-15311794-A-G'
+        assert results['intergenic_variant_1']['genome_context_intronic_sequence'] == ''
+        assert results['intergenic_variant_1']['hgvs_lrg_variant'] == ''
+        assert results['intergenic_variant_1']['hgvs_transcript_variant'] == ''
+        assert results['intergenic_variant_1']['hgvs_refseqgene_variant'] == 'NG_009819.1:g.4999T>C'
+        assert results['intergenic_variant_1']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': u'NC_000019.9:g.15311794A>G', 'vcf': {'chr': 'chr19', 'ref': 'A', 'pos': '15311794', 'alt': 'G'}}
+        assert results['intergenic_variant_1']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': u'NC_000019.10:g.15200983A>G', 'vcf': {'chr': 'chr19', 'ref': 'A', 'pos': '15200983', 'alt': 'G'}}
+        assert results['intergenic_variant_1']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': u'NC_000019.9:g.15311794A>G', 'vcf': {'chr': '19', 'ref': 'A', 'pos': '15311794', 'alt': 'G'}}
+        assert results['intergenic_variant_1']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': u'NC_000019.10:g.15200983A>G', 'vcf': {'chr': '19', 'ref': 'A', 'pos': '15200983', 'alt': 'G'}}
+        assert results['intergenic_variant_1']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_009819.1'}
 
 
     def test_variant266(self):
@@ -15352,22 +15352,22 @@ class TestVariants(object):
         print results
 
         assert results['flag'] == 'intergenic'
-        assert 'Intergenic_Variant_1' in results.keys()
-        assert results['Intergenic_Variant_1']['hgvs_lrg_transcript_variant'] == ''
-        assert results['Intergenic_Variant_1']['refseqgene_context_intronic_sequence'] == ''
-        assert results['Intergenic_Variant_1']['alt_genomic_loci'] == []
-        assert results['Intergenic_Variant_1']['gene_symbol'] == ''
-        assert results['Intergenic_Variant_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
-        assert results['Intergenic_Variant_1']['submitted_variant'] == '5-1295183-G-A'
-        assert results['Intergenic_Variant_1']['genome_context_intronic_sequence'] == ''
-        assert results['Intergenic_Variant_1']['hgvs_lrg_variant'] == 'LRG_343:g.4980C>T'
-        assert results['Intergenic_Variant_1']['hgvs_transcript_variant'] == ''
-        assert results['Intergenic_Variant_1']['hgvs_refseqgene_variant'] == 'NG_009265.1:g.4980C>T'
-        assert results['Intergenic_Variant_1']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': u'NC_000005.9:g.1295183G>A', 'vcf': {'chr': 'chr5', 'ref': 'G', 'pos': '1295183', 'alt': 'A'}}
-        assert results['Intergenic_Variant_1']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': u'NC_000005.10:g.1295068G>A', 'vcf': {'chr': 'chr5', 'ref': 'G', 'pos': '1295068', 'alt': 'A'}}
-        assert results['Intergenic_Variant_1']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': u'NC_000005.9:g.1295183G>A', 'vcf': {'chr': '5', 'ref': 'G', 'pos': '1295183', 'alt': 'A'}}
-        assert results['Intergenic_Variant_1']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': u'NC_000005.10:g.1295068G>A', 'vcf': {'chr': '5', 'ref': 'G', 'pos': '1295068', 'alt': 'A'}}
-        assert results['Intergenic_Variant_1']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_009265.1', 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_343.xml'}
+        assert 'intergenic_variant_1' in results.keys()
+        assert results['intergenic_variant_1']['hgvs_lrg_transcript_variant'] == ''
+        assert results['intergenic_variant_1']['refseqgene_context_intronic_sequence'] == ''
+        assert results['intergenic_variant_1']['alt_genomic_loci'] == []
+        assert results['intergenic_variant_1']['gene_symbol'] == ''
+        assert results['intergenic_variant_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
+        assert results['intergenic_variant_1']['submitted_variant'] == '5-1295183-G-A'
+        assert results['intergenic_variant_1']['genome_context_intronic_sequence'] == ''
+        assert results['intergenic_variant_1']['hgvs_lrg_variant'] == 'LRG_343:g.4980C>T'
+        assert results['intergenic_variant_1']['hgvs_transcript_variant'] == ''
+        assert results['intergenic_variant_1']['hgvs_refseqgene_variant'] == 'NG_009265.1:g.4980C>T'
+        assert results['intergenic_variant_1']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': u'NC_000005.9:g.1295183G>A', 'vcf': {'chr': 'chr5', 'ref': 'G', 'pos': '1295183', 'alt': 'A'}}
+        assert results['intergenic_variant_1']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': u'NC_000005.10:g.1295068G>A', 'vcf': {'chr': 'chr5', 'ref': 'G', 'pos': '1295068', 'alt': 'A'}}
+        assert results['intergenic_variant_1']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': u'NC_000005.9:g.1295183G>A', 'vcf': {'chr': '5', 'ref': 'G', 'pos': '1295183', 'alt': 'A'}}
+        assert results['intergenic_variant_1']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': u'NC_000005.10:g.1295068G>A', 'vcf': {'chr': '5', 'ref': 'G', 'pos': '1295068', 'alt': 'A'}}
+        assert results['intergenic_variant_1']['reference_sequence_records'] == {'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_009265.1', 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_343.xml'}
 
 
     def test_variant287(self):

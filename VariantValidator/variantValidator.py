@@ -930,7 +930,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                 edit_pass = re.compile('_\d+$')
                 edit_fail = re.compile('\d+$')
                 if edit_fail.search(input):
-                    if edit_pass.search(input):
+                    if edit_pass.search(input) or 'fs' in input:
                         pass
                     else:
                         error = 'false'
@@ -1477,7 +1477,8 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
 
                                             report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm,
                                                                               primary_assembly, lose_vm, hp, hn, sf, nr_vm)
-                                            error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant: Instead use ' + valstr(
+                                            report_gen = hn.normalize(report_gen)
+                                            error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant: Instead re-submit ' + valstr(
                                                 report_gen)
                                         except Exception as e:
                                             exceptPass()
@@ -1499,9 +1500,10 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
 
                         if re.search('n.1-', str(input_parses)):
                             input_parses = evm.n_to_c(input_parses)
-                            error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use '
+                            error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead re-submit '
                             genomic_position = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly,
                                                                     vm, hp, hn, sf, nr_vm)
+                            genomic_position = hn.normalize(genomic_position)
                             error = error + valstr(genomic_position)
                             validation['warnings'] = validation['warnings'] + ': ' + str(error)
                             logger.warning(str(error))
@@ -1559,7 +1561,8 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
 
                                         report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm,
                                                                           primary_assembly, lose_vm, hp, hn, sf, nr_vm)
-                                        error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(
+                                        report_gen = hn.normalize(report_gen)
+                                        error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead re-submit ' + valstr(
                                             report_gen)
                                     except Exception as e:
                                         exceptPass()
@@ -1598,10 +1601,11 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 try:
                                     report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly,
                                                                       lose_vm, hp, hn, sf, nr_vm)
+                                    report_gen = hn.normalize(report_gen)
                                 except hgvs.exceptions.HGVSError as e:
                                     exceptPass()
                                 else:
-                                    error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(
+                                    error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead re-submit ' + valstr(
                                         report_gen)
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                 logger.warning(str(error))
@@ -1629,14 +1633,9 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                                                     hp, sf, no_norm_evm)
                         except hgvs.exceptions.HGVSDataNotAvailableError as e:
                             tx_ac = input_parses.ac
-                            try:
-                                gene_symbol = va_dbCrl.data.get_gene_symbol_from_transcriptID(tx_ac)
-                            except:
-                                gene_symbol = 'none'
-                            if gene_symbol == 'none':
-                                error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' to  https://variantvalidator.org/ref_finder/, or select an alternative genome build'
-                            else:
-                                error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' or ' + gene_symbol + ' to  https://variantvalidator.org/ref_finder/, or select an alternative genome build'
+                            tx_unver = tx_ac.split('.')[0]
+                            error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive'
+                            error = error + ': ' + 'Query https://rest.variantvalidator.org/tools/gene2transcripts/%s for available transcripts' % tx_unver
                             validation['warnings'] = validation['warnings'] + ': ' + str(error)
                             logger.warning(str(error))
                             continue
@@ -1783,7 +1782,8 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                         input_parses.posedit.pos.end.offset = remainder
                                     report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly,
                                                                       lose_vm, hp, hn, sf, nr_vm)
-                                    error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(
+                                    report_gen = hn.normalize(report_gen)
+                                    error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead re-submit ' + valstr(
                                         report_gen)
                                 except Exception as e:
                                     exceptPass()
@@ -1796,9 +1796,10 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 continue
 
                     if re.search('n.1-', str(input_parses)):
-                        error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use '
+                        error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead re-submit '
                         genomic_position = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly, vm,
                                                                 hp, hn, sf, nr_vm)
+                        genomic_position = hn.normalize(genomic_position)
                         error = error + valstr(genomic_position)
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
                         logger.warning(str(error))
@@ -1816,10 +1817,11 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 try:
                                     report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm, primary_assembly,
                                                                       lose_vm, hp, hn, sf, nr_vm)
+                                    report_gen = hn.normalize(report_gen)
                                 except hgvs.exceptions.HGVSError as e:
                                     exceptPass()
                                 else:
-                                    error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(
+                                    error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead re-submit ' + valstr(
                                         report_gen)
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                 logger.warning(str(error))
@@ -1849,7 +1851,8 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     if re.search('bounds', error):
                                         report_gen = va_func.myevm_t_to_g(input_parses, hdp, no_norm_evm,
                                                                           primary_assembly, lose_vm, hp, hn, sf, nr_vm)
-                                        error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead use ' + valstr(
+                                        report_gen = hn.normalize(report_gen)
+                                        error = 'Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead re-submit ' + valstr(
                                             report_gen)
                                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                         logger.warning(str(error))
@@ -1864,14 +1867,9 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                                                     hp, sf, no_norm_evm)
                         except hgvs.exceptions.HGVSDataNotAvailableError as e:
                             tx_ac = input_parses.ac
-                            try:
-                                gene_symbol = va_dbCrl.data.get_gene_symbol_from_transcriptID(tx_ac)
-                            except:
-                                gene_symbol = 'none'
-                            if gene_symbol == 'none':
-                                error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' to  https://variantvalidator.org/ref_finder/, or select an alternative genome build'
-                            else:
-                                error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' or ' + gene_symbol + ' to  https://variantvalidator.org/ref_finder/, or select an alternative genome build'
+                            tx_unver = tx_ac.split('.')[0]
+                            error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive'
+                            error = error + ': ' + 'Query https://rest.variantvalidator.org/tools/gene2transcripts/%s for available transcripts' % tx_unver
                             validation['warnings'] = validation['warnings'] + ': ' + str(error)
                             logger.warning(str(error))
                             continue
@@ -2012,9 +2010,14 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         hgvs_object = hp.parse_hgvs_variant(variant)
                     except hgvs.exceptions.HGVSError as e:
                         error = str(e)
+                        print 'At parse'
+                        print error
+
                     try:
                         vr.validate(hgvs_object)
                     except hgvs.exceptions.HGVSError as e:
+                        print 'At validate'
+                        print e
                         error = str(e)
                     if error != 'false':
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
@@ -2028,13 +2031,6 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             # accession number
                             hgvs_object = hp.parse_hgvs_variant(variant)
                             accession = hgvs_object.ac
-                            # Look for the accession in our database
-                            # Connect to database and send request
-                            record = va_func.entrez_efetch(db="nuccore", id=accession, rettype="gb", retmode="text")
-                            try:
-                                description = record.description
-                            except:
-                                description = 'Unable to recover the description of ' + accession + ' from Entrez'
                             try:
                                 vr.validate(hgvs_object)
                             except hgvs.exceptions.HGVSError as e:
@@ -2146,7 +2142,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                     logger.warning(str(error))
                                     continue
                                 except Exception as e:
-                                    error = 'Unable to assign transcript identity records to ' + accession + ', potentially an obsolete record :'
+                                    error = 'Unable to assign transcript identity records to ' + accession + ', potentially an obsolete record or there is an issue retrieving data from NCBI : Please try again later and if the problem persists contact admin :'
                                     validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                     logger.warning(str(error))
                                     continue
@@ -2162,7 +2158,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                                          hdp=hdp)
                             except Exception as e:
                                 logger.warning(str(e))
-                                error = 'Unable to assign transcript identity records to ' + accession + ', potentially an obsolete record :'
+                                error = 'Unable to assign transcript identity records to ' + accession + ', potentially an obsolete record or there is an issue retrieving data from NCBI : Please try again later and if the problem persists contact admin :'
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                 logger.warning(str(error))
                                 continue
@@ -2217,7 +2213,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                                          hdp=hdp)
                             except Exception as e:
                                 logger.warning(str(e))
-                                error = 'Unable to assign transcript identity records to ' + accession + ', potentially an obsolete record :'
+                                error = 'Unable to assign transcript identity records to ' + accession + ', potentially an obsolete record or there is an issue retrieving data from NCBI : Please try again later and if the problem persists contact admin :'
                                 validation['warnings'] = validation['warnings'] + ': ' + str(error)
                                 logger.warning(str(error))
                                 continue
@@ -3396,26 +3392,18 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                             validation['warnings'] = validation['warnings'] + ': ' + str(error)
                             logger.warning(str(error))
                             continue
-                        try:
-                            gene_symbol = va_dbCrl.data.get_gene_symbol_from_transcriptID(tx_ac)
-                        except:
-                            gene_symbol = 'none'
-                        if gene_symbol == 'none':
-                            error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' to  https://variantvalidator.org/ref_finder/, or select an alternative genome build'
-                        else:
-                            error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' or ' + gene_symbol + ' to  https://variantvalidator.org/ref_finder/, or select an alternative genome build'
+                        tx_ver = obj.ac
+                        tx_unver = tx_ver.split('.')[0]
+                        error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive'
+                        error = error + ': ' + 'Query https://rest.variantvalidator.org/tools/gene2transcripts/%s for available transcripts' % tx_unver
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
                         logger.warning(str(error))
                         continue
                     except TypeError as e:
-                        try:
-                            gene_symbol = va_dbCrl.data.get_gene_symbol_from_transcriptID(tx_ac)
-                        except:
-                            gene_symbol = 'none'
-                        if gene_symbol == 'none':
-                            error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' to  https://variantvalidator.org/ref_finder/, or select an alternative genome build'
-                        else:
-                            error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' or ' + gene_symbol + ' to  https://variantvalidator.org/ref_finder/, or select an alternative genome build'
+                        tx_ver = obj.ac
+                        tx_unver = tx_ver.split('.')[0]
+                        error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive'
+                        error = error + ': ' + 'Query https://rest.variantvalidator.org/tools/gene2transcripts/%s for available transcripts' % tx_unver
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
                         logger.warning(str(error))
                         continue
@@ -6455,7 +6443,6 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 except hgvs.exceptions.HGVSInvalidIntervalError as e:
                                     c_for_p = seek_var
                                 try:
-                                    # Predicted effect on protein
                                     protein_dict = va_func.myc_to_p(c_for_p, evm, hdp, hp, hn, vm, sf, re_to_p=False)
                                     if protein_dict['error'] == '':
                                         hgvs_protein = protein_dict['hgvs_protein']
@@ -6552,6 +6539,24 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                                 except Exception:
                                     exceptPass()
 
+                        # Final protein check, i.e. does the output make sense
+                        # We are looking for exonic c. descriptioms labelled as p.?
+                        # This code is triggered by variant NM_000088.3:c.589-1GG>G
+                        # Note, this will not correct read-through stop codons, but it will try!
+                        if hgvs_coding.posedit.pos.start.offset == 0 and hgvs_coding.posedit.pos.start.offset == 0 and '?' in protein:
+                            protein_dict = va_func.myc_to_p(hgvs_coding, evm, hdp, hp, hn, vm, sf,
+                                                            re_to_p=False)
+                            if protein_dict['error'] == '':
+                                hgvs_protein = protein_dict['hgvs_protein']
+                                protein = str(hgvs_protein)
+                            else:
+                                error = protein_dict['error']
+                                if error == 'Cannot identify an in-frame Termination codon in the variant mRNA sequence':
+                                    hgvs_protein = protein_dict['hgvs_protein']
+                                    validation['warnings'] = validation['warnings'] + ': ' + str(error)
+                            # Replace protein description in vars table
+                            protein = str(hgvs_protein)
+
                         # Check for up-to-date transcript version
                         updated_transcript_variant = 'None'
                         tx_id_info = hdp.get_tx_identity_info(hgvs_coding.ac)
@@ -6606,6 +6611,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                     validation['test_stash_tx_right'] = test_stash_tx_right
                 # finish timing
                 logger.traceEnd(validation)
+
             # Report errors to User and VV admin
             except KeyboardInterrupt:
                 raise
@@ -8420,7 +8426,7 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
             validation_output['flag'] = 'intergenic'
             for valid_v in batch_out:
                 validation_intergenic_counter = validation_intergenic_counter + 1
-                identification_key = 'Intergenic_Variant_%s' % (str(validation_intergenic_counter))
+                identification_key = 'intergenic_variant_%s' % (str(validation_intergenic_counter))
 
                 # Attempt to liftover between genome builds
                 # Note: pyliftover uses the UCSC liftOver tool.
@@ -8464,6 +8470,8 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
 
                         # KeyError if the dicts are empty
                         except KeyError:
+                            continue
+                        except IndexError:
                             continue
 
                     # Add the dictionaries from lifted response to the output
@@ -8517,11 +8525,9 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
         # tr = ''.join(traceback.format_stack())
         tbk = [str(exc_type), str(exc_value), str(te)]
         er = '\n'.join(tbk)
-        # raise variantValidatorError('Validation error')
-        # Return
-        # return
         logger.critical(str(exc_type) + " " + str(exc_value))
         logger.debug(str(er))
+        raise variantValidatorError('Validation error')
 
 # Generates a list of transcript (UTA supported) and transcript names from a gene symbol or RefSeq transcript ID
 def gene2transcripts(query):
@@ -8529,6 +8535,13 @@ def gene2transcripts(query):
     input = input.upper()
     if re.search('\d+ORF\d+', input):
         input = input.replace('ORF', 'orf')
+
+    # Quick check for LRG
+    elif 'LRG' in input:
+        lrg_id = input.split('T')[0]
+        lrg_to_hgnc = va_dbCrl.data.get_LRG_data_from_LRGid(lrg_id)
+        input = lrg_to_hgnc[2]
+
     # Quick check for blank form
     if input == '':
         caution = {'error': 'Please enter HGNC gene name or transcript identifier (NM_, NR_, or ENST)'}
@@ -8536,12 +8549,23 @@ def gene2transcripts(query):
     else:
         hgnc = input
         if re.match('NM_', hgnc) or re.match('NR_', hgnc):  # or re.match('ENST', hgnc):
-            try:
-                tx_info = hdp.get_tx_identity_info(hgnc)
-                hgnc = tx_info[6]
-            except hgvs.exceptions.HGVSError as e:
-                caution = {'error': str(e)}
-                return caution
+            if '.' in hgnc:
+                try:
+                    tx_info = hdp.get_tx_identity_info(hgnc)
+                    hgnc = tx_info[6]
+                except hgvs.exceptions.HGVSError as e:
+                    caution = {'error': str(e)}
+                    return caution
+            else:
+                for version in range(25):
+                    refresh_hgnc = hgnc + '.' + str(version)
+                    try:
+                        tx_info = hdp.get_tx_identity_info(refresh_hgnc)
+                        hgnc = tx_info[6]
+                        break
+                    except hgvs.exceptions.HGVSError as e:
+                        caution = {'error':'No transcript definition for (tx_ac=' + hgnc + ')'}
+                        continue
 
         # First perform a search against the input gene symbol or the symbol inferred from UTA
         initial = va_func.hgnc_rest(path="/fetch/symbol/" + hgnc)
