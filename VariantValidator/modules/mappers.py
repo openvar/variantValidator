@@ -800,6 +800,21 @@ def transcripts_to_gene(variant, validator):
         except Exception:
             fn.exceptPass()
 
+    # Final protein check, i.e. does the output make sense
+    # We are looking for exonic c. descriptioms labelled as p.?
+    # This code is triggered by variant NM_000088.3:c.589-1GG>G
+    # Note, this will not correct read-through stop codons, but it will try!
+    if hgvs_coding.posedit.pos.start.offset == 0 and hgvs_coding.posedit.pos.start.offset == 0 and \
+            '?' in str(hgvs_protein):
+        protein_dict = validator.myc_to_p(hgvs_coding, variant.evm, re_to_p=False)
+        if protein_dict['error'] == '':
+            hgvs_protein = protein_dict['hgvs_protein']
+        else:
+            error = protein_dict['error']
+            if error == 'Cannot identify an in-frame Termination codon in the variant mRNA sequence':
+                hgvs_protein = protein_dict['hgvs_protein']
+                variant.warnings.append(error)
+
     # Check for up-to-date transcript version
     tx_id_info = validator.hdp.get_tx_identity_info(hgvs_coding.ac)
     uta_gene_symbol = tx_id_info[6]

@@ -562,7 +562,7 @@ class TestVariants(TestCase):
         assert results['NM_000088.3:c.590del']['refseqgene_context_intronic_sequence'] == ''
         self.assertCountEqual(results['NM_000088.3:c.590del']['alt_genomic_loci'], [])
         assert results['NM_000088.3:c.590del']['gene_symbol'] == 'COL1A1'
-        assert results['NM_000088.3:c.590del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.?', 'slr': 'NP_000079.2:p.?'}
+        assert results['NM_000088.3:c.590del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000079.2(LRG_1p1):p.(Gly197ValfsTer68)', 'slr': 'NP_000079.2:p.(G197Vfs*68)'}
         assert results['NM_000088.3:c.590del']['submitted_variant'] == 'NM_000088.3:c.589-1GG>G'
         assert results['NM_000088.3:c.590del']['genome_context_intronic_sequence'] == ''
         assert results['NM_000088.3:c.590del']['hgvs_lrg_variant'] == 'LRG_1:g.8639del'
