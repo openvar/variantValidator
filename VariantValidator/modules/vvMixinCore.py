@@ -940,7 +940,8 @@ class Mixin(vvMixinConverters.Mixin):
                         return True
                     except Exception:
                         error = 'Unable to assign transcript identity records to ' + accession + \
-                                ', potentially an obsolete record :'
+                                ', potentially an obsolete record or there is an issue retrieving data from NCBI. ' \
+                                'Please try again later and if the problem persists contact admin'
                         variant.warnings.append(error)
                         logger.warning(error)
                         return True
@@ -954,7 +955,8 @@ class Mixin(vvMixinConverters.Mixin):
                 except Exception as e:
                     logger.warning(str(e))
                     error = 'Unable to assign transcript identity records to ' + accession + \
-                            ', potentially an obsolete record :'
+                            ', potentially an obsolete record or there is an issue retrieving data from NCBI. ' \
+                            'Please try again later and if the problem persists contact admin'
                     variant.warnings.append(error)
                     logger.warning(error)
                     return True
@@ -1001,7 +1003,8 @@ class Mixin(vvMixinConverters.Mixin):
                 except Exception as e:
                     logger.warning(str(e))
                     error = 'Unable to assign transcript identity records to ' + accession + \
-                            ', potentially an obsolete record :'
+                            ', potentially an obsolete record or there is an issue retrieving data from NCBI. ' \
+                            'Please try again later and if the problem persists contact admin'
                     variant.warnings.append(error)
                     logger.warning(error)
                     return True
