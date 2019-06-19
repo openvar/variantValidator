@@ -63,7 +63,7 @@ class ValOutput(object):
             if variant.output_type_flag == 'intergenic':
                 validation_output['flag'] = 'intergenic'
                 validation_intergenic_counter = validation_intergenic_counter + 1
-                identification_key = 'Intergenic_Variant_%s' % validation_intergenic_counter
+                identification_key = 'intergenic_variant_%s' % validation_intergenic_counter
 
                 # Attempt to liftover between genome builds
                 # Note: pyliftover uses the UCSC liftOver tool.

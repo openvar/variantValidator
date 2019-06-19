@@ -231,30 +231,18 @@ def transcripts_to_gene(variant, validator):
             logger.warning(error)
             return True
 
-        if variant.gene_symbol:
-            error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, ' \
-                    'please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' or ' + \
-                    variant.gene_symbol + ' to  https://variantvalidator.org/ref_finder/, ' \
-                                          'or select an alternative genome build'
-        else:
-            error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, ' \
-                    'please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' to  ' \
-                    'https://variantvalidator.org/ref_finder/, or select an alternative genome build'
-        variant.warnings.append(error)
-        logger.warning(error)
+        errors = ['Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive',
+                  'Query https://rest.variantvalidator.org/tools/gene2transcripts/%s for '
+                  'available transcripts' % tx_ac.split('.')[0]]
+        variant.warnings.extend(errors)
+        logger.warning(str(errors))
         return True
     except TypeError:
-        if variant.gene_symbol:
-            error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, ' \
-                    'please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' or ' + \
-                    variant.gene_symbol + ' to  https://variantvalidator.org/ref_finder/, ' \
-                                          'or select an alternative genome build'
-        else:
-            error = 'Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive, ' \
-                    'please select an alternative version of ' + tx_ac + ' by submitting ' + tx_ac + ' to  ' \
-                    'https://variantvalidator.org/ref_finder/, or select an alternative genome build'
-        variant.warnings.append(error)
-        logger.warning(error)
+        errors = ['Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive',
+                  'Query https://rest.variantvalidator.org/tools/gene2transcripts/%s for '
+                  'available transcripts' % tx_ac.split('.')[0]]
+        variant.warnings.extend(errors)
+        logger.warning(str(errors))
         return True
 
     # Get orientation of the gene wrt genome and a list of exons mapped to the genome

@@ -707,17 +707,38 @@ class Mixin(vvMixinConverters.Mixin):
         query = query.upper()
         if re.search(r'\d+ORF\d+', query):
             query = query.replace('ORF', 'orf')
+
+        # Quick check for LRG
+        elif 'LRG' in query:
+            lrg_id = query.split('T')[0]
+            lrg_to_hgnc = self.db.get_LRG_data_from_LRGid(lrg_id)
+            query = lrg_to_hgnc[2]
+
         # Quick check for blank form
         if query == '':
             return {'error': 'Please enter HGNC gene name or transcript identifier (NM_, NR_, or ENST)'}
 
         hgnc = query
         if 'NM_' in hgnc or 'NR_' in hgnc:  # or re.match('ENST', hgnc):
-            try:
-                tx_info = self.hdp.get_tx_identity_info(hgnc)
-                hgnc = tx_info[6]
-            except hgvs.exceptions.HGVSError as e:
-                return {'error': str(e)}
+            if '.' in hgnc:
+                try:
+                    tx_info = self.hdp.get_tx_identity_info(hgnc)
+                    hgnc = tx_info[6]
+                except hgvs.exceptions.HGVSError as e:
+                    return {'error': str(e)}
+            else:
+                found_res = False
+                for version in range(25):
+                    refresh_hgnc = hgnc + '.' + str(version)
+                    try:
+                        tx_info = self.hdp.get_tx_identity_info(refresh_hgnc)
+                        hgnc = tx_info[6]
+                        found_res = True
+                        break
+                    except hgvs.exceptions.HGVSError:
+                        pass
+                if not found_res:
+                    return {'error': 'No transcript definition for (tx_ac=' + hgnc + ')'}
 
         # First perform a search against the input gene symbol or the symbol inferred from UTA
         initial = fn.hgnc_rest(path="/fetch/symbol/" + hgnc)

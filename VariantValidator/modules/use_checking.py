@@ -347,18 +347,11 @@ def structure_checks_c(variant, validator):
                                                       variant.primary_assembly, validator.vm, variant.hn, validator.hp,
                                                       validator.sf, variant.no_norm_evm)
         except hgvs.exceptions.HGVSDataNotAvailableError:
-            if variant.gene_symbol:
-                error = 'Required information for ' + variant.input_parses.ac + ' is missing from the Universal ' \
-                        'Transcript Archive, please select an alternative version of ' + variant.input_parses.ac + \
-                        ' by submitting ' + variant.input_parses.ac + ' or ' + variant.gene_symbol + ' to  ' \
-                        'https://variantvalidator.org/ref_finder/, or select an alternative genome build'
-            else:
-                error = 'Required information for ' + variant.input_parses.ac + ' is missing from the Universal ' \
-                        'Transcript Archive, please select an alternative version of ' + variant.input_parses.ac + \
-                        ' by submitting ' + variant.input_parses.ac + ' to https://variantvalidator.org/ref_finder/, ' \
-                        'or select an alternative genome build'
-            variant.warnings.append(error)
-            logger.warning(error)
+            errors = ['Required information for ' + variant.input_parses.ac + ' is missing from the Universal '
+                      'Transcript Archive', 'Query https://rest.variantvalidator.org/tools/gene2transcripts/%s for '
+                      'available transcripts' % variant.input_parses.ac.split('.')[0]]
+            variant.warnings.extend(errors)
+            logger.warning(str(errors))
             return True
         except ValueError as e:
             error = str(e)
@@ -570,18 +563,12 @@ def structure_checks_n(variant, validator):
             output = validator.noreplace_myevm_t_to_g(variant.input_parses, variant.evm, validator.hdp, variant.primary_assembly, validator.vm, variant.hn,
                                                  validator.hp, validator.sf, variant.no_norm_evm)
         except hgvs.exceptions.HGVSDataNotAvailableError as e:
-            if variant.gene_symbol:
-                error = 'Required information for ' + variant.input_parses.ac + ' is missing from the Universal ' \
-                        'Transcript Archive, please select an alternative version of ' + variant.input_parses.ac + \
-                        ' by submitting ' + variant.input_parses.ac + ' or ' + variant.gene_symbol + ' to  ' \
-                        'https://variantvalidator.org/ref_finder/, or select an alternative genome build'
-            else:
-                error = 'Required information for ' + variant.input_parses.ac + ' is missing from the Universal ' \
-                        'Transcript Archive, please select an alternative version of ' + variant.input_parses.ac + \
-                        ' by submitting ' + variant.input_parses.ac + ' to  https://variantvalidator.org/ref_finder/,' \
-                        ' or select an alternative genome build'
-            variant.warnings.append(error)
-            logger.warning(error)
+            errors = ['Required information for ' + variant.input_parses.ac + ' is missing from the Universal '
+                                                                              'Transcript Archive',
+                      'Query https://rest.variantvalidator.org/tools/gene2transcripts/%s for '
+                      'available transcripts' % variant.input_parses.ac.split('.')[0]]
+            variant.warnings.extend(errors)
+            logger.warning(str(errors))
             return True
         except ValueError as e:
             error = str(e)
