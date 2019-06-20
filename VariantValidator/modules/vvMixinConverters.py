@@ -789,7 +789,7 @@ class Mixin(vvMixinInit.Mixin):
 
         return hgvs_genomic
 
-    def noreplace_myevm_t_to_g(self,hgvs_c, evm, hdpOld, primary_assembly, vmOld, hn, hpOld, sfOld, no_norm_evm):
+    def noreplace_myevm_t_to_g(self, hgvs_c, variant):
         """
         USE WITH MAPPER THAT DOES NOT REPLACE THE REFERENCE GENOMIC BASES AND DOED NOT NORMALIZE
 
@@ -801,177 +801,103 @@ class Mixin(vvMixinInit.Mixin):
         Map to a single NC_ (or ALT) for the specified genome build
         returns parsed hgvs g. object
         """
+        hgvs_genomic = None
+        attempted_mapping_error = ''
         try:
-            hgvs_genomic = evm.t_to_g(hgvs_c)
-            hn.normalize(hgvs_genomic)
+            hgvs_genomic = variant.evm.t_to_g(hgvs_c)
+            variant.hn.normalize(hgvs_genomic)
         # This will fail on multiple refs for NC_
-        except hgvs.exceptions.HGVSError as e:
+        except hgvs.exceptions.HGVSError:
             # Recover all available mapping options from UTA
             mapping_options = self.hdp.get_tx_mapping_options(hgvs_c.ac)
 
-            if mapping_options == []:
+            if not mapping_options:
                 raise HGVSDataNotAvailableError("no g. mapping options available")
 
-            for option in mapping_options:
-                if re.match('blat', option[2]):
-                    continue
-                if re.match('NC_', option[1]):
-                    chr_num = seq_data.supported_for_mapping(str(option[1]), primary_assembly)
-                    if chr_num != 'false':
-                        try:
-                            hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
-                            break
-                        except Exception as e:
-                            attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + option[
-                                1] + '~'
-                            print(e)
-                            continue
+            def search_in_options(hgvs_genomic, seqtype, chr_num_val, final=False):
+                err = ''
+                for op in mapping_options:
+                    if op[2].startswith('blat'):
+                        continue
+                    if op[1].startswith(seqtype):
+                        if final:
+                            try:
+                                hgvs_genomic = self.vm.t_to_g(hgvs_c, str(op[1]))
+                                break
+                            except Exception as e:
+                                err += str(e) + "/" + hgvs_c.ac + "/" + op[1] + '~'
+                                print(e)
+                                continue
+                        chr_num = seq_data.supported_for_mapping(str(op[1]), variant.primary_assembly)
+                        if chr_num_val and chr_num != 'false':
+                            try:
+                                hgvs_genomic = self.vm.t_to_g(hgvs_c, str(op[1]))
+                                break
+                            except Exception as e:
+                                err += str(e) + "/" + hgvs_c.ac + "/" + op[1] + '~'
+                                print(e)
+                                continue
+                        elif not chr_num_val and chr_num == 'false':
+                            try:
+                                hgvs_genomic = self.vm.t_to_g(hgvs_c, str(op[1]))
+                                break
+                            except Exception as e:
+                                err += str(e) + "/" + hgvs_c.ac + "/" + op[1] + '~'
+                                print(e)
+                                continue
+                return hgvs_genomic, err
+
+            hgvs_genomic, new_errors = search_in_options(hgvs_genomic, 'NC_', True)
+            attempted_mapping_error += new_errors
 
             # If not mapped, raise error
             try:
-                hn.normalize(hgvs_genomic)
+                variant.hn.normalize(hgvs_genomic)
             except:
-                for option in mapping_options:
-                    if re.match('blat', option[2]):
-                        continue
-                    if re.match('NC_', option[1]):
-                        chr_num = seq_data.supported_for_mapping(str(option[1]), primary_assembly)
-                        if chr_num != 'false':
-                            try:
-                                hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
-                                break
-                            except Exception as e:
-                                attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + option[
-                                    1] + '~'
-                                print(e)
-                                continue
+                hgvs_genomic, new_errors = search_in_options(hgvs_genomic, 'NC_', True)
+                attempted_mapping_error += new_errors
 
                 # If not mapped, raise error
                 try:
-                    hn.normalize(hgvs_genomic)
+                    variant.hn.normalize(hgvs_genomic)
                 except:
-                    for option in mapping_options:
-                        if re.match('blat', option[2]):
-                            continue
-                        if re.match('NC_', option[1]):
-                            chr_num = seq_data.supported_for_mapping(str(option[1]), primary_assembly)
-                            if chr_num == 'false':
-                                try:
-                                    hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
-                                    break
-                                except Exception as e:
-                                    if re.search(option[1], attempted_mapping_error):
-                                        pass
-                                    else:
-                                        attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + \
-                                                                  option[
-                                                                      1] + '~'
-                                    print(e)
-                                    continue
+                    hgvs_genomic, new_errors = search_in_options(hgvs_genomic, 'NC_', False)
+                    attempted_mapping_error += new_errors
                     try:
-                        hn.normalize(hgvs_genomic)
+                        variant.hn.normalize(hgvs_genomic)
                     except:
-                        for option in mapping_options:
-                            if re.match('blat', option[2]):
-                                continue
-                            if re.match('NT_', option[1]):
-                                chr_num = seq_data.supported_for_mapping(str(option[1]),
-                                                                         primary_assembly)
-                                if chr_num != 'false':
-                                    try:
-                                        hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
-                                        break
-                                    except Exception as e:
-                                        attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + \
-                                                                  option[
-                                                                      1] + '~'
-                                        print(e)
-                                        continue
+                        hgvs_genomic, new_errors = search_in_options(hgvs_genomic, 'NT_', True)
+                        attempted_mapping_error += new_errors
                         try:
-                            hn.normalize(hgvs_genomic)
+                            variant.hn.normalize(hgvs_genomic)
                         except:
-                            for option in mapping_options:
-                                if re.match('blat', option[2]):
-                                    continue
-                                if re.match('NT_', option[1]):
-                                    chr_num = seq_data.supported_for_mapping(str(option[1]),
-                                                                             primary_assembly)
-                                    if chr_num == 'false':
-                                        try:
-                                            hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
-                                            break
-                                        except Exception as e:
-                                            attempted_mapping_error = attempted_mapping_error + str(
-                                                e) + "/" + hgvs_c.ac + "/" + \
-                                                                      option[
-                                                                          1] + '~'
-                                            print(e)
-                                            continue
+                            hgvs_genomic, new_errors = search_in_options(hgvs_genomic, 'NT_', False)
+                            attempted_mapping_error += new_errors
                             try:
-                                hn.normalize(hgvs_genomic)
+                                variant.hn.normalize(hgvs_genomic)
                             except:
-                                for option in mapping_options:
-                                    if re.match('blat', option[2]):
-                                        continue
-                                    if re.match('NW_', option[1]):
-                                        chr_num = seq_data.supported_for_mapping(str(option[1]),
-                                                                                 primary_assembly)
-                                        if chr_num != 'false':
-                                            try:
-                                                hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
-                                                break
-                                            except Exception as e:
-                                                attempted_mapping_error = attempted_mapping_error + str(
-                                                    e) + "/" + hgvs_c.ac + "/" + \
-                                                                          option[1] + '~'
-                                                print(e)
-                                                continue
+                                hgvs_genomic, new_errors = search_in_options(hgvs_genomic, 'NW_', True)
+                                attempted_mapping_error += new_errors
                                 try:
-                                    hn.normalize(hgvs_genomic)
+                                    variant.hn.normalize(hgvs_genomic)
                                 except:
-                                    for option in mapping_options:
-                                        if re.match('blat', option[2]):
-                                            continue
-                                        if re.match('NW_', option[1]):
-                                            chr_num = seq_data.supported_for_mapping(str(option[1]),
-                                                                                     primary_assembly)
-                                            if chr_num == 'false':
-                                                try:
-                                                    hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
-                                                    break
-                                                except Exception as e:
-                                                    attempted_mapping_error = attempted_mapping_error + str(
-                                                        e) + "/" + hgvs_c.ac + "/" + \
-                                                                              option[1] + '~'
-                                                    print(e)
-                                                    continue
-
+                                    hgvs_genomic, new_errors = search_in_options(hgvs_genomic, 'NW_', False)
+                                    attempted_mapping_error += new_errors
                                     # Only a RefSeqGene available
                                     try:
-                                        hn.normalize(hgvs_genomic)
+                                        variant.hn.normalize(hgvs_genomic)
                                     except:
-                                        for option in mapping_options:
-                                            if re.match('blat', option[2]):
-                                                continue
-                                            if re.match('NG_', option[1]):
-                                                try:
-                                                    hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
-                                                    break
-                                                except Exception as e:
-                                                    attempted_mapping_error = attempted_mapping_error + str(
-                                                        e) + "/" + hgvs_c.ac + "/" + \
-                                                                              option[1] + '~'
-                                                    print(e)
-                                                    continue
-        try:
-            hgvs_genomic
-        except Exception:
+                                        hgvs_genomic, new_errors = search_in_options(hgvs_genomic, 'NG_', True,
+                                                                                     final=True)
+                                        attempted_mapping_error += new_errors
+        if hgvs_genomic is None:
             raise HGVSDataNotAvailableError('No available t_to_g liftover')
 
         # Ins variants map badly - Especially between c. exon/exon boundary
-        if hgvs_c.posedit.edit.type == 'ins' and hgvs_c.posedit.pos.start.offset == 0 and hgvs_c.posedit.pos.end.offset == 0:
+        if hgvs_c.posedit.edit.type == 'ins' and hgvs_c.posedit.pos.start.offset == 0 and \
+                hgvs_c.posedit.pos.end.offset == 0:
             try:
-                hn.normalize(hgvs_genomic)
+                variant.hn.normalize(hgvs_genomic)
             except hgvs.exceptions.HGVSError as e:
                 error = str(e)
                 if error == 'insertion length must be 1':
@@ -979,17 +905,18 @@ class Mixin(vvMixinInit.Mixin):
                         hgvs_t = self.vm.c_to_n(hgvs_c)
                     else:
                         hgvs_t = copy.copy(hgvs_c)
-                    ins_ref = self.sf.fetch_seq(str(hgvs_t.ac), hgvs_t.posedit.pos.start.base - 1, hgvs_t.posedit.pos.end.base)
+                    ins_ref = self.sf.fetch_seq(str(hgvs_t.ac), hgvs_t.posedit.pos.start.base - 1,
+                                                hgvs_t.posedit.pos.end.base)
                     ins_alt = ins_ref[:1] + hgvs_t.posedit.edit.alt + ins_ref[-1:]
-                    ins_to_delins = hgvs_t.ac + ':' + hgvs_t.type + '.' + str(hgvs_t.posedit.pos.start.base) + '_' + str(
-                        hgvs_t.posedit.pos.end.base) + 'del' + ins_ref + 'ins' + ins_alt
+                    ins_to_delins = hgvs_t.ac + ':' + hgvs_t.type + '.' + str(hgvs_t.posedit.pos.start.base) + '_' + \
+                        str(hgvs_t.posedit.pos.end.base) + 'del' + ins_ref + 'ins' + ins_alt
                     hgvs_t = self.hp.parse_hgvs_variant(ins_to_delins)
                     try:
                         hgvs_c = self.vm.n_to_c(hgvs_t)
                     except Exception:
                         hgvs_c = copy.copy(hgvs_t)
                     try:
-                        hgvs_genomic = no_norm_evm.t_to_g(hgvs_c)
+                        hgvs_genomic = variant.no_norm_evm.t_to_g(hgvs_c)
                     except Exception as e:
                         error = str(e)
                         Logger.warning('Ins mapping error in myt_to_g ' + error)

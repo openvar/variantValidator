@@ -343,9 +343,7 @@ def structure_checks_c(variant, validator):
         # Create a specific minimal evm with no normalizer and no replace_reference
         # Have to use this method due to potential multi chromosome error, note normalizes but does not replace sequence
         try:
-            output = validator.noreplace_myevm_t_to_g(variant.input_parses, variant.evm, validator.hdp,
-                                                      variant.primary_assembly, validator.vm, variant.hn, validator.hp,
-                                                      validator.sf, variant.no_norm_evm)
+            output = validator.noreplace_myevm_t_to_g(variant.input_parses, variant)
         except hgvs.exceptions.HGVSDataNotAvailableError:
             errors = ['Required information for ' + variant.input_parses.ac + ' is missing from the Universal '
                       'Transcript Archive', 'Query https://rest.variantvalidator.org/tools/gene2transcripts/%s for '
@@ -560,8 +558,7 @@ def structure_checks_n(variant, validator):
         # Create a specific minimal evm with no normalizer and no replace_reference
         # Have to use this method due to potential multi chromosome error, note, normalizes but does not replace sequence
         try:
-            output = validator.noreplace_myevm_t_to_g(variant.input_parses, variant.evm, validator.hdp, variant.primary_assembly, validator.vm, variant.hn,
-                                                 validator.hp, validator.sf, variant.no_norm_evm)
+            output = validator.noreplace_myevm_t_to_g(variant.input_parses, variant)
         except hgvs.exceptions.HGVSDataNotAvailableError as e:
             errors = ['Required information for ' + variant.input_parses.ac + ' is missing from the Universal '
                                                                               'Transcript Archive',
