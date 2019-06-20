@@ -1,5 +1,5 @@
 import os
-from .vvLiftover import liftover as lift_over
+from .liftover import liftover
 from .logger import Logger
 
 
@@ -94,10 +94,9 @@ class ValOutput(object):
                             build_from = 'GRCh37'
 
                     # Liftover
-                    lifted_response = lift_over(genomic_position_info[g_p_key]['hgvs_genomic_description'], build_from,
-                                                build_to, variant.hn, self.validator.vm, self.validator.vr,
-                                                self.validator.hdp, self.validator.hp, variant.reverse_normalizer,
-                                                self.validator.sf, variant.evm)
+                    lifted_response = liftover(genomic_position_info[g_p_key]['hgvs_genomic_description'], build_from,
+                                               build_to, variant.hn, variant.reverse_normalizer,
+                                               variant.evm, self.validator)
 
                     # Sort the respomse into primary assembly and ALT
                     primary_assembly_loci = {}

@@ -111,8 +111,6 @@ class Mixin:
 
         # Set up other configuration variables
         self.liftoverPath = config["liftover"]["location"]
-        if not self.liftoverPath == 'PATH/TO/LIFTOVER':
-            os.environ['PYLIFTOVER_DIR'] = self.liftoverPath
         self.entrezID = config["EntrezID"]['entrezid']
 
         # Set up HGVS
