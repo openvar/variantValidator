@@ -701,7 +701,7 @@ def transcripts_to_gene(variant, validator):
         hgvs_refseq = 'RefSeqGene record not available'
 
     # Predicted effect on protein
-    protein_dict = validator.myc_to_p(hgvs_coding, variant.evm, re_to_p=False)
+    protein_dict = validator.myc_to_p(hgvs_coding, variant.evm, re_to_p=False, hn=variant.hn)
     if protein_dict['error'] == '':
         hgvs_protein = protein_dict['hgvs_protein']
     else:
@@ -745,7 +745,7 @@ def transcripts_to_gene(variant, validator):
                 c_for_p = fn.valstr(hgvs_seek_var)
             try:
                 # Predicted effect on protein
-                protein_dict = validator.myc_to_p(c_for_p, variant.evm, re_to_p=False)
+                protein_dict = validator.myc_to_p(c_for_p, variant.evm, re_to_p=False, hn=variant.hn)
                 if protein_dict['error'] == '':
                     hgvs_protein = protein_dict['hgvs_protein']
                 else:
@@ -776,7 +776,7 @@ def transcripts_to_gene(variant, validator):
                 fn.exceptPass()
             else:
                 # hgvs_protein = va_func.protein(str(c_for_p), variant.evm, hp)
-                protein_dict = validator.myc_to_p(c_for_p, variant.evm, re_to_p=False)
+                protein_dict = validator.myc_to_p(c_for_p, variant.evm, re_to_p=False, hn=variant.hn)
                 if protein_dict['error'] == '':
                     hgvs_protein = protein_dict['hgvs_protein']
                 else:
@@ -794,7 +794,7 @@ def transcripts_to_gene(variant, validator):
     # Note, this will not correct read-through stop codons, but it will try!
     if hgvs_coding.posedit.pos.start.offset == 0 and hgvs_coding.posedit.pos.start.offset == 0 and \
             '?' in str(hgvs_protein):
-        protein_dict = validator.myc_to_p(hgvs_coding, variant.evm, re_to_p=False)
+        protein_dict = validator.myc_to_p(hgvs_coding, variant.evm, re_to_p=False, hn=variant.hn)
         if protein_dict['error'] == '':
             hgvs_protein = protein_dict['hgvs_protein']
         else:

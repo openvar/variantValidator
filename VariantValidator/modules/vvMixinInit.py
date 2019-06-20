@@ -18,24 +18,19 @@ from Bio.Seq import Seq
 import re
 import copy
 from .vvDatabase import vvDatabase
-from .logger import Logger
-from . import utils as fn
+from . import utils
 from VariantValidator.settings import CONFIG_DIR
 from VariantValidator.version import __version__
 
 
 class Mixin:
     """
-    # This object contains configuration options for the validator, but it inherits the mixin
-    # class in vvCore that contains the enormous validator function.
-
     This mixin is the first for the validator object, which is instantiated in order to perform validator functions.
     The validator contains configuration information and permanent copies of database links and the like.
     Much of the validator's inner workings are stored in special one-off function container objects:
     validator.db : The validator's MySQL database access functions
 
-    The validator configuration is stored in ~/.config/VariantValidator/config.ini . This is loaded
-    when the validator object is initialized.
+    The validator configuration is loaded when the validator object is initialized.
 
     Running variant validator should hopefully be as simple as writing a script like this:
     import VariantValidator
@@ -45,7 +40,7 @@ class Mixin:
 
     """
     def __init__(self):
-        '''
+        """
         Renaming of variables :
         'seqrepo_directory': HGVS_SEQREPO_DIR,           #self.seqrepoPath
         'uta_url': UTA_DB_URL,                           #self.utaPath
@@ -56,25 +51,25 @@ class Mixin:
         'variantvalidator_hgvs_version': hgvs_version,   #self.hgvsVersion
         'uta_schema': str(hdp.data_version()),           #self.uta_schema
         'seqrepo_db': HGVS_SEQREPO_DIR.split('/')[-1]    #self.seqrepoVersion
-        '''
+        """
 
         # Load the configuration file.
         config = ConfigParser()
         config.read(CONFIG_DIR)
 
         # The custom vvLogging module will set itself up using the VALDIATOR_DEBUG environment variable.
-        levelString = config["logging"]['level']
-        consoleString = config["logging"]['console']
-        if consoleString.lower() == "true":
-            consoleString = "console"
-        fileString = config["logging"]['file']
-        if fileString.lower() == "true":
-            fileString = "file"
-        traceString = config["logging"]['trace']
-        if traceString.lower() == "true":
-            traceString = "trace"
-        logString = levelString+" "+consoleString+" "+fileString+" "+traceString
-        os.environ["VALIDATOR_DEBUG"] = logString
+        level_string = config["logging"]['level']
+        console_string = config["logging"]['console']
+        if console_string.lower() == "true":
+            console_string = "console"
+        file_string = config["logging"]['file']
+        if file_string.lower() == "true":
+            file_string = "file"
+        trace_string = config["logging"]['trace']
+        if trace_string.lower() == "true":
+            trace_string = "trace"
+        log_string = level_string+" "+console_string+" "+file_string+" "+trace_string
+        os.environ["VALIDATOR_DEBUG"] = log_string
 
         # Handle databases
         self.entrezID = config["EntrezID"]["entrezID"]
@@ -96,10 +91,11 @@ class Mixin:
             'password': config["mysql"]["password"],
             'host':     config["mysql"]["host"],
             'database': config["mysql"]["database"],
-    	    'raise_on_warnings': True
+            'raise_on_warnings': True
         }
-        #Create database access objects
+        # Create database access objects
         self.db = vvDatabase(self.dbConfig)
+
         # Set up versions
         self.version = __version__
         if re.match(r'^\d+\.\d+\.\d+$', __version__) is not None:
@@ -145,19 +141,21 @@ class Mixin:
                                                      )
 
         # Create normalizer
-        self.merge_normalizer = hgvs.normalizer.Normalizer(self.hdp,
-                                                           cross_boundaries=False,
-                                                           shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
-                                                           alt_aln_method='splign',
-                                                           validate=False
-                                                           )
-        self.reverse_merge_normalizer = hgvs.normalizer.Normalizer(self.hdp,
-                                                                   cross_boundaries=False,
-                                                                   shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
-                                                                   alt_aln_method='splign',
-                                                                   validate=False
-                                                                   )
-        #create no_norm_evm
+        self.merge_normalizer = hgvs.normalizer.Normalizer(
+            self.hdp,
+            cross_boundaries=False,
+            shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
+            alt_aln_method='splign',
+            validate=False
+        )
+        self.reverse_merge_normalizer = hgvs.normalizer.Normalizer(
+            self.hdp,
+            cross_boundaries=False,
+            shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
+            alt_aln_method='splign',
+            validate=False
+        )
+        # create no_norm_evm
         self.no_norm_evm_38 = hgvs.assemblymapper.AssemblyMapper(self.hdp,
                                                                  assembly_name='GRCh38',
                                                                  alt_aln_method='splign',
@@ -180,7 +178,7 @@ class Mixin:
     def __del__(self):
         del self.db
 
-    def myConfig(self):
+    def my_config(self):
         """
         Returns configuration:
         version, hgvs version, uta schema, seqrepo db.
@@ -192,62 +190,59 @@ class Mixin:
             'seqrepo_db': self.seqrepoPath
         }
 
-    def protein(self,variant, evm, hpUnused):
-        # Set regular expressions for if statements
-        pat_c = re.compile("\:c\.")  # Pattern looks for :c. Note (gene) has been removed
-
+    def protein(self, variant, evm, hpUnused):
         # If the :c. pattern is present in the input variant
-        if pat_c.search(variant):
+        if ':c.' in variant:
             # convert the input string into a hgvs object
-            var_c = self.hp.parse_hgvs_variant(variant)
+            var_c = self.hp.parse(variant)
             # Does the edit affect the start codon?
-            if ((var_c.posedit.pos.start.base >= 1 and var_c.posedit.pos.start.base <= 3 and var_c.posedit.pos.start.offset == 0) or (
-                    var_c.posedit.pos.end.base >= 1 and var_c.posedit.pos.end.base <= 3 and var_c.posedit.pos.end.offset == 0)) and not re.search('\*', str(
-                    var_c.posedit.pos)):
+            if ((1 <= var_c.posedit.pos.start.base <= 3 and var_c.posedit.pos.start.offset == 0) or (
+                    1 <= var_c.posedit.pos.end.base <= 3 and var_c.posedit.pos.end.offset == 0)) and '*' not in str(
+                    var_c.posedit.pos):
                 ass_prot = self.hdp.get_pro_ac_for_tx_ac(var_c.ac)
-                if str(ass_prot) == 'None':
+                if ass_prot is None:
                     cod = str(var_c)
                     cod = cod.replace('inv', 'del')
-                    cod = self.hp.parse_hgvs_variant(cod)
+                    cod = self.hp.parse(cod)
                     p = evm.c_to_p(cod)
                     ass_prot = p.ac
                 var_p = hgvs.sequencevariant.SequenceVariant(ac=ass_prot, type='p', posedit='(Met1?)')
             else:
                 var_p = evm.c_to_p(var_c)
             return var_p
-        if re.search(':n.', variant):
-            var_p = self.hp.parse_hgvs_variant(variant)
+
+        if ':n.' in variant:
+            var_p = self.hp.parse(variant)
             var_p.ac = 'Non-coding transcript'
             var_p.posedit = ''
             return var_p
 
-    def myc_to_p(self,hgvs_transcript, evm, re_to_p):
+    def myc_to_p(self, hgvs_transcript, evm, re_to_p, hn):
         # Create dictionary to store the information
         hgvs_transcript_to_hgvs_protein = {'error': '', 'hgvs_protein': '', 'ref_residues': ''}
 
+        associated_protein_accession = ''
         # Collect the associated protein
         if hgvs_transcript.type == 'c':
             associated_protein_accession = self.hdp.get_pro_ac_for_tx_ac(hgvs_transcript.ac)
             # This method sometimes fails
-            if str(associated_protein_accession) == 'None':
+            if associated_protein_accession is None:
                 cod = str(hgvs_transcript)
                 cod = cod.replace('inv', 'del')
-                cod = self.hp.parse_hgvs_variant(cod)
+                cod = self.hp.parse(cod)
                 p = evm.c_to_p(cod)
                 associated_protein_accession = p.ac
-        else:
-            pass
 
-        # Check for non-coding transcripts
         if hgvs_transcript.type == 'c':
             # Handle non inversions with simple c_to_p mapping
 
-            if (hgvs_transcript.posedit.edit.type != 'inv') and (hgvs_transcript.posedit.edit.type != 'delins') and (re_to_p is False):
+            if (hgvs_transcript.posedit.edit.type != 'inv') and (hgvs_transcript.posedit.edit.type != 'delins') and (
+                    re_to_p is False):
+                hgvs_protein = ''
                 # Does the edit affect the start codon?
-                if ((hgvs_transcript.posedit.pos.start.base >= 1 and hgvs_transcript.posedit.pos.start.base <= 3 and hgvs_transcript.posedit.pos.start.offset == 0) or (
-                        hgvs_transcript.posedit.pos.end.base >= 1 and hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset == 0)) \
-                        and not re.search('\*', str(
-                    hgvs_transcript.posedit.pos)):
+                if ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and hgvs_transcript.posedit.pos.start.offset == 0
+                    ) or (1 <= hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset
+                          == 0)) and '*' not in str(hgvs_transcript.posedit.pos):
                     hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
                                                                         type='p', posedit='(Met1?)')
                 else:
@@ -255,28 +250,31 @@ class Mixin:
                         hgvs_protein = evm.c_to_p(hgvs_transcript)
                     except IndexError as e:
                         error = str(e)
-                        if re.search('string index out of range', error) and re.search('dup', str(hgvs_transcript)):
-                            hgvs_ins = self.hp.parse_hgvs_variant(str(hgvs_transcript))
+                        if 'string index out of range' in error and 'dup' in str(hgvs_transcript):
+                            hgvs_ins = self.hp.parse(str(hgvs_transcript))
                             hgvs_ins = hn.normalize(hgvs_ins)
-                            inst = hgvs_ins.ac + ':c.' + str(hgvs_ins.posedit.pos.start.base - 1) + '_' + str(hgvs_ins.posedit.pos.start.base) + 'ins' + hgvs_ins.posedit.edit.ref
-                            hgvs_transcript = self.hp.parse_hgvs_variant(inst)
+                            inst = hgvs_ins.ac + ':c.' + str(hgvs_ins.posedit.pos.start.base - 1) + '_' + \
+                                str(hgvs_ins.posedit.pos.start.base) + 'ins' + hgvs_ins.posedit.edit.ref
+                            hgvs_transcript = self.hp.parse(inst)
                             hgvs_protein = evm.c_to_p(hgvs_transcript)
 
                 try:
                     hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
                     return hgvs_transcript_to_hgvs_protein
                 except UnboundLocalError:
-                    hgvs_transcript_to_hgvs_protein = self.myc_to_p(hgvs_transcript, evm, re_to_p = True)
+                    hgvs_transcript_to_hgvs_protein = self.myc_to_p(hgvs_transcript, evm, re_to_p=True, hn=hn)
                     return hgvs_transcript_to_hgvs_protein
 
             else:
                 # Additional code required to process inversions
-                # Note, this code was developed for VariantValidator and is not native to the biocommons hgvs Python package
+                # Note, this code was developed for VariantValidator and is not native to the biocommons hgvs
+                # Python package
                 # Convert positions to n. position
                 hgvs_naughty = self.vm.c_to_n(hgvs_transcript)
 
                 # Collect the deleted sequence using fetch_seq
-                del_seq = self.sf.fetch_seq(str(hgvs_naughty.ac), start_i=hgvs_naughty.posedit.pos.start.base - 1, end_i=hgvs_naughty.posedit.pos.end.base)
+                del_seq = self.sf.fetch_seq(str(hgvs_naughty.ac), start_i=hgvs_naughty.posedit.pos.start.base - 1,
+                                            end_i=hgvs_naughty.posedit.pos.end.base)
 
                 # Make the inverted sequence
                 my_seq = Seq(del_seq)
@@ -288,12 +286,13 @@ class Mixin:
                     if inv_seq is None:
                         inv_seq = ''
 
+                shifts = ''
                 # Look for p. delins or del
                 not_delins = True
                 if hgvs_transcript.posedit.edit.type != 'inv':
                     try:
                         shifts = evm.c_to_p(hgvs_transcript)
-                        if re.search('del', shifts.posedit.edit.type):
+                        if 'del' in shifts.posedit.edit.type:
                             not_delins = False
                     except Exception:
                         not_delins = False
@@ -301,22 +300,23 @@ class Mixin:
                     not_delins = False
 
                 # Use inv delins code?
-                if not_delins == False:
+                if not not_delins:
                     # Collect the associated protein
                     associated_protein_accession = self.hdp.get_pro_ac_for_tx_ac(hgvs_transcript.ac)
 
                     # Intronic inversions are marked as uncertain i.e. p.?
-                    if re.search('\d+\-', str(hgvs_transcript.posedit.pos)) or re.search('\d+\+', str(hgvs_transcript.posedit.pos)) or re.search('\*', str(hgvs_transcript.posedit.pos)) or re.search('[cn].\-', str(hgvs_transcript)):
-                        if ((
-                                    hgvs_transcript.posedit.pos.start.base >= 1 and hgvs_transcript.posedit.pos.start.base <= 3 and hgvs_transcript.posedit.pos.start.offset == 0)
-                            or
-                            (hgvs_transcript.posedit.pos.end.base >= 1 and hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset == 0)) \
-                                and not re.search('\*', str(hgvs_transcript.posedit.pos)):
-                            hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession, type='p',
+                    if re.search(r'\d+-', str(hgvs_transcript.posedit.pos)) or re.search(r'\d+\+', str(hgvs_transcript.posedit.pos)) or re.search(r'\*', str(hgvs_transcript.posedit.pos)) or re.search(r'[cn].-', str(hgvs_transcript)):
+                        if ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and
+                            hgvs_transcript.posedit.pos.start.offset == 0) or (1 <=
+                            hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset == 0))\
+                                and '*' not in str(hgvs_transcript.posedit.pos):
+                            hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
+                                                                                type='p',
                                                                                 posedit='(Met1?)')
                         else:
                             # Make the variant
-                            hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession, type='p', posedit='?')
+                            hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
+                                                                                type='p', posedit='?')
                         hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
                         return hgvs_transcript_to_hgvs_protein
                     else:
@@ -333,18 +333,19 @@ class Mixin:
                             return hgvs_transcript_to_hgvs_protein
 
                         # Create the variant coding sequence
-                        var_seq = fn.n_inversion(ref_seq, del_seq, inv_seq,
+                        var_seq = utils.n_inversion(ref_seq, del_seq, inv_seq,
                                                     hgvs_naughty.posedit.pos.start.base,
                                                     hgvs_naughty.posedit.pos.end.base)
                         # Translate the reference and variant proteins
-                        prot_ref_seq = fn.translate(ref_seq, cds_start)
+                        prot_ref_seq = utils.translate(ref_seq, cds_start)
 
                         try:
-                            prot_var_seq = fn.translate(var_seq, cds_start)
+                            prot_var_seq = utils.translate(var_seq, cds_start)
                         except IndexError:
-                            hgvs_transcript_to_hgvs_protein['error'] = 'Cannot identify an in-frame Termination codon in the variant mRNA sequence'
-                            hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession, type='p',
-                                                                                    posedit='?')
+                            hgvs_transcript_to_hgvs_protein['error'] = \
+                                'Cannot identify an in-frame Termination codon in the variant mRNA sequence'
+                            hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
+                                                                                type='p', posedit='?')
                             hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
                             return hgvs_transcript_to_hgvs_protein
 
@@ -354,13 +355,13 @@ class Mixin:
                             return hgvs_transcript_to_hgvs_protein
                         elif prot_var_seq == 'error':
                             # Does the edit affect the start codon?
-                            if ((
-                                        hgvs_transcript.posedit.pos.start.base >= 1 and hgvs_transcript.posedit.pos.start.base <= 3 and hgvs_transcript.posedit.pos.start.offset == 0)
-                                or
-                                (hgvs_transcript.posedit.pos.end.base >= 1 and hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset == 0)) \
-                                    and not re.search('\*', str(hgvs_transcript.posedit.pos)):
-                                hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession, type='p',
-                                                                                    posedit='(Met1?)')
+                            if ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and
+                                 hgvs_transcript.posedit.pos.start.offset == 0) or (
+                                    1 <= hgvs_transcript.posedit.pos.end.base <= 3 and
+                                    hgvs_transcript.posedit.pos.end.offset == 0)) \
+                                    and '*' not in str(hgvs_transcript.posedit.pos):
+                                hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
+                                                                                    type='p', posedit='(Met1?)')
 
                                 hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
                                 return hgvs_transcript_to_hgvs_protein
@@ -371,9 +372,9 @@ class Mixin:
                         else:
                             # Gather the required information regarding variant interval and sequences
                             if hgvs_transcript.posedit.edit.type != 'delins':
-                                pro_inv_info = fn.pro_inv_info(prot_ref_seq, prot_var_seq)
+                                pro_inv_info = utils.pro_inv_info(prot_ref_seq, prot_var_seq)
                             else:
-                                pro_inv_info = fn.pro_delins_info(prot_ref_seq, prot_var_seq)
+                                pro_inv_info = utils.pro_delins_info(prot_ref_seq, prot_var_seq)
 
                             # Error has occurred
                             if pro_inv_info['error'] == 'true':
@@ -384,8 +385,8 @@ class Mixin:
                             # The Nucleotide variant has not affected the protein sequence i.e. synonymous
                             elif pro_inv_info['variant'] != 'true':
                                 # Make the variant
-                                hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession, type='p',
-                                                                                    posedit='=')
+                                hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
+                                                                                    type='p', posedit='=')
                                 hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
                                 return hgvs_transcript_to_hgvs_protein
 
@@ -397,8 +398,8 @@ class Mixin:
 
                                 # Complete variant description
                                 # Recode the single letter del and ins sequences into three letter amino acid codes
-                                del_thr = fn.one_to_three(pro_inv_info['prot_del_seq'])
-                                ins_thr = fn.one_to_three(pro_inv_info['prot_ins_seq'])
+                                del_thr = utils.one_to_three(pro_inv_info['prot_del_seq'])
+                                ins_thr = utils.one_to_three(pro_inv_info['prot_ins_seq'])
 
                                 # Write the HGVS position and edit
                                 del_len = len(del_thr)
@@ -408,43 +409,46 @@ class Mixin:
                                 # Handle a range of amino acids
                                 if pro_inv_info['edit_start'] != pro_inv_info['edit_end']:
                                     if len(ins_thr) > 0:
-                                        if re.search('Ter', del_thr) and ins_thr[-3:] != 'Ter':
-                                            posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + '_' + to_aa + str(
-                                                pro_inv_info['edit_end']) + 'delins' + ins_thr + '?)'
+                                        if 'Ter' in del_thr and ins_thr[-3:] != 'Ter':
+                                            posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + '_' + to_aa + \
+                                                      str(pro_inv_info['edit_end']) + 'delins' + ins_thr + '?)'
                                         else:
-                                            posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + '_' + to_aa + str(
-                                                pro_inv_info['edit_end']) + 'delins' + ins_thr + ')'
+                                            posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + '_' + to_aa + \
+                                                      str(pro_inv_info['edit_end']) + 'delins' + ins_thr + ')'
                                     else:
-                                        if re.search('Ter', del_thr) and ins_thr[-3:] != 'Ter':
-                                            posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + '_' + to_aa + str(
-                                                pro_inv_info['edit_end']) + 'del?)'
+                                        if 'Ter' in del_thr and ins_thr[-3:] != 'Ter':
+                                            posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + '_' + to_aa + \
+                                                      str(pro_inv_info['edit_end']) + 'del?)'
                                         else:
-                                            posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + '_' + to_aa + str(
-                                                pro_inv_info['edit_end']) + 'del)'
+                                            posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + '_' + to_aa + \
+                                                      str(pro_inv_info['edit_end']) + 'del)'
                                 else:
                                     # Handle extended proteins i.e. stop_lost
                                     if del_thr == 'Ter' and (len(ins_thr) > len(del_thr)):
                                         # Nucleotide variant range aligns to the Termination codon
                                         if ins_thr[-3:] == 'Ter':
                                             posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + str(
-                                                ins_thr[:3]) + 'ext' + str(ins_thr[-3:]) + str(int((len(ins_thr) / 3)) - 1) + ')'
+                                                ins_thr[:3]) + 'ext' + str(ins_thr[-3:]) + str(int((len(ins_thr) / 3))
+                                                                                               - 1) + ')'
                                         # Nucleotide variant range spans the Termination codon
                                         else:
                                             posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + str(
                                                 ins_thr[:3]) + 'ext?)'
 
-                                    # Nucleotide variation has not affected the length of the protein thus substitution or del
+                                    # Nucleotide variation has not affected the length of the protein thus
+                                    # substitution or del
                                     else:
                                         if len(ins_thr) == 3:
                                             posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + ins_thr + ')'
                                         elif len(ins_thr) == 0:
                                             posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + 'del)'
                                         else:
-                                            posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + 'delins' + ins_thr + ')'
+                                            posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + 'delins' + \
+                                                      ins_thr + ')'
 
                                 # Complete the variant
-                                hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession, type='p',
-                                                                                    posedit=posedit)
+                                hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
+                                                                                    type='p', posedit=posedit)
 
                                 hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
 
@@ -453,7 +457,6 @@ class Mixin:
 
                 # Return
                 return hgvs_transcript_to_hgvs_protein
-
 
         # Handle non-coding transcript and non transcript descriptions
         elif hgvs_transcript.type == 'n':
@@ -467,4 +470,3 @@ class Mixin:
             hgvs_transcript_to_hgvs_protein['error'] = 'Unable to map %s to %s' % (
                 hgvs_transcript.ac, associated_protein_accession)
             return hgvs_transcript_to_hgvs_protein
-
