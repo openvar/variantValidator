@@ -98,10 +98,10 @@ CREATE TABLE `transcript_info` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `refSeqID` varchar(50) NOT NULL,
   `description` varchar(500) NOT NULL,
-  `transcriptVariant` varchar(10) NOT NULL,
+  `transcriptVariant` varchar(50) NOT NULL,
   `currentVersion` varchar(50) NOT NULL,
-  `hgncSymbol` varchar(20) NOT NULL,
-  `utaSymbol` varchar(20) NOT NULL,
+  `hgncSymbol` varchar(50) NOT NULL,
+  `utaSymbol` varchar(50) NOT NULL,
   `updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `refi` (`refSeqID`)

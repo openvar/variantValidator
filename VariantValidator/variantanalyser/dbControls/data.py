@@ -118,23 +118,50 @@ def update_transcript_info_record(accession, hdp):
 
         uta_symbol = str(uta_info[6])
 
-        # First perform a search against the input gene symbol or the symbol inferred from UTA
-        initial = functions.hgnc_rest(path = "/fetch/symbol/" + uta_symbol)
-        # Check for a record
-        if str(initial['record']['response']['numFound']) != '0':
-            hgnc_symbol = uta_symbol
-        # No record found, is it a previous symbol?
-        else:
-            # Search hgnc rest to see if symbol is out of date
-            rest_data = functions.hgnc_rest(path = "/search/prev_symbol/" + uta_symbol)
-            # If the name is correct no record will be found
-            if rest_data['error'] == 'false':
-                if int(rest_data['record']['response']['numFound']) == 0:
-                    hgnc_symbol = uta_info[6]
-                else:
-                    hgnc_symbol = rest_data['record']['response']['docs'][0]['symbol']
+        try:
+            # First perform a search against the input gene symbol or the symbol inferred from UTA
+            initial = functions.hgnc_rest(path = "/fetch/symbol/" + uta_symbol)
+            # Check for a record
+            if str(initial['record']['response']['numFound']) != '0':
+                hgnc_symbol = uta_symbol
+            # No record found, is it a previous symbol?
             else:
-                hgnc_symbol = 'unassigned'
+                # Search hgnc rest to see if symbol is out of date
+                rest_data = functions.hgnc_rest(path = "/search/prev_symbol/" + uta_symbol)
+                # If the name is correct no record will be found
+                if rest_data['error'] == 'false':
+                    if int(rest_data['record']['response']['numFound']) == 0:
+                        hgnc_symbol = uta_info[6]
+                    else:
+                        hgnc_symbol = rest_data['record']['response']['docs'][0]['symbol']
+                else:
+                    hgnc_symbol = 'unassigned'
+
+        except Exception as e:
+            # Try twice to contact hgnc
+            try:
+                # First perform a search against the input gene symbol or the symbol inferred from UTA
+                initial = functions.hgnc_rest(path="/fetch/symbol/" + uta_symbol)
+                # Check for a record
+                if str(initial['record']['response']['numFound']) != '0':
+                    hgnc_symbol = uta_symbol
+                # No record found, is it a previous symbol?
+                else:
+                    # Search hgnc rest to see if symbol is out of date
+                    rest_data = functions.hgnc_rest(path="/search/prev_symbol/" + uta_symbol)
+                    # If the name is correct no record will be found
+                    if rest_data['error'] == 'false':
+                        if int(rest_data['record']['response']['numFound']) == 0:
+                            hgnc_symbol = uta_info[6]
+                        else:
+                            hgnc_symbol = rest_data['record']['response']['docs'][0]['symbol']
+                    else:
+                        hgnc_symbol = 'unassigned'
+            except Exception as e:
+                if 'Unable to find the server at rest.genenames.org' in str(e):
+                    hgnc_symbol = uta_symbol
+                if str(e) == '<urlopen error [Errno -2] Name or service not known>':
+                    hgnc_symbol = uta_symbol
 
     # List of connection error types. May need to be expanded.
     # Outcome - Put off update for 3 months!
