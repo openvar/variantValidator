@@ -238,7 +238,7 @@ class Mixin:
 
             if (hgvs_transcript.posedit.edit.type != 'inv') and (hgvs_transcript.posedit.edit.type != 'delins') and (
                     re_to_p is False):
-                hgvs_protein = ''
+                hgvs_protein = None
                 # Does the edit affect the start codon?
                 if ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and hgvs_transcript.posedit.pos.start.offset == 0
                     ) or (1 <= hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset
@@ -258,10 +258,10 @@ class Mixin:
                             hgvs_transcript = self.hp.parse(inst)
                             hgvs_protein = evm.c_to_p(hgvs_transcript)
 
-                try:
+                if hgvs_protein:
                     hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
                     return hgvs_transcript_to_hgvs_protein
-                except UnboundLocalError:
+                else:
                     hgvs_transcript_to_hgvs_protein = self.myc_to_p(hgvs_transcript, evm, re_to_p=True, hn=hn)
                     return hgvs_transcript_to_hgvs_protein
 
