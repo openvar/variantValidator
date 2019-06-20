@@ -171,7 +171,7 @@ class Mixin(vvMixinInit.Mixin):
         """
         # store the input
         stored_hgvs_c = copy.deepcopy(hgvs_c)
-        expand_out = 'false'
+        expand_out = False
 
         # Gap gene black list
         try:
@@ -216,11 +216,10 @@ class Mixin(vvMixinInit.Mixin):
                         inv_alt = self.revcomp(hgvs_t.posedit.edit.ref)
                         t_delins = hgvs_t.ac + ':' + hgvs_t.type + '.' + str(hgvs_t.posedit.pos.start.base) + '_' + str(
                             hgvs_t.posedit.pos.end.base) + 'del' + hgvs_t.posedit.edit.ref + 'ins' + inv_alt
-                        hgvs_t_delins = self.hp.parse_hgvs_variant(t_delins)
                         pre_base = self.sf.fetch_seq(str(hgvs_t.ac), hgvs_t.posedit.pos.start.base - 2,
-                                                hgvs_t.posedit.pos.start.base - 1)
+                                                     hgvs_t.posedit.pos.start.base - 1)
                         post_base = self.sf.fetch_seq(str(hgvs_t.ac), hgvs_t.posedit.pos.end.base,
-                                                 hgvs_t.posedit.pos.end.base + 1)
+                                                      hgvs_t.posedit.pos.end.base + 1)
                         hgvs_t.posedit.edit.ref = pre_base + hgvs_t.posedit.edit.ref + post_base
                         inv_alt = pre_base + inv_alt + post_base
                         hgvs_t.posedit.pos.start.base = hgvs_t.posedit.pos.start.base - 1
@@ -235,9 +234,9 @@ class Mixin(vvMixinInit.Mixin):
                         hgvs_t = self.hp.parse_hgvs_variant(hgvs_str)
                     elif hgvs_c.posedit.edit.type == 'dup':
                         pre_base = self.sf.fetch_seq(str(hgvs_t.ac), hgvs_t.posedit.pos.start.base - 2,
-                                                hgvs_t.posedit.pos.start.base - 1)
+                                                     hgvs_t.posedit.pos.start.base - 1)
                         post_base = self.sf.fetch_seq(str(hgvs_t.ac), hgvs_t.posedit.pos.end.base,
-                                                 hgvs_t.posedit.pos.end.base + 1)
+                                                      hgvs_t.posedit.pos.end.base + 1)
                         alt = pre_base + hgvs_t.posedit.edit.ref + hgvs_t.posedit.edit.ref + post_base
                         ref = pre_base + hgvs_t.posedit.edit.ref + post_base
                         dup_to_delins = hgvs_t.ac + ':' + hgvs_t.type + '.' + str(
@@ -246,7 +245,7 @@ class Mixin(vvMixinInit.Mixin):
                         hgvs_t = self.hp.parse_hgvs_variant(dup_to_delins)
                     elif hgvs_c.posedit.edit.type == 'ins':
                         ins_ref = self.sf.fetch_seq(str(hgvs_t.ac), hgvs_t.posedit.pos.start.base - 2,
-                                               hgvs_t.posedit.pos.end.base + 1)
+                                                    hgvs_t.posedit.pos.end.base + 1)
                         ins_alt = ins_ref[:2] + hgvs_t.posedit.edit.alt + ins_ref[-2:]
                         ins_to_delins = hgvs_t.ac + ':' + hgvs_t.type + '.' + str(
                             hgvs_t.posedit.pos.start.base - 1) + '_' + str(
@@ -256,9 +255,9 @@ class Mixin(vvMixinInit.Mixin):
                         if str(hgvs_t.posedit.edit.alt) == 'None':
                             hgvs_t.posedit.edit.alt = ''
                         pre_base = self.sf.fetch_seq(str(hgvs_t.ac), hgvs_t.posedit.pos.start.base - 2,
-                                                hgvs_t.posedit.pos.start.base - 1)
+                                                     hgvs_t.posedit.pos.start.base - 1)
                         post_base = self.sf.fetch_seq(str(hgvs_t.ac), hgvs_t.posedit.pos.end.base,
-                                                 hgvs_t.posedit.pos.end.base + 1)
+                                                      hgvs_t.posedit.pos.end.base + 1)
                         hgvs_t.posedit.edit.ref = pre_base + hgvs_t.posedit.edit.ref + post_base
                         hgvs_t.posedit.edit.alt = pre_base + hgvs_t.posedit.edit.alt + post_base
                         hgvs_t.posedit.pos.start.base = hgvs_t.posedit.pos.start.base - 1
@@ -274,7 +273,7 @@ class Mixin(vvMixinInit.Mixin):
                     hgvs_c = copy.deepcopy(hgvs_t)
 
                     # Set expanded out test to true
-                    expand_out = 'true'
+                    expand_out = True
 
                 except Exception:
                     hgvs_c = hgvs_c
@@ -308,7 +307,7 @@ class Mixin(vvMixinInit.Mixin):
 
         # Capture errors from attempted mappings
         attempted_mapping_error = ''
-        hgvs_genomic = ''
+        hgvs_genomic = None
 
         try:
             hgvs_genomic = no_norm_evm.t_to_g(hgvs_c)
@@ -360,20 +359,6 @@ class Mixin(vvMixinInit.Mixin):
 
             hgvs_genomic, new_error = search_through_options(hgvs_genomic, 'NC_', True)
             attempted_mapping_error += new_error
-            # for option in mapping_options:
-            #     if option[2].startswith('blat'):
-            #         continue
-            #     if option[1].startswith('NC_'):
-            #         chr_num = seq_data.supported_for_mapping(str(option[1]), primary_assembly)
-            #         if chr_num != 'false':
-            #             try:
-            #                 hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
-            #                 break
-            #             except Exception as e:
-            #                 attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + option[
-            #                     1] + '~'
-            #                 print(e)
-            #                 continue
 
             # If not mapped, raise error
             try:
@@ -381,105 +366,30 @@ class Mixin(vvMixinInit.Mixin):
             except:
                 hgvs_genomic, new_error = search_through_options(hgvs_genomic, 'NC_', False)
                 attempted_mapping_error += new_error
-                # for option in mapping_options:
-                #     if option[2].startswith('blat'):
-                #         continue
-                #     if option[1].startswith('NC_'):
-                #         chr_num = seq_data.supported_for_mapping(str(option[1]), primary_assembly)
-                #         if chr_num == 'false':
-                #             try:
-                #                 hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
-                #                 break
-                #             except Exception as e:
-                #                 if re.search(option[1], attempted_mapping_error):
-                #                     pass
-                #                 else:
-                #                     attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" \
-                #                                               + option[1] + '~'
-                #                 print(e)
-                #                 continue
+
                 try:
                     hn.normalize(hgvs_genomic)
                 except:
                     hgvs_genomic, new_error = search_through_options(hgvs_genomic, 'NT_', True)
                     attempted_mapping_error += new_error
-                    # for option in mapping_options:
-                    #     if re.match('blat', option[2]):
-                    #         continue
-                    #     if re.match('NT_', option[1]):
-                    #         chr_num = seq_data.supported_for_mapping(str(option[1]), primary_assembly)
-                    #         if chr_num != 'false':
-                    #             try:
-                    #                 hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
-                    #                 break
-                    #             except Exception as e:
-                    #                 attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + option[
-                    #                     1] + '~'
-                    #                 print(e)
-                    #                 continue
+
                     try:
                         hn.normalize(hgvs_genomic)
                     except:
                         hgvs_genomic, new_error = search_through_options(hgvs_genomic, 'NT_', False)
                         attempted_mapping_error += new_error
 
-                        # for option in mapping_options:
-                        #     if re.match('blat', option[2]):
-                        #         continue
-                        #     if re.match('NT_', option[1]):
-                        #         chr_num = seq_data.supported_for_mapping(str(option[1]),
-                        #                                                  primary_assembly)
-                        #         if chr_num == 'false':
-                        #             try:
-                        #                 hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
-                        #                 break
-                        #             except Exception as e:
-                        #                 attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + \
-                        #                                           option[
-                        #                                               1] + '~'
-                        #                 print(e)
-                        #                 continue
                         try:
                             hn.normalize(hgvs_genomic)
                         except:
                             hgvs_genomic, new_error = search_through_options(hgvs_genomic, 'NW_', True)
                             attempted_mapping_error += new_error
-                            # for option in mapping_options:
-                            #     if re.match('blat', option[2]):
-                            #         continue
-                            #     if re.match('NW_', option[1]):
-                            #         chr_num = seq_data.supported_for_mapping(str(option[1]),
-                            #                                                  primary_assembly)
-                            #         if chr_num != 'false':
-                            #             try:
-                            #                 hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
-                            #                 break
-                            #             except Exception as e:
-                            #                 attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + \
-                            #                                           option[1] + '~'
-                            #                 print(e)
-                            #                 continue
+
                             try:
                                 hn.normalize(hgvs_genomic)
                             except:
                                 hgvs_genomic, new_error = search_through_options(hgvs_genomic, 'NW_', False)
                                 attempted_mapping_error += new_error
-                                # for option in mapping_options:
-                                #     if re.match('blat', option[2]):
-                                #         continue
-                                #     if re.match('NW_', option[1]):
-                                #         chr_num = seq_data.supported_for_mapping(str(option[1]),
-                                #                                                  primary_assembly)
-                                #         if chr_num == 'false':
-                                #             try:
-                                #                 hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
-                                #                 break
-                                #             except Exception as e:
-                                #                 attempted_mapping_error = attempted_mapping_error + str(
-                                #                     e) + "/" + hgvs_c.ac + "/" + \
-                                #                                           option[1] + '~'
-                                #                 print(e)
-                                #                 continue
 
                                 # Only a RefSeqGene available
                                 try:
@@ -488,31 +398,13 @@ class Mixin(vvMixinInit.Mixin):
                                     hgvs_genomic, new_error = search_through_options(hgvs_genomic, 'NG_', True,
                                                                                      final=True)
                                     attempted_mapping_error += new_error
-                                    # for option in mapping_options:
-                                    #     if re.match('blat', option[2]):
-                                    #         continue
-                                    #     if re.match('NG_', option[1]):
-                                    #         try:
-                                    #             hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
-                                    #             break
-                                    #         except Exception as e:
-                                    #             attempted_mapping_error = attempted_mapping_error + str(e) + "/" + hgvs_c.ac + "/" + \
-                                    #                                       option[1] + '~'
-                                    #             print(e)
-                                    #             continue
 
         # If not mapped, raise error
-        try:
-            print(hgvs_genomic)
-            print(attempted_mapping_error)
-            hgvs_genomic
-        except Exception:
+        if hgvs_genomic is None:
             raise HGVSDataNotAvailableError(attempted_mapping_error)
 
-        if hgvs_genomic == '':
-            raise HGVSDataNotAvailableError(attempted_mapping_error)
-
-        if hgvs_c.posedit.edit.type == 'identity' and hgvs_genomic.posedit.edit.type == 'delins' and hgvs_genomic.posedit.edit.alt == '' and expand_out != 'true':
+        if hgvs_c.posedit.edit.type == 'identity' and hgvs_genomic.posedit.edit.type == 'delins' and \
+                hgvs_genomic.posedit.edit.alt == '' and not expand_out:
             hgvs_genomic.posedit.edit.alt = hgvs_genomic.posedit.edit.ref
         if hgvs_genomic.posedit.edit.type == 'ins' and utilise_gap_code is True:
             try:
@@ -521,7 +413,7 @@ class Mixin(vvMixinInit.Mixin):
                 error = str(e)
                 if error == 'insertion length must be 1':
                     ref = self.sf.fetch_seq(str(hgvs_genomic.ac), hgvs_genomic.posedit.pos.start.base - 1,
-                                       hgvs_genomic.posedit.pos.end.base)
+                                            hgvs_genomic.posedit.pos.end.base)
                     hgvs_genomic.posedit.edit.ref = ref
                     hgvs_genomic.posedit.edit.alt = ref[0:1] + hgvs_genomic.posedit.edit.alt + ref[-1:]
                     hgvs_genomic = hn.normalize(hgvs_genomic)
@@ -533,41 +425,40 @@ class Mixin(vvMixinInit.Mixin):
                     hgvs_genomic = hn.normalize(hgvs_genomic)
 
         # Statements required to reformat the stored_hgvs_c into a useable synonym
-        if (stored_hgvs_c.posedit.edit.ref == '' or stored_hgvs_c.posedit.edit.ref is None) and expand_out != 'false':
+        if (stored_hgvs_c.posedit.edit.ref == '' or stored_hgvs_c.posedit.edit.ref is None) and expand_out:
             if stored_hgvs_c.type == 'c':
                 stored_hgvs_n = self.vm.c_to_n(stored_hgvs_c)
             else:
                 stored_hgvs_n = stored_hgvs_c
             stored_ref = self.sf.fetch_seq(str(stored_hgvs_n.ac), stored_hgvs_n.posedit.pos.start.base - 1,
-                                      stored_hgvs_n.posedit.pos.end.base)
+                                           stored_hgvs_n.posedit.pos.end.base)
             stored_hgvs_c.posedit.edit.ref = stored_ref
 
-        if (hgvs_genomic.posedit.edit.ref == '' or hgvs_genomic.posedit.edit.ref is None) and expand_out != 'false':
+        if (hgvs_genomic.posedit.edit.ref == '' or hgvs_genomic.posedit.edit.ref is None) and expand_out:
             if hgvs_genomic.posedit.edit.type == 'ins':
                 stored_ref = self.sf.fetch_seq(str(hgvs_genomic.ac), hgvs_genomic.posedit.pos.start.base - 1,
-                                          hgvs_genomic.posedit.pos.end.base)
+                                               hgvs_genomic.posedit.pos.end.base)
                 stored_alt = stored_ref[:1] + hgvs_genomic.posedit.edit.alt + stored_ref[-1:]
                 hgvs_genomic.posedit.edit.ref = stored_ref
                 hgvs_genomic.posedit.edit.alt = stored_alt
 
         # First look for variants mapping to the flanks of gaps
         # either in the gap or on the flank but not fully within the gap
-        if expand_out == 'true':
-
+        if expand_out:
             nr_genomic = self.nr_vm.t_to_g(hgvs_c, hgvs_genomic.ac)
 
             try:
                 hn.normalize(nr_genomic)
             except hgvs.exceptions.HGVSInvalidVariantError as e:
                 error_type_1 = str(e)
-                if re.match('Length implied by coordinates must equal sequence deletion length', str(e)) or str(
+                if 'Length implied by coordinates must equal sequence deletion length' in str(e) or str(
                         e) == 'base start position must be <= end position':
                     # Effectively, this code is designed to handle variants that are directly proximal to
-                    # gap BOUNDARIES, but in some cases the replace reference function of hgvs mapping has removed bases due to
-                    # the deletion length being > the specified range.
-
+                    # gap BOUNDARIES, but in some cases the replace reference function of hgvs mapping has removed
+                    # bases due to the deletion length being > the specified range.
+                    genomic_gap_variant = None
                     # Warn of variant location wrt the gap
-                    if re.match('Length implied by coordinates must equal sequence deletion length', str(e)):
+                    if 'Length implied by coordinates must equal sequence deletion length' in str(e):
                         Logger.warning('Variant is proximal to the flank of a genomic gap')
                         genomic_gap_variant = self.vm.t_to_g(stored_hgvs_c, hgvs_genomic.ac)
                         try:
@@ -577,9 +468,11 @@ class Mixin(vvMixinInit.Mixin):
                             if 'base start position must be <= end position' in str(e) and \
                                     'Length implied by coordinates must equal' in error_type_1:
                                 make_gen_var = copy.copy(nr_genomic)
-                                make_gen_var.posedit.edit.ref = self.sf.fetch_seq(nr_genomic.ac,
-                                                                             nr_genomic.posedit.pos.start.base - 1,
-                                                                             nr_genomic.posedit.pos.end.base)
+                                make_gen_var.posedit.edit.ref = self.sf.fetch_seq(
+                                    nr_genomic.ac,
+                                    nr_genomic.posedit.pos.start.base - 1,
+                                    nr_genomic.posedit.pos.end.base
+                                )
                                 genomic_gap_variant = make_gen_var
 
                                 error_type_1 = None
@@ -602,7 +495,7 @@ class Mixin(vvMixinInit.Mixin):
                             gap_end = genomic_gap_variant.posedit.pos.start.base
                             genomic_gap_variant.posedit.pos.start.base = gap_start
                             genomic_gap_variant.posedit.pos.end.base = gap_end
-                        if re.match('Length implied by coordinates must equal sequence deletion length', str(e)):
+                        if 'Length implied by coordinates must equal sequence deletion length' in str(e):
                             # This will only happen if the variant is flanking the gap but is
                             # not inside the gap
                             Logger.warning('Variant is on the flank of a genomic gap but not within the gap')
@@ -617,16 +510,14 @@ class Mixin(vvMixinInit.Mixin):
                         try:
                             genomic_gap_variant.posedit.edit.alt = ''
                         except Exception as e:
-                            if str(e) == "'Dup' object has no attribute 'alt'":
-                                pass
+                            pass
 
                         # Should be a delins so will normalize statically and replace the reference bases
                         genomic_gap_variant = hn.normalize(genomic_gap_variant)
                         # Static map to c. and static normalize
                         transcript_gap_variant = self.vm.g_to_t(genomic_gap_variant, hgvs_c.ac)
-                        stored_transcript_gap_variant = transcript_gap_variant
 
-                        if not re.match('Length implied by coordinates must equal sequence deletion length', str(e)):
+                        if 'Length implied by coordinates must equal sequence deletion length' not in str(e):
                             try:
                                 transcript_gap_variant = hn.normalize(transcript_gap_variant)
                             except hgvs.exceptions.HGVSUnsupportedOperationError as e:
@@ -634,7 +525,7 @@ class Mixin(vvMixinInit.Mixin):
                                     pass
 
                         # if NM_ need the n. position
-                        if re.match('NM_', str(hgvs_c.ac)):
+                        if str(hgvs_c.ac).startswith('NM_'):
                             transcript_gap_n = no_norm_evm.c_to_n(transcript_gap_variant)
                             transcript_gap_alt_n = no_norm_evm.c_to_n(stored_hgvs_c)
                         else:
@@ -675,21 +566,22 @@ class Mixin(vvMixinInit.Mixin):
 
                         # Note, all variants will be forced into the format delete insert
                         # Deleted bases in the ALT will be substituted for X
-                        for int in range(transcript_gap_alt_n.posedit.pos.start.base,
-                                         transcript_gap_alt_n.posedit.pos.end.base + 1, 1):
-                            if int == alt_start:
-                                alt_base_dict[int] = str(''.join(alternate_bases))
+                        for i in range(transcript_gap_alt_n.posedit.pos.start.base,
+                                       transcript_gap_alt_n.posedit.pos.end.base + 1, 1):
+                            if i == alt_start:
+                                alt_base_dict[i] = str(''.join(alternate_bases))
                             else:
-                                alt_base_dict[int] = 'X'
+                                alt_base_dict[i] = 'X'
 
                                 # Generate the alt sequence
                         alternate_sequence_bases = []
-                        for int in range(transcript_gap_n.posedit.pos.start.base, transcript_gap_n.posedit.pos.end.base + 1,
-                                         1):
-                            if int in list(alt_base_dict.keys()):
-                                alternate_sequence_bases.append(alt_base_dict[int])
+                        for i in range(transcript_gap_n.posedit.pos.start.base,
+                                       transcript_gap_n.posedit.pos.end.base + 1,
+                                       1):
+                            if i in list(alt_base_dict.keys()):
+                                alternate_sequence_bases.append(alt_base_dict[i])
                             else:
-                                alternate_sequence_bases.append(ref_base_dict[int])
+                                alternate_sequence_bases.append(ref_base_dict[i])
                         alternate_sequence = ''.join(alternate_sequence_bases)
                         alternate_sequence = alternate_sequence.replace('X', '')
 
@@ -707,14 +599,20 @@ class Mixin(vvMixinInit.Mixin):
                         except Exception as e:
                             if str(e) == "base start position must be <= end position":
                                 # Expansion out is required to map back to the genomic position
-                                pre_base = self.sf.fetch_seq(transcript_gap_n.ac, transcript_gap_n.posedit.pos.start.base - 2,
-                                                        transcript_gap_n.posedit.pos.start.base - 1)
-                                post_base = self.sf.fetch_seq(transcript_gap_n.ac, transcript_gap_n.posedit.pos.end.base,
-                                                         transcript_gap_n.posedit.pos.end.base + 1)
+                                pre_base = self.sf.fetch_seq(
+                                    transcript_gap_n.ac,
+                                    transcript_gap_n.posedit.pos.start.base - 2,
+                                    transcript_gap_n.posedit.pos.start.base - 1)
+                                post_base = self.sf.fetch_seq(
+                                    transcript_gap_n.ac,
+                                    transcript_gap_n.posedit.pos.end.base,
+                                    transcript_gap_n.posedit.pos.end.base + 1)
                                 transcript_gap_n.posedit.pos.start.base = transcript_gap_n.posedit.pos.start.base - 1
                                 transcript_gap_n.posedit.pos.end.base = transcript_gap_n.posedit.pos.end.base + 1
-                                transcript_gap_n.posedit.edit.ref = pre_base + transcript_gap_n.posedit.edit.ref + post_base
-                                transcript_gap_n.posedit.edit.alt = pre_base + transcript_gap_n.posedit.edit.alt + post_base
+                                transcript_gap_n.posedit.edit.ref = pre_base + transcript_gap_n.posedit.edit.ref + \
+                                    post_base
+                                transcript_gap_n.posedit.edit.alt = pre_base + transcript_gap_n.posedit.edit.alt + \
+                                    post_base
                                 try:
                                     transcript_gap_variant = self.vm.n_to_c(transcript_gap_n)
                                 except:
@@ -723,39 +621,32 @@ class Mixin(vvMixinInit.Mixin):
                                 hgvs_genomic = hn.normalize(hgvs_genomic)
 
                         # Bypass the next bit of gap code
-                        expand_out = 'false'
-
-                else:
-                    pass
-            # No map to the flank of a gap or within the gap
-            else:
-                pass
+                        expand_out = False
 
         # CASCADING STATEMENTS WHICH CAPTURE t to g MAPPING OPTIONS
         # Remove identity bases
         if hgvs_c == stored_hgvs_c:
-            expand_out = 'false'
-        elif expand_out == 'false' or utilise_gap_code is False:
+            pass
+        elif expand_out is False or utilise_gap_code is False:
             pass
         # Correct expansion ref + 2
-        elif expand_out == 'true' and (
+        elif expand_out and (
                 len(hgvs_genomic.posedit.edit.ref) == (len(stored_hgvs_c.posedit.edit.ref) + 2)):  # >= 3:
             hgvs_genomic.posedit.pos.start.base = hgvs_genomic.posedit.pos.start.base + 1
             hgvs_genomic.posedit.pos.end.base = hgvs_genomic.posedit.pos.end.base - 1
             hgvs_genomic.posedit.edit.ref = hgvs_genomic.posedit.edit.ref[1:-1]
             if hgvs_genomic.posedit.edit.alt is not None:
                 hgvs_genomic.posedit.edit.alt = hgvs_genomic.posedit.edit.alt[1:-1]
-        elif expand_out == 'true' and (
+        elif expand_out and (
                 len(hgvs_genomic.posedit.edit.ref) != (len(stored_hgvs_c.posedit.edit.ref) + 2)):  # >= 3:
-            if expand_out == 'true' and len(hgvs_genomic.posedit.edit.ref) == 2:
-                gn = hn.normalize(hgvs_genomic)
-                pass
+            if len(hgvs_genomic.posedit.edit.ref) == 2:
+                hn.normalize(hgvs_genomic)
 
             # Likely if the start or end position aligns to a gap in the genomic sequence
             # Logic
             # We have checked that the variant does not cross boundaries, or is intronic
             # So is likely mapping to a genomic gap
-            elif expand_out == 'true' and len(hgvs_genomic.posedit.edit.ref) <= 1:
+            elif len(hgvs_genomic.posedit.edit.ref) <= 1:
                 # Incorrect expansion, likely < ref + 2
                 genomic_gap_variant = self.vm.t_to_g(stored_hgvs_c, hgvs_genomic.ac)
                 try:
@@ -776,10 +667,9 @@ class Mixin(vvMixinInit.Mixin):
                     genomic_gap_variant = hn.normalize(genomic_gap_variant)
                     # Static map to c. and static normalize
                     transcript_gap_variant = self.vm.g_to_t(genomic_gap_variant, hgvs_c.ac)
-                    stored_transcript_gap_variant = transcript_gap_variant
                     transcript_gap_variant = hn.normalize(transcript_gap_variant)
                     # if NM_ need the n. position
-                    if re.match('NM_', str(hgvs_c.ac)):
+                    if str(hgvs_c.ac).startswith('NM_'):
                         transcript_gap_n = no_norm_evm.c_to_n(transcript_gap_variant)
                         transcript_gap_alt_n = no_norm_evm.c_to_n(stored_hgvs_c)
                     else:
@@ -820,20 +710,21 @@ class Mixin(vvMixinInit.Mixin):
 
                     # Note, all variants will be forced into the format delete insert
                     # Deleted bases in the ALT will be substituted for X
-                    for int in range(transcript_gap_alt_n.posedit.pos.start.base,
-                                     transcript_gap_alt_n.posedit.pos.end.base + 1, 1):
-                        if int == alt_start:
-                            alt_base_dict[int] = str(''.join(alternate_bases))
+                    for i in range(transcript_gap_alt_n.posedit.pos.start.base,
+                                   transcript_gap_alt_n.posedit.pos.end.base + 1, 1):
+                        if i == alt_start:
+                            alt_base_dict[i] = str(''.join(alternate_bases))
                         else:
-                            alt_base_dict[int] = 'X'
+                            alt_base_dict[i] = 'X'
 
                     # Generate the alt sequence
                     alternate_sequence_bases = []
-                    for int in range(transcript_gap_n.posedit.pos.start.base, transcript_gap_n.posedit.pos.end.base + 1, 1):
-                        if int in list(alt_base_dict.keys()):
-                            alternate_sequence_bases.append(alt_base_dict[int])
+                    for i in range(transcript_gap_n.posedit.pos.start.base,
+                                   transcript_gap_n.posedit.pos.end.base + 1, 1):
+                        if i in list(alt_base_dict.keys()):
+                            alternate_sequence_bases.append(alt_base_dict[i])
                         else:
-                            alternate_sequence_bases.append(ref_base_dict[int])
+                            alternate_sequence_bases.append(ref_base_dict[i])
                     alternate_sequence = ''.join(alternate_sequence_bases)
                     alternate_sequence = alternate_sequence.replace('X', '')
 
@@ -851,10 +742,11 @@ class Mixin(vvMixinInit.Mixin):
                     except Exception as e:
                         if str(e) == "base start position must be <= end position":
                             # Expansion out is required to map back to the genomic position
-                            pre_base = self.sf.fetch_seq(transcript_gap_n.ac, transcript_gap_n.posedit.pos.start.base - 2,
-                                                    transcript_gap_n.posedit.pos.start.base - 1)
+                            pre_base = self.sf.fetch_seq(transcript_gap_n.ac,
+                                                         transcript_gap_n.posedit.pos.start.base - 2,
+                                                         transcript_gap_n.posedit.pos.start.base - 1)
                             post_base = self.sf.fetch_seq(transcript_gap_n.ac, transcript_gap_n.posedit.pos.end.base,
-                                                     transcript_gap_n.posedit.pos.end.base + 1)
+                                                          transcript_gap_n.posedit.pos.end.base + 1)
                             transcript_gap_n.posedit.pos.start.base = transcript_gap_n.posedit.pos.start.base - 1
                             transcript_gap_n.posedit.pos.end.base = transcript_gap_n.posedit.pos.end.base + 1
                             transcript_gap_n.posedit.edit.ref = pre_base + transcript_gap_n.posedit.edit.ref + post_base
@@ -867,7 +759,8 @@ class Mixin(vvMixinInit.Mixin):
                             hgvs_genomic = hn.normalize(hgvs_genomic)
 
         # Ins variants map badly - Especially between c. exon/exon boundary
-        if hgvs_c.posedit.edit.type == 'ins' and hgvs_c.posedit.pos.start.offset == 0 and hgvs_c.posedit.pos.end.offset == 0:
+        if hgvs_c.posedit.edit.type == 'ins' and hgvs_c.posedit.pos.start.offset == 0 and \
+                hgvs_c.posedit.pos.end.offset == 0:
             try:
                 hn.normalize(hgvs_genomic)
             except hgvs.exceptions.HGVSError as e:
@@ -877,9 +770,11 @@ class Mixin(vvMixinInit.Mixin):
                         hgvs_t = self.vm.c_to_n(hgvs_c)
                     else:
                         hgvs_t = copy.copy(hgvs_c)
-                    ins_ref = self.sf.fetch_seq(str(hgvs_t.ac), hgvs_t.posedit.pos.start.base - 1, hgvs_t.posedit.pos.end.base)
+                    ins_ref = self.sf.fetch_seq(str(hgvs_t.ac), hgvs_t.posedit.pos.start.base - 1,
+                                                hgvs_t.posedit.pos.end.base)
                     ins_alt = ins_ref[:1] + hgvs_t.posedit.edit.alt + ins_ref[-1:]
-                    ins_to_delins = hgvs_t.ac + ':' + hgvs_t.type + '.' + str(hgvs_t.posedit.pos.start.base) + '_' + str(
+                    ins_to_delins = hgvs_t.ac + ':' + hgvs_t.type + '.' + str(
+                        hgvs_t.posedit.pos.start.base) + '_' + str(
                         hgvs_t.posedit.pos.end.base) + 'del' + ins_ref + 'ins' + ins_alt
                     hgvs_t = self.hp.parse_hgvs_variant(ins_to_delins)
                     try:
