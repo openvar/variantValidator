@@ -145,34 +145,34 @@ class Database(vvDBInsert.Mixin):
             self.add_entry(version, query_info, table)
         # If the data in the entry has changed, update it
         else:
-            self.update_entry(version, query_info, table)
+            self.update_entry(version, query_info)
         return
 
     def update_refseqgene_loci(self, rsg_data):
         # First query the database
         entry_exists = self.get_refseq_data_by_refseq_id(rsg_data[0], rsg_data[2])
         if entry_exists[0] == 'none':
-            self.insert_refSeqGene_data(rsg_data)
+            self.insert_refseq_gene_data(rsg_data)
         else:
-            self.update_refSeqGene_data(rsg_data)
+            self.update_refseq_gene_data(rsg_data)
 
     def update_lrg_rs_lookup(self, lrg_rs_lookup):
         # First query the database
         rsg_id = self.get_refseq_id_from_lrg_id(lrg_rs_lookup[0])
         if rsg_id == 'none':
-            self.insert_RefSeqGeneID_from_lrgID(lrg_rs_lookup)
+            self.insert_refseq_gene_id_from_lrg_id(lrg_rs_lookup)
 
     def update_lrgt_rst(self, lrgtx_to_rst_id):
         # First query the database
         rst_id = self.get_refseq_transcript_id_from_lrg_transcript_id(lrgtx_to_rst_id[0])
         if rst_id == 'none':
-            self.insert_LRG_transcript_data(lrgtx_to_rst_id)
+            self.insert_lrg_transcript_data(lrgtx_to_rst_id)
 
     def update_lrg_p_rs_p_lookup(self, lrg_p, rs_p):
         # First query the database
         rsp_id = self.get_refseq_protein_id_from_lrg_protein_id(lrg_p)
         if rsp_id == 'none':
-            self.insert_LRG_protein_data(lrg_p, rs_p)
+            self.insert_lrg_protein_data(lrg_p, rs_p)
 
     def ref_type_assign(self, accession):
         if 'NC_' in accession or 'NG_' in accession or 'NT_' in accession or 'NW_' in accession:
