@@ -34,7 +34,7 @@ class Mixin(vvMixinInit.Mixin):
     #     c_from_r = {'variant': variant, 'type': ':c.'}
     #     return c_from_r
     #
-    # def refseq(self, variant, vmOld, refseq_ac, hpOld, evm, hdpOld, primary_assembly):
+    # def refseq(self, variant, refseq_ac, evm, primary_assembly):
     #     """
     #     Maps transcript variant descriptions onto specified RefSeqGene reference sequences
     #     Return an hgvs object containing the genomic sequence variant relative to the RefSeqGene
@@ -81,7 +81,7 @@ class Mixin(vvMixinInit.Mixin):
     #     # Return as an error if all fail
     #     return ref_g_dict
     #
-    # def g_to_c(self, var_g, tx_ac, hpOld, evm):
+    # def g_to_c(self, var_g, tx_ac, evm):
     #     """
     #     Parses genomic variant strings into hgvs objects
     #     Maps genomic hgvs object into a coding hgvs object if the c accession string is provided
@@ -95,7 +95,7 @@ class Mixin(vvMixinInit.Mixin):
     #         var_c = str(evm.g_to_c(var_g, tx_ac))
     #         return var_c
     #
-    # def g_to_n(self, var_g, tx_ac, hpOld, evm):
+    # def g_to_n(self, var_g, tx_ac, evm):
     #     """
     #     Parses genomic variant strings into hgvs objects
     #     Maps genomic hgvs object into a non-coding hgvs object if the n accession string is provided
@@ -109,7 +109,7 @@ class Mixin(vvMixinInit.Mixin):
     #         var_n = str(evm.g_to_n(var_g, tx_ac))
     #         return var_n
 
-    def coding(self, variant, hpOld):
+    def coding(self, variant):
         """
         Ensures variant strings are transcript c. or n.
         returns parsed hgvs c. or n. object
@@ -141,7 +141,7 @@ class Mixin(vvMixinInit.Mixin):
             var_g = self.hp.parse_hgvs_variant(variant)
             return var_g
 
-    # def hgvs_genomic(self, variant, hpOld):
+    # def hgvs_genomic(self, variant):
     #     """
     #     Ensures variant strings are g.
     #     returns parsed hgvs g. object
@@ -1499,7 +1499,7 @@ class Mixin(vvMixinInit.Mixin):
     #     hgvs_object.posedit.edit = edit
     #     return hgvs_object
 
-    # def tx_identity_info(self, variant, hdpOld):
+    # def tx_identity_info(self, variant):
     #     """
     #     Input c. r. n. variant string
     #     Use uta.py (hdp) to return the identity information for the transcript variant
@@ -1535,7 +1535,7 @@ class Mixin(vvMixinInit.Mixin):
     #         # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
     #         return tx_id_info
 
-    # def tx_id_info(self, alt_ac, hdpOld):
+    # def tx_id_info(self, alt_ac):
     #     """
     #     Input c. r. nd accession string
     #     Use uta.py (hdp) to return the identity information for the transcript variant
@@ -1545,7 +1545,7 @@ class Mixin(vvMixinInit.Mixin):
     #     # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
     #     return tx_id_info
 
-    # def tx_for_gene(self, hgnc, hdpOld):
+    # def tx_for_gene(self, hgnc):
     #     """
     #     Use uta.py (hdp) to return the transcript information for a specified gene (HGNC SYMBOL)
     #     see hgvs.dataproviders.uta.py for details
@@ -1780,7 +1780,7 @@ class Mixin(vvMixinInit.Mixin):
         revcomp = revcomp[::-1]
         return revcomp
 
-    def merge_hgvs_3pr(self, hgvs_variant_list,hn):
+    def merge_hgvs_3pr(self, hgvs_variant_list, hn):
         """
         Function designed to merge multiple HGVS variants (hgvs objects) into a single delins
         using 3 prime normalization
@@ -2159,7 +2159,7 @@ class Mixin(vvMixinInit.Mixin):
         except Exception as e:
             raise fn.alleleVariantError(str(e))
 
-    def chr_to_rsg(self, hgvs_genomic, hn, vrOld):
+    def chr_to_rsg(self, hgvs_genomic, hn):
         """
         # Covert chromosomal HGVS description to RefSeqGene
         """
@@ -2296,7 +2296,7 @@ class Mixin(vvMixinInit.Mixin):
         # Return the required data. This is a dictionary containing the rsg description, validation status and gene ID
         return descriptions
 
-    def rsg_to_chr(self, hgvs_refseqgene, primary_assembly, hn, vr):
+    def rsg_to_chr(self, hgvs_refseqgene, primary_assembly, hn):
         """
         # Covert RefSeqGene HGVS description to Chromosomal
 
@@ -2358,7 +2358,7 @@ class Mixin(vvMixinInit.Mixin):
                 hgvs_genomic = self.hp.parse_hgvs_variant(chr_description)
                 hgvs_genomic = hn.normalize(hgvs_genomic)
                 try:
-                    vr.validate(hgvs_genomic)
+                    self.vr.validate(hgvs_genomic)
                 except hgvs.exceptions.HGVSError as e:
                     error = str(e)
                     if 'does not agree with reference sequence' in error:
@@ -2414,7 +2414,7 @@ class Mixin(vvMixinInit.Mixin):
                 hgvs_genomic = self.hp.parse_hgvs_variant(chr_description)
                 hgvs_genomic = hn.normalize(hgvs_genomic)
                 try:
-                    vr.validate(hgvs_genomic)
+                    self.vr.validate(hgvs_genomic)
                 except hgvs.exceptions.HGVSError as e:
                     error = str(e)
                     if 'does not agree with reference sequence' in error:

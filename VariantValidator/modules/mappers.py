@@ -85,7 +85,7 @@ def gene_to_transcripts(variant, validator):
             # parse
             hgvs_refseqgene = validator.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
             # Convert to chromosomal position
-            refseqgene_data = validator.rsg_to_chr(hgvs_refseqgene, variant.primary_assembly, variant.hn, validator.vr)
+            refseqgene_data = validator.rsg_to_chr(hgvs_refseqgene, variant.primary_assembly, variant.hn)
             # There should only ever be one description returned
             refseqgene_data = refseqgene_data[0]
 
@@ -120,7 +120,7 @@ def gene_to_transcripts(variant, validator):
                     return True
                 else:
                     # Map to RefSeqGene if available
-                    refseqgene_data = validator.chr_to_rsg(variant.hgvs_genomic, variant.hn, validator.vr)
+                    refseqgene_data = validator.chr_to_rsg(variant.hgvs_genomic, variant.hn)
                     rsg_data = ''
                     # Example {'gene': 'NTHL1', 'hgvs_refseqgene': 'NG_008412.1:g.3455_3464delCAAACACACA',
                     # 'valid': 'true'}
@@ -357,7 +357,7 @@ def transcripts_to_gene(variant, validator):
         if 'del' in formatted_variant:
             # RNA - looking at trapped variant which was saved before RNA converted to cDNA
             if ':r.' in variant.pre_RNA_conversion:
-                coding = validator.coding(formatted_variant, validator.hp)
+                coding = validator.coding(formatted_variant)
                 trans_acc = coding.ac
                 # c to Genome coordinates - Map the variant to the genome
                 pre_var = validator.genomic(formatted_variant, variant.no_norm_evm, variant.primary_assembly,
@@ -397,7 +397,7 @@ def transcripts_to_gene(variant, validator):
 
             # Coding
             else:
-                coding = validator.coding(formatted_variant, validator.hp)
+                coding = validator.coding(formatted_variant)
                 trans_acc = coding.ac
                 # c to Genome coordinates - Map the variant to the genome
                 pre_var = validator.hp.parse_hgvs_variant(formatted_variant)
@@ -442,7 +442,7 @@ def transcripts_to_gene(variant, validator):
 
         else:  # del not in formatted_variant
             if ':r.' in variant.pre_RNA_conversion:
-                coding = validator.coding(formatted_variant, validator.hp)
+                coding = validator.coding(formatted_variant)
                 trans_acc = coding.ac
                 # c to Genome coordinates - Map the variant to the genome
                 pre_var = validator.genomic(formatted_variant, variant.no_norm_evm, variant.primary_assembly,
@@ -478,7 +478,7 @@ def transcripts_to_gene(variant, validator):
                     validator.batch_list.append(query)
 
             else:
-                coding = validator.coding(formatted_variant, validator.hp)
+                coding = validator.coding(formatted_variant)
                 trans_acc = coding.ac
                 # c to Genome coordinates - Map the variant to the genome
                 pre_var = validator.genomic(formatted_variant, variant.no_norm_evm, variant.primary_assembly,
@@ -615,7 +615,7 @@ def transcripts_to_gene(variant, validator):
     ##############################
 
     # Coding sequence - BASED ON NORMALIZED VARIANT IF EXONIC
-    hgvs_coding = validator.coding(formatted_variant, validator.hp)
+    hgvs_coding = validator.coding(formatted_variant)
 
     try:
         hgvs_coding = variant.hn.normalize(hgvs_coding)
