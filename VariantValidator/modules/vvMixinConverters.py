@@ -21,93 +21,93 @@ class Mixin(vvMixinInit.Mixin):
     This mixin contains converters that use the validator's configuration information.
     It inherits the Init mixin
     """
-    def r_to_c(self, variant, evm):
-        """
-        r_to_c
-        parses r. variant strings into hgvs object and maps to the c. equivalent.
-        """
-        # convert the input string into a hgvs object by parsing
-        var_r = self.hp.parse_hgvs_variant(variant)
-        # map to the coding sequence
-        var_c = evm.r_to_c(var_r)  # coding level variant
-        variant = str(var_c)
-        c_from_r = {'variant': variant, 'type': ':c.'}
-        return c_from_r
-
-    def refseq(self, variant, vmOld, refseq_ac, hpOld, evm, hdpOld, primary_assembly):
-        """
-        Maps transcript variant descriptions onto specified RefSeqGene reference sequences
-        Return an hgvs object containing the genomic sequence variant relative to the RefSeqGene
-        acession
-        refseq_ac = RefSeqGene ac
-        """
-        vr = hgvs.validator.Validator(self.hdp)
-        # parse the variant into hgvs object
-        var_c = self.hp.parse_hgvs_variant(variant)
-        # map to the genomic co-ordinates using the easy variant mapper set to alt_aln_method = alt_aln_method
-        var_g = self.myevm_t_to_g(var_c, evm, self.hdp, primary_assembly)
-        # Get overlapping transcripts - forcing a splign alignment
-        start_i = var_g.posedit.pos.start.base
-        end_i = var_g.posedit.pos.end.base
-        alt_ac = var_g.ac
-        alt_aln_method = 'splign'
-        transcripts = self.hdp.get_tx_for_region(alt_ac, alt_aln_method, start_i - 1, end_i)
-        # Take the first transcript
-        ref_g_dict = {
-            'ref_g': '',
-            'error': 'false'
-        }
-        for trans in transcripts:
-            tx_ac = trans[0]
-            try:
-                ref_c = self.vm.g_to_t(var_g, tx_ac, alt_aln_method='splign')
-            except:
-                continue
-            else:
-                try:
-                    ref_g_dict['ref_g'] = self.vm.t_to_g(ref_c, alt_ac=refseq_ac, alt_aln_method='splign')
-                except:
-                    e = sys.exc_info()[0]
-                    ref_g_dict['error'] = e
-                try:
-                    vr.validate(ref_g_dict['ref_g'])
-                except:
-                    e = sys.exc_info()[0]
-                    ref_g_dict['error'] = e
-                if ref_g_dict['error'] == 'false':
-                    return ref_g_dict
-                else:
-                    continue
-        # Return as an error if all fail
-        return ref_g_dict
-
-    def g_to_c(self, var_g, tx_ac, hpOld, evm):
-        """
-        Parses genomic variant strings into hgvs objects
-        Maps genomic hgvs object into a coding hgvs object if the c accession string is provided
-        returns a c. variant description string
-        """
-        # If the :g. pattern is present in the input variant
-        if ':g.' in var_g:
-            # convert the input string into a hgvs object by parsing
-            var_g = self.hp.parse_hgvs_variant(var_g)
-            # Map to coding variant
-            var_c = str(evm.g_to_c(var_g, tx_ac))
-            return var_c
-
-    def g_to_n(self, var_g, tx_ac, hpOld, evm):
-        """
-        Parses genomic variant strings into hgvs objects
-        Maps genomic hgvs object into a non-coding hgvs object if the n accession string is provided
-        returns a n. variant description string
-        """
-        # If the :g. pattern is present in the input variant
-        if ':g.' in var_g:
-            # convert the input string into a hgvs object by parsing
-            var_g = self.hp.parse_hgvs_variant(var_g)
-            # Map to coding variant
-            var_n = str(evm.g_to_n(var_g, tx_ac))
-            return var_n
+    # def r_to_c(self, variant, evm):
+    #     """
+    #     r_to_c
+    #     parses r. variant strings into hgvs object and maps to the c. equivalent.
+    #     """
+    #     # convert the input string into a hgvs object by parsing
+    #     var_r = self.hp.parse_hgvs_variant(variant)
+    #     # map to the coding sequence
+    #     var_c = evm.r_to_c(var_r)  # coding level variant
+    #     variant = str(var_c)
+    #     c_from_r = {'variant': variant, 'type': ':c.'}
+    #     return c_from_r
+    #
+    # def refseq(self, variant, vmOld, refseq_ac, hpOld, evm, hdpOld, primary_assembly):
+    #     """
+    #     Maps transcript variant descriptions onto specified RefSeqGene reference sequences
+    #     Return an hgvs object containing the genomic sequence variant relative to the RefSeqGene
+    #     acession
+    #     refseq_ac = RefSeqGene ac
+    #     """
+    #     vr = hgvs.validator.Validator(self.hdp)
+    #     # parse the variant into hgvs object
+    #     var_c = self.hp.parse_hgvs_variant(variant)
+    #     # map to the genomic co-ordinates using the easy variant mapper set to alt_aln_method = alt_aln_method
+    #     var_g = self.myevm_t_to_g(var_c, evm, self.hdp, primary_assembly)
+    #     # Get overlapping transcripts - forcing a splign alignment
+    #     start_i = var_g.posedit.pos.start.base
+    #     end_i = var_g.posedit.pos.end.base
+    #     alt_ac = var_g.ac
+    #     alt_aln_method = 'splign'
+    #     transcripts = self.hdp.get_tx_for_region(alt_ac, alt_aln_method, start_i - 1, end_i)
+    #     # Take the first transcript
+    #     ref_g_dict = {
+    #         'ref_g': '',
+    #         'error': 'false'
+    #     }
+    #     for trans in transcripts:
+    #         tx_ac = trans[0]
+    #         try:
+    #             ref_c = self.vm.g_to_t(var_g, tx_ac, alt_aln_method='splign')
+    #         except:
+    #             continue
+    #         else:
+    #             try:
+    #                 ref_g_dict['ref_g'] = self.vm.t_to_g(ref_c, alt_ac=refseq_ac, alt_aln_method='splign')
+    #             except:
+    #                 e = sys.exc_info()[0]
+    #                 ref_g_dict['error'] = e
+    #             try:
+    #                 vr.validate(ref_g_dict['ref_g'])
+    #             except:
+    #                 e = sys.exc_info()[0]
+    #                 ref_g_dict['error'] = e
+    #             if ref_g_dict['error'] == 'false':
+    #                 return ref_g_dict
+    #             else:
+    #                 continue
+    #     # Return as an error if all fail
+    #     return ref_g_dict
+    #
+    # def g_to_c(self, var_g, tx_ac, hpOld, evm):
+    #     """
+    #     Parses genomic variant strings into hgvs objects
+    #     Maps genomic hgvs object into a coding hgvs object if the c accession string is provided
+    #     returns a c. variant description string
+    #     """
+    #     # If the :g. pattern is present in the input variant
+    #     if ':g.' in var_g:
+    #         # convert the input string into a hgvs object by parsing
+    #         var_g = self.hp.parse_hgvs_variant(var_g)
+    #         # Map to coding variant
+    #         var_c = str(evm.g_to_c(var_g, tx_ac))
+    #         return var_c
+    #
+    # def g_to_n(self, var_g, tx_ac, hpOld, evm):
+    #     """
+    #     Parses genomic variant strings into hgvs objects
+    #     Maps genomic hgvs object into a non-coding hgvs object if the n accession string is provided
+    #     returns a n. variant description string
+    #     """
+    #     # If the :g. pattern is present in the input variant
+    #     if ':g.' in var_g:
+    #         # convert the input string into a hgvs object by parsing
+    #         var_g = self.hp.parse_hgvs_variant(var_g)
+    #         # Map to coding variant
+    #         var_n = str(evm.g_to_n(var_g, tx_ac))
+    #         return var_n
 
     def coding(self, variant, hpOld):
         """
@@ -141,16 +141,16 @@ class Mixin(vvMixinInit.Mixin):
             var_g = self.hp.parse_hgvs_variant(variant)
             return var_g
 
-    def hgvs_genomic(self, variant, hpOld):
-        """
-        Ensures variant strings are g.
-        returns parsed hgvs g. object
-        """
-        # If the :g. pattern is present in the input variant
-        if ':g.' in variant:
-            # convert the input string into a hgvs object
-            var_g = self.hp.parse_hgvs_variant(variant)
-            return var_g
+    # def hgvs_genomic(self, variant, hpOld):
+    #     """
+    #     Ensures variant strings are g.
+    #     returns parsed hgvs g. object
+    #     """
+    #     # If the :g. pattern is present in the input variant
+    #     if ':g.' in variant:
+    #         # convert the input string into a hgvs object
+    #         var_g = self.hp.parse_hgvs_variant(variant)
+    #         return var_g
 
     def myevm_t_to_g(self, hgvs_c, no_norm_evm, primary_assembly, hn):
         """
@@ -1453,15 +1453,15 @@ class Mixin(vvMixinInit.Mixin):
 
         return hgvs_genomic
 
-    def hgvs_protein(self, variant, hpOld):
-        """
-        parse p. strings into hgvs p. objects
-        """
-        # If the :p. pattern is present in the input variant
-        if ':p.' in variant:
-            # convert the input string into a hgvs object
-            var_p = self.hp.parse_hgvs_variant(variant)
-            return var_p
+    # def hgvs_protein(self, variant, hpOld):
+    #     """
+    #     parse p. strings into hgvs p. objects
+    #     """
+    #     # If the :p. pattern is present in the input variant
+    #     if ':p.' in variant:
+    #         # convert the input string into a hgvs object
+    #         var_p = self.hp.parse_hgvs_variant(variant)
+    #         return var_p
 
     def hgvs_r_to_c(self, hgvs_object):
         """
@@ -1488,84 +1488,84 @@ class Mixin(vvMixinInit.Mixin):
         hgvs_object.posedit.edit = edit
         return hgvs_object
 
-    def hgvs_c_to_r(self, hgvs_object):
-        """
-        Convert c. into r.
-        """
-        hgvs_object.type = 'r'
-        edit = str(hgvs_object.posedit.edit)
-        edit = edit.lower()
-        edit = edit.replace('t', 'u')
-        hgvs_object.posedit.edit = edit
-        return hgvs_object
+    # def hgvs_c_to_r(self, hgvs_object):
+    #     """
+    #     Convert c. into r.
+    #     """
+    #     hgvs_object.type = 'r'
+    #     edit = str(hgvs_object.posedit.edit)
+    #     edit = edit.lower()
+    #     edit = edit.replace('t', 'u')
+    #     hgvs_object.posedit.edit = edit
+    #     return hgvs_object
 
-    def tx_identity_info(self, variant, hdpOld):
-        """
-        Input c. r. n. variant string
-        Use uta.py (hdp) to return the identity information for the transcript variant
-        see hgvs.dataproviders.uta.py for details
-        """
-        # If the :c. pattern is present in the input variant
-        if ':c.' in variant:
-            # Remove all text to the right and including pat_c
-            tx_ac = variant[:variant.index(':c.') + len(':c.')]
-            tx_ac = tx_ac.replace(':c.', '')
-            # Interface with the UTA database via get_tx_identity in uta.py
-            tx_id_info = self.hdp.get_tx_identity_info(tx_ac)
-            # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
-            return tx_id_info
+    # def tx_identity_info(self, variant, hdpOld):
+    #     """
+    #     Input c. r. n. variant string
+    #     Use uta.py (hdp) to return the identity information for the transcript variant
+    #     see hgvs.dataproviders.uta.py for details
+    #     """
+    #     # If the :c. pattern is present in the input variant
+    #     if ':c.' in variant:
+    #         # Remove all text to the right and including pat_c
+    #         tx_ac = variant[:variant.index(':c.') + len(':c.')]
+    #         tx_ac = tx_ac.replace(':c.', '')
+    #         # Interface with the UTA database via get_tx_identity in uta.py
+    #         tx_id_info = self.hdp.get_tx_identity_info(tx_ac)
+    #         # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
+    #         return tx_id_info
+    #
+    #     # If the :n. pattern is present in the input variant
+    #     if ':n.' in variant:
+    #         # Remove all text to the right and including pat_c
+    #         tx_ac = variant[:variant.index(':n.') + len(':n.')]
+    #         tx_ac = tx_ac.replace(':n.', '')
+    #         # Interface with the UTA database via get_tx_identity in uta.py
+    #         tx_id_info = self.hdp.get_tx_identity_info(tx_ac)
+    #         # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
+    #         return tx_id_info
+    #
+    #     # If the :r. pattern is present in the input variant
+    #     if ':r.' in variant:
+    #         # Remove all text to the right and including pat_c
+    #         tx_ac = variant[:variant.index(':r.') + len(':r.')]
+    #         tx_ac = tx_ac.replace(':r.', '')
+    #         # Interface with the UTA database via get_tx_identity in uta.py
+    #         tx_id_info = self.hdp.get_tx_identity_info(tx_ac)
+    #         # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
+    #         return tx_id_info
 
-        # If the :n. pattern is present in the input variant
-        if ':n.' in variant:
-            # Remove all text to the right and including pat_c
-            tx_ac = variant[:variant.index(':n.') + len(':n.')]
-            tx_ac = tx_ac.replace(':n.', '')
-            # Interface with the UTA database via get_tx_identity in uta.py
-            tx_id_info = self.hdp.get_tx_identity_info(tx_ac)
-            # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
-            return tx_id_info
+    # def tx_id_info(self, alt_ac, hdpOld):
+    #     """
+    #     Input c. r. nd accession string
+    #     Use uta.py (hdp) to return the identity information for the transcript variant
+    #     see hgvs.dataproviders.uta.py for details
+    #     """
+    #     tx_id_info = self.hdp.get_tx_identity_info(alt_ac)
+    #     # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
+    #     return tx_id_info
 
-        # If the :r. pattern is present in the input variant
-        if ':r.' in variant:
-            # Remove all text to the right and including pat_c
-            tx_ac = variant[:variant.index(':r.') + len(':r.')]
-            tx_ac = tx_ac.replace(':r.', '')
-            # Interface with the UTA database via get_tx_identity in uta.py
-            tx_id_info = self.hdp.get_tx_identity_info(tx_ac)
-            # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
-            return tx_id_info
+    # def tx_for_gene(self, hgnc, hdpOld):
+    #     """
+    #     Use uta.py (hdp) to return the transcript information for a specified gene (HGNC SYMBOL)
+    #     see hgvs.dataproviders.uta.py for details
+    #     """
+    #     # Interface with the UTA database via get_tx_for_gene in uta.py
+    #     tx_for_gene = self.hdp.get_tx_for_gene(hgnc)
+    #     return tx_for_gene
 
-    def tx_id_info(self, alt_ac, hdpOld):
-        """
-        Input c. r. nd accession string
-        Use uta.py (hdp) to return the identity information for the transcript variant
-        see hgvs.dataproviders.uta.py for details
-        """
-        tx_id_info = self.hdp.get_tx_identity_info(alt_ac)
-        # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
-        return tx_id_info
-
-    def tx_for_gene(self, hgnc, hdpOld):
-        """
-        Use uta.py (hdp) to return the transcript information for a specified gene (HGNC SYMBOL)
-        see hgvs.dataproviders.uta.py for details
-        """
-        # Interface with the UTA database via get_tx_for_gene in uta.py
-        tx_for_gene = self.hdp.get_tx_for_gene(hgnc)
-        return tx_for_gene
-
-    def ng_extract(self, tx_for_gene):
-        """
-        Extract RefSeqGene Accession from transcript information
-        see hgvs.dataproviders.uta.py for details
-        """
-        # For each list in the list of lists tx_for_gene
-        for item in tx_for_gene:
-            # If the pattern NG_ is found in element 4
-            if 'NG_' in item[4]:
-                # The gene accession is set to list element 4
-                gene_ac = item[4]
-                return gene_ac
+    # def ng_extract(self, tx_for_gene):
+    #     """
+    #     Extract RefSeqGene Accession from transcript information
+    #     see hgvs.dataproviders.uta.py for details
+    #     """
+    #     # For each list in the list of lists tx_for_gene
+    #     for item in tx_for_gene:
+    #         # If the pattern NG_ is found in element 4
+    #         if 'NG_' in item[4]:
+    #             # The gene accession is set to list element 4
+    #             gene_ac = item[4]
+    #             return gene_ac
 
     def tx_exons(self, tx_ac, alt_ac, alt_aln_method):
         """
@@ -1697,36 +1697,36 @@ class Mixin(vvMixinInit.Mixin):
         else:
             return 'false'
 
-    def hgnc_rest(self, path):
-        """
-        Search HGNC rest
-        """
-        data = {
-            'record': '',
-            'error': 'false'
-        }
-        # HGNC server
-        headers = {
-            'Accept': 'application/json',
-        }
-        uri = 'http://rest.genenames.org'
-        target = urlparse(uri + path)
-        method = 'GET'
-        body = ''
-        h = http.Http()
-        # collect the response
-        response, content = h.request(
-            target.geturl(),
-            method,
-            body,
-            headers)
-        if response['status'] == '200':
-            # assume that content is a json reply
-            # parse content with the json module
-            data['record'] = json.loads(content)
-        else:
-            data['error'] = "Unable to contact the HGNC database: Please try again later"
-        return data
+    # def hgnc_rest(self, path):
+    #     """
+    #     Search HGNC rest
+    #     """
+    #     data = {
+    #         'record': '',
+    #         'error': 'false'
+    #     }
+    #     # HGNC server
+    #     headers = {
+    #         'Accept': 'application/json',
+    #     }
+    #     uri = 'http://rest.genenames.org'
+    #     target = urlparse(uri + path)
+    #     method = 'GET'
+    #     body = ''
+    #     h = http.Http()
+    #     # collect the response
+    #     response, content = h.request(
+    #         target.geturl(),
+    #         method,
+    #         body,
+    #         headers)
+    #     if response['status'] == '200':
+    #         # assume that content is a json reply
+    #         # parse content with the json module
+    #         data['record'] = json.loads(content)
+    #     else:
+    #         data['error'] = "Unable to contact the HGNC database: Please try again later"
+    #     return data
 
     def entrez_efetch(self, db, id, rettype, retmode):
         """
@@ -1743,21 +1743,21 @@ class Mixin(vvMixinInit.Mixin):
         handle.close()
         return record
 
-    def entrez_read(self,db, id, retmode):
-        """
-        search Entrez databases with efetch and read
-        """
-        # IMPORT Bio modules
-        # from Bio import Entrez
-        Entrez.email = self.entrezID
-        # from Bio import SeqIO
-        handle = Entrez.efetch(db=db, id=id, retmode=retmode)
-        # Get record
-        record = Entrez.read(handle)
-        # Place into text
-        # text = handle.read()
-        handle.close()
-        return record
+    # def entrez_read(self,db, id, retmode):
+    #     """
+    #     search Entrez databases with efetch and read
+    #     """
+    #     # IMPORT Bio modules
+    #     # from Bio import Entrez
+    #     Entrez.email = self.entrezID
+    #     # from Bio import SeqIO
+    #     handle = Entrez.efetch(db=db, id=id, retmode=retmode)
+    #     # Get record
+    #     record = Entrez.read(handle)
+    #     # Place into text
+    #     # text = handle.read()
+    #     handle.close()
+    #     return record
 
     def revcomp(self, bases):
         """
@@ -1999,22 +1999,22 @@ class Mixin(vvMixinInit.Mixin):
             pass
         return hgvs_delins
 
-    def merge_pseudo_vcf(self, vcf_list, genome_build, hn):
-        """
-        Function designed to merge multiple pseudo VCF variants (strings) into a single HGVS delins
-        using 5 prime normalization then return a 3 prime normalized final HGVS object
-        """
-        hgvs_list = []
-        # Convert pseudo_vcf list into a HGVS list
-        for call in vcf_list:
-            x55hgvs = hgvs_utils.pvcf_to_hgvs(call, genome_build, normalization_direction=5, validator=self)
-            hgvs_list.append(x55hgvs)
-        # Merge
-        hgvs_delins = self.merge_hgvs_5pr(hgvs_list)
-        # normalize 3 prime
-        hgvs_delins = hn.normalize(hgvs_delins)
-        # return
-        return hgvs_delins
+    # def merge_pseudo_vcf(self, vcf_list, genome_build, hn):
+    #     """
+    #     Function designed to merge multiple pseudo VCF variants (strings) into a single HGVS delins
+    #     using 5 prime normalization then return a 3 prime normalized final HGVS object
+    #     """
+    #     hgvs_list = []
+    #     # Convert pseudo_vcf list into a HGVS list
+    #     for call in vcf_list:
+    #         x55hgvs = hgvs_utils.pvcf_to_hgvs(call, genome_build, normalization_direction=5, validator=self)
+    #         hgvs_list.append(x55hgvs)
+    #     # Merge
+    #     hgvs_delins = self.merge_hgvs_5pr(hgvs_list)
+    #     # normalize 3 prime
+    #     hgvs_delins = hn.normalize(hgvs_delins)
+    #     # return
+    #     return hgvs_delins
 
     def hgvs_alleles(self, variant_description, hn):
         """
