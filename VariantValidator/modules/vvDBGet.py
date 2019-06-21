@@ -18,20 +18,20 @@ class Mixin(vvDBInit.Mixin):
         return row
 
     @handleCursor
-    def executeAll(self, query):
+    def execute_all(self, query):
         self.cursor.execute(query)
         rows = self.cursor.fetchall()
-        if rows == []:
+        if not rows:
             Logger.debug("No data returned from query " + str(query))
             rows = ['none', 'No data']
         return rows
 
     # from dbfetchone
-    def get_utaSymbol(self, gene_symbol):
+    def get_uta(self, gene_symbol):
         query = "SELECT utaSymbol FROM transcript_info WHERE hgncSymbol = '%s'" % gene_symbol
         return self.execute(query)
 
-    def get_hgncSymbol(self, gene_symbol):
+    def get_hgnc(self, gene_symbol):
         query = "SELECT hgncSymbol FROM transcript_info WHERE utaSymbol = '%s'" % gene_symbol
         return self.execute(query)
 
@@ -39,72 +39,76 @@ class Mixin(vvDBInit.Mixin):
         query = "SELECT description FROM transcript_info WHERE refSeqID = '%s'" % transcript_id
         return str(self.execute(query)[0])
 
-    def get_gene_symbol_from_transcriptID(self, transcript_id):
+    def get_gene_symbol_from_transcript_id(self, transcript_id):
         query = "SELECT hgncSymbol FROM transcript_info WHERE refSeqID = '%s'" % transcript_id
         return str(self.execute(query)[0])
 
-    def get_refSeqGene_data_by_refSeqGeneID(self, refSeqGeneID, genomeBuild):
-        query = "SELECT refSeqGeneID, refSeqChromosomeID, genomeBuild, startPos, endPos, orientation, totalLength, chrPos, rsgPos, entrezID, hgncSymbol FROM refSeqGene_loci WHERE refSeqGeneID = '%s' AND genomeBuild = '%s'" % (refSeqGeneID, genomeBuild)
+    def get_refseq_data_by_refseq_id(self, refseq_id, genome_build):
+        query = "SELECT refSeqGeneID, refSeqChromosomeID, genomeBuild, startPos, endPos, orientation, totalLength, " \
+                "chrPos, rsgPos, entrezID, hgncSymbol FROM refSeqGene_loci WHERE refSeqGeneID = '%s' " \
+                "AND genomeBuild = '%s'" % (refseq_id, genome_build)
         return self.execute(query)
 
-    def get_gene_symbol_from_refSeqGeneID(self, refSeqGeneID):
-        query = "SELECT hgncSymbol FROM refSeqGene_loci WHERE refSeqGeneID = '%s'" % refSeqGeneID
+    def get_gene_symbol_from_refseq_id(self, refseq_id):
+        query = "SELECT hgncSymbol FROM refSeqGene_loci WHERE refSeqGeneID = '%s'" % refseq_id
         return self.execute(query)[0]
 
-    #get_refseqgeneId_from_lrgID
-    def get_RefSeqGeneID_from_lrgID(self, lrgID):
-        query = "SELECT RefSeqGeneID FROM LRG_RSG_lookup WHERE lrgID = '%s'" % lrgID
+    def get_refseq_id_from_lrg_id(self, lrg_id):
+        query = "SELECT RefSeqGeneID FROM LRG_RSG_lookup WHERE lrgID = '%s'" % lrg_id
         return self.execute(query)[0]
 
-    def get_RefSeqTranscriptID_from_lrgTranscriptID(self, lrgtxID):
-        query = "SELECT RefSeqTranscriptID FROM LRG_transcripts WHERE LRGtranscriptID = '%s'" % lrgtxID
+    def get_refseq_transcript_id_from_lrg_transcript_id(self, lrg_tx_id):
+        query = "SELECT RefSeqTranscriptID FROM LRG_transcripts WHERE LRGtranscriptID = '%s'" % lrg_tx_id
         return self.execute(query)[0]
 
-    def	get_lrgTranscriptID_from_RefSeqTranscriptID(self, rstID):
-        query = "SELECT LRGtranscriptID FROM LRG_transcripts WHERE RefSeqTranscriptID = '%s'" % rstID
+    def get_lrg_transcript_id_from_refseq_transcript_id(self, rst_id):
+        query = "SELECT LRGtranscriptID FROM LRG_transcripts WHERE RefSeqTranscriptID = '%s'" % rst_id
         return self.execute(query)[0]
 
-    def get_lrgID_from_RefSeqGeneID(self, rsgID):
-        query = "SELECT lrgID, status FROM LRG_RSG_lookup WHERE RefSeqGeneID = '%s'" % rsgID
+    def get_lrg_id_from_refseq_gene_id(self, rsg_id):
+        query = "SELECT lrgID, status FROM LRG_RSG_lookup WHERE RefSeqGeneID = '%s'" % rsg_id
         return self.execute(query)
 
     def get_refseqgene_info(self, refseqgene_id, primary_assembly):
-        query = "SELECT refSeqGeneID, refSeqChromosomeID, genomeBuild, startPos, endPos FROM refSeqGene_loci WHERE refSeqGeneID = '%s' AND genomeBuild = '%s'" % (refseqgene_id, primary_assembly)
+        query = "SELECT refSeqGeneID, refSeqChromosomeID, genomeBuild, startPos, endPos FROM refSeqGene_loci " \
+                "WHERE refSeqGeneID = '%s' AND genomeBuild = '%s'" % (refseqgene_id, primary_assembly)
         return self.execute(query)
 
-    def get_RefSeqProteinID_from_lrgProteinID(self, lrg_p):
+    def get_refseq_protein_id_from_lrg_protein_id(self, lrg_p):
         query = "SELECT RefSeqProteinID FROM LRG_proteins WHERE LRGproteinID = '%s'" % lrg_p
         return self.execute(query)[0]
 
-    def get_lrgProteinID_from_RefSeqProteinID(self, rs_p):
+    def get_lrg_protein_id_from_ref_seq_protein_id(self, rs_p):
         query = "SELECT LRGproteinID FROM LRG_proteins WHERE  RefSeqProteinID = '%s'" % rs_p
         return self.execute(query)[0]
 
-    def get_LRG_data_from_LRGid(self, lrg_id):
+    def get_lrg_data_from_lrg_id(self, lrg_id):
         query = "SELECT * FROM LRG_RSG_lookup WHERE lrgID = '%s'" % lrg_id
         return self.execute(query)
 
-    #from dbfetchall
     def get_transcript_info_for_gene(self, gene_symbol):
-        query = "SELECT refSeqID, description, transcriptVariant, currentVersion, hgncSymbol, utaSymbol, updated, IF(updated < NOW() - INTERVAL 3 MONTH , 'true', 'false') FROM transcript_info WHERE hgncSymbol = '%s'" % gene_symbol
-        return self.executeAll(query)
+        query = "SELECT refSeqID, description, transcriptVariant, currentVersion, hgncSymbol, utaSymbol, " \
+                "updated, IF(updated < NOW() - INTERVAL 3 MONTH , 'true', 'false') FROM transcript_info " \
+                "WHERE hgncSymbol = '%s'" % gene_symbol
+        return self.execute_all(query)
 
     def get_g_to_g_info(self):
-        query = "SELECT refSeqGeneID, refSeqChromosomeID, startPos, endPos, orientation, hgncSymbol, genomeBuild FROM refSeqGene_loci"
-        return self.executeAll(query)
+        query = "SELECT refSeqGeneID, refSeqChromosomeID, startPos, endPos, orientation, hgncSymbol, " \
+                "genomeBuild FROM refSeqGene_loci"
+        return self.execute_all(query)
 
-    def get_all_transcriptID(self):
+    def get_all_transcript_id(self):
         query = "SELECT refSeqID FROM transcript_info"
-        return self.executeAll(query)
+        return self.execute_all(query)
 
     # Direct methods (GET)
     def get_uta_symbol(self, gene_symbol):
         # returns the UTA gene symbol when HGNC gene symbol is input
-        return str(self.get_utaSymbol(gene_symbol)[0])
+        return str(self.get_uta(gene_symbol)[0])
 
     def get_hgnc_symbol(self, gene_symbol):
         # returns the HGNC gene symbol when UTA gene symbol is input
-        return str(self.get_hgncSymbol(gene_symbol)[0])
+        return str(self.get_hgnc(gene_symbol)[0])
 
     # from external.py
     def get_urls(self, dict_out):
@@ -116,13 +120,14 @@ class Mixin(vvDBInit.Mixin):
                                         '/nuccore/%s' % dict_out['hgvs_transcript_variant'].split(':')[0]
         if 'NP_' in dict_out['hgvs_predicted_protein_consequence']['slr']:
             report_urls['protein'] = 'https://www.ncbi.nlm.nih.gov' \
-                                     '/nuccore/%s' % str(dict_out['hgvs_predicted_protein_consequence']['slr']).split(':')[0]
+                                     '/nuccore/%s' % str(
+                dict_out['hgvs_predicted_protein_consequence']['slr']).split(':')[0]
         if 'NG_' in dict_out['hgvs_refseqgene_variant']:
             report_urls['refseqgene'] = 'https://www.ncbi.nlm.nih.gov' \
                                         '/nuccore/%s' % dict_out['hgvs_refseqgene_variant'].split(':')[0]
         if 'LRG' in dict_out['hgvs_lrg_variant']:
             lrg_id = dict_out['hgvs_lrg_variant'].split(':')[0]
-            lrg_data = self.get_LRG_data_from_LRGid(lrg_id)
+            lrg_data = self.get_lrg_data_from_lrg_id(lrg_id)
             lrg_status = str(lrg_data[4])
             if lrg_status == 'public':
                 report_urls['lrg'] = 'http://ftp.ebi.ac.uk/pub' \
@@ -135,4 +140,3 @@ class Mixin(vvDBInit.Mixin):
         # "http://www.ensembl.org/id/" ? What about historic versions?????
 
         return report_urls
-

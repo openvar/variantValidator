@@ -71,7 +71,7 @@ def pvcf_to_hgvs(query, selected_assembly, normalization_direction, reverse_norm
         # Assign reference sequence type
         ref_type = ':g.'
         if 'LRG_' in accession:
-            accession = validator.db.get_RefSeqGeneID_from_lrgID(accession)
+            accession = validator.db.get_refseq_id_from_lrg_id(accession)
 
         # Reformat the variant
         query = str(accession) + ref_type + str(position_and_edit)

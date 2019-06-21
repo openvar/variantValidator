@@ -180,7 +180,7 @@ def update_refseq(dbcnx):
 
     # Set up code to write to database
     for line in to_mysql:
-        current_symbol = dbcnx.get_gene_symbol_from_refSeqGeneID(line[0])
+        current_symbol = dbcnx.get_gene_symbol_from_refseq_id(line[0])
         if line[10] != current_symbol:
             if current_symbol != 'none':
                 line[10] = current_symbol

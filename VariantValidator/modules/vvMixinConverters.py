@@ -175,7 +175,7 @@ class Mixin(vvMixinInit.Mixin):
 
         # Gap gene black list
         try:
-            gene_symbol = self.db.get_gene_symbol_from_transcriptID(hgvs_c.ac)
+            gene_symbol = self.db.get_gene_symbol_from_transcript_id(hgvs_c.ac)
         except Exception:
             utilise_gap_code = False
         else:
@@ -940,7 +940,7 @@ class Mixin(vvMixinInit.Mixin):
 
         # Gap gene black list
         try:
-            gene_symbol = self.db.get_gene_symbol_from_transcriptID(hgvs_c.ac)
+            gene_symbol = self.db.get_gene_symbol_from_transcript_id(hgvs_c.ac)
         except Exception:
             utilise_gap_code = False
         else:
@@ -1469,7 +1469,7 @@ class Mixin(vvMixinInit.Mixin):
         """
         # check for LRG_t with r.
         if 'LRG' in hgvs_object.ac:
-            transcript_ac = self.db.get_RefSeqTranscriptID_from_lrgTranscriptID(hgvs_object.ac)
+            transcript_ac = self.db.get_refseq_transcript_id_from_lrg_transcript_id(hgvs_object.ac)
             if transcript_ac == 'none':
                 raise HGVSDataNotAvailableError('Unable to identify a relevant transcript for ' + hgvs_object.ac)
             else:

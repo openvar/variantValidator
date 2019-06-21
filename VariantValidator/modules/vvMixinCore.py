@@ -63,7 +63,7 @@ class Mixin(vvMixinConverters.Mixin):
                 for trans_id in select_transcripts_list:
                     trans_id = trans_id.strip()
                     if 'LRG' in trans_id:
-                        trans_id = self.db.get_RefSeqTranscriptID_from_lrgTranscriptID(trans_id)
+                        trans_id = self.db.get_refseq_transcript_id_from_lrg_transcript_id(trans_id)
                         if trans_id == 'none':
                             continue
                     select_transcripts_dict_plus_version[trans_id] = ''
@@ -443,7 +443,7 @@ class Mixin(vvMixinConverters.Mixin):
                     hgvs_refseqgene_variant = 'false'
                 else:
                     hgvs_refseqgene_variant = self.hp.parse_hgvs_variant(refseqgene_variant)
-                    rsg_ac = self.db.get_lrgID_from_RefSeqGeneID(str(hgvs_refseqgene_variant.ac))
+                    rsg_ac = self.db.get_lrg_id_from_refseq_gene_id(str(hgvs_refseqgene_variant.ac))
                     if rsg_ac[0] == 'none':
                         lrg_variant = ''
                     else:
@@ -469,7 +469,7 @@ class Mixin(vvMixinConverters.Mixin):
                     transcript_accession = hgvs_transcript_variant.ac
 
                     # Handle LRG
-                    lrg_transcript = self.db.get_lrgTranscriptID_from_RefSeqTranscriptID(transcript_accession)
+                    lrg_transcript = self.db.get_lrg_transcript_id_from_refseq_transcript_id(transcript_accession)
                     if lrg_transcript == 'none':
                         lrg_transcript_variant = ''
                     else:
@@ -531,7 +531,7 @@ class Mixin(vvMixinConverters.Mixin):
                 predicted_protein_variant = variant.protein
                 if 'NP_' in predicted_protein_variant:
                     rs_p, pred_prot_posedit = predicted_protein_variant.split(':')
-                    lrg_p = self.db.get_lrgProteinID_from_RefSeqProteinID(rs_p)
+                    lrg_p = self.db.get_lrg_protein_id_from_ref_seq_protein_id(rs_p)
                     if 'LRG' in lrg_p:
                         predicted_protein_variant = rs_p + '(' + lrg_p + '):' + pred_prot_posedit
 
@@ -711,7 +711,7 @@ class Mixin(vvMixinConverters.Mixin):
         # Quick check for LRG
         elif 'LRG' in query:
             lrg_id = query.split('T')[0]
-            lrg_to_hgnc = self.db.get_LRG_data_from_LRGid(lrg_id)
+            lrg_to_hgnc = self.db.get_lrg_data_from_lrg_id(lrg_id)
             query = lrg_to_hgnc[2]
 
         # Quick check for blank form
@@ -814,7 +814,7 @@ class Mixin(vvMixinConverters.Mixin):
                                              'coding_end': 'non-coding'
                                              })
                     # LRG information
-                    lrg_transcript = self.db.get_lrgTranscriptID_from_RefSeqTranscriptID(tx)
+                    lrg_transcript = self.db.get_lrg_transcript_id_from_refseq_transcript_id(tx)
                     if lrg_transcript != 'none':
                         genes_and_tx.append({'reference': lrg_transcript,
                                              'description': tx_description,

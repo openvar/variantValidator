@@ -180,9 +180,9 @@ def vcf2hgvs_stage2(variant, validator):
                 ref_type = validator.db.ref_type_assign(accession)
                 if re.match('LRG_', accession):
                     if ref_type == ':g.':
-                        accession = validator.db.get_RefSeqGeneID_from_lrgID(accession)
+                        accession = validator.db.get_refseq_id_from_lrg_id(accession)
                     else:
-                        accession = validator.db.get_RefSeqTranscriptID_from_lrgTranscriptID(accession)
+                        accession = validator.db.get_refseq_transcript_id_from_lrg_transcript_id(accession)
                 else:
                     accession = accession
                 variant.quibble = str(accession) + ref_type + str(position_and_edit)
@@ -318,7 +318,7 @@ def refseq_catch(variant, validator, select_transcripts_dict_plus_version):
             if variant.quibble.startswith('NG_'):
                 ref_seq_gene_id = variant.quibble.split(':')[0]
                 tx_edit = variant.quibble.split(':')[1]
-                gene_symbol = validator.db.get_gene_symbol_from_refSeqGeneID(ref_seq_gene_id)
+                gene_symbol = validator.db.get_gene_symbol_from_refseq_id(ref_seq_gene_id)
                 if gene_symbol != 'none':
                     uta_symbol = validator.db.get_uta_symbol(gene_symbol)
                     available_transcripts = validator.hdp.get_tx_for_gene(uta_symbol)
@@ -589,7 +589,7 @@ def allele_parser(variant, validation):
             elif re.match(r'^LRG_\d+:g.', variant.quibble) or re.match(r'^LRG_\d+:p.', variant.quibble) \
                     or re.match(r'^LRG_\d+:c.', variant.quibble) or re.match(r'^LRG_\d+:n.', variant.quibble):
                 lrg_reference, variation = variant.quibble.split(':')
-                refseqgene_reference = validation.db.get_RefSeqGeneID_from_lrgID(lrg_reference)
+                refseqgene_reference = validation.db.get_refseq_id_from_lrg_id(lrg_reference)
                 if refseqgene_reference != 'none':
                     variant.quibble = refseqgene_reference + ':' + variation
                     if caution == '':
@@ -603,7 +603,7 @@ def allele_parser(variant, validation):
             elif re.match(r'^LRG_\d+t\d+:c.', variant.quibble) or re.match(r'^LRG_\d+t\d+:n.', variant.quibble) or \
                     re.match(r'^LRG_\d+t\d+:p.', variant.quibble) or re.match(r'^LRG_\d+t\d+:g.', variant.quibble):
                 lrg_reference, variation = variant.quibble.split(':')
-                refseqtranscript_reference = validation.db.get_RefSeqTranscriptID_from_lrgTranscriptID(
+                refseqtranscript_reference = validation.db.get_refseq_transcript_id_from_lrg_transcript_id(
                     lrg_reference)
                 if refseqtranscript_reference != 'none':
                     variant.quibble = refseqtranscript_reference + ':' + variation
@@ -659,7 +659,7 @@ def lrg_to_refseq(variant, validator):
 
         if re.match(r'^LRG_\d+t\d+:', variant.quibble):
             lrg_reference, variation = variant.quibble.split(':')
-            refseqtrans_reference = validator.db.get_RefSeqTranscriptID_from_lrgTranscriptID(lrg_reference)
+            refseqtrans_reference = validator.db.get_refseq_transcript_id_from_lrg_transcript_id(lrg_reference)
             if refseqtrans_reference != 'none':
                 variant.hgvs_formatted.ac = refseqtrans_reference
                 variant.set_quibble(str(variant.hgvs_formatted))
@@ -668,7 +668,7 @@ def lrg_to_refseq(variant, validator):
                 Logger.warning(caution)
         elif re.match(r'^LRG_\d+:', variant.quibble):
             lrg_reference, variation = variant.quibble.split(':')
-            refseqgene_reference = validator.db.get_RefSeqGeneID_from_lrgID(lrg_reference)
+            refseqgene_reference = validator.db.get_refseq_id_from_lrg_id(lrg_reference)
             if refseqgene_reference != 'none':
                 variant.hgvs_formatted.ac = refseqgene_reference
                 variant.set_quibble(str(variant.hgvs_formatted))

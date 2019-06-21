@@ -64,7 +64,7 @@ def structure_checks(variant, validator):
     """
     input_parses = validator.hp.parse_hgvs_variant(variant.quibble)
     variant.input_parses = input_parses
-    variant.gene_symbol = validator.db.get_gene_symbol_from_transcriptID(variant.input_parses.ac)
+    variant.gene_symbol = validator.db.get_gene_symbol_from_transcript_id(variant.input_parses.ac)
     if variant.gene_symbol == 'none':
         variant.gene_symbol = ''
     if input_parses.type == 'g':
