@@ -12,10 +12,7 @@ class Mixin():
         # closes connections for you.
         self.cursor = None
         self.dbConfig = dbConfig
-        # Construct database URL
-        #'mysqlx://vvadmin:var1ant@127.0.0.1/validator'
-        self.path = "mysqlx://"+dbConfig["user"]+":"+dbConfig["password"]+"@"+dbConfig["host"]+"/"+dbConfig["database"]
-        os.environ["VALIDATOR_DB_URL"] = self.path
+
         self.pool = mysql.connector.pooling.MySQLConnectionPool(pool_size=10, **self.dbConfig)
         self.conn = self.pool.get_connection()
 
