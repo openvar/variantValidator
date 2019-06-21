@@ -20,7 +20,7 @@ def connect():
         'raise_on_warnings': True
     }
     # Create database access objects
-    db = vvDatabase.vvDatabase(dbConfig)
+    db = vvDatabase.Database(dbConfig)
     return db
 
 
@@ -184,7 +184,7 @@ def update_refseq(dbcnx):
         if line[10] != current_symbol:
             if current_symbol != 'none':
                 line[10] = current_symbol
-        dbcnx.update_refSeqGene_loci(line)
+        dbcnx.update_refseqgene_loci(line)
 
     print('Total NG_ to NC_ alignments = ' + str(total_rsg_to_nc))
     print('Gaps within NG_ to NC_ alignments = ' + str(total_rsg_to_nc_rejected))

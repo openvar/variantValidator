@@ -17,7 +17,7 @@ from Bio.Seq import Seq
 
 import re
 import copy
-from .vvDatabase import vvDatabase
+from .vvDatabase import Database
 from . import utils
 from VariantValidator.settings import CONFIG_DIR
 from VariantValidator.version import __version__
@@ -94,7 +94,7 @@ class Mixin:
             'raise_on_warnings': True
         }
         # Create database access objects
-        self.db = vvDatabase(self.dbConfig)
+        self.db = Database(self.dbConfig)
 
         # Set up versions
         self.version = __version__
