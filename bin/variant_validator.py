@@ -5,14 +5,14 @@ import sys
 from VariantValidator import Validator
 
 
-def output_results(valoutput, outformat):
+def output_results(valoutput, outformat, with_meta):
     if outformat == 'dict':
-        return str(valoutput.format_as_dict())
+        return str(valoutput.format_as_dict(with_meta=with_meta))
     elif outformat == 'json':
-        return str(valoutput.format_as_json())
+        return str(valoutput.format_as_json(with_meta=with_meta))
     else:
         # table format
-        table = valoutput.format_as_table()
+        table = valoutput.format_as_table(with_meta=with_meta)
         newtable = []
         for row in table:
             if isinstance(row, list):
@@ -36,6 +36,8 @@ if __name__ == '__main__':
                         help='Output validations as a list or as a dictionary (default: %(default)s)')
     parser.add_argument('-o', '--output', type=argparse.FileType('w'), default='-',
                         help='Specifies the output file (default: stdout)')
+    parser.add_argument('-m', '--meta', action='store_true', default=False,
+                        help='Also output metadata (default: %(default)s)')
 
     args = parser.parse_args()
 
@@ -44,9 +46,9 @@ if __name__ == '__main__':
     if args.submission == 'individual':
         for variant in args.variant:
             output = validator.validate(variant, args.genome, args.transcripts)
-            args.output.write(output_results(output, args.output_format) + '\n')
+            args.output.write(output_results(output, args.output_format, args.meta) + '\n')
     else:
         batch = '|'.join(args.variant)
         sys.stderr.write("Submitting batch query: %s\n" % batch)
         output = validator.validate(batch, args.genome, args.transcripts)
-        args.output.write(output_results(output, args.output_format) + '\n')
+        args.output.write(output_results(output, args.output_format, args.meta) + '\n')
