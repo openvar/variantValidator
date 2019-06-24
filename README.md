@@ -7,7 +7,7 @@ Nomenclature.
 VariantValidator ensures that users are guided through the intricacies of the HGVS 
 nomenclature, e.g. if the user makes a mistake, VariantValidator automatically corrects 
 the mistake if it can, or provides helpful guidance if it cannot. In addition, 
-VariantValidator accurately interconverts between transcript variant descriptions and 
+VariantValidator accurately inter-converts between transcript variant descriptions and 
 genomic variant descriptions in HGVS and Variant Call Format (VCF)
 
 VariantValidator interfaces with the hgvs package to parse, format, and manipulate 
@@ -31,14 +31,15 @@ For sequence variations falling within the open reading frames of genes, Variant
 
 ## Pre-requisites
 
-Variant Validator will work on Mac OS X or Linux-compatiable computers.
+Variant Validator will work on Mac OS X or Linux-compatible computers.
 
 Required software:
 * MySQL
 * Python 2.7
+* SQLite version 3.8.0 or above
+
 Optional software:
 * Postgres version 9.5 or above, Postgres 10 is not supported.
-* SQLite version 3.8.0 or above
 
 For installation instructions please see [INSTALLATION.md](docs/INSTALLATION.md)
 

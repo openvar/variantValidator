@@ -23,9 +23,9 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--transcripts',  nargs='?', default='all',
                         help='Transcripts to output results for (default: %(default)s)')
     parser.add_argument('-s', '--submission', choices=['individual', 'batch'], default='individual',
-                        help='Submit variants individually or as a single batch validation (default: %(default)s')
+                        help='Submit variants individually or as a single batch validation (default: %(default)s)')
     parser.add_argument('-f', '--output_format', choices=['dict', 'list', 'json'], default='dict',
-                        help='Output validations as a list or as a dictionary (default: %(default)s')
+                        help='Output validations as a list or as a dictionary (default: %(default)s)')
     parser.add_argument('-o', '--output', type=argparse.FileType('w'), default='-',
                         help='Specifies the output file (default: stdout)')
 
