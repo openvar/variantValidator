@@ -1,5 +1,4 @@
 import os
-from .liftover import liftover
 from .logger import Logger
 import json
 
@@ -65,62 +64,6 @@ class ValOutput(object):
                 validation_output['flag'] = 'intergenic'
                 validation_intergenic_counter = validation_intergenic_counter + 1
                 identification_key = 'intergenic_variant_%s' % validation_intergenic_counter
-
-                # Attempt to liftover between genome builds
-                # Note: pyliftover uses the UCSC liftOver tool.
-                # https://pypi.org/project/pyliftover/
-                genomic_position_info = variant.primary_assembly_loci
-                for g_p_key in list(genomic_position_info.keys()):
-                    build_to = ''
-                    build_from = ''
-
-                    # Identify the current build and hgvs_genomic descripsion
-                    if 'hg' in g_p_key:
-                        # incoming_vcf = genomic_position_info[g_p_key]['vcf']
-                        # set builds
-                        if g_p_key == 'hg38':
-                            build_to = 'hg19'
-                            build_from = 'hg38'
-                        if g_p_key == 'hg19':
-                            build_to = 'hg38'
-                            build_from = 'hg19'
-                    elif 'grc' in g_p_key:
-                        # incoming_vcf = genomic_position_info[g_p_key]['vcf']
-                        # set builds
-                        if g_p_key == 'grch38':
-                            build_to = 'GRCh37'
-                            build_from = 'GRCh38'
-                        if g_p_key == 'grch37':
-                            build_to = 'GRCh38'
-                            build_from = 'GRCh37'
-
-                    # Liftover
-                    lifted_response = liftover(genomic_position_info[g_p_key]['hgvs_genomic_description'], build_from,
-                                               build_to, variant.hn, variant.reverse_normalizer,
-                                               variant.evm, self.validator)
-
-                    # Sort the respomse into primary assembly and ALT
-                    primary_assembly_loci = {}
-                    alt_genomic_loci = []
-                    for build_key, accession_dict in list(lifted_response.items()):
-                        try:
-                            accession_key = list(accession_dict.keys())[0]
-                            if 'NC_' in accession_dict[accession_key]['hgvs_genomic_description']:
-                                primary_assembly_loci[build_key.lower()] = accession_dict[accession_key]
-                            else:
-                                alt_genomic_loci.append({build_key.lower(): accession_dict[accession_key]})
-
-                        # KeyError if the dicts are empty
-                        except KeyError:
-                            continue
-                        except IndexError:
-                            continue
-
-                    # Add the dictionaries from lifted response to the output
-                    if primary_assembly_loci != {}:
-                        variant.primary_assembly_loci = primary_assembly_loci
-                    if alt_genomic_loci:
-                        variant.alt_genomic_loci = alt_genomic_loci
 
                 # Finalise the output dictionary
                 validation_output[identification_key] = variant.output_dict()

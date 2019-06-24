@@ -16,6 +16,7 @@ from . import format_converters
 from . import use_checking
 from . import mappers
 from . import valoutput
+from .liftover import liftover
 
 
 class Mixin(vvMixinConverters.Mixin):
@@ -682,6 +683,64 @@ class Mixin(vvMixinConverters.Mixin):
                 ref_records = self.db.get_urls(variant.output_dict())
                 if ref_records != {}:
                     variant.reference_sequence_records = ref_records
+
+                if variant.output_type_flag == 'intergenic':
+                    # Attempt to liftover between genome builds
+                    # Note: pyliftover uses the UCSC liftOver tool.
+                    # https://pypi.org/project/pyliftover/
+                    genomic_position_info = variant.primary_assembly_loci
+                    for g_p_key in list(genomic_position_info.keys()):
+                        build_to = ''
+                        build_from = ''
+
+                        # Identify the current build and hgvs_genomic descripsion
+                        if 'hg' in g_p_key:
+                            # incoming_vcf = genomic_position_info[g_p_key]['vcf']
+                            # set builds
+                            if g_p_key == 'hg38':
+                                build_to = 'hg19'
+                                build_from = 'hg38'
+                            if g_p_key == 'hg19':
+                                build_to = 'hg38'
+                                build_from = 'hg19'
+                        elif 'grc' in g_p_key:
+                            # incoming_vcf = genomic_position_info[g_p_key]['vcf']
+                            # set builds
+                            if g_p_key == 'grch38':
+                                build_to = 'GRCh37'
+                                build_from = 'GRCh38'
+                            if g_p_key == 'grch37':
+                                build_to = 'GRCh38'
+                                build_from = 'GRCh37'
+
+                        # Liftover
+                        lifted_response = liftover(genomic_position_info[g_p_key]['hgvs_genomic_description'],
+                                                   build_from,
+                                                   build_to, variant.hn, variant.reverse_normalizer,
+                                                   variant.evm, self)
+
+                        # Sort the respomse into primary assembly and ALT
+                        primary_assembly_loci = {}
+                        alt_genomic_loci = []
+                        for build_key, accession_dict in list(lifted_response.items()):
+                            try:
+                                accession_key = list(accession_dict.keys())[0]
+                                if 'NC_' in accession_dict[accession_key]['hgvs_genomic_description']:
+                                    primary_assembly_loci[build_key.lower()] = accession_dict[accession_key]
+                                else:
+                                    alt_genomic_loci.append({build_key.lower(): accession_dict[accession_key]})
+
+                            # KeyError if the dicts are empty
+                            except KeyError:
+                                continue
+                            except IndexError:
+                                continue
+
+                        # Add the dictionaries from lifted response to the output
+                        if primary_assembly_loci != {}:
+                            variant.primary_assembly_loci = primary_assembly_loci
+                        if alt_genomic_loci:
+                            variant.alt_genomic_loci = alt_genomic_loci
 
                 # Append to a list for return
                 batch_out.append(variant)
