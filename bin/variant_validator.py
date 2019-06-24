@@ -1,7 +1,6 @@
 #! /usr/bin/env python
 
 import argparse
-import json
 import sys
 from VariantValidator import Validator
 
@@ -10,9 +9,18 @@ def output_results(valoutput, outformat):
     if outformat == 'dict':
         return str(valoutput.format_as_dict())
     elif outformat == 'json':
-        return json.dumps(valoutput.format_as_dict())
+        return str(valoutput.format_as_json())
     else:
-        return str(valoutput.format_as_dict())
+        # table format
+        table = valoutput.format_as_table()
+        newtable = []
+        for row in table:
+            if isinstance(row, list):
+                newrow = '\t'.join(row)
+            else:
+                newrow = str(row)
+            newtable.append(newrow)
+        return '\n'.join(newtable)
 
 
 if __name__ == '__main__':
@@ -24,7 +32,7 @@ if __name__ == '__main__':
                         help='Transcripts to output results for (default: %(default)s)')
     parser.add_argument('-s', '--submission', choices=['individual', 'batch'], default='individual',
                         help='Submit variants individually or as a single batch validation (default: %(default)s)')
-    parser.add_argument('-f', '--output_format', choices=['dict', 'list', 'json'], default='dict',
+    parser.add_argument('-f', '--output_format', choices=['dict', 'table', 'json'], default='dict',
                         help='Output validations as a list or as a dictionary (default: %(default)s)')
     parser.add_argument('-o', '--output', type=argparse.FileType('w'), default='-',
                         help='Specifies the output file (default: stdout)')

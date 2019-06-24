@@ -1,6 +1,7 @@
 import os
 from .liftover import liftover
 from .logger import Logger
+import json
 
 
 class ValOutput(object):
@@ -129,6 +130,40 @@ class ValOutput(object):
 
         # return batch_out
         return validation_output
+
+    def format_as_json(self, with_meta=True):
+        dictionary_output = self.format_as_dict(with_meta)
+        return json.dumps(dictionary_output)
+
+    def format_as_table(self, with_meta=True):
+        """
+        Currently the table format will only output correctly validated results, all warnings and obsolete records will
+        be squashed.
+        :param with_meta:
+        :return:
+        """
+        outputstrings = []
+        if with_meta:
+            outputstrings.append('#' + str(self.add_meta()))
+
+        outputstrings.append(['Input', 'HGVS_transcript', 'HGVS_RefSeqGene', 'HGVS_LRG', 'HGVS_LRG_transcript',
+                              'Gene_Symbol', 'Transcript_description'])
+        for variant in self.output_list:
+            if variant.output_type_flag == 'gene':
+                if variant.warnings == ['Validation error'] or (variant.is_obsolete() and
+                                                                variant.hgvs_transcript_variant == ''):
+                    continue
+                else:
+                    outputstrings.append([
+                        variant.original,
+                        variant.hgvs_transcript_variant,
+                        variant.hgvs_refseqgene_variant,
+                        variant.hgvs_lrg_variant,
+                        variant.hgvs_lrg_transcript_variant,
+                        variant.gene_symbol,
+                        variant.description
+                    ])
+        return outputstrings
 
     def add_meta(self):
         """
