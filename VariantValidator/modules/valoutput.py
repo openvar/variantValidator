@@ -106,6 +106,16 @@ class ValOutput(object):
                         variant.gene_symbol,
                         variant.description
                     ])
+            elif variant.output_type_flag == 'intergenic':
+                outputstrings.append([
+                    variant.original,
+                    variant.hgvs_transcript_variant,
+                    variant.hgvs_refseqgene_variant,
+                    variant.hgvs_lrg_variant,
+                    variant.hgvs_lrg_transcript_variant,
+                    variant.gene_symbol,
+                    variant.description
+                ])
         return outputstrings
 
     def add_meta(self):
