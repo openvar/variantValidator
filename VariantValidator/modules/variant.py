@@ -24,7 +24,10 @@ class Variant(object):
         if warnings is None:
             self.warnings = []
         else:
-            self.warnings = warnings
+            if isinstance(warnings, list):
+                self.warnings = warnings
+            else:
+                self.warnings = [warnings]
         self.description = ''  # hgnc_gene_info variable
         self.coding = ''
         self.coding_g = ''
@@ -206,7 +209,7 @@ class Variant(object):
         refined = []
         for warning in self.warnings:
             warning = re.sub('del[GATC][GATC][GATC][GATC]+', 'del', warning)
-            warning.strip()
+            warning = warning.strip()
             warning = warning.replace("'", "")
             if warning == '':
                 continue
