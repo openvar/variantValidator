@@ -142,10 +142,10 @@ class Database(vvDBInsert.Mixin):
         returned_data = self.in_entries(version, table)
         # If the entry is not in the database add it
         if 'none' in returned_data:
-            self.add_entry(version, query_info, table)
+            self.insert(version, query_info, table)
         # If the data in the entry has changed, update it
         else:
-            self.update_entry(version, query_info)
+            self.update(version, query_info)
         return
 
     def update_refseqgene_loci(self, rsg_data):

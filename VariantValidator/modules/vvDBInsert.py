@@ -6,12 +6,6 @@ class Mixin(vvDBGet.Mixin):
     """
     This object is a function container for inserting objects into the database.
     """
-    # Add new entry
-    def add_entry(self, entry, data, table):
-        return self.insert(entry, data, table)
-
-    def insert_transcript_loci(self, add_data, primary_assembly):
-        return self.insert_transcript_loci(add_data, primary_assembly)
 
     @handleCursor
     def insert(self, entry, data, table):
@@ -116,5 +110,3 @@ class Mixin(vvDBGet.Mixin):
         self.conn.commit()
         return success
 
-    def update_entry(self, entry, data):
-        return self.update(entry, data)
