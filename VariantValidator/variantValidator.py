@@ -2010,14 +2010,9 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         hgvs_object = hp.parse_hgvs_variant(variant)
                     except hgvs.exceptions.HGVSError as e:
                         error = str(e)
-                        print 'At parse'
-                        print error
-
                     try:
                         vr.validate(hgvs_object)
                     except hgvs.exceptions.HGVSError as e:
-                        print 'At validate'
-                        print e
                         error = str(e)
                     if error != 'false':
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)

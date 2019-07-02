@@ -15229,7 +15229,6 @@ class TestVariants(object):
         assert 'grch38' not in results['NM_001304421.1:c.1135+565del']['primary_assembly_loci'].keys()
         assert results['NM_001304420.1:c.1186+424del']['reference_sequence_records'] == {'protein': "https://www.ncbi.nlm.nih.gov/nuccore/NP_001291349.1", 'transcript':  "https://www.ncbi.nlm.nih.gov/nuccore/NM_001304420.1"}
 
-`
     def test_variant284(self):
         variant = '3-122003832-G-C'
         results = vv.validator(variant, 'GRCh37', 'all')
