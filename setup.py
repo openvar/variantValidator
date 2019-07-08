@@ -3,9 +3,14 @@
 # Prefer setuptools over distutils
 from setuptools import setup, find_packages
 
+with open('VariantValidator/version.py') as ins:
+    version = ins.read()
+    version = version.split('=')[1].strip()
+    version = version.replace("'", "")
+
 setup(
     name='VariantValidator',
-    version=open('VERSION.txt').read().strip(),
+    version=version,
     description='API for accurate, mapping and formatting of sequence variants using HGVS nomenclature',
     long_description=open('README.md').read(),
     url='https://variantvalidator.org',
