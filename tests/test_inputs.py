@@ -17535,7 +17535,7 @@ class TestVariants(TestCase):
         assert results['NM_000166.5:c.-101C>T']['refseqgene_context_intronic_sequence'] == ''
         self.assertCountEqual(results['NM_000166.5:c.-101C>T']['alt_genomic_loci'], [])
         assert results['NM_000166.5:c.-101C>T']['gene_symbol'] == 'GJB1'
-        assert results['NM_000166.5:c.-101C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000157.1:p.?', 'slr': 'NP_000157.1:p.?'}
+        assert results['NM_000166.5:c.-101C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_000157.1(LRG_245p2):p.?', 'slr': 'NP_000157.1:p.?'}
         assert results['NM_000166.5:c.-101C>T']['submitted_variant'] == 'X-70443101-C-T'
         assert results['NM_000166.5:c.-101C>T']['genome_context_intronic_sequence'] == ''
         assert results['NM_000166.5:c.-101C>T']['hgvs_lrg_variant'] == ''
