@@ -1005,6 +1005,7 @@ class Mixin(vvMixinConverters.Mixin):
                         Logger.warning(error)
                         return True
                     variant.description = entry['description']
+                    variant.gene_symbol = entry['hgnc_symbol']
                 else:
                     variant.description = entry['description']
             # If the none key is found add the description to the database
@@ -1020,6 +1021,7 @@ class Mixin(vvMixinConverters.Mixin):
                     Logger.warning(error)
                     return True
                 variant.description = entry['description']
+                variant.gene_symbol = entry['hgnc_symbol']
 
             # If no correct keys are found
             else:
