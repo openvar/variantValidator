@@ -223,7 +223,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
     from_vcf = hgvs_utils.report_hgvs2vcf(hgvs_genomic, lo_from, reverse_normalizer, validator.sf)
 
     pyliftover_dir = None
-    if validator.liftoverPath is not None and validator.liftoverPath != '/PATH/TO/LIFTOVER':
+    if validator.liftoverPath is not None and validator.liftoverPath != '/path/to/liftover':
         pyliftover_dir = validator.liftoverPath
 
     if pyliftover_dir is not None:

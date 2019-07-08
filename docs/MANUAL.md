@@ -40,13 +40,16 @@ trace = false
 entrezid = admin@variantvalidator.org
 
 [liftover]
-location = /PATH/TO/LIFTOVER
+location = /path/to/liftover
 ```
 
-The values in capitals must be replaced for Variant Validator to run, 
-except for the liftover path, which is optional.
+The values in capitals must be replaced for Variant Validator to run.
 
 By default the edited configuration will be placed in the users home directory (`~/.variantvalidator`), this location can be changed for all users by editing the `VariantValidator/settings.py` file.
+
+#####Liftover
+
+If the UCSC Liftover [files](http://hgdownload.soe.ucsc.edu/goldenPath/hg38/liftOver/) have been previously downloaded their location can be set within the configuration file. By default the necessary files will be downloaded automatically when first requested. 
 
 ## Database updates
 
