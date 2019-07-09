@@ -1,5 +1,4 @@
 import re
-import sys
 import copy
 from .logger import Logger
 import hgvs
@@ -7,9 +6,6 @@ import hgvs.validator
 from . import vvMixinInit
 from . import seq_data
 from . import hgvs_utils
-from urllib.parse import urlparse
-import httplib2 as http
-import json
 from Bio import Entrez,SeqIO
 from . import utils as fn
 

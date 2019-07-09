@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-
-import os
-import urllib.request, urllib.error, urllib.parse
+import requests
 import copy
 from configparser import ConfigParser
 from .modules import vvDatabase
@@ -12,7 +10,7 @@ def connect():
     config = ConfigParser()
     config.read(configure.CONFIG_DIR)
 
-    dbConfig = {
+    db_config = {
         'user': config["mysql"]["user"],
         'password': config["mysql"]["password"],
         'host': config["mysql"]["host"],
@@ -20,7 +18,7 @@ def connect():
         'raise_on_warnings': True
     }
     # Create database access objects
-    db = vvDatabase.Database(dbConfig)
+    db = vvDatabase.Database(db_config)
     return db
 
 
@@ -45,39 +43,21 @@ def update():
 
 def update_refseq(dbcnx):
     print('Updating RefSeqGene no Missmatch MySQL data')
-    # Set os path
-    # Set up os paths data and log folders
-    ROOT = os.path.dirname(os.path.abspath(__file__))
 
     # Download data from RefSeqGene
     # Download data
-    rsg = urllib.request.Request('http://ftp.ncbi.nih.gov/refseq/H_sapiens/RefSeqGene/gene_RefSeqGene')
-    response = urllib.request.urlopen(rsg)
-    rsg_file = response.read()
-    rsg_data_line = rsg_file.split(b'\n')
-    rsg_data = []
-    for data in rsg_data_line:
-        rsg_data.append(data.decode())
+    rsg = requests.get('http://ftp.ncbi.nih.gov/refseq/H_sapiens/RefSeqGene/gene_RefSeqGene')
+    rsg_data = rsg.text.strip().split('\n')
 
     # Download data
-    grch37 = urllib.request.Request(
+    grch37 = requests.get(
         'http://ftp.ncbi.nih.gov/refseq/H_sapiens/RefSeqGene/GCF_000001405.25_refseqgene_alignments.gff3')
-    response = urllib.request.urlopen(grch37)
-    grch37_file = response.read()
-    grch37_data_line = grch37_file.split(b'\n')
-    grch37_align_data = []
-    for data in grch37_data_line:
-        grch37_align_data.append(data.decode())
+    grch37_align_data = grch37.text.strip().split('\n')
 
     # Download data
-    grch38 = urllib.request.Request(
+    grch38 = requests.get(
         'http://ftp.ncbi.nih.gov/refseq/H_sapiens/RefSeqGene/GCF_000001405.28_refseqgene_alignments.gff3')
-    response = urllib.request.urlopen(grch38)
-    grch38_file = response.read()
-    grch38_data_line = grch38_file.split(b'\n')
-    grch38_align_data = []
-    for data in grch38_data_line:
-        grch38_align_data.append(data.decode())
+    grch38_align_data = grch38.text.strip().split('\n')
 
     # Open Lists
     # rsg_data = open(os.path.join(ROOT, 'gene_RefSeqGene'), 'r')
@@ -124,7 +104,6 @@ def update_refseq(dbcnx):
                 total_rsg_to_nc_rejected = total_rsg_to_nc_rejected + 1
             elif ng_nc != 'failed':
                 grch38_align.append(ng_nc)
-
 
     # Create a data array containing the database
     db = []
@@ -195,31 +174,16 @@ def update_refseq(dbcnx):
 def update_lrg(dbcnx):
     print('Updating LRG lookup tables')
 
-    lr2rs_download = urllib.request.Request('http://ftp.ebi.ac.uk/pub/databases/lrgex/list_LRGs_transcripts_xrefs.txt')
-    # Open and read
-    lr2rs_data = urllib.request.urlopen(lr2rs_download)
-    lr2rs = lr2rs_data.read()
-    # List the data
-    lr2rs = lr2rs.strip().decode()
-    lr2rs = lr2rs.split('\n')
+    lr2rs_download = requests.get('http://ftp.ebi.ac.uk/pub/databases/lrgex/list_LRGs_transcripts_xrefs.txt')
+    lr2rs = lr2rs_download.text.strip().split('\n')
 
     # Download
-    lrg_status_download = urllib.request.Request('http://ftp.ebi.ac.uk/pub/databases/lrgex/list_LRGs_GRCh38.txt')
-    # Open and read
-    lrg_status_data = urllib.request.urlopen(lrg_status_download)
-    lrg_status = lrg_status_data.read()
-    # List the data
-    lrg_status = lrg_status.strip().decode()
-    lrg_status = lrg_status.split('\n')
+    lrg_status_download = requests.get('http://ftp.ebi.ac.uk/pub/databases/lrgex/list_LRGs_GRCh38.txt')
+    lrg_status = lrg_status_download.text.strip().split('\n')
 
     # Download LRG transcript (_t) to LRG Protein (__p) data file
-    lr_t2p_downloaded = urllib.request.Request('http://ftp.ebi.ac.uk/pub/databases/lrgex/list_LRGs_proteins_RefSeq.txt')
-    # Open and read
-    lr_t2p_data = urllib.request.urlopen(lr_t2p_downloaded)
-    lr_t2p = lr_t2p_data.read()
-    # List the data
-    lr_t2p = lr_t2p.strip().decode()
-    lr_t2p = lr_t2p.split('\n')
+    lr_t2p_downloaded = requests.get('http://ftp.ebi.ac.uk/pub/databases/lrgex/list_LRGs_proteins_RefSeq.txt')
+    lr_t2p = lr_t2p_downloaded.text.strip().split('\n')
 
     # Dictionary the status by LRG_ID
     lrg_status_dict = {}
@@ -256,9 +220,9 @@ def update_lrg(dbcnx):
         dbcnx.update_lrg_rs_lookup(lrg_rs_lookup)
 
         # lrg_t2nm_
-        lrgtx_to_rstID = [lrg_tx, rstid]
+        lrgtx_to_rst_id = [lrg_tx, rstid]
         # update database
-        dbcnx.update_lrgt_rst(lrgtx_to_rstID)
+        dbcnx.update_lrgt_rst(lrgtx_to_rst_id)
 
     print('Update LRG protein lookup table')
     # Populate LRG protein RefSeqProtein lokup table

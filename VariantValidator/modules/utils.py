@@ -1,8 +1,6 @@
 from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
-import httplib2 as http
-import json
-from urllib.parse import urlparse  # Python 3
+import requests
 import functools
 import traceback
 import sys
@@ -34,21 +32,14 @@ def hgnc_rest(path):
     headers = {
         'Accept': 'application/json',
     }
-    uri = 'http://rest.genenames.org'
-    target = urlparse(uri + path)
-    method = 'GET'
-    body = ''
-    h = http.Http()
-    # collect the response
-    response, content = h.request(
-        target.geturl(),
-        method,
-        body,
-        headers)
-    if response['status'] == '200':
+    domain = 'http://rest.genenames.org'
+    url = domain + path
+    r = requests.get(url, headers=headers)
+
+    if r.status_code == 200:
         # assume that content is a json reply
         # parse content with the json module
-        data['record'] = json.loads(content)
+        data['record'] = r.json()
     else:
         data['error'] = "Unable to contact the HGNC database: Please try again later"
     return data

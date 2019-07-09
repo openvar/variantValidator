@@ -64,6 +64,7 @@ setup(
         "configparser >= 3.5.0",
         "pyliftover >= 0.3",
         "biotools >= 0.3.0",
+        "requests",
     ],
     dependency_links=[
         "git+https://github.com/openvar/vv_hgvs@master#egg=hgvs"
