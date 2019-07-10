@@ -12,7 +12,7 @@ class ValOutput(object):
         self.validator = validator
 
     def format_as_dict(self, with_meta=True):
-        validation_output = {'flag': None}
+        validation_output = {'flag': 'warning'}
 
         validation_error_counter = 0
         validation_obsolete_counter = 0
@@ -47,7 +47,7 @@ class ValOutput(object):
             # Gene symbol as reference sequence
             # Gene as transcript reference sequence
             if variant.output_type_flag == 'warning':
-                validation_output['flag'] = 'warning'
+                # validation_output['flag'] = 'warning'
                 if variant.warnings == ['Validation error']:
                     validation_error_counter = validation_error_counter + 1
                     identification_key = 'validation_error_%s' % validation_error_counter
