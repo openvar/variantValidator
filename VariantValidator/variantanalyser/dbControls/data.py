@@ -84,7 +84,6 @@ def insert_transcript_loci(add_data, primary_assembly):
     success = dbinsert.insert_transcript_loci(add_data, primary_assembly)
     return success
 
-
 # Update entries
 def update_entry(entry, data, table):
     success = dbupdate.update(entry, data, table)
@@ -99,8 +98,7 @@ def update_transcript_info_record(accession, hdp):
         description = record.description
         variant = '0'
         # Second look at the record to store a gene symbol
-        record2 = functions.entrez_read(db="nucleotide", id=accession, retmode="xml")
-        symbol_from_genbank = record2[0]['GBSeq_feature-table'][1]['GBFeature_quals'][0]['GBQualifier_value']
+        symbol_from_genbank = str(record.features[1].qualifiers['gene'][0])
 
         if re.search('transcript variant', description):
             tv = re.search('transcript variant \w+', description)
@@ -216,15 +214,14 @@ def update_transcript_info_record(accession, hdp):
     # List of connection error types. May need to be expanded.
     # Outcome - Put off update for 3 months!
     except Exception as e:
-        if str(e) == '<urlopen error [Errno -2] Name or service not known>':
-            # Issues with DNSSEC for the nih.gov
-            previous_entry = in_entries(accession, 'transcript_info')
-            accession = accession
-            description = previous_entry['description']
-            variant = previous_entry['variant']
-            version = previous_entry['version']
-            hgnc_symbol = previous_entry['hgnc_symbol']
-            uta_symbol = previous_entry['uta_symbol']
+        # Issues with DNSSEC for the nih.gov - Note, this will cause exception if record has not previously existed
+        previous_entry = in_entries(accession, 'transcript_info')
+        accession = accession
+        description = previous_entry['description']
+        variant = previous_entry['variant']
+        version = previous_entry['version']
+        hgnc_symbol = previous_entry['hgnc_symbol']
+        uta_symbol = previous_entry['uta_symbol']
 
     # Query information
     # query_info = [accession, description, variant, version, hgnc_symbol, uta_symbol]
