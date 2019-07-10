@@ -84,10 +84,11 @@ class Database(vvDBInsert.Mixin):
         version = record.id
         description = record.description
 
-        if 'comment' in record.annotations:
-            comment = record.annotations['comment']
-            if 'WARNING' in comment and 'this sequence was replaced by' in comment:
-                raise utils.ObsoleteSeqError("Sequence is obsolete in NCBI Entrez record")
+        # Although it is obsolete, might still be in UTA database so would work in our case
+        # if 'comment' in record.annotations:
+        #     comment = record.annotations['comment']
+        #     if 'WARNING' in comment and 'this sequence was replaced by' in comment:
+        #         raise utils.ObsoleteSeqError("Sequence is obsolete in NCBI Entrez record")
 
         if 'transcript variant' in description:
             tv = re.search(r'transcript variant \w+', description)
