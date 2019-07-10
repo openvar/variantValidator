@@ -446,3 +446,11 @@ class mergeHGVSerror(Exception):
 
 class alleleVariantError(Exception):
     pass
+
+
+class DatabaseConnectionError(Exception):
+    pass
+
+
+class ObsoleteSeqError(Exception):
+    pass

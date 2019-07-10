@@ -997,10 +997,13 @@ class Mixin(vvMixinConverters.Mixin):
                         variant.warnings.append(error)
                         Logger.warning(error)
                         return True
-                    except Exception:
-                        error = 'Unable to assign transcript identity records to ' + accession + \
-                                ', potentially an obsolete record or there is an issue retrieving data from NCBI. ' \
-                                'Please try again later and if the problem persists contact admin'
+                    except fn.ObsoleteSeqError as e:
+                        error = 'Unable to assign transcript identity records to %s. %s' % (accession, str(e))
+                        variant.warnings.append(error)
+                        Logger.warning(error)
+                        return True
+                    except fn.DatabaseConnectionError as e:
+                        error = '%s. Please try again later and if the problem persists contact admin.' % str(e)
                         variant.warnings.append(error)
                         Logger.warning(error)
                         return True
@@ -1012,11 +1015,13 @@ class Mixin(vvMixinConverters.Mixin):
             elif 'none' in entry:
                 try:
                     entry = self.db.data_add(accession=accession, validator=self)
-                except Exception as e:
-                    Logger.warning(str(e))
-                    error = 'Unable to assign transcript identity records to ' + accession + \
-                            ', potentially an obsolete record or there is an issue retrieving data from NCBI. ' \
-                            'Please try again later and if the problem persists contact admin'
+                except fn.ObsoleteSeqError as e:
+                    error = 'Unable to assign transcript identity records to %s. %s' % (accession, str(e))
+                    variant.warnings.append(error)
+                    Logger.warning(error)
+                    return True
+                except fn.DatabaseConnectionError as e:
+                    error = '%s. Please try again later and if the problem persists contact admin.' % str(e)
                     variant.warnings.append(error)
                     Logger.warning(error)
                     return True
