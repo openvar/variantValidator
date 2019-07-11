@@ -41,7 +41,7 @@ install:
 
   # Test dependencies
   - pip install -r requirements_dev.txt
-  - python setup.py install
+  - pip install .
 
   # Set up validator database
   - mysql validator < configuration/empty_vv_db.sql
