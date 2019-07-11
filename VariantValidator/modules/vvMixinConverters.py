@@ -716,7 +716,7 @@ class Mixin(vvMixinInit.Mixin):
                                    transcript_gap_n.posedit.pos.end.base + 1, 1):
                         if i in list(alt_base_dict.keys()):
                             alternate_sequence_bases.append(alt_base_dict[i])
-                        else:
+                        elif i in list(ref_base_dict.keys()):
                             alternate_sequence_bases.append(ref_base_dict[i])
                     alternate_sequence = ''.join(alternate_sequence_bases)
                     alternate_sequence = alternate_sequence.replace('X', '')
@@ -1238,7 +1238,7 @@ class Mixin(vvMixinInit.Mixin):
                                        1):
                             if i in list(alt_base_dict.keys()):
                                 alternate_sequence_bases.append(alt_base_dict[i])
-                            else:
+                            elif i in list(ref_base_dict.keys()):
                                 alternate_sequence_bases.append(ref_base_dict[i])
                         alternate_sequence = ''.join(alternate_sequence_bases)
                         alternate_sequence = alternate_sequence.replace('X', '')
@@ -1378,7 +1378,7 @@ class Mixin(vvMixinInit.Mixin):
                                    transcript_gap_n.posedit.pos.end.base + 1, 1):
                         if i in list(alt_base_dict.keys()):
                             alternate_sequence_bases.append(alt_base_dict[i])
-                        else:
+                        elif i in list(ref_base_dict.keys()):
                             alternate_sequence_bases.append(ref_base_dict[i])
                     alternate_sequence = ''.join(alternate_sequence_bases)
                     alternate_sequence = alternate_sequence.replace('X', '')
