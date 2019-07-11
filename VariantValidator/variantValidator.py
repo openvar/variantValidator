@@ -8715,8 +8715,8 @@ def hgvs2ref(query):
                 logger.info(str(exc_type) + " " + str(exc_value))
                 logger.debug(er)
             else:
-                reference['start_position'] = str(input_hgvs_query.posedit.pos.start.base)
-                reference['end_position'] = str(input_hgvs_query.posedit.pos.end.base)
+                reference['start_position'] = str(input_hgvs_query.posedit.pos.start)
+                reference['end_position'] = str(input_hgvs_query.posedit.pos.end)
                 reference['sequence'] = sequence
         else:
             # Step 3: split the variant description into the parts required for seqfetching
