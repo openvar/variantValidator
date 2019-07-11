@@ -86,6 +86,8 @@ class Database(vvDBInsert.Mixin):
         version = record.id
         description = record.description
 
+        genbank_symbol = str(record.features[1].qualifiers['gene'][0])
+
         # Although it is obsolete, might still be in UTA database so would work in our case
         # if 'comment' in record.annotations:
         #     comment = record.annotations['comment']
@@ -113,30 +115,28 @@ class Database(vvDBInsert.Mixin):
                 raise utils.DatabaseConnectionError("Cannot retrieve data from UTA database")
 
         uta_symbol = str(uta_info[6])
+        symbol = uta_symbol
         if uta_symbol == '':
-            raise utils.ObsoleteSeqError("Cannot find UTA symbol, accession is likely obsolete")
+            # raise utils.ObsoleteSeqError("Cannot find UTA symbol, accession is likely obsolete")
+            uta_symbol = 'unassigned'
+            symbol = genbank_symbol
 
-        # First perform a search against the input gene symbol or the symbol inferred from UTA
-        initial = utils.hgnc_rest(path="/fetch/symbol/" + uta_symbol)
+        hgnc_symbol = symbol
 
-        if initial['error'] != 'false':
-            raise utils.DatabaseConnectionError("Unable to retrieve data from the HGNC database")
+        try:
+            # First perform a search against the input gene symbol or the symbol inferred from UTA
+            initial = utils.hgnc_rest(path="/fetch/symbol/" + symbol)
 
-        # Check for a record
-        if str(initial['record']['response']['numFound']) != '0':
-            hgnc_symbol = uta_symbol
-        # No record found, is it a previous symbol?
-        else:
-            # Search hgnc rest to see if symbol is out of date
-            rest_data = utils.hgnc_rest(path="/search/prev_symbol/" + uta_symbol)
-            # If the name is correct no record will be found
-            if rest_data['error'] == 'false':
-                if int(rest_data['record']['response']['numFound']) == 0:
-                    hgnc_symbol = uta_info[6]
-                else:
+            # Check for a record
+            if str(initial['record']['response']['numFound']) == '0':
+                # Search hgnc rest to see if symbol is out of date
+                rest_data = utils.hgnc_rest(path="/search/prev_symbol/" + symbol)
+                # If the name is correct no record will be found
+                if rest_data['error'] == 'false' and int(rest_data['record']['response']['numFound']) != 0:
                     hgnc_symbol = rest_data['record']['response']['docs'][0]['symbol']
-            else:
-                hgnc_symbol = 'unassigned'
+
+        except Exception:
+            logger.info("Unable to connect to HGNC with symbol %s", symbol)
 
         # Query information
         query_info = [version, description, variant, version, hgnc_symbol, uta_symbol]

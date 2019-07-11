@@ -162,9 +162,9 @@ class TestVariants(TestCase):
         assert results['NM_001145026.1:c.715A>G']['hgvs_lrg_variant'] == ''
         assert results['NM_001145026.1:c.715A>G']['hgvs_transcript_variant'] == 'NM_001145026.1:c.715A>G'
         assert results['NM_001145026.1:c.715A>G']['hgvs_refseqgene_variant'] == ''
-        assert 'hg19' not in list(results['NM_001145026.1:c.715A>G']['primary_assembly_loci'].keys())
+        assert results['NM_001145026.1:c.715A>G']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': 'NC_000012.11:g.80860617_80860618insG', 'vcf': {'chr': 'chr12', 'pos': '80860617', 'ref': 'C', 'alt': 'CG'}}
         assert results['NM_001145026.1:c.715A>G']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': 'NC_000012.12:g.80460707A>G', 'vcf': {'chr': 'chr12', 'ref': 'A', 'pos': '80460707', 'alt': 'G'}}
-        assert 'grch37' not in list(results['NM_001145026.1:c.715A>G']['primary_assembly_loci'].keys())
+        assert results['NM_001145026.1:c.715A>G']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_000012.11:g.80860617_80860618insG', 'vcf': {'chr': '12', 'pos': '80860617', 'ref': 'C', 'alt': 'CG'}}
         assert results['NM_001145026.1:c.715A>G']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': 'NC_000012.12:g.80460707A>G', 'vcf': {'chr': '12', 'ref': 'A', 'pos': '80460707', 'alt': 'G'}}
         assert results['NM_001145026.1:c.715A>G']['reference_sequence_records'] == {'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_001138498.1', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_001145026.1'}
 
@@ -15204,56 +15204,56 @@ class TestVariants(TestCase):
         assert 'grch38' not in list(results['NM_007159.2:c.1135+565del']['primary_assembly_loci'].keys())
         assert results['NM_007159.2:c.1135+565del']['reference_sequence_records'] == {'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_009090.2', 'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_007159.2'}
 
-        assert 'obsolete_record_3' in list(results.keys())
-        assert results['obsolete_record_3']['hgvs_lrg_transcript_variant'] == ''
-        assert results['obsolete_record_3']['refseqgene_context_intronic_sequence'] == ''
-        self.assertCountEqual(results['obsolete_record_3']['alt_genomic_loci'], [])
-        assert results['obsolete_record_3']['gene_symbol'] == ''
-        assert results['obsolete_record_3']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
-        assert results['obsolete_record_3']['submitted_variant'] == '3-57851007-AG-A'
-        assert results['obsolete_record_3']['genome_context_intronic_sequence'] == ''
-        assert results['obsolete_record_3']['hgvs_lrg_variant'] == ''
-        assert results['obsolete_record_3']['hgvs_transcript_variant'] == ''
-        assert results['obsolete_record_3']['hgvs_refseqgene_variant'] == ''
-        assert 'hg19' not in list(results['obsolete_record_3']['primary_assembly_loci'].keys())
-        assert 'hg38' not in list(results['obsolete_record_3']['primary_assembly_loci'].keys())
-        assert 'grch37' not in list(results['obsolete_record_3']['primary_assembly_loci'].keys())
-        assert 'grch38' not in list(results['obsolete_record_3']['primary_assembly_loci'].keys())
-        assert results['obsolete_record_3']['reference_sequence_records'] == ''
+        assert 'NM_007159.3:c.1135+565del' in list(results.keys())
+        assert results['NM_007159.3:c.1135+565del']['hgvs_lrg_transcript_variant'] == ''
+        assert results['NM_007159.3:c.1135+565del']['refseqgene_context_intronic_sequence'] == ''
+        self.assertCountEqual(results['NM_007159.3:c.1135+565del']['alt_genomic_loci'], [])
+        assert results['NM_007159.3:c.1135+565del']['gene_symbol'] == 'SLMAP'
+        assert results['NM_007159.3:c.1135+565del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_009090.2:p.?', 'slr': 'NP_009090.2:p.?'}
+        assert results['NM_007159.3:c.1135+565del']['submitted_variant'] == '3-57851007-AG-A'
+        assert results['NM_007159.3:c.1135+565del']['genome_context_intronic_sequence'] == 'NC_000003.11(NM_007159.3):c.1135+565del'
+        assert results['NM_007159.3:c.1135+565del']['hgvs_lrg_variant'] == ''
+        assert results['NM_007159.3:c.1135+565del']['hgvs_transcript_variant'] == 'NM_007159.3:c.1135+565del'
+        assert results['NM_007159.3:c.1135+565del']['hgvs_refseqgene_variant'] == ''
+        assert results['NM_007159.3:c.1135+565del']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': 'NC_000003.11:g.57851008del', 'vcf': {'chr': 'chr3', 'pos': '57851007', 'ref': 'AG', 'alt': 'A'}}
+        assert 'hg38' not in list(results['NM_007159.3:c.1135+565del']['primary_assembly_loci'].keys())
+        assert results['NM_007159.3:c.1135+565del']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_000003.11:g.57851008del', 'vcf': {'chr': '3', 'pos': '57851007', 'ref': 'AG', 'alt': 'A'}}
+        assert 'grch38' not in list(results['NM_007159.3:c.1135+565del']['primary_assembly_loci'].keys())
+        assert results['NM_007159.3:c.1135+565del']['reference_sequence_records'] == {'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_007159.3', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_009090.2'}
 
-        assert 'obsolete_record_2' in list(results.keys())
-        assert results['obsolete_record_2']['hgvs_lrg_transcript_variant'] == ''
-        assert results['obsolete_record_2']['refseqgene_context_intronic_sequence'] == ''
-        self.assertCountEqual(results['obsolete_record_2']['alt_genomic_loci'], [])
-        assert results['obsolete_record_2']['gene_symbol'] == ''
-        assert results['obsolete_record_2']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
-        assert results['obsolete_record_2']['submitted_variant'] == '3-57851007-AG-A'
-        assert results['obsolete_record_2']['genome_context_intronic_sequence'] == ''
-        assert results['obsolete_record_2']['hgvs_lrg_variant'] == ''
-        assert results['obsolete_record_2']['hgvs_transcript_variant'] == ''
-        assert results['obsolete_record_2']['hgvs_refseqgene_variant'] == ''
-        assert 'hg19' not in list(results['obsolete_record_2']['primary_assembly_loci'].keys())
-        assert 'hg38' not in list(results['obsolete_record_2']['primary_assembly_loci'].keys())
-        assert 'grch37' not in list(results['obsolete_record_2']['primary_assembly_loci'].keys())
-        assert 'grch38' not in list(results['obsolete_record_2']['primary_assembly_loci'].keys())
-        assert results['obsolete_record_2']['reference_sequence_records'] == ''
+        assert 'NM_001304420.1:c.1186+424del' in list(results.keys())
+        assert results['NM_001304420.1:c.1186+424del']['hgvs_lrg_transcript_variant'] == ''
+        assert results['NM_001304420.1:c.1186+424del']['refseqgene_context_intronic_sequence'] == ''
+        self.assertCountEqual(results['NM_001304420.1:c.1186+424del']['alt_genomic_loci'], [])
+        assert results['NM_001304420.1:c.1186+424del']['gene_symbol'] == 'SLMAP'
+        assert results['NM_001304420.1:c.1186+424del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001291349.1:p.?', 'slr': 'NP_001291349.1:p.?'}
+        assert results['NM_001304420.1:c.1186+424del']['submitted_variant'] == '3-57851007-AG-A'
+        assert results['NM_001304420.1:c.1186+424del']['genome_context_intronic_sequence'] == 'NC_000003.11(NM_001304420.1):c.1186+424del'
+        assert results['NM_001304420.1:c.1186+424del']['hgvs_lrg_variant'] == ''
+        assert results['NM_001304420.1:c.1186+424del']['hgvs_transcript_variant'] == 'NM_001304420.1:c.1186+424del'
+        assert results['NM_001304420.1:c.1186+424del']['hgvs_refseqgene_variant'] == ''
+        assert results['NM_001304420.1:c.1186+424del']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': 'NC_000003.11:g.57851008del', 'vcf': {'chr': 'chr3', 'pos': '57851007', 'ref': 'AG', 'alt': 'A'}}
+        assert 'hg38' not in list(results['NM_001304420.1:c.1186+424del']['primary_assembly_loci'].keys())
+        assert results['NM_001304420.1:c.1186+424del']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_000003.11:g.57851008del', 'vcf': {'chr': '3', 'pos': '57851007', 'ref': 'AG', 'alt': 'A'}}
+        assert 'grch38' not in list(results['NM_001304420.1:c.1186+424del']['primary_assembly_loci'].keys())
+        assert results['NM_001304420.1:c.1186+424del']['reference_sequence_records'] == {'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_001304420.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_001291349.1'}
 
-        assert 'obsolete_record_1' in list(results.keys())
-        assert results['obsolete_record_1']['hgvs_lrg_transcript_variant'] == ''
-        assert results['obsolete_record_1']['refseqgene_context_intronic_sequence'] == ''
-        self.assertCountEqual(results['obsolete_record_1']['alt_genomic_loci'], [])
-        assert results['obsolete_record_1']['gene_symbol'] == ''
-        assert results['obsolete_record_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
-        assert results['obsolete_record_1']['submitted_variant'] == '3-57851007-AG-A'
-        assert results['obsolete_record_1']['genome_context_intronic_sequence'] == ''
-        assert results['obsolete_record_1']['hgvs_lrg_variant'] == ''
-        assert results['obsolete_record_1']['hgvs_transcript_variant'] == ''
-        assert results['obsolete_record_1']['hgvs_refseqgene_variant'] == ''
-        assert 'hg19' not in list(results['obsolete_record_1']['primary_assembly_loci'].keys())
-        assert 'hg38' not in list(results['obsolete_record_1']['primary_assembly_loci'].keys())
-        assert 'grch37' not in list(results['obsolete_record_1']['primary_assembly_loci'].keys())
-        assert 'grch38' not in list(results['obsolete_record_1']['primary_assembly_loci'].keys())
-        assert results['obsolete_record_1']['reference_sequence_records'] == ''
+        assert 'NM_001304421.1:c.1135+565del' in list(results.keys())
+        assert results['NM_001304421.1:c.1135+565del']['hgvs_lrg_transcript_variant'] == ''
+        assert results['NM_001304421.1:c.1135+565del']['refseqgene_context_intronic_sequence'] == ''
+        self.assertCountEqual(results['NM_001304421.1:c.1135+565del']['alt_genomic_loci'], [])
+        assert results['NM_001304421.1:c.1135+565del']['gene_symbol'] == 'SLMAP'
+        assert results['NM_001304421.1:c.1135+565del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_001291350.1:p.?', 'slr': 'NP_001291350.1:p.?'}
+        assert results['NM_001304421.1:c.1135+565del']['submitted_variant'] == '3-57851007-AG-A'
+        assert results['NM_001304421.1:c.1135+565del']['genome_context_intronic_sequence'] == 'NC_000003.11(NM_001304421.1):c.1135+565del'
+        assert results['NM_001304421.1:c.1135+565del']['hgvs_lrg_variant'] == ''
+        assert results['NM_001304421.1:c.1135+565del']['hgvs_transcript_variant'] == 'NM_001304421.1:c.1135+565del'
+        assert results['NM_001304421.1:c.1135+565del']['hgvs_refseqgene_variant'] == ''
+        assert results['NM_001304421.1:c.1135+565del']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': 'NC_000003.11:g.57851008del', 'vcf': {'chr': 'chr3', 'pos': '57851007', 'ref': 'AG', 'alt': 'A'}}
+        assert 'hg38' not in list(results['NM_001304421.1:c.1135+565del']['primary_assembly_loci'].keys())
+        assert results['NM_001304421.1:c.1135+565del']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_000003.11:g.57851008del', 'vcf': {'chr': '3', 'pos': '57851007', 'ref': 'AG', 'alt': 'A'}}
+        assert 'grch38' not in list(results['NM_001304421.1:c.1135+565del']['primary_assembly_loci'].keys())
+        assert results['NM_001304421.1:c.1135+565del']['reference_sequence_records'] == {'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_001304421.1', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_001291350.1'}
 
 
     def test_variant284(self):
