@@ -8,14 +8,16 @@ Lift position > Check bases > Lift back and confirm the original position
 # import modules
 import hgvs.exceptions
 import hgvs.sequencevariant
+import logging
 from . import seq_data
 from . import hgvs_utils
-from .logger import Logger
 from pyliftover import LiftOver
 from Bio.Seq import Seq
 
 # Pre compile variables
 hgvs.global_config.formatting.max_ref_length = 1000000
+
+logger = logging.getLogger(__name__)
 
 
 def mystr(hgvs_nucleotide):
@@ -40,8 +42,8 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
 
     try:
         hgvs_genomic = validator.hp.parse_hgvs_variant(hgvs_genomic)
-    except TypeError:
-        pass
+    except TypeError as e:
+        logger.debug("Except passed, %s", e)
 
     # Create return dictionary
     lifted_response = {}
@@ -259,7 +261,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
         accession = seq_data.to_accession(chrom, lo_to)
         if accession is None:
             wrn = 'Unable to identify an equivalent %s chromosome ID for %s' % (str(lo_to), str(chrom))
-            Logger.warning(wrn)
+            logger.info(wrn)
             continue
         else:
             not_delins = accession + ':g.' + str(pos) + '_' + str(
@@ -269,7 +271,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
             try:
                 validator.vr.validate(hgvs_not_delins)
             except hgvs.exceptions.HGVSError as e:
-                Logger.warning(str(e))
+                logger.info(str(e))
                 # Most likely incorrect bases
                 continue
             else:

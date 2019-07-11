@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 import requests
 import copy
+import logging
 from configparser import ConfigParser
 from .modules import vvDatabase
 from . import configure
+
+logger = logging.getLogger(__name__)
 
 
 def connect():
@@ -17,6 +20,7 @@ def connect():
         'database': config["mysql"]["database"],
         'raise_on_warnings': True
     }
+    logger.debug("Connecting to database with config %s", db_config)
     # Create database access objects
     db = vvDatabase.Database(db_config)
     return db
@@ -31,6 +35,7 @@ def delete():
     db.execute('DELETE FROM LRG_transcripts')
     db.execute('DELETE FROM LRG_proteins')
     db.execute('DELETE FROM LRG_RSG_lookup')
+    logger.debug("Deleted data from all tables including transcript_info")
 
 
 def update():
@@ -42,7 +47,7 @@ def update():
 
 
 def update_refseq(dbcnx):
-    print('Updating RefSeqGene no Missmatch MySQL data')
+    logger.debug('Updating RefSeqGene no Missmatch MySQL data')
 
     # Download data from RefSeqGene
     # Download data
@@ -129,7 +134,7 @@ def update_refseq(dbcnx):
                 line.append(rsg_to_symbol[identifier]['symbol'])
                 line.append(rsg_to_symbol[identifier]['gene_id'])
             except KeyError:
-                print("Can't identify gene symbol for %s" % line[0])
+                logger.info("Can't identify gene symbol for %s", line[0])
                 missing.append(line[0])
 
     # Open a text file to be used as a simple database and write the database
@@ -165,14 +170,14 @@ def update_refseq(dbcnx):
                 line[10] = current_symbol
         dbcnx.update_refseqgene_loci(line)
 
-    print('Total NG_ to NC_ alignments = ' + str(total_rsg_to_nc))
-    print('Gaps within NG_ to NC_ alignments = ' + str(total_rsg_to_nc_rejected))
+    logger.info('Total NG_ to NC_ alignments = ' + str(total_rsg_to_nc))
+    logger.info('Gaps within NG_ to NC_ alignments = ' + str(total_rsg_to_nc_rejected))
 
     return
 
 
 def update_lrg(dbcnx):
-    print('Updating LRG lookup tables')
+    logger.debug('Updating LRG lookup tables')
 
     lr2rs_download = requests.get('http://ftp.ebi.ac.uk/pub/databases/lrgex/list_LRGs_transcripts_xrefs.txt')
     lr2rs = lr2rs_download.text.strip().split('\n')
@@ -199,7 +204,7 @@ def update_lrg(dbcnx):
     # LRG_ID	RefSeqTranscriptID
     # LRG_T2LRG_P
 
-    print('Update LRG and LRG_transcript lookup tables')
+    logger.debug('Update LRG and LRG_transcript lookup tables')
     # Populate lists lrg_rs_lookup (LRG to RefSeqGene) and lrg_t2nm_ (LRG Transcript to RefSeq Transcript)
     for line in lr2rs:
         if line.startswith('#'):
@@ -224,7 +229,7 @@ def update_lrg(dbcnx):
         # update database
         dbcnx.update_lrgt_rst(lrgtx_to_rst_id)
 
-    print('Update LRG protein lookup table')
+    logger.debug('Update LRG protein lookup table')
     # Populate LRG protein RefSeqProtein lokup table
     for line in lr_t2p:
         if line.startswith('#'):
@@ -236,7 +241,7 @@ def update_lrg(dbcnx):
         # update LRG to RefSeqGene database
         dbcnx.update_lrg_p_rs_p_lookup(lrg_p, rs_p)
 
-    print('LRG lookup tables updated')
+    logger.info('LRG lookup tables updated')
     return
 
 

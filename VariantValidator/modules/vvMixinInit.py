@@ -57,20 +57,6 @@ class Mixin:
         config = ConfigParser()
         config.read(CONFIG_DIR)
 
-        # The custom vvLogging module will set itself up using the VALDIATOR_DEBUG environment variable.
-        level_string = config["logging"]['level']
-        console_string = config["logging"]['console']
-        if console_string.lower() == "true":
-            console_string = "console"
-        file_string = config["logging"]['file']
-        if file_string.lower() == "true":
-            file_string = "file"
-        trace_string = config["logging"]['trace']
-        if trace_string.lower() == "true":
-            trace_string = "trace"
-        log_string = level_string+" "+console_string+" "+file_string+" "+trace_string
-        os.environ["VALIDATOR_DEBUG"] = log_string
-
         # Handle databases
         self.entrezID = config["EntrezID"]["entrezID"]
         self.seqrepoVersion = config["seqrepo"]["version"]

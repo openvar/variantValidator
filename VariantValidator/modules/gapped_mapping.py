@@ -1,11 +1,11 @@
 import copy
 import re
-
+import logging
 import hgvs.exceptions
-
 from . import utils as fn
 from . import hgvs_utils
-from .logger import Logger
+
+logger = logging.getLogger(__name__)
 
 
 class GapMapper(object):
@@ -251,8 +251,8 @@ class GapMapper(object):
                         if len(stash_hgvs_not_delins.posedit.edit.ref) > len(hgvs_stash_t.posedit.edit.ref):
                             try:
                                 self.variant.hn.normalize(hgvs_stash_t)
-                            except:
-                                fn.exceptPass()
+                            except Exception as e:
+                                logger.debug("Except passed, %s", e)
                             else:
                                 gap_length = len(stash_hgvs_not_delins.posedit.edit.ref) - len(
                                     hgvs_stash_t.posedit.edit.ref)
@@ -281,7 +281,7 @@ class GapMapper(object):
                     if str(e) == 'start or end or both are beyond the bounds of transcript record':
                         hgvs_not_delins = saved_hgvs_coding
                         self.disparity_deletion_in = ['false', 'false']
-                    Logger.warning(str(e))
+                    logger.info(str(e))
                 try:
                     self.variant.hn.normalize(self.tx_hgvs_not_delins)
                 except hgvs.exceptions.HGVSUnsupportedOperationError as e:
@@ -294,7 +294,7 @@ class GapMapper(object):
                         elif 'Normalization of intronic variants is not supported' in error:
                             # We know that this cannot be because of an intronic variant, so must be aligned to tx gap
                             self.disparity_deletion_in = ['transcript', 'Requires Analysis']
-                    Logger.warning(error)
+                    logger.info(error)
                 # Pre-processing of self.tx_hgvs_not_delins
                 try:
                     if self.tx_hgvs_not_delins.posedit.edit.alt is None:
@@ -412,7 +412,7 @@ class GapMapper(object):
         hgvs_genomic = self.validator.myevm_t_to_g(hgvs_coding, self.variant.no_norm_evm, self.variant.primary_assembly,
                                                    self.variant.hn)
 
-        Logger.warning('g_to_t gap code 1 active')
+        logger.debug('g_to_t gap code 1 active')
         rn_hgvs_genomic = self.variant.reverse_normalizer.normalize(hgvs_genomic)
         self.hgvs_genomic_possibilities.append(rn_hgvs_genomic)
 
@@ -436,8 +436,8 @@ class GapMapper(object):
         stash_tx_left = ''
         try:
             hgvs_stash = self.variant.no_norm_evm.c_to_n(hgvs_stash)
-        except:
-            fn.exceptPass()
+        except Exception as e:
+            logger.debug("Except passed, %s", e)
         try:
             stash_ac = hgvs_stash.ac
             stash_dict = hgvs_utils.hard_right_hgvs2vcf(hgvs_stash, self.variant.primary_assembly, self.variant.hn, self.validator.sf)
@@ -452,8 +452,8 @@ class GapMapper(object):
                     stash_pos) + '_' + stash_end + 'del' + stash_ref + 'ins' + stash_alt)
             try:
                 stash_hgvs_not_delins = self.variant.no_norm_evm.n_to_c(stash_hgvs_not_delins)
-            except:
-                fn.exceptPass()
+            except Exception as e:
+                logger.debug("Except passed, %s", e)
 
             test_stash_tx_right = copy.deepcopy(stash_hgvs_not_delins)
             # stash_genomic = vm.t_to_g(test_stash_tx_right, hgvs_genomic.ac)
@@ -509,17 +509,17 @@ class GapMapper(object):
                     stash_tx_right = test_stash_tx_right
                     self.hgvs_genomic_possibilities.append(stash_genomic)
         except hgvs.exceptions.HGVSError as e:
-            fn.exceptPass()
+            logger.debug("Except passed, %s", e)
         # Intronic positions not supported. Will cause a Value Error
-        except ValueError:
-            fn.exceptPass()
+        except ValueError as e:
+            logger.debug("Except passed, %s", e)
 
         # Then to the left
         hgvs_stash = copy.deepcopy(hgvs_coding)
         try:
             hgvs_stash = self.variant.no_norm_evm.c_to_n(hgvs_stash)
-        except:
-            fn.exceptPass()
+        except Exception as e:
+            logger.debug("Except passed, %s", e)
         try:
             stash_ac = hgvs_stash.ac
             stash_dict = hgvs_utils.hard_left_hgvs2vcf(hgvs_stash, self.variant.primary_assembly,
@@ -535,8 +535,8 @@ class GapMapper(object):
                     stash_pos) + '_' + stash_end + 'del' + stash_ref + 'ins' + stash_alt)
             try:
                 stash_hgvs_not_delins = self.variant.no_norm_evm.n_to_c(stash_hgvs_not_delins)
-            except:
-                fn.exceptPass()
+            except Exception as e:
+                logger.debug("Except passed, %s", e)
                 # Store a tx copy for later use
             test_stash_tx_left = copy.deepcopy(stash_hgvs_not_delins)
             # stash_genomic = vm.t_to_g(test_stash_tx_left, hgvs_genomic.ac)
@@ -593,21 +593,12 @@ class GapMapper(object):
                     stash_tx_left = test_stash_tx_left
                     self.hgvs_genomic_possibilities.append(stash_genomic)
         except hgvs.exceptions.HGVSError as e:
-            fn.exceptPass()
-        except ValueError:
-            fn.exceptPass()
+            logger.debug("Except passed, %s", e)
+        except ValueError as e:
+            logger.debug("Except passed, %s", e)
 
         # direct mapping from reverse_normalized transcript insertions in the delins format
         self.rev_norm_ins(hgvs_coding, hgvs_genomic)
-
-        Logger.info('\nGENOMIC POSSIBILITIES')
-        for possibility in self.hgvs_genomic_possibilities:
-            if possibility == '':
-                Logger.info('X')
-            else:
-                Logger.info(fn.valstr(possibility))
-
-        Logger.info('\n')
 
         # Set variables for problem specific warnings
         self.gapped_transcripts = ''
@@ -909,7 +900,7 @@ class GapMapper(object):
                             'Unsupported normalization of variants spanning the exon-intron boundary' in error:
                         hgvs_refreshed_variant = saved_hgvs_coding
                     else:
-                        Logger.warning(error)
+                        logger.info(error)
                         continue
 
                 # Quick check to make sure the coding variant has not changed
@@ -959,7 +950,7 @@ class GapMapper(object):
                                               'descriptions: If you are unsure, please contact admin'
             self.auto_info = self.auto_info.replace('\n', ': ')
             self.variant.warnings.append(self.auto_info)
-            Logger.warning(self.auto_info)
+            logger.info(self.auto_info)
         # Normailse hgvs_genomic
         try:
             hgvs_genomic = self.variant.hn.normalize(hgvs_genomic)
@@ -992,7 +983,7 @@ class GapMapper(object):
         return hgvs_genomic, suppress_c_normalization, hgvs_coding
 
     def g_to_t_gapped_mapping_stage2(self, ori, hgvs_coding, hgvs_genomic):
-        Logger.warning('g_to_t gap code 2 active')
+        logger.debug('g_to_t gap code 2 active')
 
         hgvs_genomic_variant = hgvs_genomic
         reverse_normalized_hgvs_genomic = self.variant.reverse_normalizer.normalize(hgvs_genomic_variant)
@@ -1083,7 +1074,7 @@ class GapMapper(object):
                 self.validator.vm.g_to_t(hgvs_not_delins, self.tx_hgvs_not_delins.ac)
             except Exception as e:
                 if str(e) == 'start or end or both are beyond the bounds of transcript record':
-                    Logger.warning(str(e))
+                    logger.warning(str(e))
                     return True
             try:
                 self.variant.hn.normalize(self.tx_hgvs_not_delins)
@@ -1092,7 +1083,7 @@ class GapMapper(object):
                 if 'Normalization of intronic variants is not supported' in error or \
                         'Unsupported normalization of variants spanning the exon-intron boundary' in error:
                     if 'Unsupported normalization of variants spanning the exon-intron boundary' in error:
-                        Logger.warning(error)
+                        logger.warning(error)
                         return True
                     elif 'Normalization of intronic variants is not supported' in error:
                         # We know that this cannot be because of an intronic variant, so must be aligned to tx gap
@@ -1148,7 +1139,7 @@ class GapMapper(object):
         self.orientation = int(ori[0]['alt_strand'])
         hgvs_genomic = copy.deepcopy(hgvs_alt_genomic)
 
-        Logger.warning('g_to_t gap code 3 active')
+        logger.debug('g_to_t gap code 3 active')
         rn_hgvs_genomic = self.variant.reverse_normalizer.normalize(hgvs_alt_genomic)
         self.hgvs_genomic_possibilities.append(rn_hgvs_genomic)
         if self.orientation != -1:
@@ -1173,8 +1164,8 @@ class GapMapper(object):
         stash_tx_left = ''
         try:
             hgvs_stash = self.variant.no_norm_evm.c_to_n(hgvs_stash)
-        except:
-            fn.exceptPass()
+        except Exception as e:
+            logger.debug("Except passed, %s", e)
         try:
             stash_ac = hgvs_stash.ac
             stash_dict = hgvs_utils.hard_right_hgvs2vcf(hgvs_stash, self.variant.primary_assembly, self.variant.hn,
@@ -1190,8 +1181,8 @@ class GapMapper(object):
                     stash_pos) + '_' + stash_end + 'del' + stash_ref + 'ins' + stash_alt)
             try:
                 stash_hgvs_not_delins = self.variant.no_norm_evm.n_to_c(stash_hgvs_not_delins)
-            except:
-                fn.exceptPass()
+            except Exception as e:
+                logger.debug("Except passed, %s", e)
                 # Store a tx copy for later use
             test_stash_tx_right = copy.deepcopy(stash_hgvs_not_delins)
             stash_genomic = self.validator.myvm_t_to_g(test_stash_tx_right, hgvs_alt_genomic.ac,
@@ -1245,17 +1236,17 @@ class GapMapper(object):
                 else:
                     stash_tx_right = test_stash_tx_right
                     self.hgvs_genomic_possibilities.append(stash_genomic)
-        except hgvs.exceptions.HGVSError:
-            fn.exceptPass()
-        except ValueError:
-            fn.exceptPass()
+        except hgvs.exceptions.HGVSError as e:
+            logger.debug("Except passed, %s", e)
+        except ValueError as e:
+            logger.debug("Except passed, %s", e)
 
         # Then to the left
         hgvs_stash = copy.deepcopy(hgvs_coding)
         try:
             hgvs_stash = self.variant.no_norm_evm.c_to_n(hgvs_stash)
-        except:
-            fn.exceptPass()
+        except Exception as e:
+            logger.debug("Except passed, %s", e)
         try:
             stash_ac = hgvs_stash.ac
             stash_dict = hgvs_utils.hard_left_hgvs2vcf(hgvs_stash, self.variant.primary_assembly,
@@ -1271,8 +1262,8 @@ class GapMapper(object):
                     stash_pos) + '_' + stash_end + 'del' + stash_ref + 'ins' + stash_alt)
             try:
                 stash_hgvs_not_delins = self.variant.no_norm_evm.n_to_c(stash_hgvs_not_delins)
-            except:
-                fn.exceptPass()
+            except Exception as e:
+                logger.debug("Except passed, %s", e)
                 # Store a tx copy for later use
             test_stash_tx_left = copy.deepcopy(stash_hgvs_not_delins)
             stash_genomic = self.validator.myvm_t_to_g(test_stash_tx_left, hgvs_alt_genomic.ac,
@@ -1327,9 +1318,9 @@ class GapMapper(object):
                     stash_tx_left = test_stash_tx_left
                     self.hgvs_genomic_possibilities.append(stash_genomic)
         except hgvs.exceptions.HGVSError as e:
-            fn.exceptPass()
-        except ValueError:
-            fn.exceptPass()
+            logger.debug("Except passed, %s", e)
+        except ValueError as e:
+            logger.debug("Except passed, %s", e)
 
         # direct mapping from reverse_normalized transcript insertions in the delins format
         self.rev_norm_ins(hgvs_coding, hgvs_genomic)
@@ -1743,8 +1734,8 @@ class GapMapper(object):
         rn_tx_hgvs_not_delins.posedit.edit.ref = ''
         try:
             rn_tx_hgvs_not_delins.posedit.edit.alt = ''
-        except:
-            pass
+        except Exception as e:
+            logger.debug("Except passed, %s", e)
 
         return rn_tx_hgvs_not_delins
 
@@ -1887,8 +1878,8 @@ class GapMapper(object):
 
             try:
                 tx_gap_fill_variant = self.validator.vm.n_to_c(tx_gap_fill_variant)
-            except:
-                fn.exceptPass()
+            except Exception as e:
+                logger.debug("Except passed, %s", e)
             genomic_gap_fill_variant = self.validator.vm.t_to_g(tx_gap_fill_variant, reverse_normalized_hgvs_genomic.ac)
             genomic_gap_fill_variant.posedit.edit.alt = genomic_gap_fill_variant.posedit.edit.ref
 
@@ -2010,10 +2001,10 @@ class GapMapper(object):
                         self.tx_hgvs_not_delins = c2
                         try:
                             self.tx_hgvs_not_delins = self.validator.vm.c_to_n(self.tx_hgvs_not_delins)
-                        except hgvs.exceptions.HGVSError:
-                            fn.exceptPass()
-                except hgvs.exceptions.HGVSInvalidVariantError:
-                    fn.exceptPass()
+                        except hgvs.exceptions.HGVSError as e:
+                            logger.debug("Except passed, %s", e)
+                except hgvs.exceptions.HGVSInvalidVariantError as e:
+                    logger.debug("Except passed, %s", e)
 
             if '+' in str(self.tx_hgvs_not_delins.posedit.pos.start) and \
                     '+' not in str(self.tx_hgvs_not_delins.posedit.pos.end):
@@ -2181,10 +2172,10 @@ class GapMapper(object):
                 if hgvs_t_possibility.posedit.edit.type == 'ins':
                     try:
                         hgvs_t_possibility = self.validator.vm.c_to_n(hgvs_t_possibility)
-                    except:
+                    except Exception as e:
                         if do_continue:
                             continue
-                        fn.exceptPass()
+                        logger.debug("Except passed, %s", e)
                     if offset_check:
                         if hgvs_t_possibility.posedit.pos.start.offset != 0 or \
                                 hgvs_t_possibility.posedit.pos.end.offset != 0:
@@ -2194,10 +2185,10 @@ class GapMapper(object):
                                                           hgvs_t_possibility.posedit.pos.start.base + 1)
                     try:
                         hgvs_t_possibility = self.validator.vm.n_to_c(hgvs_t_possibility)
-                    except:
+                    except Exception as e:
                         if do_continue:
                             continue
-                        fn.exceptPass()
+                        logger.debug("Except passed, %s", e)
                     hgvs_t_possibility.posedit.edit.ref = ins_ref
                     hgvs_t_possibility.posedit.edit.alt = ins_ref[
                                                               0] + hgvs_t_possibility.posedit.edit.alt + ins_ref[1]
@@ -2360,4 +2351,4 @@ class GapMapper(object):
                     self.hgvs_genomic_possibilities.append(genomic_from_most_5pr_hgvs_transcript_variant)
 
         except hgvs.exceptions.HGVSUnsupportedOperationError as e:
-            fn.exceptPass()
+            logger.debug("Except passed, %s", e)

@@ -1,9 +1,11 @@
-from .logger import Logger
 from . import utils
 from .utils import handleCursor
 from . import vvDBInsert
 import re
 import hgvs.exceptions
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Database(vvDBInsert.Mixin):
@@ -29,7 +31,7 @@ class Database(vvDBInsert.Mixin):
         row = self.cursor.fetchone()
         if row is None:
             row = ['none', 'No data']
-            Logger.debug("No data returned from query " + str(query))
+            logger.debug("No data returned from query " + str(query))
         return row
 
     # From data

@@ -2,11 +2,11 @@ from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
 import requests
 import functools
-import traceback
-import sys
-from .logger import Logger
+import logging
 import re
 import copy
+
+logger = logging.getLogger(__name__)
 
 
 def handleCursor(func):
@@ -74,19 +74,6 @@ def remove_reference(hgvs_nucleotide):
     """
     hgvs_nucleotide_refless = hgvs_nucleotide.format({'max_ref_length': 0})
     return hgvs_nucleotide_refless
-
-
-def exceptPass(validation=None):
-    exc_type, exc_value, last_traceback = sys.exc_info()
-    te = traceback.format_exc()
-    tbk = [str(exc_type), str(exc_value), str(te)]
-    er = str('\n'.join(tbk))
-    if last_traceback:
-        Logger.warning(
-            "Except pass for " + str(exc_type) + " " + str(exc_value) + " at line " + str(last_traceback.tb_lineno))
-    else:
-        Logger.warning("Except pass for " + str(exc_type) + " " + str(exc_value))
-    Logger.debug(er)
 
 
 def user_input(query):

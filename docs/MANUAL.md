@@ -31,10 +31,9 @@ user = USERNAME
 password = PASSWORD
 
 [logging]
-level = info
-console = true
-file = false
-trace = false
+log = True
+console = INFO
+file = WARNING
 
 [EntrezID]
 entrezid = admin@variantvalidator.org
@@ -47,9 +46,16 @@ The values in capitals must be replaced for Variant Validator to run.
 
 By default the edited configuration will be placed in the users home directory (`~/.variantvalidator`), this location can be changed for all users by editing the `VariantValidator/settings.py` file.
 
-#####Liftover
+####Liftover
 
 If the UCSC Liftover [files](http://hgdownload.soe.ucsc.edu/goldenPath/hg38/liftOver/) have been previously downloaded their location can be set within the configuration file. By default the necessary files will be downloaded automatically when first requested. 
+
+####Logging
+
+By default Variant Validator will log to both the console and to a file, the output level for each can be set in the configuration file.
+The levels control verbosity and can be set to "CRITICAL", "ERROR", "WARNING", "INFO" or "DEBUG". To turn off logging, set the log configuration to "False". The log file name and
+log options can be changed for all users by editing the `VariantValidator/settings.py` file. By default the file log is 
+set to output in the users home directory (`~/.vv_errorlog`).
 
 ## Database updates
 

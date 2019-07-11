@@ -1,6 +1,7 @@
-import os
-from .logger import Logger
+import logging
 import json
+
+logger = logging.getLogger(__name__)
 
 
 class ValOutput(object):
@@ -20,6 +21,7 @@ class ValOutput(object):
         validation_intergenic_counter = 0
 
         if len(self.output_list) == 0:
+            logger.warning("No variants available to output")
             validation_output['flag'] = 'empty_result'
 
         for variant in self.output_list:
@@ -124,12 +126,6 @@ class ValOutput(object):
         :return:
         """
         metadata = {}
-
-        if os.environ.get("ADD_LOGS") == "True":
-            logs = []
-            for l in Logger.getString().split("\n"):
-                logs.append(l)
-            metadata["logs"] = logs
 
         # metadata["variant"] = batch_variant  # original input string to validate function
         # metadata["assembly"] = selected_assembly
