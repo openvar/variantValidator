@@ -1723,7 +1723,9 @@ class Mixin(vvMixinInit.Mixin):
         Search Entrez databases with efetch and SeqIO
         """
         # from Bio import Entrez
-        Entrez.email = self.entrezID
+        Entrez.email = self.entrez_email
+        if self.entrez_api_key:
+            Entrez.api_key = self.entrez_api_key
         # from Bio import SeqIO
         handle = Entrez.efetch(db=db, id=id, rettype=rettype, retmode=retmode)
         # Get record

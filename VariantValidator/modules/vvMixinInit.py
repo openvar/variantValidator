@@ -58,7 +58,11 @@ class Mixin:
         config.read(CONFIG_DIR)
 
         # Handle databases
-        self.entrezID = config["EntrezID"]["entrezID"]
+        self.entrez_email = config["Entrez"]["email"]
+        self.entrez_api_key = None
+        if config['Entrez']['api_key'] != 'YOUR_API_KEY':
+            self.entrez_api_key = config['Entrez']['api_key']
+
         self.seqrepoVersion = config["seqrepo"]["version"]
         self.seqrepoPath = os.path.join(config["seqrepo"]["location"], self.seqrepoVersion)
         os.environ['HGVS_SEQREPO_DIR'] = self.seqrepoPath
@@ -93,7 +97,6 @@ class Mixin:
 
         # Set up other configuration variables
         self.liftoverPath = config["liftover"]["location"]
-        self.entrezID = config["EntrezID"]['entrezid']
 
         # Set up HGVS
         # Configure hgvs package global settings

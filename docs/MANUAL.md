@@ -2,7 +2,9 @@
 
 ## Configuration
 
-After first installing Variant Validator, a configuration file will need to be created and edited to contain the database credentials and locations. To do this run the configuration script installed alongside the package.
+After first installing Variant Validator, a configuration file will need to be created and edited to contain the database credentials and locations. 
+By default the edited configuration will be placed in the users home directory (`~/.variantvalidator`), this location can be changed for all users by editing the `VariantValidator/settings.py` file.
+To create this file automatically, run the configuration script installed alongside the package.
 
 ```bash
 vv_configure.py
@@ -35,20 +37,15 @@ log = True
 console = INFO
 file = WARNING
 
-[EntrezID]
-entrezid = admin@variantvalidator.org
+[Entrez]
+email = YOUR@EMAIL.COM
+api_key = YOUR_API_KEY
 
 [liftover]
 location = /path/to/liftover
 ```
 
-The values in capitals must be replaced for Variant Validator to run.
-
-By default the edited configuration will be placed in the users home directory (`~/.variantvalidator`), this location can be changed for all users by editing the `VariantValidator/settings.py` file.
-
-####Liftover
-
-If the UCSC Liftover [files](http://hgdownload.soe.ucsc.edu/goldenPath/hg38/liftOver/) have been previously downloaded their location can be set within the configuration file. By default the necessary files will be downloaded automatically when first requested. 
+The values in capitals must be replaced for Variant Validator to run, see below for more details.
 
 ####Logging
 
@@ -56,6 +53,17 @@ By default Variant Validator will log to both the console and to a file, the out
 The levels control verbosity and can be set to "CRITICAL", "ERROR", "WARNING", "INFO" or "DEBUG". To turn off logging, set the log configuration to "False". The log file name and
 log options can be changed for all users by editing the `VariantValidator/settings.py` file. By default the file log is 
 set to output in the users home directory (`~/.vv_errorlog`).
+
+####Entrez
+
+For access to the NCBI Entrez database  you must provide a valid email address in 
+the respective configuration setting. Optionally, you can also provide an NCBI API key that will increase the number of requests
+made per second. See [this article](https://ncbiinsights.ncbi.nlm.nih.gov/2017/11/02/new-api-keys-for-the-e-utilities/) on how to generate an API key.
+
+####Liftover
+
+If the UCSC Liftover [files](http://hgdownload.soe.ucsc.edu/goldenPath/hg38/liftOver/) have been previously downloaded their location can be set within the configuration file. By default the necessary files will be downloaded automatically when first requested. 
+
 
 ## Database updates
 
