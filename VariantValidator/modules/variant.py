@@ -54,6 +54,7 @@ class Variant(object):
         self.lose_vm = None
 
         # Required for output
+        self.stable_gene_ids = None
         self.hgvs_transcript_variant = None  # variant.coding but edited
         self.genome_context_intronic_sequence = None
         self.refseqgene_context_intronic_sequence = None
@@ -183,6 +184,7 @@ class Variant(object):
         dict_out = {
             'submitted_variant': self.original,
             'gene_symbol': self.gene_symbol,
+            'gene_ids': self.stable_gene_ids,
             'transcript_description': self.description,
             'hgvs_transcript_variant': self.hgvs_transcript_variant,
             'genome_context_intronic_sequence': self.genome_context_intronic_sequence,

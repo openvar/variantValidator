@@ -4,6 +4,7 @@ from . import vvDBInsert
 import re
 import hgvs.exceptions
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -134,8 +135,52 @@ class Database(vvDBInsert.Mixin):
                 # If the name is correct no record will be found
                 if rest_data['error'] == 'false' and int(rest_data['record']['response']['numFound']) != 0:
                     hgnc_symbol = rest_data['record']['response']['docs'][0]['symbol']
+                    initial = utils.hgnc_rest(path="/fetch/symbol/" + hgnc_symbol)
 
-        except Exception:
+            if hgnc_symbol != 'unassigned' and int(initial['record']['response']['numFound']) != 0:
+                docs = initial['record']['response']['docs'][0]
+                hgnc_id = ''
+                entrez_id = ''
+                ensembl_gene_id = ''
+                omim_id = json.dumps([])
+                ucsc_id = ''
+                vega_id = ''
+                ccds_id = json.dumps([])
+
+                if 'hgnc_id' in docs:
+                    hgnc_id = docs['hgnc_id']
+                if 'entrez_id' in docs:
+                    entrez_id = docs['entrez_id']
+                if 'ensembl_gene_id' in docs:
+                    ensembl_gene_id = docs['ensembl_gene_id']
+                if 'omim_id' in docs:
+                    omim_id = json.dumps(docs['omim_id'])
+                if 'ucsc_id' in docs:
+                    ucsc_id = docs['ucsc_id']
+                if 'vega_id' in docs:
+                    vega_id = docs['vega_id']
+                if 'ccds_id' in docs:
+                    ccds_id = json.dumps(docs['ccds_id'])
+
+                gene_stable_ids = {
+                    "hgnc_id": hgnc_id,
+                    "entrez_id": entrez_id,
+                    "ensembl_gene_id": ensembl_gene_id,
+                    "omim_id": omim_id,
+                    "ucsc_id": ucsc_id,
+                    "vega_id": vega_id,
+                    "ccds_id": ccds_id,
+                    "hgnc_symbol": hgnc_symbol
+
+                }
+                gene_id_info = self.get_stable_gene_id_from_hgnc_id(gene_stable_ids["hgnc_id"])
+                if gene_id_info[1] != 'No data':
+                    self.update_gene_stable_ids(gene_stable_ids)
+                else:
+                    self.insert_gene_stable_ids(gene_stable_ids)
+
+        except Exception as e:
+            logger.debug("Except pass, %s", e)
             logger.info("Unable to connect to HGNC with symbol %s", symbol)
 
         # Query information

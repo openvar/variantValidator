@@ -5,6 +5,7 @@ import re
 import copy
 import sys
 import logging
+import json
 from hgvs.assemblymapper import AssemblyMapper
 from . import hgvs_utils
 from . import utils as fn
@@ -455,6 +456,7 @@ class Mixin(vvMixinConverters.Mixin):
                 # Transcript sequence variation
                 tx_variant = variant.coding
                 hgvs_transcript_variant = tx_variant
+                hgvs_tx_variant = None
                 if tx_variant != '':
                     if '(' in tx_variant and ')' in tx_variant:
                         tx_variant = tx_variant.split('(')[1]
@@ -664,6 +666,33 @@ class Mixin(vvMixinConverters.Mixin):
                     else:
                         predicted_protein_variant_dict["slr"] = str(predicted_protein_variant)
 
+                # Add stable gene_ids
+                stable_gene_ids = {}
+                if variant.gene_symbol != '':
+                    gene_stable_info = self.db.get_stable_gene_id_info(variant.gene_symbol)
+
+                    # Add or update stable ID and transcript data
+                    if gene_stable_info[1] == 'No data' and hgvs_tx_variant is not None:
+                        self.db.update_transcript_info_record(hgvs_tx_variant.ac, self)
+                        gene_stable_info = self.db.get_stable_gene_id_info(variant.gene_symbol)
+
+                    # Update gene_symbol
+                    if variant.gene_symbol != str(gene_stable_info[1]) and str(gene_stable_info[1]) != 'No data':
+                        variant.gene_symbol = str(gene_stable_info[1])
+
+                    try:
+                        # Dictionary the output
+                        stable_gene_ids['hgnc_id'] = gene_stable_info[2]
+                        stable_gene_ids['entrez_gene_id'] = gene_stable_info[3]
+                        # stable_gene_ids['ensembl_gene_id'] = gene_stable_info[4]
+                        stable_gene_ids['ucsc_id'] = gene_stable_info[5]
+                        stable_gene_ids['omim_id'] = json.loads(gene_stable_info[6])
+                        # stable_gene_ids['vega_id'] = gene_stable_info[7]
+                        # stable_gene_ids['ccds_id'] = gene_stable_info[8]
+                    except IndexError as e:
+                        logger.debug("Except pass, %s", e)
+
+                variant.stable_gene_ids = stable_gene_ids
                 variant.hgvs_transcript_variant = tx_variant
                 variant.genome_context_intronic_sequence = genome_context_transcript_variant
                 variant.refseqgene_context_intronic_sequence = refseqgene_context_transcript_variant

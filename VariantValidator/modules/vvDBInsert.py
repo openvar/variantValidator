@@ -88,6 +88,29 @@ class Mixin(vvDBGet.Mixin):
         return success
 
     @handleCursor
+    def insert_gene_stable_ids(self, data):
+        query = "INSERT INTO stableGeneIds(hgnc_id, hgnc_symbol, entrez_id, ensembl_gene_id, omim_id, ucsc_id, " \
+                "vega_id, ccds_ids) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
+        self.cursor.execute(query, (
+            data['hgnc_id'],
+            data['hgnc_symbol'],
+            data['entrez_id'],
+            data['ensembl_gene_id'],
+            data['omim_id'],
+            data['ucsc_id'],
+            data['vega_id'],
+            data['ccds_id']
+        ))
+
+        if self.cursor.lastrowid:
+            success = 'true'
+        else:
+            success = 'unknown error'
+
+        self.conn.commit()
+        return success
+
+    @handleCursor
     def update(self, entry, data):
         accession = entry
         description = data[1]
@@ -106,6 +129,27 @@ class Mixin(vvDBGet.Mixin):
     def update_refseq_gene_data(self, rsg_data):
         query = "UPDATE refSeqGene_loci SET hgncSymbol=%s, updated=NOW() WHERE refSeqGeneID=%s"
         self.cursor.execute(query, (rsg_data[10], rsg_data[0]))
+        success = 'true'
+        self.conn.commit()
+        return success
+
+    @handleCursor
+    def update_gene_stable_ids(self, gene_stable_ids):
+
+        # Insert or update combined statement
+        query = "UPDATE stableGeneIds SET hgnc_symbol=%s, entrez_id=%s, ensembl_gene_id=%s, omim_id=%s, ucsc_id=%s, " \
+                "vega_id=%s, ccds_ids=%s WHERE hgnc_id=%s"
+
+        self.cursor.execute(query, (
+            gene_stable_ids["hgnc_symbol"],
+            gene_stable_ids["entrez_id"],
+            gene_stable_ids["ensembl_gene_id"],
+            gene_stable_ids["omim_id"],
+            gene_stable_ids["ucsc_id"],
+            gene_stable_ids["vega_id"],
+            gene_stable_ids["ccds_id"],
+            gene_stable_ids["hgnc_id"]
+        ))
         success = 'true'
         self.conn.commit()
         return success

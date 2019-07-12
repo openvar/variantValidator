@@ -313,6 +313,7 @@ class TestMethods(TestCase):
         self.assertIsInstance(output, dict)
         self.assertEqual(output, {
             'submitted_variant': 'NM_015120.4:c.34=',
+            'gene_ids': None,
             'gene_symbol': '',
             'transcript_description': '',
             'hgvs_transcript_variant': None,
@@ -331,6 +332,7 @@ class TestMethods(TestCase):
     def test_output_dict_set(self):
         self.var.gene_symbol = 'Symbol'
         self.var.description = 'Desc'
+        self.var.stable_gene_ids = 'My_id'
         self.var.hgvs_transcript_variant = 'hgvsvar'
         self.var.genome_context_intronic_sequence = 'gintronic'
         self.var.refseqgene_context_intronic_sequence = 'rintronic'
@@ -347,6 +349,7 @@ class TestMethods(TestCase):
         self.assertEqual(output, {
             'submitted_variant': 'NM_015120.4:c.34=',
             'gene_symbol': 'Symbol',
+            'gene_ids': 'My_id',
             'transcript_description': 'Desc',
             'hgvs_transcript_variant': 'hgvsvar',
             'genome_context_intronic_sequence': 'gintronic',

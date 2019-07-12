@@ -29,7 +29,7 @@ CREATE TABLE `LRG_RSG_lookup` (
   `RefSeqGeneID` varchar(25) NOT NULL DEFAULT '',
   `status` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2092 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -44,7 +44,7 @@ CREATE TABLE `LRG_proteins` (
   `LRGproteinID` varchar(25) DEFAULT NULL,
   `RefSeqProteinID` varchar(25) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1381 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -59,7 +59,7 @@ CREATE TABLE `LRG_transcripts` (
   `LRGtranscriptID` varchar(25) NOT NULL DEFAULT '',
   `RefSeqTranscriptID` varchar(25) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2607 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -84,7 +84,7 @@ CREATE TABLE `refSeqGene_loci` (
   `hgncSymbol` varchar(20) NOT NULL,
   `updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=27012 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -105,7 +105,28 @@ CREATE TABLE `transcript_info` (
   `updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `refi` (`refSeqID`)
-) ENGINE=InnoDB AUTO_INCREMENT=740 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `LRG_proteins`
+--
+
+DROP TABLE IF EXISTS `stableGeneIds`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `stableGeneIds` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `hgnc_symbol` varchar(25) DEFAULT NULL,
+  `hgnc_id` varchar(25) DEFAULT NULL,
+  `entrez_id` varchar(25) DEFAULT NULL,
+  `ensembl_gene_id` varchar(100) DEFAULT NULL,
+  `ucsc_id` varchar(100) DEFAULT NULL,
+  `omim_id` varchar(100) DEFAULT NULL,
+  `vega_id` varchar(100) DEFAULT NULL,
+  `ccds_ids` varchar(1000) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 

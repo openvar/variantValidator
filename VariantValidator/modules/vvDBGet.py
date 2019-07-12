@@ -103,6 +103,14 @@ class Mixin(vvDBInit.Mixin):
         query = "SELECT refSeqID FROM transcript_info"
         return self.execute_all(query)
 
+    def get_stable_gene_id_info(self, hgnc_symbol):
+        query = "SELECT * FROM stableGeneIds WHERE hgnc_symbol = '%s'" % hgnc_symbol
+        return self.execute(query)
+
+    def get_stable_gene_id_from_hgnc_id(self, hgnc_id):
+        query = "SELECT * FROM stableGeneIds WHERE hgnc_id = '%s'" % hgnc_id
+        return self.execute(query)
+
     # Direct methods (GET)
     def get_uta_symbol(self, gene_symbol):
         # returns the UTA gene symbol when HGNC gene symbol is input
