@@ -63,12 +63,38 @@ CREATE DATABASE validator;
 GRANT SELECT,INSERT,UPDATE,DELETE ON validator.* TO 'vvadmin'@'localhost';
 ```
 
-In the `VariantValidator/data` folder is a copy of the empty mysql database needed by Variant Validator to run. The software will populate it as variants are run. You need to upload it to the running MySQL database with:
+You can then use either our pre-populated database, or create an empty database that will fill as VariantValidator runs. Note this latter option
+will make the library slower and may return empty values if there is a network connection error.
+
+#### Downloading the pre-populated database 
+
+The database is available for download from [figshare](https://doi.org/10.25392/leicester.data.8859317.v1). You can also download the file via the command line:
+
+```bash
+wget https://leicester.figshare.com/ndownloader/files/16237784 -O validator_2019-07-10.sql.gz
+```
+
+Once downloaded the file needs to be extracted and imported into mysql.
+
+```bash
+gunzip validator_2019-07-10.sql.gz
+mysql validator < validator_2019-07-10.sql
+```
+
+#### Creating an empty database
+
+If you don't wish to use the pre-populated database, in the `VariantValidator/data` folder is a copy of the empty mysql 
+database needed by Variant Validator to run. The software will populate it as variants are run. You need to import it into 
+MySQL:
 ```
 $ mysql validator < VariantValidator/data/emptyValidatorDump.sql 
 ```
 
-To populate the database you'll need to run `bin/update_vdb.py` which will download the latest RefSeq data and populate the validator database. Note, you may wish to re-run this update process every month.
+#### Updating the database contents
+
+The RefSeq and LRG lookup tables may need updating, to do this you'll need to run `bin/update_vdb.py` 
+which will download the latest RefSeq data and populate the validator database. 
+Note, if you created an empty database you'll need to do this before running Variant Validator.
 
 ## Setting up UTA database (PostGreSQL >=9.5)
 
