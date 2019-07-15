@@ -773,7 +773,7 @@ def rna(variant, validator):
         variant.reftype = ':c.'
         # Change input to reflect!
         try:
-            hgvs_c = validator.va_func.hgvs_r_to_c(hgvs_input)
+            hgvs_c = validator.hgvs_r_to_c(hgvs_input)
         except hgvs.exceptions.HGVSDataNotAvailableError as e:
             error = str(e)
             variant.warnings.append(error)

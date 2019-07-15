@@ -187,7 +187,7 @@ def gene_to_transcripts(variant, validator):
     return False
 
 
-def transcripts_to_gene(variant, validator):
+def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version):
     """This seems to use the quibble and not the HGVS formatted variant format."""
 
     # Flag for validation
@@ -204,7 +204,7 @@ def transcripts_to_gene(variant, validator):
 
     # Do we keep it?
     if validator.select_transcripts != 'all':
-        if tx_ac not in list(validator.select_transcripts_dict_plus_version.keys()):
+        if tx_ac not in list(select_transcripts_dict_plus_version.keys()):
             # By marking it as Do Not Write and continuing through the validation loop
             variant.write = False
             return True

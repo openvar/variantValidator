@@ -390,7 +390,7 @@ class Mixin(vvMixinConverters.Mixin):
                             continue
 
                     if format_type == ':c.' or format_type == ':n.':
-                        toskip = mappers.transcripts_to_gene(my_variant, self)
+                        toskip = mappers.transcripts_to_gene(my_variant, self, select_transcripts_dict_plus_version)
                         if toskip:
                             continue
 
