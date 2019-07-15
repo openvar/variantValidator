@@ -63,8 +63,7 @@ CREATE DATABASE validator;
 GRANT SELECT,INSERT,UPDATE,DELETE ON validator.* TO 'vvadmin'@'localhost';
 ```
 
-You can then use either our pre-populated database, or create an empty database that will fill as VariantValidator runs. Note this latter option.
-will make the library slower and may return empty values if there is a network connection error.
+You can then use either our pre-populated database, or create an empty database that will fill as VariantValidator runs. Note this latter option will make the library slower and may return empty values if there is a network connection error.
 
 ***We strongly recommend that you download and extract the pre-populated database***
 
