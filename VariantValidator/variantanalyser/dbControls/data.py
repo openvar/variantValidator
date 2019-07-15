@@ -84,7 +84,6 @@ def insert_transcript_loci(add_data, primary_assembly):
     success = dbinsert.insert_transcript_loci(add_data, primary_assembly)
     return success
 
-
 # Update entries
 def update_entry(entry, data, table):
     success = dbupdate.update(entry, data, table)
@@ -98,6 +97,8 @@ def update_transcript_info_record(accession, hdp):
         version = record.id
         description = record.description
         variant = '0'
+        # Second look at the record to store a gene symbol
+        symbol_from_genbank = str(record.features[1].qualifiers['gene'][0])
 
         if re.search('transcript variant', description):
             tv = re.search('transcript variant \w+', description)
@@ -117,37 +118,110 @@ def update_transcript_info_record(accession, hdp):
             uta_info = hdp.get_tx_identity_info(version)
 
         uta_symbol = str(uta_info[6])
+        # Sometimes these are blank
+        if uta_symbol == '':
+            uta_symbol = 'unassigned'
 
-        # First perform a search against the input gene symbol or the symbol inferred from UTA
-        initial = functions.hgnc_rest(path = "/fetch/symbol/" + uta_symbol)
-        # Check for a record
-        if str(initial['record']['response']['numFound']) != '0':
-            hgnc_symbol = uta_symbol
-        # No record found, is it a previous symbol?
-        else:
-            # Search hgnc rest to see if symbol is out of date
-            rest_data = functions.hgnc_rest(path = "/search/prev_symbol/" + uta_symbol)
-            # If the name is correct no record will be found
-            if rest_data['error'] == 'false':
-                if int(rest_data['record']['response']['numFound']) == 0:
-                    hgnc_symbol = uta_info[6]
+        try:
+            if uta_symbol != 'unassigned':
+                # First perform a search against the input gene symbol or the symbol inferred from UTA
+                initial = functions.hgnc_rest(path = "/fetch/symbol/" + uta_symbol)
+                # Check for a record
+                if str(initial['record']['response']['numFound']) != '0':
+                    hgnc_symbol = uta_symbol
+                # No record found, is it a previous symbol?
                 else:
-                    hgnc_symbol = rest_data['record']['response']['docs'][0]['symbol']
+                    # Search hgnc rest to see if symbol is out of date
+                    rest_data = functions.hgnc_rest(path = "/search/prev_symbol/" + uta_symbol)
+                    # If the name is correct no record will be found
+                    if rest_data['error'] == 'false':
+                        if int(rest_data['record']['response']['numFound']) == 0:
+                            hgnc_symbol = uta_info[6]
+                        else:
+                            hgnc_symbol = rest_data['record']['response']['docs'][0]['symbol']
+                    else:
+                        hgnc_symbol = 'unassigned'
             else:
-                hgnc_symbol = 'unassigned'
+                # First perform a search against the input gene symbol or the symbol inferred from UTA
+                initial = functions.hgnc_rest(path = "/fetch/symbol/" + symbol_from_genbank)
+                # Check for a record
+                if str(initial['record']['response']['numFound']) != '0':
+                    hgnc_symbol = symbol_from_genbank
+                # No record found, is it a previous symbol?
+                else:
+                    # Search hgnc rest to see if symbol is out of date
+                    rest_data = functions.hgnc_rest(path = "/search/prev_symbol/" + symbol_from_genbank)
+                    # If the name is correct no record will be found
+                    if rest_data['error'] == 'false':
+                        if int(rest_data['record']['response']['numFound']) == 0:
+                            hgnc_symbol = symbol_from_genbank
+                        else:
+                            hgnc_symbol = rest_data['record']['response']['docs'][0]['symbol']
+                    else:
+                        hgnc_symbol = symbol_from_genbank
+
+
+        except Exception as e:
+            # Try twice to contact hgnc
+            try:
+                if uta_symbol != 'unassigned':
+                    # First perform a search against the input gene symbol or the symbol inferred from UTA
+                    initial = functions.hgnc_rest(path="/fetch/symbol/" + uta_symbol)
+                    # Check for a record
+                    if str(initial['record']['response']['numFound']) != '0':
+                        hgnc_symbol = uta_symbol
+                    # No record found, is it a previous symbol?
+                    else:
+                        # Search hgnc rest to see if symbol is out of date
+                        rest_data = functions.hgnc_rest(path="/search/prev_symbol/" + uta_symbol)
+                        # If the name is correct no record will be found
+                        if rest_data['error'] == 'false':
+                            if int(rest_data['record']['response']['numFound']) == 0:
+                                hgnc_symbol = uta_info[6]
+                            else:
+                                hgnc_symbol = rest_data['record']['response']['docs'][0]['symbol']
+                        else:
+                            hgnc_symbol = 'unassigned'
+                else:
+                    # First perform a search against the input gene symbol or the symbol inferred from UTA
+                    initial = functions.hgnc_rest(path="/fetch/symbol/" + symbol_from_genbank)
+                    # Check for a record
+                    if str(initial['record']['response']['numFound']) != '0':
+                        hgnc_symbol = symbol_from_genbank
+                    # No record found, is it a previous symbol?
+                    else:
+                        # Search hgnc rest to see if symbol is out of date
+                        rest_data = functions.hgnc_rest(path="/search/prev_symbol/" + symbol_from_genbank)
+                        # If the name is correct no record will be found
+                        if rest_data['error'] == 'false':
+                            if int(rest_data['record']['response']['numFound']) == 0:
+                                hgnc_symbol = symbol_from_genbank
+                            else:
+                                hgnc_symbol = rest_data['record']['response']['docs'][0]['symbol']
+                        else:
+                            hgnc_symbol = symbol_from_genbank
+
+            except Exception as e:
+                if 'Unable to find the server at rest.genenames.org' in str(e):
+                    hgnc_symbol = symbol_from_genbank
+                if str(e) == '<urlopen error [Errno -2] Name or service not known>':
+                    hgnc_symbol = symbol_from_genbank
+
+        # To tackle error Python 'stringelement' cannot be converted to a MySQL type
+        uta_symbol = str(uta_symbol)
+        hgnc_symbol = str(hgnc_symbol)
 
     # List of connection error types. May need to be expanded.
     # Outcome - Put off update for 3 months!
     except Exception as e:
-        if str(e) == '<urlopen error [Errno -2] Name or service not known>':
-            # Issues with DNSSEC for the nih.gov
-            previous_entry = in_entries(accession, 'transcript_info')
-            accession = accession
-            description = previous_entry['description']
-            variant = previous_entry['variant']
-            version = previous_entry['version']
-            hgnc_symbol = previous_entry['hgnc_symbol']
-            uta_symbol = previous_entry['uta_symbol']
+        # Issues with DNSSEC for the nih.gov - Note, this will cause exception if record has not previously existed
+        previous_entry = in_entries(accession, 'transcript_info')
+        accession = accession
+        description = previous_entry['description']
+        variant = previous_entry['variant']
+        version = previous_entry['version']
+        hgnc_symbol = previous_entry['hgnc_symbol']
+        uta_symbol = previous_entry['uta_symbol']
 
     # Query information
     # query_info = [accession, description, variant, version, hgnc_symbol, uta_symbol]

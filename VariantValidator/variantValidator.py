@@ -2010,14 +2010,9 @@ def validator(batch_variant, selected_assembly, select_transcripts, transcriptSe
                         hgvs_object = hp.parse_hgvs_variant(variant)
                     except hgvs.exceptions.HGVSError as e:
                         error = str(e)
-                        print 'At parse'
-                        print error
-
                     try:
                         vr.validate(hgvs_object)
                     except hgvs.exceptions.HGVSError as e:
-                        print 'At validate'
-                        print e
                         error = str(e)
                     if error != 'false':
                         validation['warnings'] = validation['warnings'] + ': ' + str(error)
@@ -8720,8 +8715,8 @@ def hgvs2ref(query):
                 logger.info(str(exc_type) + " " + str(exc_value))
                 logger.debug(er)
             else:
-                reference['start_position'] = str(input_hgvs_query.posedit.pos.start.base)
-                reference['end_position'] = str(input_hgvs_query.posedit.pos.end.base)
+                reference['start_position'] = str(input_hgvs_query.posedit.pos.start)
+                reference['end_position'] = str(input_hgvs_query.posedit.pos.end)
                 reference['sequence'] = sequence
         else:
             # Step 3: split the variant description into the parts required for seqfetching
