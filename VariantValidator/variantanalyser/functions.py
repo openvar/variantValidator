@@ -13,6 +13,7 @@ import os
 import sys
 import copy
 from vvLogging import logger
+from configparser import ConfigParser
 
 # Setup functions
 
@@ -32,15 +33,19 @@ def ConfigSectionMap(section):
 
 
 # Set up paths
-# FUNCTIONS_ROOT = os.path.dirname(os.path.abspath(__file__))
 ENTREZ_ID = os.environ.get('ENTREZ_ID')
 if ENTREZ_ID is None:
-    from configparser import ConfigParser
-
     CONF_ROOT = os.environ.get('CONF_ROOT')
     Config = ConfigParser()
     Config.read(os.path.join(CONF_ROOT, 'config.ini'))
     ENTREZ_ID = ConfigSectionMap("EntrezID")['entrezid']
+
+ENTREZ_KEY = os.environ.get('ENTREZ_KEY')
+if ENTREZ_KEY is None:
+    CONF_ROOT = os.environ.get('CONF_ROOT')
+    Config = ConfigParser()
+    Config.read(os.path.join(CONF_ROOT, 'config.ini'))
+    ENTREZ_KEY = ConfigSectionMap("EntrezID")['entrez_api_key']
 
 # IMPORT HGVS MODULES and create instances
 import hgvs
@@ -2584,6 +2589,7 @@ def entrez_efetch(db, id, rettype, retmode):
     # IMPORT Bio modules
     # from Bio import Entrez
     Entrez.email = ENTREZ_ID
+    Entrez.api_key = ENTREZ_KEY
     # from Bio import SeqIO
     handle = Entrez.efetch(db=db, id=id, rettype=rettype, retmode=retmode)
     # Get record
@@ -2603,6 +2609,7 @@ def entrez_read(db, id, retmode):
     # IMPORT Bio modules
     # from Bio import Entrez
     Entrez.email = ENTREZ_ID
+    Entrez.api_key = ENTREZ_KEY
     # from Bio import SeqIO
     handle = Entrez.efetch(db=db, id=id, retmode=retmode)
     # Get record

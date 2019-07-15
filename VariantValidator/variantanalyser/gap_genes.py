@@ -4,6 +4,7 @@ transcript or the genome to maintain a perfect alignment
 """
 def gap_black_list(symbol):
     gapGene = {
+                    "TRPM1": "",
                     "LPP": "",
                     "VPS13D": "",
                     "SSPO": "",
