@@ -16,7 +16,7 @@ def read_configuration():
         print("PostgreSQL username and password have not been updated from default.")
         exit_with_message()
 
-    if config['seqrepo']['location'] == 'PATH/TO/SEQREPO':
+    if config['seqrepo']['location'] == '/PATH/TO/SEQREPO':
         print("Seqrepo directory location has not been updated from default.")
         exit_with_message()
 
