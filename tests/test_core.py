@@ -282,8 +282,7 @@ class TestHGVS2Ref(unittest.TestCase):
         output = self.vv.hgvs2ref('nonsense:c.34C>T')
         print(output)
         self.assertEqual(list(output), ['variant', 'start_position', 'end_position', 'warning', 'sequence', 'error'])
-        self.assertEqual(output['error'], 'Failed to fetch nonsense from SeqRepo (/local/VariantValidator/'
-                                          'seqrepo/2018-08-21) (\'Alias nonsense (namespace: None)\')')
+        self.assertTrue('Failed to fetch nonsense from SeqRepo' in output['error'])
 
     def test_valid_c(self):
         output = self.vv.hgvs2ref('NM_015120.4:c.34C>T')
