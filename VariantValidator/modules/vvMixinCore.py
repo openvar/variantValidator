@@ -797,7 +797,8 @@ class Mixin(vvMixinConverters.Mixin):
         elif 'LRG' in query:
             lrg_id = query.split('T')[0]
             lrg_to_hgnc = self.db.get_lrg_data_from_lrg_id(lrg_id)
-            query = lrg_to_hgnc[2]
+            if lrg_to_hgnc and lrg_to_hgnc[0] != 'none':
+                query = lrg_to_hgnc[2]
 
         # Quick check for blank form
         if query == '':
@@ -844,6 +845,9 @@ class Mixin(vvMixinConverters.Mixin):
             # Look up previous symbols and gene name
             # Re-set the previous variable
             previous = fn.hgnc_rest(path="/fetch/symbol/" + current_sym)
+
+        if len(previous['record']['response']['docs']) == 0:
+            return {'error': 'Unable to recognise gene symbol %s' % current_sym}
 
         # Extract the relevant data
         if 'prev_symbol' in list(previous['record']['response']['docs'][0].keys()):
