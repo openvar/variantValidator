@@ -30,7 +30,7 @@ class ValOutput(object):
                 validation_output['flag'] = 'gene_variant'
                 if variant.warnings == ['Validation error']:
                     validation_error_counter = validation_error_counter + 1
-                    identification_key = 'Validation_Error_%s' % validation_error_counter
+                    identification_key = 'validation_error_%s' % validation_error_counter
                 else:
                     if variant.is_obsolete() and variant.hgvs_transcript_variant == '':
                         validation_obsolete_counter += 1
