@@ -46,6 +46,7 @@ class TestUpdate(TestCase):
             pytest.skip("Already have data so not going to run this test here.")
 
         update_vv_db.update()
+        db = update_vv_db.connect()
         for table in ['refSeqGene_loci', 'LRG_transcripts', 'LRG_proteins', 'LRG_RSG_lookup']:
             print(table)
             count = self.count_rows(db, table)
