@@ -356,163 +356,83 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     # Get the desired transcript
 
     if cck:
-        # This should only ever hit coding and RNA variants
+        # This should only ever hit coding variants (RNA has been converted to c by now)
         if 'del' in formatted_variant:
-            # RNA - looking at trapped variant which was saved before RNA converted to cDNA
-            if ':r.' in variant.pre_RNA_conversion:
-                coding = validator.coding(formatted_variant)
-                trans_acc = coding.ac
-                # c to Genome coordinates - Map the variant to the genome
-                pre_var = validator.genomic(formatted_variant, variant.no_norm_evm, variant.primary_assembly,
-                                            variant.hn)
-                # genome back to C coordinates
-                post_var = validator.myevm_g_to_t(variant.evm, pre_var, trans_acc)
-
-                test = validator.hp.parse_hgvs_variant(quibble_input)
-                if post_var.posedit.pos.start.base != test.posedit.pos.start.base or \
-                        post_var.posedit.pos.end.base != test.posedit.pos.end.base:
-                    caution = 'The entered coordinates do not agree with the intron/exon boundaries for the selected ' \
-                              'transcript:'
-                    automap = 'Automap has corrected the coordinates to match the intron/exon boundaries for the ' \
-                              'selected transcript'
-                    # automapping of variant completed
-                    # Change to rna variant
-                    # TODO: Need to look this section over. Doesn't make any sense.
-                    # THERE IS NO SUCH THING AS QUERY. THIS WOULDN'T HAVE WORKED AND ISN'T RUN IN ANY TESTS
-                    query = variant  # Deliberately won't work so I can fix this once I have an appropriate test.
-                    posedit = query.posedit
-                    posedit = posedit.lower()
-                    query.posedit = posedit
-                    query.type = 'r'
-                    post_var = str(query)
-                    automap = variant.pre_RNA_conversion + ' automapped to ' + str(post_var)
-                    variant.warnings.extend([str(caution), str(automap)])
-
-                    # Kill current line and append for re-submission
-                    # Tag the line so that it is not written out
-                    variant.write = False
-                    # Set the values and append to batch_list
-                    hgvs_vt = validator.hp.parse_hgvs_variant(str(post_var))
-                    assert str(hgvs_vt) == str(post_var)
-                    query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=[automap],
-                                    primary_assembly=variant.primary_assembly, order=variant.order)
-                    validator.batch_list.append(query)
-                    logger.info("Submitting new variant with format %s", fn.valstr(hgvs_vt))
-
-            # Coding
-            else:
-                coding = validator.coding(formatted_variant)
-                trans_acc = coding.ac
-                # c to Genome coordinates - Map the variant to the genome
-                pre_var = validator.hp.parse_hgvs_variant(formatted_variant)
-                try:
-                    pre_var = validator.myevm_t_to_g(pre_var, variant.no_norm_evm, variant.primary_assembly,
-                                                     variant.hn)
-                except Exception as e:
-                    error = str(e)
-                    if error == 'expected from_start_i <= from_end_i':
-                        error = 'Automap is unable to correct the input exon/intron boundary coordinates, ' \
-                                'please check your variant description'
-                        variant.warnings.append(error)
-                        logger.warning(error)
-                        return True
-                    else:
-                        logger.debug("Except passed, %s", e)
-                # genome back to C coordinates
-                try:
-                    post_var = validator.myevm_g_to_t(variant.evm, pre_var, trans_acc)
-                except hgvs.exceptions.HGVSError as error:
-                    variant.warnings.append(str(error))
-                    logger.warning(str(error))
+            coding = validator.coding(formatted_variant)
+            trans_acc = coding.ac
+            # c to Genome coordinates - Map the variant to the genome
+            pre_var = validator.hp.parse_hgvs_variant(formatted_variant)
+            try:
+                pre_var = validator.myevm_t_to_g(pre_var, variant.no_norm_evm, variant.primary_assembly,
+                                                 variant.hn)
+            except Exception as e:
+                error = str(e)
+                if error == 'expected from_start_i <= from_end_i':
+                    error = 'Automap is unable to correct the input exon/intron boundary coordinates, ' \
+                            'please check your variant description'
+                    variant.warnings.append(error)
+                    logger.warning(error)
                     return True
-                test = validator.hp.parse_hgvs_variant(quibble_input)
+                else:
+                    logger.debug("Except passed, %s", e)
+            # genome back to C coordinates
+            try:
+                post_var = validator.myevm_g_to_t(variant.evm, pre_var, trans_acc)
+            except hgvs.exceptions.HGVSError as error:
+                variant.warnings.append(str(error))
+                logger.warning(str(error))
+                return True
+            test = validator.hp.parse_hgvs_variant(quibble_input)
 
-                if post_var.posedit.pos.start.base != test.posedit.pos.start.base or \
-                        post_var.posedit.pos.end.base != test.posedit.pos.end.base:
-                    caution = 'The entered coordinates do not agree with the intron/exon boundaries for the ' \
-                              'selected transcript:'
-                    # automapping of variant completed
-                    automap = variant.pre_RNA_conversion + ' automapped to ' + str(post_var)
-                    variant.warnings.extend([caution, automap])
+            if post_var.posedit.pos.start.base != test.posedit.pos.start.base or \
+                    post_var.posedit.pos.end.base != test.posedit.pos.end.base:
+                caution = 'The entered coordinates do not agree with the intron/exon boundaries for the ' \
+                          'selected transcript:'
+                # automapping of variant completed
+                automap = variant.pre_RNA_conversion + ' automapped to ' + str(post_var)
+                variant.warnings.extend([caution, automap])
 
-                    # Kill current line and append for re-submission
-                    # Tag the line so that it is not written out
-                    variant.write = False
-                    # Set the values and append to batch_list
-                    hgvs_vt = validator.hp.parse_hgvs_variant(str(post_var))
-                    assert str(hgvs_vt) == str(post_var)
-                    query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=[automap],
-                                    primary_assembly=variant.primary_assembly, order=variant.order)
-                    validator.batch_list.append(query)
-                    logger.info("Submitting new variant with format %s", fn.valstr(hgvs_vt))
+                # Kill current line and append for re-submission
+                # Tag the line so that it is not written out
+                variant.write = False
+                # Set the values and append to batch_list
+                hgvs_vt = validator.hp.parse_hgvs_variant(str(post_var))
+                assert str(hgvs_vt) == str(post_var)
+                query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=[automap],
+                                primary_assembly=variant.primary_assembly, order=variant.order)
+                validator.batch_list.append(query)
+                logger.info("Submitting new variant with format %s", fn.valstr(hgvs_vt))
 
         else:  # del not in formatted_variant
-            if ':r.' in variant.pre_RNA_conversion:
-                coding = validator.coding(formatted_variant)
-                trans_acc = coding.ac
-                # c to Genome coordinates - Map the variant to the genome
-                pre_var = validator.genomic(formatted_variant, variant.no_norm_evm, variant.primary_assembly,
-                                            variant.hn)
-                # genome back to C coordinates
-                post_var = validator.myevm_g_to_t(variant.evm, pre_var, trans_acc)
 
-                test = validator.hp.parse_hgvs_variant(quibble_input)
-                if post_var.posedit.pos.start.base != test.posedit.pos.start.base or post_var.posedit.pos.end.base != test.posedit.pos.end.base:
-                    caution = 'The entered coordinates do not agree with the intron/exon boundaries for the selected transcript:'
-                    automap = 'Automap has corrected the coordinates to match the intron/exon boundaries for the selected transcript'
-                    # automapping of variant completed
-                    # Change to rna variant
-                    # TODO: As before this section needs fixing
-                    # THERE IS NO SUCH THING AS QUERY. THIS WOULDN'T HAVE WORKED AND ISN'T RUN IN ANY TESTS
-                    query = variant
-                    posedit = query.posedit
-                    posedit = posedit.lower()
-                    query.posedit = posedit
-                    query.type = 'r'
-                    post_var = str(query)
-                    automap = quibble_input + ' automapped to ' + post_var
-                    variant.warnings.extend([caution, automap])
+            coding = validator.coding(formatted_variant)
+            trans_acc = coding.ac
+            # c to Genome coordinates - Map the variant to the genome
+            pre_var = validator.genomic(formatted_variant, variant.no_norm_evm, variant.primary_assembly,
+                                        variant.hn)
 
-                    # Kill current line and append for re-submission
-                    # Tag the line so that it is not written out
-                    variant.write = False
-                    # Set the values and append to batch_list
-                    hgvs_vt = validator.hp.parse_hgvs_variant(str(post_var))
-                    assert str(hgvs_vt) == str(post_var)
-                    query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=[automap],
-                                    primary_assembly=variant.primary_assembly, order=variant.order)
-                    validator.batch_list.append(query)
-                    logger.info("Submitting new variant with format %s", fn.valstr(hgvs_vt))
+            # genome back to C coordinates
+            post_var = validator.myevm_g_to_t(variant.evm, pre_var, trans_acc)
 
-            else:
-                coding = validator.coding(formatted_variant)
-                trans_acc = coding.ac
-                # c to Genome coordinates - Map the variant to the genome
-                pre_var = validator.genomic(formatted_variant, variant.no_norm_evm, variant.primary_assembly,
-                                            variant.hn)
+            test = validator.hp.parse_hgvs_variant(quibble_input)
+            if post_var.posedit.pos.start.base != test.posedit.pos.start.base or \
+                    post_var.posedit.pos.end.base != test.posedit.pos.end.base:
+                caution = 'The entered coordinates do not agree with the intron/exon boundaries for the ' \
+                          'selected transcript:'
+                # automapping of variant completed
+                automap = str(variant.pre_RNA_conversion) + ' automapped to ' + str(post_var)
+                variant.warnings.extend([caution, automap])
 
-                # genome back to C coordinates
-                post_var = validator.myevm_g_to_t(variant.evm, pre_var, trans_acc)
-
-                test = validator.hp.parse_hgvs_variant(quibble_input)
-                if post_var.posedit.pos.start.base != test.posedit.pos.start.base or \
-                        post_var.posedit.pos.end.base != test.posedit.pos.end.base:
-                    caution = 'The entered coordinates do not agree with the intron/exon boundaries for the ' \
-                              'selected transcript:'
-                    # automapping of variant completed
-                    automap = str(variant.pre_RNA_conversion) + ' automapped to ' + str(post_var)
-                    variant.warnings.extend([caution, automap])
-
-                    # Kill current line and append for re-submission
-                    # Tag the line so that it is not written out
-                    variant.write = False
-                    # Set the values and append to batch_list
-                    hgvs_vt = validator.hp.parse_hgvs_variant(str(post_var))
-                    assert str(hgvs_vt) == str(post_var)
-                    query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=[automap],
-                                    primary_assembly=variant.primary_assembly, order=variant.order)
-                    validator.batch_list.append(query)
-                    logger.info("Submitting new variant with format %s", fn.valstr(hgvs_vt))
+                # Kill current line and append for re-submission
+                # Tag the line so that it is not written out
+                variant.write = False
+                # Set the values and append to batch_list
+                hgvs_vt = validator.hp.parse_hgvs_variant(str(post_var))
+                assert str(hgvs_vt) == str(post_var)
+                query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=[automap],
+                                primary_assembly=variant.primary_assembly, order=variant.order)
+                validator.batch_list.append(query)
+                logger.info("Submitting new variant with format %s", fn.valstr(hgvs_vt))
 
     # If cck not true
     elif ':r.' in variant.pre_RNA_conversion:
