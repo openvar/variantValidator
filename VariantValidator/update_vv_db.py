@@ -35,6 +35,7 @@ def delete():
     db.execute('DELETE FROM LRG_transcripts')
     db.execute('DELETE FROM LRG_proteins')
     db.execute('DELETE FROM LRG_RSG_lookup')
+    db.conn.commit()
     logger.debug("Deleted data from all tables including transcript_info")
 
 
@@ -197,6 +198,8 @@ def update_lrg(dbcnx):
         if line.startswith('#'):
             continue
         data = line.split()
+        if len(data) < 3:
+            continue
         lrg_status_dict[data[0]] = data[2]
 
     # Required lookup tables
@@ -210,6 +213,8 @@ def update_lrg(dbcnx):
         if line.startswith('#'):
             continue
         data = line.split()
+        if len(data) < 5:
+            continue
         # Assign objects
         lrg_id = data[0]
         symbol = data[1]
