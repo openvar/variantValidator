@@ -18688,3 +18688,20 @@ class TestVariantsAuto(TestCase):
         assert results['NM_000088.3:c.589-18_589-14dup']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_000017.10:g.48275377_48275381dup', 'vcf': {'chr': '17', 'pos': '48275376', 'ref': 'G', 'alt': 'GAAAAA'}}
         assert results['NM_000088.3:c.589-18_589-14dup']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': 'NC_000017.11:g.50198016_50198020dup', 'vcf': {'chr': '17', 'pos': '50198015', 'ref': 'G', 'alt': 'GAAAAA'}}
         assert results['NM_000088.3:c.589-18_589-14dup']['reference_sequence_records'] == {'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_000088.3', 'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_000079.2', 'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_007400.1', 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_1.xml'}
+
+# <LICENSE>
+# Copyright (C) 2019 VariantValidator Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# </LICENSE>

@@ -948,7 +948,8 @@ def hgvs_ref_alt(hgvs_variant, sf):
     ref_alt_dict = {'ref': ref, 'alt': alt}
     return ref_alt_dict
 
-# Copyright (C) 2018  Peter Causey-Freeman, University of Leicester
+# <LICENSE>
+# Copyright (C) 2019 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

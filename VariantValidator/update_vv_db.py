@@ -295,7 +295,7 @@ def map_line(line, genome, rsg_id_info):
     return ml
 
 # <LICENSE>
-# Copyright (C) 2018  Peter Causey-Freeman, University of Leicester
+# Copyright (C) 2019 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

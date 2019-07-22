@@ -338,7 +338,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
     return lifted_response
 
 # <LICENSE>
-# Copyright (C) 2018  Peter Causey-Freeman, University of Leicester
+# Copyright (C) 2019 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -353,5 +353,3 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # </LICENSE>
-
-
