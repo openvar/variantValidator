@@ -1,4 +1,7 @@
-# About Variant Validator
+# VariantValidator
+[![codecov](https://codecov.io/gh/openvar/variantValidator/branch/restructuring_py3/graph/badge.svg)](https://codecov.io/gh/openvar/variantValidator) [![Build Status](https://travis-ci.org/openvar/variantValidator.png)](https://travis-ci.org/openvar/variantValidator)
+
+## About
 
 VariantValidator is a user-friendly software tool designed to validate the syntax and 
 parameters of DNA variant descriptions according to the HGVS Sequence Variant 
