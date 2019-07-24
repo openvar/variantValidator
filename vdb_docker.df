@@ -1,0 +1,13 @@
+FROM mysql:latest
+
+ENV MYSQL_RANDOM_ROOT_PASSWORD yes
+
+ENV MYSQL_DATABASE validator
+
+ENV MYSQL_USER vvadmin
+
+ENV MYSQL_PASSWORD var1ant
+
+RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
+
+RUN wget https://leicester.figshare.com/ndownloader/files/16237784 -O /docker-entrypoint-initdb.d/validator_2019-07-10.sql.gz

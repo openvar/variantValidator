@@ -1,6 +1,7 @@
 # Installation
 
 These instructions will allow you to install the package and accompanying databases on Linux. Mac OS X computers operate similarly.
+For any other systems, or if you cannot install the databases, we recommend installing via [docker](DOCKER.md).
 
 ## Pre-requisites
 
