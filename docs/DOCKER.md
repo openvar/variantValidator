@@ -46,3 +46,7 @@ For more information on how to use docker-compose see their [documentation](http
 It is possible to access both the UTA and Validator databases outside of docker as they expose the
  default PostgreSQL and MySQL ports (5432 and 3306 respectively). In the current set-up it is not possible to 
  access the seqrepo database outside of docker.
+ 
+Finally, it should be noted that the current UTA docker container is not up-to-date and only contains the 
+2017-10-26 release. Therefore use caution when interpreting these results, and be advised the
+ VariantValidator tests will fail. 
