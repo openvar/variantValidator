@@ -313,7 +313,7 @@ class TestHGVS2Ref(unittest.TestCase):
         print(output)
         self.assertEqual(list(output), ['variant', 'start_position', 'end_position', 'warning', 'sequence', 'error'])
         self.assertEqual(output['error'], '')
-        self.assertEqual(output['start_position'], '34')
+        self.assertEqual(output['start_position'], 'Thr34')
         self.assertEqual(output['sequence'], 'A')
 
     def test_valid_m(self):

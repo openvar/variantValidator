@@ -972,8 +972,8 @@ class Mixin(vvMixinConverters.Mixin):
             reference['error'] = str(e)
             logger.warning(str(e))
         else:
-            reference['start_position'] = str(input_hgvs_query.posedit.pos.start.base)
-            reference['end_position'] = str(input_hgvs_query.posedit.pos.end.base)
+            reference['start_position'] = str(input_hgvs_query.posedit.pos.start)
+            reference['end_position'] = str(input_hgvs_query.posedit.pos.end)
             reference['sequence'] = sequence
 
         # Return the resulting reference sequence and error message
