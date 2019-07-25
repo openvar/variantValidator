@@ -209,7 +209,7 @@ class Mixin:
         # If the :c. pattern is present in the input variant
         if ':c.' in variant:
             # convert the input string into a hgvs object
-            var_c = self.hp.parse(variant)
+            var_c = self.hp.parse_hgvs_variant(variant)
             # Does the edit affect the start codon?
             if ((1 <= var_c.posedit.pos.start.base <= 3 and var_c.posedit.pos.start.offset == 0) or (
                     1 <= var_c.posedit.pos.end.base <= 3 and var_c.posedit.pos.end.offset == 0)) and '*' not in str(
@@ -227,7 +227,7 @@ class Mixin:
             return var_p
 
         if ':n.' in variant:
-            var_p = self.hp.parse(variant)
+            var_p = self.hp.parse_hgvs_variant(variant)
             var_p.ac = 'Non-coding transcript'
             var_p.posedit = ''
             return var_p
@@ -266,11 +266,11 @@ class Mixin:
                     except IndexError as e:
                         error = str(e)
                         if 'string index out of range' in error and 'dup' in str(hgvs_transcript):
-                            hgvs_ins = self.hp.parse(str(hgvs_transcript))
+                            hgvs_ins = self.hp.parse_hgvs_variant(str(hgvs_transcript))
                             hgvs_ins = hn.normalize(hgvs_ins)
                             inst = hgvs_ins.ac + ':c.' + str(hgvs_ins.posedit.pos.start.base - 1) + '_' + \
                                 str(hgvs_ins.posedit.pos.start.base) + 'ins' + hgvs_ins.posedit.edit.ref
-                            hgvs_transcript = self.hp.parse(inst)
+                            hgvs_transcript = self.hp.parse_hgvs_variant(inst)
                             hgvs_protein = evm.c_to_p(hgvs_transcript)
 
                 if hgvs_protein:

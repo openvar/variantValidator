@@ -49,7 +49,7 @@ class TestValStr(TestCase):
     def test_variant_sub(self):
         """ Will test that reference isn't removed """
         stringvar = 'NM_015120.4:c.34C>T'
-        var = self.hp.parse(stringvar)
+        var = self.hp.parse_hgvs_variant(stringvar)
         output = utils.valstr(var)
         self.assertEqual(var.posedit.edit.type, 'sub')
         self.assertEqual(output, stringvar)
@@ -57,7 +57,7 @@ class TestValStr(TestCase):
     def test_variant_identity(self):
         """ Will test that the reference is removed """
         stringvar = 'NM_015120.4:c.34CG='
-        var = self.hp.parse(stringvar)
+        var = self.hp.parse_hgvs_variant(stringvar)
         output = utils.valstr(var)
         self.assertEqual(var.posedit.edit.type, 'identity')
         self.assertEqual(output, 'NM_015120.4:c.34=')
@@ -65,7 +65,7 @@ class TestValStr(TestCase):
     def test_variant_identity2(self):
         """ Will test that the reference is not removed """
         stringvar = 'NM_015120.4:c.34C='
-        var = self.hp.parse(stringvar)
+        var = self.hp.parse_hgvs_variant(stringvar)
         output = utils.valstr(var)
         self.assertEqual(var.posedit.edit.type, 'identity')
         self.assertEqual(output, 'NM_015120.4:c.34C=')
@@ -337,28 +337,28 @@ class TestHGVSdup2indel(TestCase):
 
     def test_sub(self):
         stringseq = 'NM_015120.4:c.34C>T'
-        hgvsseq = self.hp.parse(stringseq)
+        hgvsseq = self.hp.parse_hgvs_variant(stringseq)
         output = utils.hgvs_dup2indel(hgvsseq)
         self.assertIsInstance(output, str)
         self.assertEqual(output, 'NM_015120.4:c.34_34delCinsCC')
 
     def test_del(self):
         stringseq = 'NM_015120.4:c.34del'
-        hgvsseq = self.hp.parse(stringseq)
+        hgvsseq = self.hp.parse_hgvs_variant(stringseq)
         output = utils.hgvs_dup2indel(hgvsseq)
         self.assertIsInstance(output, str)
         self.assertEqual(output, 'NM_015120.4:c.34_34delins')
 
     def test_dup(self):
         stringseq = 'NM_015120.4:c.34dupG'
-        hgvsseq = self.hp.parse(stringseq)
+        hgvsseq = self.hp.parse_hgvs_variant(stringseq)
         output = utils.hgvs_dup2indel(hgvsseq)
         self.assertIsInstance(output, str)
         self.assertEqual(output, 'NM_015120.4:c.34_34delGinsGG')
 
     def test_dup_pair(self):
         stringseq = 'NM_015120.4:c.34dupGA'
-        hgvsseq = self.hp.parse(stringseq)
+        hgvsseq = self.hp.parse_hgvs_variant(stringseq)
         output = utils.hgvs_dup2indel(hgvsseq)
         self.assertIsInstance(output, str)
         self.assertEqual(output, 'NM_015120.4:c.34_34delGAinsGAGA')
