@@ -129,7 +129,6 @@ class Mixin:
                                                      alt_aln_method='splign'
                                                      )
 
-        # Create normalizer
         self.merge_normalizer = hgvs.normalizer.Normalizer(
             self.hdp,
             cross_boundaries=False,
@@ -144,6 +143,33 @@ class Mixin:
             alt_aln_method='splign',
             validate=False
         )
+
+        # When we are able to access Ensembl data we will need to use these normalizer instances
+        # These are currently implemented in VF
+        self.splign_normalizer = hgvs.normalizer.Normalizer(self.hdp,
+                                               cross_boundaries=False,
+                                               shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
+                                               alt_aln_method='splign' # RefSeq
+                                               )
+
+        self.genebuild_normalizer = hgvs.normalizer.Normalizer(self.hdp,
+                                                  cross_boundaries=False,
+                                                  shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
+                                                  alt_aln_method='genebuild' # Ensembl
+                                                  )
+
+        self.reverse_splign_normalizer = hgvs.normalizer.Normalizer(self.hdp,
+                                                       cross_boundaries=False,
+                                                       shuffle_direction=5,
+                                                       alt_aln_method='splign'
+                                                       )
+
+        self.reverse_genebuild_normalizer = hgvs.normalizer.Normalizer(self.hdp,
+                                                          cross_boundaries=False,
+                                                          shuffle_direction=5,
+                                                          alt_aln_method='genebuild'
+                                                          )
+
         # create no_norm_evm
         self.no_norm_evm_38 = hgvs.assemblymapper.AssemblyMapper(self.hdp,
                                                                  assembly_name='GRCh38',
@@ -192,7 +218,7 @@ class Mixin:
                 if ass_prot is None:
                     cod = str(var_c)
                     cod = cod.replace('inv', 'del')
-                    cod = self.hp.parse(cod)
+                    cod = self.hp.parse_hgvs_variant(cod)
                     p = evm.c_to_p(cod)
                     ass_prot = p.ac
                 var_p = hgvs.sequencevariant.SequenceVariant(ac=ass_prot, type='p', posedit='(Met1?)')
@@ -218,7 +244,7 @@ class Mixin:
             if associated_protein_accession is None:
                 cod = str(hgvs_transcript)
                 cod = cod.replace('inv', 'del')
-                cod = self.hp.parse(cod)
+                cod = self.hp.parse_hgvs_variant(cod)
                 p = evm.c_to_p(cod)
                 associated_protein_accession = p.ac
 
