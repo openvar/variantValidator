@@ -32,7 +32,7 @@ After [installing conda](https://docs.conda.io/projects/conda/en/latest/user-gui
 $ conda env create -f environment.yml
 $ conda activate vvenv
 ```
-The packages required for variant validator to function are now set up in the environment "vvenv".
+The packages required for VariantValidator to function are now set up in the environment "vvenv".
 
 #### Via pip
 
@@ -44,7 +44,7 @@ $ source activate vvenv
 $ pip install -r requirements.txt
 ```
 
-## Installing Variant Validator
+## Installing VariantValidator
 
 To install VariantValidator within your virtual environment run:
 ```
@@ -62,7 +62,7 @@ CREATE DATABASE validator;
 GRANT SELECT,INSERT,UPDATE,DELETE ON validator.* TO '<USER>'@'<HOST>';
 ```
 
-In the `VariantValidator/configuration` folder is a copy of the empty mysql database needed by Variant Validator to run. You need to upload it to the running MySQL database with:
+In the `VariantValidator/configuration` folder is a copy of the empty mysql database needed by VariantValidator to run. You need to upload it to the running MySQL database with:
 ```
 $ mysql validator < VariantValidator/configuration/empty_vv_db.sql 
 ```
@@ -106,7 +106,7 @@ Before using VariantValidator some configuration is required, as described in th
 
 ## Developers
 
-To work on the Variant Validator code, you'll need to install additional dependencies and install VariantValidator in an editable manner. Tests can be run using PyTest.
+To work on the VariantValidator code, you'll need to install additional dependencies and install VariantValidator in an editable manner. Tests can be run using PyTest.
 
 ```bash
 cd variantValidator/
