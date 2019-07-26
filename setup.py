@@ -59,7 +59,7 @@ setup(
     # List run-time dependencies here.  These will be installed by pip when the project is installed.
     install_requires=[
         "hgvs",  # This will install BioPython
-        "biocommons.seqrepo >= 0.3.5",
+        "biocommons.seqrepo >= 0.5.1",
         "httplib2 >= 0.9.0",
         "configparser >= 3.5.0",
         "pyliftover >= 0.3",
