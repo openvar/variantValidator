@@ -69,6 +69,7 @@ setup(
     dependency_links=[
         "git+https://github.com/openvar/vv_hgvs@master#egg=hgvs"
     ]
+
 )
 
 # <LICENSE>
