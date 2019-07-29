@@ -40,9 +40,6 @@ file = WARNING
 [Entrez]
 email = YOUR@EMAIL.COM
 api_key = YOUR_API_KEY
-
-[liftover]
-location = /PATH/TO/LIFTOVER/
 ```
 
 The values in capitals must be replaced for VariantValidator to run, see below for more details.
@@ -59,10 +56,6 @@ set to output in the users home directory (`~/.vv_errorlog`).
 For access to the NCBI Entrez database  you must provide a valid email address in 
 the respective configuration setting. Optionally, you can also provide an NCBI API key that will increase the number of requests
 made per second. See [this article](https://ncbiinsights.ncbi.nlm.nih.gov/2017/11/02/new-api-keys-for-the-e-utilities/) on how to generate an API key.
-
-#### Liftover
-
-Optional. Download the UCSC GRCh38 Liftover file [hg38ToHg19.over.chain.gz](http://hgdownload.soe.ucsc.edu/goldenPath/hg38/liftOver/) and GRCh37 Liftover file [hg19ToHg38.over.chain.gz](http://hgdownload.cse.ucsc.edu/gbdb/hg19/liftOver/) and set their location  within the configuration file. By default the necessary files are accessed remotely which incurs a time-penalty when validating intergenic variants. 
 
 
 ## Database updates

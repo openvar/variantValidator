@@ -95,9 +95,6 @@ class Mixin:
             self.releasedVersion = False
         self.hgvsVersion = hgvs.__version__
 
-        # Set up other configuration variables
-        self.liftoverPath = config["liftover"]["location"]
-
         # Set up HGVS
         # Configure hgvs package global settings
         hgvs.global_config.uta.pool_max = 25

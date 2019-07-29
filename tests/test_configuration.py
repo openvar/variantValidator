@@ -176,13 +176,12 @@ class TestConfigValues(unittest.TestCase):
             self.config.write(fh)
 
     def test_file_structure(self):
-        self.assertEqual(self.config.sections(), ['mysql', 'seqrepo', 'postgres',  'logging', 'Entrez', 'liftover'])
+        self.assertEqual(self.config.sections(), ['mysql', 'seqrepo', 'postgres',  'logging', 'Entrez'])
         self.assertEqual(list(self.config['mysql']), ['host', 'database', 'user', 'password'])
         self.assertEqual(list(self.config['seqrepo']), ['version', 'location'])
         self.assertEqual(list(self.config['postgres']), ['host', 'database', 'version', 'user', 'password'])
         self.assertEqual(list(self.config['logging']), ['log', 'console', 'file'])
         self.assertEqual(list(self.config['Entrez']), ['email', 'api_key'])
-        self.assertEqual(list(self.config['liftover']), ['location'])
 
     def test_file_contents(self):
         self.assertNotEqual(self.config['mysql']['user'], 'USERNAME')

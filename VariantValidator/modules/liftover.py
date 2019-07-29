@@ -224,17 +224,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
     # Create liftover vcf
     from_vcf = hgvs_utils.report_hgvs2vcf(hgvs_genomic, lo_from, reverse_normalizer, validator.sf)
 
-    pyliftover_dir = None
-    if validator.liftoverPath is not None and validator.liftoverPath != '/path/to/liftover':
-        pyliftover_dir = validator.liftoverPath
-
-    if pyliftover_dir is not None:
-        lo_filename_to = pyliftover_dir + "%sTo%s.over.chain" % (lo_from, lo_to)
-        lo_filename_to = str(lo_filename_to.replace('Tohg', 'ToHg'))
-
-        lo = LiftOver(lo_filename_to)
-    else:
-        lo = LiftOver(lo_from, lo_to)
+    lo = LiftOver(lo_from, lo_to)
 
     # Fix the GRC CHR
     if from_vcf[from_set].startswith('chr'):
@@ -277,13 +267,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
             else:
                 hgvs_lifted = hn.normalize(hgvs_not_delins)
                 # Now try map back
-                if pyliftover_dir is not None:
-                    lo_filename_from = pyliftover_dir + "%sTo%s.over.chain" % (lo_to, lo_from)
-
-                    lo_filename_from = str(lo_filename_from.replace('Tohg', 'ToHg'))
-                    lo = LiftOver(lo_filename_from)
-                else:
-                    lo = LiftOver(lo_to, lo_from)
+                lo = LiftOver(lo_to, lo_from)
 
                 # Lift back
                 liftback_list = lo.convert_coordinate(chrom, pos)
