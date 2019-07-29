@@ -63,6 +63,7 @@ setup(
         "configparser >= 3.5.0",
         "pyliftover >= 0.3",
         "biotools >= 0.3.0",
+        "biopython",
         "requests",
     ],
     dependency_links=[
