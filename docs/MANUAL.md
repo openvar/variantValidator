@@ -2,12 +2,12 @@
 
 ## Configuration
 
-After first installing Variant Validator, a configuration file will need to be created and edited to contain the database credentials and locations. 
+After first installing VariantValidator, a configuration file will need to be created and edited to contain the database credentials and locations. 
 By default the edited configuration will be placed in the users home directory (`~/.variantvalidator`), this location can be changed for all users by editing the `VariantValidator/settings.py` file.
 To create this file automatically, run the configuration script installed alongside the package.
 
 ```bash
-vv_configure.py
+python bin/vv_configure.py
 ```
 
 This will ask you to enter a value for each item in the configuration file. 
@@ -42,14 +42,14 @@ email = YOUR@EMAIL.COM
 api_key = YOUR_API_KEY
 
 [liftover]
-location = /path/to/liftover
+location = /PATH/TO/LIFTOVER/
 ```
 
-The values in capitals must be replaced for Variant Validator to run, see below for more details.
+The values in capitals must be replaced for VariantValidator to run, see below for more details.
 
 #### Logging
 
-By default Variant Validator will log to both the console and to a file, the output level for each can be set in the configuration file.
+By default VariantValidator will log to both the console and to a file, the output level for each can be set in the configuration file.
 The levels control verbosity and can be set to "CRITICAL", "ERROR", "WARNING", "INFO" or "DEBUG". To turn off logging, set the log configuration to "False". The log file name and
 log options can be changed for all users by editing the `VariantValidator/settings.py` file. By default the file log is 
 set to output in the users home directory (`~/.vv_errorlog`).
@@ -62,7 +62,7 @@ made per second. See [this article](https://ncbiinsights.ncbi.nlm.nih.gov/2017/1
 
 #### Liftover
 
-If the UCSC Liftover [files](http://hgdownload.soe.ucsc.edu/goldenPath/hg38/liftOver/) have been previously downloaded their location can be set within the configuration file. By default the necessary files will be downloaded automatically when first requested. 
+Optional. Download the UCSC GRCh38 Liftover file [hg38ToHg19.over.chain.gz](http://hgdownload.soe.ucsc.edu/goldenPath/hg38/liftOver/) and GRCh37 Liftover file [hg19ToHg38.over.chain.gz](http://hgdownload.cse.ucsc.edu/gbdb/hg19/liftOver/) and set their location  within the configuration file. By default the necessary files are accessed remotely which incurs a time-penalty when validating intergenic variants. 
 
 
 ## Database updates
@@ -70,14 +70,14 @@ If the UCSC Liftover [files](http://hgdownload.soe.ucsc.edu/goldenPath/hg38/lift
 To import the initial data into the Validator MySQL database, run the following script:
 
 ```bash
-update_vdb.py
+python bin/update_vdb.py
 ```
 
 This will download the required data to convert between LRG and RefSeq IDs. We recommend re-running this command on a regular basis as changes are continually made to the RefSeq and LRG collections.  
 
 ## Operation
 
-To run Variant Validator, we have provided the installed script `variant_validator.py`, running this with the flag `-h` shows the running options:
+To run VariantValidator, we have provided the installed script `variant_validator.py`, running this with the flag `-h` shows the running options:
 
 ```text
 usage: variant_validator.py [-h] -v VARIANT [VARIANT ...]

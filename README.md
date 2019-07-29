@@ -34,7 +34,7 @@ For sequence variations falling within the open reading frames of genes, Variant
 
 ## Pre-requisites
 
-Variant Validator will work locally on Mac OS X or Linux-compatible computers. It can also work within a [docker container](docs/DOCKER.md).
+VariantValidator will work locally on Mac OS X or Linux-compatible computers. It can also work within a [docker container](docs/DOCKER.md).
 
 Required software:
 * MySQL
