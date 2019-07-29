@@ -1,6 +1,6 @@
 from unittest import TestCase
 from VariantValidator.modules import utils
-import hgvs.parser
+import vvhgvs.parser
 import json
 
 
@@ -39,7 +39,7 @@ class TestValStr(TestCase):
     """Test the valstr function"""
 
     def setUp(self):
-        self.hp = hgvs.parser.Parser()
+        self.hp = vvhgvs.parser.Parser()
 
     def test_string(self):
         var = ''
@@ -329,7 +329,7 @@ class TestHGVSdup2indel(TestCase):
     """ Will test the hgvs_dup2indel function"""
 
     def setUp(self):
-        self.hp = hgvs.parser.Parser()
+        self.hp = vvhgvs.parser.Parser()
 
     def test_empty(self):
         with self.assertRaises(AttributeError):

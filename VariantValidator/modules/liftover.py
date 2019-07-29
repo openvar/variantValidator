@@ -6,8 +6,8 @@ Lift position > Check bases > Lift back and confirm the original position
 """
 
 # import modules
-import hgvs.exceptions
-import hgvs.sequencevariant
+import vvhgvs.exceptions
+import vvhgvs.sequencevariant
 import logging
 from . import seq_data
 from . import hgvs_utils
@@ -15,7 +15,7 @@ from pyliftover import LiftOver
 from Bio.Seq import Seq
 
 # Pre compile variables
-hgvs.global_config.formatting.max_ref_length = 1000000
+vvhgvs.global_config.formatting.max_ref_length = 1000000
 
 logger = logging.getLogger(__name__)
 
@@ -208,7 +208,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                         }
                     }
                     added_data = True
-                except hgvs.exceptions.HGVSError:
+                except vvhgvs.exceptions.HGVSError:
                     continue
 
             if lifted_response != {} and added_data is not False:
@@ -260,7 +260,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
             hgvs_not_delins = validator.hp.parse_hgvs_variant(not_delins)
             try:
                 validator.vr.validate(hgvs_not_delins)
-            except hgvs.exceptions.HGVSError as e:
+            except vvhgvs.exceptions.HGVSError as e:
                 logger.info(str(e))
                 # Most likely incorrect bases
                 continue

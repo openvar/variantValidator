@@ -1,7 +1,7 @@
 import re
-import hgvs
-import hgvs.exceptions
-import hgvs.variantmapper
+import vvhgvs
+import vvhgvs.exceptions
+import vvhgvs.variantmapper
 import logging
 from . import utils as fn
 import copy
@@ -111,7 +111,7 @@ def structure_checks_g(variant, validator):
     # Additional test
     try:
         variant.hn.normalize(variant.input_parses)
-    except hgvs.exceptions.HGVSError as e:
+    except vvhgvs.exceptions.HGVSError as e:
         error = str(e)
         variant.warnings.append(error)
         logger.warning(error)
@@ -133,13 +133,13 @@ def structure_checks_c(variant, validator):
         # These should be in the sequence so can be directly validated. Need to pass to n.
         try:
             validator.vr.validate(variant.input_parses)
-        except hgvs.exceptions.HGVSError as e:
+        except vvhgvs.exceptions.HGVSError as e:
             error = str(e)
             if 'datums is ill-defined' in error:
                 called_ref = variant.input_parses.posedit.edit.ref
                 try:
                     to_n = variant.evm.c_to_n(variant.input_parses)
-                except hgvs.exceptions.HGVSInvalidVariantError as e:
+                except vvhgvs.exceptions.HGVSInvalidVariantError as e:
                     error = str(e)
                     variant.warnings.append(error)
                     logger.warning(error)
@@ -158,7 +158,7 @@ def structure_checks_c(variant, validator):
                 if 'bounds' in error or 'intronic variant' in error:
                     try:
                         variant.hn.normalize(variant.input_parses)
-                    except hgvs.exceptions.HGVSError as e:
+                    except vvhgvs.exceptions.HGVSError as e:
                         logger.debug("Except passed, %s", e)
 
                     if 'bounds' in error:
@@ -198,7 +198,7 @@ def structure_checks_c(variant, validator):
                                 variant.input_parses.posedit.pos.end.offset = offset
 
                             # Create a lose vm instance
-                            variant.lose_vm = hgvs.variantmapper.VariantMapper(validator.hdp,
+                            variant.lose_vm = vvhgvs.variantmapper.VariantMapper(validator.hdp,
                                                                                replace_reference=True,
                                                                                prevalidation_level=None
                                                                                )
@@ -217,7 +217,7 @@ def structure_checks_c(variant, validator):
 
         try:
             variant.input_parses = variant.evm.c_to_n(variant.input_parses)
-        except hgvs.exceptions.HGVSError as e:
+        except vvhgvs.exceptions.HGVSError as e:
             error = str(e)
             variant.warnings.append(error)
             logger.warning(e)
@@ -245,7 +245,7 @@ def structure_checks_c(variant, validator):
                 to_genome = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm,
                                                    variant.primary_assembly, variant.hn)
                 to_tx = variant.evm.g_to_t(to_genome, variant.input_parses.ac)
-            except hgvs.exceptions.HGVSInvalidIntervalError as e:
+            except vvhgvs.exceptions.HGVSInvalidIntervalError as e:
                 error = str(e)
                 if 'bounds' in error:
                     try:
@@ -295,7 +295,7 @@ def structure_checks_c(variant, validator):
                 logger.warning(error)
                 return True
 
-            except hgvs.exceptions.HGVSDataNotAvailableError as e:
+            except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
                 error = str(e)
                 if 'Alignment is incomplete' in error:
                     e_list = error.split('~')
@@ -317,14 +317,14 @@ def structure_checks_c(variant, validator):
         # Quick look at syntax validation
         try:
             validator.vr.validate(variant.input_parses)
-        except hgvs.exceptions.HGVSInvalidVariantError as e:
+        except vvhgvs.exceptions.HGVSInvalidVariantError as e:
             error = str(e)
             if 'bounds' in error:
                 try:
                     report_gen = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm,
                                                         variant.primary_assembly, variant.hn)
                     report_gen = variant.hn.normalize(report_gen)
-                except hgvs.exceptions.HGVSError as e:
+                except vvhgvs.exceptions.HGVSError as e:
                     logger.debug("Except passed, %s", e)
                 else:
                     error = 'Using a transcript reference sequence to specify a variant position that lies outside of '\
@@ -352,7 +352,7 @@ def structure_checks_c(variant, validator):
         output = None
         try:
             output = validator.noreplace_myevm_t_to_g(variant.input_parses, variant)
-        except hgvs.exceptions.HGVSDataNotAvailableError:
+        except vvhgvs.exceptions.HGVSDataNotAvailableError:
             errors = ['Required information for ' + variant.input_parses.ac + ' is missing from the Universal '
                       'Transcript Archive', 'Query https://rest.variantvalidator.org/tools/gene2transcripts/%s for '
                       'available transcripts' % variant.input_parses.ac.split('.')[0]]
@@ -367,7 +367,7 @@ def structure_checks_c(variant, validator):
                 variant.warnings.append(error)
                 logger.warning(error)
                 return True
-        except hgvs.exceptions.HGVSInvalidVariantError as e:
+        except vvhgvs.exceptions.HGVSInvalidVariantError as e:
             error = str(e)
             if 'base start position must be <= end position' in error:
                 # correction = copy.deepcopy(variant.input_parses)
@@ -388,7 +388,7 @@ def structure_checks_c(variant, validator):
 
         try:
             variant.evm.g_to_t(output, variant.input_parses.ac)
-        except hgvs.exceptions.HGVSError as e:
+        except vvhgvs.exceptions.HGVSError as e:
             error = str(e)
             variant.warnings.append(error)
             logger.warning(error)
@@ -396,7 +396,7 @@ def structure_checks_c(variant, validator):
 
         try:
             validator.vr.validate(output)
-        except hgvs.exceptions.HGVSError as e:
+        except vvhgvs.exceptions.HGVSError as e:
             error = str(e)
             variant.warnings.append(error)
             logger.warning(error)
@@ -406,9 +406,9 @@ def structure_checks_c(variant, validator):
         # All other variation
         try:
             validator.vr.validate(variant.input_parses)
-        except hgvs.exceptions.HGVSUnsupportedOperationError as e:
+        except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
             logger.debug("Except passed, %s", e)
-        except hgvs.exceptions.HGVSInvalidVariantError as e:
+        except vvhgvs.exceptions.HGVSInvalidVariantError as e:
             error = str(e)
             # This catches errors in introns
             if 'base start position must be <= end position' in error:
@@ -424,12 +424,12 @@ def structure_checks_c(variant, validator):
             logger.warning(error)
             return True
 
-        except hgvs.exceptions.HGVSDataNotAvailableError as e:
+        except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
             error = str(e)
             variant.warnings.append(error)
             logger.warning(error)
             return True
-        except hgvs.exceptions.HGVSError as e:
+        except vvhgvs.exceptions.HGVSError as e:
             error = str(e)
             if 'bounds' in error:
                 error += ' (' + variant.input_parses.ac + ')'
@@ -451,7 +451,7 @@ def structure_checks_n(variant, validator):
         # These should be in the sequence so can be directly validated. Need to pass to n.
         try:
             validator.vr.validate(variant.input_parses)
-        except hgvs.exceptions.HGVSError as e:
+        except vvhgvs.exceptions.HGVSError as e:
             error = str(e)
             if 'intronic variant' in error:
                 pass
@@ -516,14 +516,14 @@ def structure_checks_n(variant, validator):
         # Quick look at syntax validation
         try:
             validator.vr.validate(variant.input_parses)
-        except hgvs.exceptions.HGVSInvalidVariantError as e:
+        except vvhgvs.exceptions.HGVSInvalidVariantError as e:
             error = str(e)
             if 'bounds' in error:
                 try:
                     report_gen = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm,
                                                         variant.primary_assembly, variant.hn)
                     report_gen = variant.hn.normalize(report_gen)
-                except hgvs.exceptions.HGVSError as e:
+                except vvhgvs.exceptions.HGVSError as e:
                     logger.debug("Except passed, %s", e)
                 else:
                     error = 'Using a transcript reference sequence to specify a variant position that lies outside of '\
@@ -552,7 +552,7 @@ def structure_checks_n(variant, validator):
                     test_g = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm, variant.primary_assembly,
                                                     variant.hn)
                     back_to_n = variant.evm.g_to_t(test_g, variant.input_parses.ac)
-                except hgvs.exceptions.HGVSError as e:
+                except vvhgvs.exceptions.HGVSError as e:
                     error = str(e)
                     if 'bounds' in error:
                         report_gen = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm,
@@ -571,7 +571,7 @@ def structure_checks_n(variant, validator):
         output = None
         try:
             output = validator.noreplace_myevm_t_to_g(variant.input_parses, variant)
-        except hgvs.exceptions.HGVSDataNotAvailableError:
+        except vvhgvs.exceptions.HGVSDataNotAvailableError:
             errors = ['Required information for ' + variant.input_parses.ac + ' is missing from the Universal '
                                                                               'Transcript Archive',
                       'Query https://rest.variantvalidator.org/tools/gene2transcripts/%s for '
@@ -588,7 +588,7 @@ def structure_checks_n(variant, validator):
                 variant.warnings.append(error)
                 logger.warning(error)
                 return True
-        except hgvs.exceptions.HGVSInvalidVariantError as e:
+        except vvhgvs.exceptions.HGVSInvalidVariantError as e:
             error = str(e)
             if 'base start position must be <= end position' in error:
                 correction = copy.deepcopy(variant.input_parses)
@@ -605,7 +605,7 @@ def structure_checks_n(variant, validator):
                 return True
         try:
             validator.vr.validate(output)
-        except hgvs.exceptions.HGVSError as e:
+        except vvhgvs.exceptions.HGVSError as e:
             error = str(e)
             variant.warnings.append(error)
             logger.warning(error)
@@ -615,9 +615,9 @@ def structure_checks_n(variant, validator):
         # All other variation
         try:
             validator.vr.validate(variant.input_parses)
-        except hgvs.exceptions.HGVSUnsupportedOperationError as e:
+        except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
             logger.debug("Except passed, %s", e)
-        except hgvs.exceptions.HGVSInvalidVariantError as e:
+        except vvhgvs.exceptions.HGVSInvalidVariantError as e:
             error = str(e)
             # if re.search('Length implied by coordinates', error):
             #     # Applies to del and inv
@@ -653,12 +653,12 @@ def structure_checks_n(variant, validator):
             variant.warnings.append(error)
             logger.warning(error)
             return True
-        except hgvs.exceptions.HGVSDataNotAvailableError as e:
+        except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
             error = str(e)
             variant.warnings.append(error)
             logger.warning(error)
             return True
-        except hgvs.exceptions.HGVSError as e:
+        except vvhgvs.exceptions.HGVSError as e:
             error = str(e)
             if 'bounds' in error:
                 error = error + ' (' + variant.input_parses.ac + ')'
