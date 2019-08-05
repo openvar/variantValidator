@@ -58,16 +58,16 @@ setup(
 
     # List run-time dependencies here.  These will be installed by pip when the project is installed.
     install_requires=[
-        "hgvs",  # This will install BioPython
         "biocommons.seqrepo >= 0.5.1",
         "httplib2 >= 0.9.0",
         "configparser >= 3.5.0",
         "pyliftover >= 0.3",
         "biotools >= 0.3.0",
+        "biopython",
         "requests",
     ],
     dependency_links=[
-        "git+https://github.com/openvar/vv_hgvs@master#egg=hgvs"
+        "git+https://github.com/openvar/vv_hgvs@master#egg=vvhgvs"
     ]
 )
 

@@ -1,5 +1,5 @@
 import re
-import hgvs.exceptions
+import vvhgvs.exceptions
 import copy
 import logging
 from .variant import Variant
@@ -458,7 +458,7 @@ def vcf2hgvs_stage4(variant, validator):
                 hgvs_not_delins = None
                 try:
                     hgvs_not_delins = validator.hp.parse_hgvs_variant(not_delins)
-                except hgvs.exceptions.HGVSError as e:
+                except vvhgvs.exceptions.HGVSError as e:
                     # Sort out multiple ALTS from VCF inputs
                     if re.search(r"([GATCgatc]+)>([GATCgatc]+),([GATCgatc]+)", not_delins):
                         header, alts = not_delins.split('>')
@@ -486,7 +486,7 @@ def vcf2hgvs_stage4(variant, validator):
 
                 try:
                     not_delins = str(variant.hn.normalize(hgvs_not_delins))
-                except hgvs.exceptions.HGVSError as e:
+                except vvhgvs.exceptions.HGVSError as e:
                     error = str(e)
                     if 'Normalization of intronic variants is not supported' in error:
                         not_delins = not_delins
@@ -529,7 +529,7 @@ def indel_catching(variant, validator):
             # Remove them so that the string SHOULD parse
             try:
                 hgvs_failed = validator.hp.parse_hgvs_variant(failed)
-            except hgvs.exceptions.HGVSError as e:
+            except vvhgvs.exceptions.HGVSError as e:
                 error = 'The syntax of the input variant description is invalid '
                 if failed.endswith('ins'):
                     issue_link = 'http://varnomen.hgvs.org/recommendations/DNA/variant/insertion/'
@@ -697,7 +697,7 @@ def mitochondrial(variant, validator):
             hgvs_mito.type = 'm'
         try:
             validator.vr.validate(hgvs_mito)
-        except hgvs.exceptions.HGVSError as e:
+        except vvhgvs.exceptions.HGVSError as e:
             error = str(e)
             variant.warnings.append(error)
             logger.warning(error)
@@ -728,11 +728,11 @@ def proteins(variant, validator):
         # Try to validate the variant
         try:
             hgvs_object = validator.hp.parse_hgvs_variant(variant.hgvs_formatted)
-        except hgvs.exceptions.HGVSError as e:
+        except vvhgvs.exceptions.HGVSError as e:
             error = str(e)
         try:
             validator.vr.validate(hgvs_object)
-        except hgvs.exceptions.HGVSError as e:
+        except vvhgvs.exceptions.HGVSError as e:
             error = str(e)
         if error:
             variant.warnings.append(error)
@@ -749,7 +749,7 @@ def proteins(variant, validator):
 
                 try:
                     validator.vr.validate(hgvs_object)
-                except hgvs.exceptions.HGVSError as e:
+                except vvhgvs.exceptions.HGVSError as e:
                     error = str(e)
                 else:
                     error = str(
@@ -774,7 +774,7 @@ def rna(variant, validator):
         # Change input to reflect!
         try:
             hgvs_c = validator.hgvs_r_to_c(hgvs_input)
-        except hgvs.exceptions.HGVSDataNotAvailableError as e:
+        except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
             error = str(e)
             variant.warnings.append(error)
             logger.warning(str(error))

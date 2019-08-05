@@ -1,18 +1,18 @@
 import os
 from configparser import ConfigParser
-import hgvs
-import hgvs.parser
-import hgvs.dataproviders.uta
-import hgvs.dataproviders.seqfetcher
-import hgvs.assemblymapper
-import hgvs.variantmapper
-import hgvs.sequencevariant
-import hgvs.validator
-import hgvs.exceptions
-import hgvs.location
-import hgvs.posedit
-import hgvs.edit
-import hgvs.normalizer
+import vvhgvs
+import vvhgvs.parser
+import vvhgvs.dataproviders.uta
+import vvhgvs.dataproviders.seqfetcher
+import vvhgvs.assemblymapper
+import vvhgvs.variantmapper
+import vvhgvs.sequencevariant
+import vvhgvs.validator
+import vvhgvs.exceptions
+import vvhgvs.location
+import vvhgvs.posedit
+import vvhgvs.edit
+import vvhgvs.normalizer
 from Bio.Seq import Seq
 
 import re
@@ -93,89 +93,89 @@ class Mixin:
             _is_released_version = True
         else:
             self.releasedVersion = False
-        self.hgvsVersion = hgvs.__version__
+        self.hgvsVersion = vvhgvs.__version__
 
         # Set up HGVS
         # Configure hgvs package global settings
-        hgvs.global_config.uta.pool_max = 25
-        hgvs.global_config.formatting.max_ref_length = 1000000
+        vvhgvs.global_config.uta.pool_max = 25
+        vvhgvs.global_config.formatting.max_ref_length = 1000000
 
         # Create HGVS objects
-        self.hdp = hgvs.dataproviders.uta.connect(pooling=True)
-        self.hp = hgvs.parser.Parser()  # Parser
-        self.vr = hgvs.validator.Validator(self.hdp)  # Validator
-        self.vm = hgvs.variantmapper.VariantMapper(self.hdp)  # Variant mapper
+        self.hdp = vvhgvs.dataproviders.uta.connect(pooling=True)
+        self.hp = vvhgvs.parser.Parser()  # Parser
+        self.vr = vvhgvs.validator.Validator(self.hdp)  # Validator
+        self.vm = vvhgvs.variantmapper.VariantMapper(self.hdp)  # Variant mapper
 
         # Create a lose vm instance
-        self.lose_vm = hgvs.variantmapper.VariantMapper(self.hdp,
+        self.lose_vm = vvhgvs.variantmapper.VariantMapper(self.hdp,
                                                         replace_reference=True,
                                                         prevalidation_level=None
                                                         )
 
-        self.nr_vm = hgvs.variantmapper.VariantMapper(self.hdp, replace_reference=False)  # No reverse variant mapper
-        self.sf = hgvs.dataproviders.seqfetcher.SeqFetcher()  # Seqfetcher
+        self.nr_vm = vvhgvs.variantmapper.VariantMapper(self.hdp, replace_reference=False)  # No reverse variant mapper
+        self.sf = vvhgvs.dataproviders.seqfetcher.SeqFetcher()  # Seqfetcher
 
         # Set standard genome builds
         self.genome_builds = ['GRCh37', 'hg19', 'GRCh38']
         self.utaSchema = str(self.hdp.data_version())
 
         # Create normalizer
-        self.reverse_hn = hgvs.normalizer.Normalizer(self.hdp,
+        self.reverse_hn = vvhgvs.normalizer.Normalizer(self.hdp,
                                                      cross_boundaries=False,
                                                      shuffle_direction=5,
                                                      alt_aln_method='splign'
                                                      )
 
-        self.merge_normalizer = hgvs.normalizer.Normalizer(
+        self.merge_normalizer = vvhgvs.normalizer.Normalizer(
             self.hdp,
             cross_boundaries=False,
-            shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
+            shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
             alt_aln_method='splign',
             validate=False
         )
-        self.reverse_merge_normalizer = hgvs.normalizer.Normalizer(
+        self.reverse_merge_normalizer = vvhgvs.normalizer.Normalizer(
             self.hdp,
             cross_boundaries=False,
-            shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
+            shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
             alt_aln_method='splign',
             validate=False
         )
 
         # When we are able to access Ensembl data we will need to use these normalizer instances
         # These are currently implemented in VF
-        self.splign_normalizer = hgvs.normalizer.Normalizer(self.hdp,
+        self.splign_normalizer = vvhgvs.normalizer.Normalizer(self.hdp,
                                                cross_boundaries=False,
-                                               shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
+                                               shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
                                                alt_aln_method='splign' # RefSeq
                                                )
 
-        self.genebuild_normalizer = hgvs.normalizer.Normalizer(self.hdp,
+        self.genebuild_normalizer = vvhgvs.normalizer.Normalizer(self.hdp,
                                                   cross_boundaries=False,
-                                                  shuffle_direction=hgvs.global_config.normalizer.shuffle_direction,
+                                                  shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
                                                   alt_aln_method='genebuild' # Ensembl
                                                   )
 
-        self.reverse_splign_normalizer = hgvs.normalizer.Normalizer(self.hdp,
+        self.reverse_splign_normalizer = vvhgvs.normalizer.Normalizer(self.hdp,
                                                        cross_boundaries=False,
                                                        shuffle_direction=5,
                                                        alt_aln_method='splign'
                                                        )
 
-        self.reverse_genebuild_normalizer = hgvs.normalizer.Normalizer(self.hdp,
+        self.reverse_genebuild_normalizer = vvhgvs.normalizer.Normalizer(self.hdp,
                                                           cross_boundaries=False,
                                                           shuffle_direction=5,
                                                           alt_aln_method='genebuild'
                                                           )
 
         # create no_norm_evm
-        self.no_norm_evm_38 = hgvs.assemblymapper.AssemblyMapper(self.hdp,
+        self.no_norm_evm_38 = vvhgvs.assemblymapper.AssemblyMapper(self.hdp,
                                                                  assembly_name='GRCh38',
                                                                  alt_aln_method='splign',
                                                                  normalize=False,
                                                                  replace_reference=True
                                                                  )
 
-        self.no_norm_evm_37 = hgvs.assemblymapper.AssemblyMapper(self.hdp,
+        self.no_norm_evm_37 = vvhgvs.assemblymapper.AssemblyMapper(self.hdp,
                                                                  assembly_name='GRCh37',
                                                                  alt_aln_method='splign',
                                                                  normalize=False,
@@ -218,7 +218,7 @@ class Mixin:
                     cod = self.hp.parse_hgvs_variant(cod)
                     p = evm.c_to_p(cod)
                     ass_prot = p.ac
-                var_p = hgvs.sequencevariant.SequenceVariant(ac=ass_prot, type='p', posedit='(Met1?)')
+                var_p = vvhgvs.sequencevariant.SequenceVariant(ac=ass_prot, type='p', posedit='(Met1?)')
             else:
                 var_p = evm.c_to_p(var_c)
             return var_p
@@ -255,7 +255,7 @@ class Mixin:
                 if ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and hgvs_transcript.posedit.pos.start.offset == 0
                     ) or (1 <= hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset
                           == 0)) and '*' not in str(hgvs_transcript.posedit.pos):
-                    hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
+                    hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
                                                                         type='p', posedit='(Met1?)')
                 else:
                     try:
@@ -322,12 +322,12 @@ class Mixin:
                             hgvs_transcript.posedit.pos.start.offset == 0) or (1 <=
                             hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset == 0))\
                                 and '*' not in str(hgvs_transcript.posedit.pos):
-                            hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
+                            hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
                                                                                 type='p',
                                                                                 posedit='(Met1?)')
                         else:
                             # Make the variant
-                            hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
+                            hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
                                                                                 type='p', posedit='?')
                         hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
                         return hgvs_transcript_to_hgvs_protein
@@ -356,7 +356,7 @@ class Mixin:
                         except IndexError:
                             hgvs_transcript_to_hgvs_protein['error'] = \
                                 'Cannot identify an in-frame Termination codon in the variant mRNA sequence'
-                            hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
+                            hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
                                                                                 type='p', posedit='?')
                             hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
                             return hgvs_transcript_to_hgvs_protein
@@ -372,7 +372,7 @@ class Mixin:
                                     1 <= hgvs_transcript.posedit.pos.end.base <= 3 and
                                     hgvs_transcript.posedit.pos.end.offset == 0)) \
                                     and '*' not in str(hgvs_transcript.posedit.pos):
-                                hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
+                                hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
                                                                                     type='p', posedit='(Met1?)')
 
                                 hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
@@ -397,7 +397,7 @@ class Mixin:
                             # The Nucleotide variant has not affected the protein sequence i.e. synonymous
                             elif pro_inv_info['variant'] != 'true':
                                 # Make the variant
-                                hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
+                                hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
                                                                                     type='p', posedit='=')
                                 hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
                                 return hgvs_transcript_to_hgvs_protein
@@ -459,7 +459,7 @@ class Mixin:
                                                       ins_thr + ')'
 
                                 # Complete the variant
-                                hgvs_protein = hgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
+                                hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
                                                                                     type='p', posedit=posedit)
 
                                 hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein

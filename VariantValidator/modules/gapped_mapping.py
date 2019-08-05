@@ -1,7 +1,7 @@
 import copy
 import re
 import logging
-import hgvs.exceptions
+import vvhgvs.exceptions
 from . import utils as fn
 from . import hgvs_utils
 
@@ -136,7 +136,7 @@ class GapMapper(object):
 
             try:
                 self.variant.hn.normalize(hgvs_seek_var)
-            except hgvs.exceptions.HGVSUnsupportedOperationError as e:
+            except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
                 error = str(e)
                 if 'Normalization of intronic variants is not supported' in error or \
                         'Unsupported normalization of variants spanning the exon-intron boundary' in error:
@@ -196,9 +196,9 @@ class GapMapper(object):
 
                     try:
                         self.tx_hgvs_not_delins = self.variant.no_norm_evm.g_to_n(hgvs_not_delins, saved_hgvs_coding.ac)
-                    except hgvs.exceptions.HGVSInvalidIntervalError:
+                    except vvhgvs.exceptions.HGVSInvalidIntervalError:
                         self.tx_hgvs_not_delins = self.variant.no_norm_evm.g_to_n(self.hgvs_genomic_5pr, saved_hgvs_coding.ac)
-                    except hgvs.exceptions.HGVSError as e:
+                    except vvhgvs.exceptions.HGVSError as e:
                         if str(e) == 'start or end or both are beyond the bounds of transcript record':
                             self.tx_hgvs_not_delins = saved_hgvs_coding
 
@@ -243,7 +243,7 @@ class GapMapper(object):
                         restore_stash_hgvs_not_delins = copy.copy(stash_hgvs_not_delins)
                         try:
                             hgvs_stash_t = self.validator.vm.g_to_t(stash_hgvs_not_delins, saved_hgvs_coding.ac)
-                        except hgvs.exceptions.HGVSError as e:
+                        except vvhgvs.exceptions.HGVSError as e:
                             if 'bounds' in str(e):
                                 stash_hgvs_not_delins = copy.copy(stored_hgvs_not_delins)
                                 hgvs_stash_t = self.validator.vm.g_to_t(stash_hgvs_not_delins, saved_hgvs_coding.ac)
@@ -284,7 +284,7 @@ class GapMapper(object):
                     logger.info(str(e))
                 try:
                     self.variant.hn.normalize(self.tx_hgvs_not_delins)
-                except hgvs.exceptions.HGVSUnsupportedOperationError as e:
+                except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
                     error = str(e)
                     if 'Normalization of intronic variants is not supported' in error or \
                             'Unsupported normalization of variants spanning the exon-intron boundary' in error:
@@ -421,7 +421,7 @@ class GapMapper(object):
                 chromosome_normalized_hgvs_coding = self.variant.reverse_normalizer.normalize(hgvs_coding)
             else:
                 chromosome_normalized_hgvs_coding = self.variant.hn.normalize(hgvs_coding)
-        except hgvs.exceptions.HGVSUnsupportedOperationError:
+        except vvhgvs.exceptions.HGVSUnsupportedOperationError:
             chromosome_normalized_hgvs_coding = hgvs_coding
 
         most_3pr_hgvs_genomic = self.validator.myvm_t_to_g(chromosome_normalized_hgvs_coding, hgvs_genomic.ac,
@@ -492,7 +492,7 @@ class GapMapper(object):
                 hgvs_reform_ident = self.validator.hp.parse_hgvs_variant(reform_ident)
                 try:
                     self.variant.hn.normalize(hgvs_reform_ident)
-                except hgvs.exceptions.HGVSError as e:
+                except vvhgvs.exceptions.HGVSError as e:
                     error = str(e)
                     if re.search('spanning the exon-intron boundary', error):
                         stash_tx_right = test_stash_tx_right
@@ -503,12 +503,12 @@ class GapMapper(object):
             else:
                 try:
                     self.variant.hn.normalize(test_stash_tx_right)
-                except hgvs.exceptions.HGVSUnsupportedOperationError:
+                except vvhgvs.exceptions.HGVSUnsupportedOperationError:
                     self.hgvs_genomic_possibilities.append('')
                 else:
                     stash_tx_right = test_stash_tx_right
                     self.hgvs_genomic_possibilities.append(stash_genomic)
-        except hgvs.exceptions.HGVSError as e:
+        except vvhgvs.exceptions.HGVSError as e:
             logger.debug("Except passed, %s", e)
         # Intronic positions not supported. Will cause a Value Error
         except ValueError as e:
@@ -576,7 +576,7 @@ class GapMapper(object):
                 hgvs_reform_ident = self.validator.hp.parse_hgvs_variant(reform_ident)
                 try:
                     self.variant.hn.normalize(hgvs_reform_ident)
-                except hgvs.exceptions.HGVSError as e:
+                except vvhgvs.exceptions.HGVSError as e:
                     error = str(e)
                     if re.search('spanning the exon-intron boundary', error):
                         stash_tx_left = test_stash_tx_left
@@ -587,12 +587,12 @@ class GapMapper(object):
             else:
                 try:
                     self.variant.hn.normalize(test_stash_tx_left)
-                except hgvs.exceptions.HGVSUnsupportedOperationError:
+                except vvhgvs.exceptions.HGVSUnsupportedOperationError:
                     self.hgvs_genomic_possibilities.append('')
                 else:
                     stash_tx_left = test_stash_tx_left
                     self.hgvs_genomic_possibilities.append(stash_genomic)
-        except hgvs.exceptions.HGVSError as e:
+        except vvhgvs.exceptions.HGVSError as e:
             logger.debug("Except passed, %s", e)
         except ValueError as e:
             logger.debug("Except passed, %s", e)
@@ -626,7 +626,7 @@ class GapMapper(object):
             # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
             try:
                 reverse_normalized_hgvs_genomic = self.variant.reverse_normalizer.normalize(hgvs_genomic_variant)
-            except hgvs.exceptions.HGVSError as e:
+            except vvhgvs.exceptions.HGVSError as e:
                 # Strange error caused by gap in genomic
                 error = str(e)
                 if 'base start position must be <= end position' in error:
@@ -683,7 +683,7 @@ class GapMapper(object):
             # Save a copy of current hgvs_coding
             try:
                 saved_hgvs_coding = self.variant.no_norm_evm.g_to_t(stored_hgvs_not_delins, hgvs_coding.ac)
-            except hgvs.exceptions.HGVSInvalidIntervalError as e:
+            except vvhgvs.exceptions.HGVSInvalidIntervalError as e:
                 if str(e) == 'start or end or both are beyond the bounds of transcript record':
                     continue
                 else:
@@ -704,7 +704,7 @@ class GapMapper(object):
 
             try:
                 self.variant.hn.normalize(hgvs_seek_var)
-            except hgvs.exceptions.HGVSUnsupportedOperationError as e:
+            except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
                 error = str(e)
                 if 'Normalization of intronic variants is not supported' in error or \
                         'Unsupported normalization of variants spanning the exon-intron boundary' in error:
@@ -763,7 +763,7 @@ class GapMapper(object):
                     try:
                         self.tx_hgvs_not_delins = self.variant.no_norm_evm.g_to_n(hgvs_not_delins,
                                                                                   saved_hgvs_coding.ac)
-                    except hgvs.exceptions.HGVSInvalidIntervalError:
+                    except vvhgvs.exceptions.HGVSInvalidIntervalError:
                         self.tx_hgvs_not_delins = self.variant.no_norm_evm.g_to_n(reverse_normalized_hgvs_genomic,
                                                                                   saved_hgvs_coding.ac)
                     # Create normalized version of tx_hgvs_not_delins
@@ -807,7 +807,7 @@ class GapMapper(object):
                         continue
                 try:
                     self.variant.hn.normalize(self.tx_hgvs_not_delins)
-                except hgvs.exceptions.HGVSUnsupportedOperationError as e:
+                except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
                     error = str(e)
                     if 'Normalization of intronic variants is not supported' in error or \
                             'Unsupported normalization of variants spanning the exon-intron boundary' in error:
@@ -954,7 +954,7 @@ class GapMapper(object):
         # Normailse hgvs_genomic
         try:
             hgvs_genomic = self.variant.hn.normalize(hgvs_genomic)
-        except hgvs.exceptions.HGVSError as e:
+        except vvhgvs.exceptions.HGVSError as e:
             # Strange error caused by gap in genomic
             error = str(e)
 
@@ -1078,7 +1078,7 @@ class GapMapper(object):
                     return True
             try:
                 self.variant.hn.normalize(self.tx_hgvs_not_delins)
-            except hgvs.exceptions.HGVSUnsupportedOperationError as e:
+            except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
                 error = str(e)
                 if 'Normalization of intronic variants is not supported' in error or \
                         'Unsupported normalization of variants spanning the exon-intron boundary' in error:
@@ -1146,12 +1146,12 @@ class GapMapper(object):
             try:
                 chromosome_normalized_hgvs_coding = self.variant.reverse_normalizer.normalize(
                     hgvs_coding)
-            except hgvs.exceptions.HGVSUnsupportedOperationError:
+            except vvhgvs.exceptions.HGVSUnsupportedOperationError:
                 chromosome_normalized_hgvs_coding = hgvs_coding
         else:
             try:
                 chromosome_normalized_hgvs_coding = self.variant.hn.normalize(hgvs_coding)
-            except hgvs.exceptions.HGVSUnsupportedOperationError:
+            except vvhgvs.exceptions.HGVSUnsupportedOperationError:
                 chromosome_normalized_hgvs_coding = hgvs_coding
 
         most_3pr_hgvs_genomic = self.validator.myvm_t_to_g(chromosome_normalized_hgvs_coding, alt_chr,
@@ -1220,7 +1220,7 @@ class GapMapper(object):
                 hgvs_reform_ident = self.validator.hp.parse_hgvs_variant(reform_ident)
                 try:
                     self.variant.hn.normalize(hgvs_reform_ident)
-                except hgvs.exceptions.HGVSError as e:
+                except vvhgvs.exceptions.HGVSError as e:
                     error = str(e)
                     if 'spanning the exon-intron boundary' in error:
                         stash_tx_right = test_stash_tx_right
@@ -1231,12 +1231,12 @@ class GapMapper(object):
             else:
                 try:
                     self.variant.hn.normalize(test_stash_tx_right)
-                except hgvs.exceptions.HGVSUnsupportedOperationError:
+                except vvhgvs.exceptions.HGVSUnsupportedOperationError:
                     self.hgvs_genomic_possibilities.append('')
                 else:
                     stash_tx_right = test_stash_tx_right
                     self.hgvs_genomic_possibilities.append(stash_genomic)
-        except hgvs.exceptions.HGVSError as e:
+        except vvhgvs.exceptions.HGVSError as e:
             logger.debug("Except passed, %s", e)
         except ValueError as e:
             logger.debug("Except passed, %s", e)
@@ -1301,7 +1301,7 @@ class GapMapper(object):
                 hgvs_reform_ident = self.validator.hp.parse_hgvs_variant(reform_ident)
                 try:
                     self.variant.hn.normalize(hgvs_reform_ident)
-                except hgvs.exceptions.HGVSError as e:
+                except vvhgvs.exceptions.HGVSError as e:
                     error = str(e)
                     if 'spanning the exon-intron boundary' in error:
                         stash_tx_left = test_stash_tx_left
@@ -1312,12 +1312,12 @@ class GapMapper(object):
             else:
                 try:
                     self.variant.hn.normalize(test_stash_tx_left)
-                except hgvs.exceptions.HGVSUnsupportedOperationError:
+                except vvhgvs.exceptions.HGVSUnsupportedOperationError:
                     self.hgvs_genomic_possibilities.append('')
                 else:
                     stash_tx_left = test_stash_tx_left
                     self.hgvs_genomic_possibilities.append(stash_genomic)
-        except hgvs.exceptions.HGVSError as e:
+        except vvhgvs.exceptions.HGVSError as e:
             logger.debug("Except passed, %s", e)
         except ValueError as e:
             logger.debug("Except passed, %s", e)
@@ -1347,7 +1347,7 @@ class GapMapper(object):
             try:
                 reverse_normalized_hgvs_genomic = self.variant.reverse_normalizer.normalize(
                     hgvs_genomic_variant)
-            except hgvs.exceptions.HGVSError as e:
+            except vvhgvs.exceptions.HGVSError as e:
                 # Strange error caused by gap in genomic
                 error = str(e)
                 if 'base start position must be <= end position' in error:
@@ -1431,7 +1431,7 @@ class GapMapper(object):
 
             try:
                 self.variant.hn.normalize(hgvs_seek_var)
-            except hgvs.exceptions.HGVSUnsupportedOperationError as e:
+            except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
                 error = str(e)
                 if 'Normalization of intronic variants is not supported' in error or \
                         'Unsupported normalization of variants spanning the exon-intron boundary' in error:
@@ -1516,7 +1516,7 @@ class GapMapper(object):
                         continue
                 try:
                     self.variant.hn.normalize(self.tx_hgvs_not_delins)
-                except hgvs.exceptions.HGVSUnsupportedOperationError as e:
+                except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
                     error = str(e)
                     if 'Normalization of intronic variants is not supported' in error or \
                             'Unsupported normalization of variants spanning the exon-intron boundary' in error:
@@ -1642,7 +1642,7 @@ class GapMapper(object):
         # Normailse hgvs_genomic
         try:
             hgvs_alt_genomic = self.variant.hn.normalize(hgvs_alt_genomic)
-        except hgvs.exceptions.HGVSError as e:
+        except vvhgvs.exceptions.HGVSError as e:
             # Strange error caused by gap in genomic
             error = str(e)
             if 'base start position must be <= end position' in error and self.disparity_deletion_in[0] == 'chromosome':
@@ -2001,9 +2001,9 @@ class GapMapper(object):
                         self.tx_hgvs_not_delins = c2
                         try:
                             self.tx_hgvs_not_delins = self.validator.vm.c_to_n(self.tx_hgvs_not_delins)
-                        except hgvs.exceptions.HGVSError as e:
+                        except vvhgvs.exceptions.HGVSError as e:
                             logger.debug("Except passed, %s", e)
-                except hgvs.exceptions.HGVSInvalidVariantError as e:
+                except vvhgvs.exceptions.HGVSInvalidVariantError as e:
                     logger.debug("Except passed, %s", e)
 
             if '+' in str(self.tx_hgvs_not_delins.posedit.pos.start) and \
@@ -2240,7 +2240,7 @@ class GapMapper(object):
         # Map to the transcript and test for movement
         try:
             hgvs_seek_var = self.variant.evm.g_to_t(query_genomic, hgvs_coding.ac)
-        except hgvs.exceptions.HGVSError:
+        except vvhgvs.exceptions.HGVSError:
             hgvs_seek_var = hgvs_coding
 
         if with_query_genomic:
@@ -2281,7 +2281,7 @@ class GapMapper(object):
                 try:
                     genomic_from_most_3pr_hgvs_transcript_variant = self.variant.hn.normalize(
                         genomic_from_most_3pr_hgvs_transcript_variant)
-                except hgvs.exceptions.HGVSInvalidVariantError as e:
+                except vvhgvs.exceptions.HGVSInvalidVariantError as e:
                     error = str(e)
                     if error == 'base start position must be <= end position':
                         start = genomic_from_most_3pr_hgvs_transcript_variant.posedit.pos.start.base
@@ -2293,7 +2293,7 @@ class GapMapper(object):
                 try:
                     genomic_from_most_5pr_hgvs_transcript_variant = self.variant.hn.normalize(
                         genomic_from_most_5pr_hgvs_transcript_variant)
-                except hgvs.exceptions.HGVSInvalidVariantError as e:
+                except vvhgvs.exceptions.HGVSInvalidVariantError as e:
                     error = str(e)
                     if error == 'base start position must be <= end position':
                         start = genomic_from_most_5pr_hgvs_transcript_variant.posedit.pos.start.base
@@ -2350,7 +2350,7 @@ class GapMapper(object):
                         most_5pr_hgvs_transcript_variant.posedit.edit.alt):
                     self.hgvs_genomic_possibilities.append(genomic_from_most_5pr_hgvs_transcript_variant)
 
-        except hgvs.exceptions.HGVSUnsupportedOperationError as e:
+        except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
             logger.debug("Except passed, %s", e)
 
 # <LICENSE>

@@ -2,7 +2,7 @@ from . import utils
 from .utils import handleCursor
 from . import vvDBInsert
 import re
-import hgvs.exceptions
+import vvhgvs.exceptions
 import logging
 import json
 
@@ -107,12 +107,12 @@ class Database(vvDBInsert.Mixin):
         # Get information from UTA
         try:
             uta_info = validator.hdp.get_tx_identity_info(version)
-        except hgvs.exceptions.HGVSDataNotAvailableError:
+        except vvhgvs.exceptions.HGVSDataNotAvailableError:
             version_ac_ver = version.split('.')
             version = version_ac_ver[0] + '.' + str(int(version_ac_ver[1]) - 1)
             try:
                 uta_info = validator.hdp.get_tx_identity_info(version)
-            except hgvs.exceptions.HGVSDataNotAvailableError:
+            except vvhgvs.exceptions.HGVSDataNotAvailableError:
                 raise utils.DatabaseConnectionError("Cannot retrieve data from UTA database")
 
         uta_symbol = str(uta_info[6])

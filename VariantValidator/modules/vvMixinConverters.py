@@ -1,15 +1,15 @@
 import re
 import copy
 import logging
-import hgvs
-import hgvs.validator
+import vvhgvs
+import vvhgvs.validator
 from . import vvMixinInit
 from . import seq_data
 from . import hgvs_utils
 from Bio import Entrez, SeqIO
 from . import utils as fn
 
-from hgvs.exceptions import HGVSError, HGVSDataNotAvailableError, HGVSUnsupportedOperationError
+from vvhgvs.exceptions import HGVSError, HGVSDataNotAvailableError, HGVSUnsupportedOperationError
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ class Mixin(vvMixinInit.Mixin):
     #     acession
     #     refseq_ac = RefSeqGene ac
     #     """
-    #     vr = hgvs.validator.Validator(self.hdp)
+    #     vr = vvhgvs.validator.Validator(self.hdp)
     #     # parse the variant into hgvs object
     #     var_c = self.hp.parse_hgvs_variant(variant)
     #     # map to the genomic co-ordinates using the easy variant mapper set to alt_aln_method = alt_aln_method
@@ -129,7 +129,7 @@ class Mixin(vvMixinInit.Mixin):
             hgvs_var = self.hp.parse_hgvs_variant(variant)
             try:
                 var_g = self.myevm_t_to_g(hgvs_var, evm, primary_assembly, hn)  # genomic level variant
-            except hgvs.exceptions.HGVSError as e:
+            except vvhgvs.exceptions.HGVSError as e:
                 return 'error ' + str(e)
             return var_g
 
@@ -194,7 +194,7 @@ class Mixin(vvMixinInit.Mixin):
             # Check for intronic
             try:
                 hn.normalize(hgvs_c)
-            except hgvs.exceptions.HGVSError as e:
+            except vvhgvs.exceptions.HGVSError as e:
                 error = str(e)
                 if 'intronic variant' not in error and \
                         'Length implied by coordinates must equal sequence deletion length' in error and \
@@ -279,14 +279,14 @@ class Mixin(vvMixinInit.Mixin):
             if str(hgvs_c.ac).startswith('NM_'):
                 try:
                     hgvs_c = no_norm_evm.n_to_c(hgvs_c)
-                except hgvs.exceptions.HGVSError:
+                except vvhgvs.exceptions.HGVSError:
                     hgvs_c = copy.deepcopy(stored_hgvs_c)
 
             # Ensure the altered c. variant has not crossed intro exon boundaries
             hgvs_check_boundaries = copy.deepcopy(hgvs_c)
             try:
                 hn.normalize(hgvs_check_boundaries)
-            except hgvs.exceptions.HGVSError as e:
+            except vvhgvs.exceptions.HGVSError as e:
                 error = str(e)
                 if 'spanning the exon-intron boundary' in error:
                     hgvs_c = copy.deepcopy(stored_hgvs_c)
@@ -298,7 +298,7 @@ class Mixin(vvMixinInit.Mixin):
                 hgvs_reform_ident = self.hp.parse_hgvs_variant(reform_ident)
                 try:
                     hn.normalize(hgvs_reform_ident)
-                except hgvs.exceptions.HGVSError as e:
+                except vvhgvs.exceptions.HGVSError as e:
                     error = str(e)
                     if 'spanning the exon-intron boundary' in error or 'Normalization of intronic variants' in error:
                         hgvs_c = copy.deepcopy(stored_hgvs_c)
@@ -311,7 +311,7 @@ class Mixin(vvMixinInit.Mixin):
             hgvs_genomic = no_norm_evm.t_to_g(hgvs_c)
             hn.normalize(hgvs_genomic)  # Check the validity of the mapping
             # This will fail on multiple refs for NC_
-        except hgvs.exceptions.HGVSError:
+        except vvhgvs.exceptions.HGVSError:
             # Recover all available mapping options from UTA
             mapping_options = self.hdp.get_tx_mapping_options(hgvs_c.ac)
 
@@ -404,7 +404,7 @@ class Mixin(vvMixinInit.Mixin):
         if hgvs_genomic.posedit.edit.type == 'ins' and utilise_gap_code is True:
             try:
                 hgvs_genomic = hn.normalize(hgvs_genomic)
-            except hgvs.exceptions.HGVSError as e:
+            except vvhgvs.exceptions.HGVSError as e:
                 error = str(e)
                 if error == 'insertion length must be 1':
                     ref = self.sf.fetch_seq(str(hgvs_genomic.ac), hgvs_genomic.posedit.pos.start.base - 1,
@@ -444,7 +444,7 @@ class Mixin(vvMixinInit.Mixin):
 
             try:
                 hn.normalize(nr_genomic)
-            except hgvs.exceptions.HGVSInvalidVariantError as e:
+            except vvhgvs.exceptions.HGVSInvalidVariantError as e:
                 error_type_1 = str(e)
                 if 'Length implied by coordinates must equal sequence deletion length' in str(e) or str(
                         e) == 'base start position must be <= end position':
@@ -459,7 +459,7 @@ class Mixin(vvMixinInit.Mixin):
                         try:
                             hn.normalize(genomic_gap_variant)
                         # Still a problem
-                        except hgvs.exceptions.HGVSInvalidVariantError as e:
+                        except vvhgvs.exceptions.HGVSInvalidVariantError as e:
                             if 'base start position must be <= end position' in str(e) and \
                                     'Length implied by coordinates must equal' in error_type_1:
                                 make_gen_var = copy.copy(nr_genomic)
@@ -515,7 +515,7 @@ class Mixin(vvMixinInit.Mixin):
                         if 'Length implied by coordinates must equal sequence deletion length' not in str(e):
                             try:
                                 transcript_gap_variant = hn.normalize(transcript_gap_variant)
-                            except hgvs.exceptions.HGVSUnsupportedOperationError as e:
+                            except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
                                 logger.debug("Except passed, %s", e)
 
                         # if NM_ need the n. position
@@ -756,7 +756,7 @@ class Mixin(vvMixinInit.Mixin):
                 hgvs_c.posedit.pos.end.offset == 0:
             try:
                 hn.normalize(hgvs_genomic)
-            except hgvs.exceptions.HGVSError as e:
+            except vvhgvs.exceptions.HGVSError as e:
                 error = str(e)
                 if error == 'insertion length must be 1':
                     if hgvs_c.type == 'c':
@@ -800,7 +800,7 @@ class Mixin(vvMixinInit.Mixin):
             hgvs_genomic = variant.evm.t_to_g(hgvs_c)
             variant.hn.normalize(hgvs_genomic)
         # This will fail on multiple refs for NC_
-        except hgvs.exceptions.HGVSError:
+        except vvhgvs.exceptions.HGVSError:
             # Recover all available mapping options from UTA
             mapping_options = self.hdp.get_tx_mapping_options(hgvs_c.ac)
 
@@ -888,7 +888,7 @@ class Mixin(vvMixinInit.Mixin):
                 hgvs_c.posedit.pos.end.offset == 0:
             try:
                 variant.hn.normalize(hgvs_genomic)
-            except hgvs.exceptions.HGVSError as e:
+            except vvhgvs.exceptions.HGVSError as e:
                 error = str(e)
                 if error == 'insertion length must be 1':
                     if hgvs_c.type == 'c':
@@ -951,7 +951,7 @@ class Mixin(vvMixinInit.Mixin):
             # Check for intronic
             try:
                 hn.normalize(hgvs_c)
-            except hgvs.exceptions.HGVSError as e:
+            except vvhgvs.exceptions.HGVSError as e:
                 error = str(e)
                 if 'intronic variant' in error:
                     logger.debug("Except passed, %s", e)
@@ -1040,14 +1040,14 @@ class Mixin(vvMixinInit.Mixin):
             if str(hgvs_c.ac).startswith('NM_'):
                 try:
                     hgvs_c = no_norm_evm.n_to_c(hgvs_c)
-                except hgvs.exceptions.HGVSError:
+                except vvhgvs.exceptions.HGVSError:
                     hgvs_c = copy.deepcopy(stored_hgvs_c)
 
             # Ensure the altered c. variant has not crossed intro exon boundaries
             hgvs_check_boundaries = copy.deepcopy(hgvs_c)
             try:
                 hn.normalize(hgvs_check_boundaries)
-            except hgvs.exceptions.HGVSError as e:
+            except vvhgvs.exceptions.HGVSError as e:
                 error = str(e)
                 if 'spanning the exon-intron boundary' in error:
                     hgvs_c = copy.deepcopy(stored_hgvs_c)
@@ -1059,7 +1059,7 @@ class Mixin(vvMixinInit.Mixin):
                 hgvs_reform_ident = self.hp.parse_hgvs_variant(reform_ident)
                 try:
                     hn.normalize(hgvs_reform_ident)
-                except hgvs.exceptions.HGVSError as e:
+                except vvhgvs.exceptions.HGVSError as e:
                     error = str(e)
                     if 'spanning the exon-intron boundary' in error or 'Normalization of intronic variants' in error:
                         hgvs_c = copy.deepcopy(stored_hgvs_c)
@@ -1071,7 +1071,7 @@ class Mixin(vvMixinInit.Mixin):
         if hgvs_genomic.posedit.edit.type == 'ins' and utilise_gap_code is True:
             try:
                 hgvs_genomic = hn.normalize(hgvs_genomic)
-            except hgvs.exceptions.HGVSError as e:
+            except vvhgvs.exceptions.HGVSError as e:
                 error = str(e)
                 if error == 'insertion length must be 1':
                     ref = self.sf.fetch_seq(str(hgvs_genomic.ac), hgvs_genomic.posedit.pos.start.base - 1,
@@ -1110,7 +1110,7 @@ class Mixin(vvMixinInit.Mixin):
             nr_genomic = self.nr_vm.t_to_g(hgvs_c, hgvs_genomic.ac)
             try:
                 hn.normalize(nr_genomic)
-            except hgvs.exceptions.HGVSInvalidVariantError as e:
+            except vvhgvs.exceptions.HGVSInvalidVariantError as e:
                 error_type_1 = str(e)
                 if 'Length implied by coordinates must equal sequence deletion length' in str(e) or str(
                         e) == 'base start position must be <= end position':
@@ -1125,7 +1125,7 @@ class Mixin(vvMixinInit.Mixin):
                         try:
                             hn.normalize(genomic_gap_variant)
                         # Still a problem
-                        except hgvs.exceptions.HGVSInvalidVariantError as e:
+                        except vvhgvs.exceptions.HGVSInvalidVariantError as e:
                             if 'base start position must be <= end position' in str(e) and \
                                     'Length implied by coordinates must equal' in error_type_1:
                                 make_gen_var = copy.copy(nr_genomic)
@@ -1179,7 +1179,7 @@ class Mixin(vvMixinInit.Mixin):
                         if 'Length implied by coordinates must equal sequence deletion length' not in str(e):
                             try:
                                 transcript_gap_variant = hn.normalize(transcript_gap_variant)
-                            except hgvs.exceptions.HGVSUnsupportedOperationError as e:
+                            except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
                                 logger.debug("Except passed, %s", e)
 
                         # if NM_ need the n. position
@@ -1418,7 +1418,7 @@ class Mixin(vvMixinInit.Mixin):
                 hgvs_c.posedit.pos.end.offset == 0:
             try:
                 hn.normalize(hgvs_genomic)
-            except hgvs.exceptions.HGVSError as e:
+            except vvhgvs.exceptions.HGVSError as e:
                 error = str(e)
                 if error == 'insertion length must be 1':
                     if hgvs_c.type == 'c':
@@ -1493,7 +1493,7 @@ class Mixin(vvMixinInit.Mixin):
     #     """
     #     Input c. r. n. variant string
     #     Use uta.py (hdp) to return the identity information for the transcript variant
-    #     see hgvs.dataproviders.uta.py for details
+    #     see vvhgvs.dataproviders.uta.py for details
     #     """
     #     # If the :c. pattern is present in the input variant
     #     if ':c.' in variant:
@@ -1529,7 +1529,7 @@ class Mixin(vvMixinInit.Mixin):
     #     """
     #     Input c. r. nd accession string
     #     Use uta.py (hdp) to return the identity information for the transcript variant
-    #     see hgvs.dataproviders.uta.py for details
+    #     see vvhgvs.dataproviders.uta.py for details
     #     """
     #     tx_id_info = self.hdp.get_tx_identity_info(alt_ac)
     #     # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
@@ -1538,7 +1538,7 @@ class Mixin(vvMixinInit.Mixin):
     # def tx_for_gene(self, hgnc):
     #     """
     #     Use uta.py (hdp) to return the transcript information for a specified gene (HGNC SYMBOL)
-    #     see hgvs.dataproviders.uta.py for details
+    #     see vvhgvs.dataproviders.uta.py for details
     #     """
     #     # Interface with the UTA database via get_tx_for_gene in uta.py
     #     tx_for_gene = self.hdp.get_tx_for_gene(hgnc)
@@ -1547,7 +1547,7 @@ class Mixin(vvMixinInit.Mixin):
     # def ng_extract(self, tx_for_gene):
     #     """
     #     Extract RefSeqGene Accession from transcript information
-    #     see hgvs.dataproviders.uta.py for details
+    #     see vvhgvs.dataproviders.uta.py for details
     #     """
     #     # For each list in the list of lists tx_for_gene
     #     for item in tx_for_gene:
@@ -1561,12 +1561,12 @@ class Mixin(vvMixinInit.Mixin):
         """
         Returns exon information for a given transcript
         e.g. how the exons align to the genomic reference
-        see hgvs.dataproviders.uta.py for details
+        see vvhgvs.dataproviders.uta.py for details
         """
         # Interface with the UTA database via get_tx_exons in uta.py
         try:
             tx_exons = self.hdp.get_tx_exons(tx_ac, alt_ac, alt_aln_method)
-        except hgvs.exceptions.HGVSError as e:
+        except vvhgvs.exceptions.HGVSError as e:
             #e
             tx_exons = 'hgvs Exception: ' + str(e)
             return tx_exons
@@ -1611,11 +1611,11 @@ class Mixin(vvMixinInit.Mixin):
             # Check for coding transcripts
             try:
                 variant = evm.g_to_t(hgvs_genomic, y)
-            except hgvs.exceptions.HGVSError:
+            except vvhgvs.exceptions.HGVSError:
                 # Check for non-coding transcripts
                 try:
                     variant = evm.g_to_t(hgvs_genomic, y)
-                except hgvs.exceptions.HGVSError:
+                except vvhgvs.exceptions.HGVSError:
                     continue
             except:
                 continue
@@ -1628,7 +1628,7 @@ class Mixin(vvMixinInit.Mixin):
                 # Interface with the UTA database via get_tx_exons in uta.py
                 try:
                     tx_exons = self.hdp.get_tx_exons(tx_ac, alt_ac, alt_aln_method)
-                except hgvs.exceptions.HGVSError as e:
+                except vvhgvs.exceptions.HGVSError as e:
                     tx_exons = 'hgvs Exception: ' + str(e)
                     return tx_exons
                 try:
@@ -1654,7 +1654,7 @@ class Mixin(vvMixinInit.Mixin):
                     variant = evm.g_to_t(rev_hgvs_genomic, tx_ac)
             try:
                 self.hp.parse_hgvs_variant(str(variant))
-            except hgvs.exceptions.HGVSError:
+            except vvhgvs.exceptions.HGVSError:
                 continue
             except TypeError:
                 continue
@@ -1682,7 +1682,7 @@ class Mixin(vvMixinInit.Mixin):
 
         try:
             self.vr.validate(hgvs_input)
-        except hgvs.exceptions.HGVSError as e:
+        except vvhgvs.exceptions.HGVSError as e:
             return e
         else:
             return 'false'
@@ -2210,7 +2210,7 @@ class Mixin(vvMixinInit.Mixin):
                     continue
                 try:
                     self.vr.validate(hgvs_refseqgene)
-                except hgvs.exceptions.HGVSError as e:
+                except vvhgvs.exceptions.HGVSError as e:
                     error = str(e)
                     if 'does not agree with reference sequence' in error:
                         match = re.findall(r'\(([GATC]+)\)', error)
@@ -2271,7 +2271,7 @@ class Mixin(vvMixinInit.Mixin):
                     continue
                 try:
                     self.vr.validate(hgvs_refseqgene)
-                except hgvs.exceptions.HGVSError as e:
+                except vvhgvs.exceptions.HGVSError as e:
                     error = str(e)
                     if 'does not agree with reference sequence' in error:
                         match = re.findall(r'\(([GATC]+)\)', error)
@@ -2350,7 +2350,7 @@ class Mixin(vvMixinInit.Mixin):
                 hgvs_genomic = hn.normalize(hgvs_genomic)
                 try:
                     self.vr.validate(hgvs_genomic)
-                except hgvs.exceptions.HGVSError as e:
+                except vvhgvs.exceptions.HGVSError as e:
                     error = str(e)
                     if 'does not agree with reference sequence' in error:
                         match = re.findall(r'\(([GATC]+)\)', error)
@@ -2406,7 +2406,7 @@ class Mixin(vvMixinInit.Mixin):
                 hgvs_genomic = hn.normalize(hgvs_genomic)
                 try:
                     self.vr.validate(hgvs_genomic)
-                except hgvs.exceptions.HGVSError as e:
+                except vvhgvs.exceptions.HGVSError as e:
                     error = str(e)
                     if 'does not agree with reference sequence' in error:
                         match = re.findall(r'\(([GATC]+)\)', error)

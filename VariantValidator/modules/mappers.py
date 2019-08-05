@@ -1,7 +1,7 @@
-import hgvs
+import vvhgvs
 import re
 import copy
-import hgvs.exceptions
+import vvhgvs.exceptions
 import logging
 from . import hgvs_utils
 from .variant import Variant
@@ -19,7 +19,7 @@ def gene_to_transcripts(variant, validator):
     error = 'false'
     try:
         validator.vr.validate(g_query)
-    except hgvs.exceptions.HGVSError as e:
+    except vvhgvs.exceptions.HGVSError as e:
         error = str(e)
     except KeyError:
         error = 'Reference sequence ' + variant.hgvs_genomic.ac + ' is either not supported or does not exist'
@@ -54,7 +54,7 @@ def gene_to_transcripts(variant, validator):
             try:
                 variant.hgvs_genomic = validator.myevm_t_to_g(hgvs_coding_variant, variant.no_norm_evm,
                                                               variant.primary_assembly, variant.hn)
-            except hgvs.exceptions.HGVSError:
+            except vvhgvs.exceptions.HGVSError:
                 try_rel_var = []
             else:
                 try_rel_var = validator.relevant_transcripts(variant.hgvs_genomic, variant.evm,
@@ -116,7 +116,7 @@ def gene_to_transcripts(variant, validator):
             if sfm:
                 try:
                     validator.vr.validate(variant.hgvs_genomic)
-                except hgvs.exceptions.HGVSError as e:
+                except vvhgvs.exceptions.HGVSError as e:
                     error = str(e)
                     variant.warnings.append(error)
                     logger.warning(str(error))
@@ -216,7 +216,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     try:
         to_g = validator.myevm_t_to_g(obj, variant.no_norm_evm, variant.primary_assembly, variant.hn)
         genomic_ac = to_g.ac
-    except hgvs.exceptions.HGVSDataNotAvailableError as e:
+    except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
         if ('~' in str(e) and 'Alignment is incomplete' in str(e)) or "No relevant genomic mapping options" in str(e):
             # Unable to map the input variant onto a genomic position
             if '~' in str(e) and 'Alignment is incomplete' in str(e):
@@ -317,7 +317,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         # Normalize the variant
         try:
             h_variant = variant.hn.normalize(obj)
-        except hgvs.exceptions.HGVSUnsupportedOperationError as e:
+        except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
             error = str(e)
             if 'Unsupported normalization of variants spanning the exon-intron boundary' in error:
                 formatted_variant = formatted_variant
@@ -378,7 +378,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             # genome back to C coordinates
             try:
                 post_var = validator.myevm_g_to_t(variant.evm, pre_var, trans_acc)
-            except hgvs.exceptions.HGVSError as error:
+            except vvhgvs.exceptions.HGVSError as error:
                 variant.warnings.append(str(error))
                 logger.warning(str(error))
                 return True
@@ -460,7 +460,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             hgvs_inp = validator.hp.parse_hgvs_variant(inp)
             try:
                 hgvs_otp = variant.hn.normalize(hgvs_inp)
-            except hgvs.exceptions.HGVSError:
+            except vvhgvs.exceptions.HGVSError:
                 hgvs_otp = hgvs_inp
 
         # Set remaining variables
@@ -550,7 +550,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
 
     try:
         hgvs_coding = variant.hn.normalize(hgvs_coding)
-    except hgvs.exceptions.HGVSError as e:
+    except vvhgvs.exceptions.HGVSError as e:
         error = str(e)
 
     # Gap compensating code status
@@ -566,7 +566,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         try:
             hgvs_coding = variant.evm._maybe_normalize(hgvs_coding)
             gap_compensation = False
-        except hgvs.exceptions.HGVSError as error:
+        except vvhgvs.exceptions.HGVSError as error:
             variant.warnings.append(str(error))
             logger.warning(str(error))
             return True
@@ -672,7 +672,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             rng = variant.hn.normalize(query_genomic)
             try:
                 c_for_p = validator.vm.g_to_t(rng, hgvs_coding.ac)
-            except hgvs.exceptions.HGVSInvalidIntervalError:
+            except vvhgvs.exceptions.HGVSInvalidIntervalError:
                 c_for_p = fn.valstr(hgvs_seek_var)
             try:
                 # Predicted effect on protein
@@ -703,7 +703,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             c_for_p = validator.vm.g_to_t(rng, hgvs_coding.ac)
             try:
                 variant.hn.normalize(c_for_p)
-            except hgvs.exceptions.HGVSError as e:
+            except vvhgvs.exceptions.HGVSError as e:
                 logger.debug("Except passed, %s", e)
             else:
                 # hgvs_protein = va_func.protein(str(c_for_p), variant.evm, hp)
@@ -758,7 +758,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         try:
             validator.vr.validate(hgvs_updated)
         # Updated reference sequence
-        except hgvs.exceptions.HGVSError as e:
+        except vvhgvs.exceptions.HGVSError as e:
             error = str(e)
             if 'does not agree with reference sequence' in error:
                 match = re.findall(r'\(([GATC]+)\)', error)
@@ -797,12 +797,12 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant):
     # Look for variants spanning introns
     try:
         variant.hn.normalize(variant.hgvs_coding)
-    except hgvs.exceptions.HGVSUnsupportedOperationError as e:
+    except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
         error = str(e)
         if 'boundary' in error or 'spanning' in error:
             gap_compensation = False
 
-    except hgvs.exceptions.HGVSError as e:
+    except vvhgvs.exceptions.HGVSError as e:
         logger.debug("Except passed, %s", e)
 
     # Warn gap code status
@@ -842,7 +842,7 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant):
         except KeyError:
             warnings = warnings + ': Suspected incomplete alignment between transcript %s and ' \
                                   'genomic reference sequence %s' % (variant.hgvs_coding.ac, alt_chr)
-        except hgvs.exceptions.HGVSError as e:
+        except vvhgvs.exceptions.HGVSError as e:
             logger.warning(str(e))
 
     return multi_g

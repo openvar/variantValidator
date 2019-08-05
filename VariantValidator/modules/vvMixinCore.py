@@ -1,12 +1,12 @@
-import hgvs
-import hgvs.exceptions
-import hgvs.normalizer
+import vvhgvs
+import vvhgvs.exceptions
+import vvhgvs.normalizer
 import re
 import copy
 import sys
 import logging
 import json
-from hgvs.assemblymapper import AssemblyMapper
+from vvhgvs.assemblymapper import AssemblyMapper
 from . import hgvs_utils
 from . import utils as fn
 from . import seq_data
@@ -104,12 +104,12 @@ class Mixin(vvMixinConverters.Mixin):
             for my_variant in self.batch_list:
 
                 # Create Normalizers
-                my_variant.hn = hgvs.normalizer.Normalizer(self.hdp,
+                my_variant.hn = vvhgvs.normalizer.Normalizer(self.hdp,
                                                            cross_boundaries=False,
                                                            shuffle_direction=3,
                                                            alt_aln_method=self.alt_aln_method
                                                            )
-                my_variant.reverse_normalizer = hgvs.normalizer.Normalizer(self.hdp,
+                my_variant.reverse_normalizer = vvhgvs.normalizer.Normalizer(self.hdp,
                                                                            cross_boundaries=False,
                                                                            shuffle_direction=5,
                                                                            alt_aln_method=self.alt_aln_method
@@ -218,7 +218,7 @@ class Mixin(vvMixinConverters.Mixin):
                     try:
                         input_parses = self.hp.parse_hgvs_variant(formatted_variant)
                         my_variant.hgvs_formatted = input_parses
-                    except hgvs.exceptions.HGVSError as e:
+                    except vvhgvs.exceptions.HGVSError as e:
                         my_variant.warnings.append(str(e))
                         logger.warning(str(e))
                         continue
@@ -319,7 +319,7 @@ class Mixin(vvMixinConverters.Mixin):
                         # Create easy variant mapper (over variant mapper) and splign locked evm
                         try:
                             to_n = my_variant.evm.c_to_n(input_parses_copy)
-                        except hgvs.exceptions.HGVSError as e:
+                        except vvhgvs.exceptions.HGVSError as e:
                             logger.debug("Except passed, %s", e)
                         else:
                             if to_n.posedit.pos.end.base < to_n.posedit.pos.start.base:
@@ -500,7 +500,7 @@ class Mixin(vvMixinConverters.Mixin):
                     hgvs_transcript_variant = self.hp.parse_hgvs_variant(str_transcript)
                     try:
                         self.vr.validate(hgvs_transcript_variant)
-                    except hgvs.exceptions.HGVSError as e:
+                    except vvhgvs.exceptions.HGVSError as e:
                         error = str(e)
                         if 'intronic variant' in error:
                             genome_context_transcript_variant = genomic_accession + '(' + transcript_accession +\
@@ -556,7 +556,7 @@ class Mixin(vvMixinConverters.Mixin):
                 for alt_gen_var in multi_gen_vars:
                     try:
                         alt_gen_var = variant.hn.normalize(alt_gen_var)
-                    except hgvs.exceptions.HGVSInvalidVariantError:
+                    except vvhgvs.exceptions.HGVSInvalidVariantError:
                         continue
                     for build in self.genome_builds:
                         test = seq_data.supported_for_mapping(alt_gen_var.ac, build)
@@ -564,7 +564,7 @@ class Mixin(vvMixinConverters.Mixin):
                             try:
                                 vcf_dict = hgvs_utils.report_hgvs2vcf(alt_gen_var, build, variant.reverse_normalizer,
                                                                       self.sf)
-                            except hgvs.exceptions.HGVSInvalidVariantError:
+                            except vvhgvs.exceptions.HGVSInvalidVariantError:
                                 continue
                             # Identify primary assembly positions
                             if 'NC_' in alt_gen_var.ac:
@@ -661,7 +661,7 @@ class Mixin(vvMixinConverters.Mixin):
                             re_parse_protein = self.hp.parse_hgvs_variant(format_p)
                             re_parse_protein_single_aa = fn.single_letter_protein(re_parse_protein)
                             predicted_protein_variant_dict["slr"] = str(re_parse_protein_single_aa)
-                        except hgvs.exceptions.HGVSParseError as e:
+                        except vvhgvs.exceptions.HGVSParseError as e:
                             logger.debug("Except passed, %s", e)
                     else:
                         predicted_protein_variant_dict["slr"] = str(predicted_protein_variant)
@@ -810,7 +810,7 @@ class Mixin(vvMixinConverters.Mixin):
                 try:
                     tx_info = self.hdp.get_tx_identity_info(hgnc)
                     hgnc = tx_info[6]
-                except hgvs.exceptions.HGVSError as e:
+                except vvhgvs.exceptions.HGVSError as e:
                     return {'error': str(e)}
             else:
                 found_res = False
@@ -821,7 +821,7 @@ class Mixin(vvMixinConverters.Mixin):
                         hgnc = tx_info[6]
                         found_res = True
                         break
-                    except hgvs.exceptions.HGVSError as e:
+                    except vvhgvs.exceptions.HGVSError as e:
                         logger.debug("Except passed, %s", e)
                 if not found_res:
                     return {'error': 'No transcript definition for (tx_ac=' + hgnc + ')'}
@@ -988,7 +988,7 @@ class Mixin(vvMixinConverters.Mixin):
         hgvs_vt = self.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
         try:
             self.hdp.get_tx_identity_info(str(hgvs_vt.ac))
-        except hgvs.exceptions.HGVSError as e:
+        except vvhgvs.exceptions.HGVSError as e:
             error = 'Please inform UTA admin of the following error: ' + str(e)
             reason = "VariantValidator cannot recover information for transcript " + str(
                 hgvs_vt.ac) + ' because it is not available in the Universal Transcript Archive'
@@ -1022,7 +1022,7 @@ class Mixin(vvMixinConverters.Mixin):
                 if entry['expiry'] == 'true':
                     try:
                         entry = self.db.data_add(accession=accession, validator=self)
-                    except hgvs.exceptions.HGVSError:
+                    except vvhgvs.exceptions.HGVSError:
                         error = 'Transcript %s is not currently supported' % accession
                         variant.warnings.append(error)
                         logger.warning(error)

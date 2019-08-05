@@ -10,8 +10,8 @@ from . import seq_data
 
 # Import Biopython modules
 from Bio.Seq import Seq
-import hgvs
-import hgvs.exceptions
+import vvhgvs
+import vvhgvs.exceptions
 
 
 # Database connections and hgvs objects are now passed from VariantValidator.py
@@ -144,7 +144,7 @@ def pvcf_to_hgvs(query, selected_assembly, normalization_direction, reverse_norm
                 # Parse into hgvs object
                 try:
                     hgvs_not_delins = validator.hp.parse_hgvs_variant(not_delins)
-                except hgvs.exceptions.HGVSError as e:
+                except vvhgvs.exceptions.HGVSError as e:
                     # Sort out multiple ALTS from VCF inputs
                     if re.search("([GATCgatc]+)>([GATCgatc]+),([GATCgatc]+)", not_delins):
                         # header,alts = not_delins.split('>')
