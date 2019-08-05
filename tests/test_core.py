@@ -153,6 +153,14 @@ class TestValidator(unittest.TestCase):
         self.assertEqual(output['flag'], 'gene_variant')
         self.assertEqual(list(output), ['flag', '', 'metadata'])
 
+    def test_variant_description(self):
+        var = 'NM_015120.4:c.34C>T'
+
+        out = self.vv.validate(var, 'grch37', 'all').format_as_dict()
+        self.assertNotEqual(out['NM_015120.4:c.34C>T']['transcript_description'], 'false')
+        self.assertEqual(out['NM_015120.4:c.34C>T']['transcript_description'],
+                         'Homo sapiens ALMS1 centrosome and basal body associated protein (ALMS1), mRNA')
+
 
 class TestGene2Transcripts(unittest.TestCase):
     """

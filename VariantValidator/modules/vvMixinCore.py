@@ -193,8 +193,6 @@ class Mixin(vvMixinConverters.Mixin):
                     my_variant.post_format_conversion = stash_input
                     format_type = my_variant.reftype
 
-                    hgnc_gene_info = 'false'
-
                     logger.debug("Variant input formatted, proceeding to validate.")
 
                     # Conversions
@@ -396,7 +394,6 @@ class Mixin(vvMixinConverters.Mixin):
 
                     # Set the data
                     my_variant.output_type_flag = 'gene'
-                    my_variant.description = hgnc_gene_info
                     my_variant.primary_assembly = primary_assembly
                     logger.info("Completed initial validation for %s", my_variant.quibble)
                 # Report errors to User and VV admin
@@ -984,7 +981,7 @@ class Mixin(vvMixinConverters.Mixin):
         Collect transcript information from a non-genomic variant.
         Should only be called during the validator process
         """
-
+        logger.debug("Looking for transcript info")
         hgvs_vt = self.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
         try:
             self.hdp.get_tx_identity_info(str(hgvs_vt.ac))
