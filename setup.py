@@ -65,10 +65,8 @@ setup(
         "biotools >= 0.3.0",
         "biopython",
         "requests",
+        "vvhgvs @ git+https://github.com/openvar/vv_hgvs@master#egg=vvhgvs",
     ],
-    dependency_links=[
-        "git+https://github.com/openvar/vv_hgvs@master#egg=vvhgvs"
-    ]
 )
 
 # <LICENSE>
