@@ -12,7 +12,7 @@ from . import gapped_mapping
 logger = logging.getLogger(__name__)
 
 
-def gene_to_transcripts(variant, validator):
+def gene_to_transcripts(variant, validator, select_transcripts_dict):
     g_query = validator.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
 
     # Genomic coordinates can be validated immediately
@@ -155,7 +155,7 @@ def gene_to_transcripts(variant, validator):
 
         gap_mapper = gapped_mapping.GapMapper(variant, validator)
 
-        data, nw_rel_var = gap_mapper.gapped_g_to_c(rel_var)
+        data, nw_rel_var = gap_mapper.gapped_g_to_c(rel_var, select_transcripts_dict)
 
         # # Warn the user that the g. description is not valid
         # if data['gapped_alignment_warning'] != '':

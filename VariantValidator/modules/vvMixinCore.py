@@ -383,7 +383,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                     # Now start mapping from genome to transcripts
                     if my_variant.reftype == ':g.':
-                        toskip = mappers.gene_to_transcripts(my_variant, self)
+                        toskip = mappers.gene_to_transcripts(my_variant, self, select_transcripts_dict)
                         if toskip:
                             continue
 

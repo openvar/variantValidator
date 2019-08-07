@@ -28,7 +28,7 @@ class GapMapper(object):
         self.hgvs_genomic_5pr = None
         self.tx_hgvs_not_delins = None
 
-    def gapped_g_to_c(self, rel_var):
+    def gapped_g_to_c(self, rel_var, select_transcripts_dict):
         """
         Gap aware projection from g. to c.
         """
@@ -112,7 +112,7 @@ class GapMapper(object):
             if self.validator.select_transcripts != 'all':
                 tx_ac = saved_hgvs_coding.ac
                 # If it's in the selected tx dict, keep it
-                if tx_ac.split('.')[0] in list(self.validator.select_transcripts_dict.keys()):
+                if tx_ac.split('.')[0] in list(select_transcripts_dict.keys()):
                     pass
                 # If not get rid of it!
                 else:
