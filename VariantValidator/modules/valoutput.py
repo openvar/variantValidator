@@ -82,42 +82,65 @@ class ValOutput(object):
 
     def format_as_table(self, with_meta=True):
         """
-        Currently the table format will only output correctly validated results, all warnings and obsolete records will
-        be squashed.
+        The table format will output all results.
         :param with_meta:
         :return:
         """
         outputstrings = []
         if with_meta:
-            outputstrings.append('#' + str(self.add_meta()))
+            outputstrings.append('# Metadata: ' + ', '.join(['%s: %s' % (k, v) for k, v in self.add_meta().items()]))
 
-        outputstrings.append(['Input', 'HGVS_transcript', 'HGVS_RefSeqGene', 'HGVS_LRG', 'HGVS_LRG_transcript',
-                              'Gene_Symbol', 'Transcript_description'])
+        outputstrings.append(['Input', 'Flag', 'Warnings', 'HGVS_transcript', 'HGVS_RefSeqGene', 'HGVS_LRG',
+                              'HGVS_LRG_transcript', 'HGVS_Predicted_Protein', 'HGVS_Genomic_GRCh37', 'GRCh37_CHR',
+                              'GRCh37_POS', 'GRCh37_ID', 'GRCh37_REF', 'GRCh37_ALT', 'HGVS_Genomic_GRCh38',
+                              'GRCh38_CHR', 'GRCh38_POS', 'GRCh38_ID', 'GRCh38_REF', 'GRCh38_ALT',
+                              'Gene_Symbol', 'Transcript_description', 'Alt_genomic_loci'])
         for variant in self.output_list:
-            if variant.output_type_flag == 'gene':
-                if variant.warnings == ['Validation error'] or (variant.is_obsolete() and
-                                                                variant.hgvs_transcript_variant == ''):
-                    continue
-                else:
-                    outputstrings.append([
-                        variant.original,
-                        variant.hgvs_transcript_variant,
-                        variant.hgvs_refseqgene_variant,
-                        variant.hgvs_lrg_variant,
-                        variant.hgvs_lrg_transcript_variant,
-                        variant.gene_symbol,
-                        variant.description
-                    ])
-            elif variant.output_type_flag == 'intergenic':
-                outputstrings.append([
-                    variant.original,
-                    variant.hgvs_transcript_variant,
-                    variant.hgvs_refseqgene_variant,
-                    variant.hgvs_lrg_variant,
-                    variant.hgvs_lrg_transcript_variant,
-                    variant.gene_symbol,
-                    variant.description
-                ])
+            prot = ''
+            if 'tlr' in variant.hgvs_predicted_protein_consequence:
+                prot = variant.hgvs_predicted_protein_consequence['tlr']
+            grch37 = ''
+            grch37_vcf = {'chr': '', 'pos': '', 'ref': '', 'alt': '', 'id': ''}
+            if 'grch37' in variant.primary_assembly_loci:
+                grch37 = variant.primary_assembly_loci['grch37']['hgvs_genomic_description']
+                grch37_vcf = variant.primary_assembly_loci['grch37']['vcf']
+                grch37_vcf['id'] = '.'
+            grch38 = ''
+            grch38_vcf = {'chr': '', 'pos': '', 'ref': '', 'alt': '', 'id': ''}
+            if 'grch38' in variant.primary_assembly_loci:
+                grch38 = variant.primary_assembly_loci['grch38']['hgvs_genomic_description']
+                grch38_vcf = variant.primary_assembly_loci['grch38']['vcf']
+                grch38_vcf['id'] = '.'
+            alt_genomic = []
+            for alt in variant.alt_genomic_loci:
+                for k, v in alt.items():
+                    if k == 'grch37' or k == 'grch38':
+                        alt_genomic.append(v['hgvs_genomic_description'])
+            outputstrings.append([
+                variant.original,
+                variant.output_type_flag,
+                '|'.join(variant.process_warnings()),
+                variant.hgvs_transcript_variant,
+                variant.hgvs_refseqgene_variant,
+                variant.hgvs_lrg_variant,
+                variant.hgvs_lrg_transcript_variant,
+                prot,
+                grch37,
+                grch37_vcf['chr'],
+                grch37_vcf['pos'],
+                grch37_vcf['id'],
+                grch37_vcf['ref'],
+                grch37_vcf['alt'],
+                grch38,
+                grch38_vcf['chr'],
+                grch38_vcf['pos'],
+                grch38_vcf['id'],
+                grch38_vcf['ref'],
+                grch38_vcf['alt'],
+                variant.gene_symbol,
+                variant.description,
+                '|'.join(alt_genomic)
+            ])
         return outputstrings
 
     def add_meta(self):
