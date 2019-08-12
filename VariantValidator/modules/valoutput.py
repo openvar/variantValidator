@@ -90,35 +90,39 @@ class ValOutput(object):
         if with_meta:
             outputstrings.append('# Metadata: ' + ', '.join(['%s: %s' % (k, v) for k, v in self.add_meta().items()]))
 
-        outputstrings.append(['Input', 'Flag', 'Warnings', 'HGVS_transcript', 'HGVS_RefSeqGene', 'HGVS_LRG',
+        outputstrings.append(['Input', 'Warnings', 'HGVS_transcript', 'HGVS_RefSeqGene', 'HGVS_LRG',
                               'HGVS_LRG_transcript', 'HGVS_Predicted_Protein', 'HGVS_Genomic_GRCh37', 'GRCh37_CHR',
                               'GRCh37_POS', 'GRCh37_ID', 'GRCh37_REF', 'GRCh37_ALT', 'HGVS_Genomic_GRCh38',
                               'GRCh38_CHR', 'GRCh38_POS', 'GRCh38_ID', 'GRCh38_REF', 'GRCh38_ALT',
-                              'Gene_Symbol', 'Transcript_description', 'Alt_genomic_loci'])
+                              'Gene_Symbol', 'HGNC_Gene_ID', 'Transcript_description', 'Alt_genomic_loci'])
         for variant in self.output_list:
             prot = ''
-            if 'tlr' in variant.hgvs_predicted_protein_consequence:
+            if variant.hgvs_predicted_protein_consequence is not None:
                 prot = variant.hgvs_predicted_protein_consequence['tlr']
             grch37 = ''
             grch37_vcf = {'chr': '', 'pos': '', 'ref': '', 'alt': '', 'id': ''}
-            if 'grch37' in variant.primary_assembly_loci:
+            if variant.primary_assembly_loci and 'grch37' in variant.primary_assembly_loci:
                 grch37 = variant.primary_assembly_loci['grch37']['hgvs_genomic_description']
                 grch37_vcf = variant.primary_assembly_loci['grch37']['vcf']
                 grch37_vcf['id'] = '.'
             grch38 = ''
             grch38_vcf = {'chr': '', 'pos': '', 'ref': '', 'alt': '', 'id': ''}
-            if 'grch38' in variant.primary_assembly_loci:
+            if variant.primary_assembly_loci and 'grch38' in variant.primary_assembly_loci:
                 grch38 = variant.primary_assembly_loci['grch38']['hgvs_genomic_description']
                 grch38_vcf = variant.primary_assembly_loci['grch38']['vcf']
                 grch38_vcf['id'] = '.'
             alt_genomic = []
-            for alt in variant.alt_genomic_loci:
-                for k, v in alt.items():
-                    if k == 'grch37' or k == 'grch38':
-                        alt_genomic.append(v['hgvs_genomic_description'])
+            if variant.alt_genomic_loci:
+                for alt in variant.alt_genomic_loci:
+                    for k, v in alt.items():
+                        if k == 'grch37' or k == 'grch38':
+                            alt_genomic.append(v['hgvs_genomic_description'])
+            gene_id = ''
+            if variant.stable_gene_ids:
+                if 'hgnc_id' in variant.stable_gene_ids:
+                    gene_id = variant.stable_gene_ids['hgnc_id']
             outputstrings.append([
                 variant.original,
-                variant.output_type_flag,
                 '|'.join(variant.process_warnings()),
                 variant.hgvs_transcript_variant,
                 variant.hgvs_refseqgene_variant,
@@ -138,6 +142,7 @@ class ValOutput(object):
                 grch38_vcf['ref'],
                 grch38_vcf['alt'],
                 variant.gene_symbol,
+                gene_id,
                 variant.description,
                 '|'.join(alt_genomic)
             ])
