@@ -107,6 +107,12 @@ class Variant(object):
             caution = 'Whitespace removed from variant description %s' % self.quibble
             self.warnings.append(caution)
 
+    def remove_quotes(self):
+        if self.quibble.startswith('"') or self.quibble.startswith("'"):
+            self.quibble = self.quibble[1:]
+        if self.quibble.endswith('"') or self.quibble.endswith("'"):
+            self.quibble = self.quibble[:-1]
+
     def format_quibble(self):
         """
         Removes whitespace from the ends of the string

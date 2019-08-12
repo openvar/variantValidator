@@ -168,6 +168,28 @@ class TestValidator(unittest.TestCase):
         self.assertEqual(out['validation_warning_1']['validation_warnings'],
                          ['Unsupported format c.[3190_3191delCT];[(3190_3191delCT)]'])
 
+    def test_variant_quotes_start(self):
+        var = '"NM_015120.4:c.34C>T'
+
+        out = self.vv.validate(var, 'GRCh37', 'all').format_as_dict()
+        self.assertEqual(out['flag'], 'gene_variant')
+        self.assertTrue('NM_015120.4:c.34C>T' in out.keys())
+
+    def test_variant_quotes_end(self):
+        var = 'NM_015120.4:c.34C>T"'
+
+        out = self.vv.validate(var, 'GRCh37', 'all').format_as_dict()
+        print(out)
+        self.assertEqual(out['flag'], 'gene_variant')
+        self.assertTrue('NM_015120.4:c.34C>T' in out.keys())
+
+    def test_variant_quotes_both(self):
+        var = '"NM_015120.4:c.34C>T"'
+
+        out = self.vv.validate(var, 'GRCh37', 'all').format_as_dict()
+        self.assertEqual(out['flag'], 'gene_variant')
+        self.assertTrue('NM_015120.4:c.34C>T' in out.keys())
+
 
 class TestGene2Transcripts(unittest.TestCase):
     """
