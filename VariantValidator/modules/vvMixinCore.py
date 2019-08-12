@@ -187,7 +187,6 @@ class Mixin(vvMixinConverters.Mixin):
                     formatted_variant = my_variant.quibble
                     stash_input = my_variant.quibble
                     my_variant.post_format_conversion = stash_input
-                    format_type = my_variant.reftype
 
                     logger.debug("Variant input formatted, proceeding to validate.")
 
@@ -200,7 +199,7 @@ class Mixin(vvMixinConverters.Mixin):
                         continue
 
                     # Change RNA bases to upper case but nothing else
-                    if format_type == ":r.":
+                    if my_variant.reftype == ":r.":
                         formatted_variant = formatted_variant.upper()
                         formatted_variant = formatted_variant.replace(':R.', ':r.')
                         # lowercase the supported variant types
@@ -383,7 +382,7 @@ class Mixin(vvMixinConverters.Mixin):
                         if toskip:
                             continue
 
-                    if format_type == ':c.' or format_type == ':n.':
+                    if my_variant.reftype == ':c.' or my_variant.reftype == ':n.':
                         toskip = mappers.transcripts_to_gene(my_variant, self, select_transcripts_dict_plus_version)
                         if toskip:
                             continue
