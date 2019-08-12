@@ -626,7 +626,12 @@ def allele_parser(variant, validation):
                 pass
         try:
             # Submit to allele extraction function
-            alleles = validation.hgvs_alleles(variant.quibble, variant.hn)
+            try:
+                alleles = validation.hgvs_alleles(variant.quibble, variant.hn)
+            except fn.alleleVariantError as e:
+                variant.warnings.append(str(e))
+                logger.warning(str(e))
+                return True
             variant.warnings.append('Automap has extracted possible variant descriptions')
             logger.info('Automap has extracted possible variant descriptions, resubmitting')
             for allele in alleles:

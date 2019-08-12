@@ -160,6 +160,14 @@ class TestValidator(unittest.TestCase):
         self.assertEqual(out['NM_015120.4:c.34C>T']['transcript_description'],
                          'Homo sapiens ALMS1 centrosome and basal body associated protein (ALMS1), mRNA')
 
+    def test_variant_format(self):
+        var = "NM_020812.3:c.[3190_3191delCT];[(3190_3191delCT)]"
+
+        out = self.vv.validate(var, 'grch37', 'all').format_as_dict()
+        self.assertEqual(out['flag'], 'warning')
+        self.assertEqual(out['validation_warning_1']['validation_warnings'],
+                         ['Unsupported format c.[3190_3191delCT];[(3190_3191delCT)]'])
+
 
 class TestGene2Transcripts(unittest.TestCase):
     """
