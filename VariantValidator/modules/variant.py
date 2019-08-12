@@ -101,7 +101,11 @@ class Variant(object):
         Will remove all whitespace from quibble
         :return:
         """
+        prev = self.quibble
         self.quibble = ''.join(self.quibble.split())
+        if self.quibble != prev:
+            caution = 'Whitespace removed from variant description %s' % self.quibble
+            self.warnings.append(caution)
 
     def format_quibble(self):
         """

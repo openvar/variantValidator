@@ -137,10 +137,6 @@ class Mixin(vvMixinConverters.Mixin):
 
                     # Remove whitespace
                     my_variant.remove_whitespace()
-                    if my_variant.quibble != my_variant.original:
-                        caution = 'Whitespace removed from variant description %s' % my_variant.original
-                        my_variant.warnings.append(caution)
-                        logger.debug(caution)
 
                     # Set the primary_assembly
                     if not my_variant.primary_assembly:
