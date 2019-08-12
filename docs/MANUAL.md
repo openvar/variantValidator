@@ -7,7 +7,7 @@ By default the edited configuration will be placed in the users home directory (
 To create this file automatically, run the configuration script installed alongside the package.
 
 ```bash
-python bin/vv_configure.py
+vv_configure.py
 ```
 
 This will ask you to enter a value for each item in the configuration file. 
@@ -63,7 +63,7 @@ made per second. See [this article](https://ncbiinsights.ncbi.nlm.nih.gov/2017/1
 To import the initial data into the Validator MySQL database, run the following script:
 
 ```bash
-python bin/update_vdb.py
+update_vdb.py
 ```
 
 This will download the required data to convert between LRG and RefSeq IDs. We recommend re-running this command on a regular basis as changes are continually made to the RefSeq and LRG collections.  
@@ -76,7 +76,7 @@ To run VariantValidator, we have provided the installed script `variant_validato
 usage: variant_validator.py [-h] -v VARIANT [VARIANT ...]
                             [-g [{GRCh37,GRCh38,hg19,hg38}]]
                             [-t [TRANSCRIPTS]] [-s {individual,batch}]
-                            [-f {dict,list,json}] [-o OUTPUT]
+                            [-f {dict,table,json}] [-o OUTPUT] [-m]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -89,11 +89,12 @@ optional arguments:
   -s {individual,batch}, --submission {individual,batch}
                         Submit variants individually or as a single batch
                         validation (default: individual)
-  -f {dict,list,json}, --output_format {dict,list,json}
+  -f {dict,table,json}, --output_format {dict,table,json}
                         Output validations as a list or as a dictionary
                         (default: dict)
   -o OUTPUT, --output OUTPUT
                         Specifies the output file (default: stdout)
+  -m, --meta            Also output metadata (default: False)
 ```
 
 From this script you can run the validator with a number of different input and output options.
@@ -106,7 +107,7 @@ validator = VariantValidator.Validator()
 
 # To validate a variant
 output = validator.validate('NM_000088.3:c.589G>T', 'GRCh37', 'all')
-# This returns an ValOutput object that can be used to output the results in a number of different ways
+# This returns an ValOutput object that can be used to output the results in a number of different ways (dictionary, json or table)
 output.format_as_dict(with_meta=True)
 
 # The Validator object also contains other useful methods, such as finding all transcripts from a gene ID/symbol
@@ -120,7 +121,7 @@ NC_000017.10:g.48275363C>A
 NG_007400.1:g.8638G>T
 LRG_1:g.8638G>T
 LRG_1t1:c.589G>T
-17-50198002-C-A (GRCh38)
-chr17:50198002C>A (GRCh38)
+17-50198002-C-A  # GRCh38 only
+chr17:50198002C>A  # GRCh38 only
 ```
 
