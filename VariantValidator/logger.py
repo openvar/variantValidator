@@ -1,19 +1,18 @@
-#! /usr/bin/env python
+import logging.config
+from configparser import ConfigParser
+from . import settings
 
-from VariantValidator import update_vv_db
-import argparse
+# Change settings based on config
+config = ConfigParser()
+config.read(settings.CONFIG_DIR)
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--delete', '-d', action='store_true', help='Delete the contents of the current database '
-                                                                    'before updating')
+if config['logging'].getboolean('log') is True:
+    settings.LOGGING_CONFIG['handlers']['console']['level'] = config['logging']['console'].upper()
+    settings.LOGGING_CONFIG['handlers']['file']['level'] = config['logging']['file'].upper()
 
-    args = parser.parse_args()
-    if args.delete:
-        print("Deleting current database contents")
-        update_vv_db.delete()
-
-    update_vv_db.update()
+    logging.config.dictConfig(settings.LOGGING_CONFIG)
+else:
+    logging.getLogger('VariantValidator').addHandler(logging.NullHandler())
 
 # <LICENSE>
 # Copyright (C) 2019 VariantValidator Contributors

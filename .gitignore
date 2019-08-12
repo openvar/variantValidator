@@ -9,3 +9,6 @@ dist
 variantValidator.egg-info
 VariantValidator/testing/outputs*
 .DS_Store
+
+# backedup files after 2to3 conversion
+*.bak

@@ -1,0 +1,3 @@
+recursive-include configuration *
+include README.md
+recursive-include bin *

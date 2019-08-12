@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  vdb:
+    build:
+      context: .
+      dockerfile: vdb_docker.df
+    ports:
+      - "3306:3306"
+    expose:
+      - "3306"
+  uta:
+    image: biocommons/uta
+    ports:
+      - "5432:5432"
+    expose:
+      - "5432"
+  seqrepo:
+    image: biocommons/seqrepo:2018-08-21
+    volumes:
+      - seqdata:/usr/local/share/seqrepo
+  vv:
+    build: .
+    depends_on:
+      - vdb
+      - uta
+    volumes:
+      - seqdata:/usr/local/share/seqrepo
+
+volumes:
+  seqdata:

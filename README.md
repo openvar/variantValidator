@@ -1,4 +1,7 @@
-# About VariantValidator
+# VariantValidator
+[![codecov](https://codecov.io/gh/openvar/variantValidator/branch/restructuring_py3/graph/badge.svg)](https://codecov.io/gh/openvar/variantValidator) [![Build Status](https://travis-ci.org/openvar/variantValidator.png)](https://travis-ci.org/openvar/variantValidator)
+
+## About
 
 VariantValidator is a user-friendly software tool designed to validate the syntax and 
 parameters of DNA variant descriptions according to the HGVS Sequence Variant 
@@ -7,7 +10,7 @@ Nomenclature.
 VariantValidator ensures that users are guided through the intricacies of the HGVS 
 nomenclature, e.g. if the user makes a mistake, VariantValidator automatically corrects 
 the mistake if it can, or provides helpful guidance if it cannot. In addition, 
-VariantValidator accurately interconverts between transcript variant descriptions and 
+VariantValidator accurately inter-converts between transcript variant descriptions and 
 genomic variant descriptions in HGVS and Variant Call Format (VCF)
 
 VariantValidator interfaces with the hgvs package to parse, format, and manipulate 
@@ -31,21 +34,21 @@ For sequence variations falling within the open reading frames of genes, Variant
 
 ## Pre-requisites
 
-VariantValidator will work on Mac OS X or Linux operating systems.
+VariantValidator will work locally on Mac OS X or Linux-compatible computers. It can also work within a [docker container](docs/DOCKER.md).
 
 Required software:
 * MySQL
-* Python 2.7
+* Python 3.6 or above
 * SQLite version 3.8.0 or above
 
 Optional software:
-* Postgres version 9.5 or above
+* Postgres version 9.5 or above, Postgres 10 is not supported.
 
-For installation instructions please see [INSTALLATION.md](INSTALLATION.md)
+For installation instructions please see [INSTALLATION.md](docs/INSTALLATION.md). For the older python 2 version, see previous releases.
 
 # Operation and configuration
 
-Please see [MANUAL.md](MANUAL.md)
+Please see [MANUAL.md](docs/MANUAL.md). Note that the latest version is not compatible with previous releases.
 
 ## License
 
@@ -59,18 +62,19 @@ VariantValidator: Accurate validation, mapping and formatting of sequence variat
 
 Freeman PJ, Hart RK, Gretton LJ, Brookes AJ, Dalgleish R.
 
-> Copyright (C) 2018  Peter Causey-Freeman, University of Leicester
-> 
+> <LICENSE>
+> Copyright (C) 2019 VariantValidator Contributors
+>
 > This program is free software: you can redistribute it and/or modify
 > it under the terms of the GNU Affero General Public License as
 > published by the Free Software Foundation, either version 3 of the
 > License, or (at your option) any later version.
-> 
+>
 > This program is distributed in the hope that it will be useful,
 > but WITHOUT ANY WARRANTY; without even the implied warranty of
 > MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 > GNU Affero General Public License for more details.
-> 
+>
 > You should have received a copy of the GNU Affero General Public License
 > along with this program.  If not, see <https://www.gnu.org/licenses/>.
 > </LICENSE>
