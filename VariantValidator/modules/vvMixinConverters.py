@@ -1724,6 +1724,7 @@ class Mixin(vvMixinInit.Mixin):
         """
         # from Bio import Entrez
         Entrez.email = self.entrez_email
+        Entrez.tool = 'VariantValidator'
         if self.entrez_api_key:
             Entrez.api_key = self.entrez_api_key
         # from Bio import SeqIO
