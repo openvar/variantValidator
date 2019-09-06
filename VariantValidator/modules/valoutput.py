@@ -12,7 +12,7 @@ class ValOutput(object):
         self.output_list = outputlist
         self.validator = validator
 
-    def format_as_dict(self, with_meta=True):
+    def format_as_dict(self, with_meta=True, test=False):
         validation_output = {'flag': 'warning'}
 
         validation_error_counter = 0
@@ -39,7 +39,7 @@ class ValOutput(object):
                         identification_key = '%s' % variant.hgvs_transcript_variant
 
                 # if identification_key not in validation_output.keys():
-                validation_output[identification_key] = variant.output_dict()
+                validation_output[identification_key] = variant.output_dict(test=test)
                 # else:
                 # dotter = dotter + ' '
                 # validation_output[identification_key + dotter] = valid_v

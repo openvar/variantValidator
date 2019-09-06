@@ -208,11 +208,14 @@ class Mixin(vvMixinConverters.Mixin):
                         formatted_variant = formatted_variant.replace('INS', 'ins')
                         formatted_variant = formatted_variant.replace('INV', 'inv')
                         formatted_variant = formatted_variant.replace('DUP', 'dup')
-
                     try:
-                        input_parses = self.hp.parse_hgvs_variant(formatted_variant)
+                        input_parses = self.hp.parse_hgvs_variant(str(formatted_variant))
                         my_variant.hgvs_formatted = input_parses
                     except vvhgvs.exceptions.HGVSError as e:
+                        # Look for T not U!
+                        posedit = formatted_variant.split(':')[-1]
+                        if 'T' in posedit:
+                            e = 'The IUPAC RNA alphabet dictates that RNA variants must use the character u in place of t'
                         my_variant.warnings.append(str(e))
                         logger.warning(str(e))
                         continue
@@ -666,7 +669,24 @@ class Mixin(vvMixinConverters.Mixin):
 
                     # Add or update stable ID and transcript data
                     if gene_stable_info[1] == 'No data' and hgvs_tx_variant is not None:
-                        self.db.update_transcript_info_record(hgvs_tx_variant.ac, self)
+                        try:
+                            self.db.update_transcript_info_record(hgvs_tx_variant.ac, self)
+                        except fn.DatabaseConnectionError as e:
+                            error = 'Currently unable to update all gene_ids or transcript information records ' \
+                                    'because ' \
+                                    'VariantValidator %s' % str(e)
+                            my_variant.warnings.append(error)
+                            logger.warning(error)
+                            try:
+                                self.db.update_transcript_info_record(hgvs_tx_variant.ac, self,
+                                                                      bypass_with_symbol=variant.gene_symbol)
+                            except fn.DatabaseConnectionError as e:
+                                error = 'Currently unable to update all gene_ids or transcript information records ' \
+                                        'because ' \
+                                        'VariantValidator %s' % str(e)
+                                my_variant.warnings.append(error)
+                                logger.warning(error)
+
                         gene_stable_info = self.db.get_stable_gene_id_info(variant.gene_symbol)
 
                     # Update gene_symbol
@@ -677,11 +697,11 @@ class Mixin(vvMixinConverters.Mixin):
                         # Dictionary the output
                         stable_gene_ids['hgnc_id'] = gene_stable_info[2]
                         stable_gene_ids['entrez_gene_id'] = gene_stable_info[3]
-                        # stable_gene_ids['ensembl_gene_id'] = gene_stable_info[4]
+                        stable_gene_ids['ensembl_gene_id'] = gene_stable_info[4]
                         stable_gene_ids['ucsc_id'] = gene_stable_info[5]
                         stable_gene_ids['omim_id'] = json.loads(gene_stable_info[6])
                         # stable_gene_ids['vega_id'] = gene_stable_info[7]
-                        # stable_gene_ids['ccds_id'] = gene_stable_info[8]
+                        # stable_gene_ids['ccds_ids'] = gene_stable_info[8]
                     except IndexError as e:
                         logger.debug("Except pass, %s", e)
 
@@ -878,7 +898,13 @@ class Mixin(vvMixinConverters.Mixin):
                 tx = line[3]
                 tx_description = self.db.get_transcript_description(tx)
                 if tx_description == 'none':
-                    self.db.update_transcript_info_record(tx, self)
+                    try:
+                        self.db.update_transcript_info_record(tx, self)
+                    except fn.DatabaseConnectionError as e:
+                        error = 'Currently unable to update gene_ids or transcript information records because ' \
+                                'VariantValidator %s' % str(e)
+                        my_variant.warnings.append(error)
+                        logger.warning(error)
                     tx_description = self.db.get_transcript_description(tx)
                 # Check for duplicates
                 if tx not in recovered:

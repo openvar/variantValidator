@@ -202,33 +202,6 @@ class Mixin:
             'seqrepo_db': self.seqrepoPath
         }
 
-    def protein(self, variant, evm, hpUnused):
-        # If the :c. pattern is present in the input variant
-        if ':c.' in variant:
-            # convert the input string into a hgvs object
-            var_c = self.hp.parse_hgvs_variant(variant)
-            # Does the edit affect the start codon?
-            if ((1 <= var_c.posedit.pos.start.base <= 3 and var_c.posedit.pos.start.offset == 0) or (
-                    1 <= var_c.posedit.pos.end.base <= 3 and var_c.posedit.pos.end.offset == 0)) and '*' not in str(
-                    var_c.posedit.pos):
-                ass_prot = self.hdp.get_pro_ac_for_tx_ac(var_c.ac)
-                if ass_prot is None:
-                    cod = str(var_c)
-                    cod = cod.replace('inv', 'del')
-                    cod = self.hp.parse_hgvs_variant(cod)
-                    p = evm.c_to_p(cod)
-                    ass_prot = p.ac
-                var_p = vvhgvs.sequencevariant.SequenceVariant(ac=ass_prot, type='p', posedit='(Met1?)')
-            else:
-                var_p = evm.c_to_p(var_c)
-            return var_p
-
-        if ':n.' in variant:
-            var_p = self.hp.parse_hgvs_variant(variant)
-            var_p.ac = 'Non-coding transcript'
-            var_p.posedit = ''
-            return var_p
-
     def myc_to_p(self, hgvs_transcript, evm, re_to_p, hn):
         # Create dictionary to store the information
         hgvs_transcript_to_hgvs_protein = {'error': '', 'hgvs_protein': '', 'ref_residues': ''}
@@ -255,8 +228,12 @@ class Mixin:
                 if ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and hgvs_transcript.posedit.pos.start.offset == 0
                     ) or (1 <= hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset
                           == 0)) and '*' not in str(hgvs_transcript.posedit.pos):
+                    residue_one = self.sf.fetch_seq(associated_protein_accession, start_i=1 - 1, end_i=1)
+                    threed_residue_one = utils.one_to_three(residue_one)
+                    r_one_report = '(%s1?)' % threed_residue_one  # was (MET1?)
                     hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
-                                                                        type='p', posedit='(Met1?)')
+                                                                        type='p', posedit=r_one_report)
+
                 else:
                     try:
                         hgvs_protein = evm.c_to_p(hgvs_transcript)
@@ -272,6 +249,11 @@ class Mixin:
 
                 if hgvs_protein:
                     hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
+                    # Replace Ter<pos>Ter with Ter=
+                    if re.search('Ter\d+Ter', str(hgvs_transcript_to_hgvs_protein['hgvs_protein'].posedit)):
+                        posedit = str(hgvs_transcript_to_hgvs_protein['hgvs_protein'].posedit)
+                        posedit = posedit[:-4] + '=)'
+                        hgvs_transcript_to_hgvs_protein['hgvs_protein'].posedit = posedit
                     return hgvs_transcript_to_hgvs_protein
                 else:
                     hgvs_transcript_to_hgvs_protein = self.myc_to_p(hgvs_transcript, evm, re_to_p=True, hn=hn)
@@ -322,9 +304,11 @@ class Mixin:
                             hgvs_transcript.posedit.pos.start.offset == 0) or (1 <=
                             hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset == 0))\
                                 and '*' not in str(hgvs_transcript.posedit.pos):
+                            residue_one = self.sf.fetch_seq(associated_protein_accession, start_i=1 - 1, end_i=1)
+                            threed_residue_one = utils.one_to_three(residue_one)
+                            r_one_report = '(%s1?)' % threed_residue_one  # was (MET1?)
                             hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
-                                                                                type='p',
-                                                                                posedit='(Met1?)')
+                                                                                type='p', posedit=r_one_report)
                         else:
                             # Make the variant
                             hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
@@ -372,8 +356,11 @@ class Mixin:
                                     1 <= hgvs_transcript.posedit.pos.end.base <= 3 and
                                     hgvs_transcript.posedit.pos.end.offset == 0)) \
                                     and '*' not in str(hgvs_transcript.posedit.pos):
+                                residue_one = self.sf.fetch_seq(associated_protein_accession, start_i=1 - 1, end_i=1)
+                                threed_residue_one = utils.one_to_three(residue_one)
+                                r_one_report = '(%s1?)' % threed_residue_one  # was (MET1?)
                                 hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
-                                                                                    type='p', posedit='(Met1?)')
+                                                                                    type='p', posedit=r_one_report)
 
                                 hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
                                 return hgvs_transcript_to_hgvs_protein
@@ -467,7 +454,13 @@ class Mixin:
                 else:
                     hgvs_transcript_to_hgvs_protein['hgvs_protein'] = shifts
 
-                # Return
+                # Replace Ter<pos>Ter with Ter=
+                if re.search('Ter\d+Ter', str(hgvs_transcript_to_hgvs_protein['hgvs_protein'].posedit)):
+                    posedit = str(hgvs_transcript_to_hgvs_protein['hgvs_protein'].posedit)
+                    posedit = posedit[:-4] + '=)'
+                    hgvs_transcript_to_hgvs_protein['hgvs_protein'].posedit = posedit
+
+                    # Return
                 return hgvs_transcript_to_hgvs_protein
 
         # Handle non-coding transcript and non transcript descriptions

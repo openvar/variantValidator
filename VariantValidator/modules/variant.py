@@ -186,11 +186,16 @@ class Variant(object):
         self.set_refsource()
         self.set_reftype()
 
-    def output_dict(self):
+    def output_dict(self, test=False):
         """
         Method will return the output values as a dictionary
         :return: dict
         """
+        if test is True:
+            try:
+                del self.stable_gene_ids['ensembl_gene_id']
+            except KeyError:
+                pass
         dict_out = {
             'submitted_variant': self.original,
             'gene_symbol': self.gene_symbol,
