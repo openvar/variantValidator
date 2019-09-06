@@ -38,6 +38,7 @@ before_install:
 
   # Get validator database
   - wget --output-document=validator_2019-07-10.sql.gz https://leicester.figshare.com/ndownloader/files/16237784
+  - gunzip validator_2019-07-10.sql.gz
 
 
 install:
@@ -47,7 +48,7 @@ install:
   - pip install -e .
 
   # Set up validator database
-  - mysql validator < validator_2019-07-10.sql.gz
+  - mysql validator < validator_2019-07-10.sql
 #  - update_vdb.py
   - df -h
 
