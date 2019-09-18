@@ -10037,7 +10037,7 @@ class TestVariantsAuto(TestCase):
         assert results['NM_004380.2:c.5748G>C']['genome_context_intronic_sequence'] == ''
         assert results['NM_004380.2:c.5748G>C']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004380.2:c.5748G>C']['hgvs_refseqgene_variant'] == 'NG_009873.1:g.155822G>C'
-        assert results['NM_004380.2:c.5748G>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_004371.2:p.(Met1916Ile)', 'slr': 'NP_004371.2:p.(M1916I)'}
+        assert results['NM_004380.2:c.5748G>C']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_004371.2(LRG_1426p1):p.(Met1916Ile)', 'slr': 'NP_004371.2:p.(M1916I)'}
         assert results['NM_004380.2:c.5748G>C']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_004380.2:c.5748G>C']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_004380.2:c.5748G>C']['alt_genomic_loci'], [])
