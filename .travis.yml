@@ -49,7 +49,8 @@ install:
 
   # Set up validator database
   - mysql validator < validator_2019-09-10.sql
-#  - update_vdb.py
+
+  #  - update_vdb.py
   - df -h
 
 script:
