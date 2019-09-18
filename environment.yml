@@ -3,7 +3,7 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - python=3.6
+  - python>=3.6
   - protobuf=3.5.1
   - mysql-connector-python
   - pysam
