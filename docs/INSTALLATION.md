@@ -66,8 +66,17 @@ In the `VariantValidator/configuration` folder is a copy of the empty mysql data
 ```
 $ mysql validator < VariantValidator/configuration/empty_vv_db.sql 
 ```
+However, we highly recommend that you download and and upload our pre-populated database to MySQL. The current version can be accessed as follows
 
-See the [Manual](MANUAL.md) for instructions on populating this database.
+```bash
+$ wget --output-document=validator_2019-09-18.sql.gz https://leicester.figshare.com/ndownloader/files/17714429
+$ gunzip validator_2019-09-18.sql.gz
+$ mysql validator < validator_2019-09-18.sql
+```
+
+See the [Manual](MANUAL.md) for instructions on updating this database, which should be done regularly.
+
+If you wish to test your installation using pytest (see below) we recommend that you do this before updating the database. 
 
 ## Setting up Seqrepo (SQLite >=3.8)
 
