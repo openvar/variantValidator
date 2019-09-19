@@ -74,7 +74,7 @@ class Database(vvDBInsert.Mixin):
                 data['expiry'] = row[7]
         return data
 
-    def update_gene_stable_ids(self, symbol, hgnc_symbol):
+    def update_gene_stable_identifiers(self, symbol):
         # First perform a search against the input gene symbol or the symbol inferred from UTA
         initial = utils.hgnc_rest(path="/fetch/symbol/" + symbol)
 
@@ -84,10 +84,10 @@ class Database(vvDBInsert.Mixin):
             rest_data = utils.hgnc_rest(path="/search/prev_symbol/" + symbol)
             # If the name is correct no record will be found
             if rest_data['error'] == 'false' and int(rest_data['record']['response']['numFound']) != 0:
-                hgnc_symbol = rest_data['record']['response']['docs'][0]['symbol']
-                initial = utils.hgnc_rest(path="/fetch/symbol/" + hgnc_symbol)
+                symbol = rest_data['record']['response']['docs'][0]['symbol']
+                initial = utils.hgnc_rest(path="/fetch/symbol/" + symbol)
 
-        if hgnc_symbol != 'unassigned' and int(initial['record']['response']['numFound']) != 0:
+        if symbol != 'unassigned' and int(initial['record']['response']['numFound']) != 0:
             docs = initial['record']['response']['docs'][0]
             hgnc_id = ''
             entrez_id = ''
@@ -120,17 +120,13 @@ class Database(vvDBInsert.Mixin):
                 "ucsc_id": ucsc_id,
                 "vega_id": vega_id,
                 "ccds_id": ccds_id,
-                "hgnc_symbol": hgnc_symbol
+                "hgnc_symbol": symbol
 
             }
             gene_id_info = self.get_stable_gene_id_from_hgnc_id(gene_stable_ids["hgnc_id"])
             if gene_id_info[1] != 'No data':
-                print('\n\nUPDATING\n\n')
-                print(gene_stable_ids)
                 self.update_gene_stable_ids(gene_stable_ids)
             else:
-                print('\n\nINSERTING\n\n')
-                print(gene_stable_ids)
                 self.insert_gene_stable_ids(gene_stable_ids)
             return
 
@@ -145,11 +141,11 @@ class Database(vvDBInsert.Mixin):
             connection_error = "Cannot retrieve data from NCBI Entrez for record %s" % accession
             if bypass_with_symbol is not False:
                 try:
-                    self.update_gene_stable_ids(bypass_with_symbol, bypass_with_symbol)
+                    self.update_gene_stable_identifiers(bypass_with_symbol)
                 except Exception as e:
                     logger.debug("Except pass, %s", e)
-                    logger.info("Unable to connect to HGNC with symbol %s", symbol)
-                    connection_error = "Cannot connect to HGNC with symbol %s", symbol
+                    logger.info("Unable to connect to HGNC with symbol %s", bypass_with_symbol)
+                    connection_error = "Cannot connect to HGNC with symbol %s", bypass_with_symbol
             raise utils.DatabaseConnectionError(connection_error)
 
         version = record.id
@@ -184,22 +180,18 @@ class Database(vvDBInsert.Mixin):
                 raise utils.DatabaseConnectionError("Cannot retrieve data from UTA database")
 
         uta_symbol = str(uta_info[6])
-        symbol = uta_symbol
         if uta_symbol == '':
             # raise utils.ObsoleteSeqError("Cannot find UTA symbol, accession is likely obsolete")
             uta_symbol = 'unassigned'
-            symbol = genbank_symbol
-
-        hgnc_symbol = symbol
 
         try:
-            self.update_gene_stable_ids(symbol, hgnc_symbol)
+            self.update_gene_stable_identifiers(genbank_symbol)
         except Exception as e:
             logger.debug("Except pass, %s", e)
-            logger.info("Unable to connect to HGNC with symbol %s", symbol)
+            logger.info("Unable to connect to HGNC with symbol %s", genbank_symbol)
 
         # Query information
-        query_info = [version, description, variant, version, hgnc_symbol, uta_symbol]
+        query_info = [version, description, variant, version, genbank_symbol, uta_symbol]
         table = 'transcript_info'
 
         # Update the transcript_info table (needs plugging in)
