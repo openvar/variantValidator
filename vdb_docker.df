@@ -10,4 +10,4 @@ ENV MYSQL_PASSWORD var1ant
 
 RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
 
-RUN wget https://leicester.figshare.com/ndownloader/files/16237784 -O /docker-entrypoint-initdb.d/validator_2019-07-10.sql.gz
+RUN wget https://leicester.figshare.com/ndownloader/files/17714429 -O /docker-entrypoint-initdb.d/validator_2019-09-18.sql.gz

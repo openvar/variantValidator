@@ -323,7 +323,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                 formatted_variant = formatted_variant
                 caution = 'This coding sequence variant description spans at least one intron'
                 automap = 'Use of the corresponding genomic sequence variant descriptions may be invalid. ' \
-                          'Please refer to https://www35.lamp.le.ac.uk/recommendations/'
+                          'Please refer to http://variantvalidator.org/recommendations/'
                 variant.warnings.extend([caution, automap])
                 logger.info(caution + ": " + automap)
         else:
