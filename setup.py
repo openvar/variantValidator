@@ -63,7 +63,10 @@ setup(
         "configparser >= 3.5.0",
         "pyliftover >= 0.3",
         "biotools >= 0.3.0",
-        "biopython",
+        # This version has been tested for use with vvhgvs (ignore warnings) and needs to be maintained to ensure
+        # biopython is still installed when vvhgvs is updated in-line with biocommons.hgvs which has had the dependancy
+        # removed
+        "biopython==1.74",
         "requests",
         "vvhgvs",
     ],
