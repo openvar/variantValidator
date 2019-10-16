@@ -64,15 +64,12 @@ setup(
         "pyliftover >= 0.3",
         "biotools >= 0.3.0",
         # This version has been tested for use with vvhgvs (ignore warnings) and needs to be maintained to ensure
-        # biopython is still installed when vvhgvs is updated in-line with biocommons.hgvs which has had the dependancy
+        # biopython is still installed when vvhgvs is updated in-line with biocommons.hgvs which has had the dependency
         # removed
         "biopython==1.74",
         "requests",
-        "vvhgvs",
-    ],
-    dependency_links=[
-        "git+https://github.com/openvar/vv_hgvs.git@master#egg=vvhgvs-1.0.0",
-    ],
+        "vvhgvs @ git+https://github.com/openvar/vv_hgvs.git@master#egg=vvhgvs",
+    ]
 )
 
 # <LICENSE>
