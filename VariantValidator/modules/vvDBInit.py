@@ -13,7 +13,7 @@ class Mixin:
         self.cursor = None
         self.dbConfig = db_config
 
-        self.pool = mysql.connector.pooling.MySQLConnectionPool(pool_size=10, **self.dbConfig)
+        self.pool = mysql.connector.pooling.MySQLConnectionPool(pool_size=10, connect_timeout=1209600, **self.dbConfig)
         self.conn = self.pool.get_connection()
 
     def __del__(self):
