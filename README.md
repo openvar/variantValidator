@@ -86,17 +86,27 @@ Freeman PJ, Hart RK, Gretton LJ, Brookes AJ, Dalgleish R.
 
 ## Pre-requisites
 
+**VariantValidator Python library**
 VariantValidator will work locally on Mac OS X or Linux-compatible computers. It can also work within a [docker container](docs/DOCKER.md).
 
-Required software:
+**VariantValidator REST API**
+VariantValidator REST API will work locally on Mac OS X or Linux-compatible computers. It can also work within a [docker container](https://github.com/openvar/rest_variantValidator/blob/master/docs/DOCKER.md).
+
+**Required software:**
 * MySQL
 * Python 3.6 or above
 * SQLite version 3.8.0 or above
 
-Optional software:
-* Postgres version 9.5 or above, Postgres 10 is not supported.
+**Optional software:**
+* Postgres version 9.5 or above.
 
+## Installation Manuals
+
+**VariantValidator Python library**
 For installation instructions please see [INSTALLATION.md](docs/INSTALLATION.md). For the older python 2 version, see previous releases.
+
+**VariantValidator REST API**
+For installation instructions please see [INSTALLATION.md](https://github.com/openvar/rest_variantValidator/blob/master/docs/INSTALLATION.md)
 
 ## Operation Manuals
 
