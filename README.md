@@ -95,4 +95,8 @@ Freeman PJ, Hart RK, Gretton LJ, Brookes AJ, Dalgleish R.
 > along with this program.  If not, see <https://www.gnu.org/licenses/>.
 > </LICENSE>
 
+## Acknowledgements
 
+**VariantValidator is maintained hosted by the University of Manchester and the University of Leicester**
+
+<img src=\"https://www.google.com/imgres?imgurl=https%3A%2F%2Fwww.staffnet.manchester.ac.uk%2Fbrand%2Fvisual-identity%2Flogo%2Flogo_big.gif&imgrefurl=https%3A%2F%2Fwww.staffnet.manchester.ac.uk%2Fbrand%2Fvisual-identity%2Flogo%2F&docid=FTive0sWzT89aM&tbnid=odk_vC_MLXKd2M%3A&vet=10ahUKEwiE7Of97OblAhUFKBoKHVuUAFMQMwhjKAAwAA..i&w=500&h=226&bih=811&biw=1108&q=university%20of%20manchester%20logo&ved=0ahUKEwiE7Of97OblAhUFKBoKHVuUAFMQMwhjKAAwAA&iact=mrc&uact=8\" />
