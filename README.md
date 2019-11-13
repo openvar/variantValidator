@@ -77,15 +77,6 @@ Freeman PJ, Hart RK, Gretton LJ, Brookes AJ, Dalgleish R.
 > along with this program.  If not, see <https://www.gnu.org/licenses/>.
 > </LICENSE>
 
-## Acknowledgements
-
-**VariantValidator is maintained hosted by the University of Manchester and the University of Leicester**
-
-<img src="https://github.com/i3hsInnovation/resources/blob/master/images/UoM_logo.jpg?raw=true" width="40%" align="left"/>
-<img src="https://github.com/i3hsInnovation/resources/blob/master/images/UoL-Logo-Full-Colour.png?raw=true" width="40%" align="right" />
-
-<br><br>
-
 ## Pre-requisites
 
 **VariantValidator Python library**
@@ -117,3 +108,10 @@ Please see [MANUAL.md](docs/MANUAL.md). Note that the latest version is not comp
 
 **VariantValidator REST API**
 please see [MANUAL.md](https://github.com/openvar/rest_variantValidator/blob/master/docs/MANUAL.md)
+
+## Acknowledgements
+
+**VariantValidator is maintained hosted by the University of Manchester and the University of Leicester**
+
+<img src="https://github.com/i3hsInnovation/resources/blob/master/images/UoM_logo.jpg?raw=true" width="40%" align="left"/>
+<img src="https://github.com/i3hsInnovation/resources/blob/master/images/UoL-Logo-Full-Colour.png?raw=true" width="40%" align="right" />
