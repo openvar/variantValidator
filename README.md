@@ -32,24 +32,6 @@ Projection of sequence variations between reference sequences takes account of d
 
 For sequence variations falling within the open reading frames of genes, VariantValidator automatically projects sequence variants via the transcript reference sequence onto genome builds GRCh38, GRCh37, hg38 and hg19 (HGVS format and VCF components), including projection onto relevant Alternative genomic reference sequences, the composition of which varies between patched GRC genome builds and static hg genome builds
 
-## Pre-requisites
-
-VariantValidator will work locally on Mac OS X or Linux-compatible computers. It can also work within a [docker container](docs/DOCKER.md).
-
-Required software:
-* MySQL
-* Python 3.6 or above
-* SQLite version 3.8.0 or above
-
-Optional software:
-* Postgres version 9.5 or above, Postgres 10 is not supported.
-
-For installation instructions please see [INSTALLATION.md](docs/INSTALLATION.md). For the older python 2 version, see previous releases.
-
-## Operation and configuration
-
-Please see [MANUAL.md](docs/MANUAL.md). Note that the latest version is not compatible with previous releases.
-
 ## License
 
 Please see [LICENSE.txt](LICENSE.txt)
@@ -101,3 +83,25 @@ Freeman PJ, Hart RK, Gretton LJ, Brookes AJ, Dalgleish R.
 
 <img src="https://github.com/i3hsInnovation/resources/blob/master/images/UoM_logo.jpg?raw=true" width="40%" align="left"/>
 <img src="https://github.com/i3hsInnovation/resources/blob/master/images/UoL-Logo-Full-Colour.png?raw=true" width="40%" align="right" />
+
+## Pre-requisites
+
+VariantValidator will work locally on Mac OS X or Linux-compatible computers. It can also work within a [docker container](docs/DOCKER.md).
+
+Required software:
+* MySQL
+* Python 3.6 or above
+* SQLite version 3.8.0 or above
+
+Optional software:
+* Postgres version 9.5 or above, Postgres 10 is not supported.
+
+For installation instructions please see [INSTALLATION.md](docs/INSTALLATION.md). For the older python 2 version, see previous releases.
+
+## Operation Manuals
+
+**VariantValidator Python library**
+Please see [MANUAL.md](docs/MANUAL.md). Note that the latest version is not compatible with previous releases.
+
+**VariantValidator REST API**
+please see [MANUAL.md](https://github.com/openvar/rest_variantValidator/blob/master/docs/MANUAL.md)
