@@ -77,7 +77,7 @@ Freeman PJ, Hart RK, Gretton LJ, Brookes AJ, Dalgleish R.
 > along with this program.  If not, see <https://www.gnu.org/licenses/>.
 > </LICENSE>
 
-## Pre-requisites
+## Pre-requisites for local installation
 
 **VariantValidator Python library**
 VariantValidator will work locally on Mac OS X or Linux-compatible computers. It can also work within a [docker container](docs/DOCKER.md).
