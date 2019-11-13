@@ -46,7 +46,7 @@ Optional software:
 
 For installation instructions please see [INSTALLATION.md](docs/INSTALLATION.md). For the older python 2 version, see previous releases.
 
-# Operation and configuration
+## Operation and configuration
 
 Please see [MANUAL.md](docs/MANUAL.md). Note that the latest version is not compatible with previous releases.
 
