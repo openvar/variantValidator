@@ -84,7 +84,7 @@ Freeman PJ, Hart RK, Gretton LJ, Brookes AJ, Dalgleish R.
 <img src="https://github.com/i3hsInnovation/resources/blob/master/images/UoM_logo.jpg?raw=true" width="40%" align="left"/>
 <img src="https://github.com/i3hsInnovation/resources/blob/master/images/UoL-Logo-Full-Colour.png?raw=true" width="40%" align="right" />
 
-<br>
+<br><br>
 
 ## Pre-requisites
 
