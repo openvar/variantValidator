@@ -62,7 +62,7 @@ All contents of VariantValidator are protected by local and international copyri
 ### By continuing to use VariantValidator web-services, you accept the following terms:
 1. Secure/Remote Access. All access and use of VariantValidator must be made via a secure network.
 
-2. Variations in Content. The University of Leicester reserve the right, in its reasonable and good faith discretion, to remove or modify materials accessed by VariantValidator or outputs provided by VariantValidator because such materials contain errors or could be subject to an infringement or other adverse claim by a third party.
+2. Variations in Content. The University of Manchester and the University of Leicester (University) reserve the right, in its reasonable and good faith discretion, to remove or modify materials accessed by VariantValidator or outputs provided by VariantValidator because such materials contain errors or could be subject to an infringement or other adverse claim by a third party.
 
 3. Remedial Action. Without limiting the above, University may suspend delivery of the Service if it reasonably determines a User’s failure to comply with this Agreement may cause irreparable harm to it.
 
