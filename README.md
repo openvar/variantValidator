@@ -1,4 +1,6 @@
 # VariantValidator
+***
+
 [![codecov](https://codecov.io/gh/openvar/variantValidator/branch/restructuring_py3/graph/badge.svg)](https://codecov.io/gh/openvar/variantValidator) [![Build Status](https://travis-ci.org/openvar/variantValidator.png)](https://travis-ci.org/openvar/variantValidator)
 
 ## About
@@ -40,17 +42,18 @@ Please see [LICENSE.txt](LICENSE.txt)
 ### By continuing to use VariantValidator, you accept the following terms:
 All contents of VariantValidator are protected by local and international copyright laws. User inputs are submitted for the purpose of interpreting genetic and clinical information (including clinical genomic and genetic data). Outputs returned may or may not have a causal association with disease phenotypes, irrespective of stated classifications or other information presented by VariantValidator. All information returned by VariantValidator, including variant classifications, is subject to change and there is no warranty, express or implied, as to its accuracy, completeness, or fitness for a particular purpose. Use of VariantValidator and information is subject to User responsibility and discretion. Clinical decisions regarding individual patient care should be carried out in conjunction with a healthcare professional with expertise in the relevant genes and diseases. We do not accept any liability for any injury, loss or damage incurred by use of or reliance on the information provided by VariantValidator.
 
-## Web-services additional Terms and Conditions
+## Web-services additional Terms and Conditions of use
+
 ### By continuing to use VariantValidator web-services, you accept the following terms:
 1. Secure/Remote Access. All access and use of VariantValidator must be made via a secure network.
 
-2. Variations in Content. The University of Manchester and the University of Leicester (University) reserve the right, in its reasonable and good faith discretion, to remove or modify materials accessed by VariantValidator or outputs provided by VariantValidator because such materials contain errors or could be subject to an infringement or other adverse claim by a third party.
+2. Variations in Content. The University of Leicester and the University of Mancheser (Universities) reserve the right, in its reasonable and good faith discretion, to remove or modify materials accessed by VariantValidator or outputs provided by VariantValidator because such materials contain errors or could be subject to an infringement or other adverse claim by a third party.
 
-3. Remedial Action. Without limiting the above, University may suspend delivery of the Service if it reasonably determines a User’s failure to comply with this Agreement may cause irreparable harm to it.
+3. Remedial Action. Without limiting the above, Universities may suspend delivery of the Service if it reasonably determines a User’s failure to comply with this Agreement may cause irreparable harm to it.
 
-4. Service Level. University will use reasonable efforts to provide access to the Service on a continuous 24/7 basis (except for regularly scheduled maintenance when Service may be suspended) and free from viruses or other harmful software. University shall not be liable for any failure or delay or interruption in the Service or failure of any equipment or telecommunications resulting from any cause beyond University’s reasonable control. User is responsible for providing all required information.
+4. Service Level. Universities will use reasonable efforts to provide access to the Service on a continuous 24/7 basis (except for regularly scheduled maintenance when Service may be suspended) and free from viruses or other harmful software. Universities shall not be liable for any failure or delay or interruption in the Service or failure of any equipment or telecommunications resulting from any cause beyond Universities reasonable control. User is responsible for providing all required information.
 
-4. No Warranty. University makes no warranty that Service is error free or that the use thereof will be uninterrupted and User acknowledges and agrees that the existence of such errors shall not constitute a breach of this Agreement. University disclaims all other warranties with respect to Service, either express or implied, including but not limited to any implied warranties relating to quality, fitness for any particular purpose or ability to achieve a particular result. Limitation of Liability. University’s total liability for any claims, losses, damages or expenses whatsoever and howsoever caused (even if caused by University’s negligence and/or breach of contract) shall be limited to the price paid to University for the products or services that are the subject of the User’s claim.
+4. No Warranty. Universities makes no warranty that Service is error free or that the use thereof will be uninterrupted and User acknowledges and agrees that the existence of such errors shall not constitute a breach of this Agreement. Universities disclaims all other warranties with respect to Service, either express or implied, including but not limited to any implied warranties relating to quality, fitness for any particular purpose or ability to achieve a particular result. Limitation of Liability. Universities total liability for any claims, losses, damages or expenses whatsoever and howsoever caused (even if caused by Universities negligence and/or breach of contract) shall be limited to the price paid to Universities for the products or services that are the subject of the User’s claim.
 
 ## Cite us
 
@@ -111,7 +114,7 @@ please see [MANUAL.md](https://github.com/openvar/rest_variantValidator/blob/mas
 
 ## Acknowledgements
 
-**VariantValidator is maintained hosted by the University of Manchester and the University of Leicester**
+**VariantValidator is maintained hosted at the University of Manchester and hosted at the University of Leicester**
 
 <img src="https://github.com/i3hsInnovation/resources/blob/master/images/UoM_logo.jpg?raw=true" width="40%" align="left"/>
 <img src="https://github.com/i3hsInnovation/resources/blob/master/images/UoL-Logo-Full-Colour.png?raw=true" width="40%" align="right" />
