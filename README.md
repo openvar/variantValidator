@@ -1,5 +1,4 @@
 # VariantValidator
-***
 
 [![codecov](https://codecov.io/gh/openvar/variantValidator/branch/restructuring_py3/graph/badge.svg)](https://codecov.io/gh/openvar/variantValidator) [![Build Status](https://travis-ci.org/openvar/variantValidator.png)](https://travis-ci.org/openvar/variantValidator)
 
@@ -114,7 +113,7 @@ please see [MANUAL.md](https://github.com/openvar/rest_variantValidator/blob/mas
 
 ## Acknowledgements
 
-**VariantValidator is maintained hosted at the University of Manchester and hosted at the University of Leicester**
+**VariantValidator is maintained by the University of Manchester and hosted by the University of Leicester**
 
 <img src="https://github.com/i3hsInnovation/resources/blob/master/images/UoM_logo.jpg?raw=true" width="40%" align="left"/>
 <img src="https://github.com/i3hsInnovation/resources/blob/master/images/UoL-Logo-Full-Colour.png?raw=true" width="40%" align="right" />
