@@ -113,7 +113,7 @@ please see [MANUAL.md](https://github.com/openvar/rest_variantValidator/blob/mas
 
 ## Acknowledgements
 
-**VariantValidator is maintained by the University of Manchester and hosted by the University of Leicester**
+**VariantValidator was developed at the University of Leicester. It is now maintained and developed by the University of Manchester and is hosted (with ongoing development contributions) by the University of Leicester**
 
 <img src="https://github.com/i3hsInnovation/resources/blob/master/images/UoM_logo.jpg?raw=true" width="40%" align="left"/>
 <img src="https://github.com/i3hsInnovation/resources/blob/master/images/UoL-Logo-Full-Colour.png?raw=true" width="40%" align="right" />
