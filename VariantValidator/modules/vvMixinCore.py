@@ -80,6 +80,8 @@ class Mixin(vvMixinConverters.Mixin):
             self.batch_list = []
             for queries in batch_queries:
                 queries = queries.strip()
+                queries = queries.replace('"', '')
+                queries = queries.replace("'", "")
                 query = Variant(queries)
                 self.batch_list.append(query)
                 logger.info("Submitting variant with format %s", queries)
