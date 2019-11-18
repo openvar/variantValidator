@@ -1,4 +1,3 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
 import pkg_resources
 import re
 import warnings
@@ -12,6 +11,9 @@ try:
 except pkg_resources.DistributionNotFound as e:
     warnings.warn("can't get __version__ because %s package isn't installed" % __package__, Warning)
     __version__ = None
+except TypeError:
+    # Travis fails on use_scm_version=True versioning
+    __version__ = "Travis"
 
 # <LICENSE>
 # Copyright (C) 2019 VariantValidator Contributors
