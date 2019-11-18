@@ -1,5 +1,8 @@
 version: '3'
 
+volumes:
+  seqdata:
+
 services:
   vdb:
     build:
@@ -10,7 +13,9 @@ services:
     expose:
       - "3306"
   uta:
-    image: biocommons/uta
+    build:
+      context: .
+      dockerfile: uta_docker.df
     ports:
       - "5432:5432"
     expose:
@@ -26,6 +31,3 @@ services:
       - uta
     volumes:
       - seqdata:/usr/local/share/seqrepo
-
-volumes:
-  seqdata:

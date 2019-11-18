@@ -3,19 +3,20 @@
 # Prefer setuptools over distutils
 from setuptools import setup, find_packages
 
-with open('VariantValidator/version.py') as ins:
-    version = ins.read()
-    version = version.split('=')[1].strip()
-    version = version.replace("'", "")
+# with open('VariantValidator/version.py') as ins:
+#     version = ins.read()
+#     version = version.split('=')[1].strip()
+#     version = version.replace("'", "")
 
 setup(
     name='VariantValidator',
-    version=version,
     description='API for accurate, mapping and formatting of sequence variants using HGVS nomenclature',
     long_description=open('README.md').read(),
-    url='https://variantvalidator.org',
-    author='Peter J. Causey-Freeman',
-    author_email='pjf9@leicester.ac.uk',
+    url='https://github.com/openvar/variantValidator',
+    use_scm_version=True,
+    zip_safe=True,
+    author="VariantValidator Contributors",
+    author_email='admin@variantvalidator.org',
     packages=['VariantValidator', 'VariantValidator.modules'],
     include_package_data=True,
     license="GNU AFFERO GENERAL PUBLIC LICENSE, Version 3 (https://www.gnu.org/licenses/agpl-3.0.en.html)",
@@ -64,12 +65,20 @@ setup(
         "pyliftover >= 0.3",
         "biotools >= 0.3.0",
         # This version has been tested for use with vvhgvs (ignore warnings) and needs to be maintained to ensure
-        # biopython is still installed when vvhgvs is updated in-line with biocommons.hgvs which has had the dependency
+        # biopython is still installed when vvhgvs is updated in-line with biocommons.hgvs which has had the dependancy
         # removed
         "biopython==1.74",
         "requests",
+        # "vvhgvs",
         "vvhgvs @ git+https://github.com/openvar/vv_hgvs.git@master#egg=vvhgvs",
+    ],
+    # dependency_links=[
+    #     "git+https://github.com/openvar/vv_hgvs.git@master#egg=vvhgvs-1.0.0",
+    # ],
+    setup_requires=[
+        "setuptools_scm",
     ]
+
 )
 
 # <LICENSE>

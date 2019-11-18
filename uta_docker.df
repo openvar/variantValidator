@@ -1,0 +1,11 @@
+FROM postgres:latest
+
+ENV POSTGRES_DB=uta
+
+ENV POSTGRES_USER=uta_admin
+
+ENV POSTGRES_PASSWORD=uta_admin
+
+RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
+
+RUN wget https://leicester.figshare.com/ndownloader/files/17797259 -O /docker-entrypoint-initdb.d/uta_20180821.sql.gz
