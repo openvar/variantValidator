@@ -133,7 +133,8 @@ def vcf2hgvs_stage2(variant, validator):
     The reference sequence type is also assigned.
     """
     skipvar = False
-    if re.search(r'\w+:', variant.quibble) and not re.search(r'\w+:[gcnmrp]\.', variant.quibble):
+    if (re.search(r'\w+:', variant.quibble) or re.search(r'\w+\(\w+\):', variant.quibble)) and not \
+            (re.search(r'\w+:[gcnmrp]\.', variant.quibble) or re.search(r'\w+\(\w+\):[gcnmrp]\.', variant.quibble)):
         if re.search(r'\w+:[gcnmrp]', variant.quibble) and not re.search(r'\w+:[gcnmrp]\.', variant.quibble):
             # Missing dot
             pass
@@ -141,8 +142,13 @@ def vcf2hgvs_stage2(variant, validator):
             try:
                 if 'GRCh37' in variant.quibble or 'hg19' in variant.quibble:
                     variant.primary_assembly = 'GRCh37'
+                    validator.selected_assembly = 'GRCh37'
+                    variant.quibble.format_quibble()
                 elif 'GRCh38' in variant.quibble or 'hg38' in variant.quibble:
                     variant.primary_assembly = 'GRCh38'
+                    validator.selected_assembly = 'GRCh38'
+                    variant.format_quibble()
+                # Remove all content in brackets
                 input_list = variant.quibble.split(':')
                 pos_ref_alt = str(input_list[1])
                 position_and_edit = input_list[1]
@@ -216,7 +222,8 @@ def vcf2hgvs_stage3(variant, validator):
     software
     """
     skipvar = False
-    if re.search(r'\w+:[gcnmrp]\.', variant.quibble) and not re.match(r'N[CGTWMRP]_', variant.quibble):
+    if (re.search(r'\w+:[gcnmrp]\.', variant.quibble) or re.search(r'\w+\(\w+\):[gcnmrp]\.', variant.quibble)) \
+            and not re.match(r'N[CGTWMRP]_', variant.quibble):
         # Take out lowercase Accession characters
         lower_cased_list = variant.quibble.split(':')
         if re.search('LRG', lower_cased_list[0], re.IGNORECASE):
@@ -231,10 +238,16 @@ def vcf2hgvs_stage3(variant, validator):
         variant.quibble = lower_case_accession + ':' + variant.quibble
         if 'LRG_' not in variant.quibble and 'ENS' not in variant.quibble and not re.match('N[MRPC]_', variant.quibble):
             try:
-                if 'GRCh37' in variant.quibble or 'hg19' in variant.quibble:
+                if re.search('GRCh37', variant.quibble, re.IGNORECASE) or \
+                        re.search('hg19', variant.quibble, re.IGNORECASE):
                     variant.primary_assembly = 'GRCh37'
-                elif 'GRCh38' in variant.quibble or 'hg38' in variant.quibble:
+                    validator.selected_assembly = 'GRCh37'
+                    variant.format_quibble()
+                if re.search('GRCh38', variant.quibble, re.IGNORECASE) or \
+                        re.search('hg38', variant.quibble, re.IGNORECASE):
                     variant.primary_assembly = 'GRCh38'
+                    validator.selected_assembly = 'GRCh38'
+                    variant.format_quibble()
                 input_list = variant.quibble.split(':')
                 query_a_symbol = input_list[0]
                 is_it_a_gene = validator.db.get_hgnc_symbol(query_a_symbol)
@@ -302,9 +315,9 @@ def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version):
                                             variant.quibble + ' and specify transcripts from the following: ' +
                                             'select_transcripts=' + select_from_these_transcripts)
                     logger.warning('HGVS variant nomenclature does not allow the use of a gene symbol (' +
-                                query_a_symbol + ') in place of a valid reference sequence: Re-submit ' +
-                                variant.quibble + ' and specify transcripts from the following: ' +
-                                'select_transcripts=' + select_from_these_transcripts)
+                                   query_a_symbol + ') in place of a valid reference sequence: Re-submit ' +
+                                   variant.quibble + ' and specify transcripts from the following: ' +
+                                   'select_transcripts=' + select_from_these_transcripts)
                 skipvar = True
         except Exception as e:
             logger.debug("Except passed, %s", e)
@@ -356,9 +369,9 @@ def refseq_catch(variant, validator, select_transcripts_dict_plus_version):
                                                 ' but also specify transcripts from the following: ' +
                                                 'select_transcripts=' + select_from_these_transcripts)
                         logger.warning('A transcript reference sequence has not been provided e.g. '
-                                    'NG_(NM_):c.PositionVariation. Re-submit ' + variant.quibble + ' but also '
-                                    'specify transcripts from the following: select_transcripts=' +
-                                    select_from_these_transcripts)
+                                       'NG_(NM_):c.PositionVariation. Re-submit ' + variant.quibble + ' but also '
+                                       'specify transcripts from the following: select_transcripts=' +
+                                       select_from_these_transcripts)
                     skipvar = True
                 else:
                     variant.warnings.append('A transcript reference sequence has not been provided e.g. '
