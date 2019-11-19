@@ -135,7 +135,7 @@ class Mixin(vvMixinConverters.Mixin):
                         logger.warning(error)
                         continue
 
-                    # Remove whitespace
+                    # Remove whitespace and quotes
                     my_variant.remove_whitespace()
                     my_variant.remove_quotes()
 
@@ -903,7 +903,7 @@ class Mixin(vvMixinConverters.Mixin):
                     except fn.DatabaseConnectionError as e:
                         error = 'Currently unable to update gene_ids or transcript information records because ' \
                                 'VariantValidator %s' % str(e)
-                        my_variant.warnings.append(error)
+                        # my_variant.warnings.append(error)
                         logger.warning(error)
                     tx_description = self.db.get_transcript_description(tx)
                 # Check for duplicates
