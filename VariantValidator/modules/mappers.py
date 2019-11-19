@@ -143,8 +143,9 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                     logger.warning(str(error))
                     return True
             else:
-                error = 'Please ensure the requested chromosome version relates to a supported genome build. ' \
-                        'Supported genome builds are: GRCh37, GRCh38, hg19 and hg38'
+                error = 'Validation will fail if the selected chromosome reference sequence does not corresponds to ' \
+                        'selected genome build. Please re-submit your query and select an alternate genome build. ' \
+                        'Note, if you did not specify a genome build, VariantValidator defaults to GRCh38'
                 variant.warnings.append(error)
                 logger.warning(str(error))
                 return True
