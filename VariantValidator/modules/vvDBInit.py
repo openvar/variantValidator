@@ -8,13 +8,13 @@ class Mixin:
     """
     def __init__(self, db_config):
         self.conn = None
+        self.pool = None
         # self.cursor will be none UNLESS you're wrapping a function in @handleCursor, which automatically opens and
         # closes connections for you.
         self.cursor = None
         self.dbConfig = db_config
 
-        self.pool = mysql.connector.pooling.MySQLConnectionPool(pool_size=10, connect_timeout=1209600, **self.dbConfig)
-        self.conn = self.pool.get_connection()
+        self.init_db()
 
     def __del__(self):
         if self.conn.is_connected():
@@ -25,6 +25,10 @@ class Mixin:
             self.conn = None
         if self.pool:
             self.pool = None
+
+    def init_db(self):
+        self.pool = mysql.connector.pooling.MySQLConnectionPool(pool_size=10, connect_timeout=1209600, **self.dbConfig)
+        self.conn = self.pool.get_connection()
 
 # <LICENSE>
 # Copyright (C) 2019 VariantValidator Contributors
