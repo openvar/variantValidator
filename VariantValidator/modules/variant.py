@@ -194,6 +194,7 @@ class Variant(object):
         if test is True:
             try:
                 del self.stable_gene_ids['ensembl_gene_id']
+                del self.stable_gene_ids['ccds_ids']
             except KeyError:
                 pass
         dict_out = {

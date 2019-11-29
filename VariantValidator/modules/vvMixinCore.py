@@ -175,15 +175,26 @@ class Mixin(vvMixinConverters.Mixin):
                     # INITIAL USER INPUT FORMATTING
                     invalid = my_variant.format_quibble()
                     if invalid:
-                        if re.search(r'\w+:[gcnmrp]', my_variant.quibble) and not \
+                        if re.search(r'\w+:[gcnmrp],', my_variant.quibble):
+                            error = 'Variant description ' + my_variant.quibble + ' contained the , character between '\
+                                    '<type> and <position> in the expected pattern <accession>:<type>.<position> and ' \
+                                    'has been auto-corrected'
+                            my_variant.quibble = my_variant.quibble.replace(',', '.')
+                            my_variant.warnings.append(error)
+                            logger.warning(error)
+                            pass
+                        elif re.search(r'\w+:[gcnmrp]', my_variant.quibble) and not \
                                 re.search(r'\w+:[gcnmrp]\.', my_variant.quibble):
                             error = 'Variant description ' + my_variant.quibble + ' lacks the . character between ' \
                                     '<type> and <position> in the expected pattern <accession>:<type>.<position>'
+                            my_variant.warnings.append(error)
+                            logger.warning(error)
+                            continue
                         else:
                             error = 'Variant description ' + my_variant.quibble + ' is not in an accepted format'
-                        my_variant.warnings.append(error)
-                        logger.warning(error)
-                        continue
+                            my_variant.warnings.append(error)
+                            logger.warning(error)
+                            continue
 
                     formatted_variant = my_variant.quibble
                     stash_input = my_variant.quibble
@@ -214,8 +225,9 @@ class Mixin(vvMixinConverters.Mixin):
                     except vvhgvs.exceptions.HGVSError as e:
                         # Look for T not U!
                         posedit = formatted_variant.split(':')[-1]
-                        if 'T' in posedit:
-                            e = 'The IUPAC RNA alphabet dictates that RNA variants must use the character u in place of t'
+                        if 'T' in posedit and "r." in posedit:
+                            e = 'The IUPAC RNA alphabet dictates that RNA variants must use the character u in ' \
+                                'place of t'
                         my_variant.warnings.append(str(e))
                         logger.warning(str(e))
                         continue
@@ -257,7 +269,7 @@ class Mixin(vvMixinConverters.Mixin):
                             my_variant.warnings.append(str(trap_ens_in) + ' automapped to equivalent RefSeq transcript '
                                                        + my_variant.quibble)
                             logger.info(str(trap_ens_in) + ' automapped to equivalent RefSeq '
-                                                              'transcript ' + my_variant.quibble)
+                                                           'transcript ' + my_variant.quibble)
                     logger.debug("HVGS acceptance test passed")
 
                     # Check whether supported genome build is requested for non g. descriptions
@@ -701,7 +713,14 @@ class Mixin(vvMixinConverters.Mixin):
                         stable_gene_ids['ucsc_id'] = gene_stable_info[5]
                         stable_gene_ids['omim_id'] = json.loads(gene_stable_info[6])
                         # stable_gene_ids['vega_id'] = gene_stable_info[7]
-                        # stable_gene_ids['ccds_ids'] = gene_stable_info[8]
+
+                        # reformat ccds return into a Python list
+                        my_ccds = gene_stable_info[8].replace('[', '')
+                        my_ccds = my_ccds.replace(']', '')
+                        my_ccds = my_ccds.replace('"','')
+                        ccds_list = my_ccds.split()
+                        stable_gene_ids['ccds_ids'] = ccds_list
+
                     except IndexError as e:
                         logger.debug("Except pass, %s", e)
 
