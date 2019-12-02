@@ -13,6 +13,6 @@ dependencies:
   - configparser>=3.5.0
   - requests
   - pip:
-    - git+https://github.com/openvar/vv_hgvs@master#egg=vvhgvs
+    - git+https://github.com/openvar/vv_hgvs@1.2.5.vv1#egg=vvhgvs
     - biotools>=0.3.0
     - biopython

@@ -69,8 +69,8 @@ setup(
         # removed
         "biopython==1.74",
         "requests",
-        # "vvhgvs",
-        "vvhgvs @ git+https://github.com/openvar/vv_hgvs.git@master#egg=vvhgvs",
+        "mysql-connector-python",
+        "vvhgvs @ git+https://github.com/openvar/vv_hgvs.git@1.2.5.vv1#egg=vvhgvs",
     ],
     # dependency_links=[
     #     "git+https://github.com/openvar/vv_hgvs.git@master#egg=vvhgvs-1.0.0",

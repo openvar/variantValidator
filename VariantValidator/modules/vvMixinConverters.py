@@ -9,7 +9,8 @@ from . import hgvs_utils
 from Bio import Entrez, SeqIO
 from . import utils as fn
 
-from vvhgvs.exceptions import HGVSError, HGVSDataNotAvailableError, HGVSUnsupportedOperationError
+from vvhgvs.exceptions import HGVSError, HGVSDataNotAvailableError, HGVSUnsupportedOperationError, \
+     HGVSInvalidVariantError
 
 logger = logging.getLogger(__name__)
 
@@ -494,6 +495,24 @@ class Mixin(vvMixinInit.Mixin):
                             # This will only happen if the variant is flanking the gap but is
                             # not inside the gap
                             logger.info('Variant is on the flank of a genomic gap but not within the gap')
+
+                            # Test on the flank and if so, return
+
+                            # Logic, normalize the c. variant and if a substitution (cannot normalize) then direct map
+                            # Currently believe that sub.n is the only variant type which fits. ins can normalize
+                            # and may also be a dup!
+                            try:
+                                norm_stored_c = hn.normalize(stored_hgvs_c)
+                                if norm_stored_c.posedit.edit.type == 'sub':
+                                    flank_hgvs_genomic = self.vm.t_to_g(norm_stored_c, genomic_gap_variant.ac)
+                                    self.vr.validate(flank_hgvs_genomic)
+                                    return flank_hgvs_genomic
+
+                            # Will occur if the variant still overlaps the gap / is in the gap
+                            except HGVSInvalidVariantError:
+                                pass
+
+                            # If test fails, continue old processing
                             gap_start = genomic_gap_variant.posedit.pos.start.base - 1
                             gap_end = genomic_gap_variant.posedit.pos.end.base + 1
                             genomic_gap_variant.posedit.pos.start.base = gap_start
@@ -1159,6 +1178,23 @@ class Mixin(vvMixinInit.Mixin):
                             # This will only happen if the variant is flanking the gap but is
                             # not inside the gap
                             logger.info('Variant is on the flank of a genomic gap but not within the gap')
+
+                            # Test definately on the flank and if so, return
+                            # Logic, normalize the c. variant and if a substitution (cannot normalize) then direct map
+                            # Currently believe that sub.n is the only variant type which fits. ins can normalize
+                            # and may also be a dup!
+                            try:
+                                norm_stored_c = hn.normalize(stored_hgvs_c)
+                                if norm_stored_c.posedit.edit.type == 'sub':
+                                    flank_hgvs_genomic = self.vm.t_to_g(norm_stored_c, genomic_gap_variant.ac)
+                                    self.vr.validate(flank_hgvs_genomic)
+                                    return flank_hgvs_genomic
+
+                            # Will occur if the variant still overlaps the gap / is in the gap
+                            except HGVSInvalidVariantError:
+                                pass
+
+                            # If test fails, continue old processing
                             gap_start = genomic_gap_variant.posedit.pos.start.base - 1
                             gap_end = genomic_gap_variant.posedit.pos.end.base + 1
                             genomic_gap_variant.posedit.pos.start.base = gap_start
@@ -2155,7 +2191,7 @@ class Mixin(vvMixinInit.Mixin):
         """
         # Covert chromosomal HGVS description to RefSeqGene
         """
-        # print 'chr_to_rsg triggered'
+        # 'chr_to_rsg triggered'
         hgvs_genomic = hn.normalize(hgvs_genomic)
         # split the description
         # Accessions
@@ -2358,7 +2394,6 @@ class Mixin(vvMixinInit.Mixin):
                         new_ref = match[1]
                         hgvs_genomic.posedit.edit.ref = new_ref
                         error = 'true'
-                    # # print str(e) + '\n3.'
                     data = {'hgvs_genomic': str(hgvs_genomic), 'gene': gene, 'valid': str(error)}
                 else:
                     data = {'hgvs_genomic': str(hgvs_genomic), 'gene': gene, 'valid': 'true'}
