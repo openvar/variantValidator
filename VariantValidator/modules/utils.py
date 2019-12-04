@@ -16,16 +16,7 @@ def handleCursor(func):
     """
     @functools.wraps(func)
     def wrapper(self, *args, **kwargs):
-        try:
-            self.conn.ping(reconnect=True, attempts=3, delay=5)
-        except mysql.connector.Error:
-            logger.warning("MySQL connection lost. Reconnecting.")
-            self.init_db()
-
-        self.cursor = self.conn.cursor(buffered=True)
         out = func(self, *args, **kwargs)
-        if self.cursor:
-            self.cursor.close()
         return out
     return wrapper
 

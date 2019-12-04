@@ -25,14 +25,22 @@ class Database(vvDBInsert.Mixin):
     # from dbquery
     @handleCursor
     def query_with_fetchone(self, entry):
+        # Connect and create cursor
+        conn = self.get_conn()
+        cursor = self.get_cursor(conn)
+
         query = "SELECT refSeqID, description, transcriptVariant, currentVersion, hgncSymbol, utaSymbol, updated, " \
                 "IF(updated < NOW() - INTERVAL 3 MONTH , 'true', 'false') FROM transcript_info WHERE " \
                 "refSeqID = '%s'" % entry
-        self.cursor.execute(query)
-        row = self.cursor.fetchone()
+        cursor.execute(query)
+        row = cursor.fetchone()
         if row is None:
             row = ['none', 'No data']
             logger.debug("No data returned from query " + str(query))
+
+        # close conn
+        cursor.close()
+        conn.close()
         return row
 
     # From data
