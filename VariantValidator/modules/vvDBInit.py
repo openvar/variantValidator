@@ -7,28 +7,33 @@ class Mixin:
     A mixin containing the database initialisation routines.
     """
     def __init__(self, db_config):
-        self.conn = None
         self.pool = None
-        # self.cursor will be none UNLESS you're wrapping a function in @handleCursor, which automatically opens and
-        # closes connections for you.
-        self.cursor = None
         self.dbConfig = db_config
-
         self.init_db()
 
     def __del__(self):
-        if self.conn.is_connected():
-            try:
-                self.conn.close()
-            except mysql.connector.errors.NotSupportedError:
-                pass
-            self.conn = None
         if self.pool:
             self.pool = None
 
     def init_db(self):
         self.pool = mysql.connector.pooling.MySQLConnectionPool(pool_size=10, connect_timeout=1209600, **self.dbConfig)
-        self.conn = self.pool.get_connection()
+
+    def get_conn(self):
+        try:
+            conn = self.pool.get_connection()
+        except mysql.connector.Error:
+            self.init_db()
+            conn = self.pool.get_connection()
+        return conn
+
+    def get_cursor(self, conn):
+        try:
+            cursor = conn.cursor(buffered=True)
+        except mysql.connector.Error:
+            self.init_db()
+            self.get_conn()
+            cursor = conn.cursor(buffered=True)
+        return cursor
 
 # <LICENSE>
 # Copyright (C) 2019 VariantValidator Contributors

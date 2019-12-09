@@ -20,7 +20,8 @@ class TestUpdate(TestCase):
         db_conn = update_vv_db.connect()
 
         self.assertIsInstance(db_conn, Database)
-        self.assertTrue(db_conn.conn.is_connected())
+        conn = db_conn.get_conn()
+        self.assertTrue(conn.is_connected())
 
     def test_deletion(self):
         db = update_vv_db.connect()
