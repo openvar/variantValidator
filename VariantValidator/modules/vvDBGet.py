@@ -12,20 +12,36 @@ class Mixin(vvDBInit.Mixin):
 
     @handleCursor
     def execute(self, query):
-        self.cursor.execute(query)
-        row = self.cursor.fetchone()
+        # Connect and create cursor
+        conn = self.get_conn()
+        cursor = self.get_cursor(conn)
+
+        cursor.execute(query)
+        row = cursor.fetchone()
         if row is None:
             logger.debug("No data returned from query " + str(query))
             row = ['none', 'No data']
+
+        # Close conn
+        cursor.close()
+        conn.close()
         return row
 
     @handleCursor
     def execute_all(self, query):
-        self.cursor.execute(query)
-        rows = self.cursor.fetchall()
+        # Connect and create cursor
+        conn = self.get_conn()
+        cursor = self.get_cursor(conn)
+
+        cursor.execute(query)
+        rows = cursor.fetchall()
         if not rows:
             logger.debug("No data returned from query " + str(query))
             rows = ['none', 'No data']
+
+        # Close conn
+        cursor.close()
+        conn.close()
         return rows
 
     # from dbfetchone
