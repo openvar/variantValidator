@@ -718,6 +718,7 @@ class Mixin(vvMixinConverters.Mixin):
                         my_ccds = gene_stable_info[8].replace('[', '')
                         my_ccds = my_ccds.replace(']', '')
                         my_ccds = my_ccds.replace('"','')
+                        my_ccds = my_ccds.replace(',', '')
                         ccds_list = my_ccds.split()
                         stable_gene_ids['ccds_ids'] = ccds_list
 
