@@ -1072,10 +1072,12 @@ class Mixin(vvMixinConverters.Mixin):
                         logger.info(error)
                         return True
                     except fn.DatabaseConnectionError as e:
-                        error = '%s. Please try again later and if the problem persists contact admin.' % str(e)
-                        variant.warnings.append(error)
-                        logger.warning(error)
-                        return True
+                        # If the none key is found add the description to the database
+                        if 'UTA' in str(e):
+                            error = '%s. Please try again later and if the problem persists contact admin.' % str(e)
+                            variant.warnings.append(error)
+                            logger.warning(error)
+                            return True
                     variant.description = entry['description']
                     variant.gene_symbol = entry['hgnc_symbol']
                 else:
@@ -1090,10 +1092,12 @@ class Mixin(vvMixinConverters.Mixin):
                     logger.info(error)
                     return True
                 except fn.DatabaseConnectionError as e:
-                    error = '%s. Please try again later and if the problem persists contact admin.' % str(e)
-                    variant.warnings.append(error)
-                    logger.warning(error)
-                    return True
+                    # Allows bypass with current record if external databases not available
+                    if 'UTA' in str(e):
+                        error = '%s. Please try again later and if the problem persists contact admin.' % str(e)
+                        variant.warnings.append(error)
+                        logger.warning(error)
+                        return True
                 variant.description = entry['description']
                 variant.gene_symbol = entry['hgnc_symbol']
 
