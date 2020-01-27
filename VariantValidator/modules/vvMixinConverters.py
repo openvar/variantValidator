@@ -500,10 +500,11 @@ class Mixin(vvMixinInit.Mixin):
 
                             # Logic, normalize the c. variant and if a substitution (cannot normalize) then direct map
                             # Currently believe that sub.n is the only variant type which fits. ins can normalize
-                            # and may also be a dup!
+                            # and may also be a dup! Added identity also
                             try:
                                 norm_stored_c = hn.normalize(stored_hgvs_c)
-                                if norm_stored_c.posedit.edit.type == 'sub':
+                                if norm_stored_c.posedit.edit.type == 'sub' or \
+                                        norm_stored_c.posedit.edit.type == 'identity':
                                     flank_hgvs_genomic = self.vm.t_to_g(norm_stored_c, genomic_gap_variant.ac)
                                     self.vr.validate(flank_hgvs_genomic)
                                     return flank_hgvs_genomic
@@ -1185,7 +1186,8 @@ class Mixin(vvMixinInit.Mixin):
                             # and may also be a dup!
                             try:
                                 norm_stored_c = hn.normalize(stored_hgvs_c)
-                                if norm_stored_c.posedit.edit.type == 'sub':
+                                if norm_stored_c.posedit.edit.type == 'sub' or \
+                                        norm_stored_c.posedit.edit.type == 'identity':
                                     flank_hgvs_genomic = self.vm.t_to_g(norm_stored_c, genomic_gap_variant.ac)
                                     self.vr.validate(flank_hgvs_genomic)
                                     return flank_hgvs_genomic
