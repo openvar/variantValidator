@@ -144,7 +144,7 @@ class Mixin(vvDBInit.Mixin):
         if 'NM_' in dict_out['hgvs_transcript_variant'] or 'NR_' in dict_out['hgvs_transcript_variant']:
             report_urls['transcript'] = 'https://www.ncbi.nlm.nih.gov' \
                                         '/nuccore/%s' % dict_out['hgvs_transcript_variant'].split(':')[0]
-        if 'NP_' in dict_out['hgvs_predicted_protein_consequence']['slr']:
+        if 'NP_' in str(dict_out['hgvs_predicted_protein_consequence']['slr']):
             report_urls['protein'] = 'https://www.ncbi.nlm.nih.gov' \
                                      '/nuccore/%s' % str(
                 dict_out['hgvs_predicted_protein_consequence']['slr']).split(':')[0]
