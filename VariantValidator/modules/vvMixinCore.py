@@ -155,8 +155,10 @@ class Mixin(vvMixinConverters.Mixin):
                         # Catch invalid genome build
                         if primary_assembly in self.genome_builds or primary_assembly == 'hg38':
                             my_variant.primary_assembly = primary_assembly
+                            my_variant.selected_assembly = selected_assembly
                         else:
                             my_variant.primary_assembly = 'GRCh38'
+                            my_variant.selected_assembly = selected_assembly
                             primary_assembly = 'GRCh38'
                             my_variant.warnings.append('Invalid genome build has been specified. Automap has selected '
                                                        'the default build (GRCh38)')
