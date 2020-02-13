@@ -200,7 +200,7 @@ class Variant(object):
             except KeyError:
                 pass
         dict_out = {
-            'selected_build': self.selected_assembly,
+            'selected_assembly': self.selected_assembly,
             'submitted_variant': self.original,
             'gene_symbol': self.gene_symbol,
             'gene_ids': self.stable_gene_ids,
