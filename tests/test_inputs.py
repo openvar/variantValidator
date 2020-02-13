@@ -3533,7 +3533,7 @@ class TestVariantsAuto(TestCase):
         assert results['flag'] == 'gene_variant'
         assert 'NM_198455.2:c.1115_1116insT' in list(results.keys())
         assert results['NM_198455.2:c.1115_1116insT']['submitted_variant'] == 'NC_000007.14:g.149779575_149779577delinsT'
-        assert results['NM_198455.2:c.1115_1116insT']['gene_symbol'] == 'SSPO'
+        assert results['NM_198455.2:c.1115_1116insT']['gene_symbol'] == 'SSPOP'
         assert results['NM_198455.2:c.1115_1116insT']['gene_ids'] == {'hgnc_id': 'HGNC:21998', 'entrez_gene_id': '23145', 'ucsc_id': 'uc064jau.1', 'omim_id': ['617356']}
         assert results['NM_198455.2:c.1115_1116insT']['hgvs_transcript_variant'] == 'NM_198455.2:c.1115_1116insT'
         assert results['NM_198455.2:c.1115_1116insT']['genome_context_intronic_sequence'] == ''
@@ -3557,7 +3557,7 @@ class TestVariantsAuto(TestCase):
         assert results['flag'] == 'gene_variant'
         assert 'NM_198455.2:c.1116_1118=' in list(results.keys())
         assert results['NM_198455.2:c.1116_1118=']['submitted_variant'] == 'NC_000007.14:g.149779575_149779577='
-        assert results['NM_198455.2:c.1116_1118=']['gene_symbol'] == 'SSPO'
+        assert results['NM_198455.2:c.1116_1118=']['gene_symbol'] == 'SSPOP'
         assert results['NM_198455.2:c.1116_1118=']['gene_ids'] == {'hgnc_id': 'HGNC:21998', 'entrez_gene_id': '23145', 'ucsc_id': 'uc064jau.1', 'omim_id': ['617356']}
         assert results['NM_198455.2:c.1116_1118=']['hgvs_transcript_variant'] == 'NM_198455.2:c.1116_1118='
         assert results['NM_198455.2:c.1116_1118=']['genome_context_intronic_sequence'] == ''
@@ -3581,7 +3581,7 @@ class TestVariantsAuto(TestCase):
         assert results['flag'] == 'gene_variant'
         assert 'NM_198455.2:c.1116_1118=' in list(results.keys())
         assert results['NM_198455.2:c.1116_1118=']['submitted_variant'] == 'NC_000007.14:g.149779576_149779578del'
-        assert results['NM_198455.2:c.1116_1118=']['gene_symbol'] == 'SSPO'
+        assert results['NM_198455.2:c.1116_1118=']['gene_symbol'] == 'SSPOP'
         assert results['NM_198455.2:c.1116_1118=']['gene_ids'] == {'hgnc_id': 'HGNC:21998', 'entrez_gene_id': '23145', 'ucsc_id': 'uc064jau.1', 'omim_id': ['617356']}
         assert results['NM_198455.2:c.1116_1118=']['hgvs_transcript_variant'] == 'NM_198455.2:c.1116_1118='
         assert results['NM_198455.2:c.1116_1118=']['genome_context_intronic_sequence'] == ''
@@ -3605,7 +3605,7 @@ class TestVariantsAuto(TestCase):
         assert results['flag'] == 'gene_variant'
         assert 'NM_198455.2:c.1115_1116dup' in list(results.keys())
         assert results['NM_198455.2:c.1115_1116dup']['submitted_variant'] == 'NC_000007.14:g.149779577del'
-        assert results['NM_198455.2:c.1115_1116dup']['gene_symbol'] == 'SSPO'
+        assert results['NM_198455.2:c.1115_1116dup']['gene_symbol'] == 'SSPOP'
         assert results['NM_198455.2:c.1115_1116dup']['gene_ids'] == {'hgnc_id': 'HGNC:21998', 'entrez_gene_id': '23145', 'ucsc_id': 'uc064jau.1', 'omim_id': ['617356']}
         assert results['NM_198455.2:c.1115_1116dup']['hgvs_transcript_variant'] == 'NM_198455.2:c.1115_1116dup'
         assert results['NM_198455.2:c.1115_1116dup']['genome_context_intronic_sequence'] == ''
@@ -3629,7 +3629,7 @@ class TestVariantsAuto(TestCase):
         assert results['flag'] == 'gene_variant'
         assert 'NM_198455.2:c.1114_1117del' in list(results.keys())
         assert results['NM_198455.2:c.1114_1117del']['submitted_variant'] == 'NC_000007.14:g.149779573_149779579del'
-        assert results['NM_198455.2:c.1114_1117del']['gene_symbol'] == 'SSPO'
+        assert results['NM_198455.2:c.1114_1117del']['gene_symbol'] == 'SSPOP'
         assert results['NM_198455.2:c.1114_1117del']['gene_ids'] == {'hgnc_id': 'HGNC:21998', 'entrez_gene_id': '23145', 'ucsc_id': 'uc064jau.1', 'omim_id': ['617356']}
         assert results['NM_198455.2:c.1114_1117del']['hgvs_transcript_variant'] == 'NM_198455.2:c.1114_1117del'
         assert results['NM_198455.2:c.1114_1117del']['genome_context_intronic_sequence'] == ''
@@ -3653,7 +3653,7 @@ class TestVariantsAuto(TestCase):
         assert results['flag'] == 'gene_variant'
         assert 'NM_198455.2:c.1114_1117delinsCA' in list(results.keys())
         assert results['NM_198455.2:c.1114_1117delinsCA']['submitted_variant'] == 'NC_000007.14:g.149779573_149779579delinsCA'
-        assert results['NM_198455.2:c.1114_1117delinsCA']['gene_symbol'] == 'SSPO'
+        assert results['NM_198455.2:c.1114_1117delinsCA']['gene_symbol'] == 'SSPOP'
         assert results['NM_198455.2:c.1114_1117delinsCA']['gene_ids'] == {'hgnc_id': 'HGNC:21998', 'entrez_gene_id': '23145', 'ucsc_id': 'uc064jau.1', 'omim_id': ['617356']}
         assert results['NM_198455.2:c.1114_1117delinsCA']['hgvs_transcript_variant'] == 'NM_198455.2:c.1114_1117delinsCA'
         assert results['NM_198455.2:c.1114_1117delinsCA']['genome_context_intronic_sequence'] == ''

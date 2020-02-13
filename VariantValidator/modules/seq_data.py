@@ -2818,7 +2818,7 @@ def gap_black_list(symbol):
         "TRPM1",
         "LPP",
         "VPS13D",
-        "SSPO",
+        "SSPOP",
         "HTT",
         "PRKDC",
         "RNA45SN4",
