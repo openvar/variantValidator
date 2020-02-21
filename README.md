@@ -111,6 +111,8 @@ please see [MANUAL.md](https://github.com/openvar/rest_variantValidator/blob/mas
 <img src="https://github.com/i3hsInnovation/resources/blob/master/images/UoM_logo.jpg?raw=true" width="40%" align="left"/>
 <img src="https://github.com/i3hsInnovation/resources/blob/master/images/UoL-Logo-Full-Colour.png?raw=true" width="40%" align="right" />
 
+<br>
+
 > <LICENSE>
 > Copyright (C) 2019 VariantValidator Contributors
 >
