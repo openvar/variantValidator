@@ -932,7 +932,7 @@ class Mixin(vvMixinConverters.Mixin):
                     if len(line) >= 3 and isinstance(line[1], int):
                         genes_and_tx.append({'reference': tx,
                                              'description': tx_description,
-                                             'coding_start': line[1] + 1 + 1,
+                                             'coding_start': line[1] + 1,
                                              'coding_end': line[2]
                                              })
                     else:
@@ -946,7 +946,7 @@ class Mixin(vvMixinConverters.Mixin):
                     if lrg_transcript != 'none':
                         genes_and_tx.append({'reference': lrg_transcript,
                                              'description': tx_description,
-                                             'coding_start': line[1] + 1 + 1,
+                                             'coding_start': line[1] + 1,
                                              'coding_end': line[2]
                                              })
 
