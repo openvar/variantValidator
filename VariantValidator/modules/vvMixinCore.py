@@ -105,15 +105,15 @@ class Mixin(vvMixinConverters.Mixin):
 
                 # Create Normalizers
                 my_variant.hn = vvhgvs.normalizer.Normalizer(self.hdp,
-                                                           cross_boundaries=False,
-                                                           shuffle_direction=3,
-                                                           alt_aln_method=self.alt_aln_method
-                                                           )
+                                                             cross_boundaries=False,
+                                                             shuffle_direction=3,
+                                                             alt_aln_method=self.alt_aln_method
+                                                             )
                 my_variant.reverse_normalizer = vvhgvs.normalizer.Normalizer(self.hdp,
-                                                                           cross_boundaries=False,
-                                                                           shuffle_direction=5,
-                                                                           alt_aln_method=self.alt_aln_method
-                                                                           )
+                                                                             cross_boundaries=False,
+                                                                             shuffle_direction=5,
+                                                                             alt_aln_method=self.alt_aln_method
+                                                                             )
                 # This will be used to order the final output
                 if not my_variant.order:
                     ordering = ordering + 1
@@ -922,6 +922,12 @@ class Mixin(vvMixinConverters.Mixin):
 
                 # Get additional tx_ information
                 tx_exons = self.hdp.get_tx_exons(tx, line[4], line[5])
+                tx_orientation = tx_exons[0]['alt_strand']
+
+                # Fetch the sequence to get the length
+                tx_seq = self.sf.fetch_seq(tx)
+                tx_len = len(tx_seq)
+
 
                 # Collect genomic span for the transcript against known genomic/gene reference sequences
                 gen_start_pos = None
@@ -962,15 +968,19 @@ class Mixin(vvMixinConverters.Mixin):
                     if len(line) >= 3 and isinstance(line[1], int):
                         genes_and_tx.append({'reference': tx,
                                              'description': tx_description,
-                                             'coding_start': line[1] + 1 + 1,
+                                             'length': tx_len,
+                                             'coding_start': line[1] + 1,
                                              'coding_end': line[2],
+                                             'orientation': tx_orientation,
                                              'genomic_spans': {}
                                              })
                     else:
                         genes_and_tx.append({'reference': tx,
                                              'description': tx_description,
-                                             'coding_start': 'non-coding',
-                                             'coding_end': 'non-coding',
+                                             'length': tx_len,
+                                             'coding_start': None,
+                                             'coding_end': None,
+                                             'orientation': tx_orientation,
                                              'genomic_spans': {}
                                              })
                     # LRG information
@@ -988,8 +998,12 @@ class Mixin(vvMixinConverters.Mixin):
                     for check_tx in genes_and_tx:
                         lrg_transcript = self.db.get_lrg_transcript_id_from_refseq_transcript_id(tx)
                         if check_tx['reference'] == tx:
-                            check_tx['genomic_spans'][line[4]] = {'start_position': gen_start_pos + 1,
-                                                                  'end_position': gen_end_pos}
+                            if gen_start_pos < gen_end_pos:
+                                check_tx['genomic_spans'][line[4]] = {'start_position': gen_start_pos + 1,
+                                                                      'end_position': gen_end_pos}
+                            else:
+                                check_tx['genomic_spans'][line[4]] = {'start_position': gen_end_pos + 1,
+                                                                      'end_position': gen_start_pos}
                         if lrg_transcript != 'none':
                             if check_tx['reference'] == lrg_transcript:
                                 if 'NG_' in line[4]:
