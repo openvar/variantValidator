@@ -988,7 +988,7 @@ class Mixin(vvMixinConverters.Mixin):
                     if lrg_transcript != 'none':
                         genes_and_tx.append({'reference': lrg_transcript,
                                              'description': tx_description,
-                                             'coding_start': line[1] + 1 + 1,
+                                             'coding_start': line[1] + 1,
                                              'coding_end': line[2],
                                              'genomic_spans': {}
                                              })
