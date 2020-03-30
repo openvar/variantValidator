@@ -920,6 +920,10 @@ class Mixin(vvMixinConverters.Mixin):
                 # Transcript ID
                 tx = line[3]
 
+                # Protein id
+                prot_id = None
+                prot_id = self.hdp.get_pro_ac_for_tx_ac(tx)
+
                 # Get additional tx_ information
                 tx_exons = self.hdp.get_tx_exons(tx, line[4], line[5])
                 tx_orientation = tx_exons[0]['alt_strand']
@@ -968,6 +972,7 @@ class Mixin(vvMixinConverters.Mixin):
                     if len(line) >= 3 and isinstance(line[1], int):
                         genes_and_tx.append({'reference': tx,
                                              'description': tx_description,
+                                             'translation': prot_id,
                                              'length': tx_len,
                                              'coding_start': line[1] + 1,
                                              'coding_end': line[2],
@@ -977,6 +982,7 @@ class Mixin(vvMixinConverters.Mixin):
                     else:
                         genes_and_tx.append({'reference': tx,
                                              'description': tx_description,
+                                             'translation': prot_id,
                                              'length': tx_len,
                                              'coding_start': None,
                                              'coding_end': None,
