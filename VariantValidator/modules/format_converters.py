@@ -710,6 +710,9 @@ def mitochondrial(variant, validator):
     if variant.reftype == ':m.' or variant.hgvs_formatted.ac == 'NC_012920.1' or \
             variant.hgvs_formatted.ac == 'NC_001807.4':
 
+        # set flag
+        variant.output_type_flag = 'mitochondrial'
+
         hgvs_mito = copy.deepcopy(variant.hgvs_formatted)
         if hgvs_mito.type == 'g' and (hgvs_mito.ac == 'NC_012920.1' or hgvs_mito.ac == 'NC_001807.4'):
             hgvs_mito.type = 'm'

@@ -98,6 +98,7 @@ class Mixin(vvMixinConverters.Mixin):
             flag : error
             flag : intragenic
             flag : gene
+            flag : mitochondrial
             """
 
             logger.debug("Batch list length " + str(len(self.batch_list)))
