@@ -16,7 +16,7 @@ class Mixin:
             self.pool = None
 
     def init_db(self):
-        self.pool = mysql.connector.pooling.MySQLConnectionPool(pool_size=10, connect_timeout=1209600, **self.dbConfig)
+        self.pool = mysql.connector.pooling.MySQLConnectionPool(pool_size=5, **self.dbConfig)
 
     def get_conn(self):
         try:
