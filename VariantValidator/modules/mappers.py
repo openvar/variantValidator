@@ -638,6 +638,9 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     except NotImplementedError as e:
         protein_dict= {'hgvs_protein': None, 'error': str(e)}
         variant.warnings.append(str(e))
+    except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
+        protein_dict= {'hgvs_protein': None, 'error': str(e)}
+        variant.warnings.append(str(e))
 
     if protein_dict['error'] == '':
         hgvs_protein = protein_dict['hgvs_protein']
