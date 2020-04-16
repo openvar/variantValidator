@@ -31,9 +31,32 @@ You will need to provide an email address and an
 *Note: configuration can be updated (see below for details)*
 
 ## Install and build
+*Note: If you have MySQl and or Postgres databases already running, you will need to alter the ports used in the 
+docker-comose.yml file. The relevant section is shown here*
+```yml
+services:
+  vdb:
+    build:
+      context: .
+      dockerfile: vdb_docker.df
+    ports:
+      - "3306:3306"
+    expose:
+      - "3306"
+  uta:
+    build:
+      context: .
+      dockerfile: uta_docker.df
+    ports:
+      - "5432:5432"
+    expose:
+      - "5432"
+``` 
 
 *Note: some of these steps take >>1hr to complete depending on the speed of your internet connection, particularly 
 compiling SeqRepo*
+
+
 
 ```bash
 # Pull images

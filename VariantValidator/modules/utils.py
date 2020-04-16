@@ -5,7 +5,6 @@ import functools
 import logging
 import re
 import copy
-# import mysql.connector
 
 logger = logging.getLogger(__name__)
 
