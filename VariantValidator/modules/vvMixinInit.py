@@ -254,6 +254,14 @@ class Mixin:
                         posedit = str(hgvs_transcript_to_hgvs_protein['hgvs_protein'].posedit)
                         posedit = posedit[:-4] + '=)'
                         hgvs_transcript_to_hgvs_protein['hgvs_protein'].posedit = posedit
+                    try:
+                        # Sometimes ins create an inline Ter in the alt. Needs to be terminated after the ter
+                        if re.search("\*[A-Z]+", hgvs_transcript_to_hgvs_protein['hgvs_protein'].posedit.edit.alt):
+                            pr_alt_ter_stp = hgvs_transcript_to_hgvs_protein['hgvs_protein'].posedit.edit.alt
+                            pr_alt_ter_stp = pr_alt_ter_stp.split('*')[0] + '*'
+                            hgvs_transcript_to_hgvs_protein['hgvs_protein'].posedit.edit.alt = pr_alt_ter_stp
+                    except:
+                        pass
                     return hgvs_transcript_to_hgvs_protein
                 else:
                     hgvs_transcript_to_hgvs_protein = self.myc_to_p(hgvs_transcript, evm, re_to_p=True, hn=hn)

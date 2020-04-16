@@ -103,6 +103,8 @@ def structure_checks_g(variant, validator):
     try:
         validator.vr.validate(variant.input_parses)
     except Exception as e:
+        if "does not agree with reference sequence ()" in str(e):
+            e = "The specified coordinate is outside the boundaries of reference sequence %s " % variant.input_parses.ac
         error = str(e)
         variant.warnings.append(error)
         logger.warning(error)

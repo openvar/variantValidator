@@ -98,6 +98,7 @@ class Mixin(vvMixinConverters.Mixin):
             flag : error
             flag : intragenic
             flag : gene
+            flag : mitochondrial
             """
 
             logger.debug("Batch list length " + str(len(self.batch_list)))
@@ -105,15 +106,15 @@ class Mixin(vvMixinConverters.Mixin):
 
                 # Create Normalizers
                 my_variant.hn = vvhgvs.normalizer.Normalizer(self.hdp,
-                                                           cross_boundaries=False,
-                                                           shuffle_direction=3,
-                                                           alt_aln_method=self.alt_aln_method
-                                                           )
+                                                             cross_boundaries=False,
+                                                             shuffle_direction=3,
+                                                             alt_aln_method=self.alt_aln_method
+                                                             )
                 my_variant.reverse_normalizer = vvhgvs.normalizer.Normalizer(self.hdp,
-                                                                           cross_boundaries=False,
-                                                                           shuffle_direction=5,
-                                                                           alt_aln_method=self.alt_aln_method
-                                                                           )
+                                                                             cross_boundaries=False,
+                                                                             shuffle_direction=5,
+                                                                             alt_aln_method=self.alt_aln_method
+                                                                             )
                 # This will be used to order the final output
                 if not my_variant.order:
                     ordering = ordering + 1
@@ -155,8 +156,10 @@ class Mixin(vvMixinConverters.Mixin):
                         # Catch invalid genome build
                         if primary_assembly in self.genome_builds or primary_assembly == 'hg38':
                             my_variant.primary_assembly = primary_assembly
+                            my_variant.selected_assembly = selected_assembly
                         else:
                             my_variant.primary_assembly = 'GRCh38'
+                            my_variant.selected_assembly = selected_assembly
                             primary_assembly = 'GRCh38'
                             my_variant.warnings.append('Invalid genome build has been specified. Automap has selected '
                                                        'the default build (GRCh38)')
@@ -672,7 +675,8 @@ class Mixin(vvMixinConverters.Mixin):
                         except vvhgvs.exceptions.HGVSParseError as e:
                             logger.debug("Except passed, %s", e)
                     else:
-                        predicted_protein_variant_dict["slr"] = str(predicted_protein_variant)
+                        predicted_protein_variant_dict["slr"] = None
+                        predicted_protein_variant_dict["tlr"] = None
 
                 # Add stable gene_ids
                 stable_gene_ids = {}
@@ -916,6 +920,42 @@ class Mixin(vvMixinConverters.Mixin):
             if line[3].startswith('NM_') or line[3].startswith('NR_'):
                 # Transcript ID
                 tx = line[3]
+
+                # Protein id
+                prot_id = None
+                prot_id = self.hdp.get_pro_ac_for_tx_ac(tx)
+
+                # Get additional tx_ information
+                tx_exons = self.hdp.get_tx_exons(tx, line[4], line[5])
+                tx_orientation = tx_exons[0]['alt_strand']
+
+                # Fetch the sequence to get the length
+                tx_seq = self.sf.fetch_seq(tx)
+                tx_len = len(tx_seq)
+
+
+                # Collect genomic span for the transcript against known genomic/gene reference sequences
+                gen_start_pos = None
+                gen_end_pos = None
+                for tx_pos in tx_exons:
+                    start_pos = tx_pos['alt_start_i']
+                    end_pos = tx_pos['alt_end_i']
+                    if gen_start_pos is None:
+                        gen_start_pos = start_pos
+                    else:
+                        if int(start_pos) < int(gen_start_pos):
+                            gen_start_pos = int(start_pos)
+                    if gen_end_pos is None:
+                        gen_end_pos = end_pos
+                    else:
+                        if int(end_pos) > int(gen_end_pos):
+                            gen_end_pos = int(end_pos)
+
+                if ('NG_' in line[4] or 'NC_000' in line[4]) and line[3] != 'blat':
+                    gen_span = True
+                else:
+                    gen_span = False
+
                 tx_description = self.db.get_transcript_description(tx)
                 if tx_description == 'none':
                     try:
@@ -926,20 +966,29 @@ class Mixin(vvMixinConverters.Mixin):
                         # my_variant.warnings.append(error)
                         logger.warning(error)
                     tx_description = self.db.get_transcript_description(tx)
+
                 # Check for duplicates
                 if tx not in recovered:
                     recovered.append(tx)
                     if len(line) >= 3 and isinstance(line[1], int):
                         genes_and_tx.append({'reference': tx,
                                              'description': tx_description,
+                                             'translation': prot_id,
+                                             'length': tx_len,
                                              'coding_start': line[1] + 1,
-                                             'coding_end': line[2]
+                                             'coding_end': line[2],
+                                             'orientation': tx_orientation,
+                                             'genomic_spans': {}
                                              })
                     else:
                         genes_and_tx.append({'reference': tx,
                                              'description': tx_description,
-                                             'coding_start': 'non-coding',
-                                             'coding_end': 'non-coding'
+                                             'translation': prot_id,
+                                             'length': tx_len,
+                                             'coding_start': None,
+                                             'coding_end': None,
+                                             'orientation': tx_orientation,
+                                             'genomic_spans': {}
                                              })
                     # LRG information
                     lrg_transcript = self.db.get_lrg_transcript_id_from_refseq_transcript_id(tx)
@@ -947,9 +996,30 @@ class Mixin(vvMixinConverters.Mixin):
                         genes_and_tx.append({'reference': lrg_transcript,
                                              'description': tx_description,
                                              'coding_start': line[1] + 1,
-                                             'coding_end': line[2]
+                                             'coding_end': line[2],
+                                             'genomic_spans': {}
                                              })
 
+                # Add the genomic span information
+                if gen_span is True:
+                    for check_tx in genes_and_tx:
+                        lrg_transcript = self.db.get_lrg_transcript_id_from_refseq_transcript_id(tx)
+                        if check_tx['reference'] == tx:
+                            if gen_start_pos < gen_end_pos:
+                                check_tx['genomic_spans'][line[4]] = {'start_position': gen_start_pos + 1,
+                                                                      'end_position': gen_end_pos}
+                            else:
+                                check_tx['genomic_spans'][line[4]] = {'start_position': gen_end_pos + 1,
+                                                                      'end_position': gen_start_pos}
+                        if lrg_transcript != 'none':
+                            if check_tx['reference'] == lrg_transcript:
+                                if 'NG_' in line[4]:
+                                    lrg_id = self.db.get_lrg_id_from_refseq_gene_id(line[4])
+                                    if lrg_id[0] in lrg_transcript:
+                                        check_tx['genomic_spans'][line[4]] = {'start_position': gen_start_pos + 1,
+                                                                              'end_position': gen_end_pos}
+                                        check_tx['genomic_spans'][lrg_id[0]] = {'start_position': gen_start_pos + 1,
+                                                                                'end_position': gen_end_pos}
         # Return data table
         g2d_data = {'current_symbol': current_sym,
                     'previous_symbol': previous_sym,

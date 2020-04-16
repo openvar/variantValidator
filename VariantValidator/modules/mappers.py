@@ -99,7 +99,8 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                 variant.warnings.append(str(variant.hgvs_formatted) + ' automapped to genome position ' +
                                         str(genomic_input))
                 query = Variant(variant.original, quibble=genomic_input, warnings=variant.warnings,
-                                primary_assembly=variant.primary_assembly, order=variant.order)
+                                primary_assembly=variant.primary_assembly, order=variant.order,
+                                selected_assembly=variant.selected_assembly)
 
                 validator.batch_list.append(query)
                 logger.info('Submitting new variant with format %s', genomic_input)
@@ -180,7 +181,8 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
         # Set the values and append to batch_list
         for c_description in rel_var:
             query = Variant(variant.original, quibble=str(c_description), warnings=variant.warnings,
-                            primary_assembly=variant.primary_assembly, order=variant.order)
+                            primary_assembly=variant.primary_assembly, order=variant.order,
+                            selected_assembly=variant.selected_assembly)
             validator.batch_list.append(query)
             logger.info("Submitting new variant with format %s", str(c_description))
         # Call next description
@@ -400,7 +402,8 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                 hgvs_vt = validator.hp.parse_hgvs_variant(str(post_var))
                 assert str(hgvs_vt) == str(post_var)
                 query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=[automap],
-                                primary_assembly=variant.primary_assembly, order=variant.order)
+                                primary_assembly=variant.primary_assembly, order=variant.order,
+                                selected_assembly=variant.selected_assembly)
                 validator.batch_list.append(query)
                 logger.info("Submitting new variant with format %s", fn.valstr(hgvs_vt))
 
@@ -431,7 +434,8 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                 hgvs_vt = validator.hp.parse_hgvs_variant(str(post_var))
                 assert str(hgvs_vt) == str(post_var)
                 query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=[automap],
-                                primary_assembly=variant.primary_assembly, order=variant.order)
+                                primary_assembly=variant.primary_assembly, order=variant.order,
+                                selected_assembly=variant.selected_assembly)
                 validator.batch_list.append(query)
                 logger.info("Submitting new variant with format %s", fn.valstr(hgvs_vt))
 
@@ -489,7 +493,8 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             hgvs_vt = validator.hp.parse_hgvs_variant(str(query))
             assert str(hgvs_vt) == str(query)
             query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=[automap],
-                            primary_assembly=variant.primary_assembly, order=variant.order)
+                            primary_assembly=variant.primary_assembly, order=variant.order,
+                            selected_assembly=variant.selected_assembly)
             validator.batch_list.append(query)
             logger.info("Submitting new variant with format %s", fn.valstr(hgvs_vt))
 
@@ -510,7 +515,8 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             hgvs_vt = validator.hp.parse_hgvs_variant(str(query))
             assert str(hgvs_vt) == str(query)
             query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=[automap],
-                            primary_assembly=variant.primary_assembly, order=variant.order)
+                            primary_assembly=variant.primary_assembly, order=variant.order,
+                            selected_assembly=variant.selected_assembly)
             validator.batch_list.append(query)
             logger.info("Submitting new variant with format %s", fn.valstr(hgvs_vt))
 
@@ -633,7 +639,15 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         hgvs_refseq = 'RefSeqGene record not available'
 
     # Predicted effect on protein
-    protein_dict = validator.myc_to_p(hgvs_coding, variant.evm, re_to_p=False, hn=variant.hn)
+    try:
+        protein_dict = validator.myc_to_p(hgvs_coding, variant.evm, re_to_p=False, hn=variant.hn)
+    except NotImplementedError as e:
+        protein_dict= {'hgvs_protein': None, 'error': str(e)}
+        variant.warnings.append(str(e))
+    except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
+        protein_dict= {'hgvs_protein': None, 'error': str(e)}
+        variant.warnings.append(str(e))
+
     if protein_dict['error'] == '':
         hgvs_protein = protein_dict['hgvs_protein']
     else:

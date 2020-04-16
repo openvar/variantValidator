@@ -327,6 +327,7 @@ class TestMethods(TestCase):
             'alt_genomic_loci': None,
             'primary_assembly_loci': None,
             'reference_sequence_records': None,
+            'selected_assembly': False
         })
 
     def test_output_dict_set(self):
@@ -344,6 +345,7 @@ class TestMethods(TestCase):
         self.var.alt_genomic_loci = 'alt'
         self.var.primary_assembly_loci = 'primary'
         self.var.reference_sequence_records = 'records'
+        self.var.selected_assembly = 'assembly'
         output = self.var.output_dict()
         self.assertIsInstance(output, dict)
         self.assertEqual(output, {
@@ -359,6 +361,7 @@ class TestMethods(TestCase):
             'validation_warnings': ['warning'],
             'hgvs_lrg_transcript_variant': 'lrgT',
             'hgvs_lrg_variant': 'lrg',
+            'selected_assembly': 'assembly',
             'alt_genomic_loci': 'alt',
             'primary_assembly_loci': 'primary',
             'reference_sequence_records': 'records',

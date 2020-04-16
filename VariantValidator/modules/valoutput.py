@@ -48,6 +48,10 @@ class ValOutput(object):
             # Should only ever be 1 output as an error or a warning of the following types
             # Gene symbol as reference sequence
             # Gene as transcript reference sequence
+
+            # Note, currently there are no NM_ mito transcripts. This is expected to change. For now mito will
+            # be handled here
+
             if variant.output_type_flag == 'warning':
                 # validation_output['flag'] = 'warning'
                 if variant.warnings == ['Validation error']:
@@ -60,6 +64,19 @@ class ValOutput(object):
                     validation_warning_counter = validation_warning_counter + 1
                     identification_key = 'validation_warning_%s' % validation_warning_counter
                 validation_output[identification_key] = variant.output_dict()
+            elif variant.output_type_flag == 'mitochondrial':
+                validation_output['flag'] = 'mitochondrial'
+                if variant.warnings == ['Validation error']:
+                    validation_error_counter = validation_error_counter + 1
+                    identification_key = 'validation_error_%s' % validation_error_counter
+                elif variant.is_obsolete():
+                    validation_obsolete_counter += 1
+                    identification_key = 'obsolete_record_%s' % validation_obsolete_counter
+                else:
+                    validation_warning_counter = validation_warning_counter + 1
+                    identification_key = 'mitochondrial_variant_%s' % validation_warning_counter
+                validation_output[identification_key] = variant.output_dict()
+
 
             # Intergenic variants
             if variant.output_type_flag == 'intergenic':
