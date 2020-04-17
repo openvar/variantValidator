@@ -238,14 +238,14 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             return True
 
         errors = ['Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive',
-                  'Query https://rest.variantvalidator.org/tools/gene2transcripts/%s for '
+                  'Query gene2transcripts with search term %s for '
                   'available transcripts' % tx_ac.split('.')[0]]
         variant.warnings.extend(errors)
         logger.info(str(errors))
         return True
     except TypeError:
         errors = ['Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive',
-                  'Query https://rest.variantvalidator.org/tools/gene2transcripts/%s for '
+                  'Query gene2transcripts with search term %s for '
                   'available transcripts' % tx_ac.split('.')[0]]
         variant.warnings.extend(errors)
         logger.info(str(errors))
@@ -647,6 +647,10 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
         protein_dict= {'hgvs_protein': None, 'error': str(e)}
         variant.warnings.append(str(e))
+
+    # Replace p.= with p.(=)
+    if protein_dict['hgvs_protein'].posedit is '=':
+        protein_dict['hgvs_protein'].posedit = '(=)'
 
     if protein_dict['error'] == '':
         hgvs_protein = protein_dict['hgvs_protein']

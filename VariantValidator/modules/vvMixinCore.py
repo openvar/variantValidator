@@ -664,6 +664,10 @@ class Mixin(vvMixinConverters.Mixin):
 
                 # Add single letter AA code to protein descriptions
                 predicted_protein_variant_dict = {"tlr": str(predicted_protein_variant), "slr": ''}
+                if re.search('p\.=', predicted_protein_variant_dict['tlr']):
+                    # Replace p.= with p.(=)
+                    predicted_protein_variant_dict['tlr'] = predicted_protein_variant_dict['tlr'].replace('p.=',
+                                                                                                          'p.(=)')
                 if predicted_protein_variant != '':
                     if 'Non-coding :n.' not in predicted_protein_variant:
                         try:
@@ -671,6 +675,10 @@ class Mixin(vvMixinConverters.Mixin):
                             format_p = re.sub(r'\(LRG_.+?\)', '', format_p)
                             re_parse_protein = self.hp.parse_hgvs_variant(format_p)
                             re_parse_protein_single_aa = fn.single_letter_protein(re_parse_protein)
+                            # Replace p.= with p.(=)
+                            if re.search('p\.=', re_parse_protein_single_aa):
+                                re_parse_protein_single_aa = re_parse_protein_single_aa.replace('p.=',
+                                                                                                'p.(=)')
                             predicted_protein_variant_dict["slr"] = str(re_parse_protein_single_aa)
                         except vvhgvs.exceptions.HGVSParseError as e:
                             logger.debug("Except passed, %s", e)
