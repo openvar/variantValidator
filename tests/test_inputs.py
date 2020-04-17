@@ -4178,24 +4178,24 @@ class TestVariantsAuto(TestCase):
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
 
-        assert results['flag'] == 'warning'
-        assert 'validation_warning_1' in list(results.keys())
-        assert results['validation_warning_1']['submitted_variant'] == 'NC_012920.1:m.1011C>T'
-        assert results['validation_warning_1']['gene_symbol'] == ''
-        assert results['validation_warning_1']['gene_ids'] == {}
-        assert results['validation_warning_1']['hgvs_transcript_variant'] == ''
-        assert results['validation_warning_1']['genome_context_intronic_sequence'] == ''
-        assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
-        assert results['validation_warning_1']['hgvs_refseqgene_variant'] == ''
-        assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
-        assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
-        assert results['validation_warning_1']['hgvs_lrg_variant'] == ''
-        self.assertCountEqual(results['validation_warning_1']['alt_genomic_loci'], [])
-        assert results['validation_warning_1']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': 'NC_012920.1:m.1011C>T', 'vcf': {'chr': 'chrM', 'pos': '1011', 'ref': 'C', 'alt': 'T'}}
-        assert results['validation_warning_1']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': 'NC_012920.1:m.1011C>T', 'vcf': {'chr': 'chrM', 'pos': '1011', 'ref': 'C', 'alt': 'T'}}
-        assert results['validation_warning_1']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_012920.1:m.1011C>T', 'vcf': {'chr': 'M', 'pos': '1011', 'ref': 'C', 'alt': 'T'}}
-        assert results['validation_warning_1']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': 'NC_012920.1:m.1011C>T', 'vcf': {'chr': 'M', 'pos': '1011', 'ref': 'C', 'alt': 'T'}}
-        assert results['validation_warning_1']['reference_sequence_records'] == ''
+        assert results['flag'] == 'mitochondrial'
+        assert 'mitochondrial_variant_1' in list(results.keys())
+        assert results['mitochondrial_variant_1']['submitted_variant'] == 'NC_012920.1:m.1011C>T'
+        assert results['mitochondrial_variant_1']['gene_symbol'] == ''
+        assert results['mitochondrial_variant_1']['gene_ids'] == {}
+        assert results['mitochondrial_variant_1']['hgvs_transcript_variant'] == ''
+        assert results['mitochondrial_variant_1']['genome_context_intronic_sequence'] == ''
+        assert results['mitochondrial_variant_1']['refseqgene_context_intronic_sequence'] == ''
+        assert results['mitochondrial_variant_1']['hgvs_refseqgene_variant'] == ''
+        assert results['mitochondrial_variant_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
+        assert results['mitochondrial_variant_1']['hgvs_lrg_transcript_variant'] == ''
+        assert results['mitochondrial_variant_1']['hgvs_lrg_variant'] == ''
+        self.assertCountEqual(results['mitochondrial_variant_1']['alt_genomic_loci'], [])
+        assert results['mitochondrial_variant_1']['primary_assembly_loci']['hg19'] == {'hgvs_genomic_description': 'NC_012920.1:m.1011C>T', 'vcf': {'chr': 'chrM', 'pos': '1011', 'ref': 'C', 'alt': 'T'}}
+        assert results['mitochondrial_variant_1']['primary_assembly_loci']['hg38'] == {'hgvs_genomic_description': 'NC_012920.1:m.1011C>T', 'vcf': {'chr': 'chrM', 'pos': '1011', 'ref': 'C', 'alt': 'T'}}
+        assert results['mitochondrial_variant_1']['primary_assembly_loci']['grch37'] == {'hgvs_genomic_description': 'NC_012920.1:m.1011C>T', 'vcf': {'chr': 'M', 'pos': '1011', 'ref': 'C', 'alt': 'T'}}
+        assert results['mitochondrial_variant_1']['primary_assembly_loci']['grch38'] == {'hgvs_genomic_description': 'NC_012920.1:m.1011C>T', 'vcf': {'chr': 'M', 'pos': '1011', 'ref': 'C', 'alt': 'T'}}
+        assert results['mitochondrial_variant_1']['reference_sequence_records'] == ''
 
     def test_variant136(self):
         variant = 'NC_000006.11:g.90403795G='
