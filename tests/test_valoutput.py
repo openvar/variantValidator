@@ -174,7 +174,7 @@ class TestValOutput(TestCase):
         res = obj.format_as_json(with_meta=False)
         self.assertIsInstance(res, str)
         self.assertIn('"flag": "warning"', res)
-        self.assertIn('"validation_warning_1": {"submitted_variant": ""', res)
+        self.assertIn('"validation_warning_1": {"selected_assembly": false, "submitted_variant": ""', res)
         self.assertEqual(json.loads(res), obj.format_as_dict(with_meta=False))
 
     def test_table_empty(self):

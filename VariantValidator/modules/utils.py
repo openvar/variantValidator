@@ -5,7 +5,6 @@ import functools
 import logging
 import re
 import copy
-import mysql.connector
 
 logger = logging.getLogger(__name__)
 
@@ -173,6 +172,8 @@ def pro_inv_info(prot_ref_seq, prot_var_seq):
     # Is there actually any variation?
     if prot_ref_seq == prot_var_seq:
         info['variant'] = 'false'
+        info['variant'] = 'identity'
+        return info
     else:
         # Deal with terminations
         if '*' in prot_var_seq:
@@ -269,9 +270,10 @@ def pro_delins_info(prot_ref_seq, prot_var_seq):
     # Is there actually any variation?
     if prot_ref_seq == prot_var_seq:
         info['variant'] = 'false'
+        info['variant'] = 'identity'
+        return info
     else:
         # Deal with terminations
-
         if '*' in prot_var_seq:
             # Set the termination reporter to true
             info['terminate'] = 'true'

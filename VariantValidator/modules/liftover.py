@@ -25,7 +25,8 @@ def mystr(hgvs_nucleotide):
     return hgvs_nucleotide_refless
 
 
-def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, validator):
+def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, validator,
+             specify_tx=False, liftover_level=False):
     """
     Step 1, attempt to liftover using a common RefSeq transcript
     Step 2, attempt to liftover using PyLiftover.
@@ -41,7 +42,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
     """
 
     try:
-        hgvs_genomic = validator.hp.parse_hgvs_variant(hgvs_genomic)
+        hgvs_genomic = validator.hp.parse(hgvs_genomic)
     except TypeError as e:
         logger.debug("Except passed, %s", e)
 
@@ -131,12 +132,15 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
     # Get a list of overlapping RefSeq transcripts
     # Note, due to 0 base positions in UTA (I think) occasionally tx will
     rts_list = validator.hdp.get_tx_for_region(hgvs_genomic.ac, 'splign', hgvs_genomic.posedit.pos.start.base - 1,
-                                               hgvs_genomic.posedit.pos.end.base - 1)
+                                               hgvs_genomic.posedit.pos.end.base) #- 1)
     rts_dict = {}
     tx_list = False
     for tx_dat in rts_list:
         rts_dict[tx_dat[0]] = True
-    rts_list_2 = evm.relevant_transcripts(hgvs_genomic)
+    if evm is not None:
+        rts_list_2 = evm.relevant_transcripts(hgvs_genomic)
+    else:
+        rts_list_2 = []
     for tx_dat_2 in rts_list_2:
         rts_dict[tx_dat_2] = True
     if rts_dict != {}:
@@ -145,6 +149,9 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
     # Try to liftover
     if tx_list is not False:
         selected = []
+        # Liftover via a specific tx if it can be done!
+        if specify_tx is not False:
+            tx_list = [specify_tx]
         for tx in tx_list:
             # identify the first transcript if any
             options = validator.hdp.get_tx_mapping_options(tx)
@@ -157,20 +164,23 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                         sfm = seq_data.to_chr_num_ucsc(op[1], build_to)
                     if sfm is not None:
                         selected.append([op[0], op[1]])
-                if op[1].startswith('NT_'):
-                    if build_to.startswith('GRC'):
-                        sfm = seq_data.to_chr_num_refseq(op[1], build_to)
-                    if build_to.startswith('hg'):
-                        sfm = seq_data.to_chr_num_ucsc(op[1], build_to)
-                    if sfm is not None:
-                        selected.append([op[0], op[1]])
-                if op[1].startswith('NW_'):
-                    if build_to.startswith('GRC'):
-                        sfm = seq_data.to_chr_num_refseq(op[1], build_to)
-                    if build_to.startswith('hg'):
-                        sfm = seq_data.to_chr_num_ucsc(op[1], build_to)
-                    if sfm is not None:
-                        selected.append([op[0], op[1]])
+                if liftover_level == 'primary':
+                    continue
+                else:
+                    if op[1].startswith('NT_'):
+                        if build_to.startswith('GRC'):
+                            sfm = seq_data.to_chr_num_refseq(op[1], build_to)
+                        if build_to.startswith('hg'):
+                            sfm = seq_data.to_chr_num_ucsc(op[1], build_to)
+                        if sfm is not None:
+                            selected.append([op[0], op[1]])
+                    if op[1].startswith('NW_'):
+                        if build_to.startswith('GRC'):
+                            sfm = seq_data.to_chr_num_refseq(op[1], build_to)
+                        if build_to.startswith('hg'):
+                            sfm = seq_data.to_chr_num_ucsc(op[1], build_to)
+                        if sfm is not None:
+                            selected.append([op[0], op[1]])
 
         # remove duplicate chroms
         filtered_1 = {}

@@ -8,7 +8,8 @@ class Variant(object):
     relevant to what kind of variant it is.
     """
 
-    def __init__(self, original, quibble=None, warnings=None, write=True, primary_assembly=False, order=False):
+    def __init__(self, original, quibble=None, warnings=None, write=True, primary_assembly=False, order=False,
+                 selected_assembly=False):
         self.original = original
         if quibble is None:
             self.quibble = original
@@ -36,6 +37,7 @@ class Variant(object):
         self.protein = ''
         self.write = write
         self.primary_assembly = primary_assembly
+        self.selected_assembly = selected_assembly
         self.order = order
         self.output_type_flag = 'warning'
         self.gene_symbol = ''
@@ -198,6 +200,7 @@ class Variant(object):
             except KeyError:
                 pass
         dict_out = {
+            'selected_assembly': self.selected_assembly,
             'submitted_variant': self.original,
             'gene_symbol': self.gene_symbol,
             'gene_ids': self.stable_gene_ids,
