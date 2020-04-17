@@ -78,15 +78,42 @@ class TestProteinInv(TestCase):
         pro1 = ''
         pro2 = ''
         output = utils.pro_inv_info(pro1, pro2)
-        self.assertIsNone(output)
+        self.assertIsInstance(output, dict)
+        print(output)
+        self.assertEqual(output['variant'], 'identity')
+        self.assertEqual(output['terminate'], 'false')
+        self.assertEqual(output['ter_pos'], 0)
+        self.assertEqual(output['error'], 'false')
+        self.assertEqual(output['prot_del_seq'], '')
+        self.assertEqual(output['prot_ins_seq'], '')
+        self.assertEqual(output['edit_start'], 0)
+        self.assertEqual(output['edit_end'], 0)
 
     def test_equal(self):
         output = utils.pro_inv_info('MTACGP', 'MTACGP')
-        self.assertIsNone(output)
+        self.assertIsInstance(output, dict)
+        print(output)
+        self.assertEqual(output['variant'], 'identity')
+        self.assertEqual(output['terminate'], 'false')
+        self.assertEqual(output['ter_pos'], 0)
+        self.assertEqual(output['error'], 'false')
+        self.assertEqual(output['prot_del_seq'], '')
+        self.assertEqual(output['prot_ins_seq'], '')
+        self.assertEqual(output['edit_start'], 0)
+        self.assertEqual(output['edit_end'], 0)
 
     def test_equal_with_ter(self):
         output = utils.pro_inv_info('MTACGP*', 'MTACGP*')
-        self.assertIsNone(output)
+        self.assertIsInstance(output, dict)
+        print(output)
+        self.assertEqual(output['variant'], 'identity')
+        self.assertEqual(output['terminate'], 'false')
+        self.assertEqual(output['ter_pos'], 0)
+        self.assertEqual(output['error'], 'false')
+        self.assertEqual(output['prot_del_seq'], '')
+        self.assertEqual(output['prot_ins_seq'], '')
+        self.assertEqual(output['edit_start'], 0)
+        self.assertEqual(output['edit_end'], 0)
 
     def test_unequal(self):
         output = utils.pro_inv_info('MTACGP', 'MGCATP')
@@ -169,15 +196,42 @@ class TestProteinDelIns(TestCase):
         pro1 = ''
         pro2 = ''
         output = utils.pro_delins_info(pro1, pro2)
-        self.assertIsNone(output)
+        self.assertIsInstance(output, dict)
+        print(output)
+        self.assertEqual(output['variant'], 'identity')
+        self.assertEqual(output['terminate'], 'false')
+        self.assertEqual(output['ter_pos'], 0)
+        self.assertEqual(output['error'], 'false')
+        self.assertEqual(output['prot_del_seq'], '')
+        self.assertEqual(output['prot_ins_seq'], '')
+        self.assertEqual(output['edit_start'], 0)
+        self.assertEqual(output['edit_end'], 0)
 
     def test_equal(self):
         output = utils.pro_delins_info('MTACGP', 'MTACGP')
-        self.assertIsNone(output)
+        self.assertIsInstance(output, dict)
+        print(output)
+        self.assertEqual(output['variant'], 'identity')
+        self.assertEqual(output['terminate'], 'false')
+        self.assertEqual(output['ter_pos'], 0)
+        self.assertEqual(output['error'], 'false')
+        self.assertEqual(output['prot_del_seq'], '')
+        self.assertEqual(output['prot_ins_seq'], '')
+        self.assertEqual(output['edit_start'], 0)
+        self.assertEqual(output['edit_end'], 0)
 
     def test_equal_with_ter(self):
         output = utils.pro_delins_info('MTACGP*', 'MTACGP*')
-        self.assertIsNone(output)
+        self.assertIsInstance(output, dict)
+        print(output)
+        self.assertEqual(output['variant'], 'identity')
+        self.assertEqual(output['terminate'], 'false')
+        self.assertEqual(output['ter_pos'], 0)
+        self.assertEqual(output['error'], 'false')
+        self.assertEqual(output['prot_del_seq'], '')
+        self.assertEqual(output['prot_ins_seq'], '')
+        self.assertEqual(output['edit_start'], 0)
+        self.assertEqual(output['edit_end'], 0)
 
     def test_unequal(self):
         output = utils.pro_delins_info('MTACGP', 'MGCATP')
@@ -185,7 +239,7 @@ class TestProteinDelIns(TestCase):
 
     def test_ref_has_ter(self):
         output = utils.pro_delins_info('MTACGP*', 'MTACGPAL')
-        self.assertIsNone(output)
+        self.assertIsNone(output, dict)
 
     def test_has_ter(self):
         output = utils.pro_delins_info('MTACGP', 'MTACGP*')

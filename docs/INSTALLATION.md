@@ -11,7 +11,7 @@ Required:
 * SQLite version 3.8.0 or above
 
 Optional:
-* PostgreSQL version 9.5 or above, PostgreSQL 10 is not supported.
+* PostgreSQL version 9.5 or above.
 
 ## Download the source code
 
@@ -61,6 +61,12 @@ CREATE USER '<USER>'@'<HOST>' IDENTIFIED BY '<PASSWORD>';
 CREATE DATABASE validator;
 GRANT SELECT,INSERT,UPDATE,DELETE ON validator.* TO '<USER>'@'<HOST>';
 ```
+Where:
+- <USER> should be a user-name e.g. vvadmin
+- <HOST> is the MySQL host ID, usually 127.0.0.1
+- <PASSWORD> is a unique password for your database
+
+*Note: We have had reports that on some systems ALL PRIVILEGES may be required rather than SELECT,INSERT,UPDATE,DELETE*
 
 In the `VariantValidator/configuration` folder is a copy of the empty mysql database needed by VariantValidator to run. You need to upload it to the running MySQL database with:
 ```
@@ -86,10 +92,13 @@ VariantValidator requires a local SeqRepo database. The seqrepo package has alre
 $ mkdir /path/to/seqrepo
 $ seqrepo --root-directory /path/to/seqrepo pull -i 2018-08-21
 ```
+where /path/to/seqrepo should be where you install the database e.g. /Users/Shared/seqrepo_dumps/
+
 To check it has downloaded:
 ```
 $ seqrepo --root-directory /path/to/seqrepo list-local-instances
 ```
+where the output should be a list of available seqrepo databases e.g. 2018-08-21
 
 ## Setting up UTA database (Optional, PostGreSQL >=9.5)
 
@@ -103,7 +112,7 @@ CREATE DATABASE uta WITH OWNER=<USER> TEMPLATE=template0;
 
 To fill this database, download the gzipped uta genetics database, and upload it into psql.
 ```
-$ wget http://dl.biocommons.org/uta/uta_20180821.pgd.gz
+$ wget https://leicester.figshare.com/ndownloader/files/17797259 -O /docker-entrypoint-initdb.d/uta_20180821.sql.gz
 $ gzip -cdq uta_20180821.pgd.gz | psql -U uta_admin -v ON_ERROR_STOP=0 -d uta -Eae
 ```
 
@@ -124,4 +133,4 @@ pip install -e .
 pytest
 ```
 
-Please make all Pull Requests to the develop branch.
+Please make all Pull Requests to the develop_v3 branch.
