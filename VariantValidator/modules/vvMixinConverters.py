@@ -502,7 +502,10 @@ class Mixin(vvMixinInit.Mixin):
                             # Currently believe that sub.n is the only variant type which fits. ins can normalize
                             # and may also be a dup! Added identity also
                             try:
-                                norm_stored_c = hn.normalize(stored_hgvs_c)
+                                try:
+                                    norm_stored_c = hn.normalize(stored_hgvs_c)
+                                except HGVSUnsupportedOperationError:
+                                    norm_stored_c = stored_hgvs_c
                                 if norm_stored_c.posedit.edit.type == 'sub' or \
                                         norm_stored_c.posedit.edit.type == 'identity':
                                     flank_hgvs_genomic = self.vm.t_to_g(norm_stored_c, genomic_gap_variant.ac)
