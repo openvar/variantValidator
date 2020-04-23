@@ -44,7 +44,7 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
         return True
 
     # Tackle compound variant descriptions NG or NC (NM_) i.e. correctly input NG/NC_(NM_):c.
-    intronic_converter(variant)
+    intronic_converter(variant, validator)
 
     # Extract variants from HGVS allele descriptions
     # http://varnomen.hgvs.org/recommendations/DNA/variant/alleles/
@@ -562,7 +562,7 @@ def indel_catching(variant, validator):
     return False
 
 
-def intronic_converter(variant):
+def intronic_converter(variant, validator):
     """
     Fully HGVS compliant intronic variant descriptions take the format e.g
     NG_007400.1(NM_000088.3):c.589-1G>T. However, hgvs cannot parse and map
@@ -577,9 +577,14 @@ def intronic_converter(variant):
     compounder = re.compile(r'\(NM_')
     if compounder.search(variant.quibble):
         # Find pattern e.g. +0000 and assign to a variable
+        genomic_ref = variant.quibble.split('(')[0]
         transy = re.search(r"(NM_.+)", variant.quibble)
         transy = transy.group(1)
         transy = transy.replace(')', '')
+        # Check the specified base is correct
+        hgvs_genomic = validator.nr_vm.c_to_g(validator.hp.parse_hgvs_variant(transy), genomic_ref)
+        validator.vr.validate(hgvs_genomic)
+        # If not return
         variant.quibble = transy
     logger.debug("HVGS typesetting complete")
 
