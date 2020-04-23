@@ -170,8 +170,13 @@ class Mixin(vvMixinConverters.Mixin):
                         primary_assembly = my_variant.primary_assembly
                     logger.debug("Completed string formatting")
 
-                    toskip = format_converters.initial_format_conversions(my_variant, self,
+                    try:
+                        toskip = format_converters.initial_format_conversions(my_variant, self,
                                                                           select_transcripts_dict_plus_version)
+                    except vvhgvs.exceptions.HGVSInvalidVariantError as e:
+                        my_variant.warnings.append(str(e))
+                        logger.warning(str(e))
+                        continue
                     if toskip:
                         continue
 
@@ -222,6 +227,16 @@ class Mixin(vvMixinConverters.Mixin):
                         formatted_variant = formatted_variant.replace('INS', 'ins')
                         formatted_variant = formatted_variant.replace('INV', 'inv')
                         formatted_variant = formatted_variant.replace('DUP', 'dup')
+
+                    # Handle <position><edit><position> style variants
+                    # Refer to https://github.com/openvar/variantValidator/issues/161
+                    # Example provided is NC_000017.10:g.41199848_41203626delins41207680_41207915
+                    # Current theory, should apply to delins, ins.
+                    # We may also need to expand to http://varnomen.hgvs.org/recommendations/DNA/variant/insertion/
+                    # complex insertions
+                    
+
+                    # Validate syntax of the now HGVS variants
                     try:
                         input_parses = self.hp.parse_hgvs_variant(str(formatted_variant))
                         my_variant.hgvs_formatted = input_parses
@@ -355,7 +370,6 @@ class Mixin(vvMixinConverters.Mixin):
                     logger.debug("HVGS interval/version mapping complete")
 
                     # handle LRG inputs
-
                     if my_variant.refsource == 'LRG':
                         format_converters.lrg_to_refseq(my_variant, self)
                         logger.debug("LRG check for conversion to refseq completed")
@@ -378,6 +392,7 @@ class Mixin(vvMixinConverters.Mixin):
                     if toskip:
                         continue
 
+                    # Protein variants
                     toskip = format_converters.proteins(my_variant, self)
                     if toskip:
                         continue
