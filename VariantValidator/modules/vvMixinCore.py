@@ -174,6 +174,32 @@ class Mixin(vvMixinConverters.Mixin):
                         toskip = format_converters.initial_format_conversions(my_variant, self,
                                                                           select_transcripts_dict_plus_version)
                     except vvhgvs.exceptions.HGVSInvalidVariantError as e:
+                        try:
+                            # Test intronic variants for incorrect boundaries
+                            test_variant = copy.copy(my_variant)
+                            test_variant.hgvs_formatted = str(my_variant.quibble)
+
+                            # Create easy variant mapper (over variant mapper) and splign locked evm
+                            test_variant.evm = AssemblyMapper(self.hdp,
+                                                               assembly_name=primary_assembly,
+                                                               alt_aln_method=self.alt_aln_method,
+                                                               normalize=True,
+                                                               replace_reference=True
+                                                               )
+
+                            # Setup a reverse normalize instance and non-normalize evm
+                            test_variant.no_norm_evm = AssemblyMapper(self.hdp,
+                                                                      assembly_name=primary_assembly,
+                                                                      alt_aln_method=self.alt_aln_method,
+                                                                      normalize=False,
+                                                                      replace_reference=True
+                                                                      )
+
+                            mappers.transcripts_to_gene(test_variant, self, select_transcripts_dict_plus_version)
+                        except mappers.MappersError:
+                            my_variant.output_type_flag = 'warning'
+                            continue
+
                         my_variant.warnings.append(str(e))
                         logger.warning(str(e))
                         continue
@@ -417,7 +443,11 @@ class Mixin(vvMixinConverters.Mixin):
                             continue
 
                     if my_variant.reftype == ':c.' or my_variant.reftype == ':n.':
-                        toskip = mappers.transcripts_to_gene(my_variant, self, select_transcripts_dict_plus_version)
+                        try:
+                            toskip = mappers.transcripts_to_gene(my_variant, self, select_transcripts_dict_plus_version)
+                        except mappers.MappersError:
+                            my_variant.output_type_flag = 'warning'
+                            continue
                         if toskip:
                             continue
 
