@@ -581,11 +581,11 @@ def intronic_converter(variant, validator):
         transy = re.search(r"(NM_.+)", variant.quibble)
         transy = transy.group(1)
         transy = transy.replace(')', '')
+        # Add the edited variant for next stage error processing e.g. exon boundaries.
+        variant.quibble = transy
         # Check the specified base is correct
         hgvs_genomic = validator.nr_vm.c_to_g(validator.hp.parse_hgvs_variant(transy), genomic_ref)
         validator.vr.validate(hgvs_genomic)
-        # If not return
-        variant.quibble = transy
     logger.debug("HVGS typesetting complete")
 
 

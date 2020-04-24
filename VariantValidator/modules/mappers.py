@@ -11,6 +11,10 @@ from . import gapped_mapping
 
 logger = logging.getLogger(__name__)
 
+# Exceptions
+class MappersError(Exception):
+    pass
+
 
 def gene_to_transcripts(variant, validator, select_transcripts_dict):
     g_query = validator.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
@@ -390,22 +394,9 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             if post_var.posedit.pos.start.base != test.posedit.pos.start.base or \
                     post_var.posedit.pos.end.base != test.posedit.pos.end.base:
                 caution = 'The entered coordinates do not agree with the intron/exon boundaries for the ' \
-                          'selected transcript:'
-                # automapping of variant completed
-                automap = variant.pre_RNA_conversion + ' automapped to ' + str(post_var)
-                variant.warnings.extend([caution, automap])
-
-                # Kill current line and append for re-submission
-                # Tag the line so that it is not written out
-                variant.write = False
-                # Set the values and append to batch_list
-                hgvs_vt = validator.hp.parse_hgvs_variant(str(post_var))
-                assert str(hgvs_vt) == str(post_var)
-                query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=[automap],
-                                primary_assembly=variant.primary_assembly, order=variant.order,
-                                selected_assembly=variant.selected_assembly)
-                validator.batch_list.append(query)
-                logger.info("Submitting new variant with format %s", fn.valstr(hgvs_vt))
+                          'selected transcript'
+                variant.warnings.extend([caution])
+                raise MappersError(caution)
 
         else:  # del not in formatted_variant
 
@@ -422,22 +413,9 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             if post_var.posedit.pos.start.base != test.posedit.pos.start.base or \
                     post_var.posedit.pos.end.base != test.posedit.pos.end.base:
                 caution = 'The entered coordinates do not agree with the intron/exon boundaries for the ' \
-                          'selected transcript:'
-                # automapping of variant completed
-                automap = str(variant.pre_RNA_conversion) + ' automapped to ' + str(post_var)
-                variant.warnings.extend([caution, automap])
-
-                # Kill current line and append for re-submission
-                # Tag the line so that it is not written out
-                variant.write = False
-                # Set the values and append to batch_list
-                hgvs_vt = validator.hp.parse_hgvs_variant(str(post_var))
-                assert str(hgvs_vt) == str(post_var)
-                query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=[automap],
-                                primary_assembly=variant.primary_assembly, order=variant.order,
-                                selected_assembly=variant.selected_assembly)
-                validator.batch_list.append(query)
-                logger.info("Submitting new variant with format %s", fn.valstr(hgvs_vt))
+                          'selected transcript'
+                variant.warnings.extend([caution])
+                raise MappersError(caution)
 
     # If cck not true
     elif ':r.' in variant.pre_RNA_conversion:
