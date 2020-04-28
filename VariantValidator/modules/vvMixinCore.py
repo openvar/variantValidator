@@ -173,7 +173,7 @@ class Mixin(vvMixinConverters.Mixin):
                     try:
                         toskip = format_converters.initial_format_conversions(my_variant, self,
                                                                           select_transcripts_dict_plus_version)
-                    except vvhgvs.exceptions.HGVSInvalidVariantError as e:
+                    except vvhgvs.exceptions.HGVSError as e:
                         try:
                             # Test intronic variants for incorrect boundaries
                             test_variant = copy.copy(my_variant)
@@ -198,6 +198,10 @@ class Mixin(vvMixinConverters.Mixin):
                             mappers.transcripts_to_gene(test_variant, self, select_transcripts_dict_plus_version)
                         except mappers.MappersError:
                             my_variant.output_type_flag = 'warning'
+                            continue
+                        except vvhgvs.exceptions.HGVSParseError as e:
+                            my_variant.warnings.append(str(e))
+                            logger.warning(str(e))
                             continue
 
                         my_variant.warnings.append(str(e))

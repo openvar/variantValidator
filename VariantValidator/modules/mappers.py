@@ -814,6 +814,9 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant):
 
     for alt_chr in multi_list:
         logger.debug("Trying to do final gap mapping with %s", alt_chr)
+        if 'NC_' in alt_chr:
+            if not re.match('NC_000', alt_chr):
+                continue
         try:
             # Re set ori
             ori = validator.tx_exons(tx_ac=variant.hgvs_coding.ac, alt_ac=alt_chr,
