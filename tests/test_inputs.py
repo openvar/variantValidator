@@ -18723,6 +18723,17 @@ class TestVariantsAuto(TestCase):
         print(results)
         assert '*477=' in results['NM_001278138.1:c.1431G>A']['hgvs_predicted_protein_consequence']['slr']
 
+    def test_issue_169(self):
+        variant = 'NC_000017.10(NM_007294.3):c.4421-63A>G'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert 'The entered coordinates do not agree with the intron/exon boundaries for the selected transcript' in results['validation_warning_1']['validation_warnings'][0]
+
+    def test_issue_176(self):
+        variant = 'NC_000023.10(NM_004006.2):c.8810A>G'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert 'NC_000023.10:g.31496350T>C: Variant reference (T) does not agree with reference sequence (C)' in results['validation_warning_1']['validation_warnings'][0]
 
 
 # <LICENSE>
