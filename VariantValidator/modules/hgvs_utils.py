@@ -431,7 +431,7 @@ def report_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
         # ref = bs + vcf_del_seq
         ref = vcf_del_seq
         alt = ins_seq
-        if re.search('inv', str(reverse_normalized_hgvs_genomic.posedit)):
+        if reverse_normalized_hgvs_genomic.posedit.edit.type == 'inv':
             my_seq = Seq(vcf_del_seq)
             # alt = bs + str(my_seq.reverse_complement())
             alt = str(my_seq.reverse_complement())
@@ -695,7 +695,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, sf):
         # ref = bs + vcf_del_seq
         ref = vcf_del_seq
         alt = ins_seq
-        if re.search('inv', str(normalized_hgvs_genomic.posedit)):
+        if normalized_hgvs_genomic.posedit.edit.type == 'inv':
             my_seq = Seq(vcf_del_seq)
             # alt = bs + str(my_seq.reverse_complement())
             alt = str(my_seq.reverse_complement())
@@ -836,7 +836,7 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
         # ref = bs + vcf_del_seq
         ref = vcf_del_seq
         alt = ins_seq
-        if re.search('inv', str(reverse_normalized_hgvs_genomic.posedit)):
+        if reverse_normalized_hgvs_genomic.posedit.edit.type == 'inv':
             my_seq = Seq(vcf_del_seq)
             # alt = bs + str(my_seq.reverse_complement())
             alt = str(my_seq.reverse_complement())
