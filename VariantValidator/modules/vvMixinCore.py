@@ -614,10 +614,15 @@ class Mixin(vvMixinConverters.Mixin):
                 primary_genomic_dicts = {}
 
                 for alt_gen_var in multi_gen_vars:
+                    if 'NC_' in alt_gen_var.ac:
+                        if not 'NC_000' in alt_gen_var.ac:
+                            continue
+                    import time
                     try:
                         alt_gen_var = variant.hn.normalize(alt_gen_var)
                     except vvhgvs.exceptions.HGVSInvalidVariantError:
                         continue
+
                     for build in self.genome_builds:
                         test = seq_data.supported_for_mapping(alt_gen_var.ac, build)
                         if test:
@@ -628,6 +633,8 @@ class Mixin(vvMixinConverters.Mixin):
                                 continue
                             # Identify primary assembly positions
                             if 'NC_' in alt_gen_var.ac:
+                                if not 'NC_000' in alt_gen_var.ac:
+                                    continue
                                 if 'GRC' in build:
                                     primary_genomic_dicts[build.lower()] = {
                                         'hgvs_genomic_description': fn.valstr(alt_gen_var),
@@ -682,7 +689,8 @@ class Mixin(vvMixinConverters.Mixin):
                                 alt_genomic_dicts.append(alt_dict)
 
                                 if build == 'GRCh38':
-                                    vcf_dict = hgvs_utils.report_hgvs2vcf(alt_gen_var, 'hg38', variant.reverse_normalizer,
+                                    vcf_dict = hgvs_utils.report_hgvs2vcf(alt_gen_var, 'hg38',
+                                                                          variant.reverse_normalizer,
                                                                           self.sf)
                                     alt_dict = {'hg38': {'hgvs_genomic_description': fn.valstr(alt_gen_var),
                                                          'vcf': {'chr': vcf_dict['ucsc_chr'],
@@ -713,7 +721,6 @@ class Mixin(vvMixinConverters.Mixin):
 
                 # Add single letter AA code to protein descriptions
                 predicted_protein_variant_dict = {"tlr": str(predicted_protein_variant), "slr": ''}
-                print(predicted_protein_variant_dict['tlr'])
                 if re.search('p\.=', predicted_protein_variant_dict['tlr']) \
                         or re.search('p\.?', predicted_protein_variant_dict['tlr']):
                     # Replace p.= with p.(=)
