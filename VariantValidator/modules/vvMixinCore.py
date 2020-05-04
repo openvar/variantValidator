@@ -172,20 +172,22 @@ class Mixin(vvMixinConverters.Mixin):
 
                     try:
                         toskip = format_converters.initial_format_conversions(my_variant, self,
-                                                                          select_transcripts_dict_plus_version)
+                                                                              select_transcripts_dict_plus_version)
+
                     except vvhgvs.exceptions.HGVSError as e:
+                        checkref = str(e)
                         try:
-                            # Test intronic variants for incorrect boundaries
+                            # Test intronic variants for incorrect boundaries (see issue #169)
                             test_variant = copy.copy(my_variant)
                             test_variant.hgvs_formatted = str(my_variant.quibble)
 
                             # Create easy variant mapper (over variant mapper) and splign locked evm
                             test_variant.evm = AssemblyMapper(self.hdp,
-                                                               assembly_name=primary_assembly,
-                                                               alt_aln_method=self.alt_aln_method,
-                                                               normalize=True,
-                                                               replace_reference=True
-                                                               )
+                                                              assembly_name=primary_assembly,
+                                                              alt_aln_method=self.alt_aln_method,
+                                                              normalize=True,
+                                                              replace_reference=True
+                                                              )
 
                             # Setup a reverse normalize instance and non-normalize evm
                             test_variant.no_norm_evm = AssemblyMapper(self.hdp,
@@ -199,14 +201,24 @@ class Mixin(vvMixinConverters.Mixin):
                         except mappers.MappersError:
                             my_variant.output_type_flag = 'warning'
                             continue
+
                         except vvhgvs.exceptions.HGVSParseError as e:
                             my_variant.warnings.append(str(e))
                             logger.warning(str(e))
                             continue
 
+                        # Other issues to collect, for example, the specified position in NC_ does not agree with g.
+                        # See issue #176
+                        except Exception:
+                            if 'does not agree with reference sequence' in checkref:
+                                my_variant.warnings.append(str(e))
+                                logger.warning(str(e))
+                                continue
+
                         my_variant.warnings.append(str(e))
                         logger.warning(str(e))
                         continue
+
                     if toskip:
                         continue
 
@@ -614,10 +626,16 @@ class Mixin(vvMixinConverters.Mixin):
                 primary_genomic_dicts = {}
 
                 for alt_gen_var in multi_gen_vars:
+                    if 'NC_' in alt_gen_var.ac:
+                        if 'NC_000' not in alt_gen_var.ac and 'NC_012920.1' not in alt_gen_var.ac and \
+                                'NC_001807.4' not in alt_gen_var.ac:
+                            continue
+                    import time
                     try:
                         alt_gen_var = variant.hn.normalize(alt_gen_var)
                     except vvhgvs.exceptions.HGVSInvalidVariantError:
                         continue
+
                     for build in self.genome_builds:
                         test = seq_data.supported_for_mapping(alt_gen_var.ac, build)
                         if test:
@@ -628,6 +646,9 @@ class Mixin(vvMixinConverters.Mixin):
                                 continue
                             # Identify primary assembly positions
                             if 'NC_' in alt_gen_var.ac:
+                                if 'NC_000' not in alt_gen_var.ac and 'NC_012920.1' not in alt_gen_var.ac and \
+                                        'NC_001807.4' not in alt_gen_var.ac:
+                                    continue
                                 if 'GRC' in build:
                                     primary_genomic_dicts[build.lower()] = {
                                         'hgvs_genomic_description': fn.valstr(alt_gen_var),
@@ -682,7 +703,8 @@ class Mixin(vvMixinConverters.Mixin):
                                 alt_genomic_dicts.append(alt_dict)
 
                                 if build == 'GRCh38':
-                                    vcf_dict = hgvs_utils.report_hgvs2vcf(alt_gen_var, 'hg38', variant.reverse_normalizer,
+                                    vcf_dict = hgvs_utils.report_hgvs2vcf(alt_gen_var, 'hg38',
+                                                                          variant.reverse_normalizer,
                                                                           self.sf)
                                     alt_dict = {'hg38': {'hgvs_genomic_description': fn.valstr(alt_gen_var),
                                                          'vcf': {'chr': vcf_dict['ucsc_chr'],
@@ -713,10 +735,13 @@ class Mixin(vvMixinConverters.Mixin):
 
                 # Add single letter AA code to protein descriptions
                 predicted_protein_variant_dict = {"tlr": str(predicted_protein_variant), "slr": ''}
-                if re.search('p\.=', predicted_protein_variant_dict['tlr']):
+                if re.search('p\.=', predicted_protein_variant_dict['tlr']) \
+                        or re.search('p\.?', predicted_protein_variant_dict['tlr']):
                     # Replace p.= with p.(=)
                     predicted_protein_variant_dict['tlr'] = predicted_protein_variant_dict['tlr'].replace('p.=',
                                                                                                           'p.(=)')
+                    predicted_protein_variant_dict['tlr'] = predicted_protein_variant_dict['tlr'].replace('p.?',
+                                                                                                          'p.(?)')
                 if predicted_protein_variant != '':
                     if 'Non-coding :n.' not in predicted_protein_variant:
                         try:
@@ -725,9 +750,13 @@ class Mixin(vvMixinConverters.Mixin):
                             re_parse_protein = self.hp.parse_hgvs_variant(format_p)
                             re_parse_protein_single_aa = fn.single_letter_protein(re_parse_protein)
                             # Replace p.= with p.(=)
-                            if re.search('p\.=', re_parse_protein_single_aa):
+                            if re.search('p\.=', re_parse_protein_single_aa
+                                         ) or re.search('p\.?', re_parse_protein_single_aa):
                                 re_parse_protein_single_aa = re_parse_protein_single_aa.replace('p.=',
                                                                                                 'p.(=)')
+
+                                re_parse_protein_single_aa = re_parse_protein_single_aa.replace('p.?',
+                                                                                                'p.(?)')
                             predicted_protein_variant_dict["slr"] = str(re_parse_protein_single_aa)
                         except vvhgvs.exceptions.HGVSParseError as e:
                             logger.debug("Except passed, %s", e)
