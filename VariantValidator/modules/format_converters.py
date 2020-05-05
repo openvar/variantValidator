@@ -45,18 +45,18 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
     if toskip:
         return True
 
+    # Extract variants from HGVS allele descriptions
+    # http://varnomen.hgvs.org/recommendations/DNA/variant/alleles/
+    toskip = allele_parser(variant, validator)
+    if toskip:
+        return True
+
     toskip = indel_catching(variant, validator)
     if toskip:
         return True
 
     # Tackle compound variant descriptions NG or NC (NM_) i.e. correctly input NG/NC_(NM_):c.
     intronic_converter(variant, validator)
-
-    # Extract variants from HGVS allele descriptions
-    # http://varnomen.hgvs.org/recommendations/DNA/variant/alleles/
-    toskip = allele_parser(variant, validator)
-    if toskip:
-        return True
 
     return False
 
@@ -537,32 +537,27 @@ def indel_catching(variant, validator):
     edit_fail = re.compile(r'\d+$')
     if edit_fail.search(variant.quibble):
         if not edit_pass.search(variant.quibble) and 'fs' not in variant.quibble:
-            failed = variant.quibble
-            # Catch the trailing digits
-            digits = re.search(r"(\d+$)", failed)
-            digits = digits.group(1)
-            remove = str(digits) + 'end_anchor'
-            failed = failed + 'end_anchor'
-            failed = failed.replace(remove, '')
-
-            # Remove them so that the string SHOULD parse
+            error = 'Trailing digits are not permitted in HGVS variant descriptions'
+            issue_link = 'http://varnomen.hgvs.org/recommendations/DNA/variant/'
             try:
-                hgvs_failed = validator.hp.parse_hgvs_variant(failed)
+                hgvs_quibble = validator.hp.parse_hgvs_variant(variant.quibble)
+            except vvhgvs.exceptions.HGVSError:
+                # Tackle compound variant descriptions NG or NC (NM_) i.e. correctly input NG/NC_(NM_):c.
+                intronic_converter(variant, validator)
+                hgvs_quibble = validator.hp.parse_hgvs_variant(variant.quibble)
+            try:
+                validator.vr.validate(hgvs_quibble)
             except vvhgvs.exceptions.HGVSError as e:
-                error = 'The syntax of the input variant description is invalid '
-                if failed.endswith('ins'):
-                    issue_link = 'http://varnomen.hgvs.org/recommendations/DNA/variant/insertion/'
-                    error = error + ' please refer to ' + issue_link
+                variant.warnings.append(str(e))
                 variant.warnings.append(error)
-                logger.warning(str(error) + " " + str(e))
+                variant.warnings.append('Refer to ' + issue_link)
+                logger.info(e)
                 return True
-
-            hgvs_failed.posedit.edit = str(hgvs_failed.posedit.edit).replace(digits, '')
-            failed = str(hgvs_failed)
-            automap = 'Non HGVS compliant variant description ' + variant.quibble + ' automapped to ' + failed
-            variant.warnings.append(automap)
-            logger.info(automap)
-            variant.quibble = failed
+            # Remove them so that the string SHOULD parse
+            variant.warnings.append(error)
+            variant.warnings.append('Refer to ' + issue_link)
+            logger.info(error)
+            return False
 
     logger.debug("Ins/Del reference catching complete for %s", variant.quibble)
     return False
@@ -606,8 +601,10 @@ def allele_parser(variant, validation):
     descriptions should be re-submitted by the user at the gene or genome level
     """
     caution = ''
+    #print('\nAllele check')
     if (re.search(r':[gcnr].\[', variant.quibble) and ';' in variant.quibble) or (
             re.search(r':[gcrn].\d+\[', variant.quibble) and ';' in variant.quibble) or ('(;)' in variant.quibble):
+        #print('Gotcha')
         # handle LRG inputs
         if re.match(r'^LRG', variant.quibble):
             if re.match(r'^LRG\d+', variant.quibble):
@@ -653,6 +650,7 @@ def allele_parser(variant, validation):
             try:
                 alleles = validation.hgvs_alleles(variant.quibble, variant.hn)
             except fn.alleleVariantError as e:
+                #print('\nFreak')
                 variant.warnings.append(str(e))
                 logger.warning(str(e))
                 return True

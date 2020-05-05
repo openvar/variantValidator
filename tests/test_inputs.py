@@ -18735,6 +18735,17 @@ class TestVariantsAuto(TestCase):
         print(results)
         assert 'NC_000023.10:g.31496350T>C: Variant reference (T) does not agree with reference sequence (C)' in results['validation_warning_1']['validation_warnings'][0]
 
+    def test_issue_180a(self):
+        variant = 'NC_000017.10:g.41232400_41236235del383'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert 'Length implied by coordinates must equal sequence deletion length' in results['validation_warning_1']['validation_warnings'][0]
+
+    def test_issue_180b(self):
+        variant = 'NC_000017.10(NM_007300.3):c.4186-1642_4358-983del10'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert 'Length implied by coordinates must equal sequence deletion length' in results['validation_warning_1']['validation_warnings'][0]
 
 # <LICENSE>
 # Copyright (C) 2019 VariantValidator Contributors
