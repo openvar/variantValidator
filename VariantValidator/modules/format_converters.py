@@ -34,6 +34,12 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
     if toskip:
         return True
 
+    # Uncertain positions
+    toskip = uncertain_pos(variant)
+    if toskip:
+        return True
+
+
     # Find not_sub type in input e.g. GGGG>G
     toskip = vcf2hgvs_stage4(variant, validator)
     if toskip:
@@ -808,6 +814,26 @@ def rna(variant, validator):
         variant.hgvs_formatted = hgvs_c
 
     return False
+
+def uncertain_pos(variant):
+    """
+    check for uncertain positions in the variant and return unsupported warning
+    """
+    try:
+        to_check = variant.quibble
+        posedit = to_check.split(':')[1]
+        if '(' in posedit or ')' in posedit:
+            if 'p.' in posedit or '[' in posedit or ']' in posedit or '(;)' in posedit or '(:)' in posedit:
+                return False
+            error = 'Uncertain positions are not currently supported'
+            variant.warnings.append(error)
+            logger.warning(str(error))
+            return True
+        else:
+            return False
+    except Exception:
+        return False
+
 
 # <LICENSE>
 # Copyright (C) 2019 VariantValidator Contributors
