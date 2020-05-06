@@ -8,6 +8,7 @@ from .variant import Variant
 from . import seq_data
 from . import utils as fn
 from . import gapped_mapping
+from operator import itemgetter
 
 logger = logging.getLogger(__name__)
 
@@ -808,6 +809,7 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant):
     multi_g = []
     multi_list = []
     mapping_options = validator.hdp.get_tx_mapping_options(variant.hgvs_coding.ac)
+    mapping_options = sorted(mapping_options, key=itemgetter(1))
     for alt_chr in mapping_options:
         if ('NC_' in alt_chr[1] or 'NT_' in alt_chr[1] or 'NW_' in alt_chr[1]) and \
                 alt_chr[2] == validator.alt_aln_method:
@@ -815,6 +817,8 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant):
 
     for alt_chr in multi_list:
         logger.debug("Trying to do final gap mapping with %s", alt_chr)
+
+        # Loop out NCBI36 refs
         if 'NC_' in alt_chr:
             if not re.match('NC_000', alt_chr):
                 continue
