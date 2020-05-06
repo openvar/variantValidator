@@ -39,7 +39,6 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
     if toskip:
         return True
 
-
     # Find not_sub type in input e.g. GGGG>G
     toskip = vcf2hgvs_stage4(variant, validator)
     if toskip:
@@ -47,7 +46,7 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
 
     # Extract variants from HGVS allele descriptions
     # http://varnomen.hgvs.org/recommendations/DNA/variant/alleles/
-    toskip = allele_parser(variant, validator)
+    toskip = allele_parser(variant, validator, validator)
     if toskip:
         return True
 
@@ -563,7 +562,7 @@ def indel_catching(variant, validator):
     return False
 
 
-def intronic_converter(variant, validator):
+def intronic_converter(variant, validator, skip_check=False):
     """
     Fully HGVS compliant intronic variant descriptions take the format e.g
     NG_007400.1(NM_000088.3):c.589-1G>T. However, hgvs cannot parse and map
@@ -584,13 +583,16 @@ def intronic_converter(variant, validator):
         transy = transy.replace(')', '')
         # Add the edited variant for next stage error processing e.g. exon boundaries.
         variant.quibble = transy
-        # Check the specified base is correct
-        hgvs_genomic = validator.nr_vm.c_to_g(validator.hp.parse_hgvs_variant(transy), genomic_ref)
-        validator.vr.validate(hgvs_genomic)
+        if skip_check is True:
+            return genomic_ref
+        else:
+            # Check the specified base is correct
+            hgvs_genomic = validator.nr_vm.c_to_g(validator.hp.parse_hgvs_variant(transy), genomic_ref)
+            validator.vr.validate(hgvs_genomic)
     logger.debug("HVGS typesetting complete")
 
 
-def allele_parser(variant, validation):
+def allele_parser(variant, validation, validator):
     """
     HGVS allele string parsing function Occurance #1
     Takes a single HGVS allele description and separates each allele into a
@@ -601,10 +603,18 @@ def allele_parser(variant, validation):
     descriptions should be re-submitted by the user at the gene or genome level
     """
     caution = ''
-    #print('\nAllele check')
     if (re.search(r':[gcnr].\[', variant.quibble) and ';' in variant.quibble) or (
             re.search(r':[gcrn].\d+\[', variant.quibble) and ';' in variant.quibble) or ('(;)' in variant.quibble):
-        #print('Gotcha')
+
+        # Edit compound descriptions
+        genomic_ref = intronic_converter(variant, validator, skip_check=True)
+        if genomic_ref is None:
+            genomic_reference = False
+        elif 'NC_' in genomic_ref or 'NG_' in genomic_ref:
+            genomic_reference = genomic_ref
+        else:
+            genomic_reference = False
+
         # handle LRG inputs
         if re.match(r'^LRG', variant.quibble):
             if re.match(r'^LRG\d+', variant.quibble):
@@ -648,9 +658,8 @@ def allele_parser(variant, validation):
         try:
             # Submit to allele extraction function
             try:
-                alleles = validation.hgvs_alleles(variant.quibble, variant.hn)
+                alleles = validation.hgvs_alleles(variant.quibble, variant.hn, genomic_reference)
             except fn.alleleVariantError as e:
-                #print('\nFreak')
                 variant.warnings.append(str(e))
                 logger.warning(str(e))
                 return True
@@ -812,6 +821,7 @@ def rna(variant, validator):
         variant.hgvs_formatted = hgvs_c
 
     return False
+
 
 def uncertain_pos(variant):
     """

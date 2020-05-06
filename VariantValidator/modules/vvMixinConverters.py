@@ -8,6 +8,8 @@ from . import seq_data
 from . import hgvs_utils
 from Bio import Entrez, SeqIO
 from . import utils as fn
+import sys
+import traceback
 
 from vvhgvs.exceptions import HGVSError, HGVSDataNotAvailableError, HGVSUnsupportedOperationError, \
      HGVSInvalidVariantError
@@ -1814,7 +1816,7 @@ class Mixin(vvMixinInit.Mixin):
         revcomp = revcomp[::-1]
         return revcomp
 
-    def merge_hgvs_3pr(self, hgvs_variant_list, hn):
+    def merge_hgvs_3pr(self, hgvs_variant_list, hn, genomic_reference=False):
         """
         Function designed to merge multiple HGVS variants (hgvs objects) into a single delins
         using 3 prime normalization
@@ -1831,7 +1833,18 @@ class Mixin(vvMixinInit.Mixin):
                 logger.debug("Except passed, %s" % e)
 
             # Validate
-            self.vr.validate(hgvs_v)  # Let hgvs errors deal with invalid variants and not hgvs objects
+            try:
+                self.vr.validate(hgvs_v)  # Let hgvs errors deal with invalid variants and not hgvs objects
+            except vvhgvs.exceptions.HGVSInvalidVariantError as e:
+                if 'Cannot validate sequence of an intronic variant' in str(e):
+                    if genomic_reference is not False:
+                        pass
+                    else:
+                        raise fn.mergeHGVSerror("Intronic variants can only be validated if a genomic/gene reference "
+                                                "sequence is also provided e.g. NC_000017.11(NM_000088.3):c.589-1G>T")
+                else:
+                    self.vr.validate(hgvs_v)  # Let hgvs errors deal with invalid variants and not hgvs objects
+
             if hgvs_v.type == 'c':
                 try:
                     hgvs_v = self.vm.c_to_n(hgvs_v)
@@ -1855,15 +1868,18 @@ class Mixin(vvMixinInit.Mixin):
         for hgvs_v in hgvs_variant_list:
             # No intronic positions
             try:
-                if hgvs_v.posedit.pos.start.offset != 0:
+                if hgvs_v.posedit.pos.start.offset != 0 and genomic_reference is False:
                     raise fn.mergeHGVSerror("Base-offset position submitted")
-                if hgvs_v.posedit.pos.end.offset != 0:
+                if hgvs_v.posedit.pos.end.offset != 0 and genomic_reference is False:
                     raise fn.mergeHGVSerror("Base-offset position submitted")
             except AttributeError as e:
                 logger.debug("Except passed, %s", e)
 
             # Normalize the variant (allow cross intron) which also adds the reference sequence (?)
-            hgvs_v = hn.normalize(hgvs_v)
+            try:
+                hgvs_v = hn.normalize(hgvs_v)
+            except vvhgvs.exceptions.HGVSUnsupportedOperationError:
+                pass
 
             # Set the accession and ensure that multiple reference sequences have not been queried
             if accession is None:
@@ -1924,113 +1940,116 @@ class Mixin(vvMixinInit.Mixin):
             logger.debug("Except passed, %s", e)
         return hgvs_delins
 
-    def merge_hgvs_5pr(self, hgvs_variant_list):
-        """
-        Function designed to merge multiple HGVS variants (hgvs objects) into a single delins
-        using 5 prime normalization
-        """
-        # Ensure c. is mapped to the
-        h_list = []
 
-        # Sanity check and format the submitted variants
-        for hgvs_v in hgvs_variant_list:
-            # For testing include parser
-            try:
-                hgvs_v = self.hp.parse_hgvs_variant(hgvs_v)
-            except Exception as e:
-                logger.debug("Except passed, %s", e)
-
-            # Validate
-            self.vr.validate(hgvs_v)  # Let hgvs errors deal with invalid variants and not hgvs objects
-            if hgvs_v.type == 'c':
-                try:
-                    hgvs_v = self.vm.c_to_n(hgvs_v)
-                    h_list.append(hgvs_v)
-                except:
-                    raise fn.mergeHGVSerror("Unable to map from c. position to absolute position")
-        if h_list:
-            hgvs_variant_list = copy.deepcopy(h_list)
-
-        # Define accession and start/end positions
-        accession = None
-        merge_start_pos = None
-        merge_end_pos = None
-        seqtype = None
-        full_list = []
-
-        # Loop through the submitted variants and gather the required info
-        for hgvs_v in hgvs_variant_list:
-            try:
-                # No intronic positions
-                if hgvs_v.posedit.pos.start.offset != 0:
-                    raise fn.mergeHGVSerror("Base-offset position submitted")
-                if hgvs_v.posedit.pos.end.offset != 0:
-                    raise fn.mergeHGVSerror("Base-offset position submitted")
-            except AttributeError as e:
-                logger.debug("Except passed, %s", e)
-
-            # Normalize the variant (allow cross intron) which also adds the reference sequence (?)
-            hgvs_v = self.reverse_hn.normalize(hgvs_v)
-
-            # Set the accession and ensure that multiple reference sequences have not been queried
-            if accession is None:
-                accession = hgvs_v.ac
-                seqtype = hgvs_v.type
-            else:
-                if hgvs_v.ac != accession:
-                    raise fn.mergeHGVSerror("More than one reference sequence submitted")
-
-            # Set initial start and end positions
-            if merge_start_pos is None:
-                merge_start_pos = hgvs_v.posedit.pos.start.base
-                merge_end_pos = hgvs_v.posedit.pos.end.base
-                # Append to the final list of variants
-                full_list.append(hgvs_v)
-                continue
-            # Ensure variants are in the correct order and not overlapping
-            else:
-                # ! hgvs_v.posedit.pos.start.base !>
-                if hgvs_v.posedit.pos.start.base <= merge_end_pos:
-                    raise fn.mergeHGVSerror("Submitted variants are out of order or their ranges overlap")
-                else:
-                    # Create a fake variant to handle the missing sequence
-                    ins_seq = self.sf.fetch_seq(hgvs_v.ac, merge_end_pos, hgvs_v.posedit.pos.start.base - 1)
-                    gapping = hgvs_v.ac + ':' + hgvs_v.type + '.' + str(merge_end_pos + 1) + '_' + str(
-                        hgvs_v.posedit.pos.start.base - 1) + 'delins' + ins_seq
-                    hgvs_gapping = self.hp.parse_hgvs_variant(gapping)
-                    full_list.append(hgvs_gapping)
-                    # update end_pos
-                    merge_end_pos = hgvs_v.posedit.pos.end.base
-                    # Append to the final list of variants
-                    full_list.append(hgvs_v)
-
-        # Generate the alt sequence
-        alt_sequence = ''
-        for hgvs_v in full_list:
-            ref_alt = hgvs_utils.hgvs_ref_alt(hgvs_v, self.sf)
-            alt_sequence = alt_sequence + ref_alt['alt']
-
-        # Fetch the reference sequence and copy it for the basis of the alt sequence
-        reference_sequence = self.sf.fetch_seq(accession, merge_start_pos - 1, merge_end_pos)
-
-        # Generate an hgvs_delins
-        if alt_sequence == '':
-            delins = accession + ':' + seqtype + '.' + str(merge_start_pos) + '_' + str(
-                merge_end_pos) + 'del' + reference_sequence
-        else:
-            delins = accession + ':' + seqtype + '.' + str(merge_start_pos) + '_' + str(
-                merge_end_pos) + 'del' + reference_sequence + 'ins' + alt_sequence
-        hgvs_delins = self.hp.parse_hgvs_variant(delins)
-        try:
-            hgvs_delins = self.vm.n_to_c(hgvs_delins)
-        except Exception as e:
-            logger.debug("Except passed, %s", e)
-        # Normalize (allow variants crossing into different exons)
-        try:
-            hgvs_delins = self.reverse_hn.normalize(hgvs_delins)
-        except HGVSUnsupportedOperationError as e:
-            logger.debug("Except passed, %s", e)
-        return hgvs_delins
+    # Code is being saved as it may be used in the future
+    ######################################################
+    # def merge_hgvs_5pr(self, hgvs_variant_list, genomic_reference=False):
+    #     """
+    #     Function designed to merge multiple HGVS variants (hgvs objects) into a single delins
+    #     using 5 prime normalization
+    #     """
+    #     # Ensure c. is mapped to the
+    #     h_list = []
+    #
+    #     # Sanity check and format the submitted variants
+    #     for hgvs_v in hgvs_variant_list:
+    #         # For testing include parser
+    #         try:
+    #             hgvs_v = self.hp.parse_hgvs_variant(hgvs_v)
+    #         except Exception as e:
+    #             logger.debug("Except passed, %s", e)
+    #
+    #         # Validate
+    #         self.vr.validate(hgvs_v)  # Let hgvs errors deal with invalid variants and not hgvs objects
+    #         if hgvs_v.type == 'c':
+    #             try:
+    #                 hgvs_v = self.vm.c_to_n(hgvs_v)
+    #                 h_list.append(hgvs_v)
+    #             except:
+    #                 raise fn.mergeHGVSerror("Unable to map from c. position to absolute position")
+    #     if h_list:
+    #         hgvs_variant_list = copy.deepcopy(h_list)
+    #
+    #     # Define accession and start/end positions
+    #     accession = None
+    #     merge_start_pos = None
+    #     merge_end_pos = None
+    #     seqtype = None
+    #     full_list = []
+    #
+    #     # Loop through the submitted variants and gather the required info
+    #     for hgvs_v in hgvs_variant_list:
+    #         try:
+    #             # No intronic positions
+    #             if hgvs_v.posedit.pos.start.offset != 0:
+    #                 raise fn.mergeHGVSerror("Base-offset position submitted")
+    #             if hgvs_v.posedit.pos.end.offset != 0:
+    #                 raise fn.mergeHGVSerror("Base-offset position submitted")
+    #         except AttributeError as e:
+    #             logger.debug("Except passed, %s", e)
+    #
+    #         # Normalize the variant (allow cross intron) which also adds the reference sequence (?)
+    #         hgvs_v = self.reverse_hn.normalize(hgvs_v)
+    #
+    #         # Set the accession and ensure that multiple reference sequences have not been queried
+    #         if accession is None:
+    #             accession = hgvs_v.ac
+    #             seqtype = hgvs_v.type
+    #         else:
+    #             if hgvs_v.ac != accession:
+    #                 raise fn.mergeHGVSerror("More than one reference sequence submitted")
+    #
+    #         # Set initial start and end positions
+    #         if merge_start_pos is None:
+    #             merge_start_pos = hgvs_v.posedit.pos.start.base
+    #             merge_end_pos = hgvs_v.posedit.pos.end.base
+    #             # Append to the final list of variants
+    #             full_list.append(hgvs_v)
+    #             continue
+    #         # Ensure variants are in the correct order and not overlapping
+    #         else:
+    #             # ! hgvs_v.posedit.pos.start.base !>
+    #             if hgvs_v.posedit.pos.start.base <= merge_end_pos:
+    #                 raise fn.mergeHGVSerror("Submitted variants are out of order or their ranges overlap")
+    #             else:
+    #                 # Create a fake variant to handle the missing sequence
+    #                 ins_seq = self.sf.fetch_seq(hgvs_v.ac, merge_end_pos, hgvs_v.posedit.pos.start.base - 1)
+    #                 gapping = hgvs_v.ac + ':' + hgvs_v.type + '.' + str(merge_end_pos + 1) + '_' + str(
+    #                     hgvs_v.posedit.pos.start.base - 1) + 'delins' + ins_seq
+    #                 hgvs_gapping = self.hp.parse_hgvs_variant(gapping)
+    #                 full_list.append(hgvs_gapping)
+    #                 # update end_pos
+    #                 merge_end_pos = hgvs_v.posedit.pos.end.base
+    #                 # Append to the final list of variants
+    #                 full_list.append(hgvs_v)
+    #
+    #     # Generate the alt sequence
+    #     alt_sequence = ''
+    #     for hgvs_v in full_list:
+    #         ref_alt = hgvs_utils.hgvs_ref_alt(hgvs_v, self.sf)
+    #         alt_sequence = alt_sequence + ref_alt['alt']
+    #
+    #     # Fetch the reference sequence and copy it for the basis of the alt sequence
+    #     reference_sequence = self.sf.fetch_seq(accession, merge_start_pos - 1, merge_end_pos)
+    #
+    #     # Generate an hgvs_delins
+    #     if alt_sequence == '':
+    #         delins = accession + ':' + seqtype + '.' + str(merge_start_pos) + '_' + str(
+    #             merge_end_pos) + 'del' + reference_sequence
+    #     else:
+    #         delins = accession + ':' + seqtype + '.' + str(merge_start_pos) + '_' + str(
+    #             merge_end_pos) + 'del' + reference_sequence + 'ins' + alt_sequence
+    #     hgvs_delins = self.hp.parse_hgvs_variant(delins)
+    #     try:
+    #         hgvs_delins = self.vm.n_to_c(hgvs_delins)
+    #     except Exception as e:
+    #         logger.debug("Except passed, %s", e)
+    #     # Normalize (allow variants crossing into different exons)
+    #     try:
+    #         hgvs_delins = self.reverse_hn.normalize(hgvs_delins)
+    #     except HGVSUnsupportedOperationError as e:
+    #         logger.debug("Except passed, %s", e)
+    #    return hgvs_delins
 
     # def merge_pseudo_vcf(self, vcf_list, genome_build, hn):
     #     """
@@ -2049,7 +2068,7 @@ class Mixin(vvMixinInit.Mixin):
     #     # return
     #     return hgvs_delins
 
-    def hgvs_alleles(self, variant_description, hn):
+    def hgvs_alleles(self, variant_description, hn, genomic_reference=False):
         """
         HGVS allele handling function which takes a single HGVS allele description and
         separates each allele into a list of HGVS variants
@@ -2123,7 +2142,7 @@ class Mixin(vvMixinInit.Mixin):
                             # NM_004006.2:c.[2376G>C];[?]
                             continue
                         merge = []
-                        allele = str(self.merge_hgvs_3pr(each_allele, hn))
+                        allele = str(self.merge_hgvs_3pr(each_allele, hn, genomic_reference))
                         merge.append(allele)
                         for variant in each_allele:
                             merged_alleles.append([variant])
@@ -2173,7 +2192,7 @@ class Mixin(vvMixinInit.Mixin):
                             # NM_004006.2:c.[2376G>C];[?]
                             continue
                         merge = []
-                        allele = str(self.merge_hgvs_3pr(each_allele, hn))
+                        allele = str(self.merge_hgvs_3pr(each_allele, hn, genomic_reference))
                         merge.append(allele)
                         for variant in each_allele:
                             merged_alleles.append([variant])
@@ -2190,6 +2209,9 @@ class Mixin(vvMixinInit.Mixin):
             return my_alleles
 
         except Exception as e:
+            exc_type, exc_value, last_traceback = sys.exc_info()
+            logger.error(str(exc_type) + " " + str(exc_value))
+            traceback.print_tb(last_traceback, file=sys.stdout)
             raise fn.alleleVariantError(str(e))
 
     def chr_to_rsg(self, hgvs_genomic, hn):
@@ -2199,6 +2221,8 @@ class Mixin(vvMixinInit.Mixin):
         # 'chr_to_rsg triggered'
         hgvs_genomic = hn.normalize(hgvs_genomic)
         # split the description
+        
+        
         # Accessions
         chr_ac = hgvs_genomic.ac
         # Positions
