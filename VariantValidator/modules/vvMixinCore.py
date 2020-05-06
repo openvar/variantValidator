@@ -203,7 +203,7 @@ class Mixin(vvMixinConverters.Mixin):
                             continue
 
                         except vvhgvs.exceptions.HGVSParseError as e:
-                            my_variant.warnings.append(str(e))
+                            my_variant.warnings = [str(e)]
                             logger.warning(str(e))
                             continue
 
@@ -211,11 +211,11 @@ class Mixin(vvMixinConverters.Mixin):
                         # See issue #176
                         except Exception:
                             if 'does not agree with reference sequence' in checkref:
-                                my_variant.warnings.append(str(e))
+                                my_variant.warnings = [str(e)]
                                 logger.warning(str(e))
                                 continue
 
-                        my_variant.warnings.append(str(e))
+                        my_variant.warnings = [str(e)]
                         logger.warning(str(e))
                         continue
 
@@ -625,12 +625,23 @@ class Mixin(vvMixinConverters.Mixin):
                 alt_genomic_dicts = []
                 primary_genomic_dicts = {}
 
+                # Identify Pseudo Autosomal Regions
+                chrX = False
+                chrY = False
+                par = False
+                for g_var in multi_gen_vars:
+                    if 'NC_000023' in g_var.ac:
+                        chrX = True
+                    if 'NC_000024' in g_var.ac:
+                        chrY = True
+                if chrX is True and chrY is True:
+                    par = True
+
                 for alt_gen_var in multi_gen_vars:
                     if 'NC_' in alt_gen_var.ac:
                         if 'NC_000' not in alt_gen_var.ac and 'NC_012920.1' not in alt_gen_var.ac and \
                                 'NC_001807.4' not in alt_gen_var.ac:
                             continue
-                    import time
                     try:
                         alt_gen_var = variant.hn.normalize(alt_gen_var)
                     except vvhgvs.exceptions.HGVSInvalidVariantError:
@@ -645,10 +656,80 @@ class Mixin(vvMixinConverters.Mixin):
                             except vvhgvs.exceptions.HGVSInvalidVariantError:
                                 continue
                             # Identify primary assembly positions
-                            if 'NC_' in alt_gen_var.ac:
+                            if 'NC_' in alt_gen_var.ac and par is False:
                                 if 'NC_000' not in alt_gen_var.ac and 'NC_012920.1' not in alt_gen_var.ac and \
                                         'NC_001807.4' not in alt_gen_var.ac:
                                     continue
+                                if 'GRC' in build:
+                                    primary_genomic_dicts[build.lower()] = {
+                                        'hgvs_genomic_description': fn.valstr(alt_gen_var),
+                                        'vcf': {'chr': vcf_dict['grc_chr'],
+                                                'pos': vcf_dict['pos'],
+                                                'ref': vcf_dict['ref'],
+                                                'alt': vcf_dict['alt']
+                                                }
+                                    }
+
+                                else:
+                                    primary_genomic_dicts[build.lower()] = {
+                                        'hgvs_genomic_description': fn.valstr(alt_gen_var),
+                                        'vcf': {'chr': vcf_dict['ucsc_chr'],
+                                                'pos': vcf_dict['pos'],
+                                                'ref': vcf_dict['ref'],
+                                                'alt': vcf_dict['alt']
+                                                }
+                                    }
+                                if build == 'GRCh38':
+                                    vcf_dict = hgvs_utils.report_hgvs2vcf(alt_gen_var, 'hg38', variant.reverse_normalizer,
+                                                                          self.sf)
+                                    primary_genomic_dicts['hg38'] = {
+                                        'hgvs_genomic_description': fn.valstr(alt_gen_var),
+                                        'vcf': {'chr': vcf_dict['ucsc_chr'],
+                                                'pos': vcf_dict['pos'],
+                                                'ref': vcf_dict['ref'],
+                                                'alt': vcf_dict['alt']
+                                                }
+                                    }
+
+                            elif 'NC_' not in alt_gen_var.ac and par is False:
+                                if 'GRC' in build:
+                                    alt_dict = {build.lower(): {'hgvs_genomic_description': fn.valstr(alt_gen_var),
+                                                                'vcf': {'chr': vcf_dict['grc_chr'],
+                                                                        'pos': vcf_dict['pos'],
+                                                                        'ref': vcf_dict['ref'],
+                                                                        'alt': vcf_dict['alt']
+                                                                        }
+                                                                }
+                                                }
+                                else:
+                                    alt_dict = {build.lower(): {'hgvs_genomic_description': fn.valstr(alt_gen_var),
+                                                                'vcf': {'chr': vcf_dict['ucsc_chr'],
+                                                                        'pos': vcf_dict['pos'],
+                                                                        'ref': vcf_dict['ref'],
+                                                                        'alt': vcf_dict['alt']
+                                                                        }
+                                                                }
+                                                }
+                                # Append
+                                alt_genomic_dicts.append(alt_dict)
+
+                                if build == 'GRCh38':
+                                    vcf_dict = hgvs_utils.report_hgvs2vcf(alt_gen_var, 'hg38',
+                                                                          variant.reverse_normalizer,
+                                                                          self.sf)
+                                    alt_dict = {'hg38': {'hgvs_genomic_description': fn.valstr(alt_gen_var),
+                                                         'vcf': {'chr': vcf_dict['ucsc_chr'],
+                                                                 'pos': vcf_dict['pos'],
+                                                                 'ref': vcf_dict['ref'],
+                                                                 'alt': vcf_dict['alt']
+                                                                 }
+                                                         }
+                                                }
+                                    # Append
+                                    alt_genomic_dicts.append(alt_dict)
+
+                            # Identify primary assembly positions
+                            elif 'NC_000023' in alt_gen_var.ac and par is True:
                                 if 'GRC' in build:
                                     primary_genomic_dicts[build.lower()] = {
                                         'hgvs_genomic_description': fn.valstr(alt_gen_var),
@@ -740,8 +821,9 @@ class Mixin(vvMixinConverters.Mixin):
                     # Replace p.= with p.(=)
                     predicted_protein_variant_dict['tlr'] = predicted_protein_variant_dict['tlr'].replace('p.=',
                                                                                                           'p.(=)')
-                    predicted_protein_variant_dict['tlr'] = predicted_protein_variant_dict['tlr'].replace('p.?',
-                                                                                                          'p.(?)')
+                    # predicted_protein_variant_dict['tlr'] = predicted_protein_variant_dict['tlr'].replace('p.?',
+                    #                                                                                      'p.(?)')
+
                 if predicted_protein_variant != '':
                     if 'Non-coding :n.' not in predicted_protein_variant:
                         try:
@@ -755,8 +837,8 @@ class Mixin(vvMixinConverters.Mixin):
                                 re_parse_protein_single_aa = re_parse_protein_single_aa.replace('p.=',
                                                                                                 'p.(=)')
 
-                                re_parse_protein_single_aa = re_parse_protein_single_aa.replace('p.?',
-                                                                                                'p.(?)')
+                                # re_parse_protein_single_aa = re_parse_protein_single_aa.replace('p.?',
+                                #                                                                'p.(?)')
                             predicted_protein_variant_dict["slr"] = str(re_parse_protein_single_aa)
                         except vvhgvs.exceptions.HGVSParseError as e:
                             logger.debug("Except passed, %s", e)
