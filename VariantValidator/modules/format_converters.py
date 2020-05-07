@@ -39,9 +39,14 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
     if toskip:
         return True
 
-
     # Find not_sub type in input e.g. GGGG>G
     toskip = vcf2hgvs_stage4(variant, validator)
+    if toskip:
+        return True
+
+    # Extract variants from HGVS allele descriptions
+    # http://varnomen.hgvs.org/recommendations/DNA/variant/alleles/
+    toskip = allele_parser(variant, validator, validator)
     if toskip:
         return True
 
@@ -51,12 +56,6 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
 
     # Tackle compound variant descriptions NG or NC (NM_) i.e. correctly input NG/NC_(NM_):c.
     intronic_converter(variant, validator)
-
-    # Extract variants from HGVS allele descriptions
-    # http://varnomen.hgvs.org/recommendations/DNA/variant/alleles/
-    toskip = allele_parser(variant, validator)
-    if toskip:
-        return True
 
     return False
 
@@ -537,38 +536,33 @@ def indel_catching(variant, validator):
     edit_fail = re.compile(r'\d+$')
     if edit_fail.search(variant.quibble):
         if not edit_pass.search(variant.quibble) and 'fs' not in variant.quibble:
-            failed = variant.quibble
-            # Catch the trailing digits
-            digits = re.search(r"(\d+$)", failed)
-            digits = digits.group(1)
-            remove = str(digits) + 'end_anchor'
-            failed = failed + 'end_anchor'
-            failed = failed.replace(remove, '')
-
-            # Remove them so that the string SHOULD parse
+            error = 'Trailing digits are not permitted in HGVS variant descriptions'
+            issue_link = 'http://varnomen.hgvs.org/recommendations/DNA/variant/'
             try:
-                hgvs_failed = validator.hp.parse_hgvs_variant(failed)
+                hgvs_quibble = validator.hp.parse_hgvs_variant(variant.quibble)
+            except vvhgvs.exceptions.HGVSError:
+                # Tackle compound variant descriptions NG or NC (NM_) i.e. correctly input NG/NC_(NM_):c.
+                intronic_converter(variant, validator)
+                hgvs_quibble = validator.hp.parse_hgvs_variant(variant.quibble)
+            try:
+                validator.vr.validate(hgvs_quibble)
             except vvhgvs.exceptions.HGVSError as e:
-                error = 'The syntax of the input variant description is invalid '
-                if failed.endswith('ins'):
-                    issue_link = 'http://varnomen.hgvs.org/recommendations/DNA/variant/insertion/'
-                    error = error + ' please refer to ' + issue_link
+                variant.warnings.append(str(e))
                 variant.warnings.append(error)
-                logger.warning(str(error) + " " + str(e))
+                variant.warnings.append('Refer to ' + issue_link)
+                logger.info(e)
                 return True
-
-            hgvs_failed.posedit.edit = str(hgvs_failed.posedit.edit).replace(digits, '')
-            failed = str(hgvs_failed)
-            automap = 'Non HGVS compliant variant description ' + variant.quibble + ' automapped to ' + failed
-            variant.warnings.append(automap)
-            logger.info(automap)
-            variant.quibble = failed
+            # Remove them so that the string SHOULD parse
+            variant.warnings.append(error)
+            variant.warnings.append('Refer to ' + issue_link)
+            logger.info(error)
+            return False
 
     logger.debug("Ins/Del reference catching complete for %s", variant.quibble)
     return False
 
 
-def intronic_converter(variant, validator):
+def intronic_converter(variant, validator, skip_check=False):
     """
     Fully HGVS compliant intronic variant descriptions take the format e.g
     NG_007400.1(NM_000088.3):c.589-1G>T. However, hgvs cannot parse and map
@@ -589,13 +583,24 @@ def intronic_converter(variant, validator):
         transy = transy.replace(')', '')
         # Add the edited variant for next stage error processing e.g. exon boundaries.
         variant.quibble = transy
-        # Check the specified base is correct
-        hgvs_genomic = validator.nr_vm.c_to_g(validator.hp.parse_hgvs_variant(transy), genomic_ref)
-        validator.vr.validate(hgvs_genomic)
+        if skip_check is True:
+            return genomic_ref
+        else:
+            # Check the specified base is correct
+            hgvs_genomic = validator.nr_vm.c_to_g(validator.hp.parse_hgvs_variant(transy), genomic_ref)
+            try:
+                validator.vr.validate(hgvs_genomic)
+            except vvhgvs.exceptions.HGVSError as e:
+                if 'Length implied by coordinates must equal sequence deletion length' in str(e) \
+                        and not re.search(r'\d+$', variant.quibble):
+                    pass
+                else:
+                    validator.vr.validate(hgvs_genomic)
+
     logger.debug("HVGS typesetting complete")
 
 
-def allele_parser(variant, validation):
+def allele_parser(variant, validation, validator):
     """
     HGVS allele string parsing function Occurance #1
     Takes a single HGVS allele description and separates each allele into a
@@ -608,6 +613,16 @@ def allele_parser(variant, validation):
     caution = ''
     if (re.search(r':[gcnr].\[', variant.quibble) and ';' in variant.quibble) or (
             re.search(r':[gcrn].\d+\[', variant.quibble) and ';' in variant.quibble) or ('(;)' in variant.quibble):
+
+        # Edit compound descriptions
+        genomic_ref = intronic_converter(variant, validator, skip_check=True)
+        if genomic_ref is None:
+            genomic_reference = False
+        elif 'NC_' in genomic_ref or 'NG_' in genomic_ref:
+            genomic_reference = genomic_ref
+        else:
+            genomic_reference = False
+
         # handle LRG inputs
         if re.match(r'^LRG', variant.quibble):
             if re.match(r'^LRG\d+', variant.quibble):
@@ -651,7 +666,7 @@ def allele_parser(variant, validation):
         try:
             # Submit to allele extraction function
             try:
-                alleles = validation.hgvs_alleles(variant.quibble, variant.hn)
+                alleles = validation.hgvs_alleles(variant.quibble, variant.hn, genomic_reference)
             except fn.alleleVariantError as e:
                 variant.warnings.append(str(e))
                 logger.warning(str(e))
@@ -814,6 +829,7 @@ def rna(variant, validator):
         variant.hgvs_formatted = hgvs_c
 
     return False
+
 
 def uncertain_pos(variant):
     """

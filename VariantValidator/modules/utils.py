@@ -73,6 +73,27 @@ def remove_reference(hgvs_nucleotide):
     return hgvs_nucleotide_refless
 
 
+def remove_reference_string(variant_string):
+    """
+    format stringified nucleotide descriptions to not display reference base
+    """
+    # deletions
+    del_match = re.search('del[GATC]+$', variant_string)
+    if del_match:
+        variant_string = variant_string.replace(del_match[0], 'del')
+    # inversions
+    inv_match = re.search('inv[GATC]+$', variant_string)
+    if inv_match:
+        variant_string = variant_string.replace(inv_match[0], 'inv')
+    # delins
+    delins_match = re.search('del[GATC]+ins[GATC+]$', variant_string)
+    if delins_match:
+        delins_match_b = delins_match[0].split('ins')[1]
+        delins_match_b = 'delins' + delins_match_b
+        variant_string = variant_string.replace(delins_match[0], delins_match_b)
+    return variant_string
+
+
 def user_input(query):
     """
     user_input

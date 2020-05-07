@@ -8,6 +8,7 @@ from .variant import Variant
 from . import seq_data
 from . import utils as fn
 from . import gapped_mapping
+from operator import itemgetter
 
 logger = logging.getLogger(__name__)
 
@@ -241,9 +242,10 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             logger.warning(error)
             return True
 
-        errors = ['Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive',
-                  'Query gene2transcripts with search term %s for '
-                  'available transcripts' % tx_ac.split('.')[0]]
+        if 'does not agree with reference sequence' not in str(e):
+            errors = ['Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive',
+                      'Query gene2transcripts with search term %s for '
+                      'available transcripts' % tx_ac.split('.')[0]]
         variant.warnings.extend(errors)
         logger.info(str(errors))
         return True
@@ -329,10 +331,8 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             if 'Unsupported normalization of variants spanning the exon-intron boundary' in error:
                 formatted_variant = formatted_variant
                 caution = 'This coding sequence variant description spans at least one intron'
-                automap = 'Use of the corresponding genomic sequence variant descriptions may be invalid. ' \
-                          'Please refer to http://variantvalidator.org/recommendations/'
-                variant.warnings.extend([caution, automap])
-                logger.info(caution + ": " + automap)
+                variant.warnings.extend([caution])
+                logger.info(caution)
         else:
             formatted_variant = str(h_variant)
 
@@ -807,6 +807,7 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant):
     multi_g = []
     multi_list = []
     mapping_options = validator.hdp.get_tx_mapping_options(variant.hgvs_coding.ac)
+    mapping_options = sorted(mapping_options, key=itemgetter(1))
     for alt_chr in mapping_options:
         if ('NC_' in alt_chr[1] or 'NT_' in alt_chr[1] or 'NW_' in alt_chr[1]) and \
                 alt_chr[2] == validator.alt_aln_method:
@@ -814,6 +815,8 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant):
 
     for alt_chr in multi_list:
         logger.debug("Trying to do final gap mapping with %s", alt_chr)
+
+        # Loop out NCBI36 refs
         if 'NC_' in alt_chr:
             if not re.match('NC_000', alt_chr):
                 continue
