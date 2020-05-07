@@ -270,67 +270,60 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
             not_delins = str(not_delins)
             hgvs_not_delins = validator.hp.parse_hgvs_variant(not_delins)
 
-            try:
-                validator.vr.validate(hgvs_not_delins)
-            except vvhgvs.exceptions.HGVSError as e:
-                logger.info(str(e))
-                # Most likely incorrect bases
-                continue
-            else:
-                hgvs_lifted = hn.normalize(hgvs_not_delins)
-                # Now try map back
-                lo = LiftOver(lo_to, lo_from)
+            hgvs_lifted = hn.normalize(hgvs_not_delins)
+            # Now try map back
+            lo = LiftOver(lo_to, lo_from)
 
-                # Lift back
-                liftback_list = lo.convert_coordinate(chrom, pos)
+            # Lift back
+            liftback_list = lo.convert_coordinate(chrom, pos)
 
-                for lifted_back in liftback_list:
-                    # Pull out the good guys!
-                    # Need to add chr to the from_set
-                    if not lifted_back[0].startswith('chr'):
-                        my_from_chr = 'chr' + lifted_back[0]
-                    else:
-                        my_from_chr = lifted_back[0]
+            for lifted_back in liftback_list:
+                # Pull out the good guys!
+                # Need to add chr to the from_set
+                if not lifted_back[0].startswith('chr'):
+                    my_from_chr = 'chr' + lifted_back[0]
+                else:
+                    my_from_chr = lifted_back[0]
 
-                    if lifted_back[0] == from_vcf[from_set] or lifted_back[0] == my_from_chr:
-                        if lifted_back[1] == int(from_vcf['pos']):
-                            for build in genome_builds:
-                                vcf_dict = hgvs_utils.report_hgvs2vcf(
-                                    hgvs_lifted, build, reverse_normalizer, validator.sf)
-                                if build.startswith('GRC'):
-                                    lifted_response[build_to.lower()][hgvs_lifted.ac] = {
-                                        'hgvs_genomic_description': mystr(hgvs_lifted),
-                                        'vcf': {'chr': vcf_dict['grc_chr'],
-                                                'pos': str(vcf_dict['pos']),
-                                                'ref': vcf_dict['ref'],
-                                                'alt': vcf_dict['alt']
-                                                }
-                                    }
-                                    lifted_response[alt_build_to.lower()][hgvs_lifted.ac] = {
-                                        'hgvs_genomic_description': mystr(hgvs_lifted),
-                                        'vcf': {'chr': vcf_dict['ucsc_chr'],
-                                                'pos': str(vcf_dict['pos']),
-                                                'ref': vcf_dict['ref'],
-                                                'alt': vcf_dict['alt']
-                                                }
-                                    }
-                                else:
-                                    lifted_response[build_to.lower()][hgvs_lifted.ac] = {
-                                        'hgvs_genomic_description': mystr(hgvs_lifted),
-                                        'vcf': {'chr': vcf_dict['ucsc_chr'],
-                                                'pos': str(vcf_dict['pos']),
-                                                'ref': vcf_dict['ref'],
-                                                'alt': vcf_dict['alt']
-                                                }
-                                    }
-                                    lifted_response[alt_build_to.lower()][hgvs_lifted.ac] = {
-                                        'hgvs_genomic_description': mystr(hgvs_lifted),
-                                        'vcf': {'chr': vcf_dict['grc_chr'],
-                                                'pos': str(vcf_dict['pos']),
-                                                'ref': vcf_dict['ref'],
-                                                'alt': vcf_dict['alt']
-                                                }
-                                    }
+                if lifted_back[0] == from_vcf[from_set] or lifted_back[0] == my_from_chr:
+                    if lifted_back[1] == int(from_vcf['pos']):
+                        for build in genome_builds:
+                            vcf_dict = hgvs_utils.report_hgvs2vcf(
+                                hgvs_lifted, build, reverse_normalizer, validator.sf)
+                            if build.startswith('GRC'):
+                                lifted_response[build_to.lower()][hgvs_lifted.ac] = {
+                                    'hgvs_genomic_description': mystr(hgvs_lifted),
+                                    'vcf': {'chr': vcf_dict['grc_chr'],
+                                            'pos': str(vcf_dict['pos']),
+                                            'ref': vcf_dict['ref'],
+                                            'alt': vcf_dict['alt']
+                                            }
+                                }
+                                lifted_response[alt_build_to.lower()][hgvs_lifted.ac] = {
+                                    'hgvs_genomic_description': mystr(hgvs_lifted),
+                                    'vcf': {'chr': vcf_dict['ucsc_chr'],
+                                            'pos': str(vcf_dict['pos']),
+                                            'ref': vcf_dict['ref'],
+                                            'alt': vcf_dict['alt']
+                                            }
+                                }
+                            else:
+                                lifted_response[build_to.lower()][hgvs_lifted.ac] = {
+                                    'hgvs_genomic_description': mystr(hgvs_lifted),
+                                    'vcf': {'chr': vcf_dict['ucsc_chr'],
+                                            'pos': str(vcf_dict['pos']),
+                                            'ref': vcf_dict['ref'],
+                                            'alt': vcf_dict['alt']
+                                            }
+                                }
+                                lifted_response[alt_build_to.lower()][hgvs_lifted.ac] = {
+                                    'hgvs_genomic_description': mystr(hgvs_lifted),
+                                    'vcf': {'chr': vcf_dict['grc_chr'],
+                                            'pos': str(vcf_dict['pos']),
+                                            'ref': vcf_dict['ref'],
+                                            'alt': vcf_dict['alt']
+                                            }
+                                }
     return lifted_response
 
 # <LICENSE>

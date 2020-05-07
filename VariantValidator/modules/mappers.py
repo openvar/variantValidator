@@ -331,10 +331,8 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             if 'Unsupported normalization of variants spanning the exon-intron boundary' in error:
                 formatted_variant = formatted_variant
                 caution = 'This coding sequence variant description spans at least one intron'
-                automap = 'Use of the corresponding genomic sequence variant descriptions may be invalid. ' \
-                          'Please refer to http://variantvalidator.org/recommendations/'
-                variant.warnings.extend([caution, automap])
-                logger.info(caution + ": " + automap)
+                variant.warnings.extend([caution])
+                logger.info(caution)
         else:
             formatted_variant = str(h_variant)
 

@@ -538,20 +538,15 @@ def indel_catching(variant, validator):
         if not edit_pass.search(variant.quibble) and 'fs' not in variant.quibble:
             error = 'Trailing digits are not permitted in HGVS variant descriptions'
             issue_link = 'http://varnomen.hgvs.org/recommendations/DNA/variant/'
-            print('\nTrying')
             try:
                 hgvs_quibble = validator.hp.parse_hgvs_variant(variant.quibble)
             except vvhgvs.exceptions.HGVSError:
-                print('e1')
                 # Tackle compound variant descriptions NG or NC (NM_) i.e. correctly input NG/NC_(NM_):c.
                 intronic_converter(variant, validator)
                 hgvs_quibble = validator.hp.parse_hgvs_variant(variant.quibble)
             try:
                 validator.vr.validate(hgvs_quibble)
             except vvhgvs.exceptions.HGVSError as e:
-                print('e2')
-                print(e)
-                print(hgvs_quibble)
                 variant.warnings.append(str(e))
                 variant.warnings.append(error)
                 variant.warnings.append('Refer to ' + issue_link)
