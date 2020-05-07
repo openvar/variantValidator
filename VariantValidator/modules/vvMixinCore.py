@@ -489,6 +489,7 @@ class Mixin(vvMixinConverters.Mixin):
             by_order = sorted(self.batch_list, key=lambda x: x.order)
 
             for variant in by_order:
+                logger.debug("Formatting variant " + variant.quibble)
                 if not variant.write:
                     continue
 
@@ -497,14 +498,17 @@ class Mixin(vvMixinConverters.Mixin):
                 hgvs_genomic_variant = genomic_variant
 
                 # genomic accession
+                logger.debug("genomic accession")
                 if genomic_variant != '':
-                    hgvs_genomic_variant = self.hp.parse_hgvs_variant(genomic_variant)
+                    str_genomic_variant = fn.remove_reference_string(genomic_variant)
+                    hgvs_genomic_variant = self.hp.parse_hgvs_variant(str_genomic_variant)
                     genomic_variant = fn.valstr(hgvs_genomic_variant)
                     genomic_accession = hgvs_genomic_variant.ac
                 else:
                     genomic_accession = ''
 
                 # RefSeqGene variation
+                logger.debug("RefSeqGene variation")
                 refseqgene_variant = variant.genomic_r
                 refseqgene_variant = refseqgene_variant.strip()
                 if 'RefSeqGene' in refseqgene_variant or refseqgene_variant == '':
@@ -513,7 +517,7 @@ class Mixin(vvMixinConverters.Mixin):
                     lrg_variant = ''
                     hgvs_refseqgene_variant = 'false'
                 else:
-                    hgvs_refseqgene_variant = self.hp.parse_hgvs_variant(refseqgene_variant)
+                    hgvs_refseqgene_variant = self.hp.parse_hgvs_variant(fn.remove_reference_string(refseqgene_variant))
                     rsg_ac = self.db.get_lrg_id_from_refseq_gene_id(str(hgvs_refseqgene_variant.ac))
                     if rsg_ac[0] == 'none':
                         lrg_variant = ''
@@ -526,6 +530,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                     'therefore changes may be made to the LRG reference sequence')
 
                 # Transcript sequence variation
+                logger.debug("Transcript sequence variation")
                 tx_variant = variant.coding
                 hgvs_transcript_variant = tx_variant
                 hgvs_tx_variant = None
@@ -535,12 +540,14 @@ class Mixin(vvMixinConverters.Mixin):
                         tx_variant = tx_variant.replace(')', '')
 
                     # transcript accession
-                    hgvs_tx_variant = self.hp.parse_hgvs_variant(tx_variant)
+                    logger.debug("transcript accession")
+                    hgvs_tx_variant = self.hp.parse_hgvs_variant(fn.remove_reference_string(tx_variant))
                     tx_variant = fn.valstr(hgvs_tx_variant)
-                    hgvs_transcript_variant = self.hp.parse_hgvs_variant(tx_variant)
+                    hgvs_transcript_variant = self.hp.parse_hgvs_variant(fn.remove_reference_string(tx_variant))
                     transcript_accession = hgvs_transcript_variant.ac
 
                     # Handle LRG
+                    logger.debug("Handle LRG")
                     lrg_transcript = self.db.get_lrg_transcript_id_from_refseq_transcript_id(transcript_accession)
                     if lrg_transcript == 'none':
                         lrg_transcript_variant = ''
@@ -566,6 +573,7 @@ class Mixin(vvMixinConverters.Mixin):
                     lrg_transcript_variant = ''
 
                 # Look for intronic variants
+                logger.debug("Look for intronic variants")
                 if transcript_accession != '' and genomic_accession != '':
                     # Remove del bases
                     str_transcript = fn.valstr(hgvs_transcript_variant)
@@ -578,12 +586,14 @@ class Mixin(vvMixinConverters.Mixin):
                             genome_context_transcript_variant = genomic_accession + '(' + transcript_accession +\
                                                                 '):c.' + str(hgvs_transcript_variant.posedit)
                             if refseqgene_variant != '':
-                                hgvs_refseqgene_variant = self.hp.parse_hgvs_variant(refseqgene_variant)
+                                hgvs_refseqgene_variant = self.hp.parse_hgvs_variant(
+                                    fn.remove_reference_string(refseqgene_variant))
                                 refseqgene_accession = hgvs_refseqgene_variant.ac
                                 hgvs_coding_from_refseqgene = self.vm.g_to_t(hgvs_refseqgene_variant,
                                                                              hgvs_transcript_variant.ac)
                                 hgvs_coding_from_refseqgene = fn.valstr(hgvs_coding_from_refseqgene)
-                                hgvs_coding_from_refseqgene = self.hp.parse_hgvs_variant(hgvs_coding_from_refseqgene)
+                                hgvs_coding_from_refseqgene = self.hp.parse_hgvs_variant(
+                                    fn.remove_reference_string(hgvs_coding_from_refseqgene))
                                 refseqgene_context_transcript_variant = refseqgene_accession + '(' + \
                                     transcript_accession + '):c.' + str(hgvs_coding_from_refseqgene.posedit.pos) + str(
                                         hgvs_coding_from_refseqgene.posedit.edit)
@@ -600,6 +610,7 @@ class Mixin(vvMixinConverters.Mixin):
                     refseqgene_context_transcript_variant = ''
 
                 # Protein description
+                logger.debug("Protein description")
                 predicted_protein_variant = variant.protein
                 if 'NP_' in predicted_protein_variant:
                     rs_p, pred_prot_posedit = predicted_protein_variant.split(':')
