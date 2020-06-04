@@ -7,7 +7,7 @@ By default the edited configuration will be placed in the users home directory (
 To create this file automatically, run the configuration script installed alongside the package.
 
 ```bash
-vv_configure.py
+$ python bin/vv_configure.py
 ```
 
 This will ask you to enter a value for each item in the configuration file. 
@@ -44,6 +44,8 @@ api_key = YOUR_API_KEY
 
 The values in capitals must be replaced for VariantValidator to run, see below for more details.
 
+**This script can also be used to uodate your configuration at a later date**
+
 #### Logging
 
 By default VariantValidator will log to both the console and to a file, the output level for each can be set in the configuration file.
@@ -63,14 +65,14 @@ made per second. See [this article](https://ncbiinsights.ncbi.nlm.nih.gov/2017/1
 To import the initial data into the Validator MySQL database, run the following script:
 
 ```bash
-update_vdb.py
+python bin/update_vdb.py
 ```
 
 This will download the required data to convert between LRG and RefSeq IDs. We recommend re-running this command on a regular basis as changes are continually made to the RefSeq and LRG collections.  
 
 ## Operation
 
-To run VariantValidator, we have provided the installed script `variant_validator.py`, running this with the flag `-h` shows the running options:
+To run VariantValidator, we have provided the installed script `bin/variant_validator.py`, running this with the flag `-h` shows the running options:
 
 ```text
 usage: variant_validator.py [-h] -v VARIANT [VARIANT ...]
