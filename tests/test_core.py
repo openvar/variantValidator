@@ -158,7 +158,7 @@ class TestValidator(unittest.TestCase):
         out = self.vv.validate(var, 'grch37', 'all').format_as_dict()
         self.assertNotEqual(out['NM_015120.4:c.34C>T']['transcript_description'], 'false')
         self.assertEqual(out['NM_015120.4:c.34C>T']['transcript_description'],
-                         'Homo sapiens ALMS1 centrosome and basal body associated protein (ALMS1), mRNA')
+                         'Homo sapiens ALMS1 centrosome and basal body associated protein (ALMS1), transcript variant 1, mRNA')
 
     def test_variant_format(self):
         var = "NM_020812.3:c.[3190_3191delCT];[(3190_3191delCT)]"

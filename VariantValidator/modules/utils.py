@@ -166,10 +166,12 @@ def user_input(query):
         variant = raw_variant
         formated = {'variant': variant, 'type': ':m.'}
         return formated
+
     elif pat_est.search(raw_variant):
         variant = raw_variant
         formated = {'variant': variant, 'type': 'est'}
         return formated
+
     else:
         formatted = 'invalid'
         return formatted

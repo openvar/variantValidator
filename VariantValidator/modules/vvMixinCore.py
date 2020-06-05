@@ -223,6 +223,21 @@ class Mixin(vvMixinConverters.Mixin):
                         continue
 
                     # INITIAL USER INPUT FORMATTING
+                    # Requested warnings from https://github.com/openvar/variantValidator/issues/195
+                    if re.search(r'\(.+?\)', my_variant.quibble):  # Pattern looks for (....)
+                        gene_symbol_query = re.search(r'\(.+?\)', my_variant.quibble).group(0)
+                        gene_symbol_query = gene_symbol_query.replace('(', '')
+                        gene_symbol_query = gene_symbol_query.replace(')', '')
+                        is_it_a_gene = self.db.get_hgnc_symbol(gene_symbol_query)
+                        if is_it_a_gene != 'none':
+                            warning = "Removing redundant gene symbol %s from variant description" % is_it_a_gene
+                            my_variant.warnings.append(warning)
+                            logger.warning(warning)
+                    if re.search('del[GATC]+', my_variant.quibble) or re.search('inv[GATC]+', my_variant.quibble):
+                        warning = "Removing redundant reference bases from variant description"
+                        my_variant.warnings.append(warning)
+                        logger.warning(warning)
+
                     invalid = my_variant.format_quibble()
                     if invalid:
                         if re.search(r'\w+:[gcnmrp],', my_variant.quibble):
@@ -1101,7 +1116,6 @@ class Mixin(vvMixinConverters.Mixin):
                 tx = line[3]
 
                 # Protein id
-                prot_id = None
                 prot_id = self.hdp.get_pro_ac_for_tx_ac(tx)
 
                 # Get additional tx_ information
@@ -1111,7 +1125,6 @@ class Mixin(vvMixinConverters.Mixin):
                 # Fetch the sequence to get the length
                 tx_seq = self.sf.fetch_seq(tx)
                 tx_len = len(tx_seq)
-
 
                 # Collect genomic span for the transcript against known genomic/gene reference sequences
                 gen_start_pos = None
