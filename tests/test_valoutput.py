@@ -182,7 +182,8 @@ class TestValOutput(TestCase):
         res = obj.format_as_table(with_meta=False)
         print(res)
         self.assertIsInstance(res, list)
-        self.assertEqual(res, [['Input', 'Warnings', 'HGVS_transcript', 'HGVS_RefSeqGene', 'HGVS_LRG',
+        self.assertEqual(res, [['Input', 'Warnings', 'HGVS_transcript', 'HGVS_intronic_chr_context',
+                                'HGVS_intronic_rsg', 'HGVS_RefSeqGene', 'HGVS_LRG',
                                 'HGVS_LRG_transcript', 'HGVS_Predicted_Protein', 'HGVS_Genomic_GRCh37', 'GRCh37_CHR',
                                 'GRCh37_POS', 'GRCh37_ID', 'GRCh37_REF', 'GRCh37_ALT', 'HGVS_Genomic_GRCh38',
                                 'GRCh38_CHR', 'GRCh38_POS', 'GRCh38_ID', 'GRCh38_REF', 'GRCh38_ALT',
@@ -194,7 +195,8 @@ class TestValOutput(TestCase):
         res = obj.format_as_table(with_meta=False)
         print(res)
         self.assertIsInstance(res, list)
-        self.assertEqual(res, [['Input', 'Warnings', 'HGVS_transcript', 'HGVS_RefSeqGene', 'HGVS_LRG',
+        self.assertEqual(res, [['Input', 'Warnings', 'HGVS_transcript', 'HGVS_intronic_chr_context',
+                                'HGVS_intronic_rsg', 'HGVS_RefSeqGene', 'HGVS_LRG',
                                 'HGVS_LRG_transcript', 'HGVS_Predicted_Protein', 'HGVS_Genomic_GRCh37', 'GRCh37_CHR',
                                 'GRCh37_POS', 'GRCh37_ID', 'GRCh37_REF', 'GRCh37_ALT', 'HGVS_Genomic_GRCh38',
                                 'GRCh38_CHR', 'GRCh38_POS', 'GRCh38_ID', 'GRCh38_REF', 'GRCh38_ALT',
@@ -209,7 +211,9 @@ class TestValOutput(TestCase):
         res = obj.format_as_table(with_meta=False)
         print(res)
         self.assertIsInstance(res, list)
-        self.assertEqual(res[0], ['Input', 'Warnings', 'HGVS_transcript', 'HGVS_RefSeqGene', 'HGVS_LRG',
+        self.assertEqual(res[0], ['Input', 'Warnings', 'HGVS_transcript',
+                                  'HGVS_intronic_chr_context',
+                                  'HGVS_intronic_rsg', 'HGVS_RefSeqGene', 'HGVS_LRG',
                                   'HGVS_LRG_transcript', 'HGVS_Predicted_Protein', 'HGVS_Genomic_GRCh37', 'GRCh37_CHR',
                                   'GRCh37_POS', 'GRCh37_ID', 'GRCh37_REF', 'GRCh37_ALT', 'HGVS_Genomic_GRCh38',
                                   'GRCh38_CHR', 'GRCh38_POS', 'GRCh38_ID', 'GRCh38_REF', 'GRCh38_ALT',

@@ -18766,6 +18766,14 @@ class TestVariantsAuto(TestCase):
         assert 'NC_000024.10:g.630997del' in results['NM_000451.3:c.100del']['alt_genomic_loci'][0]['grch38']['hgvs_genomic_description']
         assert 'NC_000023.10:g.591732del' in results['NM_000451.3:c.100del']['primary_assembly_loci']['grch37']['hgvs_genomic_description']
 
+    def test_issue_179(self):
+        variant = 'NM_000088.3(COL1A1):c.590delG'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert 'Removing redundant gene symbol COL1A1 from variant description' in results['NM_000088.3:c.590del']['validation_warnings'][0]
+        assert 'Removing redundant reference bases from variant description' in results['NM_000088.3:c.590del']['validation_warnings'][1]
+
+
 
 # <LICENSE>
 # Copyright (C) 2019 VariantValidator Contributors
