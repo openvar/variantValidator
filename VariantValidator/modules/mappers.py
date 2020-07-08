@@ -74,12 +74,14 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
     if len(rel_var) == 0:
         vcf_dict = hgvs_utils.hgvs2vcf(variant.hgvs_genomic, variant.primary_assembly, variant.reverse_normalizer,
                                        validator.sf)
-        not_di = str(variant.hgvs_genomic.ac) + ':g.' + str(vcf_dict['pos']) + '_' + str(
-            int(vcf_dict['pos']) + (len(vcf_dict['ref']) - 1)) + 'del' + vcf_dict['ref'] + 'ins' + \
-            vcf_dict['alt']
-        hgvs_not_di = validator.hp.parse_hgvs_variant(not_di)
-        rel_var = validator.relevant_transcripts(hgvs_not_di, variant.evm, validator.alt_aln_method,
-                                                 variant.reverse_normalizer)
+
+        if len(vcf_dict['ref']) < 100000:
+            not_di = str(variant.hgvs_genomic.ac) + ':g.' + str(vcf_dict['pos']) + '_' + str(
+                int(vcf_dict['pos']) + (len(vcf_dict['ref']) - 1)) + 'del' + vcf_dict['ref'] + 'ins' + \
+                vcf_dict['alt']
+            hgvs_not_di = validator.hp.parse_hgvs_variant(not_di)
+            rel_var = validator.relevant_transcripts(hgvs_not_di, variant.evm, validator.alt_aln_method,
+                                                     variant.reverse_normalizer)
 
     # list return statements
     """
@@ -665,56 +667,22 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             variant.warnings.append(automap)
         except NotImplementedError as e:
             logger.debug("Except passed, %s", e)
-        if ori == -1:
-            rng = variant.hn.normalize(query_genomic)
-            try:
-                c_for_p = validator.vm.g_to_t(rng, hgvs_coding.ac)
-            except vvhgvs.exceptions.HGVSInvalidIntervalError:
-                c_for_p = fn.valstr(hgvs_seek_var)
-            try:
-                # Predicted effect on protein
-                protein_dict = validator.myc_to_p(c_for_p, variant.evm, re_to_p=False, hn=variant.hn)
-                if protein_dict['error'] == '':
-                    hgvs_protein = protein_dict['hgvs_protein']
-                else:
-                    error = protein_dict['error']
-                    if error == 'Cannot identify an in-frame Termination codon in the variant mRNA sequence':
-                        hgvs_protein = protein_dict['hgvs_protein']
-                        variant.warnings.append(error)
-            except NotImplementedError as e:
-                logger.debug("Except passed, %s", e)
-    elif ori == 1:
-        # Double check protein position by reverse_norm genomic, and normalize back to c.
-        # for normalize or not to normalize issue
-        rng = variant.reverse_normalizer.normalize(query_genomic)
-        try:
-            # Diagram where - = intron and E = Exon
 
-            # 3 prime
-            # ---------EEEEEEEEEEEEEEEEE-----------
-            #          <
-            # Result, normalize of new variant will baulk at intronic
-            # 5 prime
-            #                          <
-            # Result, normalize of new variant will be happy
-            c_for_p = validator.vm.g_to_t(rng, hgvs_coding.ac)
-            try:
-                variant.hn.normalize(c_for_p)
-            except vvhgvs.exceptions.HGVSError as e:
-                logger.debug("Except passed, %s", e)
-            else:
-                # hgvs_protein = va_func.protein(str(c_for_p), variant.evm, hp)
-                protein_dict = validator.myc_to_p(c_for_p, variant.evm, re_to_p=False, hn=variant.hn)
-                if protein_dict['error'] == '':
-                    hgvs_protein = protein_dict['hgvs_protein']
-                else:
-                    error = protein_dict['error']
-                    if error == 'Cannot identify an in-frame Termination codon in the variant mRNA sequence':
-                        hgvs_protein = protein_dict['hgvs_protein']
-                        variant.warnings.append(error)
-                # Replace protein description in vars table
-        except Exception as e:
-            logger.debug("Except passed, %s", e)
+    # Ensure intronic is always p.?
+    print('\n\nAwooga')
+    c_for_p = hgvs_coding
+    try:
+        # Predicted effect on protein
+        protein_dict = validator.myc_to_p(c_for_p, variant.evm, re_to_p=False, hn=variant.hn)
+        if protein_dict['error'] == '':
+            hgvs_protein = protein_dict['hgvs_protein']
+        else:
+            error = protein_dict['error']
+            if error == 'Cannot identify an in-frame Termination codon in the variant mRNA sequence':
+                hgvs_protein = protein_dict['hgvs_protein']
+                variant.warnings.append(error)
+    except NotImplementedError as e:
+        logger.debug("Except passed, %s", e)
 
     # Final protein check, i.e. does the output make sense
     # We are looking for exonic c. descriptioms labelled as p.?

@@ -223,6 +223,21 @@ class Mixin(vvMixinConverters.Mixin):
                         continue
 
                     # INITIAL USER INPUT FORMATTING
+                    # Requested warnings from https://github.com/openvar/variantValidator/issues/195
+                    if re.search(r'\(.+?\)', my_variant.quibble):  # Pattern looks for (....)
+                        gene_symbol_query = re.search(r'\(.+?\)', my_variant.quibble).group(0)
+                        gene_symbol_query = gene_symbol_query.replace('(', '')
+                        gene_symbol_query = gene_symbol_query.replace(')', '')
+                        is_it_a_gene = self.db.get_hgnc_symbol(gene_symbol_query)
+                        if is_it_a_gene != 'none':
+                            warning = "Removing redundant gene symbol %s from variant description" % is_it_a_gene
+                            my_variant.warnings.append(warning)
+                            logger.warning(warning)
+                    if re.search('del[GATC]+', my_variant.quibble) or re.search('inv[GATC]+', my_variant.quibble):
+                        warning = "Removing redundant reference bases from variant description"
+                        my_variant.warnings.append(warning)
+                        logger.warning(warning)
+
                     invalid = my_variant.format_quibble()
                     if invalid:
                         if re.search(r'\w+:[gcnmrp],', my_variant.quibble):
@@ -433,31 +448,26 @@ class Mixin(vvMixinConverters.Mixin):
                     toskip = format_converters.mitochondrial(my_variant, self)
                     if toskip:
                         continue
-
                     # Protein variants
                     toskip = format_converters.proteins(my_variant, self)
                     if toskip:
                         continue
-
                     trapped_input = str(my_variant.hgvs_formatted)
                     my_variant.pre_RNA_conversion = trapped_input
                     toskip = format_converters.rna(my_variant, self)
                     if toskip:
                         continue
-
                     # COLLECT gene symbol, name and ACCESSION INFORMATION
                     # Gene symbol
                     if my_variant.reftype != ':g.':
                         toskip = self._get_transcript_info(my_variant)
                         if toskip:
                             continue
-
                     # Now start mapping from genome to transcripts
                     if my_variant.reftype == ':g.':
                         toskip = mappers.gene_to_transcripts(my_variant, self, select_transcripts_dict)
                         if toskip:
                             continue
-
                     if my_variant.reftype == ':c.' or my_variant.reftype == ':n.':
                         try:
                             toskip = mappers.transcripts_to_gene(my_variant, self, select_transcripts_dict_plus_version)
@@ -466,7 +476,6 @@ class Mixin(vvMixinConverters.Mixin):
                             continue
                         if toskip:
                             continue
-
                     # Set the data
                     my_variant.output_type_flag = 'gene'
                     my_variant.primary_assembly = primary_assembly
@@ -925,8 +934,12 @@ class Mixin(vvMixinConverters.Mixin):
                 ref_records = self.db.get_urls(variant.output_dict())
                 if ref_records != {}:
                     variant.reference_sequence_records = ref_records
+                if (variant.output_type_flag == 'intergenic') or ('grch37' not in variant.primary_assembly_loci.keys())\
+                        or ('grch38' not in variant.primary_assembly_loci.keys()):
 
-                if variant.output_type_flag == 'intergenic':
+                    # Simple cache
+                    lo_cache = {}
+
                     # Attempt to liftover between genome builds
                     # Note: pyliftover uses the UCSC liftOver tool.
                     # https://pypi.org/project/pyliftover/
@@ -935,7 +948,7 @@ class Mixin(vvMixinConverters.Mixin):
                         build_to = ''
                         build_from = ''
 
-                        # Identify the current build and hgvs_genomic descripsion
+                        # Identify the current build and hgvs_genomic description
                         if 'hg' in g_p_key:
                             # incoming_vcf = genomic_position_info[g_p_key]['vcf']
                             # set builds
@@ -955,15 +968,25 @@ class Mixin(vvMixinConverters.Mixin):
                                 build_to = 'GRCh38'
                                 build_from = 'GRCh37'
 
+                        # Genome to Genome liftover if tx not annotated to the build
+                        g_to_g = False
+                        if variant.output_type_flag != 'intergenic':
+                            g_to_g = True
                         # Liftover
-                        lifted_response = liftover(genomic_position_info[g_p_key]['hgvs_genomic_description'],
-                                                   build_from,
-                                                   build_to, variant.hn, variant.reverse_normalizer,
-                                                   variant.evm, self)
+                        if genomic_position_info[g_p_key]['hgvs_genomic_description'] not in lo_cache.keys():
+                            lifted_response = liftover(genomic_position_info[g_p_key]['hgvs_genomic_description'],
+                                                       build_from,
+                                                       build_to, variant.hn, variant.reverse_normalizer,
+                                                       variant.evm, self, specify_tx=False, liftover_level=False,
+                                                       g_to_g=g_to_g)
+                            lo_cache[genomic_position_info[g_p_key]['hgvs_genomic_description']] = lifted_response
+                        else:
+                            lifted_response = lo_cache[genomic_position_info[g_p_key]['hgvs_genomic_description']]
 
                         # Sort the respomse into primary assembly and ALT
                         primary_assembly_loci = {}
                         alt_genomic_loci = []
+
                         for build_key, accession_dict in list(lifted_response.items()):
                             try:
                                 accession_key = list(accession_dict.keys())[0]
@@ -1101,7 +1124,6 @@ class Mixin(vvMixinConverters.Mixin):
                 tx = line[3]
 
                 # Protein id
-                prot_id = None
                 prot_id = self.hdp.get_pro_ac_for_tx_ac(tx)
 
                 # Get additional tx_ information
@@ -1111,7 +1133,6 @@ class Mixin(vvMixinConverters.Mixin):
                 # Fetch the sequence to get the length
                 tx_seq = self.sf.fetch_seq(tx)
                 tx_len = len(tx_seq)
-
 
                 # Collect genomic span for the transcript against known genomic/gene reference sequences
                 gen_start_pos = None

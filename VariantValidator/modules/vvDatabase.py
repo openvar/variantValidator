@@ -161,6 +161,27 @@ class Database(vvDBInsert.Mixin):
 
         genbank_symbol = str(record.features[1].qualifiers['gene'][0])
 
+
+        try:
+            # Genbank can be out-of-date so check this is not a historic record
+            # First perform a search against the input gene symbol or the symbol inferred from UTA
+            initial = utils.hgnc_rest(path="/fetch/symbol/" + genbank_symbol)
+            # Check for a record
+            if str(initial['record']['response']['numFound']) != '0':
+                genbank_symbol = genbank_symbol
+            # No record found, is it a previous symbol?
+            else:
+                # Look up current name
+                current = utils.hgnc_rest(path="/search/prev_symbol/" + genbank_symbol)
+                # Look for historic names
+                # If historic names = 0
+                if str(current['record']['response']['numFound']) == '0':
+                    genbank_symbol = genbank_symbol
+                else:
+                    genbank_symbol = current['record']['response']['docs'][0]['symbol']
+        except Exception:
+            pass
+
         # Although it is obsolete, might still be in UTA database so would work in our case
         # if 'comment' in record.annotations:
         #     comment = record.annotations['comment']
