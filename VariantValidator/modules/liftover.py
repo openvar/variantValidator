@@ -26,7 +26,7 @@ def mystr(hgvs_nucleotide):
 
 
 def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, validator,
-             specify_tx=False, liftover_level=False):
+             specify_tx=False, liftover_level=False, g_to_g=False):
     """
     Step 1, attempt to liftover using a common RefSeq transcript
     Step 2, attempt to liftover using PyLiftover.
@@ -48,7 +48,6 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
 
     # Create return dictionary
     lifted_response = {}
-
     # Check genome build type
     if 'GRC' in build_from:
         from_set = 'grc_chr'
@@ -135,16 +134,19 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                                                hgvs_genomic.posedit.pos.end.base) #- 1)
     rts_dict = {}
     tx_list = False
-    for tx_dat in rts_list:
-        rts_dict[tx_dat[0]] = True
-    if evm is not None:
-        rts_list_2 = evm.relevant_transcripts(hgvs_genomic)
+    if g_to_g is True:
+        pass
     else:
-        rts_list_2 = []
-    for tx_dat_2 in rts_list_2:
-        rts_dict[tx_dat_2] = True
-    if rts_dict != {}:
-        tx_list = list(rts_dict.keys())
+        for tx_dat in rts_list:
+            rts_dict[tx_dat[0]] = True
+        if evm is not None:
+            rts_list_2 = evm.relevant_transcripts(hgvs_genomic)
+        else:
+            rts_list_2 = []
+        for tx_dat_2 in rts_list_2:
+            rts_dict[tx_dat_2] = True
+        if rts_dict != {}:
+            tx_list = list(rts_dict.keys())
 
     # Try to liftover
     if tx_list is not False:
@@ -228,7 +230,6 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
     # Note: pyliftover uses the UCSC liftOver tool.
     # https://pypi.org/project/pyliftover/
     # Once validated, download the UCSC liftover files from http://hgdownload.cse.ucsc.edu/goldenPath/hg38/liftOver/
-
     # The structure of the following code comes from VV pymod, so need to create a list
     genome_builds = [build_to]
 
@@ -266,7 +267,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
             continue
         else:
             not_delins = accession + ':g.' + str(pos) + '_' + str(
-                (pos - 1) + len(lifted_ref_bases)) + 'del' + lifted_ref_bases + 'ins' + lifted_alt_bases
+                (pos - 1) + len(lifted_ref_bases)) + 'delins' + lifted_alt_bases
             not_delins = str(not_delins)
             hgvs_not_delins = validator.hp.parse_hgvs_variant(not_delins)
 
