@@ -629,8 +629,11 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         variant.warnings.append(str(e))
 
     # Replace p.= with p.(=)
-    if protein_dict['hgvs_protein'].posedit is '=':
-        protein_dict['hgvs_protein'].posedit = '(=)'
+    try:
+        if protein_dict['hgvs_protein'].posedit is '=':
+            protein_dict['hgvs_protein'].posedit = '(=)'
+    except AttributeError:
+        pass
 
     if protein_dict['error'] == '':
         hgvs_protein = protein_dict['hgvs_protein']
@@ -669,7 +672,6 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             logger.debug("Except passed, %s", e)
 
     # Ensure intronic is always p.?
-    print('\n\nAwooga')
     c_for_p = hgvs_coding
     try:
         # Predicted effect on protein
