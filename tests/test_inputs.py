@@ -18810,7 +18810,11 @@ class TestVariantsAuto(TestCase):
         print(results)
         assert 'NM_000088.3:c.590del' in results
 
-
+    def test_variant_193(self):
+        variant = 'NC_000009.11(NM_020469.2):c.261del'
+        results = self.vv.validate(variant, 'hg19', 'all').format_as_dict(test=True)
+        print(results)
+        assert 'NM_020469.2:c.261del' in results
 
 
 # <LICENSE>

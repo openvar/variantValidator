@@ -215,9 +215,12 @@ class Mixin(vvMixinConverters.Mixin):
                                 logger.warning(str(e))
                                 continue
 
-                        my_variant.warnings = [str(e)]
-                        logger.warning(str(e))
-                        continue
+                        if 'base start position must be <= end position' in str(e):
+                            toskip = None
+                        else:
+                            my_variant.warnings = [str(e)]
+                            logger.warning(str(e))
+                            continue
 
                     if toskip:
                         continue
