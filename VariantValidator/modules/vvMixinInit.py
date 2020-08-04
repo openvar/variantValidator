@@ -316,11 +316,11 @@ class Mixin:
                             threed_residue_one = utils.one_to_three(residue_one)
                             r_one_report = '(%s1?)' % threed_residue_one  # was (MET1?)
                             hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
-                                                                                type='p', posedit=r_one_report)
+                                                                                  type='p', posedit=r_one_report)
                         else:
                             # Make the variant
                             hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
-                                                                                type='p', posedit='?')
+                                                                                  type='p', posedit='?')
                         hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
                         return hgvs_transcript_to_hgvs_protein
                     else:
@@ -349,7 +349,7 @@ class Mixin:
                             hgvs_transcript_to_hgvs_protein['error'] = \
                                 'Cannot identify an in-frame Termination codon in the variant mRNA sequence'
                             hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
-                                                                                type='p', posedit='?')
+                                                                                  type='p', posedit='?')
                             hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
                             return hgvs_transcript_to_hgvs_protein
 
@@ -368,7 +368,7 @@ class Mixin:
                                 threed_residue_one = utils.one_to_three(residue_one)
                                 r_one_report = '(%s1?)' % threed_residue_one  # was (MET1?)
                                 hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
-                                                                                    type='p', posedit=r_one_report)
+                                                                                      type='p', posedit=r_one_report)
 
                                 hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
                                 return hgvs_transcript_to_hgvs_protein
@@ -393,7 +393,7 @@ class Mixin:
                             elif pro_inv_info['variant'] != 'true':
                                 # Make the variant
                                 hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
-                                                                                    type='p', posedit='=')
+                                                                                      type='p', posedit='=')
                                 hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
                                 return hgvs_transcript_to_hgvs_protein
 
