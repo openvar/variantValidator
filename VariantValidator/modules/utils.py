@@ -368,7 +368,9 @@ def translate(ed_seq, cds_start):
     ed_seq = ed_seq.strip()
     # Ensure the starting codon is in the correct position
     met = ed_seq[cds_start:cds_start + 3]
-    if (met == 'ATG') or (met == 'atg'):
+
+    # Extended translation table see http://biopython.org/DIST/docs/tutorial/Tutorial.html#sec27
+    if (met == 'ATG') or (met == 'atg') or (met == 'TTG') or (met == 'ttg') or (met == 'CTG') or (met == 'ctg'):
         # Remove the 5 prime UTR
         sequence = ed_seq[cds_start:]
         coding_dna = Seq(str(sequence), IUPAC.unambiguous_dna)
