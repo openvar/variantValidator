@@ -167,23 +167,6 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
 
         data, nw_rel_var = gap_mapper.gapped_g_to_c(rel_var, select_transcripts_dict)
 
-        # # Warn the user that the g. description is not valid
-        # if data['gapped_alignment_warning'] != '':
-        #     if data['disparity_deletion_in'][0] == 'transcript':
-        #         corrective_action_taken = 'Automap has deleted  ' + str(
-        #             data['disparity_deletion_in'][1]) + ' bp from chromosomal reference sequence ' + str(
-        #             variant.hgvs_genomic.ac) + ' to ensure perfect alignment with transcript reference sequence(s)'\
-        #                                   + data['gapped_transcripts']
-        #     if data['disparity_deletion_in'][0] == 'chromosome':
-        #         corrective_action_taken = 'Automap has added  ' + str(
-        #             data['disparity_deletion_in'][1]) + ' bp to chromosomal reference sequence ' + str(
-        #             variant.hgvs_genomic.ac) + ' to ensure perfect alignment with transcript reference sequence(s) '\
-        #                                   + data['gapped_transcripts']
-        #
-        # # Add additional data to the front of automap
-        # if data['auto_info'] != '':
-        #     automap = data['auto_info'] + '\n' + 'false'
-
         rel_var = nw_rel_var
 
         # Set the values and append to batch_list
@@ -330,7 +313,6 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         try:
             h_variant = variant.hn.normalize(obj)
         except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
-            error = str(e)
             if 'Unsupported normalization of variants spanning the exon-intron boundary' in error:
                 formatted_variant = formatted_variant
                 caution = 'This coding sequence variant description spans at least one intron'
@@ -341,6 +323,8 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
 
         error = validator.validateHGVS(formatted_variant)
         if error == 'false':
+            valid = True
+        elif 'datums is ill-defined' in str(error):
             valid = True
         else:
             variant.warnings.append(str(error))
@@ -419,65 +403,6 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                           'selected transcript'
                 variant.warnings.extend([caution])
                 raise MappersError(caution)
-
-    # # If cck not true
-    # elif ':r.' in variant.pre_RNA_conversion:
-    #     # set input hgvs object
-    #     # Traps the hgvs variant of r. for further use
-    #     hgvs_rna_input = validator.hp.parse_hgvs_variant(variant.pre_RNA_conversion)
-    #     inp = str(validator.hgvs_r_to_c(hgvs_rna_input))
-    #     # Regex
-    #     if plus.search(quibble_input) or minus.search(quibble_input):
-    #         to_g = validator.genomic(inp, variant.no_norm_evm, variant.primary_assembly, variant.hn)
-    #         if 'error' in str(to_g):
-    #             error = "If the following error message does not address the issue and the problem persists " \
-    #                     "please contact admin: " + to_g
-    #             variant.warnings.append(error)
-    #             logger.warning(error)
-    #             return True
-    #
-    #         else:
-    #             # Set variants pre and post genomic norm
-    #             hgvs_inp = validator.myevm_g_to_t(variant.evm, to_g, tx_ac=obj.ac)
-    #             to_g = variant.hn.normalize(to_g)
-    #             hgvs_otp = validator.myevm_g_to_t(variant.evm, to_g, tx_ac=obj.ac)
-    #     else:
-    #         # Set variants pre and post RNA norm
-    #         hgvs_inp = validator.hp.parse_hgvs_variant(inp)
-    #         try:
-    #             hgvs_otp = variant.hn.normalize(hgvs_inp)
-    #         except vvhgvs.exceptions.HGVSError:
-    #             hgvs_otp = hgvs_inp
-    #
-    #     # Set remaining variables
-    #     hgvs_otp.posedit.edit = str(hgvs_otp.posedit.edit).lower()
-    #     otp = str(hgvs_otp)
-    #     query = str(hgvs_otp.posedit.pos)
-    #     test = str(hgvs_inp.posedit.pos)
-    #     query = query.replace('T', 'U')
-    #     query = query.replace('ENSU', 'ENST')
-    #     test = test.replace('T', 'U')
-    #     test = test.replace('ENSU', 'ENST')
-    #     output = otp.replace(':c.', ':r.')
-    #     # Apply coordinates test
-    #     if query != test:
-    #         caution = 'The variant description ' + quibble_input + ' requires alteration to comply with HGVS variant ' \
-    #                                                        'nomenclature:'
-    #         # automapping of variant completed
-    #         automap = variant.pre_RNA_conversion + ' automapped to ' + output
-    #         variant.warnings.extend([caution, automap])
-    #
-    #         # Kill current line and append for re-submission
-    #         # Tag the line so that it is not written out
-    #         variant.write = False
-    #         # Set the values and append to batch_list
-    #         hgvs_vt = validator.hp.parse_hgvs_variant(str(query))
-    #         assert str(hgvs_vt) == str(query)
-    #         query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=[automap],
-    #                         primary_assembly=variant.primary_assembly, order=variant.order,
-    #                         selected_assembly=variant.selected_assembly)
-    #         validator.batch_list.append(query)
-    #         logger.info("Submitting new variant with format %s", fn.valstr(hgvs_vt))
 
     elif ':g.' not in quibble_input:
         query = validator.hp.parse_hgvs_variant(formatted_variant)

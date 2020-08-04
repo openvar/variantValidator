@@ -451,6 +451,7 @@ class Mixin(vvMixinConverters.Mixin):
                     toskip = format_converters.mitochondrial(my_variant, self)
                     if toskip:
                         continue
+
                     # Protein variants
                     toskip = format_converters.proteins(my_variant, self)
                     if toskip:
@@ -460,17 +461,20 @@ class Mixin(vvMixinConverters.Mixin):
                     toskip = format_converters.rna(my_variant, self)
                     if toskip:
                         continue
+
                     # COLLECT gene symbol, name and ACCESSION INFORMATION
                     # Gene symbol
                     if my_variant.reftype != ':g.':
                         toskip = self._get_transcript_info(my_variant)
                         if toskip:
                             continue
+
                     # Now start mapping from genome to transcripts
                     if my_variant.reftype == ':g.':
                         toskip = mappers.gene_to_transcripts(my_variant, self, select_transcripts_dict)
                         if toskip:
                             continue
+
                     if my_variant.reftype == ':c.' or my_variant.reftype == ':n.':
                         try:
                             toskip = mappers.transcripts_to_gene(my_variant, self, select_transcripts_dict_plus_version)
@@ -479,10 +483,12 @@ class Mixin(vvMixinConverters.Mixin):
                             continue
                         if toskip:
                             continue
+
                     # Set the data
                     my_variant.output_type_flag = 'gene'
                     my_variant.primary_assembly = primary_assembly
                     logger.info("Completed initial validation for %s", my_variant.quibble)
+
                 # Report errors to User and VV admin
                 except KeyboardInterrupt:
                     raise
