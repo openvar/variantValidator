@@ -30736,6 +30736,34 @@ class TestVariantsAuto(TestCase):
         assert 'NP_597681.4:p.(A394_A395=)' in \
                results['NM_133437.4:c.1182_1185inv']['hgvs_predicted_protein_consequence']['slr']
 
+    def test_issue_214a(self):
+        variant = 'NC_000016.9:g.3900957delinsCAGCTCATGATGA'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert 'NP_001073315.1:p.(Asn47delinsSerSerTer)' in \
+               results['NM_001079846.1:c.139delinsTCATCATGAGCTG']['hgvs_predicted_protein_consequence']['tlr']
+        assert 'NP_001073315.1:p.(N47delinsSS*)' in \
+               results['NM_001079846.1:c.139delinsTCATCATGAGCTG']['hgvs_predicted_protein_consequence']['slr']
+
+    def test_issue_214b(self):
+        variant = 'NC_000001.10:g.39549918_39549919insAGTGAGCGGTCATGTCGG'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert 'NP_036222.3:p.(Ser10delinsLysTer)' in \
+            results['NM_012090.5:c.28_29insAGTGAGCGGTCATGTCGG']['hgvs_predicted_protein_consequence']['tlr']
+        assert 'NP_036222.3:p.(S10delinsK*)' in \
+               results['NM_012090.5:c.28_29insAGTGAGCGGTCATGTCGG']['hgvs_predicted_protein_consequence']['slr']
+
+    def test_issue_214c(self):
+        variant = 'NC_000012.11:g.110765502_110765503insCAGCTT' \
+                  ''
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert 'NP_733765.1:p.(Gln259delinsProAlaTer)' in \
+               results['NM_170665.3:c.775_776insCAGCTT']['hgvs_predicted_protein_consequence']['tlr']
+        assert 'NP_733765.1:p.(Q259delinsPA*)' in \
+               results['NM_170665.3:c.775_776insCAGCTT']['hgvs_predicted_protein_consequence']['slr']
+
 # <LICENSE>
 # Copyright (C) 2019 VariantValidator Contributors
 #

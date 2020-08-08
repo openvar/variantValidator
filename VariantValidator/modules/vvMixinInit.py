@@ -420,9 +420,18 @@ class Mixin:
 
                             else:
                                 # Early termination i.e. stop gained
-                                # if pro_inv_info['terminate'] == 'true':
-                                #     end = 'Ter' + str(pro_inv_info['ter_pos'])
-                                #     pro_inv_info['prot_ins_seq'].replace('*', end)
+                                if pro_inv_info['terminate'] == 'true' and \
+                                        hgvs_transcript.posedit.edit.type == 'delins':
+
+                                    # This deals with early terminating delins in-frame prventing the format
+                                    # NP_733765.1:p.(Gln259_Ser1042delinsProAla) in issue #214
+                                    if len(pro_inv_info['prot_del_seq']) + int(pro_inv_info['edit_start']
+                                                                                ) == int(pro_inv_info['ter_pos']):
+                                         end = 'Ter' + str(pro_inv_info['ter_pos'])
+                                         pro_inv_info['prot_ins_seq'].replace('*', end)
+                                         pro_inv_info['prot_ins_seq'] = pro_inv_info['prot_ins_seq'] + '*'
+                                         pro_inv_info['prot_del_seq'] = pro_inv_info['prot_del_seq'][0]
+                                         pro_inv_info['edit_end'] = pro_inv_info['edit_start']
 
                                 # Complete variant description
                                 # Recode the single letter del and ins sequences into three letter amino acid codes

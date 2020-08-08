@@ -856,18 +856,58 @@ class Mixin(vvMixinConverters.Mixin):
                 if predicted_protein_variant != '':
                     if 'Non-coding :n.' not in predicted_protein_variant:
                         try:
+                            # Note this code is needed if we decide to come in line with Mutalyzer  - see issue #214
+                            # Requires commenting out of issue #214 code in MixinInit
+
+                            # # remove trailing aas after ter in insertions and delins
+                            # if 'fs' not in predicted_protein_variant \
+                            #         and 'delins' in predicted_protein_variant\
+                            #         and 'ext' not in predicted_protein_variant:
+                            #     predicted_protein_variant = re.sub(r'Ter\w+', 'Ter', predicted_protein_variant)
+                            #     predicted_protein_variant_dict["tlr"] = predicted_protein_variant
+                            #
+                            #     # Remove Training Ter from delins except for ext proteins
+                            #     if re.search(r'delins\w+Ter', predicted_protein_variant):
+                            #         format_p = predicted_protein_variant.replace('Ter', '')
+                            #         format_p = re.sub(r'\(LRG_.+?\)', '', format_p)
+                            #         re_parse_protein = self.hp.parse_hgvs_variant(format_p)
+                            #         p_seq = self.sf.fetch_seq(format_p.split(':')[0])
+                            #
+                            #         end_aa = fn.one_to_three((p_seq[-1]))
+                            #         p_len = len(p_seq)
+                            #         prot_st, posedit = format_p.split('delins')
+                            #         prot_sta, prot_aa_st = prot_st.split(':p.')
+                            #         prot_st = prot_sta + ':p.'
+                            #         prot_aa_st = prot_aa_st.split('_')[0]
+                            #         prot_st = prot_st + prot_aa_st
+                            #
+                            #         # Create edit
+                            #         if re_parse_protein.posedit.pos.start.base != p_len:
+                            #             pre_posedit = '_%s%sdelins' % (end_aa, str(p_len))
+                            #         else:
+                            #             pre_posedit = 'delins'
+                            #         posedit = pre_posedit + posedit
+                            #
+                            #         # Assemble protein variants
+                            #         predicted_protein_variant_dict["tlr"] = '%s%s%s%s' % (
+                            #             predicted_protein_variant.split(':p.')[0],
+                            #             ":p.",
+                            #             prot_st.split(':p.')[1],
+                            #             posedit)
+                            #
+                            #         predicted_protein_variant = prot_st + posedit
+                            # Remove LRG
                             format_p = predicted_protein_variant
                             format_p = re.sub(r'\(LRG_.+?\)', '', format_p)
                             re_parse_protein = self.hp.parse_hgvs_variant(format_p)
                             re_parse_protein_single_aa = fn.single_letter_protein(re_parse_protein)
+
                             # Replace p.= with p.(=)
                             if re.search('p\.=', re_parse_protein_single_aa
                                          ) or re.search('p\.?', re_parse_protein_single_aa):
                                 re_parse_protein_single_aa = re_parse_protein_single_aa.replace('p.=',
                                                                                                 'p.(=)')
 
-                                # re_parse_protein_single_aa = re_parse_protein_single_aa.replace('p.?',
-                                #                                                                'p.(?)')
                             predicted_protein_variant_dict["slr"] = str(re_parse_protein_single_aa)
                         except vvhgvs.exceptions.HGVSParseError as e:
                             logger.debug("Except passed, %s", e)
