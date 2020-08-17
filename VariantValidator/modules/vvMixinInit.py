@@ -394,14 +394,44 @@ class Mixin:
                                 # Make the variant
                                 hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
                                                                                       type='p', posedit='=')
+                                # Where possible, identify the exact positions of the amino acids
+                                if isinstance(hgvs_transcript.posedit.pos.start.base, int) and isinstance(
+                                        hgvs_transcript.posedit.pos.end.base, int):
+                                    aa_start_pos = int(hgvs_transcript.posedit.pos.start.base/3)
+                                    aa_end_pos = int(hgvs_transcript.posedit.pos.end.base / 3)
+                                    aa_seq = self.sf.fetch_seq(associated_protein_accession, start_i=aa_start_pos - 1,
+                                                               end_i=aa_end_pos)
+                                    start_aa = utils.one_to_three(aa_seq[0])
+                                    end_aa = utils.one_to_three(aa_seq[-1])
+
+                                    # create edit
+                                    if aa_start_pos != aa_end_pos:
+                                        posedit = '(%s%s_%s%s=)' % (start_aa, str(aa_start_pos), end_aa, str(aa_end_pos))
+
+                                        hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(
+                                            ac=associated_protein_accession, type='p', posedit=posedit)
+                                    else:
+                                        posedit = '(%s%s=)' % (start_aa, str(aa_start_pos))
+                                        hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(
+                                            ac=associated_protein_accession, type='p', posedit=posedit)
+
                                 hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
                                 return hgvs_transcript_to_hgvs_protein
 
                             else:
                                 # Early termination i.e. stop gained
-                                # if pro_inv_info['terminate'] == 'true':
-                                #     end = 'Ter' + str(pro_inv_info['ter_pos'])
-                                #     pro_inv_info['prot_ins_seq'].replace('*', end)
+                                if pro_inv_info['terminate'] == 'true' and \
+                                        hgvs_transcript.posedit.edit.type == 'delins':
+
+                                    # This deals with early terminating delins in-frame prventing the format
+                                    # NP_733765.1:p.(Gln259_Ser1042delinsProAla) in issue #214
+                                    if len(pro_inv_info['prot_del_seq']) + int(pro_inv_info['edit_start']
+                                                                                ) == int(pro_inv_info['ter_pos']):
+                                         end = 'Ter' + str(pro_inv_info['ter_pos'])
+                                         pro_inv_info['prot_ins_seq'].replace('*', end)
+                                         pro_inv_info['prot_ins_seq'] = pro_inv_info['prot_ins_seq'] + '*'
+                                         pro_inv_info['prot_del_seq'] = pro_inv_info['prot_del_seq'][0]
+                                         pro_inv_info['edit_end'] = pro_inv_info['edit_start']
 
                                 # Complete variant description
                                 # Recode the single letter del and ins sequences into three letter amino acid codes
