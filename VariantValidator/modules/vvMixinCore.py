@@ -1092,27 +1092,43 @@ class Mixin(vvMixinConverters.Mixin):
         if query == '':
             return {'error': 'Please enter HGNC gene name or transcript identifier (NM_, NR_, or ENST)'}
 
+        # Search for gene symbol on Transcript inputs
         hgnc = query
         if 'NM_' in hgnc or 'NR_' in hgnc:  # or re.match('ENST', hgnc):
+
+            # Remove version
             if '.' in hgnc:
+                hgnc = hgnc.split('.')[0]
+
+            # Find latest version in UTA
+            found_res = False
+            for version in range(25):
+                refresh_hgnc = hgnc + '.' + str(version)
                 try:
-                    tx_info = self.hdp.get_tx_identity_info(hgnc)
-                    hgnc = tx_info[6]
+                    self.hdp.get_tx_identity_info(refresh_hgnc)
+                    tx_found = refresh_hgnc
+                    found_res = True
+                    break
                 except vvhgvs.exceptions.HGVSError as e:
-                    return {'error': str(e)}
-            else:
-                found_res = False
-                for version in range(25):
-                    refresh_hgnc = hgnc + '.' + str(version)
-                    try:
-                        tx_info = self.hdp.get_tx_identity_info(refresh_hgnc)
-                        hgnc = tx_info[6]
-                        found_res = True
-                        break
-                    except vvhgvs.exceptions.HGVSError as e:
-                        logger.debug("Except passed, %s", e)
-                if not found_res:
-                    return {'error': 'No transcript definition for (tx_ac=' + hgnc + ')'}
+                    logger.debug("Except passed, %s", e)
+            if not found_res:
+                return {'error': 'No transcript definition for (tx_ac=' + hgnc + ')'}
+
+            # update record and correct symbol
+            try:
+                self.db.update_transcript_info_record(tx_found, self)
+            except fn.DatabaseConnectionError as e:
+                error = 'Currently unable to update gene_ids or transcript information records because ' \
+                        'VariantValidator %s' % str(e)
+                # my_variant.warnings.append(error)
+                logger.warning(error)
+
+            try:
+                tx_info = self.hdp.get_tx_identity_info(tx_found)
+            except vvhgvs.exceptions.HGVSError as e:
+                return {'error': str(e)}
+            hgnc = tx_info[6]
+            hgnc = self.db.get_hgnc_symbol(hgnc)
 
         # First perform a search against the input gene symbol or the symbol inferred from UTA
         initial = fn.hgnc_rest(path="/fetch/symbol/" + hgnc)
@@ -1161,6 +1177,11 @@ class Mixin(vvMixinConverters.Mixin):
         tx_for_gene = self.hdp.get_tx_for_gene(current_sym)
         if len(tx_for_gene) == 0:
             tx_for_gene = self.hdp.get_tx_for_gene(previous_sym)
+        if len(tx_for_gene) == 0:
+            for prev in previous['record']['response']['docs'][0]['prev_symbol']:
+                tx_for_gene = self.hdp.get_tx_for_gene(prev)
+                if len(tx_for_gene) != 0:
+                    break
         if len(tx_for_gene) == 0:
             return {'error': 'Unable to retrieve data from the UTA, please contact admin'}
 
