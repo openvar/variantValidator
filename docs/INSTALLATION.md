@@ -46,7 +46,7 @@ $ pip install -r requirements.txt
 
 ## Installing VariantValidator
 
-Hint: your new environment vvenv should still be activated from the previous and you should still be in the /variantValidator directory where setup.py is located.
+Hint: your new environment vvenv should still be activated from the previous steps and you should still be in the /variantValidator directory where setup.py is located.
 
 To install VariantValidator within your virtual environment run:
 ```
@@ -55,8 +55,8 @@ $ python setup.py install
 
 ## Setting up validator database (MySQL)
 
-A MySQL database is required to run VariantValidator. We recommend creating a user and password specific to the
-VariantValidator database, for example:
+A MySQL database called validator is required to run VariantValidator. We recommend creating a user and password specific to the
+validator database, for example:
 
 ```
 $ mysql CREATE USER '<USER>'@'<HOST>' IDENTIFIED BY '<PASSWORD>';
@@ -64,9 +64,9 @@ CREATE DATABASE validator;
 GRANT SELECT,INSERT,UPDATE,DELETE ON validator.* TO '<USER>'@'<HOST>';
 ```
 Where:
-- <USER> should be a user-name e.g. vvadmin
-- <HOST> is the MySQL host ID, usually 127.0.0.1
-- <PASSWORD> is a unique password for your database
+- '<USER>' should be a user-name e.g. vvadmin
+- '<HOST>' is the MySQL host ID, usually 127.0.0.1
+- '<PASSWORD>' is a unique password for your database
 
 *Note: We have had reports that on some systems ALL PRIVILEGES may be required rather than SELECT,INSERT,UPDATE,DELETE*
 
@@ -115,7 +115,7 @@ ALTER ROLE <USER> WITH LOGIN;
 CREATE DATABASE uta WITH OWNER=<USER> TEMPLATE=template0;
 ```
 Where:
-- <USER> should be a user-name e.g. uta_admin
+- '<USER>' should be a user-name e.g. uta_admin
 - password is a unique password for your local version of the database
 
 To fill this database, download the gzipped uta genetics database, and upload it into psql.
@@ -140,6 +140,6 @@ pip install requirements_dev.txt
 pip install -e .
 pytest
 ```
-Note: -e and the full-stop '.' tells pip to install in editable or development mode in the current directory.
+Note: -e and the full-stop '.' tells pip to install in development mode in the current directory.
   
 Please make all Pull Requests to the develop_v3 branch.
