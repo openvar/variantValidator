@@ -64,9 +64,9 @@ CREATE DATABASE validator;
 GRANT SELECT,INSERT,UPDATE,DELETE ON validator.* TO '<USER>'@'<HOST>';
 ```
 Where:
-- '<USER>' should be a user-name e.g. vvadmin
-- '<HOST>' is the MySQL host ID, usually 127.0.0.1
-- '<PASSWORD>' is a unique password for your database
+- \<USER\> should be a user-name e.g. vvadmin
+- \<HOST\> is the MySQL host ID, usually 127.0.0.1
+- \<PASSWORD\> is a unique password for your database
 
 *Note: We have had reports that on some systems ALL PRIVILEGES may be required rather than SELECT,INSERT,UPDATE,DELETE*
 
@@ -115,7 +115,7 @@ ALTER ROLE <USER> WITH LOGIN;
 CREATE DATABASE uta WITH OWNER=<USER> TEMPLATE=template0;
 ```
 Where:
-- '<USER>' should be a user-name e.g. uta_admin
+- \<USER\> should be a user-name e.g. uta_admin
 - password is a unique password for your local version of the database
 
 To fill this database, download the gzipped uta genetics database, and upload it into psql.
