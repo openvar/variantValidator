@@ -228,13 +228,13 @@ class TestGene2Transcripts(unittest.TestCase):
         output = self.vv.gene2transcripts('NM_nonsens.e')
         print(output)
         self.assertEqual(list(output), ['error'])
-        self.assertEqual(output['error'], 'No transcript definition for (tx_ac=NM_NONSENS.E)')
+        self.assertEqual(output['error'], 'No transcript definition for (tx_ac=NM_NONSENS)')
 
     def test_nonsense_NM_dot_orf(self):
         output = self.vv.gene2transcripts('NM_nonsense.1ORF2')
         print(output)
         self.assertEqual(list(output), ['error'])
-        self.assertEqual(output['error'], 'No transcript definition for (tx_ac=NM_NONSENSE.1orf2)')
+        self.assertEqual(output['error'], 'No transcript definition for (tx_ac=NM_NONSENSE)')
 
     def test_nonsense_LRG(self):
         output = self.vv.gene2transcripts('LRG_nonsense')

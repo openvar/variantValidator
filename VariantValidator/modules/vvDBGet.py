@@ -57,6 +57,10 @@ class Mixin(vvDBInit.Mixin):
         query = "SELECT description FROM transcript_info WHERE refSeqID = '%s'" % transcript_id
         return str(self.execute(query)[0])
 
+    def get_transcript_annotation(self, transcript_id):
+        query = "SELECT transcriptVariant FROM transcript_info WHERE refSeqID = '%s'" % transcript_id
+        return str(self.execute(query)[0])
+
     def get_gene_symbol_from_transcript_id(self, transcript_id):
         query = "SELECT hgncSymbol FROM transcript_info WHERE refSeqID = '%s'" % transcript_id
         return str(self.execute(query)[0])

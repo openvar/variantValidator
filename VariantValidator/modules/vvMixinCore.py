@@ -512,6 +512,10 @@ class Mixin(vvMixinConverters.Mixin):
                     continue
 
                 # Genomic sequence variation
+                # Check for gapped delins<No_Alt>
+                if re.search('ins$', variant.genomic_g) and 'del' in variant.genomic_g:
+                    variant.genomic_g = variant.genomic_g.replace('ins', '')
+
                 genomic_variant = variant.genomic_g
                 hgvs_genomic_variant = genomic_variant
 
@@ -843,17 +847,13 @@ class Mixin(vvMixinConverters.Mixin):
                     except Exception as e:
                         logger.debug("Except passed, %s", e)
 
-                # Add single letter AA code to protein descriptions
-                predicted_protein_variant_dict = {"tlr": str(predicted_protein_variant), "slr": ''}
-                if re.search('p\.=', predicted_protein_variant_dict['tlr']) \
-                        or re.search('p\.?', predicted_protein_variant_dict['tlr']):
-                    # Replace p.= with p.(=)
-                    predicted_protein_variant_dict['tlr'] = predicted_protein_variant_dict['tlr'].replace('p.=',
-                                                                                                          'p.(=)')
-                    # predicted_protein_variant_dict['tlr'] = predicted_protein_variant_dict['tlr'].replace('p.?',
-                    #                                                                                      'p.(?)')
-
+                # Add predicted protein variant dictionary
                 if predicted_protein_variant != '':
+                    predicted_protein_variant_dict = {}
+                    predicted_protein_variant_dict["slr"] = ''
+                    predicted_protein_variant_dict["tlr"] = ''
+                    predicted_protein_variant_dict["lrg_tlr"] = ''
+                    predicted_protein_variant_dict["lrg_slr"] = ''
                     if 'Non-coding :n.' not in predicted_protein_variant:
                         try:
                             # Note this code is needed if we decide to come in line with Mutalyzer  - see issue #214
@@ -896,24 +896,59 @@ class Mixin(vvMixinConverters.Mixin):
                             #             posedit)
                             #
                             #         predicted_protein_variant = prot_st + posedit
+
+                            # Add single letter AA code to protein descriptions
+                            predicted_protein_variant_dict = {"tlr": str(predicted_protein_variant), "slr": ''}
+                            if re.search('p.=', predicted_protein_variant_dict['tlr']) \
+                                    or re.search('p.?', predicted_protein_variant_dict['tlr']):
+                                # Replace p.= with p.(=)
+                                predicted_protein_variant_dict['tlr'] = predicted_protein_variant_dict['tlr'].replace(
+                                    'p.=',
+                                    'p.(=)')
+
                             # Remove LRG
-                            format_p = predicted_protein_variant
-                            format_p = re.sub(r'\(LRG_.+?\)', '', format_p)
+                            format_p = predicted_protein_variant_dict['tlr']
+                            if 'LRG' in format_p:
+                                format_lrg = copy.copy(format_p)
+                                format_p = re.sub(r'\(LRG_.+?\)', '', format_p)
+                                format_lrg = format_lrg.split('(')[1]
+                                format_lrg = format_lrg.replace(')', '')
+                            else:
+                                format_lrg = None
+                                pass
+
                             re_parse_protein = self.hp.parse_hgvs_variant(format_p)
+
+                            # Set formatted tlr
+                            predicted_protein_variant_dict['tlr'] = str(copy.copy(re_parse_protein))
                             re_parse_protein_single_aa = fn.single_letter_protein(re_parse_protein)
 
                             # Replace p.= with p.(=)
-                            if re.search('p\.=', re_parse_protein_single_aa
-                                         ) or re.search('p\.?', re_parse_protein_single_aa):
+                            if re.search('p.=', re_parse_protein_single_aa
+                                         ) or re.search('p.?', re_parse_protein_single_aa):
                                 re_parse_protein_single_aa = re_parse_protein_single_aa.replace('p.=',
                                                                                                 'p.(=)')
 
                             predicted_protein_variant_dict["slr"] = str(re_parse_protein_single_aa)
+
+                            # set LRG outputs
+                            if format_lrg is not None:
+                                predicted_protein_variant_dict["lrg_tlr"] = \
+                                    format_lrg.split(':')[0] + ':' + predicted_protein_variant_dict["tlr"].split(':')[1]
+                                predicted_protein_variant_dict["lrg_slr"] = \
+                                    format_lrg.split(':')[0] + ':' + predicted_protein_variant_dict["slr"].split(':')[1]
+                            else:
+                                predicted_protein_variant_dict["lrg_tlr"] = ''
+                                predicted_protein_variant_dict["lrg_slr"] = ''
+
                         except vvhgvs.exceptions.HGVSParseError as e:
                             logger.debug("Except passed, %s", e)
-                    else:
-                        predicted_protein_variant_dict["slr"] = None
-                        predicted_protein_variant_dict["tlr"] = None
+                else:
+                    predicted_protein_variant_dict = {}
+                    predicted_protein_variant_dict["slr"] = ''
+                    predicted_protein_variant_dict["tlr"] = ''
+                    predicted_protein_variant_dict["lrg_tlr"] = ''
+                    predicted_protein_variant_dict["lrg_slr"] = ''
 
                 # Add stable gene_ids
                 stable_gene_ids = {}
@@ -966,7 +1001,28 @@ class Mixin(vvMixinConverters.Mixin):
                     except IndexError as e:
                         logger.debug("Except pass, %s", e)
 
+                # Add Reference sequence annotations
+                reference_annotations = {}
+                if hgvs_tx_variant is not None:
+                    annotation_info = self.db.get_transcript_annotation(hgvs_tx_variant.ac)
+                    # Add or update stable ID and transcript data
+                    try:
+                        annotation_info = json.loads(annotation_info)
+                        annotation_info.keys()
+                    except Exception:
+                        try:
+                            self.db.update_transcript_info_record(hgvs_tx_variant.ac, self)
+                        except fn.DatabaseConnectionError as e:
+                            error = 'Currently unable to update all gene_ids or transcript information records ' \
+                                    'because ' \
+                                    'VariantValidator %s' % str(e)
+                            my_variant.warnings.append(error)
+                            logger.warning(error)
+                    annotation_info = self.db.get_transcript_annotation(hgvs_tx_variant.ac)
+                    reference_annotations = json.loads(annotation_info)
+
                 variant.stable_gene_ids = stable_gene_ids
+                variant.annotations = reference_annotations
                 variant.hgvs_transcript_variant = tx_variant
                 variant.genome_context_intronic_sequence = genome_context_transcript_variant
                 variant.refseqgene_context_intronic_sequence = refseqgene_context_transcript_variant
@@ -1092,27 +1148,43 @@ class Mixin(vvMixinConverters.Mixin):
         if query == '':
             return {'error': 'Please enter HGNC gene name or transcript identifier (NM_, NR_, or ENST)'}
 
+        # Search for gene symbol on Transcript inputs
         hgnc = query
         if 'NM_' in hgnc or 'NR_' in hgnc:  # or re.match('ENST', hgnc):
+
+            # Remove version
             if '.' in hgnc:
+                hgnc = hgnc.split('.')[0]
+
+            # Find latest version in UTA
+            found_res = False
+            for version in range(25):
+                refresh_hgnc = hgnc + '.' + str(version)
                 try:
-                    tx_info = self.hdp.get_tx_identity_info(hgnc)
-                    hgnc = tx_info[6]
+                    self.hdp.get_tx_identity_info(refresh_hgnc)
+                    tx_found = refresh_hgnc
+                    found_res = True
+                    break
                 except vvhgvs.exceptions.HGVSError as e:
-                    return {'error': str(e)}
-            else:
-                found_res = False
-                for version in range(25):
-                    refresh_hgnc = hgnc + '.' + str(version)
-                    try:
-                        tx_info = self.hdp.get_tx_identity_info(refresh_hgnc)
-                        hgnc = tx_info[6]
-                        found_res = True
-                        break
-                    except vvhgvs.exceptions.HGVSError as e:
-                        logger.debug("Except passed, %s", e)
-                if not found_res:
-                    return {'error': 'No transcript definition for (tx_ac=' + hgnc + ')'}
+                    logger.debug("Except passed, %s", e)
+            if not found_res:
+                return {'error': 'No transcript definition for (tx_ac=' + hgnc + ')'}
+
+            # update record and correct symbol
+            try:
+                self.db.update_transcript_info_record(tx_found, self)
+            except fn.DatabaseConnectionError as e:
+                error = 'Currently unable to update gene_ids or transcript information records because ' \
+                        'VariantValidator %s' % str(e)
+                # my_variant.warnings.append(error)
+                logger.warning(error)
+
+            try:
+                tx_info = self.hdp.get_tx_identity_info(tx_found)
+            except vvhgvs.exceptions.HGVSError as e:
+                return {'error': str(e)}
+            hgnc = tx_info[6]
+            hgnc = self.db.get_hgnc_symbol(hgnc)
 
         # First perform a search against the input gene symbol or the symbol inferred from UTA
         initial = fn.hgnc_rest(path="/fetch/symbol/" + hgnc)
@@ -1161,6 +1233,11 @@ class Mixin(vvMixinConverters.Mixin):
         tx_for_gene = self.hdp.get_tx_for_gene(current_sym)
         if len(tx_for_gene) == 0:
             tx_for_gene = self.hdp.get_tx_for_gene(previous_sym)
+        if len(tx_for_gene) == 0:
+            for prev in previous['record']['response']['docs'][0]['prev_symbol']:
+                tx_for_gene = self.hdp.get_tx_for_gene(prev)
+                if len(tx_for_gene) != 0:
+                    break
         if len(tx_for_gene) == 0:
             return {'error': 'Unable to retrieve data from the UTA, please contact admin'}
 
@@ -1476,6 +1553,14 @@ class Mixin(vvMixinConverters.Mixin):
                 logger.warning(error)
                 return True
         return False
+
+    def update_transcript_record(self, tx_id):
+        """
+        Siplle function allowing transcript_table to be updated
+        :param tx_id:
+        :return:
+        """
+        self.db.update_transcript_info_record(tx_id, self)
 
 # <LICENSE>
 # Copyright (C) 2019 VariantValidator Contributors

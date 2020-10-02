@@ -36,9 +36,7 @@ before_install:
   - cp configuration/travis.ini "$HOME"/.variantvalidator
 
   # Get validator database
-  - wget --output-document=validator_2020-02-13.sql https://leicester.figshare.com/ndownloader/files/21717135
-  # - gunzip validator_2020-02-13.sql
-
+  - wget --output-document=validator_2020-10-01.sql https://raw.githubusercontent.com/openvar/VV_databases/master/validator/validator_2020-10-01.sql
 
 install:
 
@@ -47,7 +45,7 @@ install:
   - pip install -e .
 
   # Set up validator database
-  - mysql validator < validator_2020-02-13.sql
+  - mysql validator < validator_2020-10-01.sql
 
   #  - update_vdb.py
   - df -h
