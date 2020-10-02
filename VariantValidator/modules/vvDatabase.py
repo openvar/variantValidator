@@ -197,6 +197,55 @@ class Database(vvDBInsert.Mixin):
         else:
             variant = '0'
 
+        # Add tags
+        # Currently used format transcriptVariant|MANE
+        my_quals = record.features[0].qualifiers
+        my_quals = json.loads(json.dumps(my_quals))
+        my_tags = record.features[1].qualifiers
+        my_tags = json.loads(json.dumps(my_tags))
+        my_tags['variant'] = variant
+
+        for ft in record.features:
+            if 'db_xref' in ft.qualifiers:
+                for ccds_id_is in ft.qualifiers['db_xref']:
+                    if 'CCDS:' in ccds_id_is:
+                        my_tags['db_xref'] = my_tags['db_xref'] + [ccds_id_is]
+
+        for keywd in record.annotations['keywords']:
+            if 'Select' in keywd:
+                my_tags['db_xref'] = my_tags['db_xref'] + ['select:' + keywd.split(' ')[0]]
+            else:
+                my_tags['db_xref'] = my_tags['db_xref'] + ['select:' + 'False']
+
+        # Dict the db_xref
+        db_xrefs_dict = {}
+        db_xrefs = my_tags['db_xref']
+        for xref in db_xrefs:
+            if not 'HGNC' in xref:
+                tag, label = xref.split(':')
+                db_xrefs_dict[tag] = label
+            else:
+                tag_label = xref.split(':')
+                db_xrefs_dict[tag_label[1]] = tag_label[2]
+
+        my_tags['db_xref'] = db_xrefs_dict
+
+        # merge dicts
+        all_tags = {**my_quals, **my_tags}
+        # Format dict
+        all_tags_formatted = {}
+        for key, val in all_tags.items():
+            if key == 'gene' or key == 'mol_type' or key == 'organism':
+                continue
+            if len(val) == 1:
+                val = val[0]
+                if ';' in val:
+                    val = val.replace(' ', '')
+                    val = val.split(';')
+            all_tags_formatted[key] = val
+
+        variant = json.dumps(all_tags_formatted)
+
         # Get information from UTA
         try:
             uta_info = validator.hdp.get_tx_identity_info(version)
