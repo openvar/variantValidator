@@ -101,7 +101,6 @@ def get_external_resource_links(validated_hgvs_variant):
         msg = 'Please enter a valid HGVS Genomic Variant'
         # log message and exit gracefully with error code = 1
         log_exception(msg, err)
-        print(msg)
         raise SystemExit(1)
 
     # set rsid and accession_version to None.
@@ -138,7 +137,6 @@ def get_external_resource_links(validated_hgvs_variant):
 
         # log message and exit gracefully with error code = 1
         log_exception(msg, err)
-        print(msg)
         raise SystemExit(1)
 
     # 2nd call to SPDI apis
@@ -149,7 +147,6 @@ def get_external_resource_links(validated_hgvs_variant):
 
     # 2nd call to get_info_from_variation_services function
     resp_dict2 = get_info_from_variation_services(spdi_id, api_service_type, api_service_name)
-    # print(resp_dict2)
     try:
 
         # NCBI Variation services returns errors in a dictionary
@@ -169,7 +166,6 @@ def get_external_resource_links(validated_hgvs_variant):
         err = str(resp_dict2['error']['code'])
         # log message and exit gracefully with error code = 1
         log_exception(msg, err)
-        print(msg)
         raise SystemExit(1)
 
     # 3rd call to RefSNP api
@@ -180,8 +176,7 @@ def get_external_resource_links(validated_hgvs_variant):
     # only make the call if an rsid was retrieved earlier
     if rsid != None:
         resp_dict3 = get_info_from_variation_services(rsid, api_service_type, None)
-        print(resp_dict3)
-
+        
         try:
 
             # NCBI Variation services returns errors in a dictionary
@@ -201,14 +196,12 @@ def get_external_resource_links(validated_hgvs_variant):
                     # check where there is a clinical entry then retrieve the accession number
                     if d['clinical']:
                         accession_version = d['clinical'][0]['accession_version']
-                        # print(accession_version)
 
         except CustomException:
             msg = "An occurred with error code: " + resp_dict3['error']['message']
             err = str(resp_dict3['error']['code'])
             # log message and exit gracefully with error code = 1
             log_exception(msg, err)
-            print(msg)
             raise SystemExit(1)
 
     # construct the URLs to the external resources and add them to a dictionary
@@ -220,8 +213,6 @@ def get_external_resource_links(validated_hgvs_variant):
         url_dict['dbsnp'] = 'https://www.ncbi.nlm.nih.gov/snp/' + str(rsid)
     if accession_version:
         url_dict['clinvar'] = 'http://www.ncbi.nlm.nih.gov/clinvar/' + accession_version
-
-    print(url_dict)
 
     # return dictionary containing the 2 URLS
     return url_dict
@@ -254,7 +245,6 @@ def get_info_from_variation_services(service_identifier, service_type, service_n
         resp = requests.get(spdi_url)
     except ConnectionError:
         msg = 'https://api.ncbi.nlm.nih.gov/variation/v0/ is currently unavailable'
-        print(msg)
 
         # add to the log and exit gracefully with error code 1
         log.exception(msg, exc_info=True)
