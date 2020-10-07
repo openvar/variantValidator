@@ -63,7 +63,7 @@ class ValOutput(object):
                 else:
                     validation_warning_counter = validation_warning_counter + 1
                     identification_key = 'validation_warning_%s' % validation_warning_counter
-                validation_output[identification_key] = variant.output_dict()
+                validation_output[identification_key] = variant.output_dict(test=test)
             elif variant.output_type_flag == 'mitochondrial':
                 validation_output['flag'] = 'mitochondrial'
                 if variant.warnings == ['Validation error']:
@@ -75,7 +75,7 @@ class ValOutput(object):
                 else:
                     validation_warning_counter = validation_warning_counter + 1
                     identification_key = 'mitochondrial_variant_%s' % validation_warning_counter
-                validation_output[identification_key] = variant.output_dict()
+                validation_output[identification_key] = variant.output_dict(test=test)
 
 
             # Intergenic variants
@@ -85,7 +85,7 @@ class ValOutput(object):
                 identification_key = 'intergenic_variant_%s' % validation_intergenic_counter
 
                 # Finalise the output dictionary
-                validation_output[identification_key] = variant.output_dict()
+                validation_output[identification_key] = variant.output_dict(test=test)
 
         if with_meta:
             validation_output["metadata"] = self.add_meta()

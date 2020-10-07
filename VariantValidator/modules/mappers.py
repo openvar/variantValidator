@@ -660,8 +660,19 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                 match = re.findall(r'\(([GATC]+)\)', error)
                 new_ref = match[1]
                 hgvs_updated.posedit.edit.ref = new_ref
-                validator.vr.validate(hgvs_updated)
+                try:
+                    validator.vr.validate(hgvs_updated)
+                except vvhgvs.exceptions.HGVSInvalidVariantError as e:
+                    error = str(e)
+                    if 'out of the bound' in error:
+                        cds_len = re.findall('\d+', error)
+                        start_out = hgvs_updated.posedit.pos.start.base - int(cds_len[0])
+                        end_out = hgvs_updated.posedit.pos.end.base - int(cds_len[0])
+                        hgvs_updated.posedit.pos.start.base = '*' + str(start_out)
+                        hgvs_updated.posedit.pos.end.base = '*' + str(end_out)
 
+        hgvs_updated = fn.remove_reference(hgvs_updated)
+        hgvs_updated = validator.hp.parse_hgvs_variant(hgvs_updated)
         updated_transcript_variant = hgvs_updated
         variant.warnings.append('A more recent version of the selected reference sequence ' + hgvs_coding.ac +
                                 ' is available (' + updated_transcript_variant.ac + ')' + ': ' +

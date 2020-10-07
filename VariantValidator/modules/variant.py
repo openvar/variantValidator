@@ -30,6 +30,7 @@ class Variant(object):
             else:
                 self.warnings = [warnings]
         self.description = ''  # hgnc_gene_info variable
+        self.annotations = ''
         self.coding = ''
         self.coding_g = ''
         self.genomic_r = ''
@@ -199,11 +200,18 @@ class Variant(object):
                 del self.stable_gene_ids['ccds_ids']
             except KeyError:
                 pass
+            try:
+                del self.hgvs_predicted_protein_consequence['lrg_tlr']
+                del self.hgvs_predicted_protein_consequence['lrg_slr']
+            except KeyError:
+                pass
+
         dict_out = {
             'selected_assembly': self.selected_assembly,
             'submitted_variant': self.original,
             'gene_symbol': self.gene_symbol,
             'gene_ids': self.stable_gene_ids,
+            'annotations': self.annotations,
             'transcript_description': self.description,
             'hgvs_transcript_variant': self.hgvs_transcript_variant,
             'genome_context_intronic_sequence': self.genome_context_intronic_sequence,

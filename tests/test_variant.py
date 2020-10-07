@@ -1,6 +1,7 @@
 from unittest import TestCase
 from VariantValidator.modules.variant import Variant
 from VariantValidator.modules.utils import VariantValidatorError
+TestCase.maxDiff = None
 
 
 class TestCreation(TestCase):
@@ -316,6 +317,7 @@ class TestMethods(TestCase):
             'gene_ids': None,
             'gene_symbol': '',
             'transcript_description': '',
+            'annotations': '',
             'hgvs_transcript_variant': None,
             'genome_context_intronic_sequence': None,
             'refseqgene_context_intronic_sequence': None,
@@ -332,6 +334,7 @@ class TestMethods(TestCase):
 
     def test_output_dict_set(self):
         self.var.gene_symbol = 'Symbol'
+        self.var.annotations = 'annotated'
         self.var.description = 'Desc'
         self.var.stable_gene_ids = 'My_id'
         self.var.hgvs_transcript_variant = 'hgvsvar'
@@ -351,6 +354,7 @@ class TestMethods(TestCase):
         self.assertEqual(output, {
             'submitted_variant': 'NM_015120.4:c.34=',
             'gene_symbol': 'Symbol',
+            'annotations': 'annotated',
             'gene_ids': 'My_id',
             'transcript_description': 'Desc',
             'hgvs_transcript_variant': 'hgvsvar',

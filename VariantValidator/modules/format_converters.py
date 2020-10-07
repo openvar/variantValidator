@@ -412,12 +412,12 @@ def vcf2hgvs_stage4(variant, validator):
     skipvar = False
     not_sub = variant.quibble
     not_sub_find = re.compile(r"([GATCgatc]+)>([GATCgatc]+)")
-    if not_sub_find.search(not_sub):
+    if '>' in not_sub and '(' not in not_sub and ')' not in not_sub:
         try:
             # If the length of either side of the substitution delimer (>) is >1
             matches = not_sub_find.search(not_sub)
-            if len(matches.group(1)) > 1 or len(matches.group(2)) > 1 or re.search(
-                    r"([GATCgatc]+)>([GATCgatc]+),([GATCgatc]+)", variant.quibble):
+            if len(matches.group(1)) > 1 or len(matches.group(2)) > 1 or \
+                    ('>' in variant.quibble and ',' in variant.quibble):
                 # Search for and remove range
                 interval_range = re.compile(r"([0-9]+)_([0-9]+)")
                 if interval_range.search(not_sub):
@@ -478,7 +478,8 @@ def vcf2hgvs_stage4(variant, validator):
                     hgvs_not_delins = validator.hp.parse_hgvs_variant(not_delins)
                 except vvhgvs.exceptions.HGVSError as e:
                     # Sort out multiple ALTS from VCF inputs
-                    if re.search(r"([GATCgatc]+)>([GATCgatc]+),([GATCgatc]+)", not_delins):
+                    if '>' in not_delins and ',' in not_delins:
+                        print('Ah boo boo')
                         header, alts = not_delins.split('>')
                         # Split up the alts into a list
                         alt_list = alts.split(',')
@@ -588,14 +589,14 @@ def intronic_converter(variant, validator, skip_check=False):
         else:
             # Check the specified base is correct
             hgvs_genomic = validator.nr_vm.c_to_g(validator.hp.parse_hgvs_variant(transy), genomic_ref)
-            try:
+        try:
+            validator.vr.validate(hgvs_genomic)
+        except vvhgvs.exceptions.HGVSError as e:
+            if 'Length implied by coordinates must equal sequence deletion length' in str(e) \
+                    and not re.search(r'\d+$', variant.quibble):
+                pass
+            else:
                 validator.vr.validate(hgvs_genomic)
-            except vvhgvs.exceptions.HGVSError as e:
-                if 'Length implied by coordinates must equal sequence deletion length' in str(e) \
-                        and not re.search(r'\d+$', variant.quibble):
-                    pass
-                else:
-                    validator.vr.validate(hgvs_genomic)
 
     logger.debug("HVGS typesetting complete")
 
