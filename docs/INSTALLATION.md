@@ -11,7 +11,7 @@ Required:
 * SQLite version 3.8.0 or above
 
 Optional:
-* PostgreSQL version 9.5 or above.
+* PostgreSQL version 9.5 or above. 
 
 ## Download the source code
 
@@ -36,7 +36,7 @@ The packages required for VariantValidator to function are now set up in the env
 
 #### Via pip
 
-If you already have the right versions of python (>=3.6) and sqlite (>=3.8), then you can use pip to install the remaining packages.
+If you already have the right versions of python (>=3.6) and sqlite (>=3.8), then you can use pip to BT create a new virtual envionment and install the packages required for VariantValidator to function.
 
 ```
 $ python -m venv vvenv
@@ -46,6 +46,8 @@ $ pip install -r requirements.txt
 
 ## Installing VariantValidator
 
+Hint: your new environment vvenv should still be activated from the previous steps and you should still be in the /variantValidator directory where setup.py is located.
+
 To install VariantValidator within your virtual environment run:
 ```
 $ python setup.py install
@@ -53,18 +55,18 @@ $ python setup.py install
 
 ## Setting up validator database (MySQL)
 
-A MySQL database is required to run VariantValidator. We recommend creating a user and password specific to the
-VariantValidator database, for example:
+A MySQL database called validator is required to run VariantValidator. We recommend creating a user and password specific to the
+validator database, for example:
 
-```mysql
-CREATE USER '<USER>'@'<HOST>' IDENTIFIED BY '<PASSWORD>';
+```
+$ mysql CREATE USER '<USER>'@'<HOST>' IDENTIFIED BY '<PASSWORD>';
 CREATE DATABASE validator;
 GRANT SELECT,INSERT,UPDATE,DELETE ON validator.* TO '<USER>'@'<HOST>';
 ```
 Where:
-- <USER> should be a user-name e.g. vvadmin
-- <HOST> is the MySQL host ID, usually 127.0.0.1
-- <PASSWORD> is a unique password for your database
+- \<USER\> should be a user-name e.g. vvadmin
+- \<HOST\> is the MySQL host ID, usually 127.0.0.1
+- \<PASSWORD\> is a unique password for your database
 
 *Note: We have had reports that on some systems ALL PRIVILEGES may be required rather than SELECT,INSERT,UPDATE,DELETE*
 
@@ -102,13 +104,19 @@ where the output should be a list of available seqrepo databases e.g. 2018-08-21
 
 ## Setting up UTA database (Optional, PostGreSQL >=9.5)
 
-It's recommended for performance reasons to use a local version of the UTA database. We again recommend creating a specific user account, for example:
+It's recommended for performance reasons to use a local version of the UTA databases. Alternatively, see below if you wish to use the remote version.
+We again recommend creating a specific user account, for example:
+
 ```
+psql
 CREATE ROLE <USER> WITH CREATEDB;
 ALTER ROLE <USER> WITH LOGIN;
 \password
 CREATE DATABASE uta WITH OWNER=<USER> TEMPLATE=template0;
 ```
+Where:
+- \<USER\> should be a user-name e.g. uta_admin
+- password is a unique password for your local version of the database
 
 To fill this database, download the gzipped uta genetics database, and upload it into psql.
 ```
@@ -132,5 +140,6 @@ pip install requirements_dev.txt
 pip install -e .
 pytest
 ```
-
+Note: -e and the full-stop '.' tells pip to install in development mode in the current directory.
+  
 Please make all Pull Requests to the develop_v3 branch.

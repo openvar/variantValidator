@@ -37,6 +37,23 @@ For sequence variations falling within the open reading frames of genes, Variant
 
 Please see [LICENSE.txt](LICENSE.txt)
 
+> <LICENSE>
+> Copyright (C) 2019 VariantValidator Contributors
+>
+> This program is free software: you can redistribute it and/or modify
+> it under the terms of the GNU Affero General Public License as
+> published by the Free Software Foundation, either version 3 of the
+> License, or (at your option) any later version.
+>
+> This program is distributed in the hope that it will be useful,
+> but WITHOUT ANY WARRANTY; without even the implied warranty of
+> MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> GNU Affero General Public License for more details.
+>
+> You should have received a copy of the GNU Affero General Public License
+> along with this program.  If not, see <https://www.gnu.org/licenses/>.
+> </LICENSE>
+
 ## Terms and conditions of use
 ### By continuing to use VariantValidator, you accept the following terms:
 All contents of VariantValidator are protected by local and international copyright laws. User inputs are submitted for the purpose of interpreting genetic and clinical information (including clinical genomic and genetic data). Outputs returned may or may not have a causal association with disease phenotypes, irrespective of stated classifications or other information presented by VariantValidator. All information returned by VariantValidator, including variant classifications, is subject to change and there is no warranty, express or implied, as to its accuracy, completeness, or fitness for a particular purpose. Use of VariantValidator and information is subject to User responsibility and discretion. Clinical decisions regarding individual patient care should be carried out in conjunction with a healthcare professional with expertise in the relevant genes and diseases. We do not accept any liability for any injury, loss or damage incurred by use of or reliance on the information provided by VariantValidator.
@@ -71,23 +88,6 @@ Hum Mutat. 2017 Oct 1. doi: 10.1002/humu.23348
 VariantValidator: Accurate validation, mapping and formatting of sequence variation descriptions.
 
 Freeman PJ, Hart RK, Gretton LJ, Brookes AJ, Dalgleish R.
-
-> <LICENSE>
-> Copyright (C) 2019 VariantValidator Contributors
->
-> This program is free software: you can redistribute it and/or modify
-> it under the terms of the GNU Affero General Public License as
-> published by the Free Software Foundation, either version 3 of the
-> License, or (at your option) any later version.
->
-> This program is distributed in the hope that it will be useful,
-> but WITHOUT ANY WARRANTY; without even the implied warranty of
-> MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> GNU Affero General Public License for more details.
->
-> You should have received a copy of the GNU Affero General Public License
-> along with this program.  If not, see <https://www.gnu.org/licenses/>.
-> </LICENSE>
 
 ## Pre-requisites for local installation
 
