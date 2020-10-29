@@ -30764,6 +30764,29 @@ class TestVariantsAuto(TestCase):
         assert 'NP_733765.1:p.(Q259delinsPA*)' in \
                results['NM_170665.3:c.775_776insCAGCTT']['hgvs_predicted_protein_consequence']['slr']
 
+    def test_issue_216a(self):
+        variant = 'NM_006941.3:c.850_877dup27'
+        results = self.vv.validate(variant, 'hg19', 'all').format_as_dict(test=True)
+        print(results)
+        assert 'Length implied by coordinates must equal sequence duplication length' in \
+               results['validation_warning_1']['validation_warnings'][0]
+
+    def test_issue_216b(self):
+        variant = 'NM_006941.3:c.850_877dup28'
+        results = self.vv.validate(variant, 'hg19', 'all').format_as_dict(test=True)
+        print(results)
+        assert 'Trailing digits are not permitted in HGVS variant descriptions' in \
+               results['NM_006941.3:c.850_877dup']['validation_warnings'][0]
+
+    def test_issue_239(self):
+        variant = 'NM_006941.3:c.1047dupT'
+        results = self.vv.validate(variant, 'hg19', 'all').format_as_dict(test=True)
+        print(results)
+        assert 'Removing redundant reference bases from variant description' in \
+               results['NM_006941.3:c.1047dup' \
+                       '' \
+                       '']['validation_warnings'][0]
+
 # <LICENSE>
 # Copyright (C) 2019 VariantValidator Contributors
 #
