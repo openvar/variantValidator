@@ -479,7 +479,6 @@ def vcf2hgvs_stage4(variant, validator):
                 except vvhgvs.exceptions.HGVSError as e:
                     # Sort out multiple ALTS from VCF inputs
                     if '>' in not_delins and ',' in not_delins:
-                        print('Ah boo boo')
                         header, alts = not_delins.split('>')
                         # Split up the alts into a list
                         alt_list = alts.split(',')
@@ -527,6 +526,7 @@ def vcf2hgvs_stage4(variant, validator):
 def indel_catching(variant, validator):
     """
     Warns that descriptions such as c.ins12 or g.del69 are not HGVS compliant
+    Note - Updated to include dup28 examples
     Strips the trailing numbers and tries to parse the description into an
     hgvs object.
     If parses, provides a warning including links to the VarNomen web page, but
@@ -537,8 +537,13 @@ def indel_catching(variant, validator):
     edit_fail = re.compile(r'\d+$')
     if edit_fail.search(variant.quibble):
         if not edit_pass.search(variant.quibble) and 'fs' not in variant.quibble:
+            # Log 'dup in variant'
+            dup_in_quibble = False
             error = 'Trailing digits are not permitted in HGVS variant descriptions'
             issue_link = 'http://varnomen.hgvs.org/recommendations/DNA/variant/'
+            if 'dup' in variant.quibble:
+                dup_in_quibble = True
+                variant.quibble = variant.quibble.replace('dup', 'del')
             try:
                 hgvs_quibble = validator.hp.parse_hgvs_variant(variant.quibble)
             except vvhgvs.exceptions.HGVSError:
@@ -548,12 +553,18 @@ def indel_catching(variant, validator):
             try:
                 validator.vr.validate(hgvs_quibble)
             except vvhgvs.exceptions.HGVSError as e:
-                variant.warnings.append(str(e))
+                if 'Length implied by coordinates must equal ' \
+                   'sequence deletion length' in str(e) and dup_in_quibble is True:
+                    variant.warnings.append('Length implied by coordinates must equal sequence duplication length')
+                else:
+                    variant.warnings.append(str(e))
                 variant.warnings.append(error)
                 variant.warnings.append('Refer to ' + issue_link)
                 logger.info(e)
                 return True
             # Remove them so that the string SHOULD parse
+            if dup_in_quibble is True:
+                variant.quibble = str(hgvs_quibble).replace('del', 'dup')
             variant.warnings.append(error)
             variant.warnings.append('Refer to ' + issue_link)
             logger.info(error)

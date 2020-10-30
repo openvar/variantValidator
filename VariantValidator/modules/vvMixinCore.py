@@ -236,7 +236,8 @@ class Mixin(vvMixinConverters.Mixin):
                             warning = "Removing redundant gene symbol %s from variant description" % is_it_a_gene
                             my_variant.warnings.append(warning)
                             logger.warning(warning)
-                    if re.search('del[GATC]+', my_variant.quibble) or re.search('inv[GATC]+', my_variant.quibble):
+                    if re.search('del[GATC]+', my_variant.quibble) or re.search('inv[GATC]+', my_variant.quibble) or\
+                            re.search('dup[GATC]+', my_variant.quibble):
                         warning = "Removing redundant reference bases from variant description"
                         my_variant.warnings.append(warning)
                         logger.warning(warning)
@@ -294,7 +295,6 @@ class Mixin(vvMixinConverters.Mixin):
                     # Current theory, should apply to delins, ins.
                     # We may also need to expand to http://varnomen.hgvs.org/recommendations/DNA/variant/insertion/
                     # complex insertions
-                    
 
                     # Validate syntax of the now HGVS variants
                     try:
@@ -678,6 +678,8 @@ class Mixin(vvMixinConverters.Mixin):
                     try:
                         alt_gen_var = variant.hn.normalize(alt_gen_var)
                     except vvhgvs.exceptions.HGVSInvalidVariantError:
+                        continue
+                    except vvhgvs.exceptions.HGVSDataNotAvailableError:
                         continue
 
                     for build in self.genome_builds:
