@@ -70,7 +70,6 @@ setup(
         "biopython==1.74",
         "requests",
         "mysql-connector-python",
-        "vvhgvs @ git+https://github.com/openvar/vv_hgvs.git@1.2.5.vv1#egg=vvhgvs",
     ],
     setup_requires=[
         "setuptools_scm",
