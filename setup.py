@@ -71,11 +71,7 @@ setup(
         "requests",
         "mysql-connector-python",
         "vvhgvs @ git+https://github.com/openvar/vv_hgvs.git@1.2.5.vv1#egg=vvhgvs",
-        "VariantFormatter @ git+https://github.com/openvar/variantFormatter@master#egg=VariantFormatter",
     ],
-    # dependency_links=[
-    #     "git+https://github.com/openvar/vv_hgvs.git@master#egg=vvhgvs-1.0.0",
-    # ],
     setup_requires=[
         "setuptools_scm",
     ]
