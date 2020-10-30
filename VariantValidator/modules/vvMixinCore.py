@@ -679,6 +679,8 @@ class Mixin(vvMixinConverters.Mixin):
                         alt_gen_var = variant.hn.normalize(alt_gen_var)
                     except vvhgvs.exceptions.HGVSInvalidVariantError:
                         continue
+                    except vvhgvs.exceptions.HGVSDataNotAvailableError:
+                        continue
 
                     for build in self.genome_builds:
                         test = seq_data.supported_for_mapping(alt_gen_var.ac, build)
