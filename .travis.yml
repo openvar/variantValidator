@@ -29,6 +29,9 @@ before_install:
   - mysql -e 'CREATE DATABASE validator;'
   - df -h
 
+  # seqrepo needs bgzip from htslib, in ubuntu this is included in the tabix package
+  - sudo apt-get -y install tabix
+
   ## prep psql, get and load vvta db dump
   - createuser -e --createdb  uta_admin
   ### for local use we probably just need to add -P to createuser and use uta_admin, but that spawns an interactive prompt
