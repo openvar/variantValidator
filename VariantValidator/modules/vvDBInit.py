@@ -1,5 +1,9 @@
 import mysql.connector
 from mysql.connector.pooling import MySQLConnectionPool
+try:
+    import mariadb
+except ModuleNotFoundError:
+    pass
 
 
 class Mixin:
@@ -16,12 +20,18 @@ class Mixin:
             self.pool = None
 
     def init_db(self):
-        self.pool = mysql.connector.pooling.MySQLConnectionPool(pool_size=5, **self.dbConfig)
+        try:
+            self.pool = mysql.connector.pooling.MySQLConnectionPool(pool_size=5, **self.dbConfig)
+        except mysql.connector.errors.NotSupportedError:
+            self.pool = mariadb.ConnectionPool(pool_size=5, **self.dbConfig)
 
     def get_conn(self):
         try:
             conn = self.pool.get_connection()
         except mysql.connector.Error:
+            self.init_db()
+            conn = self.pool.get_connection()
+        except mariadb.Error:
             self.init_db()
             conn = self.pool.get_connection()
         return conn
@@ -30,6 +40,10 @@ class Mixin:
         try:
             cursor = conn.cursor(buffered=True)
         except mysql.connector.Error:
+            self.init_db()
+            self.get_conn()
+            cursor = conn.cursor(buffered=True)
+        except mariadb.Error:
             self.init_db()
             self.get_conn()
             cursor = conn.cursor(buffered=True)
