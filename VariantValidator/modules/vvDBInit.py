@@ -1,9 +1,10 @@
-import mysql.connector
-from mysql.connector.pooling import MySQLConnectionPool
+import random
 try:
     import mariadb
 except ModuleNotFoundError:
-    pass
+    import mysql.connector
+    from mysql.connector.pooling import MySQLConnectionPool
+
 
 
 class Mixin:
@@ -22,16 +23,35 @@ class Mixin:
     def init_db(self):
         try:
             self.pool = mysql.connector.pooling.MySQLConnectionPool(pool_size=5, **self.dbConfig)
-        except mysql.connector.errors.NotSupportedError:
-            self.pool = mariadb.ConnectionPool(pool_size=5, **self.dbConfig)
+        except NameError:
+            ran_num = random.random()
+            name_my_pool = 'pool%s' % str(ran_num)
+            try:
+                self.pool = mariadb.ConnectionPool(pool_size=5,
+                                                   pool_name = name_my_pool, 
+                                                   pool_reset_connection = False,
+                                                   host = self.dbConfig['host'],
+                                                   user = self.dbConfig['user'],
+                                                   password = self.dbConfig['password'],
+                                                   database = self.dbConfig['database']
+                                                   )
+            except mariadb.ProgrammingError:
+                ran_num = random.random()
+                name_my_pool = 'pool%s' % str(ran_num)
+                self.pool = mariadb.ConnectionPool(pool_size=5,
+                                                   pool_name = name_my_pool, 
+                                                   pool_reset_connection = False,
+                                                   host = self.dbConfig['host'],
+                                                   user = self.dbConfig['user'],
+                                                   password = self.dbConfig['password'],
+                                                   database = self.dbConfig['database']
+                                                   )                
+                
 
     def get_conn(self):
         try:
             conn = self.pool.get_connection()
-        except mysql.connector.Error:
-            self.init_db()
-            conn = self.pool.get_connection()
-        except mariadb.Error:
+        except Exception:
             self.init_db()
             conn = self.pool.get_connection()
         return conn
@@ -39,11 +59,7 @@ class Mixin:
     def get_cursor(self, conn):
         try:
             cursor = conn.cursor(buffered=True)
-        except mysql.connector.Error:
-            self.init_db()
-            self.get_conn()
-            cursor = conn.cursor(buffered=True)
-        except mariadb.Error:
+        except Exception:
             self.init_db()
             self.get_conn()
             cursor = conn.cursor(buffered=True)
