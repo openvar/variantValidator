@@ -13,6 +13,7 @@ Required:
 Optional:
 * PostgreSQL version 9.5 or above. 
 
+
 ## Download the source code
 
 To download the VariantValidator source code simply clone the master branch.
@@ -22,7 +23,7 @@ $ git clone https://github.com/openvar/variantValidator.git
 $ cd variantValidator/
 ```
 
-## Python 3.6 environment
+## Python 3.7 environment
 
 When installing VariantValidator we recommend using a virtual environment, as it requires specific versions of several libraries including python and sqlite. This can be done either via conda **or** pip.
 
@@ -44,13 +45,24 @@ $ source activate vvenv
 $ pip install -r requirements.txt
 ```
 
+## Additional steps for running MariaDB
+Install the mariadb python library
+
+***Note: Only do this if you intend to run MariaDB instead of MySQL***
+```bash
+$ pip install mariadb
+```
+***Additional steps may be required***
+Install [MariaDB Connector/C](https://downloads.mariadb.com/Connectors/c/)
+Installation instructions can be found [here](https://mariadb.com/kb/en/about-mariadb-connector-c/) 
+
 ## Installing VariantValidator
 
 Hint: your new environment vvenv should still be activated from the previous steps and you should still be in the /variantValidator directory where setup.py is located.
 
 To install VariantValidator within your virtual environment run:
 ```
-$ python setup.py install
+$ pip install -e .
 ```
 
 ## Setting up validator database (MySQL)
@@ -58,8 +70,8 @@ $ python setup.py install
 A MySQL database called validator is required to run VariantValidator. We recommend creating a user and password specific to the
 validator database, for example:
 
-```
-$ mysql CREATE USER '<USER>'@'<HOST>' IDENTIFIED BY '<PASSWORD>';
+```mysql
+CREATE USER '<USER>'@'<HOST>' IDENTIFIED BY '<PASSWORD>';
 CREATE DATABASE validator;
 GRANT SELECT,INSERT,UPDATE,DELETE ON validator.* TO '<USER>'@'<HOST>';
 ```
@@ -77,9 +89,9 @@ $ mysql validator < VariantValidator/configuration/empty_vv_db.sql
 However, we highly recommend that you download and and upload our pre-populated database to MySQL. The current version can be accessed as follows
 
 ```bash
-$ wget --output-document=validator_2019-09-18.sql.gz https://leicester.figshare.com/ndownloader/files/17714429
-$ gunzip validator_2019-09-18.sql.gz
-$ mysql validator < validator_2019-09-18.sql
+$ wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_2020-10-01.sql.gz
+$ gunzip validator_2020-10-01.sql
+$ mysql validator < validator_2020-10-01.sql
 ```
 
 See the [Manual](MANUAL.md) for instructions on updating this database, which should be done regularly.
@@ -111,17 +123,17 @@ We again recommend creating a specific user account, for example:
 psql
 CREATE ROLE <USER> WITH CREATEDB;
 ALTER ROLE <USER> WITH LOGIN;
-\password
+ALTER ROLE <USER> WITH PASSWORD '<password>'
 CREATE DATABASE uta WITH OWNER=<USER> TEMPLATE=template0;
 ```
 Where:
 - \<USER\> should be a user-name e.g. uta_admin
-- password is a unique password for your local version of the database
+- password is a unique password for user
 
 To fill this database, download the gzipped uta genetics database, and upload it into psql.
 ```
-$ wget https://leicester.figshare.com/ndownloader/files/17797259 -O /docker-entrypoint-initdb.d/uta_20180821.sql.gz
-$ gzip -cdq uta_20180821.pgd.gz | psql -U uta_admin -v ON_ERROR_STOP=0 -d uta -Eae
+$ wget --output-document=uta_20180821.psql.gz https://leicester.figshare.com/ndownloader/files/17797259
+$ gzip -cdq uta_20180821.psql.gz | psql -U uta_admin -v ON_ERROR_STOP=0 -d uta -Eae
 ```
 
 If you wish to use the remote, public UTA database, see the instructions [here](https://github.com/biocommons/uta#accessing-the-public-uta-instance).
@@ -136,10 +148,10 @@ To work on the VariantValidator code, you'll need to install additional dependen
 
 ```bash
 cd variantValidator/
-pip install requirements_dev.txt
+pip install -r requirements.txt
+pip install -r requirements_dev.txt
 pip install -e .
 pytest
 ```
-Note: -e and the full-stop '.' tells pip to install in development mode in the current directory.
   
-Please make all Pull Requests to the develop_v3 branch.
+Please make all Pull Requests to the develop branch. Id you are unsure, contact admin via [issues](https://github.com/openvar/variantValidator/issues)
