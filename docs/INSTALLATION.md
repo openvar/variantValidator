@@ -47,8 +47,10 @@ $ pip install -r requirements.txt
 
 ## Additional steps for running MariaDB
 Install the mariadb python library
+
+***Note: Only do this if you intend to run MariaDB instead of MySQL***
 ```bash
-pip install mariadb
+$ pip install mariadb
 ```
 ***Additional steps may be required***
 Install [MariaDB Connector/C](https://downloads.mariadb.com/Connectors/c/)
