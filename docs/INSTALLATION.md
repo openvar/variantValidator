@@ -13,6 +13,7 @@ Required:
 Optional:
 * PostgreSQL version 9.5 or above. 
 
+
 ## Download the source code
 
 To download the VariantValidator source code simply clone the master branch.
@@ -22,7 +23,7 @@ $ git clone https://github.com/openvar/variantValidator.git
 $ cd variantValidator/
 ```
 
-## Python 3.6 environment
+## Python 3.7 environment
 
 When installing VariantValidator we recommend using a virtual environment, as it requires specific versions of several libraries including python and sqlite. This can be done either via conda **or** pip.
 
@@ -43,6 +44,15 @@ $ python -m venv vvenv
 $ source activate vvenv
 $ pip install -r requirements.txt
 ```
+
+## Additional steps for running MariaDB
+Install the mariadb python library
+```bash
+pip install mariadb
+```
+***Additional steps may be required***
+Install [MariaDB Connector/C](https://downloads.mariadb.com/Connectors/c/)
+Installation instructions can be found [here](https://mariadb.com/kb/en/about-mariadb-connector-c/) 
 
 ## Installing VariantValidator
 
@@ -77,7 +87,7 @@ $ mysql validator < VariantValidator/configuration/empty_vv_db.sql
 However, we highly recommend that you download and and upload our pre-populated database to MySQL. The current version can be accessed as follows
 
 ```bash
-$ wget https://github.com/openvar/VV_databases/raw/master/validator/validator_2020-10-01.sql
+$ wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_2020-10-01.sql.gz
 $ gunzip validator_2020-10-01.sql
 $ mysql validator < validator_2020-10-01.sql
 ```
