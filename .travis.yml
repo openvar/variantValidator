@@ -46,7 +46,7 @@ before_install:
   - cp configuration/travis.ini "$HOME"/.variantvalidator
 
   # Get validator database
-  - wget --output-document=validator_2020-10-01.sql.gz hhttps://www528.lamp.le.ac.uk/vvdata/validator/validator_2020-10-01.sql.gz
+  - wget --output-document=validator_2020-10-01.sql.gz https://www528.lamp.le.ac.uk/vvdata/validator/validator_2020-10-01.sql.gz
   - gunzip validator_2020-10-01.sql.gz
 
 install:
