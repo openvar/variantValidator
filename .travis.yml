@@ -40,6 +40,9 @@ before_install:
   - psql -d vvta -U postgres -c "CREATE USER ta_user WITH PASSWORD 'read_only'"
   - wget --output-document=VVTA_2020_dev_no_seq.psql.gz  https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_2020_dev_no_seq.psql.gz
   - gunzip -k -c VVTA_2020_dev_no_seq.psql.gz | psql --quiet vvta
+  - psql -d vvta -U postgres -c 'GRANT SELECT ON vvta.transcript_lengths_mv TO public;'
+  - psql -d vvta -U postgres -c 'GRANT SELECT ON vvta.full_tx_aln_w_nq_cigar_mv TO public;'
+
   - psql -d vvta -U postgres -c 'GRANT SELECT ON ALL TABLES IN SCHEMA public TO ta_user;'
 
   # Copy configuration file
