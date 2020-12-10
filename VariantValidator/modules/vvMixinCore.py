@@ -442,7 +442,11 @@ class Mixin(vvMixinConverters.Mixin):
                         logger.debug("Passed 'common mistakes' catcher")
 
                     # Primary validation of the input
-                    toskip = use_checking.structure_checks(my_variant, self)
+                    try:
+                        toskip = use_checking.structure_checks(my_variant, self)
+                    except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
+                        my_variant.warnings.append(str(e))
+                        continue
                     if toskip:
                         continue
                     logger.debug("Variant structure and contents searches passed")
