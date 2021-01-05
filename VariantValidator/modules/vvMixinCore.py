@@ -1301,8 +1301,8 @@ class Mixin(vvMixinConverters.Mixin):
                                     "genomic_start": tx_pos['alt_start_i'] + 1,
                                     "genomic_end": tx_pos['alt_end_i'],
                                     "cigar": tx_pos['cigar'],
-                                    "exon_number": current_exon_number,
-                                    "total_exons": total_exons
+                                    "exon_number": current_exon_number
+                                    #"total_exons": total_exons
                                     }
                     exon_set.append(current_exon)
                     start_pos = tx_pos['alt_start_i']
@@ -1382,12 +1382,14 @@ class Mixin(vvMixinConverters.Mixin):
                                 check_tx['genomic_spans'][line[4]] = {'start_position': gen_start_pos + 1,
                                                                       'end_position': gen_end_pos,
                                                                       'orientation': tx_orientation,
-                                                                      'exon_structure': exon_set}
+                                                                      'exon_structure': exon_set,
+                                                                      "total_exons": total_exons}
                             else:
                                 check_tx['genomic_spans'][line[4]] = {'start_position': gen_end_pos + 1,
                                                                       'end_position': gen_start_pos,
                                                                       'orientation': tx_orientation,
-                                                                      'exon_structure': exon_set}
+                                                                      'exon_structure': exon_set,
+                                                                      "total_exons": total_exons}
                         if lrg_transcript != 'none':
                             if check_tx['reference'] == lrg_transcript:
                                 if 'NG_' in line[4]:
@@ -1396,11 +1398,14 @@ class Mixin(vvMixinConverters.Mixin):
                                         check_tx['genomic_spans'][line[4]] = {'start_position': gen_start_pos + 1,
                                                                               'end_position': gen_end_pos,
                                                                               'orientation': 1,
-                                                                              'exon_structure': exon_set}
+                                                                              'exon_structure': exon_set,
+                                                                              "total_exons": total_exons}
+
                                         check_tx['genomic_spans'][lrg_id[0]] = {'start_position': gen_start_pos + 1,
                                                                                 'end_position': gen_end_pos,
                                                                                 'orientation': 1,
-                                                                                'exon_structure': exon_set}
+                                                                                'exon_structure': exon_set,
+                                                                                "total_exons": total_exons}
         # Return data table
         g2d_data = {'current_symbol': current_sym,
                     'previous_symbol': previous_sym,
