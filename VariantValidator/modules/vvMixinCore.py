@@ -1269,7 +1269,42 @@ class Mixin(vvMixinConverters.Mixin):
                 # Collect genomic span for the transcript against known genomic/gene reference sequences
                 gen_start_pos = None
                 gen_end_pos = None
+                exon_set = []
+                # get total exons
+                total_exons = len(tx_exons)
+                # Set exon counter for current exon
+                current_exon_number = 0
                 for tx_pos in tx_exons:
+                    current_exon_number = current_exon_number + 1
+                    # Collect the exon_set information
+                    """
+                    tx_exons have the following attributes::
+                                {
+                                    'tes_exon_set_id' : 98390
+                                    'aes_exon_set_id' : 298679
+                                    'tx_ac'           : 'NM_199425.2'
+                                    'alt_ac'          : 'NC_000020.10'
+                                    'alt_strand'      : -1
+                                    'alt_aln_method'  : 'splign'
+                                    'ord'             : 2
+                                    'tx_exon_id'      : 936834
+                                    'alt_exon_id'     : 2999028
+                                    'tx_start_i'      : 786
+                                    'tx_end_i'        : 1196
+                                    'alt_start_i'     : 25059178
+                                    'alt_end_i'       : 25059588
+                                    'cigar'           : '410='
+                                }                    
+                    """
+                    current_exon = {"transcript_start": tx_pos['tx_start_i'] + 1,
+                                    "transcript_end": tx_pos['tx_end_i'],
+                                    "genomic_start": tx_pos['alt_start_i'] + 1,
+                                    "genomic_end": tx_pos['alt_end_i'],
+                                    "cigar": tx_pos['cigar'],
+                                    "exon_number": current_exon_number
+                                    #"total_exons": total_exons
+                                    }
+                    exon_set.append(current_exon)
                     start_pos = tx_pos['alt_start_i']
                     end_pos = tx_pos['alt_end_i']
                     if gen_start_pos is None:
@@ -1283,7 +1318,11 @@ class Mixin(vvMixinConverters.Mixin):
                         if int(end_pos) > int(gen_end_pos):
                             gen_end_pos = int(end_pos)
 
-                if ('NG_' in line[4] or 'NC_000' in line[4]) and line[3] != 'blat':
+                # reverse the exon_set to maintain gene and not genome orientation if gene is -1 orientated
+                if tx_orientation == -1:
+                    exon_set.reverse()
+
+                if ('NG_' in line[4] or 'NC_000' in line[4]) and line[5] != 'blat':
                     gen_span = True
                 else:
                     gen_span = False
@@ -1309,7 +1348,7 @@ class Mixin(vvMixinConverters.Mixin):
                                              'length': tx_len,
                                              'coding_start': line[1] + 1,
                                              'coding_end': line[2],
-                                             'orientation': tx_orientation,
+                                             # 'orientation': tx_orientation,
                                              'genomic_spans': {}
                                              })
                     else:
@@ -1319,7 +1358,7 @@ class Mixin(vvMixinConverters.Mixin):
                                              'length': tx_len,
                                              'coding_start': None,
                                              'coding_end': None,
-                                             'orientation': tx_orientation,
+                                             # 'orientation': tx_orientation,
                                              'genomic_spans': {}
                                              })
                     # LRG information
@@ -1327,6 +1366,8 @@ class Mixin(vvMixinConverters.Mixin):
                     if lrg_transcript != 'none':
                         genes_and_tx.append({'reference': lrg_transcript,
                                              'description': tx_description,
+                                             'length': tx_len,
+                                             'translation': lrg_transcript.replace('t', 'p'),
                                              'coding_start': line[1] + 1,
                                              'coding_end': line[2],
                                              'genomic_spans': {}
@@ -1339,19 +1380,32 @@ class Mixin(vvMixinConverters.Mixin):
                         if check_tx['reference'] == tx:
                             if gen_start_pos < gen_end_pos:
                                 check_tx['genomic_spans'][line[4]] = {'start_position': gen_start_pos + 1,
-                                                                      'end_position': gen_end_pos}
+                                                                      'end_position': gen_end_pos,
+                                                                      'orientation': tx_orientation,
+                                                                      'exon_structure': exon_set,
+                                                                      "total_exons": total_exons}
                             else:
                                 check_tx['genomic_spans'][line[4]] = {'start_position': gen_end_pos + 1,
-                                                                      'end_position': gen_start_pos}
+                                                                      'end_position': gen_start_pos,
+                                                                      'orientation': tx_orientation,
+                                                                      'exon_structure': exon_set,
+                                                                      "total_exons": total_exons}
                         if lrg_transcript != 'none':
                             if check_tx['reference'] == lrg_transcript:
                                 if 'NG_' in line[4]:
                                     lrg_id = self.db.get_lrg_id_from_refseq_gene_id(line[4])
                                     if lrg_id[0] in lrg_transcript:
                                         check_tx['genomic_spans'][line[4]] = {'start_position': gen_start_pos + 1,
-                                                                              'end_position': gen_end_pos}
+                                                                              'end_position': gen_end_pos,
+                                                                              'orientation': 1,
+                                                                              'exon_structure': exon_set,
+                                                                              "total_exons": total_exons}
+
                                         check_tx['genomic_spans'][lrg_id[0]] = {'start_position': gen_start_pos + 1,
-                                                                                'end_position': gen_end_pos}
+                                                                                'end_position': gen_end_pos,
+                                                                                'orientation': 1,
+                                                                                'exon_structure': exon_set,
+                                                                                "total_exons": total_exons}
         # Return data table
         g2d_data = {'current_symbol': current_sym,
                     'previous_symbol': previous_sym,
