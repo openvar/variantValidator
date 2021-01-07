@@ -99,4 +99,4 @@ Ensemble_reference.add_entry("transcript_amplification", "A feature amplificatio
 
 #couple of test print statements to access all and specific entries.
 print(Ensemble_reference.term_definitions)
-print(Ensemble_reference.term_definitions['stop_gained'][3])
+print(Ensemble_reference.term_definitions['stop_gained'][2])
