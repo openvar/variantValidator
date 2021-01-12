@@ -34,11 +34,52 @@ def hgnc_rest(path):
     r = requests.get(url, headers=headers)
 
     if r.status_code == 200:
-        # assume that content is a json reply
-        # parse content with the json module
         data['record'] = r.json()
     else:
-        data['error'] = "Unable to contact the HGNC database: Please try again later"
+        my_error = "Problem encountered while connecting genenames.org: URL=%s: Status=%s" % (url, str(r.status_code))
+        data['error'] = my_error
+    return data
+
+
+def ensembl_rest(id, endpoint, genome, options=False):
+    """
+    fires requests to the Ensembl APIs
+    :param id: Usually a transcript ID (base accession minus the version)
+    :param endpoint: See https://rest.ensembl.org/
+    :param genome: Genome build, grch37 or grch38
+    :param options: ; deli,ited set of options for additional data, see https://rest.ensembl.org/
+    :return: json of the requested data
+    """
+    data = {
+        'record': '',
+        'error': 'false'
+    }
+
+    id = id.split('.')[0]
+
+    # Set base URL
+    if genome == 'GRCh37':
+        base_url = 'https://grch37.rest.ensembl.org'
+    if genome == 'GRCh38':
+        base_url = 'https://rest.ensembl.org'
+
+    headers = {
+        'Accept': 'application/json',
+    }
+
+    if options is False:
+        url = '%s%s%s?content-type=application/json' % (base_url, endpoint, id)
+    else:
+        url = '%s%s%s?%s;content-type=application/json' % (base_url, endpoint, id, options)
+
+    # Request info
+    r = requests.get(url, headers=headers)
+
+    if r.status_code == 200:
+        data['record'] = r.json()
+    else:
+        my_error = "Problem encountered while connecting Ensembl REST: URL=%s: Status=%s" % (url, str(r.status_code))
+        data['error'] = my_error
     return data
 
 

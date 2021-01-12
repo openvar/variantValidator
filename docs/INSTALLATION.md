@@ -71,22 +71,18 @@ A MySQL database called validator is required to run VariantValidator. We recomm
 validator database, for example:
 
 ```mysql
-CREATE USER '<USER>'@'<HOST>' IDENTIFIED BY '<PASSWORD>';
+CREATE USER 'USER'@'HOST' IDENTIFIED BY 'PASSWORD';
 CREATE DATABASE validator;
-GRANT SELECT,INSERT,UPDATE,DELETE ON validator.* TO '<USER>'@'<HOST>';
+GRANT SELECT,INSERT,UPDATE,DELETE ON validator.* TO 'USER'@'HOST';
 ```
 Where:
-- \<USER\> should be a user-name e.g. vvadmin
-- \<HOST\> is the MySQL host ID, usually 127.0.0.1
-- \<PASSWORD\> is a unique password for your database
+- USER should be a user-name e.g. vvadmin
+- HOST is the MySQL host ID, usually 127.0.0.1
+- PASSWORD is a unique password for your database
 
 *Note: We have had reports that on some systems ALL PRIVILEGES may be required rather than SELECT,INSERT,UPDATE,DELETE*
 
-In the `VariantValidator/configuration` folder is a copy of the empty mysql database needed by VariantValidator to run. You need to upload it to the running MySQL database with:
-```
-$ mysql validator < VariantValidator/configuration/empty_vv_db.sql 
-```
-However, we highly recommend that you download and and upload our pre-populated database to MySQL. The current version can be accessed as follows
+Download and our pre-populated database to MySQL as follows. ***Note: check [here](https://www528.lamp.le.ac.uk/vvdata/validator/) for the most up-to-date version***
 
 ```bash
 $ wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_2020-10-01.sql.gz
