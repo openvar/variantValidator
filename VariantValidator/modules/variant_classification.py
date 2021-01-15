@@ -49,7 +49,7 @@ Ensembl_reference.add_entry("missense_variant", "A sequence variant, that change
 
 #Define data
 #Will want to replace the variant_accession with a VV input in the long term
-variant_accession = "NP_000079.2:p.(Ter97Gly)"
+variant_accession = "NP_000079.2:p.(M1G)"
 #print(variant_accession)
 
 #Split string to get amino acid information
@@ -62,9 +62,9 @@ protein_variant = variant_accession_split[1]
 #print(protein_variant)
 
 #Use re to split the variant into numbers and letters
-number_letter = re.compile("([a-zA-Z]+)([0-9]+)([a-zA-Z]+)")
+number_letter = re.compile("([a-zA-Z]|[*])([0-9]+)([a-zA-Z]|[*])")
 protein_variant_split = number_letter.match(protein_variant).groups()
-#print(protein_variant_split)
+print(protein_variant_split)
 
 #Use logic to determine variant type
 #This currently works for three letter aa codes only, could be expanded to one letter
@@ -72,18 +72,18 @@ protein_variant_split = number_letter.match(protein_variant).groups()
 if protein_variant_split[0] == protein_variant_split [2]:
     #print("Variant is synonymous")
     protein_SO_term = "synonymous_variant"
-elif protein_variant_split[0] != "Ter" and protein_variant_split[2] == "Ter":
+elif (protein_variant_split[0] != "Ter" or protein_variant_split[0] != "*") and (protein_variant_split[2] == "Ter" or protein_variant_split[2] == "*"):
     #print("Variant is stop gain")
     protein_SO_term = "stop_gained"
-elif protein_variant_split[0] == "Ter" and protein_variant_split[2] != "Ter":
+elif (protein_variant_split[0] == "Ter" or protein_variant_split[0] == "*") and (protein_variant_split[2] != "Ter" or protein_variant_split[2] != "*"):
     #print("Variant is stop loss")
     protein_SO_term = "stop_lost"
-elif protein_variant_split[1] == "1" and protein_variant_split[0] == "Met" \
-    and protein_variant_split[2] != "Met":
+elif protein_variant_split[1] == "1" and (protein_variant_split[0] == "Met" or protein_variant_split[0] == "M")\
+    and (protein_variant_split[2] != "Met" or protein_variant_split[2] != "M"):
         #print("Variant is start lost")
         protein_SO_term = "start_lost"
-elif protein_variant_split[0] != "Ter" and protein_variant_split[2] != "Ter" \
-    and protein_variant_split[1] != "1" and protein_variant_split[0] != "Met" \
+elif (protein_variant_split[0] != "Ter" or protein_variant_split[0] != "*") and (protein_variant_split[2] != "Ter" or protein_variant_split[2] != "*") \
+    and (protein_variant_split[1] != "1" and (protein_variant_split[0] != "Met" or protein_variant_split[0] != "M"))\
     and protein_variant_split[0] != protein_variant_split[2]:
         #print("Variant is missense")
         protein_SO_term = "missense_variant"
