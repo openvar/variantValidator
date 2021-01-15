@@ -49,7 +49,7 @@ Ensembl_reference.add_entry("missense_variant", "A sequence variant, that change
 
 #Define data
 #Will want to replace the variant_accession with a VV input in the long term
-variant_accession = "NP_000079.2:p.(H25G)"
+variant_accession = "NP_000079.2:p.(M1G)"
 #print(variant_accession)
 
 #Split string to get amino acid information
@@ -83,7 +83,7 @@ elif protein_variant_split[1] == "1" and (protein_variant_split[0] == "Met" or p
         #print("Variant is start lost")
         protein_SO_term = "start_lost"
 elif (protein_variant_split[0] != "Ter" or protein_variant_split[0] != "*") and (protein_variant_split[2] != "Ter" or protein_variant_split[2] != "*") \
-    and protein_variant_split[1] != "1" and (protein_variant_split[0] != "Met" or protein_variant_split[0] != "M")\
+    and (protein_variant_split[1] != "1" and (protein_variant_split[0] != "Met" or protein_variant_split[0] != "M"))\
     and protein_variant_split[0] != protein_variant_split[2]:
         #print("Variant is missense")
         protein_SO_term = "missense_variant"
