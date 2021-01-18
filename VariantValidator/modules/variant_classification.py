@@ -49,8 +49,20 @@ Ensembl_reference.add_entry("missense_variant", "A sequence variant, that change
 
 #Define data
 #Will want to replace the variant_accession with a VV input in the long term
-variant_accession = "NP_000079.2:p.(M1G)"
+#variant_accession = "NP_000079.2:p.(M1G)"
 #print(variant_accession)
+
+#LET'S TRY THIS AGAIN SHALL WE
+#input variant
+variant_accession = input("Please input a RefSeq protein variant: ")
+variant_accession = str(variant_accession)
+
+protein_HVGS = re.compile("[N][P][_][0-9]+[\.][0-9]+[:][p][\.][\(][a-zA-Z][0-9]+[a-zA-Z][\)]")
+HGVS_check = (protein_HVGS.match(variant_accession))
+#print(HGVS_check)
+if str(HGVS_check) == "None":
+    print("Your variant is incorrectly formatted.")
+    raise SystemExit(0)
 
 #Split string to get amino acid information
 #Note this code would also work to get just the nucleotide variant
