@@ -13,20 +13,18 @@ import json #this is needed to format the output data
 import re 
 
 
-# Function 1 
-# Call the VV endpoint of the API for a BRCA1 transcript variant (originated from Clinvar)
+####### Code to request BRCA1 data from the gene2transcripts VariantValidator API #########
+# This code will request info from https://rest.variantvalidator.org/VariantValidator/tools/gene2transcripts/BRCA1 
 
-input = "BRCA1"
-
-# Function to request BRCA1 data from the gene2transcripts VariantValidator API
-# This function will request info from https://rest.variantvalidator.org/VariantValidator/tools/gene2transcripts/BRCA1 
+# Define the URL information as strings
 base_url_VV = "https://rest.variantvalidator.org/"
 server_G2T = "/VariantValidator/tools/gene2transcripts/"
 gene_query = "BRCA1"
 
-
+# Define the parameter for retrieving in a JSON format
 parameters = '?content-type=application/json'
 
+# Create a function that will call the API and retrieve the information
 def request_sequence(base_url, server, gene_name, parameters):
     url = base_url + server + gene_name + parameters
     print(url)
@@ -35,7 +33,7 @@ def request_sequence(base_url, server, gene_name, parameters):
     print("Querying " + url)
     return response
 
-#request the sequence.
+# Request the information (about BRCA1)
 response = request_sequence(base_url_VV, server_G2T, gene_query, parameters) #added transcript_id in place of 'ENST00000297261'
 
 #Convert response (JSON) to python dictionary
@@ -46,3 +44,11 @@ print(rd_type)
 
 #Print the response
 print(json.dumps(response_dictionary, sort_keys=True, indent=4, separators=(',', ': ')))
+
+
+############ Use a variant ID, and call VV API ##############
+
+# Pre-determine the variant
+variant = "NM_007294.4:c.1067A>G"
+
+# Maybe write code to split this up?
