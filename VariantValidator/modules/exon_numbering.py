@@ -1,7 +1,7 @@
 """
-Exon-numbering
+Exon_numbering
 
-Authors: Katie Williams and Katherine Wingfield
+Authors: Katie Williams (@kwi11iams) and Katherine Winfield (@kjwinfield)
 
 This code will ultimately aim to provide exon numbering information for VariantValidator
 
@@ -34,7 +34,7 @@ def request_sequence(base_url, server, gene_name, parameters):
     return response
 
 # Request the information (about BRCA1)
-response = request_sequence(base_url_VV, server_G2T, gene_query, parameters) #added transcript_id in place of 'ENST00000297261'
+response = request_sequence(base_url_VV, server_G2T, gene_query, parameters)
 
 #Convert response (JSON) to python dictionary
 response_dictionary = response.json()
@@ -52,3 +52,19 @@ print(json.dumps(response_dictionary, sort_keys=True, indent=4, separators=(',',
 variant = "NM_007294.4:c.1067A>G"
 
 # Maybe write code to split this up?
+
+
+#create dictionary of all intron exon positions for transcripts
+exon_start_end_positions: {NC_000: {"start_exon": "1", "end_exon": "1i"}}
+for transcript_id in results_of_api_call:
+    exon_start_end_positions[transcript_id] = {"start_exon": start_exon, "end_exon": end_exon}
+
+'''
+define function to parse through exon_start_end_positions and return the intron
+and exon numbering for the start and end of the query variant
+'''
+def finds_variant_in_dict(reference):
+    for transcript_id in exon_start_end_positions:
+        if transcript_id = reference:
+            return print("The exon numbering for " + transcript_id " starts in " 
+                        + start_exon + " ends in " + end_exon)
