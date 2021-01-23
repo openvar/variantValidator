@@ -65,6 +65,6 @@ and exon numbering for the start and end of the query variant
 '''
 def finds_variant_in_dict(reference):
     for transcript_id in exon_start_end_positions:
-        if transcript_id = reference:
+        if transcript_id == reference:
             return print("The exon numbering for " + transcript_id " starts in " 
                         + start_exon + " ends in " + end_exon)
