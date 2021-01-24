@@ -21,6 +21,10 @@ base_url_VV = "https://rest.variantvalidator.org/"
 server_G2T = "/VariantValidator/tools/gene2transcripts/"
 gene_query = "BRCA1"
 
+#use ensembl rest api
+server_variant = 'variant_recoder/human/'
+base_url_ensembl = 'https://rest.ensembl.org/'
+
 # Define the parameter for retrieving in a JSON format
 parameters = '?content-type=application/json'
 
@@ -40,23 +44,52 @@ response = request_sequence(base_url_VV, server_G2T, gene_query, parameters)
 response_dictionary = response.json()
 
 rd_type = type(response_dictionary) #troubleshooting checks - is this outputting a dictionary?
-print(rd_type)
+#print(rd_type)
 
 #Print the response
-print(json.dumps(response_dictionary, sort_keys=True, indent=4, separators=(',', ': ')))
+#print(json.dumps(response_dictionary, sort_keys=True, indent=4, separators=(',', ': ')))
 
 
 ############ Use a variant ID, and call VV API ##############
 
 # Pre-determine the variant
-variant = "NM_007294.4:c.1067A>G"
+variant_id = "NM_007294.4:c.1067A>G"
 
 # Maybe write code to split this up?
+#query the API with the variant
+variant_response = request_sequence(base_url_ensembl, server_variant, variant_id, parameters)
 
+#convert the response (JSON) to a python dictionary
+variant_response_dictionary = variant_response.json()
+
+#print response
+#print(json.dumps(variant_response_dictionary, sort_keys=True, indent=4, separators=(',', ': ')))
+
+#find genome co-ordinates for the variant:
+genomic_coordinates = [variant_response_dictionary[0]['spdi'][0].split(':')[1]]
+print(genomic_coordinates)
+
+#check the genome coordinates are what you expect, genome_coordinates is a list so need to use [0] to get contents of list
+if genomic_coordinates[0] == '43094463':
+    print("yes this works")
+
+print(response_dictionary["genomic_spans"])
+    # print("yes this works (again)")
+
+def lookup(key, dictionary=response_dictionary):
+    if key in dictionary: return dictionary[key]
+    for value in dictionary.values():
+        if isinstance(value, dict):
+            a = lookup(key, value)
+            if a is not None:
+                return a
+    return None
+
+print(lookup('NC_000017.11'))
 
 #create dictionary of all intron exon positions for transcripts
-exon_start_end_positions: {NC_000: {"start_exon": "1", "end_exon": "1i"}}
-for transcript_id in results_of_api_call:
+exon_start_end_positions = {}
+for transcript_id in variant_response_dictionary:
     exon_start_end_positions[transcript_id] = {"start_exon": start_exon, "end_exon": end_exon}
 
 '''
@@ -66,5 +99,4 @@ and exon numbering for the start and end of the query variant
 def finds_variant_in_dict(reference):
     for transcript_id in exon_start_end_positions:
         if transcript_id == reference:
-            return print("The exon numbering for " + transcript_id " starts in " 
-                        + start_exon + " ends in " + end_exon)
+            print("The exon numbering for " + transcript_id + " starts in " + start_exon + " ends in " + end_exon)
