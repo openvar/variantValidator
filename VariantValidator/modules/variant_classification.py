@@ -52,12 +52,12 @@ Ensembl_reference.add_entry("missense_variant", "A sequence variant, that change
 #variant_accession = "NP_000079.2:p.(M1G)"
 #print(variant_accession)
 
-#LET'S TRY THIS AGAIN SHALL WE
 #input variant
 variant_accession = input("Please input a RefSeq protein variant: ")
 variant_accession = str(variant_accession)
 
-protein_HVGS = re.compile("[N][P][_][0-9]+[\.][0-9]+[:][p][\.][\(][a-zA-Z][0-9]+[a-zA-Z][\)]")
+#Check variant is formatted correctly
+protein_HVGS = re.compile("[N][P][_][0-9]+[\.][0-9]+[:][p][\.][\(][a-zA-Z|*][0-9]+[a-zA-Z|*][\)]")
 HGVS_check = (protein_HVGS.match(variant_accession))
 #print(HGVS_check)
 if str(HGVS_check) == "None":
@@ -81,7 +81,7 @@ print(protein_variant_split)
 #Use logic to determine variant type
 #This currently works for three letter aa codes only, could be expanded to one letter
 #Edit: added protein_SO_term variable to loop
-if protein_variant_split[0] == protein_variant_split [2]:
+if protein_variant_split[0] == protein_variant_split[2]:
     #print("Variant is synonymous")
     protein_SO_term = "synonymous_variant"
 elif (protein_variant_split[0] != "Ter" or protein_variant_split[0] != "*") and (protein_variant_split[2] == "Ter" or protein_variant_split[2] == "*"):
