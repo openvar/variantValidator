@@ -76,7 +76,7 @@ for i in range(num_transcripts):
         brca_exon_structure = response_dictionary["transcripts"][i]["genomic_spans"]
         break
 
-print(brca_exon_structure.keys())
+#print(brca_exon_structure.keys())
 #print(brca_exon_structure)
 
 ####### FUNCTION 3 #########################################################
@@ -95,11 +95,13 @@ genomic_coordinates = variant_response_dictionary[variant_id]["primary_assembly_
  #genomic coordinates = 43094464
 
 #function to find exon number for a given variant
-def finds_exon_number(coordinates, exon_structure_dictionary=brca_exon_structure):
+def finds_exon_number(coordinates, exon_structure_dict=brca_exon_structure):
     exon_start_end_positions = {}
-    for transcript in brca_exon_structure.keys():
-        if coordinates >= brca_exon_structure[transcript]['start_position'] and coordinates <= brca_exon_structure[transcript]['end_position']:
-            for exon in brca_exon_structure[transcript]['exon_structure']:
+    for transcript in exon_structure_dict.keys():
+        #check if the variant is in the transcript
+        if coordinates >= exon_structure_dict[transcript]['start_position'] and coordinates <= exon_structure_dict[transcript]['end_position']:
+            #if so, check which exon of that transcript the variant is in
+            for exon in exon_structure_dict[transcript]['exon_structure']:
                 if coordinates >= exon['genomic_start'] and coordinates <= exon['genomic_end']:
                     exon_start_end_positions[transcript] = {"start_exon": exon['exon_number'], "end_exon": exon['exon_number']} 
     return exon_start_end_positions
