@@ -94,20 +94,67 @@ for i in range(num_transcripts):
  
 # Find transcript coordinates (this only works for a SNP, need to adapt for variants that range over more than one nucleotide)
 variant_pos = variant_id.split(":")[1].split(".")[1]
-variant_pos = re.sub('[^0-9]','', variant_pos)
+variant_pos = re.sub('[^0-9, +, -, _]','', variant_pos) #removes A,G,C,T from HGVS nomenclature
 print(variant_pos)
 
-# function to find exon number for a given variant 
+
+#function to find exon number for a given variant 
 def finds_exon_number(coordinates, exon_structure_dict=brca_exon_structure):
+
+    #identify start and end of variant from input coordinates
+    if '_' in coordinates:
+        split = coordinates.split('_')
+        start_position = split[0]
+        end_position = split[1]
+    else:
+        end_position = coordinates
+        start_position = coordinates
+    
     exon_start_end_positions = {}
     for transcript in exon_structure_dict.keys():
         for exon in exon_structure_dict[transcript]['exon_structure']:
-            if coordinates >= exon['transcript_start'] and coordinates <= exon['transcript_end']:
-                exon_start_end_positions[transcript] = {"start_exon": exon['exon_number'], "end_exon": exon['exon_number']} 
+
+            #runs to identify which exon the variant is in 
+            #start position
+            if '+' or '-' not in start_position:
+                start_position = int(start_position)
+                if start_position >= exon['transcript_start'] and start_position <= exon['transcript_end']:
+                    start_exon = str(exon['exon_number'])
+            
+            elif '+' in start_position:
+                exon_end = start_position.split('+')[0]
+                exon_end = int(exon_end)
+                if exon_end == exon['transcript_end']:
+                    start_exon = str(exon['exon_number']) + 'i'
+            
+            elif '-' in start_position:
+                exon_start = start_position.split('-')[0]
+                exon_start = int(exon_start)
+                if exon_end == exon['transcript_start']:
+                    start_exon = str(exon['exon_number'] - 1)+ 'i'
+            #end position
+            if  '+' or '-' not in end_position:
+                end_position = int(end_position)
+                if end_position >= exon['transcript_start'] and end_position <= exon['transcript_end']:
+                    end_exon = str(exon['exon_number'])
+                 
+            elif '+' in end_position:
+                exon_end = end_position.split('+')[0]
+                exon_end = int(exon_end)
+                if exon_end == exon['transcript_end']:
+                    end_exon =  str(exon['exon_number'])+ 'i'
+            
+            elif '-' in end_position:
+                exon_start = start_position.split('-')[0]
+                exon_start = int(exon_start)           
+                if end_position >= exon['transcript_start'] and end_position <= exon['transcript_end']:
+                    end_exon = str(exon['exon_number'] - 1) + 'i'
+
+        exon_start_end_positions[transcript] = {"start_exon": start_exon, "end_exon": end_exon}
     return exon_start_end_positions
 
 #test for our variant
-print(finds_exon_number(int(variant_pos)))
+print(finds_exon_number(variant_pos))
 
 
 #create dictionary of all intron exon positions for transcripts
