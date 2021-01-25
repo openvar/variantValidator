@@ -40,13 +40,13 @@ def request_sequence(base_url, server, gene_name, parameters):
 variant_id = "NM_007294.3:c.1067A>G"
 
 # Query the VV API with the variant
-# variant_response = request_sequence(base_url_VV, server_variant, genome_build + '/' + variant_id + '/all', parameters)
+variant_response = request_sequence(base_url_VV, server_variant, genome_build + '/' + variant_id + '/all', parameters)
 
 # Convert the response (JSON) to a python dictionary
-# variant_response_dictionary = variant_response.json()
+variant_response_dictionary = variant_response.json()
 
 # Print response
-# print(json.dumps(variant_response_dictionary, sort_keys=True, indent=4, separators=(',', ': ')))
+#print(json.dumps(variant_response_dictionary, sort_keys=True, indent=4, separators=(',', ': ')))
 
 
 ####### FUNCTION 2 #########################################################
@@ -79,63 +79,48 @@ output_dict = json.dumps(dict1, sort_keys=True, indent=4, separators=(',', ': ')
 # print(output_dict)
 
 
-print(type(response_dictionary))
-print(response_dictionary.keys())
 #print(type(response_dictionary["transcripts"][0]))
 #print(response_dictionary["transcripts"][0].keys())
-print(response_dictionary["transcripts"][3]["reference"])
-print(len(response_dictionary["transcripts"])) # there are 7 transcripts
+# print(response_dictionary["transcripts"][3]["reference"])
+# print(len(response_dictionary["transcripts"])) # there are 7 transcripts
 
 num_transcripts = len(response_dictionary["transcripts"])
 for i in range(num_transcripts):
     if response_dictionary["transcripts"][i]["reference"] == transcript_id:
-        print(i)
         transcipt_accession = i
-        print(response_dictionary["transcripts"][i]["reference"])
-        print(response_dictionary["transcripts"][i].keys())
-        #print(response_dictionary["transcripts"][i]["genomic_spans"])
-        #print(response_dictionary["transcripts"][i])
+        brca_exon_structure = response_dictionary["transcripts"][i]["genomic_spans"]
         break
 
+print(brca_exon_structure.keys())
+#print(brca_exon_structure)
 
 ####### FUNCTION 3 #########################################################
 # Works out the exon/intron for the transcript variant for each aligned chromosomal or gene reference sequence
 # Set up output dictionary  
-exon_start_ent_positions = {}
+exon_start_end_positions = {}
 # This dictionary will have the keys as the aligned chromosomal and gene reference sequences
 # And the values of these keys will be another dictionary
 # With keys, start_exon and end_exon
 # With respective values relating the the position of variant in the reference seqeuence
 # e.g. {NC_000: {"start_exon": "1", "end_exon": "1i"}, NC_0000 .... 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # #find genome co-ordinates for the variant:
-# genomic_coordinates = [variant_response_dictionary[0]['spdi'][0].split(':')[1]]
-# print(genomic_coordinates)
+#print(variant_response_dictionary.keys())
+genomic_coordinates = variant_response_dictionary[variant_id]["primary_assembly_loci"][genome_build.lower()]['vcf']['pos']
+print(type(genomic_coordinates)) #genomic coordinates = 43094464
 
-# #check the genome coordinates are what you expect, genome_coordinates is a list so need to use [0] to get contents of list
-# if genomic_coordinates[0] == '43094463':
-#     print("yes this works")
+#print(brca_exon_structure['NC_000017.11'])
 
-# print(response_dictionary["genomic_spans"])
-#     # print("yes this works (again)")
+def finds_exon_number(coordinates, exon_structure_dictionary=brca_exon_structure):
+    for exon in brca_exon_structure['NC_000017.11']['exon_structure']:
+        print(exon)
+        if coordinates >= exon['genomic_start'] and coordinates <= exon['genomic_end']:
+            print("Exon number is " + str(exon['exon_number']))
+            return exon['exon_number']
 
-# def lookup(key, dictionary=response_dictionary):
+print(finds_exon_number(int(genomic_coordinates)))
+
+# def lookup(key, dictionary=brca_exon_structure):
 #     if key in dictionary: return dictionary[key]
 #     for value in dictionary.values():
 #         if isinstance(value, dict):
@@ -144,18 +129,19 @@ exon_start_ent_positions = {}
 #                 return a
 #     return None
 
-# print(lookup('NC_000017.11'))
+#print(lookup('NC_000017.11'))
 
-# #create dictionary of all intron exon positions for transcripts
-# exon_start_end_positions = {}
+#create dictionary of all intron exon positions for transcripts
 # for transcript_id in variant_response_dictionary:
 #     exon_start_end_positions[transcript_id] = {"start_exon": start_exon, "end_exon": end_exon}
 
-# '''
-# define function to parse through exon_start_end_positions and return the intron
-# and exon numbering for the start and end of the query variant
-# '''
+'''
+define function to parse through exon_start_end_positions and return the intron
+and exon numbering for the start and end of the query variant
+'''
 # def finds_variant_in_dict(reference):
 #     for transcript_id in exon_start_end_positions:
 #         if transcript_id == reference:
 #             print("The exon numbering for " + transcript_id + " starts in " + start_exon + " ends in " + end_exon)
+
+#close
