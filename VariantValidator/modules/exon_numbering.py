@@ -20,10 +20,8 @@ import re
 base_url_VV = "https://rest.variantvalidator.org/"
 server_G2T = "/VariantValidator/tools/gene2transcripts/"
 gene_query = "BRCA1"
-
-#use ensembl rest api
-server_variant = 'variant_recoder/human/'
-base_url_ensembl = 'https://rest.ensembl.org/'
+server_variant = '/VariantValidator/variantvalidator/'
+genome_build = "GRCh38"
 
 # Define the parameter for retrieving in a JSON format
 parameters = '?content-type=application/json'
@@ -57,13 +55,13 @@ variant_id = "NM_007294.4:c.1067A>G"
 
 # Maybe write code to split this up?
 #query the API with the variant
-variant_response = request_sequence(base_url_ensembl, server_variant, variant_id, parameters)
+variant_response = request_sequence(base_url_VV, server_variant, genome_build + '/' + variant_id + '/all', parameters)
 
 #convert the response (JSON) to a python dictionary
 variant_response_dictionary = variant_response.json()
 
 #print response
-#print(json.dumps(variant_response_dictionary, sort_keys=True, indent=4, separators=(',', ': ')))
+print(json.dumps(variant_response_dictionary, sort_keys=True, indent=4, separators=(',', ': ')))
 
 #find genome co-ordinates for the variant:
 genomic_coordinates = [variant_response_dictionary[0]['spdi'][0].split(':')[1]]
