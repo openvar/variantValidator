@@ -10,8 +10,6 @@ This code will ultimately aim to provide exon numbering information for VariantV
 # Import the relevant packages/functions
 import requests #this is needed to talk to the API
 import json #this is needed to format the output data
-import re 
-
 
 # Define all the URL information as strings
 base_url_VV = "https://rest.variantvalidator.org/"
@@ -26,7 +24,7 @@ parameters = '?content-type=application/json'
 # Create a function that will call an API and retrieve the information
 def request_sequence(base_url, server, gene_name, parameters):
     url = base_url + server + gene_name + parameters
-    # print(url)
+
     # make the request and pass the object to the function
     response = requests.get(url) #this is the code that actually queries the API
     print("Querying " + url)
@@ -69,25 +67,12 @@ response_dictionary = response.json()
 # Note, function 2 will pull back the exon structures for all the transcripts
 # so will need to filter out the transcript you are interested in based on the transcript ID.
 
-# Open an empty dictionary
-dict1 = {}
-# Add our variant
-dict1['Variant HGVS'] = variant_id
-# Format the ouput dictionary nicely and print
-output_dict = json.dumps(dict1, sort_keys=True, indent=4, separators=(',', ': '))
-#print the output dictionary
-# print(output_dict)
-
-
-#print(type(response_dictionary["transcripts"][0]))
-#print(response_dictionary["transcripts"][0].keys())
-# print(response_dictionary["transcripts"][3]["reference"])
-# print(len(response_dictionary["transcripts"])) # there are 7 transcripts
-
+#this for loop finds the exon structure for the given transcript
 num_transcripts = len(response_dictionary["transcripts"])
 for i in range(num_transcripts):
     if response_dictionary["transcripts"][i]["reference"] == transcript_id:
         transcipt_accession = i
+        #returns an exon structure dictionary
         brca_exon_structure = response_dictionary["transcripts"][i]["genomic_spans"]
         break
 
@@ -97,7 +82,7 @@ print(brca_exon_structure.keys())
 ####### FUNCTION 3 #########################################################
 # Works out the exon/intron for the transcript variant for each aligned chromosomal or gene reference sequence
 # Set up output dictionary  
-exon_start_end_positions = {}
+#exon_start_end_positions = {}
 # This dictionary will have the keys as the aligned chromosomal and gene reference sequences
 # And the values of these keys will be another dictionary
 # With keys, start_exon and end_exon
@@ -107,29 +92,21 @@ exon_start_end_positions = {}
 # #find genome co-ordinates for the variant:
 #print(variant_response_dictionary.keys())
 genomic_coordinates = variant_response_dictionary[variant_id]["primary_assembly_loci"][genome_build.lower()]['vcf']['pos']
-print(type(genomic_coordinates)) #genomic coordinates = 43094464
+ #genomic coordinates = 43094464
 
-#print(brca_exon_structure['NC_000017.11'])
-
+#function to find exon number for a given variant
 def finds_exon_number(coordinates, exon_structure_dictionary=brca_exon_structure):
-    for exon in brca_exon_structure['NC_000017.11']['exon_structure']:
-        print(exon)
-        if coordinates >= exon['genomic_start'] and coordinates <= exon['genomic_end']:
-            print("Exon number is " + str(exon['exon_number']))
-            return exon['exon_number']
+    exon_start_end_positions = {}
+    for transcript in brca_exon_structure.keys():
+        if coordinates >= brca_exon_structure[transcript]['start_position'] and coordinates <= brca_exon_structure[transcript]['end_position']:
+            for exon in brca_exon_structure[transcript]['exon_structure']:
+                if coordinates >= exon['genomic_start'] and coordinates <= exon['genomic_end']:
+                    exon_start_end_positions[transcript] = {"start_exon": exon['exon_number'], "end_exon": exon['exon_number']} 
+    return exon_start_end_positions
 
+#test for our variant
 print(finds_exon_number(int(genomic_coordinates)))
 
-# def lookup(key, dictionary=brca_exon_structure):
-#     if key in dictionary: return dictionary[key]
-#     for value in dictionary.values():
-#         if isinstance(value, dict):
-#             a = lookup(key, value)
-#             if a is not None:
-#                 return a
-#     return None
-
-#print(lookup('NC_000017.11'))
 
 #create dictionary of all intron exon positions for transcripts
 # for transcript_id in variant_response_dictionary:
