@@ -10,6 +10,7 @@ This code will ultimately aim to provide exon numbering information for VariantV
 # Import the relevant packages/functions
 import requests #this is needed to talk to the API
 import json #this is needed to format the output data
+import re
 
 # Define all the URL information as strings
 base_url_VV = "https://rest.variantvalidator.org/"
@@ -33,6 +34,7 @@ def request_sequence(base_url, server, gene_name, parameters):
 
 ############ FUNCTION 1 ######################################################
 # Use a variant ID, and call VV API
+# This is a check
 
 # Pre-determine the variant
 variant_id = "NM_007294.3:c.1067A>G"
@@ -89,25 +91,23 @@ for i in range(num_transcripts):
 # With respective values relating the the position of variant in the reference seqeuence
 # e.g. {NC_000: {"start_exon": "1", "end_exon": "1i"}, NC_0000 .... 
 
-# #find genome co-ordinates for the variant:
-#print(variant_response_dictionary.keys())
-genomic_coordinates = variant_response_dictionary[variant_id]["primary_assembly_loci"][genome_build.lower()]['vcf']['pos']
- #genomic coordinates = 43094464
+ 
+# Find transcript coordinates (this only works for a SNP, need to adapt for variants that range over more than one nucleotide)
+variant_pos = variant_id.split(":")[1].split(".")[1]
+variant_pos = re.sub('[^0-9]','', variant_pos)
+print(variant_pos)
 
-#function to find exon number for a given variant
+# function to find exon number for a given variant 
 def finds_exon_number(coordinates, exon_structure_dict=brca_exon_structure):
     exon_start_end_positions = {}
     for transcript in exon_structure_dict.keys():
-        #check if the variant is in the transcript
-        if coordinates >= exon_structure_dict[transcript]['start_position'] and coordinates <= exon_structure_dict[transcript]['end_position']:
-            #if so, check which exon of that transcript the variant is in
-            for exon in exon_structure_dict[transcript]['exon_structure']:
-                if coordinates >= exon['genomic_start'] and coordinates <= exon['genomic_end']:
-                    exon_start_end_positions[transcript] = {"start_exon": exon['exon_number'], "end_exon": exon['exon_number']} 
+        for exon in exon_structure_dict[transcript]['exon_structure']:
+            if coordinates >= exon['transcript_start'] and coordinates <= exon['transcript_end']:
+                exon_start_end_positions[transcript] = {"start_exon": exon['exon_number'], "end_exon": exon['exon_number']} 
     return exon_start_end_positions
 
 #test for our variant
-print(finds_exon_number(int(genomic_coordinates)))
+print(finds_exon_number(int(variant_pos)))
 
 
 #create dictionary of all intron exon positions for transcripts
