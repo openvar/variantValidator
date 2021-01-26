@@ -1,44 +1,44 @@
 """
-Exon_numbering Module
+Exon_numbering.py Module
 
 Authors: Katie Williams (@kwi11iams) and Katherine Winfield (@kjwinfield)
 
-See exon_numbering.md markdown for a full description on how this module operates. 
+See exon_numbering.md markdown for a full description on how this
+module operates.
 *** Please note this Markdown is not finished yet ***
 
-This code will ultimately aim to provide exon numbering information for VariantValidator
+This code will ultimately aim to provide exon numbering information for
+VariantValidator
 
 """
 
 # Import the relevant packages/functions
-import requests #this is needed to talk to the API
-import json #this is needed to format the output data
-import re #this is used to manipulate the variant nomenclature
+import requests  # This is needed to talk to the API
+import json      # This is needed to format the output data
+import re        # This is used to manipulate the variant nomenclature
 
 # Define all the URL information as strings
 base_url_VV = "https://rest.variantvalidator.org/"
 server_G2T = "VariantValidator/tools/gene2transcripts/"
-gene_query = "BRCA1"
 server_variant = 'VariantValidator/variantvalidator/'
-genome_build = "GRCh38"
 
 # Define the parameter for retrieving in a JSON format
 parameters = '?content-type=application/json'
 
 
 # Create a function that will call an API and retrieve the information
-def request_sequence(base_url, server, gene_name, parameters):
-    url = base_url + server + gene_name + parameters
+def request_sequence(base_url, server, variant_or_transcript, parameters):
+    url = base_url + server + variant_or_transcript + parameters
 
-    # make the request and pass the object to the function
-    response = requests.get(url)  # this is the code that actually queries the API
+    # Query the API and pass the object to the function
+    response = requests.get(url)
     print("Querying " + url)
     return response
 
 
-# function to find exon numbering for a given variant
+# Function to find exon numbering for a given variant
 def finds_exon_number(variant):
-    
+
     # extract the transcript ID from the variant nomenclature
     transcript_id = variant.split(":")[0]
 
