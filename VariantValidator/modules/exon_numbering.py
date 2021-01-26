@@ -22,22 +22,24 @@ genome_build = "GRCh38"
 # Define the parameter for retrieving in a JSON format
 parameters = '?content-type=application/json'
 
+
 # Create a function that will call an API and retrieve the information
 def request_sequence(base_url, server, gene_name, parameters):
     url = base_url + server + gene_name + parameters
 
     # make the request and pass the object to the function
-    response = requests.get(url) #this is the code that actually queries the API
+    response = requests.get(url)  # this is the code that actually queries the API
     print("Querying " + url)
     return response
 
-#function to find exon numbering for a given variant 
+
+# function to find exon numbering for a given variant
 def finds_exon_number(variant):
     
-    #extract the transcript ID from the variant nomenclature
+    # extract the transcript ID from the variant nomenclature
     transcript_id = variant.split(":")[0]
 
-    #request variant data from the gene2transcripts VariantValidator API 
+    # request variant data from the gene2transcripts VariantValidator API
     response = request_sequence(base_url_VV, server_G2T, transcript_id, parameters)
     
     # Convert the response (JSON) to a python dictionary
@@ -82,7 +84,7 @@ def finds_exon_number(variant):
 
             #runs to identify which exon the variant is in 
             #start position
-            if '+' or '-' not in start_position:
+            if '+' not in start_position and '-' not in start_position:
                 start_position = int(start_position)
                 if start_position >= exon['transcript_start'] and start_position <= exon['transcript_end']:
                     start_exon = str(exon['exon_number'])
@@ -121,8 +123,8 @@ def finds_exon_number(variant):
 
 #Testing
 #define some variants to test with 
-test_variant_1 = "NM_007294.3:c.1067A>G"
-test_variant = 'NM_000088.3:c.642+1GG>G'
+# test_variant_1 = "NM_007294.3:c.1067A>G"
+test_variant_1  = 'NM_000088.3:c.642+1GG>G'
 #test for our variant
 print(finds_exon_number(test_variant_1))
 
