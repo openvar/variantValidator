@@ -1,5 +1,6 @@
 # Markdown for exon_numbering.py
 Authors: Katie Williams (@kwi11iams) and Katherine Winfield (@kjwinfield)
+
 This file explains how to use the `exon_numbering.py` module.
 
 The relevant Git Issue for this project can be found at https://github.com/openvar/variantValidator/issues/258
