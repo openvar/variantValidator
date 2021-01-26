@@ -58,8 +58,8 @@ def finds_exon_number(variant):
     
     #find the variant position from the variant nomenclature
     coordinates = variant.split(":")[1].split(".")[1]
-    coordinates = re.sub('[^0-9, +, -, _]','', coordinates) #removes A,G,C,T from HGVS nomenclature
-
+    coordinates = re.sub('[^0-9, +, \-, _]','', coordinates) #removes A,G,C,T from HGVS nomenclature
+    
     #identify start and end of variant from input coordinates
     if '_' in coordinates:
         split = coordinates.split('_')
@@ -68,18 +68,18 @@ def finds_exon_number(variant):
     else:
         end_position = coordinates
         start_position = coordinates
-    
+
     #create empty output dictionary
     exon_start_end_positions = {}
-
+    #print(exon_structure_dict)
     # Works out the exon/intron for the transcript variant for each aligned chromosomal or gene reference sequence
     # This dictionary will have the keys as the aligned chromosomal and gene reference sequences
     # And the values of these keys will be another dictionary
     # With keys, start_exon and end_exon
     # With respective values relating the the position of variant in the reference seqeuence
     # e.g. {NC_000: {"start_exon": "1", "end_exon": "1i"}, NC_0000 ...
-
     for transcript in exon_structure_dict.keys():
+        print(transcript)
         for exon in exon_structure_dict[transcript]['exon_structure']:
 
             #runs to identify which exon the variant is in 
@@ -90,15 +90,15 @@ def finds_exon_number(variant):
                     start_exon = str(exon['exon_number'])
             
             elif '+' in start_position:
-                exon_end = start_position.split('+')[0]
-                exon_end = int(exon_end)
-                if exon_end == exon['transcript_end']:
+                nearest_exon_boundary = start_position.split('+')[0]
+                nearest_exon_boundary = int(nearest_exon_boundary)
+                if nearest_exon_boundary == exon['transcript_end']:
                     start_exon = str(exon['exon_number']) + 'i'
             
             elif '-' in start_position:
-                exon_start = start_position.split('-')[0]
-                exon_start = int(exon_start)
-                if exon_end == exon['transcript_start']:
+                nearest_exon_boundary = start_position.split('-')[0]
+                nearest_exon_boundary = int(nearest_exon_boundary)
+                if nearest_exon_boundary == exon['transcript_start']:
                     start_exon = str(exon['exon_number'] - 1)+ 'i'
             #end position
             if  '+' not in str(end_position) and '-' not in str(end_position):
@@ -107,15 +107,15 @@ def finds_exon_number(variant):
                     end_exon = str(exon['exon_number'])
                  
             elif '+' in end_position:
-                exon_end = end_position.split('+')[0]
-                exon_end = int(exon_end)
-                if exon_end == exon['transcript_end']:
+                nearest_exon_boundary = end_position.split('+')[0]
+                nearest_exon_boundary = int(nearest_exon_boundary)
+                if nearest_exon_boundary == exon['transcript_end']:
                     end_exon =  str(exon['exon_number'])+ 'i'
             
             elif '-' in end_position:
-                exon_start = start_position.split('-')[0]
-                exon_start = int(exon_start)           
-                if end_position >= exon['transcript_start'] and end_position <= exon['transcript_end']:
+                nearest_exon_boundary = start_position.split('-')[0]
+                nearest_exon_boundary = int(nearest_exon_boundary)           
+                if nearest_exon_boundary == exon['transcript_start']:
                     end_exon = str(exon['exon_number'] - 1) + 'i'
             
         exon_start_end_positions[transcript] = {"start_exon": start_exon, "end_exon": end_exon}
@@ -125,9 +125,13 @@ def finds_exon_number(variant):
 #define some variants to test with 
 test_variant_2 = "NM_007294.3:c.1067A>G"
 test_variant_1  = 'NM_000088.3:c.642+1GG>G'
+test_variant_3 = "NM_000088.3:c.642+1G>A"
+test_variant_4 = "NM_000094.3:c.6751-3_6751-2del"
+test_variant_5 = "NM_007294.3:c.5426-2del"
+
 #test for our variant
 #print(finds_exon_number(test_variant_2))
 #print(finds_exon_number(test_variant_1))
-
-if '+' not in test_variant_1 and '-' not in test_variant_1:
-    print('no introns here')
+#print(finds_exon_number(test_variant_3))
+print(finds_exon_number(test_variant_4))
+#print(finds_exon_number(test_variant_5))
