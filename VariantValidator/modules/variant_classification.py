@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Jan  5 17:13:08 2021
-
 @author: naomi
 @author: Ali
 """
@@ -93,7 +92,7 @@ variant_accession = str(variant_accession)
 
 # Check variant is formatted correctly
 protein_HVGS = re.compile(
-    r"[N][P][_][0-9]+[\.][0-9]+[:][p][\.][\(][a-zA-Z|*][0-9]+[a-zA-Z|*][\)]")
+    "[N][P][_][0-9]+[\.][0-9]+[:][p][\.][\(][a-zA-Z|*]+[0-9]+[a-zA-Z|*]+[\)]")
 HGVS_check = (protein_HVGS.match(variant_accession))
 # print(HGVS_check)
 if str(HGVS_check) == "None":
@@ -110,12 +109,12 @@ protein_variant = variant_accession_split[1]
 # print(protein_variant)
 
 # Use re to split the variant into numbers and letters
-number_letter = re.compile("([a-zA-Z]|[*])([0-9]+)([a-zA-Z]|[*])")
+number_letter = re.compile("([a-zA-Z]+|[*])([0-9]+)([a-zA-Z]+|[*])")
 protein_variant_split = number_letter.match(protein_variant).groups()
 print(protein_variant_split)
 
 # Use logic to determine variant type
-# This currently works for three letter aa codes only, could be expanded to one letter
+# This works for three letter and one leter codes
 # Edit: added protein_SO_term variable to loop
 if protein_variant_split[0] == protein_variant_split[2]:
     #print("Variant is synonymous")
