@@ -36,50 +36,48 @@ def request_sequence(base_url, server, variant_or_transcript, parameters):
     return response
 
 
-# Function to find exon numbering for a given variant
+# Function to find and output exon numbering for a given variant
 def finds_exon_number(variant):
 
-    # extract the transcript ID from the variant nomenclature
+    # Extract the transcript ID from the variant nomenclature
     transcript_id = variant.split(":")[0]
 
-    # request variant data from the gene2transcripts VariantValidator API
-    response = request_sequence(base_url_VV, server_G2T, transcript_id, parameters)
-    
+    # Request variant data from the gene2transcripts VariantValidator API
+    response = request_sequence(base_url_VV, server_G2T, transcript_id,
+                                parameters)
+
     # Convert the response (JSON) to a python dictionary
     response_dictionary = response.json()
 
-    # Note, function 2 will pull back the exon structures for all the transcripts
-    # so will need to filter out the transcript you are interested in based on the transcript ID.
-    #this for loop finds the exon structure for the given transcript
+    # Filter out the response_disctionary for the variant transcript 
+    # This will find the exon structure dictionary for the given transcript
+    # And select the coding start position number
     num_transcripts = len(response_dictionary["transcripts"])
     for i in range(num_transcripts):
         if response_dictionary["transcripts"][i]["reference"] == transcript_id:
-            
-            #returns an exon structure dictionary
+
+            # Returns an exon structure dictionary
             exon_structure_dict = response_dictionary["transcripts"][i]["genomic_spans"]
 
-            #identifies the coding start:
             coding_start = response_dictionary['transcripts'][i]["coding_start"]
             break
-    
-    #find the variant position from the variant nomenclature
+
+    # Find the variant position from the variant nomenclature
     coordinates = variant.split(":")[1].split(".")[1]
-    coordinates = re.sub('[^0-9, +, \-, _]','', coordinates) #removes A,G,C,T from HGVS nomenclature
-    
-    #identify start and end of variant from input coordinates
+    # Remove A,G,C,T and variant description type from HGVS nomenclature
+    coordinates = re.sub('[^0-9, +, \-, _]', '', coordinates)
+
+    # Identify start and end of variant from input coordinates
     if '_' in coordinates:
         split = coordinates.split('_')
         start_position = split[0]
         end_position = split[1]
     else:
+        # If SNV, then start = end position
         start_position = coordinates
         end_position = coordinates
 
-    # #take into account coding start and end
-    # adjusted_start_position = coding_start + (start_position) -1 #640+1 split()
-    # adjusted_end_position = coding_start + int(end_position) - 1
-
-    #create empty output dictionary
+    # Create empty output dictionary
     exon_start_end_positions = {}
 
     # Works out the exon/intron for the transcript variant for each aligned chromosomal or gene reference sequence
