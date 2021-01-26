@@ -54,6 +54,9 @@ def finds_exon_number(variant):
             
             #returns an exon structure dictionary
             exon_structure_dict = response_dictionary["transcripts"][i]["genomic_spans"]
+
+            #identifies the coding start:
+            coding_start = response_dictionary['transcripts'][i]["coding_start"]
             break
     
     #find the variant position from the variant nomenclature
@@ -66,8 +69,12 @@ def finds_exon_number(variant):
         start_position = split[0]
         end_position = split[1]
     else:
-        end_position = coordinates
         start_position = coordinates
+        end_position = coordinates
+
+    # #take into account coding start and end
+    # adjusted_start_position = coding_start + (start_position) -1 #640+1 split()
+    # adjusted_end_position = coding_start + int(end_position) - 1
 
     #create empty output dictionary
     exon_start_end_positions = {}
@@ -80,42 +87,42 @@ def finds_exon_number(variant):
     # e.g. {NC_000: {"start_exon": "1", "end_exon": "1i"}, NC_0000 ...
     for transcript in exon_structure_dict.keys():
  
-         for exon in exon_structure_dict[transcript]['exon_structure']:
+        for exon in exon_structure_dict[transcript]['exon_structure']:
 
             #runs to identify which exon the variant is in 
             #start position
             if '+' not in str(start_position) and '-' not in str(start_position):
-                start_position = int(start_position)
-                if start_position >= exon['transcript_start'] and start_position <= exon['transcript_end']:
+                adj_start_position = int(start_position) + coding_start - 1
+                if adj_start_position >= exon['transcript_start'] and adj_start_position <= exon['transcript_end']:
                     start_exon = str(exon['exon_number'])
             
             elif '+' in start_position:
                 nearest_exon_boundary = start_position.split('+')[0]
-                nearest_exon_boundary = int(nearest_exon_boundary)
-                if nearest_exon_boundary == exon['transcript_end']:
+                adj_nearest_exon_boundary = int(nearest_exon_boundary) + coding_start - 1
+                if adj_nearest_exon_boundary == exon['transcript_end']:
                     start_exon = str(exon['exon_number']) + 'i'
             
             elif '-' in start_position:
                 nearest_exon_boundary = start_position.split('-')[0]
-                nearest_exon_boundary = int(nearest_exon_boundary)
-                if nearest_exon_boundary == exon['transcript_start']:
+                adj_nearest_exon_boundary = int(nearest_exon_boundary) + coding_start - 1
+                if adj_nearest_exon_boundary == exon['transcript_start']:
                     start_exon = str(exon['exon_number'] - 1)+ 'i'
             #end position
             if  '+' not in str(end_position) and '-' not in str(end_position):
-                end_position = int(end_position)
-                if end_position >= exon['transcript_start'] and end_position <= exon['transcript_end']:
+                adj_end_position = int(end_position) + coding_start - 1
+                if adj_end_position >= exon['transcript_start'] and adj_end_position <= exon['transcript_end']:
                     end_exon = str(exon['exon_number'])
                  
             elif '+' in end_position:
                 nearest_exon_boundary = end_position.split('+')[0]
-                nearest_exon_boundary = int(nearest_exon_boundary)
-                if nearest_exon_boundary == exon['transcript_end']:
+                adj_nearest_exon_boundary = int(nearest_exon_boundary) + coding_start - 1
+                if adj_nearest_exon_boundary == exon['transcript_end']:
                     end_exon =  str(exon['exon_number'])+ 'i'
             
             elif '-' in end_position:
                 nearest_exon_boundary = start_position.split('-')[0]
-                nearest_exon_boundary = int(nearest_exon_boundary)           
-                if nearest_exon_boundary == exon['transcript_start']:
+                adj_nearest_exon_boundary = int(nearest_exon_boundary) + coding_start - 1
+                if adj_nearest_exon_boundary == exon['transcript_start']:
                     end_exon = str(exon['exon_number'] - 1) + 'i'
             
         exon_start_end_positions[transcript] = {"start_exon": start_exon, "end_exon": end_exon}
@@ -128,6 +135,9 @@ test_variant_1  = 'NM_000088.3:c.642+1GG>G'
 test_variant_3 = "NM_000088.3:c.642+1G>A"
 test_variant_4 = "NM_000094.3:c.6751-3_6751-2del"
 test_variant_5 = "NM_007294.3:c.5426-2del"
+test_variant_6 = "NM_000088.3:c.589G>T" #this is an exon boundary and maps to 715
+test_variant_7 = "NM_000088.3:c.642del" #this should map to 768
+test_variant_8 = "NM_000094.3:c.6751-3_6753del" #starts in intron, ends in exon
 
 #test for our variant
 #print(finds_exon_number(test_variant_2))
@@ -135,3 +145,5 @@ test_variant_5 = "NM_007294.3:c.5426-2del"
 #print(finds_exon_number(test_variant_3))
 #print(finds_exon_number(test_variant_4))
 #print(finds_exon_number(test_variant_5))
+#print(finds_exon_number(test_variant_5))
+#print(finds_exon_number(test_variant_8))
