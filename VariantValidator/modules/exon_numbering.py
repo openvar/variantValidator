@@ -1,7 +1,10 @@
 """
-Exon_numbering
+Exon_numbering Module
 
 Authors: Katie Williams (@kwi11iams) and Katherine Winfield (@kjwinfield)
+
+See exon_numbering.md markdown for a full description on how this module operates. 
+*** Please note this Markdown is not finished yet ***
 
 This code will ultimately aim to provide exon numbering information for VariantValidator
 
