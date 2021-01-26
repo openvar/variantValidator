@@ -12,18 +12,16 @@ VariantValidator
 
 """
 
-# Import the relevant packages/functions
 import requests  # This is needed to talk to the API
 import json      # This is needed to format the output data
 import re        # This is used to manipulate the variant nomenclature
 
 # Define all the URL information as strings
-base_url_VV = "https://rest.variantvalidator.org/"
-server_G2T = "VariantValidator/tools/gene2transcripts/"
-server_variant = 'VariantValidator/variantvalidator/'
+BASE_URL_VV = "https://rest.variantvalidator.org/"
+SERVER_G2T = "VariantValidator/tools/gene2transcripts/"
 
 # Define the parameter for retrieving in a JSON format
-parameters = '?content-type=application/json'
+PARAMETERS = '?content-type=application/json'
 
 
 # Create a function that will call an API and retrieve the information
@@ -43,35 +41,34 @@ def finds_exon_number(variant):
     transcript_id = variant.split(":")[0]
 
     # Request variant data from the gene2transcripts VariantValidator API
-    response = request_sequence(base_url_VV, server_G2T, transcript_id,
-                                parameters)
+    response = request_sequence(BASE_URL_VV, SERVER_G2T, transcript_id,
+                                PARAMETERS)
 
     # Convert the response (JSON) to a python dictionary
     response_dictionary = response.json()
 
-    # Filter out the response_disctionary for the variant transcript 
+    # Filter out the response_disctionary for the variant transcript
     # This will find the exon structure dictionary for the given transcript
     # And select the coding start position number
-    num_transcripts = len(response_dictionary["transcripts"])
-    for i in range(num_transcripts):
+    for i in range(len(response_dictionary["transcripts"])):
         if response_dictionary["transcripts"][i]["reference"] == transcript_id:
 
             # Returns an exon structure dictionary
             exon_structure_dict = response_dictionary["transcripts"][i]["genomic_spans"]
 
+            # Returns the start of coding (will this need to correct the position)
             coding_start = response_dictionary['transcripts'][i]["coding_start"]
             break
 
     # Find the variant position from the variant nomenclature
     coordinates = variant.split(":")[1].split(".")[1]
     # Remove A,G,C,T and variant description type from HGVS nomenclature
+    # leaves only numbers, +, -, and _
     coordinates = re.sub('[^0-9, +, \-, _]', '', coordinates)
 
     # Identify start and end of variant from input coordinates
     if '_' in coordinates:
-        split = coordinates.split('_')
-        start_position = split[0]
-        end_position = split[1]
+        start_position, end_position = coordinates.split('_')
     else:
         # If SNV, then start = end position
         start_position = coordinates
@@ -86,41 +83,51 @@ def finds_exon_number(variant):
     # With keys, start_exon and end_exon
     # With respective values relating the the position of variant in the reference seqeuence
     # e.g. {NC_000: {"start_exon": "1", "end_exon": "1i"}, NC_0000 ...
-    for transcript in exon_structure_dict.keys():
+    for transcript in exon_structure_dict:
  
         for exon in exon_structure_dict[transcript]['exon_structure']:
 
-            #runs to identify which exon the variant is in 
-            #start position
+            # For loop that runs to identify which exon/inton the variant is in
+            # 'i' denotes introns, i.e. exon 2i is intron 2
+            # Separated by start and end position of the variant as they may be different
+            # if the variant is not a SNP.
+
+            # Start position
             if '+' not in str(start_position) and '-' not in str(start_position):
+                # This works for positions in exons
                 adj_start_position = int(start_position) + coding_start - 1
                 if adj_start_position >= exon['transcript_start'] and adj_start_position <= exon['transcript_end']:
                     start_exon = str(exon['exon_number'])
             
             elif '+' in start_position:
+                # This works for positions that are + the exon boundary
                 nearest_exon_boundary = start_position.split('+')[0]
                 adj_nearest_exon_boundary = int(nearest_exon_boundary) + coding_start - 1
                 if adj_nearest_exon_boundary == exon['transcript_end']:
                     start_exon = str(exon['exon_number']) + 'i'
-            
+           
             elif '-' in start_position:
+                # This works for positions that are - the exon boundary
                 nearest_exon_boundary = start_position.split('-')[0]
                 adj_nearest_exon_boundary = int(nearest_exon_boundary) + coding_start - 1
                 if adj_nearest_exon_boundary == exon['transcript_start']:
-                    start_exon = str(exon['exon_number'] - 1)+ 'i'
-            #end position
+                    start_exon = str(exon['exon_number'] - 1) + 'i'
+            # End position
             if  '+' not in str(end_position) and '-' not in str(end_position):
+                # This works for positions in exons
                 adj_end_position = int(end_position) + coding_start - 1
                 if adj_end_position >= exon['transcript_start'] and adj_end_position <= exon['transcript_end']:
                     end_exon = str(exon['exon_number'])
-                 
+                
             elif '+' in end_position:
+                # This works for positions that are + the exon boundary
                 nearest_exon_boundary = end_position.split('+')[0]
                 adj_nearest_exon_boundary = int(nearest_exon_boundary) + coding_start - 1
                 if adj_nearest_exon_boundary == exon['transcript_end']:
-                    end_exon =  str(exon['exon_number'])+ 'i'
+                    end_exon = str(exon['exon_number']) + 'i'
             
             elif '-' in end_position:
+                # This works for positions that are - the exon boundary
                 nearest_exon_boundary = start_position.split('-')[0]
                 adj_nearest_exon_boundary = int(nearest_exon_boundary) + coding_start - 1
                 if adj_nearest_exon_boundary == exon['transcript_start']:
