@@ -84,7 +84,7 @@ def finds_exon_number(variant):
 
             #runs to identify which exon the variant is in 
             #start position
-            if '+' not in start_position and '-' not in start_position:
+            if '+' and '-' not in str(start_position):
                 start_position = int(start_position)
                 if start_position >= exon['transcript_start'] and start_position <= exon['transcript_end']:
                     start_exon = str(exon['exon_number'])
@@ -101,7 +101,7 @@ def finds_exon_number(variant):
                 if exon_end == exon['transcript_start']:
                     start_exon = str(exon['exon_number'] - 1)+ 'i'
             #end position
-            if  '+' or '-' not in end_position:
+            if  '+' and '-' not in str(end_position):
                 end_position = int(end_position)
                 if end_position >= exon['transcript_start'] and end_position <= exon['transcript_end']:
                     end_exon = str(exon['exon_number'])
@@ -117,14 +117,16 @@ def finds_exon_number(variant):
                 exon_start = int(exon_start)           
                 if end_position >= exon['transcript_start'] and end_position <= exon['transcript_end']:
                     end_exon = str(exon['exon_number'] - 1) + 'i'
-
+            
         exon_start_end_positions[transcript] = {"start_exon": start_exon, "end_exon": end_exon}
     return exon_start_end_positions
 
 #Testing
 #define some variants to test with 
-# test_variant_1 = "NM_007294.3:c.1067A>G"
+test_variant_2 = "NM_007294.3:c.1067A>G"
 test_variant_1  = 'NM_000088.3:c.642+1GG>G'
 #test for our variant
-print(finds_exon_number(test_variant_1))
+print(finds_exon_number(test_variant_2))
 
+if '+' or '-' not in test_variant_1:
+    print('no introns here')
