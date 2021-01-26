@@ -65,11 +65,11 @@ Ensembl_reference.add_entry(
     "Start lost",
     "High")
 Ensembl_reference.add_entry(
-    "transcript_amplification",
-    "A feature amplification of a region containing a transcript",
-    "SO:0001889",
-    "Transcript amplification",
-    "High")
+    "synonymous_variant",
+    "A sequence variant where there is no resulting change to the encoded amino acid",
+    "SO:0001819",
+    "Synonymous variant",
+    "Low")
 Ensembl_reference.add_entry(
     "missense_variant",
     "A sequence variant, that changes one or more bases, resulting in a different amino acid sequence but where the length is preserved",
@@ -145,7 +145,7 @@ SO_terms_dict = {}
 SO_terms_dict['Accession'] = variant_accession
 SO_terms_dict['SO term'] = protein_SO_term
 
-# Add Ensembl Information to dictionary
+# Add Ensembl Information to dictionary - impact is currently excluded
 SO_terms_dict['SO Information'] = Ensembl_reference.term_definitions[protein_SO_term][0:3]
 
 # Convert the dictionary to a json
