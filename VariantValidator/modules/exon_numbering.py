@@ -10,7 +10,7 @@ This code will ultimately aim to provide exon numbering information for VariantV
 # Import the relevant packages/functions
 import requests #this is needed to talk to the API
 import json #this is needed to format the output data
-import re
+import re #this is used to manipulate the variant nomenclature
 
 # Define all the URL information as strings
 base_url_VV = "https://rest.variantvalidator.org/"
@@ -71,7 +71,7 @@ def finds_exon_number(variant):
 
     #create empty output dictionary
     exon_start_end_positions = {}
-    #print(exon_structure_dict)
+
     # Works out the exon/intron for the transcript variant for each aligned chromosomal or gene reference sequence
     # This dictionary will have the keys as the aligned chromosomal and gene reference sequences
     # And the values of these keys will be another dictionary
@@ -79,8 +79,8 @@ def finds_exon_number(variant):
     # With respective values relating the the position of variant in the reference seqeuence
     # e.g. {NC_000: {"start_exon": "1", "end_exon": "1i"}, NC_0000 ...
     for transcript in exon_structure_dict.keys():
-        print(transcript)
-        for exon in exon_structure_dict[transcript]['exon_structure']:
+ 
+         for exon in exon_structure_dict[transcript]['exon_structure']:
 
             #runs to identify which exon the variant is in 
             #start position
@@ -133,5 +133,5 @@ test_variant_5 = "NM_007294.3:c.5426-2del"
 #print(finds_exon_number(test_variant_2))
 #print(finds_exon_number(test_variant_1))
 #print(finds_exon_number(test_variant_3))
-print(finds_exon_number(test_variant_4))
+#print(finds_exon_number(test_variant_4))
 #print(finds_exon_number(test_variant_5))
