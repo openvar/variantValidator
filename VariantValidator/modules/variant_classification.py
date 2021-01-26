@@ -6,23 +6,20 @@ Created on Tue Jan  5 17:13:08 2021
 """
 
 """
-Protein variant format:
-    NP_000079.2:p.(Gly197Cys)
-    NP_000079.2:p.(G197C)
+Information in the Ensembl_reference_dict is from Ensembl, available at the following URL:
+https://m.ensembl.org/info/genome/variation/prediction/predicted_data.html
+The information is the same as the output for sequence ontology terms from the 
+Ensembl VEP API
 """
 
 # Import modules
+import re  # needed to split the string with multiple delimiters
+import json  # needed to create json object
 
 # Define Ensembl Reference Dictionary
 # Object that at the moment simply creates a dictionary and has capacity to
 # add further entries. At the moment this is a simple repository which we
 # can use in later editions to provide/populate further variant information.
-
-
-
-
-import re  # needed to split the string with multiple delimiters
-import json  # needed to create json object
 class Ensembl_reference_dict:
     # initiator construct that creates a dictionary attribute when an instance of
     # the class is made.
@@ -35,7 +32,6 @@ class Ensembl_reference_dict:
     def add_entry(self, term, description, SO_number, display_term, impact):
         self.term_definitions[term] = [
             description, SO_number, display_term, impact]
-
 
 # Calling an instance of the Ensembl_reference_dict class and populating the
 # dictionary.
@@ -149,6 +145,7 @@ SO_terms_dict['SO term'] = protein_SO_term
 SO_terms_dict['SO Information'] = Ensembl_reference.term_definitions[protein_SO_term][0:3]
 
 # Convert the dictionary to a json
+# This can be incorporated into the variant validator object
 SO_terms_output = json.dumps(
     SO_terms_dict,
     sort_keys=True,
@@ -157,3 +154,20 @@ SO_terms_output = json.dumps(
         ',',
         ': '))
 print(SO_terms_output)
+
+# <LICENSE>
+# Copyright (C) 2021 VariantValidator Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# </LICENSE>
