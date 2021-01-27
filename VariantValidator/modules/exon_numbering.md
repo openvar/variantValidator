@@ -43,7 +43,7 @@ The functionality occuring within this function is outlined here:
 
 Test File `exon_numbering_tests.py`
 ----------------------------------
-
+We have designed some tests that indicate whether an input varaint outputs the expected exon/intron positions. 
 
 Future Integration with VariantValidator
 ----------------------------------------
