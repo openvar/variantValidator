@@ -27,11 +27,13 @@ PARAMETERS = '?content-type=application/json'
 
 def request_sequence(base_url, server, variant_or_transcript, parameters):
     """
-    :param base_url: # ADD a description of the parameters please What are theu :)
-    :param server:
-    :param variant_or_transcript:
-    :param parameters:
-    :return:
+    :param base_url: (str): the url for the rest API
+    :param server: (str): the server used to extract the data
+    :param variant_or_transcript: (str): the variant or transcript to query
+    :param parameters: (str): the content type in which to receive the data
+
+    :return: the data from the API
+
     Function that calls an API and retrieves information
     """
     url = base_url + server + variant_or_transcript + parameters
@@ -42,12 +44,14 @@ def request_sequence(base_url, server, variant_or_transcript, parameters):
     return response
 
 
-def check_variant(variant, genome_build):
+def check_variant(variant, genome_build='GRCh38'):
     """
+    :param variant: (str): the variant in HGVS format
+    :param genome_build: (str): the genome build, default is GRCh38
 
-    :param variant:
-    :param genome_build:
-    :return:
+    :return: prints "Variant accepted" if variant is valid, raises an
+             exception if not.
+
     Function that runs variant through VariantValidator Endpoint to validate
     """
     endpoint_url = genome_build + '/' + variant + '/all'
@@ -70,7 +74,7 @@ def check_variant(variant, genome_build):
 def finds_exon_number(variant, genome_build='GRCh38'):
     """
     :param variant: (str): the variant in HGVS format
-    :param genome_build: genome_build (str): the genome build, default is GRCh38
+    :param genome_build: (str): the genome build, default is GRCh38
     :return: exon_start_end_positions (dict): a dictionary of the
                     exon/intron positions for the start and end of the given
                     variant for each aligned chromosomal or gene reference
