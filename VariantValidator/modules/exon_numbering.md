@@ -16,7 +16,9 @@ Relevant Sources and Links
 
 Outline Exon Numbering Problem
 ------------------------------
-The aim of this project was to incorporate an exon numbering feature into VariantValidator, such that when a variant is searched it will provide an output of the exon position of that variant. The first thing to determine the context of how the exon numbering should be done. Three suggestions were made:
+The aim of this project was to incorporate an exon numbering feature into VariantValidator, such that when a variant is searched it will provide an output of the exon position of that variant. This was determined to be a useful feature for users of VariantValidator as it could automate finding the exon/intron location of a patient's variant, and avoid spending extra time having to find this out from VEP, or manually from a genome browser. More information on the User Story can be found at this [Git issue](https://github.com/openvar/variantValidator/issues/258). 
+
+The first thing to determine the context of how the exon numbering should be done. Three suggestions were made:
 1. Exon in the context of individual transcripts
 2. Exon in the context of the whole gene
 3. Classical numbering
