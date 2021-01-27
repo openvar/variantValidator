@@ -1,7 +1,7 @@
 # Markdown for exon_numbering.py
 Authors: Katie Williams (@kwi11iams) and Katherine Winfield (@kjwinfield)
 
-This file explains how to use the `exon_numbering.py` module.
+This file explains the exon numbering we were trying to solve, and how are module `exon_numbering.py` goes about fixing this. 
 
 Relevant Sources and Links
 --------------------------
@@ -14,6 +14,22 @@ Relevant Sources and Links
 
 - Trello Board used by Katherine and Katie to stay organised, and work together in an agile manner by encouraging an iterative approach to our work: [https://trello.com/b/t0ZkUkCK/agile-board](https://trello.com/b/t0ZkUkCK/agile-board)
 
+Outline Exon Numbering Problem
+------------------------------
+The aim of this project was to incorporate an exon numbering feature into VariantValidator, such that when a variant is searched it will provide an output of the exon position of that variant. The first thing to determine the context of how the exon numbering should be done. Three suggestions were made:
+1. Exon in the context of individual transcripts
+2. Exon in the context of the whole gene
+3. Classical numbering
 
-Function Input
---------------
+The [Git issue](https://github.com/openvar/variantValidator/issues/251) for gathering User requirements determined that, the first proposed method, of exon numbering in the context of individual transcripts was the most preferred. This was also confirmed as the preffered method by asking this same question to clinical geneticists in our office. 
+
+`exon_numbering.py` Module
+--------------------------
+
+
+Test File `exon_numbering_tests.py`
+----------------------------------
+
+
+Integration with VariantValidator
+---------------------------------
