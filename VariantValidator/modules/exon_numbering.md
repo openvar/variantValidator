@@ -27,7 +27,19 @@ The [Git issue](https://github.com/openvar/variantValidator/issues/251) for gath
 
 `exon_numbering.py` Module
 --------------------------
-Due to difficulties trying to install the VariantValidator (VV) package and the accompanying databases onto our laptops, our project could not be integrated directly into VariantValidator and its databases. Instead, we created a python module, `exon_numbering.py`, that calls VariantValidator's APIs. 
+Due to difficulties trying to install the VariantValidator package and the accompanying databases onto our laptops, our project could not be integrated directly into VariantValidator and its databases. Instead, we created a python module, `exon_numbering.py`, that calls VariantValidator's APIs. 
+
+For documentation on the specifics of the functions used within this module, and the parameters for them, please see the python module itself. Here, I shall outline the functionality and thought processes that govern this module. 
+
+The main function in `exon_numbering.py`, that calls all the other functions defined in the module within itself is called `finds_exon_number(variant, genome_build)`. This function accepts two parameters as an input: a variant defined by a transcript, written in HGVS nomenclature, and the genome build of the variant, defined by either "GRCh38", "GRCh37", "hg19" or "hg18" only. The function will output the exon/intron postions of the start and end of the given variant, for each of the aligned transcripts to the input variant's transcript. 
+
+The functionality occuring within this function is outlined here:
+1. The input variant is checked by calling the VV endpoint of the API. 
+2. The transcript from the input variant is used to call the VV gene2transcripts endpoints and saves all the transcript information associated with that gene. 
+3. The output from 2. is then filtered so it only contains information about the input variant's transcript. This contains the exon structure for the aligned transcripts to the input variant's transcript.
+4. The start and end positions are parsed from the input variant nomenclature. For SNVs, start position = end position. 
+5. A loop determines the exon/intron location of the start and end points of the variant, for each aligned transcript. This is done using the exon structure found from the gene2transcripts API. 
+
 
 Test File `exon_numbering_tests.py`
 ----------------------------------
