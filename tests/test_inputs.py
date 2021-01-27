@@ -1978,7 +1978,7 @@ class TestVariantsAuto(TestCase):
         assert results['NM_032470.3:c.4del']['hgvs_transcript_variant'] == 'NM_032470.3:c.4del'
         assert results['NM_032470.3:c.4del']['genome_context_intronic_sequence'] == ''
         assert results['NM_032470.3:c.4del']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NM_032470.3:c.4del']['hgvs_refseqgene_variant'] == ''
+        assert results['NM_032470.3:c.4del']['hgvs_refseqgene_variant'] == 'NG_008337.2:g.69159del'
         assert results['NM_032470.3:c.4del']['hgvs_predicted_protein_consequence'] == {
             'tlr': 'NP_115859.2:p.(Arg2AlafsTer91)', 'slr': 'NP_115859.2:p.(R2Afs*91)'}
         assert results['NM_032470.3:c.4del']['hgvs_lrg_transcript_variant'] == ''
@@ -2038,7 +2038,8 @@ class TestVariantsAuto(TestCase):
             'vcf': {'chr': '6', 'pos': '32045215', 'ref': 'CG', 'alt': 'C'}}
         assert results['NM_032470.3:c.4del']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_032470.3',
-            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_115859.2'}
+            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_115859.2',
+            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_008337.2'}
 
     def test_variant43(self):
         variant = 'NM_001194958.2:c.20C>A'
