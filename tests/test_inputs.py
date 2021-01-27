@@ -1532,11 +1532,11 @@ class TestVariantsAuto(TestCase):
         assert results['NM_000518.5:c.20A>T']['hgvs_transcript_variant'] == 'NM_000518.5:c.20A>T'
         assert results['NM_000518.5:c.20A>T']['genome_context_intronic_sequence'] == ''
         assert results['NM_000518.5:c.20A>T']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NM_000518.5:c.20A>T']['hgvs_refseqgene_variant'] == ''
+        assert results['NM_000518.5:c.20A>T']['hgvs_refseqgene_variant'] == 'NG_059281.1:g.5070A>T'
         assert results['NM_000518.5:c.20A>T']['hgvs_predicted_protein_consequence'] == {
             'tlr': 'NP_000509.1:p.(Glu7Val)', 'slr': 'NP_000509.1:p.(E7V)'}
         assert results['NM_000518.5:c.20A>T']['hgvs_lrg_transcript_variant'] == 'LRG_1232t1:c.20A>T'
-        assert results['NM_000518.5:c.20A>T']['hgvs_lrg_variant'] == ''
+        assert results['NM_000518.5:c.20A>T']['hgvs_lrg_variant'] == 'LRG_1232:g.5070A>T'
         self.assertCountEqual(results['NM_000518.5:c.20A>T']['alt_genomic_loci'], [])
         assert results['NM_000518.5:c.20A>T']['primary_assembly_loci']['hg19'] == {
             'hgvs_genomic_description': 'NC_000011.9:g.5248232T>A',
@@ -1548,7 +1548,9 @@ class TestVariantsAuto(TestCase):
         # assert 'grch38' not in list(results['NM_000518.5:c.20A>T']['primary_assembly_loci'].keys())
         assert results['NM_000518.5:c.20A>T']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_000518.5',
-            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_000509.1'}
+            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_000509.1',
+            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_059281.1',
+            'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/pending/LRG_1232.xml'}
 
         assert 'NM_000518.4:c.20A>T' in list(results.keys())
         assert results['NM_000518.4:c.20A>T']['submitted_variant'] == '11-5248232-T-A'
