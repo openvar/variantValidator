@@ -21,7 +21,7 @@ The aim of this project was to incorporate an exon numbering feature into Varian
 2. Exon in the context of the whole gene
 3. Classical numbering
 
-The [Git issue](https://github.com/openvar/variantValidator/issues/251) for gathering User requirements determined that, the first proposed method, of exon numbering in the context of individual transcripts was the most preferred. This was also confirmed as the preffered method by asking this same question to clinical geneticists in our office. 
+The [Git issue](https://github.com/openvar/variantValidator/issues/251) for gathering User requirements determined that, the first proposed method, of exon numbering in the context of individual transcripts was the most useful too for users. This was also confirmed as the preffered method by asking this same question to clinical geneticists in our office. 
 
 `exon_numbering.py` Module
 --------------------------
@@ -31,5 +31,7 @@ Test File `exon_numbering_tests.py`
 ----------------------------------
 
 
-Integration with VariantValidator
----------------------------------
+Future Integration with VariantValidator
+----------------------------------------
+The future application of this project will be to use the code from the `exon_numbering.py` module and integrate this functionality directly into VariantValidator. This will be done by using the generated outputs of our function as an additional dictionary in the VariantValidator object, to provide the exons/introns the variant starts and ends in. This will then be displayed on the interactive website so users can make use of this information. 
+
