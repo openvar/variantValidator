@@ -23,11 +23,11 @@ The first thing to determine the context of how the exon numbering should be don
 2. Exon in the context of the whole gene
 3. Classical numbering
 
-The [Git issue](https://github.com/openvar/variantValidator/issues/251) for gathering User requirements determined that, the first proposed method, of exon numbering in the context of individual transcripts was the most useful too for users. This was also confirmed as the preffered method by asking this same question to clinical geneticists in our office. 
+The [Git issue](https://github.com/openvar/variantValidator/issues/251) for gathering User requirements determined that, the first proposed method, of exon numbering in the context of individual transcripts was the most useful too for users. This was also confirmed as the preffered method by asking this same question to clinical geneticists in our office. Moreover, it was also highlighted that it would be useful to provide the exons/introns the variant starts and ends in. Hence, these user requests formed the basis of our module we created to solve this problem, `exon_numbering.py`. 
 
 `exon_numbering.py` Module
 --------------------------
-
+Due to difficulties trying to install the VariantValidator (VV) package and the accompanying databases onto our laptops, our project could not be integrated directly into VariantValidator and its databases. Instead, we created a python module, `exon_numbering.py`, that calls VariantValidator's APIs. 
 
 Test File `exon_numbering_tests.py`
 ----------------------------------
