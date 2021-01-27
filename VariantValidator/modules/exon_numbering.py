@@ -19,6 +19,7 @@ import re        # This is used to manipulate the variant nomenclature
 # Define all the URL information as strings
 BASE_URL_VV = "https://rest.variantvalidator.org/"
 SERVER_G2T = "VariantValidator/tools/gene2transcripts/"
+SERVER_VARIANT = "VariantValidator/variantvalidator/"
 
 # Define the parameter for retrieving in a JSON format
 PARAMETERS = '?content-type=application/json'
@@ -32,6 +33,26 @@ def request_sequence(base_url, server, variant_or_transcript, parameters):
     response = requests.get(url)
     print("Querying " + url)
     return response
+
+
+# Run variant through Variant Validator Endpoint to validate input
+# Check in correct HGVS format
+# (Add additional check that it is a NM transcript? LRG?)
+# Could add output of warning message (not sure how to handle multiple warnings)
+# Need to try exception handling i.e. if url error from request_sequence
+def check_variant(variant, genome_build):
+
+    endpoint_url = genome_build + '/' + variant + '/all'
+
+    response = request_sequence(BASE_URL_VV, SERVER_VARIANT, endpoint_url,
+                                PARAMETERS)
+
+    response_dictionary = response.json()
+    
+    if response_dictionary['flag'] == 'warning':
+        print("Variant not accepted.") 
+    else:
+        print("Variant accepted.")
 
 
 # Function to find and output exon numbering for a given variant
@@ -98,14 +119,14 @@ def finds_exon_number(variant):
                 adj_start_position = int(start_position) + coding_start - 1
                 if adj_start_position >= exon['transcript_start'] and adj_start_position <= exon['transcript_end']:
                     start_exon = str(exon['exon_number'])
-            
+
             elif '+' in start_position:
                 # This works for positions that are + the exon boundary
                 nearest_exon_boundary = start_position.split('+')[0]
                 adj_nearest_exon_boundary = int(nearest_exon_boundary) + coding_start - 1
                 if adj_nearest_exon_boundary == exon['transcript_end']:
                     start_exon = str(exon['exon_number']) + 'i'
-           
+
             elif '-' in start_position:
                 # This works for positions that are - the exon boundary
                 nearest_exon_boundary = start_position.split('-')[0]
@@ -118,21 +139,21 @@ def finds_exon_number(variant):
                 adj_end_position = int(end_position) + coding_start - 1
                 if adj_end_position >= exon['transcript_start'] and adj_end_position <= exon['transcript_end']:
                     end_exon = str(exon['exon_number'])
-                
+
             elif '+' in end_position:
                 # This works for positions that are + the exon boundary
                 nearest_exon_boundary = end_position.split('+')[0]
                 adj_nearest_exon_boundary = int(nearest_exon_boundary) + coding_start - 1
                 if adj_nearest_exon_boundary == exon['transcript_end']:
                     end_exon = str(exon['exon_number']) + 'i'
-            
+
             elif '-' in end_position:
                 # This works for positions that are - the exon boundary
                 nearest_exon_boundary = start_position.split('-')[0]
                 adj_nearest_exon_boundary = int(nearest_exon_boundary) + coding_start - 1
                 if adj_nearest_exon_boundary == exon['transcript_start']:
                     end_exon = str(exon['exon_number'] - 1) + 'i'
-            
+
         exon_start_end_positions[transcript] = {"start_exon": start_exon, "end_exon": end_exon}
     return exon_start_end_positions
 
