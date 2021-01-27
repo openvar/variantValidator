@@ -56,7 +56,7 @@ def finds_exon_number(variant):
             # Returns an exon structure dictionary
             exon_structure_dict = response_dictionary["transcripts"][i]["genomic_spans"]
 
-            # Returns the start of coding (will this need to correct the position)
+            # Returns the start of coding (this is needed to correct the position)
             coding_start = response_dictionary['transcripts'][i]["coding_start"]
             break
 
