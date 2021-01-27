@@ -1637,8 +1637,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_182763.2:c.688+403C>T']['hgvs_transcript_variant'] == 'NM_182763.2:c.688+403C>T'
         assert results['NM_182763.2:c.688+403C>T'][
                    'genome_context_intronic_sequence'] == 'NC_000001.10(NM_182763.2):c.688+403C>T'
-        assert results['NM_182763.2:c.688+403C>T']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NM_182763.2:c.688+403C>T']['hgvs_refseqgene_variant'] == ''
+        assert results['NM_182763.2:c.688+403C>T']['refseqgene_context_intronic_sequence'] == 'NG_029146.1(NM_182763.2):c.688+403C>T'
+        assert results['NM_182763.2:c.688+403C>T']['hgvs_refseqgene_variant'] == 'NG_029146.1:g.6299C>T'
         assert results['NM_182763.2:c.688+403C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_877495.1:p.?',
                                                                                              'slr': 'NP_877495.1:p.?'}
         assert results['NM_182763.2:c.688+403C>T']['hgvs_lrg_transcript_variant'] == ''
@@ -1658,7 +1658,8 @@ class TestVariantsAuto(TestCase):
             'vcf': {'chr': '1', 'pos': '150578440', 'ref': 'G', 'alt': 'A'}}
         assert results['NM_182763.2:c.688+403C>T']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_182763.2',
-            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_877495.1'}
+            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_877495.1',
+            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_029146.1'}
 
         assert 'NM_001197320.1:c.281C>T' in list(results.keys())
         assert results['NM_001197320.1:c.281C>T']['submitted_variant'] == '1:150550916G>A'
@@ -1668,7 +1669,7 @@ class TestVariantsAuto(TestCase):
         assert results['NM_001197320.1:c.281C>T']['hgvs_transcript_variant'] == 'NM_001197320.1:c.281C>T'
         assert results['NM_001197320.1:c.281C>T']['genome_context_intronic_sequence'] == ''
         assert results['NM_001197320.1:c.281C>T']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NM_001197320.1:c.281C>T']['hgvs_refseqgene_variant'] == ''
+        assert results['NM_001197320.1:c.281C>T']['hgvs_refseqgene_variant'] == 'NG_029146.1:g.6299C>T'
         assert results['NM_001197320.1:c.281C>T']['hgvs_predicted_protein_consequence'] == {
             'tlr': 'NP_001184249.1:p.(Ser94Phe)', 'slr': 'NP_001184249.1:p.(S94F)'}
         assert results['NM_001197320.1:c.281C>T']['hgvs_lrg_transcript_variant'] == ''
@@ -1688,7 +1689,8 @@ class TestVariantsAuto(TestCase):
             'vcf': {'chr': '1', 'pos': '150578440', 'ref': 'G', 'alt': 'A'}}
         assert results['NM_001197320.1:c.281C>T']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_001197320.1',
-            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_001184249.1'}
+            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_001184249.1',
+            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_029146.1'}
 
         assert 'NM_021960.4:c.740C>T' in list(results.keys())
         assert results['NM_021960.4:c.740C>T']['submitted_variant'] == '1:150550916G>A'
