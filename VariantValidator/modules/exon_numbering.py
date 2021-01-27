@@ -63,6 +63,7 @@ def check_variant(variant, genome_build='GRCh38'):
 
     if response_dictionary['flag'] == 'warning':  # Identifies warning on VV
         # Print the warnings out so the user knows what is causing the error
+        # This could be formatted better, so that it does not print as a list
         print(
             response_dictionary['validation_warning_1']['validation_warnings']
         )
