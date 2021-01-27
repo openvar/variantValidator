@@ -26,9 +26,14 @@ PARAMETERS = '?content-type=application/json'
 
 
 def request_sequence(base_url, server, variant_or_transcript, parameters):
-    '''
+    """
+    :param base_url: # ADD a description of the parameters please What are theu :)
+    :param server:
+    :param variant_or_transcript:
+    :param parameters:
+    :return:
     Function that calls an API and retrieves information
-    '''
+    """
     url = base_url + server + variant_or_transcript + parameters
 
     # Query the API and pass the object to the function
@@ -38,9 +43,13 @@ def request_sequence(base_url, server, variant_or_transcript, parameters):
 
 
 def check_variant(variant, genome_build):
-    '''
+    """
+
+    :param variant:
+    :param genome_build:
+    :return:
     Function that runs variant through VariantValidator Endpoint to validate
-    '''
+    """
     endpoint_url = genome_build + '/' + variant + '/all'
 
     response = request_sequence(BASE_URL_VV, SERVER_VARIANT, endpoint_url,
@@ -59,19 +68,17 @@ def check_variant(variant, genome_build):
 
 
 def finds_exon_number(variant, genome_build='GRCh38'):
-    '''
-    Function that finds and output exon numbering for a given variant
-
-        Parameters:
-                    variant (str): the variant in HGVS format
-                    genome_build (str): the genome build, default is GRCh38
-
-        Returns:
-                    exon_start_end_positions (dict): a dictionary of the
+    """
+    :param variant: (str): the variant in HGVS format
+    :param genome_build: genome_build (str): the genome build, default is GRCh38
+    :return: exon_start_end_positions (dict): a dictionary of the
                     exon/intron positions for the start and end of the given
                     variant for each aligned chromosomal or gene reference
                     sequence
-    '''
+
+    Function that finds and output exon numbering for a given variant
+    """
+
     # Validate variant
     check_variant(variant, genome_build)
 
@@ -117,7 +124,8 @@ def finds_exon_number(variant, genome_build='GRCh38'):
 
     # Create empty output dictionary
     exon_start_end_positions = {}
-    '''
+
+    """
     This for loop identifies the exon/intron number for the transcript
     variant for each aligned chromosomal or gene reference sequence
     It populates output dictionary with the aligned chromosomal and gene
@@ -125,7 +133,8 @@ def finds_exon_number(variant, genome_build='GRCh38'):
     Each of these keys has another dictionary as its value:
         keys: start_exon and end_exon
         values: start and position of variant in the reference sequence
-    '''
+    """
+
     for transcript in exon_structure_dict:
 
         for exon in exon_structure_dict[transcript]['exon_structure']:
@@ -140,8 +149,7 @@ def finds_exon_number(variant, genome_build='GRCh38'):
                     and '-' not in str(start_position)):
                 # This works for positions in exons
                 adj_start_position = int(start_position) + coding_start - 1
-                if (adj_start_position >= exon['transcript_start']
-                        and adj_start_position <= exon['transcript_end']):
+                if adj_start_position >= exon['transcript_start'] and adj_start_position <= exon['transcript_end']:
                     start_exon = str(exon['exon_number'])
 
             elif '+' in start_position:
@@ -163,8 +171,7 @@ def finds_exon_number(variant, genome_build='GRCh38'):
             if '+' not in str(end_position) and '-' not in str(end_position):
                 # This works for positions in exons
                 adj_end_position = int(end_position) + coding_start - 1
-                if (adj_end_position >= exon['transcript_start']
-                        and adj_end_position <= exon['transcript_end']):
+                if adj_end_position >= exon['transcript_start'] and adj_end_position <= exon['transcript_end']:
                     end_exon = str(exon['exon_number'])
 
             elif '+' in end_position:
