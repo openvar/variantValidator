@@ -1943,6 +1943,10 @@ class TestVariantsAuto(TestCase):
             'vcf': {'chr': 'HSCHR6_MHC_MCF_CTG1', 'pos': '3884432', 'ref': 'C', 'alt': 'G'}}}, {'hg19': {
             'hgvs_genomic_description': 'NT_167247.1:g.3884432C>G',
             'vcf': {'chr': 'chr6_mcf_hap5', 'pos': '3884432', 'ref': 'C', 'alt': 'G'}}}, {'grch38': {
+            'hgvs_genomic_description': 'NT_167247.2:g.3878847C>G', 
+            'vcf': {'chr': 'HSCHR6_MHC_MCF_CTG1', 'pos': '3878847', 'ref': 'C', 'alt': 'G'}}}, {'hg38': {
+            'hgvs_genomic_description': 'NT_167247.2:g.3878847C>G',
+            'vcf': {'chr': 'chr6_GL000254v2_alt', 'pos': '3878847', 'ref': 'C', 'alt': 'G'}}}, {'grch38': {
             'hgvs_genomic_description': 'NT_167246.2:g.3842538T>G',
             'vcf': {'chr': 'HSCHR6_MHC_MANN_CTG1', 'pos': '3842538', 'ref': 'T', 'alt': 'G'}}}, {'hg38': {
             'hgvs_genomic_description': 'NT_167246.2:g.3842538T>G',
