@@ -3425,7 +3425,11 @@ class TestVariantsAuto(TestCase):
             'hgvs_genomic_description': 'NW_004504303.2:g.302874_302875insTTT',
             'vcf': {'chr': 'HG1595_PATCH', 'pos': '302874', 'ref': 'G', 'alt': 'GTTT'}}}, {'hg19': {
             'hgvs_genomic_description': 'NW_004504303.2:g.302874_302875insTTT',
-            'vcf': {'chr': 'NW_004504303.2', 'pos': '302874', 'ref': 'G', 'alt': 'GTTT'}}}])
+            'vcf': {'chr': 'NW_004504303.2', 'pos': '302874', 'ref': 'G', 'alt': 'GTTT'}}}, {'grch38': {
+            'hgvs_genomic_description': 'NW_018654719.1:g.32647_32648insTTTCCACCG', 
+            'vcf': {'chr': 'HG2047_PATCH', 'pos': '32644', 'ref': 'C', 'alt': 'CCCGTTTCCA'}}}, {'hg38': {
+            'hgvs_genomic_description': 'NW_018654719.1:g.32647_32648insTTTCCACCG', 
+            'vcf': {'chr': 'NW_018654719.1', 'pos': '32644', 'ref': 'C', 'alt': 'CCCGTTTCCA'}}}])
         assert results['NM_032790.3:c.129_130insTTTCCACCG']['primary_assembly_loci']['hg19'] == {
             'hgvs_genomic_description': 'NC_000012.11:g.122064776_122064777insTTT',
             'vcf': {'chr': 'chr12', 'pos': '122064776', 'ref': 'G', 'alt': 'GTTT'}}
