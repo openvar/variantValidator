@@ -10876,8 +10876,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_012309.4:c.913-5058G>A']['hgvs_transcript_variant'] == 'NM_012309.4:c.913-5058G>A'
         assert results['NM_012309.4:c.913-5058G>A'][
                    'genome_context_intronic_sequence'] == 'NC_000011.10(NM_012309.4):c.913-5058G>A'
-        assert results['NM_012309.4:c.913-5058G>A']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NM_012309.4:c.913-5058G>A']['hgvs_refseqgene_variant'] == ''
+        assert results['NM_012309.4:c.913-5058G>A']['refseqgene_context_intronic_sequence'] == 'NG_042866.1(NM_012309.4):c.913-5058G>A'
+        assert results['NM_012309.4:c.913-5058G>A']['hgvs_refseqgene_variant'] == 'NG_042866.1:g.149464G>A'
         assert results['NM_012309.4:c.913-5058G>A']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_036441.2:p.?',
                                                                                               'slr': 'NP_036441.2:p.?'}
         assert results['NM_012309.4:c.913-5058G>A']['hgvs_lrg_transcript_variant'] == ''
@@ -10897,7 +10897,8 @@ class TestVariantsAuto(TestCase):
             'vcf': {'chr': '11', 'pos': '71080333', 'ref': 'C', 'alt': 'T'}}
         assert results['NM_012309.4:c.913-5058G>A']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_012309.4',
-            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_036441.2'}
+            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_036441.2',
+            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_042866.1'}
 
     def test_variant190(self):
         variant = 'LRG_199t1:c.2376[G>C];[G>C]'
