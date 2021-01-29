@@ -9586,7 +9586,7 @@ class TestVariantsAuto(TestCase):
         assert results['NM_007325.4:c.-2dup']['hgvs_transcript_variant'] == 'NM_007325.4:c.-2dup'
         assert results['NM_007325.4:c.-2dup']['genome_context_intronic_sequence'] == ''
         assert results['NM_007325.4:c.-2dup']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NM_007325.4:c.-2dup']['hgvs_refseqgene_variant'] == 'NG_009377.1:g.5292dup'
+        assert results['NM_007325.4:c.-2dup']['hgvs_refseqgene_variant'] == 'NG_009377.2:g.5292dup'
         assert results['NM_007325.4:c.-2dup']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_015564.4:p.?',
                                                                                         'slr': 'NP_015564.4:p.?'}
         assert results['NM_007325.4:c.-2dup']['hgvs_lrg_transcript_variant'] == ''
@@ -9607,7 +9607,7 @@ class TestVariantsAuto(TestCase):
         assert results['NM_007325.4:c.-2dup']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_007325.4',
             'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_015564.4',
-            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_009377.1'}
+            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_009377.2'}
 
         assert 'NM_000828.4:c.-2dup' in list(results.keys())
         assert results['NM_000828.4:c.-2dup']['submitted_variant'] == 'X-122318386-A-AGG'
