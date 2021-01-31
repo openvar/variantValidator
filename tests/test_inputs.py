@@ -15044,7 +15044,7 @@ class TestVariantsAuto(TestCase):
         assert results['NM_139318.4:c.2366G>T']['hgvs_transcript_variant'] == 'NM_139318.4:c.2366G>T'
         assert results['NM_139318.4:c.2366G>T']['genome_context_intronic_sequence'] == ''
         assert results['NM_139318.4:c.2366G>T']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NM_139318.4:c.2366G>T']['hgvs_refseqgene_variant'] == ''
+        assert results['NM_139318.4:c.2366G>T']['hgvs_refseqgene_variant'] == 'NG_034062.1:g.342130G>T'
         assert results['NM_139318.4:c.2366G>T']['hgvs_predicted_protein_consequence'] == {
             'tlr': 'NP_647479.2:p.(Gly789Val)', 'slr': 'NP_647479.2:p.(G789V)'}
         assert results['NM_139318.4:c.2366G>T']['hgvs_lrg_transcript_variant'] == ''
@@ -15064,7 +15064,8 @@ class TestVariantsAuto(TestCase):
             'vcf': {'chr': '14', 'pos': '62708109', 'ref': 'C', 'alt': 'A'}}
         assert results['NM_139318.4:c.2366G>T']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_139318.4',
-            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_647479.2'}
+            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_647479.2',
+            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_034062.1'}
 
         assert 'NM_139318.3:c.2366G>T' in list(results.keys())
         assert results['NM_139318.3:c.2366G>T']['submitted_variant'] == '14-63174827-C-A'
