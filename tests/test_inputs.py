@@ -25624,8 +25624,9 @@ class TestVariantsAuto(TestCase):
         assert results['NM_007159.4:c.1135+565del']['hgvs_transcript_variant'] == 'NM_007159.4:c.1135+565del'
         assert results['NM_007159.4:c.1135+565del'][
                    'genome_context_intronic_sequence'] == 'NC_000003.11(NM_007159.4):c.1135+565del'
-        assert results['NM_007159.4:c.1135+565del']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NM_007159.4:c.1135+565del']['hgvs_refseqgene_variant'] == ''
+        assert results['NM_007159.4:c.1135+565del'][
+                'refseqgene_context_intronic_sequence'] == 'NG_042789.1(NM_007159.4):c.1135+565del'
+        assert results['NM_007159.4:c.1135+565del']['hgvs_refseqgene_variant'] == 'NG_042789.1:g.113026del'
         assert results['NM_007159.4:c.1135+565del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_009090.2:p.?',
                                                                                               'slr': 'NP_009090.2:p.?'}
         assert results['NM_007159.4:c.1135+565del']['hgvs_lrg_transcript_variant'] == ''
@@ -25645,7 +25646,8 @@ class TestVariantsAuto(TestCase):
             'vcf': {'chr': '3', 'pos': '57865280', 'ref': 'AG', 'alt': 'A'}}
         assert results['NM_007159.4:c.1135+565del']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_007159.4',
-            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_009090.2'}
+            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_009090.2',
+            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_042789.1'}
 
         assert 'NM_007159.2:c.1135+565del' in list(results.keys())
         assert results['NM_007159.2:c.1135+565del']['submitted_variant'] == '3-57851007-AG-A'
