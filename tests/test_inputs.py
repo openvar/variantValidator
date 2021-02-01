@@ -20559,9 +20559,11 @@ class TestVariantsAuto(TestCase):
         assert results['NM_001136205.2:c.-16+588_-16+593del'][
                    'hgvs_transcript_variant'] == 'NM_001136205.2:c.-16+588_-16+593del'
         assert results['NM_001136205.2:c.-16+588_-16+593del'][
-                   'genome_context_intronic_sequence'] == 'NC_000018.9(NM_001136205.2):c.-16+588_-16+593del'
-        assert results['NM_001136205.2:c.-16+588_-16+593del']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NM_001136205.2:c.-16+588_-16+593del']['hgvs_refseqgene_variant'] == ''
+                'genome_context_intronic_sequence'] == 'NC_000018.9(NM_001136205.2):c.-16+588_-16+593del'
+        assert results['NM_001136205.2:c.-16+588_-16+593del'][
+                'refseqgene_context_intronic_sequence'] == 'NG_054919.1(NM_001136205.2):c.-16+588_-16+593del'
+        assert results['NM_001136205.2:c.-16+588_-16+593del'][
+                'hgvs_refseqgene_variant'] == 'NG_054919.1:g.114210_114215del'
         assert results['NM_001136205.2:c.-16+588_-16+593del']['hgvs_predicted_protein_consequence'] == {
             'tlr': 'NP_001129677.1:p.?', 'slr': 'NP_001129677.1:p.?'}
         assert results['NM_001136205.2:c.-16+588_-16+593del']['hgvs_lrg_transcript_variant'] == ''
@@ -20581,7 +20583,8 @@ class TestVariantsAuto(TestCase):
             'vcf': {'chr': '18', 'pos': '26548297', 'ref': 'GTCCTCC', 'alt': 'G'}}
         assert results['NM_001136205.2:c.-16+588_-16+593del']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_001136205.2',
-            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_001129677.1'}
+            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_001129677.1',
+            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_054919.1'}
 
         assert 'NM_001258222.2:c.10-47053_10-47048del' in list(results.keys())
         assert results['NM_001258222.2:c.10-47053_10-47048del']['submitted_variant'] == '18-24128261-GTCCTCC-G'
