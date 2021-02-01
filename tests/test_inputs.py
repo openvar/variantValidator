@@ -20693,33 +20693,43 @@ class TestVariantsAuto(TestCase):
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
 
-        assert results['flag'] == 'intergenic'
-        assert 'intergenic_variant_1' in list(results.keys())
-        assert results['intergenic_variant_1']['submitted_variant'] == '19-15311794-A-G'
-        assert results['intergenic_variant_1']['gene_symbol'] == ''
-        assert results['intergenic_variant_1']['gene_ids'] == {}
-        assert results['intergenic_variant_1']['hgvs_transcript_variant'] == ''
-        assert results['intergenic_variant_1']['genome_context_intronic_sequence'] == ''
-        assert results['intergenic_variant_1']['refseqgene_context_intronic_sequence'] == ''
-        assert results['intergenic_variant_1']['hgvs_refseqgene_variant'] == 'NG_009819.1:g.4999T>C'
-        assert results['intergenic_variant_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
-        assert results['intergenic_variant_1']['hgvs_lrg_transcript_variant'] == ''
-        assert results['intergenic_variant_1']['hgvs_lrg_variant'] == ''
-        self.assertCountEqual(results['intergenic_variant_1']['alt_genomic_loci'], [])
-        assert results['intergenic_variant_1']['primary_assembly_loci']['hg19'] == {
+        assert results['flag'] == 'gene_variant'
+        assert 'NM_000435.3:c.-78T>C' in list(results.keys())
+        assert results['NM_000435.3:c.-78T>C']['submitted_variant'] == '19-15311794-A-G'
+        assert results['NM_000435.3:c.-78T>C']['gene_symbol'] == 'NOTCH3'
+        assert results['NM_000435.3:c.-78T>C']['gene_ids'] == {
+                'entrez_gene_id': '4854',
+                'hgnc_id': 'HGNC:7883',
+                'omim_id': ['600276'],
+                'ucsc_id': 'uc002nan.4'}
+        assert results['NM_000435.3:c.-78T>C']['hgvs_transcript_variant'] == 'NM_000435.3:c.-78T>C'
+        assert results['NM_000435.3:c.-78T>C']['genome_context_intronic_sequence'] == ''
+        assert results['NM_000435.3:c.-78T>C']['refseqgene_context_intronic_sequence'] == ''
+        # this is not a mapping associated with the transcripts, and is probably only found with fallbacks
+        # specific to the 0 transcript case, we may need to add an new test to keep testing this function
+        #assert results['NM_000435.3:c.-78T>C']['hgvs_refseqgene_variant'] == 'NG_009819.1:g.4999T>C'
+        assert results['NM_000435.3:c.-78T>C']['hgvs_predicted_protein_consequence'] == {
+                'tlr': 'NP_000426.2:p.?', 
+                'slr': 'NP_000426.2:p.?'}
+        assert results['NM_000435.3:c.-78T>C']['hgvs_lrg_transcript_variant'] == ''
+        assert results['NM_000435.3:c.-78T>C']['hgvs_lrg_variant'] == ''
+        self.assertCountEqual(results['NM_000435.3:c.-78T>C']['alt_genomic_loci'], [])
+        assert results['NM_000435.3:c.-78T>C']['primary_assembly_loci']['hg19'] == {
             'hgvs_genomic_description': 'NC_000019.9:g.15311794A>G',
             'vcf': {'chr': 'chr19', 'pos': '15311794', 'ref': 'A', 'alt': 'G'}}
-        assert results['intergenic_variant_1']['primary_assembly_loci']['hg38'] == {
+        assert results['NM_000435.3:c.-78T>C']['primary_assembly_loci']['hg38'] == {
             'hgvs_genomic_description': 'NC_000019.10:g.15200983A>G',
             'vcf': {'chr': 'chr19', 'pos': '15200983', 'ref': 'A', 'alt': 'G'}}
-        assert results['intergenic_variant_1']['primary_assembly_loci']['grch37'] == {
+        assert results['NM_000435.3:c.-78T>C']['primary_assembly_loci']['grch37'] == {
             'hgvs_genomic_description': 'NC_000019.9:g.15311794A>G',
             'vcf': {'chr': '19', 'pos': '15311794', 'ref': 'A', 'alt': 'G'}}
-        assert results['intergenic_variant_1']['primary_assembly_loci']['grch38'] == {
+        assert results['NM_000435.3:c.-78T>C']['primary_assembly_loci']['grch38'] == {
             'hgvs_genomic_description': 'NC_000019.10:g.15200983A>G',
             'vcf': {'chr': '19', 'pos': '15200983', 'ref': 'A', 'alt': 'G'}}
-        assert results['intergenic_variant_1']['reference_sequence_records'] == {
-            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_009819.1'}
+        assert results['NM_000435.3:c.-78T>C']['reference_sequence_records'] == {
+            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_009819.1',
+            'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_000435.3',
+            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_000426.2'}
 
     def test_variant266(self):
         variant = '19-39076592-G-A'
