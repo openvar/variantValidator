@@ -28190,12 +28190,12 @@ class TestVariantsAuto(TestCase):
         assert results['NM_004333.4:c.1798_1799delinsAG']['genome_context_intronic_sequence'] == ''
         assert results['NM_004333.4:c.1798_1799delinsAG']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_004333.4:c.1798_1799delinsAG'][
-                   'hgvs_refseqgene_variant'] == 'NG_007873.2:g.176428_176429delinsAG'
+                   'hgvs_refseqgene_variant'] == 'NG_007873.3:g.176428_176429delinsAG'
         assert results['NM_004333.4:c.1798_1799delinsAG']['hgvs_predicted_protein_consequence'] == {
             'tlr': 'NP_004324.2:p.(Val600Arg)', 'slr': 'NP_004324.2:p.(V600R)'}
         assert results['NM_004333.4:c.1798_1799delinsAG'][
                    'hgvs_lrg_transcript_variant'] == 'LRG_299t1:c.1798_1799delinsAG'
-        assert results['NM_004333.4:c.1798_1799delinsAG']['hgvs_lrg_variant'] == ''
+        assert results['NM_004333.4:c.1798_1799delinsAG']['hgvs_lrg_variant'] == 'LRG_299:g.176428_176429delinsAG'
         self.assertCountEqual(results['NM_004333.4:c.1798_1799delinsAG']['alt_genomic_loci'], [])
         assert results['NM_004333.4:c.1798_1799delinsAG']['primary_assembly_loci']['hg19'] == {
             'hgvs_genomic_description': 'NC_000007.13:g.140453136_140453137delinsCT',
@@ -28212,39 +28212,10 @@ class TestVariantsAuto(TestCase):
         assert results['NM_004333.4:c.1798_1799delinsAG']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_004333.4',
             'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_004324.2',
-            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_007873.2'}
+            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_007873.3',
+            'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_299.xml'}
 
-        assert 'NR_148928.1:n.2896_2897delinsAG' in list(results.keys())
-        assert results['NR_148928.1:n.2896_2897delinsAG']['submitted_variant'] == '7-140453136-AC-CT'
-        assert results['NR_148928.1:n.2896_2897delinsAG']['gene_symbol'] == 'BRAF'
-        assert results['NR_148928.1:n.2896_2897delinsAG']['gene_ids'] == {'hgnc_id': 'HGNC:1097',
-                                                                          'entrez_gene_id': '673',
-                                                                          'ucsc_id': 'uc003vwc.5',
-                                                                          'omim_id': ['164757']}
-        assert results['NR_148928.1:n.2896_2897delinsAG'][
-                   'hgvs_transcript_variant'] == 'NR_148928.1:n.2896_2897delinsAG'
-        assert results['NR_148928.1:n.2896_2897delinsAG']['genome_context_intronic_sequence'] == ''
-        assert results['NR_148928.1:n.2896_2897delinsAG']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NR_148928.1:n.2896_2897delinsAG']['hgvs_refseqgene_variant'] == ''
-        assert results['NR_148928.1:n.2896_2897delinsAG']['hgvs_predicted_protein_consequence'] == {'tlr': '',
-                                                                                                    'slr': ''}
-        assert results['NR_148928.1:n.2896_2897delinsAG']['hgvs_lrg_transcript_variant'] == ''
-        assert results['NR_148928.1:n.2896_2897delinsAG']['hgvs_lrg_variant'] == ''
-        self.assertCountEqual(results['NR_148928.1:n.2896_2897delinsAG']['alt_genomic_loci'], [])
-        assert results['NR_148928.1:n.2896_2897delinsAG']['primary_assembly_loci']['hg19'] == {
-            'hgvs_genomic_description': 'NC_000007.13:g.140453136_140453137delinsCT',
-            'vcf': {'chr': 'chr7', 'pos': '140453136', 'ref': 'AC', 'alt': 'CT'}}
-        assert results['NR_148928.1:n.2896_2897delinsAG']['primary_assembly_loci']['hg38'] == {
-            'hgvs_genomic_description': 'NC_000007.14:g.140753336_140753337delinsCT',
-            'vcf': {'chr': 'chr7', 'pos': '140753336', 'ref': 'AC', 'alt': 'CT'}}
-        assert results['NR_148928.1:n.2896_2897delinsAG']['primary_assembly_loci']['grch37'] == {
-            'hgvs_genomic_description': 'NC_000007.13:g.140453136_140453137delinsCT',
-            'vcf': {'chr': '7', 'pos': '140453136', 'ref': 'AC', 'alt': 'CT'}}
-        assert results['NR_148928.1:n.2896_2897delinsAG']['primary_assembly_loci']['grch38'] == {
-            'hgvs_genomic_description': 'NC_000007.14:g.140753336_140753337delinsCT',
-            'vcf': {'chr': '7', 'pos': '140753336', 'ref': 'AC', 'alt': 'CT'}}
-        assert results['NR_148928.1:n.2896_2897delinsAG']['reference_sequence_records'] == {
-            'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NR_148928.1'}
+        #NR_148928 removed "insufficient support for the transcript"
 
     def test_variant303(self):
         variant = '7-140453136-A-T'
