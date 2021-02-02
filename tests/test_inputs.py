@@ -28050,11 +28050,11 @@ class TestVariantsAuto(TestCase):
         assert results['NM_000492.3:c.1521_1523del']['hgvs_transcript_variant'] == 'NM_000492.3:c.1521_1523del'
         assert results['NM_000492.3:c.1521_1523del']['genome_context_intronic_sequence'] == ''
         assert results['NM_000492.3:c.1521_1523del']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NM_000492.3:c.1521_1523del']['hgvs_refseqgene_variant'] == 'NG_016465.3:g.98809_98811del'
+        assert results['NM_000492.3:c.1521_1523del']['hgvs_refseqgene_variant'] == 'NG_016465.4:g.98809_98811del'
         assert results['NM_000492.3:c.1521_1523del']['hgvs_predicted_protein_consequence'] == {
             'tlr': 'NP_000483.3:p.(Phe508del)', 'slr': 'NP_000483.3:p.(F508del)'}
         assert results['NM_000492.3:c.1521_1523del']['hgvs_lrg_transcript_variant'] == 'LRG_663t1:c.1521_1523del'
-        assert results['NM_000492.3:c.1521_1523del']['hgvs_lrg_variant'] == ''
+        assert results['NM_000492.3:c.1521_1523del']['hgvs_lrg_variant'] == 'LRG_663:g.98809_98811del'
         self.assertCountEqual(results['NM_000492.3:c.1521_1523del']['alt_genomic_loci'], [])
         assert results['NM_000492.3:c.1521_1523del']['primary_assembly_loci']['hg19'] == {
             'hgvs_genomic_description': 'NC_000007.13:g.117199646_117199648del',
@@ -28071,7 +28071,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_000492.3:c.1521_1523del']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_000492.3',
             'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_000483.3',
-            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_016465.3'}
+            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_016465.4',
+            'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_663.xml'}
 
         assert 'NR_149084.1:n.221+1140_221+1142del' in list(results.keys())
         assert results['NR_149084.1:n.221+1140_221+1142del']['submitted_variant'] == '7-117199644-ATCT-A'
