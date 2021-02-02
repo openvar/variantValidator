@@ -28391,11 +28391,11 @@ class TestVariantsAuto(TestCase):
         assert results['NM_004333.4:c.1798G>A']['hgvs_transcript_variant'] == 'NM_004333.4:c.1798G>A'
         assert results['NM_004333.4:c.1798G>A']['genome_context_intronic_sequence'] == ''
         assert results['NM_004333.4:c.1798G>A']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NM_004333.4:c.1798G>A']['hgvs_refseqgene_variant'] == 'NG_007873.2:g.176428G>A'
+        assert results['NM_004333.4:c.1798G>A']['hgvs_refseqgene_variant'] == 'NG_007873.3:g.176428G>A'
         assert results['NM_004333.4:c.1798G>A']['hgvs_predicted_protein_consequence'] == {
             'tlr': 'NP_004324.2:p.(Val600Met)', 'slr': 'NP_004324.2:p.(V600M)'}
         assert results['NM_004333.4:c.1798G>A']['hgvs_lrg_transcript_variant'] == 'LRG_299t1:c.1798G>A'
-        assert results['NM_004333.4:c.1798G>A']['hgvs_lrg_variant'] == ''
+        assert results['NM_004333.4:c.1798G>A']['hgvs_lrg_variant'] == 'LRG_299:g.176428G>A'
         self.assertCountEqual(results['NM_004333.4:c.1798G>A']['alt_genomic_loci'], [])
         assert results['NM_004333.4:c.1798G>A']['primary_assembly_loci']['hg19'] == {
             'hgvs_genomic_description': 'NC_000007.13:g.140453137C>T',
@@ -28412,35 +28412,10 @@ class TestVariantsAuto(TestCase):
         assert results['NM_004333.4:c.1798G>A']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_004333.4',
             'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_004324.2',
-            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_007873.2'}
+            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_007873.3',
+            'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_299.xml'}
 
-        assert 'NR_148928.1:n.2896G>A' in list(results.keys())
-        assert results['NR_148928.1:n.2896G>A']['submitted_variant'] == '7-140453137-C-T'
-        assert results['NR_148928.1:n.2896G>A']['gene_symbol'] == 'BRAF'
-        assert results['NR_148928.1:n.2896G>A']['gene_ids'] == {'hgnc_id': 'HGNC:1097', 'entrez_gene_id': '673',
-                                                                'ucsc_id': 'uc003vwc.5', 'omim_id': ['164757']}
-        assert results['NR_148928.1:n.2896G>A']['hgvs_transcript_variant'] == 'NR_148928.1:n.2896G>A'
-        assert results['NR_148928.1:n.2896G>A']['genome_context_intronic_sequence'] == ''
-        assert results['NR_148928.1:n.2896G>A']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NR_148928.1:n.2896G>A']['hgvs_refseqgene_variant'] == ''
-        assert results['NR_148928.1:n.2896G>A']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
-        assert results['NR_148928.1:n.2896G>A']['hgvs_lrg_transcript_variant'] == ''
-        assert results['NR_148928.1:n.2896G>A']['hgvs_lrg_variant'] == ''
-        self.assertCountEqual(results['NR_148928.1:n.2896G>A']['alt_genomic_loci'], [])
-        assert results['NR_148928.1:n.2896G>A']['primary_assembly_loci']['hg19'] == {
-            'hgvs_genomic_description': 'NC_000007.13:g.140453137C>T',
-            'vcf': {'chr': 'chr7', 'pos': '140453137', 'ref': 'C', 'alt': 'T'}}
-        assert results['NR_148928.1:n.2896G>A']['primary_assembly_loci']['hg38'] == {
-            'hgvs_genomic_description': 'NC_000007.14:g.140753337C>T',
-            'vcf': {'chr': 'chr7', 'pos': '140753337', 'ref': 'C', 'alt': 'T'}}
-        assert results['NR_148928.1:n.2896G>A']['primary_assembly_loci']['grch37'] == {
-            'hgvs_genomic_description': 'NC_000007.13:g.140453137C>T',
-            'vcf': {'chr': '7', 'pos': '140453137', 'ref': 'C', 'alt': 'T'}}
-        assert results['NR_148928.1:n.2896G>A']['primary_assembly_loci']['grch38'] == {
-            'hgvs_genomic_description': 'NC_000007.14:g.140753337C>T',
-            'vcf': {'chr': '7', 'pos': '140753337', 'ref': 'C', 'alt': 'T'}}
-        assert results['NR_148928.1:n.2896G>A']['reference_sequence_records'] == {
-            'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NR_148928.1'}
+        #NR_148928 removed "insufficient support for the transcript"
 
     def test_variant305(self):
         variant = '7-143013488-A-T'
