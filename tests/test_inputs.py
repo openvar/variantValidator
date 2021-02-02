@@ -26877,11 +26877,12 @@ class TestVariantsAuto(TestCase):
         assert results['NM_033071.3:c.5950G>C']['hgvs_transcript_variant'] == 'NM_033071.3:c.5950G>C'
         assert results['NM_033071.3:c.5950G>C']['genome_context_intronic_sequence'] == ''
         assert results['NM_033071.3:c.5950G>C']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NM_033071.3:c.5950G>C']['hgvs_refseqgene_variant'] == 'NG_012855.1:g.225892G>C'
+        assert results['NM_033071.3:c.5950G>C']['hgvs_refseqgene_variant'] == 'NG_012855.2:g.225892G>C'
         assert results['NM_033071.3:c.5950G>C']['hgvs_predicted_protein_consequence'] == {
             'tlr': 'NP_149062.1:p.(Ala1984Pro)', 'slr': 'NP_149062.1:p.(A1984P)'}
         assert results['NM_033071.3:c.5950G>C']['hgvs_lrg_transcript_variant'] == 'LRG_427t2:c.5950G>C'
-        assert results['NM_033071.3:c.5950G>C']['hgvs_lrg_variant'] == 'LRG_427:g.225892G>C'
+        # RSG update breaks LRG linkage
+        assert results['NM_033071.3:c.5950G>C']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_033071.3:c.5950G>C']['alt_genomic_loci'], [])
         assert results['NM_033071.3:c.5950G>C']['primary_assembly_loci']['hg19'] == {
             'hgvs_genomic_description': 'NC_000006.11:g.152737643C>G',
@@ -26898,8 +26899,7 @@ class TestVariantsAuto(TestCase):
         assert results['NM_033071.3:c.5950G>C']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_033071.3',
             'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_149062.1',
-            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_012855.1',
-            'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/pending/LRG_427.xml'}
+            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_012855.2'}
 
     def test_variant296(self):
         variant = '7-6026775-T-C'
