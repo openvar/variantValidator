@@ -26582,35 +26582,42 @@ class TestVariantsAuto(TestCase):
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_001308122.1',
             'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_001295051.1'}
 
-        assert 'NM_003060.3:c.-75del' in list(results.keys())
-        assert results['NM_003060.3:c.-75del']['submitted_variant'] == '5-131705587-CG-C'
-        assert results['NM_003060.3:c.-75del']['gene_symbol'] == 'SLC22A5'
-        assert results['NM_003060.3:c.-75del']['gene_ids'] == {'hgnc_id': 'HGNC:10969', 'entrez_gene_id': '6584',
+        # NM_003060.3 to NC_000005.9 mapping removed from dataset, due to differing exon positions 
+        # for the NC_000005.10 mapping, which the UTA mishandles. Recovery looks be possible, for
+        # this specific set but, given the broken data which has been seen for this type of case, 
+        # it would be hard/imposoble to know which sets where good to recover, as such it is not 
+        # attempted. instead update to NM_003060.4, if NM_003060.3 was still current this data would
+        # be replaced by fresh safe data.
+        assert 'NM_003060.4:c.-75del' in list(results.keys())
+        assert results['NM_003060.4:c.-75del']['submitted_variant'] == '5-131705587-CG-C'
+        assert results['NM_003060.4:c.-75del']['gene_symbol'] == 'SLC22A5'
+        assert results['NM_003060.4:c.-75del']['gene_ids'] == {'hgnc_id': 'HGNC:10969', 'entrez_gene_id': '6584',
                                                                'ucsc_id': 'uc003kww.5', 'omim_id': ['603377']}
-        assert results['NM_003060.3:c.-75del']['hgvs_transcript_variant'] == 'NM_003060.3:c.-75del'
-        assert results['NM_003060.3:c.-75del']['genome_context_intronic_sequence'] == ''
-        assert results['NM_003060.3:c.-75del']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NM_003060.3:c.-75del']['hgvs_refseqgene_variant'] == ''
-        assert results['NM_003060.3:c.-75del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003051.1:p.?',
+        assert results['NM_003060.4:c.-75del']['hgvs_transcript_variant'] == 'NM_003060.4:c.-75del'
+        assert results['NM_003060.4:c.-75del']['genome_context_intronic_sequence'] == ''
+        assert results['NM_003060.4:c.-75del']['refseqgene_context_intronic_sequence'] == ''
+        assert results['NM_003060.4:c.-75del']['hgvs_refseqgene_variant'] == 'NG_008982.2:g.5195del'
+        assert results['NM_003060.4:c.-75del']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_003051.1:p.?',
                                                                                          'slr': 'NP_003051.1:p.?'}
-        assert results['NM_003060.3:c.-75del']['hgvs_lrg_transcript_variant'] == ''
-        assert results['NM_003060.3:c.-75del']['hgvs_lrg_variant'] == ''
-        self.assertCountEqual(results['NM_003060.3:c.-75del']['alt_genomic_loci'], [])
-        assert results['NM_003060.3:c.-75del']['primary_assembly_loci']['hg19'] == {
+        assert results['NM_003060.4:c.-75del']['hgvs_lrg_transcript_variant'] == ''
+        assert results['NM_003060.4:c.-75del']['hgvs_lrg_variant'] == ''
+        self.assertCountEqual(results['NM_003060.4:c.-75del']['alt_genomic_loci'], [])
+        assert results['NM_003060.4:c.-75del']['primary_assembly_loci']['hg19'] == {
             'hgvs_genomic_description': 'NC_000005.9:g.131705590del',
             'vcf': {'chr': 'chr5', 'pos': '131705587', 'ref': 'CG', 'alt': 'C'}}
-        assert results['NM_003060.3:c.-75del']['primary_assembly_loci']['hg38'] == {
+        assert results['NM_003060.4:c.-75del']['primary_assembly_loci']['hg38'] == {
             'hgvs_genomic_description': 'NC_000005.10:g.132369898del',
             'vcf': {'chr': 'chr5', 'pos': '132369895', 'ref': 'CG', 'alt': 'C'}}
-        assert results['NM_003060.3:c.-75del']['primary_assembly_loci']['grch37'] == {
+        assert results['NM_003060.4:c.-75del']['primary_assembly_loci']['grch37'] == {
             'hgvs_genomic_description': 'NC_000005.9:g.131705590del',
             'vcf': {'chr': '5', 'pos': '131705587', 'ref': 'CG', 'alt': 'C'}}
-        assert results['NM_003060.3:c.-75del']['primary_assembly_loci']['grch38'] == {
+        assert results['NM_003060.4:c.-75del']['primary_assembly_loci']['grch38'] == {
             'hgvs_genomic_description': 'NC_000005.10:g.132369898del',
             'vcf': {'chr': '5', 'pos': '132369895', 'ref': 'CG', 'alt': 'C'}}
-        assert results['NM_003060.3:c.-75del']['reference_sequence_records'] == {
-            'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_003060.3',
-            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_003051.1'}
+        assert results['NM_003060.4:c.-75del']['reference_sequence_records'] == {
+            'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_003060.4',
+            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_003051.1',
+            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_008982.2'}
 
         assert 'NR_110997.1:n.21del' in list(results.keys())
         assert results['NR_110997.1:n.21del']['submitted_variant'] == '5-131705587-CG-C'
