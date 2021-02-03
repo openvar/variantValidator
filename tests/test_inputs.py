@@ -29395,7 +29395,7 @@ class TestVariantsAuto(TestCase):
         assert results['NM_012309.4:c.2566C>T']['hgvs_transcript_variant'] == 'NM_012309.4:c.2566C>T'
         assert results['NM_012309.4:c.2566C>T']['genome_context_intronic_sequence'] == ''
         assert results['NM_012309.4:c.2566C>T']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NM_012309.4:c.2566C>T']['hgvs_refseqgene_variant'] == ''
+        assert results['NM_012309.4:c.2566C>T']['hgvs_refseqgene_variant'] == 'NG_042866.1:g.640463C>T'
         assert results['NM_012309.4:c.2566C>T']['hgvs_predicted_protein_consequence'] == {
             'tlr': 'NP_036441.2:p.(Leu856=)', 'slr': 'NP_036441.2:p.(L856=)'}
         assert results['NM_012309.4:c.2566C>T']['hgvs_lrg_transcript_variant'] == ''
@@ -29405,21 +29405,24 @@ class TestVariantsAuto(TestCase):
             'vcf': {'chr': 'HG865_PATCH', 'pos': '33547', 'ref': 'G', 'alt': 'A'}}}, {'hg19': {
             'hgvs_genomic_description': 'NW_004070871.1:g.33547G>A',
             'vcf': {'chr': 'NW_004070871.1', 'pos': '33547', 'ref': 'G', 'alt': 'A'}}}])
+        # With clean data NM_012309.4 maps to NC_000011.9:g.7033*5439*G>A as for NR_110766, not
+        # 7033*6423* as before.
         assert results['NM_012309.4:c.2566C>T']['primary_assembly_loci']['hg19'] == {
-            'hgvs_genomic_description': 'NC_000011.9:g.70336423G>A',
-            'vcf': {'chr': 'chr11', 'pos': '70336423', 'ref': 'G', 'alt': 'A'}}
+            'hgvs_genomic_description': 'NC_000011.9:g.70335439G>A',
+            'vcf': {'chr': 'chr11', 'pos': '70335439', 'ref': 'G', 'alt': 'A'}}
         assert results['NM_012309.4:c.2566C>T']['primary_assembly_loci']['hg38'] == {
             'hgvs_genomic_description': 'NC_000011.10:g.70489334G>A',
             'vcf': {'chr': 'chr11', 'pos': '70489334', 'ref': 'G', 'alt': 'A'}}
         assert results['NM_012309.4:c.2566C>T']['primary_assembly_loci']['grch37'] == {
-            'hgvs_genomic_description': 'NC_000011.9:g.70336423G>A',
-            'vcf': {'chr': '11', 'pos': '70336423', 'ref': 'G', 'alt': 'A'}}
+            'hgvs_genomic_description': 'NC_000011.9:g.70335439G>A',
+            'vcf': {'chr': '11', 'pos': '70335439', 'ref': 'G', 'alt': 'A'}}
         assert results['NM_012309.4:c.2566C>T']['primary_assembly_loci']['grch38'] == {
             'hgvs_genomic_description': 'NC_000011.10:g.70489334G>A',
             'vcf': {'chr': '11', 'pos': '70489334', 'ref': 'G', 'alt': 'A'}}
         assert results['NM_012309.4:c.2566C>T']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_012309.4',
-            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_036441.2'}
+            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_036441.2',
+            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_042866.1'}
 
         assert 'NM_133266.3:c.802C>T' in list(results.keys())
         assert results['NM_133266.3:c.802C>T']['submitted_variant'] == 'HG865_PATCH-33547-G-A'
