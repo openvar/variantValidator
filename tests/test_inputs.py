@@ -30310,7 +30310,8 @@ class TestVariantsAuto(TestCase):
                    'hgvs_transcript_variant'] == 'NM_000885.5:c.*2536delinsAGAAAAATCA'
         assert results['NM_000885.5:c.*2536delinsAGAAAAATCA']['genome_context_intronic_sequence'] == ''
         assert results['NM_000885.5:c.*2536delinsAGAAAAATCA']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NM_000885.5:c.*2536delinsAGAAAAATCA']['hgvs_refseqgene_variant'] == ''
+        assert results['NM_000885.5:c.*2536delinsAGAAAAATCA'][
+            'hgvs_refseqgene_variant'] == 'NG_050623.1:g.86172delinsAGAAAAATCA'
         assert results['NM_000885.5:c.*2536delinsAGAAAAATCA']['hgvs_predicted_protein_consequence'] == {
             'tlr': 'NP_000876.3:p.?', 'slr': 'NP_000876.3:p.?'}
         assert results['NM_000885.5:c.*2536delinsAGAAAAATCA']['hgvs_lrg_transcript_variant'] == ''
@@ -30330,7 +30331,8 @@ class TestVariantsAuto(TestCase):
             'vcf': {'chr': '2', 'pos': '181538063', 'ref': 'G', 'alt': 'AGAAAAATCA'}}
         assert results['NM_000885.5:c.*2536delinsAGAAAAATCA']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_000885.5',
-            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_000876.3'}
+            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_000876.3',
+            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_050623.1'}
 
     def test_variant331(self):
         variant = 'NM_002693.2:c.-186_-185delinsCC'
