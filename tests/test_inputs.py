@@ -30612,13 +30612,14 @@ class TestVariantsAuto(TestCase):
         assert results['NM_000492.3:c.1210-7_1210-6dup'][
                    'genome_context_intronic_sequence'] == 'NC_000007.13(NM_000492.3):c.1210-7_1210-6dup'
         assert results['NM_000492.3:c.1210-7_1210-6dup'][
-                   'refseqgene_context_intronic_sequence'] == 'NG_016465.3(NM_000492.3):c.1210-7_1210-6dup'
-        assert results['NM_000492.3:c.1210-7_1210-6dup']['hgvs_refseqgene_variant'] == 'NG_016465.3:g.87851_87852dup'
+                   'refseqgene_context_intronic_sequence'] == 'NG_016465.4(NM_000492.3):c.1210-7_1210-6dup'
+        assert results['NM_000492.3:c.1210-7_1210-6dup']['hgvs_refseqgene_variant'] == 'NG_016465.4:g.87851_87852dup'
         assert results['NM_000492.3:c.1210-7_1210-6dup']['hgvs_predicted_protein_consequence'] == {
             'tlr': 'NP_000483.3:p.?', 'slr': 'NP_000483.3:p.?'}
         assert results['NM_000492.3:c.1210-7_1210-6dup'][
                    'hgvs_lrg_transcript_variant'] == 'LRG_663t1:c.1210-7_1210-6dup'
-        assert results['NM_000492.3:c.1210-7_1210-6dup']['hgvs_lrg_variant'] == ''
+        assert results['NM_000492.3:c.1210-7_1210-6dup'][
+                    'hgvs_lrg_variant'] == 'LRG_663:g.87851_87852dup'
         self.assertCountEqual(results['NM_000492.3:c.1210-7_1210-6dup']['alt_genomic_loci'], [])
         assert results['NM_000492.3:c.1210-7_1210-6dup']['primary_assembly_loci']['hg19'] == {
             'hgvs_genomic_description': 'NC_000007.13:g.117188688_117188689dup',
@@ -30635,7 +30636,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_000492.3:c.1210-7_1210-6dup']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_000492.3',
             'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_000483.3',
-            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_016465.3'}
+            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_016465.4',
+            'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_663.xml'}
 
     def test_variant336(self):
         variant = 'NM_000088.3:c.589-18_589-14delinsTTTTTTTTTT'
