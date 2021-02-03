@@ -29691,7 +29691,11 @@ class TestVariantsAuto(TestCase):
             'hgvs_genomic_description': 'NT_167246.1:g.3851043C>A',
             'vcf': {'chr': 'HSCHR6_MHC_MANN_CTG1', 'pos': '3851043', 'ref': 'C', 'alt': 'A'}}}, {'hg19': {
             'hgvs_genomic_description': 'NT_167246.1:g.3851043C>A',
-            'vcf': {'chr': 'chr6_mann_hap4', 'pos': '3851043', 'ref': 'C', 'alt': 'A'}}}])
+            'vcf': {'chr': 'chr6_mann_hap4', 'pos': '3851043', 'ref': 'C', 'alt': 'A'}}}, {'grch38': {
+            'hgvs_genomic_description': 'NT_167247.2:g.3881728C>A',
+            'vcf': {'chr': 'HSCHR6_MHC_MCF_CTG1', 'pos': '3881728', 'ref': 'C', 'alt': 'A'}}}, {'hg38': {
+            'hgvs_genomic_description': 'NT_167247.2:g.3881728C>A',
+            'vcf': {'chr': 'chr6_GL000254v2_alt', 'pos': '3881728', 'ref': 'C', 'alt': 'A'}}}])
         # assert 'hg19' not in list(results['NM_021983.4:c.346G>T']['primary_assembly_loci'].keys())
         # # assert 'hg38' not in list(results['NM_021983.4:c.346G>T']['primary_assembly_loci'].keys())
         # assert 'grch37' not in list(results['NM_021983.4:c.346G>T']['primary_assembly_loci'].keys())
