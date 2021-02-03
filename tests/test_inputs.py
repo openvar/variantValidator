@@ -30352,12 +30352,13 @@ class TestVariantsAuto(TestCase):
         assert results['NM_002693.2:c.-186_-185delinsCC']['genome_context_intronic_sequence'] == ''
         assert results['NM_002693.2:c.-186_-185delinsCC']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_002693.2:c.-186_-185delinsCC'][
-                   'hgvs_refseqgene_variant'] == 'NG_008218.1:g.5097_5098delinsCC'
+                   'hgvs_refseqgene_variant'] == 'NG_008218.2:g.5097_5098delinsCC'
         assert results['NM_002693.2:c.-186_-185delinsCC']['hgvs_predicted_protein_consequence'] == {
             'tlr': 'NP_002684.1:p.?', 'slr': 'NP_002684.1:p.?'}
         assert results['NM_002693.2:c.-186_-185delinsCC'][
                    'hgvs_lrg_transcript_variant'] == 'LRG_765t1:c.-186_-185delinsCC'
-        assert results['NM_002693.2:c.-186_-185delinsCC']['hgvs_lrg_variant'] == ''
+        assert results['NM_002693.2:c.-186_-185delinsCC'][
+                    'hgvs_lrg_variant'] == 'LRG_765:g.5097_5098delinsCC'
         self.assertCountEqual(results['NM_002693.2:c.-186_-185delinsCC']['alt_genomic_loci'], [])
         assert results['NM_002693.2:c.-186_-185delinsCC']['primary_assembly_loci']['hg19'] == {
             'hgvs_genomic_description': 'NC_000015.9:g.89877929_89877930delinsGG',
@@ -30374,7 +30375,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_002693.2:c.-186_-185delinsCC']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_002693.2',
             'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_002684.1',
-            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_008218.1'}
+            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_008218.2',
+            'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_765.xml'}
 
     def test_variant332(self):
         variant = 'NG_009616.1:g.29052_29053insCTACATAG'
