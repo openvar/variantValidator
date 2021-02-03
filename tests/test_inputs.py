@@ -29502,7 +29502,7 @@ class TestVariantsAuto(TestCase):
         assert results['NM_012309.4:c.960C>A']['hgvs_transcript_variant'] == 'NM_012309.4:c.960C>A'
         assert results['NM_012309.4:c.960C>A']['genome_context_intronic_sequence'] == ''
         assert results['NM_012309.4:c.960C>A']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NM_012309.4:c.960C>A']['hgvs_refseqgene_variant'] == ''
+        assert results['NM_012309.4:c.960C>A']['hgvs_refseqgene_variant'] == 'NG_042866.1:g.154569C>A'
         assert results['NM_012309.4:c.960C>A']['hgvs_predicted_protein_consequence'] == {
             'tlr': 'NP_036441.2:p.(Tyr320Ter)', 'slr': 'NP_036441.2:p.(Y320*)'}
         assert results['NM_012309.4:c.960C>A']['hgvs_lrg_transcript_variant'] == ''
@@ -29522,7 +29522,8 @@ class TestVariantsAuto(TestCase):
             'vcf': {'chr': '11', 'pos': '71075228', 'ref': 'G', 'alt': 'T'}}
         assert results['NM_012309.4:c.960C>A']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_012309.4',
-            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_036441.2'}
+            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_036441.2',
+            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_042866.1'}
 
     def test_variant316(self):
         variant = 'HG865_PATCH-574546-C-T'
