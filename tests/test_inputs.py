@@ -28825,7 +28825,7 @@ class TestVariantsAuto(TestCase):
         assert results['NM_003829.4:c.5603dup']['hgvs_transcript_variant'] == 'NM_003829.4:c.5603dup'
         assert results['NM_003829.4:c.5603dup']['genome_context_intronic_sequence'] == ''
         assert results['NM_003829.4:c.5603dup']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NM_003829.4:c.5603dup']['hgvs_refseqgene_variant'] == ''
+        assert results['NM_003829.4:c.5603dup']['hgvs_refseqgene_variant'] == 'NG_042810.1:g.172507dup'
         assert results['NM_003829.4:c.5603dup']['hgvs_predicted_protein_consequence'] == {
             'tlr': 'NP_003820.2:p.(Thr1869AsnfsTer15)', 'slr': 'NP_003820.2:p.(T1869Nfs*15)'}
         assert results['NM_003829.4:c.5603dup']['hgvs_lrg_transcript_variant'] == ''
@@ -28845,7 +28845,8 @@ class TestVariantsAuto(TestCase):
             'vcf': {'chr': '9', 'pos': '13112057', 'ref': 'T', 'alt': 'TG'}}
         assert results['NM_003829.4:c.5603dup']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_003829.4',
-            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_003820.2'}
+            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_003820.2',
+            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_042810.1'}
 
         assert 'NM_001330637.1:c.5690dup' in list(results.keys())
         assert results['NM_001330637.1:c.5690dup']['submitted_variant'] == '9-13112056-T-TG'
