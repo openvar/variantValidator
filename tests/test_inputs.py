@@ -5688,14 +5688,14 @@ class TestVariantsAuto(TestCase):
             'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_001243576.1'}
 
     def test_variant108(self):
-        variant = 'NC_000007.14:g.149779575_149779577delinsT'
+        #variant = 'NC_000007.14:g.149779575_149779577delinsT'
+        variant ='NM_198455.2:c.1115_1116insT'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
 
         assert results['flag'] == 'gene_variant'
         assert 'NM_198455.2:c.1115_1116insT' in list(results.keys())
-        assert results['NM_198455.2:c.1115_1116insT'][
-                   'submitted_variant'] == 'NC_000007.14:g.149779575_149779577delinsT'
+        assert results['NM_198455.2:c.1115_1116insT']['submitted_variant'] == 'NM_198455.2:c.1115_1116insT'
         assert results['NM_198455.2:c.1115_1116insT']['gene_symbol'] == 'SSPOP'
         assert results['NM_198455.2:c.1115_1116insT']['gene_ids'] == {'hgnc_id': 'HGNC:21998',
                                                                       'entrez_gene_id': '23145',
