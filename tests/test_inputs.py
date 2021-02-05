@@ -230,40 +230,49 @@ class TestVariantsAuto(TestCase):
             'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_199.xml'}
 
     def test_variant6(self):
-        variant = 'NM_001145026.1:c.715A>G'
+        variant = 'NM_001145026.2:c.715A>G'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
 
         assert results['flag'] == 'gene_variant'
-        assert 'NM_001145026.1:c.715A>G' in list(results.keys())
-        assert results['NM_001145026.1:c.715A>G']['submitted_variant'] == 'NM_001145026.1:c.715A>G'
-        assert results['NM_001145026.1:c.715A>G']['gene_symbol'] == 'PTPRQ'
-        assert results['NM_001145026.1:c.715A>G']['gene_ids'] == {'hgnc_id': 'HGNC:9679', 'entrez_gene_id': '374462',
+        assert 'NM_001145026.2:c.715A>G' in list(results.keys())
+        assert results['NM_001145026.2:c.715A>G']['submitted_variant'] == 'NM_001145026.2:c.715A>G'
+        assert results['NM_001145026.2:c.715A>G']['gene_symbol'] == 'PTPRQ'
+        assert results['NM_001145026.2:c.715A>G']['gene_ids'] == {'hgnc_id': 'HGNC:9679', 'entrez_gene_id': '374462',
                                                                   'ucsc_id': 'uc031zgj.2', 'omim_id': ['603317']}
-        assert results['NM_001145026.1:c.715A>G']['hgvs_transcript_variant'] == 'NM_001145026.1:c.715A>G'
-        assert results['NM_001145026.1:c.715A>G']['genome_context_intronic_sequence'] == ''
-        assert results['NM_001145026.1:c.715A>G']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NM_001145026.1:c.715A>G']['hgvs_refseqgene_variant'] == ''
-        assert results['NM_001145026.1:c.715A>G']['hgvs_predicted_protein_consequence'] == {
+        assert results['NM_001145026.2:c.715A>G']['hgvs_transcript_variant'] == 'NM_001145026.2:c.715A>G'
+        assert results['NM_001145026.2:c.715A>G']['genome_context_intronic_sequence'] == ''
+        assert results['NM_001145026.2:c.715A>G']['refseqgene_context_intronic_sequence'] == ''
+        assert results['NM_001145026.2:c.715A>G']['hgvs_refseqgene_variant'] == 'NG_034052.1:g.21362A>G'
+        assert results['NM_001145026.2:c.715A>G']['hgvs_predicted_protein_consequence'] == {
             'tlr': 'NP_001138498.1:p.(Arg239Gly)', 'slr': 'NP_001138498.1:p.(R239G)'}
-        assert results['NM_001145026.1:c.715A>G']['hgvs_lrg_transcript_variant'] == ''
-        assert results['NM_001145026.1:c.715A>G']['hgvs_lrg_variant'] == ''
-        self.assertCountEqual(results['NM_001145026.1:c.715A>G']['alt_genomic_loci'], [])
-        assert results['NM_001145026.1:c.715A>G']['primary_assembly_loci']['hg19'] == {
-            'hgvs_genomic_description': 'NC_000012.11:g.80860617_80860618insG',
-            'vcf': {'chr': 'chr12', 'pos': '80860617', 'ref': 'C', 'alt': 'CG'}}
-        assert results['NM_001145026.1:c.715A>G']['primary_assembly_loci']['hg38'] == {
+        assert results['NM_001145026.2:c.715A>G']['hgvs_lrg_transcript_variant'] == ''
+        assert results['NM_001145026.2:c.715A>G']['hgvs_lrg_variant'] == ''
+        self.assertCountEqual(results['NM_001145026.2:c.715A>G']['alt_genomic_loci'], [])
+        # The .1->.2 update (required due to suspect alignment purging) changes the C->CG
+        # to a dup. The original mapping hits the start of exon 6 within a 'deletion' wrt
+        # transcript, which has been split across the intron. The new mapping also hits
+        #'deletion' but gathered at the end of exon 5, the start/end of the ins is then
+        # mapped to the genome as an ins across the exon boundary and, since the last base
+        # of the ins span is == the ins, this is then normalised to a dup 1 base outside 
+        # of the transcript mapping. This may change without being incorrect, if mapping 
+        # / normalisation is altered, or data is updated again. 
+        assert results['NM_001145026.2:c.715A>G']['primary_assembly_loci']['hg19'] == {
+            'hgvs_genomic_description': 'NC_000012.11:g.80849322dup',
+            'vcf': {'chr': 'chr12', 'pos': '80849321', 'ref': 'A', 'alt': 'AG'}}
+        assert results['NM_001145026.2:c.715A>G']['primary_assembly_loci']['hg38'] == {
             'hgvs_genomic_description': 'NC_000012.12:g.80460707A>G',
             'vcf': {'chr': 'chr12', 'pos': '80460707', 'ref': 'A', 'alt': 'G'}}
-        assert results['NM_001145026.1:c.715A>G']['primary_assembly_loci']['grch37'] == {
-            'hgvs_genomic_description': 'NC_000012.11:g.80860617_80860618insG',
-            'vcf': {'chr': '12', 'pos': '80860617', 'ref': 'C', 'alt': 'CG'}}
-        assert results['NM_001145026.1:c.715A>G']['primary_assembly_loci']['grch38'] == {
+        assert results['NM_001145026.2:c.715A>G']['primary_assembly_loci']['grch37'] == {
+            'hgvs_genomic_description': 'NC_000012.11:g.80849322dup',
+            'vcf': {'chr': '12', 'pos': '80849321', 'ref': 'A', 'alt': 'AG'}}
+        assert results['NM_001145026.2:c.715A>G']['primary_assembly_loci']['grch38'] == {
             'hgvs_genomic_description': 'NC_000012.12:g.80460707A>G',
             'vcf': {'chr': '12', 'pos': '80460707', 'ref': 'A', 'alt': 'G'}}
-        assert results['NM_001145026.1:c.715A>G']['reference_sequence_records'] == {
-            'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_001145026.1',
-            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_001138498.1'}
+        assert results['NM_001145026.2:c.715A>G']['reference_sequence_records'] == {
+            'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_001145026.2',
+            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_001138498.1',
+            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_034052.1'}
 
     def test_variant7(self):
         variant = 'NC_000016.9:g.2099572TC>T'
