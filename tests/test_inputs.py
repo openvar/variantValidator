@@ -25862,7 +25862,7 @@ class TestVariantsAuto(TestCase):
         assert results['NM_001349798.1:c.45_46insCCT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001349798.1:c.45_46insCCT']['hgvs_refseqgene_variant'] == ''
         assert results['NM_001349798.1:c.45_46insCCT']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_361014.1:p.(Thr15_Gly16insPro)', 'slr': 'NP_361014.1:p.(T15_G16insP)'}
+            'tlr': 'NP_001336727.1:p.(Thr15_Gly16insPro)', 'slr': 'NP_001336727.1:p.(T15_G16insP)'}
         assert results['NM_001349798.1:c.45_46insCCT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001349798.1:c.45_46insCCT']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_001349798.1:c.45_46insCCT']['alt_genomic_loci'], [])
@@ -25880,7 +25880,7 @@ class TestVariantsAuto(TestCase):
             'vcf': {'chr': '4', 'pos': '152411758', 'ref': 'C', 'alt': 'CAGG'}}
         assert results['NM_001349798.1:c.45_46insCCT']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_001349798.1',
-            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_361014.1'}
+            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_001336727.1'}
 
         assert 'NM_001257069.1:c.45_46insCCT' in list(results.keys())
         assert results['NM_001257069.1:c.45_46insCCT']['submitted_variant'] == '4-153332910-C-CAGG'
@@ -25922,11 +25922,11 @@ class TestVariantsAuto(TestCase):
         assert results['NM_001349798.2:c.45_46insCCT']['hgvs_transcript_variant'] == 'NM_001349798.2:c.45_46insCCT'
         assert results['NM_001349798.2:c.45_46insCCT']['genome_context_intronic_sequence'] == ''
         assert results['NM_001349798.2:c.45_46insCCT']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NM_001349798.2:c.45_46insCCT']['hgvs_refseqgene_variant'] == ''
+        assert results['NM_001349798.2:c.45_46insCCT']['hgvs_refseqgene_variant'] == 'NG_029466.2:g.130115_130116insCCT'
         assert results['NM_001349798.2:c.45_46insCCT']['hgvs_predicted_protein_consequence'] == {
             'tlr': 'NP_001336727.1:p.(Thr15_Gly16insPro)', 'slr': 'NP_001336727.1:p.(T15_G16insP)'}
         assert results['NM_001349798.2:c.45_46insCCT']['hgvs_lrg_transcript_variant'] == 'LRG_1141t1:c.45_46insCCT'
-        assert results['NM_001349798.2:c.45_46insCCT']['hgvs_lrg_variant'] == ''
+        assert results['NM_001349798.2:c.45_46insCCT']['hgvs_lrg_variant'] == 'LRG_1141:g.130115_130116insCCT'
         self.assertCountEqual(results['NM_001349798.2:c.45_46insCCT']['alt_genomic_loci'], [])
         assert results['NM_001349798.2:c.45_46insCCT']['primary_assembly_loci']['hg19'] == {
             'hgvs_genomic_description': 'NC_000004.11:g.153332912_153332913insGAG',
@@ -25938,7 +25938,9 @@ class TestVariantsAuto(TestCase):
         # assert 'grch38' not in list(results['NM_001349798.2:c.45_46insCCT']['primary_assembly_loci'].keys())
         assert results['NM_001349798.2:c.45_46insCCT']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_001349798.2',
-            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_001336727.1'}
+            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_001336727.1',
+            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_029466.2',
+            'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_1141.xml'}
 
         assert 'NM_033632.3:c.45_46insCCT' in list(results.keys())
         assert results['NM_033632.3:c.45_46insCCT']['submitted_variant'] == '4-153332910-C-CAGG'
