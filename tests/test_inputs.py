@@ -12949,11 +12949,11 @@ class TestVariantsAuto(TestCase):
         assert results['NM_032667.6:c.1184G>T']['hgvs_transcript_variant'] == 'NM_032667.6:c.1184G>T'
         assert results['NM_032667.6:c.1184G>T']['genome_context_intronic_sequence'] == ''
         assert results['NM_032667.6:c.1184G>T']['refseqgene_context_intronic_sequence'] == ''
-        assert results['NM_032667.6:c.1184G>T']['hgvs_refseqgene_variant'] == ''
+        assert results['NM_032667.6:c.1184G>T']['hgvs_refseqgene_variant'] == 'NG_008461.1:g.24195G>T'
         assert results['NM_032667.6:c.1184G>T']['hgvs_predicted_protein_consequence'] == {
             'tlr': 'NP_116056.3:p.(Cys395Phe)', 'slr': 'NP_116056.3:p.(C395F)'}
         assert results['NM_032667.6:c.1184G>T']['hgvs_lrg_transcript_variant'] == 'LRG_235t2:c.1184G>T'
-        assert results['NM_032667.6:c.1184G>T']['hgvs_lrg_variant'] == ''
+        assert results['NM_032667.6:c.1184G>T']['hgvs_lrg_variant'] == 'LRG_235:g.24195G>T'
         self.assertCountEqual(results['NM_032667.6:c.1184G>T']['alt_genomic_loci'], [])
         assert results['NM_032667.6:c.1184G>T']['primary_assembly_loci']['hg19'] == {
             'hgvs_genomic_description': 'NC_000011.9:g.62457852C>A',
@@ -12969,7 +12969,9 @@ class TestVariantsAuto(TestCase):
             'vcf': {'chr': '11', 'pos': '62690380', 'ref': 'C', 'alt': 'A'}}
         assert results['NM_032667.6:c.1184G>T']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_032667.6',
-            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_116056.3'}
+            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_116056.3',
+            'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_008461.1',
+            'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_235.xml'}
 
         assert 'NR_037948.1:n.1978G>T' in list(results.keys())
         assert results['NR_037948.1:n.1978G>T']['submitted_variant'] == '11-62457852-C-A'
