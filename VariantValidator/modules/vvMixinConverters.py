@@ -1642,6 +1642,29 @@ class Mixin(vvMixinInit.Mixin):
             rts_dict[tx_dat_2] = True
         rts = list(rts_dict.keys())
 
+        # First if we have a ins prepare for hgvs "ins" mishandling, which
+        # causes failures on any ins->non ins case, start by making a forced
+        # "delins", equivilent to the vcf format ins requirements, then use
+        # if needed. This is similar to the 'Triple check' code in mappers.py,
+        # but more limited.
+        hgvs_genomic_forced_delins = None
+        if hgvs_genomic.posedit.edit.type == 'ins':
+            start = hgvs_genomic.posedit.pos.start.base
+            base = self.sf.fetch_seq(
+                    str(hgvs_genomic.ac),start_i=start - 1, end_i=start)
+            alt = base + hgvs_genomic.posedit.edit.alt
+            hgvs_genomic_forced_delins = vvhgvs.sequencevariant.SequenceVariant(
+                    ac=hgvs_genomic.ac,
+                    type="g",
+                    posedit=vvhgvs.posedit.PosEdit(
+                        vvhgvs.location.Interval(
+                            start=vvhgvs.location.SimplePosition(base=start),
+                            end=vvhgvs.location.SimplePosition(base=start),
+                            uncertain=hgvs_genomic.posedit.pos.uncertain
+                            ),
+                        vvhgvs.edit.NARefAlt(ref=base, alt=alt)
+                        )
+                    )
         # Project genomic variants to new transcripts
         # and  populate a code_var list
         #############################################
@@ -1655,14 +1678,21 @@ class Mixin(vvMixinInit.Mixin):
             try:
                 variant = evm.g_to_t(hgvs_genomic, y)
             except vvhgvs.exceptions.HGVSError:
+                curr_genomic = hgvs_genomic
+                if hgvs_genomic_forced_delins:
+                    curr_genomic = hgvs_genomic_forced_delins
+                    try:
+                        variant = evm.g_to_t(hgvs_genomic_forced_delins, y)
+                    except vvhgvs.exceptions.HGVSError:
+                        pass
                 # Check for non-coding transcripts
                 try:
-                    variant = evm.g_to_t(hgvs_genomic, y)
+                    variant = evm.g_to_t(curr_genomic, y)
                 except vvhgvs.exceptions.HGVSError:
                     continue
-            except:
+            except Exception as err:
+                logger.warning('non expected err type', str(err))
                 continue
-
             # Corrective Normalisation of intronic descriptions in the antisense oriemtation
             if '+' in str(variant) or '-' in str(variant) or '*' in str(variant):
                 tx_ac = variant.ac
