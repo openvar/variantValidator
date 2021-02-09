@@ -1,4 +1,5 @@
 import unittest
+import re
 import VariantValidator
 
 
@@ -254,7 +255,13 @@ class TestGene2Transcripts(unittest.TestCase):
         self.assertEqual(list(output), ['current_symbol', 'previous_symbol', 'current_name',
                                         'previous_name', 'transcripts'])
         self.assertEqual(output['current_symbol'], 'NANOG')
-        self.assertEqual(len(output['transcripts']), 3)
+        self.assertTrue(len(output['transcripts']) > 2)
+        for transcript in output['transcripts']:
+            self.assertTrue(
+                    re.match('NM_024865.',transcript['reference'])
+                    or
+                    re.match('NM_001297698.',transcript['reference'])
+                    )
 
     def test_NM_noversion(self):
         output = self.vv.gene2transcripts('NM_024865')
