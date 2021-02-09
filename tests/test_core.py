@@ -297,7 +297,12 @@ class TestGene2Transcripts(unittest.TestCase):
         self.assertEqual(list(output), ['current_symbol', 'previous_symbol', 'current_name',
                                         'previous_name', 'transcripts'])
         self.assertEqual(output['current_symbol'], 'POU5F1')
-        self.assertEqual(len(output['transcripts']), 8)
+        self.assertTrue(len(output['transcripts']) > 7)
+        for transcript in output['transcripts']:
+            ref = re.sub('\.\d+', '.', transcript['reference'])
+            self.assertTrue(ref in [
+                'NM_203289.','NM_001173531.','NM_002701.','NM_001285986.','NM_001285987.'
+                ])
 
     def test_ens(self):
         output = self.vv.gene2transcripts('ENSG00000204531')
