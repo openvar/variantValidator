@@ -8,6 +8,7 @@ This code runs tests on exon_numbering.py to check the outputs are as expected
 """
 import unittest # This is the automatic test runner
 from exon_numbering import finds_exon_number, request_sequence, check_variant
+import json
 
 
 # Define some variants to test with
@@ -26,31 +27,37 @@ class TestExonNumbering(unittest.TestCase):
     """
     def test_1(self):
         test_1 = finds_exon_number(test_variant_1)
+        print(json.dumps(test_1, sort_keys=True, indent=4, separators=(',', ': ')))
         self.assertEqual(test_1['NC_000017.10']['start_exon'],
                          '14', "Failed test variant 1")
 
     def test_2(self):    
         test_2 = finds_exon_number(test_variant_2)
+        print(json.dumps(test_2, sort_keys=True, indent=4, separators=(',', ': ')))
         self.assertEqual(test_2['NC_000017.10']['start_exon'],
                          '44i', "Failed test variant 2")
 
     def test_3(self):
         test_3 = finds_exon_number(test_variant_3)
+        print(json.dumps(test_3, sort_keys=True, indent=4, separators=(',', ': ')))
         self.assertEqual(test_3['NC_000003.11']['start_exon'],
                          '32i', "Failed test variant 3")
 
     def test_4(self):
         test_4 = finds_exon_number(test_variant_4)
+        print(json.dumps(test_4, sort_keys=True, indent=4, separators=(',', ': ')))
         self.assertEqual(test_4['NC_000017.10']['start_exon'],
                          '44', "Failed test variant 4")
 
     def test_5(self):
         test_5 = finds_exon_number(test_variant_5)
+        print(json.dumps(test_5, sort_keys=True, indent=4, separators=(',', ': ')))
         self.assertEqual(test_5['NC_000017.10']['start_exon'],
                          '44', "Failed test variant 5")
 
     def test_6(self):
         test_6 = finds_exon_number(test_variant_6)
+        print(json.dumps(test_6, sort_keys=True, indent=4, separators=(',', ': ')))
         self.assertEqual(test_6['NC_000003.11']['start_exon'],
                          '32i', "Failed test variant 6")
 
