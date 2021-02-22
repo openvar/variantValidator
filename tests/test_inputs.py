@@ -13862,7 +13862,24 @@ class TestVariantsAuto(TestCase):
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
 
-        assert results['flag'] == 'gene_variant'
+        assert results['flag'] == 'intergenic'
+        # NR_037918 is a read-through transcript with no HGNC ID and has been removed on account of
+        # our no transcript without HGNC gene ID policy. This may be changed if HGNC assigns an ID
+        # later, so the old data is left in for now to simplify reverting.
+        assert 'intergenic_variant_1' in list(results.keys())
+        assert results['intergenic_variant_1']['primary_assembly_loci']['hg19'] == {
+            'hgvs_genomic_description': 'NC_000012.11:g.11023080C>A',
+            'vcf': {'chr': 'chr12', 'pos': '11023080', 'ref': 'C', 'alt': 'A'}}
+        assert results['intergenic_variant_1']['primary_assembly_loci']['hg38'] == {
+            'hgvs_genomic_description': 'NC_000012.12:g.10870481C>A',
+            'vcf': {'chr': 'chr12', 'pos': '10870481', 'ref': 'C', 'alt': 'A'}}
+        assert results['intergenic_variant_1']['primary_assembly_loci']['grch37'] == {
+            'hgvs_genomic_description': 'NC_000012.11:g.11023080C>A',
+            'vcf': {'chr': '12', 'pos': '11023080', 'ref': 'C', 'alt': 'A'}}
+        assert results['intergenic_variant_1']['primary_assembly_loci']['grch38'] == {
+            'hgvs_genomic_description': 'NC_000012.12:g.10870481C>A',
+            'vcf': {'chr': '12', 'pos': '10870481', 'ref': 'C', 'alt': 'A'}}
+        """
         assert 'NR_037918.2:n.1184+11736G>T' in list(results.keys())
         assert results['NR_037918.2:n.1184+11736G>T']['submitted_variant'] == '12-11023080-C-A'
         assert results['NR_037918.2:n.1184+11736G>T']['gene_symbol'] == 'PRH1-PRR4'
@@ -13907,7 +13924,7 @@ class TestVariantsAuto(TestCase):
             'vcf': {'chr': '12', 'pos': '10870481', 'ref': 'C', 'alt': 'A'}}
         assert results['NR_037918.2:n.1184+11736G>T']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NR_037918.2'}
-
+"""
     def test_variant217(self):
         variant = '12-22018712-TC-T'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
