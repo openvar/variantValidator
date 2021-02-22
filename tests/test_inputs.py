@@ -8040,11 +8040,7 @@ class TestVariantsAuto(TestCase):
             'hgvs_genomic_description': 'NT_113891.3:g.3483538del',
             'vcf': {'chr': 'HSCHR6_MHC_COX_CTG1', 'pos': '3483537', 'ref': 'CG', 'alt': 'C'}}}, {'hg38': {
             'hgvs_genomic_description': 'NT_113891.3:g.3483538del',
-            'vcf': {'chr': 'chr6_GL000251v2_alt', 'pos': '3483537', 'ref': 'CG', 'alt': 'C'}}}, {'grch37': {
-            'hgvs_genomic_description': 'NT_167248.1:g.3271861del',
-            'vcf': {'chr': 'HSCHR6_MHC_QBL_CTG1', 'pos': '3271858', 'ref': 'AG', 'alt': 'A'}}}, {'hg19': {
-            'hgvs_genomic_description': 'NT_167248.1:g.3271861del',
-            'vcf': {'chr': 'chr6_qbl_hap6', 'pos': '3271858', 'ref': 'AG', 'alt': 'A'}}}, {'grch37': {
+            'vcf': {'chr': 'chr6_GL000251v2_alt', 'pos': '3483537', 'ref': 'CG', 'alt': 'C'}}},  {'grch37': {
             'hgvs_genomic_description': 'NT_113891.2:g.3483644del',
             'vcf': {'chr': 'HSCHR6_MHC_COX_CTG1', 'pos': '3483643', 'ref': 'CG', 'alt': 'C'}}}, {'hg19': {
             'hgvs_genomic_description': 'NT_113891.2:g.3483644del',
