@@ -38,11 +38,8 @@ before_install:
   ### also we need to test that the database works with only public permissions too, as should be for any web attached user
   - createdb -e vvta -O uta_admin
   - psql -d vvta -U postgres -c "CREATE USER ta_user WITH PASSWORD 'read_only'"
-  - wget --output-document=VVTA_2020_dev_no_seq.psql.gz  https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_2020_dev_no_seq.psql.gz
-  - gunzip -k -c VVTA_2020_dev_no_seq.psql.gz | psql --quiet vvta
-  - psql -d vvta -U postgres -c 'GRANT SELECT ON vvta.transcript_lengths_mv TO public;'
-  - psql -d vvta -U postgres -c 'GRANT SELECT ON vvta.full_tx_aln_w_nq_cigar_mv TO public;'
-  - psql -d vvta -U postgres -c 'GRANT SELECT ON vvta.tx_similarity_v TO public;'
+  - wget --output-document=VVTA_2021_2_noseq.psql.gz  https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_2021_2_noseq.psql.gz
+  - gunzip -k -c VVTA_2021_2_noseq.psql.gz | psql --quiet vvta
   - psql -d vvta -U postgres -c 'GRANT SELECT ON ALL TABLES IN SCHEMA public TO ta_user;'
 
   # Copy configuration file
@@ -61,20 +58,25 @@ install:
   ## get seqrepo data and load it into now installed seqrepo
   - mkdir "$HOME"/vvta_seqrepo
   - seqrepo --root-directory "$HOME"/vvta_seqrepo init
-  - wget --output-document=VVTA_2020_dev_NonG_ref_seq.fa.gz https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_2020_dev_NonG_ref_seq.fa.gz
-  - gunzip -k --stdout VVTA_2020_dev_NonG_ref_seq.fa.gz | seqrepo --root-directory "$HOME"/vvta_seqrepo load -n local -  2>&1 | tee sr_log.txt | perl -e ' my $interval = 60; my $time = time() - $interval ; while(my $line = <STDIN> ){if( $time +$interval < time()){ print $line;$time=time() } }'
+  - wget --output-document=VVTA_2021_2_RefSeq.fa.gz https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_2021_2_RefSeq.fa.gz
+  - seqrepo --root-directory "$HOME"/vvta_seqrepo load -n local VVTA_2021_2_RefSeq.fa.gz 2>&1 | tee sr_log.txt | perl -e ' my $interval = 60; my $time = time() - $interval ; while(my $line = <STDIN> ){if( $time +$interval < time()){ print $line;$time=time() } }'
+  - tail sr_log.txt
+  - wget --output-document=VVTA_2021_2_RSG_genomic_ref.fa.gz https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_2021_2_RSG_genomic_ref.fa.gz
+  - seqrepo --root-directory "$HOME"/vvta_seqrepo load -n local VVTA_2021_2_RSG_genomic_ref.fa.gz  2>&1 | tee sr_log.txt | perl -e ' my $interval = 60; my $time = time() - $interval ; while(my $line = <STDIN> ){if( $time +$interval < time()){ print $line;$time=time() } }'
   - tail sr_log.txt
   - wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.25_GRCh37.p13/GCF_000001405.25_GRCh37.p13_genomic.fna.gz
-  -  gunzip -k --stdout  GCF_000001405.*GRCh37*_genomic.fna.gz | sed -e 's/>\([^ ]\+\).*/>\1/' |seqrepo --root-directory "$HOME"/vvta_seqrepo load -n local - 2>&1 | tee sr_log.txt | perl -e ' my $interval = 60; my $time = time() - $interval ; while(my $line = <STDIN> ){if( $time +$interval < time()){ print $line;$time=time() } }'
+  - gunzip -k --stdout  GCF_000001405.*GRCh37*_genomic.fna.gz | sed -e 's/>\([^ ]\+\).*/>\1/' |seqrepo --root-directory "$HOME"/vvta_seqrepo load -n local - 2>&1 | tee sr_log.txt | perl -e ' my $interval = 60; my $time = time() - $interval ; while(my $line = <STDIN> ){if( $time +$interval < time()){ print $line;$time=time() } }'
   - tail sr_log.txt
   - wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.39_GRCh38.p13/GCF_000001405.39_GRCh38.p13_genomic.fna.gz
   - gunzip -k --stdout  GCF_000001405.*GRCh38*_genomic.fna.gz | sed -e 's/>\([^ ]\+\).*/>\1/' |seqrepo --root-directory "$HOME"/vvta_seqrepo load -n local - 2>&1 | tee sr_log.txt | perl -e ' my $interval = 60; my $time = time() - $interval ; while(my $line = <STDIN> ){if( $time +$interval < time()){ print $line;$time=time() } }'
   - tail sr_log.txt
-
+  #cleanup seqrepo input
+  - rm  VVTA_2021_2_RefSeq.fa.gz VVTA_2021_2_RSG_genomic_ref.fa GCF_000001405.*GRCh37*_genomic.fna.gz GCF_000001405.*GRCh38*_genomic.fna.gz  
 
 
   # Set up validator database
   - mysql validator < validator_2020-10-01.sql
+  - rm validator_2020-10-01.sql
 
   #  - update_vdb.py
   - df -h
