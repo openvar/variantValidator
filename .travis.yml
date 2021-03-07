@@ -57,21 +57,25 @@ install:
 
   ## get seqrepo data and load it into now installed seqrepo
   - mkdir "$HOME"/vvta_seqrepo
-  - seqrepo --root-directory "$HOME"/vvta_seqrepo init
-  - wget --output-document=VVTA_2021_2_RefSeq.fa.gz https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_2021_2_RefSeq.fa.gz
-  - seqrepo --root-directory "$HOME"/vvta_seqrepo load -n local VVTA_2021_2_RefSeq.fa.gz 2>&1 | tee sr_log.txt | perl -e ' my $interval = 60; my $time = time() - $interval ; while(my $line = <STDIN> ){if( $time +$interval < time()){ print $line;$time=time() } }'
-  - tail sr_log.txt
-  - wget --output-document=VVTA_2021_2_RSG_genomic_ref.fa.gz https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_2021_2_RSG_genomic_ref.fa.gz
-  - seqrepo --root-directory "$HOME"/vvta_seqrepo load -n local VVTA_2021_2_RSG_genomic_ref.fa.gz  2>&1 | tee sr_log.txt | perl -e ' my $interval = 60; my $time = time() - $interval ; while(my $line = <STDIN> ){if( $time +$interval < time()){ print $line;$time=time() } }'
-  - tail sr_log.txt
-  - wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.25_GRCh37.p13/GCF_000001405.25_GRCh37.p13_genomic.fna.gz
-  - gunzip -k --stdout  GCF_000001405.*GRCh37*_genomic.fna.gz | sed -e 's/>\([^ ]\+\).*/>\1/' |seqrepo --root-directory "$HOME"/vvta_seqrepo load -n local - 2>&1 | tee sr_log.txt | perl -e ' my $interval = 60; my $time = time() - $interval ; while(my $line = <STDIN> ){if( $time +$interval < time()){ print $line;$time=time() } }'
-  - tail sr_log.txt
-  - wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.39_GRCh38.p13/GCF_000001405.39_GRCh38.p13_genomic.fna.gz
-  - gunzip -k --stdout  GCF_000001405.*GRCh38*_genomic.fna.gz | sed -e 's/>\([^ ]\+\).*/>\1/' |seqrepo --root-directory "$HOME"/vvta_seqrepo load -n local - 2>&1 | tee sr_log.txt | perl -e ' my $interval = 60; my $time = time() - $interval ; while(my $line = <STDIN> ){if( $time +$interval < time()){ print $line;$time=time() } }'
-  - tail sr_log.txt
+    #- seqrepo --root-directory "$HOME"/vvta_seqrepo init
+    #- wget --output-document=VVTA_2021_2_RefSeq.fa.gz https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_2021_2_RefSeq.fa.gz
+    #- seqrepo --root-directory "$HOME"/vvta_seqrepo load -n local VVTA_2021_2_RefSeq.fa.gz 2>&1 | tee sr_log.txt | perl -e ' my $interval = 60; my $time = time() - $interval ; while(my $line = <STDIN> ){if( $time +$interval < time()){ print $line;$time=time() } }'
+    #- tail sr_log.txt
+    #- wget --output-document=VVTA_2021_2_RSG_genomic_ref.fa.gz https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_2021_2_RSG_genomic_ref.fa.gz
+    #- seqrepo --root-directory "$HOME"/vvta_seqrepo load -n local VVTA_2021_2_RSG_genomic_ref.fa.gz  2>&1 | tee sr_log.txt | perl -e ' my $interval = 60; my $time = time() - $interval ; while(my $line = <STDIN> ){if( $time +$interval < time()){ print $line;$time=time() } }'
+    #- tail sr_log.txt
+    #- wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.25_GRCh37.p13/GCF_000001405.25_GRCh37.p13_genomic.fna.gz
+    #- gunzip -k --stdout  GCF_000001405.*GRCh37*_genomic.fna.gz | sed -e 's/>\([^ ]\+\).*/>\1/' |seqrepo --root-directory "$HOME"/vvta_seqrepo load -n local - 2>&1 | tee sr_log.txt | perl -e ' my $interval = 60; my $time = time() - $interval ; while(my $line = <STDIN> ){if( $time +$interval < time()){ print $line;$time=time() } }'
+    #- tail sr_log.txt
+    #- wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.39_GRCh38.p13/GCF_000001405.39_GRCh38.p13_genomic.fna.gz
+    #- gunzip -k --stdout  GCF_000001405.*GRCh38*_genomic.fna.gz | sed -e 's/>\([^ ]\+\).*/>\1/' |seqrepo --root-directory "$HOME"/vvta_seqrepo load -n local - 2>&1 | tee sr_log.txt | perl -e ' my $interval = 60; my $time = time() - $interval ; while(my $line = <STDIN> ){if( $time +$interval < time()){ print $line;$time=time() } }'
+    #- tail sr_log.txt
+  - wget --output-document="$HOME"/vvta_seqrepo/VVTA_2021_RS_and_RSG_seqrepo.tar https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_2021_RS_and_RSG_seqrepo.tar
+  - cd "$HOME"/vvta_seqrepo/
+  - tar -xvf VVTA_2021_RS_and_RSG_seqrepo.tar
+  - cd -
   #cleanup seqrepo input
-  - rm  VVTA_2021_2_RefSeq.fa.gz VVTA_2021_2_RSG_genomic_ref.fa.gz GCF_000001405.*GRCh37*_genomic.fna.gz GCF_000001405.*GRCh38*_genomic.fna.gz
+  #- rm  VVTA_2021_2_RefSeq.fa.gz VVTA_2021_2_RSG_genomic_ref.fa.gz GCF_000001405.*GRCh37*_genomic.fna.gz GCF_000001405.*GRCh38*_genomic.fna.gz
 
 
   # Set up validator database
