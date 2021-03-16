@@ -108,9 +108,9 @@ class Mixin:
 
         # Create a lose vm instance
         self.lose_vm = vvhgvs.variantmapper.VariantMapper(self.hdp,
-                                                        replace_reference=True,
-                                                        prevalidation_level=None
-                                                        )
+                                                          replace_reference=True,
+                                                          prevalidation_level=None
+                                                          )
 
         self.nr_vm = vvhgvs.variantmapper.VariantMapper(self.hdp, replace_reference=False)  # No reverse variant mapper
         self.sf = vvhgvs.dataproviders.seqfetcher.SeqFetcher()  # Seqfetcher
@@ -121,10 +121,10 @@ class Mixin:
 
         # Create normalizer
         self.reverse_hn = vvhgvs.normalizer.Normalizer(self.hdp,
-                                                     cross_boundaries=False,
-                                                     shuffle_direction=5,
-                                                     alt_aln_method='splign'
-                                                     )
+                                                       cross_boundaries=False,
+                                                       shuffle_direction=5,
+                                                       alt_aln_method='splign'
+                                                       )
 
         self.merge_normalizer = vvhgvs.normalizer.Normalizer(
             self.hdp,
@@ -143,44 +143,46 @@ class Mixin:
 
         # When we are able to access Ensembl data we will need to use these normalizer instances
         # These are currently implemented in VF
-        self.splign_normalizer = vvhgvs.normalizer.Normalizer(self.hdp,
-                                               cross_boundaries=False,
-                                               shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
-                                               alt_aln_method='splign' # RefSeq
-                                               )
+        self.splign_normalizer = vvhgvs.normalizer.Normalizer(
+            self.hdp,
+            cross_boundaries=False,
+            shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
+            alt_aln_method='splign'  # RefSeq
+            )
 
-        self.genebuild_normalizer = vvhgvs.normalizer.Normalizer(self.hdp,
-                                                  cross_boundaries=False,
-                                                  shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
-                                                  alt_aln_method='genebuild' # Ensembl
-                                                  )
+        self.genebuild_normalizer = vvhgvs.normalizer.Normalizer(
+            self.hdp,
+            cross_boundaries=False,
+            shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
+            alt_aln_method='genebuild'  # Ensembl
+            )
 
         self.reverse_splign_normalizer = vvhgvs.normalizer.Normalizer(self.hdp,
-                                                       cross_boundaries=False,
-                                                       shuffle_direction=5,
-                                                       alt_aln_method='splign'
-                                                       )
+                                                                      cross_boundaries=False,
+                                                                      shuffle_direction=5,
+                                                                      alt_aln_method='splign'
+                                                                      )
 
         self.reverse_genebuild_normalizer = vvhgvs.normalizer.Normalizer(self.hdp,
-                                                          cross_boundaries=False,
-                                                          shuffle_direction=5,
-                                                          alt_aln_method='genebuild'
-                                                          )
+                                                                         cross_boundaries=False,
+                                                                         shuffle_direction=5,
+                                                                         alt_aln_method='genebuild'
+                                                                         )
 
         # create no_norm_evm
         self.no_norm_evm_38 = vvhgvs.assemblymapper.AssemblyMapper(self.hdp,
-                                                                 assembly_name='GRCh38',
-                                                                 alt_aln_method='splign',
-                                                                 normalize=False,
-                                                                 replace_reference=True
-                                                                 )
+                                                                   assembly_name='GRCh38',
+                                                                   alt_aln_method='splign',
+                                                                   normalize=False,
+                                                                   replace_reference=True
+                                                                   )
 
         self.no_norm_evm_37 = vvhgvs.assemblymapper.AssemblyMapper(self.hdp,
-                                                                 assembly_name='GRCh37',
-                                                                 alt_aln_method='splign',
-                                                                 normalize=False,
-                                                                 replace_reference=True
-                                                                 )
+                                                                   assembly_name='GRCh37',
+                                                                   alt_aln_method='splign',
+                                                                   normalize=False,
+                                                                   replace_reference=True
+                                                                   )
         # Created during validate method
         self.selected_assembly = None
         self.select_transcripts = None
@@ -214,7 +216,7 @@ class Mixin:
             if associated_protein_accession is None:
                 cod = str(hgvs_transcript)
                 cod = cod.replace('inv', 'del')
-                cod = self.hp.parse_hgvs_variant(cod)
+                cod = self.hp.parse(cod)  # Changed from parse
                 p = evm.c_to_p(cod)
                 associated_protein_accession = p.ac
 
@@ -225,14 +227,16 @@ class Mixin:
                     re_to_p is False):
                 hgvs_protein = None
                 # Does the edit affect the start codon?
-                if ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and hgvs_transcript.posedit.pos.start.offset == 0
-                    ) or (1 <= hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset
-                          == 0)) and '*' not in str(hgvs_transcript.posedit.pos):
+                if ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and hgvs_transcript.posedit.pos.start.offset == 0)
+                    or (1 <= hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset
+                        == 0)) and '*' not in str(hgvs_transcript.posedit.pos):
                     residue_one = self.sf.fetch_seq(associated_protein_accession, start_i=1 - 1, end_i=1)
                     threed_residue_one = utils.one_to_three(residue_one)
                     r_one_report = '(%s1?)' % threed_residue_one  # was (MET1?)
                     hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
-                                                                        type='p', posedit=r_one_report)
+                                                                          type='p',
+                                                                          posedit=r_one_report
+                                                                          )
 
                 else:
                     try:
@@ -240,11 +244,11 @@ class Mixin:
                     except IndexError as e:
                         error = str(e)
                         if 'string index out of range' in error and 'dup' in str(hgvs_transcript):
-                            hgvs_ins = self.hp.parse_hgvs_variant(str(hgvs_transcript))
+                            hgvs_ins = self.hp.parse(str(hgvs_transcript))
                             hgvs_ins = hn.normalize(hgvs_ins)
                             inst = hgvs_ins.ac + ':c.' + str(hgvs_ins.posedit.pos.start.base - 1) + '_' + \
                                 str(hgvs_ins.posedit.pos.start.base) + 'ins' + hgvs_ins.posedit.edit.ref
-                            hgvs_transcript = self.hp.parse_hgvs_variant(inst)
+                            hgvs_transcript = self.hp.parse(inst)
                             hgvs_protein = evm.c_to_p(hgvs_transcript)
 
                 if hgvs_protein:
@@ -260,7 +264,7 @@ class Mixin:
                             pr_alt_ter_stp = hgvs_transcript_to_hgvs_protein['hgvs_protein'].posedit.edit.alt
                             pr_alt_ter_stp = pr_alt_ter_stp.split('*')[0] + '*'
                             hgvs_transcript_to_hgvs_protein['hgvs_protein'].posedit.edit.alt = pr_alt_ter_stp
-                    except:
+                    except Exception:
                         pass
                     return hgvs_transcript_to_hgvs_protein
                 else:
@@ -307,7 +311,10 @@ class Mixin:
                     associated_protein_accession = self.hdp.get_pro_ac_for_tx_ac(hgvs_transcript.ac)
 
                     # Intronic inversions are marked as uncertain i.e. p.?
-                    if re.search(r'\d+-', str(hgvs_transcript.posedit.pos)) or re.search(r'\d+\+', str(hgvs_transcript.posedit.pos)) or re.search(r'\*', str(hgvs_transcript.posedit.pos)) or re.search(r'[cn].-', str(hgvs_transcript)):
+                    if re.search(r'\d+-', str(hgvs_transcript.posedit.pos)) \
+                            or re.search(r'\d+\+', str(hgvs_transcript.posedit.pos)) \
+                            or re.search(r'\*', str(hgvs_transcript.posedit.pos)) \
+                            or re.search(r'[cn].-', str(hgvs_transcript)):
                         if ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and
                             hgvs_transcript.posedit.pos.start.offset == 0) or (1 <=
                             hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset == 0))\
@@ -406,7 +413,11 @@ class Mixin:
 
                                     # create edit
                                     if aa_start_pos != aa_end_pos:
-                                        posedit = '(%s%s_%s%s=)' % (start_aa, str(aa_start_pos), end_aa, str(aa_end_pos))
+                                        posedit = '(%s%s_%s%s=)' % (start_aa,
+                                                                    str(aa_start_pos),
+                                                                    end_aa,
+                                                                    str(aa_end_pos)
+                                                                    )
 
                                         hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(
                                             ac=associated_protein_accession, type='p', posedit=posedit)
@@ -425,13 +436,13 @@ class Mixin:
 
                                     # This deals with early terminating delins in-frame prventing the format
                                     # NP_733765.1:p.(Gln259_Ser1042delinsProAla) in issue #214
-                                    if len(pro_inv_info['prot_del_seq']) + int(pro_inv_info['edit_start']
-                                                                                ) == int(pro_inv_info['ter_pos']):
-                                         end = 'Ter' + str(pro_inv_info['ter_pos'])
-                                         pro_inv_info['prot_ins_seq'].replace('*', end)
-                                         pro_inv_info['prot_ins_seq'] = pro_inv_info['prot_ins_seq'] + '*'
-                                         pro_inv_info['prot_del_seq'] = pro_inv_info['prot_del_seq'][0]
-                                         pro_inv_info['edit_end'] = pro_inv_info['edit_start']
+                                    if len(pro_inv_info['prot_del_seq']) + \
+                                            int(pro_inv_info['edit_start']) == int(pro_inv_info['ter_pos']):
+                                        end = 'Ter' + str(pro_inv_info['ter_pos'])
+                                        pro_inv_info['prot_ins_seq'].replace('*', end)
+                                        pro_inv_info['prot_ins_seq'] = pro_inv_info['prot_ins_seq'] + '*'
+                                        pro_inv_info['prot_del_seq'] = pro_inv_info['prot_del_seq'][0]
+                                        pro_inv_info['edit_end'] = pro_inv_info['edit_start']
 
                                 # Complete variant description
                                 # Recode the single letter del and ins sequences into three letter amino acid codes
@@ -485,7 +496,9 @@ class Mixin:
 
                                 # Complete the variant
                                 hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
-                                                                                    type='p', posedit=posedit)
+                                                                                      type='p',
+                                                                                      posedit=posedit
+                                                                                      )
 
                                 hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
 

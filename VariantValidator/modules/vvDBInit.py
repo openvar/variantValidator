@@ -6,7 +6,6 @@ except ModuleNotFoundError:
     from mysql.connector.pooling import MySQLConnectionPool
 
 
-
 class Mixin:
     """
     A mixin containing the database initialisation routines.
@@ -28,25 +27,24 @@ class Mixin:
             name_my_pool = 'pool%s' % str(ran_num)
             try:
                 self.pool = mariadb.ConnectionPool(pool_size=5,
-                                                   pool_name = name_my_pool, 
-                                                   pool_reset_connection = False,
-                                                   host = self.dbConfig['host'],
-                                                   user = self.dbConfig['user'],
-                                                   password = self.dbConfig['password'],
-                                                   database = self.dbConfig['database']
+                                                   pool_name=name_my_pool,
+                                                   pool_reset_connection=False,
+                                                   host=self.dbConfig['host'],
+                                                   user=self.dbConfig['user'],
+                                                   password=self.dbConfig['password'],
+                                                   database=self.dbConfig['database']
                                                    )
             except mariadb.ProgrammingError:
                 ran_num = random.random()
                 name_my_pool = 'pool%s' % str(ran_num)
                 self.pool = mariadb.ConnectionPool(pool_size=5,
-                                                   pool_name = name_my_pool, 
-                                                   pool_reset_connection = False,
-                                                   host = self.dbConfig['host'],
-                                                   user = self.dbConfig['user'],
-                                                   password = self.dbConfig['password'],
-                                                   database = self.dbConfig['database']
-                                                   )                
-                
+                                                   pool_name=name_my_pool,
+                                                   pool_reset_connection=False,
+                                                   host=self.dbConfig['host'],
+                                                   user=self.dbConfig['user'],
+                                                   password=self.dbConfig['password'],
+                                                   database=self.dbConfig['database']
+                                                   )
 
     def get_conn(self):
         try:

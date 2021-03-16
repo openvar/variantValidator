@@ -1173,14 +1173,14 @@ class Mixin(vvMixinInit.Mixin):
                     # So is likely mapping to a genomic gap
                     try:
                         hn.normalize(genomic_gap_variant)
-                    except Exception as e:
-                        if str(e) == 'base start position must be <= end position':
+                    except Exception as ea1:
+                        if str(ea1) == 'base start position must be <= end position':
                             # This will only happen when the variant is fully within the gap
                             gap_start = genomic_gap_variant.posedit.pos.end.base
                             gap_end = genomic_gap_variant.posedit.pos.start.base
                             genomic_gap_variant.posedit.pos.start.base = gap_start
                             genomic_gap_variant.posedit.pos.end.base = gap_end
-                        if 'Length implied by coordinates must equal sequence deletion length' in str(e):
+                        if 'Length implied by coordinates must equal sequence deletion length' in str(ea1):
                             # This will only happen if the variant is flanking the gap but is
                             # not inside the gap
                             logger.info('Variant is on the flank of a genomic gap but not within the gap')
@@ -1219,7 +1219,7 @@ class Mixin(vvMixinInit.Mixin):
                         genomic_gap_variant = hn.normalize(genomic_gap_variant)
                         # Static map to c. and static normalize
                         transcript_gap_variant = self.vm.g_to_t(genomic_gap_variant, hgvs_c.ac)
-                        if 'Length implied by coordinates must equal sequence deletion length' not in str(e):
+                        if 'Length implied by coordinates must equal sequence deletion length' not in str(ea1):
                             try:
                                 transcript_gap_variant = hn.normalize(transcript_gap_variant)
                             except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
@@ -1690,11 +1690,14 @@ class Mixin(vvMixinInit.Mixin):
                     antisense = False
 
                 # Pass if antisense = 'false'
-                if antisense:
-                    # Reverse normalize hgvs_genomic
-                    rev_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic)
-                    # map back to coding
-                    variant = evm.g_to_t(rev_hgvs_genomic, tx_ac)
+                try:
+                    if antisense:
+                        # Reverse normalize hgvs_genomic
+                        rev_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic)
+                        # map back to coding
+                        variant = evm.g_to_t(rev_hgvs_genomic, tx_ac)
+                except vvhgvs.exceptions.HGVSInvalidIntervalError:
+                    variant = evm.g_to_t(hgvs_genomic, tx_ac)
             try:
                 self.hp.parse_hgvs_variant(str(variant))
             except vvhgvs.exceptions.HGVSError:
