@@ -14489,7 +14489,7 @@ class TestVariantsAuto(TestCase):
         assert results['flag'] == 'gene_variant'
         assert 'NM_001194995.1:c.210del' in list(results.keys())
         assert results['NM_001194995.1:c.210del']['submitted_variant'] == '12-123738430-CA-C'
-        assert results['NM_001194995.1:c.210del']['gene_symbol'] == 'C12orf65'
+        assert results['NM_001194995.1:c.210del']['gene_symbol'] == 'MTRFR'
         assert results['NM_001194995.1:c.210del']['gene_ids'] == {'hgnc_id': 'HGNC:26784', 'entrez_gene_id': '91574',
                                                                   'ucsc_id': 'uc001uen.4', 'omim_id': ['613541']}
         assert results['NM_001194995.1:c.210del']['hgvs_transcript_variant'] == 'NM_001194995.1:c.210del'
@@ -14519,7 +14519,7 @@ class TestVariantsAuto(TestCase):
 
         assert 'NM_152269.4:c.210del' in list(results.keys())
         assert results['NM_152269.4:c.210del']['submitted_variant'] == '12-123738430-CA-C'
-        assert results['NM_152269.4:c.210del']['gene_symbol'] == 'C12orf65'
+        assert results['NM_152269.4:c.210del']['gene_symbol'] == 'MTRFR'
         assert results['NM_152269.4:c.210del']['gene_ids'] == {'hgnc_id': 'HGNC:26784', 'entrez_gene_id': '91574',
                                                                'ucsc_id': 'uc001uen.4', 'omim_id': ['613541']}
         assert results['NM_152269.4:c.210del']['hgvs_transcript_variant'] == 'NM_152269.4:c.210del'
@@ -14550,7 +14550,7 @@ class TestVariantsAuto(TestCase):
 
         assert 'NM_001143905.2:c.210del' in list(results.keys())
         assert results['NM_001143905.2:c.210del']['submitted_variant'] == '12-123738430-CA-C'
-        assert results['NM_001143905.2:c.210del']['gene_symbol'] == 'C12orf65'
+        assert results['NM_001143905.2:c.210del']['gene_symbol'] == 'MTRFR'
         assert results['NM_001143905.2:c.210del']['gene_ids'] == {'hgnc_id': 'HGNC:26784', 'entrez_gene_id': '91574',
                                                                   'ucsc_id': 'uc001uen.4', 'omim_id': ['613541']}
         assert results['NM_001143905.2:c.210del']['hgvs_transcript_variant'] == 'NM_001143905.2:c.210del'

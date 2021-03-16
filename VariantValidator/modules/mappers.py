@@ -19,7 +19,8 @@ class MappersError(Exception):
 
 
 def gene_to_transcripts(variant, validator, select_transcripts_dict):
-    g_query = validator.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
+    # g_query = validator.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
+    g_query = variant.hgvs_formatted
 
     # Genomic coordinates can be validated immediately
     error = 'false'
@@ -162,11 +163,8 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
     else:
         # Tag the line so that it is not written out
         variant.write = False
-
         gap_mapper = gapped_mapping.GapMapper(variant, validator)
-
         data, nw_rel_var = gap_mapper.gapped_g_to_c(rel_var, select_transcripts_dict)
-
         rel_var = nw_rel_var
 
         # Set the values and append to batch_list
@@ -658,7 +656,12 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             error = str(e)
             if 'does not agree with reference sequence' in error:
                 match = re.findall(r'\(([GATC]+)\)', error)
-                new_ref = match[1]
+                try:
+                    new_ref = match[1]
+                except IndexError:
+                    er = "Reference sequence %s contains errors or has been permanantly suppressed and is no longer " \
+                         "supported"
+                    raise MappersError(er)
                 hgvs_updated.posedit.edit.ref = new_ref
                 try:
                     validator.vr.validate(hgvs_updated)

@@ -3367,7 +3367,11 @@ def gap_black_list(symbol):
         "LOC101928804",
         "IFI27",
         "ABCC6",
-        "LOC692247"
+        "LOC692247",
+        "GOLGA6L10",
+        "C1R",
+        "EYS"
+
     ]
     if symbol in gapGene:
         return True
