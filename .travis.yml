@@ -14,11 +14,11 @@ services:
   - mysql
 
 addons:
-  postgresql: "12"
+  postgresql: "11"
   apt:
     packages:
-      - postgresql-12
-      - postgresql-client-12
+      - postgresql-11
+      - postgresql-client-11
 env:
   global:
     - PGPORT=5433
@@ -38,9 +38,9 @@ before_install:
 
   ## prep psql, get and load vvta db dump
   # fix auth (taken from https://alphahydrae.com/2021/02/how-to-run-postgresql-13-on-travis-ci/)
-  - sudo sed -i  -e '/local.*peer/s/postgres/all/' -e 's/peer\|md5/trust/g' /etc/postgresql/12/main/pg_hba.conf
+  - sudo sed -i  -e '/local.*peer/s/postgres/all/' -e 's/peer\|md5/trust/g' /etc/postgresql/11/main/pg_hba.conf
   # Restart the PostgreSQL service:
-  - sudo service postgresql@12-main restart
+  - sudo service postgresql@11-main restart
   - sleep 3
   - createuser -e --createdb  uta_admin
   ### for local use we probably just need to add -P to createuser and use uta_admin, but that spawns an interactive prompt
