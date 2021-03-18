@@ -224,21 +224,23 @@ class Database(vvDBInsert.Mixin):
                         if xref['dbname'] == 'HGNC':
                             hgnc_id = xref['primary_id']
                             gene_name = xref['description']
-                            synonyms = xref['synonyms']
-                        if xref['dbname'] == 'MIM_GENE':
-                            mim_id = xref['primary_id']
+                            # synonyms = xref['synonyms']
+                        # if xref['dbname'] == 'MIM_GENE':
+                            # mim_id = xref['primary_id']
 
                     # Compile metadata dictionary
-                    variant = {"db_xref": {"GeneID": ensemblgene_id,
-                                           "HGNC": hgnc_id,
-                                           "MIM": mim_id,
+                    variant = {"db_xref": {"ensemblgene": ensemblgene_id,
+                                           "ncbigene": None,
+                                           "HGNC": "HGNC:" + hgnc_id,
+                                           # "MIM": mim_id,
                                            "CCDS": ccds_id,
                                            "select": select_tx},
                                "chromosome": mapped_chr,
                                "map": map_position,
-                               "gene_synonym": synonyms,
+                               # "gene_synonym": synonyms,
                                "note": gene_name,
                                "variant": description.split('-')[1]}
+
                 else:
                     warning = "Ensembl transcript %s is not identified in the Ensembl APIs" % accession
                     raise utils.DatabaseConnectionError(warning)
@@ -350,6 +352,10 @@ class Database(vvDBInsert.Mixin):
                         val = val.replace(' ', '')
                         val = val.split(';')
                 all_tags_formatted[key] = val
+
+            # Compile metadata dictionary
+            all_tags_formatted["db_xref"]["ncbigene"] = all_tags_formatted["db_xref"].pop("GeneID")
+            all_tags_formatted["db_xref"]["ensemblgene"] = None
             variant = all_tags_formatted
 
         """
@@ -399,13 +405,17 @@ class Database(vvDBInsert.Mixin):
         except KeyError:
             variant["db_xref"]["HGNC"] = None
         try:
-            variant["db_xref"]["MIM"]
+            variant["db_xref"].pop("MIM")
         except KeyError:
-            variant["db_xref"]["MIM"] = None
+            pass
         try:
             variant["db_xref"]["CCDS"]
         except KeyError:
             variant["db_xref"]["CCDS"] = None
+        try:
+            variant.pop("previous_symbol")
+        except KeyError:
+            pass
 
         # Make into a json for storage
         variant = json.dumps(variant)
