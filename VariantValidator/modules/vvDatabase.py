@@ -29,8 +29,9 @@ class Database(vvDBInsert.Mixin):
         conn = self.get_conn()
         cursor = self.get_cursor(conn)
 
+        # Expiry set to 12 months because we will from 2021 be rolling out 3-monthly database dumps of the validator db
         query = "SELECT refSeqID, description, transcriptVariant, currentVersion, hgncSymbol, utaSymbol, updated, " \
-                "IF(updated < NOW() - INTERVAL 3 MONTH , 'true', 'false') FROM transcript_info WHERE " \
+                "IF(updated < NOW() - INTERVAL 12 MONTH , 'true', 'false') FROM transcript_info WHERE " \
                 "refSeqID = '%s'" % entry
         cursor.execute(query)
         row = cursor.fetchone()
@@ -136,143 +137,297 @@ class Database(vvDBInsert.Mixin):
                 self.update_gene_stable_ids(gene_stable_ids)
             else:
                 self.insert_gene_stable_ids(gene_stable_ids)
-            return
 
-    def update_transcript_info_record(self, accession, validator, bypass_with_symbol=False):
+            # Compile additional data
+            try:
+                prev = docs["prev_symbol"]
+            except KeyError:
+                prev = None
+            try:
+                maploc = docs["location"]
+            except KeyError:
+                maploc = None
+            try:
+                name = docs["name"]
+            except KeyError:
+                name = None
+
+            hgnc_data = {"map_loc": maploc,
+                         "gene_name": name,
+                         "prev": prev
+            }
+
+            return hgnc_data
+
+    def update_transcript_info_record(self, accession, validator, bypass_with_symbol=False, **kwargs):
+
         """
-        Search Entrez for corresponding record for the RefSeq ID
+        Search Ensembl APIs for transcript_info data
         """
 
-        try:
-            record = validator.entrez_efetch(db="nucleotide", id=accession, rettype="gb", retmode="text")
-        except IOError:
-            connection_error = "Cannot retrieve data from NCBI Entrez for record %s" % accession
-            if bypass_with_symbol is not False:
-                try:
-                    self.update_gene_stable_identifiers(bypass_with_symbol)
-                except Exception as e:
-                    logger.debug("Except pass, %s", e)
-                    logger.info("Unable to connect to HGNC with symbol %s", bypass_with_symbol)
-                    connection_error = "Cannot connect to HGNC with symbol %s", bypass_with_symbol
-            raise utils.DatabaseConnectionError(connection_error)
+        if 'ENST' in accession:
 
-        version = record.id
-        description = record.description
+            """
+            Ensembl APIs do not cross-reference FRCh38 and 38 so 3 queries are needed
+            They also interchangeably decide whether or not they accept version information
+            Therefore, assume they do not and check using Accession.Version Python split 
+            """
 
-        genbank_symbol = str(record.features[1].qualifiers['gene'][0])
+            enst_accession, enst_version = accession.split('.')
+            try:
+                genome_build = kwargs['genome_build']
+            except KeyError:
+                genome_build = None
 
+            # Make requests
+            if genome_build is None:
+                raise utils.DatabaseConnectionError("Connection to Ensembl database requires specification of "
+                                                    "a genome build (GRCh37 or GRCh38)")
+            elif genome_build is 'GRCh37' or genome_build is 'GRCh38':
+                ens_record = utils.ensembl_rest(id=enst_accession, endpoint="/lookup/id/", genome=genome_build)
+                ens_json = ens_record['record']
 
-        try:
-            # Genbank can be out-of-date so check this is not a historic record
-            # First perform a search against the input gene symbol or the symbol inferred from UTA
-            initial = utils.hgnc_rest(path="/fetch/symbol/" + genbank_symbol)
-            # Check for a record
-            if str(initial['record']['response']['numFound']) != '0':
-                genbank_symbol = genbank_symbol
-            # No record found, is it a previous symbol?
-            else:
-                # Look up current name
-                current = utils.hgnc_rest(path="/search/prev_symbol/" + genbank_symbol)
-                # Look for historic names
-                # If historic names = 0
-                if str(current['record']['response']['numFound']) == '0':
-                    genbank_symbol = genbank_symbol
+            # Check version
+            try:
+                if enst_version == str(ens_json['version']):
+                    version = accession
+                    description = str(ens_json['display_name'])
+                    genbank_symbol = description.split('-')[0]
+                    select_tx = False
+                    if ens_json['is_canonical'] == 1:
+                        select_tx = 'Ensembl'
+                    ensemblgene_id = ens_json['Parent']
+                    mapped_chr = ens_json['seq_region_name']
+                    map_position = "chr%s:%s:%s" % (mapped_chr, ens_json['start'], ens_json['end'])
+
+                    # Get CCDS ID
+                    ccds_record = utils.ensembl_rest(id=enst_accession,
+                                                     endpoint="/xrefs/id/",
+                                                     genome=genome_build,
+                                                     options='external_db=CCDS')
+                    if len(ccds_record) == 1:
+                        ccds_id = ccds_record[0]['display_id']
+                    else:
+                        ccds_id = None
+
+                    # Get gene db_xref
+                    mim_id = None
+                    hgnc_id = None
+                    gene_name = None
+                    synonyms = []
+
+                    gene_xrefs = utils.ensembl_rest(id=ensemblgene_id,
+                                                    endpoint="/xrefs/id/",
+                                                    genome=genome_build)
+                    gene_xrefs_json = gene_xrefs['record']
+                    for xref in gene_xrefs_json:
+                        if xref['dbname'] == 'HGNC':
+                            hgnc_id = xref['primary_id']
+                            gene_name = xref['description']
+                            # synonyms = xref['synonyms']
+                        # if xref['dbname'] == 'MIM_GENE':
+                            # mim_id = xref['primary_id']
+
+                    # Compile metadata dictionary
+                    variant = {"db_xref": {"ensemblgene": ensemblgene_id,
+                                           "ncbigene": None,
+                                           "HGNC": "HGNC:" + hgnc_id,
+                                           # "MIM": mim_id,
+                                           "CCDS": ccds_id,
+                                           "select": select_tx},
+                               "chromosome": mapped_chr,
+                               "map": map_position,
+                               # "gene_synonym": synonyms,
+                               "note": gene_name,
+                               "variant": description.split('-')[1]}
+
                 else:
-                    genbank_symbol = current['record']['response']['docs'][0]['symbol']
-        except Exception:
-            pass
+                    warning = "Ensembl transcript %s is not identified in the Ensembl APIs" % accession
+                    raise utils.DatabaseConnectionError(warning)
+            except TypeError:
+                connection_error = "Cannot retrieve data from Ensembl REST for record %s" % accession
+                if bypass_with_symbol is not False:
+                    try:
+                        self.update_gene_stable_identifiers(bypass_with_symbol)
+                    except Exception as e:
+                        logger.debug("Except pass, %s", e)
+                        logger.info("Unable to connect to genenames.org with symbol %s", bypass_with_symbol)
+                        connection_error = "Cannot connect to genenames.org with symbol %s", bypass_with_symbol
+                raise utils.DatabaseConnectionError(connection_error)
 
-        # Although it is obsolete, might still be in UTA database so would work in our case
-        # if 'comment' in record.annotations:
-        #     comment = record.annotations['comment']
-        #     if 'WARNING' in comment and 'this sequence was replaced by' in comment:
-        #         raise utils.ObsoleteSeqError("Sequence is obsolete in NCBI Entrez record")
-
-        if 'transcript variant' in description:
-            tv = re.search(r'transcript variant \w+', description)
-            tv = str(tv.group(0))
-            tv = tv.replace('transcript variant', '')
-            variant = tv.strip()
-            variant = variant.upper()  # Some tv descriptions are a or A
         else:
-            variant = '0'
+            """
+            Search Entrez for corresponding record for the RefSeq ID
+            """
 
-        # Add tags
-        # Currently used format transcriptVariant|MANE
-        my_quals = record.features[0].qualifiers
-        my_quals = json.loads(json.dumps(my_quals))
-        my_tags = record.features[1].qualifiers
-        my_tags = json.loads(json.dumps(my_tags))
-        my_tags['variant'] = variant
+            try:
+                record = validator.entrez_efetch(db="nucleotide", id=accession, rettype="gb", retmode="text")
+            except IOError:
+                connection_error = "Cannot retrieve data from NCBI Entrez for record %s" % accession
+                if bypass_with_symbol is not False:
+                    try:
+                        self.update_gene_stable_identifiers(bypass_with_symbol)
+                    except Exception as e:
+                        logger.debug("Except pass, %s", e)
+                        logger.info("Unable to connect to genenames.org with symbol %s", bypass_with_symbol)
+                        connection_error = "Cannot connect to genenames.org with symbol %s", bypass_with_symbol
+                raise utils.DatabaseConnectionError(connection_error)
 
-        for ft in record.features:
-            if 'db_xref' in ft.qualifiers:
-                for ccds_id_is in ft.qualifiers['db_xref']:
-                    if 'CCDS:' in ccds_id_is:
-                        my_tags['db_xref'] = my_tags['db_xref'] + [ccds_id_is]
+            version = record.id
+            description = record.description
+            genbank_symbol = str(record.features[1].qualifiers['gene'][0])
 
-        for keywd in record.annotations['keywords']:
-            if 'Select' in keywd:
-                my_tags['db_xref'] = my_tags['db_xref'] + ['select:' + keywd.split(' ')[0]]
+            try:
+                # Genbank can be out-of-date so check this is not a historic record
+                # First perform a search against the input gene symbol or the symbol inferred from UTA
+                initial = utils.hgnc_rest(path="/fetch/symbol/" + genbank_symbol)
+                # Check for a record
+                if str(initial['record']['response']['numFound']) != '0':
+                    genbank_symbol = genbank_symbol
+                # No record found, is it a previous symbol?
+                else:
+                    # Look up current name
+                    current = utils.hgnc_rest(path="/search/prev_symbol/" + genbank_symbol)
+                    # Look for historic names
+                    # If historic names = 0
+                    if str(current['record']['response']['numFound']) == '0':
+                        genbank_symbol = genbank_symbol
+                    else:
+                        genbank_symbol = current['record']['response']['docs'][0]['symbol']
+            except Exception:
+                pass
+
+            if 'transcript variant' in description:
+                tv = re.search(r'transcript variant \w+', description)
+                tv = str(tv.group(0))
+                tv = tv.replace('transcript variant', '')
+                variant = tv.strip()
+                variant = variant.upper()  # Some tv descriptions are a or A
             else:
-                my_tags['db_xref'] = my_tags['db_xref'] + ['select:' + 'False']
+                variant = '0'
 
-        # Dict the db_xref
-        db_xrefs_dict = {}
-        db_xrefs = my_tags['db_xref']
-        for xref in db_xrefs:
-            if not 'HGNC' in xref:
-                tag, label = xref.split(':')
-                db_xrefs_dict[tag] = label
-            else:
-                tag_label = xref.split(':')
-                db_xrefs_dict[tag_label[1]] = tag_label[2]
+            # Add tags
+            # Currently used format transcriptVariant|MANE
+            my_quals = record.features[0].qualifiers
+            my_quals = json.loads(json.dumps(my_quals))
+            my_tags = record.features[1].qualifiers
+            my_tags = json.loads(json.dumps(my_tags))
+            my_tags['variant'] = variant
 
-        my_tags['db_xref'] = db_xrefs_dict
+            for ft in record.features:
+                if 'db_xref' in ft.qualifiers:
+                    for ccds_id_is in ft.qualifiers['db_xref']:
+                        if 'CCDS:' in ccds_id_is:
+                            my_tags['db_xref'] = my_tags['db_xref'] + [ccds_id_is]
 
-        # merge dicts
-        all_tags = {**my_quals, **my_tags}
-        # Format dict
-        all_tags_formatted = {}
-        for key, val in all_tags.items():
-            if key == 'gene' or key == 'mol_type' or key == 'organism':
-                continue
-            if len(val) == 1:
-                val = val[0]
-                if ';' in val:
-                    val = val.replace(' ', '')
-                    val = val.split(';')
-            all_tags_formatted[key] = val
+            for keywd in record.annotations['keywords']:
+                if 'Select' in keywd:
+                    my_tags['db_xref'] = my_tags['db_xref'] + ['select:' + keywd.split(' ')[0]]
+                else:
+                    my_tags['db_xref'] = my_tags['db_xref'] + ['select:' + 'False']
 
-        variant = json.dumps(all_tags_formatted)
+            # Dict the db_xref
+            db_xrefs_dict = {}
+            db_xrefs = my_tags['db_xref']
+            for xref in db_xrefs:
+                if not 'HGNC' in xref:
+                    tag, label = xref.split(':')
+                    db_xrefs_dict[tag] = label
+                else:
+                    tag_label = xref.split(':')
+                    db_xrefs_dict[tag_label[1]] = tag_label[2]
 
-        # Get information from UTA
-        try:
-            uta_info = validator.hdp.get_tx_identity_info(version)
-        except vvhgvs.exceptions.HGVSDataNotAvailableError:
-            version_ac_ver = version.split('.')
-            version = version_ac_ver[0] + '.' + str(int(version_ac_ver[1]) - 1)
+            my_tags['db_xref'] = db_xrefs_dict
+
+            # merge dicts
+            all_tags = {**my_quals, **my_tags}
+            # Format dict
+            all_tags_formatted = {}
+            for key, val in all_tags.items():
+                if key == 'gene' or key == 'mol_type' or key == 'organism':
+                    continue
+                if len(val) == 1:
+                    val = val[0]
+                    if ';' in val:
+                        val = val.replace(' ', '')
+                        val = val.split(';')
+                all_tags_formatted[key] = val
+
+            # Compile metadata dictionary
+            all_tags_formatted["db_xref"]["ncbigene"] = all_tags_formatted["db_xref"].pop("GeneID")
+            all_tags_formatted["db_xref"]["ensemblgene"] = None
+            variant = all_tags_formatted
+
+        """
+        Get information from UTA
+        """
+        if "test" not in kwargs.keys() or kwargs["test"] is not True:
             try:
                 uta_info = validator.hdp.get_tx_identity_info(version)
             except vvhgvs.exceptions.HGVSDataNotAvailableError:
-                raise utils.DatabaseConnectionError("Cannot retrieve data from UTA database")
+                version_ac_ver = version.split('.')
+                version = version_ac_ver[0] + '.' + str(int(version_ac_ver[1]) - 1)
+                try:
+                    uta_info = validator.hdp.get_tx_identity_info(version)
+                except vvhgvs.exceptions.HGVSDataNotAvailableError:
+                    raise utils.DatabaseConnectionError("The requested transcript is not supported")
 
-        uta_symbol = str(uta_info[6])
-        if uta_symbol == '':
-            # raise utils.ObsoleteSeqError("Cannot find UTA symbol, accession is likely obsolete")
+            uta_symbol = str(uta_info[6])
+            if uta_symbol == '':
+                uta_symbol = 'unassigned'
+        else:
             uta_symbol = 'unassigned'
 
+        """
+        Update Gene stable IDs from HGNC rest, genenames.org and metadata fields
+        """
+        # Delete "gene_synonym" key
         try:
-            self.update_gene_stable_identifiers(genbank_symbol)
+            del variant["gene_synonym"]
+        except KeyError:
+            pass
+        variant["previous_symbol"] = None
+        try:
+            hgnc_data = self.update_gene_stable_identifiers(genbank_symbol)
         except Exception as e:
             logger.debug("Except pass, %s", e)
             logger.info("Unable to connect to HGNC with symbol %s", genbank_symbol)
+        if hgnc_data is not None:
+            variant["map"] = hgnc_data["map_loc"]
+            variant["note"] = hgnc_data["gene_name"]
+            variant["previous_symbol"] = hgnc_data["prev"]
+        else:
+            pass
 
+        # Fill in missing keys
+        try:
+            variant["db_xref"]["HGNC"]
+        except KeyError:
+            variant["db_xref"]["HGNC"] = None
+        try:
+            variant["db_xref"].pop("MIM")
+        except KeyError:
+            pass
+        try:
+            variant["db_xref"]["CCDS"]
+        except KeyError:
+            variant["db_xref"]["CCDS"] = None
+        try:
+            variant.pop("previous_symbol")
+        except KeyError:
+            pass
+
+        # Make into a json for storage
+        variant = json.dumps(variant)
+
+        """
+        Insert/Update the transcript information
+        """
         # Query information
         query_info = [version, description, variant, version, genbank_symbol, uta_symbol]
         table = 'transcript_info'
 
-        # Update the transcript_info table (needs plugging in)
+        # Update the transcript_info table
         returned_data = self.in_entries(version, table)
         # If the entry is not in the database add it
         if 'none' in returned_data:
@@ -280,6 +435,7 @@ class Database(vvDBInsert.Mixin):
         # If the data in the entry has changed, update it
         else:
             self.update(version, query_info)
+
         return
 
     def update_refseqgene_loci(self, rsg_data):

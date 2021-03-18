@@ -1614,13 +1614,14 @@ class Mixin(vvMixinConverters.Mixin):
                 return True
         return False
 
-    def update_transcript_record(self, tx_id):
+    def update_transcript_record(self, tx_id, **kwargs):
         """
         Siplle function allowing transcript_table to be updated
         :param tx_id:
+        :param genome_build (GRCh37 or GRCh38)
         :return:
         """
-        self.db.update_transcript_info_record(tx_id, self)
+        self.db.update_transcript_info_record(tx_id, self, **kwargs)
 
 # <LICENSE>
 # Copyright (C) 2019 VariantValidator Contributors
