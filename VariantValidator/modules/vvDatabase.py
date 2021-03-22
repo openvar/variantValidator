@@ -211,11 +211,8 @@ class Database(vvDBInsert.Mixin):
                         ccds_id = None
 
                     # Get gene db_xref
-                    mim_id = None
                     hgnc_id = None
                     gene_name = None
-                    synonyms = []
-
                     gene_xrefs = utils.ensembl_rest(id=ensemblgene_id,
                                                     endpoint="/xrefs/id/",
                                                     genome=genome_build)
@@ -224,15 +221,11 @@ class Database(vvDBInsert.Mixin):
                         if xref['dbname'] == 'HGNC':
                             hgnc_id = xref['primary_id']
                             gene_name = xref['description']
-                            # synonyms = xref['synonyms']
-                        # if xref['dbname'] == 'MIM_GENE':
-                            # mim_id = xref['primary_id']
 
                     # Compile metadata dictionary
                     variant = {"db_xref": {"ensemblgene": ensemblgene_id,
                                            "ncbigene": None,
                                            "HGNC": "HGNC:" + hgnc_id,
-                                           # "MIM": mim_id,
                                            "CCDS": ccds_id,
                                            "select": select_tx},
                                "chromosome": mapped_chr,
@@ -340,7 +333,6 @@ class Database(vvDBInsert.Mixin):
             my_tags['db_xref'] = db_xrefs_dict
 
             # merge dicts
-            all_tags = {**my_quals, **my_tags}
             # Format dict
             all_tags_formatted = {}
             for key, val in all_tags.items():
@@ -356,6 +348,11 @@ class Database(vvDBInsert.Mixin):
             # Compile metadata dictionary
             all_tags_formatted["db_xref"]["ncbigene"] = all_tags_formatted["db_xref"].pop("GeneID")
             all_tags_formatted["db_xref"]["ensemblgene"] = None
+            try:
+                all_tags_formatted["db_xref"]["HGNC"] = "HGNC:" + all_tags_formatted["db_xref"]["HGNC"]
+            except KeyError:
+                all_tags_formatted["db_xref"]["HGNC"] = None
+
             variant = all_tags_formatted
 
         """
@@ -401,9 +398,9 @@ class Database(vvDBInsert.Mixin):
 
         # Fill in missing keys
         try:
-            variant["db_xref"]["HGNC"]
+            variant["db_xref"]["hgnc"] = variant["db_xref"].pop("HGNC")
         except KeyError:
-            variant["db_xref"]["HGNC"] = None
+            variant["db_xref"]["hgnc"] = None
         try:
             variant["db_xref"].pop("MIM")
         except KeyError:
@@ -416,6 +413,10 @@ class Database(vvDBInsert.Mixin):
             variant.pop("previous_symbol")
         except KeyError:
             pass
+
+        print("STOP - NEEDS TO CROSSREFF MISSING GENE INFO i.e. refseq ID for Ensembl transcripts and vice-versa!!!!")
+        raise BaseException
+        exit()
 
         # Make into a json for storage
         variant = json.dumps(variant)
