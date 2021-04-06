@@ -47,7 +47,7 @@ def ensembl_rest(id, endpoint, genome, options=False):
     :param id: Usually a transcript ID (base accession minus the version)
     :param endpoint: See https://rest.ensembl.org/
     :param genome: Genome build, grch37 or grch38
-    :param options: ; deli,ited set of options for additional data, see https://rest.ensembl.org/
+    :param options: set of options for additional data, see https://rest.ensembl.org/
     :return: json of the requested data
     """
     data = {
@@ -74,6 +74,52 @@ def ensembl_rest(id, endpoint, genome, options=False):
 
     # Request info
     r = requests.get(url, headers=headers)
+
+    if r.status_code == 200:
+        data['record'] = r.json()
+    else:
+        my_error = "Problem encountered while connecting Ensembl REST: URL=%s: Status=%s" % (url, str(r.status_code))
+        data['error'] = my_error
+    return data
+
+
+def ensembl_tark(id, endpoint, options=False):
+    """
+    fires requests to the Ensembl APIs
+    :param id: Usually a transcript ID
+    :param endpoint: See http://dev-tark.ensembl.org/
+    :param options: set of options for additional data, see http://dev-tark.ensembl.org/
+    :return: json of the requested data
+    """
+    data = {
+        'record': '',
+        'error': 'false'
+    }
+
+    # Set base URL
+    base_url = 'http://dev-tark.ensembl.org'
+
+
+    headers = {
+        'Accept': 'application/json',
+    }
+
+    if options is False:
+        url = '%s%s?stable_id_with_version=%s&content-type=application/json' % (base_url, endpoint, id)
+    else:
+        url = '%s%s?stable_id_with_version=%s&content-type=application/json' % (base_url, endpoint, id)
+
+    # Request info
+    try:
+        r = requests.get(url, headers=headers)
+    except requests.exceptions.InvalidSchema as e:
+        # import sys
+        # import traceback
+        # exc_type, exc_value, last_traceback = sys.exc_info()
+        # traceback.print_tb(last_traceback)
+        my_error = str(e)
+        data['error'] = my_error
+        return data
 
     if r.status_code == 200:
         data['record'] = r.json()

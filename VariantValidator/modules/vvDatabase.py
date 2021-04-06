@@ -172,7 +172,6 @@ class Database(vvDBInsert.Mixin):
             They also interchangeably decide whether or not they accept version information
             Therefore, assume they do not and check using Accession.Version Python split 
             """
-
             enst_accession, enst_version = accession.split('.')
             try:
                 genome_build = kwargs['genome_build']
@@ -189,13 +188,14 @@ class Database(vvDBInsert.Mixin):
 
             # Check version
             try:
-                if enst_version == str(ens_json['version']):
+                if enst_version in str(ens_json['version']):
                     version = accession
                     description = str(ens_json['display_name'])
                     genbank_symbol = description.split('-')[0]
-                    select_tx = False
                     if ens_json['is_canonical'] == 1:
                         select_tx = 'Ensembl'
+                    else:
+                        select_tx = False
                     ensemblgene_id = ens_json['Parent']
                     mapped_chr = ens_json['seq_region_name']
                     map_position = "chr%s:%s:%s" % (mapped_chr, ens_json['start'], ens_json['end'])
@@ -222,17 +222,38 @@ class Database(vvDBInsert.Mixin):
                             hgnc_id = xref['primary_id']
                             gene_name = xref['description']
 
+                    # Get MANE status and Ensembl canonical status
+                    mane_select = False
+                    ensembl_select = False
+                    mane_plus_clinical = False
+                    if select_tx == "Ensembl":
+                        ensembl_select = True
+                    tark_record = utils.ensembl_tark(id=enst_accession + '.' + enst_version,
+                                                     endpoint="/api/transcript/stable_id_with_version/")
+                    tark_json = tark_record['record']
+
+                    if 'mane_transcript_type' in tark_json['results'][0].keys():
+                        if tark_json['results'][0]['mane_transcript_type'] == "MANE SELECT":
+                            mane_select = True
+                            select_tx = 'MANE'
+                        else:
+                            mane_plus_clinical = True
+
                     # Compile metadata dictionary
                     variant = {"db_xref": {"ensemblgene": ensemblgene_id,
                                            "ncbigene": None,
-                                           "HGNC": "HGNC:" + hgnc_id,
+                                           "HGNC": hgnc_id,
                                            "CCDS": ccds_id,
                                            "select": select_tx},
                                "chromosome": mapped_chr,
                                "map": map_position,
                                # "gene_synonym": synonyms,
                                "note": gene_name,
-                               "variant": description.split('-')[1]}
+                               "variant": description.split('-')[1],
+                               "mane_select": mane_select,
+                               "mane_plus_clinical": mane_plus_clinical,
+                               "ensembl_select": ensembl_select,
+                               "refseq_select": False}
 
                 else:
                     warning = "Ensembl transcript %s is not identified in the Ensembl APIs" % accession
@@ -333,6 +354,8 @@ class Database(vvDBInsert.Mixin):
             my_tags['db_xref'] = db_xrefs_dict
 
             # merge dicts
+            all_tags = {**my_quals, **my_tags}
+
             # Format dict
             all_tags_formatted = {}
             for key, val in all_tags.items():
@@ -348,6 +371,15 @@ class Database(vvDBInsert.Mixin):
             # Compile metadata dictionary
             all_tags_formatted["db_xref"]["ncbigene"] = all_tags_formatted["db_xref"].pop("GeneID")
             all_tags_formatted["db_xref"]["ensemblgene"] = None
+            all_tags_formatted["refseq_select"] = False
+            all_tags_formatted["mane_select"] = False
+            all_tags_formatted["ensembl_select"] = False
+            all_tags_formatted["mane_plus_clinical"] = False  # Placeholder, not seen in RefSeq records yet
+            if all_tags_formatted["db_xref"]["select"] == "MANE":
+                all_tags_formatted["mane_select"] = True
+                all_tags_formatted["refseq_select"] = True  # Assumes no conflict between MANE Select and RefSeq Select
+            if all_tags_formatted["db_xref"]["select"] == "RefSeq":
+                all_tags_formatted["refseq_select"] = True
             try:
                 all_tags_formatted["db_xref"]["HGNC"] = "HGNC:" + all_tags_formatted["db_xref"]["HGNC"]
             except KeyError:
@@ -414,9 +446,7 @@ class Database(vvDBInsert.Mixin):
         except KeyError:
             pass
 
-        print("STOP - NEEDS TO CROSSREFF MISSING GENE INFO i.e. refseq ID for Ensembl transcripts and vice-versa!!!!")
-        raise BaseException
-        exit()
+        # print(json.dumps(variant, sort_keys=False, indent=4, separators=(',', ': ')))
 
         # Make into a json for storage
         variant = json.dumps(variant)
