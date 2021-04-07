@@ -187,11 +187,11 @@ class TestConfigValues(unittest.TestCase):
         self.assertNotEqual(self.config['mysql']['user'], 'USERNAME')
         self.assertNotEqual(self.config['mysql']['password'], 'PASSWORD')
 
-        self.assertEqual(self.config['seqrepo']['version'], '2018-08-21')
+        #self.assertEqual(self.config['seqrepo']['version'], '2018-08-21')
         path = os.path.join(self.config['seqrepo']['location'], self.config['seqrepo']['version'])
         self.assertTrue(os.path.exists(path))
 
-        self.assertEqual(self.config['postgres']['version'], 'uta_20180821')
+        self.assertEqual(self.config['postgres']['version'], 'vvta')
         self.assertNotEqual(self.config['postgres']['user'], 'USERNAME')
         self.assertNotEqual(self.config['postgres']['password'], 'PASSWORD')
 

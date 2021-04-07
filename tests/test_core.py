@@ -1,4 +1,5 @@
 import unittest
+import re
 import VariantValidator
 
 
@@ -254,7 +255,13 @@ class TestGene2Transcripts(unittest.TestCase):
         self.assertEqual(list(output), ['current_symbol', 'previous_symbol', 'current_name',
                                         'previous_name', 'transcripts'])
         self.assertEqual(output['current_symbol'], 'NANOG')
-        self.assertEqual(len(output['transcripts']), 3)
+        self.assertTrue(len(output['transcripts']) > 2)
+        for transcript in output['transcripts']:
+            self.assertTrue(
+                    re.match('NM_024865.',transcript['reference'])
+                    or
+                    re.match('NM_001297698.',transcript['reference'])
+                    )
 
     def test_NM_noversion(self):
         output = self.vv.gene2transcripts('NM_024865')
@@ -262,7 +269,13 @@ class TestGene2Transcripts(unittest.TestCase):
         self.assertEqual(list(output), ['current_symbol', 'previous_symbol', 'current_name',
                                         'previous_name', 'transcripts'])
         self.assertEqual(output['current_symbol'], 'NANOG')
-        self.assertEqual(len(output['transcripts']), 3)
+        self.assertTrue(len(output['transcripts']) > 2)
+        for transcript in output['transcripts']:
+            self.assertTrue(
+                    re.match('NM_024865.',transcript['reference'])
+                    or
+                    re.match('NM_001297698.',transcript['reference'])
+                    )
 
     def test_sym(self):
         output = self.vv.gene2transcripts('NANOG')
@@ -270,7 +283,13 @@ class TestGene2Transcripts(unittest.TestCase):
         self.assertEqual(list(output), ['current_symbol', 'previous_symbol', 'current_name',
                                         'previous_name', 'transcripts'])
         self.assertEqual(output['current_symbol'], 'NANOG')
-        self.assertEqual(len(output['transcripts']), 3)
+        self.assertTrue(len(output['transcripts']) > 2)
+        for transcript in output['transcripts']:
+            self.assertTrue(
+                    re.match('NM_024865.',transcript['reference'])
+                    or
+                    re.match('NM_001297698.',transcript['reference'])
+                    )
 
     def test_old_sym(self):
         output = self.vv.gene2transcripts('OTF3')
@@ -278,7 +297,12 @@ class TestGene2Transcripts(unittest.TestCase):
         self.assertEqual(list(output), ['current_symbol', 'previous_symbol', 'current_name',
                                         'previous_name', 'transcripts'])
         self.assertEqual(output['current_symbol'], 'POU5F1')
-        self.assertEqual(len(output['transcripts']), 8)
+        self.assertTrue(len(output['transcripts']) > 7)
+        for transcript in output['transcripts']:
+            ref = re.sub('\.\d+', '.', transcript['reference'])
+            self.assertTrue(ref in [
+                'NM_203289.','NM_001173531.','NM_002701.','NM_001285986.','NM_001285987.'
+                ])
 
     def test_ens(self):
         output = self.vv.gene2transcripts('ENSG00000204531')
