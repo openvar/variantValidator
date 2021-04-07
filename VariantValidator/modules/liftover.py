@@ -164,10 +164,6 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                         sfm = seq_data.to_chr_num_refseq(op[1], build_to)
                     if build_to.startswith('hg'):
                         sfm = seq_data.to_chr_num_ucsc(op[1], build_to)
-                    if build_from.startswith('GRC'):
-                        sfm = seq_data.to_chr_num_refseq(op[1], build_from)
-                    if build_from.startswith('hg'):
-                        sfm = seq_data.to_chr_num_ucsc(op[1], build_from)
                     if sfm is not None:
                         selected.append([op[0], op[1]])
                 if liftover_level == 'primary':
@@ -178,10 +174,6 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                             sfm = seq_data.to_chr_num_refseq(op[1], build_to)
                         if build_to.startswith('hg'):
                             sfm = seq_data.to_chr_num_ucsc(op[1], build_to)
-                        if build_from.startswith('GRC'):
-                            sfm = seq_data.to_chr_num_refseq(op[1], build_from)
-                        if build_from.startswith('hg'):
-                            sfm = seq_data.to_chr_num_ucsc(op[1], build_from)
                         if sfm is not None:
                             selected.append([op[0], op[1]])
                     if op[1].startswith('NW_'):
@@ -189,15 +181,12 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                             sfm = seq_data.to_chr_num_refseq(op[1], build_to)
                         if build_to.startswith('hg'):
                             sfm = seq_data.to_chr_num_ucsc(op[1], build_to)
-                        if build_from.startswith('GRC'):
-                            sfm = seq_data.to_chr_num_refseq(op[1], build_from)
-                        if build_from.startswith('hg'):
-                            sfm = seq_data.to_chr_num_ucsc(op[1], build_from)
                         if sfm is not None:
                             selected.append([op[0], op[1]])
 
         # remove duplicate chroms
         filtered_1 = {}
+        print(selected)
         if selected:
             for chroms in selected:
                 if chroms[1] not in list(filtered_1.keys()):
