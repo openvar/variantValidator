@@ -97,20 +97,23 @@ If you wish to test your installation using pytest (see below) we recommend that
 ## Setting up Seqrepo (SQLite >=3.8)
 
 VariantValidator requires a local SeqRepo database. The seqrepo package has already been installed into the virtual environment, but you'll need to download an actual seqrepo database. This can go anywhere on your system drive.
-***Note: check [here](https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/) for the most up-to-date version***
+***Note: check [here](https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/) for the most up-to-date version where the required file is
+ e.g. VV_SR_2021_2.tar and the numbers indicate the creation date i.e. 2021_02 = February 2021***
 
 ```
 $ mkdir /path/to/seqrepo
 $ cd mkdir /path/to/seqrepo
-$ wget https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VVTA_2021_RS_and_RSG_seqrepo.tar
-$ tar -xvf VVTA_2021_RS_and_RSG_seqrepo.tar
+$ wget https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_2021_2.tar
+$ tar -xvf VV_SR_2021_2.tar
 ```
-where /path/to/seqrepo should be where you install the database e.g. /Users/Shared/seqrepo_dumps/
+where /path/to/seqrepo should be where you install the database e.g. /Users/Shared/seqrepo_dumps/ or /local/seqrepo
 
 
-## Setting up UTA database (Optional, PostGreSQL >=9.5)
+## Setting up UTA database (PostGreSQL >=10.5)
 
-It's recommended for performance reasons to use a local version of the UTA databases. 
+You will need to install a local version of the VVTA database. 
+
+First create the database and a user account:
 
 ```
 psql
@@ -125,8 +128,8 @@ Where:
 
 To fill this database, download the gzipped uta genetics database, and upload it into psql.
 ```
-$ wget --output-document=VVTA_2021_2_RefSeq_noseq.psql.gz https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_2021_2_RefSeq_noseq.psql.gz
-$ gzip -cdq VVTA_2021_2_RefSeq_noseq.psql.gz | psql -U <USER> -v ON_ERROR_STOP=0 -d vvta -Eae
+$ wget --output-document=VVTA_2021_2_noseq.psql.gz https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_2021_2_noseq.psql.gz
+$ gzip -cdq VVTA_2021_2_noseq.psql.gz | psql -U <USER> -v ON_ERROR_STOP=0 -d vvta -Eae
 ```
 
 ## Configuration

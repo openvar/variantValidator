@@ -67,10 +67,11 @@ class Mixin:
         self.seqrepoPath = os.path.join(config["seqrepo"]["location"], self.seqrepoVersion)
         os.environ['HGVS_SEQREPO_DIR'] = self.seqrepoPath
 
-        os.environ['UTA_DB_URL'] = "postgresql://%s:%s@%s/%s/%s" % (
+        os.environ['UTA_DB_URL'] = "postgresql://%s:%s@%s:%s/%s/%s" % (
             config["postgres"]["user"],
             config["postgres"]["password"],
             config['postgres']['host'],
+            config['postgres']['port'],
             config['postgres']['database'],
             config['postgres']['version']
         )
