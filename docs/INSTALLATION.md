@@ -97,30 +97,27 @@ If you wish to test your installation using pytest (see below) we recommend that
 ## Setting up Seqrepo (SQLite >=3.8)
 
 VariantValidator requires a local SeqRepo database. The seqrepo package has already been installed into the virtual environment, but you'll need to download an actual seqrepo database. This can go anywhere on your system drive.
+***Note: check [here](https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/) for the most up-to-date version***
 
 ```
 $ mkdir /path/to/seqrepo
-$ seqrepo --root-directory /path/to/seqrepo pull -i 2018-08-21
+$ cd mkdir /path/to/seqrepo
+$ wget https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VVTA_2021_RS_and_RSG_seqrepo.tar
+$ tar -xvf VVTA_2021_RS_and_RSG_seqrepo.tar
 ```
 where /path/to/seqrepo should be where you install the database e.g. /Users/Shared/seqrepo_dumps/
 
-To check it has downloaded:
-```
-$ seqrepo --root-directory /path/to/seqrepo list-local-instances
-```
-where the output should be a list of available seqrepo databases e.g. 2018-08-21
 
 ## Setting up UTA database (Optional, PostGreSQL >=9.5)
 
-It's recommended for performance reasons to use a local version of the UTA databases. Alternatively, see below if you wish to use the remote version.
-We again recommend creating a specific user account, for example:
+It's recommended for performance reasons to use a local version of the UTA databases. 
 
 ```
 psql
 CREATE ROLE <USER> WITH CREATEDB;
 ALTER ROLE <USER> WITH LOGIN;
 ALTER ROLE <USER> WITH PASSWORD '<password>'
-CREATE DATABASE uta WITH OWNER=<USER> TEMPLATE=template0;
+CREATE DATABASE vvta WITH OWNER=<USER> TEMPLATE=template0;
 ```
 Where:
 - \<USER\> should be a user-name e.g. uta_admin
@@ -128,11 +125,9 @@ Where:
 
 To fill this database, download the gzipped uta genetics database, and upload it into psql.
 ```
-$ wget --output-document=uta_20180821.psql.gz https://leicester.figshare.com/ndownloader/files/17797259
-$ gzip -cdq uta_20180821.psql.gz | psql -U uta_admin -v ON_ERROR_STOP=0 -d uta -Eae
+$ wget --output-document=VVTA_2021_2_RefSeq_noseq.psql.gz https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_2021_2_RefSeq_noseq.psql.gz
+$ gzip -cdq VVTA_2021_2_RefSeq_noseq.psql.gz | psql -U <USER> -v ON_ERROR_STOP=0 -d vvta -Eae
 ```
-
-If you wish to use the remote, public UTA database, see the instructions [here](https://github.com/biocommons/uta#accessing-the-public-uta-instance).
 
 ## Configuration
 

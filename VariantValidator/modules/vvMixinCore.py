@@ -1193,59 +1193,40 @@ class Mixin(vvMixinConverters.Mixin):
             hgnc = self.db.get_hgnc_symbol(hgnc)
 
         # First perform a search against the input gene symbol or the symbol inferred from UTA
-        initial = fn.hgnc_rest(path="/fetch/symbol/" + hgnc)
+        symbol_identified = False
+        vvta_record = self.hdp.get_gene_info(hgnc)
         # Check for a record
-        if str(initial['record']['response']['numFound']) != '0':
+        if vvta_record is not None:
             current_sym = hgnc
-            previous = initial
+            gene_name = vvta_record[3]
+            hgnc_id = vvta_record[0]
+            previous_sym = vvta_record[5]
+            symbol_identified = True
+
         # No record found, is it a previous symbol?
         else:
             # Look up current name
-            current = fn.hgnc_rest(path="/search/prev_symbol/" + hgnc)
-            # Look for historic names
-            # If historic names = 0
-            if str(current['record']['response']['numFound']) == '0':
-                current_sym = hgnc
-            else:
-                current_sym = current['record']['response']['docs'][0]['symbol']
-            # Look up previous symbols and gene name
-            # Re-set the previous variable
-            previous = fn.hgnc_rest(path="/fetch/symbol/" + current_sym)
+            vvta_record = self.hdp.get_gene_info_by_alias(hgnc)
+            if vvta_record is not None:
+                if len(vvta_record) == 1:
+                    current_sym = vvta_record[0][1]
+                    gene_name = vvta_record[0][3]
+                    hgnc_id = vvta_record[0][0]
+                    previous_sym = hgnc
+                    symbol_identified = True
+                if len(vvta_record) > 1:
+                    return {'error': '%s is a previous symbol for %s genes. '
+                            'Refer to https://www.genenames.org/' % (current_sym, str(len(vvta_record)))}
 
-        if len(previous['record']['response']['docs']) == 0:
-            return {'error': 'Unable to recognise gene symbol %s' % current_sym}
-
-        # Extract the relevant data
-        if 'prev_symbol' in list(previous['record']['response']['docs'][0].keys()):
-            previous_sym = previous['record']['response']['docs'][0]['prev_symbol'][0]
-        else:
-            previous_sym = current_sym
-
-        # Get gene name
-        if 'name' in list(previous['record']['response']['docs'][0].keys()):
-            gene_name = previous['record']['response']['docs'][0]['name']
-        else:
-            # error = current_sym + ' is not a valid HGNC gene symbol'
-            gene_name = 'Gene symbol %s not found in the HGNC database of human gene names www.genenames.org' % query
-            return {'error': gene_name}
-
-        # Look up previous name
-        if 'prev_name' in list(previous['record']['response']['docs'][0].keys()):
-            previous_name = previous['record']['response']['docs'][0]['prev_name'][0]
-        else:
-            previous_name = gene_name
+        if symbol_identified is False:
+            return {'error': 'Unable to recognise gene symbol %s' % hgnc}
 
         # Get transcripts
         tx_for_gene = self.hdp.get_tx_for_gene(current_sym)
         if len(tx_for_gene) == 0:
             tx_for_gene = self.hdp.get_tx_for_gene(previous_sym)
         if len(tx_for_gene) == 0:
-            for prev in previous['record']['response']['docs'][0]['prev_symbol']:
-                tx_for_gene = self.hdp.get_tx_for_gene(prev)
-                if len(tx_for_gene) != 0:
-                    break
-        if len(tx_for_gene) == 0:
-            return {'error': 'Unable to retrieve data from the UTA, please contact admin'}
+            return {'error': 'Unable to retrieve data from the VVTA, please contact admin'}
 
         # Loop through each transcript and get the relevant transcript description
         genes_and_tx = []
@@ -1410,7 +1391,8 @@ class Mixin(vvMixinConverters.Mixin):
         g2d_data = {'current_symbol': current_sym,
                     'previous_symbol': previous_sym,
                     'current_name': gene_name,
-                    'previous_name': previous_name,
+                    'hgnc': hgnc_id,
+                    # 'previous_name': previous_name,
                     'transcripts': genes_and_tx
                     }
 

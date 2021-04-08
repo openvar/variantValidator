@@ -12,10 +12,10 @@ services:
       - "3306:3306"
     expose:
       - "3306"
-  uta:
+  vvta:
     build:
       context: .
-      dockerfile: uta_docker.df
+      dockerfile: vvta.df
     ports:
       - "5432:5432"
     expose:
