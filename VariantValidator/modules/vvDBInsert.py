@@ -216,6 +216,23 @@ class Mixin(vvDBGet.Mixin):
         conn.close()
         return success
 
+    @handleCursor
+    def update_db_version(self, db_version):
+        # Connect and create cursor
+        conn = self.get_conn()
+        cursor = self.get_cursor(conn)
+
+        db_version = [db_version]
+        query = "UPDATE version SET current_version=%s"
+        cursor.execute(query, db_version)
+        success = 'true'
+
+        # Commit and close connection
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return success
+
 # <LICENSE>
 # Copyright (C) 2019 VariantValidator Contributors
 #

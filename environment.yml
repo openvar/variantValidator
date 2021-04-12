@@ -4,6 +4,7 @@ channels:
   - bioconda
 dependencies:
   - python==3.6
+  - pip
   - protobuf=3.5.1
   - mysql-connector-python
   - pysam

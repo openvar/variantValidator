@@ -11,7 +11,7 @@ Required:
 * SQLite version 3.8.0 or above
 
 Optional:
-* PostgreSQL version 9.5 or above. 
+* PostgreSQL version 10.5 or above. 
 
 
 ## Download the source code

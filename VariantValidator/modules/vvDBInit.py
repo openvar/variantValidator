@@ -31,6 +31,7 @@ class Mixin:
                                                    pool_reset_connection=False,
                                                    host=self.dbConfig['host'],
                                                    user=self.dbConfig['user'],
+                                                   port=self.dbConfig['port'],
                                                    password=self.dbConfig['password'],
                                                    database=self.dbConfig['database']
                                                    )
@@ -42,6 +43,7 @@ class Mixin:
                                                    pool_reset_connection=False,
                                                    host=self.dbConfig['host'],
                                                    user=self.dbConfig['user'],
+                                                   port=self.dbConfig['port'],
                                                    password=self.dbConfig['password'],
                                                    database=self.dbConfig['database']
                                                    )

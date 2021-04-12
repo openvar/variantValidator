@@ -384,6 +384,8 @@ class Database(vvDBInsert.Mixin):
                 all_tags_formatted["db_xref"]["HGNC"] = "HGNC:" + all_tags_formatted["db_xref"]["HGNC"]
             except KeyError:
                 all_tags_formatted["db_xref"]["HGNC"] = None
+            if all_tags_formatted["db_xref"]["select"] == "False":
+                all_tags_formatted["db_xref"]["select"] = False
 
             variant = all_tags_formatted
 

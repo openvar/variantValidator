@@ -22,6 +22,8 @@ from . import utils
 from VariantValidator.settings import CONFIG_DIR
 from VariantValidator.version import __version__
 
+class InitialisationError(Exception):
+    pass
 
 class Mixin:
     """
@@ -65,6 +67,7 @@ class Mixin:
 
         self.seqrepoVersion = config["seqrepo"]["version"]
         self.seqrepoPath = os.path.join(config["seqrepo"]["location"], self.seqrepoVersion)
+        self.vvdbVersion = config["mysql"]["version"]
         os.environ['HGVS_SEQREPO_DIR'] = self.seqrepoPath
 
         os.environ['UTA_DB_URL'] = "postgresql://%s:%s@%s:%s/%s/%s" % (
@@ -86,6 +89,10 @@ class Mixin:
         }
         # Create database access objects
         self.db = Database(self.dbConfig)
+        db_version = self.db.get_db_version()
+        if db_version[0] != config["mysql"]["version"]:
+            raise InitialisationError("Config error: VVDb version in config file is incorrect. VDb version is "
+                                      + db_version[0])
 
         # Set up versions
         self.version = __version__
@@ -201,8 +208,9 @@ class Mixin:
         return {
             'variantvalidator_version': self.version,
             'variantvalidator_hgvs_version': self.hgvsVersion,
-            'uta_schema': self.utaSchema,
-            'seqrepo_db': self.seqrepoPath
+            'vvta_version': self.utaSchema,
+            'vvseqrepo_db': self.seqrepoPath,
+            'vvdb_version': self.vvdbVersion
         }
 
     def myc_to_p(self, hgvs_transcript, evm, re_to_p, hn):

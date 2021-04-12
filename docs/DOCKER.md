@@ -30,9 +30,61 @@ You will need to provide an email address and an
 
 *Note: configuration can be updated (see below for details)*
 
-## Install and build
-*Note: If you have MySQl and or Postgres databases already running, you will need to alter the ports used in the 
-docker-comose.yml file. The relevant section is shown here*
+## Build the container
+
+*Note: some of these steps take >>1hr to complete depending on the speed of your internet connection, particularly 
+compiling SeqRepo*
+
+- Pull images
+
+```bash
+$ docker-compose pull
+```
+
+- Create a directory for sharing resources between your computer and the container
+```bash
+$ mkdir ~/variantvalidator_data
+$ mkdir ~/variantvalidator_data/share
+```
+i.e. a directory called share in your home directory
+
+- Build
+
+```bash
+$ docker-compose build --no-cache
+```
+
+- Start the container
+    - The first time you do this, it will complete the build process, for example, populating the required the databases
+    - This step can take >>1hour and is complete when you see the message `rest_variantvalidator_seqrepo_1 exited with code 0"`
+    - When this is completed you will need to shutdown the services and re-start (see below)
+
+```bash
+$ docker-compose up
+```    
+
+- Shutdown services when you want to stop the container
+
+```bash
+ctrl + c
+```
+
+- Re-start services
+
+```bash
+$ docker-compose up
+```
+
+
+### Build errors you may encounter
+
+***If you have MySQL and or Postgres databases already running, you may encounter an error***  
+
+> "ERROR: for vdb  Cannot start service vdb: Ports are not available: listen tcp 0.0.0.0:3306: bind: address already in use" 
+
+If you encounter these issues, stop the build by pressing `ctrl+c`
+
+- Reconfigure the ports used in the `docker-comose.yml` file as shown here
 ```yml
 services:
   vdb:
@@ -40,54 +92,74 @@ services:
       context: .
       dockerfile: vdb_docker.df
     ports:
+      # - "33060:3306"
       - "3306:3306"
     expose:
+      # - "33060"
       - "3306"
   uta:
     build:
       context: .
       dockerfile: uta_docker.df
     ports:
-      - "5432:5432"
+      - "54320:5432"
     expose:
-      - "5432"
+      - "54320"
+
 ``` 
-
-*Note: some of these steps take >>1hr to complete depending on the speed of your internet connection, particularly 
-compiling SeqRepo*
-
-
+- hash (`#`) the conflicting port and add the new ports as shown above
+- force-recreate the container
 
 ```bash
-# Pull images
-$ docker-compose pull
-
-# Build
-$ docker-compose build --no-cache
-
-# Build and load vv and databases
-# This step can take >>1hour and is complete when you see the message
-# - "variantvalidator_seqrepo_1 exited with code 0"
-$ docker-compose up
-
-# Shutdown
-ctrl + c
+$ docker-compose down
+$ docker-compose up --force-recreate
 ```
 
-## Launch
-You can then launch the docker containers and run them using
+***You may encounter a build error relating to other unavailable ports***  
+
+> "Cannot start service restvv: Ports are not available: listen tcp 0.0.0.0:8000: bind: address already in use" 
+
+If you encounter these issues, stop the build by pressing `ctrl+c`
+
+- Reconfigure the ports used in the `docker-comose.yml` file as shown here
+
+```yml
+  restvv:
+    build: .
+    depends_on:
+      - vdb
+      - uta
+    volumes:
+      - seqdata:/usr/local/share/seqrepo
+    ports:
+      - "5000:5000"
+      # - "8000:8000"
+      - "8080:8080"
+    expose:
+      - "5000"
+      # - "8000"
+      - 8080
+```
+
+- hash (`#`) the conflicting port and add the new ports as shown above
+- Change the command in Dockerfile to reflect the changes e.g. `CMD gunicorn  -b 0.0.0.0:8080 app --threads=5 --chdir ./rest_VariantValidator/`
+- force-recreate the container
 
 ```bash
-$ docker-compose up
+$ docker-compose down
+$ docker-compose up --force-recreate
 ```
 
-Note, the first time this is run it will download each of the databases including the pre-populated
-validator database and could take up >1hr depending on your connection. We do not recommend
-running this in the background as you need to see the logs and therefore when the databases are
-ready to be used.
+## Accessing the VariantValidator databases externally
+It is possible to access both the UTA and Validator databases outside of docker as they expose the
+ default PostgreSQL and MySQL ports (5432 and 3306 respectively). In the current set-up it is not possible to 
+ access the seqrepo database outside of docker.
+ 
 
-Once installed and running it is possible to run just the container containing VariantValidator, either to 
-run the validator script
+## Accessing VariantValidator directly through bash and reconfiguring a container post build
+The container hosts a full install of VariantValidator. 
+
+To start this version you use the command
 
 ```bash
 docker-compose run vv variant_validator.py
@@ -104,14 +176,3 @@ or go into the container via bash
 ```bash
 docker-compose run vv bash
 ```
-
-Note, that each time one of these commands is run a new container is created. 
-For more information on how to use docker-compose see their [documentation](https://docs.docker.com/compose/).
-
-It is possible to access both the UTA and Validator databases outside of docker as they expose the
- default PostgreSQL and MySQL ports (5432 and 3306 respectively). In the current set-up it is not possible to 
- access the seqrepo database outside of docker.
- 
-Finally, it should be noted that the current UTA docker container is not up-to-date and only contains the 
-2017-10-26 release. Therefore use caution when interpreting these results, and be advised the
- VariantValidator tests will fail. 
