@@ -57,7 +57,10 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
     # Double check rel_vars have not been missed when mapping from a RefSeqGene
     if len(rel_var) != 0 and 'NG_' in variant.hgvs_genomic.ac:
         for var in rel_var:
-            hgvs_coding_variant = validator.hp.parse_hgvs_variant(var)
+            try:
+                hgvs_coding_variant = validator.hp.parse_hgvs_variant(var)
+            except TypeError:
+                hgvs_coding_variant = var
             try:
                 variant.hgvs_genomic = validator.myevm_t_to_g(hgvs_coding_variant, variant.no_norm_evm,
                                                               variant.primary_assembly, variant.hn)

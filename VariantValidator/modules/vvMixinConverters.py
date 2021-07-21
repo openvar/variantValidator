@@ -1735,7 +1735,7 @@ class Mixin(vvMixinInit.Mixin):
             except TypeError:
                 continue
             else:
-                code_var.append(str(variant))
+                code_var.append(variant)
         return code_var
 
     def validateHGVS(self, query):
@@ -1849,13 +1849,15 @@ class Mixin(vvMixinInit.Mixin):
         revcomp = revcomp[::-1]
         return revcomp
 
-    def merge_hgvs_3pr(self, hgvs_variant_list, hn, genomic_reference=False):
+    def merge_hgvs_3pr(self, hgvs_variant_list, hn, genomic_reference=False, final_norm=True):
         """
         Function designed to merge multiple HGVS variants (hgvs objects) into a single delins
         using 3 prime normalization
         """
         # Ensure c. is mapped to the
         h_list = []
+        print("MERGE ME")
+        print(hgvs_variant_list)
 
         # Sanity check and format the submitted variants
         for hgvs_v in hgvs_variant_list:
@@ -1897,7 +1899,25 @@ class Mixin(vvMixinInit.Mixin):
         seqtype = None
         full_list = []
 
+        # Loop through the submitted variants to remove any identity variants, these will be re-created as required
+        # Except if it is the forst variant in which case we need the start position. We cannot assume non-gap
+        elec = 0
+        cp_hgvs_v = []
+        for hgvs_v in hgvs_variant_list:
+            if hgvs_v.posedit.edit.type == "identity":
+                if elec == 0:
+                    hgvs_v.posedit.pos.end.base = hgvs_v.posedit.pos.start.base
+                    hgvs_v.posedit.edit.ref = hgvs_v.posedit.edit.ref[0]
+                    hgvs_v.posedit.edit.alt = hgvs_v.posedit.edit.alt[0]
+                    cp_hgvs_v.append(hgvs_v)
+                continue
+            else:
+                cp_hgvs_v.append(hgvs_v)
+
+        print(hgvs_variant_list)
+
         # Loop through the submitted variants and gather the required info
+        hgvs_variant_list = cp_hgvs_v
         for hgvs_v in hgvs_variant_list:
             # No intronic positions
             try:
@@ -1932,19 +1952,20 @@ class Mixin(vvMixinInit.Mixin):
             # Ensure variants are in the correct order and not overlapping
             else:
                 # ! hgvs_v.posedit.pos.start.base !>
-                if hgvs_v.posedit.pos.start.base <= merge_end_pos:
-                    raise fn.mergeHGVSerror("Submitted variants are out of order or their ranges overlap")
-                else:
-                    # Create a fake variant to handle the missing sequence
-                    ins_seq = self.sf.fetch_seq(hgvs_v.ac, merge_end_pos, hgvs_v.posedit.pos.start.base - 1)
-                    gapping = hgvs_v.ac + ':' + hgvs_v.type + '.' + str(merge_end_pos + 1) + '_' + str(
-                        hgvs_v.posedit.pos.start.base - 1) + 'delins' + ins_seq
-                    hgvs_gapping = self.hp.parse_hgvs_variant(gapping)
-                    full_list.append(hgvs_gapping)
+                if hgvs_v.posedit.pos.start.base > merge_end_pos:
+                    if hgvs_v.posedit.pos.start.base > merge_end_pos + 1:
+                        # Create a fake variant to handle the missing sequence
+                        ins_seq = self.sf.fetch_seq(hgvs_v.ac, merge_end_pos, hgvs_v.posedit.pos.start.base - 1)
+                        gapping = hgvs_v.ac + ':' + hgvs_v.type + '.' + str(merge_end_pos + 1) + '_' + str(
+                            hgvs_v.posedit.pos.start.base - 1) + 'del' + ins_seq + 'ins' + ins_seq
+                        hgvs_gapping = self.hp.parse_hgvs_variant(gapping)
+                        full_list.append(hgvs_gapping)
                     # update end_pos
                     merge_end_pos = hgvs_v.posedit.pos.end.base
                     # Append to the final list of variants
                     full_list.append(hgvs_v)
+                else:
+                    raise fn.mergeHGVSerror("Submitted variants are out of order or their ranges overlap")
 
         # Generate the alt sequence
         alt_sequence = ''
@@ -1967,10 +1988,11 @@ class Mixin(vvMixinInit.Mixin):
         except Exception as e:
             logger.debug("Except passed, %s", e)
         # Normalize (allow variants crossing into different exons)
-        try:
-            hgvs_delins = hn.normalize(hgvs_delins)
-        except HGVSUnsupportedOperationError as e:
-            logger.debug("Except passed, %s", e)
+        if final_norm is True:
+            try:
+                hgvs_delins = hn.normalize(hgvs_delins)
+            except HGVSUnsupportedOperationError as e:
+                logger.debug("Except passed, %s", e)
         return hgvs_delins
 
 

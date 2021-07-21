@@ -22,11 +22,11 @@ $ git pull
 
 ## Configure
 
-***Essential step***
+Edit the file configuration/docker.ini as required
 
-Edit the file configuration/docker.ini
-You will need to provide an email address and an 
+From version 2.0.0 adding an API key is optional.
 [Entrez API key](https://ncbiinsights.ncbi.nlm.nih.gov/2017/11/02/new-api-keys-for-the-e-utilities/)
+As is adding an email address
 
 *Note: configuration can be updated (see below for details)*
 
@@ -54,9 +54,8 @@ i.e. a directory called share in your home directory
 $ docker-compose build --no-cache
 ```
 
-- Start the container
+- Complete build
     - The first time you do this, it will complete the build process, for example, populating the required the databases
-    - This step can take >>1hour and is complete when you see the message `rest_variantvalidator_seqrepo_1 exited with code 0"`
     - When this is completed you will need to shutdown the services and re-start (see below)
 
 ```bash
@@ -68,13 +67,6 @@ $ docker-compose up
 ```bash
 ctrl + c
 ```
-
-- Re-start services
-
-```bash
-$ docker-compose up
-```
-
 
 ### Build errors you may encounter
 
@@ -150,6 +142,59 @@ $ docker-compose down
 $ docker-compose up --force-recreate
 ```
 
+## Launch
+You can then launch the docker containers and run them using
+
+```bash
+$ docker-compose up
+```
+
+Once installed and running it is possible to run just the container containing VariantValidator, either to 
+run the validator script
+
+```bash
+$ docker-compose run vv variant_validator.py
+```
+
+run python
+
+```bash
+$ docker-compose run vv python
+```
+
+or go into the container via bash
+
+```bash
+$ docker-compose run vv bash
+```
+
+Note, that each time one of these commands is run a new container is created. 
+For more information on how to use docker-compose see their [documentation](https://docs.docker.com/compose/).
+
+
+## Checking the installation
+go into the container via bash
+
+```bash
+$ docker-compose run vv bash
+```
+
+Use Pytest to check the integrity of the installation
+
+```bash
+$ pytest
+```
+
+
+
+
+
+
+
+
+
+
+
 ## Accessing the VariantValidator databases externally
 It is possible to access both the UTA and Validator databases outside of docker as they expose the
  default PostgreSQL and MySQL ports (5432 and 3306 respectively). In the current set-up it is not possible to 
@@ -162,17 +207,142 @@ The container hosts a full install of VariantValidator.
 To start this version you use the command
 
 ```bash
-docker-compose run vv variant_validator.py
+$ docker-compose run restvv bash
 ```
 
-run python
+When you are finished exit the container
 
 ```bash
-docker-compose run vv python
+$ exit
 ```
 
-or go into the container via bash
+#### What you can do in bash mode
+
+1. Run VariantValidator can be run on the commandline from within the container
+    - Instructions can be found in the VariantValidator [manual](https://github.com/openvar/variantValidator/blob/master/docs/MANUAL.md) under sections **Database updates** and **Operation**
+    
+2. Start the REST services in development mode, bound to port 5000 
+    - For example, this is useful if you want to develop new methods and test them
+    - Note: Under the terms and conditions of our [license](https://github.com/openvar/rest_variantValidator/blob/master/LICENSE.txt) changes to the code and improvements must be made available to the community so that we can integrate them for the good of all our users 
+    - See instructions on VariantValidator development in Docker 
+
+
+## Developing VariantValidator in Docker
+The container has been configured with git installed. This means that you can clone Repos directly into the container
+
+To develop VariantValidator in the container
+
+Start the container 
 
 ```bash
-docker-compose run vv bash
+$ docker-compose run restvv bash
 ```
+
+ON YOUR COMPUTER change into the share directory
+
+```bash
+$ cd ~/share
+```
+
+Then create a directory for development
+
+```bash
+$ mkdir DevelopmentRepos
+$ cd ~/share/DevelopmentRepos
+```
+
+Clone the VariantValidator Repo
+
+```bash
+$ git clone https://github.com/openvar/variantValidator.git
+```
+
+Checkout the develop branch
+
+```bash
+$ git checkout develop
+$ git pull
+```
+
+Create an new branch for your developments
+
+```bash
+$ git branch name_of_branch
+$ git checkout name_of_branch
+```
+
+IN THE CONTAINER, pip install the code so it can be run by the container
+
+```bash
+$ cd /usr/local/share/DevelopmentRepos/variantValidator
+$ pip install -e . 
+```
+
+You can then use the containers Python interpreter to run queries, e.g.
+
+```python
+import json
+import VariantValidator
+vval = VariantValidator.Validator()
+variant = 'NM_000088.3:c.589G>T'
+genome_build = 'GRCh38'
+select_transcripts = 'all'
+validate = vval.validate(variant, genome_build, select_transcripts)
+validation = validate.format_as_dict(with_meta=True)
+print(json.dumps(validation, sort_keys=True, indent=4, separators=(',', ': ')))
+```
+
+## Developing rest_VariantValidator in Docker
+The process for cloning the repo is the same as for VariantValidator
+
+```bash
+$ cd ~/share/DevelopmentRepos
+$ git clone https://github.com/openvar/rest_variantValidator.git
+```
+
+Also, branches are created in the same way 
+
+```bash
+$ git checkout develop
+$ git pull
+$ git branch name_of_branch
+$ git checkout name_of_branch
+```
+
+Navigating to the Repo is identical
+
+```bash
+$ docker-compose run restvv bash
+$ cd /usr/local/share/DevelopmentRepos/rest_variantValidator
+```
+
+However, instead of running `pip install -e`, we can test the install using the Python development server
+
+```bash
+python rest_variantValidator/app.py
+```
+
+## Updating rest_variantValidator using docker-compose
+Update requires that the restvv container is deleted from your system. This is not achieved by removing the container
+
+If you are only running rest_variantValidator in docker, we recommend deleting and re-building all containers
+
+```bash
+# Delete all containers
+$ docker-compose down
+$ docker system prune -a --volumes
+```
+
+***Once you have deleted the containers, got to Install and Build***
+
+Alternatively, you may wish to try and force the containers to re-build without deleting
+
+```bash
+# Force re-build
+$ docker-compose down
+$ docker-compose up --force-recreate
+```
+
+***If you choose this option, make sure you see the container restvv being re-created and all Python packages being 
+reinstalled in the printed logs, otherwise the container may not actually be rebuilt and the contained modules may not
+ update***
