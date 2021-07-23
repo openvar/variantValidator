@@ -79,6 +79,7 @@ class Mixin:
             config['postgres']['version']
         )
         self.utaPath = os.environ.get('UTA_DB_URL')
+        # print(self.utaPath)
 
         self.dbConfig = {
             'user':     config["mysql"]["user"],

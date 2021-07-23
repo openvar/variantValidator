@@ -57,14 +57,19 @@ $ docker-compose build --no-cache
 - Complete build
     - The first time you do this, it will complete the build process, for example, populating the required the databases
     - When this is completed you will need to shutdown the services and re-start (see below)
-
+    - The build takes a while because the  vv databases are large. However, this is a significant improvement on previou
+    s versions. Install time is approximately 30 minutes (depending on the speed of you computer and internet connection)
+    - The build has completed when you see the message ***"Successfully built <container number string>"***
+    - example: "Successfully built fc9b83c8d21fa8bdebd52e0e87b9fde967933a043dace1a31916f8106110c8d8
+"
+    - Then complete the following steps
 ```bash
+# Create the containers (This only takes a coule of minutes)
 $ docker-compose up
-```    
 
-- Shutdown services when you want to stop the container
-
-```bash
+# When you see the following message the containers have been created. 
+# "vvta_1     | 2021-07-23 16:29:17.590 UTC [1] LOG:  database system is ready to accept connections"
+# Initial shut down prior to re-launch and working with VarinatValidator in Docker
 ctrl + c
 ```
 
@@ -142,6 +147,27 @@ $ docker-compose down
 $ docker-compose up --force-recreate
 ```
 
+## Checking the installation
+go into the container via bash
+
+```bash
+$ docker-compose run vv bash
+```
+
+Use Pytest to check the integrity of the installation (Recommended)
+
+- First check that the SeqRepo has installed correctly
+
+```
+$ ls /usr/local/share/seqrepo/
+# returns
+VV_SR_2021_2
+``` 
+
+```bash
+$ pytest
+```
+
 ## Launch
 You can then launch the docker containers and run them using
 
@@ -171,34 +197,14 @@ $ docker-compose run vv bash
 Note, that each time one of these commands is run a new container is created. 
 For more information on how to use docker-compose see their [documentation](https://docs.docker.com/compose/).
 
-
-## Checking the installation
-go into the container via bash
-
-```bash
-$ docker-compose run vv bash
-```
-
-Use Pytest to check the integrity of the installation
-
-```bash
-$ pytest
-```
-
-
-
-
-
-
-
-
-
-
-
 ## Accessing the VariantValidator databases externally
 It is possible to access both the UTA and Validator databases outside of docker as they expose the
- default PostgreSQL and MySQL ports (5432 and 3306 respectively). In the current set-up it is not possible to 
- access the seqrepo database outside of docker.
+ default PostgreSQL and MySQL ports (5432 and 3306 respectively). It is also possible to 
+ access the seqrepo database outside of docker by editing your config file to point at the shared directory.
+ 
+```
+~/variantvalidator_data/share/seqrepo
+```
  
 
 ## Accessing VariantValidator directly through bash and reconfiguring a container post build
@@ -207,7 +213,7 @@ The container hosts a full install of VariantValidator.
 To start this version you use the command
 
 ```bash
-$ docker-compose run restvv bash
+$ docker-compose run vv bash
 ```
 
 When you are finished exit the container
@@ -235,7 +241,7 @@ To develop VariantValidator in the container
 Start the container 
 
 ```bash
-$ docker-compose run restvv bash
+$ docker-compose run vv bash
 ```
 
 ON YOUR COMPUTER change into the share directory
@@ -290,36 +296,6 @@ select_transcripts = 'all'
 validate = vval.validate(variant, genome_build, select_transcripts)
 validation = validate.format_as_dict(with_meta=True)
 print(json.dumps(validation, sort_keys=True, indent=4, separators=(',', ': ')))
-```
-
-## Developing rest_VariantValidator in Docker
-The process for cloning the repo is the same as for VariantValidator
-
-```bash
-$ cd ~/share/DevelopmentRepos
-$ git clone https://github.com/openvar/rest_variantValidator.git
-```
-
-Also, branches are created in the same way 
-
-```bash
-$ git checkout develop
-$ git pull
-$ git branch name_of_branch
-$ git checkout name_of_branch
-```
-
-Navigating to the Repo is identical
-
-```bash
-$ docker-compose run restvv bash
-$ cd /usr/local/share/DevelopmentRepos/rest_variantValidator
-```
-
-However, instead of running `pip install -e`, we can test the install using the Python development server
-
-```bash
-python rest_variantValidator/app.py
 ```
 
 ## Updating rest_variantValidator using docker-compose
