@@ -85,9 +85,9 @@ Where:
 Download and our pre-populated database to MySQL as follows. ***Note: check [here](https://www528.lamp.le.ac.uk/vvdata/validator/) for the most up-to-date version***
 
 ```bash
-$ wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_2020-10-01.sql.gz
-$ gunzip validator_2020-10-01.sql
-$ mysql validator < validator_2020-10-01.sql
+$ wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_2021-07-21.sql.gz
+$ gunzip alidator_2021-07-21.sql.gz
+$ mysql validator < alidator_2021-07-21.sql
 ```
 
 See the [Manual](MANUAL.md) for instructions on updating this database, which should be done regularly.
