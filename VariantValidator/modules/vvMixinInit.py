@@ -22,8 +22,10 @@ from . import utils
 from VariantValidator.settings import CONFIG_DIR
 from VariantValidator.version import __version__
 
+
 class InitialisationError(Exception):
     pass
+
 
 class Mixin:
     """
@@ -85,6 +87,7 @@ class Mixin:
             'user':     config["mysql"]["user"],
             'password': config["mysql"]["password"],
             'host':     config["mysql"]["host"],
+            'port':     config["mysql"]["port"],
             'database': config["mysql"]["database"],
             'raise_on_warnings': True
         }
