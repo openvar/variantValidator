@@ -2271,8 +2271,7 @@ class Mixin(vvMixinInit.Mixin):
         # 'chr_to_rsg triggered'
         hgvs_genomic = hn.normalize(hgvs_genomic)
         # split the description
-        
-        
+
         # Accessions
         chr_ac = hgvs_genomic.ac
         # Positions
