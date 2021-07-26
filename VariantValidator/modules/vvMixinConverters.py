@@ -1856,9 +1856,6 @@ class Mixin(vvMixinInit.Mixin):
         """
         # Ensure c. is mapped to the
         h_list = []
-        print("MERGE ME")
-        print(hgvs_variant_list)
-
         # Sanity check and format the submitted variants
         for hgvs_v in hgvs_variant_list:
             # For testing include parser
@@ -1913,8 +1910,6 @@ class Mixin(vvMixinInit.Mixin):
                 continue
             else:
                 cp_hgvs_v.append(hgvs_v)
-
-        print(hgvs_variant_list)
 
         # Loop through the submitted variants and gather the required info
         hgvs_variant_list = cp_hgvs_v
