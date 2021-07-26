@@ -11,7 +11,7 @@ Required:
 * SQLite version 3.8.0 or above
 
 Optional:
-* PostgreSQL version 9.5 or above. 
+* PostgreSQL version 10.5 or above. 
 
 
 ## Download the source code
@@ -23,7 +23,7 @@ $ git clone https://github.com/openvar/variantValidator.git
 $ cd variantValidator/
 ```
 
-## Python 3.7 environment
+## Python 3.6 environment
 
 When installing VariantValidator we recommend using a virtual environment, as it requires specific versions of several libraries including python and sqlite. This can be done either via conda **or** pip.
 
@@ -71,27 +71,23 @@ A MySQL database called validator is required to run VariantValidator. We recomm
 validator database, for example:
 
 ```mysql
-CREATE USER '<USER>'@'<HOST>' IDENTIFIED BY '<PASSWORD>';
+CREATE USER 'USER'@'HOST' IDENTIFIED BY 'PASSWORD';
 CREATE DATABASE validator;
-GRANT SELECT,INSERT,UPDATE,DELETE ON validator.* TO '<USER>'@'<HOST>';
+GRANT SELECT,INSERT,UPDATE,DELETE ON validator.* TO 'USER'@'HOST';
 ```
 Where:
-- \<USER\> should be a user-name e.g. vvadmin
-- \<HOST\> is the MySQL host ID, usually 127.0.0.1
-- \<PASSWORD\> is a unique password for your database
+- USER should be a user-name e.g. vvadmin
+- HOST is the MySQL host ID, usually 127.0.0.1
+- PASSWORD is a unique password for your database
 
 *Note: We have had reports that on some systems ALL PRIVILEGES may be required rather than SELECT,INSERT,UPDATE,DELETE*
 
-In the `VariantValidator/configuration` folder is a copy of the empty mysql database needed by VariantValidator to run. You need to upload it to the running MySQL database with:
-```
-$ mysql validator < VariantValidator/configuration/empty_vv_db.sql 
-```
-However, we highly recommend that you download and and upload our pre-populated database to MySQL. The current version can be accessed as follows
+Download and our pre-populated database to MySQL as follows. ***Note: check [here](https://www528.lamp.le.ac.uk/vvdata/validator/) for the most up-to-date version***
 
 ```bash
-$ wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_2020-10-01.sql.gz
-$ gunzip validator_2020-10-01.sql
-$ mysql validator < validator_2020-10-01.sql
+$ wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_2021-07-21.sql.gz
+$ gunzip alidator_2021-07-21.sql.gz
+$ mysql validator < alidator_2021-07-21.sql
 ```
 
 See the [Manual](MANUAL.md) for instructions on updating this database, which should be done regularly.
@@ -101,30 +97,30 @@ If you wish to test your installation using pytest (see below) we recommend that
 ## Setting up Seqrepo (SQLite >=3.8)
 
 VariantValidator requires a local SeqRepo database. The seqrepo package has already been installed into the virtual environment, but you'll need to download an actual seqrepo database. This can go anywhere on your system drive.
+***Note: check [here](https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/) for the most up-to-date version where the required file is
+ e.g. VV_SR_2021_2.tar and the numbers indicate the creation date i.e. 2021_02 = February 2021***
 
 ```
 $ mkdir /path/to/seqrepo
-$ seqrepo --root-directory /path/to/seqrepo pull -i 2018-08-21
+$ cd mkdir /path/to/seqrepo
+$ wget https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_2021_2.tar
+$ tar -xvf VV_SR_2021_2.tar
 ```
-where /path/to/seqrepo should be where you install the database e.g. /Users/Shared/seqrepo_dumps/
+where /path/to/seqrepo should be where you install the database e.g. /Users/Shared/seqrepo_dumps/ or /local/seqrepo
 
-To check it has downloaded:
-```
-$ seqrepo --root-directory /path/to/seqrepo list-local-instances
-```
-where the output should be a list of available seqrepo databases e.g. 2018-08-21
 
-## Setting up UTA database (Optional, PostGreSQL >=9.5)
+## Setting up UTA database (PostGreSQL >=10.5)
 
-It's recommended for performance reasons to use a local version of the UTA databases. Alternatively, see below if you wish to use the remote version.
-We again recommend creating a specific user account, for example:
+You will need to install a local version of the VVTA database. 
+
+First create the database and a user account:
 
 ```
 psql
 CREATE ROLE <USER> WITH CREATEDB;
 ALTER ROLE <USER> WITH LOGIN;
 ALTER ROLE <USER> WITH PASSWORD '<password>'
-CREATE DATABASE uta WITH OWNER=<USER> TEMPLATE=template0;
+CREATE DATABASE vvta WITH OWNER=<USER> TEMPLATE=template0;
 ```
 Where:
 - \<USER\> should be a user-name e.g. uta_admin
@@ -132,11 +128,9 @@ Where:
 
 To fill this database, download the gzipped uta genetics database, and upload it into psql.
 ```
-$ wget --output-document=uta_20180821.psql.gz https://leicester.figshare.com/ndownloader/files/17797259
-$ gzip -cdq uta_20180821.psql.gz | psql -U uta_admin -v ON_ERROR_STOP=0 -d uta -Eae
+$ wget --output-document=VVTA_2021_2_noseq.psql.gz https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_2021_2_noseq.psql.gz
+$ gzip -cdq VVTA_2021_2_noseq.psql.gz | psql -U <USER> -v ON_ERROR_STOP=0 -d vvta -Eae
 ```
-
-If you wish to use the remote, public UTA database, see the instructions [here](https://github.com/biocommons/uta#accessing-the-public-uta-instance).
 
 ## Configuration
 

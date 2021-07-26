@@ -10,4 +10,4 @@ ENV MYSQL_PASSWORD var1ant
 
 RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
 
-RUN wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_2020-10-01.sql.gz -O /docker-entrypoint-initdb.d/validator_2020-10-01.sql.gz
+RUN wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_2021-07-21.sql.gz -O /docker-entrypoint-initdb.d/validator_2021-07-21.sql.gz

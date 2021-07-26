@@ -1,0 +1,12 @@
+FROM postgres:12.6
+
+ENV POSTGRES_DB=vvta
+
+ENV POSTGRES_USER=uta_admin
+
+ENV POSTGRES_PASSWORD=uta_admin
+
+RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
+
+RUN wget --output-document=VTA_2021_2_noseq.sql.gz https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_2021_2_noseq.psql.gz -O /docker-entrypoint-initdb.d/VVTA_2021_2_noseq.sql.gz
+

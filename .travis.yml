@@ -12,13 +12,17 @@ matrix:
 
 services:
   - mysql
-  - postgresql
 
 addons:
-  postgresql: "9.6"
-
+  postgresql: "11"
+  apt:
+    packages:
+      - postgresql-11
+      - postgresql-client-11
 env:
-  - CODECOV_TOKEN="50dd5c2e-4259-4cfa-97a7-b4429e0d179e"
+  global:
+    - PGPORT=5433
+    - CODECOV_TOKEN="50dd5c2e-4259-4cfa-97a7-b4429e0d179e"
 
 before_install:
 
@@ -29,15 +33,31 @@ before_install:
   - mysql -e 'CREATE DATABASE validator;'
   - df -h
 
-  - mkdir "$HOME"/seqrepo
-  - rsync -HavP dl.biocommons.org::seqrepo/2018-08-21/ "$HOME"/seqrepo/2018-08-21/
+  # seqrepo needs bgzip from htslib, in ubuntu this is included in the tabix package
+  - sudo apt-get -y install tabix
+
+  ## prep psql, get and load vvta db dump
+  # fix auth (taken from https://alphahydrae.com/2021/02/how-to-run-postgresql-13-on-travis-ci/)
+  - sudo sed -i  -e '/local.*peer/s/postgres/all/' -e 's/peer\|md5/trust/g' /etc/postgresql/11/main/pg_hba.conf
+  # Restart the PostgreSQL service:
+  - sudo service postgresql@11-main restart
+  - sleep 3
+  - createuser -e --createdb  uta_admin
+  ### for local use we probably just need to add -P to createuser and use uta_admin, but that spawns an interactive prompt
+  ### also we need to test that the database works with only public permissions too, as should be for any web attached user
+  - createdb -e vvta -O uta_admin
+  - psql -d vvta -U postgres -c "CREATE USER ta_user WITH PASSWORD 'read_only'"
+  - wget --output-document=VVTA_2021_2_RefSeq_noseq.psql.gz https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_2021_2_RefSeq_noseq.psql.gz
+  - gunzip -c VVTA_2021_2_RefSeq_noseq.psql.gz | psql --quiet vvta
+  - psql -d vvta -U postgres -c 'GRANT SELECT ON vvta.gene TO public;'
+  - psql -d vvta -U postgres -c 'GRANT SELECT ON ALL TABLES IN SCHEMA public TO ta_user;'
 
   # Copy configuration file
   - cp configuration/travis.ini "$HOME"/.variantvalidator
 
   # Get validator database
-  - wget --output-document=validator_2020-10-01.sql.gz https://www528.lamp.le.ac.uk/vvdata/validator/validator_2020-10-01.sql.gz
-  - gunzip validator_2020-10-01.sql.gz
+  - wget --output-document=validator_2020-10-01.sql.gz https://www528.lamp.le.ac.uk/vvdata/validator/validator_2021-07-21.sql.gz
+  - gunzip validator_2021-07-21.sql.gz
 
 install:
 
@@ -45,8 +65,32 @@ install:
   - pip install -r requirements_dev.txt
   - pip install -e .
 
+  ## get seqrepo data and load it into now installed seqrepo
+  - mkdir "$HOME"/vvta_seqrepo
+    #- seqrepo --root-directory "$HOME"/vvta_seqrepo init
+    #- wget --output-document=VVTA_2021_2_RefSeq.fa.gz https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VVTA_2021_2_RefSeq.fa.gz
+    #- seqrepo --root-directory "$HOME"/vvta_seqrepo load -n local VVTA_2021_2_RefSeq.fa.gz 2>&1 | tee sr_log.txt | perl -e ' my $interval = 60; my $time = time() - $interval ; while(my $line = <STDIN> ){if( $time +$interval < time()){ print $line;$time=time() } }'
+    #- tail sr_log.txt
+    #- wget --output-document=VVTA_2021_2_RSG_genomic_ref.fa.gz https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VVTA_2021_2_RSG_genomic_ref.fa.gz
+    #- seqrepo --root-directory "$HOME"/vvta_seqrepo load -n local VVTA_2021_2_RSG_genomic_ref.fa.gz  2>&1 | tee sr_log.txt | perl -e ' my $interval = 60; my $time = time() - $interval ; while(my $line = <STDIN> ){if( $time +$interval < time()){ print $line;$time=time() } }'
+    #- tail sr_log.txt
+    #- wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.25_GRCh37.p13/GCF_000001405.25_GRCh37.p13_genomic.fna.gz
+    #- gunzip -k --stdout  GCF_000001405.*GRCh37*_genomic.fna.gz | sed -e 's/>\([^ ]\+\).*/>\1/' |seqrepo --root-directory "$HOME"/vvta_seqrepo load -n local - 2>&1 | tee sr_log.txt | perl -e ' my $interval = 60; my $time = time() - $interval ; while(my $line = <STDIN> ){if( $time +$interval < time()){ print $line;$time=time() } }'
+    #- tail sr_log.txt
+    #- wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.39_GRCh38.p13/GCF_000001405.39_GRCh38.p13_genomic.fna.gz
+    #- gunzip -k --stdout  GCF_000001405.*GRCh38*_genomic.fna.gz | sed -e 's/>\([^ ]\+\).*/>\1/' |seqrepo --root-directory "$HOME"/vvta_seqrepo load -n local - 2>&1 | tee sr_log.txt | perl -e ' my $interval = 60; my $time = time() - $interval ; while(my $line = <STDIN> ){if( $time +$interval < time()){ print $line;$time=time() } }'
+    #- tail sr_log.txt
+  - wget --output-document="$HOME"/vvta_seqrepo/VVTA_2021_RS_and_RSG_seqrepo.tar https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VVTA_2021_RS_and_RSG_seqrepo.tar
+  - cd "$HOME"/vvta_seqrepo/
+  - tar -xvf VVTA_2021_RS_and_RSG_seqrepo.tar
+  - cd -
+  #cleanup seqrepo input
+  #- rm  VVTA_2021_2_RefSeq.fa.gz VVTA_2021_2_RSG_genomic_ref.fa.gz GCF_000001405.*GRCh37*_genomic.fna.gz GCF_000001405.*GRCh38*_genomic.fna.gz
+
+
   # Set up validator database
   - mysql validator < validator_2020-10-01.sql
+  - rm validator_2020-10-01.sql
 
   #  - update_vdb.py
   - df -h

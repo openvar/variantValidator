@@ -1,33 +1,47 @@
 version: '3'
 
-volumes:
-  seqdata:
-
 services:
   vdb:
     build:
       context: .
       dockerfile: vdb_docker.df
     ports:
-      - "3306:3306"
+      - "33060:3306"
     expose:
-      - "3306"
-  uta:
+      - "33060"
+  vvta:
     build:
       context: .
-      dockerfile: uta_docker.df
+      dockerfile: vvta_docker.df
     ports:
-      - "5432:5432"
+      - "54320:5432"
     expose:
-      - "5432"
+      - "54320"
   seqrepo:
-    image: biocommons/seqrepo:2018-08-21
+    build:
+      context: .
+      dockerfile: vvsr_docker.df
     volumes:
       - seqdata:/usr/local/share/seqrepo
   vv:
     build: .
     depends_on:
       - vdb
-      - uta
+      - vvta
     volumes:
       - seqdata:/usr/local/share/seqrepo
+      - share:/usr/local/share
+
+volumes:
+  share:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '${HOME}/variantvalidator_data/share'
+  seqdata:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '${HOME}/variantvalidator_data/share/seqrepo'

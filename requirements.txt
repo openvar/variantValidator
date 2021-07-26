@@ -1,5 +1,5 @@
-git+https://github.com/openvar/vv_hgvs@1.2.5.vv1#egg=vvhgvs
-biocommons.seqrepo >= 0.5.1
+git+https://github.com/openvar/vv_hgvs@master#egg=vvhgvs
+biocommons.seqrepo>=0.5.1
 httplib2>=0.9.0
 configparser>=3.5.0
 pyliftover>=0.3

@@ -177,9 +177,9 @@ class TestConfigValues(unittest.TestCase):
 
     def test_file_structure(self):
         self.assertEqual(self.config.sections(), ['mysql', 'seqrepo', 'postgres',  'logging', 'Entrez'])
-        self.assertEqual(list(self.config['mysql']), ['host', 'database', 'user', 'password'])
+        self.assertEqual(list(self.config['mysql']), ['host', 'port', 'database', 'user', 'password', 'version'])
         self.assertEqual(list(self.config['seqrepo']), ['version', 'location'])
-        self.assertEqual(list(self.config['postgres']), ['host', 'database', 'version', 'user', 'password'])
+        self.assertEqual(list(self.config['postgres']), ['host', 'port', 'database', 'version', 'user', 'password'])
         self.assertEqual(list(self.config['logging']), ['log', 'console', 'file'])
         self.assertEqual(list(self.config['Entrez']), ['email', 'api_key'])
 
@@ -187,11 +187,11 @@ class TestConfigValues(unittest.TestCase):
         self.assertNotEqual(self.config['mysql']['user'], 'USERNAME')
         self.assertNotEqual(self.config['mysql']['password'], 'PASSWORD')
 
-        self.assertEqual(self.config['seqrepo']['version'], '2018-08-21')
+        #self.assertEqual(self.config['seqrepo']['version'], '2018-08-21')
         path = os.path.join(self.config['seqrepo']['location'], self.config['seqrepo']['version'])
         self.assertTrue(os.path.exists(path))
 
-        self.assertEqual(self.config['postgres']['version'], 'uta_20180821')
+        self.assertEqual(self.config['postgres']['version'], 'vvta_2021_2')
         self.assertNotEqual(self.config['postgres']['user'], 'USERNAME')
         self.assertNotEqual(self.config['postgres']['password'], 'PASSWORD')
 
@@ -214,10 +214,11 @@ class TestConfigValues(unittest.TestCase):
         self.assertEqual(vv.seqrepoPath,
                          os.path.join(self.config['seqrepo']['location'], self.config['seqrepo']['version']))
 
-        self.assertEqual(vv.utaPath, "postgresql://%s:%s@%s/%s/%s" % (
+        self.assertEqual(vv.utaPath, "postgresql://%s:%s@%s:%s/%s/%s" % (
             self.config["postgres"]["user"],
             self.config["postgres"]["password"],
             self.config['postgres']['host'],
+            self.config['postgres']['port'],
             self.config['postgres']['database'],
             self.config['postgres']['version']
         ))

@@ -3,7 +3,8 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - python>=3.6
+  - python==3.6
+  - pip
   - protobuf=3.5.1
   - mysql-connector-python
   - pysam
@@ -13,6 +14,6 @@ dependencies:
   - configparser>=3.5.0
   - requests
   - pip:
-    - git+https://github.com/openvar/vv_hgvs@1.2.5.vv1#egg=vvhgvs
+    - git+https://github.com/openvar/vv_hgvs@master#egg=vvhgvs
     - biotools>=0.3.0
     - biopython
