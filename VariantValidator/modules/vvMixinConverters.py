@@ -2271,8 +2271,7 @@ class Mixin(vvMixinInit.Mixin):
         # 'chr_to_rsg triggered'
         hgvs_genomic = hn.normalize(hgvs_genomic)
         # split the description
-        
-        
+
         # Accessions
         chr_ac = hgvs_genomic.ac
         # Positions
@@ -2537,7 +2536,7 @@ class Mixin(vvMixinInit.Mixin):
         return descriptions
 
 # <LICENSE>
-# Copyright (C) 2019 VariantValidator Contributors
+# Copyright (C) 2016-2021 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

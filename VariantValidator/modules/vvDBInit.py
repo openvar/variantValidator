@@ -31,7 +31,7 @@ class Mixin:
                                                    pool_reset_connection=False,
                                                    host=self.dbConfig['host'],
                                                    user=self.dbConfig['user'],
-                                                   port=self.dbConfig['port'],
+                                                   port=int(self.dbConfig['port']),
                                                    password=self.dbConfig['password'],
                                                    database=self.dbConfig['database']
                                                    )
@@ -43,7 +43,7 @@ class Mixin:
                                                    pool_reset_connection=False,
                                                    host=self.dbConfig['host'],
                                                    user=self.dbConfig['user'],
-                                                   port=self.dbConfig['port'],
+                                                   port=int(self.dbConfig['port']),
                                                    password=self.dbConfig['password'],
                                                    database=self.dbConfig['database']
                                                    )
@@ -66,7 +66,7 @@ class Mixin:
         return cursor
 
 # <LICENSE>
-# Copyright (C) 2019 VariantValidator Contributors
+# Copyright (C) 2016-2021 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
