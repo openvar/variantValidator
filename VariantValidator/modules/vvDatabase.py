@@ -168,7 +168,7 @@ class Database(vvDBInsert.Mixin):
         if 'ENST' in accession:
 
             """
-            Ensembl APIs do not cross-reference FRCh38 and 38 so 3 queries are needed
+            Ensembl APIs do not cross-reference GRCh38 and 38 so 37 queries are needed
             They also interchangeably decide whether or not they accept version information
             Therefore, assume they do not and check using Accession.Version Python split 
             """
@@ -268,7 +268,10 @@ class Database(vvDBInsert.Mixin):
                         logger.info("Unable to connect to genenames.org with symbol %s", bypass_with_symbol)
                         connection_error = "Cannot connect to genenames.org with symbol %s", bypass_with_symbol
                 raise utils.DatabaseConnectionError(connection_error)
-
+            except Exception as e:
+                warning = "Ensembl transcript %s is not identified in the Ensembl APIs" % accession
+                warning = "Ensembl transcript %s is not identified in the Ensembl APIs" % accession
+                raise utils.DatabaseConnectionError(warning)
         else:
             """
             Search Entrez for corresponding record for the RefSeq ID
@@ -289,8 +292,11 @@ class Database(vvDBInsert.Mixin):
 
             version = record.id
             description = record.description
-            genbank_symbol = str(record.features[1].qualifiers['gene'][0])
-
+            try:
+                genbank_symbol = str(record.features[1].qualifiers['gene'][0])
+            except KeyError:
+                raise utils.DatabaseConnectionError("Gene information is not available in the RefSeq record. Record "
+                                                    "potentially deprecated")
             try:
                 # Genbank can be out-of-date so check this is not a historic record
                 # First perform a search against the input gene symbol or the symbol inferred from UTA
@@ -401,7 +407,7 @@ class Database(vvDBInsert.Mixin):
                 try:
                     uta_info = validator.hdp.get_tx_identity_info(version)
                 except vvhgvs.exceptions.HGVSDataNotAvailableError:
-                    raise utils.DatabaseConnectionError("The requested transcript is not supported")
+                    raise utils.DatabaseConnectionError("The requested transcript was not found in the VVTA database")
 
             uta_symbol = str(uta_info[6])
             if uta_symbol == '':
