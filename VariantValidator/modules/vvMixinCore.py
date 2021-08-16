@@ -1232,7 +1232,7 @@ class Mixin(vvMixinConverters.Mixin):
         genes_and_tx = []
         recovered = []
         for line in tx_for_gene:
-            if line[3].startswith('NM_') or line[3].startswith('NR_'):
+            if (line[3].startswith('NM_') or line[3].startswith('NR_')) and '..' not in line[3]:
                 # Transcript ID
                 tx = line[3]
 

@@ -268,8 +268,7 @@ class Database(vvDBInsert.Mixin):
                         logger.info("Unable to connect to genenames.org with symbol %s", bypass_with_symbol)
                         connection_error = "Cannot connect to genenames.org with symbol %s", bypass_with_symbol
                 raise utils.DatabaseConnectionError(connection_error)
-            except Exception as e:
-                warning = "Ensembl transcript %s is not identified in the Ensembl APIs" % accession
+            except Exception:
                 warning = "Ensembl transcript %s is not identified in the Ensembl APIs" % accession
                 raise utils.DatabaseConnectionError(warning)
         else:
