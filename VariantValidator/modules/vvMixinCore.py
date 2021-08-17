@@ -1118,6 +1118,18 @@ class Mixin(vvMixinConverters.Mixin):
                         if alt_genomic_loci:
                             variant.alt_genomic_loci = alt_genomic_loci
 
+                # Remove duplicate warnings
+                variant_warnings = []
+                accession = variant.hgvs_transcript_variant.split(':')[0]
+                term = "(" + accession + ")"
+                for vt in variant.warnings:
+                    #  Do not warn a transcript update is available for the most recent transcript
+                    if term in vt and "A more recent version of the selected reference sequence" in vt:
+                        continue
+                    else:
+                        variant_warnings.append(vt)
+                variant.warnings = variant_warnings
+
                 # Append to a list for return
                 batch_out.append(variant)
 
