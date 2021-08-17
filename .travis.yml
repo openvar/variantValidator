@@ -89,8 +89,8 @@ install:
 
 
   # Set up validator database
-  - mysql validator < validator_2020-10-01.sql
-  - rm validator_2020-10-01.sql
+  - mysql validator < validator_2021-07-21.sql
+  - rm validator_2021-07-21.sql
 
   #  - update_vdb.py
   - df -h
