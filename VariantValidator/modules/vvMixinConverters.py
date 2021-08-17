@@ -1665,6 +1665,7 @@ class Mixin(vvMixinInit.Mixin):
                         vvhgvs.edit.NARefAlt(ref=base, alt=alt)
                         )
                     )
+
         # Project genomic variants to new transcripts
         # and  populate a code_var list
         #############################################
@@ -1682,7 +1683,7 @@ class Mixin(vvMixinInit.Mixin):
                 if hgvs_genomic_forced_delins:
                     curr_genomic = hgvs_genomic_forced_delins
                     try:
-                        variant = evm.g_to_t(hgvs_genomic_forced_delins, y)
+                        evm.g_to_t(hgvs_genomic_forced_delins, y)
                     except vvhgvs.exceptions.HGVSError:
                         pass
                 # Check for non-coding transcripts
@@ -1693,6 +1694,7 @@ class Mixin(vvMixinInit.Mixin):
             except Exception as err:
                 logger.warning('non expected err type', str(err))
                 continue
+
             # Corrective Normalisation of intronic descriptions in the antisense oriemtation
             if '+' in str(variant) or '-' in str(variant) or '*' in str(variant):
                 tx_ac = variant.ac
@@ -1702,13 +1704,11 @@ class Mixin(vvMixinInit.Mixin):
                 try:
                     tx_exons = self.hdp.get_tx_exons(tx_ac, alt_ac, alt_aln_method)
                 except vvhgvs.exceptions.HGVSError as e:
-                    tx_exons = 'hgvs Exception: ' + str(e)
-                    return tx_exons
+                    continue
                 try:
-                    completion = tx_exons[0]['alt_strand']
+                    tx_exons[0]['alt_strand']
                 except TypeError:
-                    tx_exons = 'error'
-                    return tx_exons
+                    continue
                 # If on the reverse strand, reverse the order of elements
                 if tx_exons[0]['alt_strand'] == -1:
                     tx_exons = tx_exons[::-1]
@@ -1736,6 +1736,7 @@ class Mixin(vvMixinInit.Mixin):
                 continue
             else:
                 code_var.append(variant)
+
         return code_var
 
     def validateHGVS(self, query):
