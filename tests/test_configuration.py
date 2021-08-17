@@ -191,7 +191,7 @@ class TestConfigValues(unittest.TestCase):
         path = os.path.join(self.config['seqrepo']['location'], self.config['seqrepo']['version'])
         self.assertTrue(os.path.exists(path))
 
-        self.assertEqual(self.config['postgres']['version'], 'vvta_2021_2')
+        # self.assertEqual(self.config['postgres']['version'], 'vvta_2021_2')
         self.assertNotEqual(self.config['postgres']['user'], 'USERNAME')
         self.assertNotEqual(self.config['postgres']['password'], 'PASSWORD')
 
