@@ -47,8 +47,8 @@ before_install:
   ### also we need to test that the database works with only public permissions too, as should be for any web attached user
   - createdb -e vvta -O uta_admin
   - psql -d vvta -U postgres -c "CREATE USER ta_user WITH PASSWORD 'read_only'"
-  - wget --output-document=VVTA_2021_2_RefSeq_noseq.psql.gz https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_2021_2_RefSeq_noseq.psql.gz
-  - gunzip -c VVTA_2021_2_RefSeq_noseq.psql.gz | psql --quiet vvta
+  - wget --output-document=VVTA_2021_2_noseq.psql.gz https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_2021_2_noseq.psql.gz
+  - gunzip -c VVTA_2021_2_noseq.psql.gz | psql --quiet vvta
   - psql -d vvta -U postgres -c 'GRANT SELECT ON vvta.gene TO public;'
   - psql -d vvta -U postgres -c 'GRANT SELECT ON ALL TABLES IN SCHEMA public TO ta_user;'
 
