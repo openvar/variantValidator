@@ -109,7 +109,7 @@ $ tar -xvf VV_SR_2021_2.tar
 where /path/to/seqrepo should be where you install the database e.g. /Users/Shared/seqrepo_dumps/ or /local/seqrepo
 
 
-## Setting up UTA database (PostGreSQL >=10.5)
+## Setting up VVTA database (PostGreSQL >=10.5)
 
 You will need to install a local version of the VVTA database. 
 

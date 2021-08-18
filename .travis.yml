@@ -51,12 +51,13 @@ before_install:
   - gunzip -c VVTA_2021_2_RefSeq_noseq.psql.gz | psql --quiet vvta
   - psql -d vvta -U postgres -c 'GRANT SELECT ON vvta.gene TO public;'
   - psql -d vvta -U postgres -c 'GRANT SELECT ON ALL TABLES IN SCHEMA public TO ta_user;'
+  - psql -d vvta -U postgres -c 'GRANT SELECT ON vvta.tx_def_summary_v TO ta_user;'
 
   # Copy configuration file
   - cp configuration/travis.ini "$HOME"/.variantvalidator
 
   # Get validator database
-  - wget --output-document=validator_2020-10-01.sql.gz https://www528.lamp.le.ac.uk/vvdata/validator/validator_2021-07-21.sql.gz
+  - wget --output-document=validator_2021-07-21.sql.gz https://www528.lamp.le.ac.uk/vvdata/validator/validator_2021-07-21.sql.gz
   - gunzip validator_2021-07-21.sql.gz
 
 install:
@@ -89,8 +90,8 @@ install:
 
 
   # Set up validator database
-  - mysql validator < validator_2020-10-01.sql
-  - rm validator_2020-10-01.sql
+  - mysql validator < validator_2021-07-21.sql
+  - rm validator_2021-07-21.sql
 
   #  - update_vdb.py
   - df -h

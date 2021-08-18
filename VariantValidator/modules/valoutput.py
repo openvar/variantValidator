@@ -40,9 +40,6 @@ class ValOutput(object):
 
                 # if identification_key not in validation_output.keys():
                 validation_output[identification_key] = variant.output_dict(test=test)
-                # else:
-                # dotter = dotter + ' '
-                # validation_output[identification_key + dotter] = valid_v
 
             # For warning only outputs
             # Should only ever be 1 output as an error or a warning of the following types
@@ -51,9 +48,7 @@ class ValOutput(object):
 
             # Note, currently there are no NM_ mito transcripts. This is expected to change. For now mito will
             # be handled here
-
             if variant.output_type_flag == 'warning':
-                # validation_output['flag'] = 'warning'
                 if variant.warnings == ['Validation error']:
                     validation_error_counter = validation_error_counter + 1
                     identification_key = 'validation_error_%s' % validation_error_counter
@@ -64,6 +59,7 @@ class ValOutput(object):
                     validation_warning_counter = validation_warning_counter + 1
                     identification_key = 'validation_warning_%s' % validation_warning_counter
                 validation_output[identification_key] = variant.output_dict(test=test)
+
             elif variant.output_type_flag == 'mitochondrial':
                 validation_output['flag'] = 'mitochondrial'
                 if variant.warnings == ['Validation error']:
@@ -76,7 +72,6 @@ class ValOutput(object):
                     validation_warning_counter = validation_warning_counter + 1
                     identification_key = 'mitochondrial_variant_%s' % validation_warning_counter
                 validation_output[identification_key] = variant.output_dict(test=test)
-
 
             # Intergenic variants
             if variant.output_type_flag == 'intergenic':
@@ -174,15 +169,6 @@ class ValOutput(object):
         :return:
         """
         metadata = {}
-
-        # metadata["variant"] = batch_variant  # original input string to validate function
-        # metadata["assembly"] = selected_assembly
-        # metadata["transcripts"] = select_transcripts
-        # metadata['seqrepo_directory'] = self.seqrepoPath
-        # metadata['uta_url'] = self.utaPath
-        # metadata['py_liftover_directory'] = self.liftoverPath
-        # metadata['variantvalidator_data_url'] = self.db.path
-        # metadata['entrez_id'] = self.entrezID
         metadata['variantvalidator_version'] = self.validator.version
         metadata['variantvalidator_hgvs_version'] = self.validator.hgvsVersion
         metadata['vvta_version'] = self.validator.utaSchema
