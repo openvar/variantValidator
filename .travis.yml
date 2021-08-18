@@ -51,7 +51,7 @@ before_install:
   - gunzip -c VVTA_2021_2_RefSeq_noseq.psql.gz | psql --quiet vvta
   - psql -d vvta -U postgres -c 'GRANT SELECT ON vvta.gene TO public;'
   - psql -d vvta -U postgres -c 'GRANT SELECT ON ALL TABLES IN SCHEMA public TO ta_user;'
-  - psql -d vvta -U postgres -c 'GRANT SELECT ON tx_def_summary_v TO ta_user;'
+  - psql -d vvta -U postgres -c 'GRANT SELECT ON vvta.tx_def_summary_v TO ta_user;'
 
   # Copy configuration file
   - cp configuration/travis.ini "$HOME"/.variantvalidator

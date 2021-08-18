@@ -485,6 +485,9 @@ class Mixin(vvMixinConverters.Mixin):
                         except mappers.MappersError:
                             my_variant.output_type_flag = 'warning'
                             continue
+                        except vvhgvs.exceptions.HGVSInvalidVariantError:
+                            my_variant.output_type_flag = 'warning'
+                            continue
                         if toskip:
                             continue
 

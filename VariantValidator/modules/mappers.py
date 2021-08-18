@@ -191,7 +191,6 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     error = ''
     # Collect information for genomic level validation
     obj = validator.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
-
     tx_ac = obj.ac
 
     quibble_input = str(variant.quibble)
