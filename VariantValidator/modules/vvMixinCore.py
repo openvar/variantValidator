@@ -65,10 +65,14 @@ class Mixin(vvMixinConverters.Mixin):
                 select_transcripts_list = select_transcripts.split('|')
                 for trans_id in select_transcripts_list:
                     trans_id = trans_id.strip()
+
+                    # Select LRG equivalent transcripts
                     if 'LRG' in trans_id:
                         trans_id = self.db.get_refseq_transcript_id_from_lrg_transcript_id(trans_id)
                         if trans_id == 'none':
                             continue
+
+                    # Create dictionaries
                     select_transcripts_dict_plus_version[trans_id] = ''
                     trans_id = trans_id.split('.')[0]
                     select_transcripts_dict[trans_id] = ''

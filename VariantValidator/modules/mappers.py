@@ -197,7 +197,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     formatted_variant = str(variant.hgvs_formatted)
 
     # Do we keep it?
-    if validator.select_transcripts != 'all':
+    if validator.select_transcripts != 'all' and "select" not in validator.select_transcripts:
         if tx_ac not in list(select_transcripts_dict_plus_version.keys()):
             # By marking it as Do Not Write and continuing through the validation loop
             variant.write = False
