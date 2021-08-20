@@ -50,7 +50,8 @@ Install the mariadb python library
 
 ***Note: Only do this if you intend to run MariaDB instead of MySQL***
 ```bash
-$ pip install mariadb
+$ conda install -c anaconda mysql-connector-c
+$ conda install -c anaconda mysql-connector-python
 ```
 ***Additional steps may be required***
 Install [MariaDB Connector/C](https://downloads.mariadb.com/Connectors/c/)
@@ -86,7 +87,7 @@ Download and our pre-populated database to MySQL as follows. ***Note: check [her
 
 ```bash
 $ wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_2021-07-21.sql.gz
-$ gunzip alidator_2021-07-21.sql.gz
+$ gunzip validator_2021-07-21.sql.gz
 $ mysql validator < validator_2021-07-21.sql
 ```
 
@@ -105,6 +106,7 @@ $ mkdir /path/to/seqrepo
 $ cd mkdir /path/to/seqrepo
 $ wget https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_2021_2.tar
 $ tar -xvf VV_SR_2021_2.tar
+$ rm VV_SR_2021_2.tar
 ```
 where /path/to/seqrepo should be where you install the database e.g. /Users/Shared/seqrepo_dumps/ or /local/seqrepo
 
@@ -119,7 +121,7 @@ First create the database and a user account:
 psql
 CREATE ROLE <USER> WITH CREATEDB;
 ALTER ROLE <USER> WITH LOGIN;
-ALTER ROLE <USER> WITH PASSWORD '<password>'
+ALTER ROLE <USER> WITH PASSWORD '<password>';
 CREATE DATABASE vvta WITH OWNER=<USER> TEMPLATE=template0;
 ```
 Where:

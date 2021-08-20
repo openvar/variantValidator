@@ -114,12 +114,49 @@ class GapMapper(object):
                 saved_hgvs_coding = var
 
             # Remove un-selected transcripts
-            if self.validator.select_transcripts != 'all':
+            if self.validator.select_transcripts != 'all' and "select" not in self.validator.select_transcripts:
                 tx_ac = saved_hgvs_coding.ac
                 # If it's in the selected tx dict, keep it
                 if tx_ac.split('.')[0] in list(select_transcripts_dict.keys()):
                     pass
                 # If not get rid of it!
+                else:
+                    continue
+
+            # Filter for Select transcripts only
+            elif self.validator.select_transcripts == "select":
+                tx_ac = saved_hgvs_coding.ac
+                annotation = self.validator.db.get_transcript_annotation(tx_ac)
+                if 'mane_select": true' in annotation or 'refseq_select": true' in annotation or \
+                        'ensembl_select: true' in annotation:
+                    pass
+                else:
+                    continue
+
+            # Filter for mane Select transcripts only
+            elif self.validator.select_transcripts == "mane_select":
+                tx_ac = saved_hgvs_coding.ac
+                annotation = self.validator.db.get_transcript_annotation(tx_ac)
+                if 'mane_select": true' in annotation:
+                    pass
+                else:
+                    continue
+
+            # Filter for RefSeq Select transcripts only
+            elif self.validator.select_transcripts == "refseq_select":
+                tx_ac = saved_hgvs_coding.ac
+                annotation = self.validator.db.get_transcript_annotation(tx_ac)
+                if 'refseq_select": true' in annotation:
+                    pass
+                else:
+                    continue
+
+            # Filter for ensembl Select transcripts only
+            elif self.validator.select_transcripts == "ensembl_select":
+                tx_ac = saved_hgvs_coding.ac
+                annotation = self.validator.db.get_transcript_annotation(tx_ac)
+                if 'ensembl_select": true' in annotation:
+                    pass
                 else:
                     continue
 

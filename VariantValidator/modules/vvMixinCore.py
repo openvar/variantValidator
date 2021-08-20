@@ -65,10 +65,14 @@ class Mixin(vvMixinConverters.Mixin):
                 select_transcripts_list = select_transcripts.split('|')
                 for trans_id in select_transcripts_list:
                     trans_id = trans_id.strip()
+
+                    # Select LRG equivalent transcripts
                     if 'LRG' in trans_id:
                         trans_id = self.db.get_refseq_transcript_id_from_lrg_transcript_id(trans_id)
                         if trans_id == 'none':
                             continue
+
+                    # Create dictionaries
                     select_transcripts_dict_plus_version[trans_id] = ''
                     trans_id = trans_id.split('.')[0]
                     select_transcripts_dict[trans_id] = ''
@@ -1334,12 +1338,17 @@ class Mixin(vvMixinConverters.Mixin):
                         logger.warning(error)
                     tx_description = self.db.get_transcript_description(tx)
 
+                # Get annotation
+                tx_annotation = self.db.get_transcript_annotation(tx)
+                tx_annotation = json.loads(tx_annotation)
+
                 # Check for duplicates
                 if tx not in recovered:
                     recovered.append(tx)
                     if len(line) >= 3 and isinstance(line[1], int):
                         genes_and_tx.append({'reference': tx,
                                              'description': tx_description,
+                                             'annotations': tx_annotation,
                                              'translation': prot_id,
                                              'length': tx_len,
                                              'coding_start': line[1] + 1,
@@ -1350,6 +1359,7 @@ class Mixin(vvMixinConverters.Mixin):
                     else:
                         genes_and_tx.append({'reference': tx,
                                              'description': tx_description,
+                                             'annotations': tx_annotation,
                                              'translation': prot_id,
                                              'length': tx_len,
                                              'coding_start': None,
@@ -1362,6 +1372,7 @@ class Mixin(vvMixinConverters.Mixin):
                     if lrg_transcript != 'none':
                         genes_and_tx.append({'reference': lrg_transcript,
                                              'description': tx_description,
+                                             'annotations': tx_annotation,
                                              'length': tx_len,
                                              'translation': lrg_transcript.replace('t', 'p'),
                                              'coding_start': line[1] + 1,
