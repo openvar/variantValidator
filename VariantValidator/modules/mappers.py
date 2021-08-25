@@ -383,6 +383,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                 caution = 'The entered coordinates do not agree with the intron/exon boundaries for the ' \
                           'selected transcript'
                 variant.warnings.extend([caution])
+                # raise MappersError(caution)
 
         else:  # del not in formatted_variant
 
@@ -401,6 +402,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                 caution = 'The entered coordinates do not agree with the intron/exon boundaries for the ' \
                           'selected transcript'
                 variant.warnings.extend([caution])
+                # raise MappersError(caution)
 
     elif ':g.' not in quibble_input:
         query = validator.hp.parse_hgvs_variant(formatted_variant)
