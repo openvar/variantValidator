@@ -207,7 +207,7 @@ class Mixin(vvMixinConverters.Mixin):
                             continue
 
                         except vvhgvs.exceptions.HGVSParseError as e:
-                            my_variant.warnings = [str(e)]
+                            my_variant.warnings.append(str(e))
                             logger.warning(str(e))
                             continue
 
@@ -215,14 +215,17 @@ class Mixin(vvMixinConverters.Mixin):
                         # See issue #176
                         except Exception:
                             if 'does not agree with reference sequence' in checkref:
-                                my_variant.warnings = [str(e)]
+                                my_variant.warnings.append(str(e))
                                 logger.warning(str(e))
                                 continue
 
                         if 'base start position must be <= end position' in str(e):
                             toskip = None
                         else:
-                            my_variant.warnings = [str(e)]
+                            my_variant.warnings.append(str(e))
+                            if "The entered coordinates do not agree with the intron/exon boundaries for the selected " \
+                               "transcript" not in my_variant.warnings[0]:
+                                my_variant.warnings.reverse()
                             logger.warning(str(e))
                             continue
 
