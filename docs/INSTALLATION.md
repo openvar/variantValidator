@@ -50,8 +50,7 @@ Install the mariadb python library
 
 ***Note: Only do this if you intend to run MariaDB instead of MySQL***
 ```bash
-$ conda install -c anaconda mysql-connector-c
-$ conda install -c anaconda mysql-connector-python
+$ pip install mariadb
 ```
 ***Additional steps may be required***
 Install [MariaDB Connector/C](https://downloads.mariadb.com/Connectors/c/)
@@ -88,7 +87,7 @@ Download and our pre-populated database to MySQL as follows. ***Note: check [her
 ```bash
 $ wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_2021-07-21.sql.gz
 $ gunzip validator_2021-07-21.sql.gz
-$ mysql validator < validator_2021-07-21.sql
+$ mysql validator < validator_2021-07-21.sql -u HOST -p
 ```
 
 See the [Manual](MANUAL.md) for instructions on updating this database, which should be done regularly.
@@ -103,7 +102,7 @@ VariantValidator requires a local SeqRepo database. The seqrepo package has alre
 
 ```
 $ mkdir /path/to/seqrepo
-$ cd mkdir /path/to/seqrepo
+$ cd /path/to/seqrepo
 $ wget https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_2021_2.tar
 $ tar -xvf VV_SR_2021_2.tar
 $ rm VV_SR_2021_2.tar
