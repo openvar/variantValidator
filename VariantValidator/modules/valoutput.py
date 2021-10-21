@@ -102,7 +102,7 @@ class ValOutput(object):
         if with_meta:
             outputstrings.append('# Metadata: ' + ', '.join(['%s: %s' % (k, v) for k, v in self.add_meta().items()]))
 
-        outputstrings.append(['Input', 'Warnings', 'HGVS_transcript', 'HGVS_intronic_chr_context',
+        outputstrings.append(['Input', 'Warnings', 'Select transcript', 'HGVS_transcript', 'HGVS_intronic_chr_context',
                               'HGVS_intronic_rsg_context', 'HGVS_RefSeqGene', 'HGVS_LRG',
                               'HGVS_LRG_transcript', 'HGVS_Predicted_Protein', 'HGVS_Genomic_GRCh37', 'GRCh37_CHR',
                               'GRCh37_POS', 'GRCh37_ID', 'GRCh37_REF', 'GRCh37_ALT', 'HGVS_Genomic_GRCh38',
@@ -137,6 +137,7 @@ class ValOutput(object):
             outputstrings.append([
                 variant.original,
                 '|'.join(variant.process_warnings()),
+                variant.annotations['db_xref']['select'],
                 variant.hgvs_transcript_variant,
                 variant.genome_context_intronic_sequence,
                 variant.refseqgene_context_intronic_sequence,
