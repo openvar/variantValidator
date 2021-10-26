@@ -134,10 +134,17 @@ class ValOutput(object):
             if variant.stable_gene_ids:
                 if 'hgnc_id' in variant.stable_gene_ids:
                     gene_id = variant.stable_gene_ids['hgnc_id']
+
+            select_tx = None
+            try:
+                select_tx = variant.annotations['db_xref']['select']
+            except TypeError:
+                pass
+
             outputstrings.append([
                 variant.original,
                 '|'.join(variant.process_warnings()),
-                variant.annotations['db_xref']['select'],
+                select_tx,
                 variant.hgvs_transcript_variant,
                 variant.genome_context_intronic_sequence,
                 variant.refseqgene_context_intronic_sequence,
