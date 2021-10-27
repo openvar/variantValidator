@@ -30434,6 +30434,13 @@ class TestVariantsAuto(TestCase):
         assert 'NC_000012.12:g.121626861del' in results['NM_032790.3:c.119del']['primary_assembly_loci']['grch38']['hgvs_genomic_description']
         assert 'NC_000012.11:g.122064766del' in results['NM_032790.3:c.119del']['primary_assembly_loci']['grch37']['hgvs_genomic_description']
 
+    def test_issue_306(self):
+        variant = 'NC_000002.11:g.21232803_21232804inv'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert 'NM_000384.2:c.6936C>T' in results.keys()
+        assert 'NM_000384.3:c.6936_6937inv' in results.keys()
+
 # <LICENSE>
 # Copyright (C) 2016-2021 VariantValidator Contributors
 #
