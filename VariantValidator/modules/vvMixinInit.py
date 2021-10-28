@@ -81,7 +81,6 @@ class Mixin:
             config['postgres']['version']
         )
         self.utaPath = os.environ.get('UTA_DB_URL')
-        # print(self.utaPath)
 
         self.dbConfig = {
             'user':     config["mysql"]["user"],
@@ -347,6 +346,7 @@ class Mixin:
                         # Need to obtain the cds_start
                         inf = self.hdp.get_tx_identity_info(hgvs_transcript.ac)
                         cds_start = inf[3]
+                        cds_end = inf[4]
 
                         # Extract the reference coding sequence from SeqRepo
                         try:
@@ -401,7 +401,43 @@ class Mixin:
                             if hgvs_transcript.posedit.edit.type != 'delins':
                                 pro_inv_info = utils.pro_inv_info(prot_ref_seq, prot_var_seq)
                             else:
-                                pro_inv_info = utils.pro_delins_info(prot_ref_seq, prot_var_seq)
+                                # Test whether the length of the deletion, plus the insertion can be devided by 3
+                                # This is trying to spot the difference between amino acid deletions
+                                # and early terminations
+
+                                # Get the cds length
+                                cds_len = cds_end - cds_start
+
+                                # Calculate the variant cds length
+                                minus = False
+                                plus = False
+                                if len(hgvs_naughty.posedit.edit.ref) > len(hgvs_naughty.posedit.edit.alt):
+                                    var_cds_len = cds_len - (len(hgvs_naughty.posedit.edit.ref)
+                                                             - len(hgvs_naughty.posedit.edit.alt))
+                                    minus = True
+                                elif len(hgvs_naughty.posedit.edit.ref) < len(hgvs_naughty.posedit.edit.alt):
+                                    var_cds_len = cds_len + (len(hgvs_naughty.posedit.edit.alt)
+                                                             - len(hgvs_naughty.posedit.edit.ref))
+                                    plus = True
+
+                                # Do we have an in-frame variant i.e. divisible by 3?
+                                in_frame = False
+                                if minus is True:
+                                    loss_gain = (cds_len) - (var_cds_len)
+                                    if loss_gain % 3 == 0:
+                                        loss_gain = loss_gain / 3
+                                        loss_gain = 0 - loss_gain
+                                        in_frame = loss_gain
+                                elif plus is True:
+                                    loss_gain = var_cds_len - cds_len
+                                    if loss_gain % 3 == 0:
+                                        loss_gain = loss_gain / 3
+                                        in_frame = loss_gain
+
+                                # Get the sequence info
+                                pro_inv_info = utils.pro_delins_info(prot_ref_seq,
+                                                                     prot_var_seq,
+                                                                     in_frame)
 
                             # Error has occurred
                             if pro_inv_info['error'] == 'true':

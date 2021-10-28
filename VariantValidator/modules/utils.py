@@ -365,7 +365,7 @@ def pro_inv_info(prot_ref_seq, prot_var_seq):
                         return info
 
 
-def pro_delins_info(prot_ref_seq, prot_var_seq):
+def pro_delins_info(prot_ref_seq, prot_var_seq, in_frame=False):
     info = {
             'variant': 'true',
             'prot_del_seq': '',
@@ -383,14 +383,25 @@ def pro_delins_info(prot_ref_seq, prot_var_seq):
         info['variant'] = 'identity'
         return info
     else:
-        # Deal with terminations
+        # Deal with terminations (Cannot be used as a marker for the delins pathway because in frame deletions have Ter
         if '*' in prot_var_seq:
             # Set the termination reporter to true
             info['terminate'] = 'true'
 
             # Set the terminal pos dependant on the shortest sequence
+            # This is where we look for in-frame deletions / delins that can be shortened to a simple del/delins
             if len(prot_var_seq) <= len(prot_ref_seq):
-                info['ter_pos'] = len(prot_ref_seq)
+
+                # Look for early termination rather than just deletions. These params may need to be altered.
+                if in_frame is not False and in_frame == (len(prot_var_seq) - len(prot_ref_seq)):
+                    info['ter_pos'] = len(prot_ref_seq)
+                else:
+                    # This code deals with the early termination out of frame variants
+                    if prot_var_seq[-1] == "*":
+                        info['ter_pos'] = len(prot_var_seq)
+                    # Otherwise, if no termination, we carry on as normal
+                    else:
+                        info['ter_pos'] = len(prot_ref_seq)
             else:
                 info['ter_pos'] = len(prot_var_seq)
 
@@ -412,6 +423,7 @@ def pro_delins_info(prot_ref_seq, prot_var_seq):
 
             # Enter the start position
             info['edit_start'] = aa_counter + 1
+
             # Remove those elements form the list
             del ref[0:aa_counter]
             del var[0:aa_counter]

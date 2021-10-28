@@ -29573,7 +29573,7 @@ class TestVariantsAuto(TestCase):
         assert results['NM_080877.2:c.1733_1735delinsTTT']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_080877.2:c.1733_1735delinsTTT']['hgvs_refseqgene_variant'] == ''
         assert results['NM_080877.2:c.1733_1735delinsTTT']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_543153.1:p.(Pro578_Gln598del)', 'slr': 'NP_543153.1:p.(P578_Q598del)'}
+            'tlr': 'NP_543153.1:p.(Pro578_Lys579delinsLeuTer)', 'slr': 'NP_543153.1:p.(P578_K579delinsL*)'}
         assert results['NM_080877.2:c.1733_1735delinsTTT']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_080877.2:c.1733_1735delinsTTT']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_080877.2:c.1733_1735delinsTTT']['alt_genomic_loci'], [])
@@ -30353,9 +30353,9 @@ class TestVariantsAuto(TestCase):
         variant = 'NC_000016.9:g.3900957delinsCAGCTCATGATGA'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert 'NP_001073315.1:p.(Asn47delinsSerSerTer)' in \
+        assert 'NP_001073315.1:p.(Asn47_Gly49delinsSerSerTer)' in \
                results['NM_001079846.1:c.139delinsTCATCATGAGCTG']['hgvs_predicted_protein_consequence']['tlr']
-        assert 'NP_001073315.1:p.(N47delinsSS*)' in \
+        assert 'NP_001073315.1:p.(N47_G49delinsSS*)' in \
                results['NM_001079846.1:c.139delinsTCATCATGAGCTG']['hgvs_predicted_protein_consequence']['slr']
 
     def test_issue_214b(self):
@@ -30433,6 +30433,22 @@ class TestVariantsAuto(TestCase):
         print(results)
         assert 'NC_000012.12:g.121626861del' in results['NM_032790.3:c.119del']['primary_assembly_loci']['grch38']['hgvs_genomic_description']
         assert 'NC_000012.11:g.122064766del' in results['NM_032790.3:c.119del']['primary_assembly_loci']['grch37']['hgvs_genomic_description']
+
+    def test_issue_306(self):
+        variant = 'NC_000002.11:g.21232803_21232804inv'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert 'NM_000384.2:c.6936C>T' in results.keys()
+        assert 'NM_000384.3:c.6936_6937inv' in results.keys()
+
+    def test_issue_282(self):
+        variant = 'NM_017730.2:c.138_139delinsTT'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert 'NP_060200.2:p.(Gln46_Gln47delinsHisTer)' in \
+               results['NM_017730.2:c.138_139delinsTT']['hgvs_predicted_protein_consequence']['tlr']
+        assert 'NP_060200.2:p.(Q46_Q47delinsH*)' in \
+               results['NM_017730.2:c.138_139delinsTT']['hgvs_predicted_protein_consequence']['slr']
 
 # <LICENSE>
 # Copyright (C) 2016-2021 VariantValidator Contributors

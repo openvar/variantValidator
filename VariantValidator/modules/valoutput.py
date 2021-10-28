@@ -140,6 +140,8 @@ class ValOutput(object):
                 select_tx = variant.annotations['db_xref']['select']
             except TypeError:
                 pass
+            except KeyError:
+                pass
 
             outputstrings.append([
                 variant.original,
