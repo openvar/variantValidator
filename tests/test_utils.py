@@ -286,12 +286,12 @@ class TestProteinDelIns(TestCase):
         print(output)
         self.assertEqual(output['variant'], 'true')
         self.assertEqual(output['terminate'], 'true')
-        self.assertEqual(output['ter_pos'], 8)
+        self.assertEqual(output['ter_pos'], 7)
         self.assertEqual(output['error'], 'false')
-        self.assertEqual(output['prot_del_seq'], 'T')
-        self.assertEqual(output['prot_ins_seq'], '')
+        self.assertEqual(output['prot_del_seq'], 'TCGP')
+        self.assertEqual(output['prot_ins_seq'], 'CGP*')
         self.assertEqual(output['edit_start'], 4)
-        self.assertEqual(output['edit_end'], 4)
+        self.assertEqual(output['edit_end'], 7)
 
     def test_has_ter_ins(self):
         output = utils.pro_delins_info('MTACGP*', 'MTATCGP*')
