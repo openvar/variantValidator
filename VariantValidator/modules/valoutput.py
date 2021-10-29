@@ -38,11 +38,7 @@ class ValOutput(object):
                     else:
                         identification_key = '%s' % variant.hgvs_transcript_variant
 
-                # if identification_key not in validation_output.keys():
                 validation_output[identification_key] = variant.output_dict(test=test)
-                # else:
-                # dotter = dotter + ' '
-                # validation_output[identification_key + dotter] = valid_v
 
             # For warning only outputs
             # Should only ever be 1 output as an error or a warning of the following types
@@ -76,7 +72,6 @@ class ValOutput(object):
                     validation_warning_counter = validation_warning_counter + 1
                     identification_key = 'mitochondrial_variant_%s' % validation_warning_counter
                 validation_output[identification_key] = variant.output_dict(test=test)
-
 
             # Intergenic variants
             if variant.output_type_flag == 'intergenic':
@@ -190,7 +185,7 @@ class ValOutput(object):
         return metadata
 
 # <LICENSE>
-# Copyright (C) 2019 VariantValidator Contributors
+# Copyright (C) 2016-2021 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

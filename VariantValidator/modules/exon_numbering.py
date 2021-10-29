@@ -1,5 +1,5 @@
 """
-Exon_numbering.py Module
+exon_numbering.py Module
 
 Authors: Katie Williams (@kwi11iams) and Katherine Winfield (@kjwinfield)
 
@@ -12,70 +12,10 @@ module operates.
 Use exon_numbering_tests.py for automated testing of this module.
 """
 
-import requests  # This is needed to talk to the API
-import json      # This is needed to format the output data
-import re        # This is used to manipulate the variant nomenclature
 
-# Define all the URL information as strings
-BASE_URL_VV = "https://rest.variantvalidator.org/"
-SERVER_G2T = "VariantValidator/tools/gene2transcripts/"
-SERVER_VARIANT = "VariantValidator/variantvalidator/"
-
-# Define the parameter for retrieving in a JSON format
-PARAMETERS = '?content-type=application/json'
-
-
-def request_sequence(base_url, server, variant_or_transcript, parameters):
+def finds_exon_number(variant, validator):
     """
-    :param base_url: (str): the url for the rest API
-    :param server: (str): the server used to extract the data
-    :param variant_or_transcript: (str): the variant or transcript to query
-    :param parameters: (str): the content type in which to receive the data
-
-    :return: the data from the API
-
-    Function that calls an API and retrieves information
-    """
-    url = base_url + server + variant_or_transcript + parameters
-
-    # Query the API and pass the object to the function
-    response = requests.get(url)
-    print("Querying " + url)
-    return response
-
-
-def check_variant(variant, genome_build='GRCh38'):
-    """
-    :param variant: (str): the variant in HGVS format
-    :param genome_build: (str): the genome build, default is GRCh38
-
-    :return: prints "Variant accepted" if variant is valid, raises an
-             exception if not.
-
-    Function that runs variant through VariantValidator Endpoint to validate
-    """
-    endpoint_url = genome_build + '/' + variant + '/all'
-
-    response = request_sequence(BASE_URL_VV, SERVER_VARIANT, endpoint_url,
-                                PARAMETERS)
-
-    response_dictionary = response.json()
-
-    if response_dictionary['flag'] == 'warning':  # Identifies warning on VV
-        # Print the warnings out so the user knows what is causing the error
-        # This could be formatted better, so that it does not print as a list
-        print(
-            response_dictionary['validation_warning_1']['validation_warnings']
-        )
-        raise Exception("Variant not accepted")
-    else:
-        print("Variant accepted.")
-
-
-def finds_exon_number(variant, genome_build='GRCh38'):
-    """
-    :param variant: (str): the variant in HGVS format
-    :param genome_build: (str): the genome build, default is GRCh38
+    :param variant: (obj): the variant object from VariantValidator
     :return: exon_start_end_positions (dict): a dictionary of the
                     exon/intron positions for the start and end of the given
                     variant for each aligned chromosomal or gene reference
@@ -83,41 +23,33 @@ def finds_exon_number(variant, genome_build='GRCh38'):
 
     Function that finds and output exon numbering for a given variant
     """
+    response_dictionary = validator.gene2transcripts(variant, validator, bypass_web_searches=True)
 
-    # Validate variant
-    check_variant(variant, genome_build)
-
-    # Extract the transcript ID from the variant nomenclature
-    transcript_id = variant.split(":")[0]
-
-    # Request variant data from the gene2transcripts VariantValidator API
-    response = request_sequence(BASE_URL_VV, SERVER_G2T, transcript_id,
-                                PARAMETERS)
-
-    # Convert the response (JSON) to a python dictionary
-    response_dictionary = response.json()
-
-    # Filter out the response_disctionary for the variant transcript
+    # Filter out the response_dictionary for the variant transcript
     # This will find the exon structure dictionary for the given transcript
     # And select the coding start position number
+
+    # Step 1 - Pull out all the attributes for the transcript in the context of all genome builds
+    info_dict = {}
     for i in range(len(response_dictionary["transcripts"])):
-        if response_dictionary["transcripts"][i]["reference"] == transcript_id:
+
+        if response_dictionary["transcripts"][i]["reference"] == variant.hgvs_coding.ac:
+
+            # Create record
+            info_dict[(response_dictionary["transcripts"][i]["reference"])] = {}
 
             # Returns an exon structure dictionary
-            exon_structure_dict = response_dictionary[
-                "transcripts"][i]["genomic_spans"]
+            info_dict[(response_dictionary["transcripts"][i]["reference"])]["exon_structure_dict"] = \
+                response_dictionary["transcripts"][i]["genomic_spans"]
 
             # Returns the start of coding
             # (This is needed to correct the position)
-            coding_start = response_dictionary[
-                'transcripts'][i]["coding_start"]
-            break
+            info_dict[(response_dictionary["transcripts"][i]["reference"])]['coding_start'] = \
+                response_dictionary['transcripts'][i]["coding_start"]
 
+    # Step 2 - Get the necessary variant information
     # Find the variant position from the variant nomenclature
-    coordinates = variant.split(":")[1].split(".")[1]
-    # Remove A,G,C,T and variant description type from HGVS nomenclature
-    # leaves only numbers, +, -, and _
-    coordinates = re.sub('[^0-9, +, \-, _]', '', coordinates)
+    coordinates = str(variant.hgvs_coding.posedit.pos)
 
     # Identify start and end of variant from input coordinates
     if '_' in coordinates:
@@ -139,9 +71,10 @@ def finds_exon_number(variant, genome_build='GRCh38'):
         keys: start_exon and end_exon
         values: start and position of variant in the reference sequence
     """
+    exon_structure_dict = info_dict[variant.hgvs_coding.ac]["exon_structure_dict"]
+    coding_start = info_dict[variant.hgvs_coding.ac]['coding_start']
 
     for transcript in exon_structure_dict:
-
         for exon in exon_structure_dict[transcript]['exon_structure']:
 
             # For loop that runs to identify which exon/inton the variant is in
@@ -197,10 +130,11 @@ def finds_exon_number(variant, genome_build='GRCh38'):
 
         exon_start_end_positions[transcript] = {"start_exon": start_exon,
                                                 "end_exon": end_exon}
+
     return exon_start_end_positions
 
 # <LICENSE>
-# Copyright (C) 2021 VariantValidator Contributors
+# Copyright (C) 2016-2021 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

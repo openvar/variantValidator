@@ -1,15 +1,12 @@
 """
 Exon_numbering_tests
-
 Authors: Katie Williams (@kwi11iams) and Katherine Winfield (@kjwinfield)
-
-This code runs tests on exon_numbering.py to check the outputs are as expected
-
+This code runs tests on the module exon_numbering.py to check the outputs are as expected
 """
-import unittest # This is the automatic test runner
-from exon_numbering import finds_exon_number, request_sequence, check_variant
-import json
 
+import json
+import unittest
+from VariantValidator.modules.exon_numbering import finds_exon_number
 
 # Define some variants to test with
 test_variant_1 = "NM_007294.3:c.1067A>G"
@@ -64,3 +61,21 @@ class TestExonNumbering(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+# <LICENSE>
+# Copyright (C) 2016-2021 VariantValidator Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# </LICENSE>

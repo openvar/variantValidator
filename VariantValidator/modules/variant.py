@@ -69,6 +69,7 @@ class Variant(object):
         self.primary_assembly_loci = None
         self.reference_sequence_records = None
         self.validated = False
+        self.exonic_positions = False
 
     def is_ascii(self):
         """
@@ -223,7 +224,8 @@ class Variant(object):
             'hgvs_lrg_variant': self.hgvs_lrg_variant,
             'alt_genomic_loci': self.alt_genomic_loci,
             'primary_assembly_loci': self.primary_assembly_loci,
-            'reference_sequence_records': self.reference_sequence_records,
+            'variant_exonic_positions': self.exonic_positions,
+            'reference_sequence_records': self.reference_sequence_records
         }
         return dict_out
 
@@ -247,7 +249,7 @@ class Variant(object):
         return refined
 
 # <LICENSE>
-# Copyright (C) 2019 VariantValidator Contributors
+# Copyright (C) 2016-2021 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
