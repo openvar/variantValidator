@@ -69,6 +69,7 @@ class Variant(object):
         self.primary_assembly_loci = None
         self.reference_sequence_records = None
         self.validated = False
+        self.exonic_positions = None
 
     def is_ascii(self):
         """
@@ -223,7 +224,8 @@ class Variant(object):
             'hgvs_lrg_variant': self.hgvs_lrg_variant,
             'alt_genomic_loci': self.alt_genomic_loci,
             'primary_assembly_loci': self.primary_assembly_loci,
-            'reference_sequence_records': self.reference_sequence_records,
+            'variant_exonic_positions': self.exonic_positions,
+            'reference_sequence_records': self.reference_sequence_records
         }
         return dict_out
 
