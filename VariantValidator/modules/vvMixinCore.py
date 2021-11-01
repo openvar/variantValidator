@@ -1167,12 +1167,13 @@ class Mixin(vvMixinConverters.Mixin):
         # Gather transcript information lists
         if bypass_web_searches is True:
             tx_for_gene = []
+            tx_info = self.hdp.get_tx_identity_info(query.hgvs_coding.ac)
 
             # Add primary assembly queries
             for builds in query.primary_assembly_loci.keys():
                 if "grc" in builds:
                     tx_for_gene.append([query.gene_symbol,
-                                       0,
+                                       tx_info[3],
                                        0,
                                        query.hgvs_coding.ac,
                                        query.primary_assembly_loci[builds]['hgvs_genomic_description'].split(":")[0],
@@ -1181,7 +1182,7 @@ class Mixin(vvMixinConverters.Mixin):
             # Add refseqgene if available
             if "NG_" in query.hgvs_refseqgene_variant:
                 tx_for_gene.append([query.gene_symbol,
-                                   0,
+                                   tx_info[3],
                                    0,
                                    query.hgvs_coding.ac,
                                    query.hgvs_refseqgene_variant.split(":")[0],
@@ -1308,9 +1309,15 @@ class Mixin(vvMixinConverters.Mixin):
                 # get total exons
                 total_exons = len(tx_exons)
                 # Set exon counter for current exon
-                current_exon_number = 0
+                if tx_orientation == 1:
+                    current_exon_number = 0
+                else:
+                    current_exon_number = total_exons + 1
                 for tx_pos in tx_exons:
-                    current_exon_number = current_exon_number + 1
+                    if tx_orientation == 1:
+                        current_exon_number = current_exon_number + 1
+                    else:
+                        current_exon_number = current_exon_number - 1
                     # Collect the exon_set information
                     """
                     tx_exons have the following attributes::
@@ -1337,7 +1344,6 @@ class Mixin(vvMixinConverters.Mixin):
                                     "genomic_end": tx_pos['alt_end_i'],
                                     "cigar": tx_pos['cigar'],
                                     "exon_number": current_exon_number
-                                    #"total_exons": total_exons
                                     }
                     exon_set.append(current_exon)
                     start_pos = tx_pos['alt_start_i']

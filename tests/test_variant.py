@@ -329,7 +329,8 @@ class TestMethods(TestCase):
             'alt_genomic_loci': None,
             'primary_assembly_loci': None,
             'reference_sequence_records': None,
-            'selected_assembly': False
+            'selected_assembly': False,
+            'variant_exonic_positions': None
         })
 
     def test_output_dict_set(self):
@@ -369,6 +370,7 @@ class TestMethods(TestCase):
             'alt_genomic_loci': 'alt',
             'primary_assembly_loci': 'primary',
             'reference_sequence_records': 'records',
+            'variant_exonic_positions': None
         })
 
 # <LICENSE>

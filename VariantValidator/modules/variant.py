@@ -69,7 +69,7 @@ class Variant(object):
         self.primary_assembly_loci = None
         self.reference_sequence_records = None
         self.validated = False
-        self.exonic_positions = False
+        self.exonic_positions = None
 
     def is_ascii(self):
         """

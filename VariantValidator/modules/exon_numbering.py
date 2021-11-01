@@ -71,12 +71,12 @@ def finds_exon_number(variant, validator):
         keys: start_exon and end_exon
         values: start and position of variant in the reference sequence
     """
+
     exon_structure_dict = info_dict[variant.hgvs_coding.ac]["exon_structure_dict"]
     coding_start = info_dict[variant.hgvs_coding.ac]['coding_start']
 
     for transcript in exon_structure_dict:
         for exon in exon_structure_dict[transcript]['exon_structure']:
-
             # For loop that runs to identify which exon/inton the variant is in
             # 'i' denotes introns, i.e. exon 2i is intron 2
             # Separated by start and end position of the variant as they may
@@ -105,6 +105,7 @@ def finds_exon_number(variant, validator):
                                              + coding_start - 1)
                 if adj_nearest_exon_boundary == exon['transcript_start']:
                     start_exon = str(exon['exon_number'] - 1) + 'i'
+
             # End position
             if '+' not in str(end_position) and '-' not in str(end_position):
                 # This works for positions in exons
@@ -122,11 +123,17 @@ def finds_exon_number(variant, validator):
 
             elif '-' in end_position:
                 # This works for positions that are - the exon boundary
-                nearest_exon_boundary = start_position.split('-')[0]
+                if "+" in start_position:
+                    adj_start_position = start_position.split("+")[0]
+                else:
+                    adj_start_position = start_position
+                nearest_exon_boundary = adj_start_position.split('-')[0]
                 adj_nearest_exon_boundary = (int(nearest_exon_boundary)
                                              + coding_start - 1)
                 if adj_nearest_exon_boundary == exon['transcript_start']:
                     end_exon = str(exon['exon_number'] - 1) + 'i'
+                elif adj_nearest_exon_boundary == exon['transcript_end']:
+                    end_exon = str(exon['exon_number']) + 'i'
 
         exon_start_end_positions[transcript] = {"start_exon": start_exon,
                                                 "end_exon": end_exon}
