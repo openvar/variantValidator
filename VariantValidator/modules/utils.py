@@ -34,11 +34,98 @@ def hgnc_rest(path):
     r = requests.get(url, headers=headers)
 
     if r.status_code == 200:
-        # assume that content is a json reply
-        # parse content with the json module
         data['record'] = r.json()
     else:
-        data['error'] = "Unable to contact the HGNC database: Please try again later"
+        my_error = "Problem encountered while connecting genenames.org: URL=%s: Status=%s" % (url, str(r.status_code))
+        data['error'] = my_error
+    return data
+
+
+def ensembl_rest(id, endpoint, genome, options=False):
+    """
+    fires requests to the Ensembl APIs
+    :param id: Usually a transcript ID (base accession minus the version)
+    :param endpoint: See https://rest.ensembl.org/
+    :param genome: Genome build, grch37 or grch38
+    :param options: set of options for additional data, see https://rest.ensembl.org/
+    :return: json of the requested data
+    """
+    data = {
+        'record': '',
+        'error': 'false'
+    }
+
+    id = id.split('.')[0]
+
+    # Set base URL
+    if genome == 'GRCh37':
+        base_url = 'https://grch37.rest.ensembl.org'
+    if genome == 'GRCh38':
+        base_url = 'https://rest.ensembl.org'
+
+    headers = {
+        'Accept': 'application/json',
+    }
+
+    if options is False:
+        url = '%s%s%s?content-type=application/json' % (base_url, endpoint, id)
+    else:
+        url = '%s%s%s?%s;content-type=application/json' % (base_url, endpoint, id, options)
+
+    # Request info
+    r = requests.get(url, headers=headers)
+
+    if r.status_code == 200:
+        data['record'] = r.json()
+    else:
+        my_error = "Problem encountered while connecting Ensembl REST: URL=%s: Status=%s" % (url, str(r.status_code))
+        data['error'] = my_error
+    return data
+
+
+def ensembl_tark(id, endpoint, options=False):
+    """
+    fires requests to the Ensembl APIs
+    :param id: Usually a transcript ID
+    :param endpoint: See http://dev-tark.ensembl.org/
+    :param options: set of options for additional data, see http://dev-tark.ensembl.org/
+    :return: json of the requested data
+    """
+    data = {
+        'record': '',
+        'error': 'false'
+    }
+
+    # Set base URL
+    base_url = 'http://dev-tark.ensembl.org'
+
+
+    headers = {
+        'Accept': 'application/json',
+    }
+
+    if options is False:
+        url = '%s%s?stable_id_with_version=%s&content-type=application/json' % (base_url, endpoint, id)
+    else:
+        url = '%s%s?stable_id_with_version=%s&content-type=application/json' % (base_url, endpoint, id)
+
+    # Request info
+    try:
+        r = requests.get(url, headers=headers)
+    except requests.exceptions.InvalidSchema as e:
+        # import sys
+        # import traceback
+        # exc_type, exc_value, last_traceback = sys.exc_info()
+        # traceback.print_tb(last_traceback)
+        my_error = str(e)
+        data['error'] = my_error
+        return data
+
+    if r.status_code == 200:
+        data['record'] = r.json()
+    else:
+        my_error = "Problem encountered while connecting Ensembl REST: URL=%s: Status=%s" % (url, str(r.status_code))
+        data['error'] = my_error
     return data
 
 
@@ -278,7 +365,7 @@ def pro_inv_info(prot_ref_seq, prot_var_seq):
                         return info
 
 
-def pro_delins_info(prot_ref_seq, prot_var_seq):
+def pro_delins_info(prot_ref_seq, prot_var_seq, in_frame=False):
     info = {
             'variant': 'true',
             'prot_del_seq': '',
@@ -296,14 +383,25 @@ def pro_delins_info(prot_ref_seq, prot_var_seq):
         info['variant'] = 'identity'
         return info
     else:
-        # Deal with terminations
+        # Deal with terminations (Cannot be used as a marker for the delins pathway because in frame deletions have Ter
         if '*' in prot_var_seq:
             # Set the termination reporter to true
             info['terminate'] = 'true'
 
             # Set the terminal pos dependant on the shortest sequence
+            # This is where we look for in-frame deletions / delins that can be shortened to a simple del/delins
             if len(prot_var_seq) <= len(prot_ref_seq):
-                info['ter_pos'] = len(prot_ref_seq)
+
+                # Look for early termination rather than just deletions. These params may need to be altered.
+                if in_frame is not False and in_frame == (len(prot_var_seq) - len(prot_ref_seq)):
+                    info['ter_pos'] = len(prot_ref_seq)
+                else:
+                    # This code deals with the early termination out of frame variants
+                    if prot_var_seq[-1] == "*":
+                        info['ter_pos'] = len(prot_var_seq)
+                    # Otherwise, if no termination, we carry on as normal
+                    else:
+                        info['ter_pos'] = len(prot_ref_seq)
             else:
                 info['ter_pos'] = len(prot_var_seq)
 
@@ -325,6 +423,7 @@ def pro_delins_info(prot_ref_seq, prot_var_seq):
 
             # Enter the start position
             info['edit_start'] = aa_counter + 1
+
             # Remove those elements form the list
             del ref[0:aa_counter]
             del var[0:aa_counter]
@@ -468,7 +567,7 @@ class ObsoleteSeqError(Exception):
     pass
 
 # <LICENSE>
-# Copyright (C) 2019 VariantValidator Contributors
+# Copyright (C) 2016-2021 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

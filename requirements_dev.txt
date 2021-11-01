@@ -6,7 +6,7 @@ pyliftover>=0.3
 biotools>=0.3.0
 mysql-connector-python
 requests
-biopython
+biopython==1.74
 pytest>=3.6
 pytest-cov
 codecov

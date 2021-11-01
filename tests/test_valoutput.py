@@ -35,8 +35,7 @@ class TestValOutput(TestCase):
         self.assertIsInstance(res, dict)
         self.assertEqual(list(res), ['flag', 'metadata'])
         self.assertIsInstance(res['metadata'], dict)
-        self.assertEqual(list(res['metadata']), ['variantvalidator_version', 'variantvalidator_hgvs_version',
-                                                 'uta_schema', 'seqrepo_db'])
+        self.assertEqual(list(res['metadata']), ['variantvalidator_version', 'variantvalidator_hgvs_version', 'vvta_version', 'vvseqrepo_db', 'vvdb_version'])
         res2 = obj.format_as_table(with_meta=True)
         self.assertIsInstance(res2, list)
         self.assertTrue(res2[0].startswith('#'))
@@ -182,7 +181,7 @@ class TestValOutput(TestCase):
         res = obj.format_as_table(with_meta=False)
         print(res)
         self.assertIsInstance(res, list)
-        self.assertEqual(res, [['Input', 'Warnings', 'HGVS_transcript', 'HGVS_intronic_chr_context',
+        self.assertEqual(res, [['Input', 'Warnings', 'Select transcript', 'HGVS_transcript', 'HGVS_intronic_chr_context',
                                 'HGVS_intronic_rsg_context', 'HGVS_RefSeqGene', 'HGVS_LRG',
                                 'HGVS_LRG_transcript', 'HGVS_Predicted_Protein', 'HGVS_Genomic_GRCh37', 'GRCh37_CHR',
                                 'GRCh37_POS', 'GRCh37_ID', 'GRCh37_REF', 'GRCh37_ALT', 'HGVS_Genomic_GRCh38',
@@ -195,14 +194,14 @@ class TestValOutput(TestCase):
         res = obj.format_as_table(with_meta=False)
         print(res)
         self.assertIsInstance(res, list)
-        self.assertEqual(res, [['Input', 'Warnings', 'HGVS_transcript', 'HGVS_intronic_chr_context',
+        self.assertEqual(res, [['Input', 'Warnings', 'Select transcript', 'HGVS_transcript', 'HGVS_intronic_chr_context',
                                 'HGVS_intronic_rsg_context', 'HGVS_RefSeqGene', 'HGVS_LRG',
                                 'HGVS_LRG_transcript', 'HGVS_Predicted_Protein', 'HGVS_Genomic_GRCh37', 'GRCh37_CHR',
                                 'GRCh37_POS', 'GRCh37_ID', 'GRCh37_REF', 'GRCh37_ALT', 'HGVS_Genomic_GRCh38',
                                 'GRCh38_CHR', 'GRCh38_POS', 'GRCh38_ID', 'GRCh38_REF', 'GRCh38_ALT',
                                 'Gene_Symbol', 'HGNC_Gene_ID', 'Transcript_description', 'Alt_genomic_loci'],
-                               ['var1', '', None, None, None, None, None, None, '', '', '', '', '', '', '', '', '',
-                                '', '', '', '', '', '', '', '']])
+                               ['var1', '', None, None, None, None, None, None, None, '', '', '', '', '', '', '', '',
+                                '', '', '', '', '', '', '', '', '']])
 
     def test_table_one_gene(self):
         var1 = Variant('var1')
@@ -211,15 +210,15 @@ class TestValOutput(TestCase):
         res = obj.format_as_table(with_meta=False)
         print(res)
         self.assertIsInstance(res, list)
-        self.assertEqual(res[0], ['Input', 'Warnings', 'HGVS_transcript',
+        self.assertEqual(res[0], ['Input', 'Warnings', 'Select transcript', 'HGVS_transcript',
                                   'HGVS_intronic_chr_context',
                                   'HGVS_intronic_rsg_context', 'HGVS_RefSeqGene', 'HGVS_LRG',
                                   'HGVS_LRG_transcript', 'HGVS_Predicted_Protein', 'HGVS_Genomic_GRCh37', 'GRCh37_CHR',
                                   'GRCh37_POS', 'GRCh37_ID', 'GRCh37_REF', 'GRCh37_ALT', 'HGVS_Genomic_GRCh38',
                                   'GRCh38_CHR', 'GRCh38_POS', 'GRCh38_ID', 'GRCh38_REF', 'GRCh38_ALT',
                                   'Gene_Symbol', 'HGNC_Gene_ID', 'Transcript_description', 'Alt_genomic_loci'])
-        self.assertEqual(res[1], ['var1', '', None, None, None, None, None, None, '', '', '', '', '', '', '', '', '', '',
-                                  '', '', '', '', '', '', ''])
+        self.assertEqual(res[1], ['var1', '', None, None, None, None, None, None, None, '', '', '', '', '', '', '', '',
+                                  '', '', '', '', '', '', '', '', ''])
         self.assertEqual(len(res), 2)
 
     def test_table_intergenic(self):
@@ -229,8 +228,8 @@ class TestValOutput(TestCase):
         res = obj.format_as_table(with_meta=False)
         print(res)
         self.assertIsInstance(res, list)
-        self.assertEqual(res[1], ['var1', '', None, None, None, None, None, None,'', '', '', '', '', '', '', '', '',
-                                  '', '', '', '', '', '', '', ''])
+        self.assertEqual(res[1], ['var1', '', None, None, None, None, None, None, None, '', '', '', '', '', '', '',
+                                  '', '', '', '', '', '', '', '', '', ''])
         self.assertEqual(len(res), 2)
 
     def test_table_gene_warnings(self):
@@ -249,12 +248,12 @@ class TestValOutput(TestCase):
         res = obj.format_as_table(with_meta=False)
 
         self.assertIsInstance(res, list)
-        self.assertEqual(res[1], ['var1', 'Validation error', None, None, None, None, None, None, '', '', '', '', '',
-                                  '', '', '', '', '', '', '', '', '', '', '', ''])
-        self.assertEqual(res[2], ['var2', 'obsolete', None, None, None, None, None, None, '', '', '', '', '', '', '',
-                                  '', '', '', '', '', '', '', '', '', ''])
-        self.assertEqual(res[3], ['var3', 'obsolete', '', None, None, None, None, None, '', '', '', '', '', '', '', '',
-                                  '', '', '', '', '', '', '', '', ''])
+        self.assertEqual(res[1], ['var1', 'Validation error', None, None, None, None, None, None, None, '', '', '', '',
+                                  '', '', '', '', '', '', '', '', '', '', '', '', ''])
+        self.assertEqual(res[2], ['var2', 'obsolete', None, None, None, None, None, None, None, '', '', '', '', '', '',
+                                  '', '', '', '', '', '', '', '', '', '', ''])
+        self.assertEqual(res[3], ['var3', 'obsolete', None, '', None, None, None, None, None, '', '', '', '', '', '',
+                                  '', '', '', '', '', '', '', '', '', '', ''])
         self.assertEqual(len(res), 4)
 
     def test_table_intergenic_warnings(self):
@@ -271,17 +270,20 @@ class TestValOutput(TestCase):
 
         obj = ValOutput([var1, var2, var3], self.vv)
         res = obj.format_as_table(with_meta=False)
+        print(res[1])
+        print(res[2])
+        print(res[3])
         self.assertIsInstance(res, list)
-        self.assertEqual(res[1], ['var1', 'Validation error', None, None, None, None, None, None, '', '', '', '', '',
-                                  '', '', '', '', '', '', '', '', '', '', '', ''])
-        self.assertEqual(res[2], ['var2', 'obsolete', None, None, None, None, None, None, '', '', '', '', '', '', '',
-                                  '', '', '', '', '', '', '', '', '', ''])
-        self.assertEqual(res[3], ['var3', 'obsolete', '', None, None, None, None, None, '', '', '', '', '', '', '',
-                                  '', '', '', '', '', '', '', '', '', ''])
+        self.assertEqual(res[1], ['var1', 'Validation error', None, None, None, None, None, None, None, '', '', '', '',
+                                  '', '', '', '', '', '', '', '', '', '', '', '', ''])
+        self.assertEqual(res[2], ['var2', 'obsolete', None, None, None, None, None, None, None, '', '', '', '', '', '',
+                                  '', '', '', '', '', '', '', '', '', '', ''])
+        self.assertEqual(res[3], ['var3', 'obsolete', None, '', None, None, None, None, None, '', '', '', '', '', '',
+                                  '', '', '', '', '', '', '', '', '', '', ''])
         self.assertEqual(len(res), 4)
 
 # <LICENSE>
-# Copyright (C) 2019 VariantValidator Contributors
+# Copyright (C) 2016-2021 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

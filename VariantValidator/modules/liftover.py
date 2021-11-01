@@ -158,42 +158,43 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
             # identify the first transcript if any
             options = validator.hdp.get_tx_mapping_options(tx)
             for op in options:
-                sfm = None
+                sff = None
+                sft = None
                 if op[1].startswith('NC_'):
                     if build_to.startswith('GRC'):
-                        sfm = seq_data.to_chr_num_refseq(op[1], build_to)
+                        sft = seq_data.to_chr_num_refseq(op[1], build_to)
                     if build_to.startswith('hg'):
-                        sfm = seq_data.to_chr_num_ucsc(op[1], build_to)
+                        sft = seq_data.to_chr_num_ucsc(op[1], build_to)
                     if build_from.startswith('GRC'):
-                        sfm = seq_data.to_chr_num_refseq(op[1], build_from)
+                        sff = seq_data.to_chr_num_refseq(op[1], build_from)
                     if build_from.startswith('hg'):
-                        sfm = seq_data.to_chr_num_ucsc(op[1], build_from)
-                    if sfm is not None:
+                        sff = seq_data.to_chr_num_ucsc(op[1], build_from)
+                    if sff is not None and sft is not None:
                         selected.append([op[0], op[1]])
                 if liftover_level == 'primary':
                     continue
                 else:
                     if op[1].startswith('NT_'):
                         if build_to.startswith('GRC'):
-                            sfm = seq_data.to_chr_num_refseq(op[1], build_to)
+                            sft = seq_data.to_chr_num_refseq(op[1], build_to)
                         if build_to.startswith('hg'):
-                            sfm = seq_data.to_chr_num_ucsc(op[1], build_to)
+                            sft = seq_data.to_chr_num_ucsc(op[1], build_to)
                         if build_from.startswith('GRC'):
-                            sfm = seq_data.to_chr_num_refseq(op[1], build_from)
+                            sff = seq_data.to_chr_num_refseq(op[1], build_from)
                         if build_from.startswith('hg'):
-                            sfm = seq_data.to_chr_num_ucsc(op[1], build_from)
-                        if sfm is not None:
+                            sff = seq_data.to_chr_num_ucsc(op[1], build_from)
+                        if sff is not None and sft is not None:
                             selected.append([op[0], op[1]])
                     if op[1].startswith('NW_'):
                         if build_to.startswith('GRC'):
-                            sfm = seq_data.to_chr_num_refseq(op[1], build_to)
+                            sft = seq_data.to_chr_num_refseq(op[1], build_to)
                         if build_to.startswith('hg'):
-                            sfm = seq_data.to_chr_num_ucsc(op[1], build_to)
+                            sft = seq_data.to_chr_num_ucsc(op[1], build_to)
                         if build_from.startswith('GRC'):
-                            sfm = seq_data.to_chr_num_refseq(op[1], build_from)
+                            sff = seq_data.to_chr_num_refseq(op[1], build_from)
                         if build_from.startswith('hg'):
-                            sfm = seq_data.to_chr_num_ucsc(op[1], build_from)
-                        if sfm is not None:
+                            sff = seq_data.to_chr_num_ucsc(op[1], build_from)
+                        if sff is not None and sft is not None:
                             selected.append([op[0], op[1]])
 
         # remove duplicate chroms
@@ -360,7 +361,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
     return lifted_response
 
 # <LICENSE>
-# Copyright (C) 2019 VariantValidator Contributors
+# Copyright (C) 2016-2021 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

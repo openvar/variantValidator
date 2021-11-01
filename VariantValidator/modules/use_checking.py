@@ -670,7 +670,7 @@ def structure_checks_n(variant, validator):
     return False
 
 # <LICENSE>
-# Copyright (C) 2019 VariantValidator Contributors
+# Copyright (C) 2016-2021 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

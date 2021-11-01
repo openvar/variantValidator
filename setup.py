@@ -59,11 +59,11 @@ setup(
 
     # List run-time dependencies here.  These will be installed by pip when the project is installed.
     install_requires=[
-        "biocommons.seqrepo >= 0.5.1",
-        "httplib2 >= 0.9.0",
-        "configparser >= 3.5.0",
-        "pyliftover >= 0.3",
-        "biotools >= 0.3.0",
+        "biocommons.seqrepo>=0.5.1",
+        "httplib2>=0.9.0",
+        "configparser>=3.5.0",
+        "pyliftover>=0.3",
+        "biotools>=0.3.0",
         # This version has been tested for use with vvhgvs (ignore warnings) and needs to be maintained to ensure
         # biopython is still installed when vvhgvs is updated in-line with biocommons.hgvs which has had the dependancy
         # removed
@@ -78,7 +78,7 @@ setup(
 )
 
 # <LICENSE>
-# Copyright (C) 2019 VariantValidator Contributors
+# Copyright (C) 2016-2021 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

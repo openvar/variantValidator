@@ -19,7 +19,8 @@ class MappersError(Exception):
 
 
 def gene_to_transcripts(variant, validator, select_transcripts_dict):
-    g_query = validator.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
+    # g_query = validator.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
+    g_query = variant.hgvs_formatted
 
     # Genomic coordinates can be validated immediately
     error = 'false'
@@ -56,7 +57,10 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
     # Double check rel_vars have not been missed when mapping from a RefSeqGene
     if len(rel_var) != 0 and 'NG_' in variant.hgvs_genomic.ac:
         for var in rel_var:
-            hgvs_coding_variant = validator.hp.parse_hgvs_variant(var)
+            try:
+                hgvs_coding_variant = validator.hp.parse_hgvs_variant(var)
+            except TypeError:
+                hgvs_coding_variant = var
             try:
                 variant.hgvs_genomic = validator.myevm_t_to_g(hgvs_coding_variant, variant.no_norm_evm,
                                                               variant.primary_assembly, variant.hn)
@@ -162,11 +166,8 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
     else:
         # Tag the line so that it is not written out
         variant.write = False
-
         gap_mapper = gapped_mapping.GapMapper(variant, validator)
-
         data, nw_rel_var = gap_mapper.gapped_g_to_c(rel_var, select_transcripts_dict)
-
         rel_var = nw_rel_var
 
         # Set the values and append to batch_list
@@ -190,14 +191,13 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     error = ''
     # Collect information for genomic level validation
     obj = validator.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
-
     tx_ac = obj.ac
 
     quibble_input = str(variant.quibble)
     formatted_variant = str(variant.hgvs_formatted)
 
     # Do we keep it?
-    if validator.select_transcripts != 'all':
+    if validator.select_transcripts != 'all' and "select" not in validator.select_transcripts:
         if tx_ac not in list(select_transcripts_dict_plus_version.keys()):
             # By marking it as Do Not Write and continuing through the validation loop
             variant.write = False
@@ -383,7 +383,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                 caution = 'The entered coordinates do not agree with the intron/exon boundaries for the ' \
                           'selected transcript'
                 variant.warnings.extend([caution])
-                raise MappersError(caution)
+                # raise MappersError(caution)
 
         else:  # del not in formatted_variant
 
@@ -402,7 +402,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                 caution = 'The entered coordinates do not agree with the intron/exon boundaries for the ' \
                           'selected transcript'
                 variant.warnings.extend([caution])
-                raise MappersError(caution)
+                # raise MappersError(caution)
 
     elif ':g.' not in quibble_input:
         query = validator.hp.parse_hgvs_variant(formatted_variant)
@@ -658,7 +658,12 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             error = str(e)
             if 'does not agree with reference sequence' in error:
                 match = re.findall(r'\(([GATC]+)\)', error)
-                new_ref = match[1]
+                try:
+                    new_ref = match[1]
+                except IndexError:
+                    er = "Reference sequence %s contains errors or has been permanantly suppressed and is no longer " \
+                         "supported"
+                    raise MappersError(er)
                 hgvs_updated.posedit.edit.ref = new_ref
                 try:
                     validator.vr.validate(hgvs_updated)
@@ -761,7 +766,7 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant):
     return multi_g
 
 # <LICENSE>
-# Copyright (C) 2019 VariantValidator Contributors
+# Copyright (C) 2016-2021 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

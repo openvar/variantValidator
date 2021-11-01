@@ -286,12 +286,12 @@ class TestProteinDelIns(TestCase):
         print(output)
         self.assertEqual(output['variant'], 'true')
         self.assertEqual(output['terminate'], 'true')
-        self.assertEqual(output['ter_pos'], 8)
+        self.assertEqual(output['ter_pos'], 7)
         self.assertEqual(output['error'], 'false')
-        self.assertEqual(output['prot_del_seq'], 'T')
-        self.assertEqual(output['prot_ins_seq'], '')
+        self.assertEqual(output['prot_del_seq'], 'TCGP')
+        self.assertEqual(output['prot_ins_seq'], 'CGP*')
         self.assertEqual(output['edit_start'], 4)
-        self.assertEqual(output['edit_end'], 4)
+        self.assertEqual(output['edit_end'], 7)
 
     def test_has_ter_ins(self):
         output = utils.pro_delins_info('MTACGP*', 'MTATCGP*')
@@ -418,7 +418,7 @@ class TestHGVSdup2indel(TestCase):
         self.assertEqual(output, 'NM_015120.4:c.34_34delGAinsGAGA')
 
 # <LICENSE>
-# Copyright (C) 2019 VariantValidator Contributors
+# Copyright (C) 2016-2021 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

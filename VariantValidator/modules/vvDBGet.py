@@ -131,6 +131,13 @@ class Mixin(vvDBInit.Mixin):
         query = "SELECT * FROM stableGeneIds WHERE hgnc_id = '%s'" % hgnc_id
         return self.execute(query)
 
+    def get_db_version(self):
+        """
+        :return: current version of the Validator database
+        """
+        query = "SELECT current_version FROM version"
+        return self.execute(query)
+
     # Direct methods (GET)
     def get_uta_symbol(self, gene_symbol):
         # returns the UTA gene symbol when HGNC gene symbol is input
@@ -172,7 +179,7 @@ class Mixin(vvDBInit.Mixin):
         return report_urls
 
 # <LICENSE>
-# Copyright (C) 2019 VariantValidator Contributors
+# Copyright (C) 2016-2021 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

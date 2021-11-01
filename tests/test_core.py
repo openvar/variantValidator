@@ -191,102 +191,6 @@ class TestValidator(unittest.TestCase):
         self.assertTrue('NM_015120.4:c.34C>T' in out.keys())
 
 
-class TestGene2Transcripts(unittest.TestCase):
-    """
-    This class will test the gene2transcripts method of the validator
-    """
-
-    @classmethod
-    def setUpClass(cls):
-        cls.vv = VariantValidator.Validator()
-
-    def test_empty(self):
-        output = self.vv.gene2transcripts('')
-        print(output)
-        self.assertEqual(list(output), ['error'])
-        self.assertEqual(output['error'], 'Please enter HGNC gene name or transcript identifier (NM_, NR_, or ENST)')
-
-    def test_nonsense(self):
-        output = self.vv.gene2transcripts('nonsense')
-        print(output)
-        self.assertEqual(list(output), ['error'])
-        self.assertEqual(output['error'], 'Unable to recognise gene symbol NONSENSE')
-
-    def test_nonsense_NM(self):
-        output = self.vv.gene2transcripts('NM_nonsense')
-        print(output)
-        self.assertEqual(list(output), ['error'])
-        self.assertEqual(output['error'], 'No transcript definition for (tx_ac=NM_NONSENSE)')
-
-    def test_nonsense_NR(self):
-        output = self.vv.gene2transcripts('nonNR_sense')
-        print(output)
-        self.assertEqual(list(output), ['error'])
-        self.assertEqual(output['error'], 'No transcript definition for (tx_ac=NONNR_SENSE)')
-
-    def test_nonsense_NM_dot(self):
-        output = self.vv.gene2transcripts('NM_nonsens.e')
-        print(output)
-        self.assertEqual(list(output), ['error'])
-        self.assertEqual(output['error'], 'No transcript definition for (tx_ac=NM_NONSENS)')
-
-    def test_nonsense_NM_dot_orf(self):
-        output = self.vv.gene2transcripts('NM_nonsense.1ORF2')
-        print(output)
-        self.assertEqual(list(output), ['error'])
-        self.assertEqual(output['error'], 'No transcript definition for (tx_ac=NM_NONSENSE)')
-
-    def test_nonsense_LRG(self):
-        output = self.vv.gene2transcripts('LRG_nonsense')
-        print(output)
-        self.assertEqual(list(output), ['error'])
-        self.assertEqual(output['error'], 'Unable to recognise gene symbol LRG_NONSENSE')
-
-    def test_nonsense_LRGT(self):
-        output = self.vv.gene2transcripts('LRGT_nonsense')
-        print(output)
-        self.assertEqual(list(output), ['error'])
-        self.assertEqual(output['error'], 'Unable to recognise gene symbol LRGT_NONSENSE')
-
-    def test_NM(self):
-        output = self.vv.gene2transcripts('NM_024865.3')
-        print(output)
-        self.assertEqual(list(output), ['current_symbol', 'previous_symbol', 'current_name',
-                                        'previous_name', 'transcripts'])
-        self.assertEqual(output['current_symbol'], 'NANOG')
-        self.assertEqual(len(output['transcripts']), 3)
-
-    def test_NM_noversion(self):
-        output = self.vv.gene2transcripts('NM_024865')
-        print(output)
-        self.assertEqual(list(output), ['current_symbol', 'previous_symbol', 'current_name',
-                                        'previous_name', 'transcripts'])
-        self.assertEqual(output['current_symbol'], 'NANOG')
-        self.assertEqual(len(output['transcripts']), 3)
-
-    def test_sym(self):
-        output = self.vv.gene2transcripts('NANOG')
-        print(output)
-        self.assertEqual(list(output), ['current_symbol', 'previous_symbol', 'current_name',
-                                        'previous_name', 'transcripts'])
-        self.assertEqual(output['current_symbol'], 'NANOG')
-        self.assertEqual(len(output['transcripts']), 3)
-
-    def test_old_sym(self):
-        output = self.vv.gene2transcripts('OTF3')
-        print(output)
-        self.assertEqual(list(output), ['current_symbol', 'previous_symbol', 'current_name',
-                                        'previous_name', 'transcripts'])
-        self.assertEqual(output['current_symbol'], 'POU5F1')
-        self.assertEqual(len(output['transcripts']), 8)
-
-    def test_ens(self):
-        output = self.vv.gene2transcripts('ENSG00000204531')
-        print(output)
-        self.assertEqual(list(output), ['error'])
-        self.assertEqual(output['error'], 'Unable to recognise gene symbol ENSG00000204531')
-
-
 class TestHGVS2Ref(unittest.TestCase):
     """
     class will test the inputs for the hgvs2ref method of the validator()
@@ -370,7 +274,7 @@ class TestHGVS2Ref(unittest.TestCase):
         self.assertEqual(output['sequence'], '')
 
 # <LICENSE>
-# Copyright (C) 2019 VariantValidator Contributors
+# Copyright (C) 2016-2021 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

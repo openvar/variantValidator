@@ -23,6 +23,10 @@ from VariantValidator.settings import CONFIG_DIR
 from VariantValidator.version import __version__
 
 
+class InitialisationError(Exception):
+    pass
+
+
 class Mixin:
     """
     This mixin is the first for the validator object, which is instantiated in order to perform validator functions.
@@ -65,12 +69,14 @@ class Mixin:
 
         self.seqrepoVersion = config["seqrepo"]["version"]
         self.seqrepoPath = os.path.join(config["seqrepo"]["location"], self.seqrepoVersion)
+        self.vvdbVersion = config["mysql"]["version"]
         os.environ['HGVS_SEQREPO_DIR'] = self.seqrepoPath
 
-        os.environ['UTA_DB_URL'] = "postgresql://%s:%s@%s/%s/%s" % (
+        os.environ['UTA_DB_URL'] = "postgresql://%s:%s@%s:%s/%s/%s" % (
             config["postgres"]["user"],
             config["postgres"]["password"],
             config['postgres']['host'],
+            config['postgres']['port'],
             config['postgres']['database'],
             config['postgres']['version']
         )
@@ -80,11 +86,16 @@ class Mixin:
             'user':     config["mysql"]["user"],
             'password': config["mysql"]["password"],
             'host':     config["mysql"]["host"],
+            'port':     int(config["mysql"]["port"]),
             'database': config["mysql"]["database"],
             'raise_on_warnings': True
         }
         # Create database access objects
         self.db = Database(self.dbConfig)
+        db_version = self.db.get_db_version()
+        if db_version[0] != config["mysql"]["version"]:
+            raise InitialisationError("Config error: VVDb version in config file is incorrect. VDb version is "
+                                      + db_version[0])
 
         # Set up versions
         self.version = __version__
@@ -108,9 +119,9 @@ class Mixin:
 
         # Create a lose vm instance
         self.lose_vm = vvhgvs.variantmapper.VariantMapper(self.hdp,
-                                                        replace_reference=True,
-                                                        prevalidation_level=None
-                                                        )
+                                                          replace_reference=True,
+                                                          prevalidation_level=None
+                                                          )
 
         self.nr_vm = vvhgvs.variantmapper.VariantMapper(self.hdp, replace_reference=False)  # No reverse variant mapper
         self.sf = vvhgvs.dataproviders.seqfetcher.SeqFetcher()  # Seqfetcher
@@ -121,10 +132,10 @@ class Mixin:
 
         # Create normalizer
         self.reverse_hn = vvhgvs.normalizer.Normalizer(self.hdp,
-                                                     cross_boundaries=False,
-                                                     shuffle_direction=5,
-                                                     alt_aln_method='splign'
-                                                     )
+                                                       cross_boundaries=False,
+                                                       shuffle_direction=5,
+                                                       alt_aln_method='splign'
+                                                       )
 
         self.merge_normalizer = vvhgvs.normalizer.Normalizer(
             self.hdp,
@@ -143,44 +154,46 @@ class Mixin:
 
         # When we are able to access Ensembl data we will need to use these normalizer instances
         # These are currently implemented in VF
-        self.splign_normalizer = vvhgvs.normalizer.Normalizer(self.hdp,
-                                               cross_boundaries=False,
-                                               shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
-                                               alt_aln_method='splign' # RefSeq
-                                               )
+        self.splign_normalizer = vvhgvs.normalizer.Normalizer(
+            self.hdp,
+            cross_boundaries=False,
+            shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
+            alt_aln_method='splign'  # RefSeq
+            )
 
-        self.genebuild_normalizer = vvhgvs.normalizer.Normalizer(self.hdp,
-                                                  cross_boundaries=False,
-                                                  shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
-                                                  alt_aln_method='genebuild' # Ensembl
-                                                  )
+        self.genebuild_normalizer = vvhgvs.normalizer.Normalizer(
+            self.hdp,
+            cross_boundaries=False,
+            shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
+            alt_aln_method='genebuild'  # Ensembl
+            )
 
         self.reverse_splign_normalizer = vvhgvs.normalizer.Normalizer(self.hdp,
-                                                       cross_boundaries=False,
-                                                       shuffle_direction=5,
-                                                       alt_aln_method='splign'
-                                                       )
+                                                                      cross_boundaries=False,
+                                                                      shuffle_direction=5,
+                                                                      alt_aln_method='splign'
+                                                                      )
 
         self.reverse_genebuild_normalizer = vvhgvs.normalizer.Normalizer(self.hdp,
-                                                          cross_boundaries=False,
-                                                          shuffle_direction=5,
-                                                          alt_aln_method='genebuild'
-                                                          )
+                                                                         cross_boundaries=False,
+                                                                         shuffle_direction=5,
+                                                                         alt_aln_method='genebuild'
+                                                                         )
 
         # create no_norm_evm
         self.no_norm_evm_38 = vvhgvs.assemblymapper.AssemblyMapper(self.hdp,
-                                                                 assembly_name='GRCh38',
-                                                                 alt_aln_method='splign',
-                                                                 normalize=False,
-                                                                 replace_reference=True
-                                                                 )
+                                                                   assembly_name='GRCh38',
+                                                                   alt_aln_method='splign',
+                                                                   normalize=False,
+                                                                   replace_reference=True
+                                                                   )
 
         self.no_norm_evm_37 = vvhgvs.assemblymapper.AssemblyMapper(self.hdp,
-                                                                 assembly_name='GRCh37',
-                                                                 alt_aln_method='splign',
-                                                                 normalize=False,
-                                                                 replace_reference=True
-                                                                 )
+                                                                   assembly_name='GRCh37',
+                                                                   alt_aln_method='splign',
+                                                                   normalize=False,
+                                                                   replace_reference=True
+                                                                   )
         # Created during validate method
         self.selected_assembly = None
         self.select_transcripts = None
@@ -198,8 +211,9 @@ class Mixin:
         return {
             'variantvalidator_version': self.version,
             'variantvalidator_hgvs_version': self.hgvsVersion,
-            'uta_schema': self.utaSchema,
-            'seqrepo_db': self.seqrepoPath
+            'vvta_version': self.utaSchema,
+            'vvseqrepo_db': self.seqrepoPath,
+            'vvdb_version': self.vvdbVersion
         }
 
     def myc_to_p(self, hgvs_transcript, evm, re_to_p, hn):
@@ -214,7 +228,7 @@ class Mixin:
             if associated_protein_accession is None:
                 cod = str(hgvs_transcript)
                 cod = cod.replace('inv', 'del')
-                cod = self.hp.parse_hgvs_variant(cod)
+                cod = self.hp.parse(cod)  # Changed from parse
                 p = evm.c_to_p(cod)
                 associated_protein_accession = p.ac
 
@@ -225,14 +239,16 @@ class Mixin:
                     re_to_p is False):
                 hgvs_protein = None
                 # Does the edit affect the start codon?
-                if ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and hgvs_transcript.posedit.pos.start.offset == 0
-                    ) or (1 <= hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset
-                          == 0)) and '*' not in str(hgvs_transcript.posedit.pos):
+                if ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and hgvs_transcript.posedit.pos.start.offset == 0)
+                    or (1 <= hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset
+                        == 0)) and '*' not in str(hgvs_transcript.posedit.pos):
                     residue_one = self.sf.fetch_seq(associated_protein_accession, start_i=1 - 1, end_i=1)
                     threed_residue_one = utils.one_to_three(residue_one)
                     r_one_report = '(%s1?)' % threed_residue_one  # was (MET1?)
                     hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
-                                                                        type='p', posedit=r_one_report)
+                                                                          type='p',
+                                                                          posedit=r_one_report
+                                                                          )
 
                 else:
                     try:
@@ -240,11 +256,11 @@ class Mixin:
                     except IndexError as e:
                         error = str(e)
                         if 'string index out of range' in error and 'dup' in str(hgvs_transcript):
-                            hgvs_ins = self.hp.parse_hgvs_variant(str(hgvs_transcript))
+                            hgvs_ins = self.hp.parse(str(hgvs_transcript))
                             hgvs_ins = hn.normalize(hgvs_ins)
                             inst = hgvs_ins.ac + ':c.' + str(hgvs_ins.posedit.pos.start.base - 1) + '_' + \
                                 str(hgvs_ins.posedit.pos.start.base) + 'ins' + hgvs_ins.posedit.edit.ref
-                            hgvs_transcript = self.hp.parse_hgvs_variant(inst)
+                            hgvs_transcript = self.hp.parse(inst)
                             hgvs_protein = evm.c_to_p(hgvs_transcript)
 
                 if hgvs_protein:
@@ -260,7 +276,7 @@ class Mixin:
                             pr_alt_ter_stp = hgvs_transcript_to_hgvs_protein['hgvs_protein'].posedit.edit.alt
                             pr_alt_ter_stp = pr_alt_ter_stp.split('*')[0] + '*'
                             hgvs_transcript_to_hgvs_protein['hgvs_protein'].posedit.edit.alt = pr_alt_ter_stp
-                    except:
+                    except Exception:
                         pass
                     return hgvs_transcript_to_hgvs_protein
                 else:
@@ -307,7 +323,10 @@ class Mixin:
                     associated_protein_accession = self.hdp.get_pro_ac_for_tx_ac(hgvs_transcript.ac)
 
                     # Intronic inversions are marked as uncertain i.e. p.?
-                    if re.search(r'\d+-', str(hgvs_transcript.posedit.pos)) or re.search(r'\d+\+', str(hgvs_transcript.posedit.pos)) or re.search(r'\*', str(hgvs_transcript.posedit.pos)) or re.search(r'[cn].-', str(hgvs_transcript)):
+                    if re.search(r'\d+-', str(hgvs_transcript.posedit.pos)) \
+                            or re.search(r'\d+\+', str(hgvs_transcript.posedit.pos)) \
+                            or re.search(r'\*', str(hgvs_transcript.posedit.pos)) \
+                            or re.search(r'[cn].-', str(hgvs_transcript)):
                         if ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and
                             hgvs_transcript.posedit.pos.start.offset == 0) or (1 <=
                             hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset == 0))\
@@ -327,6 +346,7 @@ class Mixin:
                         # Need to obtain the cds_start
                         inf = self.hdp.get_tx_identity_info(hgvs_transcript.ac)
                         cds_start = inf[3]
+                        cds_end = inf[4]
 
                         # Extract the reference coding sequence from SeqRepo
                         try:
@@ -381,7 +401,43 @@ class Mixin:
                             if hgvs_transcript.posedit.edit.type != 'delins':
                                 pro_inv_info = utils.pro_inv_info(prot_ref_seq, prot_var_seq)
                             else:
-                                pro_inv_info = utils.pro_delins_info(prot_ref_seq, prot_var_seq)
+                                # Test whether the length of the deletion, plus the insertion can be devided by 3
+                                # This is trying to spot the difference between amino acid deletions
+                                # and early terminations
+
+                                # Get the cds length
+                                cds_len = cds_end - cds_start
+
+                                # Calculate the variant cds length
+                                minus = False
+                                plus = False
+                                if len(hgvs_naughty.posedit.edit.ref) > len(hgvs_naughty.posedit.edit.alt):
+                                    var_cds_len = cds_len - (len(hgvs_naughty.posedit.edit.ref)
+                                                             - len(hgvs_naughty.posedit.edit.alt))
+                                    minus = True
+                                elif len(hgvs_naughty.posedit.edit.ref) < len(hgvs_naughty.posedit.edit.alt):
+                                    var_cds_len = cds_len + (len(hgvs_naughty.posedit.edit.alt)
+                                                             - len(hgvs_naughty.posedit.edit.ref))
+                                    plus = True
+
+                                # Do we have an in-frame variant i.e. divisible by 3?
+                                in_frame = False
+                                if minus is True:
+                                    loss_gain = (cds_len) - (var_cds_len)
+                                    if loss_gain % 3 == 0:
+                                        loss_gain = loss_gain / 3
+                                        loss_gain = 0 - loss_gain
+                                        in_frame = loss_gain
+                                elif plus is True:
+                                    loss_gain = var_cds_len - cds_len
+                                    if loss_gain % 3 == 0:
+                                        loss_gain = loss_gain / 3
+                                        in_frame = loss_gain
+
+                                # Get the sequence info
+                                pro_inv_info = utils.pro_delins_info(prot_ref_seq,
+                                                                     prot_var_seq,
+                                                                     in_frame)
 
                             # Error has occurred
                             if pro_inv_info['error'] == 'true':
@@ -406,7 +462,11 @@ class Mixin:
 
                                     # create edit
                                     if aa_start_pos != aa_end_pos:
-                                        posedit = '(%s%s_%s%s=)' % (start_aa, str(aa_start_pos), end_aa, str(aa_end_pos))
+                                        posedit = '(%s%s_%s%s=)' % (start_aa,
+                                                                    str(aa_start_pos),
+                                                                    end_aa,
+                                                                    str(aa_end_pos)
+                                                                    )
 
                                         hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(
                                             ac=associated_protein_accession, type='p', posedit=posedit)
@@ -424,14 +484,14 @@ class Mixin:
                                         hgvs_transcript.posedit.edit.type == 'delins':
 
                                     # This deals with early terminating delins in-frame prventing the format
-                                    # NP_733765.1:p.(Gln259_Ser1042delinsProAla) in issue #214
-                                    if len(pro_inv_info['prot_del_seq']) + int(pro_inv_info['edit_start']
-                                                                                ) == int(pro_inv_info['ter_pos']):
-                                         end = 'Ter' + str(pro_inv_info['ter_pos'])
-                                         pro_inv_info['prot_ins_seq'].replace('*', end)
-                                         pro_inv_info['prot_ins_seq'] = pro_inv_info['prot_ins_seq'] + '*'
-                                         pro_inv_info['prot_del_seq'] = pro_inv_info['prot_del_seq'][0]
-                                         pro_inv_info['edit_end'] = pro_inv_info['edit_start']
+                                    # NP_733765.1:p.(Gln259_Ser1042delinsProAla*) in issue #214 also #282
+                                    if len(pro_inv_info['prot_del_seq']) + \
+                                            int(pro_inv_info['edit_start'] - 1) == int(pro_inv_info['ter_pos']):
+                                        end = 'Ter' + str(pro_inv_info['ter_pos'])
+                                        pro_inv_info['prot_ins_seq'].replace('*', end)
+                                        pro_inv_info['prot_ins_seq'] = pro_inv_info['prot_ins_seq'] #  + '*'
+                                        pro_inv_info['prot_del_seq'] = pro_inv_info['prot_del_seq'][0]
+                                        pro_inv_info['edit_end'] = pro_inv_info['edit_start']
 
                                 # Complete variant description
                                 # Recode the single letter del and ins sequences into three letter amino acid codes
@@ -485,7 +545,9 @@ class Mixin:
 
                                 # Complete the variant
                                 hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
-                                                                                    type='p', posedit=posedit)
+                                                                                      type='p',
+                                                                                      posedit=posedit
+                                                                                      )
 
                                 hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
 
@@ -515,7 +577,7 @@ class Mixin:
             return hgvs_transcript_to_hgvs_protein
 
 # <LICENSE>
-# Copyright (C) 2019 VariantValidator Contributors
+# Copyright (C) 2016-2021 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

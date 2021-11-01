@@ -7,6 +7,7 @@ from . import vvMixinInit
 from . import seq_data
 from . import hgvs_utils
 from Bio import Entrez, SeqIO
+from Bio.Seq import Seq
 from . import utils as fn
 import sys
 import traceback
@@ -1173,14 +1174,14 @@ class Mixin(vvMixinInit.Mixin):
                     # So is likely mapping to a genomic gap
                     try:
                         hn.normalize(genomic_gap_variant)
-                    except Exception as e:
-                        if str(e) == 'base start position must be <= end position':
+                    except Exception as ea1:
+                        if str(ea1) == 'base start position must be <= end position':
                             # This will only happen when the variant is fully within the gap
                             gap_start = genomic_gap_variant.posedit.pos.end.base
                             gap_end = genomic_gap_variant.posedit.pos.start.base
                             genomic_gap_variant.posedit.pos.start.base = gap_start
                             genomic_gap_variant.posedit.pos.end.base = gap_end
-                        if 'Length implied by coordinates must equal sequence deletion length' in str(e):
+                        if 'Length implied by coordinates must equal sequence deletion length' in str(ea1):
                             # This will only happen if the variant is flanking the gap but is
                             # not inside the gap
                             logger.info('Variant is on the flank of a genomic gap but not within the gap')
@@ -1219,7 +1220,7 @@ class Mixin(vvMixinInit.Mixin):
                         genomic_gap_variant = hn.normalize(genomic_gap_variant)
                         # Static map to c. and static normalize
                         transcript_gap_variant = self.vm.g_to_t(genomic_gap_variant, hgvs_c.ac)
-                        if 'Length implied by coordinates must equal sequence deletion length' not in str(e):
+                        if 'Length implied by coordinates must equal sequence deletion length' not in str(ea1):
                             try:
                                 transcript_gap_variant = hn.normalize(transcript_gap_variant)
                             except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
@@ -1642,6 +1643,49 @@ class Mixin(vvMixinInit.Mixin):
             rts_dict[tx_dat_2] = True
         rts = list(rts_dict.keys())
 
+        # First if we have a ins prepare for hgvs "ins" mishandling, which
+        # causes failures on any ins->non ins case, start by making a forced
+        # "delins", equivilent to the vcf format ins requirements, then use
+        # if needed. This is similar to the 'Triple check' code in mappers.py,
+        # but more limited.
+        hgvs_genomic_forced_delins = None
+        if hgvs_genomic.posedit.edit.type == 'ins':
+            start = hgvs_genomic.posedit.pos.start.base
+            base = self.sf.fetch_seq(str(hgvs_genomic.ac), start_i=start - 1, end_i=start)
+            alt = base + hgvs_genomic.posedit.edit.alt
+            # Note, create a hgvs delins without parsing
+            hgvs_genomic_forced_delins = vvhgvs.sequencevariant.SequenceVariant(
+                    ac=hgvs_genomic.ac,
+                    type="g",
+                    posedit=vvhgvs.posedit.PosEdit(
+                        vvhgvs.location.Interval(
+                            start=vvhgvs.location.SimplePosition(base=start),
+                            end=vvhgvs.location.SimplePosition(base=start),
+                            uncertain=hgvs_genomic.posedit.pos.uncertain
+                            ),
+                        vvhgvs.edit.NARefAlt(ref=base, alt=alt)
+                        )
+                    )
+        if hgvs_genomic.posedit.edit.type == 'inv':
+            base = self.sf.fetch_seq(str(hgvs_genomic.ac),
+                                     start_i=hgvs_genomic.posedit.pos.start.base - 1,
+                                     end_i=hgvs_genomic.posedit.pos.end.base)
+            my_seq = Seq(base)
+            alt = str(my_seq.reverse_complement())
+            # Note, create a hgvs delins without parsing
+            hgvs_genomic = vvhgvs.sequencevariant.SequenceVariant(
+                    ac=hgvs_genomic.ac,
+                    type="g",
+                    posedit=vvhgvs.posedit.PosEdit(
+                        vvhgvs.location.Interval(
+                            start=vvhgvs.location.SimplePosition(base=hgvs_genomic.posedit.pos.start.base),
+                            end=vvhgvs.location.SimplePosition(base=hgvs_genomic.posedit.pos.end.base),
+                            uncertain=hgvs_genomic.posedit.pos.uncertain
+                            ),
+                        vvhgvs.edit.NARefAlt(ref=base, alt=alt)
+                        )
+                    )
+
         # Project genomic variants to new transcripts
         # and  populate a code_var list
         #############################################
@@ -1655,12 +1699,20 @@ class Mixin(vvMixinInit.Mixin):
             try:
                 variant = evm.g_to_t(hgvs_genomic, y)
             except vvhgvs.exceptions.HGVSError:
+                curr_genomic = hgvs_genomic
+                if hgvs_genomic_forced_delins:
+                    curr_genomic = hgvs_genomic_forced_delins
+                    try:
+                        evm.g_to_t(hgvs_genomic_forced_delins, y)
+                    except vvhgvs.exceptions.HGVSError:
+                        pass
                 # Check for non-coding transcripts
                 try:
-                    variant = evm.g_to_t(hgvs_genomic, y)
+                    variant = evm.g_to_t(curr_genomic, y)
                 except vvhgvs.exceptions.HGVSError:
                     continue
-            except:
+            except Exception as err:
+                logger.warning('non expected err type', str(err))
                 continue
 
             # Corrective Normalisation of intronic descriptions in the antisense oriemtation
@@ -1672,13 +1724,11 @@ class Mixin(vvMixinInit.Mixin):
                 try:
                     tx_exons = self.hdp.get_tx_exons(tx_ac, alt_ac, alt_aln_method)
                 except vvhgvs.exceptions.HGVSError as e:
-                    tx_exons = 'hgvs Exception: ' + str(e)
-                    return tx_exons
+                    continue
                 try:
-                    completion = tx_exons[0]['alt_strand']
+                    tx_exons[0]['alt_strand']
                 except TypeError:
-                    tx_exons = 'error'
-                    return tx_exons
+                    continue
                 # If on the reverse strand, reverse the order of elements
                 if tx_exons[0]['alt_strand'] == -1:
                     tx_exons = tx_exons[::-1]
@@ -1690,11 +1740,14 @@ class Mixin(vvMixinInit.Mixin):
                     antisense = False
 
                 # Pass if antisense = 'false'
-                if antisense:
-                    # Reverse normalize hgvs_genomic
-                    rev_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic)
-                    # map back to coding
-                    variant = evm.g_to_t(rev_hgvs_genomic, tx_ac)
+                try:
+                    if antisense:
+                        # Reverse normalize hgvs_genomic
+                        rev_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic)
+                        # map back to coding
+                        variant = evm.g_to_t(rev_hgvs_genomic, tx_ac)
+                except vvhgvs.exceptions.HGVSInvalidIntervalError:
+                    variant = evm.g_to_t(hgvs_genomic, tx_ac)
             try:
                 self.hp.parse_hgvs_variant(str(variant))
             except vvhgvs.exceptions.HGVSError:
@@ -1702,7 +1755,8 @@ class Mixin(vvMixinInit.Mixin):
             except TypeError:
                 continue
             else:
-                code_var.append(str(variant))
+                code_var.append(variant)
+
         return code_var
 
     def validateHGVS(self, query):
@@ -1816,14 +1870,13 @@ class Mixin(vvMixinInit.Mixin):
         revcomp = revcomp[::-1]
         return revcomp
 
-    def merge_hgvs_3pr(self, hgvs_variant_list, hn, genomic_reference=False):
+    def merge_hgvs_3pr(self, hgvs_variant_list, hn, genomic_reference=False, final_norm=True):
         """
         Function designed to merge multiple HGVS variants (hgvs objects) into a single delins
         using 3 prime normalization
         """
         # Ensure c. is mapped to the
         h_list = []
-
         # Sanity check and format the submitted variants
         for hgvs_v in hgvs_variant_list:
             # For testing include parser
@@ -1864,7 +1917,23 @@ class Mixin(vvMixinInit.Mixin):
         seqtype = None
         full_list = []
 
+        # Loop through the submitted variants to remove any identity variants, these will be re-created as required
+        # Except if it is the forst variant in which case we need the start position. We cannot assume non-gap
+        elec = 0
+        cp_hgvs_v = []
+        for hgvs_v in hgvs_variant_list:
+            if hgvs_v.posedit.edit.type == "identity":
+                if elec == 0:
+                    hgvs_v.posedit.pos.end.base = hgvs_v.posedit.pos.start.base
+                    hgvs_v.posedit.edit.ref = hgvs_v.posedit.edit.ref[0]
+                    hgvs_v.posedit.edit.alt = hgvs_v.posedit.edit.alt[0]
+                    cp_hgvs_v.append(hgvs_v)
+                continue
+            else:
+                cp_hgvs_v.append(hgvs_v)
+
         # Loop through the submitted variants and gather the required info
+        hgvs_variant_list = cp_hgvs_v
         for hgvs_v in hgvs_variant_list:
             # No intronic positions
             try:
@@ -1899,19 +1968,20 @@ class Mixin(vvMixinInit.Mixin):
             # Ensure variants are in the correct order and not overlapping
             else:
                 # ! hgvs_v.posedit.pos.start.base !>
-                if hgvs_v.posedit.pos.start.base <= merge_end_pos:
-                    raise fn.mergeHGVSerror("Submitted variants are out of order or their ranges overlap")
-                else:
-                    # Create a fake variant to handle the missing sequence
-                    ins_seq = self.sf.fetch_seq(hgvs_v.ac, merge_end_pos, hgvs_v.posedit.pos.start.base - 1)
-                    gapping = hgvs_v.ac + ':' + hgvs_v.type + '.' + str(merge_end_pos + 1) + '_' + str(
-                        hgvs_v.posedit.pos.start.base - 1) + 'delins' + ins_seq
-                    hgvs_gapping = self.hp.parse_hgvs_variant(gapping)
-                    full_list.append(hgvs_gapping)
+                if hgvs_v.posedit.pos.start.base > merge_end_pos:
+                    if hgvs_v.posedit.pos.start.base > merge_end_pos + 1:
+                        # Create a fake variant to handle the missing sequence
+                        ins_seq = self.sf.fetch_seq(hgvs_v.ac, merge_end_pos, hgvs_v.posedit.pos.start.base - 1)
+                        gapping = hgvs_v.ac + ':' + hgvs_v.type + '.' + str(merge_end_pos + 1) + '_' + str(
+                            hgvs_v.posedit.pos.start.base - 1) + 'del' + ins_seq + 'ins' + ins_seq
+                        hgvs_gapping = self.hp.parse_hgvs_variant(gapping)
+                        full_list.append(hgvs_gapping)
                     # update end_pos
                     merge_end_pos = hgvs_v.posedit.pos.end.base
                     # Append to the final list of variants
                     full_list.append(hgvs_v)
+                else:
+                    raise fn.mergeHGVSerror("Submitted variants are out of order or their ranges overlap")
 
         # Generate the alt sequence
         alt_sequence = ''
@@ -1934,10 +2004,11 @@ class Mixin(vvMixinInit.Mixin):
         except Exception as e:
             logger.debug("Except passed, %s", e)
         # Normalize (allow variants crossing into different exons)
-        try:
-            hgvs_delins = hn.normalize(hgvs_delins)
-        except HGVSUnsupportedOperationError as e:
-            logger.debug("Except passed, %s", e)
+        if final_norm is True:
+            try:
+                hgvs_delins = hn.normalize(hgvs_delins)
+            except HGVSUnsupportedOperationError as e:
+                logger.debug("Except passed, %s", e)
         return hgvs_delins
 
 
@@ -2221,8 +2292,7 @@ class Mixin(vvMixinInit.Mixin):
         # 'chr_to_rsg triggered'
         hgvs_genomic = hn.normalize(hgvs_genomic)
         # split the description
-        
-        
+
         # Accessions
         chr_ac = hgvs_genomic.ac
         # Positions
@@ -2487,7 +2557,7 @@ class Mixin(vvMixinInit.Mixin):
         return descriptions
 
 # <LICENSE>
-# Copyright (C) 2019 VariantValidator Contributors
+# Copyright (C) 2016-2021 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
