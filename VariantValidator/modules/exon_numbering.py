@@ -11,6 +11,8 @@ module operates.
 
 Use exon_numbering_tests.py for automated testing of this module.
 """
+import vvhgvs
+import re
 
 
 def finds_exon_number(variant, validator):
@@ -62,6 +64,12 @@ def finds_exon_number(variant, validator):
     # Create empty output dictionary
     exon_start_end_positions = {}
 
+    # Create c_to_n varint
+    try:
+        to_n = validator.vm.c_to_n(variant.hgvs_coding)
+    except vvhgvs.exceptions.HGVSInvalidVariantError:
+        to_n = variant.hgvs_coding
+
     """
     This for loop identifies the exon/intron number for the transcript
     variant for each aligned chromosomal or gene reference sequence
@@ -71,9 +79,10 @@ def finds_exon_number(variant, validator):
         keys: start_exon and end_exon
         values: start and position of variant in the reference sequence
     """
-
     exon_structure_dict = info_dict[variant.hgvs_coding.ac]["exon_structure_dict"]
     coding_start = info_dict[variant.hgvs_coding.ac]['coding_start']
+    if coding_start is None:
+        coding_start = 1
 
     for transcript in exon_structure_dict:
         for exon in exon_structure_dict[transcript]['exon_structure']:
@@ -81,14 +90,35 @@ def finds_exon_number(variant, validator):
             # 'i' denotes introns, i.e. exon 2i is intron 2
             # Separated by start and end position of the variant as they may
             # be different if the variant is not a SNP.
-
-            # Start position
             if ('+' not in str(start_position)
-                    and '-' not in str(start_position)):
+                    and not re.search('\d-\d', str(start_position))):
                 # This works for positions in exons
-                adj_start_position = int(start_position) + coding_start - 1
+                adj_start_position = to_n.posedit.pos.start.base
                 if adj_start_position >= exon['transcript_start'] and adj_start_position <= exon['transcript_end']:
                     start_exon = str(exon['exon_number'])
+
+            elif re.match("-", str(start_position)):
+                n_start_position = str(to_n.posedit.pos.start)
+                if re.search("\d\+\d", str(n_start_position)):
+                    nearest_exon_boundary = int(str(n_start_position).split('+')[0])
+                    if nearest_exon_boundary == exon['transcript_end']:
+                        start_exon = str(exon['exon_number']) + 'i'
+                elif re.search("\d-\d", str(n_start_position)):
+                    nearest_exon_boundary = int(str(n_start_position).split('-')[0])
+                    if nearest_exon_boundary == exon['transcript_start']:
+                        start_exon = str(exon['exon_number'] - 1) + 'i'
+
+            elif re.match("\*", start_position) and "+" in start_position:
+                n_start_position = str(to_n.posedit.pos.start)
+                nearest_exon_boundary = int(str(n_start_position).split('+')[0])
+                if nearest_exon_boundary == exon['transcript_end']:
+                    start_exon = str(exon['exon_number']) + 'i'
+
+            elif re.match("\*", start_position) and "-" in start_position:
+                n_start_position = str(to_n.posedit.pos.start)
+                nearest_exon_boundary = int(str(n_start_position).split('-')[0])
+                if nearest_exon_boundary == exon['transcript_start']:
+                    start_exon = str(exon['exon_number'] - 1) + 'i'
 
             elif '+' in start_position:
                 # This works for positions that are + the exon boundary
@@ -107,11 +137,34 @@ def finds_exon_number(variant, validator):
                     start_exon = str(exon['exon_number'] - 1) + 'i'
 
             # End position
-            if '+' not in str(end_position) and '-' not in str(end_position):
+            if '+' not in str(end_position) and not re.search('\d-\d', str(end_position)):
                 # This works for positions in exons
-                adj_end_position = int(end_position) + coding_start - 1
+                adj_end_position = to_n.posedit.pos.end.base
                 if adj_end_position >= exon['transcript_start'] and adj_end_position <= exon['transcript_end']:
                     end_exon = str(exon['exon_number'])
+
+            elif re.match("-", end_position):
+                n_end_position = str(to_n.posedit.pos.end)
+                if re.search("\d\+\d", str(n_end_position)):
+                    nearest_exon_boundary = int(str(n_end_position).split('+')[0])
+                    if nearest_exon_boundary == exon['transcript_end']:
+                        end_exon = str(exon['exon_number']) + 'i'
+                elif re.search("\d-\d", str(n_end_position)):
+                    nearest_exon_boundary = int(str(n_end_position).split('-')[0])
+                    if nearest_exon_boundary == exon['transcript_start']:
+                        end_exon = str(exon['exon_number'] -1) + 'i'
+
+            elif re.match("\*", end_position) and "+" in end_position:
+                n_end_position = str(to_n.posedit.pos.end)
+                nearest_exon_boundary = int(str(n_end_position).split('+')[0])
+                if nearest_exon_boundary == exon['transcript_end']:
+                    end_exon = str(exon['exon_number']) + 'i'
+
+            elif re.match("\*", end_position) and "-" in end_position:
+                n_end_position = str(to_n.posedit.pos.end)
+                nearest_exon_boundary = int(str(n_end_position).split('-')[0])
+                if nearest_exon_boundary == exon['transcript_start']:
+                    end_exon = str(exon['exon_number'] - 1) + 'i'
 
             elif '+' in end_position:
                 # This works for positions that are + the exon boundary
@@ -123,11 +176,11 @@ def finds_exon_number(variant, validator):
 
             elif '-' in end_position:
                 # This works for positions that are - the exon boundary
-                if "+" in start_position:
-                    adj_start_position = start_position.split("+")[0]
+                if "+" in end_position:
+                    adj_end_position = end_position.split("+")[0]
                 else:
-                    adj_start_position = start_position
-                nearest_exon_boundary = adj_start_position.split('-')[0]
+                    adj_end_position = end_position
+                nearest_exon_boundary = adj_end_position.split('-')[0]
                 adj_nearest_exon_boundary = (int(nearest_exon_boundary)
                                              + coding_start - 1)
                 if adj_nearest_exon_boundary == exon['transcript_start']:

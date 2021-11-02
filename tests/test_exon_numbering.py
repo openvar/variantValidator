@@ -226,6 +226,198 @@ class TestExonNumbering(unittest.TestCase):
                 }
             }
 
+    def test_8(self):
+        results = self.vv.validate("NM_004656.3:c.2189_*2del", 'GRCh38', 'all').format_as_dict(test=True)
+        results = results['NM_004656.3:c.2189_*2del']['variant_exonic_positions']
+        print(results)
+        assert results == {
+            "NC_000003.11": {
+                "end_exon": "17",
+                "start_exon": "17"
+            },
+            "NC_000003.12": {
+                "end_exon": "17",
+                "start_exon": "17"
+            }
+        }
+
+    def test_8a(self):
+        results = self.vv.validate("NM_004656.3:c.*1_*2del", 'GRCh38', 'all').format_as_dict(test=True)
+        results = results['NM_004656.3:c.*1_*2del']['variant_exonic_positions']
+        print(results)
+        assert results == {
+            "NC_000003.11": {
+                "end_exon": "17",
+                "start_exon": "17"
+            },
+            "NC_000003.12": {
+                "end_exon": "17",
+                "start_exon": "17"
+            }
+        }
+
+    def test_9(self):
+        results = self.vv.validate("NM_004006.2:c.-244T>A", 'GRCh38', 'all').format_as_dict(test=True)
+        results = results['NM_004006.2:c.-244T>A']['variant_exonic_positions']
+        print(results)
+        assert results == {
+            "NC_000023.10": {
+                "end_exon": "1",
+                "start_exon": "1"
+            },
+            "NC_000023.11": {
+                "end_exon": "1",
+                "start_exon": "1"
+            },
+            "NG_012232.1": {
+                "end_exon": "1",
+                "start_exon": "1"
+            }
+        }
+
+    def test_9a(self):
+        results = self.vv.validate("NM_004006.2:c.-244_-200del", 'GRCh38', 'all').format_as_dict(test=True)
+        results = results['NM_004006.2:c.-242_-198del']['variant_exonic_positions']
+        print(results)
+        assert results == {
+            "NC_000023.10": {
+                "end_exon": "1",
+                "start_exon": "1"
+            },
+            "NC_000023.11": {
+                "end_exon": "1",
+                "start_exon": "1"
+            },
+            "NG_012232.1": {
+                "end_exon": "1",
+                "start_exon": "1"
+            }
+        }
+
+    def test_9c(self):
+        results = self.vv.validate("NM_004006.2:c.-2_3del", 'GRCh38', 'all').format_as_dict(test=True)
+        results = results['NM_004006.2:c.-2_3del']['variant_exonic_positions']
+        print(results)
+        assert results == {
+            "NC_000023.10": {
+                "end_exon": "1",
+                "start_exon": "1"
+            },
+            "NC_000023.11": {
+                "end_exon": "1",
+                "start_exon": "1"
+            },
+            "NG_012232.1": {
+                "end_exon": "1",
+                "start_exon": "1"
+            }
+        }
+
+    def test_10(self):
+        results = self.vv.validate("NM_001362177.1:c.-1+1dup", 'GRCh38', 'all').format_as_dict(test=True)
+        results = results['NM_001362177.1:c.-1+1dup']['variant_exonic_positions']
+        print(results)
+        assert results == {
+            "NC_000009.11": {
+                "end_exon": "4i",
+                "start_exon": "4i"
+            },
+            "NC_000009.12": {
+                "end_exon": "4i",
+                "start_exon": "4i"
+            }
+        }
+
+    def test_10a(self):
+        results = self.vv.validate("NM_001354304.1:c.-95-121A>G", 'GRCh38', 'all').format_as_dict(test=True)
+        results = results['NM_001354304.1:c.-95-121A>G']['variant_exonic_positions']
+        print(results)
+        assert results == {
+            "NC_000012.11": {
+                "end_exon": "1i",
+                "start_exon": "1i"
+            },
+            "NC_000012.12": {
+                "end_exon": "1i",
+                "start_exon": "1i"
+            }
+        }
+
+    def test_10b(self):
+        results = self.vv.validate("NM_001362177.1:c.-1+1_1-1del", 'GRCh38', 'all').format_as_dict(test=True)
+        results = results['NM_001362177.1:c.-1+1_1-1del']['variant_exonic_positions']
+        print(results)
+        assert results == {
+            "NC_000009.11": {
+                "end_exon": "4i",
+                "start_exon": "4i"
+            },
+            "NC_000009.12": {
+                "end_exon": "4i",
+                "start_exon": "4i"
+            }
+        }
+
+    def test_10c(self):
+        results = self.vv.validate("NM_001354304.1:c.-96+5_-95-5A>G", 'GRCh38', 'all').format_as_dict(test=True)
+        results = results['NM_001354304.1:c.-96+6_-95-5del']['variant_exonic_positions']
+        print(results)
+        assert results == {
+            "NC_000012.11": {
+                "end_exon": "1i",
+                "start_exon": "1i"
+            },
+            "NC_000012.12": {
+                "end_exon": "1i",
+                "start_exon": "1i"
+            }
+        }
+
+    def test_11(self):
+        results = self.vv.validate("NM_058197.4:c.*74-1G>T", 'GRCh38', 'all').format_as_dict(test=True)
+        results = results['NM_058197.4:c.*74-1G>T']['variant_exonic_positions']
+        print(results)
+        assert results == {
+            "NC_000009.11": {
+                "end_exon": "1i",
+                "start_exon": "1i"
+            },
+            "NC_000009.12": {
+                "end_exon": "1i",
+                "start_exon": "1i"
+            }
+        }
+
+    def test_11a(self):
+        results = self.vv.validate("NM_058197.4:c.*73+12_*74-12del", 'GRCh38', 'all').format_as_dict(test=True)
+        results = results['NM_058197.4:c.*73+12_*74-12del']['variant_exonic_positions']
+        print(results)
+        assert results == {
+            "NC_000009.11": {
+                "end_exon": "1i",
+                "start_exon": "1i"
+            },
+            "NC_000009.12": {
+                "end_exon": "1i",
+                "start_exon": "1i"
+            }
+        }
+
+    def test_11b(self):
+        results = self.vv.validate("NM_058197.4:c.*73+12=", 'GRCh38', 'all').format_as_dict(test=True)
+        results = results['NM_058197.4:c.*73+12A=']['variant_exonic_positions']
+        print(results)
+        assert results == {
+            "NC_000009.11": {
+                "end_exon": "1i",
+                "start_exon": "1i"
+            },
+            "NC_000009.12": {
+                "end_exon": "1i",
+                "start_exon": "1i"
+            }
+        }
+
 
 if __name__ == "__main__":
     unittest.main()
