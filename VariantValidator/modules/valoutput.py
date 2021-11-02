@@ -38,7 +38,6 @@ class ValOutput(object):
                     else:
                         identification_key = '%s' % variant.hgvs_transcript_variant
 
-                # if identification_key not in validation_output.keys():
                 validation_output[identification_key] = variant.output_dict(test=test)
 
             # For warning only outputs

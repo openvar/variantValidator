@@ -16,6 +16,7 @@ from . import format_converters
 from . import use_checking
 from . import mappers
 from . import valoutput
+from . import exon_numbering
 from .liftover import liftover
 
 logger = logging.getLogger(__name__)
@@ -1128,6 +1129,14 @@ class Mixin(vvMixinConverters.Mixin):
                         if alt_genomic_loci:
                             variant.alt_genomic_loci = alt_genomic_loci
 
+                # Add exon numbering information see issue #
+                if variant.coding != "":
+                    try:
+                        exs = exon_numbering.finds_exon_number(variant, self)
+                        variant.exonic_positions = exs
+                    except KeyError:
+                        pass
+          
                 # Remove duplicate warnings
                 variant_warnings = []
                 accession = variant.hgvs_transcript_variant.split(':')[0]
@@ -1142,7 +1151,6 @@ class Mixin(vvMixinConverters.Mixin):
 
                 # Append to a list for return
                 batch_out.append(variant)
-
             output = valoutput.ValOutput(batch_out, self)
             return output
 
@@ -1155,106 +1163,137 @@ class Mixin(vvMixinConverters.Mixin):
             logger.critical(str(exc_type) + " " + str(exc_value))
             raise fn.VariantValidatorError('Validation error')
 
-    def gene2transcripts(self, query):
+    def gene2transcripts(self, query, validator=False, bypass_web_searches=False):
         """
         Generates a list of transcript (UTA supported) and transcript names from a gene symbol or RefSeq transcript ID
-        :param query: string gene symbol or RefSeq ID (e.g. NANOG or NM_024865.3)
+        :param query: string gene symbol or RefSeq ID (e.g. NANOG or NM_024865.3) or if used internally, variant object
+        :param validator: Validator object
+        :param bypass_web_searches: bool  Shortens the output by looping out code not needed for internal processing
         :return: dictionary of transcript information
         """
-        query = query.upper()
-        if re.search(r'\d+ORF\d+', query):
-            query = query.replace('ORF', 'orf')
-
-        # Quick check for LRG
-        elif 'LRG' in query:
-            lrg_id = query.split('T')[0]
-            lrg_to_hgnc = self.db.get_lrg_data_from_lrg_id(lrg_id)
-            if lrg_to_hgnc and lrg_to_hgnc[0] != 'none':
-                query = lrg_to_hgnc[2]
-
-        # Quick check for blank form
-        if query == '':
-            return {'error': 'Please enter HGNC gene name or transcript identifier (NM_, NR_, or ENST)'}
-
-        # Search for gene symbol on Transcript inputs
-        hgnc = query
-        if 'NM_' in hgnc or 'NR_' in hgnc:  # or re.match('ENST', hgnc):
-
-            # Remove version
-            if '.' in hgnc:
-                hgnc = hgnc.split('.')[0]
-
-            # Find latest version in UTA
-            found_res = False
-            for version in range(25):
-                refresh_hgnc = hgnc + '.' + str(version)
-                try:
-                    self.hdp.get_tx_identity_info(refresh_hgnc)
-                    tx_found = refresh_hgnc
-                    found_res = True
-                    break
-                except vvhgvs.exceptions.HGVSError as e:
-                    logger.debug("Except passed, %s", e)
-            if not found_res:
-                return {'error': 'No transcript definition for (tx_ac=' + hgnc + ')'}
-
-            # update record and correct symbol
-            try:
-                self.db.update_transcript_info_record(tx_found, self)
-            except fn.DatabaseConnectionError as e:
-                error = 'Currently unable to update gene_ids or transcript information records because ' \
-                        'VariantValidator %s' % str(e)
-                # my_variant.warnings.append(error)
-                logger.warning(error)
-
-            try:
-                tx_info = self.hdp.get_tx_identity_info(tx_found)
-            except vvhgvs.exceptions.HGVSError as e:
-                return {'error': str(e)}
-            hgnc = tx_info[6]
-            hgnc = self.db.get_hgnc_symbol(hgnc)
-
-        # First perform a search against the input gene symbol or the symbol inferred from UTA
-        symbol_identified = False
-        vvta_record = self.hdp.get_gene_info(hgnc)
-        # Check for a record
-        if vvta_record is not None:
-            current_sym = hgnc
-            gene_name = vvta_record[3]
-            hgnc_id = vvta_record[0]
-            previous_sym = vvta_record[5]
-            symbol_identified = True
-
-        # No record found, is it a previous symbol?
+        if bypass_web_searches is True:
+            pass
         else:
-            # Look up current name
-            vvta_record = self.hdp.get_gene_info_by_alias(hgnc)
+            query = query.upper()
+            if re.search(r'\d+ORF\d+', query):
+                query = query.replace('ORF', 'orf')
+
+            # Quick check for LRG
+            elif 'LRG' in query:
+                lrg_id = query.split('T')[0]
+                lrg_to_hgnc = self.db.get_lrg_data_from_lrg_id(lrg_id)
+                if lrg_to_hgnc and lrg_to_hgnc[0] != 'none':
+                    query = lrg_to_hgnc[2]
+
+            # Quick check for blank form
+            if query == '':
+                return {'error': 'Please enter HGNC gene name or transcript identifier (NM_, NR_, or ENST)'}
+
+        # Gather transcript information lists
+        if bypass_web_searches is True:
+            tx_for_gene = []
+            tx_info = self.hdp.get_tx_identity_info(query.hgvs_coding.ac)
+
+            # Add primary assembly queries
+            for builds in query.primary_assembly_loci.keys():
+                if "grc" in builds:
+                    tx_for_gene.append([query.gene_symbol,
+                                       tx_info[3],
+                                       0,
+                                       query.hgvs_coding.ac,
+                                       query.primary_assembly_loci[builds]['hgvs_genomic_description'].split(":")[0],
+                                       validator.alt_aln_method])
+
+            # Add refseqgene if available
+            if "NG_" in query.hgvs_refseqgene_variant:
+                tx_for_gene.append([query.gene_symbol,
+                                   tx_info[3],
+                                   0,
+                                   query.hgvs_coding.ac,
+                                   query.hgvs_refseqgene_variant.split(":")[0],
+                                   validator.alt_aln_method])
+                
+        else:
+            # Search for gene symbol on Transcript inputs
+            hgnc = query
+            if 'NM_' in hgnc or 'NR_' in hgnc:  # or re.match('ENST', hgnc):
+
+                # Remove version
+                if '.' in hgnc:
+                    hgnc = hgnc.split('.')[0]
+
+                # Find latest version in UTA
+                found_res = False
+                for version in range(25):
+                    refresh_hgnc = hgnc + '.' + str(version)
+                    try:
+                        self.hdp.get_tx_identity_info(refresh_hgnc)
+                        tx_found = refresh_hgnc
+                        found_res = True
+                        break
+                    except vvhgvs.exceptions.HGVSError as e:
+                        logger.debug("Except passed, %s", e)
+                if not found_res:
+                    return {'error': 'No transcript definition for (tx_ac=' + hgnc + ')'}
+
+                # update record and correct symbol
+                try:
+                    self.db.update_transcript_info_record(tx_found, self)
+                except fn.DatabaseConnectionError as e:
+                    error = 'Currently unable to update gene_ids or transcript information records because ' \
+                            'VariantValidator %s' % str(e)
+                    # my_variant.warnings.append(error)
+                    logger.warning(error)
+
+                try:
+                    tx_info = self.hdp.get_tx_identity_info(tx_found)
+                except vvhgvs.exceptions.HGVSError as e:
+                    return {'error': str(e)}
+                hgnc = tx_info[6]
+                hgnc = self.db.get_hgnc_symbol(hgnc)
+
+                # First perform a search against the input gene symbol or the symbol inferred from UTA
+            symbol_identified = False
+            vvta_record = self.hdp.get_gene_info(hgnc)
+            # Check for a record
             if vvta_record is not None:
-                if len(vvta_record) == 1:
-                    current_sym = vvta_record[0][1]
-                    gene_name = vvta_record[0][3]
-                    hgnc_id = vvta_record[0][0]
-                    previous_sym = hgnc
-                    symbol_identified = True
-                if len(vvta_record) > 1:
-                    return {'error': '%s is a previous symbol for %s genes. '
-                            'Refer to https://www.genenames.org/' % (current_sym, str(len(vvta_record)))}
+                current_sym = hgnc
+                gene_name = vvta_record[3]
+                hgnc_id = vvta_record[0]
+                previous_sym = vvta_record[5]
+                symbol_identified = True
 
-        if symbol_identified is False:
-            return {'error': 'Unable to recognise gene symbol %s' % hgnc}
+            # No record found, is it a previous symbol?
+            else:
+                # Look up current name
+                vvta_record = self.hdp.get_gene_info_by_alias(hgnc)
+                if vvta_record is not None:
+                    if len(vvta_record) == 1:
+                        current_sym = vvta_record[0][1]
+                        gene_name = vvta_record[0][3]
+                        hgnc_id = vvta_record[0][0]
+                        previous_sym = hgnc
+                        symbol_identified = True
+                    if len(vvta_record) > 1:
+                        return {'error': '%s is a previous symbol for %s genes. '
+                                         'Refer to https://www.genenames.org/' % (current_sym, str(len(vvta_record)))}
 
-        # Get transcripts
-        tx_for_gene = self.hdp.get_tx_for_gene(current_sym)
-        if len(tx_for_gene) == 0:
-            tx_for_gene = self.hdp.get_tx_for_gene(previous_sym)
-        if len(tx_for_gene) == 0:
-            return {'error': 'Unable to retrieve data from the VVTA, please contact admin'}
+            if symbol_identified is False:
+                return {'error': 'Unable to recognise gene symbol %s' % hgnc}
+
+            # Get transcripts
+            tx_for_gene = self.hdp.get_tx_for_gene(current_sym)
+            if len(tx_for_gene) == 0:
+                tx_for_gene = self.hdp.get_tx_for_gene(previous_sym)
+            if len(tx_for_gene) == 0:
+                return {'error': 'Unable to retrieve data from the VVTA, please contact admin'}
 
         # Loop through each transcript and get the relevant transcript description
         genes_and_tx = []
         recovered = []
         for line in tx_for_gene:
             if (line[3].startswith('NM_') or line[3].startswith('NR_')) and '..' not in line[3]:
+
                 # Transcript ID
                 tx = line[3]
 
@@ -1262,7 +1301,10 @@ class Mixin(vvMixinConverters.Mixin):
                 prot_id = self.hdp.get_pro_ac_for_tx_ac(tx)
 
                 # Get additional tx_ information
-                tx_exons = self.hdp.get_tx_exons(tx, line[4], line[5])
+                try:
+                    tx_exons = self.hdp.get_tx_exons(tx, line[4], line[5])
+                except vvhgvs.exceptions.HGVSDataNotAvailableError:
+                    continue
                 tx_orientation = tx_exons[0]['alt_strand']
 
                 # Fetch the sequence to get the length
@@ -1276,9 +1318,15 @@ class Mixin(vvMixinConverters.Mixin):
                 # get total exons
                 total_exons = len(tx_exons)
                 # Set exon counter for current exon
-                current_exon_number = 0
+                if tx_orientation == 1:
+                    current_exon_number = 0
+                else:
+                    current_exon_number = total_exons + 1
                 for tx_pos in tx_exons:
-                    current_exon_number = current_exon_number + 1
+                    if tx_orientation == 1:
+                        current_exon_number = current_exon_number + 1
+                    else:
+                        current_exon_number = current_exon_number - 1
                     # Collect the exon_set information
                     """
                     tx_exons have the following attributes::
@@ -1305,7 +1353,6 @@ class Mixin(vvMixinConverters.Mixin):
                                     "genomic_end": tx_pos['alt_end_i'],
                                     "cigar": tx_pos['cigar'],
                                     "exon_number": current_exon_number
-                                    #"total_exons": total_exons
                                     }
                     exon_set.append(current_exon)
                     start_pos = tx_pos['alt_start_i']
@@ -1416,15 +1463,19 @@ class Mixin(vvMixinConverters.Mixin):
                                                                                 'orientation': 1,
                                                                                 'exon_structure': exon_set,
                                                                                 "total_exons": total_exons}
-        # Return data table
-        g2d_data = {'current_symbol': current_sym,
-                    'previous_symbol': previous_sym,
-                    'current_name': gene_name,
-                    'hgnc': hgnc_id,
-                    # 'previous_name': previous_name,
-                    'transcripts': genes_and_tx
-                    }
 
+        # Return data dict
+        if bypass_web_searches is True:
+            g2d_data = {'transcripts': genes_and_tx}
+        else:
+            g2d_data = {'current_symbol': current_sym,
+                        'previous_symbol': previous_sym,
+                        'current_name': gene_name,
+                        # 'previous_name': previous_name,
+                        'hgnc': hgnc_id,
+                        'transcripts': genes_and_tx
+                        }
+        
         return g2d_data
 
     def hgvs2ref(self, query):
