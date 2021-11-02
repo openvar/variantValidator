@@ -5673,7 +5673,7 @@ class TestVariantsAuto(TestCase):
         assert results['NM_032815.3:c.555_556inv']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_032815.3:c.555_556inv']['hgvs_refseqgene_variant'] == ''
         assert results['NM_032815.3:c.555_556inv']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_116204.3:p.(Glu185_Glu186delinsAspTer)', 'slr': 'NP_116204.3:p.(E185_E186delinsD*)'}
+            'tlr': 'NP_116204.3:p.(Glu185delinsAspTer)', 'slr': 'NP_116204.3:p.(E185delinsD*)'}
         assert results['NM_032815.3:c.555_556inv']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_032815.3:c.555_556inv']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_032815.3:c.555_556inv']['alt_genomic_loci'], [])
@@ -5745,8 +5745,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_000038.5:c.3927_3928inv']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000038.5:c.3927_3928inv']['hgvs_refseqgene_variant'] == ''
         assert results['NM_000038.5:c.3927_3928inv']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_000029.2:p.(Glu1309_Lys1310delinsAspTer)',
-            'slr': 'NP_000029.2:p.(E1309_K1310delinsD*)'}
+            'tlr': 'NP_000029.2:p.(Glu1309delinsAspTer)',
+            'slr': 'NP_000029.2:p.(E1309delinsD*)'}
         assert results['NM_000038.5:c.3927_3928inv']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_000038.5:c.3927_3928inv']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_000038.5:c.3927_3928inv']['alt_genomic_loci'], [])
@@ -5783,7 +5783,7 @@ class TestVariantsAuto(TestCase):
         assert results['NM_001034853.1:c.2847_2848inv']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001034853.1:c.2847_2848inv']['hgvs_refseqgene_variant'] == ''
         assert results['NM_001034853.1:c.2847_2848inv']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_001030025.1:p.(Glu949_Glu950delinsAspTer)', 'slr': 'NP_001030025.1:p.(E949_E950delinsD*)'}
+            'tlr': 'NP_001030025.1:p.(Glu949delinsAspTer)', 'slr': 'NP_001030025.1:p.(E949delinsD*)'}
         assert results['NM_001034853.1:c.2847_2848inv']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001034853.1:c.2847_2848inv']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_001034853.1:c.2847_2848inv']['alt_genomic_loci'], [])
@@ -30449,6 +30449,15 @@ class TestVariantsAuto(TestCase):
                results['NM_017730.2:c.138_139delinsTT']['hgvs_predicted_protein_consequence']['tlr']
         assert 'NP_060200.2:p.(Q46delinsH*)' in \
                results['NM_017730.2:c.138_139delinsTT']['hgvs_predicted_protein_consequence']['slr']
+
+    def test_issue_281(self):
+        variant = 'NM_003136.3:c.-33_78dup'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert 'NP_003127.1:p.(Val27delinsSerSerSerTer)' in \
+               results['NM_003136.3:c.-33_78dup']['hgvs_predicted_protein_consequence']['tlr']
+        assert 'NP_003127.1:p.(V27delinsSSS*)' in \
+               results['NM_003136.3:c.-33_78dup']['hgvs_predicted_protein_consequence']['slr']
 
 # <LICENSE>
 # Copyright (C) 2016-2021 VariantValidator Contributors
