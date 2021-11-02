@@ -217,6 +217,7 @@ class Mixin:
         }
 
     def myc_to_p(self, hgvs_transcript, evm, re_to_p, hn):
+
         # Create dictionary to store the information
         hgvs_transcript_to_hgvs_protein = {'error': '', 'hgvs_protein': '', 'ref_residues': ''}
 
@@ -235,8 +236,8 @@ class Mixin:
         if hgvs_transcript.type == 'c':
             # Handle non inversions with simple c_to_p mapping
 
-            if (hgvs_transcript.posedit.edit.type != 'inv') and (hgvs_transcript.posedit.edit.type != 'delins') and (
-                    re_to_p is False):
+            if (hgvs_transcript.posedit.edit.type != 'inv') and (hgvs_transcript.posedit.edit.type != 'dup') and \
+                    (hgvs_transcript.posedit.edit.type != 'delins')and (re_to_p is False):
                 hgvs_protein = None
                 # Does the edit affect the start codon?
                 if ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and hgvs_transcript.posedit.pos.start.offset == 0)
@@ -299,10 +300,12 @@ class Mixin:
 
                 if hgvs_transcript.posedit.edit.type == 'inv':
                     inv_seq = my_seq.reverse_complement()
-                else:
+                elif 'del' in hgvs_transcript.posedit.edit.type:
                     inv_seq = hgvs_transcript.posedit.edit.alt
                     if inv_seq is None:
                         inv_seq = ''
+                elif 'dup' in hgvs_transcript.posedit.edit.type:
+                    inv_seq = del_seq + del_seq
 
                 shifts = ''
                 # Look for p. delins or del
@@ -310,7 +313,7 @@ class Mixin:
                 if hgvs_transcript.posedit.edit.type != 'inv':
                     try:
                         shifts = evm.c_to_p(hgvs_transcript)
-                        if 'del' in shifts.posedit.edit.type:
+                        if 'del' in shifts.posedit.edit.type or 'dup' in shifts.posedit.edit.type:
                             not_delins = False
                     except Exception:
                         not_delins = False
@@ -319,6 +322,7 @@ class Mixin:
 
                 # Use inv delins code?
                 if not not_delins:
+
                     # Collect the associated protein
                     associated_protein_accession = self.hdp.get_pro_ac_for_tx_ac(hgvs_transcript.ac)
 
@@ -326,11 +330,20 @@ class Mixin:
                     if re.search(r'\d+-', str(hgvs_transcript.posedit.pos)) \
                             or re.search(r'\d+\+', str(hgvs_transcript.posedit.pos)) \
                             or re.search(r'\*', str(hgvs_transcript.posedit.pos)) \
-                            or re.search(r'[cn].-', str(hgvs_transcript)):
+                            or (re.search(r'[cn].-', str(hgvs_transcript)
+                                          ) and "dup" not in hgvs_transcript.posedit.edit.type) or (
+                            ("dup" in hgvs_transcript.posedit.edit.type and
+                             "-" in str(hgvs_transcript.posedit.pos.end))
+                            or
+                            ("dup" in hgvs_transcript.posedit.edit.type and
+                             "*" in str(hgvs_transcript.posedit.pos.start))
+                            ):
+
                         if ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and
                             hgvs_transcript.posedit.pos.start.offset == 0) or (1 <=
                             hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset == 0))\
                                 and '*' not in str(hgvs_transcript.posedit.pos):
+
                             residue_one = self.sf.fetch_seq(associated_protein_accession, start_i=1 - 1, end_i=1)
                             threed_residue_one = utils.one_to_three(residue_one)
                             r_one_report = '(%s1?)' % threed_residue_one  # was (MET1?)
@@ -398,7 +411,8 @@ class Mixin:
                                 return hgvs_transcript_to_hgvs_protein
                         else:
                             # Gather the required information regarding variant interval and sequences
-                            if hgvs_transcript.posedit.edit.type != 'delins':
+                            if hgvs_transcript.posedit.edit.type != 'delins' and \
+                                    hgvs_transcript.posedit.edit.type != 'dup':
                                 pro_inv_info = utils.pro_inv_info(prot_ref_seq, prot_var_seq)
                             else:
                                 # Test whether the length of the deletion, plus the insertion can be devided by 3
@@ -411,14 +425,21 @@ class Mixin:
                                 # Calculate the variant cds length
                                 minus = False
                                 plus = False
-                                if len(hgvs_naughty.posedit.edit.ref) > len(hgvs_naughty.posedit.edit.alt):
-                                    var_cds_len = cds_len - (len(hgvs_naughty.posedit.edit.ref)
-                                                             - len(hgvs_naughty.posedit.edit.alt))
-                                    minus = True
-                                elif len(hgvs_naughty.posedit.edit.ref) < len(hgvs_naughty.posedit.edit.alt):
-                                    var_cds_len = cds_len + (len(hgvs_naughty.posedit.edit.alt)
-                                                             - len(hgvs_naughty.posedit.edit.ref))
-                                    plus = True
+
+                                try:
+                                    if len(hgvs_naughty.posedit.edit.ref) > len(hgvs_naughty.posedit.edit.alt):
+                                        var_cds_len = cds_len - (len(hgvs_naughty.posedit.edit.ref)
+                                                                 - len(hgvs_naughty.posedit.edit.alt))
+                                        minus = True
+                                    elif len(hgvs_naughty.posedit.edit.ref) < len(hgvs_naughty.posedit.edit.alt):
+                                        var_cds_len = cds_len + (len(hgvs_naughty.posedit.edit.alt)
+                                                                 - len(hgvs_naughty.posedit.edit.ref))
+                                        plus = True
+                                except AttributeError as e:
+                                    if "'Dup' object has no attribute 'alt'" in str(e):
+                                        var_cds_len = cds_len + (len(var_seq)
+                                                                 - len(ref_seq))
+                                        plus = True
 
                                 # Do we have an in-frame variant i.e. divisible by 3?
                                 in_frame = False
@@ -481,7 +502,9 @@ class Mixin:
                             else:
                                 # Early termination i.e. stop gained
                                 if pro_inv_info['terminate'] == 'true' and \
-                                        hgvs_transcript.posedit.edit.type == 'delins':
+                                        (hgvs_transcript.posedit.edit.type == 'delins' or
+                                         hgvs_transcript.posedit.edit.type == 'dup' or
+                                         hgvs_transcript.posedit.edit.type == 'inv'):
 
                                     # This deals with early terminating delins in-frame prventing the format
                                     # NP_733765.1:p.(Gln259_Ser1042delinsProAla*) in issue #214 also #282
@@ -489,9 +512,16 @@ class Mixin:
                                             int(pro_inv_info['edit_start'] - 1) == int(pro_inv_info['ter_pos']):
                                         end = 'Ter' + str(pro_inv_info['ter_pos'])
                                         pro_inv_info['prot_ins_seq'].replace('*', end)
-                                        pro_inv_info['prot_ins_seq'] = pro_inv_info['prot_ins_seq'] #  + '*'
+                                        pro_inv_info['prot_ins_seq'] = pro_inv_info['prot_ins_seq']
                                         pro_inv_info['prot_del_seq'] = pro_inv_info['prot_del_seq'][0]
                                         pro_inv_info['edit_end'] = pro_inv_info['edit_start']
+                                    elif hgvs_transcript.posedit.edit.type == 'dup' and pro_inv_info["prot_del_seq"] \
+                                            == "" and (int(pro_inv_info["edit_end"]) < int(pro_inv_info["edit_start"])):
+                                        pro_inv_info['prot_del_seq'] = pro_inv_info['prot_ins_seq']
+                                        pro_inv_info['edit_start'] = pro_inv_info['edit_end'] - \
+                                                                     len(pro_inv_info['prot_del_seq']) + 1
+                                        pro_inv_info['prot_ins_seq'] = pro_inv_info['prot_ins_seq'] + \
+                                                                       pro_inv_info['prot_ins_seq']
 
                                 # Complete variant description
                                 # Recode the single letter del and ins sequences into three letter amino acid codes
@@ -505,7 +535,12 @@ class Mixin:
 
                                 # Handle a range of amino acids
                                 if pro_inv_info['edit_start'] != pro_inv_info['edit_end']:
-                                    if len(ins_thr) > 0:
+                                    # Handle duplications
+                                    if pro_inv_info["prot_ins_seq"] == (pro_inv_info["prot_del_seq"]
+                                                                          + pro_inv_info["prot_del_seq"]):
+                                        posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + '_' + to_aa + \
+                                                  str(pro_inv_info['edit_end']) + 'dup)'
+                                    elif len(ins_thr) > 0:
                                         if 'Ter' in del_thr and ins_thr[-3:] != 'Ter':
                                             posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + '_' + to_aa + \
                                                       str(pro_inv_info['edit_end']) + 'delins' + ins_thr + '?)'
@@ -520,8 +555,13 @@ class Mixin:
                                             posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + '_' + to_aa + \
                                                       str(pro_inv_info['edit_end']) + 'del)'
                                 else:
+                                    # Handle duplications
+                                    if pro_inv_info["prot_ins_seq"] == (pro_inv_info["prot_del_seq"]
+                                                                          + pro_inv_info["prot_del_seq"]):
+                                        posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + 'dup)'
+
                                     # Handle extended proteins i.e. stop_lost
-                                    if del_thr == 'Ter' and (len(ins_thr) > len(del_thr)):
+                                    elif del_thr == 'Ter' and (len(ins_thr) > len(del_thr)):
                                         # Nucleotide variant range aligns to the Termination codon
                                         if ins_thr[-3:] == 'Ter':
                                             posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + str(
