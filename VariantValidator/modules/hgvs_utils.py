@@ -2164,6 +2164,16 @@ def hgvs_ref_alt(hgvs_variant, sf):
     ref_alt_dict = {'ref': ref, 'alt': alt}
     return ref_alt_dict
 
+#
+# def hgvs_to_delins(hgvs_variant_object):
+#     """
+#     Refer to https://github.com/openvar/vv_hgvs/blob/master/examples/creating-a-variant.ipynb
+#     :param hgvs_variant_object:
+#     :return: hgvs_variant_object in raw type = "delins" state
+#     """
+#
+#
+
 # <LICENSE>
 # Copyright (C) 2016-2021 VariantValidator Contributors
 #

@@ -385,10 +385,6 @@ def pro_delins_info(prot_ref_seq, prot_var_seq, in_frame=False):
     else:
         # Deal with terminations (Cannot be used as a marker for the delins pathway because in frame deletions have Ter
         if '*' in prot_var_seq:
-
-
-            print("to hwrw")
-
             # Set the termination reporter to true
             info['terminate'] = 'true'
 
@@ -399,32 +395,20 @@ def pro_delins_info(prot_ref_seq, prot_var_seq, in_frame=False):
                 # Look for early termination rather than just deletions. These params may need to be altered.
                 if in_frame is not False and in_frame == (len(prot_var_seq) - len(prot_ref_seq)):
                     info['ter_pos'] = len(prot_ref_seq)
-                    print("bing")
 
                 else:
                     # This code deals with the early termination out of frame variants
                     if prot_var_seq[-1] == "*":
                         info['ter_pos'] = len(prot_var_seq)
-                        print("bong")
                     # Otherwise, if no termination, we carry on as normal
                     else:
                         info['ter_pos'] = len(prot_ref_seq)
-                        print("boo")
             else:
                 info['ter_pos'] = len(prot_var_seq)
-                print("bingly")
 
             # cut the ref sequence to == size
             prot_ref_seq = prot_ref_seq[0:info['ter_pos']]
             prot_var_seq = prot_var_seq[0:info['ter_pos']]
-
-
-            print(prot_ref_seq)
-            print('\n')
-            print(prot_var_seq)
-
-
-
 
             # Set the counter
             aa_counter = 0
