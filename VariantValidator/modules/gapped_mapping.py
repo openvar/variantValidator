@@ -260,7 +260,7 @@ class GapMapper(object):
                                           alt_aln_method=self.validator.alt_aln_method)
             self.orientation = int(ori[0]['alt_strand'])
 
-            # Set intromnic params
+            # Set intronic params
             intronic_variant = 'false'
             hgvs_seek_var = self.get_hgvs_seek_var(self.variant.hgvs_genomic, saved_hgvs_coding)
 
@@ -311,7 +311,7 @@ class GapMapper(object):
                         intronic_variant = 'true'
 
             # If exonic, process
-            if intronic_variant != 'true':
+            if intronic_variant != 'true' and intronic_variant != 'hard_fail':
                 # Attempt to find gaps in reference sequence by catching disparity in genome length and
                 # overlapping transcript lengths
                 self.disparity_deletion_in = ['false', 'false']
@@ -553,6 +553,9 @@ class GapMapper(object):
                                 hgvs_refreshed_variant = saved_hgvs_coding
                         except TypeError:
                             # e.g. chr1:156561557G>GGGGTC (investigate at a later date)
+                            hgvs_refreshed_variant = saved_hgvs_coding
+                        except vvhgvs.exceptions.HGVSUnsupportedOperationError:
+                            # e.g. NG_005895.1:g.3684_44407del
                             hgvs_refreshed_variant = saved_hgvs_coding
 
                 # Edit the output
