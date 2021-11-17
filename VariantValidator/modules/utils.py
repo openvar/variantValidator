@@ -1,5 +1,4 @@
 from Bio.Seq import Seq
-from Bio.Alphabet import IUPAC
 import requests
 import functools
 import logging
@@ -473,7 +472,7 @@ def translate(ed_seq, cds_start):
     if (met == 'ATG') or (met == 'atg') or (met == 'TTG') or (met == 'ttg') or (met == 'CTG') or (met == 'ctg'):
         # Remove the 5 prime UTR
         sequence = ed_seq[cds_start:]
-        coding_dna = Seq(str(sequence), IUPAC.unambiguous_dna)
+        coding_dna = Seq(str(sequence))
         # Translate
         trans = coding_dna.translate()
         aain = list(trans)
