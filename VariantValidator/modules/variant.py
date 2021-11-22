@@ -127,7 +127,7 @@ class Variant(object):
         # Set regular expressions for if statements
         pat_gene = re.compile(r'\(.+?\)')  # Pattern looks for (....)
 
-        if pat_gene.search(self.quibble):
+        if pat_gene.search(self.quibble.split(":")[0]):
             self.quibble = pat_gene.sub('', self.quibble)
 
         try:

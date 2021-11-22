@@ -790,7 +790,7 @@ def proteins(variant, validator):
         hgvs_object = None
         # Try to validate the variant
         try:
-            hgvs_object = validator.hp.parse_hgvs_variant(variant.hgvs_formatted)
+            hgvs_object = validator.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
         except vvhgvs.exceptions.HGVSError as e:
             error = str(e)
         try:
