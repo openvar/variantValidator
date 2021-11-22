@@ -30459,7 +30459,6 @@ class TestVariantsAuto(TestCase):
         assert 'NP_003127.1:p.(V27delinsSSS*)' in \
                results['NM_003136.3:c.-33_78dup']['hgvs_predicted_protein_consequence']['slr']
 
-
     def test_issue_add_protein_variant_tlc_a(self):
         variant = 'NP_000079.2:p.(Gly197Cys)'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
@@ -30471,6 +30470,24 @@ class TestVariantsAuto(TestCase):
 
     def test_issue_add_protein_variant_slc_a(self):
         variant = 'NP_000079.2:p.(G197C)'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert 'NP_000079.2:p.(Gly197Cys)' in \
+               results['validation_warning_1']['hgvs_predicted_protein_consequence']['tlr']
+        assert 'NP_000079.2:p.(G197C)' in \
+               results['validation_warning_1']['hgvs_predicted_protein_consequence']['slr']
+
+    def test_issue_add_protein_variant_tlc_b(self):
+        variant = 'LRG_1p1:p.(Gly197Cys)'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert 'NP_000079.2:p.(Gly197Cys)' in \
+               results['validation_warning_1']['hgvs_predicted_protein_consequence']['tlr']
+        assert 'NP_000079.2:p.(G197C)' in \
+               results['validation_warning_1']['hgvs_predicted_protein_consequence']['slr']
+
+    def test_issue_add_protein_variant_slc_b(self):
+        variant = 'LRG_1p1:p.(G197C)'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
         assert 'NP_000079.2:p.(Gly197Cys)' in \
