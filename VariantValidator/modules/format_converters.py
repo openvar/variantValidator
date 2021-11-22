@@ -654,7 +654,8 @@ def allele_parser(variant, validation, validator):
                         caution = lrg_reference + ':' + variation + ' automapped to ' + \
                                   refseqgene_reference + ':' + variation
                     else:
-                        caution = caution + ': ' + lrg_reference + ':' + variation + ' automapped to ' + \
+                        caution = caution + ': ' + lrg_reference + ':' + variation + ' automapped to equivalent RefSeq ' \
+                                                                                     'record' + \
                                   refseqgene_reference + ':' + variation
                     variant.warnings.append(caution)
                     logger.info(caution)
@@ -666,10 +667,11 @@ def allele_parser(variant, validation, validator):
                 if refseqtranscript_reference != 'none':
                     variant.quibble = refseqtranscript_reference + ':' + variation
                     if caution == '':
-                        caution = lrg_reference + ':' + variation + ' automapped to ' + \
+                        caution = lrg_reference + ':' + variation + ' automapped to equivalent RefSeq record' + \
                                   refseqtranscript_reference + ':' + variation
                     else:
-                        caution = caution + ': ' + lrg_reference + ':' + variation + ' automapped to ' + \
+                        caution = caution + ': ' + lrg_reference + ':' + variation + ' automapped to equivalent RefSeq ' \
+                                                                                     'record' + \
                                   refseqtranscript_reference + ':' + variation
                     variant.warnings.append(caution)
                     logger.info(caution)
@@ -727,7 +729,8 @@ def lrg_to_refseq(variant, validator):
             if refseqtrans_reference != 'none':
                 variant.hgvs_formatted.ac = refseqtrans_reference
                 variant.set_quibble(str(variant.hgvs_formatted))
-                caution += lrg_reference + ':' + variation + ' automapped to ' + refseqtrans_reference + ':' + variation
+                caution += lrg_reference + ':' + variation + ' automapped to equivalent RefSeq record' \
+                                                             '' + refseqtrans_reference + ':' + variation
                 variant.warnings.append(caution)
                 logger.info(caution)
         elif re.match(r'^LRG_\d+:', variant.quibble):
@@ -736,7 +739,8 @@ def lrg_to_refseq(variant, validator):
             if refseqgene_reference != 'none':
                 variant.hgvs_formatted.ac = refseqgene_reference
                 variant.set_quibble(str(variant.hgvs_formatted))
-                caution += lrg_reference + ':' + variation + ' automapped to ' + refseqgene_reference + ':' + variation
+                caution += lrg_reference + ':' + variation + ' automapped to equivalent RefSeq record' \
+                                                             '' + refseqgene_reference + ':' + variation
                 variant.warnings.append(caution)
                 logger.info(caution)
 
@@ -786,7 +790,7 @@ def proteins(variant, validator):
         hgvs_object = None
         # Try to validate the variant
         try:
-            hgvs_object = validator.hp.parse_hgvs_variant(variant.hgvs_formatted)
+            hgvs_object = validator.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
         except vvhgvs.exceptions.HGVSError as e:
             error = str(e)
         try:
