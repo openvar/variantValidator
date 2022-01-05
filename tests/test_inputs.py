@@ -30495,12 +30495,15 @@ class TestVariantsAuto(TestCase):
         assert 'NP_000079.2:p.(G197C)' in \
                results['validation_warning_1']['hgvs_predicted_protein_consequence']['slr']
 
-
-
+    def test_issue_326(self):
+        variant = 'NC_000017.11:g.7669608_7669609insA'
+        results = self.vv.validate(variant, 'GRCh38', 'NM_000546.6').format_as_dict(test=True)
+        print(results)
+        assert 'NM_000546.6:c.1182_*1insT' in results.keys()
 
 
 # <LICENSE>
-# Copyright (C) 2016-2021 VariantValidator Contributors
+# Copyright (C) 2016-2022 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

@@ -184,7 +184,6 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
 
 def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version):
     """This seems to use the quibble and not the HGVS formatted variant format."""
-
     # Flag for validation
     valid = False
     caution = ''
@@ -766,7 +765,7 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant):
     return multi_g
 
 # <LICENSE>
-# Copyright (C) 2016-2021 VariantValidator Contributors
+# Copyright (C) 2016-2022 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

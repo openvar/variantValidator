@@ -260,20 +260,19 @@ def get_info_from_variation_services(service_identifier, service_type, service_n
 if __name__ == '__main__':
     get_external_resource_links(sys.argv[1])
 
-# use for testing
-# get_external_resource_links('')
-
-# used for testing
-# Valid:
-# 'NM_000088.3:c.589G>T'
-# 'NC_000023.11:g.32389644G>A'
-# 'NM_004006.2:c.4375C>T'
-# No RSID:
-# 'NC_000006.11:g.102503229C>T'
-# Invalid:
-# 'NM_000088.3:c.589G>TX' added X to the end
-# 'NC_000001.10:g.12345T>A'
-# bad data error:
-# 'NM_007297.4'
-# empty string:
-# ''
+# <LICENSE>
+# Copyright (C) 2016-2022 VariantValidator Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# </LICENSE>
