@@ -77,16 +77,19 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
 
     #  Tripple check this assumption by querying the gene position database
     if len(rel_var) == 0:
-        vcf_dict = hgvs_utils.hgvs2vcf(variant.hgvs_genomic, variant.primary_assembly, variant.reverse_normalizer,
+        try:
+            vcf_dict = hgvs_utils.hgvs2vcf(variant.hgvs_genomic, variant.primary_assembly, variant.reverse_normalizer,
                                        validator.sf)
 
-        if len(vcf_dict['ref']) < 100000:
-            not_di = str(variant.hgvs_genomic.ac) + ':g.' + str(vcf_dict['pos']) + '_' + str(
-                int(vcf_dict['pos']) + (len(vcf_dict['ref']) - 1)) + 'del' + vcf_dict['ref'] + 'ins' + \
-                vcf_dict['alt']
-            hgvs_not_di = validator.hp.parse_hgvs_variant(not_di)
-            rel_var = validator.relevant_transcripts(hgvs_not_di, variant.evm, validator.alt_aln_method,
-                                                     variant.reverse_normalizer)
+            if len(vcf_dict['ref']) < 100000:
+                not_di = str(variant.hgvs_genomic.ac) + ':g.' + str(vcf_dict['pos']) + '_' + str(
+                    int(vcf_dict['pos']) + (len(vcf_dict['ref']) - 1)) + 'del' + vcf_dict['ref'] + 'ins' + \
+                    vcf_dict['alt']
+                hgvs_not_di = validator.hp.parse_hgvs_variant(not_di)
+                rel_var = validator.relevant_transcripts(hgvs_not_di, variant.evm, validator.alt_aln_method,
+                                                         variant.reverse_normalizer)
+        except vvhgvs.exceptions.HGVSDataNotAvailableError:
+            pass
 
     # list return statements
     """
@@ -311,12 +314,14 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         # Normalize the variant
         try:
             h_variant = variant.hn.normalize(obj)
-        except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
+        except vvhgvs.exceptions.HGVSUnsupportedOperationError:
             if 'Unsupported normalization of variants spanning the exon-intron boundary' in error:
                 formatted_variant = formatted_variant
                 caution = 'This coding sequence variant description spans at least one intron'
                 variant.warnings.extend([caution])
                 logger.info(caution)
+        except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
+            logger.info(str(e))
         else:
             formatted_variant = str(h_variant)
 

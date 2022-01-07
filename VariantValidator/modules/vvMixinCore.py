@@ -18,6 +18,7 @@ from . import mappers
 from . import valoutput
 from . import exon_numbering
 from .liftover import liftover
+from . import complex_descriptions
 
 logger = logging.getLogger(__name__)
 
@@ -407,6 +408,14 @@ class Mixin(vvMixinConverters.Mixin):
                     # ensures that end pos is not > start pos wrt 3' UTRs.
                     # Also identifies some variants which span into the downstream sequence
                     # i.e. out of bounds
+
+                    try:
+                        complex_descriptions.fuzzy_ends(my_variant)
+                    except complex_descriptions.FuzzyPositionError as e:
+                        my_variant.warnings.append(str(e))
+                        logger.warning(str(e))
+                        continue
+
                     if '*' in str(my_variant.hgvs_formatted.posedit):
                         input_parses_copy = copy.deepcopy(my_variant.hgvs_formatted)
                         input_parses_copy.type = "c"
@@ -422,6 +431,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 my_variant.warnings.append(error)
                                 logger.warning(error)
                                 continue
+
                     elif my_variant.hgvs_formatted.posedit.pos.end.base < my_variant.hgvs_formatted.posedit.pos.start.base:
                         error = 'Interval end position ' + str(my_variant.hgvs_formatted.posedit.pos.end.base) + \
                                 ' < interval start position ' + str(my_variant.hgvs_formatted.posedit.pos.start.base)

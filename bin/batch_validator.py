@@ -48,8 +48,13 @@ with open(infile) as fp:
                                 copy_line.append('None')
                             elif element is None:
                                 copy_line.append('None')
+                            elif element is False:
+                                copy_line.append('False')
+                            elif element is True:
+                                copy_line.append('True')
                             else:
                                 copy_line.append(element)
+
                         ln_cat = '\t'.join(copy_line)
                         outfile.write(ln_cat + '\n')
                     line_counter = line_counter + 1
@@ -68,6 +73,10 @@ with open(infile) as fp:
                                 copy_line.append('None')
                             elif element is None:
                                 copy_line.append('None')
+                            elif element is False:
+                                copy_line.append('False')
+                            elif element is True:
+                                copy_line.append('True')
                             else:
                                 copy_line.append(element)
                         ln_cat = '\t'.join(copy_line)
