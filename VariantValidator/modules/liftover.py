@@ -38,6 +38,9 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
     :param reverse_normalizer:
     :param evm:
     :param validator: Validator obj
+    :param specify_tx: Specify a specific transcript = False or str(transcript_ID)
+    :param liftover_level: False or 'primary'
+    :param g_to_g: True or False
     :return:
     """
 
@@ -131,7 +134,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
     # Get a list of overlapping RefSeq transcripts
     # Note, due to 0 base positions in UTA (I think) occasionally tx will
     rts_list = validator.hdp.get_tx_for_region(hgvs_genomic.ac, 'splign', hgvs_genomic.posedit.pos.start.base - 1,
-                                               hgvs_genomic.posedit.pos.end.base) #- 1)
+                                               hgvs_genomic.posedit.pos.end.base)  # - 1)
     rts_dict = {}
     tx_list = False
     if g_to_g is True:
@@ -160,6 +163,8 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
             for op in options:
                 sff = None
                 sft = None
+                if liftover_level is None:
+                    continue
                 if op[1].startswith('NC_'):
                     if build_to.startswith('GRC'):
                         sft = seq_data.to_chr_num_refseq(op[1], build_to)

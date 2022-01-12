@@ -30501,6 +30501,29 @@ class TestVariantsAuto(TestCase):
         print(results)
         assert 'NM_000546.6:c.1182_*1insT' in results.keys()
 
+    def test_issue_330a(self):
+        variant = 'NM_001353.6:c.2del'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level=None).format_as_dict(test=True)
+        print(results)
+        assert 'grch37' in results['NM_001353.6:c.2del']['primary_assembly_loci'].keys()
+        assert 'grch38' not in results['NM_001353.6:c.2del']['primary_assembly_loci'].keys()
+
+    def test_issue_330b(self):
+        variant = 'NM_001040114.1:c.3055_3056inv'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'grch37' in results['NM_001040114.1:c.3055_3056inv']['primary_assembly_loci'].keys()
+        assert 'grch38' in results['NM_001040114.1:c.3055_3056inv']['primary_assembly_loci'].keys()
+        assert len(results['NM_001040114.1:c.3055_3056inv']['alt_genomic_loci']) == 0
+
+    def test_issue_330c(self):
+        variant = 'NC_000017.10:g.48279242G>T'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'grch37' in results['intergenic_variant_1']['primary_assembly_loci'].keys()
+        assert 'grch38' in results['intergenic_variant_1']['primary_assembly_loci'].keys()
+        assert len(results['intergenic_variant_1']['alt_genomic_loci']) == 0
+
 
 # <LICENSE>
 # Copyright (C) 2016-2022 VariantValidator Contributors

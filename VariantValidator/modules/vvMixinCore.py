@@ -29,12 +29,18 @@ class Mixin(vvMixinConverters.Mixin):
     It's added to the Validator object in the vvObjects file.
     """
 
-    def validate(self, batch_variant, selected_assembly, select_transcripts, transcript_set="refseq"):
+    def validate(self,
+                 batch_variant,
+                 selected_assembly,
+                 select_transcripts,
+                 transcript_set="refseq",
+                 liftover_level=False):
         """
         This is the main validator function.
         :param batch_variant: A string containing the variant to be validated
         :param selected_assembly: The version of the genome assembly to use.
         :param select_transcripts: Can be an array of different transcripts, or 'all'
+        :param liftover_level: True or False - liftover to different gene/genome builds or not
         Selecting multiple transcripts will lead to a multiple variant outputs.
         :param transcript_set: 'refseq' or 'ensembl'. Currently only 'refseq' is supported
         :return:
@@ -52,14 +58,12 @@ class Mixin(vvMixinConverters.Mixin):
                             transcript_set)
 
         primary_assembly = None
-
         self.selected_assembly = selected_assembly
         self.select_transcripts = select_transcripts
 
+        # Validation
+        ############
         try:
-            # Validation
-            ############
-
             # Create a dictionary of transcript ID : ''
             select_transcripts_dict = {}
             select_transcripts_dict_plus_version = {}
@@ -670,7 +674,10 @@ class Mixin(vvMixinConverters.Mixin):
                     variant.gene_symbol = ''
 
                 if tx_variant != '':
-                    multi_gen_vars = mappers.final_tx_to_multiple_genomic(variant, self, tx_variant)
+                    multi_gen_vars = mappers.final_tx_to_multiple_genomic(variant,
+                                                                          self,
+                                                                          tx_variant,
+                                                                          liftover_level=liftover_level)
 
                 else:
                     # HGVS genomic in the absence of a transcript variant
@@ -1066,8 +1073,10 @@ class Mixin(vvMixinConverters.Mixin):
                 ref_records = self.db.get_urls(variant.output_dict())
                 if ref_records != {}:
                     variant.reference_sequence_records = ref_records
-                if (variant.output_type_flag == 'intergenic') or ('grch37' not in variant.primary_assembly_loci.keys())\
-                        or ('grch38' not in variant.primary_assembly_loci.keys()):
+                if (variant.output_type_flag == 'intergenic' and liftover_level is not None) or \
+                        ('grch37' not in variant.primary_assembly_loci.keys())\
+                        or ('grch38' not in variant.primary_assembly_loci.keys()
+                            and liftover_level is not None):
 
                     # Simple cache
                     lo_cache = {}
@@ -1104,13 +1113,18 @@ class Mixin(vvMixinConverters.Mixin):
                         g_to_g = False
                         if variant.output_type_flag != 'intergenic':
                             g_to_g = True
-                        # Liftover
+
+                        # Lift-over
                         if genomic_position_info[g_p_key]['hgvs_genomic_description'] not in lo_cache.keys():
                             lifted_response = liftover(genomic_position_info[g_p_key]['hgvs_genomic_description'],
                                                        build_from,
                                                        build_to, variant.hn, variant.reverse_normalizer,
-                                                       variant.evm, self, specify_tx=False, liftover_level=False,
+                                                       variant.evm,
+                                                       self,
+                                                       specify_tx=False,
+                                                       liftover_level=liftover_level,
                                                        g_to_g=g_to_g)
+
                             lo_cache[genomic_position_info[g_p_key]['hgvs_genomic_description']] = lifted_response
                         else:
                             lifted_response = lo_cache[genomic_position_info[g_p_key]['hgvs_genomic_description']]
