@@ -1187,14 +1187,20 @@ class Mixin(vvMixinConverters.Mixin):
             logger.critical(str(exc_type) + " " + str(exc_value))
             raise fn.VariantValidatorError('Validation error')
 
-    def gene2transcripts(self, query, validator=False, bypass_web_searches=False):
+    def gene2transcripts(self, query, validator=False, bypass_web_searches=False, select_transcripts=None):
         """
         Generates a list of transcript (UTA supported) and transcript names from a gene symbol or RefSeq transcript ID
         :param query: string gene symbol or RefSeq ID (e.g. NANOG or NM_024865.3) or if used internally, variant object
         :param validator: Validator object
         :param bypass_web_searches: bool  Shortens the output by looping out code not needed for internal processing
+        :param select_transcripts: bool False or string of transcript IDs "|" delimited
         :return: dictionary of transcript information
         """
+        # List of transcripts
+        sel_tx_lst = False
+        if select_transcripts is not None:
+            sel_tx_lst = select_transcripts.split('|')
+
         if bypass_web_searches is True:
             pass
         else:
@@ -1315,6 +1321,15 @@ class Mixin(vvMixinConverters.Mixin):
         # Loop through each transcript and get the relevant transcript description
         genes_and_tx = []
         recovered = []
+
+        # Remove un-selected transcripts
+        if sel_tx_lst is not False:
+            kept_tx = []
+            for tx in tx_for_gene:
+                if tx[3] in sel_tx_lst:
+                    kept_tx.append(tx)
+            tx_for_gene = kept_tx
+
         for line in tx_for_gene:
             if (line[3].startswith('NM_') or line[3].startswith('NR_')) and '..' not in line[3]:
 
@@ -1444,15 +1459,27 @@ class Mixin(vvMixinConverters.Mixin):
                     # LRG information
                     lrg_transcript = self.db.get_lrg_transcript_id_from_refseq_transcript_id(tx)
                     if lrg_transcript != 'none':
-                        genes_and_tx.append({'reference': lrg_transcript,
-                                             'description': tx_description,
-                                             'annotations': tx_annotation,
-                                             'length': tx_len,
-                                             'translation': lrg_transcript.replace('t', 'p'),
-                                             'coding_start': line[1] + 1,
-                                             'coding_end': line[2],
-                                             'genomic_spans': {}
-                                             })
+                        if sel_tx_lst is False:
+                            genes_and_tx.append({'reference': lrg_transcript,
+                                                 'description': tx_description,
+                                                 'annotations': tx_annotation,
+                                                 'length': tx_len,
+                                                 'translation': lrg_transcript.replace('t', 'p'),
+                                                 'coding_start': line[1] + 1,
+                                                 'coding_end': line[2],
+                                                 'genomic_spans': {}
+                                                 })
+                        else:
+                            if lrg_transcript in sel_tx_lst:
+                                genes_and_tx.append({'reference': lrg_transcript,
+                                                     'description': tx_description,
+                                                     'annotations': tx_annotation,
+                                                     'length': tx_len,
+                                                     'translation': lrg_transcript.replace('t', 'p'),
+                                                     'coding_start': line[1] + 1,
+                                                     'coding_end': line[2],
+                                                     'genomic_spans': {}
+                                                     })
 
                 # Add the genomic span information
                 if gen_span is True:
