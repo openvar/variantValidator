@@ -172,6 +172,12 @@ class TestGene2Transcripts(unittest.TestCase):
         assert len(output_c['transcripts']) == 2
         assert len(output_d['transcripts']) == 0
 
+    def test_symbol_valid_hgnc_id(self):
+        symbol = 'HGNC:2197'
+        results = self.vv.gene2transcripts(symbol)
+        print(results)
+        assert results["current_symbol"] == "COL1A1"
+
 
 # <LICENSE>
 # Copyright (C) 2016-2022 VariantValidator Contributors

@@ -1204,6 +1204,11 @@ class Mixin(vvMixinConverters.Mixin):
         if bypass_web_searches is True:
             pass
         else:
+            # Search by gene IDs
+            if "HGNC:" in query:
+                query = query.upper()
+                query = self.db.get_stable_gene_id_from_hgnc_id(query)[1]
+
             query = query.upper()
             if re.search(r'\d+ORF\d+', query):
                 query = query.replace('ORF', 'orf')
