@@ -1196,6 +1196,7 @@ class Mixin(vvMixinConverters.Mixin):
         :param select_transcripts: bool False or string of transcript IDs "|" delimited
         :return: dictionary of transcript information
         """
+
         # List of transcripts
         sel_tx_lst = False
         if select_transcripts is not None:
@@ -1204,6 +1205,9 @@ class Mixin(vvMixinConverters.Mixin):
         if bypass_web_searches is True:
             pass
         else:
+            # Remove whitespace
+            query = ''.join(query.split())
+
             # Search by gene IDs
             if "HGNC:" in query:
                 query = query.upper()
@@ -1287,7 +1291,7 @@ class Mixin(vvMixinConverters.Mixin):
                 hgnc = tx_info[6]
                 hgnc = self.db.get_hgnc_symbol(hgnc)
 
-                # First perform a search against the input gene symbol or the symbol inferred from UTA
+            # First perform a search against the input gene symbol or the symbol inferred from UTA
             symbol_identified = False
             vvta_record = self.hdp.get_gene_info(hgnc)
             # Check for a record
