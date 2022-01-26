@@ -1,43 +1,14 @@
-#### New code thoughts #####
-
-from operator import contains
 import re
-import json
-from turtle import position
-from xmlrpc.client import boolean
-import VariantValidator
-from numpy import var
-import vvhgvs
+
 
 #Match variants that are correctly formatted expanded to deal with variants
+def check_variants(input: str):
+    """[Match variant to defined format to decide if to process or reformat,
+    this is now deprecated. check_expanded_repeat() replaces this.]
 
-def tandem_repeats_handler(var_input: str):
-    """[Take string input and return require output for variant validator]
-    param: input: str [String of HGVS formatted variant]
-
-    Return: Information about variant (i.e. coordinates for each genome build,
-    other info.)
+    Args:
+        input (str): [description]
     """
-    #old output
-    vval = VariantValidator.Validator()
-    variant = str(var_input)
-    genome_build = 'GRCh37'  # global variable to assign value
-    select_transcripts = 'all'
-    validate = vval.validate(variant, genome_build, select_transcripts)
-    validation = validate.format_as_dict(with_meta=True)
-    print(json.dumps(validation, sort_keys=True, indent=4, separators=(',', ': ')))
-    #HGVS parser
-    # parse the genomic variant into a Python structure
-    hdp = vvhgvs.dataproviders.uta.connect()
-    hp = vvhgvs.parser.Parser()
-    var_hgvs = hp.parse_hgvs_variant(variant)
-    print(var_hgvs.posedit.pos)
-    print(var_hgvs.posedit)
-    hn = vvhgvs.normalizer.Normalizer(hdp)
-    hn.normalize(hp.parse_hgvs_variant(variant))
-
-
-def check_variants(input: str, filemode: boolean):
     REGEX1 = r":(g|c)\.[0-9]+_[0-9]+([ACTG]|[actg])+\[[0-9]+\]"
     REGEX2 = r":(g|c)\.[0-9]+([ACTG]|[actg])+\[[0-9]+\]"  # selects more variants
     #  importing test file
@@ -55,16 +26,11 @@ def check_variants(input: str, filemode: boolean):
                 print("False")  # change to raise error
 
 
-def main():
-    check_variants(test_file = "/home/rswilson1/Documents/Programming_2021/variantValidator/test_variants.txt")
-
-
-import re
-
+#  List of variants to check format and split into constituents.
 variant1="LRG_199:g.1ACT[20]"
 variant2 = "LRG_199:g.1ACT[20]A"
 variant3 = "LRG_199:g.1AC[20]"
-variant4 = "LRG_199t1:c.1ACT[20]"
+variant4 = "LRG_199t1:c.1_3ACT[20]"
 variant5 = "LRG_199t1:c.1AC[20]"
 variant6 = "LRG_199t1:c.1act[20]"
 variant7 = "LRG199c.1A[1_2]"
@@ -74,8 +40,21 @@ variant10 = "LRG199:g.13_125ACTG[1]"
 # Other types not LRG
 variant11 = "ENSG00000198947.15:g.1ACT[10]"
 variant12 = "ENST00000357033.8:c.13AC[22]"
+#Missing information accepted
+variant13 = "LRG_199t1:c.1_ACT[20]"
+# change * to + to only allow variants with range or single location
 
 def check_expanded_repeat(my_variant):
+    """
+    Summary:
+    This takes a variant string and breaks it into its constituents.
+    This isolates the constituents with regex.
+
+    Args:
+        my_variant ([type]): (Variant string i.e. LRG_199:g.1ACT[20])
+    Returns:
+    Prints out constituents and assigns them to variables for further processing.
+    """
     if "[" or "]" in my_variant:
         if ":" not in my_variant:
             print("Unable to identify a colon (:) in the variant description. A colon is required in HGVS variant")
@@ -96,10 +75,12 @@ def check_expanded_repeat(my_variant):
             print(f'Variant position: {var_position.group(1)}')
             if "_" in var_position.group(1):
                 start_range, end_range = var_position.group(1).split("_")
-                rep_seq = re.search('\.[0-9]*_[0-9]*(.*?)\[', my_variant)
+                print(start_range)
+                print(end_range)
+                rep_seq = re.search('\.[0-9]+_[0-9]+(.*?)\[', my_variant)
                 print(f'Repeated sequence: {rep_seq.group(1)}')
-            else: 
-                rep_seq = re.search('\.[0-9]*(.*?)\[', my_variant)
+            else:
+                rep_seq = re.search('\.[0-9]+(.*?)\[', my_variant)
                 print(f'Repeat seq without range: {rep_seq.group(1)}')
             # Get number of unit repeats
             dup_no = re.search('\[(.*?)\]', my_variant)
