@@ -69,6 +69,33 @@ def check_variants(input: str, filemode: boolean):
 def main():
     check_variants(test_file = "/home/rswilson1/Documents/Programming_2021/variantValidator/test_variants.txt")
 
+import re
+
+my_variant="LRG_199:g.1ACT[20]"
+variant2 = "LRG_199:g.1ACT[20]A"
+variant3 = "LRG_199:g.1AC[20]"
+variant4 = "LRG_199t1:c.1ACT[20]"
+variant5 = "LRG_199t1:c.1AC[20]"
+
+v6 = "lrg199c.ACT(20)"
+v7 = "LRG199c.1A[1_2]"
+
+if "[" or "]" in my_variant:
+    if ":" not in my_variant:
+        print(": character not found")
+    else:
+        prefix = my_variant.split(":")[0]
+        print(prefix)
+        # Find whether genomic or coding
+        # Capture everything between : and ., backslash as . special char in re
+        variant_type = re.search(':(.*?)\.', my_variant)
+        print(variant_type.group(1))
+        # Get g or c position
+        before = my_variant.split(":")[1]
+        #var_position = re.search('/(?<=.).*(?=[ACTG])/g', my_variant)
+        #print(var_position.group(0))
+        after = my_variant.split(".")[1].split("[")
+
 
 if __name__ == "__main__":
     main()
