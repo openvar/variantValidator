@@ -59,39 +59,56 @@ def main():
     check_variants(test_file = "/home/rswilson1/Documents/Programming_2021/variantValidator/test_variants.txt")
 
 
-my_variant="LRG_199:g.1_3ACT[20]"
+import re
+
+variant1="LRG_199:g.1ACT[20]"
 variant2 = "LRG_199:g.1ACT[20]A"
 variant3 = "LRG_199:g.1AC[20]"
 variant4 = "LRG_199t1:c.1ACT[20]"
 variant5 = "LRG_199t1:c.1AC[20]"
+variant6 = "LRG_199t1:c.1act[20]"
+variant7 = "LRG199c.1A[1_2]"
+variant8 = "LRG_199:g.13ACT[20]"
+variant9 = "LRG_199:g.13_25ACTG[1]"
+variant10 = "LRG199:g.13_125ACTG[1]"
+# Other types not LRG
+variant11 = "ENSG00000198947.15:g.1ACT[10]"
+variant12 = "ENST00000357033.8:c.13AC[22]"
 
-v6 = "lrg199c.ACT(20)"
-v7 = "LRG199c.1A[1_2]"
-
-if "[" or "]" in my_variant:
-    if ":" not in my_variant:
-        print(": character not found")
-    else:
-        prefix = my_variant.split(":")[0]
-        print(prefix)
-        # Find whether genomic or coding
-        # Capture everything between : and ., backslash as . special char in re
-        variant_type = re.search(':(.*?)\.', my_variant)
-        print(variant_type.group(1))
-        # Get g or c position
-        before = my_variant.split(":")[1]
-        #Using the split sequence simplifies the regex and allows for better extraction
-        position = re.search(r'\.(.*?)[ACTG]+', before)
-        position_selection = position.group(1)
-        print(position_selection)
-        if "_" in position_selection:
-            repeat_seq = re.search(r'[0-9]+_[0-9]+(.*?)\[', before)
+def check_expanded_repeat(my_variant):
+    if "[" or "]" in my_variant:
+        if ":" not in my_variant:
+            print("Unable to identify a colon (:) in the variant description. A colon is required in HGVS variant")
         else:
-            repeat_seq = re.search(r'[0-9]+(.*?)\[', before)
-        print("repseq")
-        print(repeat_seq.group(1))
-        #after = my_variant.split(".")[1].split("[")
-        #print(after)
+            prefix = my_variant.split(":")[0]
+            print(f'Variant prefix: {prefix}')
+            if re.search('^LRG', my_variant):
+                # Check if underscore after LRG is included
+                if "_" not in prefix:
+                    # Add in underscore between LRG and number
+                    prefix = re.sub(r"(?i)(?<=[a-z])(?=\d)",'_', prefix)
+                    print(f'Updated prefix: {prefix}')
+            # Find whether genomic or coding
+            variant_type = re.search(':(.*?)\.', my_variant)
+            print(f'Variant type: {variant_type.group(1)}')
+            # Get g or c position
+            var_position = re.search('\.(.*?)[ACTG]', my_variant)
+            print(f'Variant position: {var_position.group(1)}')
+            if "_" in var_position.group(1):
+                start_range, end_range = var_position.group(1).split("_")
+                rep_seq = re.search('\.[0-9]*_[0-9]*(.*?)\[', my_variant)
+                print(f'Repeated sequence: {rep_seq.group(1)}')
+            else: 
+                rep_seq = re.search('\.[0-9]*(.*?)\[', my_variant)
+                print(f'Repeat seq without range: {rep_seq.group(1)}')
+            # Get number of unit repeats
+            dup_no = re.search('\[(.*?)\]', my_variant)
+            print(f'Number of unit repeats: {dup_no.group(1)}')
+            # Get anything after ] to check
+            after_brac = re.search('\](.*)',my_variant)
+            print(f'Anything after bracket: {after_brac.group(1)}')
+
+print(check_expanded_repeat(variant4))
 
 
 #if __name__ == "__main__":
