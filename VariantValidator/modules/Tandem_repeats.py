@@ -40,36 +40,23 @@ def check_variants(input: str, filemode: boolean):
     REGEX1 = r":(g|c)\.[0-9]+_[0-9]+([ACTG]|[actg])+\[[0-9]+\]"
     REGEX2 = r":(g|c)\.[0-9]+([ACTG]|[actg])+\[[0-9]+\]"  # selects more variants
     #  importing test file
-    if filemode="file":
-        with open(file=input) as file:
-            for line in file:
-                s = str(line)
-                raw_s = r'{}'.format(s)
-                if re.search(pattern=REGEX1, string=raw_s):
-                    print(f"{raw_s}-True 1")
-                    tandem_repeats_handler(var_input=raw_s)
-                elif re.search(pattern=REGEX2, string=raw_s):
-                    print(f"{raw_s}-True 2")
-                    tandem_repeats_handler(var_input=raw_s)
-                else:
-                    print("False")  # change to raise error
-    else:
-        s = str(input)
-        raw_s = r'{}'.format(s)
-        if re.search(pattern=REGEX1, string=raw_s):
-            print(f"{raw_s}-True 1")
-            tandem_repeats_handler(var_input=raw_s)
-        elif re.search(pattern=REGEX2, string=raw_s):
-            print(f"{raw_s}-True 2")
-            tandem_repeats_handler(var_input=raw_s)
-        else:
-            print("False")  # change to raise error
+    with open(file=input) as file:
+        for line in file:
+            s = str(line)
+            raw_s = r'{}'.format(s)
+            if re.search(pattern=REGEX1, string=raw_s):
+                print(f"{raw_s}-True 1")
+                tandem_repeats_handler(var_input=raw_s)
+            elif re.search(pattern=REGEX2, string=raw_s):
+                print(f"{raw_s}-True 2")
+                tandem_repeats_handler(var_input=raw_s)
+            else:
+                print("False")  # change to raise error
 
 
 def main():
     check_variants(test_file = "/home/rswilson1/Documents/Programming_2021/variantValidator/test_variants.txt")
 
-import re
 
 my_variant="LRG_199:g.1ACT[20]"
 variant2 = "LRG_199:g.1ACT[20]A"
@@ -92,10 +79,21 @@ if "[" or "]" in my_variant:
         print(variant_type.group(1))
         # Get g or c position
         before = my_variant.split(":")[1]
+        #Using the split sequence simplifies the regex and allows for better extraction
+        repeat_seq = re.search('[0-9]+(.*?)\[', my_variant.split(":")[1])
+        print("repseq")
+        print(repeat_seq.group(0))
+        print(repeat_seq.group(1))
         #var_position = re.search('/(?<=.).*(?=[ACTG])/g', my_variant)
         #print(var_position.group(0))
         after = my_variant.split(".")[1].split("[")
+        print(after)
 
 
-if __name__ == "__main__":
-    main()
+s_nums = 'LRG_199:g.1ACT[20]'
+
+print(re.split('\d+', s_nums))
+# ['one', 'two', 'three', 'four']
+
+#if __name__ == "__main__":
+#    main()
