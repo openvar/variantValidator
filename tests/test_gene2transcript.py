@@ -161,6 +161,23 @@ class TestGene2Transcripts(unittest.TestCase):
         assert results["hgnc"] == "HGNC:11050"
         assert results["previous_symbol"] == "HTT,OCD1"
 
+    def test_select_transcripts(self):
+        output = self.vv.gene2transcripts('BRCA2', select_transcripts=None)
+        output_b = self.vv.gene2transcripts('BRCA2', select_transcripts='NM_000059.3')
+        output_c = self.vv.gene2transcripts('BRCA2', select_transcripts='NM_000059.3|NM_000059.4')
+        output_d = self.vv.gene2transcripts('BRCA2', select_transcripts='flibble')
+        print(output)
+        assert len(output['transcripts']) == 3
+        assert len(output_b['transcripts']) == 1
+        assert len(output_c['transcripts']) == 2
+        assert len(output_d['transcripts']) == 0
+
+    def test_symbol_valid_hgnc_id(self):
+        symbol = 'HGNC:2197'
+        results = self.vv.gene2transcripts(symbol)
+        print(results)
+        assert results["current_symbol"] == "COL1A1"
+
 
 # <LICENSE>
 # Copyright (C) 2016-2022 VariantValidator Contributors

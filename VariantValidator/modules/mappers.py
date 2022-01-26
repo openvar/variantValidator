@@ -696,7 +696,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     return False
 
 
-def final_tx_to_multiple_genomic(variant, validator, tx_variant):
+def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=False):
 
     warnings = ''
     rec_var = ''
@@ -704,7 +704,12 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant):
 
     # Multiple genomic variants
     # multi_gen_vars = []
-    variant.hgvs_coding = validator.hp.parse_hgvs_variant(str(tx_variant))
+    try:
+        tx_variant.ac
+        variant.hgvs_coding = tx_variant
+    except AttributeError:
+        variant.hgvs_coding = validator.hp.parse_hgvs_variant(str(tx_variant))
+
     # Gap gene black list
     if variant.gene_symbol:
         # If the gene symbol is not in the list, the value False will be returned
@@ -727,10 +732,17 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant):
     multi_list = []
     mapping_options = validator.hdp.get_tx_mapping_options(variant.hgvs_coding.ac)
     mapping_options = sorted(mapping_options, key=itemgetter(1))
+
     for alt_chr in mapping_options:
-        if ('NC_' in alt_chr[1] or 'NT_' in alt_chr[1] or 'NW_' in alt_chr[1]) and \
-                alt_chr[2] == validator.alt_aln_method:
-            multi_list.append(alt_chr[1])
+        if liftover_level is None:
+            multi_list.append(variant.genomic_g.split(":")[0])
+        elif liftover_level is 'primary':
+            if ('NC_' in alt_chr[1]) and alt_chr[2] == validator.alt_aln_method:
+                multi_list.append(alt_chr[1])
+        else:
+            if ('NC_' in alt_chr[1] or 'NT_' in alt_chr[1] or 'NW_' in alt_chr[1]) and \
+                    alt_chr[2] == validator.alt_aln_method:
+                multi_list.append(alt_chr[1])
 
     for alt_chr in multi_list:
         logger.debug("Trying to do final gap mapping with %s", alt_chr)
