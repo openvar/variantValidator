@@ -17,10 +17,8 @@ def check_variants(input: str):
             raw_s = r'{}'.format(s)
             if re.search(pattern=REGEX1, string=raw_s):
                 print(f"{raw_s}-True 1")
-                tandem_repeats_handler(var_input=raw_s)
             elif re.search(pattern=REGEX2, string=raw_s):
                 print(f"{raw_s}-True 2")
-                tandem_repeats_handler(var_input=raw_s)
             else:
                 print("False")  # change to raise error
 
