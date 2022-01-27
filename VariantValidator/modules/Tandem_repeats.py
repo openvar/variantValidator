@@ -79,6 +79,7 @@ def check_expanded_repeat_RefSeq(my_variant):
     Returns:
     Prints out constituents and assigns them to variables for further processing.
     """
+    print("Running RefSeq version")
     if "[" or "]" in my_variant:
         if ":" not in my_variant:
             print("Unable to identify a colon (:) in the variant description. A colon is required in HGVS variant")
@@ -91,26 +92,27 @@ def check_expanded_repeat_RefSeq(my_variant):
                     # Add in underscore between LRG and number
                     prefix = re.sub(r"(?i)(?<=[a-z])(?=\d)",'_', prefix)
                     print(f'Updated prefix: {prefix}')
+            suffix = ":" + my_variant.split(":")[1]
             # Find whether genomic or coding
-            variant_type = re.search(':(.*?)\.', my_variant)
+            variant_type = re.search(':(.*?)\.', suffix)
             print(f'Variant type: {variant_type.group(1)}')
             # Get g or c position
-            var_position = re.search('\.(.*?)[ACTG]', my_variant)
+            var_position = re.search('\.(.*?)[ACTG]', suffix)
             print(f'Variant position: {var_position.group(1)}')
             if "_" in var_position.group(1):
                 start_range, end_range = var_position.group(1).split("_")
                 print(start_range)
                 print(end_range)
-                rep_seq = re.search('\.[0-9]+_[0-9]+(.*?)\[', my_variant)
+                rep_seq = re.search('\.[0-9]+_[0-9]+(.*?)\[', suffix)
                 print(f'Repeated sequence: {rep_seq.group(1)}')
             else:
-                rep_seq = re.search('\.[0-9]+(.*?)\[', my_variant)
+                rep_seq = re.search('\.[0-9]+(.*?)\[', suffix)
                 print(f'Repeat seq without range: {rep_seq.group(1)}')
             # Get number of unit repeats
-            dup_no = re.search('\[(.*?)\]', my_variant)
+            dup_no = re.search('\[(.*?)\]', suffix)
             print(f'Number of unit repeats: {dup_no.group(1)}')
             # Get anything after ] to check
-            after_brac = re.search('\](.*)',my_variant)
+            after_brac = re.search('\](.*)', suffix)
             print(f'Anything after bracket: {after_brac.group(1)}')
     else:
         print("No expanded repeat present.")
@@ -128,6 +130,7 @@ def check_expanded_repeat_ENSG(my_variant):
     Returns:
     Prints out constituents and assigns them to variables for further processing.
     """
+    print("Running ENSG version")
     if "[" or "]" in my_variant:
         if ":" not in my_variant:
             print("Unable to identify a colon (:) in the variant description. A colon is required in HGVS variant")
@@ -140,26 +143,27 @@ def check_expanded_repeat_ENSG(my_variant):
                     # Add in underscore between LRG and number
                     prefix = re.sub(r"(?i)(?<=[a-z])(?=\d)",'_', prefix)
                     print(f'Updated prefix: {prefix}')
+            suffix = ":" + my_variant.split(":")[1]
             # Find whether genomic or coding
-            variant_type = re.search(':(.*?)\.', my_variant)
+            variant_type = re.search(':(.*?)\.', suffix)
             print(f'Variant type: {variant_type.group(1)}')
             # Get g or c position
-            var_position = re.search('\.(.*?)[ACTG]', my_variant)
+            var_position = re.search('\.(.*?)[ACTG]', suffix)
             print(f'Variant position: {var_position.group(1)}')
             if "_" in var_position.group(1):
                 start_range, end_range = var_position.group(1).split("_")
                 print(start_range)
                 print(end_range)
-                rep_seq = re.search('\.[0-9]+_[0-9]+(.*?)\[', my_variant)
+                rep_seq = re.search('\.[0-9]+_[0-9]+(.*?)\[', suffix)
                 print(f'Repeated sequence: {rep_seq.group(1)}')
             else:
-                rep_seq = re.search('\.[0-9]+(.*?)\[', my_variant)
+                rep_seq = re.search('\.[0-9]+(.*?)\[', suffix)
                 print(f'Repeat seq without range: {rep_seq.group(1)}')
             # Get number of unit repeats
-            dup_no = re.search('\[(.*?)\]', my_variant)
+            dup_no = re.search('\[(.*?)\]', suffix)
             print(f'Number of unit repeats: {dup_no.group(1)}')
             # Get anything after ] to check
-            after_brac = re.search('\](.*)',my_variant)
+            after_brac = re.search('\](.*)', suffix)
             print(f'Anything after bracket: {after_brac.group(1)}')
     else:
         print("No expanded repeat present.")
@@ -177,6 +181,7 @@ def check_expanded_repeat_LRG(my_variant):
     Returns:
     Prints out constituents and assigns them to variables for further processing.
     """
+    print("Running LRG version")
     if "[" or "]" in my_variant:
         if ":" not in my_variant:
             print("Unable to identify a colon (:) in the variant description. A colon is required in HGVS variant")
@@ -189,26 +194,27 @@ def check_expanded_repeat_LRG(my_variant):
                     # Add in underscore between LRG and number
                     prefix = re.sub(r"(?i)(?<=[a-z])(?=\d)",'_', prefix)
                     print(f'Updated prefix: {prefix}')
+            suffix = ":" + my_variant.split(":")[1]
             # Find whether genomic or coding
-            variant_type = re.search(':(.*?)\.', my_variant)
+            variant_type = re.search(':(.*?)\.', suffix)
             print(f'Variant type: {variant_type.group(1)}')
             # Get g or c position
-            var_position = re.search('\.(.*?)[ACTG]', my_variant)
+            var_position = re.search('\.(.*?)[ACTG]', suffix)
             print(f'Variant position: {var_position.group(1)}')
             if "_" in var_position.group(1):
                 start_range, end_range = var_position.group(1).split("_")
                 print(start_range)
                 print(end_range)
-                rep_seq = re.search('\.[0-9]+_[0-9]+(.*?)\[', my_variant)
+                rep_seq = re.search('\.[0-9]+_[0-9]+(.*?)\[', suffix)
                 print(f'Repeated sequence: {rep_seq.group(1)}')
             else:
-                rep_seq = re.search('\.[0-9]+(.*?)\[', my_variant)
+                rep_seq = re.search('\.[0-9]+(.*?)\[', suffix)
                 print(f'Repeat seq without range: {rep_seq.group(1)}')
             # Get number of unit repeats
-            dup_no = re.search('\[(.*?)\]', my_variant)
+            dup_no = re.search('\[(.*?)\]', suffix)
             print(f'Number of unit repeats: {dup_no.group(1)}')
             # Get anything after ] to check
-            after_brac = re.search('\](.*)',my_variant)
+            after_brac = re.search('\](.*)', suffix)
             print(f'Anything after bracket: {after_brac.group(1)}')
     else:
         print("No expanded repeat present.")
@@ -216,7 +222,7 @@ def check_expanded_repeat_LRG(my_variant):
 
 
 def main():
-    print(check_transcript_type(variant4))
+    print(check_transcript_type(variant11))
 
 
 if __name__ == "__main__":
