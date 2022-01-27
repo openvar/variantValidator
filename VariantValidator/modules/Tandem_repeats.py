@@ -1,5 +1,5 @@
+from pickle import FALSE
 import re
-
 
 #Match variants that are correctly formatted expanded to deal with variants
 def check_variants(input: str):
@@ -88,6 +88,9 @@ def check_expanded_repeat(my_variant):
             # Get anything after ] to check
             after_brac = re.search('\](.*)',my_variant)
             print(f'Anything after bracket: {after_brac.group(1)}')
+    else:
+        print("No expanded repeat present.")
+        return False
 
 print(check_expanded_repeat(variant4))
 
