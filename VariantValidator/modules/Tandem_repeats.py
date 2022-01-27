@@ -1,4 +1,3 @@
-from pickle import FALSE
 import re
 
 #Match variants that are correctly formatted expanded to deal with variants
@@ -92,8 +91,8 @@ def check_expanded_repeat(my_variant):
         print("No expanded repeat present.")
         return False
 
-print(check_expanded_repeat(variant4))
+def main():
+    print(check_expanded_repeat(variant4))
 
-
-#if __name__ == "__main__":
-#    main()
+if __name__ == "__main__":
+    main()
