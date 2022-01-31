@@ -30,6 +30,9 @@ variant17 = "NG_004006.2:g.1_2act[22]"
 # Below are converted to dup and ins but gives wrong positions ?
 variant18 = "NM_024312.4:c.2686A[10]"
 variant19 = "NM_024312.4:c.1738TA[6]"
+variant20 = "LRG199t2:c.1_5C[10]"
+variant21 = "LRG199t2:c.1-5C[10]"
+variant22 = "NM_024312:c.2686A[10]"
 
 # Parse the variant to get relevant parts
 def parse_repeat_variant(my_variant):
@@ -40,7 +43,7 @@ def parse_repeat_variant(my_variant):
     Args:
         my_variant (string): Variant string e.g. "LRG_199:g.1ACT[20]A"
     Returns:
-        prefix (string): Everything before the first colon, e.g. "LRG_199"
+        prefix (string): Transcript or gene; everything before the first colon, e.g. "LRG_199"
         var_type (string): The variant genomic or coding type e.g. "g"
         var_pos (string): Position of the variant, e.g. "1" or "1_12"
         repeated_seq (string): The repeated sequence e.g. "ACT"
@@ -60,12 +63,17 @@ def parse_repeat_variant(my_variant):
             "[a-z]+", pos_and_seq, re.IGNORECASE), "Please ensure that the repeated sequence is included between the position and number of repeat units, e.g. g.1ACT[20]"
         rep_seq = re.search("[ACTG]+", pos_and_seq, re.IGNORECASE)
         repeated_seq = rep_seq.group()
+        # Ensure sign used to indicate range is “_” (underscore), not “-“ (minus)
+        if "-" in pos_and_seq:
+            pos_and_seq = pos_and_seq.replace('-', '_')
+        # Check both ends of range are given
         if "_" in pos_and_seq:
             assert re.search(
                 "[0-9]+_[0-9]+", pos_and_seq), "Please ensure the start and the end of the full repeat range is provided, separated by an underscore"
             variant_positions = re.search("[0-9]+_[0-9]+", pos_and_seq)
             var_pos = variant_positions.group()
         else:
+            # If just start pos, get digits
             variant_position = re.search("\d+", pos_and_seq)
             var_pos = variant_position.group()
         # Get number of unit repeats
@@ -76,11 +84,11 @@ def parse_repeat_variant(my_variant):
             after_brac = re.search('\](.*)', my_variant)
             after_the_bracket = after_brac.group(1)
         else:
-            after_the_bracket = None
+            after_the_bracket = ""
         return prefix, var_type, var_pos, repeated_seq, no_of_repeats, after_the_bracket
 
 
-variant_check = parse_repeat_variant(variant5)
+variant_check = parse_repeat_variant(variant22)
 
 the_prefix = variant_check[0]
 variant_type = variant_check[1]
@@ -130,6 +138,8 @@ def reformat_prefix(prefix):
             transcript_num = re.search("t(.*?)$", prefix)
             transcript_version = f"t{transcript_num.group(1)}"
             print(transcript_version)
+    elif re.match(r'^ENST', prefix) or re.match(r'^NM_', prefix):
+        assert "." in prefix, "Please ensure the transcript version is included following a '.' after the transcript name e.g. ENST00000357033.8"
     return prefix
 
 
