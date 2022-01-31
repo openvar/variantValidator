@@ -349,7 +349,7 @@ class ex_repeat_var:
     """
     Class used for expanded repeat variants.
     These related functions split the variant string into
-    it's constiuents for further analysis.
+    its constiuents for further analysis.
     """
     def __init__(self, variant_string, build) -> None:
         self.variant_string = variant_string
@@ -358,7 +358,7 @@ class ex_repeat_var:
         self.prefix = None
         self.suffix = None
         self.no_repeats = None
-        self.after_brac = None # could use empty string?
+        self.after_brac = None
 
 
     def check_expanded_repeat_diverging(self):
@@ -377,6 +377,7 @@ class ex_repeat_var:
         """
         print("Running Diverging version")
         if "[" or "]" in self.variant_string:
+            # Check which transcript type is present.
             if bool(re.search("^LRG", self.variant_string)):
                 self.type = "LRG"
             elif bool(re.search("^ENSG", self.variant_string)):
@@ -414,7 +415,8 @@ class ex_repeat_var:
                 # Get number of unit repeats
                 self.no_repeats = re.search('\[(.*?)\]', self.suffix).group(1)
                 print(f'Number of unit repeats: {self.no_repeats}')
-                # Get anything after ] to check
+                # Get anything after ] to check if extra unsupported information.
+                # Or to process further for supporting other syntaxes.
                 self.after_brac = re.search('\](.*)', self.suffix).group(1)
                 print(f'Anything after bracket: {self.after_brac}')
         else:
