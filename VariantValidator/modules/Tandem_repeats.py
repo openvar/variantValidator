@@ -18,23 +18,22 @@ variant6 = "LRG_199t1:c.1act[20]"
 variant7 = "LRG_199t1:c.1A[12]"
 variant8 = "LRG_199:g.13ACT[20]"
 variant9 = "LRG_199:g.13_25ACTG[12]"
-variant10 = "LRG199:g.13_125ACTG[1]"
+variant10 = "LRG199t3:c.13_125ACTG[5]"
 variant11 = "ENSG00000198947.15:g.1ACT[10]"
-variant12 = "ENST00000357033.8:c.13AC[22]"
+variant12 = "ENST00000357033.8:c.13AC[2]"
 variant13 = "LRG_199t1:c.1_2ACT[20]"
 variant14 = "LRG_199t1:c.20A[A]"
 variant15 = "NM_004006.2:c.13AC[22]"
-variant15 = "NR_004430.2:c.13AC[22]"
-variant16 = "LRG_199t1:c.ACT1_3[20]"
+
 variant17 = "NG_004006.2:g.1_2act[22]"
-# Below are converted to dup and ins but gives wrong positions ?
 variant18 = "NM_024312.4:c.2686A[10]"
 variant19 = "NM_024312.4:c.1738TA[6]"
 variant20 = "LRG199t2:c.1_5C[10]"
 variant21 = "LRG199t2:c.1-5C[10]"
 variant22 = "NM_024312.1:c.2686A[10]"
+# Alleles not supported
 variant23 = "LRG_199:g.[123456A>G];[345678G>C]"
-# Should be 1_20insAGAGAGAG etc
+
 variant24 = "LRG_199t1:c.15_20AG[10]"
 variant25 = "LRG_199:g.1AG[10]"
 
@@ -94,7 +93,7 @@ def parse_repeat_variant(my_variant):
         return prefix, var_type, var_pos, repeated_seq, no_of_repeats, after_the_bracket
 
 
-variant_check = parse_repeat_variant(variant24)
+variant_check = parse_repeat_variant(variant25)
 
 the_prefix = variant_check[0]
 variant_type = variant_check[1]
@@ -102,11 +101,6 @@ variant_position = variant_check[2]
 repeated_sequence = variant_check[3]
 number_of_repeats = variant_check[4]
 after_bracket = variant_check[5]
-
-print(the_prefix, variant_type, variant_position,
-      repeated_sequence, number_of_repeats, after_bracket)
-
-print(after_bracket)
 
 def check_transcript_type(prefix):
     """
@@ -177,10 +171,8 @@ def check_genomic_or_coding(prefix, var_type):
 check_genomic_or_coding(the_prefix, variant_type)
 
 # For variants with the full range of the position given (not only start pos)
-
-
 def check_positions_given(repeated_sequence, variant_pos, no_of_rep_units):
-    """Checks the position range given and updates it if it doesn't make match the length of the repeated sequence and number of repeat units
+    """Checks the position range given and updates it if it doesn't match the length of the repeated sequence and number of repeat units when full range is needed
         Args:
         repeated_sequence (string): The repeated sequence e.g. "ACT"
         variant_pos (string): The position of the variant e.g. "1" or "1_5"
@@ -215,16 +207,18 @@ def get_range_from_single_pos(repeated_sequence, start_range, no_of_rep_units):
 
 # This will reformat tandem repeat variants in c. which should be noted as dup or ins as they are not multiples of 3
 def reformat_not_multiple_of_three(pref, vartype, position, rep_seq, no_of_repeats):
+    reformatted = ""
     rep_seq_length = len(rep_seq)
-    print(position)
     # Repeat of 1 base should be a dup with full range given
     if rep_seq_length == 1:
-        if not "_" in position:
+        if "_" in position:
+            position = check_positions_given(rep_seq, position, no_of_repeats)
+        else:
             position = get_range_from_single_pos(rep_seq, position, no_of_repeats)
         print("Warning: Repeated sequence is not a multiple of three! Updating variant description to a duplication")
         reformatted = f'{pref}:{vartype}.{position}dup'
     # Repeat of 2 bases should be an ins with only first two nts given as range
-    elif rep_seq_length == 2:
+    elif rep_seq_length >= 2:
         expanded_rep_seq = rep_seq*int(no_of_repeats)
         if not "_" in position:
             second_range = int(position)+1
@@ -247,18 +241,22 @@ def reformat(var_prefix, the_variant_type, the_var_pos, the_repeated_sequence, t
                      re.IGNORECASE), "Please ensure the repeated sequence includes only A, C, T or G"
     # Update the repeated sequence to be upper case
     the_repeated_sequence = the_repeated_sequence.upper()
-    if "_" in the_var_pos:
-        the_var_pos = check_positions_given(the_repeated_sequence, the_var_pos, the_number_of_repeats)
     if all_after_bracket != "":
         print("No information should be included after the number of repeat units. Mixed repeats are not currently supported.")
+    # Reformat c. variants
     if the_variant_type == "c": 
         rep_seq_length = len(the_repeated_sequence)
         if rep_seq_length % 3 != 0:
             final_format = reformat_not_multiple_of_three(var_prefix, the_variant_type, the_var_pos, the_repeated_sequence, the_number_of_repeats)
         else:
             print("Repeat length is consistent with c. type")
+            if "_" in the_var_pos:
+                the_var_pos = check_positions_given(the_repeated_sequence, the_var_pos, the_number_of_repeats)
             final_format = f"{var_prefix}:{the_variant_type}.{the_var_pos}{the_repeated_sequence}[{the_number_of_repeats}]"
+    # Reformat g. variants
     else:
+        if "_" in the_var_pos:
+            the_var_pos = check_positions_given(the_repeated_sequence, the_var_pos, the_number_of_repeats)
         final_format = f"{var_prefix}:{the_variant_type}.{the_var_pos}{the_repeated_sequence}[{the_number_of_repeats}]"
     return final_format
 
