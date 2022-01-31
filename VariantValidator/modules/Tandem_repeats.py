@@ -80,7 +80,7 @@ def parse_repeat_variant(my_variant):
         return prefix, var_type, var_pos, repeated_seq, no_of_repeats, after_the_bracket
 
 
-variant_check = parse_repeat_variant(variant19)
+variant_check = parse_repeat_variant(variant5)
 
 the_prefix = variant_check[0]
 variant_type = variant_check[1]
@@ -94,11 +94,10 @@ print(the_prefix, variant_type, variant_position,
 
 print(after_bracket)
 
-
 def check_transcript_type(prefix):
     """
-    [Find transcript type. N.B. Future development could instead store
-    the transcript and replace it with refseq.]
+    Summary:
+        Find transcript type. N.B. Future development could instead store the transcript and replace it with RefSeq.
     Args:
         prefix (string): The prefix from parse_variant_repeat
     Returns: 
@@ -203,8 +202,7 @@ def reformat_not_multiple_of_three(pref, vartype, position, rep_seq, no_of_repea
     rep_seq_length = len(rep_seq)
     print("Warning: Repeated sequence is not a multiple of three! Updating variant description")
     if not "_" in position:
-        position = get_range_from_single_pos(
-            rep_seq, position, no_of_repeats)
+        position = get_range_from_single_pos(rep_seq, position, no_of_repeats)
     if rep_seq_length == 1:
         reformatted = f'{pref}:{vartype}.{position}dup'
     elif rep_seq_length == 2:
@@ -222,17 +220,19 @@ def reformat(var_prefix, the_variant_type, the_var_pos, the_repeated_sequence, t
                      re.IGNORECASE), "Please ensure the repeated sequence includes only A, C, T or G"
     # Update the repeated sequence to be upper case
     the_repeated_sequence = the_repeated_sequence.upper()
+    if "_" in the_var_pos:
+        the_var_pos = check_positions_given(the_repeated_sequence, the_var_pos, the_number_of_repeats)
+    if all_after_bracket != "":
+        print("No information should be included after the number of repeat units. Mixed repeats are not currently supported.")
     if the_variant_type == "c": 
         rep_seq_length = len(the_repeated_sequence)
         if rep_seq_length % 3 != 0:
             final_format = reformat_not_multiple_of_three(var_prefix, the_variant_type, the_var_pos, the_repeated_sequence, the_number_of_repeats)
         else:
             print("Repeat length is consistent with c. type")
-    if "_" in the_var_pos:
-        the_var_pos = check_positions_given(the_repeated_sequence, the_var_pos, the_number_of_repeats)
-    if all_after_bracket != "":
-        print("No information should be included after the number of repeat units. Mixed repeats are currently not supported.")
-    final_format = f"{var_prefix}:{the_variant_type}.{the_var_pos}{the_repeated_sequence}[{the_number_of_repeats}]"
+            final_format = f"{var_prefix}:{the_variant_type}.{the_var_pos}{the_repeated_sequence}[{the_number_of_repeats}]"
+    else:
+        final_format = f"{var_prefix}:{the_variant_type}.{the_var_pos}{the_repeated_sequence}[{the_number_of_repeats}]"
     return final_format
 
 print(reformat(the_prefix, variant_type, variant_position,
