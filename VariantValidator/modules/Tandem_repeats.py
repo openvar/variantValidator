@@ -6,15 +6,16 @@ By Rebecca Locke + Rob Wilson
 """
 # Import modules
 import re
+import logging
 
 #  List of variants to check format and split into constituents
-variant1="LRG_199t1:c.1ACT[20]"
+variant1 = "LRG_199t1:c.1ACT[20]"
 variant2 = "LRG_199:g.1ACT[20]A"
 variant3 = "LRG_199:g.1AC[20]"
 variant4 = "LRG_199t1:c.1_3ACT[20]"
-variant5 = "LRG_199t1:c.1AC[20]"
+variant5 = "LRG_199t1:c.1AC[10]"
 variant6 = "LRG_199t1:c.1act[20]"
-variant7 = "LRG199:c.1A[12]"
+variant7 = "LRG_199t1:c.1A[12]"
 variant8 = "LRG_199:g.13ACT[20]"
 variant9 = "LRG_199:g.13_25ACTG[12]"
 variant10 = "LRG199:g.13_125ACTG[1]"
@@ -26,6 +27,9 @@ variant15 = "NM_004006.2:c.13AC[22]"
 variant15 = "NR_004430.2:c.13AC[22]"
 variant16 = "LRG_199t1:c.ACT1_3[20]"
 variant17 = "NG_004006.2:g.1_2act[22]"
+# Below are converted to dup and ins but gives wrong positions ?
+variant18 = "NM_024312.4:c.2686A[10]"
+variant19 = "NM_024312.4:c.1738TA[6]"
 
 # Parse the variant to get relevant parts
 def parse_repeat_variant(my_variant):
@@ -50,13 +54,15 @@ def parse_repeat_variant(my_variant):
         variant_type = re.search('^.*?(.*?)\.', suffix)
         var_type = variant_type.group(1)
         # Get g or c position(s)
-        #Extract bit between . and [ e.g. 1ACT
+        # Extract bit between . and [ e.g. 1ACT
         pos_and_seq = suffix.split(".")[1].split("[")[0]
-        assert re.search("[a-z]+", pos_and_seq, re.IGNORECASE), "Please ensure that the repeated sequence is included between the position and number of repeat units, e.g. g.1ACT[20]"
+        assert re.search(
+            "[a-z]+", pos_and_seq, re.IGNORECASE), "Please ensure that the repeated sequence is included between the position and number of repeat units, e.g. g.1ACT[20]"
         rep_seq = re.search("[ACTG]+", pos_and_seq, re.IGNORECASE)
         repeated_seq = rep_seq.group()
         if "_" in pos_and_seq:
-            assert re.search("[0-9]+_[0-9]+", pos_and_seq), "Please ensure the start and the end of the full repeat range is provided, separated by an underscore"
+            assert re.search(
+                "[0-9]+_[0-9]+", pos_and_seq), "Please ensure the start and the end of the full repeat range is provided, separated by an underscore"
             variant_positions = re.search("[0-9]+_[0-9]+", pos_and_seq)
             var_pos = variant_positions.group()
         else:
@@ -66,14 +72,15 @@ def parse_repeat_variant(my_variant):
         repeat_no = re.search('\[(.*?)\]', my_variant)
         no_of_repeats = repeat_no.group(1)
         # Get anything after ] to check
-        if re.search('\](.*)',my_variant):
-            after_brac = re.search('\](.*)',my_variant)
+        if re.search('\](.*)', my_variant):
+            after_brac = re.search('\](.*)', my_variant)
             after_the_bracket = after_brac.group(1)
         else:
             after_the_bracket = None
         return prefix, var_type, var_pos, repeated_seq, no_of_repeats, after_the_bracket
 
-variant_check = parse_repeat_variant(variant1)
+
+variant_check = parse_repeat_variant(variant19)
 
 the_prefix = variant_check[0]
 variant_type = variant_check[1]
@@ -82,9 +89,11 @@ repeated_sequence = variant_check[3]
 number_of_repeats = variant_check[4]
 after_bracket = variant_check[5]
 
-print(the_prefix, variant_type, variant_position, repeated_sequence, number_of_repeats, after_bracket)
+print(the_prefix, variant_type, variant_position,
+      repeated_sequence, number_of_repeats, after_bracket)
 
 print(after_bracket)
+
 
 def check_transcript_type(prefix):
     """
@@ -108,12 +117,14 @@ def check_transcript_type(prefix):
         raise NameError('Unknown transcript type present. \
                         Try RefSeq transcript ID')
 
+
 check_transcript_type(the_prefix)
+
 
 def reformat_prefix(prefix):
     if re.match(r'^LRG', prefix):
         if re.match(r'^LRG\d+', prefix):
-            prefix = prefix.replace('LRG','LRG_')
+            prefix = prefix.replace('LRG', 'LRG_')
             print("LRG variant updated to include underscore")
         # Get transcript number
         if "t" in prefix:
@@ -122,7 +133,9 @@ def reformat_prefix(prefix):
             print(transcript_version)
     return prefix
 
+
 the_prefix = reformat_prefix(the_prefix)
+
 
 def check_genomic_or_coding(prefix, var_type):
     """Takes prefix and works out if variant type should be c. or g. and raises error if incorrect type supplied
@@ -146,9 +159,12 @@ def check_genomic_or_coding(prefix, var_type):
     elif re.match(r'^NG', prefix):
         assert var_type == "g", "Please ensure variant type is genomic if RefSeq gene is used"
 
+
 check_genomic_or_coding(the_prefix, variant_type)
 
 # For variants with the full range of the position given (not only start pos)
+
+
 def check_positions_given(repeated_sequence, variant_pos, no_of_rep_units):
     """Checks the position range given and updates it if it doesn't make match the length of the repeated sequence and number of repeat units
         Args:
@@ -171,36 +187,9 @@ def check_positions_given(repeated_sequence, variant_pos, no_of_rep_units):
         full_range = f"{start_range}_{new_end_range}"
     return full_range
 
-# Reformat the variant for HGVS consistency
-def reformat(var_prefix,the_variant_type, the_var_pos, the_repeated_sequence, the_number_of_repeats, all_after_bracket):
-    # Check number of repeat units is integers and that the sequence is A,C,T or G
-    assert the_number_of_repeats.isdecimal(),"The number of repeat units included between square brackets must be numeric"
-    assert re.search("[actg]+", the_repeated_sequence, re.IGNORECASE), "Please ensure the repeated sequence includes only A, C, T or G"
-    # Update the repeated sequence to be upper case
-    the_repeated_sequence = the_repeated_sequence.upper()
-    if "_" in the_var_pos:
-        the_var_pos = check_positions_given(the_repeated_sequence, the_var_pos, the_number_of_repeats)
-    if all_after_bracket != "":
-        print("No information should be included after the number of repeat units. Mixed repeats are currently not supported.")
-    return f"{var_prefix}:{the_variant_type}.{the_var_pos}{the_repeated_sequence}[{the_number_of_repeats}]"
-
-print(reformat(the_prefix, variant_type, variant_position, repeated_sequence, number_of_repeats, after_bracket))
-
-# Working on this now 
-def convert_not_multiple_of_three(vartype, position, rep_seq, no_of_repeats):
-    if len(rep_seq) % 3 != 0:
-        print("Repeated sequence is not a multiple of three!")
+# # Note Community Consultation is prepared which will suggest to allow only one format where the entire range of the repeated sequence must be indicated, e.g. g.123_191CAG[23]. This small function will give you the range from getting only a start position
 
 
-"""Other useful functions"""
-
-def check_no_repeats(start_range, end_range, repeated_sequence):
-    rep_seq_length = len(repeated_sequence)
-    the_range = int(end_range) - int(start_range) + 1
-    no_of_units = int(the_range / rep_seq_length)
-    return no_of_units
-
-# Note Community Consultation is prepared which will suggest to allow only one format where the entire range of the repeated sequence must be indicated, e.g. g.123_191CAG[23]. This small function will give you the range from getting only a start position
 def get_range_from_single_pos(repeated_sequence, start_range, no_of_rep_units):
     rep_seq_length = len(repeated_sequence)
     repeat_length = (rep_seq_length * int(no_of_rep_units))
@@ -208,5 +197,54 @@ def get_range_from_single_pos(repeated_sequence, start_range, no_of_rep_units):
     full_range = f"{start_range}_{the_end_range}"
     return full_range
 
-#if __name__ == "__main__":
+# Working on this now
+"""exception: using a coding DNA reference sequence (“c.” description) a Repeated sequence variant description can be used only for repeat units with a length which is a multiple of 3, i.e. which can not affect the reading frame. Consequently, use NM_024312.4:c.2692_2693dup and not NM_024312.4:c.2686A[10], use NM_024312.4:c.1741_1742insTATATATA and not NM_024312.4:c.1738TA[6]."""
+def reformat_not_multiple_of_three(pref, vartype, position, rep_seq, no_of_repeats):
+    rep_seq_length = len(rep_seq)
+    print("Warning: Repeated sequence is not a multiple of three! Updating variant description")
+    if not "_" in position:
+        position = get_range_from_single_pos(
+            rep_seq, position, no_of_repeats)
+    if rep_seq_length == 1:
+        reformatted = f'{pref}:{vartype}.{position}dup'
+    elif rep_seq_length == 2:
+        rep_seq = rep_seq*int(no_of_repeats)
+        reformatted = f'{pref}:{vartype}.{position}ins{rep_seq}'
+    return reformatted
+
+# Reformat the variant for HGVS consistency
+
+def reformat(var_prefix, the_variant_type, the_var_pos, the_repeated_sequence, the_number_of_repeats, all_after_bracket):
+    # Check number of repeat units is integers and that the sequence is A,C,T or G
+    assert the_number_of_repeats.isdecimal(
+    ), "The number of repeat units included between square brackets must be numeric"
+    assert re.search("[actg]+", the_repeated_sequence,
+                     re.IGNORECASE), "Please ensure the repeated sequence includes only A, C, T or G"
+    # Update the repeated sequence to be upper case
+    the_repeated_sequence = the_repeated_sequence.upper()
+    if the_variant_type == "c": 
+        rep_seq_length = len(the_repeated_sequence)
+        if rep_seq_length % 3 != 0:
+            final_format = reformat_not_multiple_of_three(var_prefix, the_variant_type, the_var_pos, the_repeated_sequence, the_number_of_repeats)
+        else:
+            print("Repeat length is consistent with c. type")
+    if "_" in the_var_pos:
+        the_var_pos = check_positions_given(the_repeated_sequence, the_var_pos, the_number_of_repeats)
+    if all_after_bracket != "":
+        print("No information should be included after the number of repeat units. Mixed repeats are currently not supported.")
+    final_format = f"{var_prefix}:{the_variant_type}.{the_var_pos}{the_repeated_sequence}[{the_number_of_repeats}]"
+    return final_format
+
+print(reformat(the_prefix, variant_type, variant_position,
+      repeated_sequence, number_of_repeats, after_bracket))
+
+
+# def check_no_repeats(start_range, end_range, repeated_sequence):
+#     rep_seq_length = len(repeated_sequence)
+#     the_range = int(end_range) - int(start_range) + 1
+#     no_of_units = int(the_range / rep_seq_length)
+#     return no_of_units
+
+
+# if __name__ == "__main__":
 #    main()
