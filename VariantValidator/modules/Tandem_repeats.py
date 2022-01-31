@@ -32,7 +32,11 @@ variant18 = "NM_024312.4:c.2686A[10]"
 variant19 = "NM_024312.4:c.1738TA[6]"
 variant20 = "LRG199t2:c.1_5C[10]"
 variant21 = "LRG199t2:c.1-5C[10]"
-variant22 = "NM_024312:c.2686A[10]"
+variant22 = "NM_024312.1:c.2686A[10]"
+variant23 = "LRG_199:g.[123456A>G];[345678G>C]"
+# Should be 1_20insAGAGAGAG etc
+variant24 = "LRG_199t1:c.15_20AG[10]"
+variant25 = "LRG_199:g.1AG[10]"
 
 # Parse the variant to get relevant parts
 def parse_repeat_variant(my_variant):
@@ -52,6 +56,8 @@ def parse_repeat_variant(my_variant):
     """
     if "[" or "]" in my_variant:
         assert ":" in my_variant, f"Unable to identify a colon (:) in the variant description {my_variant}. A colon is required in HGVS variant descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. e.g. :c"
+        assert ";" not in my_variant, "Alleles not yet supported"
+        assert "," not in my_variant, "Alleles not yet supported"
         prefix, suffix = my_variant.split(":")
         # Find reference sequence used (g or c)
         variant_type = re.search('^.*?(.*?)\.', suffix)
@@ -88,7 +94,7 @@ def parse_repeat_variant(my_variant):
         return prefix, var_type, var_pos, repeated_seq, no_of_repeats, after_the_bracket
 
 
-variant_check = parse_repeat_variant(variant22)
+variant_check = parse_repeat_variant(variant24)
 
 the_prefix = variant_check[0]
 variant_type = variant_check[1]
@@ -137,7 +143,6 @@ def reformat_prefix(prefix):
         if "t" in prefix:
             transcript_num = re.search("t(.*?)$", prefix)
             transcript_version = f"t{transcript_num.group(1)}"
-            print(transcript_version)
     elif re.match(r'^ENST', prefix) or re.match(r'^NM_', prefix):
         assert "." in prefix, "Please ensure the transcript version is included following a '.' after the transcript name e.g. ENST00000357033.8"
     return prefix
@@ -206,18 +211,30 @@ def get_range_from_single_pos(repeated_sequence, start_range, no_of_rep_units):
     full_range = f"{start_range}_{the_end_range}"
     return full_range
 
-# Working on this now
 """exception: using a coding DNA reference sequence (“c.” description) a Repeated sequence variant description can be used only for repeat units with a length which is a multiple of 3, i.e. which can not affect the reading frame. Consequently, use NM_024312.4:c.2692_2693dup and not NM_024312.4:c.2686A[10], use NM_024312.4:c.1741_1742insTATATATA and not NM_024312.4:c.1738TA[6]."""
+
+# This will reformat tandem repeat variants in c. which should be noted as dup or ins as they are not multiples of 3
 def reformat_not_multiple_of_three(pref, vartype, position, rep_seq, no_of_repeats):
     rep_seq_length = len(rep_seq)
-    print("Warning: Repeated sequence is not a multiple of three! Updating variant description")
-    if not "_" in position:
-        position = get_range_from_single_pos(rep_seq, position, no_of_repeats)
+    print(position)
+    # Repeat of 1 base should be a dup with full range given
     if rep_seq_length == 1:
+        if not "_" in position:
+            position = get_range_from_single_pos(rep_seq, position, no_of_repeats)
+        print("Warning: Repeated sequence is not a multiple of three! Updating variant description to a duplication")
         reformatted = f'{pref}:{vartype}.{position}dup'
+    # Repeat of 2 bases should be an ins with only first two nts given as range
     elif rep_seq_length == 2:
-        rep_seq = rep_seq*int(no_of_repeats)
-        reformatted = f'{pref}:{vartype}.{position}ins{rep_seq}'
+        expanded_rep_seq = rep_seq*int(no_of_repeats)
+        if not "_" in position:
+            second_range = int(position)+1
+            position = f"{position}_{second_range}"
+        else:
+            start, end = position.split("_")
+            end = int(start)+1
+            position = f"{start}_{end}"
+        print("Warning: Repeated sequence is not a multiple of three! Updating variant description to insertion")
+        reformatted = f'{pref}:{vartype}.{position}ins{expanded_rep_seq}'
     return reformatted
 
 # Reformat the variant for HGVS consistency
