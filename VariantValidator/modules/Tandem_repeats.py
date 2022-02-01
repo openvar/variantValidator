@@ -266,9 +266,14 @@ variant25 = "ENST00000198947:c.1_2AG[10]"
 # Gives AssertionError: Please ensure that the repeated sequence is included between the position and number of repeat units, e.g. g.1ACT[20]
 variant26 = "ENST00000198947.1:c.1_2[10]"
 
+# Run through pipeline
+def main():
+    my_variant = TandemRepeats.parse_repeat_variant(variant1)
+    TandemRepeats.check_transcript_type(my_variant)
+    TandemRepeats.reformat_prefix(my_variant)
+    TandemRepeats.check_genomic_or_coding(my_variant)
+    print(TandemRepeats.reformat(my_variant))
+        
 
-my_variant = TandemRepeats.parse_repeat_variant(variant26)
-TandemRepeats.check_transcript_type(my_variant)
-TandemRepeats.reformat_prefix(my_variant)
-TandemRepeats.check_genomic_or_coding(my_variant)
-print(TandemRepeats.reformat(my_variant))
+if __name__ == "__main__":
+    main()
