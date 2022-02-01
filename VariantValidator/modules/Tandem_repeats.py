@@ -214,8 +214,8 @@ class Tandem_repeats:
             final_format = f"{self.prefix}:{self.variant_type}.{self.variant_position}{self.repeat_sequence}[{self.copy_number}]"
         return final_format
 
-# Gives LRG_199t1:c.1ACT[20]
-variant_1 = "LRG_199t1:c.1AC[20]"
+# Gives LRG_199t1:c.1_2insACACACACACACACACACACACACACAC
+variant1 = "LRG_199t1:c.1_5AC[14]"
 # Gives LRG_199:g.1ACT[20]
 variant2 = "LRG_199:g.1ACT[20]A"
 # Gives LRG_199:g.1AC[20]
@@ -266,7 +266,7 @@ variant24 = "LRG_199t1:c.15_20AG[10]"
 variant25 = "ENST00000198947:c.1_2AG[10]"
 
 
-my_variant = Tandem_repeats.parse_repeat_variant(variant25)
+my_variant = Tandem_repeats.parse_repeat_variant(variant1)
 Tandem_repeats.check_transcript_type(my_variant)
 Tandem_repeats.reformat_prefix(my_variant)
 Tandem_repeats.check_genomic_or_coding(my_variant)
