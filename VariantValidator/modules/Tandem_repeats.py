@@ -8,7 +8,7 @@ By Rebecca Locke + Rob Wilson
 import re
 import logging
 
-class Tandem_repeats:
+class TandemRepeats:
     def __init__(self, prefix, variant_type, variant_position, repeat_sequence,copy_number, after_the_bracket):
         self.prefix = prefix
         self.variant_type = variant_type
@@ -267,8 +267,8 @@ variant25 = "ENST00000198947:c.1_2AG[10]"
 variant26 = "ENST00000198947.1:c.1_2[10]"
 
 
-my_variant = Tandem_repeats.parse_repeat_variant(variant26)
-Tandem_repeats.check_transcript_type(my_variant)
-Tandem_repeats.reformat_prefix(my_variant)
-Tandem_repeats.check_genomic_or_coding(my_variant)
-print(Tandem_repeats.reformat(my_variant))
+my_variant = TandemRepeats.parse_repeat_variant(variant26)
+TandemRepeats.check_transcript_type(my_variant)
+TandemRepeats.reformat_prefix(my_variant)
+TandemRepeats.check_genomic_or_coding(my_variant)
+print(TandemRepeats.reformat(my_variant))
