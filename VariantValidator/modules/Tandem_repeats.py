@@ -9,9 +9,9 @@ import re
 import logging
 
 class TandemRepeats:
-    def __init__(self, prefix, variant_type, variant_position, repeat_sequence,copy_number, after_the_bracket):
+    def __init__(self, reference, prefix, variant_position, repeat_sequence,copy_number, after_the_bracket):
+        self.reference = reference
         self.prefix = prefix
-        self.variant_type = variant_type
         self.variant_position = variant_position
         self.repeat_sequence = repeat_sequence
         self.copy_number = copy_number
@@ -25,8 +25,8 @@ class TandemRepeats:
         Args:
             variant_str (string): Variant string e.g. "LRG_199:g.1ACT[20]A"
         Returns:
-            prefix (string): Transcript or gene; everything before the first colon, e.g. "LRG_199"
-            variant_type (string): The variant genomic or coding type e.g. "g"
+            reference(string): Transcript or gene; everything before the first colon, e.g. "LRG_199"
+            prefix (string): The variant genomic or coding type e.g. "g"
             variant_position(string): Position of the variant, e.g. "1" or "1_12"
             repeat_sequence (string): The repeated sequence e.g. "ACT"
             copy_number (string): The number of repeat units e.g. "20"
@@ -37,11 +37,11 @@ class TandemRepeats:
                 A colon is required in HGVS variant descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. e.g. :c"
             assert ";" not in variant_str, "Alleles not yet supported"
             assert "," not in variant_str, "Alleles not yet supported"
-            prefix, suffix = variant_str.split(":")
+            reference, suffix = variant_str.split(":")
             # Find reference sequence used (g or c)
             var_type = re.search('^.*?(.*?)\.', suffix)
-            variant_type = var_type.group(1)
-            variant_type = variant_type.lower()
+            prefix = var_type.group(1)
+            prefix = prefix.lower()
             # Get g or c position(s)
             # Extract bit between . and [ e.g. 1ACT
             pos_and_seq = suffix.split(".")[1].split("[")[0]
@@ -73,67 +73,66 @@ class TandemRepeats:
                 after_the_bracket = after_brac.group(1)
             else:
                 after_the_bracket = ""
-        return cls(prefix, variant_type, variant_position, repeat_sequence, copy_number, after_the_bracket)
+        return cls(reference, prefix, variant_position, repeat_sequence, copy_number, after_the_bracket)
 
     def check_transcript_type(self):
         """
         Summary:
             Find transcript type. N.B. Future development could instead store the transcript and replace it with RefSeq.
         Args:
-            prefix (string): The prefix from parse_variant_repeat
+            reference (string): The reference from parse_variant_repeat
         Returns: 
             None, prints variant type
         Raises:
             NameError: [Error for unknown transcript type.]
         """
-        if bool(re.match(r"^LRG", self.prefix)):
+        if bool(re.match(r"^LRG", self.reference)):
             print("LRG variant")
-            # reformat_prefix_LRG(prefix)
-        elif bool(re.match(r"^E", self.prefix)):
+        elif bool(re.match(r"^E", self.reference)):
             print("Ensembl variant")
-        elif bool(re.match(r"^N", self.prefix)):
+        elif bool(re.match(r"^N", self.reference)):
             print("RefSeq variant")
         else:
             raise NameError('Unknown transcript type present. \
                             Try RefSeq transcript ID')
 
-    def reformat_prefix(self):
-        if re.match(r'^LRG', self.prefix):
-            if re.match(r'^LRG\d+', self.prefix):
-                self.prefix = self.prefix.replace('LRG', 'LRG_')
+    def reformat_reference(self):
+        if re.match(r'^LRG', self.reference):
+            if re.match(r'^LRG\d+', self.reference):
+                self.reference = self.reference.replace('LRG', 'LRG_')
                 print("LRG variant updated to include underscore")
             # Get transcript number
-            if "t" in self.prefix:
-                transcript_num = re.search("t(.*?)$", self.prefix)
+            if "t" in self.reference:
+                transcript_num = re.search("t(.*?)$", self.reference)
                 transcript_version = f"t{transcript_num.group(1)}"
-        elif re.match(r'^ENS', self.prefix) or re.match(r'^N', self.prefix):
-            assert "." in self.prefix, \
+        elif re.match(r'^ENS', self.reference) or re.match(r'^N', self.reference):
+            assert "." in self.reference, \
                 "Please ensure the transcript or gene version is included following a '.' after the transcript or gene name e.g. ENST00000357033.8"
-        return self.prefix
+        return self.reference
 
     def check_genomic_or_coding(self):
-        """Takes prefix and works out if variant type should be c. or g. and raises error if incorrect type supplied
+        """Takes reference and works out if variant type should be c. or g. and raises error if incorrect type supplied
         Args:
-            prefix (string): The prefix e.g. "LRG_199"
+            reference (string): The reference e.g. "LRG_199"
             var_type (string): Variant type genomic or coding e.g. "g"
         Returns:
             None, gives error if wrong variant type is used
         """
-        if re.match(r'^LRG', self.prefix):
-            if "t" in self.prefix:
-                assert self.variant_type == "c", "Please ensure variant type is coding if an LRG transcript is provided"
+        if re.match(r'^LRG', self.reference):
+            if "t" in self.reference:
+                assert self.prefix == "c", "Please ensure variant type is coding if an LRG transcript is provided"
             else:
-                assert self.variant_type == "g", "Please ensure variant type is genomic if LRG gene is used"
-        elif re.match(r'^ENST', self.prefix):
-            assert self.variant_type == "c", "Please ensure variant type is coding if an Ensembl transcript is provided"
-        elif re.match(r'^ENSG', self.prefix):
-            assert self.variant_type == "g", "Please ensure variant type is genomic if Ensembl gene is used"
-        elif re.match(r'^NM', self.prefix):
-            assert self.variant_type == "c", "Please ensure variant type is coding if a RefSeq transcript is provided"
-        elif re.match(r'^NC', self.prefix):
-            assert self.variant_type == "g", "Please ensure variant type is genomic if RefSeq chromosome is used"
-        elif re.match(r'^NG', self.prefix):
-            assert self.variant_type == "g", "Please ensure variant type is genomic if RefSeq gene is used"
+                assert self.prefix == "g", "Please ensure variant type is genomic if LRG gene is used"
+        elif re.match(r'^ENST', self.reference):
+            assert self.prefix == "c", "Please ensure variant type is coding if an Ensembl transcript is provided"
+        elif re.match(r'^ENSG', self.reference):
+            assert self.prefix == "g", "Please ensure variant type is genomic if Ensembl gene is used"
+        elif re.match(r'^NM', self.reference):
+            assert self.prefix == "c", "Please ensure variant type is coding if a RefSeq transcript is provided"
+        elif re.match(r'^NC', self.reference):
+            assert self.prefix == "g", "Please ensure variant type is genomic if RefSeq chromosome is used"
+        elif re.match(r'^NG', self.reference):
+            assert self.prefix == "g", "Please ensure variant type is genomic if RefSeq gene is used"
 
     def check_positions_given(self):
         """Checks the position range given and updates it if it doesn't match the length of the repeated sequence and number of repeat units when full range is needed
@@ -176,7 +175,7 @@ class TandemRepeats:
             else:
                 self.variant_position = self.get_range_from_single_pos()
             print("Warning: Repeated sequence is coding and not a multiple of three! Updating variant description to a duplication")
-            reformatted = f'{self.prefix}:{self.variant_type}.{self.variant_position}dup'
+            reformatted = f'{self.reference}:{self.prefix}.{self.variant_position}dup'
         # Repeat of 2 bases should be an ins with only first two nts given as range
         elif rep_seq_length >= 2:
             expanded_rep_seq = self.repeat_sequence*int(self.copy_number)
@@ -188,7 +187,7 @@ class TandemRepeats:
                 end = int(start)+1
                 position = f"{start}_{end}"
             print("Warning: Repeated sequence is coding and not a multiple of three! Updating variant description to insertion")
-            reformatted = f'{self.prefix}:{self.variant_type}.{position}ins{expanded_rep_seq}'
+            reformatted = f'{self.reference}:{self.prefix}.{position}ins{expanded_rep_seq}'
         return reformatted
 
     def reformat(self):
@@ -202,7 +201,7 @@ class TandemRepeats:
         if self.after_the_bracket != "":
             print("No information should be included after the number of repeat units. Mixed repeats are not currently supported.")
         # Reformat c. variants
-        if self.variant_type == "c": 
+        if self.prefix == "c": 
             rep_seq_length = len(self.repeat_sequence)
             if rep_seq_length % 3 != 0:
                 final_format = self.reformat_not_multiple_of_three()
@@ -210,12 +209,12 @@ class TandemRepeats:
                 print("Repeat length is consistent with c. type")
                 if "_" in self.variant_position:
                     self.variant_position = self.check_positions_given()
-                final_format = f"{self.prefix}:{self.variant_type}.{self.variant_position}{self.repeat_sequence}[{self.copy_number}]"
+                final_format = f"{self.reference}:{self.prefix}.{self.variant_position}{self.repeat_sequence}[{self.copy_number}]"
         # Reformat g. variants
         else:
             if "_" in self.variant_position:
                 self.variant_position = self.check_positions_given()
-            final_format = f"{self.prefix}:{self.variant_type}.{self.variant_position}{self.repeat_sequence}[{self.copy_number}]"
+            final_format = f"{self.reference}:{self.prefix}.{self.variant_position}{self.repeat_sequence}[{self.copy_number}]"
         return final_format
 
 # Gives LRG_199t1:c.1_2insACACACACACACACACACACACACACAC
@@ -277,7 +276,7 @@ variant27 = "ENST00000198947.1:C.1_2A[10]"
 def main():
     my_variant = TandemRepeats.parse_repeat_variant(variant27)
     TandemRepeats.check_transcript_type(my_variant)
-    TandemRepeats.reformat_prefix(my_variant)
+    TandemRepeats.reformat_reference(my_variant)
     TandemRepeats.check_genomic_or_coding(my_variant)
     print(TandemRepeats.reformat(my_variant))
         
