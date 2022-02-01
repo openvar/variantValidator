@@ -39,12 +39,15 @@ class TandemRepeats:
         Args:
             variant_str (string): Variant string e.g. "LRG_199:g.1ACT[20]A"
         Returns:
+            Updates each self.variable:
+
             reference(string): Transcript or gene; everything before the first colon, e.g. "LRG_199"
             prefix (string): The variant genomic or coding type e.g. "g"
             variant_position(string): Position of the variant, e.g. "1" or "1_12"
             repeat_sequence (string): The repeated sequence e.g. "ACT"
             copy_number (string): The number of repeat units e.g. "20"
             after_the_bracket (string): Captures anything after the number of repeats bracket e.g. "A"
+
         """
         logger.info(f"parse_repeat_variant({variant_str})")
         if "[" or "]" in variant_str:
@@ -113,6 +116,9 @@ class TandemRepeats:
                             Try RefSeq transcript ID')
 
     def reformat_reference(self):
+        """
+        Add docstring
+        """
         logger.info(f"reformat_reference({self.reference})")
         if re.match(r'^LRG', self.reference):
             if re.match(r'^LRG\d+', self.reference):
@@ -139,6 +145,7 @@ class TandemRepeats:
         if re.match(r'^LRG', self.reference):
             if "t" in self.reference:
                 assert self.prefix == "c", "Please ensure variant type is coding if an LRG transcript is provided"
+                #logger.critical("Variant prefix is not c. but LRG gene is used")
             else:
                 assert self.prefix == "g", "Please ensure variant type is genomic if LRG gene is used"
         elif re.match(r'^ENST', self.reference):
@@ -161,7 +168,7 @@ class TandemRepeats:
         Returns: 
             full_range (string): The full range supplied if correct or the full range updated if inputted range was incorrect, e.g. "1_20"
         """
-        logger.info(f"check_positions_given({self.repeat_sequence},{self.variant_position},{self.copy_number}")
+        logger.info(f"check_positions_given({self.repeat_sequence},{self.variant_position},{self.copy_number})")
         start_range, end_range = self.variant_position.split("_")
         rep_seq_length = len(self.repeat_sequence)
         the_range = int(end_range) - int(start_range) + 1
@@ -177,6 +184,9 @@ class TandemRepeats:
         return full_range
 
     def get_range_from_single_pos(self):
+        """
+        Add docstring
+        """
         logger.info(f"get_range_from_single_pos({self.repeat_sequence},{self.copy_number},{self.variant_position}")
         rep_seq_length = len(self.repeat_sequence)
         repeat_range = (rep_seq_length * int(self.copy_number))
@@ -186,6 +196,9 @@ class TandemRepeats:
 
     # This will reformat tandem repeat variants in c. which should be noted as dup or ins as they are not multiples of 3
     def reformat_not_multiple_of_three(self):
+        """
+        Add docstring
+        """
         logger.info(f"reformat_not_multiple_of_three({self.repeat_sequence},{self.variant_position},{self.reference},{self.prefix})")
         reformatted = ""
         rep_seq_length = len(self.repeat_sequence)
