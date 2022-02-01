@@ -36,6 +36,7 @@ variant23 = "LRG_199:g.[123456A>G];[345678G>C]"
 
 variant24 = "LRG_199t1:c.15_20AG[10]"
 variant25 = "LRG_199:g.1AG[10]"
+variant26 = "ENST00000198947.1:c.1_2AG[10]"
 
 # Parse the variant to get relevant parts
 def parse_repeat_variant(my_variant):
@@ -93,7 +94,7 @@ def parse_repeat_variant(my_variant):
         return prefix, var_type, var_pos, repeated_seq, no_of_repeats, after_the_bracket
 
 
-variant_check = parse_repeat_variant(variant25)
+variant_check = parse_repeat_variant(variant26)
 
 the_prefix = variant_check[0]
 variant_type = variant_check[1]
@@ -137,8 +138,8 @@ def reformat_prefix(prefix):
         if "t" in prefix:
             transcript_num = re.search("t(.*?)$", prefix)
             transcript_version = f"t{transcript_num.group(1)}"
-    elif re.match(r'^ENST', prefix) or re.match(r'^NM_', prefix):
-        assert "." in prefix, "Please ensure the transcript version is included following a '.' after the transcript name e.g. ENST00000357033.8"
+    elif re.match(r'^ENS', prefix) or re.match(r'^N', prefix):
+        assert "." in prefix, "Please ensure the transcript or gene version is included following a '.' after the transcript or gene name e.g. ENST00000357033.8"
     return prefix
 
 
@@ -150,6 +151,8 @@ def check_genomic_or_coding(prefix, var_type):
     Args:
         prefix (string): The prefix e.g. "LRG_199"
         var_type (string): Variant type genomic or coding e.g. "g"
+    Returns:
+        None, gives error if wrong variant type is used
     """
     if re.match(r'^LRG', prefix):
         if "t" in prefix:
@@ -215,7 +218,7 @@ def reformat_not_multiple_of_three(pref, vartype, position, rep_seq, no_of_repea
             position = check_positions_given(rep_seq, position, no_of_repeats)
         else:
             position = get_range_from_single_pos(rep_seq, position, no_of_repeats)
-        print("Warning: Repeated sequence is not a multiple of three! Updating variant description to a duplication")
+        print("Warning: Repeated sequence is coding and not a multiple of three! Updating variant description to a duplication")
         reformatted = f'{pref}:{vartype}.{position}dup'
     # Repeat of 2 bases should be an ins with only first two nts given as range
     elif rep_seq_length >= 2:
@@ -227,7 +230,7 @@ def reformat_not_multiple_of_three(pref, vartype, position, rep_seq, no_of_repea
             start, end = position.split("_")
             end = int(start)+1
             position = f"{start}_{end}"
-        print("Warning: Repeated sequence is not a multiple of three! Updating variant description to insertion")
+        print("Warning: Repeated sequence is coding and not a multiple of three! Updating variant description to insertion")
         reformatted = f'{pref}:{vartype}.{position}ins{expanded_rep_seq}'
     return reformatted
 
@@ -273,3 +276,103 @@ print(reformat(the_prefix, variant_type, variant_position,
 
 # if __name__ == "__main__":
 #    main()
+
+
+# Turning into class
+
+import re
+import logging
+
+class Tandem_repeats:
+    def __init__(self, prefix, variant_type, variant_position, repeat_sequence,copy_number, after_the_bracket):
+        self.prefix = prefix
+        self.variant_type = variant_type
+        self.variant_position = variant_position
+        self.repeat_sequence = repeat_sequence
+        self.copy_number = copy_number
+        self.after_the_bracket = after_the_bracket
+
+    @classmethod
+    def parse_repeat_variant(cls, variant_str):
+        """
+        Summary:
+        This takes a variant string and breaks it into its constituents with regex.
+
+        Args:
+            my_variant (string): Variant string e.g. "LRG_199:g.1ACT[20]A"
+        Returns:
+            prefix (string): Transcript or gene; everything before the first colon, e.g. "LRG_199"
+            var_type (string): The variant genomic or coding type e.g. "g"
+            var_pos (string): Position of the variant, e.g. "1" or "1_12"
+            repeated_seq (string): The repeated sequence e.g. "ACT"
+            no_of_repeats (string): The number of repeat units e.g. "20"
+            after_the_bracket (string): Captures anything after the number of repeats bracket e.g. "A"
+        """
+        if "[" or "]" in variant_str:
+            assert ":" in variant_str, f"Unable to identify a colon (:) in the variant description {variant_str}. A colon is required in HGVS variant descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. e.g. :c"
+            assert ";" not in variant_str, "Alleles not yet supported"
+            assert "," not in variant_str, "Alleles not yet supported"
+            prefix, suffix = variant_str.split(":")
+            # Find reference sequence used (g or c)
+            var_type = re.search('^.*?(.*?)\.', suffix)
+            variant_type = var_type.group(1)
+            # Get g or c position(s)
+            # Extract bit between . and [ e.g. 1ACT
+            pos_and_seq = suffix.split(".")[1].split("[")[0]
+            assert re.search(
+                "[a-z]+", pos_and_seq, re.IGNORECASE), "Please ensure that the repeated sequence is included between the position and number of repeat units, e.g. g.1ACT[20]"
+            rep_seq = re.search("[ACTG]+", pos_and_seq, re.IGNORECASE)
+            repeat_sequence = rep_seq.group()
+            # Ensure sign used to indicate range is “_” (underscore), not “-“ (minus)
+            if "-" in pos_and_seq:
+                pos_and_seq = pos_and_seq.replace('-', '_')
+            # Check both ends of range are given
+            if "_" in pos_and_seq:
+                assert re.search(
+                    "[0-9]+_[0-9]+", pos_and_seq), "Please ensure the start and the end of the full repeat range is provided, separated by an underscore"
+                variant_positions = re.search("[0-9]+_[0-9]+", pos_and_seq)
+                variant_position = variant_positions.group()
+            else:
+                # If just start pos, get digits
+                variant_position = re.search("\d+", pos_and_seq)
+                variant_position = variant_position.group()
+            # Get number of unit repeats
+            repeat_no = re.search('\[(.*?)\]', variant_str)
+            copy_number = repeat_no.group(1)
+            # Get anything after ] to check
+            if re.search('\](.*)', variant_str):
+                after_brac = re.search('\](.*)', variant_str)
+                after_the_bracket = after_brac.group(1)
+            else:
+                after_the_bracket = ""
+        return cls(prefix, variant_type, variant_position, repeat_sequence, copy_number, after_the_bracket)
+
+    def check_genomic_or_coding(self):
+        """Takes prefix and works out if variant type should be c. or g. and raises error if incorrect type supplied
+        Args:
+            prefix (string): The prefix e.g. "LRG_199"
+            var_type (string): Variant type genomic or coding e.g. "g"
+        Returns:
+            None, gives error if wrong variant type is used
+        """
+        if re.match(r'^LRG', self.prefix):
+            if "t" in self.prefix:
+                assert self.variant_type == "c", "Please ensure variant type is coding if an LRG transcript is provided"
+            else:
+                assert self.variant_type == "g", "Please ensure variant type is genomic if LRG gene is used"
+        elif re.match(r'^ENST', self.prefix):
+            assert self.variant_type == "c", "Please ensure variant type is coding if an Ensembl transcript is provided"
+        elif re.match(r'^ENSG', self.prefix):
+            assert self.variant_type == "g", "Please ensure variant type is genomic if Ensembl gene is used"
+        elif re.match(r'^NM', self.prefix):
+            assert self.variant_type == "c", "Please ensure variant type is coding if a RefSeq transcript is provided"
+        elif re.match(r'^NC', self.prefix):
+            assert self.variant_type == "g", "Please ensure variant type is genomic if RefSeq chromosome is used"
+        elif re.match(r'^NG', self.prefix):
+            assert self.variant_type == "g", "Please ensure variant type is genomic if RefSeq gene is used"
+
+        
+
+variant_1 = "LRG_199t1:c.1ACT[20]"
+my_variant = Tandem_repeats.parse_repeat_variant(variant_1)
+print(my_variant.prefix)
