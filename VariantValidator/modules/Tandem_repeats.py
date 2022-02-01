@@ -214,37 +214,59 @@ class Tandem_repeats:
             final_format = f"{self.prefix}:{self.variant_type}.{self.variant_position}{self.repeat_sequence}[{self.copy_number}]"
         return final_format
 
-
+# Gives LRG_199t1:c.1ACT[20]
 variant_1 = "LRG_199t1:c.1AC[20]"
+# Gives LRG_199:g.1ACT[20]
 variant2 = "LRG_199:g.1ACT[20]A"
+# Gives LRG_199:g.1AC[20]
 variant3 = "LRG_199:g.1AC[20]"
+# Gives LRG_199t1:c.1_60ACT[20]
 variant4 = "LRG_199t1:c.1_3ACT[20]"
+# Gives LRG_199t1:c.1_2insACACACACACACACACACAC
 variant5 = "LRG_199t1:c.1AC[10]"
+# Gives LRG_199t1:c.1ACT[20]
 variant6 = "LRG_199t1:c.1act[20]"
+# Gives LRG_199t1:c.1_12dup
 variant7 = "LRG_199t1:c.1A[12]"
+# Gives LRG_199:g.13ACT[20]
 variant8 = "LRG_199:g.13ACT[20]"
+# Gives LRG_199:g.13_60ACTG[12]
 variant9 = "LRG_199:g.13_25ACTG[12]"
+# Gives LRG_199t3:c.13_14insACTGACTGACTGACTGACTG
 variant10 = "LRG199t3:c.13_125ACTG[5]"
+# Gives ENSG00000198947.15:g.1ACT[10]
 variant11 = "ENSG00000198947.15:g.1ACT[10]"
+# Gives ENST00000357033.8:c.13_14insACAC
 variant12 = "ENST00000357033.8:c.13AC[2]"
+# Gives LRG_199t1:c.1_60ACT[20]
 variant13 = "LRG_199t1:c.1_2ACT[20]"
+# Gives AssertionError: The number of repeat units included between square brackets must be numeric
 variant14 = "LRG_199t1:c.20A[A]"
-variant15 = "NM_004006.2:c.13AC[22]"
-
+# Gives NM_004006.2:c.13_14insACACACACACACAC
+variant15 = "NM_004006.2:c.13AC[7]"
+# Gives AssertionError: Unable to identify a colon (:) in the variant description NG_004006.2g.1_2act[22]. A colon is required in HGVS variant descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. e.g. :c
+variant16 = "NG_004006.2g.1_2act[22]"
+# Gives NG_004006.2:g.1_66ACT[22]
 variant17 = "NG_004006.2:g.1_2act[22]"
+# Gives NM_024312.4:c.2686_2695dup
 variant18 = "NM_024312.4:c.2686A[10]"
+# Gives NM_024312.4:c.1738_1739insTATATATATATA
 variant19 = "NM_024312.4:c.1738TA[6]"
+# Gives LRG_199t2:c.1_10dup
 variant20 = "LRG199t2:c.1_5C[10]"
+# Gives LRG_199t2:c.1_10dup
 variant21 = "LRG199t2:c.1-5C[10]"
+# Gives NM_024312.1:c.2686_2695dup
 variant22 = "NM_024312.1:c.2686A[10]"
-# Alleles not supported
+# Gives Error: Alleles not supported
 variant23 = "LRG_199:g.[123456A>G];[345678G>C]"
-
+# Gives LRG_199t1:c.15_16insAGAGAGAGAGAGAGAGAGAG
 variant24 = "LRG_199t1:c.15_20AG[10]"
-variant25 = "LRG_199:g.1AG[10]"
-variant26 = "ENST00000198947.1:c.1_2AG[10]"
+# Gives AssertionError: Please ensure the transcript or gene version is included following a '.' after the transcript or gene name e.g. ENST00000357033.8
+variant25 = "ENST00000198947:c.1_2AG[10]"
 
-my_variant = Tandem_repeats.parse_repeat_variant(variant26)
+
+my_variant = Tandem_repeats.parse_repeat_variant(variant25)
 Tandem_repeats.check_transcript_type(my_variant)
 Tandem_repeats.reformat_prefix(my_variant)
 Tandem_repeats.check_genomic_or_coding(my_variant)
