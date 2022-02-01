@@ -263,9 +263,11 @@ variant23 = "LRG_199:g.[123456A>G];[345678G>C]"
 variant24 = "LRG_199t1:c.15_20AG[10]"
 # Gives AssertionError: Please ensure the transcript or gene version is included following a '.' after the transcript or gene name e.g. ENST00000357033.8
 variant25 = "ENST00000198947:c.1_2AG[10]"
+# Gives AssertionError: Please ensure that the repeated sequence is included between the position and number of repeat units, e.g. g.1ACT[20]
+variant26 = "ENST00000198947.1:c.1_2[10]"
 
 
-my_variant = Tandem_repeats.parse_repeat_variant(variant1)
+my_variant = Tandem_repeats.parse_repeat_variant(variant26)
 Tandem_repeats.check_transcript_type(my_variant)
 Tandem_repeats.reformat_prefix(my_variant)
 Tandem_repeats.check_genomic_or_coding(my_variant)
