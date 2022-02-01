@@ -33,18 +33,21 @@ class TandemRepeats:
             after_the_bracket (string): Captures anything after the number of repeats bracket e.g. "A"
         """
         if "[" or "]" in variant_str:
-            assert ":" in variant_str, f"Unable to identify a colon (:) in the variant description {variant_str}. A colon is required in HGVS variant descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. e.g. :c"
+            assert ":" in variant_str, f"Unable to identify a colon (:) in the variant description {variant_str}. \
+                A colon is required in HGVS variant descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. e.g. :c"
             assert ";" not in variant_str, "Alleles not yet supported"
             assert "," not in variant_str, "Alleles not yet supported"
             prefix, suffix = variant_str.split(":")
             # Find reference sequence used (g or c)
             var_type = re.search('^.*?(.*?)\.', suffix)
             variant_type = var_type.group(1)
+            variant_type = variant_type.lower()
             # Get g or c position(s)
             # Extract bit between . and [ e.g. 1ACT
             pos_and_seq = suffix.split(".")[1].split("[")[0]
             assert re.search(
-                "[a-z]+", pos_and_seq, re.IGNORECASE), "Please ensure that the repeated sequence is included between the position and number of repeat units, e.g. g.1ACT[20]"
+                "[a-z]+", pos_and_seq, re.IGNORECASE), \
+                    "Please ensure that the repeated sequence is included between the position and number of repeat units, e.g. g.1ACT[20]"
             rep_seq = re.search("[ACTG]+", pos_and_seq, re.IGNORECASE)
             repeat_sequence = rep_seq.group()
             # Ensure sign used to indicate range is “_” (underscore), not “-“ (minus)
@@ -53,7 +56,8 @@ class TandemRepeats:
             # Check both ends of range are given
             if "_" in pos_and_seq:
                 assert re.search(
-                    "[0-9]+_[0-9]+", pos_and_seq), "Please ensure the start and the end of the full repeat range is provided, separated by an underscore"
+                    "[0-9]+_[0-9]+", pos_and_seq), \
+                        "Please ensure the start and the end of the full repeat range is provided, separated by an underscore"
                 variant_positions = re.search("[0-9]+_[0-9]+", pos_and_seq)
                 variant_position = variant_positions.group()
             else:
@@ -103,7 +107,8 @@ class TandemRepeats:
                 transcript_num = re.search("t(.*?)$", self.prefix)
                 transcript_version = f"t{transcript_num.group(1)}"
         elif re.match(r'^ENS', self.prefix) or re.match(r'^N', self.prefix):
-            assert "." in self.prefix, "Please ensure the transcript or gene version is included following a '.' after the transcript or gene name e.g. ENST00000357033.8"
+            assert "." in self.prefix, \
+                "Please ensure the transcript or gene version is included following a '.' after the transcript or gene name e.g. ENST00000357033.8"
         return self.prefix
 
     def check_genomic_or_coding(self):
@@ -147,7 +152,8 @@ class TandemRepeats:
             print("Range given matches repeat sequence length and number of repeat units")
             full_range = f"{start_range}_{end_range}"
         else:
-            print("Warning: sequence range (X_X) given must match repeat unit sequence length and number of repeat units. Updating the range based on repeat sequence length and number of repeat units")
+            print("Warning: sequence range (X_X) given must match repeat unit sequence length and number of repeat units. \
+                Updating the range based on repeat sequence length and number of repeat units")
             new_end_range = int(start_range) + repeat_length - 1
             full_range = f"{start_range}_{new_end_range}"
         return full_range
@@ -159,7 +165,6 @@ class TandemRepeats:
         full_range = f"{self.variant_position}_{the_end_range}"
         return full_range
 
-    """exception: using a coding DNA reference sequence (“c.” description) a Repeated sequence variant description can be used only for repeat units with a length which is a multiple of 3, i.e. which can not affect the reading frame. Consequently, use NM_024312.4:c.2692_2693dup and not NM_024312.4:c.2686A[10], use NM_024312.4:c.1741_1742insTATATATA and not NM_024312.4:c.1738TA[6]."""
     # This will reformat tandem repeat variants in c. which should be noted as dup or ins as they are not multiples of 3
     def reformat_not_multiple_of_three(self):
         reformatted = ""
@@ -265,6 +270,8 @@ variant24 = "LRG_199t1:c.15_20AG[10]"
 variant25 = "ENST00000198947:c.1_2AG[10]"
 # Gives AssertionError: Please ensure that the repeated sequence is included between the position and number of repeat units, e.g. g.1ACT[20]
 variant26 = "ENST00000198947.1:c.1_2[10]"
+
+variant26 = "ENST00000198947.1:C.1_2[10]"
 
 # Run through pipeline
 def main():
