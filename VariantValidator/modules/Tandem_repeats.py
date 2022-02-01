@@ -22,15 +22,14 @@ class Tandem_repeats:
         """
         Summary:
         This takes a variant string and breaks it into its constituents with regex.
-
         Args:
-            my_variant (string): Variant string e.g. "LRG_199:g.1ACT[20]A"
+            variant_str (string): Variant string e.g. "LRG_199:g.1ACT[20]A"
         Returns:
             prefix (string): Transcript or gene; everything before the first colon, e.g. "LRG_199"
-            var_type (string): The variant genomic or coding type e.g. "g"
-            var_pos (string): Position of the variant, e.g. "1" or "1_12"
-            repeated_seq (string): The repeated sequence e.g. "ACT"
-            no_of_repeats (string): The number of repeat units e.g. "20"
+            variant_type (string): The variant genomic or coding type e.g. "g"
+            variant_position(string): Position of the variant, e.g. "1" or "1_12"
+            repeat_sequence (string): The repeated sequence e.g. "ACT"
+            copy_number (string): The number of repeat units e.g. "20"
             after_the_bracket (string): Captures anything after the number of repeats bracket e.g. "A"
         """
         if "[" or "]" in variant_str:
