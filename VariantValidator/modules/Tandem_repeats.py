@@ -49,7 +49,7 @@ class TandemRepeats:
             after_the_bracket (string): Captures anything after the number of repeats bracket e.g. "A"
 
         """
-        logger.info(f"parse_repeat_variant({variant_str})")
+        logger.info(f"Parsed variant: parse_repeat_variant({variant_str})")
         if "[" or "]" in variant_str:
             assert ":" in variant_str, f"Unable to identify a colon (:) in the variant description {variant_str}. \
                 A colon is required in HGVS variant descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. e.g. :c"
@@ -104,13 +104,13 @@ class TandemRepeats:
         Raises:
             NameError: [Error for unknown transcript type.]
         """
-        logger.info(f"check_transcript_type({self.reference})")
+        logger.info(f"Checked transcript type: check_transcript_type({self.reference})")
         if bool(re.match(r"^LRG", self.reference)):
-            logger.info("LRG variant")
+            logger.info("Variant type: LRG variant")
         elif bool(re.match(r"^E", self.reference)):
-            logger.info("Ensembl variant")
+            logger.info("Variant type: Ensembl variant")
         elif bool(re.match(r"^N", self.reference)):
-            logger.info("RefSeq variant")
+            logger.info("Variant type: RefSeq variant")
         else:
             raise NameError('Unknown transcript type present. \
                             Try RefSeq transcript ID')
@@ -119,7 +119,7 @@ class TandemRepeats:
         """
         Add docstring
         """
-        logger.info(f"reformat_reference({self.reference})")
+        logger.info(f"Reformatted reference: reformat_reference({self.reference})")
         if re.match(r'^LRG', self.reference):
             if re.match(r'^LRG\d+', self.reference):
                 self.reference = self.reference.replace('LRG', 'LRG_')
@@ -141,7 +141,7 @@ class TandemRepeats:
         Returns:
             None, gives error if wrong variant type is used
         """
-        logger.info(f"check_genomic_or_coding({self.reference},{self.prefix})")
+        logger.info(f"Checked prefix is consistent with reference: check_genomic_or_coding({self.reference},{self.prefix})")
         if re.match(r'^LRG', self.reference):
             if "t" in self.reference:
                 assert self.prefix == "c", "Please ensure variant type is coding if an LRG transcript is provided"
@@ -168,7 +168,7 @@ class TandemRepeats:
         Returns: 
             full_range (string): The full range supplied if correct or the full range updated if inputted range was incorrect, e.g. "1_20"
         """
-        logger.info(f"check_positions_given({self.repeat_sequence},{self.variant_position},{self.copy_number})")
+        logger.info(f"Checked range given: check_positions_given({self.repeat_sequence},{self.variant_position},{self.copy_number})")
         start_range, end_range = self.variant_position.split("_")
         rep_seq_length = len(self.repeat_sequence)
         the_range = int(end_range) - int(start_range) + 1
@@ -187,7 +187,7 @@ class TandemRepeats:
         """
         Add docstring
         """
-        logger.info(f"get_range_from_single_pos({self.repeat_sequence},{self.copy_number},{self.variant_position}")
+        logger.info(f"Got the range from a given single position: get_range_from_single_pos({self.repeat_sequence},{self.copy_number},{self.variant_position}")
         rep_seq_length = len(self.repeat_sequence)
         repeat_range = (rep_seq_length * int(self.copy_number))
         the_end_range = int(self.variant_position) + repeat_range - 1
@@ -199,7 +199,7 @@ class TandemRepeats:
         """
         Add docstring
         """
-        logger.info(f"reformat_not_multiple_of_three({self.repeat_sequence},{self.variant_position},{self.reference},{self.prefix})")
+        logger.info(f"Reformatted variant as not a multiple of three: reformat_not_multiple_of_three({self.repeat_sequence},{self.variant_position},{self.reference},{self.prefix})")
         reformatted = ""
         rep_seq_length = len(self.repeat_sequence)
         # Repeat of 1 base should be a dup with full range given
@@ -228,7 +228,7 @@ class TandemRepeats:
         """
         Add docstring
         """
-        logger.info(f"reformat({self.repeat_sequence},{self.after_the_bracket},{self.prefix},{self.variant_position},{self.copy_number})")
+        logger.info(f"Reformatted variant: reformat({self.repeat_sequence},{self.after_the_bracket},{self.prefix},{self.variant_position},{self.copy_number})")
         assert self.copy_number.isdecimal(
         ), "The number of repeat units included between square brackets must be numeric"
         assert re.search("[actg]+", self.repeat_sequence,
@@ -243,7 +243,7 @@ class TandemRepeats:
             if rep_seq_length % 3 != 0:
                 final_format = self.reformat_not_multiple_of_three()
             else:
-                logger.info("Repeat length is consistent with c. type")
+                logger.info("Checked repeat length is consistent with c. type")
                 if "_" in self.variant_position:
                     self.variant_position = self.check_positions_given()
                 final_format = f"{self.reference}:{self.prefix}.{self.variant_position}{self.repeat_sequence}[{self.copy_number}]"
