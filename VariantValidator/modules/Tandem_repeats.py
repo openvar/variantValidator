@@ -7,8 +7,20 @@ By Rebecca Locke + Rob Wilson
 # Import modules
 import re
 import logging
+import os
+
+# Get path the script is run in
+CURRENT_DIR = os.path.abspath(os.getcwd())
+
+# Create and configure logger
+LOG_FORMAT = "%(levelname)s %(asctime)s - %(message)s"
+logging.basicConfig(filename = f'{CURRENT_DIR}/expanded_repeats.log', level = logging.DEBUG, format = LOG_FORMAT, filemode = 'w')
+logger = logging.getLogger()
+
 
 class TandemRepeats:
+
+
     def __init__(self, reference, prefix, variant_position, repeat_sequence,copy_number, after_the_bracket):
         self.reference = reference
         self.prefix = prefix
@@ -17,11 +29,12 @@ class TandemRepeats:
         self.copy_number = copy_number
         self.after_the_bracket = after_the_bracket
 
+
     @classmethod
     def parse_repeat_variant(cls, variant_str):
         """
         Summary:
-        This takes a variant string and breaks it into its constituents with regex.
+        Takes a variant string and breaks it into its constituent parts with regex to be processed in downstream functions, assigns them to class variables.
         Args:
             variant_str (string): Variant string e.g. "LRG_199:g.1ACT[20]A"
         Returns:
@@ -32,6 +45,7 @@ class TandemRepeats:
             copy_number (string): The number of repeat units e.g. "20"
             after_the_bracket (string): Captures anything after the number of repeats bracket e.g. "A"
         """
+        logger.info(f"parse_repeat_variant({variant_str})")
         if "[" or "]" in variant_str:
             assert ":" in variant_str, f"Unable to identify a colon (:) in the variant description {variant_str}. \
                 A colon is required in HGVS variant descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. e.g. :c"
