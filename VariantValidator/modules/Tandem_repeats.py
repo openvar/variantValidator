@@ -14,6 +14,7 @@ CURRENT_DIR = os.path.abspath(os.getcwd())
 
 # Create and configure logger
 LOG_FORMAT = "%(levelname)s %(asctime)s - %(message)s"
+# Set level to debug, format with date and time and re-write file each time
 logging.basicConfig(filename = f'{CURRENT_DIR}/expanded_repeats.log', level = logging.DEBUG, format = LOG_FORMAT, filemode = 'w')
 logger = logging.getLogger()
 
@@ -100,21 +101,23 @@ class TandemRepeats:
         Raises:
             NameError: [Error for unknown transcript type.]
         """
+        logger.info(f"check_transcript_type({self.reference})")
         if bool(re.match(r"^LRG", self.reference)):
-            print("LRG variant")
+            logger.info("LRG variant")
         elif bool(re.match(r"^E", self.reference)):
-            print("Ensembl variant")
+            logger.info("Ensembl variant")
         elif bool(re.match(r"^N", self.reference)):
-            print("RefSeq variant")
+            logger.info("RefSeq variant")
         else:
             raise NameError('Unknown transcript type present. \
                             Try RefSeq transcript ID')
 
     def reformat_reference(self):
+        logger.info(f"reformat_reference({self.reference})")
         if re.match(r'^LRG', self.reference):
             if re.match(r'^LRG\d+', self.reference):
                 self.reference = self.reference.replace('LRG', 'LRG_')
-                print("LRG variant updated to include underscore")
+                logger.warning("LRG variant updated to include underscore")
             # Get transcript number
             if "t" in self.reference:
                 transcript_num = re.search("t(.*?)$", self.reference)
@@ -132,6 +135,7 @@ class TandemRepeats:
         Returns:
             None, gives error if wrong variant type is used
         """
+        logger.info(f"check_genomic_or_coding({self.reference},{self.prefix})")
         if re.match(r'^LRG', self.reference):
             if "t" in self.reference:
                 assert self.prefix == "c", "Please ensure variant type is coding if an LRG transcript is provided"
@@ -151,27 +155,29 @@ class TandemRepeats:
     def check_positions_given(self):
         """Checks the position range given and updates it if it doesn't match the length of the repeated sequence and number of repeat units when full range is needed
             Args:
-            repeated_sequence (string): The repeated sequence e.g. "ACT"
-            variant_pos (string): The position of the variant e.g. "1" or "1_5"
-            no_of_rep_units (string): The number of repeat units e.g. "20"
+            repeat_sequence (string): The repeated sequence e.g. "ACT"
+            variant_position (string): The position of the variant e.g. "1" or "1_5"
+            copy_number (string): The number of repeat units e.g. "20"
         Returns: 
             full_range (string): The full range supplied if correct or the full range updated if inputted range was incorrect, e.g. "1_20"
         """
+        logger.info(f"check_positions_given({self.repeat_sequence},{self.variant_position},{self.copy_number}")
         start_range, end_range = self.variant_position.split("_")
         rep_seq_length = len(self.repeat_sequence)
         the_range = int(end_range) - int(start_range) + 1
         repeat_length = (rep_seq_length * int(self.copy_number))
         if the_range == repeat_length:
-            print("Range given matches repeat sequence length and number of repeat units")
+            logger.info(f"Range given ({self.variant_position}) matches repeat sequence length and number of repeat units")
             full_range = f"{start_range}_{end_range}"
         else:
-            print("Warning: sequence range (X_X) given must match repeat unit sequence length and number of repeat units. \
+            logger.warning(f"Warning: sequence range {self.variant_position} given does not match repeat unit sequence length and number of repeat units. \
                 Updating the range based on repeat sequence length and number of repeat units")
             new_end_range = int(start_range) + repeat_length - 1
             full_range = f"{start_range}_{new_end_range}"
         return full_range
 
     def get_range_from_single_pos(self):
+        logger.info(f"get_range_from_single_pos({self.repeat_sequence},{self.copy_number},{self.variant_position}")
         rep_seq_length = len(self.repeat_sequence)
         repeat_range = (rep_seq_length * int(self.copy_number))
         the_end_range = int(self.variant_position) + repeat_range - 1
@@ -180,6 +186,7 @@ class TandemRepeats:
 
     # This will reformat tandem repeat variants in c. which should be noted as dup or ins as they are not multiples of 3
     def reformat_not_multiple_of_three(self):
+        logger.info(f"reformat_not_multiple_of_three({self.repeat_sequence},{self.variant_position},{self.reference},{self.prefix})")
         reformatted = ""
         rep_seq_length = len(self.repeat_sequence)
         # Repeat of 1 base should be a dup with full range given
@@ -188,7 +195,7 @@ class TandemRepeats:
                 self.variant_position = self.check_positions_given()
             else:
                 self.variant_position = self.get_range_from_single_pos()
-            print("Warning: Repeated sequence is coding and not a multiple of three! Updating variant description to a duplication")
+            logger.warning(f"Warning: Repeated sequence is coding and is of length {rep_seq_length}, not a multiple of three! Updating variant description to a duplication")
             reformatted = f'{self.reference}:{self.prefix}.{self.variant_position}dup'
         # Repeat of 2 bases should be an ins with only first two nts given as range
         elif rep_seq_length >= 2:
@@ -200,12 +207,15 @@ class TandemRepeats:
                 start, end = self.variant_position.split("_")
                 end = int(start)+1
                 position = f"{start}_{end}"
-            print("Warning: Repeated sequence is coding and not a multiple of three! Updating variant description to insertion")
+            logger.warning(f"Warning: Repeated sequence is coding and is of length {rep_seq_length}, not a multiple of three! Updating variant description to insertion")
             reformatted = f'{self.reference}:{self.prefix}.{position}ins{expanded_rep_seq}'
         return reformatted
 
     def reformat(self):
-        # Check number of repeat units is integers and that the sequence is A,C,T or G
+        """
+        Add docstring
+        """
+        logger.info(f"reformat({self.repeat_sequence},{self.after_the_bracket},{self.prefix},{self.variant_position},{self.copy_number})")
         assert self.copy_number.isdecimal(
         ), "The number of repeat units included between square brackets must be numeric"
         assert re.search("[actg]+", self.repeat_sequence,
@@ -213,14 +223,14 @@ class TandemRepeats:
         # Update the repeated sequence to be upper case
         self.repeat_sequence = self.repeat_sequence.upper()
         if self.after_the_bracket != "":
-            print("No information should be included after the number of repeat units. Mixed repeats are not currently supported.")
+            logger.warning(f"No information should be included after the number of repeat units. Currently '{self.after_the_bracket}'' is included.Mixed repeats are not currently supported.")
         # Reformat c. variants
         if self.prefix == "c": 
             rep_seq_length = len(self.repeat_sequence)
             if rep_seq_length % 3 != 0:
                 final_format = self.reformat_not_multiple_of_three()
             else:
-                print("Repeat length is consistent with c. type")
+                logger.info("Repeat length is consistent with c. type")
                 if "_" in self.variant_position:
                     self.variant_position = self.check_positions_given()
                 final_format = f"{self.reference}:{self.prefix}.{self.variant_position}{self.repeat_sequence}[{self.copy_number}]"
