@@ -30524,6 +30524,49 @@ class TestVariantsAuto(TestCase):
         assert 'grch38' in results['intergenic_variant_1']['primary_assembly_loci'].keys()
         assert len(results['intergenic_variant_1']['alt_genomic_loci']) == 0
 
+    def test_issue_LRG_noncoding_transcript(self):
+        variant = 'chr17:8076846T>A'
+        results = self.vv.validate(variant, 'GRCh37', 'NR_147092.1', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'NR_147092.1:n.957A>T' in results.keys()
+
+    def test_issue_338(self):
+        variant = 'NM_000088.3:C.589G>T'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'characters being in the wrong case' in \
+               results['NM_000088.3:c.589G>T']['validation_warnings'][0]
+
+        variant = 'NM_000088.3:C.589G>T'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'characters being in the wrong case' in \
+               results['NM_000088.3:c.589G>T']['validation_warnings'][0]
+
+        variant = 'nm_000088.3:c.589G>T'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'characters being in the wrong case' in \
+               results['NM_000088.3:c.589G>T']['validation_warnings'][0]
+
+        variant = 'lrg_1t1:c.589G>T'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'characters being in the wrong case' in \
+               results['NM_000088.3:c.589G>T']['validation_warnings'][0]
+
+        variant = 'lrg_1T1:c.589G>T'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'characters being in the wrong case' in \
+               results['NM_000088.3:c.589G>T']['validation_warnings'][0]
+
+        variant = 'LRG_1T1:c.589G>T'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'characters being in the wrong case' in \
+               results['NM_000088.3:c.589G>T']['validation_warnings'][0]
+
 
 # <LICENSE>
 # Copyright (C) 2016-2022 VariantValidator Contributors

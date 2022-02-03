@@ -256,6 +256,30 @@ class Mixin(vvMixinConverters.Mixin):
                         logger.warning(warning)
 
                     invalid = my_variant.format_quibble()
+
+                    # Here is where we may expand options for issue #338
+                    test_for_invalid_case_in_accession = my_variant.original.split(":")[0]
+                    query_for_invalid_case_in_accession = test_for_invalid_case_in_accession.upper()
+                    if re.match("LRG", test_for_invalid_case_in_accession, flags=re.IGNORECASE):
+                        if "lrg" in test_for_invalid_case_in_accession:
+                            e = "This not a valid HGVS description, due to characters being in the wrong case. " \
+                                "Please check the use of upper- and lowercase characters."
+                            my_variant.warnings.append(str(e))
+                            logger.warning(str(e))
+                        if "T" in test_for_invalid_case_in_accession:
+                            e = "This not a valid HGVS description, due to characters being in the wrong case. " \
+                                "Please check the use of upper- and lowercase characters."
+                            my_variant.warnings.append(str(e))
+                            logger.warning(str(e))
+                            my_variant.quibble = my_variant.quibble.replace("T", "t")
+                            print(my_variant.quibble)
+                    elif (test_for_invalid_case_in_accession != query_for_invalid_case_in_accession) \
+                            and "LRG" not in test_for_invalid_case_in_accession:
+                        e = "This not a valid HGVS description, due to characters being in the wrong case. " \
+                            "Please check the use of upper- and lowercase characters."
+                        my_variant.warnings.append(str(e))
+                        logger.warning(str(e))
+
                     if invalid:
                         if re.search(r'\w+:[gcnmrp],', my_variant.quibble):
                             error = 'Variant description ' + my_variant.quibble + ' contained the , character between '\
@@ -265,6 +289,17 @@ class Mixin(vvMixinConverters.Mixin):
                             my_variant.warnings.append(error)
                             logger.warning(error)
                             pass
+
+                        # Upper case type see issue #338
+                        elif re.search(r":[GCNMR].", str(my_variant.quibble)):
+                            rs_type_upper = re.search(r":[GCNMR].", str(my_variant.quibble))
+                            e = "This not a valid HGVS description, due to characters being in the wrong case. " \
+                                "Please check the use of upper- and lowercase characters."
+                            my_variant.warnings.append(str(e))
+                            logger.warning(str(e))
+                            my_variant.quibble = my_variant.quibble.replace(rs_type_upper.group(0),
+                                                                            rs_type_upper.group(0).lower())
+
                         elif re.search(r'\w+:[gcnmrp]', my_variant.quibble) and not \
                                 re.search(r'\w+:[gcnmrp]\.', my_variant.quibble):
                             error = 'Variant description ' + my_variant.quibble + ' lacks the . character between ' \
@@ -294,6 +329,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                     # Change RNA bases to upper case but nothing else
                     if my_variant.reftype == ":r.":
+                        query_r_var = formatted_variant
                         formatted_variant = formatted_variant.upper()
                         formatted_variant = formatted_variant.replace(':R.', ':r.')
                         # lowercase the supported variant types
@@ -301,6 +337,11 @@ class Mixin(vvMixinConverters.Mixin):
                         formatted_variant = formatted_variant.replace('INS', 'ins')
                         formatted_variant = formatted_variant.replace('INV', 'inv')
                         formatted_variant = formatted_variant.replace('DUP', 'dup')
+                        if query_r_var != formatted_variant:
+                            e = "This not a valid HGVS description, due to characters being in the wrong case. " \
+                                "Please check the use of upper- and lowercase characters."
+                            my_variant.warnings.append(str(e))
+                            logger.warning(str(e))
 
                     # Handle <position><edit><position> style variants
                     # Refer to https://github.com/openvar/variantValidator/issues/161
@@ -314,6 +355,7 @@ class Mixin(vvMixinConverters.Mixin):
                         input_parses = self.hp.parse_hgvs_variant(str(formatted_variant))
                         my_variant.hgvs_formatted = input_parses
                     except vvhgvs.exceptions.HGVSError as e:
+
                         # Look for T not U!
                         posedit = formatted_variant.split(':')[-1]
                         if 'T' in posedit and "r." in posedit:
@@ -1468,7 +1510,18 @@ class Mixin(vvMixinConverters.Mixin):
                     # LRG information
                     lrg_transcript = self.db.get_lrg_transcript_id_from_refseq_transcript_id(tx)
                     if lrg_transcript != 'none':
-                        if sel_tx_lst is False:
+                        if line[1] is None:
+                            genes_and_tx.append({'reference': tx,
+                                                 'description': tx_description,
+                                                 'annotations': tx_annotation,
+                                                 'translation': prot_id,
+                                                 'length': tx_len,
+                                                 'coding_start': None,
+                                                 'coding_end': None,
+                                                 # 'orientation': tx_orientation,
+                                                 'genomic_spans': {}
+                                                 })
+                        elif sel_tx_lst is False:
                             genes_and_tx.append({'reference': lrg_transcript,
                                                  'description': tx_description,
                                                  'annotations': tx_annotation,

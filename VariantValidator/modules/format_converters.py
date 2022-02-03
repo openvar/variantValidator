@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 def initial_format_conversions(variant, validator, select_transcripts_dict_plus_version):
+
     # VCF type 1
     toskip = vcf2hgvs_stage1(variant, validator)
     if toskip:
@@ -139,7 +140,8 @@ def vcf2hgvs_stage2(variant, validator):
     """
     skipvar = False
     if (re.search(r'\w+:', variant.quibble) or re.search(r'\w+\(\w+\):', variant.quibble)) and not \
-            (re.search(r'\w+:[gcnmrp]\.', variant.quibble) or re.search(r'\w+\(\w+\):[gcnmrp]\.', variant.quibble)):
+            (re.search(r'\w+:[gcnmrpGCNMRP]\.', variant.quibble) or re.search(r'\w+\(\w+\):[gcnmrpGCNMRP]\.',
+                                                                              variant.quibble)):
         if re.search(r'\w+:[gcnmrp]', variant.quibble) and not re.search(r'\w+:[gcnmrp]\.', variant.quibble):
             # Missing dot
             pass
@@ -191,8 +193,11 @@ def vcf2hgvs_stage2(variant, validator):
                         ref = required_base
                         alt = required_base + old_alt
                         position_and_edit = str(position) + ref + '>' + alt
+
                 # Assign reference sequence type
                 ref_type = validator.db.ref_type_assign(accession)
+
+                # Sort LRG formatting
                 if re.match('LRG_', accession):
                     if ref_type == ':g.':
                         accession = validator.db.get_refseq_id_from_lrg_id(accession)
