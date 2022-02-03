@@ -1,3 +1,4 @@
+
 # VariantValidator
 
 [![codecov](https://codecov.io/gh/openvar/variantValidator/branch/restructuring_py3/graph/badge.svg)](https://codecov.io/gh/openvar/variantValidator) [![Build Status](https://travis-ci.com/openvar/variantValidator.png)](https://travis-ci.com/github/openvar/variantValidator)
