@@ -135,7 +135,7 @@ def valstr(hgvs_variant):
     """
     cp_hgvs_variant = copy.deepcopy(hgvs_variant)
     if cp_hgvs_variant.posedit.edit.type == 'identity':
-        if len(cp_hgvs_variant.posedit.edit.ref) > 1:
+        if len(cp_hgvs_variant.posedit.edit.ref) > 0:
             cp_hgvs_variant = remove_reference(cp_hgvs_variant)
         cp_hgvs_variant = str(cp_hgvs_variant)
     else:
