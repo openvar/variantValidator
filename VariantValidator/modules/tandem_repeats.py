@@ -4,7 +4,7 @@ This module aims to expand the functionality of VV into expanded repeat
 variants.
 It achieves this by using the ex_repeat_var class with associated functions.
 
-Written by Robert Wilson and Rebecca Locke.
+Authors: Robert Wilson (@RSWilson1) and Rebecca Locke (@).
 """
 # Importing Modules
 
