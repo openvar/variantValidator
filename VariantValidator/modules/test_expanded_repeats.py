@@ -1,6 +1,6 @@
 """
 Exon_numbering_tests
-Authors: Katie Williams (@kwi11iams) and Katherine Winfield (@kjwinfield)
+Authors: Robert Wilson (@RSWilson1) and Rebecca Locke
 This code runs tests on the module exon_numbering.py to check the outputs are as expected
 """
 import unittest
