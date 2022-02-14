@@ -6,10 +6,30 @@ It achieves this by using the ex_repeat_var class with associated functions.
 
 Written by Robert Wilson and Rebecca Locke.
 """
+# Importing Modules
 
 import re
+import logging
+import os
+
+# Get path the script is run in
+CURRENT_DIR = os.path.abspath(os.getcwd())
+
+# Create and configure logger
+LOG_FORMAT = "%(levelname)s %(asctime)s - %(message)s"
+
+# Set level to debug, format with date and time and re-write file each time
+logging.basicConfig(
+    filename=f'{CURRENT_DIR}/expanded_repeats.log',
+    level=logging.DEBUG,
+    format=LOG_FORMAT,
+    filemode='w')
+
+log = logging.getLogger("main log")
 
 # Established class for expanded repeats
+
+
 class ex_repeat_var:
     """
     Class used for expanded repeat variants.
@@ -18,7 +38,7 @@ class ex_repeat_var:
     """
 
     def __init__(self, variant_string, build) -> None:
-        self.variant_string = variant_string
+        self.variant_string = variant_string.strip()  # remove whitespace
         self.build = build
         self.type = None
         self.prefix = None
@@ -52,9 +72,12 @@ class ex_repeat_var:
             if ":" not in self.variant_string:
                 print("Unable to identify a colon (:) in the variant description.\
                       A colon is required in HGVS variant")
+                log.info("Unable to identify a colon (:) in the variant description.\
+                      A colon is required in HGVS variant")
             else:
                 self.prefix = self.variant_string.split(":")[0]
                 print(f'Variant prefix: {self.prefix}')
+                log.info("Variant OK. Splitting Variant based on transcript type.")
                 if self.type == "LRG":
                     # Check if underscore after LRG is included
                     if "_" not in self.prefix:
@@ -87,7 +110,9 @@ class ex_repeat_var:
                 print(f'Anything after bracket: {self.after_brac}')
         else:
             print("No expanded repeat present.")
-            return False
+            log.info("No Expanded repeat present, the presence of [] is\
+                     essential of classifying expanded repeats\
+                     please check syntax on HGVS website and try again.")
 
     def get_transcript_type(self):
         """
@@ -172,6 +197,10 @@ class ex_repeat_var:
 
     def get_variant_location(self):
         """
+        Aim
+        ----------
+
+
         Parameters
         ----------
         self.variant_string:str
@@ -218,39 +247,52 @@ class ex_repeat_var:
         print(f'Anything after bracket: {self.after_brac}')
         return self.variant_string, self.type, self.prefix, self.suffix, self.no_repeats, self.after_brac
 
-#  List of variants to check format and split into constituents.
-variant1 = "LRG_199:g.1ACT[20]"
-variant2 = "LRG_199:g.1ACT[20]A"
-variant3 = "LRG_199:g.1AC[20]"
-variant4 = "LRG_199t1:c.1_3ACT[20]"
-variant5 = "LRG_199t1:c.1AC[20]"
-variant6 = "LRG_199t1:c.1act[20]"
-variant7 = "LRG199c.1A[1_2]"
-variant8 = "LRG_199:g.13ACT[20]"
-variant9 = "LRG_199:g.13_25ACTG[1]"
-variant10 = "LRG199:g.13_125ACTG[1]"
+
+# Hard-coded variant for testing while building.
+# List of variants to check format and split into constituents.
+VARIANT1 = "LRG_199:g.1ACT[20]"
+VARIANT2 = "LRG_199:g.1ACT[20]A"
+VARIANT3 = "LRG_199:g.1AC[20]"
+VARIANT4 = "LRG_199t1:c.1_3ACT[20]"
+VARIANT5 = "LRG_199t1:c.1AC[20]"
+VARIANT6 = "LRG_199t1:c.1act[20]"
+VARIANT7 = "LRG199c.1A[1_2]"
+VARIANT8 = "LRG_199:g.13ACT[20]"
+VARIANT9 = "LRG_199:g.13_25ACTG[1]"
+VARIANT10 = "LRG199:g.13_125ACTG[1]"
 # Other types not LRG
-variant11 = "ENSG00000198947.15:g.1ACT[10]"
-variant12 = "ENST00000357033.8:c.13AC[22]"
+VARIANT11 = "ENSG00000198947.15:g.1ACT[10]"
+VARIANT12 = "ENST00000357033.8:c.13AC[22]"
 # Missing information accepted
-variant13 = "LRG_199t1:c.1_ACT[20]"
+VARIANT13 = "LRG_199t1:c.1_ACT[20]"
 # change * to + to only allow variants with range or single location
+
 
 def main():
     """
     Main function for testing the functions in the script in the
     ex_repeat_var class.
     """
-    t_var1 = ex_repeat_var(variant4, "GRch37")
-    print(t_var1.variant_string)
-    print(t_var1)
-    print(t_var1.get_transcript_type())
+    t_var = ex_repeat_var(VARIANT4, "GRch37")
+    results = ex_repeat_var.check_expanded_repeat_diverging(t_var)
+    print(t_var.variant_string)
+    print(t_var.build)
+    print(t_var.type)
+    print(t_var.prefix)
+    print(t_var.suffix)
+    print(t_var.no_repeats)
+    print(t_var.after_brac)
+    # print(results)
+    # print(t_var.get_transcript_type())
     # print(t_var1.split_var_string())
-    print(t_var1.get_transcript_name())
-    #input = ex_repeat_var.get_transcript_name(variant11, ex_repeat_var.get_transcript_type(variant4))
-    #print(ex_repeat_var.get_variant_location(input[0], input[1], input[2], input[3]))
+    # print(t_var1.get_transcript_name())
+    # input = ex_repeat_var.get_transcript_name(variant11,
+    # ex_repeat_var.get_transcript_type(variant4))
+    # print(ex_repeat_var.get_variant_location(input[0], input[1], input[2], input[3]))
 
 
 # This allows the script to be run by itself or imported as a package.
 if __name__ == "__main__":
+    log.info('--------- Starting Script ---------')
     main()
+    log.info('--------- End Script ---------')
