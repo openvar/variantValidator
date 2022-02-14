@@ -1,9 +1,11 @@
 """
-
-Script to check syntax of expanded repeat variants
-By Rebecca Locke + Rob Wilson
-
+NAME:          modules/Tandem_repeats.py
+AUTHORS:       Rebecca Locke (@rklocke) & Robert Wilson (@RSWilson1)
+DATE:          18/02/22
+INSTITUTION:   University of Manchester/Cambridge University Hospitals
+DESCRIPTION:   Contains the Tandem Repeats class and methods to check the syntax and reformat tandem repeat variants
 """
+
 # Import modules
 import re
 import logging
@@ -15,13 +17,14 @@ CURRENT_DIR = os.path.abspath(os.getcwd())
 # Configure logging format
 LOG_FORMAT = "%(levelname)s %(asctime)s - %(message)s"
 
-# Set logging level to debug, format with date/time/msg and re-write file each time
+# Set logging level to debug, format with date/time/msg and re-write file
+# each time
 logging.basicConfig(
     filename=f'{CURRENT_DIR}/expanded_repeats.log',
     level=logging.DEBUG,
     format=LOG_FORMAT,
     filemode='w')
-    
+
 logger = logging.getLogger()
 
 
@@ -43,6 +46,7 @@ class TandemRepeats:
     after_the_bracket: str
         anything after the last square bracket
     """
+
     def __init__(
             self,
             reference,
@@ -72,15 +76,15 @@ class TandemRepeats:
 
             reference : str
                 Transcript or gene; everything before the first colon, e.g. "LRG_199"
-            prefix : str 
+            prefix : str
                 The variant genomic or coding type e.g. "g"
-            variant_position : str 
+            variant_position : str
                 Position of the variant, e.g. "1" or "1_12"
-            repeat_sequence : str 
+            repeat_sequence : str
                 The repeated sequence e.g. "ACT"
-            copy_number : str 
+            copy_number : str
                 The number of repeat units e.g. "20"
-            after_the_bracket : str 
+            after_the_bracket : str
                 Captures anything after the number of repeats bracket e.g. "A"
         Example:
             >>>parse_repeat_variant("LRG_199:g.1ACT[20]A")
@@ -90,7 +94,8 @@ class TandemRepeats:
         logger.info(f"Parsing variant: parse_repeat_variant({variant_str})")
         # Strip any whitespace
         variant_str = variant_str.strip()
-        # Check if square brackets included which indicate tandem repeat variant
+        # Check if square brackets included which indicate tandem repeat
+        # variant
         if "[" or "]" in variant_str:
             assert ":" in variant_str, f"Unable to identify a colon (:) in the variant description {variant_str}. A colon is required in HGVS variant descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. e.g. :c"
             assert ";" not in variant_str, "Alleles not yet supported"
@@ -162,9 +167,7 @@ class TandemRepeats:
                             Try RefSeq transcript ID')
 
     def reformat_reference(self):
-        """
-        Add docstring
-        """
+        """Reformats the reference sequence name"""
         logger.info(
             f"Reformatting reference: reformat_reference({self.reference})")
         if re.match(r'^LRG', self.reference):
@@ -181,12 +184,9 @@ class TandemRepeats:
         return self.reference
 
     def check_genomic_or_coding(self):
-        """Takes reference and works out if variant type should be c. or g. and raises error if incorrect type supplied
-        Args:
-            reference (string): The reference e.g. "LRG_199"
-            var_type (string): Variant type genomic or coding e.g. "g"
-        Returns:
-            None, gives error if wrong variant type is used
+        """Takes reference and works out what prefix type should be used
+        Raises:
+            AssertionError if wrong prefix type is used
         """
         logger.info(
             f"Checking prefix is consistent with reference: check_genomic_or_coding({self.reference},{self.prefix})")
@@ -206,10 +206,12 @@ class TandemRepeats:
             assert self.prefix == "g", "Please ensure variant type is genomic if RefSeq chromosome is used"
         elif re.match(r'^NG', self.reference):
             assert self.prefix == "g", "Please ensure variant type is genomic if RefSeq gene is used"
+        elif re.match(r'^NR', self.reference):
+            assert self.prefix == "n", "Please ensure variant type is non-coding if NR transcript is used"
 
     def check_positions_given(self):
         """Checks the position range given and updates it if it doesn't match the length of the repeated sequence and number of repeat units when full range is needed
-            Args:
+        Args:
             repeat_sequence (string): The repeated sequence e.g. "ACT"
             variant_position (string): The position of the variant e.g. "1" or "1_5"
             copy_number (string): The number of repeat units e.g. "20"
@@ -236,7 +238,7 @@ class TandemRepeats:
 
     def get_range_from_single_pos(self):
         """
-        Add docstring
+        Gets full range of the variant if this is needed when a single start position is supplied
         """
         logger.info(
             f"Fetching the range from a given single position: get_range_from_single_pos({self.repeat_sequence},{self.copy_number},{self.variant_position}")
@@ -246,11 +248,9 @@ class TandemRepeats:
         full_range = f"{self.variant_position}_{the_end_range}"
         return full_range
 
-    # This will reformat tandem repeat variants in c. which should be noted as
-    # dup or ins as they are not multiples of 3
     def reformat_not_multiple_of_three(self):
         """
-        Add docstring
+        Reformats coding variants (c.) to a dup or ins if they are not a multiple of three
         """
         logger.info(
             f"Reformatting variant as not a multiple of three: reformat_not_multiple_of_three({self.repeat_sequence},{self.variant_position},{self.reference},{self.prefix})")
@@ -283,7 +283,7 @@ class TandemRepeats:
 
     def reformat(self):
         """
-        Add docstring
+        Reformats and returns final formatted variant as a string
         """
         logger.info(
             f"Reformatting variant: reformat({self.repeat_sequence},{self.after_the_bracket},{self.prefix},{self.variant_position},{self.copy_number})")
@@ -378,7 +378,7 @@ variant26 = "ENST00000198947.1:c.1_2[10]"
 variant27 = "ENST00000198947.1:C.1_2A[10]"
 variant28 = "LRG_199t1:c.1_5AC[8]"
 
-# Run through pipeline
+
 def main():
     my_variant = TandemRepeats.parse_repeat_variant(variant28)
     my_variant.check_transcript_type()
