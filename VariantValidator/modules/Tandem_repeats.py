@@ -9,22 +9,40 @@ import re
 import logging
 import os
 
-# Get path the script is run in
+# Get path of directory the script is run in
 CURRENT_DIR = os.path.abspath(os.getcwd())
 
-# Create and configure logger
+# Configure logging format
 LOG_FORMAT = "%(levelname)s %(asctime)s - %(message)s"
-# Set level to debug, format with date and time and re-write file each time
+
+# Set logging level to debug, format with date/time/msg and re-write file each time
 logging.basicConfig(
     filename=f'{CURRENT_DIR}/expanded_repeats.log',
     level=logging.DEBUG,
     format=LOG_FORMAT,
     filemode='w')
+    
 logger = logging.getLogger()
 
 
 class TandemRepeats:
+    """Class to represent a tandem repeat variant
 
+    Attributes
+    ----------
+    reference : str
+        reference sequence name
+    prefix : str
+        reference sequence type used
+    variant_position : str
+        nucleotide position(s)
+    repeat_sequence : str
+        sequence repeat unit
+    copy_number : str
+        number of repeat units
+    after_the_bracket: str
+        anything after the last square bracket
+    """
     def __init__(
             self,
             reference,
@@ -33,6 +51,7 @@ class TandemRepeats:
             repeat_sequence,
             copy_number,
             after_the_bracket):
+        """Constructs necessary parts of the TandemRepeats object"""
         self.reference = reference
         self.prefix = prefix
         self.variant_position = variant_position
@@ -44,34 +63,42 @@ class TandemRepeats:
     def parse_repeat_variant(cls, variant_str):
         """
         Summary:
-        Takes a variant string and breaks it into its constituent parts with regex to be processed in downstream functions, assigns them to class variables.
+            Takes a variant string and breaks it into its constituent parts with regex to be processed in downstream functions, assigns them to class variables.
         Args:
-            variant_str (string): Variant string e.g. "LRG_199:g.1ACT[20]A"
+            variant_str : str
+                variant string e.g. "LRG_199:g.1ACT[20]A"
         Returns:
-            Updates each self.variable:
+            Updates each class attribute:
 
-            reference(string): Transcript or gene; everything before the first colon, e.g. "LRG_199"
-            prefix (string): The variant genomic or coding type e.g. "g"
-            variant_position(string): Position of the variant, e.g. "1" or "1_12"
-            repeat_sequence (string): The repeated sequence e.g. "ACT"
-            copy_number (string): The number of repeat units e.g. "20"
-            after_the_bracket (string): Captures anything after the number of repeats bracket e.g. "A"
-
+            reference : str
+                Transcript or gene; everything before the first colon, e.g. "LRG_199"
+            prefix : str 
+                The variant genomic or coding type e.g. "g"
+            variant_position : str 
+                Position of the variant, e.g. "1" or "1_12"
+            repeat_sequence : str 
+                The repeated sequence e.g. "ACT"
+            copy_number : str 
+                The number of repeat units e.g. "20"
+            after_the_bracket : str 
+                Captures anything after the number of repeats bracket e.g. "A"
+        Example:
+            >>>parse_repeat_variant("LRG_199:g.1ACT[20]A")
+                "LRG_199", "g", "1", "ACT", "20", "A"
         """
         print(f"Variant entered: {variant_str}")
         logger.info(f"Parsing variant: parse_repeat_variant({variant_str})")
-        # Strip whitespace
+        # Strip any whitespace
         variant_str = variant_str.strip()
+        # Check if square brackets included which indicate tandem repeat variant
         if "[" or "]" in variant_str:
-            assert ":" in variant_str, f"Unable to identify a colon (:) in the variant description {variant_str}. \
-                A colon is required in HGVS variant descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. e.g. :c"
+            assert ":" in variant_str, f"Unable to identify a colon (:) in the variant description {variant_str}. A colon is required in HGVS variant descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. e.g. :c"
             assert ";" not in variant_str, "Alleles not yet supported"
             assert "," not in variant_str, "Alleles not yet supported"
             reference, suffix = variant_str.split(":")
             # Find reference sequence used (g or c)
             var_type = re.search('^.*?(.*?)\\.', suffix)
-            prefix = var_type.group(1)
-            prefix = prefix.lower()
+            prefix = var_type.group(1).lower()
             # Get g or c position(s)
             # Extract bit between . and [ e.g. 1ACT
             pos_and_seq = suffix.split(".")[1].split("[")[0]
@@ -81,7 +108,6 @@ class TandemRepeats:
             rep_seq = re.search("[ACTG]+", pos_and_seq, re.IGNORECASE)
             repeat_sequence = rep_seq.group()
             # Ensure sign used to indicate range is “_” (underscore), not “-“
-            # (minus)
             if "-" in pos_and_seq:
                 pos_and_seq = pos_and_seq.replace('-', '_')
             # Check both ends of range are given
@@ -353,8 +379,6 @@ variant27 = "ENST00000198947.1:C.1_2A[10]"
 variant28 = "LRG_199t1:c.1_5AC[8]"
 
 # Run through pipeline
-
-
 def main():
     my_variant = TandemRepeats.parse_repeat_variant(variant28)
     my_variant.check_transcript_type()
