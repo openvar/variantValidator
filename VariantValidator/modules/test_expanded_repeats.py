@@ -1,7 +1,13 @@
 """
-Exon_numbering_tests
+Tandem_Repeats_tests
 Authors: Robert Wilson (@RSWilson1) and Rebecca Locke
-This code runs tests on the module exon_numbering.py to check the outputs are as expected
+This code runs tests on the module tandem_repeats.py to check the outputs are as expected.
+
+It checks known edge-case HGVS compliant variant strings.
+Additional functionality to add:
+- Check error handling
+- Check correct errors for non-HGVS compliant strings.
+
 """
 import unittest
 #from VariantValidator import Validator
@@ -9,7 +15,17 @@ import tandem_repeats
 
 
 class TestExpandedRepeats(unittest.TestCase):
+    """Tests for tandem_repeats.py to check the syntax checker returns
+    the expected results for each variant case.
+    Including known edge-cases that weren't previously handled.
 
+    Attributes
+    ----------
+    Variants with known strings and expected results.
+    Returns
+    ----------
+    Number of tests completed successfully.
+    """
     def test_basic_syntax(self):
         variant1 = "LRG_199:g.1ACT[20]"
         variant = tandem_repeats.ex_repeat_var(variant1, "GRch37")
