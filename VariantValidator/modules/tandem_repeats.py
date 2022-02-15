@@ -208,81 +208,6 @@ class TandemRepeats:
     #         variant_instance.no_repeats,
     #         variant_instance.after_brac)
 
-    def check_expanded_repeat_diverging(self):
-        """
-        This takes a variant string and breaks it into its constituents.
-        This isolates the constituents with regex.
-
-        Paramaters
-        ----------
-        variant_string:str
-            (Variant string i.e. LRG_199:g.1ACT[20])
-        Returns
-        -------
-        Prints out constituents and assigns them to variables for further processing.
-        Or, returns False if variant_string is not compatible.
-        """
-        print("Running Diverging version")
-        try:
-            if "[" or "]" in self.variant_string:
-                # Check which transcript type is present.
-                if bool(re.search("^LRG", self.variant_string)):
-                    self.type = "LRG"
-                elif bool(re.search("^ENSG", self.variant_string)):
-                    self.type = "Ensembl"
-                elif bool(re.search("^NM", self.variant_string)):
-                    self.type = "RefSeq"
-                if ":" not in self.variant_string:
-                    print("Unable to identify a colon (:) in the variant description.\
-                        A colon is required in HGVS variant")
-                    logger.info("Unable to identify a colon (:) \
-                                 in the variant description.\
-                                 A colon is required in HGVS variant")
-                else:
-                    self.prefix = self.variant_string.split(":")[0]
-                    print(f'Variant prefix: {self.prefix}')
-                    logger.info(
-                        "Variant OK. Splitting Variant based on transcript type.")
-                    if self.type == "LRG":
-                        # Check if underscore after LRG is included
-                        if "_" not in self.prefix:
-                            # Add in underscore between LRG and number
-                            self.prefix = re.sub(
-                                r"(?i)(?<=[a-z])(?=\d)", '_', self.prefix)
-                            print(f'Updated prefix: {self.prefix}')
-                    self.suffix = ":" + self.variant_string.split(":")[1]
-                    # Find whether genomic or coding
-                    variant_type = re.search(':(.*?)\.', self.suffix)
-                    print(f'Variant type: {variant_type.group(1)}')
-                    # Get g or c position
-                    var_position = re.search('\.(.*?)[ACTG]', self.suffix)
-                    print(f'Variant position: {var_position.group(1)}')
-                    if "_" in var_position.group(1):
-                        start_range, end_range = var_position.group(
-                            1).split("_")
-                        print(start_range)
-                        print(end_range)
-                        rep_seq = re.search(
-                            '\.[0-9]+_[0-9]+(.*?)\[', self.suffix)
-                        print(f'Repeated sequence: {rep_seq.group(1)}')
-                    else:
-                        rep_seq = re.search('\.[0-9]+(.*?)\[', self.suffix)
-                        print(f'Repeat seq without range: {rep_seq.group(1)}')
-                    # Get number of unit repeats
-                    self.no_repeats = re.search(
-                        '\[(.*?)\]', self.suffix).group(1)
-                    print(f'Number of unit repeats: {self.no_repeats}')
-                    # Get anything after ] to check if extra unsupported information.
-                    # Or to process further for supporting other syntaxes.
-                    self.after_brac = re.search('\](.*)', self.suffix).group(1)
-                    print(f'Anything after bracket: {self.after_brac}')
-            else:
-                print("No expanded repeat present.")
-                logger.warning("No Expanded repeat present, the presence of [] is\
-                     essential of classifying expanded repeats\
-                     please check syntax on HGVS website and try again.")
-        except:
-            print("")
 
     def check_transcript_type(self):
         """
@@ -317,25 +242,6 @@ class TandemRepeats:
                 'Unknown transcript type present. \
                  Try using the RefSeq transcript ID')
 
-
-    def reformat_reference(self):
-        """Reformats the reference sequence name"""
-        logger.info(f"Reformatting reference: reformat_reference({self.reference})")
-        if re.match(r"^LRG", self.reference):
-            if re.match(r"^LRG\d+", self.reference):
-                self.reference = self.reference.replace("LRG", "LRG_")
-                logger.warning("LRG variant updated to include underscore")
-            # Get transcript number
-            if "t" in self.reference:
-                transcript_num = re.search("t(.*?)$", self.reference)
-                transcript_version = f"t{transcript_num.group(1)}"
-        elif re.match(r"^ENS", self.reference) or re.match(r"^N", self.reference):
-            assert (
-                "." in self.reference
-            ), "Please ensure the transcript or gene version is \
-                included following a '.' \
-                after the transcript or gene name e.g. ENST00000357033.8"
-        return self.reference
 
     def check_genomic_or_coding(self):
         """Takes reference and works out what prefix type should be used
@@ -426,16 +332,39 @@ class TandemRepeats:
 
     def get_range_from_single_pos(self):
         """
-        Gets full range of the variant if this is needed when a single start position is supplied
+        Gets full range of the variant if this is needed
+        when a single start position is supplied
         """
         logger.info(
-            f"Fetching the range from a given single position: get_range_from_single_pos({self.repeat_sequence},{self.copy_number},{self.variant_position}"
+            f"Fetching the range from a given single position: \
+            get_range_from_single_pos({self.repeat_sequence},\
+            {self.copy_number},{self.variant_position}"
         )
         rep_seq_length = len(self.repeat_sequence)
         repeat_range = rep_seq_length * int(self.copy_number)
         the_end_range = int(self.variant_position) + repeat_range - 1
         full_range = f"{self.variant_position}_{the_end_range}"
         return full_range
+
+
+    def reformat_reference(self):
+        """Reformats the reference sequence name"""
+        logger.info(f"Reformatting reference: reformat_reference({self.reference})")
+        if re.match(r"^LRG", self.reference):
+            if re.match(r"^LRG\d+", self.reference):
+                self.reference = self.reference.replace("LRG", "LRG_")
+                logger.warning("LRG variant updated to include underscore")
+            # Get transcript number
+            if "t" in self.reference:
+                transcript_num = re.search("t(.*?)$", self.reference)
+                transcript_version = f"t{transcript_num.group(1)}"
+        elif re.match(r"^ENS", self.reference) or re.match(r"^N", self.reference):
+            assert (
+                "." in self.reference
+            ), "Please ensure the transcript or gene version is \
+                included following a '.' \
+                after the transcript or gene name e.g. ENST00000357033.8"
+        return self.reference
 
 
     def reformat_not_multiple_of_three(self):
@@ -528,22 +457,6 @@ class TandemRepeats:
         return final_format
 
 
-    def get_range_from_single_pos(self):
-        """
-        Gets full range of the variant if this is needed
-        when a single start position is supplied
-        """
-        logger.info(
-            f"Fetching the range from a given single position: \
-            get_range_from_single_pos({self.repeat_sequence},\
-            {self.copy_number},{self.variant_position}"
-        )
-        rep_seq_length = len(self.repeat_sequence)
-        repeat_range = rep_seq_length * int(self.copy_number)
-        the_end_range = int(self.variant_position) + repeat_range - 1
-        full_range = f"{self.variant_position}_{the_end_range}"
-        return full_range
-
     def split_var_string(self):
         """
         Splits the string into two parts divided by the colon (:).
@@ -563,93 +476,6 @@ class TandemRepeats:
         self.suffix = ":" + self.variant_str.split(":")[1]
         return self.prefix, self.suffix
 
-    def check_transcript_name(self):
-        """
-        Parameters
-        ----------
-        self.variant_str:str
-                Variant string submitted i.e. LRG_199:g.1ACT[20]
-
-        Returns
-        -------
-        self.variant_str:str
-            Variant string submitted i.e. LRG_199:g.1ACT[20]
-        self.type:str
-            The transcript type, i.e. NCBI RefSeq, Ensembl, or LRG.
-        self.prefix:str
-            String for the transcript of the variant. I.e. NM_40091.5
-        self.suffix:str
-            String for the remaining variant string for further processing.
-        """
-        self.prefix = self.variant_str.split(":")[0]
-        self.suffix = ":" + self.variant_str.split(":")[1]
-        print(f'Variant prefix: {self.prefix}')
-        if self.type == "LRG":
-            # Check if underscore after LRG is included
-            if "_" not in self.prefix:
-                # Add in underscore between LRG and number
-                self.prefix = re.sub(r"(?i)(?<=[a-z])(?=\d)", '_', self.prefix)
-                print(f'Updated prefix: {self.prefix}')
-        print(f'Variant string suffix: {self.suffix}')
-        return self.variant_string, self.type, self.prefix, self.suffix
-
-    def check_variant_location(self):
-        """
-        Aim
-        ----------
-
-
-        Parameters
-        ----------
-        self.variant_string:str
-                Variant string submitted i.e. LRG_199:g.1ACT[20]
-
-        Returns
-        -------
-        self.variant_string:str
-            Variant string submitted i.e. LRG_199:g.1ACT[20]
-        self.type:str
-            The transcript type, i.e. NCBI RefSeq, Ensembl, or LRG.
-        self.prefix:str
-            String for the transcript of the variant. I.e. NM_40091.5
-        self.suffix:str
-            String for the remaining variant string for further processing.
-        self.no_repeats:int
-            The number of expanded repeats present in the variant.
-        self.after_brac
-            string for any remaining str after the final bracket
-            in the variant_string.
-        """
-        print(self.variant_string)
-        print(self.type)
-        print(self.prefix)
-        # Get g or c position
-        variant_type = re.search(':(.*?)\.', self.suffix).group(1)
-        print(f'Variant type: {variant_type}')
-        var_position = re.search('\.(.*?)[ACTG]', self.suffix).group(1)
-        print(f'Variant position: {var_position}')
-        # If position is range -- extract range
-        if "_" in var_position:
-            start_range, end_range = var_position.split("_")
-            print(start_range)
-            print(end_range)
-            rep_seq = re.search('\.[0-9]+_[0-9]+(.*?)\[', self.suffix).group(1)
-            print(f'Repeated sequence: {rep_seq}')
-            logger.info(f'Repeated sequence: {rep_seq}, \
-                       Range {start_range} to {end_range}.')
-        # If only one position is given -- extract position
-        else:
-            rep_seq = re.search('\.[0-9]+(.*?)\[', self.suffix).group(1)
-            print(f'Repeat seq without range: {rep_seq}')
-            logger.info(f'Repeat seq without range: {rep_seq}')
-        # Get number of unit repeats
-        self.no_repeats = re.search('\[(.*?)\]', self.suffix).group(1)
-        print(f'Number of unit repeats: {self.no_repeats}')
-        # Get anything after ] to check
-        self.after_brac = re.search('\](.*)', self.suffix).group(1)
-        print(f'Anything after bracket: {self.after_brac}')
-        return self.variant_string, self.type,\
-               self.prefix, self.suffix, self.no_repeats, self.after_brac
 
 
 # Hard-coded variant for testing while building.
