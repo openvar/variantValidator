@@ -59,6 +59,26 @@ class ex_repeat_var:
         self.no_repeats = None
         self.after_brac = None
 
+
+    def parse_variant(variant_string:str, build:str):
+        """
+        Parses variant string into class instance with de
+        """
+        variant_instance = ex_repeat_var(variant_string, build)
+        variant_instance.get_transcript_type()
+        variant_instance.get_transcript_name()
+        variant_instance.split_var_string()
+        variant_instance.get_variant_location()
+        print(
+        variant_instance.variant_string,
+        variant_instance.build,
+        variant_instance.type,
+        variant_instance.prefix,
+        variant_instance.suffix,
+        variant_instance.no_repeats,
+        variant_instance.after_brac)
+
+
     def check_expanded_repeat_diverging(self):
         """
         This takes a variant string and breaks it into its constituents.
@@ -74,58 +94,61 @@ class ex_repeat_var:
         Or, returns False if variant_string is not compatible.
         """
         print("Running Diverging version")
-        if "[" or "]" in self.variant_string:
+        try:
+            if "[" or "]" in self.variant_string:
             # Check which transcript type is present.
-            if bool(re.search("^LRG", self.variant_string)):
-                self.type = "LRG"
-            elif bool(re.search("^ENSG", self.variant_string)):
-                self.type = "Ensembl"
-            elif bool(re.search("^NM", self.variant_string)):
-                self.type = "RefSeq"
-            if ":" not in self.variant_string:
-                print("Unable to identify a colon (:) in the variant description.\
-                      A colon is required in HGVS variant")
-                log.info("Unable to identify a colon (:) in the variant description.\
-                      A colon is required in HGVS variant")
-            else:
-                self.prefix = self.variant_string.split(":")[0]
-                print(f'Variant prefix: {self.prefix}')
-                log.info("Variant OK. Splitting Variant based on transcript type.")
-                if self.type == "LRG":
-                    # Check if underscore after LRG is included
-                    if "_" not in self.prefix:
-                        # Add in underscore between LRG and number
-                        self.prefix = re.sub(
-                            r"(?i)(?<=[a-z])(?=\d)", '_', self.prefix)
-                        print(f'Updated prefix: {self.prefix}')
-                self.suffix = ":" + self.variant_string.split(":")[1]
-                # Find whether genomic or coding
-                variant_type = re.search(':(.*?)\.', self.suffix)
-                print(f'Variant type: {variant_type.group(1)}')
-                # Get g or c position
-                var_position = re.search('\.(.*?)[ACTG]', self.suffix)
-                print(f'Variant position: {var_position.group(1)}')
-                if "_" in var_position.group(1):
-                    start_range, end_range = var_position.group(1).split("_")
-                    print(start_range)
-                    print(end_range)
-                    rep_seq = re.search('\.[0-9]+_[0-9]+(.*?)\[', self.suffix)
-                    print(f'Repeated sequence: {rep_seq.group(1)}')
+                if bool(re.search("^LRG", self.variant_string)):
+                    self.type = "LRG"
+                elif bool(re.search("^ENSG", self.variant_string)):
+                    self.type = "Ensembl"
+                elif bool(re.search("^NM", self.variant_string)):
+                    self.type = "RefSeq"
+                if ":" not in self.variant_string:
+                    print("Unable to identify a colon (:) in the variant description.\
+                        A colon is required in HGVS variant")
+                    log.info("Unable to identify a colon (:) in the variant description.\
+                        A colon is required in HGVS variant")
                 else:
-                    rep_seq = re.search('\.[0-9]+(.*?)\[', self.suffix)
-                    print(f'Repeat seq without range: {rep_seq.group(1)}')
-                # Get number of unit repeats
-                self.no_repeats = re.search('\[(.*?)\]', self.suffix).group(1)
-                print(f'Number of unit repeats: {self.no_repeats}')
-                # Get anything after ] to check if extra unsupported information.
-                # Or to process further for supporting other syntaxes.
-                self.after_brac = re.search('\](.*)', self.suffix).group(1)
-                print(f'Anything after bracket: {self.after_brac}')
-        else:
-            print("No expanded repeat present.")
-            log.warning("No Expanded repeat present, the presence of [] is\
+                    self.prefix = self.variant_string.split(":")[0]
+                    print(f'Variant prefix: {self.prefix}')
+                    log.info("Variant OK. Splitting Variant based on transcript type.")
+                    if self.type == "LRG":
+                        # Check if underscore after LRG is included
+                        if "_" not in self.prefix:
+                            # Add in underscore between LRG and number
+                            self.prefix = re.sub(
+                                r"(?i)(?<=[a-z])(?=\d)", '_', self.prefix)
+                            print(f'Updated prefix: {self.prefix}')
+                    self.suffix = ":" + self.variant_string.split(":")[1]
+                    # Find whether genomic or coding
+                    variant_type = re.search(':(.*?)\.', self.suffix)
+                    print(f'Variant type: {variant_type.group(1)}')
+                    # Get g or c position
+                    var_position = re.search('\.(.*?)[ACTG]', self.suffix)
+                    print(f'Variant position: {var_position.group(1)}')
+                    if "_" in var_position.group(1):
+                        start_range, end_range = var_position.group(1).split("_")
+                        print(start_range)
+                        print(end_range)
+                        rep_seq = re.search('\.[0-9]+_[0-9]+(.*?)\[', self.suffix)
+                        print(f'Repeated sequence: {rep_seq.group(1)}')
+                    else:
+                        rep_seq = re.search('\.[0-9]+(.*?)\[', self.suffix)
+                        print(f'Repeat seq without range: {rep_seq.group(1)}')
+                    # Get number of unit repeats
+                    self.no_repeats = re.search('\[(.*?)\]', self.suffix).group(1)
+                    print(f'Number of unit repeats: {self.no_repeats}')
+                    # Get anything after ] to check if extra unsupported information.
+                    # Or to process further for supporting other syntaxes.
+                    self.after_brac = re.search('\](.*)', self.suffix).group(1)
+                    print(f'Anything after bracket: {self.after_brac}')
+            else:
+                print("No expanded repeat present.")
+                log.warning("No Expanded repeat present, the presence of [] is\
                      essential of classifying expanded repeats\
                      please check syntax on HGVS website and try again.")
+        except:
+            print("")
 
     def get_transcript_type(self):
         """
@@ -243,20 +266,20 @@ class ex_repeat_var:
         print(f'Variant type: {variant_type}')
         var_position = re.search('\.(.*?)[ACTG]', self.suffix).group(1)
         print(f'Variant position: {var_position}')
+        # If position is range -- extract range
         if "_" in var_position:
             start_range, end_range = var_position.split("_")
             print(start_range)
             print(end_range)
             rep_seq = re.search('\.[0-9]+_[0-9]+(.*?)\[', self.suffix).group(1)
             print(f'Repeated sequence: {rep_seq}')
-        elif:
+            log.info(f'Repeated sequence: {rep_seq}, \
+                       Range {start_range} to {end_range}.')
+        # If only one position is given -- extract position
+        else:
             rep_seq = re.search('\.[0-9]+(.*?)\[', self.suffix).group(1)
             print(f'Repeat seq without range: {rep_seq}')
-        else:
-            print(f'Invalid format for repeat range. \
-                    Please refer to HGVS guidelines.')
-            log.warning(f'Invalid format for repeat range. {self.suffix} \
-                        Please refer to HGVS guidelines.')
+            log.info(f'Repeat seq without range: {rep_seq}')
         # Get number of unit repeats
         self.no_repeats = re.search('\[(.*?)\]', self.suffix).group(1)
         print(f'Number of unit repeats: {self.no_repeats}')
@@ -283,21 +306,24 @@ VARIANT11 = "ENSG00000198947.15:g.1ACT[10]"
 VARIANT12 = "ENST00000357033.8:c.13AC[22]"
 # Missing information accepted
 VARIANT13 = "LRG_199t1:c.1_ACT[20]"
+VARIANT14 = "LRG_199:g.1_199ACT[20]"
+VARIANT15 = "LRG_199.g:1_199ACT[20]"
 
 def main():
     """
     Main function for testing the functions in the script in the
     ex_repeat_var class.
     """
-    t_var = ex_repeat_var(VARIANT4, "GRch37")
-    results = ex_repeat_var.check_expanded_repeat_diverging(t_var)
-    print(t_var.variant_string)
-    print(t_var.build)
-    print(t_var.type)
-    print(t_var.prefix)
-    print(t_var.suffix)
-    print(t_var.no_repeats)
-    print(t_var.after_brac)
+    #t_var = ex_repeat_var(VARIANT14, "GRch37")
+    #results = ex_repeat_var.check_expanded_repeat_diverging(t_var)
+    #print(t_var.variant_string)
+    #print(t_var.build)
+    #print(t_var.type)
+    #print(t_var.prefix)
+    #print(t_var.suffix)
+    #print(t_var.no_repeats)
+    #print(t_var.after_brac)
+    ex_repeat_var.parse_variant(VARIANT15, "GRch37")
     # print(results)
     # print(t_var.get_transcript_type())
     # print(t_var1.split_var_string())
