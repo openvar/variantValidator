@@ -23,7 +23,7 @@ logging.basicConfig(
     filemode='w',
     level=logging.DEBUG,
     format=LOG_FORMAT
-    )
+)
 
 logger = logging.getLogger()
 
@@ -145,7 +145,7 @@ class TandemRepeats:
             variant_position,
             repeat_sequence,
             copy_number,
-            after_the_bracket, 
+            after_the_bracket,
             build)
 
     def check_transcript_type(self):
