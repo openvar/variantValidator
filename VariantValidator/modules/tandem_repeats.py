@@ -38,6 +38,19 @@ class ex_repeat_var:
     """
 
     def __init__(self, variant_string, build) -> None:
+        """
+        This initialised an instance of the class with set class vars.
+
+        Paramaters
+        ----------
+        variant_string:str
+            (Variant string i.e. LRG_199:g.1ACT[20])
+        build:str
+            Which genome reference the variant_string refers to. i.e. Grch37.
+        Returns
+        -------
+        None. But a class instance of variant is created.
+        """
         self.variant_string = variant_string.strip()  # remove whitespace
         self.build = build
         self.type = None
@@ -53,12 +66,12 @@ class ex_repeat_var:
 
         Paramaters
         ----------
-        my_variant:str
+        variant_string:str
             (Variant string i.e. LRG_199:g.1ACT[20])
         Returns
         -------
         Prints out constituents and assigns them to variables for further processing.
-        Or, returns False if my_variant is not compatible.
+        Or, returns False if variant_string is not compatible.
         """
         print("Running Diverging version")
         if "[" or "]" in self.variant_string:
