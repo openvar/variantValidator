@@ -10,7 +10,6 @@ Additional functionality to add:
 
 """
 import unittest
-#from VariantValidator import Validator
 import tandem_repeats
 
 
@@ -26,10 +25,15 @@ class TestExpandedRepeats(unittest.TestCase):
     ----------
     Number of tests completed successfully.
     """
+
     def test_basic_syntax(self):
+        """
+        Test for handling basic syntax of variant string.
+        """
         variant1 = "LRG_199:g.1ACT[20]"
         variant = tandem_repeats.ex_repeat_var(variant1, "GRch37")
-        results = tandem_repeats.ex_repeat_var.check_expanded_repeat_diverging(variant)
+        results = tandem_repeats.ex_repeat_var.check_expanded_repeat_diverging(
+            variant)
         assert variant.variant_string == "LRG_199:g.1ACT[20]"
         assert variant.type == "LRG"
         # checks correct transcript type
@@ -62,6 +66,7 @@ class TestExpandedRepeats(unittest.TestCase):
         # checks number of repeats is str and correct
         assert variant.after_brac == ""
         # checks nothing is after the bracket
+
 
 if __name__ == "__main__":
     unittest.main()
