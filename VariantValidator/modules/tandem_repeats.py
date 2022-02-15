@@ -110,33 +110,46 @@ class TandemRepeats:
         # Check if square brackets included which indicate tandem repeat
         # variant
         if "[" or "]" in variant_str:
-            assert (
-                ":" in variant_str
-            ), f"Unable to identify a colon (:) in the variant description {variant_str}. A colon is required in HGVS variant descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. e.g. :c"
+            try:
+                assert ":" in variant_str, f"Unable to identify a colon (:) in the variant description {variant_str}. A colon is required in HGVS variant descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. e.g. :c"
+            except AssertionError:
+                logger.critical("A colon is required in the variant description. Ending program")
+                raise
+            else:
+                reference, suffix = variant_str.split(":")
             assert ";" not in variant_str, "Alleles not yet supported"
             assert "," not in variant_str, "Alleles not yet supported"
-            reference, suffix = variant_str.split(":")
             # Find reference sequence used (g or c)
             var_type = re.search("^.*?(.*?)\\.", suffix)
             prefix = var_type.group(1).lower()
             # Get g or c position(s)
             # Extract bit between . and [ e.g. 1ACT
             pos_and_seq = suffix.split(".")[1].split("[")[0]
-            assert re.search(
-                "[a-z]+", pos_and_seq, re.IGNORECASE
-            ), "Please ensure that the repeated sequence is included between the position and number of repeat units, e.g. g.1ACT[20]"
-            rep_seq = re.search("[ACTG]+", pos_and_seq, re.IGNORECASE)
-            repeat_sequence = rep_seq.group()
+            try:
+                assert re.search(
+                "[a-z]+", pos_and_seq, re.IGNORECASE), \
+                "Please ensure that the repeated sequence is included between the position and number of repeat units, e.g. g.1ACT[20]"
+            except AssertionError:
+                logger.critical("Unable to identify a repeated sequence between position and number of repeats. Ending program")
+                raise
+            else:
+                rep_seq = re.search("[ACTG]+", pos_and_seq, re.IGNORECASE)
+                repeat_sequence = rep_seq.group()
             # Ensure sign used to indicate range is “_” (underscore), not “-“
             if "-" in pos_and_seq:
                 pos_and_seq = pos_and_seq.replace("-", "_")
             # Check both ends of range are given
             if "_" in pos_and_seq:
-                assert re.search(
-                    "[0-9]+_[0-9]+", pos_and_seq
-                ), "Please ensure the start and the end of the full repeat range is provided, separated by an underscore"
-                variant_positions = re.search("[0-9]+_[0-9]+", pos_and_seq)
-                variant_position = variant_positions.group()
+                try:
+                    assert re.search(
+                            "[0-9]+_[0-9]+", pos_and_seq
+                        ), "Please ensure the start and the end of the full repeat range is provided, separated by an underscore"
+                except AssertionError:
+                    logger.critical("Only one value in the range is provided. Ending program")
+                    raise
+                else:
+                    variant_positions = re.search("[0-9]+_[0-9]+", pos_and_seq)
+                    variant_position = variant_positions.group()
             else:
                 # If just start pos, get digits
                 variant_position = re.search("\\d+", pos_and_seq)
@@ -424,11 +437,11 @@ variant25 = "ENST00000198947:c.1_2AG[10]"
 variant26 = "ENST00000198947.1:c.1_2[10]"
 # Returns ENST00000198947.1:c.1_10dup
 variant27 = "ENST00000198947.1:C.1_2A[10]"
-variant28 = "LRG_199t1:c.1_5AC[8]"
+variant28 = "LRG_199t1:c.1_2ACT[8]"
 
 
 def main():
-    my_variant = TandemRepeats.parse_repeat_variant(variant7, "GRCh37", "all")
+    my_variant = TandemRepeats.parse_repeat_variant(variant28, "GRCh37", "all")
     my_variant.check_transcript_type()
     my_variant.reformat_reference()
     my_variant.check_genomic_or_coding()
