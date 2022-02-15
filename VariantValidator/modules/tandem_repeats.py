@@ -117,8 +117,16 @@ class TandemRepeats:
                 raise
             else:
                 reference, suffix = variant_str.split(":")
-            assert ";" not in variant_str, "Alleles not yet supported"
-            assert "," not in variant_str, "Alleles not yet supported"
+            try:
+                assert ";" not in variant_str, "A semi-colon is included in variant but alleles are not yet supported"
+            except AssertionError:
+                logger.critical("A semi-colon is included but alleles are not yet supported. Ending program")
+                raise
+            try:
+                assert "," not in variant_str, "A comma is included in variant but alleles are not yet supported"
+            except AssertionError:
+                logger.critical("A comma is included in variant but alleles are not yet supported. Ending program")
+                raise
             # Find reference sequence used (g or c)
             var_type = re.search("^.*?(.*?)\\.", suffix)
             prefix = var_type.group(1).lower()
@@ -394,11 +402,11 @@ variant8 = "LRG_199:g.13ACT[20]"
 # Gives LRG_199:g.13_60ACTG[12]
 variant9 = "LRG_199:g.13_25ACTG[12]"
 # Gives LRG_199t3:c.13_14insACTGACTGACTGACTGACTG
-variant10 = "LRG199t3:c.13_125ACTG[5]"
+variant10 = "LRG199t1:c.13_125ACTG[5]"
 # Gives ENSG00000198947.15:g.1ACT[10]
 variant11 = "ENSG00000198947.15:g.1ACT[10]"
-# Gives ENST00000357033.8:c.13_14insACAC
-variant12 = "ENST00000357033.8:c.13AC[2]"
+# Gives NM_000059.4:c.13_14insACAC
+variant12 = "NM_000059.4:c.13AC[2]"
 # Gives LRG_199t1:c.1_60ACT[20]
 variant13 = "LRG_199t1:c.1_2ACT[20]"
 # Gives AssertionError: The number of repeat units included between square
@@ -421,8 +429,8 @@ variant19 = "NM_024312.4:c.1738TA[6]"
 variant20 = "LRG199t2:c.1_5C[10]"
 # Gives LRG_199t2:c.1_10dup
 variant21 = "LRG199t2:c.1-5C[10]"
-# Gives NM_024312.1:c.2686_2695dup
-variant22 = "NM_024312.1:c.2686A[10]"
+# Gives NM_023035.2:c.2686_2695dup
+variant22 = "NM_023035.2:c.2686A[5]"
 # Gives Error: Alleles not supported
 variant23 = "LRG_199:g.[123456A>G];[345678G>C]"
 # Gives LRG_199t1:c.15_16insAGAGAGAGAGAGAGAGAGAG
@@ -437,23 +445,24 @@ variant25 = "ENST00000198947:c.1_2AG[10]"
 variant26 = "ENST00000198947.1:c.1_2[10]"
 # Returns ENST00000198947.1:c.1_10dup
 variant27 = "ENST00000198947.1:C.1_2A[10]"
-variant28 = "LRG_199t1:c.1_2ACT[8]"
+variant28 = "NM_023035.2:c.6955C[38]"
 
 
 def main():
-    my_variant = TandemRepeats.parse_repeat_variant(variant28, "GRCh37", "all")
+    my_variant = TandemRepeats.parse_repeat_variant(variant13, "GRCh37", "all")
     my_variant.check_transcript_type()
     my_variant.reformat_reference()
     my_variant.check_genomic_or_coding()
     formatted = my_variant.reformat()
-    print(f"Variant formatted: {formatted}")
+    print(f"Variant formatted with this module: {formatted}")
 
     types_to_put_into_vv = ["ins", "dup"]
     if any(x in formatted for x in types_to_put_into_vv):
         validate = vval.validate(
             formatted, my_variant.build, my_variant.select_transcripts
-        ).format_as_dict(with_meta=True)
-        print(json.dumps(validate, sort_keys=True, indent=4, separators=(",", ": ")))
+        ).format_as_dict()
+        reformatted_with_vv = list(validate.keys())[1]
+        print(f"Variant checked with VV: {reformatted_with_vv}")
 
 
 if __name__ == "__main__":
