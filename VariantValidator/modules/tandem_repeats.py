@@ -7,9 +7,13 @@ DESCRIPTION:   This script contains the Tandem Repeats class and methods, aiming
 """
 
 # Import modules
+import json
 import re
 import logging
 import os
+import VariantValidator 
+
+vval = VariantValidator.Validator()
 
 # Get path of directory the script is run in
 CURRENT_DIR = os.path.abspath(os.getcwd())
@@ -56,7 +60,9 @@ class TandemRepeats:
             repeat_sequence,
             copy_number,
             after_the_bracket,
-            build):
+            build,
+            select_transcripts
+        ):
         """Constructs necessary parts of the TandemRepeats object"""
         self.reference = reference
         self.prefix = prefix
@@ -65,9 +71,10 @@ class TandemRepeats:
         self.copy_number = copy_number
         self.after_the_bracket = after_the_bracket
         self.build = build
+        self.select_transcripts = select_transcripts
 
     @classmethod
-    def parse_repeat_variant(cls, variant_str, build):
+    def parse_repeat_variant(cls, variant_str, build, select_transcripts):
         """
         Summary:
             Takes a variant string and breaks it into its constituent parts with regex to be processed in downstream functions, assigns them to class variables.
@@ -146,7 +153,9 @@ class TandemRepeats:
             repeat_sequence,
             copy_number,
             after_the_bracket,
-            build)
+            build,
+            select_transcripts
+        )
 
     def check_transcript_type(self):
         """
@@ -382,13 +391,18 @@ variant28 = "LRG_199t1:c.1_5AC[8]"
 
 
 def main():
-    my_variant = TandemRepeats.parse_repeat_variant(variant28, "GRCh37")
+    my_variant = TandemRepeats.parse_repeat_variant(variant7, "GRCh37", "all")
     my_variant.check_transcript_type()
     my_variant.reformat_reference()
     my_variant.check_genomic_or_coding()
     formatted = my_variant.reformat()
     print(f"Variant formatted: {formatted}")
-
+    types_to_put_into_vv = ["ins","dup"]
+    if any(x in formatted for x in types_to_put_into_vv):
+        validate = vval.validate(formatted, my_variant.build, my_variant.select_transcripts)
+        validation = validate.format_as_dict(with_meta=True)
+        print(json.dumps(validation, sort_keys=True, indent=4, separators=(',', ': '))) 
 
 if __name__ == "__main__":
     main()
+
