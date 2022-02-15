@@ -123,7 +123,7 @@ class ex_repeat_var:
                 print(f'Anything after bracket: {self.after_brac}')
         else:
             print("No expanded repeat present.")
-            log.info("No Expanded repeat present, the presence of [] is\
+            log.warning("No Expanded repeat present, the presence of [] is\
                      essential of classifying expanded repeats\
                      please check syntax on HGVS website and try again.")
 
@@ -249,9 +249,14 @@ class ex_repeat_var:
             print(end_range)
             rep_seq = re.search('\.[0-9]+_[0-9]+(.*?)\[', self.suffix).group(1)
             print(f'Repeated sequence: {rep_seq}')
-        else:
+        elif:
             rep_seq = re.search('\.[0-9]+(.*?)\[', self.suffix).group(1)
             print(f'Repeat seq without range: {rep_seq}')
+        else:
+            print(f'Invalid format for repeat range. \
+                    Please refer to HGVS guidelines.')
+            log.warning(f'Invalid format for repeat range. {self.suffix} \
+                        Please refer to HGVS guidelines.')
         # Get number of unit repeats
         self.no_repeats = re.search('\[(.*?)\]', self.suffix).group(1)
         print(f'Number of unit repeats: {self.no_repeats}')
@@ -278,8 +283,6 @@ VARIANT11 = "ENSG00000198947.15:g.1ACT[10]"
 VARIANT12 = "ENST00000357033.8:c.13AC[22]"
 # Missing information accepted
 VARIANT13 = "LRG_199t1:c.1_ACT[20]"
-# change * to + to only allow variants with range or single location
-
 
 def main():
     """
