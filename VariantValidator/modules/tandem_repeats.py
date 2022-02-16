@@ -63,6 +63,8 @@ class TandemRepeats:
         after_the_bracket,
         build,
         select_transcripts,
+        variant_str,
+        ref_type
     ):
         """
         This initialised an instance of the class with set class vars.
@@ -85,6 +87,8 @@ class TandemRepeats:
         self.after_the_bracket = after_the_bracket
         self.build = build
         self.select_transcripts = select_transcripts
+        self.variant_str = variant_str
+        self.ref_type = ref_type
 
 
     @classmethod
@@ -179,6 +183,7 @@ class TandemRepeats:
                 after_the_bracket = after_brac.group(1)
             else:
                 after_the_bracket = ""
+            ref_type = ""
         return cls(
             reference,
             prefix,
@@ -188,6 +193,8 @@ class TandemRepeats:
             after_the_bracket,
             build,
             select_transcripts,
+            variant_str,
+            ref_type
         )
 
     # def parse_variant(variant_string: str, build: str):
@@ -233,10 +240,13 @@ class TandemRepeats:
         )
         if bool(re.match(r"^LRG", self.reference)):
             logger.info("Variant type: LRG variant")
+            self.ref_type = "LRG"
         elif bool(re.match(r"^ENS", self.reference)):
             logger.info("Variant type: Ensembl variant")
+            self.ref_type = "Ensembl"
         elif bool(re.match(r"NM", self.reference)):
             logger.info("Variant type: RefSeq variant")
+            self.ref_type = "RefSeq"
         else:
             raise NameError(
                 'Unknown transcript type present. \
@@ -451,9 +461,7 @@ class TandemRepeats:
         else:
             if "_" in self.variant_position:
                 self.variant_position = self.check_positions_given()
-            final_format = f"{self.reference}:{self.prefix}.\
-                             {self.variant_position}{self.repeat_sequence}\
-                             [{self.copy_number}]"
+            final_format = f"{self.reference}:{self.prefix}.{self.variant_position}{self.repeat_sequence}[{self.copy_number}]"
         return final_format
 
 
@@ -500,7 +508,7 @@ VARIANT15 = "LRG_199.g:1_199ACT[20]"
 
 
 # Gives LRG_199t1:c.1_2insACACACACACACACACACACACACACAC
-VARIANT1 = "LRG_199t1:c.1_5AC[14]"
+#VARIANT1 = "LRG_199t1:c.1_5AC[14]"
 # Gives LRG_199:g.1ACT[20]
 VARIANT2 = "LRG_199:g.1ACT[20]A"
 # Gives LRG_199:g.1AC[20]
@@ -562,7 +570,8 @@ VARIANT26 = "ENST00000198947.1:c.1_2[10]"
 # Returns ENST00000198947.1:c.1_10dup
 VARIANT27 = "ENST00000198947.1:C.1_2A[10]"
 VARIANT28 = "LRG_199t1:c.1_5AC[8]"
-#VARIANT29 = "LRG_199t1:c.1_2insACACACACACACACACACACACACACAC"
+
+VARIANT29 = "NM_004006.2:c.13AC[7]"
 
 
 def main():
@@ -570,11 +579,14 @@ def main():
     Main function for testing the functions in the script in the
     TandemRepeats class.
     """
-    my_variant = TandemRepeats.parse_repeat_variant(VARIANT28, "GRCh37", "all")
+    my_variant = TandemRepeats.parse_repeat_variant(VARIANT29, "GRCh37", "all")
     my_variant.check_transcript_type()
     my_variant.reformat_reference()
     my_variant.check_genomic_or_coding()
     formatted = my_variant.reformat()
+    print(my_variant.prefix)
+    print(my_variant.ref_type)
+    print(my_variant.reference)
     print(f"Variant formatted: {formatted}")
 
 
