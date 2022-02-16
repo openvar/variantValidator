@@ -74,7 +74,7 @@ class TestExpandedRepeats(unittest.TestCase):
         # checks correct position
         assert my_variant.repeat_sequence == "ACT"
         # checks prefix for variant
-        assert my_variant.prefix == "c"
+        assert my_variant.prefix == "g"
         # checks repeat seq
         assert my_variant.copy_number == "10"
         # checks number of repeats is str and correct
@@ -137,6 +137,12 @@ class TestExpandedRepeats(unittest.TestCase):
         # checks number of repeats is str and correct
         assert my_variant.after_the_bracket == ""
         # checks nothing is after the bracket
+
+    def test_throws_exception(self):
+        # Test throws AssertionError if no colon included in variant 
+        test_variant = "NG_004006.2g.1_2act[22]"
+        with self.assertRaises(AssertionError):
+            tandem_repeats.TandemRepeats.parse_repeat_variant(test_variant, "GRCh37","all")
 
 
 if __name__ == "__main__":
