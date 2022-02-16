@@ -193,6 +193,37 @@ class TestExpandedRepeats(unittest.TestCase):
         assert my_variant.end == ":g.1ACT[10]"
 
 
+    def test_transcript_versions(self):
+        """
+        Test for handing - instead of _ in variant_str.
+        Previous code gave an error below:
+        AssertionError: Unable to identify a colon (:) in the variant
+        """
+        variant_str = "NM_004006.2:c.13-14AC[7]"
+        my_variant = tandem_repeats.TandemRepeats.parse_repeat_variant(
+                                    variant_str, "GRCh37", "all")
+        my_variant.check_transcript_type()
+        my_variant.reformat_reference()
+        my_variant.check_genomic_or_coding()
+        formatted = my_variant.reformat()
+        assert formatted == "NM_004006.2:c.13_14insACACACACACACAC"
+        assert my_variant.variant_str == "NM_004006.2:c.13-14AC[7]"
+        assert my_variant.variant_position == "13_14"
+        # checks correct position This is the most important assert.
+
+        # Additional checks
+        assert my_variant.ref_type == "RefSeq"
+        # checks correct transcript type
+        assert my_variant.reference == "NM_004006.2"
+        # checks correct ref name
+        assert my_variant.repeat_sequence == "AC"
+        # checks repeat seq
+        assert my_variant.copy_number == "7"
+        # checks number of repeats is str and correct
+        assert my_variant.after_the_bracket == ""
+        # checks nothing is after the bracket
+
+
 if __name__ == "__main__":
     unittest.main()
 

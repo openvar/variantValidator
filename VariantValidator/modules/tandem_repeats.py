@@ -568,21 +568,22 @@ VARIANT26 = "ENST00000198947.1:c.1_2[10]"
 # Returns ENST00000198947.1:c.1_10dup
 VARIANT27 = "ENST00000198947.1:C.1_2A[10]"
 VARIANT28 = "LRG_199t1:c.1_5AC[8]"
+VARIANT29 = "NM_004006.2:c.13-14AC[7]"
 
 
 
 def main():
-    my_variant = TandemRepeats.parse_repeat_variant(VARIANT25, "GRCh37", "all")
+    my_variant = TandemRepeats.parse_repeat_variant(VARIANT15, "GRCh37", "all")
     print(my_variant.simple_split_string())
-    # my_variant.check_transcript_type()
-    # my_variant.reformat_reference()
-    # my_variant.check_genomic_or_coding()
-    # formatted = my_variant.reformat()
+    my_variant.check_transcript_type()
+    my_variant.reformat_reference()
+    my_variant.check_genomic_or_coding()
+    formatted = my_variant.reformat()
 
     # print(my_variant.prefix)
     # print(my_variant.ref_type)
     # print(my_variant.reference)
-    # print(f"Variant formatted: {formatted}")
+    print(f"Variant formatted: {formatted}")
 
     # print(f"Variant formatted with this module: {formatted}")
 
