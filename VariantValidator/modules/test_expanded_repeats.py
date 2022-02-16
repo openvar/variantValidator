@@ -143,6 +143,29 @@ class TestExpandedRepeats(unittest.TestCase):
         test_variant = "NG_004006.2g.1_2act[22]"
         with self.assertRaises(AssertionError):
             tandem_repeats.TandemRepeats.parse_repeat_variant(test_variant, "GRCh37","all")
+    
+    def test_throws_exception_2(self):
+        # Test throws AssertionError if no repeat sequence is included
+        test_variant = "ENST00000198947.1:c.1_2[10]"
+        with self.assertRaises(AssertionError):
+            tandem_repeats.TandemRepeats.parse_repeat_variant(test_variant, "GRCh37","all")
+
+    def test_throws_exception_3(self):
+        # Test throws AssertionError if allele variant
+        test_variant = "LRG_199:g.[123456A>G];[345678G>C]"
+        with self.assertRaises(AssertionError):
+            tandem_repeats.TandemRepeats.parse_repeat_variant(test_variant, "GRCh37","all")
+
+    def test_throws_exception_4(self):
+        # Test throws AssertionError if repeat number between brackets not numeric
+        test_variant = "LRG_199t1:c.20A[A]"
+        my_variant = tandem_repeats.TandemRepeats.parse_repeat_variant(
+                            test_variant, "GRCh37", "all")
+        my_variant.check_transcript_type()
+        my_variant.reformat_reference()
+        my_variant.check_genomic_or_coding()
+        with self.assertRaises(AssertionError):
+            my_variant.reformat()
 
 
 if __name__ == "__main__":
