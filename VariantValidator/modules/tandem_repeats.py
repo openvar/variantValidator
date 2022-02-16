@@ -3,6 +3,7 @@ NAME:          modules/tandem_repeats.py
 AUTHORS:       Rebecca Locke (@rklocke) & Robert Wilson (@RSWilson1)
 DATE:          18/02/22
 INSTITUTION:   University of Manchester/Cambridge University Hospitals
+
 DESCRIPTION:   This script contains the TandemRepeats class and methods,
                aiming to check the syntax and
                reformat tandem repeat variants for VariantValidator.
@@ -95,12 +96,15 @@ class TandemRepeats:
     @classmethod
     def parse_repeat_variant(cls, variant_str, build, select_transcripts):
         """
-        Summary:
+        Summary
+        -------
             Takes a variant string and breaks it into its constituent parts with regex to be processed in downstream functions, assigns them to class variables.
-        Args:
+        Parameters
+        ----------
             variant_str : str
                 variant string e.g. "LRG_199:g.1ACT[20]A"
-        Returns:
+        Returns
+        -------
             Updates each class attribute:
             reference : str
                 Transcript or gene; everything before the first colon, e.g. "LRG_199"
@@ -114,6 +118,7 @@ class TandemRepeats:
                 The number of repeat units e.g. "20"
             after_the_bracket : str
                 Captures anything after the number of repeats bracket e.g. "A"
+
         Example 1:
             >>>parse_repeat_variant("LRG_199:g.1ACT[20]A")
                 "LRG_199", "g", "1", "ACT", "20", "A"
@@ -170,11 +175,9 @@ class TandemRepeats:
                 try:
                     assert re.search(
                             "[0-9]+_[0-9]+", pos_and_seq
-                        ), "Please ensure the start and the end of the \
-                            full repeat range is provided, separated by an underscore"
+                        ), "Please ensure the start and the end of the full repeat range is provided, separated by an underscore"
                 except AssertionError:
-                    logger.critical("Only one value in the range is provided. \
-                        Ending program")
+                    logger.critical("Only one value in the range is provided. Ending program")
                     raise
                 else:
                     variant_positions = re.search("[0-9]+_[0-9]+", pos_and_seq)
@@ -192,6 +195,7 @@ class TandemRepeats:
                 after_the_bracket = after_brac.group(1)
             else:
                 after_the_bracket = ""
+
             ref_type = ""
         return cls(
             reference,
@@ -243,6 +247,23 @@ class TandemRepeats:
                 'Unknown transcript type present. \
                  Try using the RefSeq transcript ID')
 
+    def reformat_reference(self):
+        """Reformats the reference sequence name"""
+        logger.info(f"Reformatting reference: reformat_reference({self.reference})")
+        if re.match(r"^LRG", self.reference):
+            if re.match(r"^LRG\d+", self.reference):
+                self.reference = self.reference.replace("LRG", "LRG_")
+                logger.warning("LRG variant updated to include underscore")
+            # Get transcript number
+            if "t" in self.reference:
+                transcript_num = re.search("t(.*?)$", self.reference)
+                transcript_version = f"t{transcript_num.group(1)}"
+        elif re.match(r"^ENS", self.reference) or re.match(r"^N", self.reference):
+            assert (
+                "." in self.reference
+            ), "Please ensure the transcript or gene version is included following a '.' after the transcript or gene name e.g. ENST00000357033.8"
+        return self.reference
+
 
     def check_genomic_or_coding(self):
         """Takes reference and works out what prefix type should be used
@@ -250,8 +271,7 @@ class TandemRepeats:
             AssertionError if wrong prefix type is used
         """
         logger.info(
-            f"Checking prefix is consistent with reference: \
-                check_genomic_or_coding({self.reference},{self.prefix})"
+            f"Checking prefix is consistent with reference: check_genomic_or_coding({self.reference},{self.prefix})"
         )
         if re.match(r"^LRG", self.reference):
             if "t" in self.reference:
@@ -328,6 +348,7 @@ class TandemRepeats:
         """
         Gets full range of the variant if this is needed
         when a single start position is supplied
+
         """
         logger.info(
             f"Fetching the range from a given single position: get_range_from_single_pos({self.repeat_sequence},{self.copy_number},{self.variant_position}"
@@ -337,7 +358,6 @@ class TandemRepeats:
         the_end_range = int(self.variant_position) + repeat_range - 1
         full_range = f"{self.variant_position}_{the_end_range}"
         return full_range
-
 
     def reformat_reference(self):
         """Reformats the reference sequence name"""
@@ -391,9 +411,7 @@ class TandemRepeats:
                 end = int(start) + 1
                 position = f"{start}_{end}"
             logger.warning(
-                f"Warning: Repeated sequence is coding \
-                and is of length {rep_seq_length}, not a multiple of three! \
-                Updating variant description to insertion"
+                f"Warning: Repeated sequence is coding and is of length {rep_seq_length}, not a multiple of three! Updating variant description to insertion"
             )
             reformatted = (
                 f"{self.reference}:{self.prefix}.{position}ins{expanded_rep_seq}"
@@ -403,12 +421,11 @@ class TandemRepeats:
     def reformat(self):
         """Reformats and returns final formatted variant as a string"""
         logger.info(
-            f"Reformatting variant: reformat({self.repeat_sequence}, {self.after_the_bracket},{self.prefix},{self.variant_position}, {self.copy_number})"
+            f"Reformatting variant: reformat({self.repeat_sequence},{self.after_the_bracket},{self.prefix},{self.variant_position},{self.copy_number})"
         )
         assert (
             self.copy_number.isdecimal()
-        ), "The number of repeat units included \
-            between square brackets must be numeric"
+        ), "The number of repeat units included between square brackets must be numeric"
         assert re.search(
             "[actg]+", self.repeat_sequence, re.IGNORECASE
         ), "Please ensure the repeated sequence includes only A, C, T or G"
@@ -416,7 +433,7 @@ class TandemRepeats:
         self.repeat_sequence = self.repeat_sequence.upper()
         if self.after_the_bracket != "":
             logger.warning(
-                f"No information should be included after the number of repeat units. Currently '{self.after_the_bracket}''is included. This will be removed as mixed repeats are not currently supported."
+                f"No information should be included after the number of repeat units. Currently '{self.after_the_bracket}'' is included. This will be removed as mixed repeats are not currently supported."
             )
         # Reformat c. variants
         if self.prefix == "c":
@@ -434,6 +451,7 @@ class TandemRepeats:
                 self.variant_position = self.check_positions_given()
             final_format = f"{self.reference}:{self.prefix}.{self.variant_position}{self.repeat_sequence}[{self.copy_number}]"
         return final_format
+
 
 
     def split_var_string(self):
@@ -454,8 +472,6 @@ class TandemRepeats:
         self.prefix = self.variant_str.split(":")[0]
         self.suffix = ":" + self.variant_str.split(":")[1]
         return self.prefix, self.suffix
-
-
 
 # Hard-coded variant for testing while building.
 # Gives LRG_199t1:c.1_2insACACACACACACACACACACACACACAC
@@ -522,24 +538,22 @@ VARIANT26 = "ENST00000198947.1:c.1_2[10]"
 VARIANT27 = "ENST00000198947.1:C.1_2A[10]"
 VARIANT28 = "LRG_199t1:c.1_5AC[8]"
 
-VARIANT29 = "NM_004006.2:c.13AC[7]"
 
 
 def main():
-    """
-    Main function for testing the functions in the script in the
-    TandemRepeats class.
-    """
-    my_variant = TandemRepeats.parse_repeat_variant(VARIANT29, "GRCh37", "all")
+    my_variant = TandemRepeats.parse_repeat_variant(variant13, "GRCh37", "all")
     my_variant.check_transcript_type()
     my_variant.reformat_reference()
     my_variant.check_genomic_or_coding()
     formatted = my_variant.reformat()
+
     print(my_variant.prefix)
     print(my_variant.ref_type)
     print(my_variant.reference)
     print(f"Variant formatted: {formatted}")
     
+    print(f"Variant formatted with this module: {formatted}")
+
     types_to_put_into_vv = ["ins", "dup"]
     if any(x in formatted for x in types_to_put_into_vv):
         validate = vval.validate(
@@ -547,7 +561,6 @@ def main():
         ).format_as_dict()
         reformatted_with_vv = list(validate.keys())[1]
         print(f"Variant checked with VV: {reformatted_with_vv}")
-
 
 # This allows the script to be run by itself or imported as a package.
 if __name__ == "__main__":
