@@ -3,10 +3,13 @@ NAME:          modules/tandem_repeats.py
 AUTHORS:       Rebecca Locke (@rklocke) & Robert Wilson (@RSWilson1)
 DATE:          18/02/22
 INSTITUTION:   University of Manchester/Cambridge University Hospitals
-DESCRIPTION:   This script contains the Tandem Repeats class and methods, aiming to ultimately check the syntax and reformat tandem repeat variants for VariantValidator
+
+DESCRIPTION:   This script contains the TandemRepeats class and methods,
+               aiming to check the syntax and
+               reformat tandem repeat variants for VariantValidator.
 """
 
-# Import modules
+# Importing Modules
 import json
 import re
 import logging
@@ -16,29 +19,27 @@ import VariantValidator
 # Initialise vv class
 vval = VariantValidator.Validator()
 
-# Get path of directory the script is run in
+# Get path the script is run in
 CURRENT_DIR = os.path.abspath(os.getcwd())
 
-# Configure logging message format
+# Create and configure logger
 LOG_FORMAT = "%(asctime)s — %(name)s — %(levelname)s — %(lineno)d — %(message)s"
 
-# Set logging level to debug, define logging format, re-write file each time
+# Set level to debug, format with date and time and re-write file each time
 logging.basicConfig(
-    filename=f"{CURRENT_DIR}/expanded_repeats.log",
-    filemode="w",
+    filename=f'{CURRENT_DIR}/expanded_repeats.log',
     level=logging.DEBUG,
     format=LOG_FORMAT,
-)
+    filemode='w')
 
 # Set up logger
-logger = logging.getLogger()
+logger = logging.getLogger("main log")
 
-
+# Established class for Tandem repeats
 class TandemRepeats:
-
-    """Class to represent a tandem repeat variant
-
-    Attributes
+    """
+    Class used for create instances of
+    expanded repeat variants.
     ----------
     reference : str
         reference sequence name
@@ -64,8 +65,22 @@ class TandemRepeats:
         after_the_bracket,
         build,
         select_transcripts,
+        variant_str,
+        ref_type
     ):
-        """Constructs necessary parts of the TandemRepeats object"""
+        """
+        This initialised an instance of the class with set class vars.
+
+        Paramaters
+        ----------
+        variant_string:str
+            (Variant string i.e. LRG_199:g.1ACT[20])
+        build:str
+            Which genome reference the variant_string refers to. i.e. Grch37.
+        Returns
+        -------
+        None. But a class instance of variant is created.
+        """
         self.reference = reference
         self.prefix = prefix
         self.variant_position = variant_position
@@ -74,18 +89,23 @@ class TandemRepeats:
         self.after_the_bracket = after_the_bracket
         self.build = build
         self.select_transcripts = select_transcripts
+        self.variant_str = variant_str
+        self.ref_type = ref_type
+
 
     @classmethod
     def parse_repeat_variant(cls, variant_str, build, select_transcripts):
         """
-        Summary:
+        Summary
+        -------
             Takes a variant string and breaks it into its constituent parts with regex to be processed in downstream functions, assigns them to class variables.
-        Args:
+        Parameters
+        ----------
             variant_str : str
                 variant string e.g. "LRG_199:g.1ACT[20]A"
-        Returns:
+        Returns
+        -------
             Updates each class attribute:
-
             reference : str
                 Transcript or gene; everything before the first colon, e.g. "LRG_199"
             prefix : str
@@ -98,9 +118,13 @@ class TandemRepeats:
                 The number of repeat units e.g. "20"
             after_the_bracket : str
                 Captures anything after the number of repeats bracket e.g. "A"
-        Example:
+
+        Example 1:
             >>>parse_repeat_variant("LRG_199:g.1ACT[20]A")
                 "LRG_199", "g", "1", "ACT", "20", "A"
+        Example 2:
+            >>>parse_repeat_variant("NM_024312.4:c.1_10A[10]")
+                "NM_024312.4", "c", "1_10" "A", "10", ""
         """
         print(f"Variant entered: {variant_str}")
         logger.info(f"Parsing variant: parse_repeat_variant({variant_str})")
@@ -171,6 +195,8 @@ class TandemRepeats:
                 after_the_bracket = after_brac.group(1)
             else:
                 after_the_bracket = ""
+
+            ref_type = ""
         return cls(
             reference,
             prefix,
@@ -180,33 +206,46 @@ class TandemRepeats:
             after_the_bracket,
             build,
             select_transcripts,
+            variant_str,
+            ref_type
         )
+
 
     def check_transcript_type(self):
         """
-        Summary:
-            Find transcript type. N.B. Future development could instead store the transcript and replace it with RefSeq.
-        Args:
-            reference (string): The reference from parse_variant_repeat
-        Returns:
-            None, prints variant type
+        Find transcript type and run relevant function for processing,
+        that transcript type.
+        N.B. Future development could instead store
+        the transcript and replace it with refseq.
+
+        Parameters
+        ----------
+        self.reference:str
+            The reference from parse_variant_repeat
+            i.e. Everything before the first colon.
+        Returns
+        -------
+        None, prints variant type.
+
         Raises:
-            NameError: [Error for unknown transcript type.]
+            NameError: (Error for unknown transcript type.)
         """
         logger.info(
             f"Checking transcript type: check_transcript_type({self.reference})"
         )
         if bool(re.match(r"^LRG", self.reference)):
             logger.info("Variant type: LRG variant")
-        elif bool(re.match(r"^E", self.reference)):
+            self.ref_type = "LRG"
+        elif bool(re.match(r"^ENS", self.reference)):
             logger.info("Variant type: Ensembl variant")
-        elif bool(re.match(r"^N", self.reference)):
+            self.ref_type = "Ensembl"
+        elif bool(re.match(r"NM", self.reference)):
             logger.info("Variant type: RefSeq variant")
+            self.ref_type = "RefSeq"
         else:
             raise NameError(
-                "Unknown transcript type present. \
-                            Try RefSeq transcript ID"
-            )
+                'Unknown transcript type present. \
+                 Try using the RefSeq transcript ID')
 
     def reformat_reference(self):
         """Reformats the reference sequence name"""
@@ -224,6 +263,7 @@ class TandemRepeats:
                 "." in self.reference
             ), "Please ensure the transcript or gene version is included following a '.' after the transcript or gene name e.g. ENST00000357033.8"
         return self.reference
+
 
     def check_genomic_or_coding(self):
         """Takes reference and works out what prefix type should be used
@@ -267,13 +307,19 @@ class TandemRepeats:
                 self.prefix == "n"
             ), "Please ensure variant type is non-coding if NR transcript is used"
 
+
     def check_positions_given(self):
-        """Checks the position range given and updates it if it doesn't match the length of the repeated sequence and number of repeat units when full range is needed
-        Args:
+        """
+        Checks the position range given and
+        updates it if it doesn't match the length of the repeated sequence
+        and number of repeat units when full range is needed.
+        Parameters
+        ----------
             repeat_sequence (string): The repeated sequence e.g. "ACT"
             variant_position (string): The position of the variant e.g. "1" or "1_5"
             copy_number (string): The number of repeat units e.g. "20"
-        Returns:
+        Returns
+        -------
             full_range (string): The full range supplied if correct or the full range updated if inputted range was incorrect, e.g. "1_20"
         """
         logger.info(
@@ -297,9 +343,12 @@ class TandemRepeats:
             full_range = f"{start_range}_{new_end_range}"
         return full_range
 
+
     def get_range_from_single_pos(self):
         """
-        Gets full range of the variant if this is needed when a single start position is supplied
+        Gets full range of the variant if this is needed
+        when a single start position is supplied
+
         """
         logger.info(
             f"Fetching the range from a given single position: get_range_from_single_pos({self.repeat_sequence},{self.copy_number},{self.variant_position}"
@@ -310,12 +359,33 @@ class TandemRepeats:
         full_range = f"{self.variant_position}_{the_end_range}"
         return full_range
 
+    def reformat_reference(self):
+        """Reformats the reference sequence name"""
+        logger.info(f"Reformatting reference: reformat_reference({self.reference})")
+        if re.match(r"^LRG", self.reference):
+            if re.match(r"^LRG\d+", self.reference):
+                self.reference = self.reference.replace("LRG", "LRG_")
+                logger.warning("LRG variant updated to include underscore")
+            # Get transcript number
+            if "t" in self.reference:
+                transcript_num = re.search("t(.*?)$", self.reference)
+                transcript_version = f"t{transcript_num.group(1)}"
+        elif re.match(r"^ENS", self.reference) or re.match(r"^N", self.reference):
+            assert (
+                "." in self.reference
+            ), "Please ensure the transcript or gene version is \
+                included following a '.' \
+                after the transcript or gene name e.g. ENST00000357033.8"
+        return self.reference
+
+
     def reformat_not_multiple_of_three(self):
         """
-        Reformats coding variants (c.) to a dup or ins if they are not a multiple of three
+        Reformats coding variants (c.) to a dup or ins
+        if they are not a multiple of three
         """
         logger.info(
-            f"Reformatting variant as not a multiple of three: reformat_not_multiple_of_three({self.repeat_sequence},{self.variant_position},{self.reference},{self.prefix})"
+            f"Reformatting variant as not a multiple of three: reformat_not_multiple_of_three({self.repeat_sequence}, {self.variant_position},{self.reference},{self.prefix})"
         )
         reformatted = ""
         rep_seq_length = len(self.repeat_sequence)
@@ -329,8 +399,8 @@ class TandemRepeats:
                 f"Warning: Repeated sequence is coding and is of length {rep_seq_length}, not a multiple of three! Updating variant description to a duplication"
             )
             reformatted = f"{self.reference}:{self.prefix}.{self.variant_position}dup"
-        # Repeat of 2 bases should be an ins with only first two nts given as
-        # range
+        # Repeat of 2 bases should be an ins
+        # with only first two nts given as range
         elif rep_seq_length >= 2:
             expanded_rep_seq = self.repeat_sequence * int(self.copy_number)
             if "_" not in self.variant_position:
@@ -383,69 +453,91 @@ class TandemRepeats:
         return final_format
 
 
+
+    def split_var_string(self):
+        """
+        Splits the string into two parts divided by the colon (:).
+        Parameters
+        ----------
+        self.variant_str:str
+                (Variant string i.e. LRG_199:g.1ACT[20])
+
+        Returns
+        -------
+        self.prefix:str
+            String for the transcript of the variant. I.e. NM_40091.5
+        self.suffix:str
+            String for the remaining variant string for further processing.
+        """
+        self.prefix = self.variant_str.split(":")[0]
+        self.suffix = ":" + self.variant_str.split(":")[1]
+        return self.prefix, self.suffix
+
+# Hard-coded variant for testing while building.
 # Gives LRG_199t1:c.1_2insACACACACACACACACACACACACACAC
-variant1 = "LRG_199t1:c.1_5AC[14]"
+#VARIANT1 = "LRG_199t1:c.1_5AC[14]"
 # Gives LRG_199:g.1ACT[20]
-variant2 = "LRG_199:g.1ACT[20]A"
+VARIANT2 = "LRG_199:g.1ACT[20]A"
 # Gives LRG_199:g.1AC[20]
-variant3 = "LRG_199:g.1AC[20]"
+VARIANT3 = "LRG_199:g.1AC[20]"
 # Gives LRG_199t1:c.1_60ACT[20]
-variant4 = "LRG_199t1:c.1_3ACT[20]"
+VARIANT4 = "LRG_199t1:c.1_3ACT[20]"
 # Gives LRG_199t1:c.1_2insACACACACACACACACACAC
-variant5 = "LRG_199t1:c.1AC[10]"
+VARIANT5 = "LRG_199t1:c.1AC[10]"
 # Gives LRG_199t1:c.1ACT[20]
-variant6 = "LRG_199t1:c.1act[20]"
+VARIANT6 = "LRG_199t1:c.1act[20]"
 # Gives LRG_199t1:c.1_12dup
-variant7 = "LRG_199t1:c.1A[12]"
+VARIANT7 = "LRG_199t1.c:1A[12]"
 # Gives LRG_199:g.13ACT[20]
-variant8 = "LRG_199:g.13ACT[20]"
+VARIANT8 = "LRG_199:g.13ACT[20]"
 # Gives LRG_199:g.13_60ACTG[12]
-variant9 = "LRG_199:g.13_25ACTG[12]"
+VARIANT9 = "LRG_199:g.13_25ACTG[12]"
 # Gives LRG_199t3:c.13_14insACTGACTGACTGACTGACTG
-variant10 = "LRG199t1:c.13_125ACTG[5]"
+VARIANT10 = "LRG199t3:c.13_125ACTG[5]"
 # Gives ENSG00000198947.15:g.1ACT[10]
-variant11 = "ENSG00000198947.15:g.1ACT[10]"
-# Gives NM_000059.4:c.13_14insACAC
-variant12 = "NM_000059.4:c.13AC[2]"
+VARIANT11 = "ENSG00000198947.15:g.1ACT[10]"
+# Gives ENST00000357033.8:c.13_14insACAC
+VARIANT12 = "ENST00000357033.8:c.13AC[2]"
 # Gives LRG_199t1:c.1_60ACT[20]
-variant13 = "LRG_199t1:c.1_2ACT[20]"
+VARIANT13 = "LRG_199t1:c.1_2ACT[20]"
 # Gives AssertionError: The number of repeat units included between square
 # brackets must be numeric
-variant14 = "LRG_199t1:c.20A[A]"
+VARIANT14 = "LRG_199t1:c.20A[A]"
 # Gives NM_004006.2:c.13_14insACACACACACACAC
-variant15 = "NM_004006.2:c.13AC[7]"
+VARIANT15 = "NM_004006.2:c.13AC[7]"
 # Gives AssertionError: Unable to identify a colon (:) in the variant
 # description NG_004006.2g.1_2act[22]. A colon is required in HGVS variant
 # descriptions to separate the reference accession from the reference type
 # i.e. <accession>:<type>. e.g. :c
-variant16 = "NG_004006.2g.1_2act[22]"
+VARIANT16 = "NG_004006.2g.1_2act[22]"
 # Gives NG_004006.2:g.1_66ACT[22]
-variant17 = "NG_004006.2:g.1_2act[22]"
+VARIANT17 = "NG_004006.2:g.1_2act[22]"
 # Gives NM_024312.4:c.2686_2695dup
-variant18 = "NM_024312.4:c.2686A[10]"
+VARIANT18 = "NM_024312.4:c.2686A[10]"
 # Gives NM_024312.4:c.1738_1739insTATATATATATA
-variant19 = "NM_024312.4:c.1738TA[6]"
+VARIANT19 = "NM_024312.4:c.1738TA[6]"
 # Gives LRG_199t2:c.1_10dup
-variant20 = "LRG199t2:c.1_5C[10]"
+VARIANT20 = "LRG199t2:c.1_5C[10]"
 # Gives LRG_199t2:c.1_10dup
-variant21 = "LRG199t2:c.1-5C[10]"
-# Gives NM_023035.2:c.2686_2695dup
-variant22 = "NM_023035.2:c.2686A[5]"
+VARIANT21 = "LRG199t2:c.1-5C[10]"
+# Gives NM_024312.1:c.2686_2695dup
+VARIANT22 = "NM_024312.1:c.2686A[10]"
 # Gives Error: Alleles not supported
-variant23 = "LRG_199:g.[123456A>G];[345678G>C]"
+VARIANT23 = "LRG_199:g.[123456A>G];[345678G>C]"
 # Gives LRG_199t1:c.15_16insAGAGAGAGAGAGAGAGAGAG
-variant24 = "LRG_199t1:c.15_20AG[10]"
+VARIANT24 = "LRG_199t1:c.15_20AG[10]"
 # Gives AssertionError: Please ensure the transcript or gene version is
 # included following a '.' after the transcript or gene name e.g.
 # ENST00000357033.8
-variant25 = "ENST00000198947:c.1_2AG[10]"
+VARIANT25 = "ENST00000198947:c.1_2AG[10]"
 # Gives AssertionError: Please ensure that the repeated sequence is
 # included between the position and number of repeat units, e.g.
 # g.1ACT[20]
-variant26 = "ENST00000198947.1:c.1_2[10]"
+VARIANT26 = "ENST00000198947.1:c.1_2[10]"
 # Returns ENST00000198947.1:c.1_10dup
-variant27 = "ENST00000198947.1:C.1_2A[10]"
-variant28 = "NM_023035.2:c.6955C[38]"
+VARIANT27 = "ENST00000198947.1:C.1_2A[10]"
+VARIANT28 = "LRG_199t1:c.1_5AC[8]"
+
 
 
 def main():
@@ -454,6 +546,12 @@ def main():
     my_variant.reformat_reference()
     my_variant.check_genomic_or_coding()
     formatted = my_variant.reformat()
+
+    print(my_variant.prefix)
+    print(my_variant.ref_type)
+    print(my_variant.reference)
+    print(f"Variant formatted: {formatted}")
+    
     print(f"Variant formatted with this module: {formatted}")
 
     types_to_put_into_vv = ["ins", "dup"]
@@ -464,6 +562,8 @@ def main():
         reformatted_with_vv = list(validate.keys())[1]
         print(f"Variant checked with VV: {reformatted_with_vv}")
 
-
+# This allows the script to be run by itself or imported as a package.
 if __name__ == "__main__":
+    logger.info('--------- Starting Script ---------')
     main()
+    logger.info('--------- End Script ---------')
