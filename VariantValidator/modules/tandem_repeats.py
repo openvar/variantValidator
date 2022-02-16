@@ -133,18 +133,28 @@ class TandemRepeats:
 
         # Check if square brackets included which indicate tandem repeat
         # variant
-        if "[" or "]" in variant_str:
+        if '[' in variant_str or ']' in variant_str:
             try:
-                assert ":" in variant_str, f"Unable to identify a colon (:) in the variant description {variant_str}. A colon is required in HGVS variant descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. e.g. :c"
+                assert ":" in variant_str,\
+                    (
+                        f"Unable to identify a colon (:)"
+                        f"in the variant description {variant_str}."
+                        f"A colon is required in HGVS variant descriptions to separate"
+                        f"the reference accession from the reference type"
+                        f" i.e. <accession>:<type>. e.g. :c"
+                    )
             except AssertionError:
                 logger.critical("A colon is required in the variant description. Ending program")
                 raise
             else:
                 reference, suffix = variant_str.split(":")
             try:
-                assert ";" not in variant_str, "A semi-colon is included in variant but alleles are not yet supported"
+                assert ";" not in variant_str,\
+                "A semi-colon is included in variant but alleles are not yet supported"
             except AssertionError:
-                logger.critical("A semi-colon is included but alleles are not yet supported. Ending program")
+                logger.critical(
+                    "A semi-colon is included but alleles are not yet supported. Ending program"
+                    )
                 raise
             try:
                 assert "," not in variant_str, "A comma is included in variant but alleles are not yet supported"
@@ -197,6 +207,16 @@ class TandemRepeats:
                 after_the_bracket = ""
 
             ref_type = ""
+        else:
+            logger.info(
+                "Unable to identify a tandem repeat. Ending program."
+                "Check Format matches HGVS: "
+                "(https://varnomen.hgvs.org/recommendations/DNA/variant/repeated/)"
+            )
+            print("Unable to identify a tandem repeat.")
+            return False
+        # This returns False to indicate to VV no tandem present.
+
         return cls(
             reference,
             prefix,
@@ -541,7 +561,7 @@ VARIANT28 = "LRG_199t1:c.1_5AC[8]"
 
 
 def main():
-    my_variant = TandemRepeats.parse_repeat_variant(variant13, "GRCh37", "all")
+    my_variant = TandemRepeats.parse_repeat_variant("", "GRCh37", "all")
     my_variant.check_transcript_type()
     my_variant.reformat_reference()
     my_variant.check_genomic_or_coding()
@@ -551,9 +571,7 @@ def main():
     print(my_variant.ref_type)
     print(my_variant.reference)
     print(f"Variant formatted: {formatted}")
-    
     print(f"Variant formatted with this module: {formatted}")
-
     types_to_put_into_vv = ["ins", "dup"]
     if any(x in formatted for x in types_to_put_into_vv):
         validate = vval.validate(
