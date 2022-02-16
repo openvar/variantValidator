@@ -71,12 +71,14 @@ class TandemRepeats:
         """
         This initialised an instance of the class with set class vars.
 
-        Paramaters
+        Parameters
         ----------
-        variant_string:str
+        variant_str : str
             (Variant string i.e. LRG_199:g.1ACT[20])
-        build:str
-            Which genome reference the variant_string refers to. i.e. Grch37.
+        build : str
+            Which genome reference the variant_string refers to e.g. GRCh37
+        select_transcripts : str
+            Return all possible transcripts or only select ones e.g. "all"
         Returns
         -------
         None. But a class instance of variant is created.
@@ -133,18 +135,29 @@ class TandemRepeats:
 
         # Check if square brackets included which indicate tandem repeat
         # variant
-        if "[" in variant_str or "]" in variant_str:
+
+        if '[' in variant_str or ']' in variant_str:
             try:
-                assert ":" in variant_str, f"Unable to identify a colon (:) in the variant description {variant_str}. A colon is required in HGVS variant descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. e.g. :c"
+                assert ":" in variant_str,\
+                    (
+                        f"Unable to identify a colon (:)"
+                        f"in the variant description {variant_str}."
+                        f"A colon is required in HGVS variant descriptions to separate"
+                        f"the reference accession from the reference type"
+                        f" i.e. <accession>:<type>. e.g. :c"
+                    )
             except AssertionError:
                 logger.critical("A colon is required in the variant description. Ending program")
                 raise
             else:
                 reference, suffix = variant_str.split(":")
             try:
-                assert ";" not in variant_str, "A semi-colon is included in variant but alleles are not yet supported"
+                assert ";" not in variant_str,\
+                "A semi-colon is included in variant but alleles are not yet supported"
             except AssertionError:
-                logger.critical("A semi-colon is included but alleles are not yet supported. Ending program")
+                logger.critical(
+                    "A semi-colon is included but alleles are not yet supported. Ending program"
+                    )
                 raise
             try:
                 assert "," not in variant_str, "A comma is included in variant but alleles are not yet supported"
@@ -189,7 +202,7 @@ class TandemRepeats:
             # Get number of unit repeats
             repeat_no = re.search("\\[(.*?)\\]", variant_str)
             copy_number = repeat_no.group(1)
-            # Get anything after ] to check
+            # Save anything after bracket so that mixed repeats are supported in future
             if re.search("\\](.*)", variant_str):
                 after_brac = re.search("\\](.*)", variant_str)
                 after_the_bracket = after_brac.group(1)
@@ -206,6 +219,7 @@ class TandemRepeats:
             print("Unable to identify a tandem repeat.")
             return False
             #  This returns False to VV to indicate no tandem repeats present.
+
         return cls(
             reference,
             prefix,
@@ -453,11 +467,17 @@ class TandemRepeats:
                 logger.info("Checked repeat length is consistent with c. type")
                 if "_" in self.variant_position:
                     self.variant_position = self.check_positions_given()
+                #Uncomment if you want to always have range in final format
+                # else:
+                #     self.variant_position = self.get_range_from_single_pos()
                 final_format = f"{self.reference}:{self.prefix}.{self.variant_position}{self.repeat_sequence}[{self.copy_number}]"
         # Reformat g. variants
         else:
             if "_" in self.variant_position:
                 self.variant_position = self.check_positions_given()
+            #Uncomment if you want to always have range in final format
+            # else:
+            #     self.variant_position = self.get_range_from_single_pos()
             final_format = f"{self.reference}:{self.prefix}.{self.variant_position}{self.repeat_sequence}[{self.copy_number}]"
         return final_format
 
