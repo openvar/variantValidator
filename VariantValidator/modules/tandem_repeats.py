@@ -462,10 +462,11 @@ class TandemRepeats:
         return final_format
 
 
-
     def simple_split_string(self):
         """
         Splits the string into two parts divided by the colon (:).
+        Useful for segregating the two distict elements of the variant string
+        And for troubleshooting.
         Parameters
         ----------
         self.variant_str:str
@@ -481,6 +482,7 @@ class TandemRepeats:
         self.begining = self.variant_str.split(":")[0]
         self.end = ":" + self.variant_str.split(":")[1]
         return self.begining, self.end
+
 
 # Hard-coded variant for testing while building.
 # Gives LRG_199t1:c.1_2insACACACACACACACACACACACACACAC
