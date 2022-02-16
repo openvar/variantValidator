@@ -157,6 +157,12 @@ class TestExpandedRepeats(unittest.TestCase):
             tandem_repeats.TandemRepeats.parse_repeat_variant(test_variant, "GRCh37","all")
 
     def test_throws_exception_4(self):
+        # Test throws AssertionError as both sides of range not included
+        test_variant = "NM_004006.2:c.1_ACT[22]"
+        with self.assertRaises(AssertionError):
+            tandem_repeats.TandemRepeats.parse_repeat_variant(test_variant, "GRCh37","all")
+
+    def test_throws_exception_5(self):
         # Test throws AssertionError if repeat number between brackets not numeric
         test_variant = "LRG_199t1:c.20A[A]"
         my_variant = tandem_repeats.TandemRepeats.parse_repeat_variant(
