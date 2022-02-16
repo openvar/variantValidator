@@ -10,14 +10,14 @@ DESCRIPTION:   This script contains the TandemRepeats class and methods,
 """
 
 # Importing Modules
-import json
+#import json
 import re
 import logging
 import os
-import VariantValidator
+#import VariantValidator
 
 # Initialise vv class
-vval = VariantValidator.Validator()
+#vval = VariantValidator.Validator()
 
 # Get path the script is run in
 CURRENT_DIR = os.path.abspath(os.getcwd())
@@ -554,13 +554,13 @@ def main():
     
     print(f"Variant formatted with this module: {formatted}")
 
-    types_to_put_into_vv = ["ins", "dup"]
-    if any(x in formatted for x in types_to_put_into_vv):
-        validate = vval.validate(
-            formatted, my_variant.build, my_variant.select_transcripts
-        ).format_as_dict()
-        reformatted_with_vv = list(validate.keys())[1]
-        print(f"Variant checked with VV: {reformatted_with_vv}")
+    # types_to_put_into_vv = ["ins", "dup"]
+    # if any(x in formatted for x in types_to_put_into_vv):
+    #     validate = vval.validate(
+    #         formatted, my_variant.build, my_variant.select_transcripts
+    #     ).format_as_dict()
+    #     reformatted_with_vv = list(validate.keys())[1]
+    #     print(f"Variant checked with VV: {reformatted_with_vv}")
 
 # This allows the script to be run by itself or imported as a package.
 if __name__ == "__main__":
