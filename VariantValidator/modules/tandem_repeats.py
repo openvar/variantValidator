@@ -7,15 +7,16 @@ DESCRIPTION:   This script contains the TandemRepeats class and methods,
                aiming to check the syntax and
                reformat tandem repeat variants for VariantValidator.
 """
+
 # Importing Modules
-#import json
+import json
 import re
 import logging
 import os
-#import VariantValidator
+import VariantValidator
 
 # Initialise vv class
-#vval = VariantValidator.Validator()
+vval = VariantValidator.Validator()
 
 # Get path the script is run in
 CURRENT_DIR = os.path.abspath(os.getcwd())
@@ -33,7 +34,7 @@ logging.basicConfig(
 # Set up logger
 logger = logging.getLogger("main log")
 
-# Established class for expanded repeats
+# Established class for Tandem repeats
 class TandemRepeats:
     """
     Class used for create instances of
@@ -135,8 +136,16 @@ class TandemRepeats:
                 raise
             else:
                 reference, suffix = variant_str.split(":")
-            assert ";" not in variant_str, "Alleles not yet supported"
-            assert "," not in variant_str, "Alleles not yet supported"
+            try:
+                assert ";" not in variant_str, "A semi-colon is included in variant but alleles are not yet supported"
+            except AssertionError:
+                logger.critical("A semi-colon is included but alleles are not yet supported. Ending program")
+                raise
+            try:
+                assert "," not in variant_str, "A comma is included in variant but alleles are not yet supported"
+            except AssertionError:
+                logger.critical("A comma is included in variant but alleles are not yet supported. Ending program")
+                raise
             # Find reference sequence used (g or c)
             var_type = re.search("^.*?(.*?)\\.", suffix)
             prefix = var_type.group(1).lower()
@@ -197,24 +206,6 @@ class TandemRepeats:
             ref_type
         )
 
-    # def parse_variant(variant_string: str, build: str):
-    #     """
-    #     Parses variant string into class instance with de
-    #     """
-    #     variant_instance = ex_repeat_var(variant_string, build)
-    #     variant_instance.check_transcript_type()
-    #     variant_instance.check_transcript_name()
-    #     variant_instance.split_var_string()
-    #     variant_instance.check_variant_location()
-    #     print(
-    #         variant_instance.variant_string,
-    #         variant_instance.build,
-    #         variant_instance.type,
-    #         variant_instance.prefix,
-    #         variant_instance.suffix,
-    #         variant_instance.no_repeats,
-    #         variant_instance.after_brac)
-
 
     def check_transcript_type(self):
         """
@@ -266,8 +257,7 @@ class TandemRepeats:
             if "t" in self.reference:
                 assert (
                     self.prefix == "c"
-                ), "Please ensure variant type is coding \
-                    if an LRG transcript is provided"
+                ), "Please ensure variant type is coding if an LRG transcript is provided"
             else:
                 assert (
                     self.prefix == "g"
@@ -275,33 +265,27 @@ class TandemRepeats:
         elif re.match(r"^ENST", self.reference):
             assert (
                 self.prefix == "c"
-            ), "Please ensure variant type is coding if an \
-                Ensembl transcript is provided"
+            ), "Please ensure variant type is coding if an Ensembl transcript is provided"
         elif re.match(r"^ENSG", self.reference):
             assert (
                 self.prefix == "g"
-            ), "Please ensure variant type is genomic if \
-                Ensembl gene is used"
+            ), "Please ensure variant type is genomic if Ensembl gene is used"
         elif re.match(r"^NM", self.reference):
             assert (
                 self.prefix == "c"
-            ), "Please ensure variant type is coding if \
-                a RefSeq transcript is provided"
+            ), "Please ensure variant type is coding if a RefSeq transcript is provided"
         elif re.match(r"^NC", self.reference):
             assert (
                 self.prefix == "g"
-            ), "Please ensure variant type is genomic if \
-                RefSeq chromosome is used"
+            ), "Please ensure variant type is genomic if RefSeq chromosome is used"
         elif re.match(r"^NG", self.reference):
             assert (
                 self.prefix == "g"
-            ), "Please ensure variant type is genomic if \
-                RefSeq gene is used"
+            ), "Please ensure variant type is genomic if RefSeq gene is used"
         elif re.match(r"^NR", self.reference):
             assert (
                 self.prefix == "n"
-            ), "Please ensure variant type is non-coding \
-                if NR transcript is used"
+            ), "Please ensure variant type is non-coding if NR transcript is used"
 
 
     def check_positions_given(self):
@@ -346,9 +330,7 @@ class TandemRepeats:
         when a single start position is supplied
         """
         logger.info(
-            f"Fetching the range from a given single position: \
-            get_range_from_single_pos({self.repeat_sequence},\
-            {self.copy_number},{self.variant_position}"
+            f"Fetching the range from a given single position: get_range_from_single_pos({self.repeat_sequence},{self.copy_number},{self.variant_position}"
         )
         rep_seq_length = len(self.repeat_sequence)
         repeat_range = rep_seq_length * int(self.copy_number)
@@ -383,9 +365,7 @@ class TandemRepeats:
         if they are not a multiple of three
         """
         logger.info(
-            f"Reformatting variant as not a multiple of three: \
-              reformat_not_multiple_of_three({self.repeat_sequence},\
-              {self.variant_position},{self.reference},{self.prefix})"
+            f"Reformatting variant as not a multiple of three: reformat_not_multiple_of_three({self.repeat_sequence}, {self.variant_position},{self.reference},{self.prefix})"
         )
         reformatted = ""
         rep_seq_length = len(self.repeat_sequence)
@@ -396,9 +376,7 @@ class TandemRepeats:
             else:
                 self.variant_position = self.get_range_from_single_pos()
             logger.warning(
-                f"Warning: Repeated sequence is coding and \
-                  is of length {rep_seq_length}, not a multiple of three! \
-                  Updating variant description to a duplication"
+                f"Warning: Repeated sequence is coding and is of length {rep_seq_length}, not a multiple of three! Updating variant description to a duplication"
             )
             reformatted = f"{self.reference}:{self.prefix}.{self.variant_position}dup"
         # Repeat of 2 bases should be an ins
@@ -425,9 +403,7 @@ class TandemRepeats:
     def reformat(self):
         """Reformats and returns final formatted variant as a string"""
         logger.info(
-            f"Reformatting variant: reformat({self.repeat_sequence},\
-            {self.after_the_bracket},{self.prefix},{self.variant_position},\
-            {self.copy_number})"
+            f"Reformatting variant: reformat({self.repeat_sequence}, {self.after_the_bracket},{self.prefix},{self.variant_position}, {self.copy_number})"
         )
         assert (
             self.copy_number.isdecimal()
@@ -440,10 +416,7 @@ class TandemRepeats:
         self.repeat_sequence = self.repeat_sequence.upper()
         if self.after_the_bracket != "":
             logger.warning(
-                f"No information should be included after \
-                the number of repeat units. Currently '{self.after_the_bracket}''\
-                is included. This will be removed as mixed repeats \
-                are not currently supported."
+                f"No information should be included after the number of repeat units. Currently '{self.after_the_bracket}''is included. This will be removed as mixed repeats are not currently supported."
             )
         # Reformat c. variants
         if self.prefix == "c":
@@ -454,9 +427,7 @@ class TandemRepeats:
                 logger.info("Checked repeat length is consistent with c. type")
                 if "_" in self.variant_position:
                     self.variant_position = self.check_positions_given()
-                final_format = f"{self.reference}:{self.prefix}.\
-                                 {self.variant_position}{self.repeat_sequence}\
-                                 [{self.copy_number}]"
+                final_format = f"{self.reference}:{self.prefix}.{self.variant_position}{self.repeat_sequence}[{self.copy_number}]"
         # Reformat g. variants
         else:
             if "_" in self.variant_position:
@@ -487,26 +458,6 @@ class TandemRepeats:
 
 
 # Hard-coded variant for testing while building.
-# List of variants to check format and split into constituents.
-VARIANT1 = "LRG_199:g.1ACT[20]"
-VARIANT2 = "LRG_199:g.1ACT[20]A"
-VARIANT3 = "LRG_199:g.1AC[20]"
-VARIANT4 = "LRG_199t1:c.1_3ACT[20]"
-VARIANT5 = "LRG_199t1:c.1AC[20]"
-VARIANT6 = "LRG_199t1:c.1act[20]"
-VARIANT7 = "LRG199c.1A[1_2]"
-VARIANT8 = "LRG_199:g.13ACT[20]"
-VARIANT9 = "LRG_199:g.13_25ACTG[1]"
-VARIANT10 = "LRG199:g.13_125ACTG[1]"
-# Other types not LRG
-VARIANT11 = "ENSG00000198947.15:g.1ACT[10]"
-VARIANT12 = "ENST00000357033.8:c.13AC[22]"
-# Missing information accepted
-VARIANT13 = "LRG_199t1:c.1_ACT[20]"
-VARIANT14 = "LRG_199:g.1_199ACT[20]"
-VARIANT15 = "LRG_199.g:1_199ACT[20]"
-
-
 # Gives LRG_199t1:c.1_2insACACACACACACACACACACACACACAC
 #VARIANT1 = "LRG_199t1:c.1_5AC[14]"
 # Gives LRG_199:g.1ACT[20]
@@ -588,6 +539,14 @@ def main():
     print(my_variant.ref_type)
     print(my_variant.reference)
     print(f"Variant formatted: {formatted}")
+    
+    types_to_put_into_vv = ["ins", "dup"]
+    if any(x in formatted for x in types_to_put_into_vv):
+        validate = vval.validate(
+            formatted, my_variant.build, my_variant.select_transcripts
+        ).format_as_dict()
+        reformatted_with_vv = list(validate.keys())[1]
+        print(f"Variant checked with VV: {reformatted_with_vv}")
 
 
 # This allows the script to be run by itself or imported as a package.
