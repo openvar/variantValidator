@@ -110,6 +110,66 @@ class TestExpandedRepeats(unittest.TestCase):
         # checks nothing is after the bracket
 
 
+    def test_basic_syntax_4(self):
+        """
+        Test for handling basic syntax of ENSG variant string.
+        """
+        variant_str = "ENSG00000198947.15:g.1_10A[10]"
+        my_variant = tandem_repeats.TandemRepeats.parse_repeat_variant(
+                                    variant_str, "GRCh37", "all")
+        my_variant.check_transcript_type()
+        my_variant.reformat_reference()
+        my_variant.check_genomic_or_coding()
+        formatted = my_variant.reformat()
+        assert formatted == "ENSG00000198947.15:g.1_10A[10]"
+        assert my_variant.variant_str == "ENSG00000198947.15:g.1_10A[10]"
+        assert my_variant.ref_type == "Ensembl"
+        # checks correct transcript type
+        assert my_variant.reference == "ENSG00000198947.15"
+        # checks correct ref name
+        assert my_variant.variant_position == "1_10"
+        # checks correct position
+        assert my_variant.repeat_sequence == "A"
+        # checks prefix for variant
+        assert my_variant.prefix == "g"
+        # checks repeat seq
+        assert my_variant.copy_number == "10"
+        # checks number of repeats is str and correct
+        assert my_variant.after_the_bracket == ""
+        # checks nothing is after the bracket
+
+
+    def test_LRG_transcript_handling(self):
+        """
+        Test for transcript_handling of
+        LRG variant string.
+        """
+        # Gives LRG_199t1:c.1_60ACT[20]
+        variant_str = "LRG_199t1:c.1_2ACT[20]"
+        my_variant = tandem_repeats.TandemRepeats.parse_repeat_variant(
+                                    variant_str, "GRCh37", "all")
+        my_variant.check_transcript_type()
+        my_variant.reformat_reference()
+        my_variant.check_genomic_or_coding()
+        formatted = my_variant.reformat()
+        assert formatted == "LRG_199t1:c.1_60ACT[20]"
+        assert my_variant.variant_str == "LRG_199t1:c.1_2ACT[20]"
+        assert my_variant.ref_type == "LRG"
+        # checks correct transcript type
+        assert my_variant.reference == "LRG_199t1"
+        # checks correct ref name
+        assert my_variant.variant_position == "1_60"
+        # checks correct position
+        assert my_variant.repeat_sequence == "ACT"
+        # checks prefix for variant
+        assert my_variant.prefix == "c"
+        # checks repeat seq
+        assert my_variant.copy_number == "20"
+        # checks number of repeats is str and correct
+        assert my_variant.after_the_bracket == ""
+        # checks nothing is after the bracket
+
+
     def test_transcript_versions(self):
         """
         Test for handing transcript versions.
@@ -244,3 +304,4 @@ if __name__ == "__main__":
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # </LICENSE>
+
