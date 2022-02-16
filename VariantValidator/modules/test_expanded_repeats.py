@@ -111,6 +111,7 @@ class TestExpandedRepeats(unittest.TestCase):
         # checks nothing is after the bracket
 
 
+
     def test_basic_syntax_3(self):
         """
         Test for handling basic syntax of ENSG variant string.
