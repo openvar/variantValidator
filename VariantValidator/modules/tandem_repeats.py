@@ -10,14 +10,14 @@ DESCRIPTION:   This script contains the TandemRepeats class and methods,
 """
 
 # Importing Modules
-import json
+#import json
 import re
 import logging
 import os
-import VariantValidator
+#import VariantValidator
 
 # Initialise vv class
-vval = VariantValidator.Validator()
+#vval = VariantValidator.Validator()
 
 # Get path the script is run in
 CURRENT_DIR = os.path.abspath(os.getcwd())
@@ -135,6 +135,7 @@ class TandemRepeats:
 
         # Check if square brackets included which indicate tandem repeat
         # variant
+
         if '[' in variant_str or ']' in variant_str:
             try:
                 assert ":" in variant_str,\
@@ -217,7 +218,7 @@ class TandemRepeats:
             )
             print("Unable to identify a tandem repeat.")
             return False
-        # This returns False to indicate to VV no tandem present.
+            #  This returns False to VV to indicate no tandem repeats present.
 
         return cls(
             reference,
@@ -481,10 +482,11 @@ class TandemRepeats:
         return final_format
 
 
-
-    def split_var_string(self):
+    def simple_split_string(self):
         """
         Splits the string into two parts divided by the colon (:).
+        Useful for segregating the two distict elements of the variant string
+        And for troubleshooting.
         Parameters
         ----------
         self.variant_str:str
@@ -497,9 +499,10 @@ class TandemRepeats:
         self.suffix:str
             String for the remaining variant string for further processing.
         """
-        self.prefix = self.variant_str.split(":")[0]
-        self.suffix = ":" + self.variant_str.split(":")[1]
-        return self.prefix, self.suffix
+        self.begining = self.variant_str.split(":")[0]
+        self.end = ":" + self.variant_str.split(":")[1]
+        return self.begining, self.end
+
 
 # Hard-coded variant for testing while building.
 # Gives LRG_199t1:c.1_2insACACACACACACACACACACACACACAC
@@ -565,29 +568,32 @@ VARIANT26 = "ENST00000198947.1:c.1_2[10]"
 # Returns ENST00000198947.1:c.1_10dup
 VARIANT27 = "ENST00000198947.1:C.1_2A[10]"
 VARIANT28 = "LRG_199t1:c.1_5AC[8]"
+VARIANT29 = "NM_004006.2:c.13-14AC[7]"
 
 
 
 def main():
-    """main script to run if not imported.
-    """
-    my_variant = TandemRepeats.parse_repeat_variant(VARIANT2, "GRCh37", "all")
+    my_variant = TandemRepeats.parse_repeat_variant(VARIANT15, "GRCh37", "all")
+    print(my_variant.simple_split_string())
     my_variant.check_transcript_type()
     my_variant.reformat_reference()
     my_variant.check_genomic_or_coding()
     formatted = my_variant.reformat()
+
     # print(my_variant.prefix)
     # print(my_variant.ref_type)
     # print(my_variant.reference)
-    print(f"Variant formatted with this module: {formatted}")
+    print(f"Variant formatted: {formatted}")
 
-    types_to_put_into_vv = ["ins", "dup"]
-    if any(x in formatted for x in types_to_put_into_vv):
-        validate = vval.validate(
-            formatted, my_variant.build, my_variant.select_transcripts
-        ).format_as_dict()
-        reformatted_with_vv = list(validate.keys())[1]
-        print(f"Variant checked with VV: {reformatted_with_vv}")
+    # print(f"Variant formatted with this module: {formatted}")
+
+    # types_to_put_into_vv = ["ins", "dup"]
+    # if any(x in formatted for x in types_to_put_into_vv):
+    #     validate = vval.validate(
+    #         formatted, my_variant.build, my_variant.select_transcripts
+    #     ).format_as_dict()
+    #     reformatted_with_vv = list(validate.keys())[1]
+    #     print(f"Variant checked with VV: {reformatted_with_vv}")
 
 # This allows the script to be run by itself or imported as a package.
 if __name__ == "__main__":

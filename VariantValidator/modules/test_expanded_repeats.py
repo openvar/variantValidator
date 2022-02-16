@@ -139,11 +139,12 @@ class TestExpandedRepeats(unittest.TestCase):
         # checks nothing is after the bracket
 
     def test_throws_exception(self):
-        # Test throws AssertionError if no colon included in variant 
+        # Test throws AssertionError if no colon included in variant
         test_variant = "NG_004006.2g.1_2act[22]"
         with self.assertRaises(AssertionError):
             tandem_repeats.TandemRepeats.parse_repeat_variant(test_variant, "GRCh37","all")
-    
+
+
     def test_throws_exception_2(self):
         # Test throws AssertionError if no repeat sequence is included
         test_variant = "ENST00000198947.1:c.1_2[10]"
@@ -174,21 +175,6 @@ class TestExpandedRepeats(unittest.TestCase):
             my_variant.reformat()
 
 
-    # def test_basic_syntax_4(self):
-    #     """
-    #     Test for handling basic syntax of ENSG variant string.
-    #     """
-    #     variant_str = "LRG_199:g.[123456A>G];[345678G>C]"
-    #     my_variant = tandem_repeats.TandemRepeats.parse_repeat_variant(
-    #                                 variant_str, "GRCh37", "all")
-    #     my_variant.check_transcript_type()
-    #     my_variant.reformat_reference()
-    #     my_variant.check_genomic_or_coding()
-    #     formatted = my_variant.reformat()
-    #     assert my_variant.variant_str == "LRG_199:g.[123456A>G];[345678G>C]"
-    #     assert raise
-
-
     def test_empty_string(self):
         """
         Test for handling empty string.
@@ -197,6 +183,45 @@ class TestExpandedRepeats(unittest.TestCase):
         my_variant = tandem_repeats.TandemRepeats.parse_repeat_variant(
                                     variant_str, "GRCh37", "all")
         assert my_variant == False
+
+
+    def test_simple_str_split(self):
+        test_variant = "ENSG00000198947:g.1ACT[10]"
+        my_variant = tandem_repeats.TandemRepeats.parse_repeat_variant(test_variant, "GRCh37", "all")
+        my_variant.simple_split_string()
+        assert my_variant.begining == "ENSG00000198947"
+        assert my_variant.end == ":g.1ACT[10]"
+
+
+    def test_transcript_versions(self):
+        """
+        Test for handing - instead of _ in variant_str.
+        Previous code gave an error below:
+        AssertionError: Unable to identify a colon (:) in the variant
+        """
+        variant_str = "NM_004006.2:c.13-14AC[7]"
+        my_variant = tandem_repeats.TandemRepeats.parse_repeat_variant(
+                                    variant_str, "GRCh37", "all")
+        my_variant.check_transcript_type()
+        my_variant.reformat_reference()
+        my_variant.check_genomic_or_coding()
+        formatted = my_variant.reformat()
+        assert formatted == "NM_004006.2:c.13_14insACACACACACACAC"
+        assert my_variant.variant_str == "NM_004006.2:c.13-14AC[7]"
+        assert my_variant.variant_position == "13_14"
+        # checks correct position This is the most important assert.
+
+        # Additional checks
+        assert my_variant.ref_type == "RefSeq"
+        # checks correct transcript type
+        assert my_variant.reference == "NM_004006.2"
+        # checks correct ref name
+        assert my_variant.repeat_sequence == "AC"
+        # checks repeat seq
+        assert my_variant.copy_number == "7"
+        # checks number of repeats is str and correct
+        assert my_variant.after_the_bracket == ""
+        # checks nothing is after the bracket
 
 
 if __name__ == "__main__":
