@@ -189,7 +189,7 @@ class TandemRepeats:
             # Get number of unit repeats
             repeat_no = re.search("\\[(.*?)\\]", variant_str)
             copy_number = repeat_no.group(1)
-            # Get anything after ] to check
+            # Save anything after bracket so that mixed repeats are supported in future
             if re.search("\\](.*)", variant_str):
                 after_brac = re.search("\\](.*)", variant_str)
                 after_the_bracket = after_brac.group(1)
@@ -444,11 +444,17 @@ class TandemRepeats:
                 logger.info("Checked repeat length is consistent with c. type")
                 if "_" in self.variant_position:
                     self.variant_position = self.check_positions_given()
+                #Uncomment if you want to always have range in final format
+                # else:
+                #     self.variant_position = self.get_range_from_single_pos()
                 final_format = f"{self.reference}:{self.prefix}.{self.variant_position}{self.repeat_sequence}[{self.copy_number}]"
         # Reformat g. variants
         else:
             if "_" in self.variant_position:
                 self.variant_position = self.check_positions_given()
+            #Uncomment if you want to always have range in final format
+            # else:
+            #     self.variant_position = self.get_range_from_single_pos()
             final_format = f"{self.reference}:{self.prefix}.{self.variant_position}{self.repeat_sequence}[{self.copy_number}]"
         return final_format
 
@@ -541,17 +547,15 @@ VARIANT28 = "LRG_199t1:c.1_5AC[8]"
 
 
 def main():
-    my_variant = TandemRepeats.parse_repeat_variant(variant13, "GRCh37", "all")
+    my_variant = TandemRepeats.parse_repeat_variant(VARIANT2, "GRCh37", "all")
     my_variant.check_transcript_type()
     my_variant.reformat_reference()
     my_variant.check_genomic_or_coding()
     formatted = my_variant.reformat()
 
-    print(my_variant.prefix)
-    print(my_variant.ref_type)
-    print(my_variant.reference)
-    print(f"Variant formatted: {formatted}")
-    
+    # print(my_variant.prefix)
+    # print(my_variant.ref_type)
+    # print(my_variant.reference)
     print(f"Variant formatted with this module: {formatted}")
 
     types_to_put_into_vv = ["ins", "dup"]
