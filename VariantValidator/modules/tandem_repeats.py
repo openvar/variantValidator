@@ -133,7 +133,7 @@ class TandemRepeats:
 
         # Check if square brackets included which indicate tandem repeat
         # variant
-        if "[" or "]" in variant_str:
+        if "[" in variant_str or "]" in variant_str:
             try:
                 assert ":" in variant_str, f"Unable to identify a colon (:) in the variant description {variant_str}. A colon is required in HGVS variant descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. e.g. :c"
             except AssertionError:
@@ -197,6 +197,15 @@ class TandemRepeats:
                 after_the_bracket = ""
 
             ref_type = ""
+        else:
+            logger.info(
+                "Unable to identify a tandem repeat. Ending program."
+                "Check Format matches HGVS: "
+                "(https://varnomen.hgvs.org/recommendations/DNA/variant/repeated/)"
+            )
+            print("Unable to identify a tandem repeat.")
+            return False
+            #  This returns False to VV to indicate no tandem repeats present.
         return cls(
             reference,
             prefix,
@@ -454,7 +463,7 @@ class TandemRepeats:
 
 
 
-    def split_var_string(self):
+    def simple_split_string(self):
         """
         Splits the string into two parts divided by the colon (:).
         Parameters
@@ -469,9 +478,9 @@ class TandemRepeats:
         self.suffix:str
             String for the remaining variant string for further processing.
         """
-        self.prefix = self.variant_str.split(":")[0]
-        self.suffix = ":" + self.variant_str.split(":")[1]
-        return self.prefix, self.suffix
+        self.begining = self.variant_str.split(":")[0]
+        self.end = ":" + self.variant_str.split(":")[1]
+        return self.begining, self.end
 
 # Hard-coded variant for testing while building.
 # Gives LRG_199t1:c.1_2insACACACACACACACACACACACACACAC
@@ -541,18 +550,19 @@ VARIANT28 = "LRG_199t1:c.1_5AC[8]"
 
 
 def main():
-    my_variant = TandemRepeats.parse_repeat_variant(variant13, "GRCh37", "all")
-    my_variant.check_transcript_type()
-    my_variant.reformat_reference()
-    my_variant.check_genomic_or_coding()
-    formatted = my_variant.reformat()
+    my_variant = TandemRepeats.parse_repeat_variant(VARIANT25, "GRCh37", "all")
+    print(my_variant.simple_split_string())
+    # my_variant.check_transcript_type()
+    # my_variant.reformat_reference()
+    # my_variant.check_genomic_or_coding()
+    # formatted = my_variant.reformat()
 
-    print(my_variant.prefix)
-    print(my_variant.ref_type)
-    print(my_variant.reference)
-    print(f"Variant formatted: {formatted}")
-    
-    print(f"Variant formatted with this module: {formatted}")
+    # print(my_variant.prefix)
+    # print(my_variant.ref_type)
+    # print(my_variant.reference)
+    # print(f"Variant formatted: {formatted}")
+
+    # print(f"Variant formatted with this module: {formatted}")
 
     # types_to_put_into_vv = ["ins", "dup"]
     # if any(x in formatted for x in types_to_put_into_vv):

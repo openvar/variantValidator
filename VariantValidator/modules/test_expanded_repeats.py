@@ -222,6 +222,14 @@ class TestExpandedRepeats(unittest.TestCase):
         assert my_variant == False
 
 
+    def test_simple_str_split(self):
+        test_variant = "ENSG00000198947:g.1ACT[10]"
+        my_variant = tandem_repeats.TandemRepeats.parse_repeat_variant(test_variant, "GRCh37", "all")
+        my_variant.simple_split_string()
+        assert my_variant.begining == "ENSG00000198947"
+        assert my_variant.end == ":g.1ACT[10]"
+
+
 
 if __name__ == "__main__":
     unittest.main()
