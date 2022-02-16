@@ -1,6 +1,6 @@
 """
 Tandem_Repeats_tests
-Authors: Robert Wilson (@RSWilson1) and Rebecca Locke
+Authors: Robert Wilson (@RSWilson1) and Rebecca Locke (@rklocke)
 This code runs tests on the module tandem_repeats.py to check the outputs are as expected.
 
 It checks known edge-case HGVS compliant variant strings.
@@ -25,47 +25,6 @@ class TestExpandedRepeats(unittest.TestCase):
     ----------
     Number of tests completed successfully.
     """
-
-    # def test_basic_syntax(self):
-    #     """
-    #     Test for handling basic syntax of variant string.
-    #     """
-    #     variant1 = "LRG_199:g.1ACT[20]"
-    #     variant = tandem_repeats.ex_repeat_var(variant1, "GRch37")
-    #     results = tandem_repeats.ex_repeat_var.check_expanded_repeat_diverging(
-    #         variant)
-    #     assert variant.variant_string == "LRG_199:g.1ACT[20]"
-    #     assert variant.type == "LRG"
-    #     # checks correct transcript type
-    #     assert variant.prefix == "LRG_199"
-    #     # checks correct prefix
-    #     assert variant.suffix == ":g.1ACT[20]"
-    #     # checks correct suffix
-    #     assert variant.no_repeats == "20"
-    #     # checks number of repeats is str and correct
-    #     assert variant.after_brac == ""
-    #     # checks nothing is after the bracket
-
-    # def test_basic_syntax2(self):
-    #     """
-    #     Test for handing transcript iterations.
-    #     Previous code gave an error below:
-    #     AssertionError: Unable to identify a colon (:) in the variant
-    #     """
-    #     variant_str = "NM_004006.2:c.13AC[7]"
-    #     variant = tandem_repeats.ex_repeat_var(variant_str, "GRch37")
-    #     tandem_repeats.ex_repeat_var.check_expanded_repeat_diverging(variant)
-    #     assert variant.variant_string == "NM_004006.2:c.13AC[7]"
-    #     assert variant.type == "RefSeq"
-    #     # checks correct transcript type
-    #     assert variant.prefix == "NM_004006.2"
-    #     # checks correct prefix
-    #     assert variant.suffix == ":c.13AC[7]"
-    #     # checks correct suffix
-    #     assert variant.no_repeats == "7"
-    #     # checks number of repeats is str and correct
-    #     assert variant.after_brac == ""
-    #     # checks nothing is after the bracket
 
 
     def test_basic_syntax(self):
@@ -114,6 +73,8 @@ class TestExpandedRepeats(unittest.TestCase):
         assert my_variant.variant_position == "1"
         # checks correct position
         assert my_variant.repeat_sequence == "ACT"
+        # checks prefix for variant
+        assert my_variant.prefix == "c"
         # checks repeat seq
         assert my_variant.copy_number == "10"
         # checks number of repeats is str and correct
@@ -134,6 +95,7 @@ class TestExpandedRepeats(unittest.TestCase):
         formatted = my_variant.reformat()
         assert formatted == "ENST00000357033.8:c.13_14insACAC"
         assert my_variant.variant_str == "ENST00000357033.8:c.13AC[2]"
+        assert my_variant.prefix == "c"
         assert my_variant.ref_type == "Ensembl"
         # checks correct transcript type
         assert my_variant.reference == "ENST00000357033.8"
