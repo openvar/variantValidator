@@ -71,12 +71,14 @@ class TandemRepeats:
         """
         This initialised an instance of the class with set class vars.
 
-        Paramaters
+        Parameters
         ----------
-        variant_string:str
+        variant_str : str
             (Variant string i.e. LRG_199:g.1ACT[20])
-        build:str
-            Which genome reference the variant_string refers to. i.e. Grch37.
+        build : str
+            Which genome reference the variant_string refers to e.g. GRCh37
+        select_transcripts : str
+            Return all possible transcripts or only select ones e.g. "all"
         Returns
         -------
         None. But a class instance of variant is created.
