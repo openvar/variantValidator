@@ -74,7 +74,7 @@ class TestExpandedRepeats(unittest.TestCase):
         # checks correct position
         assert my_variant.repeat_sequence == "ACT"
         # checks prefix for variant
-        assert my_variant.prefix == "c"
+        assert my_variant.prefix == "g"
         # checks repeat seq
         assert my_variant.copy_number == "10"
         # checks number of repeats is str and correct
@@ -137,6 +137,31 @@ class TestExpandedRepeats(unittest.TestCase):
         # checks number of repeats is str and correct
         assert my_variant.after_the_bracket == ""
         # checks nothing is after the bracket
+
+
+    # def test_basic_syntax_4(self):
+    #     """
+    #     Test for handling basic syntax of ENSG variant string.
+    #     """
+    #     variant_str = "LRG_199:g.[123456A>G];[345678G>C]"
+    #     my_variant = tandem_repeats.TandemRepeats.parse_repeat_variant(
+    #                                 variant_str, "GRCh37", "all")
+    #     my_variant.check_transcript_type()
+    #     my_variant.reformat_reference()
+    #     my_variant.check_genomic_or_coding()
+    #     formatted = my_variant.reformat()
+    #     assert my_variant.variant_str == "LRG_199:g.[123456A>G];[345678G>C]"
+    #     assert raise
+
+
+    def test_empty_string(self):
+        """
+        Test for handling empty string.
+        """
+        variant_str = ""
+        my_variant = tandem_repeats.TandemRepeats.parse_repeat_variant(
+                                    variant_str, "GRCh37", "all")
+        assert my_variant == False
 
 
 if __name__ == "__main__":
