@@ -25,6 +25,9 @@ This take an initialises an instance of a variant with HGVS variant string and g
 Function: parse_repeat_variant() --
 This take an instance of a variant and splits it into it's components if it is an expanded repeat, this is determined by the presence of either square brackets ([]).
 
+
+Function: simple_split_string() --
+This is a small function that splits the variant string into two components, before the colon and after the colon.
 ## Test coverage for this module
 
 <img src="https://user-images.githubusercontent.com/30113563/154497332-514419a6-1ab2-4492-829f-3286be2db45f.png">
