@@ -10,14 +10,14 @@ DESCRIPTION:   This script contains the TandemRepeats class and methods,
 """
 
 # Importing Modules
-#import json
+import json
 import re
 import logging
 import os
-#import VariantValidator
+import VariantValidator
 
 # Initialise vv class
-#vval = VariantValidator.Validator()
+vval = VariantValidator.Validator()
 
 # Get path the script is run in
 CURRENT_DIR = os.path.abspath(os.getcwd())
@@ -260,7 +260,7 @@ class TandemRepeats:
         None, prints variant type.
 
         Raises:
-            NameError: (Error for unknown transcript type.)
+            Exception: (Error for unknown transcript type.)
         """
         logger.info(
             f"Checking transcript type: check_transcript_type({self.reference})"
@@ -275,9 +275,9 @@ class TandemRepeats:
             logger.info("Variant type: RefSeq variant")
             self.ref_type = "RefSeq"
         else:
-            raise NameError(
-                'Unknown transcript type present. \
-                 Try using the RefSeq transcript ID')
+            raise Exception(
+                "Unknown transcript type present. " \
+                "Try using the RefSeq transcript ID")
 
     def reformat_reference(self):
         """Reformats the reference sequence name"""
@@ -614,27 +614,21 @@ VARIANT29 = "NM_004006.2:c.13-14AC[7]"
 
 
 def main():
-    my_variant = TandemRepeats.parse_repeat_variant("LRG_199[]", "GRCh37", "all")
-    # print(my_variant.simple_split_string())
-    # my_variant.check_transcript_type()
-    # my_variant.reformat_reference()
-    # my_variant.check_genomic_or_coding()
-    # formatted = my_variant.reformat()
+    my_variant = TandemRepeats.parse_repeat_variant(VARIANT29, "GRCh37", "all")
+    print(my_variant.check_transcript_type())
+    my_variant.check_transcript_type()
+    my_variant.reformat_reference()
+    my_variant.check_genomic_or_coding()
+    formatted = my_variant.reformat()
+    print(f"Variant formatted with this module: {formatted}")
 
-    # print(my_variant.prefix)
-    # print(my_variant.ref_type)
-    # print(my_variant.reference)
-    # print(f"Variant formatted: {formatted}")
-
-    # print(f"Variant formatted with this module: {formatted}")
-
-    # types_to_put_into_vv = ["ins", "dup"]
-    # if any(x in formatted for x in types_to_put_into_vv):
-    #     validate = vval.validate(
-    #         formatted, my_variant.build, my_variant.select_transcripts
-    #     ).format_as_dict()
-    #     reformatted_with_vv = list(validate.keys())[1]
-    #     print(f"Variant checked with VV: {reformatted_with_vv}")
+    types_to_put_into_vv = ["ins", "dup"]
+    if any(x in formatted for x in types_to_put_into_vv):
+        validate = vval.validate(
+            formatted, my_variant.build, my_variant.select_transcripts
+        ).format_as_dict()
+        reformatted_with_vv = list(validate.keys())[1]
+        print(f"Variant checked with VV: {reformatted_with_vv}")
 
 # This allows the script to be run by itself or imported as a package.
 if __name__ == "__main__":
