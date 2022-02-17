@@ -20,7 +20,7 @@ The basic functionality of https://variantvalidator.org/ and VarinantValidator i
 This adds further functionality by handling tandem repeats.
 
 Function: init() --
-This take an initialises an instance of a variant with HGVS variant string and genome build (i.e. grch37).
+This take an initialises an instance of a variant with HGVS variant string and genome build (i.e. GRCh37).
 
 Function: parse_repeat_variant() --
 This take an instance of a variant and splits it into it's components if it is an expanded repeat, this is determined by the presence of either square brackets ([]).
