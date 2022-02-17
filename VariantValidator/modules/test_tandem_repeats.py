@@ -139,6 +139,44 @@ class TestExpandedRepeats(unittest.TestCase):
         # checks nothing is after the bracket
 
 
+    def test_basic_syntax_5(self):
+        """
+        Test for handling basic syntax of ENSG variant string.
+        """
+        variant_str = "LRG_199t1:c.13-25ACT[5]"
+        my_variant = tandem_repeats.TandemRepeats.parse_repeat_variant(
+                                    variant_str, "GRCh37", "all")
+        assert my_variant.variant_position == "13_25"
+        my_variant.check_transcript_type()
+        my_variant.reformat_reference()
+        my_variant.check_genomic_or_coding()
+        formatted = my_variant.reformat()
+        assert formatted == "LRG_199t1:c.13_27ACT[5]"
+        assert my_variant.variant_str == "LRG_199t1:c.13-25ACT[5]"
+        assert my_variant.prefix == "c"
+        assert my_variant.ref_type == "LRG"
+        # checks correct transcript type
+        assert my_variant.reference == "LRG_199t1"
+        # checks correct ref name
+        assert my_variant.variant_position == "13_27"
+        # checks correct position
+        assert my_variant.repeat_sequence == "ACT"
+        # checks repeat seq
+        assert my_variant.copy_number == "5"
+        # checks number of repeats is str and correct
+        assert my_variant.after_the_bracket == ""
+        # checks nothing is after the bracket
+
+
+    def test_getting_full_range_from_single_pos(self):
+        """
+        Test to full range is calculated correctly
+        """
+        variant_str = "LRG_199t1:c.13ACT[5]"
+        my_variant = tandem_repeats.TandemRepeats.parse_repeat_variant(
+                                    variant_str, "GRCh37", "all")
+        self.assertEqual(tandem_repeats.TandemRepeats.get_range_from_single_pos(my_variant), "13_27")
+
     def test_LRG_transcript_handling(self):
         """
         Test for transcript_handling of
