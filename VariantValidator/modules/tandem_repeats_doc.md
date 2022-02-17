@@ -22,11 +22,10 @@ This adds further functionality by handling tandem repeats.
 Function: init() --
 This take an initialises an instance of a variant with HGVS variant string and genome build (i.e. GRCh37).
 
-Function: parse_repeat_variant() --
+Function: ```parse_repeat_variant()```
 This take an instance of a variant and splits it into it's components if it is an expanded repeat, this is determined by the presence of either square brackets ([]).
 
-
-Function: simple_split_string() --
+Function: ```simple_split_string()```
 This is a small function that splits the variant string into two components, before the colon and after the colon.
 ## Test coverage for this module
 
