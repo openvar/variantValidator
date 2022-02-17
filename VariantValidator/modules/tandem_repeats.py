@@ -100,7 +100,9 @@ class TandemRepeats:
         """
         Summary
         -------
-            Takes a variant string and breaks it into its constituent parts with regex to be processed in downstream functions, assigns them to class variables.
+        Takes a variant string and breaks it into its constituent parts
+        with regex to be processed in downstream functions,
+        assigns them to class variables.
         Parameters
         ----------
             variant_str : str
@@ -141,7 +143,7 @@ class TandemRepeats:
                 assert ":" in variant_str,\
                     (
                         f"Unable to identify a colon (:)"
-                        f"in the variant description {variant_str}."
+                        f"in the variant description {variant_str}. "
                         f"A colon is required in HGVS variant descriptions to separate"
                         f"the reference accession from the reference type"
                         f" i.e. <accession>:<type>. e.g. :c"
@@ -160,9 +162,11 @@ class TandemRepeats:
                     )
                 raise
             try:
-                assert "," not in variant_str, "A comma is included in variant but alleles are not yet supported"
+                assert "," not in variant_str,\
+                "A comma is included in variant but alleles are not yet supported"
             except AssertionError:
-                logger.critical("A comma is included in variant but alleles are not yet supported. Ending program")
+                logger.critical("A comma is included in variant but alleles "\
+                                "are not yet supported. Ending program")
                 raise
             # Find reference sequence used (g or c)
             var_type = re.search("^.*?(.*?)\\.", suffix)
@@ -173,9 +177,11 @@ class TandemRepeats:
             try:
                 assert re.search(
                 "[a-z]+", pos_and_seq, re.IGNORECASE), \
-                "Please ensure that the repeated sequence is included between the position and number of repeat units, e.g. g.1ACT[20]"
+                "Please ensure that the repeated sequence is included between "\
+                "the position and number of repeat units, e.g. g.1ACT[20]"
             except AssertionError:
-                logger.critical("Unable to identify a repeated sequence between position and number of repeats. Ending program")
+                logger.critical("Unable to identify a repeated sequence "\
+                                "between position and number of repeats. Ending program")
                 raise
             else:
                 rep_seq = re.search("[ACTG]+", pos_and_seq, re.IGNORECASE)
@@ -188,9 +194,12 @@ class TandemRepeats:
                 try:
                     assert re.search(
                             "[0-9]+_[0-9]+", pos_and_seq
-                        ), "Please ensure the start and the end of the full repeat range is provided, separated by an underscore"
+                        ), f"Please ensure the start and the end of the "\
+                           f"full repeat range is provided, "\
+                           f"separated by an underscore"
                 except AssertionError:
-                    logger.critical("Only one value in the range is provided. Ending program")
+                    logger.critical("""Only one value in the range is provided.
+                                     Ending program""")
                     raise
                 else:
                     variant_positions = re.search("[0-9]+_[0-9]+", pos_and_seq)
@@ -284,7 +293,9 @@ class TandemRepeats:
         elif re.match(r"^ENS", self.reference) or re.match(r"^N", self.reference):
             assert (
                 "." in self.reference
-            ), "Please ensure the transcript or gene version is included following a '.' after the transcript or gene name e.g. ENST00000357033.8"
+            ), """Please ensure the transcript or gene version is included
+                  following a '.' after the transcript 
+                  or gene name e.g. ENST00000357033.8"""
         return self.reference
 
 
@@ -294,13 +305,15 @@ class TandemRepeats:
             AssertionError if wrong prefix type is used
         """
         logger.info(
-            f"Checking prefix is consistent with reference: check_genomic_or_coding({self.reference},{self.prefix})"
+            f"Checking prefix is consistent with reference: "\
+            f"check_genomic_or_coding({self.reference},{self.prefix})"
         )
         if re.match(r"^LRG", self.reference):
             if "t" in self.reference:
                 assert (
                     self.prefix == "c"
-                ), "Please ensure variant type is coding if an LRG transcript is provided"
+                ), """Please ensure variant type is coding 
+                      if an LRG transcript is provided"""
             else:
                 assert (
                     self.prefix == "g"
@@ -308,7 +321,8 @@ class TandemRepeats:
         elif re.match(r"^ENST", self.reference):
             assert (
                 self.prefix == "c"
-            ), "Please ensure variant type is coding if an Ensembl transcript is provided"
+            ), """Please ensure variant type is coding 
+                if an Ensembl transcript is provided"""
         elif re.match(r"^ENSG", self.reference):
             assert (
                 self.prefix == "g"
@@ -316,7 +330,8 @@ class TandemRepeats:
         elif re.match(r"^NM", self.reference):
             assert (
                 self.prefix == "c"
-            ), "Please ensure variant type is coding if a RefSeq transcript is provided"
+            ), """Please ensure variant type is coding 
+                  if a RefSeq transcript is provided"""
         elif re.match(r"^NC", self.reference):
             assert (
                 self.prefix == "g"
@@ -343,10 +358,13 @@ class TandemRepeats:
             copy_number (string): The number of repeat units e.g. "20"
         Returns
         -------
-            full_range (string): The full range supplied if correct or the full range updated if inputted range was incorrect, e.g. "1_20"
+            full_range (string): The full range supplied if correct or
+            the full range updated if inputted range was incorrect, e.g. "1_20"
         """
         logger.info(
-            f"Checking range given: check_positions_given({self.repeat_sequence},{self.variant_position},{self.copy_number})"
+            f"Checking range given: "\
+            f"check_positions_given({self.repeat_sequence}, "\
+            f"{self.variant_position},{self.copy_number})"
         )
         start_range, end_range = self.variant_position.split("_")
         rep_seq_length = len(self.repeat_sequence)
@@ -354,13 +372,16 @@ class TandemRepeats:
         repeat_length = rep_seq_length * int(self.copy_number)
         if the_range == repeat_length:
             logger.info(
-                f"Range given ({self.variant_position}) matches repeat sequence length and number of repeat units"
+                f"Range given ({self.variant_position}) matches "\
+                f"repeat sequence length and number of repeat units"
             )
             full_range = f"{start_range}_{end_range}"
         else:
             logger.warning(
-                f"Warning: sequence range {self.variant_position} given does not match repeat unit sequence length and number of repeat units. \
-                Updating the range based on repeat sequence length and number of repeat units"
+                f"Warning: sequence range {self.variant_position}"\
+                f"given does not match repeat unit sequence length "\
+                f"and number of repeat units. Updating the range "\
+                f"based on repeat sequence length and number of repeat units"
             )
             new_end_range = int(start_range) + repeat_length - 1
             full_range = f"{start_range}_{new_end_range}"
@@ -371,10 +392,11 @@ class TandemRepeats:
         """
         Gets full range of the variant if this is needed
         when a single start position is supplied
-
         """
         logger.info(
-            f"Fetching the range from a given single position: get_range_from_single_pos({self.repeat_sequence},{self.copy_number},{self.variant_position}"
+            f"Fetching the range from a given single position: "\
+            f"get_range_from_single_pos({self.repeat_sequence},"\
+            f"{self.copy_number},{self.variant_position}"
         )
         rep_seq_length = len(self.repeat_sequence)
         repeat_range = rep_seq_length * int(self.copy_number)
@@ -408,7 +430,9 @@ class TandemRepeats:
         if they are not a multiple of three
         """
         logger.info(
-            f"Reformatting variant as not a multiple of three: reformat_not_multiple_of_three({self.repeat_sequence}, {self.variant_position},{self.reference},{self.prefix})"
+            f"eformatting variant as not a multiple of three: "\
+            f"reformat_not_multiple_of_three({self.repeat_sequence}, "\
+            f"{self.variant_position},{self.reference},{self.prefix})"
         )
         reformatted = ""
         rep_seq_length = len(self.repeat_sequence)
@@ -419,7 +443,10 @@ class TandemRepeats:
             else:
                 self.variant_position = self.get_range_from_single_pos()
             logger.warning(
-                f"Warning: Repeated sequence is coding and is of length {rep_seq_length}, not a multiple of three! Updating variant description to a duplication"
+                f"Warning: Repeated sequence is coding "\
+                f"and is of length {rep_seq_length}, "\
+                f"not a multiple of three! "\
+                f"Updating variant description to a duplication"
             )
             reformatted = f"{self.reference}:{self.prefix}.{self.variant_position}dup"
         # Repeat of 2 bases should be an ins
@@ -434,7 +461,10 @@ class TandemRepeats:
                 end = int(start) + 1
                 position = f"{start}_{end}"
             logger.warning(
-                f"Warning: Repeated sequence is coding and is of length {rep_seq_length}, not a multiple of three! Updating variant description to insertion"
+                f"Warning: Repeated sequence is coding "\
+                f"and is of length {rep_seq_length}, "\
+                f"not a multiple of three! "\
+                f"Updating variant description to insertion"\
             )
             reformatted = (
                 f"{self.reference}:{self.prefix}.{position}ins{expanded_rep_seq}"
@@ -444,7 +474,9 @@ class TandemRepeats:
     def reformat(self):
         """Reformats and returns final formatted variant as a string"""
         logger.info(
-            f"Reformatting variant: reformat({self.repeat_sequence},{self.after_the_bracket},{self.prefix},{self.variant_position},{self.copy_number})"
+            f"Reformatting variant: reformat({self.repeat_sequence}, "\
+            f"{self.after_the_bracket}, "\
+            f"{self.prefix}, {self.variant_position}, {self.copy_number})"
         )
         assert (
             self.copy_number.isdecimal()
@@ -456,7 +488,10 @@ class TandemRepeats:
         self.repeat_sequence = self.repeat_sequence.upper()
         if self.after_the_bracket != "":
             logger.warning(
-                f"No information should be included after the number of repeat units. Currently '{self.after_the_bracket}'' is included. This will be removed as mixed repeats are not currently supported."
+                f"No information should be included after "\
+                f"the number of repeat units. "\
+                f"Currently '{self.after_the_bracket}'' is included. "\
+                f"This will be removed as mixed repeats are not currently supported."
             )
         # Reformat c. variants
         if self.prefix == "c":
@@ -470,7 +505,9 @@ class TandemRepeats:
                 #Uncomment if you want to always have range in final format
                 # else:
                 #     self.variant_position = self.get_range_from_single_pos()
-                final_format = f"{self.reference}:{self.prefix}.{self.variant_position}{self.repeat_sequence}[{self.copy_number}]"
+                final_format = f"{self.reference}:{self.prefix}."\
+                f"{self.variant_position}{self.repeat_sequence}"\
+                f"[{self.copy_number}]"
         # Reformat g. variants
         else:
             if "_" in self.variant_position:
@@ -478,7 +515,9 @@ class TandemRepeats:
             #Uncomment if you want to always have range in final format
             # else:
             #     self.variant_position = self.get_range_from_single_pos()
-            final_format = f"{self.reference}:{self.prefix}.{self.variant_position}{self.repeat_sequence}[{self.copy_number}]"
+            final_format = f"{self.reference}:"\
+            f"{self.prefix}.{self.variant_position}"\
+            f"{self.repeat_sequence}[{self.copy_number}]"
         return final_format
 
 
@@ -506,7 +545,7 @@ class TandemRepeats:
 
 # Hard-coded variant for testing while building.
 # Gives LRG_199t1:c.1_2insACACACACACACACACACACACACACAC
-#VARIANT1 = "LRG_199t1:c.1_5AC[14]"
+VARIANT1 = "LRG_199t1:c.1_5AC[14]"
 # Gives LRG_199:g.1ACT[20]
 VARIANT2 = "LRG_199:g.1ACT[20]A"
 # Gives LRG_199:g.1AC[20]
@@ -567,23 +606,25 @@ VARIANT25 = "ENST00000198947:c.1_2AG[10]"
 VARIANT26 = "ENST00000198947.1:c.1_2[10]"
 # Returns ENST00000198947.1:c.1_10dup
 VARIANT27 = "ENST00000198947.1:C.1_2A[10]"
+#Variant with underscore range
 VARIANT28 = "LRG_199t1:c.1_5AC[8]"
+#Variant with hyphen in range
 VARIANT29 = "NM_004006.2:c.13-14AC[7]"
 
 
 
 def main():
-    my_variant = TandemRepeats.parse_repeat_variant(VARIANT15, "GRCh37", "all")
-    print(my_variant.simple_split_string())
-    my_variant.check_transcript_type()
-    my_variant.reformat_reference()
-    my_variant.check_genomic_or_coding()
-    formatted = my_variant.reformat()
+    my_variant = TandemRepeats.parse_repeat_variant("LRG_199[]", "GRCh37", "all")
+    # print(my_variant.simple_split_string())
+    # my_variant.check_transcript_type()
+    # my_variant.reformat_reference()
+    # my_variant.check_genomic_or_coding()
+    # formatted = my_variant.reformat()
 
     # print(my_variant.prefix)
     # print(my_variant.ref_type)
     # print(my_variant.reference)
-    print(f"Variant formatted: {formatted}")
+    # print(f"Variant formatted: {formatted}")
 
     # print(f"Variant formatted with this module: {formatted}")
 
