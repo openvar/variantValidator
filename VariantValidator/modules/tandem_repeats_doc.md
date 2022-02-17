@@ -27,7 +27,7 @@ This take an instance of a variant and splits it into it's components if it is a
 
 ## Test coverage for this module
 
-<img src="https://github.com/i3hsInnovation/resources/blob/master/images/UoM_logo.jpg?raw=true">
+<img src="https://user-images.githubusercontent.com/30113563/154497332-514419a6-1ab2-4492-829f-3286be2db45f.png">
 
 ## How to contribute
 Please refer to [CONTRIBUTING.md](https://github.com/openvar/variantValidator/blob/master/CONTRIBUTING.md)
