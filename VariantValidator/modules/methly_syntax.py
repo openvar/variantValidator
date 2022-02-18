@@ -1,6 +1,7 @@
 # Pipe syntax error
 
 # batch_variant = the string containing the variant to be validated
+# function checks the presence and location of the methylation syntax and raises an appropriate error message
 
 def methyl_syntax(my_variant):
 
@@ -29,6 +30,7 @@ def methyl_syntax(my_variant):
         else:
             return True
 
+# example variants to test function
 Test1 = "NC_000011.10::g.1999904_1999946|gom"
 Test2 = "NC_000011.10::g.1999904_1999946|lom"
 Test3 = "NC_000011.10::g.1999904_1999946|met="
@@ -41,6 +43,7 @@ Test9 = "NC_000011.10::g.1999904_1999946|MET="
 
 list_of_tests = [Test1,Test2,Test3,Test4,Test5,Test6,Test7,Test8,Test9]
 
+# for loop used to test the function works as expected 
 for i in list_of_tests:
     try:
         methyl_syntax(i)
