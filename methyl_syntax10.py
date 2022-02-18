@@ -5,21 +5,21 @@ def methyl_syntax(my_variant):
     if "|" in my_variant:
         print(my_variant)
         if my_variant.endswith("gom"):
-            raise Exception()
+            raise Exception() # Prevents "|"" from splitting variant
         elif my_variant.endswith("GOM"):
             raise print("Capitalised modifications not recognised")
         elif "gom" in my_variant and not my_variant.endswith("gom"):
             raise print("Modification at incorrect position in submitted variant description")
 
         elif my_variant.endswith("lom"):
-            raise Exception()
+            raise Exception() # Prevents "|"" from splitting variant
         elif my_variant.endswith("LOM"):
             raise print("Capitalised modifications not recognised")
         elif "lom" in my_variant and not my_variant.endswith("lom"):
             raise print("Modification at incorrect position in submitted variant description")
 
         elif my_variant.endswith("met="):
-            raise Exception()
+            raise Exception() # Prevents "|"" from splitting variant
         elif my_variant.endswith("MET="):
             raise print("Capitalised modifications not recognised")
         elif "met=" in my_variant and not my_variant.endswith("met="):
