@@ -1,6 +1,14 @@
 import logging.config
+from logging import handlers
 from configparser import ConfigParser
 from . import settings
+import os
+from pathlib import Path
+
+# Set document root
+ROOT = os.path.dirname(os.path.abspath(__file__))
+path = Path(ROOT)
+parent = path.parent.absolute()
 
 # Change settings based on config
 config = ConfigParser()
@@ -12,10 +20,12 @@ if config['logging'].getboolean('log') is True:
 
     logging.config.dictConfig(settings.LOGGING_CONFIG)
 else:
-    logging.getLogger('VariantValidator').addHandler(logging.NullHandler())
+    logging.getLogger('VariantValidator').addHandler(handlers.RotatingFileHandler(str(parent) + '/VariantValidator.log',
+                                                     maxBytes=500000,
+                                                     backupCount=2))
 
 # <LICENSE>
-# Copyright (C) 2016-2021 VariantValidator Contributors
+# Copyright (C) 2016-2022 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

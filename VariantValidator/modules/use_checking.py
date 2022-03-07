@@ -137,8 +137,10 @@ def structure_checks_c(variant, validator):
             validator.vr.validate(variant.input_parses)
         except vvhgvs.exceptions.HGVSError as e:
             error = str(e)
+
             if 'datums is ill-defined' in error:
                 called_ref = variant.input_parses.posedit.edit.ref
+
                 try:
                     to_n = variant.evm.c_to_n(variant.input_parses)
                 except vvhgvs.exceptions.HGVSInvalidVariantError as e:
@@ -147,6 +149,7 @@ def structure_checks_c(variant, validator):
                     logger.warning(error)
                     return True
                 actual_ref = to_n.posedit.edit.ref
+
                 if called_ref != actual_ref:
                     error = 'Variant reference (' + called_ref + ') does not agree with reference sequence ' \
                                                                  '(' + actual_ref + ')'
@@ -154,8 +157,12 @@ def structure_checks_c(variant, validator):
                     logger.warning(error)
                     return True
                 else:
-                    variant.input_parses.posedit.edit.ref = ''
+                    if variant.input_parses.posedit.edit.type == "ins":
+                        variant.input_parses.posedit.edit.ref = None
+                    else:
+                        variant.input_parses.posedit.edit.ref = ''
                     variant.hgvs_formatted = variant.input_parses
+
             else:
                 if 'bounds' in error or 'intronic variant' in error:
                     try:
@@ -201,9 +208,8 @@ def structure_checks_c(variant, validator):
 
                             # Create a lose vm instance
                             variant.lose_vm = vvhgvs.variantmapper.VariantMapper(validator.hdp,
-                                                                               replace_reference=True,
-                                                                               prevalidation_level=None
-                                                                               )
+                                                                                 replace_reference=True,
+                                                                                 prevalidation_level=None)
 
                             report_gen = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm,
                                                                 variant.primary_assembly, variant.hn)
@@ -670,7 +676,7 @@ def structure_checks_n(variant, validator):
     return False
 
 # <LICENSE>
-# Copyright (C) 2016-2021 VariantValidator Contributors
+# Copyright (C) 2016-2022 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

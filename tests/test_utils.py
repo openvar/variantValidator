@@ -64,11 +64,11 @@ class TestValStr(TestCase):
 
     def test_variant_identity2(self):
         """ Will test that the reference is not removed """
-        stringvar = 'NM_015120.4:c.34C='
+        stringvar = 'NM_015120.4:c.34='
         var = self.hp.parse_hgvs_variant(stringvar)
         output = utils.valstr(var)
         self.assertEqual(var.posedit.edit.type, 'identity')
-        self.assertEqual(output, 'NM_015120.4:c.34C=')
+        self.assertEqual(output, 'NM_015120.4:c.34=')
 
 
 class TestProteinInv(TestCase):
@@ -418,7 +418,7 @@ class TestHGVSdup2indel(TestCase):
         self.assertEqual(output, 'NM_015120.4:c.34_34delGAinsGAGA')
 
 # <LICENSE>
-# Copyright (C) 2016-2021 VariantValidator Contributors
+# Copyright (C) 2016-2022 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

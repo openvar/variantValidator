@@ -57,7 +57,7 @@ class TestExonNumbering(unittest.TestCase):
 
     def test_2b(self):
         results = self.vv.validate("NM_000088.3:c.642=", 'GRCh38', 'all').format_as_dict(test=True)
-        results = results['NM_000088.3:c.642A=']['variant_exonic_positions']
+        results = results['NM_000088.3:c.642=']['variant_exonic_positions']
         print(results)
         assert results == {
                 "NC_000017.10": {
@@ -405,7 +405,7 @@ class TestExonNumbering(unittest.TestCase):
 
     def test_11b(self):
         results = self.vv.validate("NM_058197.4:c.*73+12=", 'GRCh38', 'all').format_as_dict(test=True)
-        results = results['NM_058197.4:c.*73+12A=']['variant_exonic_positions']
+        results = results['NM_058197.4:c.*73+12=']['variant_exonic_positions']
         print(results)
         assert results == {
             "NC_000009.11": {
@@ -424,7 +424,7 @@ if __name__ == "__main__":
 
 
 # <LICENSE>
-# Copyright (C) 2016-2021 VariantValidator Contributors
+# Copyright (C) 2016-2022 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

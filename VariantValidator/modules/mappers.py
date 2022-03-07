@@ -77,16 +77,19 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
 
     #  Tripple check this assumption by querying the gene position database
     if len(rel_var) == 0:
-        vcf_dict = hgvs_utils.hgvs2vcf(variant.hgvs_genomic, variant.primary_assembly, variant.reverse_normalizer,
+        try:
+            vcf_dict = hgvs_utils.hgvs2vcf(variant.hgvs_genomic, variant.primary_assembly, variant.reverse_normalizer,
                                        validator.sf)
 
-        if len(vcf_dict['ref']) < 100000:
-            not_di = str(variant.hgvs_genomic.ac) + ':g.' + str(vcf_dict['pos']) + '_' + str(
-                int(vcf_dict['pos']) + (len(vcf_dict['ref']) - 1)) + 'del' + vcf_dict['ref'] + 'ins' + \
-                vcf_dict['alt']
-            hgvs_not_di = validator.hp.parse_hgvs_variant(not_di)
-            rel_var = validator.relevant_transcripts(hgvs_not_di, variant.evm, validator.alt_aln_method,
-                                                     variant.reverse_normalizer)
+            if len(vcf_dict['ref']) < 100000:
+                not_di = str(variant.hgvs_genomic.ac) + ':g.' + str(vcf_dict['pos']) + '_' + str(
+                    int(vcf_dict['pos']) + (len(vcf_dict['ref']) - 1)) + 'del' + vcf_dict['ref'] + 'ins' + \
+                    vcf_dict['alt']
+                hgvs_not_di = validator.hp.parse_hgvs_variant(not_di)
+                rel_var = validator.relevant_transcripts(hgvs_not_di, variant.evm, validator.alt_aln_method,
+                                                         variant.reverse_normalizer)
+        except vvhgvs.exceptions.HGVSDataNotAvailableError:
+            pass
 
     # list return statements
     """
@@ -184,7 +187,6 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
 
 def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version):
     """This seems to use the quibble and not the HGVS formatted variant format."""
-
     # Flag for validation
     valid = False
     caution = ''
@@ -312,12 +314,14 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         # Normalize the variant
         try:
             h_variant = variant.hn.normalize(obj)
-        except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
+        except vvhgvs.exceptions.HGVSUnsupportedOperationError:
             if 'Unsupported normalization of variants spanning the exon-intron boundary' in error:
                 formatted_variant = formatted_variant
                 caution = 'This coding sequence variant description spans at least one intron'
                 variant.warnings.extend([caution])
                 logger.info(caution)
+        except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
+            logger.info(str(e))
         else:
             formatted_variant = str(h_variant)
 
@@ -692,7 +696,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     return False
 
 
-def final_tx_to_multiple_genomic(variant, validator, tx_variant):
+def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=False):
 
     warnings = ''
     rec_var = ''
@@ -700,7 +704,12 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant):
 
     # Multiple genomic variants
     # multi_gen_vars = []
-    variant.hgvs_coding = validator.hp.parse_hgvs_variant(str(tx_variant))
+    try:
+        tx_variant.ac
+        variant.hgvs_coding = tx_variant
+    except AttributeError:
+        variant.hgvs_coding = validator.hp.parse_hgvs_variant(str(tx_variant))
+
     # Gap gene black list
     if variant.gene_symbol:
         # If the gene symbol is not in the list, the value False will be returned
@@ -723,10 +732,17 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant):
     multi_list = []
     mapping_options = validator.hdp.get_tx_mapping_options(variant.hgvs_coding.ac)
     mapping_options = sorted(mapping_options, key=itemgetter(1))
+
     for alt_chr in mapping_options:
-        if ('NC_' in alt_chr[1] or 'NT_' in alt_chr[1] or 'NW_' in alt_chr[1]) and \
-                alt_chr[2] == validator.alt_aln_method:
-            multi_list.append(alt_chr[1])
+        if liftover_level is None:
+            multi_list.append(variant.genomic_g.split(":")[0])
+        elif liftover_level is 'primary':
+            if ('NC_' in alt_chr[1]) and alt_chr[2] == validator.alt_aln_method:
+                multi_list.append(alt_chr[1])
+        else:
+            if ('NC_' in alt_chr[1] or 'NT_' in alt_chr[1] or 'NW_' in alt_chr[1]) and \
+                    alt_chr[2] == validator.alt_aln_method:
+                multi_list.append(alt_chr[1])
 
     for alt_chr in multi_list:
         logger.debug("Trying to do final gap mapping with %s", alt_chr)
@@ -766,7 +782,7 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant):
     return multi_g
 
 # <LICENSE>
-# Copyright (C) 2016-2021 VariantValidator Contributors
+# Copyright (C) 2016-2022 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

@@ -18,6 +18,7 @@ from . import mappers
 from . import valoutput
 from . import exon_numbering
 from .liftover import liftover
+from . import complex_descriptions
 
 logger = logging.getLogger(__name__)
 
@@ -28,12 +29,18 @@ class Mixin(vvMixinConverters.Mixin):
     It's added to the Validator object in the vvObjects file.
     """
 
-    def validate(self, batch_variant, selected_assembly, select_transcripts, transcript_set="refseq"):
+    def validate(self,
+                 batch_variant,
+                 selected_assembly,
+                 select_transcripts,
+                 transcript_set="refseq",
+                 liftover_level=False):
         """
         This is the main validator function.
         :param batch_variant: A string containing the variant to be validated
         :param selected_assembly: The version of the genome assembly to use.
         :param select_transcripts: Can be an array of different transcripts, or 'all'
+        :param liftover_level: True or False - liftover to different gene/genome builds or not
         Selecting multiple transcripts will lead to a multiple variant outputs.
         :param transcript_set: 'refseq' or 'ensembl'. Currently only 'refseq' is supported
         :return:
@@ -51,14 +58,12 @@ class Mixin(vvMixinConverters.Mixin):
                             transcript_set)
 
         primary_assembly = None
-
         self.selected_assembly = selected_assembly
         self.select_transcripts = select_transcripts
 
+        # Validation
+        ############
         try:
-            # Validation
-            ############
-
             # Create a dictionary of transcript ID : ''
             select_transcripts_dict = {}
             select_transcripts_dict_plus_version = {}
@@ -251,6 +256,30 @@ class Mixin(vvMixinConverters.Mixin):
                         logger.warning(warning)
 
                     invalid = my_variant.format_quibble()
+
+                    # Here is where we may expand options for issue #338
+                    test_for_invalid_case_in_accession = my_variant.original.split(":")[0]
+                    query_for_invalid_case_in_accession = test_for_invalid_case_in_accession.upper()
+                    if re.match("LRG", test_for_invalid_case_in_accession, flags=re.IGNORECASE):
+                        if "lrg" in test_for_invalid_case_in_accession:
+                            e = "This not a valid HGVS description, due to characters being in the wrong case. " \
+                                "Please check the use of upper- and lowercase characters."
+                            my_variant.warnings.append(str(e))
+                            logger.warning(str(e))
+                        if "T" in test_for_invalid_case_in_accession:
+                            e = "This not a valid HGVS description, due to characters being in the wrong case. " \
+                                "Please check the use of upper- and lowercase characters."
+                            my_variant.warnings.append(str(e))
+                            logger.warning(str(e))
+                            my_variant.quibble = my_variant.quibble.replace("T", "t")
+                            print(my_variant.quibble)
+                    elif (test_for_invalid_case_in_accession != query_for_invalid_case_in_accession) \
+                            and "LRG" not in test_for_invalid_case_in_accession:
+                        e = "This not a valid HGVS description, due to characters being in the wrong case. " \
+                            "Please check the use of upper- and lowercase characters."
+                        my_variant.warnings.append(str(e))
+                        logger.warning(str(e))
+
                     if invalid:
                         if re.search(r'\w+:[gcnmrp],', my_variant.quibble):
                             error = 'Variant description ' + my_variant.quibble + ' contained the , character between '\
@@ -260,6 +289,17 @@ class Mixin(vvMixinConverters.Mixin):
                             my_variant.warnings.append(error)
                             logger.warning(error)
                             pass
+
+                        # Upper case type see issue #338
+                        elif re.search(r":[GCNMR].", str(my_variant.quibble)):
+                            rs_type_upper = re.search(r":[GCNMR].", str(my_variant.quibble))
+                            e = "This not a valid HGVS description, due to characters being in the wrong case. " \
+                                "Please check the use of upper- and lowercase characters."
+                            my_variant.warnings.append(str(e))
+                            logger.warning(str(e))
+                            my_variant.quibble = my_variant.quibble.replace(rs_type_upper.group(0),
+                                                                            rs_type_upper.group(0).lower())
+
                         elif re.search(r'\w+:[gcnmrp]', my_variant.quibble) and not \
                                 re.search(r'\w+:[gcnmrp]\.', my_variant.quibble):
                             error = 'Variant description ' + my_variant.quibble + ' lacks the . character between ' \
@@ -289,6 +329,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                     # Change RNA bases to upper case but nothing else
                     if my_variant.reftype == ":r.":
+                        query_r_var = formatted_variant
                         formatted_variant = formatted_variant.upper()
                         formatted_variant = formatted_variant.replace(':R.', ':r.')
                         # lowercase the supported variant types
@@ -296,6 +337,11 @@ class Mixin(vvMixinConverters.Mixin):
                         formatted_variant = formatted_variant.replace('INS', 'ins')
                         formatted_variant = formatted_variant.replace('INV', 'inv')
                         formatted_variant = formatted_variant.replace('DUP', 'dup')
+                        if query_r_var != formatted_variant:
+                            e = "This not a valid HGVS description, due to characters being in the wrong case. " \
+                                "Please check the use of upper- and lowercase characters."
+                            my_variant.warnings.append(str(e))
+                            logger.warning(str(e))
 
                     # Handle <position><edit><position> style variants
                     # Refer to https://github.com/openvar/variantValidator/issues/161
@@ -309,6 +355,7 @@ class Mixin(vvMixinConverters.Mixin):
                         input_parses = self.hp.parse_hgvs_variant(str(formatted_variant))
                         my_variant.hgvs_formatted = input_parses
                     except vvhgvs.exceptions.HGVSError as e:
+
                         # Look for T not U!
                         posedit = formatted_variant.split(':')[-1]
                         if 'T' in posedit and "r." in posedit:
@@ -407,6 +454,14 @@ class Mixin(vvMixinConverters.Mixin):
                     # ensures that end pos is not > start pos wrt 3' UTRs.
                     # Also identifies some variants which span into the downstream sequence
                     # i.e. out of bounds
+
+                    try:
+                        complex_descriptions.fuzzy_ends(my_variant)
+                    except complex_descriptions.FuzzyPositionError as e:
+                        my_variant.warnings.append(str(e))
+                        logger.warning(str(e))
+                        continue
+
                     if '*' in str(my_variant.hgvs_formatted.posedit):
                         input_parses_copy = copy.deepcopy(my_variant.hgvs_formatted)
                         input_parses_copy.type = "c"
@@ -422,6 +477,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 my_variant.warnings.append(error)
                                 logger.warning(error)
                                 continue
+
                     elif my_variant.hgvs_formatted.posedit.pos.end.base < my_variant.hgvs_formatted.posedit.pos.start.base:
                         error = 'Interval end position ' + str(my_variant.hgvs_formatted.posedit.pos.end.base) + \
                                 ' < interval start position ' + str(my_variant.hgvs_formatted.posedit.pos.start.base)
@@ -660,7 +716,10 @@ class Mixin(vvMixinConverters.Mixin):
                     variant.gene_symbol = ''
 
                 if tx_variant != '':
-                    multi_gen_vars = mappers.final_tx_to_multiple_genomic(variant, self, tx_variant)
+                    multi_gen_vars = mappers.final_tx_to_multiple_genomic(variant,
+                                                                          self,
+                                                                          tx_variant,
+                                                                          liftover_level=liftover_level)
 
                 else:
                     # HGVS genomic in the absence of a transcript variant
@@ -1056,8 +1115,10 @@ class Mixin(vvMixinConverters.Mixin):
                 ref_records = self.db.get_urls(variant.output_dict())
                 if ref_records != {}:
                     variant.reference_sequence_records = ref_records
-                if (variant.output_type_flag == 'intergenic') or ('grch37' not in variant.primary_assembly_loci.keys())\
-                        or ('grch38' not in variant.primary_assembly_loci.keys()):
+                if (variant.output_type_flag == 'intergenic' and liftover_level is not None) or \
+                        ('grch37' not in variant.primary_assembly_loci.keys())\
+                        or ('grch38' not in variant.primary_assembly_loci.keys()
+                            and liftover_level is not None):
 
                     # Simple cache
                     lo_cache = {}
@@ -1094,13 +1155,18 @@ class Mixin(vvMixinConverters.Mixin):
                         g_to_g = False
                         if variant.output_type_flag != 'intergenic':
                             g_to_g = True
-                        # Liftover
+
+                        # Lift-over
                         if genomic_position_info[g_p_key]['hgvs_genomic_description'] not in lo_cache.keys():
                             lifted_response = liftover(genomic_position_info[g_p_key]['hgvs_genomic_description'],
                                                        build_from,
                                                        build_to, variant.hn, variant.reverse_normalizer,
-                                                       variant.evm, self, specify_tx=False, liftover_level=False,
+                                                       variant.evm,
+                                                       self,
+                                                       specify_tx=False,
+                                                       liftover_level=liftover_level,
                                                        g_to_g=g_to_g)
+
                             lo_cache[genomic_position_info[g_p_key]['hgvs_genomic_description']] = lifted_response
                         else:
                             lifted_response = lo_cache[genomic_position_info[g_p_key]['hgvs_genomic_description']]
@@ -1163,17 +1229,32 @@ class Mixin(vvMixinConverters.Mixin):
             logger.critical(str(exc_type) + " " + str(exc_value))
             raise fn.VariantValidatorError('Validation error')
 
-    def gene2transcripts(self, query, validator=False, bypass_web_searches=False):
+    def gene2transcripts(self, query, validator=False, bypass_web_searches=False, select_transcripts=None):
         """
         Generates a list of transcript (UTA supported) and transcript names from a gene symbol or RefSeq transcript ID
         :param query: string gene symbol or RefSeq ID (e.g. NANOG or NM_024865.3) or if used internally, variant object
         :param validator: Validator object
         :param bypass_web_searches: bool  Shortens the output by looping out code not needed for internal processing
+        :param select_transcripts: bool False or string of transcript IDs "|" delimited
         :return: dictionary of transcript information
         """
+
+        # List of transcripts
+        sel_tx_lst = False
+        if select_transcripts is not None:
+            sel_tx_lst = select_transcripts.split('|')
+
         if bypass_web_searches is True:
             pass
         else:
+            # Remove whitespace
+            query = ''.join(query.split())
+
+            # Search by gene IDs
+            if "HGNC:" in query:
+                query = query.upper()
+                query = self.db.get_stable_gene_id_from_hgnc_id(query)[1]
+
             query = query.upper()
             if re.search(r'\d+ORF\d+', query):
                 query = query.replace('ORF', 'orf')
@@ -1252,7 +1333,7 @@ class Mixin(vvMixinConverters.Mixin):
                 hgnc = tx_info[6]
                 hgnc = self.db.get_hgnc_symbol(hgnc)
 
-                # First perform a search against the input gene symbol or the symbol inferred from UTA
+            # First perform a search against the input gene symbol or the symbol inferred from UTA
             symbol_identified = False
             vvta_record = self.hdp.get_gene_info(hgnc)
             # Check for a record
@@ -1291,6 +1372,15 @@ class Mixin(vvMixinConverters.Mixin):
         # Loop through each transcript and get the relevant transcript description
         genes_and_tx = []
         recovered = []
+
+        # Remove un-selected transcripts
+        if sel_tx_lst is not False:
+            kept_tx = []
+            for tx in tx_for_gene:
+                if tx[3] in sel_tx_lst:
+                    kept_tx.append(tx)
+            tx_for_gene = kept_tx
+
         for line in tx_for_gene:
             if (line[3].startswith('NM_') or line[3].startswith('NR_')) and '..' not in line[3]:
 
@@ -1420,15 +1510,38 @@ class Mixin(vvMixinConverters.Mixin):
                     # LRG information
                     lrg_transcript = self.db.get_lrg_transcript_id_from_refseq_transcript_id(tx)
                     if lrg_transcript != 'none':
-                        genes_and_tx.append({'reference': lrg_transcript,
-                                             'description': tx_description,
-                                             'annotations': tx_annotation,
-                                             'length': tx_len,
-                                             'translation': lrg_transcript.replace('t', 'p'),
-                                             'coding_start': line[1] + 1,
-                                             'coding_end': line[2],
-                                             'genomic_spans': {}
-                                             })
+                        if line[1] is None:
+                            genes_and_tx.append({'reference': tx,
+                                                 'description': tx_description,
+                                                 'annotations': tx_annotation,
+                                                 'translation': prot_id,
+                                                 'length': tx_len,
+                                                 'coding_start': None,
+                                                 'coding_end': None,
+                                                 # 'orientation': tx_orientation,
+                                                 'genomic_spans': {}
+                                                 })
+                        elif sel_tx_lst is False:
+                            genes_and_tx.append({'reference': lrg_transcript,
+                                                 'description': tx_description,
+                                                 'annotations': tx_annotation,
+                                                 'length': tx_len,
+                                                 'translation': lrg_transcript.replace('t', 'p'),
+                                                 'coding_start': line[1] + 1,
+                                                 'coding_end': line[2],
+                                                 'genomic_spans': {}
+                                                 })
+                        else:
+                            if lrg_transcript in sel_tx_lst:
+                                genes_and_tx.append({'reference': lrg_transcript,
+                                                     'description': tx_description,
+                                                     'annotations': tx_annotation,
+                                                     'length': tx_len,
+                                                     'translation': lrg_transcript.replace('t', 'p'),
+                                                     'coding_start': line[1] + 1,
+                                                     'coding_end': line[2],
+                                                     'genomic_spans': {}
+                                                     })
 
                 # Add the genomic span information
                 if gen_span is True:
@@ -1686,7 +1799,7 @@ class Mixin(vvMixinConverters.Mixin):
         self.db.update_transcript_info_record(tx_id, self, **kwargs)
 
 # <LICENSE>
-# Copyright (C) 2016-2021 VariantValidator Contributors
+# Copyright (C) 2016-2022 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

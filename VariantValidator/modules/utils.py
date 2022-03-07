@@ -135,7 +135,7 @@ def valstr(hgvs_variant):
     """
     cp_hgvs_variant = copy.deepcopy(hgvs_variant)
     if cp_hgvs_variant.posedit.edit.type == 'identity':
-        if len(cp_hgvs_variant.posedit.edit.ref) > 1:
+        if len(cp_hgvs_variant.posedit.edit.ref) > 0:
             cp_hgvs_variant = remove_reference(cp_hgvs_variant)
         cp_hgvs_variant = str(cp_hgvs_variant)
     else:
@@ -567,7 +567,7 @@ class ObsoleteSeqError(Exception):
     pass
 
 # <LICENSE>
-# Copyright (C) 2016-2021 VariantValidator Contributors
+# Copyright (C) 2016-2022 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
