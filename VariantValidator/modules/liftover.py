@@ -174,7 +174,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                         sff = seq_data.to_chr_num_refseq(op[1], build_from)
                     if build_from.startswith('hg'):
                         sff = seq_data.to_chr_num_ucsc(op[1], build_from)
-                    if sff is not None and sft is not None:
+                    if sff is not None or sft is not None:
                         selected.append([op[0], op[1]])
                 if liftover_level == 'primary':
                     continue
@@ -188,7 +188,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                             sff = seq_data.to_chr_num_refseq(op[1], build_from)
                         if build_from.startswith('hg'):
                             sff = seq_data.to_chr_num_ucsc(op[1], build_from)
-                        if sff is not None and sft is not None:
+                        if sff is not None or sft is not None:
                             selected.append([op[0], op[1]])
                     if op[1].startswith('NW_'):
                         if build_to.startswith('GRC'):
@@ -199,7 +199,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                             sff = seq_data.to_chr_num_refseq(op[1], build_from)
                         if build_from.startswith('hg'):
                             sff = seq_data.to_chr_num_ucsc(op[1], build_from)
-                        if sff is not None and sft is not None:
+                        if sff is not None or sft is not None:
                             selected.append([op[0], op[1]])
 
         # remove duplicate chroms
