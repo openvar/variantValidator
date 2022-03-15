@@ -174,8 +174,10 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                         sff = seq_data.to_chr_num_refseq(op[1], build_from)
                     if build_from.startswith('hg'):
                         sff = seq_data.to_chr_num_ucsc(op[1], build_from)
-                    if sff is not None and sft is not None:
-                        selected.append([op[0], op[1]])
+                    if sff is not None or sft is None:
+                        selected.append([op[0], op[1], build_from, alt_build_from])
+                    elif sff is None or sft is not None:
+                        selected.append([op[0], op[1], build_to, alt_build_to])
                 if liftover_level == 'primary':
                     continue
                 else:
@@ -188,8 +190,10 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                             sff = seq_data.to_chr_num_refseq(op[1], build_from)
                         if build_from.startswith('hg'):
                             sff = seq_data.to_chr_num_ucsc(op[1], build_from)
-                        if sff is not None and sft is not None:
-                            selected.append([op[0], op[1]])
+                        if sff is not None or sft is None:
+                            selected.append([op[0], op[1], build_from, alt_build_from])
+                        elif sff is None or sft is not None:
+                            selected.append([op[0], op[1], build_to, alt_build_to])
                     if op[1].startswith('NW_'):
                         if build_to.startswith('GRC'):
                             sft = seq_data.to_chr_num_refseq(op[1], build_to)
@@ -199,63 +203,69 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                             sff = seq_data.to_chr_num_refseq(op[1], build_from)
                         if build_from.startswith('hg'):
                             sff = seq_data.to_chr_num_ucsc(op[1], build_from)
-                        if sff is not None and sft is not None:
-                            selected.append([op[0], op[1]])
+                        if sff is not None or sft is None:
+                            selected.append([op[0], op[1], build_from, alt_build_from])
+                        elif sff is None or sft is not None:
+                            selected.append([op[0], op[1], build_to, alt_build_to])
 
         # remove duplicate chroms
         filtered_1 = {}
         if selected:
             for chroms in selected:
                 if chroms[1] not in list(filtered_1.keys()):
-                    filtered_1[chroms[1]] = chroms[0]
+                    filtered_1[chroms[1]] = [chroms[0], chroms[2], chroms[3]]
             added_data = False
             for key, val in list(filtered_1.items()):
                 try:
                     # Note, due to 0 base positions in UTA (I think) occasionally tx will
                     # be identified that cannot be mapped to.
                     # In this instance, do not mark added data as True
-                    hgvs_tx = validator.vm.g_to_t(hgvs_genomic, val)
+                    hgvs_tx = validator.vm.g_to_t(hgvs_genomic, val[0])
                     hgvs_alt_genomic = validator.vm.t_to_g(hgvs_tx, key)
                     alt_vcf = hgvs_utils.report_hgvs2vcf(hgvs_alt_genomic, build_to, reverse_normalizer, validator.sf)
 
                     # Add the to build dictionaries
-                    lifted_response[build_to.lower()][hgvs_alt_genomic.ac] = {
-                        'hgvs_genomic_description': mystr(hgvs_alt_genomic),
-                        'vcf': {
-                            'chr': alt_vcf[to_set],
-                            'pos': str(alt_vcf['pos']),
-                            'ref': alt_vcf['ref'],
-                            'alt': alt_vcf['alt']
+                    if val[1] == build_to:
+                        lifted_response[build_to.lower()][hgvs_alt_genomic.ac] = {
+                            'hgvs_genomic_description': mystr(hgvs_alt_genomic),
+                            'vcf': {
+                                'chr': alt_vcf[to_set],
+                                'pos': str(alt_vcf['pos']),
+                                'ref': alt_vcf['ref'],
+                                'alt': alt_vcf['alt']
+                            }
                         }
-                    }
-                    lifted_response[alt_build_to.lower()][hgvs_alt_genomic.ac] = {
-                        'hgvs_genomic_description': mystr(hgvs_alt_genomic),
-                        'vcf': {
-                            'chr': alt_vcf[alt_to_set],
-                            'pos': str(alt_vcf['pos']),
-                            'ref': alt_vcf['ref'],
-                            'alt': alt_vcf['alt']
+                    if val[2] == alt_build_to:
+                        lifted_response[alt_build_to.lower()][hgvs_alt_genomic.ac] = {
+                            'hgvs_genomic_description': mystr(hgvs_alt_genomic),
+                            'vcf': {
+                                'chr': alt_vcf[alt_to_set],
+                                'pos': str(alt_vcf['pos']),
+                                'ref': alt_vcf['ref'],
+                                'alt': alt_vcf['alt']
+                            }
                         }
-                    }
                     # Overwrite build from info as PAR may require additional info
-                    lifted_response[build_from.lower()][hgvs_alt_genomic.ac] = {
-                        'hgvs_genomic_description': mystr(hgvs_alt_genomic),
-                        'vcf': {
-                            'chr': alt_vcf[to_set],
-                            'pos': str(alt_vcf['pos']),
-                            'ref': alt_vcf['ref'],
-                            'alt': alt_vcf['alt']
+                    if val[1] == build_from:
+                        lifted_response[build_from.lower()][hgvs_alt_genomic.ac] = {
+                            'hgvs_genomic_description': mystr(hgvs_alt_genomic),
+                            'vcf': {
+                                'chr': alt_vcf[to_set],
+                                'pos': str(alt_vcf['pos']),
+                                'ref': alt_vcf['ref'],
+                                'alt': alt_vcf['alt']
+                            }
                         }
-                    }
-                    lifted_response[alt_build_from.lower()][hgvs_alt_genomic.ac] = {
-                        'hgvs_genomic_description': mystr(hgvs_alt_genomic),
-                        'vcf': {
-                            'chr': alt_vcf[alt_to_set],
-                            'pos': str(alt_vcf['pos']),
-                            'ref': alt_vcf['ref'],
-                            'alt': alt_vcf['alt']
+                    if val[2] == alt_build_from:
+                        lifted_response[alt_build_from.lower()][hgvs_alt_genomic.ac] = {
+                            'hgvs_genomic_description': mystr(hgvs_alt_genomic),
+                            'vcf': {
+                                'chr': alt_vcf[alt_to_set],
+                                'pos': str(alt_vcf['pos']),
+                                'ref': alt_vcf['ref'],
+                                'alt': alt_vcf['alt']
+                            }
                         }
-                    }
 
                     added_data = True
 
