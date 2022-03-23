@@ -223,6 +223,8 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                     hgvs_tx = validator.vm.g_to_t(hgvs_genomic, val[0])
                     hgvs_alt_genomic = validator.vm.t_to_g(hgvs_tx, key)
                     alt_vcf = hgvs_utils.report_hgvs2vcf(hgvs_alt_genomic, build_to, reverse_normalizer, validator.sf)
+                    alt_vcf_b = hgvs_utils.report_hgvs2vcf(hgvs_alt_genomic, build_from, reverse_normalizer,
+                                                           validator.sf)
 
                     # Add the to build dictionaries
                     if val[1] == build_to:
@@ -250,20 +252,20 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                         lifted_response[build_from.lower()][hgvs_alt_genomic.ac] = {
                             'hgvs_genomic_description': mystr(hgvs_alt_genomic),
                             'vcf': {
-                                'chr': alt_vcf[to_set],
-                                'pos': str(alt_vcf['pos']),
-                                'ref': alt_vcf['ref'],
-                                'alt': alt_vcf['alt']
+                                'chr': alt_vcf_b[to_set],
+                                'pos': str(alt_vcf_b['pos']),
+                                'ref': alt_vcf_b['ref'],
+                                'alt': alt_vcf_b['alt']
                             }
                         }
                     if val[2] == alt_build_from:
                         lifted_response[alt_build_from.lower()][hgvs_alt_genomic.ac] = {
                             'hgvs_genomic_description': mystr(hgvs_alt_genomic),
                             'vcf': {
-                                'chr': alt_vcf[alt_to_set],
-                                'pos': str(alt_vcf['pos']),
-                                'ref': alt_vcf['ref'],
-                                'alt': alt_vcf['alt']
+                                'chr': alt_vcf_b[alt_to_set],
+                                'pos': str(alt_vcf_b['pos']),
+                                'ref': alt_vcf_b['ref'],
+                                'alt': alt_vcf_b['alt']
                             }
                         }
 
