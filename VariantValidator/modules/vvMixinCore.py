@@ -259,9 +259,12 @@ class Mixin(vvMixinConverters.Mixin):
 
                     # Here is where we may expand options for issue #338
                     test_for_invalid_case_in_accession = my_variant.original.split(":")[0]
+                    # Basically, all reference sequences must be upper case, so we make an upper-case query accession
+                    # to test the input accession against and try to spot a discrepancy
+                    # The exception to the rule is LTG transcripts e.g. LRG_1t1 which we handle immediately below!
                     query_for_invalid_case_in_accession = test_for_invalid_case_in_accession.upper()
                     if re.match("LRG", test_for_invalid_case_in_accession, flags=re.IGNORECASE):
-                        if "lrg" in test_for_invalid_case_in_accession:
+                        if "LRG" not in test_for_invalid_case_in_accession:
                             e = "This not a valid HGVS description, due to characters being in the wrong case. " \
                                 "Please check the use of upper- and lowercase characters."
                             my_variant.warnings.append(str(e))
@@ -272,11 +275,17 @@ class Mixin(vvMixinConverters.Mixin):
                             my_variant.warnings.append(str(e))
                             logger.warning(str(e))
                             my_variant.quibble = my_variant.quibble.replace("T", "t")
-                            print(my_variant.quibble)
+
+                    # Reference sequence types other than LRG
                     elif (test_for_invalid_case_in_accession != query_for_invalid_case_in_accession) \
                             and "LRG" not in test_for_invalid_case_in_accession:
-                        e = "This not a valid HGVS description, due to characters being in the wrong case. " \
-                            "Please check the use of upper- and lowercase characters."
+                        # See issue #357
+                        if re.match("chr", test_for_invalid_case_in_accession, re.IGNORECASE):
+                            e = "This is not a valid HGVS variant description, because no reference sequence ID " \
+                                "has been provided"
+                        else:
+                            e = "This not a valid HGVS description, due to characters being in the wrong case. " \
+                                "Please check the use of upper- and lowercase characters."
                         my_variant.warnings.append(str(e))
                         logger.warning(str(e))
 

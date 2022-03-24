@@ -30531,6 +30531,7 @@ class TestVariantsAuto(TestCase):
         assert 'NR_147092.1:n.957A>T' in results.keys()
 
     def test_issue_338(self):
+        # Also issue 357
         variant = 'NM_000088.3:C.589G>T'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
@@ -30565,6 +30566,12 @@ class TestVariantsAuto(TestCase):
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
         assert 'characters being in the wrong case' in \
+               results['NM_000088.3:c.589G>T']['validation_warnings'][0]
+
+        variant = 'chr17:50198002C>A'
+        results = self.vv.validate(variant, 'GRCh38', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'because no reference sequence ID has been provided' in \
                results['NM_000088.3:c.589G>T']['validation_warnings'][0]
 
 
