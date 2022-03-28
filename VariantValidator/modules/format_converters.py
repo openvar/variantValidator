@@ -874,6 +874,8 @@ def uncertain_pos(variant):
         if '(' in posedit or ')' in posedit:
             if 'p.' in posedit or '[' in posedit or ']' in posedit or '(;)' in posedit or '(:)' in posedit:
                 return False
+            elif re.search("ins\(\d+\)$", posedit):
+                return False
             error = 'Uncertain positions are not currently supported'
             variant.warnings.append(error)
             logger.warning(str(error))

@@ -135,7 +135,7 @@ class Mixin(vvMixinConverters.Mixin):
                     # Note, ID is not touched. It is always the input variant description.
                     # Quibble will be altered but id will not if type = g.
                     logger.info("Started validation of %s (originally %s)", str(my_variant.quibble),
-                                 my_variant.original)
+                                my_variant.original)
 
                     if not my_variant.is_ascii():
                         chars, positions = my_variant.get_non_ascii()
@@ -213,9 +213,24 @@ class Mixin(vvMixinConverters.Mixin):
                             continue
 
                         except vvhgvs.exceptions.HGVSParseError as e:
-                            my_variant.warnings.append(str(e))
-                            logger.warning(str(e))
-                            continue
+                            if re.search("ins\d+$", my_variant.quibble) or re.search("ins\(\d+\)$",
+                                                                                       my_variant.quibble):
+                                my_variant.warnings.append("The length of the variant is not formatted following the "
+                                                           "HGVS guidelines. Please rewrite '10' to 'N[10]'"
+                                                           "(where N is an unknown nucleotide)")
+                                try:
+                                    if "_" not in my_variant.quibble.split(":")[1] and \
+                                            "del" not in my_variant.quibble.split(":")[1]:
+                                        my_variant.warnings.append("An insertion must be provided with the two "
+                                                                   "positions between which the insertion has taken "
+                                                                   "place")
+                                except IndexError:
+                                    pass
+                                continue
+                            else:
+                                my_variant.warnings.append(str(e))
+                                logger.warning(str(e))
+                                continue
 
                         # Other issues to collect, for example, the specified position in NC_ does not agree with g.
                         # See issue #176
@@ -229,7 +244,7 @@ class Mixin(vvMixinConverters.Mixin):
                             toskip = None
                         else:
                             my_variant.warnings.append(str(e))
-                            if "The entered coordinates do not agree with the intron/exon boundaries for the selected " \
+                            if "The entered coordinates do not agree with the intron/exon boundaries for the selected "\
                                "transcript" not in my_variant.warnings[0]:
                                 my_variant.warnings.reverse()
                             logger.warning(str(e))
@@ -239,7 +254,12 @@ class Mixin(vvMixinConverters.Mixin):
                         continue
 
                     # INITIAL USER INPUT FORMATTING
-                    # Requested warnings from https://github.com/openvar/variantValidator/issues/195
+                    """
+                    In this section of the code we are compiling HGVS errors and providing improved warnings/error 
+                    messages
+                    """
+
+                    # 1. Requested warnings from https://github.com/openvar/variantValidator/issues/195
                     if re.search(r'\(.+?\)', my_variant.quibble):  # Pattern looks for (....)
                         gene_symbol_query = re.search(r'\(.+?\)', my_variant.quibble).group(0)
                         gene_symbol_query = gene_symbol_query.replace('(', '')
@@ -257,8 +277,9 @@ class Mixin(vvMixinConverters.Mixin):
 
                     invalid = my_variant.format_quibble()
 
-                    # Here is where we may expand options for issue #338
+                    # 2. expand options for issue https://github.com/openvar/variantValidator/issues/338
                     test_for_invalid_case_in_accession = my_variant.original.split(":")[0]
+
                     # Basically, all reference sequences must be upper case, so we make an upper-case query accession
                     # to test the input accession against and try to spot a discrepancy
                     # The exception to the rule is LTG transcripts e.g. LRG_1t1 which we handle immediately below!
@@ -316,10 +337,92 @@ class Mixin(vvMixinConverters.Mixin):
                             my_variant.warnings.append(error)
                             logger.warning(error)
                             continue
+
                         else:
                             error = 'Variant description ' + my_variant.quibble + ' is not in an accepted format'
                             my_variant.warnings.append(error)
                             logger.warning(error)
+                            continue
+
+                    else:
+                        # 3. Here we handle syntax errors in ins and delins variants
+                        # https://github.com/openvar/variantValidator/issues/359
+                        if re.search("ins$", my_variant.quibble):
+                            my_variant.warnings.append("The inserted sequence must be provided for insertions or "
+                                                       "deletion-insertions")
+                            try:
+                                if "_" not in my_variant.quibble.split(":")[1] and \
+                                        "del" not in my_variant.quibble.split(":")[1]:
+                                    my_variant.warnings.append("An insertion must be provided with the two positions "
+                                                               "between which the insertion has taken place")
+                            except IndexError:
+                                pass
+                            continue
+
+                        elif re.search("ins\d+$", my_variant.quibble) or re.search("ins\(\d+\)$", my_variant.quibble):
+                            my_variant.warnings.append("The length of the variant is not formatted following the "
+                                                       "HGVS guidelines. Please rewrite '(10)' to 'N[10]'"
+                                                       "(where N is an unknown nucleotide)")
+                            try:
+                                if "_" not in my_variant.quibble.split(":")[1] and \
+                                        "del" not in my_variant.quibble.split(":")[1]:
+                                    my_variant.warnings.append("An insertion must be provided with the two positions "
+                                                               "between which the insertion has taken place")
+                            except IndexError:
+                                pass
+                            continue
+
+                        elif re.search("ins[GATC]+\[\d+\]$", my_variant.quibble) or re.search("ins\[[GATC]+\[\d+\];",
+                                                                                              my_variant.quibble):
+
+                            if re.search("ins\[[GATC]+\[\d+\];", my_variant.quibble):
+                                sections = my_variant.quibble.split("ins")[1]
+                                sections = sections[1:-1]
+                                sections_listed = sections.split(";")
+                                sections_edited = []
+                                for stn in sections_listed:
+                                    if '[' in stn and ']' in stn:
+                                        sections_edited.append(stn)
+                                    else:
+                                        sections_edited.append(stn + "[1]")
+
+                                ins_seq_in_full = []
+                                for each_stn in sections_edited:
+                                    bases, count = each_stn.split("[")
+                                    count = int(count.replace("]", ""))
+                                    for i in range(count):
+                                        ins_seq_in_full.append(bases)
+
+                            else:
+                                bases, count = my_variant.quibble.split("[")
+                                bases = bases.split("ins")[1]
+                                count = int(count.replace("]", ""))
+                                ins_seq_in_full = []
+                                for i in range(count):
+                                    ins_seq_in_full.append(bases)
+                            ins_seq_in_full = "".join(ins_seq_in_full)
+                            if "del" not in my_variant.quibble:
+                                vt_in_full = my_variant.quibble.split("ins")[0] + "ins" + ins_seq_in_full
+                            else:
+                                vt_in_full = my_variant.quibble.split("delins")[0] + "delins" + ins_seq_in_full
+                            warn = "%s is better written as %s " % (my_variant.quibble, vt_in_full)
+                            my_variant.warnings.append(warn)
+
+                            try:
+                                if "_" not in my_variant.quibble.split(":")[1] and \
+                                        "del" not in my_variant.quibble.split(":")[1]:
+                                    my_variant.warnings.append("An insertion must be provided with the two positions "
+                                                               "between which the insertion has taken place")
+                            except IndexError:
+                                pass
+
+                            # Mark the variant to not be written and re-submit for validation
+                            my_variant.write = False
+                            query = Variant(my_variant.original, quibble=vt_in_full,
+                                            warnings=my_variant.warnings, primary_assembly=my_variant.primary_assembly,
+                                            order=my_variant.order)
+
+                            self.batch_list.append(query)
                             continue
 
                     formatted_variant = my_variant.quibble
@@ -332,8 +435,8 @@ class Mixin(vvMixinConverters.Mixin):
                     # Conversions are not currently supported. The HGVS format for conversions
                     # is rarely seen wrt genomic sequencing data and needs to be re-evaluated
                     if 'con' in my_variant.quibble:
-                        my_variant.warnings.append('Gene conversions currently unsupported')
-                        logger.warning('Gene conversions currently unsupported')
+                        my_variant.warnings.append('Conversions are no longer valid HGVS Sequence Variant Descriptions')
+                        logger.warning('Conversions are no longer valid HGVS Sequence Variant Descriptions')
                         continue
 
                     # Change RNA bases to upper case but nothing else

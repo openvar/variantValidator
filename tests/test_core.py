@@ -141,7 +141,7 @@ class TestValidator(unittest.TestCase):
         output = self.vv.validate(var, 'GRCh37', 'all').format_as_dict()
         print(output)
         self.assertEqual(output['flag'], 'warning')
-        self.assertIn('Gene conversions currently unsupported',
+        self.assertIn('Conversions are no longer valid HGVS Sequence Variant Descriptions',
                       str(output['validation_warning_1']['validation_warnings']))
 
     def test_variant_RNA(self):

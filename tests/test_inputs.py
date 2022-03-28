@@ -30227,14 +30227,6 @@ class TestVariantsAuto(TestCase):
     """
     Test for specific variant characteristics
     """
-
-    def test_t_in_rna_string(self):
-        variant = 'NM_007075.3:r.235_236insGCCCACCCACCTGCCAG'
-        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
-        print(results)
-        assert 'The IUPAC RNA alphabet dictates that RNA variants must use the character u in place of t' in \
-               results['validation_warning_1']['validation_warnings']
-
     def test_issue_44(self):
         variant = 'NM_005228.4:c.2237_2255delinsT'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
@@ -30247,41 +30239,6 @@ class TestVariantsAuto(TestCase):
         results = self.vv.validate(variant, 'GRCh37', 'NM_001278138.1').format_as_dict(test=True)
         print(results)
         assert '*477=' in results['NM_001278138.1:c.1431G>A']['hgvs_predicted_protein_consequence']['slr']
-
-    def test_issue_169(self):
-        variant = 'NC_000017.10(NM_007294.3):c.4421-63A>G'
-        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
-        print(results)
-        assert 'The entered coordinates do not agree with the intron/exon boundaries for the selected transcript' in \
-               results['validation_warning_1']['validation_warnings'][0]
-
-    def test_issue_176(self):
-        variant = 'NC_000023.10(NM_004006.2):c.8810A>G'
-        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
-        print(results)
-        assert 'NC_000023.10:g.31496350T>C: Variant reference (T) does not agree with reference sequence (C)' in \
-               results['validation_warning_1']['validation_warnings'][0]
-
-    def test_issue_180a(self):
-        variant = 'NC_000017.10:g.41232400_41236235del383'
-        results = self.vv.validate(variant, 'hg19', 'all').format_as_dict(test=True)
-        print(results)
-        assert 'Length implied by coordinates must equal sequence deletion length' in \
-               results['validation_warning_1']['validation_warnings'][0]
-
-    def test_issue_180b(self):
-        variant = 'NC_000017.10(NM_007300.3):c.4186-1642_4358-983del10'
-        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
-        print(results)
-        assert 'Length implied by coordinates must equal sequence deletion length' in \
-               results['validation_warning_1']['validation_warnings'][0]
-
-    def test_issue_180c(self):
-        variant = 'NC_000017.10(NM_000088.3):c.589-1del2'
-        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
-        print(results)
-        assert 'Length implied by coordinates must equal sequence deletion length' in \
-               results['validation_warning_1']['validation_warnings'][0]
 
     def test_issue_185(self):
         variant = 'NC_000023.10(NM_004006.2):c.6615_7660del'
@@ -30297,15 +30254,6 @@ class TestVariantsAuto(TestCase):
             'hgvs_genomic_description']
         assert 'NC_000023.10:g.591732del' in results['NM_000451.3:c.100del']['primary_assembly_loci']['grch37'][
             'hgvs_genomic_description']
-
-    def test_issue_195a(self):
-        variant = 'NM_000088.3(COL1A1):c.590delG'
-        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
-        print(results)
-        assert 'Removing redundant gene symbol COL1A1 from variant description' in \
-               results['NM_000088.3:c.590del']['validation_warnings'][0]
-        assert 'Removing redundant reference bases from variant description' in \
-               results['NM_000088.3:c.590del']['validation_warnings'][1]
 
     def test_variant_195b(self):
         variant = 'NM_000451.3:c.100del'
@@ -30376,27 +30324,6 @@ class TestVariantsAuto(TestCase):
                results['NM_170665.3:c.775_776insCAGCTT']['hgvs_predicted_protein_consequence']['tlr']
         assert 'NP_733765.1:p.(Q259delinsPA*)' in \
                results['NM_170665.3:c.775_776insCAGCTT']['hgvs_predicted_protein_consequence']['slr']
-
-    def test_issue_216a(self):
-        variant = 'NM_006941.3:c.850_877dup27'
-        results = self.vv.validate(variant, 'hg19', 'all').format_as_dict(test=True)
-        print(results)
-        assert 'Length implied by coordinates must equal sequence duplication length' in \
-               results['validation_warning_1']['validation_warnings'][0]
-
-    def test_issue_216b(self):
-        variant = 'NM_006941.3:c.850_877dup28'
-        results = self.vv.validate(variant, 'hg19', 'all').format_as_dict(test=True)
-        print(results)
-        assert 'Trailing digits are not permitted in HGVS variant descriptions' in \
-               results['NM_006941.3:c.850_877dup']['validation_warnings'][0]
-
-    def test_issue_239(self):
-        variant = 'NM_006941.3:c.1047dupT'
-        results = self.vv.validate(variant, 'hg19', 'all').format_as_dict(test=True)
-        print(results)
-        assert 'Removing redundant reference bases from variant description' in \
-               results['NM_006941.3:c.1047dup']['validation_warnings'][0]
 
     def test_issue_280a(self):
         variant = 'NC_000012.12:g.121626878del'
@@ -30529,50 +30456,6 @@ class TestVariantsAuto(TestCase):
         results = self.vv.validate(variant, 'GRCh37', 'NR_147092.1', liftover_level='primary').format_as_dict(test=True)
         print(results)
         assert 'NR_147092.1:n.957A>T' in results.keys()
-
-    def test_issue_338(self):
-        # Also issue 357
-        variant = 'NM_000088.3:C.589G>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
-        print(results)
-        assert 'characters being in the wrong case' in \
-               results['NM_000088.3:c.589G>T']['validation_warnings'][0]
-
-        variant = 'NM_000088.3:C.589G>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
-        print(results)
-        assert 'characters being in the wrong case' in \
-               results['NM_000088.3:c.589G>T']['validation_warnings'][0]
-
-        variant = 'nm_000088.3:c.589G>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
-        print(results)
-        assert 'characters being in the wrong case' in \
-               results['NM_000088.3:c.589G>T']['validation_warnings'][0]
-
-        variant = 'lrg_1t1:c.589G>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
-        print(results)
-        assert 'characters being in the wrong case' in \
-               results['NM_000088.3:c.589G>T']['validation_warnings'][0]
-
-        variant = 'lrg_1T1:c.589G>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
-        print(results)
-        assert 'characters being in the wrong case' in \
-               results['NM_000088.3:c.589G>T']['validation_warnings'][0]
-
-        variant = 'LRG_1T1:c.589G>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
-        print(results)
-        assert 'characters being in the wrong case' in \
-               results['NM_000088.3:c.589G>T']['validation_warnings'][0]
-
-        variant = 'chr17:50198002C>A'
-        results = self.vv.validate(variant, 'GRCh38', 'all', liftover_level='primary').format_as_dict(test=True)
-        print(results)
-        assert 'because no reference sequence ID has been provided' in \
-               results['NM_000088.3:c.589G>T']['validation_warnings'][0]
 
 
 # <LICENSE>
