@@ -213,10 +213,9 @@ class Mixin(vvMixinConverters.Mixin):
                             continue
 
                         except vvhgvs.exceptions.HGVSParseError as e:
-                            if re.search("ins\d+$", my_variant.quibble) or re.search("ins\(\d+\)$",
-                                                                                       my_variant.quibble):
+                            if re.search("ins\d+$", my_variant.quibble):
                                 my_variant.warnings.append("The length of the variant is not formatted following the "
-                                                           "HGVS guidelines. Please rewrite '10' to 'N[10]'"
+                                                           "HGVS guidelines. Please rewrite e.g. '10' to 'N[10]'"
                                                            "(where N is an unknown nucleotide)")
                                 try:
                                     if "_" not in my_variant.quibble.split(":")[1] and \
@@ -359,9 +358,9 @@ class Mixin(vvMixinConverters.Mixin):
                                 pass
                             continue
 
-                        elif re.search("ins\d+$", my_variant.quibble) or re.search("ins\(\d+\)$", my_variant.quibble):
+                        elif re.search("ins\(\d+\)$", my_variant.quibble):
                             my_variant.warnings.append("The length of the variant is not formatted following the "
-                                                       "HGVS guidelines. Please rewrite '(10)' to 'N[10]'"
+                                                       "HGVS guidelines. Please rewrite e.g. '(10)' to 'N[10]'"
                                                        "(where N is an unknown nucleotide)")
                             try:
                                 if "_" not in my_variant.quibble.split(":")[1] and \
@@ -370,6 +369,55 @@ class Mixin(vvMixinConverters.Mixin):
                                                                "between which the insertion has taken place")
                             except IndexError:
                                 pass
+                            continue
+
+                        elif re.search("ins\d+$", my_variant.quibble):
+                            my_variant.warnings.append("The length of the variant is not formatted following the HGVS "
+                                                       "guidelines. Please rewrite e.g. '10' to 'N[10]'"
+                                                       "(where N is an unknown nucleotide)")
+                            try:
+                                if "_" not in my_variant.quibble.split(":")[1] and \
+                                        "del" not in my_variant.quibble.split(":")[1]:
+                                    my_variant.warnings.append("An insertion must be provided with the two positions "
+                                                               "between which the insertion has taken place")
+                            except IndexError:
+                                pass
+                            continue
+
+                        elif re.search("ins\(\d+_\d+\)$", my_variant.quibble):
+                            my_variant.warnings.append("The length of the variant is not formatted following the HGVS "
+                                                       "guidelines. Please rewrite e.g. '(10_20)' to 'N[(10_20)]'"
+                                                       "(where N is an unknown nucleotide and [(10_20)] is an uncertain"
+                                                       " number of N nucleotides ranging from 10 to 20)")
+                            continue
+
+                        elif re.search("ins\[\(\d+_\d+\)\]$", my_variant.quibble):
+                            counts = re.findall("\d+", my_variant.quibble.split("ins")[1])
+
+                            if int(counts[1]) < int(counts[0]):
+                                wrn = "The length of the variant is not formatted following the HGVS guidelines. " \
+                                      "Please rewrite (%s_%s) to N[(%s_%s)]" % (counts[0], counts[1],
+                                                                                counts[1], counts[0])
+                                my_variant.warnings.append(wrn)
+                            elif int(counts[1]) == int(counts[0]):
+                                wrn = "The length of the variant is not formatted following the HGVS guidelines. " \
+                                      "Please rewrite (%s_%s) to N[(%s)]" % (counts[0], counts[1], counts[1])
+                                my_variant.warnings.append(wrn)
+
+                            try:
+                                if not re.search("\d_\d", my_variant.quibble.split("ins")[0]) and \
+                                        "del" not in my_variant.quibble.split(":")[1]:
+                                    my_variant.warnings.append("An insertion must be provided with the two positions "
+                                                               "between which the insertion has taken place")
+                            except IndexError:
+                                pass
+
+                            if my_variant.warnings == []:
+                                wrn = "The variant description is syntactically correct " \
+                                      "but no further validation is possible because the description contains " \
+                                      "uncertainty"
+                                my_variant.warnings.append(wrn)
+
                             continue
 
                         elif re.search("ins[GATC]+\[\d+\]$", my_variant.quibble) or re.search("ins\[[GATC]+\[\d+\];",
@@ -1044,47 +1092,6 @@ class Mixin(vvMixinConverters.Mixin):
                     predicted_protein_variant_dict["lrg_slr"] = ''
                     if 'Non-coding :n.' not in predicted_protein_variant:
                         try:
-                            # Note this code is needed if we decide to come in line with Mutalyzer  - see issue #214
-                            # Requires commenting out of issue #214 code in MixinInit
-
-                            # # remove trailing aas after ter in insertions and delins
-                            # if 'fs' not in predicted_protein_variant \
-                            #         and 'delins' in predicted_protein_variant\
-                            #         and 'ext' not in predicted_protein_variant:
-                            #     predicted_protein_variant = re.sub(r'Ter\w+', 'Ter', predicted_protein_variant)
-                            #     predicted_protein_variant_dict["tlr"] = predicted_protein_variant
-                            #
-                            #     # Remove Training Ter from delins except for ext proteins
-                            #     if re.search(r'delins\w+Ter', predicted_protein_variant):
-                            #         format_p = predicted_protein_variant.replace('Ter', '')
-                            #         format_p = re.sub(r'\(LRG_.+?\)', '', format_p)
-                            #         re_parse_protein = self.hp.parse_hgvs_variant(format_p)
-                            #         p_seq = self.sf.fetch_seq(format_p.split(':')[0])
-                            #
-                            #         end_aa = fn.one_to_three((p_seq[-1]))
-                            #         p_len = len(p_seq)
-                            #         prot_st, posedit = format_p.split('delins')
-                            #         prot_sta, prot_aa_st = prot_st.split(':p.')
-                            #         prot_st = prot_sta + ':p.'
-                            #         prot_aa_st = prot_aa_st.split('_')[0]
-                            #         prot_st = prot_st + prot_aa_st
-                            #
-                            #         # Create edit
-                            #         if re_parse_protein.posedit.pos.start.base != p_len:
-                            #             pre_posedit = '_%s%sdelins' % (end_aa, str(p_len))
-                            #         else:
-                            #             pre_posedit = 'delins'
-                            #         posedit = pre_posedit + posedit
-                            #
-                            #         # Assemble protein variants
-                            #         predicted_protein_variant_dict["tlr"] = '%s%s%s%s' % (
-                            #             predicted_protein_variant.split(':p.')[0],
-                            #             ":p.",
-                            #             prot_st.split(':p.')[1],
-                            #             posedit)
-                            #
-                            #         predicted_protein_variant = prot_st + posedit
-
                             # Add single letter AA code to protein descriptions
                             predicted_protein_variant_dict = {"tlr": str(predicted_protein_variant), "slr": ''}
                             if re.search('p.=', predicted_protein_variant_dict['tlr']) \

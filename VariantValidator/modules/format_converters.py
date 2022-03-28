@@ -57,7 +57,6 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
 
     # Tackle compound variant descriptions NG or NC (NM_) i.e. correctly input NG/NC_(NM_):c.
     intronic_converter(variant, validator)
-
     return False
 
 
@@ -567,6 +566,7 @@ def indel_catching(variant, validator):
                 variant.warnings.append('Refer to ' + issue_link)
                 logger.info(e)
                 return True
+
             # Remove them so that the string SHOULD parse
             if dup_in_quibble is True:
                 variant.quibble = str(hgvs_quibble).replace('del', 'dup')
@@ -874,7 +874,7 @@ def uncertain_pos(variant):
         if '(' in posedit or ')' in posedit:
             if 'p.' in posedit or '[' in posedit or ']' in posedit or '(;)' in posedit or '(:)' in posedit:
                 return False
-            elif re.search("ins\(\d+\)$", posedit):
+            elif re.search("ins\(\d+\)$", posedit) or re.search("ins\(\d+_\d+\)$", posedit):
                 return False
             error = 'Uncertain positions are not currently supported'
             variant.warnings.append(error)

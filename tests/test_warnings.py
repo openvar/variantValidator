@@ -124,7 +124,7 @@ class TestWarnings(TestCase):
         assert 'because no reference sequence ID has been provided' in \
                results['NM_000088.3:c.589G>T']['validation_warnings'][0]
 
-        # Issue 359
+    def test_issue_359(self):
         variant = 'NM_001371623.1:c.483ins'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
@@ -136,7 +136,7 @@ class TestWarnings(TestCase):
         variant = 'NM_001371623.1:c.483ins(10)'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
-        assert 'The length of the variant is not formatted following the HGVS guidelines. Please rewrite (10) ' \
+        assert 'The length of the variant is not formatted following the HGVS guidelines. Please rewrite e.g. (10) ' \
                'to N[10]' in \
                results['validation_warning_1']['validation_warnings'][0]
         assert 'An insertion must be provided with the two positions between which the insertion has taken place' in \
@@ -145,7 +145,7 @@ class TestWarnings(TestCase):
         variant = 'NM_001371623.1:c.483ins10'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
-        assert 'The length of the variant is not formatted following the HGVS guidelines. Please rewrite 10 ' \
+        assert 'The length of the variant is not formatted following the HGVS guidelines. Please rewrite e.g. 10 ' \
                'to N[10]' in \
                results['validation_warning_1']['validation_warnings'][0]
         assert 'An insertion must be provided with the two positions between which the insertion has taken place' in \
@@ -161,6 +161,12 @@ class TestWarnings(TestCase):
         assert 'insertion length must be 1' in \
                results['validation_warning_1']['validation_warnings'][2]
 
+        variant = 'NM_001371623.1:c.483delinsA[10]'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'NM_001371623.1:c.483delinsA[10] is better written as NM_001371623.1:c.483delinsAAAAAAAAAA' in \
+               results['NM_001371623.1:c.483_484insAAAAAAAAA']['validation_warnings'][0]
+
         variant = 'NM_001371623.1:c.483_484insA[10]'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
@@ -173,6 +179,51 @@ class TestWarnings(TestCase):
         assert 'NM_001371623.1:c.483_484ins[A[10];T] is better written as NM_001371623.1:c.483_484insAAAAAAAAAAT' in \
                results['NM_001371623.1:c.483_484insAAAAAAAAAAT']['validation_warnings'][0]
 
+        variant = 'NM_001371623.1:c.483_484delins[A[10];T]'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'NM_001371623.1:c.483_484delins[A[10];T] is better written as ' \
+               'NM_001371623.1:c.483_484delinsAAAAAAAAAAT' in \
+               results['NM_001371623.1:c.484delinsAAAAAAAAAT']['validation_warnings'][0]
+
+        variant = 'NM_001371623.1:c.483ins(10_20)'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'The length of the variant is not formatted following the HGVS guidelines. Please rewrite e.g. (10_20) '\
+               'to N[(10_20)](where N is an unknown nucleotide and [(10_20)] is an uncertain number of N nucleotides ' \
+               'ranging from 10 to 20)' in \
+               results['validation_warning_1']['validation_warnings'][0]
+
+        variant = 'NM_001371623.1:c.483ins[(20_10)]'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'The length of the variant is not formatted following the HGVS guidelines. Please rewrite (20_10) to ' \
+               'N[(10_20)]' in \
+               results['validation_warning_1']['validation_warnings'][0]
+        assert 'An insertion must be provided with the two positions between which the insertion has taken place' in \
+               results['validation_warning_1']['validation_warnings'][1]
+
+        variant = 'NM_001371623.1:c.483ins[(20_20)]'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'The length of the variant is not formatted following the HGVS guidelines. Please rewrite ' \
+               '(20_20) to N[(20)]' in \
+               results['validation_warning_1']['validation_warnings'][0]
+        assert 'An insertion must be provided with the two positions between which the insertion has taken place' in \
+               results['validation_warning_1']['validation_warnings'][1]
+
+        variant = 'NM_001371623.1:c.483_484ins[(10_20)]'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'The variant description is syntactically correct but no further validation is possible because the ' \
+               'description contains uncertainty' in \
+               results['validation_warning_1']['validation_warnings'][0]
+
+        variant = 'NM_001371623.1:c.483ins[(10_20)]'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'An insertion must be provided with the two positions between which the insertion has taken place' in \
+               results['validation_warning_1']['validation_warnings'][0]
 
 # <LICENSE>
 # Copyright (C) 2016-2022 VariantValidator Contributors
