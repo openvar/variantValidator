@@ -40,7 +40,6 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
 
     # Perform test
     if g_query.posedit.pos != g_test.posedit.pos:
-        # my_variant.warnings += ': ' + 'Input variant description normalized to ' + str(g_test)
         variant.hgvs_genomic = g_test
     else:
         variant.hgvs_genomic = g_query
@@ -412,11 +411,8 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         query = validator.hp.parse_hgvs_variant(formatted_variant)
         test = validator.hp.parse_hgvs_variant(quibble_input)
         if query.posedit.pos != test.posedit.pos:
-            caution = 'The variant description ' + quibble_input + ' requires alteration to comply with HGVS variant ' \
-                                                           'nomenclature:'
-            # automapping of variant completed
             automap = str(test) + ' automapped to ' + str(query)
-            variant.warnings.extend([caution, automap])
+            variant.warnings.extend([automap])
 
             # Kill current line and append for re-submission
             # Tag the line so that it is not written out
@@ -424,7 +420,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             # Set the values and append to batch_list
             hgvs_vt = validator.hp.parse_hgvs_variant(str(query))
             assert str(hgvs_vt) == str(query)
-            query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=[automap],
+            query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=variant.warnings,
                             primary_assembly=variant.primary_assembly, order=variant.order,
                             selected_assembly=variant.selected_assembly)
             validator.batch_list.append(query)

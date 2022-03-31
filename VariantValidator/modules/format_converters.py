@@ -57,7 +57,6 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
 
     # Tackle compound variant descriptions NG or NC (NM_) i.e. correctly input NG/NC_(NM_):c.
     intronic_converter(variant, validator)
-
     return False
 
 
@@ -567,6 +566,7 @@ def indel_catching(variant, validator):
                 variant.warnings.append('Refer to ' + issue_link)
                 logger.info(e)
                 return True
+
             # Remove them so that the string SHOULD parse
             if dup_in_quibble is True:
                 variant.quibble = str(hgvs_quibble).replace('del', 'dup')
@@ -659,8 +659,8 @@ def allele_parser(variant, validation, validator):
                         caution = lrg_reference + ':' + variation + ' automapped to ' + \
                                   refseqgene_reference + ':' + variation
                     else:
-                        caution = caution + ': ' + lrg_reference + ':' + variation + ' automapped to equivalent RefSeq ' \
-                                                                                     'record' + \
+                        caution = caution + ': ' + lrg_reference + ':' + variation + ' automapped to equivalent ' \
+                                                                                     'RefSeq record' + \
                                   refseqgene_reference + ':' + variation
                     variant.warnings.append(caution)
                     logger.info(caution)
@@ -675,8 +675,8 @@ def allele_parser(variant, validation, validator):
                         caution = lrg_reference + ':' + variation + ' automapped to equivalent RefSeq record ' + \
                                   refseqtranscript_reference + ':' + variation
                     else:
-                        caution = caution + ': ' + lrg_reference + ':' + variation + ' automapped to equivalent RefSeq ' \
-                                                                                     'record' + \
+                        caution = caution + ': ' + lrg_reference + ':' + variation + ' automapped to equivalent ' \
+                                                                                     'RefSeq record' + \
                                   refseqtranscript_reference + ':' + variation
                     variant.warnings.append(caution)
                     logger.info(caution)
@@ -772,9 +772,15 @@ def mitochondrial(variant, validator):
         # set flag
         variant.output_type_flag = 'mitochondrial'
 
+        # Ensure the correct reference sequence type is used, if not, warn the user
         hgvs_mito = copy.deepcopy(variant.hgvs_formatted)
         if hgvs_mito.type == 'g' and (hgvs_mito.ac == 'NC_012920.1' or hgvs_mito.ac == 'NC_001807.4'):
             hgvs_mito.type = 'm'
+            wrn = "The given reference sequence (%s) does not match the DNA type (g). For mitochondrial genomic "\
+                  "variants, please use (m)" % hgvs_mito.ac
+            variant.warnings.append(wrn)
+
+        # Validate the variant description
         try:
             validator.vr.validate(hgvs_mito)
         except vvhgvs.exceptions.HGVSError as e:
@@ -788,15 +794,34 @@ def mitochondrial(variant, validator):
             logger.warning(error)
             return True
         else:
-            # Any transcripts?
+
+            # Check for movement during normalization
+            try:
+                norm_check = variant.hn.normalize(variant.hgvs_formatted)
+                if hgvs_mito.posedit.pos != norm_check.posedit.pos:
+                    norm_check.type = "m"
+                    error = "%s updated to %s" % (fn.valstr(hgvs_mito), fn.valstr(norm_check))
+                    variant.warnings.append(error)
+                    logger.warning(error)
+
+            except vvhgvs.exceptions.HGVSError as e:
+                error = str(e)
+                variant.warnings.append(error)
+                logger.warning(error)
+                return True
+
+            # Are there any transcripts?
             rel_var = validator.relevant_transcripts(hgvs_mito, variant.evm, validator.alt_aln_method,
                                                      variant.reverse_normalizer)
+
+            # Add a description of the reference sequence type and continue
             variant.hgvs_genomic = hgvs_mito
             if len(rel_var) == 0:
                 variant.genomic_g = fn.valstr(hgvs_mito)
                 variant.description = 'Homo sapiens mitochondrion, complete genome'
                 logger.info('Homo sapiens mitochondrion, complete genome')
                 return True
+
     return False
 
 
@@ -873,6 +898,8 @@ def uncertain_pos(variant):
         posedit = to_check.split(':')[1]
         if '(' in posedit or ')' in posedit:
             if 'p.' in posedit or '[' in posedit or ']' in posedit or '(;)' in posedit or '(:)' in posedit:
+                return False
+            elif re.search("ins\(\d+\)$", posedit) or re.search("ins\(\d+_\d+\)$", posedit):
                 return False
             error = 'Uncertain positions are not currently supported'
             variant.warnings.append(error)
