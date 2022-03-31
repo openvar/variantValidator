@@ -228,15 +228,16 @@ class TestWarnings(TestCase):
 
     def test_issue_360(self):
         result = simpleVariantFormatter.format('NC_012920.1:g.100del', 'GRCh37', 'refseq', None, False, True)
-        assert result["NC_012920.1:g.100del"]["NC_012920.1:g.100del"][
-                   "genomic_variant_error"] == "The given reference sequence (NC_012920.1) does not match the DNA " \
-                                               "type (g). For mitochondrial genomic variants, please use (m)"
+        assert "The given reference sequence (NC_012920.1) does not match the DNA type (g). For NC_012920.1, " \
+               "please use (m). For g. variants, please use a linear genomic reference sequence" in \
+               result["NC_012920.1:g.100del"]["NC_012920.1:g.100del"]["genomic_variant_error"]
 
         variant = 'NC_012920.1:g.100del'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
-        assert "The given reference sequence (NC_012920.1) does not match the DNA type (g). For mitochondrial genomic "\
-               "variants, please use (m)" in results['mitochondrial_variant_1']['validation_warnings'][0]
+        assert "The given reference sequence (NC_012920.1) does not match the DNA type (g). For NC_012920.1, " \
+               "please use (m). For g. variants, please use a linear genomic reference sequence" in \
+               results['mitochondrial_variant_1']['validation_warnings'][0]
 
 
 # <LICENSE>
