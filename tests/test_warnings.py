@@ -1,4 +1,5 @@
 from VariantValidator import Validator
+from VariantFormatter import simpleVariantFormatter
 from unittest import TestCase
 
 
@@ -224,6 +225,19 @@ class TestWarnings(TestCase):
         print(results)
         assert 'An insertion must be provided with the two positions between which the insertion has taken place' in \
                results['validation_warning_1']['validation_warnings'][0]
+
+    def test_issue_360(self):
+        result = simpleVariantFormatter.format('NC_012920.1:g.100del', 'GRCh37', 'refseq', None, False, True)
+        assert result["NC_012920.1:g.100del"]["NC_012920.1:g.100del"][
+                   "genomic_variant_error"] == "The given reference sequence (NC_012920.1) does not match the DNA " \
+                                               "type (g). For mitochondrial genomic variants, please use (m)"
+
+        variant = 'NC_012920.1:g.100del'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert "The given reference sequence (NC_012920.1) does not match the DNA type (g). For mitochondrial genomic "\
+               "variants, please use (m)" in results['mitochondrial_variant_1']['validation_warnings'][0]
+
 
 # <LICENSE>
 # Copyright (C) 2016-2022 VariantValidator Contributors

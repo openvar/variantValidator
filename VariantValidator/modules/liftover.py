@@ -226,6 +226,10 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                     alt_vcf_b = hgvs_utils.report_hgvs2vcf(hgvs_alt_genomic, build_from, reverse_normalizer,
                                                            validator.sf)
 
+                    # Handle mitochondrial liftovers
+                    if 'NC_012920.1' in hgvs_alt_genomic.ac or 'NC_001807.4' in hgvs_alt_genomic.ac:
+                        hgvs_alt_genomic.type = "m"
+
                     # Add the to build dictionaries
                     if val[1] == build_to:
                         lifted_response[build_to.lower()][hgvs_alt_genomic.ac] = {
@@ -341,6 +345,11 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                         for build in genome_builds:
                             vcf_dict = hgvs_utils.report_hgvs2vcf(
                                 hgvs_lifted, build, reverse_normalizer, validator.sf)
+
+                            # Handle mitochondrial liftovers
+                            if 'NC_012920.1' in hgvs_lifted.ac or 'NC_001807.4' in hgvs_lifted.ac:
+                                hgvs_lifted.type = "m"
+
                             if build.startswith('GRC'):
                                 lifted_response[build_to.lower()][hgvs_lifted.ac] = {
                                     'hgvs_genomic_description': mystr(hgvs_lifted),
