@@ -3,59 +3,49 @@ import VariantFormatter.variantformatter as vf
 import VariantValidator
 vfo = VariantValidator.Validator()
 
-
 class TestVariantsAuto(object):
-
     @classmethod
     def setup_class(cls):
         VariantFormatter.__version__
-
 
     def test_variant1(self):
         variant = 'NC_000019.10:g.50378563_50378564insTAC'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000019.10:g.50378563_50378564insTAC' in results.keys()
         assert results['NC_000019.10:g.50378563_50378564insTAC']['p_vcf'] is None
         assert results['NC_000019.10:g.50378563_50378564insTAC']['g_hgvs'] is None
         assert results['NC_000019.10:g.50378563_50378564insTAC']['genomic_variant_error'] == 'chromosome ID NC_000019.10 is not associated with genome build GRCh37'
         assert results['NC_000019.10:g.50378563_50378564insTAC']['hgvs_t_and_p'] is None
 
-
     def test_variant2(self):
         variant = '11-5248232-A-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '11-5248232-A-T' in results.keys()
         assert results['11-5248232-A-T']['p_vcf'] is None
         assert results['11-5248232-A-T']['g_hgvs'] is None
         assert results['11-5248232-A-T']['genomic_variant_error'] == 'NC_000011.9:g.5248232A>T: Variant reference (A) does not agree with reference sequence (T)'
         assert results['11-5248232-A-T']['hgvs_t_and_p'] is None
 
-
     def test_variant3(self):
         variant = 'NC_000012.11:g.122064777A>C'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000012.11:g.122064777A>C' in results.keys()
         assert results['NC_000012.11:g.122064777A>C']['p_vcf'] is None
         assert results['NC_000012.11:g.122064777A>C']['g_hgvs'] is None
         assert results['NC_000012.11:g.122064777A>C']['genomic_variant_error'] == 'NC_000012.11:g.122064777A>C: Variant reference (A) does not agree with reference sequence (C)'
         assert results['NC_000012.11:g.122064777A>C']['hgvs_t_and_p'] is None
 
-
     def test_variant4(self):
         variant = 'NC_000002.11:g.73613030C>T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000002.11:g.73613030C>T' in results.keys()
         assert results['NC_000002.11:g.73613030C>T']['p_vcf'] == '2:73613030:C:T'
         assert results['NC_000002.11:g.73613030C>T']['g_hgvs'] == 'NC_000002.11:g.73613030C>T'
@@ -66,13 +56,11 @@ class TestVariantsAuto(object):
         assert results['NC_000002.11:g.73613030C>T']['hgvs_t_and_p']['NM_015120.4']['p_hgvs_slc'] == 'NP_055935.4:p.(L12=)'
         assert results['NC_000002.11:g.73613030C>T']['hgvs_t_and_p']['NM_015120.4']['transcript_variant_error'] is None
 
-
     def test_variant5(self):
         variant = 'NC_000023.10:g.33229673A>T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.10:g.33229673A>T' in results.keys()
         assert results['NC_000023.10:g.33229673A>T']['p_vcf'] == 'X:33229673:A:T'
         assert results['NC_000023.10:g.33229673A>T']['g_hgvs'] == 'NC_000023.10:g.33229673A>T'
@@ -88,26 +76,22 @@ class TestVariantsAuto(object):
         assert results['NC_000023.10:g.33229673A>T']['hgvs_t_and_p']['NM_004006.2']['p_hgvs_slc'] == 'NP_003997.1:p.?'
         assert results['NC_000023.10:g.33229673A>T']['hgvs_t_and_p']['NM_004006.2']['transcript_variant_error'] is None
 
-
     def test_variant6(self):
         variant = 'NC_000017.10:g.48279242G>T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000017.10:g.48279242G>T' in results.keys()
         assert results['NC_000017.10:g.48279242G>T']['p_vcf'] == '17:48279242:G:T'
         assert results['NC_000017.10:g.48279242G>T']['g_hgvs'] == 'NC_000017.10:g.48279242G>T'
         assert results['NC_000017.10:g.48279242G>T']['genomic_variant_error'] is None
         assert results['NC_000017.10:g.48279242G>T']['hgvs_t_and_p'] == {'intergenic': {'alt_genomic_loci': None}}
 
-
     def test_variant7(self):
         variant = 'NC_000017.10:g.48261457_48261463TTATGTT='
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000017.10:g.48261457_48261463TTATGTT=' in results.keys()
         assert results['NC_000017.10:g.48261457_48261463TTATGTT=']['p_vcf'] == '17:48261457:TTATGTT:TTATGTT'
         assert results['NC_000017.10:g.48261457_48261463TTATGTT=']['g_hgvs'] == 'NC_000017.10:g.48261457_48261463='
@@ -118,13 +102,11 @@ class TestVariantsAuto(object):
         assert results['NC_000017.10:g.48261457_48261463TTATGTT=']['hgvs_t_and_p']['NM_000088.3']['p_hgvs_slc'] == 'NP_000079.2:p.?'
         assert results['NC_000017.10:g.48261457_48261463TTATGTT=']['hgvs_t_and_p']['NM_000088.3']['transcript_variant_error'] is None
 
-
     def test_variant8(self):
         variant = 'NC_000017.10:g.48275363C>A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000017.10:g.48275363C>A' in results.keys()
         assert results['NC_000017.10:g.48275363C>A']['p_vcf'] == '17:48275363:C:A'
         assert results['NC_000017.10:g.48275363C>A']['g_hgvs'] == 'NC_000017.10:g.48275363C>A'
@@ -135,13 +117,11 @@ class TestVariantsAuto(object):
         assert results['NC_000017.10:g.48275363C>A']['hgvs_t_and_p']['NM_000088.3']['p_hgvs_slc'] == 'NP_000079.2:p.(G197C)'
         assert results['NC_000017.10:g.48275363C>A']['hgvs_t_and_p']['NM_000088.3']['transcript_variant_error'] is None
 
-
     def test_variant9(self):
         variant = '11-5248232-T-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '11-5248232-T-A' in results.keys()
         assert results['11-5248232-T-A']['p_vcf'] == '11-5248232-T-A'
         assert results['11-5248232-T-A']['g_hgvs'] == 'NC_000011.9:g.5248232T>A'
@@ -157,13 +137,11 @@ class TestVariantsAuto(object):
         assert results['11-5248232-T-A']['hgvs_t_and_p']['NM_000518.4']['p_hgvs_slc'] == 'NP_000509.1:p.(E7V)'
         assert results['11-5248232-T-A']['hgvs_t_and_p']['NM_000518.4']['transcript_variant_error'] is None
 
-
     def test_variant10(self):
         variant = '1-150550916-G-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '1-150550916-G-A' in results.keys()
         assert results['1-150550916-G-A']['p_vcf'] == '1-150550916-G-A'
         assert results['1-150550916-G-A']['g_hgvs'] == 'NC_000001.10:g.150550916G>A'
@@ -184,13 +162,11 @@ class TestVariantsAuto(object):
         assert results['1-150550916-G-A']['hgvs_t_and_p']['NM_182763.2']['p_hgvs_slc'] == "NP_877495.1:p.?"
         assert results['1-150550916-G-A']['hgvs_t_and_p']['NM_182763.2']['transcript_variant_error'] is None
 
-
     def test_variant11(self):
         variant = 'HSCHR6_MHC_SSTO_CTG1-3852542-C-G'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'HSCHR6_MHC_SSTO_CTG1-3852542-C-G' in results.keys()
         assert results['HSCHR6_MHC_SSTO_CTG1-3852542-C-G']['p_vcf'] == 'HSCHR6_MHC_SSTO_CTG1-3852542-C-G'
         assert results['HSCHR6_MHC_SSTO_CTG1-3852542-C-G']['g_hgvs'] == 'NT_167249.1:g.3852542C>G'
@@ -201,13 +177,11 @@ class TestVariantsAuto(object):
         assert results['HSCHR6_MHC_SSTO_CTG1-3852542-C-G']['hgvs_t_and_p']['NM_021983.4']['p_hgvs_slc'] == 'NP_068818.4:p.(G164R)'
         assert results['HSCHR6_MHC_SSTO_CTG1-3852542-C-G']['hgvs_t_and_p']['NM_021983.4']['transcript_variant_error'] is None
 
-
     def test_variant12(self):
         variant = 'NC_000013.10:g.32929387T>C'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000013.10:g.32929387T>C' in results.keys()
         assert results['NC_000013.10:g.32929387T>C']['p_vcf'] == '13:32929387:T:C'
         assert results['NC_000013.10:g.32929387T>C']['g_hgvs'] == 'NC_000013.10:g.32929387T>C'
@@ -218,13 +192,11 @@ class TestVariantsAuto(object):
         assert results['NC_000013.10:g.32929387T>C']['hgvs_t_and_p']['NM_000059.3']['p_hgvs_slc'] == 'NP_000050.2:p.(A2466=)'
         assert results['NC_000013.10:g.32929387T>C']['hgvs_t_and_p']['NM_000059.3']['transcript_variant_error'] is None
 
-
     def test_variant13(self):
         variant = '19-41123094-G-GG'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '19-41123094-G-GG' in results.keys()
         assert results['19-41123094-G-GG']['p_vcf'] == '19-41123094-G-GG'
         assert results['19-41123094-G-GG']['g_hgvs'] == 'NC_000019.9:g.41123095dup'
@@ -245,13 +217,11 @@ class TestVariantsAuto(object):
         assert results['19-41123094-G-GG']['hgvs_t_and_p']['NM_001042545.1']['p_hgvs_slc'] == 'NP_001036010.1:p.(Q1011=)'
         assert results['19-41123094-G-GG']['hgvs_t_and_p']['NM_001042545.1']['transcript_variant_error'] is None
 
-
     def test_variant14(self):
         variant = '15-72105928-AC-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '15-72105928-AC-A' in results.keys()
         assert results['15-72105928-AC-A']['p_vcf'] == '15-72105928-AC-A'
         assert results['15-72105928-AC-A']['g_hgvs'] == 'NC_000015.9:g.72105933del'
@@ -277,13 +247,11 @@ class TestVariantsAuto(object):
         assert results['15-72105928-AC-A']['hgvs_t_and_p']['NM_016346.2']['p_hgvs_slc'] == 'NP_057430.1:p.(D316=)'
         assert results['15-72105928-AC-A']['hgvs_t_and_p']['NM_016346.2']['transcript_variant_error'] is None
 
-
     def test_variant15(self):
         variant = '12-122064773-CCCGCCA-C'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '12-122064773-CCCGCCA-C' in results.keys()
         assert results['12-122064773-CCCGCCA-C']['p_vcf'] == '12-122064773-CCCGCCA-C'
         assert results['12-122064773-CCCGCCA-C']['g_hgvs'] == 'NC_000012.11:g.122064785_122064790del'
@@ -294,13 +262,11 @@ class TestVariantsAuto(object):
         assert results['12-122064773-CCCGCCA-C']['hgvs_t_and_p']['NM_032790.3']['p_hgvs_slc'] == 'NP_116179.2:p.(A42=)'
         assert results['12-122064773-CCCGCCA-C']['hgvs_t_and_p']['NM_032790.3']['transcript_variant_error'] is None
 
-
     def test_variant16(self):
         variant = '12-122064774-CCGCCA-CCGCCA'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '12-122064774-CCGCCA-CCGCCA' in results.keys()
         assert results['12-122064774-CCGCCA-CCGCCA']['p_vcf'] == '12-122064774-CCGCCA-CCGCCA'
         assert results['12-122064774-CCGCCA-CCGCCA']['g_hgvs'] == 'NC_000012.11:g.122064774_122064779='
@@ -311,13 +277,11 @@ class TestVariantsAuto(object):
         assert results['12-122064774-CCGCCA-CCGCCA']['hgvs_t_and_p']['NM_032790.3']['p_hgvs_slc'] == 'NP_116179.2:p.(P46_P47dup)'
         assert results['12-122064774-CCGCCA-CCGCCA']['hgvs_t_and_p']['NM_032790.3']['transcript_variant_error'] is None
 
-
     def test_variant17(self):
         variant = '12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC' in results.keys()
         assert results['12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC']['p_vcf'] == '12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC'
         assert results['12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC']['g_hgvs'] == 'NC_000012.11:g.122064785_122064788delinsGCCGT'
@@ -328,13 +292,11 @@ class TestVariantsAuto(object):
         assert results['12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC']['hgvs_t_and_p']['NM_032790.3']['p_hgvs_slc'] == 'NP_116179.2:p.(P46Sfs*42)'
         assert results['12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC']['hgvs_t_and_p']['NM_032790.3']['transcript_variant_error'] is None
 
-
     def test_variant18(self):
         variant = 'NC_000012.11:g.122064777C>A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000012.11:g.122064777C>A' in results.keys()
         assert results['NC_000012.11:g.122064777C>A']['p_vcf'] == '12:122064777:C:A'
         assert results['NC_000012.11:g.122064777C>A']['g_hgvs'] == 'NC_000012.11:g.122064777C>A'
@@ -345,13 +307,11 @@ class TestVariantsAuto(object):
         assert results['NC_000012.11:g.122064777C>A']['hgvs_t_and_p']['NM_032790.3']['p_hgvs_slc'] == "NP_116179.2:p.(P43_P44insTP)"
         assert results['NC_000012.11:g.122064777C>A']['hgvs_t_and_p']['NM_032790.3']['transcript_variant_error'] is None
 
-
     def test_variant19(self):
         variant = 'NC_000012.11:g.122064776delG'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000012.11:g.122064776delG' in results.keys()
         assert results['NC_000012.11:g.122064776delG']['p_vcf'] == '12:122064775:CG:C'
         assert results['NC_000012.11:g.122064776delG']['g_hgvs'] == 'NC_000012.11:g.122064776del'
@@ -362,13 +322,11 @@ class TestVariantsAuto(object):
         assert results['NC_000012.11:g.122064776delG']['hgvs_t_and_p']['NM_032790.3']['p_hgvs_slc'] == "NP_116179.2:p.(P44Hfs*22)"
         assert results['NC_000012.11:g.122064776delG']['hgvs_t_and_p']['NM_032790.3']['transcript_variant_error'] is None
 
-
     def test_variant20(self):
         variant = 'NC_000012.11:g.122064776dupG'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000012.11:g.122064776dupG' in results.keys()
         assert results['NC_000012.11:g.122064776dupG']['p_vcf'] == '12:122064775:C:CG'
         assert results['NC_000012.11:g.122064776dupG']['g_hgvs'] == 'NC_000012.11:g.122064776dup'
@@ -379,13 +337,11 @@ class TestVariantsAuto(object):
         assert results['NC_000012.11:g.122064776dupG']['hgvs_t_and_p']['NM_032790.3']['p_hgvs_slc'] == "NP_116179.2:p.(P44Afs*46)"
         assert results['NC_000012.11:g.122064776dupG']['hgvs_t_and_p']['NM_032790.3']['transcript_variant_error'] is None
 
-
     def test_variant21(self):
         variant = 'NC_000012.11:g.122064776_122064777insTTT'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000012.11:g.122064776_122064777insTTT' in results.keys()
         assert results['NC_000012.11:g.122064776_122064777insTTT']['p_vcf'] == '12:122064776:G:GTTT'
         assert results['NC_000012.11:g.122064776_122064777insTTT']['g_hgvs'] == 'NC_000012.11:g.122064776_122064777insTTT'
@@ -396,13 +352,11 @@ class TestVariantsAuto(object):
         assert results['NC_000012.11:g.122064776_122064777insTTT']['hgvs_t_and_p']['NM_032790.3']['p_hgvs_slc'] == "NP_116179.2:p.(P43_P44insFPP)"
         assert results['NC_000012.11:g.122064776_122064777insTTT']['hgvs_t_and_p']['NM_032790.3']['transcript_variant_error'] is None
 
-
     def test_variant22(self):
         variant = 'NC_000012.11:g.122064772_122064775del'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000012.11:g.122064772_122064775del' in results.keys()
         assert results['NC_000012.11:g.122064772_122064775del']['p_vcf'] == '12:122064771:GCCCC:G'
         assert results['NC_000012.11:g.122064772_122064775del']['g_hgvs'] == 'NC_000012.11:g.122064772_122064775del'
@@ -413,13 +367,11 @@ class TestVariantsAuto(object):
         assert results['NC_000012.11:g.122064772_122064775del']['hgvs_t_and_p']['NM_032790.3']['p_hgvs_slc'] == "NP_116179.2:p.(A42Gfs*23)"
         assert results['NC_000012.11:g.122064772_122064775del']['hgvs_t_and_p']['NM_032790.3']['transcript_variant_error'] is None
 
-
     def test_variant23(self):
         variant = 'NC_000012.11:g.122064772_122064775dup'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000012.11:g.122064772_122064775dup' in results.keys()
         assert results['NC_000012.11:g.122064772_122064775dup']['p_vcf'] == '12:122064771:G:GCCCC'
         assert results['NC_000012.11:g.122064772_122064775dup']['g_hgvs'] == 'NC_000012.11:g.122064772_122064775dup'
@@ -430,13 +382,11 @@ class TestVariantsAuto(object):
         assert results['NC_000012.11:g.122064772_122064775dup']['hgvs_t_and_p']['NM_032790.3']['p_hgvs_slc'] == "NP_116179.2:p.(P45Afs*46)"
         assert results['NC_000012.11:g.122064772_122064775dup']['hgvs_t_and_p']['NM_032790.3']['transcript_variant_error'] is None
 
-
     def test_variant24(self):
         variant = 'NC_000012.11:g.122064773_122064774insTTTT'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000012.11:g.122064773_122064774insTTTT' in results.keys()
         assert results['NC_000012.11:g.122064773_122064774insTTTT']['p_vcf'] == '12:122064773:C:CTTTT'
         assert results['NC_000012.11:g.122064773_122064774insTTTT']['g_hgvs'] == 'NC_000012.11:g.122064773_122064774insTTTT'
@@ -447,13 +397,11 @@ class TestVariantsAuto(object):
         assert results['NC_000012.11:g.122064773_122064774insTTTT']['hgvs_t_and_p']['NM_032790.3']['p_hgvs_slc'] == "NP_116179.2:p.(P43Ffs*48)"
         assert results['NC_000012.11:g.122064773_122064774insTTTT']['hgvs_t_and_p']['NM_032790.3']['transcript_variant_error'] is None
 
-
     def test_variant25(self):
         variant = 'NC_000012.11:g.122064772_122064777del'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000012.11:g.122064772_122064777del' in results.keys()
         assert results['NC_000012.11:g.122064772_122064777del']['p_vcf'] == '12:122064771:GCCCCGC:G'
         assert results['NC_000012.11:g.122064772_122064777del']['g_hgvs'] == 'NC_000012.11:g.122064773_122064778del'
@@ -464,13 +412,11 @@ class TestVariantsAuto(object):
         assert results['NC_000012.11:g.122064772_122064777del']['hgvs_t_and_p']['NM_032790.3']['p_hgvs_slc'] == "NP_116179.2:p.(A42=)"
         assert results['NC_000012.11:g.122064772_122064777del']['hgvs_t_and_p']['NM_032790.3']['transcript_variant_error'] is None
 
-
     def test_variant26(self):
         variant = 'NC_000012.11:g.122064772_122064777dup'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000012.11:g.122064772_122064777dup' in results.keys()
         assert results['NC_000012.11:g.122064772_122064777dup']['p_vcf'] == '12:122064771:G:GCCCCGC'
         assert results['NC_000012.11:g.122064772_122064777dup']['g_hgvs'] == 'NC_000012.11:g.122064773_122064778dup'
@@ -481,13 +427,11 @@ class TestVariantsAuto(object):
         assert results['NC_000012.11:g.122064772_122064777dup']['hgvs_t_and_p']['NM_032790.3']['p_hgvs_slc'] == "NP_116179.2:p.(P44_P47dup)"
         assert results['NC_000012.11:g.122064772_122064777dup']['hgvs_t_and_p']['NM_032790.3']['transcript_variant_error'] is None
 
-
     def test_variant27(self):
         variant = 'NC_000012.11:g.122064779_122064782dup'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000012.11:g.122064779_122064782dup' in results.keys()
         assert results['NC_000012.11:g.122064779_122064782dup']['p_vcf'] == '12:122064778:C:CACCG'
         assert results['NC_000012.11:g.122064779_122064782dup']['g_hgvs'] == 'NC_000012.11:g.122064779_122064782dup'
@@ -498,13 +442,11 @@ class TestVariantsAuto(object):
         assert results['NC_000012.11:g.122064779_122064782dup']['hgvs_t_and_p']['NM_032790.3']['p_hgvs_slc'] == "NP_116179.2:p.(P46Tfs*45)"
         assert results['NC_000012.11:g.122064779_122064782dup']['hgvs_t_and_p']['NM_032790.3']['transcript_variant_error'] is None
 
-
     def test_variant28(self):
         variant = 'NC_000012.11:g.122064772_122064782del'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000012.11:g.122064772_122064782del' in results.keys()
         assert results['NC_000012.11:g.122064772_122064782del']['p_vcf'] == '12:122064770:GGCCCCGCCACC:G'
         assert results['NC_000012.11:g.122064772_122064782del']['g_hgvs'] == 'NC_000012.11:g.122064774_122064784del'
@@ -515,13 +457,11 @@ class TestVariantsAuto(object):
         assert results['NC_000012.11:g.122064772_122064782del']['hgvs_t_and_p']['NM_032790.3']['p_hgvs_slc'] == "NP_116179.2:p.(P43Tfs*45)"
         assert results['NC_000012.11:g.122064772_122064782del']['hgvs_t_and_p']['NM_032790.3']['transcript_variant_error'] is None
 
-
     def test_variant29(self):
         variant = 'NC_000002.11:g.95847041_95847043GCG='
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000002.11:g.95847041_95847043GCG=' in results.keys()
         assert results['NC_000002.11:g.95847041_95847043GCG=']['p_vcf'] == '2:95847041:GCG:GCG'
         assert results['NC_000002.11:g.95847041_95847043GCG=']['g_hgvs'] == 'NC_000002.11:g.95847041_95847043='
@@ -562,13 +502,11 @@ class TestVariantsAuto(object):
         assert results['NC_000002.11:g.95847041_95847043GCG=']['hgvs_t_and_p']['NM_001282398.1']['p_hgvs_slc'] == 'NP_001269327.1:p.(R121dup)'
         assert results['NC_000002.11:g.95847041_95847043GCG=']['hgvs_t_and_p']['NM_001282398.1']['transcript_variant_error'] is None
 
-
     def test_variant30(self):
         variant = 'NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG='
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG=' in results.keys()
         assert results['NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG=']['p_vcf'] == '17:5286863:AGTGTTTGGAATTTTCTGTTCATATAG:AGTGTTTGGAATTTTCTGTTCATATAG'
         assert results['NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG=']['g_hgvs'] == 'NC_000017.10:g.5286863_5286889='
@@ -599,13 +537,11 @@ class TestVariantsAuto(object):
         assert results['NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG=']['hgvs_t_and_p']['NM_001083585.1']['p_hgvs_slc'] == 'NP_001077054.1:p.?'
         assert results['NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG=']['hgvs_t_and_p']['NM_001083585.1']['transcript_variant_error'] is None
 
-
     def test_variant31(self):
         variant = 'NC_000003.11:g.14561629_14561630GC='
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000003.11:g.14561629_14561630GC=' in results.keys()
         assert results['NC_000003.11:g.14561629_14561630GC=']['p_vcf'] == '3:14561629:GC:GC'
         assert results['NC_000003.11:g.14561629_14561630GC=']['g_hgvs'] == 'NC_000003.11:g.14561629_14561630='
@@ -621,13 +557,11 @@ class TestVariantsAuto(object):
         assert results['NC_000003.11:g.14561629_14561630GC=']['hgvs_t_and_p']['NM_001080423.3']['p_hgvs_slc'] == 'NP_001073892.3:p.(S341Qfs*4)'
         assert results['NC_000003.11:g.14561629_14561630GC=']['hgvs_t_and_p']['NM_001080423.3']['transcript_variant_error'] is None
 
-
     def test_variant32(self):
         variant = 'NC_000003.11:g.14561629_14561630insG'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000003.11:g.14561629_14561630insG' in results.keys()
         assert results['NC_000003.11:g.14561629_14561630insG']['p_vcf'] == '3:14561627:A:AG'
         assert results['NC_000003.11:g.14561629_14561630insG']['g_hgvs'] == 'NC_000003.11:g.14561629dup'
@@ -643,13 +577,11 @@ class TestVariantsAuto(object):
         assert results['NC_000003.11:g.14561629_14561630insG']['hgvs_t_and_p']['NM_001080423.3']['p_hgvs_slc'] == 'NP_001073892.3:p.(R339=)'
         assert results['NC_000003.11:g.14561629_14561630insG']['hgvs_t_and_p']['NM_001080423.3']['transcript_variant_error'] is None
 
-
     def test_variant33(self):
         variant = 'NC_000004.11:g.140811111_140811122del'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000004.11:g.140811111_140811122del' in results.keys()
         assert results['NC_000004.11:g.140811111_140811122del']['p_vcf'] == '4:140811063:TTGCTGCTGCTGC:T'
         assert results['NC_000004.11:g.140811111_140811122del']['g_hgvs'] == 'NC_000004.11:g.140811111_140811122del'
@@ -665,13 +597,11 @@ class TestVariantsAuto(object):
         assert results['NC_000004.11:g.140811111_140811122del']['hgvs_t_and_p']['NM_018717.4']['p_hgvs_slc'] == 'NP_061187.2:p.(Q489=)'
         assert results['NC_000004.11:g.140811111_140811122del']['hgvs_t_and_p']['NM_018717.4']['transcript_variant_error'] is None
 
-
     def test_variant34(self):
         variant = 'NC_000004.11:g.140811111_140811122CTGCTGCTGCTG='
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000004.11:g.140811111_140811122CTGCTGCTGCTG=' in results.keys()
         assert results['NC_000004.11:g.140811111_140811122CTGCTGCTGCTG=']['p_vcf'] == '4:140811111:CTGCTGCTGCTG:CTGCTGCTGCTG'
         assert results['NC_000004.11:g.140811111_140811122CTGCTGCTGCTG=']['g_hgvs'] == 'NC_000004.11:g.140811111_140811122='
@@ -687,13 +617,11 @@ class TestVariantsAuto(object):
         assert results['NC_000004.11:g.140811111_140811122CTGCTGCTGCTG=']['hgvs_t_and_p']['NM_018717.4']['p_hgvs_slc'] == 'NP_061187.2:p.(Q503_Q506dup)'
         assert results['NC_000004.11:g.140811111_140811122CTGCTGCTGCTG=']['hgvs_t_and_p']['NM_018717.4']['transcript_variant_error'] is None
 
-
     def test_variant35(self):
         variant = 'NC_000004.11:g.140811117_140811122del'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000004.11:g.140811117_140811122del' in results.keys()
         assert results['NC_000004.11:g.140811117_140811122del']['p_vcf'] == '4:140811063:TTGCTGC:T'
         assert results['NC_000004.11:g.140811117_140811122del']['g_hgvs'] == 'NC_000004.11:g.140811117_140811122del'
@@ -709,13 +637,11 @@ class TestVariantsAuto(object):
         assert results['NC_000004.11:g.140811117_140811122del']['hgvs_t_and_p']['NM_018717.4']['p_hgvs_slc'] == 'NP_061187.2:p.(Q505_Q506dup)'
         assert results['NC_000004.11:g.140811117_140811122del']['hgvs_t_and_p']['NM_018717.4']['transcript_variant_error'] is None
 
-
     def test_variant36(self):
         variant = 'NC_000004.11:g.140811111_140811117del'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000004.11:g.140811111_140811117del' in results.keys()
         assert results['NC_000004.11:g.140811111_140811117del']['p_vcf'] == '4:140811110:GCTGCTGC:G'
         assert results['NC_000004.11:g.140811111_140811117del']['g_hgvs'] == 'NC_000004.11:g.140811111_140811117del'
@@ -731,13 +657,11 @@ class TestVariantsAuto(object):
         assert results['NC_000004.11:g.140811111_140811117del']['hgvs_t_and_p']['NM_018717.4']['p_hgvs_slc'] == "NP_061187.2:p.(Q491Hfs*29)"
         assert results['NC_000004.11:g.140811111_140811117del']['hgvs_t_and_p']['NM_018717.4']['transcript_variant_error'] is None
 
-
     def test_variant37(self):
         variant = 'NC_000004.11:g.140811117C>A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000004.11:g.140811117C>A' in results.keys()
         assert results['NC_000004.11:g.140811117C>A']['p_vcf'] == '4:140811117:C:A'
         assert results['NC_000004.11:g.140811117C>A']['g_hgvs'] == 'NC_000004.11:g.140811117C>A'
@@ -753,13 +677,11 @@ class TestVariantsAuto(object):
         assert results['NC_000004.11:g.140811117C>A']['hgvs_t_and_p']['NM_018717.4']['p_hgvs_slc'] == "NP_061187.2:p.(Q490_Q491insHQQQ)"
         assert results['NC_000004.11:g.140811117C>A']['hgvs_t_and_p']['NM_018717.4']['transcript_variant_error'] is None
 
-
     def test_variant38(self):
         variant = 'NC_000002.11:g.73675227_73675228insCTC'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000002.11:g.73675227_73675228insCTC' in results.keys()
         assert results['NC_000002.11:g.73675227_73675228insCTC']['p_vcf'] == '2:73675227:T:TCTC'
         assert results['NC_000002.11:g.73675227_73675228insCTC']['g_hgvs'] == 'NC_000002.11:g.73675228_73675230dup'
@@ -770,13 +692,11 @@ class TestVariantsAuto(object):
         assert results['NC_000002.11:g.73675227_73675228insCTC']['hgvs_t_and_p']['NM_015120.4']['p_hgvs_slc'] == 'NP_055935.4:p.(S525=)'
         assert results['NC_000002.11:g.73675227_73675228insCTC']['hgvs_t_and_p']['NM_015120.4']['transcript_variant_error'] is None
 
-
     def test_variant39(self):
         variant = '9-136132908-T-TC'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '9-136132908-T-TC' in results.keys()
         assert results['9-136132908-T-TC']['p_vcf'] == '9-136132908-T-TC'
         assert results['9-136132908-T-TC']['g_hgvs'] == 'NC_000009.11:g.136132908_136132909insC'
@@ -787,13 +707,11 @@ class TestVariantsAuto(object):
         assert results['9-136132908-T-TC']['hgvs_t_and_p']['NM_020469.2']['p_hgvs_slc'] == 'NP_065202.2:p.(V87=)'
         assert results['9-136132908-T-TC']['hgvs_t_and_p']['NM_020469.2']['transcript_variant_error'] is None
 
-
     def test_variant40(self):
         variant = '9-136132908-TAC-TCA'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '9-136132908-TAC-TCA' in results.keys()
         assert results['9-136132908-TAC-TCA']['p_vcf'] == '9-136132908-TAC-TCA'
         assert results['9-136132908-TAC-TCA']['g_hgvs'] == 'NC_000009.11:g.136132909_136132910delinsCA'
@@ -804,13 +722,11 @@ class TestVariantsAuto(object):
         assert results['9-136132908-TAC-TCA']['hgvs_t_and_p']['NM_020469.2']['p_hgvs_slc'] == 'NP_065202.2:p.(V87*)'
         assert results['9-136132908-TAC-TCA']['hgvs_t_and_p']['NM_020469.2']['transcript_variant_error'] is None
 
-
     def test_variant41(self):
         variant = '9-136132908-TA-TA'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '9-136132908-TA-TA' in results.keys()
         assert results['9-136132908-TA-TA']['p_vcf'] == '9-136132908-TA-TA'
         assert results['9-136132908-TA-TA']['g_hgvs'] == 'NC_000009.11:g.136132908_136132909='
@@ -821,13 +737,11 @@ class TestVariantsAuto(object):
         assert results['9-136132908-TA-TA']['hgvs_t_and_p']['NM_020469.2']['p_hgvs_slc'] == 'NP_065202.2:p.(T88Pfs*31)'
         assert results['9-136132908-TA-TA']['hgvs_t_and_p']['NM_020469.2']['transcript_variant_error'] is None
 
-
     def test_variant42(self):
         variant = 'NC_012920.1:m.1011C>T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_012920.1:m.1011C>T' in results.keys()
         assert results['NC_012920.1:m.1011C>T']['p_vcf'] == 'M:1011:C:T'
         assert results['NC_012920.1:m.1011C>T']['g_hgvs'] == 'NC_012920.1:m.1011C>T'
@@ -835,13 +749,11 @@ class TestVariantsAuto(object):
                in results['NC_012920.1:m.1011C>T']['genomic_variant_error']
         assert results['NC_012920.1:m.1011C>T']['hgvs_t_and_p'] == {'intergenic': {'alt_genomic_loci': None}}
 
-
     def test_variant43(self):
         variant = 'NC_000006.11:g.90403795G='
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000006.11:g.90403795G=' in results.keys()
         assert results['NC_000006.11:g.90403795G=']['p_vcf'] == '6:90403795:G:G'
         assert results['NC_000006.11:g.90403795G=']['g_hgvs'] == 'NC_000006.11:g.90403795='
@@ -857,13 +769,11 @@ class TestVariantsAuto(object):
         assert results['NC_000006.11:g.90403795G=']['hgvs_t_and_p']['NM_014611.1']['p_hgvs_slc'] == 'NP_055426.1:p.(V3293=)'
         assert results['NC_000006.11:g.90403795G=']['hgvs_t_and_p']['NM_014611.1']['transcript_variant_error'] is None
 
-
     def test_variant44(self):
         variant = 'NC_000005.9:g.35058667_35058668AG='
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000005.9:g.35058667_35058668AG=' in results.keys()
         assert results['NC_000005.9:g.35058667_35058668AG=']['p_vcf'] == '5:35058667:AG:AG'
         assert results['NC_000005.9:g.35058667_35058668AG=']['g_hgvs'] == 'NC_000005.9:g.35058667_35058668='
@@ -903,13 +813,11 @@ class TestVariantsAuto(object):
         assert results['NC_000005.9:g.35058667_35058668AG=']['hgvs_t_and_p']['NM_001204318.1']['p_hgvs_slc'] == 'NP_001191247.1:p.?'
         assert results['NC_000005.9:g.35058667_35058668AG=']['hgvs_t_and_p']['NM_001204318.1']['transcript_variant_error'] is None
 
-
     def test_variant45(self):
         variant = '2-73675227-TCTC-TCTCCTC'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '2-73675227-TCTC-TCTCCTC' in results.keys()
         assert results['2-73675227-TCTC-TCTCCTC']['p_vcf'] == '2-73675227-TCTC-TCTCCTC'
         assert results['2-73675227-TCTC-TCTCCTC']['g_hgvs'] == 'NC_000002.11:g.73675228_73675230dup'
@@ -920,13 +828,11 @@ class TestVariantsAuto(object):
         assert results['2-73675227-TCTC-TCTCCTC']['hgvs_t_and_p']['NM_015120.4']['p_hgvs_slc'] == 'NP_055935.4:p.(S525=)'
         assert results['2-73675227-TCTC-TCTCCTC']['hgvs_t_and_p']['NM_015120.4']['transcript_variant_error'] is None
 
-
     def test_variant46(self):
         variant = '2-73675227-TC-TC'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '2-73675227-TC-TC' in results.keys()
         assert results['2-73675227-TC-TC']['p_vcf'] == '2-73675227-TC-TC'
         assert results['2-73675227-TC-TC']['g_hgvs'] == 'NC_000002.11:g.73675227_73675228='
@@ -937,13 +843,11 @@ class TestVariantsAuto(object):
         assert results['2-73675227-TC-TC']['hgvs_t_and_p']['NM_015120.4']['p_hgvs_slc'] == 'NP_055935.4:p.(P526del)'
         assert results['2-73675227-TC-TC']['hgvs_t_and_p']['NM_015120.4']['transcript_variant_error'] is None
 
-
     def test_variant47(self):
         variant = '3-14561627-AG-AGG'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '3-14561627-AG-AGG' in results.keys()
         assert results['3-14561627-AG-AGG']['p_vcf'] == '3-14561627-AG-AGG'
         assert results['3-14561627-AG-AGG']['g_hgvs'] == 'NC_000003.11:g.14561629dup'
@@ -959,13 +863,11 @@ class TestVariantsAuto(object):
         assert results['3-14561627-AG-AGG']['hgvs_t_and_p']['NM_001080423.3']['p_hgvs_slc'] == 'NP_001073892.3:p.(R339=)'
         assert results['3-14561627-AG-AGG']['hgvs_t_and_p']['NM_001080423.3']['transcript_variant_error'] is None
 
-
     def test_variant48(self):
         variant = '3-14561630-CC-CC'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '3-14561630-CC-CC' in results.keys()
         assert results['3-14561630-CC-CC']['p_vcf'] == '3-14561630-CC-CC'
         assert results['3-14561630-CC-CC']['g_hgvs'] == 'NC_000003.11:g.14561630_14561631='
@@ -981,13 +883,11 @@ class TestVariantsAuto(object):
         assert results['3-14561630-CC-CC']['hgvs_t_and_p']['NM_001080423.3']['p_hgvs_slc'] == 'NP_001073892.3:p.(S341Qfs*4)'
         assert results['3-14561630-CC-CC']['hgvs_t_and_p']['NM_001080423.3']['transcript_variant_error'] is None
 
-
     def test_variant49(self):
         variant = '6-90403795-G-G'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '6-90403795-G-G' in results.keys()
         assert results['6-90403795-G-G']['p_vcf'] == '6-90403795-G-G'
         assert results['6-90403795-G-G']['g_hgvs'] == 'NC_000006.11:g.90403795='
@@ -1003,13 +903,11 @@ class TestVariantsAuto(object):
         assert results['6-90403795-G-G']['hgvs_t_and_p']['NM_014611.1']['p_hgvs_slc'] == 'NP_055426.1:p.(V3293=)'
         assert results['6-90403795-G-G']['hgvs_t_and_p']['NM_014611.1']['transcript_variant_error'] is None
 
-
     def test_variant50(self):
         variant = '6-90403795-G-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '6-90403795-G-A' in results.keys()
         assert results['6-90403795-G-A']['p_vcf'] == '6-90403795-G-A'
         assert results['6-90403795-G-A']['g_hgvs'] == 'NC_000006.11:g.90403795G>A'
@@ -1025,13 +923,11 @@ class TestVariantsAuto(object):
         assert results['6-90403795-G-A']['hgvs_t_and_p']['NM_014611.1']['p_hgvs_slc'] == 'NP_055426.1:p.(V3293=)'
         assert results['6-90403795-G-A']['hgvs_t_and_p']['NM_014611.1']['transcript_variant_error'] is None
 
-
     def test_variant51(self):
         variant = '6-32012992-CG-C'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '6-32012992-CG-C' in results.keys()
         assert results['6-32012992-CG-C']['p_vcf'] == '6-32012992-CG-C'
         assert results['6-32012992-CG-C']['g_hgvs'] == 'NC_000006.11:g.32012993del'
@@ -1057,13 +953,11 @@ class TestVariantsAuto(object):
         assert results['6-32012992-CG-C']['hgvs_t_and_p']['NM_001365276.1']['p_hgvs_slc'] == 'NP_001352205.1:p.(R3573Afs*91)'
         assert results['6-32012992-CG-C']['hgvs_t_and_p']['NM_001365276.1']['transcript_variant_error'] is None
 
-
     def test_variant52(self):
         variant = '17-48275363-C-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '17-48275363-C-A' in results.keys()
         assert results['17-48275363-C-A']['p_vcf'] == '17-48275363-C-A'
         assert results['17-48275363-C-A']['g_hgvs'] == 'NC_000017.10:g.48275363C>A'
@@ -1074,13 +968,11 @@ class TestVariantsAuto(object):
         assert results['17-48275363-C-A']['hgvs_t_and_p']['NM_000088.3']['p_hgvs_slc'] == 'NP_000079.2:p.(G197C)'
         assert results['17-48275363-C-A']['hgvs_t_and_p']['NM_000088.3']['transcript_variant_error'] is None
 
-
     def test_variant53(self):
         variant = '17-48275364-C-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '17-48275364-C-A' in results.keys()
         assert results['17-48275364-C-A']['p_vcf'] == '17-48275364-C-A'
         assert results['17-48275364-C-A']['g_hgvs'] == 'NC_000017.10:g.48275364C>A'
@@ -1091,13 +983,11 @@ class TestVariantsAuto(object):
         assert results['17-48275364-C-A']['hgvs_t_and_p']['NM_000088.3']['p_hgvs_slc'] == 'NP_000079.2:p.?'
         assert results['17-48275364-C-A']['hgvs_t_and_p']['NM_000088.3']['transcript_variant_error'] is None
 
-
     def test_variant54(self):
         variant = '17-48275359-GGA-TCC'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '17-48275359-GGA-TCC' in results.keys()
         assert results['17-48275359-GGA-TCC']['p_vcf'] == '17-48275359-GGA-TCC'
         assert results['17-48275359-GGA-TCC']['g_hgvs'] == 'NC_000017.10:g.48275359_48275361inv'
@@ -1108,13 +998,11 @@ class TestVariantsAuto(object):
         assert results['17-48275359-GGA-TCC']['hgvs_t_and_p']['NM_000088.3']['p_hgvs_slc'] == 'NP_000079.2:p.(P198D)'
         assert results['17-48275359-GGA-TCC']['hgvs_t_and_p']['NM_000088.3']['transcript_variant_error'] is None
 
-
     def test_variant55(self):
         variant = '7-94039128-CTTG-C'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '7-94039128-CTTG-C' in results.keys()
         assert results['7-94039128-CTTG-C']['p_vcf'] == '7-94039128-CTTG-C'
         assert results['7-94039128-CTTG-C']['g_hgvs'] == 'NC_000007.13:g.94039133_94039135del'
@@ -1125,13 +1013,11 @@ class TestVariantsAuto(object):
         assert results['7-94039128-CTTG-C']['hgvs_t_and_p']['NM_000089.3']['p_hgvs_slc'] == 'NP_000080.2:p.?'
         assert results['7-94039128-CTTG-C']['hgvs_t_and_p']['NM_000089.3']['transcript_variant_error'] is None
 
-
     def test_variant56(self):
         variant = '9-135800972-AC-ACC'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '9-135800972-AC-ACC' in results.keys()
         assert results['9-135800972-AC-ACC']['p_vcf'] == '9-135800972-AC-ACC'
         assert results['9-135800972-AC-ACC']['g_hgvs'] == 'NC_000009.11:g.135800974dup'
@@ -1157,13 +1043,11 @@ class TestVariantsAuto(object):
         assert results['9-135800972-AC-ACC']['hgvs_t_and_p']['NM_000368.4']['p_hgvs_slc'] == 'NP_000359.1:p.?'
         assert results['9-135800972-AC-ACC']['hgvs_t_and_p']['NM_000368.4']['transcript_variant_error'] is None
 
-
     def test_variant57(self):
         variant = '1-43212925-C-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '1-43212925-C-T' in results.keys()
         assert results['1-43212925-C-T']['p_vcf'] == '1-43212925-C-T'
         assert results['1-43212925-C-T']['g_hgvs'] == 'NC_000001.10:g.43212925C>T'
@@ -1184,13 +1068,11 @@ class TestVariantsAuto(object):
         assert results['1-43212925-C-T']['hgvs_t_and_p']['NM_001243246.1']['p_hgvs_slc'] == 'NP_001230175.1:p.(A691=)'
         assert results['1-43212925-C-T']['hgvs_t_and_p']['NM_001243246.1']['transcript_variant_error'] is None
 
-
     def test_variant58(self):
         variant = 'HG987_PATCH-355171-C-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'HG987_PATCH-355171-C-A' in results.keys()
         assert results['HG987_PATCH-355171-C-A']['p_vcf'] == 'HG987_PATCH-355171-C-A'
         assert results['HG987_PATCH-355171-C-A']['g_hgvs'] == 'NW_003315950.2:g.355171C>A'
@@ -1201,13 +1083,11 @@ class TestVariantsAuto(object):
         assert results['HG987_PATCH-355171-C-A']['hgvs_t_and_p']['NM_001194958.2']['p_hgvs_slc'] == 'NP_001181887.2:p.(A7D)'
         assert results['HG987_PATCH-355171-C-A']['hgvs_t_and_p']['NM_001194958.2']['transcript_variant_error'] is None
 
-
     def test_variant59(self):
         variant = '20-43252915-T-C'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '20-43252915-T-C' in results.keys()
         assert results['20-43252915-T-C']['p_vcf'] == '20-43252915-T-C'
         assert results['20-43252915-T-C']['g_hgvs'] == 'NC_000020.10:g.43252915T>C'
@@ -1238,13 +1118,11 @@ class TestVariantsAuto(object):
         assert results['20-43252915-T-C']['hgvs_t_and_p']['NM_001322051.1']['p_hgvs_slc'] == 'NP_001308980.1:p.(V178=)'
         assert results['20-43252915-T-C']['hgvs_t_and_p']['NM_001322051.1']['transcript_variant_error'] is None
 
-
     def test_variant60(self):
         variant = '1-216219781-A-C'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '1-216219781-A-C' in results.keys()
         assert results['1-216219781-A-C']['p_vcf'] == '1-216219781-A-C'
         assert results['1-216219781-A-C']['g_hgvs'] == 'NC_000001.10:g.216219781A>C'
@@ -1255,13 +1133,11 @@ class TestVariantsAuto(object):
         assert results['1-216219781-A-C']['hgvs_t_and_p']['NM_206933.2']['p_hgvs_slc'] == 'NP_996816.2:p.(T2106R)'
         assert results['1-216219781-A-C']['hgvs_t_and_p']['NM_206933.2']['transcript_variant_error'] is None
 
-
     def test_variant61(self):
         variant = 'NC_000005.9:g.35058665_35058666CA='
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000005.9:g.35058665_35058666CA=' in results.keys()
         assert results['NC_000005.9:g.35058665_35058666CA=']['p_vcf'] == '5:35058665:CA:CA'
         assert results['NC_000005.9:g.35058665_35058666CA=']['g_hgvs'] == 'NC_000005.9:g.35058665_35058666='
@@ -1307,13 +1183,11 @@ class TestVariantsAuto(object):
         assert results['NC_000005.9:g.35058665_35058666CA=']['hgvs_t_and_p']['NM_001204318.1']['p_hgvs_slc'] == 'NP_001191247.1:p.?'
         assert results['NC_000005.9:g.35058665_35058666CA=']['hgvs_t_and_p']['NM_001204318.1']['transcript_variant_error'] is None
 
-
     def test_variant62(self):
         variant = 'NC_000002.11:g.73675227_73675229delTCTinsTCTCTC'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000002.11:g.73675227_73675229delTCTinsTCTCTC' in results.keys()
         assert results['NC_000002.11:g.73675227_73675229delTCTinsTCTCTC']['p_vcf'] == '2:73675229:T:TCTC'
         assert results['NC_000002.11:g.73675227_73675229delTCTinsTCTCTC']['g_hgvs'] == 'NC_000002.11:g.73675231_73675232insCCT'
@@ -1324,13 +1198,11 @@ class TestVariantsAuto(object):
         assert results['NC_000002.11:g.73675227_73675229delTCTinsTCTCTC']['hgvs_t_and_p']['NM_015120.4']['p_hgvs_slc'] == 'NP_055935.4:p.(L527dup)'
         assert results['NC_000002.11:g.73675227_73675229delTCTinsTCTCTC']['hgvs_t_and_p']['NM_015120.4']['transcript_variant_error'] is None
 
-
     def test_variant63(self):
         variant = 'X-122318386-A-AGG'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'X-122318386-A-AGG' in results.keys()
         assert results['X-122318386-A-AGG']['p_vcf'] == 'X-122318386-A-AGG'
         assert results['X-122318386-A-AGG']['g_hgvs'] == 'NC_000023.10:g.122318386_122318387insGG'
@@ -1351,13 +1223,11 @@ class TestVariantsAuto(object):
         assert results['X-122318386-A-AGG']['hgvs_t_and_p']['NM_001256743.1']['p_hgvs_slc'] == 'NP_001243672.1:p.?'
         assert results['X-122318386-A-AGG']['hgvs_t_and_p']['NM_001256743.1']['transcript_variant_error'] is None
 
-
     def test_variant64(self):
         variant = 'X-122318386-A-AT'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'X-122318386-A-AT' in results.keys()
         assert results['X-122318386-A-AT']['p_vcf'] == 'X-122318386-A-AT'
         assert results['X-122318386-A-AT']['g_hgvs'] == 'NC_000023.10:g.122318386_122318387insT'
@@ -1378,13 +1248,11 @@ class TestVariantsAuto(object):
         assert results['X-122318386-A-AT']['hgvs_t_and_p']['NM_001256743.1']['p_hgvs_slc'] == 'NP_001243672.1:p.?'
         assert results['X-122318386-A-AT']['hgvs_t_and_p']['NM_001256743.1']['transcript_variant_error'] is None
 
-
     def test_variant65(self):
         variant = '15-72105929-C-C'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '15-72105929-C-C' in results.keys()
         assert results['15-72105929-C-C']['p_vcf'] == '15-72105929-C-C'
         assert results['15-72105929-C-C']['g_hgvs'] == 'NC_000015.9:g.72105929='
@@ -1410,13 +1278,11 @@ class TestVariantsAuto(object):
         assert results['15-72105929-C-C']['hgvs_t_and_p']['NM_016346.2']['p_hgvs_slc'] == 'NP_057430.1:p.(T318Hfs*23)'
         assert results['15-72105929-C-C']['hgvs_t_and_p']['NM_016346.2']['transcript_variant_error'] is None
 
-
     def test_variant66(self):
         variant = '15-72105928-AC-ATT'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '15-72105928-AC-ATT' in results.keys()
         assert results['15-72105928-AC-ATT']['p_vcf'] == '15-72105928-AC-ATT'
         assert results['15-72105928-AC-ATT']['g_hgvs'] == 'NC_000015.9:g.72105929delinsTT'
@@ -1432,13 +1298,11 @@ class TestVariantsAuto(object):
         assert results['15-72105928-AC-ATT']['hgvs_t_and_p']['NM_014249.2']['p_hgvs_slc'] == "NP_055064.1:p.(P317Sfs*8)"
         assert results['15-72105928-AC-ATT']['hgvs_t_and_p']['NM_014249.2']['transcript_variant_error'] is None
 
-
     def test_variant67(self):
         variant = '15-72105928-ACC-ATT'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '15-72105928-ACC-ATT' in results.keys()
         assert results['15-72105928-ACC-ATT']['p_vcf'] == '15-72105928-ACC-ATT'
         assert results['15-72105928-ACC-ATT']['g_hgvs'] == 'NC_000015.9:g.72105929_72105930delinsTT'
@@ -1454,13 +1318,11 @@ class TestVariantsAuto(object):
         assert results['15-72105928-ACC-ATT']['hgvs_t_and_p']['NM_014249.2']['p_hgvs_slc'] == "NP_055064.1:p.(P317Sfs*8)"
         assert results['15-72105928-ACC-ATT']['hgvs_t_and_p']['NM_014249.2']['transcript_variant_error'] is None
 
-
     def test_variant68(self):
         variant = '15-72105927-GACC-GTT'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '15-72105927-GACC-GTT' in results.keys()
         assert results['15-72105927-GACC-GTT']['p_vcf'] == '15-72105927-GACC-GTT'
         assert results['15-72105927-GACC-GTT']['g_hgvs'] == 'NC_000015.9:g.72105928_72105930delinsTT'
@@ -1486,13 +1348,11 @@ class TestVariantsAuto(object):
         assert results['15-72105927-GACC-GTT']['hgvs_t_and_p']['NM_016346.2']['p_hgvs_slc'] == 'NP_057430.1:p.(D316Vfs*25)'
         assert results['15-72105927-GACC-GTT']['hgvs_t_and_p']['NM_016346.2']['transcript_variant_error'] is None
 
-
     def test_variant69(self):
         variant = '19-41123093-A-AG'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '19-41123093-A-AG' in results.keys()
         assert results['19-41123093-A-AG']['p_vcf'] == '19-41123093-A-AG'
         assert results['19-41123093-A-AG']['g_hgvs'] == 'NC_000019.9:g.41123095dup'
@@ -1513,13 +1373,11 @@ class TestVariantsAuto(object):
         assert results['19-41123093-A-AG']['hgvs_t_and_p']['NM_001042545.1']['p_hgvs_slc'] == 'NP_001036010.1:p.(Q1011=)'
         assert results['19-41123093-A-AG']['hgvs_t_and_p']['NM_001042545.1']['transcript_variant_error'] is None
 
-
     def test_variant70(self):
         variant = '19-41123093-A-AT'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '19-41123093-A-AT' in results.keys()
         assert results['19-41123093-A-AT']['p_vcf'] == '19-41123093-A-AT'
         assert results['19-41123093-A-AT']['g_hgvs'] == 'NC_000019.9:g.41123093_41123094insT'
@@ -1540,13 +1398,11 @@ class TestVariantsAuto(object):
         assert results['19-41123093-A-AT']['hgvs_t_and_p']['NM_001042545.1']['p_hgvs_slc'] == 'NP_001036010.1:p.(Q1011H)'
         assert results['19-41123093-A-AT']['hgvs_t_and_p']['NM_001042545.1']['transcript_variant_error'] is None
 
-
     def test_variant71(self):
         variant = '19-41123093-AG-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '19-41123093-AG-A' in results.keys()
         assert results['19-41123093-AG-A']['p_vcf'] == '19-41123093-AG-A'
         assert results['19-41123093-AG-A']['g_hgvs'] == 'NC_000019.9:g.41123095del'
@@ -1567,13 +1423,11 @@ class TestVariantsAuto(object):
         assert results['19-41123093-AG-A']['hgvs_t_and_p']['NM_001042545.1']['p_hgvs_slc'] == 'NP_001036010.1:p.(G1012Lfs*17)'
         assert results['19-41123093-AG-A']['hgvs_t_and_p']['NM_001042545.1']['transcript_variant_error'] is None
 
-
     def test_variant72(self):
         variant = '19-41123093-AG-AG'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '19-41123093-AG-AG' in results.keys()
         assert results['19-41123093-AG-AG']['p_vcf'] == '19-41123093-AG-AG'
         assert results['19-41123093-AG-AG']['g_hgvs'] == 'NC_000019.9:g.41123093_41123094='
@@ -1594,13 +1448,11 @@ class TestVariantsAuto(object):
         assert results['19-41123093-AG-AG']['hgvs_t_and_p']['NM_001042545.1']['p_hgvs_slc'] == 'NP_001036010.1:p.(G1012Vfs*14)'
         assert results['19-41123093-AG-AG']['hgvs_t_and_p']['NM_001042545.1']['transcript_variant_error'] is None
 
-
     def test_variant73(self):
         variant = '1-5935162-A-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '1-5935162-A-T' in results.keys()
         assert results['1-5935162-A-T']['p_vcf'] == '1-5935162-A-T'
         assert results['1-5935162-A-T']['g_hgvs'] == 'NC_000001.10:g.5935162A>T'
@@ -1631,13 +1483,11 @@ class TestVariantsAuto(object):
         assert results['1-5935162-A-T']['hgvs_t_and_p']['NM_015102.4']['p_hgvs_slc'] == 'NP_055917.1:p.?'
         assert results['1-5935162-A-T']['hgvs_t_and_p']['NM_015102.4']['transcript_variant_error'] is None
 
-
     def test_variant74(self):
         variant = '1-12065948-C-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '1-12065948-C-T' in results.keys()
         assert results['1-12065948-C-T']['p_vcf'] == '1-12065948-C-T'
         assert results['1-12065948-C-T']['g_hgvs'] == 'NC_000001.10:g.12065948C>T'
@@ -1653,13 +1503,11 @@ class TestVariantsAuto(object):
         assert results['1-12065948-C-T']['hgvs_t_and_p']['NM_001127660.1']['p_hgvs_slc'] == 'NP_001121132.1:p.(P559L)'
         assert results['1-12065948-C-T']['hgvs_t_and_p']['NM_001127660.1']['transcript_variant_error'] is None
 
-
     def test_variant75(self):
         variant = '1-46655125-CTCAC-C'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '1-46655125-CTCAC-C' in results.keys()
         assert results['1-46655125-CTCAC-C']['p_vcf'] == '1-46655125-CTCAC-C'
         assert results['1-46655125-CTCAC-C']['g_hgvs'] == 'NC_000001.10:g.46655126_46655129del'
@@ -1685,13 +1533,11 @@ class TestVariantsAuto(object):
         assert results['1-46655125-CTCAC-C']['hgvs_t_and_p']['NM_001243766.1']['p_hgvs_slc'] == 'NP_001230695.1:p.?'
         assert results['1-46655125-CTCAC-C']['hgvs_t_and_p']['NM_001243766.1']['transcript_variant_error'] is None
 
-
     def test_variant76(self):
         variant = '1-68912523-TGAGCCAGAG-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '1-68912523-TGAGCCAGAG-T' in results.keys()
         assert results['1-68912523-TGAGCCAGAG-T']['p_vcf'] == '1-68912523-TGAGCCAGAG-T'
         assert results['1-68912523-TGAGCCAGAG-T']['g_hgvs'] == 'NC_000001.10:g.68912525_68912533del'
@@ -1702,13 +1548,11 @@ class TestVariantsAuto(object):
         assert results['1-68912523-TGAGCCAGAG-T']['hgvs_t_and_p']['NM_000329.2']['p_hgvs_slc'] == 'NP_000320.1:p.(L36_L38del)'
         assert results['1-68912523-TGAGCCAGAG-T']['hgvs_t_and_p']['NM_000329.2']['transcript_variant_error'] is None
 
-
     def test_variant77(self):
         variant = '1-68912526-GCCAGAG-G'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '1-68912526-GCCAGAG-G' in results.keys()
         assert results['1-68912526-GCCAGAG-G']['p_vcf'] == '1-68912526-GCCAGAG-G'
         assert results['1-68912526-GCCAGAG-G']['g_hgvs'] == 'NC_000001.10:g.68912527_68912532del'
@@ -1719,13 +1563,11 @@ class TestVariantsAuto(object):
         assert results['1-68912526-GCCAGAG-G']['hgvs_t_and_p']['NM_000329.2']['p_hgvs_slc'] == 'NP_000320.1:p.(W37_L38del)'
         assert results['1-68912526-GCCAGAG-G']['hgvs_t_and_p']['NM_000329.2']['transcript_variant_error'] is None
 
-
     def test_variant78(self):
         variant = '1-109817590-G-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '1-109817590-G-T' in results.keys()
         assert results['1-109817590-G-T']['p_vcf'] == '1-109817590-G-T'
         assert results['1-109817590-G-T']['g_hgvs'] == 'NC_000001.10:g.109817590G>T'
@@ -1736,13 +1578,11 @@ class TestVariantsAuto(object):
         assert results['1-109817590-G-T']['hgvs_t_and_p']['NM_001408.2']['p_hgvs_slc'] == 'NP_001399.1:p.?'
         assert results['1-109817590-G-T']['hgvs_t_and_p']['NM_001408.2']['transcript_variant_error'] is None
 
-
     def test_variant79(self):
         variant = '1-145597475-GAAGT-G'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '1-145597475-GAAGT-G' in results.keys()
         assert results['1-145597475-GAAGT-G']['p_vcf'] == '1-145597475-GAAGT-G'
         assert results['1-145597475-GAAGT-G']['g_hgvs'] == 'NC_000001.10:g.145597477_145597480del'
@@ -1764,13 +1604,11 @@ class TestVariantsAuto(object):
         assert results['1-145597475-GAAGT-G']['hgvs_t_and_p']['NM_001303456.1']['p_hgvs_slc'] == "NP_001290385.1:p.?"
         assert results['1-145597475-GAAGT-G']['hgvs_t_and_p']['NM_001303456.1']['transcript_variant_error'] is None
 
-
     def test_variant80(self):
         variant = '1-153791300-CTG-C'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '1-153791300-CTG-C' in results.keys()
         assert results['1-153791300-CTG-C']['p_vcf'] == '1-153791300-CTG-C'
         assert results['1-153791300-CTG-C']['g_hgvs'] == 'NC_000001.10:g.153791302_153791303del'
@@ -1786,13 +1624,11 @@ class TestVariantsAuto(object):
         assert results['1-153791300-CTG-C']['hgvs_t_and_p']['NM_020699.2']['p_hgvs_slc'] == 'NP_065750.1:p.(Q188Efs*36)'
         assert results['1-153791300-CTG-C']['hgvs_t_and_p']['NM_020699.2']['transcript_variant_error'] is None
 
-
     def test_variant81(self):
         variant = '1-156104666-TTGAGAGCCGGCTGGCGGATGCGCT-TCCCC'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '1-156104666-TTGAGAGCCGGCTGGCGGATGCGCT-TCCCC' in results.keys()
         assert results['1-156104666-TTGAGAGCCGGCTGGCGGATGCGCT-TCCCC']['p_vcf'] == '1-156104666-TTGAGAGCCGGCTGGCGGATGCGCT-TCCCC'
         assert results['1-156104666-TTGAGAGCCGGCTGGCGGATGCGCT-TCCCC']['g_hgvs'] == 'NC_000001.10:g.156104667_156104690delinsCCCC'
@@ -1838,13 +1674,11 @@ class TestVariantsAuto(object):
         assert results['1-156104666-TTGAGAGCCGGCTGGCGGATGCGCT-TCCCC']['hgvs_t_and_p']['NM_001282624.1']['p_hgvs_slc'] == 'NP_001269553.1:p.(E157Pfs*9)'
         assert results['1-156104666-TTGAGAGCCGGCTGGCGGATGCGCT-TCCCC']['hgvs_t_and_p']['NM_001282624.1']['transcript_variant_error'] is None
 
-
     def test_variant82(self):
         variant = '1-156108541-G-GG'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '1-156108541-G-GG' in results.keys()
         assert results['1-156108541-G-GG']['p_vcf'] == '1-156108541-G-GG'
         assert results['1-156108541-G-GG']['g_hgvs'] == 'NC_000001.10:g.156108541dup'
@@ -1875,13 +1709,11 @@ class TestVariantsAuto(object):
         assert results['1-156108541-G-GG']['hgvs_t_and_p']['NM_001282626.1']['p_hgvs_slc'] == 'NP_001269555.1:p.?'
         assert results['1-156108541-G-GG']['hgvs_t_and_p']['NM_001282626.1']['transcript_variant_error'] is None
 
-
     def test_variant83(self):
         variant = '1-161279695-T-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '1-161279695-T-A' in results.keys()
         assert results['1-161279695-T-A']['p_vcf'] == '1-161279695-T-A'
         assert results['1-161279695-T-A']['g_hgvs'] == 'NC_000001.10:g.161279695T>A'
@@ -1902,13 +1734,11 @@ class TestVariantsAuto(object):
         assert results['1-161279695-T-A']['hgvs_t_and_p']['NM_001315491.1']['p_hgvs_slc'] == 'NP_001302420.1:p.(M1?)'
         assert results['1-161279695-T-A']['hgvs_t_and_p']['NM_001315491.1']['transcript_variant_error'] is None
 
-
     def test_variant84(self):
         variant = '1-169519049-T-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '1-169519049-T-T' in results.keys()
         assert results['1-169519049-T-T']['p_vcf'] == '1-169519049-T-T'
         assert results['1-169519049-T-T']['g_hgvs'] == 'NC_000001.10:g.169519049='
@@ -1919,13 +1749,11 @@ class TestVariantsAuto(object):
         assert results['1-169519049-T-T']['hgvs_t_and_p']['NM_000130.4']['p_hgvs_slc'] == 'NP_000121.2:p.(R534Q)'
         assert results['1-169519049-T-T']['hgvs_t_and_p']['NM_000130.4']['transcript_variant_error'] is None
 
-
     def test_variant85(self):
         variant = '1-226125468-G-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '1-226125468-G-A' in results.keys()
         assert results['1-226125468-G-A']['p_vcf'] == '1-226125468-G-A'
         assert results['1-226125468-G-A']['g_hgvs'] == 'NC_000001.10:g.226125468G>A'
@@ -1951,13 +1779,11 @@ class TestVariantsAuto(object):
         assert results['1-226125468-G-A']['hgvs_t_and_p']['NM_001172425.1']['p_hgvs_slc'] == 'NP_001165896.1:p.(T224=)'
         assert results['1-226125468-G-A']['hgvs_t_and_p']['NM_001172425.1']['transcript_variant_error'] is None
 
-
     def test_variant86(self):
         variant = '10-89623035-CGCA-C'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '10-89623035-CGCA-C' in results.keys()
         assert results['10-89623035-CGCA-C']['p_vcf'] == '10-89623035-CGCA-C'
         assert results['10-89623035-CGCA-C']['g_hgvs'] == 'NC_000010.10:g.89623039_89623041del'
@@ -1968,13 +1794,11 @@ class TestVariantsAuto(object):
         assert results['10-89623035-CGCA-C']['hgvs_t_and_p']['NM_001126049.1']['p_hgvs_slc'] == 'NP_001119521.1:p.?'
         assert results['10-89623035-CGCA-C']['hgvs_t_and_p']['NM_001126049.1']['transcript_variant_error'] is None
 
-
     def test_variant87(self):
         variant = '11-62457852-C-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '11-62457852-C-A' in results.keys()
         assert results['11-62457852-C-A']['p_vcf'] == '11-62457852-C-A'
         assert results['11-62457852-C-A']['g_hgvs'] == 'NC_000011.9:g.62457852C>A'
@@ -2010,13 +1834,11 @@ class TestVariantsAuto(object):
         assert results['11-62457852-C-A']['hgvs_t_and_p']['NR_037948.1']['p_hgvs_slc'] is None
         assert results['11-62457852-C-A']['hgvs_t_and_p']['NR_037948.1']['transcript_variant_error'] is None
 
-
     def test_variant88(self):
         variant = '11-108178710-A-AT'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '11-108178710-A-AT' in results.keys()
         assert results['11-108178710-A-AT']['p_vcf'] == '11-108178710-A-AT'
         assert results['11-108178710-A-AT']['g_hgvs'] == 'NC_000011.9:g.108178710_108178711insT'
@@ -2032,13 +1854,11 @@ class TestVariantsAuto(object):
         assert results['11-108178710-A-AT']['hgvs_t_and_p']['NM_000051.3']['p_hgvs_slc'] == 'NP_000042.3:p.(R1921Mfs*9)'
         assert results['11-108178710-A-AT']['hgvs_t_and_p']['NM_000051.3']['transcript_variant_error'] is None
 
-
     def test_variant89(self):
         variant = '11-111735981-G-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '11-111735981-G-A' in results.keys()
         assert results['11-111735981-G-A']['p_vcf'] == '11-111735981-G-A'
         assert results['11-111735981-G-A']['g_hgvs'] == 'NC_000011.9:g.111735981G>A'
@@ -2058,13 +1878,11 @@ class TestVariantsAuto(object):
         assert results['11-111735981-G-A']['hgvs_t_and_p']['NM_001352410.1']['p_hgvs_tlc'] == "NP_001339339.1:p.?"
         assert results['11-111735981-G-A']['hgvs_t_and_p']['NM_001352410.1']['p_hgvs_slc'] == "NP_001339339.1:p.?"
         assert results['11-111735981-G-A']['hgvs_t_and_p']['NM_001352410.1']['transcript_variant_error'] is None
-
     def test_variant90(self):
         variant = '12-11023080-C-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '12-11023080-C-A' in results.keys()
         assert results['12-11023080-C-A']['p_vcf'] == '12-11023080-C-A'
         assert results['12-11023080-C-A']['g_hgvs'] == 'NC_000012.11:g.11023080C>A'
@@ -2076,13 +1894,11 @@ class TestVariantsAuto(object):
         # assert results['12-11023080-C-A']['hgvs_t_and_p']['NR_037918.2']['p_hgvs_slc'] is None
         # assert results['12-11023080-C-A']['hgvs_t_and_p']['NR_037918.2']['transcript_variant_error'] is None
 
-
     def test_variant91(self):
         variant = '12-22018712-TC-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '12-22018712-TC-T' in results.keys()
         assert results['12-22018712-TC-T']['p_vcf'] == '12-22018712-TC-T'
         assert results['12-22018712-TC-T']['g_hgvs'] == 'NC_000012.11:g.22018713del'
@@ -2108,13 +1924,11 @@ class TestVariantsAuto(object):
         assert results['12-22018712-TC-T']['hgvs_t_and_p']['NM_005691.3']['p_hgvs_slc'] == 'NP_005682.2:p.?'
         assert results['12-22018712-TC-T']['hgvs_t_and_p']['NM_005691.3']['transcript_variant_error'] is None
 
-
     def test_variant92(self):
         variant = '12-52912946-T-C'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '12-52912946-T-C' in results.keys()
         assert results['12-52912946-T-C']['p_vcf'] == '12-52912946-T-C'
         assert results['12-52912946-T-C']['g_hgvs'] == 'NC_000012.11:g.52912946T>C'
@@ -2125,13 +1939,11 @@ class TestVariantsAuto(object):
         assert results['12-52912946-T-C']['hgvs_t_and_p']['NM_000424.3']['p_hgvs_slc'] == 'NP_000415.2:p.?'
         assert results['12-52912946-T-C']['hgvs_t_and_p']['NM_000424.3']['transcript_variant_error'] is None
 
-
     def test_variant93(self):
         variant = '12-103234292-TC-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '12-103234292-TC-T' in results.keys()
         assert results['12-103234292-TC-T']['p_vcf'] == '12-103234292-TC-T'
         assert results['12-103234292-TC-T']['g_hgvs'] == 'NC_000012.11:g.103234294del'
@@ -2152,13 +1964,11 @@ class TestVariantsAuto(object):
         assert results['12-103234292-TC-T']['hgvs_t_and_p']['NM_001354304.1']['p_hgvs_slc'] == 'NP_001341233.1:p.(N401Tfs*51)'
         assert results['12-103234292-TC-T']['hgvs_t_and_p']['NM_001354304.1']['transcript_variant_error'] is None
 
-
     def test_variant94(self):
         variant = '12-103311124-T-C'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '12-103311124-T-C' in results.keys()
         assert results['12-103311124-T-C']['p_vcf'] == '12-103311124-T-C'
         assert results['12-103311124-T-C']['g_hgvs'] == 'NC_000012.11:g.103311124T>C'
@@ -2179,13 +1989,11 @@ class TestVariantsAuto(object):
         assert results['12-103311124-T-C']['hgvs_t_and_p']['NM_001354304.1']['p_hgvs_slc'] == "NP_001341233.1:p.?"
         assert results['12-103311124-T-C']['hgvs_t_and_p']['NM_001354304.1']['transcript_variant_error'] is None
 
-
     def test_variant95(self):
         variant = '12-111064166-G-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '12-111064166-G-A' in results.keys()
         assert results['12-111064166-G-A']['p_vcf'] == '12-111064166-G-A'
         assert results['12-111064166-G-A']['g_hgvs'] == 'NC_000012.11:g.111064166G>A'
@@ -2241,13 +2049,11 @@ class TestVariantsAuto(object):
         assert results['12-111064166-G-A']['hgvs_t_and_p']['NM_001173975.1']['p_hgvs_slc'] == 'NP_001167446.1:p.?'
         assert results['12-111064166-G-A']['hgvs_t_and_p']['NM_001173975.1']['transcript_variant_error'] is None
 
-
     def test_variant96(self):
         variant = '12-123738430-CA-C'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '12-123738430-CA-C' in results.keys()
         assert results['12-123738430-CA-C']['p_vcf'] == '12-123738430-CA-C'
         assert results['12-123738430-CA-C']['g_hgvs'] == 'NC_000012.11:g.123738431del'
@@ -2268,13 +2074,11 @@ class TestVariantsAuto(object):
         assert results['12-123738430-CA-C']['hgvs_t_and_p']['NM_001143905.2']['p_hgvs_slc'] == 'NP_001137377.1:p.(G72Afs*13)'
         assert results['12-123738430-CA-C']['hgvs_t_and_p']['NM_001143905.2']['transcript_variant_error'] is None
 
-
     def test_variant97(self):
         variant = '13-31789169-CT-C'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '13-31789169-CT-C' in results.keys()
         assert results['13-31789169-CT-C']['p_vcf'] == '13-31789169-CT-C'
         assert results['13-31789169-CT-C']['g_hgvs'] == 'NC_000013.10:g.31789183del'
@@ -2285,13 +2089,11 @@ class TestVariantsAuto(object):
         assert results['13-31789169-CT-C']['hgvs_t_and_p']['NM_194318.3']['p_hgvs_slc'] == 'NP_919299.3:p.?'
         assert results['13-31789169-CT-C']['hgvs_t_and_p']['NM_194318.3']['transcript_variant_error'] is None
 
-
     def test_variant98(self):
         variant = '14-62187287-G-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '14-62187287-G-A' in results.keys()
         assert results['14-62187287-G-A']['p_vcf'] == '14-62187287-G-A'
         assert results['14-62187287-G-A']['g_hgvs'] == 'NC_000014.8:g.62187287G>A'
@@ -2317,13 +2119,11 @@ class TestVariantsAuto(object):
         assert results['14-62187287-G-A']['hgvs_t_and_p']['NM_001530.3']['p_hgvs_slc'] == 'NP_001521.1:p.(A75T)'
         assert results['14-62187287-G-A']['hgvs_t_and_p']['NM_001530.3']['transcript_variant_error'] is None
 
-
     def test_variant99(self):
         variant = '14-62188231-TT-GA'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '14-62188231-TT-GA' in results.keys()
         assert results['14-62188231-TT-GA']['p_vcf'] == '14-62188231-TT-GA'
         assert results['14-62188231-TT-GA']['g_hgvs'] == 'NC_000014.8:g.62188231_62188232delinsGA'
@@ -2349,13 +2149,11 @@ class TestVariantsAuto(object):
         assert results['14-62188231-TT-GA']['hgvs_t_and_p']['NM_001530.3']['p_hgvs_slc'] == 'NP_001521.1:p.(D77_L78delinsEM)'
         assert results['14-62188231-TT-GA']['hgvs_t_and_p']['NM_001530.3']['transcript_variant_error'] is None
 
-
     def test_variant100(self):
         variant = '14-63174827-C-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '14-63174827-C-A' in results.keys()
         assert results['14-63174827-C-A']['p_vcf'] == '14-63174827-C-A'
         assert results['14-63174827-C-A']['g_hgvs'] == 'NC_000014.8:g.63174827C>A'
@@ -2381,13 +2179,11 @@ class TestVariantsAuto(object):
         assert results['14-63174827-C-A']['hgvs_t_and_p']['NM_172375.1']['p_hgvs_slc'] == 'NP_758963.1:p.?'
         assert results['14-63174827-C-A']['hgvs_t_and_p']['NM_172375.1']['transcript_variant_error'] is None
 
-
     def test_variant101(self):
         variant = '15-42680000-CA-C'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '15-42680000-CA-C' in results.keys()
         assert results['15-42680000-CA-C']['p_vcf'] == '15-42680000-CA-C'
         assert results['15-42680000-CA-C']['g_hgvs'] == 'NC_000015.9:g.42680002del'
@@ -2408,13 +2204,11 @@ class TestVariantsAuto(object):
         assert results['15-42680000-CA-C']['hgvs_t_and_p']['NM_000070.2']['p_hgvs_slc'] == 'NP_000061.1:p.(T184Rfs*36)'
         assert results['15-42680000-CA-C']['hgvs_t_and_p']['NM_000070.2']['transcript_variant_error'] is None
 
-
     def test_variant102(self):
         variant = '15-42680000-CA-CAA'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '15-42680000-CA-CAA' in results.keys()
         assert results['15-42680000-CA-CAA']['p_vcf'] == '15-42680000-CA-CAA'
         assert results['15-42680000-CA-CAA']['g_hgvs'] == 'NC_000015.9:g.42680002dup'
@@ -2435,13 +2229,11 @@ class TestVariantsAuto(object):
         assert results['15-42680000-CA-CAA']['hgvs_t_and_p']['NM_000070.2']['p_hgvs_slc'] == 'NP_000061.1:p.(T184Nfs*16)'
         assert results['15-42680000-CA-CAA']['hgvs_t_and_p']['NM_000070.2']['transcript_variant_error'] is None
 
-
     def test_variant103(self):
         variant = '15-42703179-T-TTCA'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '15-42703179-T-TTCA' in results.keys()
         assert results['15-42703179-T-TTCA']['p_vcf'] == '15-42703179-T-TTCA'
         assert results['15-42703179-T-TTCA']['g_hgvs'] == 'NC_000015.9:g.42703179_42703180insTCA'
@@ -2477,13 +2269,11 @@ class TestVariantsAuto(object):
         assert results['15-42703179-T-TTCA']['hgvs_t_and_p']['NM_024344.1']['p_hgvs_slc'] == 'NP_077320.1:p.(V781_R782insS)'
         assert results['15-42703179-T-TTCA']['hgvs_t_and_p']['NM_024344.1']['transcript_variant_error'] is None
 
-
     def test_variant104(self):
         variant = '15-42703179-TAG-TTCATCT'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '15-42703179-TAG-TTCATCT' in results.keys()
         assert results['15-42703179-TAG-TTCATCT']['p_vcf'] == '15-42703179-TAG-TTCATCT'
         assert results['15-42703179-TAG-TTCATCT']['g_hgvs'] == 'NC_000015.9:g.42703180_42703181delinsTCATCT'
@@ -2519,13 +2309,11 @@ class TestVariantsAuto(object):
         assert results['15-42703179-TAG-TTCATCT']['hgvs_t_and_p']['NM_024344.1']['p_hgvs_slc'] == 'NP_077320.1:p.(R782Sfs*14)'
         assert results['15-42703179-TAG-TTCATCT']['hgvs_t_and_p']['NM_024344.1']['transcript_variant_error'] is None
 
-
     def test_variant105(self):
         variant = '15-48782203-C-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '15-48782203-C-T' in results.keys()
         assert results['15-48782203-C-T']['p_vcf'] == '15-48782203-C-T'
         assert results['15-48782203-C-T']['g_hgvs'] == 'NC_000015.9:g.48782203C>T'
@@ -2536,13 +2324,11 @@ class TestVariantsAuto(object):
         assert results['15-48782203-C-T']['hgvs_t_and_p']['NM_000138.4']['p_hgvs_slc'] == 'NP_000129.3:p.(R976H)'
         assert results['15-48782203-C-T']['hgvs_t_and_p']['NM_000138.4']['transcript_variant_error'] is None
 
-
     def test_variant106(self):
         variant = '15-72105929-CC-C'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '15-72105929-CC-C' in results.keys()
         assert results['15-72105929-CC-C']['p_vcf'] == '15-72105929-CC-C'
         assert results['15-72105929-CC-C']['g_hgvs'] == 'NC_000015.9:g.72105933del'
@@ -2568,13 +2354,11 @@ class TestVariantsAuto(object):
         assert results['15-72105929-CC-C']['hgvs_t_and_p']['NM_016346.2']['p_hgvs_slc'] == 'NP_057430.1:p.(D316=)'
         assert results['15-72105929-CC-C']['hgvs_t_and_p']['NM_016346.2']['transcript_variant_error'] is None
 
-
     def test_variant107(self):
         variant = '15-89873415-G-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '15-89873415-G-A' in results.keys()
         assert results['15-89873415-G-A']['p_vcf'] == '15-89873415-G-A'
         assert results['15-89873415-G-A']['g_hgvs'] == 'NC_000015.9:g.89873415G>A'
@@ -2590,13 +2374,11 @@ class TestVariantsAuto(object):
         assert results['15-89873415-G-A']['hgvs_t_and_p']['NM_002693.2']['p_hgvs_slc'] == 'NP_002684.1:p.(T251I)'
         assert results['15-89873415-G-A']['hgvs_t_and_p']['NM_002693.2']['transcript_variant_error'] is None
 
-
     def test_variant108(self):
         variant = '16-2103394-C-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '16-2103394-C-T' in results.keys()
         assert results['16-2103394-C-T']['p_vcf'] == '16-2103394-C-T'
         assert results['16-2103394-C-T']['g_hgvs'] == 'NC_000016.9:g.2103394C>T'
@@ -2662,13 +2444,11 @@ class TestVariantsAuto(object):
         assert results['16-2103394-C-T']['hgvs_t_and_p']['NM_000548.3']['p_hgvs_slc'] == 'NP_000539.2:p.(R93W)'
         assert results['16-2103394-C-T']['hgvs_t_and_p']['NM_000548.3']['transcript_variant_error'] is None
 
-
     def test_variant109(self):
         variant = '16-3779300-C-G'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '16-3779300-C-G' in results.keys()
         assert results['16-3779300-C-G']['p_vcf'] == '16-3779300-C-G'
         assert results['16-3779300-C-G']['g_hgvs'] == 'NC_000016.9:g.3779300C>G'
@@ -2684,13 +2464,11 @@ class TestVariantsAuto(object):
         assert results['16-3779300-C-G']['hgvs_t_and_p']['NM_004380.2']['p_hgvs_slc'] == 'NP_004371.2:p.(M1916I)'
         assert results['16-3779300-C-G']['hgvs_t_and_p']['NM_004380.2']['transcript_variant_error'] is None
 
-
     def test_variant110(self):
         variant = '16-5128843-C-G'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '16-5128843-C-G' in results.keys()
         assert results['16-5128843-C-G']['p_vcf'] == '16-5128843-C-G'
         assert results['16-5128843-C-G']['g_hgvs'] == 'NC_000016.9:g.5128843C>G'
@@ -2706,13 +2484,11 @@ class TestVariantsAuto(object):
         assert results['16-5128843-C-G']['hgvs_t_and_p']['NM_001330504.1']['p_hgvs_slc'] == 'NP_001317433.1:p.(R165G)'
         assert results['16-5128843-C-G']['hgvs_t_and_p']['NM_001330504.1']['transcript_variant_error'] is None
 
-
     def test_variant111(self):
         variant = '16-74808559-C-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '16-74808559-C-T' in results.keys()
         assert results['16-74808559-C-T']['p_vcf'] == '16-74808559-C-T'
         assert results['16-74808559-C-T']['g_hgvs'] == 'NC_000016.9:g.74808559C>T'
@@ -2723,13 +2499,11 @@ class TestVariantsAuto(object):
         assert results['16-74808559-C-T']['hgvs_t_and_p']['NM_024306.4']['p_hgvs_slc'] == 'NP_077282.3:p.(R32H)'
         assert results['16-74808559-C-T']['hgvs_t_and_p']['NM_024306.4']['transcript_variant_error'] is None
 
-
     def test_variant112(self):
         variant = '16-89574804-C-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '16-89574804-C-A' in results.keys()
         assert results['16-89574804-C-A']['p_vcf'] == '16-89574804-C-A'
         assert results['16-89574804-C-A']['g_hgvs'] == 'NC_000016.9:g.89574804C>A'
@@ -2750,13 +2524,11 @@ class TestVariantsAuto(object):
         assert results['16-89574804-C-A']['hgvs_t_and_p']['NM_199367.2']['p_hgvs_slc'] == 'NP_955399.1:p.?'
         assert results['16-89574804-C-A']['hgvs_t_and_p']['NM_199367.2']['transcript_variant_error'] is None
 
-
     def test_variant113(self):
         variant = '16-89574826-A-C'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '16-89574826-A-C' in results.keys()
         assert results['16-89574826-A-C']['p_vcf'] == '16-89574826-A-C'
         assert results['16-89574826-A-C']['g_hgvs'] == 'NC_000016.9:g.89574826A>C'
@@ -2787,13 +2559,11 @@ class TestVariantsAuto(object):
         assert results['16-89574826-A-C']['hgvs_t_and_p']['NM_199367.2']['p_hgvs_slc'] == 'NP_955399.1:p.(M1?)'
         assert results['16-89574826-A-C']['hgvs_t_and_p']['NM_199367.2']['transcript_variant_error'] is None
 
-
     def test_variant114(self):
         variant = '16-89574914-G-GT'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '16-89574914-G-GT' in results.keys()
         assert results['16-89574914-G-GT']['p_vcf'] == '16-89574914-G-GT'
         assert results['16-89574914-G-GT']['g_hgvs'] == 'NC_000016.9:g.89574915dup'
@@ -2824,13 +2594,11 @@ class TestVariantsAuto(object):
         assert results['16-89574914-G-GT']['hgvs_t_and_p']['NM_199367.2']['p_hgvs_slc'] == 'NP_955399.1:p.(P31Sfs*43)'
         assert results['16-89574914-G-GT']['hgvs_t_and_p']['NM_199367.2']['transcript_variant_error'] is None
 
-
     def test_variant115(self):
         variant = '16-89574916-C-CGTC'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '16-89574916-C-CGTC' in results.keys()
         assert results['16-89574916-C-CGTC']['p_vcf'] == '16-89574916-C-CGTC'
         assert results['16-89574916-C-CGTC']['g_hgvs'] == 'NC_000016.9:g.89574914_89574916dup'
@@ -2861,13 +2629,11 @@ class TestVariantsAuto(object):
         assert results['16-89574916-C-CGTC']['hgvs_t_and_p']['NM_199367.2']['p_hgvs_slc'] == 'NP_955399.1:p.(S30_P31insR)'
         assert results['16-89574916-C-CGTC']['hgvs_t_and_p']['NM_199367.2']['transcript_variant_error'] is None
 
-
     def test_variant116(self):
         variant = '16-89575009-G-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '16-89575009-G-A' in results.keys()
         assert results['16-89575009-G-A']['p_vcf'] == '16-89575009-G-A'
         assert results['16-89575009-G-A']['g_hgvs'] == 'NC_000016.9:g.89575009G>A'
@@ -2898,13 +2664,11 @@ class TestVariantsAuto(object):
         assert results['16-89575009-G-A']['hgvs_t_and_p']['NM_199367.2']['p_hgvs_slc'] == 'NP_955399.1:p.?'
         assert results['16-89575009-G-A']['hgvs_t_and_p']['NM_199367.2']['transcript_variant_error'] is None
 
-
     def test_variant117(self):
         variant = '16-89576896-A-C'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '16-89576896-A-C' in results.keys()
         assert results['16-89576896-A-C']['p_vcf'] == '16-89576896-A-C'
         assert results['16-89576896-A-C']['g_hgvs'] == 'NC_000016.9:g.89576896A>C'
@@ -2935,13 +2699,11 @@ class TestVariantsAuto(object):
         assert results['16-89576896-A-C']['hgvs_t_and_p']['NM_199367.2']['p_hgvs_slc'] == 'NP_955399.1:p.?'
         assert results['16-89576896-A-C']['hgvs_t_and_p']['NM_199367.2']['transcript_variant_error'] is None
 
-
     def test_variant118(self):
         variant = '16-89576931-G-GTG'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '16-89576931-G-GTG' in results.keys()
         assert results['16-89576931-G-GTG']['p_vcf'] == '16-89576931-G-GTG'
         assert results['16-89576931-G-GTG']['g_hgvs'] == 'NC_000016.9:g.89576930_89576931dup'
@@ -2972,13 +2734,11 @@ class TestVariantsAuto(object):
         assert results['16-89576931-G-GTG']['hgvs_t_and_p']['NM_199367.2']['p_hgvs_slc'] == 'NP_955399.1:p.(E73Vfs*9)'
         assert results['16-89576931-G-GTG']['hgvs_t_and_p']['NM_199367.2']['transcript_variant_error'] is None
 
-
     def test_variant119(self):
         variant = '16-89598368-CGGCCCCCCCGGCTGTGGGAAGACGCT-C'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '16-89598368-CGGCCCCCCCGGCTGTGGGAAGACGCT-C' in results.keys()
         assert results['16-89598368-CGGCCCCCCCGGCTGTGGGAAGACGCT-C']['p_vcf'] == '16-89598368-CGGCCCCCCCGGCTGTGGGAAGACGCT-C'
         assert results['16-89598368-CGGCCCCCCCGGCTGTGGGAAGACGCT-C']['g_hgvs'] == 'NC_000016.9:g.89598370_89598395del'
@@ -3009,13 +2769,11 @@ class TestVariantsAuto(object):
         assert results['16-89598368-CGGCCCCCCCGGCTGTGGGAAGACGCT-C']['hgvs_t_and_p']['NM_199367.2']['p_hgvs_slc'] == 'NP_955399.1:p.(G349Afs*38)'
         assert results['16-89598368-CGGCCCCCCCGGCTGTGGGAAGACGCT-C']['hgvs_t_and_p']['NM_199367.2']['transcript_variant_error'] is None
 
-
     def test_variant120(self):
         variant = '16-89613064-AGGAGAGGCG-AT'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '16-89613064-AGGAGAGGCG-AT' in results.keys()
         assert results['16-89613064-AGGAGAGGCG-AT']['p_vcf'] == '16-89613064-AGGAGAGGCG-AT'
         assert results['16-89613064-AGGAGAGGCG-AT']['g_hgvs'] == 'NC_000016.9:g.89613065_89613073delinsT'
@@ -3036,13 +2794,11 @@ class TestVariantsAuto(object):
         assert results['16-89613064-AGGAGAGGCG-AT']['hgvs_t_and_p']['NM_003119.2']['p_hgvs_slc'] == 'NP_003110.1:p.?'
         assert results['16-89613064-AGGAGAGGCG-AT']['hgvs_t_and_p']['NM_003119.2']['transcript_variant_error'] is None
 
-
     def test_variant121(self):
         variant = '16-89613069-AGGCGGGAGA-AT'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '16-89613069-AGGCGGGAGA-AT' in results.keys()
         assert results['16-89613069-AGGCGGGAGA-AT']['p_vcf'] == '16-89613069-AGGCGGGAGA-AT'
         assert results['16-89613069-AGGCGGGAGA-AT']['g_hgvs'] == 'NC_000016.9:g.89613070_89613078delinsT'
@@ -3063,13 +2819,11 @@ class TestVariantsAuto(object):
         assert results['16-89613069-AGGCGGGAGA-AT']['hgvs_t_and_p']['NM_003119.2']['p_hgvs_slc'] == 'NP_003110.1:p.(R485Ifs*3)'
         assert results['16-89613069-AGGCGGGAGA-AT']['hgvs_t_and_p']['NM_003119.2']['transcript_variant_error'] is None
 
-
     def test_variant122(self):
         variant = '16-89613145-C-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '16-89613145-C-T' in results.keys()
         assert results['16-89613145-C-T']['p_vcf'] == '16-89613145-C-T'
         assert results['16-89613145-C-T']['g_hgvs'] == 'NC_000016.9:g.89613145C>T'
@@ -3090,13 +2844,11 @@ class TestVariantsAuto(object):
         assert results['16-89613145-C-T']['hgvs_t_and_p']['NM_003119.2']['p_hgvs_slc'] == 'NP_003110.1:p.(A510V)'
         assert results['16-89613145-C-T']['hgvs_t_and_p']['NM_003119.2']['transcript_variant_error'] is None
 
-
     def test_variant123(self):
         variant = '17-7578194-GCAC-G'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '17-7578194-GCAC-G' in results.keys()
         assert results['17-7578194-GCAC-G']['p_vcf'] == '17-7578194-GCAC-G'
         assert results['17-7578194-GCAC-G']['g_hgvs'] == 'NC_000017.10:g.7578201_7578203del'
@@ -3177,13 +2929,11 @@ class TestVariantsAuto(object):
         assert results['17-7578194-GCAC-G']['hgvs_t_and_p']['NM_001126118.1']['p_hgvs_slc'] == 'NP_001119590.1:p.(V179del)'
         assert results['17-7578194-GCAC-G']['hgvs_t_and_p']['NM_001126118.1']['transcript_variant_error'] is None
 
-
     def test_variant124(self):
         variant = '17-7578523-T-TG'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '17-7578523-T-TG' in results.keys()
         assert results['17-7578523-T-TG']['p_vcf'] == '17-7578523-T-TG'
         assert results['17-7578523-T-TG']['g_hgvs'] == 'NC_000017.10:g.7578525dup'
@@ -3264,13 +3014,11 @@ class TestVariantsAuto(object):
         assert results['17-7578523-T-TG']['hgvs_t_and_p']['NM_001126118.1']['p_hgvs_slc'] == 'NP_001119590.1:p.(Q97Pfs*13)'
         assert results['17-7578523-T-TG']['hgvs_t_and_p']['NM_001126118.1']['transcript_variant_error'] is None
 
-
     def test_variant125(self):
         variant = '17-17119692-A-C'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '17-17119692-A-C' in results.keys()
         assert results['17-17119692-A-C']['p_vcf'] == '17-17119692-A-C'
         assert results['17-17119692-A-C']['g_hgvs'] == 'NC_000017.10:g.17119692A>C'
@@ -3301,13 +3049,11 @@ class TestVariantsAuto(object):
         assert results['17-17119692-A-C']['hgvs_t_and_p']['NM_144997.6']['p_hgvs_slc'] == 'NP_659434.2:p.?'
         assert results['17-17119692-A-C']['hgvs_t_and_p']['NM_144997.6']['transcript_variant_error'] is None
 
-
     def test_variant126(self):
         variant = '17-41197588-GGACA-G'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '17-41197588-GGACA-G' in results.keys()
         assert results['17-41197588-GGACA-G']['p_vcf'] == '17-41197588-GGACA-G'
         assert results['17-41197588-GGACA-G']['g_hgvs'] == 'NC_000017.10:g.41197590_41197593del'
@@ -3343,13 +3089,11 @@ class TestVariantsAuto(object):
         assert results['17-41197588-GGACA-G']['hgvs_t_and_p']['NM_007297.3']['p_hgvs_slc'] == 'NP_009228.2:p.?'
         assert results['17-41197588-GGACA-G']['hgvs_t_and_p']['NM_007297.3']['transcript_variant_error'] is None
 
-
     def test_variant127(self):
         variant = '17-41256884-C-G'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '17-41256884-C-G' in results.keys()
         assert results['17-41256884-C-G']['p_vcf'] == '17-41256884-C-G'
         assert results['17-41256884-C-G']['g_hgvs'] == 'NC_000017.10:g.41256884C>G'
@@ -3385,13 +3129,11 @@ class TestVariantsAuto(object):
         assert results['17-41256884-C-G']['hgvs_t_and_p']['NM_007297.3']['p_hgvs_slc'] == 'NP_009228.2:p.?'
         assert results['17-41256884-C-G']['hgvs_t_and_p']['NM_007297.3']['transcript_variant_error'] is None
 
-
     def test_variant128(self):
         variant = '17-42991428-C-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '17-42991428-C-A' in results.keys()
         assert results['17-42991428-C-A']['p_vcf'] == '17-42991428-C-A'
         assert results['17-42991428-C-A']['g_hgvs'] == 'NC_000017.10:g.42991428C>A'
@@ -3417,13 +3159,11 @@ class TestVariantsAuto(object):
         assert results['17-42991428-C-A']['hgvs_t_and_p']['NM_001363846.1']['p_hgvs_slc'] == 'NP_001350775.1:p.(E164*)'
         assert results['17-42991428-C-A']['hgvs_t_and_p']['NM_001363846.1']['transcript_variant_error'] is None
 
-
     def test_variant129(self):
         variant = '17-48252809-A-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '17-48252809-A-T' in results.keys()
         assert results['17-48252809-A-T']['p_vcf'] == '17-48252809-A-T'
         assert results['17-48252809-A-T']['g_hgvs'] == 'NC_000017.10:g.48252809A>T'
@@ -3454,13 +3194,11 @@ class TestVariantsAuto(object):
         assert results['17-48252809-A-T']['hgvs_t_and_p']['NM_000023.3']['p_hgvs_slc'] == 'NP_000014.1:p.?'
         assert results['17-48252809-A-T']['hgvs_t_and_p']['NM_000023.3']['transcript_variant_error'] is None
 
-
     def test_variant130(self):
         variant = '17-62022709-G-GTC'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '17-62022709-G-GTC' in results.keys()
         assert results['17-62022709-G-GTC']['p_vcf'] == '17-62022709-G-GTC'
         assert results['17-62022709-G-GTC']['g_hgvs'] == 'NC_000017.10:g.62022710_62022711dup'
@@ -3471,13 +3209,11 @@ class TestVariantsAuto(object):
         assert results['17-62022709-G-GTC']['hgvs_t_and_p']['NM_000334.4']['p_hgvs_slc'] == 'NP_000325.4:p.?'
         assert results['17-62022709-G-GTC']['hgvs_t_and_p']['NM_000334.4']['transcript_variant_error'] is None
 
-
     def test_variant131(self):
         variant = '17-62022711-C-CT'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '17-62022711-C-CT' in results.keys()
         assert results['17-62022711-C-CT']['p_vcf'] == '17-62022711-C-CT'
         assert results['17-62022711-C-CT']['g_hgvs'] == 'NC_000017.10:g.62022711_62022712insT'
@@ -3488,13 +3224,11 @@ class TestVariantsAuto(object):
         assert results['17-62022711-C-CT']['hgvs_t_and_p']['NM_000334.4']['p_hgvs_slc'] == 'NP_000325.4:p.?'
         assert results['17-62022711-C-CT']['hgvs_t_and_p']['NM_000334.4']['transcript_variant_error'] is None
 
-
     def test_variant132(self):
         variant = '17-62023005-G-GGC'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '17-62023005-G-GGC' in results.keys()
         assert results['17-62023005-G-GGC']['p_vcf'] == '17-62023005-G-GGC'
         assert results['17-62023005-G-GGC']['g_hgvs'] == 'NC_000017.10:g.62023005_62023006insGC'
@@ -3505,13 +3239,11 @@ class TestVariantsAuto(object):
         assert results['17-62023005-G-GGC']['hgvs_t_and_p']['NM_000334.4']['p_hgvs_slc'] == 'NP_000325.4:p.?'
         assert results['17-62023005-G-GGC']['hgvs_t_and_p']['NM_000334.4']['transcript_variant_error'] is None
 
-
     def test_variant133(self):
         variant = '17-62023006-C-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '17-62023006-C-A' in results.keys()
         assert results['17-62023006-C-A']['p_vcf'] == '17-62023006-C-A'
         assert results['17-62023006-C-A']['g_hgvs'] == 'NC_000017.10:g.62023006C>A'
@@ -3522,13 +3254,11 @@ class TestVariantsAuto(object):
         assert results['17-62023006-C-A']['hgvs_t_and_p']['NM_000334.4']['p_hgvs_slc'] == 'NP_000325.4:p.?'
         assert results['17-62023006-C-A']['hgvs_t_and_p']['NM_000334.4']['transcript_variant_error'] is None
 
-
     def test_variant134(self):
         variant = '17-62034787-G-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '17-62034787-G-A' in results.keys()
         assert results['17-62034787-G-A']['p_vcf'] == '17-62034787-G-A'
         assert results['17-62034787-G-A']['g_hgvs'] == 'NC_000017.10:g.62034787G>A'
@@ -3539,13 +3269,11 @@ class TestVariantsAuto(object):
         assert results['17-62034787-G-A']['hgvs_t_and_p']['NM_000334.4']['p_hgvs_slc'] == 'NP_000325.4:p.(T704M)'
         assert results['17-62034787-G-A']['hgvs_t_and_p']['NM_000334.4']['transcript_variant_error'] is None
 
-
     def test_variant135(self):
         variant = '18-24128261-GTCCTCC-G'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '18-24128261-GTCCTCC-G' in results.keys()
         assert results['18-24128261-GTCCTCC-G']['p_vcf'] == '18-24128261-GTCCTCC-G'
         assert results['18-24128261-GTCCTCC-G']['g_hgvs'] == 'NC_000018.9:g.24128273_24128278del'
@@ -3586,13 +3314,11 @@ class TestVariantsAuto(object):
         assert results['18-24128261-GTCCTCC-G']['hgvs_t_and_p']['NM_001258222.1']['p_hgvs_slc'] == 'NP_001245151.1:p.?'
         assert results['18-24128261-GTCCTCC-G']['hgvs_t_and_p']['NM_001258222.1']['transcript_variant_error'] is None
 
-
     def test_variant136(self):
         variant = '19-15291774-G-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '19-15291774-G-A' in results.keys()
         assert results['19-15291774-G-A']['p_vcf'] == '19-15291774-G-A'
         assert results['19-15291774-G-A']['g_hgvs'] == 'NC_000019.9:g.15291774G>A'
@@ -3602,7 +3328,6 @@ class TestVariantsAuto(object):
         assert results['19-15291774-G-A']['hgvs_t_and_p']['NM_000435.2']['p_hgvs_tlc'] == 'NP_000426.2:p.(Gln998Ter)'
         assert results['19-15291774-G-A']['hgvs_t_and_p']['NM_000435.2']['p_hgvs_slc'] == 'NP_000426.2:p.(Q998*)'
         assert results['19-15291774-G-A']['hgvs_t_and_p']['NM_000435.2']['transcript_variant_error'] is None
-
 
     # Test removed. No longer intergenic in VVTA
     # def test_variant137(self):
@@ -3617,13 +3342,11 @@ class TestVariantsAuto(object):
     # 	assert results['19-15311794-A-G']['genomic_variant_error'] is None
     # 	assert results['19-15311794-A-G']['hgvs_t_and_p'] == {'intergenic': {'alt_genomic_loci': None}}
 
-
     def test_variant138(self):
         variant = '19-39076592-G-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '19-39076592-G-A' in results.keys()
         assert results['19-39076592-G-A']['p_vcf'] == '19-39076592-G-A'
         assert results['19-39076592-G-A']['g_hgvs'] == 'NC_000019.9:g.39076592G>A'
@@ -3639,13 +3362,11 @@ class TestVariantsAuto(object):
         assert results['19-39076592-G-A']['hgvs_t_and_p']['NM_000540.2']['p_hgvs_slc'] == 'NP_000531.2:p.(A4940T)'
         assert results['19-39076592-G-A']['hgvs_t_and_p']['NM_000540.2']['transcript_variant_error'] is None
 
-
     def test_variant139(self):
         variant = '2-50149352-T-C'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '2-50149352-T-C' in results.keys()
         assert results['2-50149352-T-C']['p_vcf'] == '2-50149352-T-C'
         assert results['2-50149352-T-C']['g_hgvs'] == 'NC_000002.11:g.50149352T>C'
@@ -3781,13 +3502,11 @@ class TestVariantsAuto(object):
         assert results['2-50149352-T-C']['hgvs_t_and_p']['NM_001330078.1']['p_hgvs_slc'] == 'NP_001317007.1:p.(P1418=)'
         assert results['2-50149352-T-C']['hgvs_t_and_p']['NM_001330078.1']['transcript_variant_error'] is None
 
-
     def test_variant140(self):
         variant = '2-50847195-G-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '2-50847195-G-A' in results.keys()
         assert results['2-50847195-G-A']['p_vcf'] == '2-50847195-G-A'
         assert results['2-50847195-G-A']['g_hgvs'] == 'NC_000002.11:g.50847195G>A'
@@ -3878,13 +3597,11 @@ class TestVariantsAuto(object):
         assert results['2-50847195-G-A']['hgvs_t_and_p']['NM_001330094.1']['p_hgvs_slc'] == 'NP_001317023.1:p.(P425S)'
         assert results['2-50847195-G-A']['hgvs_t_and_p']['NM_001330094.1']['transcript_variant_error'] is None
 
-
     def test_variant141(self):
         variant = '2-71825797-C-G'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '2-71825797-C-G' in results.keys()
         assert results['2-71825797-C-G']['p_vcf'] == '2-71825797-C-G'
         assert results['2-71825797-C-G']['g_hgvs'] == 'NC_000002.11:g.71825797C>G'
@@ -3960,13 +3677,11 @@ class TestVariantsAuto(object):
         assert results['2-71825797-C-G']['hgvs_t_and_p']['NM_003494.3']['p_hgvs_slc'] == 'NP_003485.1:p.(I1208M)'
         assert results['2-71825797-C-G']['hgvs_t_and_p']['NM_003494.3']['transcript_variant_error'] is None
 
-
     def test_variant142(self):
         variant = '2-166179712-G-C'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '2-166179712-G-C' in results.keys()
         assert results['2-166179712-G-C']['p_vcf'] == '2-166179712-G-C'
         assert results['2-166179712-G-C']['g_hgvs'] == 'NC_000002.11:g.166179712G>C'
@@ -3987,13 +3702,11 @@ class TestVariantsAuto(object):
         assert results['2-166179712-G-C']['hgvs_t_and_p']['NM_021007.2']['p_hgvs_slc'] == 'NP_066287.2:p.(S573T)'
         assert results['2-166179712-G-C']['hgvs_t_and_p']['NM_021007.2']['transcript_variant_error'] is None
 
-
     def test_variant143(self):
         variant = '2-166183371-A-G'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '2-166183371-A-G' in results.keys()
         assert results['2-166183371-A-G']['p_vcf'] == '2-166183371-A-G'
         assert results['2-166183371-A-G']['g_hgvs'] == 'NC_000002.11:g.166183371A>G'
@@ -4014,13 +3727,11 @@ class TestVariantsAuto(object):
         assert results['2-166183371-A-G']['hgvs_t_and_p']['NM_021007.2']['p_hgvs_slc'] == 'NP_066287.2:p.(T676A)'
         assert results['2-166183371-A-G']['hgvs_t_and_p']['NM_021007.2']['transcript_variant_error'] is None
 
-
     def test_variant144(self):
         variant = '2-166929889-GTCCAGGTCCT-GAC'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '2-166929889-GTCCAGGTCCT-GAC' in results.keys()
         assert results['2-166929889-GTCCAGGTCCT-GAC']['p_vcf'] == '2-166929889-GTCCAGGTCCT-GAC'
         assert results['2-166929889-GTCCAGGTCCT-GAC']['g_hgvs'] == 'NC_000002.11:g.166929890_166929899delinsAC'
@@ -4126,13 +3837,11 @@ class TestVariantsAuto(object):
         assert results['2-166929889-GTCCAGGTCCT-GAC']['hgvs_t_and_p']['NM_001165964.2']['p_hgvs_slc'] == 'NP_001159436.1:p.(E78Gfs*7)'
         assert results['2-166929889-GTCCAGGTCCT-GAC']['hgvs_t_and_p']['NM_001165964.2']['transcript_variant_error'] is None
 
-
     def test_variant145(self):
         variant = '2-166929891-CCAGGTCCT-C'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '2-166929891-CCAGGTCCT-C' in results.keys()
         assert results['2-166929891-CCAGGTCCT-C']['p_vcf'] == '2-166929891-CCAGGTCCT-C'
         assert results['2-166929891-CCAGGTCCT-C']['g_hgvs'] == 'NC_000002.11:g.166929893_166929900del'
@@ -4238,13 +3947,11 @@ class TestVariantsAuto(object):
         assert results['2-166929891-CCAGGTCCT-C']['hgvs_t_and_p']['NM_001165964.2']['p_hgvs_slc'] == 'NP_001159436.1:p.(E78Gfs*7)'
         assert results['2-166929891-CCAGGTCCT-C']['hgvs_t_and_p']['NM_001165964.2']['transcript_variant_error'] is None
 
-
     def test_variant146(self):
         variant = '2-179393504-G-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '2-179393504-G-T' in results.keys()
         assert results['2-179393504-G-T']['p_vcf'] == '2-179393504-G-T'
         assert results['2-179393504-G-T']['g_hgvs'] == 'NC_000002.11:g.179393504G>T'
@@ -4300,13 +4007,11 @@ class TestVariantsAuto(object):
         assert results['2-179393504-G-T']['hgvs_t_and_p']['NM_133432.3']['p_hgvs_slc'] == 'NP_597676.3:p.(S26718R)'
         assert results['2-179393504-G-T']['hgvs_t_and_p']['NM_133432.3']['transcript_variant_error'] is None
 
-
     def test_variant147(self):
         variant = '2-185803444-TGCAGCTGCTGCAGCTGCAGCTGCA-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '2-185803444-TGCAGCTGCTGCAGCTGCAGCTGCA-T' in results.keys()
         assert results['2-185803444-TGCAGCTGCTGCAGCTGCAGCTGCA-T']['p_vcf'] == '2-185803444-TGCAGCTGCTGCAGCTGCAGCTGCA-T'
         assert results['2-185803444-TGCAGCTGCTGCAGCTGCAGCTGCA-T']['g_hgvs'] == 'NC_000002.11:g.185803447_185803470del'
@@ -4317,13 +4022,11 @@ class TestVariantsAuto(object):
         assert results['2-185803444-TGCAGCTGCTGCAGCTGCAGCTGCA-T']['hgvs_t_and_p']['NM_194250.1']['p_hgvs_slc'] == 'NP_919226.1:p.(A1112_A1119del)'
         assert results['2-185803444-TGCAGCTGCTGCAGCTGCAGCTGCA-T']['hgvs_t_and_p']['NM_194250.1']['transcript_variant_error'] is None
 
-
     def test_variant148(self):
         variant = '2-201950249-G-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '2-201950249-G-T' in results.keys()
         assert results['2-201950249-G-T']['p_vcf'] == '2-201950249-G-T'
         assert results['2-201950249-G-T']['g_hgvs'] == 'NC_000002.11:g.201950249G>T'
@@ -4339,13 +4042,11 @@ class TestVariantsAuto(object):
         assert results['2-201950249-G-T']['hgvs_t_and_p']['NM_001257102.1']['p_hgvs_slc'] == 'NP_001244031.1:p.(G70*)'
         assert results['2-201950249-G-T']['hgvs_t_and_p']['NM_001257102.1']['transcript_variant_error'] is None
 
-
     def test_variant149(self):
         variant = '2-238268730-C-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '2-238268730-C-A' in results.keys()
         assert results['2-238268730-C-A']['p_vcf'] == '2-238268730-C-A'
         assert results['2-238268730-C-A']['g_hgvs'] == 'NC_000002.11:g.238268730C>A'
@@ -4366,13 +4067,11 @@ class TestVariantsAuto(object):
         assert results['2-238268730-C-A']['hgvs_t_and_p']['NM_057166.4']['p_hgvs_slc'] == 'NP_476507.3:p.?'
         assert results['2-238268730-C-A']['hgvs_t_and_p']['NM_057166.4']['transcript_variant_error'] is None
 
-
     def test_variant150(self):
         variant = '21-43897396-C-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '21-43897396-C-T' in results.keys()
         assert results['21-43897396-C-T']['p_vcf'] == '21-43897396-C-T'
         assert results['21-43897396-C-T']['g_hgvs'] == 'NC_000021.8:g.43897396C>T'
@@ -4393,13 +4092,11 @@ class TestVariantsAuto(object):
         assert results['21-43897396-C-T']['hgvs_t_and_p']['NM_001286506.1']['p_hgvs_slc'] == 'NP_001273435.1:p.?'
         assert results['21-43897396-C-T']['hgvs_t_and_p']['NM_001286506.1']['transcript_variant_error'] is None
 
-
     def test_variant151(self):
         variant = '22-30064360-G-GCGACGC'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '22-30064360-G-GCGACGC' in results.keys()
         assert results['22-30064360-G-GCGACGC']['p_vcf'] == '22-30064360-G-GCGACGC'
         assert results['22-30064360-G-GCGACGC']['g_hgvs'] == 'NC_000022.10:g.30064360_30064361insCGACGC'
@@ -4455,13 +4152,11 @@ class TestVariantsAuto(object):
         assert results['22-30064360-G-GCGACGC']['hgvs_t_and_p']['NM_181833.2']['p_hgvs_slc'] == 'NP_861971.1:p.?'
         assert results['22-30064360-G-GCGACGC']['hgvs_t_and_p']['NM_181833.2']['transcript_variant_error'] is None
 
-
     def test_variant152(self):
         variant = '3-10188187-TGTCCCGATAG-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '3-10188187-TGTCCCGATAG-T' in results.keys()
         assert results['3-10188187-TGTCCCGATAG-T']['p_vcf'] == '3-10188187-TGTCCCGATAG-T'
         assert results['3-10188187-TGTCCCGATAG-T']['g_hgvs'] == 'NC_000003.11:g.10188191_10188200del'
@@ -4482,13 +4177,11 @@ class TestVariantsAuto(object):
         assert results['3-10188187-TGTCCCGATAG-T']['hgvs_t_and_p']['NM_000551.3']['p_hgvs_slc'] == 'NP_000542.1:p.?'
         assert results['3-10188187-TGTCCCGATAG-T']['hgvs_t_and_p']['NM_000551.3']['transcript_variant_error'] is None
 
-
     def test_variant153(self):
         variant = '3-50402127-T-G'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '3-50402127-T-G' in results.keys()
         assert results['3-50402127-T-G']['p_vcf'] == '3-50402127-T-G'
         assert results['3-50402127-T-G']['g_hgvs'] == 'NC_000003.11:g.50402127T>G'
@@ -4534,13 +4227,11 @@ class TestVariantsAuto(object):
         assert results['3-50402127-T-G']['hgvs_t_and_p']['NM_006030.3']['p_hgvs_slc'] == 'NP_006021.2:p.(Q1134H)'
         assert results['3-50402127-T-G']['hgvs_t_and_p']['NM_006030.3']['transcript_variant_error'] is None
 
-
     def test_variant154(self):
         variant = '3-50402890-G-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '3-50402890-G-A' in results.keys()
         assert results['3-50402890-G-A']['p_vcf'] == '3-50402890-G-A'
         assert results['3-50402890-G-A']['g_hgvs'] == 'NC_000003.11:g.50402890G>A'
@@ -4596,13 +4287,11 @@ class TestVariantsAuto(object):
         assert results['3-50402890-G-A']['hgvs_t_and_p']['NM_006030.3']['p_hgvs_slc'] == 'NP_006021.2:p.(P999S)'
         assert results['3-50402890-G-A']['hgvs_t_and_p']['NM_006030.3']['transcript_variant_error'] is None
 
-
     def test_variant155(self):
         variant = '3-57851007-AG-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '3-57851007-AG-A' in results.keys()
         assert results['3-57851007-AG-A']['p_vcf'] == '3-57851007-AG-A'
         assert results['3-57851007-AG-A']['g_hgvs'] == 'NC_000003.11:g.57851008del'
@@ -4643,13 +4332,11 @@ class TestVariantsAuto(object):
         assert results['3-57851007-AG-A']['hgvs_t_and_p']['NM_001304421.2']['p_hgvs_slc'] == 'NP_001291350.1:p.?'
         assert results['3-57851007-AG-A']['hgvs_t_and_p']['NM_001304421.2']['transcript_variant_error'] is None
 
-
     def test_variant156(self):
         variant = '3-122003832-G-C'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '3-122003832-G-C' in results.keys()
         assert results['3-122003832-G-C']['p_vcf'] == '3-122003832-G-C'
         assert results['3-122003832-G-C']['g_hgvs'] == 'NC_000003.11:g.122003832G>C'
@@ -4665,13 +4352,11 @@ class TestVariantsAuto(object):
         assert results['3-122003832-G-C']['hgvs_t_and_p']['NM_000388.3']['p_hgvs_slc'] == 'NP_000379.2:p.(Q1011=)'
         assert results['3-122003832-G-C']['hgvs_t_and_p']['NM_000388.3']['transcript_variant_error'] is None
 
-
     def test_variant157(self):
         variant = '4-153332910-C-CAGG'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '4-153332910-C-CAGG' in results.keys()
         assert results['4-153332910-C-CAGG']['p_vcf'] == '4-153332910-C-CAGG'
         assert results['4-153332910-C-CAGG']['g_hgvs'] == 'NC_000004.11:g.153332912_153332913insGAG'
@@ -4696,7 +4381,6 @@ class TestVariantsAuto(object):
         assert results['4-153332910-C-CAGG']['hgvs_t_and_p']['NM_001257069.1']['p_hgvs_tlc'] == 'NP_001243998.1:p.(Thr15_Gly16insPro)'
         assert results['4-153332910-C-CAGG']['hgvs_t_and_p']['NM_001257069.1']['p_hgvs_slc'] == 'NP_001243998.1:p.(T15_G16insP)'
         assert results['4-153332910-C-CAGG']['hgvs_t_and_p']['NM_001257069.1']['transcript_variant_error'] is None
-
     # Test removed. No longer intergenic in VVTA
     # def test_variant158(self):
     # 	variant = '5-1295183-G-A'
@@ -4710,13 +4394,11 @@ class TestVariantsAuto(object):
     # 	assert results['5-1295183-G-A']['genomic_variant_error'] is None
     # 	assert results['5-1295183-G-A']['hgvs_t_and_p'] == {'intergenic': {'alt_genomic_loci': None}}
 
-
     def test_variant159(self):
         variant = '5-77396835-TTTC-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '5-77396835-TTTC-T' in results.keys()
         assert results['5-77396835-TTTC-T']['p_vcf'] == '5-77396835-TTTC-T'
         assert results['5-77396835-TTTC-T']['g_hgvs'] == 'NC_000005.9:g.77396838_77396840del'
@@ -4737,13 +4419,11 @@ class TestVariantsAuto(object):
         assert results['5-77396835-TTTC-T']['hgvs_t_and_p']['NM_003664.3']['p_hgvs_slc'] == 'NP_003655.3:p.(K804del)'
         assert results['5-77396835-TTTC-T']['hgvs_t_and_p']['NM_003664.3']['transcript_variant_error'] is None
 
-
     def test_variant160(self):
         variant = '5-118811422-GGTGA-G'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '5-118811422-GGTGA-G' in results.keys()
         assert results['5-118811422-GGTGA-G']['p_vcf'] == '5-118811422-GGTGA-G'
         assert results['5-118811422-GGTGA-G']['g_hgvs'] == 'NC_000005.9:g.118811425_118811428del'
@@ -4779,13 +4459,11 @@ class TestVariantsAuto(object):
         assert results['5-118811422-GGTGA-G']['hgvs_t_and_p']['NM_000414.3']['p_hgvs_slc'] == 'NP_000405.1:p.?'
         assert results['5-118811422-GGTGA-G']['hgvs_t_and_p']['NM_000414.3']['transcript_variant_error'] is None
 
-
     def test_variant161(self):
         variant = '5-118811422-GGTGAG-G'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '5-118811422-GGTGAG-G' in results.keys()
         assert results['5-118811422-GGTGAG-G']['p_vcf'] == '5-118811422-GGTGAG-G'
         assert results['5-118811422-GGTGAG-G']['g_hgvs'] == 'NC_000005.9:g.118811423_118811427del'
@@ -4821,13 +4499,11 @@ class TestVariantsAuto(object):
         assert results['5-118811422-GGTGAG-G']['hgvs_t_and_p']['NM_000414.3']['p_hgvs_slc'] == 'NP_000405.1:p.?'
         assert results['5-118811422-GGTGAG-G']['hgvs_t_and_p']['NM_000414.3']['transcript_variant_error'] is None
 
-
     def test_variant162(self):
         variant = '5-131705587-CG-C'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '5-131705587-CG-C' in results.keys()
         assert results['5-131705587-CG-C']['p_vcf'] == '5-131705587-CG-C'
         assert results['5-131705587-CG-C']['g_hgvs'] == 'NC_000005.9:g.131705590del'
@@ -4849,13 +4525,11 @@ class TestVariantsAuto(object):
         # assert results['5-131705587-CG-C']['hgvs_t_and_p']['NM_003060.3']['p_hgvs_slc'] == 'NP_003051.1:p.?'
         # assert results['5-131705587-CG-C']['hgvs_t_and_p']['NM_003060.3']['transcript_variant_error'] is None
 
-
     def test_variant163(self):
         variant = '5-148406482-T-C'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '5-148406482-T-C' in results.keys()
         assert results['5-148406482-T-C']['p_vcf'] == '5-148406482-T-C'
         assert results['5-148406482-T-C']['g_hgvs'] == 'NC_000005.9:g.148406482T>C'
@@ -4866,13 +4540,11 @@ class TestVariantsAuto(object):
         assert results['5-148406482-T-C']['hgvs_t_and_p']['NM_024577.3']['p_hgvs_slc'] == 'NP_078853.2:p.(H938R)'
         assert results['5-148406482-T-C']['hgvs_t_and_p']['NM_024577.3']['transcript_variant_error'] is None
 
-
     def test_variant164(self):
         variant = '6-110036337-T-TCAG'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '6-110036337-T-TCAG' in results.keys()
         assert results['6-110036337-T-TCAG']['p_vcf'] == '6-110036337-T-TCAG'
         assert results['6-110036337-T-TCAG']['g_hgvs'] == 'NC_000006.11:g.110036337_110036338insCAG'
@@ -4883,13 +4555,11 @@ class TestVariantsAuto(object):
         assert results['6-110036337-T-TCAG']['hgvs_t_and_p']['NM_014845.5']['p_hgvs_slc'] == 'NP_055660.1:p.(I41_D42insQ)'
         assert results['6-110036337-T-TCAG']['hgvs_t_and_p']['NM_014845.5']['transcript_variant_error'] is None
 
-
     def test_variant165(self):
         variant = '6-110036337-TGAT-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '6-110036337-TGAT-T' in results.keys()
         assert results['6-110036337-TGAT-T']['p_vcf'] == '6-110036337-TGAT-T'
         assert results['6-110036337-TGAT-T']['g_hgvs'] == 'NC_000006.11:g.110036338_110036340del'
@@ -4900,13 +4570,11 @@ class TestVariantsAuto(object):
         assert results['6-110036337-TGAT-T']['hgvs_t_and_p']['NM_014845.5']['p_hgvs_slc'] == 'NP_055660.1:p.(D42del)'
         assert results['6-110036337-TGAT-T']['hgvs_t_and_p']['NM_014845.5']['transcript_variant_error'] is None
 
-
     def test_variant166(self):
         variant = '6-152651802-C-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '6-152651802-C-A' in results.keys()
         assert results['6-152651802-C-A']['p_vcf'] == '6-152651802-C-A'
         assert results['6-152651802-C-A']['g_hgvs'] == 'NC_000006.11:g.152651802C>A'
@@ -4922,13 +4590,11 @@ class TestVariantsAuto(object):
         assert results['6-152651802-C-A']['hgvs_t_and_p']['NM_033071.3']['p_hgvs_slc'] == 'NP_149062.1:p.(R4602L)'
         assert results['6-152651802-C-A']['hgvs_t_and_p']['NM_033071.3']['transcript_variant_error'] is None
 
-
     def test_variant167(self):
         variant = '6-152737643-C-G'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '6-152737643-C-G' in results.keys()
         assert results['6-152737643-C-G']['p_vcf'] == '6-152737643-C-G'
         assert results['6-152737643-C-G']['g_hgvs'] == 'NC_000006.11:g.152737643C>G'
@@ -4944,13 +4610,11 @@ class TestVariantsAuto(object):
         assert results['6-152737643-C-G']['hgvs_t_and_p']['NM_033071.3']['p_hgvs_slc'] == 'NP_149062.1:p.(A1984P)'
         assert results['6-152737643-C-G']['hgvs_t_and_p']['NM_033071.3']['transcript_variant_error'] is None
 
-
     def test_variant168(self):
         variant = '7-6026775-T-C'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '7-6026775-T-C' in results.keys()
         assert results['7-6026775-T-C']['p_vcf'] == '7-6026775-T-C'
         assert results['7-6026775-T-C']['g_hgvs'] == 'NC_000007.13:g.6026775T>C'
@@ -5041,13 +4705,11 @@ class TestVariantsAuto(object):
         assert results['7-6026775-T-C']['hgvs_t_and_p']['NM_001322006.1']['p_hgvs_slc'] == 'NP_001308935.1:p.(K489E)'
         assert results['7-6026775-T-C']['hgvs_t_and_p']['NM_001322006.1']['transcript_variant_error'] is None
 
-
     def test_variant169(self):
         variant = '7-55242465-GGAATTAAGAGAAGCA-G'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '7-55242465-GGAATTAAGAGAAGCA-G' in results.keys()
         assert results['7-55242465-GGAATTAAGAGAAGCA-G']['p_vcf'] == '7-55242465-GGAATTAAGAGAAGCA-G'
         assert results['7-55242465-GGAATTAAGAGAAGCA-G']['g_hgvs'] == 'NC_000007.13:g.55242466_55242480del'
@@ -5088,13 +4750,11 @@ class TestVariantsAuto(object):
         assert results['7-55242465-GGAATTAAGAGAAGCA-G']['hgvs_t_and_p']['NM_001346900.1']['p_hgvs_slc'] == 'NP_001333829.1:p.(E693_A697del)'
         assert results['7-55242465-GGAATTAAGAGAAGCA-G']['hgvs_t_and_p']['NM_001346900.1']['transcript_variant_error'] is None
 
-
     def test_variant170(self):
         variant = '7-55248992-T-TTCCAGGAAGCCT'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '7-55248992-T-TTCCAGGAAGCCT' in results.keys()
         assert results['7-55248992-T-TTCCAGGAAGCCT']['p_vcf'] == '7-55248992-T-TTCCAGGAAGCCT'
         assert results['7-55248992-T-TTCCAGGAAGCCT']['g_hgvs'] == 'NC_000007.13:g.55248981_55248992dup'
@@ -5140,13 +4800,11 @@ class TestVariantsAuto(object):
         assert results['7-55248992-T-TTCCAGGAAGCCT']['hgvs_t_and_p']['NR_047551.1']['p_hgvs_slc'] is None
         assert results['7-55248992-T-TTCCAGGAAGCCT']['hgvs_t_and_p']['NR_047551.1']['transcript_variant_error'] is None
 
-
     def test_variant171(self):
         variant = '7-75932111-C-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '7-75932111-C-A' in results.keys()
         assert results['7-75932111-C-A']['p_vcf'] == '7-75932111-C-A'
         assert results['7-75932111-C-A']['g_hgvs'] == 'NC_000007.13:g.75932111C>A'
@@ -5162,13 +4820,11 @@ class TestVariantsAuto(object):
         assert results['7-75932111-C-A']['hgvs_t_and_p']['NM_001540.3']['p_hgvs_slc'] == 'NP_001531.1:p.(L28I)'
         assert results['7-75932111-C-A']['hgvs_t_and_p']['NM_001540.3']['transcript_variant_error'] is None
 
-
     def test_variant172(self):
         variant = '7-91652178-A-AAAC'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '7-91652178-A-AAAC' in results.keys()
         assert results['7-91652178-A-AAAC']['p_vcf'] == '7-91652178-A-AAAC'
         assert results['7-91652178-A-AAAC']['g_hgvs'] == 'NC_000007.13:g.91652179_91652181dup'
@@ -5184,13 +4840,11 @@ class TestVariantsAuto(object):
         assert results['7-91652178-A-AAAC']['hgvs_t_and_p']['NM_147185.2']['p_hgvs_slc'] == 'NP_671714.1:p.(K1335_L1336insQ)'
         assert results['7-91652178-A-AAAC']['hgvs_t_and_p']['NM_147185.2']['transcript_variant_error'] is None
 
-
     def test_variant173(self):
         variant = '7-117199644-ATCT-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '7-117199644-ATCT-A' in results.keys()
         assert results['7-117199644-ATCT-A']['p_vcf'] == '7-117199644-ATCT-A'
         assert results['7-117199644-ATCT-A']['g_hgvs'] == 'NC_000007.13:g.117199646_117199648del'
@@ -5206,13 +4860,11 @@ class TestVariantsAuto(object):
         assert results['7-117199644-ATCT-A']['hgvs_t_and_p']['NM_000492.3']['p_hgvs_slc'] == 'NP_000483.3:p.(F508del)'
         assert results['7-117199644-ATCT-A']['hgvs_t_and_p']['NM_000492.3']['transcript_variant_error'] is None
 
-
     def test_variant174(self):
         variant = '7-140453136-AC-CT'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '7-140453136-AC-CT' in results.keys()
         assert results['7-140453136-AC-CT']['p_vcf'] == '7-140453136-AC-CT'
         assert results['7-140453136-AC-CT']['g_hgvs'] == 'NC_000007.13:g.140453136_140453137delinsCT'
@@ -5239,13 +4891,11 @@ class TestVariantsAuto(object):
         # assert results['7-140453136-AC-CT']['hgvs_t_and_p']['NR_148928.1']['p_hgvs_slc'] is None
         # assert results['7-140453136-AC-CT']['hgvs_t_and_p']['NR_148928.1']['transcript_variant_error'] is None
 
-
     def test_variant175(self):
         variant = '7-140453136-A-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '7-140453136-A-T' in results.keys()
         assert results['7-140453136-A-T']['p_vcf'] == '7-140453136-A-T'
         assert results['7-140453136-A-T']['g_hgvs'] == 'NC_000007.13:g.140453136A>T'
@@ -5272,13 +4922,11 @@ class TestVariantsAuto(object):
         # assert results['7-140453136-A-T']['hgvs_t_and_p']['NR_148928.1']['p_hgvs_slc'] is None
         # assert results['7-140453136-A-T']['hgvs_t_and_p']['NR_148928.1']['transcript_variant_error'] is None
 
-
     def test_variant176(self):
         variant = '7-140453137-C-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '7-140453137-C-T' in results.keys()
         assert results['7-140453137-C-T']['p_vcf'] == '7-140453137-C-T'
         assert results['7-140453137-C-T']['g_hgvs'] == 'NC_000007.13:g.140453137C>T'
@@ -5305,13 +4953,11 @@ class TestVariantsAuto(object):
         # assert results['7-140453137-C-T']['hgvs_t_and_p']['NR_148928.1']['p_hgvs_slc'] is None
         # assert results['7-140453137-C-T']['hgvs_t_and_p']['NR_148928.1']['transcript_variant_error'] is None
 
-
     def test_variant177(self):
         variant = '7-143013488-A-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '7-143013488-A-T' in results.keys()
         assert results['7-143013488-A-T']['p_vcf'] == '7-143013488-A-T'
         assert results['7-143013488-A-T']['g_hgvs'] == 'NC_000007.13:g.143013488A>T'
@@ -5327,13 +4973,11 @@ class TestVariantsAuto(object):
         assert results['7-143013488-A-T']['hgvs_t_and_p']['NM_000083.2']['p_hgvs_slc'] == 'NP_000074.2:p.?'
         assert results['7-143013488-A-T']['hgvs_t_and_p']['NM_000083.2']['transcript_variant_error'] is None
 
-
     def test_variant178(self):
         variant = '7-143018934-G-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '7-143018934-G-A' in results.keys()
         assert results['7-143018934-G-A']['p_vcf'] == '7-143018934-G-A'
         assert results['7-143018934-G-A']['g_hgvs'] == 'NC_000007.13:g.143018934G>A'
@@ -5349,13 +4993,11 @@ class TestVariantsAuto(object):
         assert results['7-143018934-G-A']['hgvs_t_and_p']['NM_000083.2']['p_hgvs_slc'] == 'NP_000074.2:p.(G230E)'
         assert results['7-143018934-G-A']['hgvs_t_and_p']['NM_000083.2']['transcript_variant_error'] is None
 
-
     def test_variant179(self):
         variant = '7-143048771-C-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '7-143048771-C-T' in results.keys()
         assert results['7-143048771-C-T']['p_vcf'] == '7-143048771-C-T'
         assert results['7-143048771-C-T']['g_hgvs'] == 'NC_000007.13:g.143048771C>T'
@@ -5371,13 +5013,11 @@ class TestVariantsAuto(object):
         assert results['7-143048771-C-T']['hgvs_t_and_p']['NM_000083.2']['p_hgvs_slc'] == 'NP_000074.2:p.(R894*)'
         assert results['7-143048771-C-T']['hgvs_t_and_p']['NM_000083.2']['transcript_variant_error'] is None
 
-
     def test_variant180(self):
         variant = '8-1871951-C-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '8-1871951-C-T' in results.keys()
         assert results['8-1871951-C-T']['p_vcf'] == '8-1871951-C-T'
         assert results['8-1871951-C-T']['g_hgvs'] == 'NC_000008.10:g.1871951C>T'
@@ -5403,13 +5043,11 @@ class TestVariantsAuto(object):
         assert results['8-1871951-C-T']['hgvs_t_and_p']['NM_001308153.1']['p_hgvs_slc'] == 'NP_001295082.1:p.(P824L)'
         assert results['8-1871951-C-T']['hgvs_t_and_p']['NM_001308153.1']['transcript_variant_error'] is None
 
-
     def test_variant181(self):
         variant = '9-13112056-T-TG'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '9-13112056-T-TG' in results.keys()
         assert results['9-13112056-T-TG']['p_vcf'] == '9-13112056-T-TG'
         assert results['9-13112056-T-TG']['g_hgvs'] == 'NC_000009.11:g.13112059dup'
@@ -5435,13 +5073,11 @@ class TestVariantsAuto(object):
         assert results['9-13112056-T-TG']['hgvs_t_and_p']['NM_001261406.1']['p_hgvs_slc'] == 'NP_001248335.1:p.(T1865Nfs*15)'
         assert results['9-13112056-T-TG']['hgvs_t_and_p']['NM_001261406.1']['transcript_variant_error'] is None
 
-
     def test_variant182(self):
         variant = '9-21971208-C-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '9-21971208-C-A' in results.keys()
         assert results['9-21971208-C-A']['p_vcf'] == '9-21971208-C-A'
         assert results['9-21971208-C-A']['g_hgvs'] == 'NC_000009.11:g.21971208C>A'
@@ -5472,13 +5108,11 @@ class TestVariantsAuto(object):
         assert results['9-21971208-C-A']['hgvs_t_and_p']['NM_058195.3']['p_hgvs_slc'] == 'NP_478102.2:p.?'
         assert results['9-21971208-C-A']['hgvs_t_and_p']['NM_058195.3']['transcript_variant_error'] is None
 
-
     def test_variant183(self):
         variant = '9-35683240-T-TG'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '9-35683240-T-TG' in results.keys()
         assert results['9-35683240-T-TG']['p_vcf'] == '9-35683240-T-TG'
         assert results['9-35683240-T-TG']['g_hgvs'] == 'NC_000009.11:g.35683248dup'
@@ -5504,13 +5138,11 @@ class TestVariantsAuto(object):
         assert results['9-35683240-T-TG']['hgvs_t_and_p']['NM_001301227.1']['p_hgvs_slc'] == 'NP_001288156.1:p.?'
         assert results['9-35683240-T-TG']['hgvs_t_and_p']['NM_001301227.1']['transcript_variant_error'] is None
 
-
     def test_variant184(self):
         variant = '9-135796754-G-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '9-135796754-G-A' in results.keys()
         assert results['9-135796754-G-A']['p_vcf'] == '9-135796754-G-A'
         assert results['9-135796754-G-A']['g_hgvs'] == 'NC_000009.11:g.135796754G>A'
@@ -5536,13 +5168,11 @@ class TestVariantsAuto(object):
         assert results['9-135796754-G-A']['hgvs_t_and_p']['NM_000368.4']['p_hgvs_slc'] == 'NP_000359.1:p.(R245*)'
         assert results['9-135796754-G-A']['hgvs_t_and_p']['NM_000368.4']['transcript_variant_error'] is None
 
-
     def test_variant185(self):
         variant = 'HG536_PATCH-10391-AC-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'HG536_PATCH-10391-AC-A' in results.keys()
         assert results['HG536_PATCH-10391-AC-A']['p_vcf'] == 'HG536_PATCH-10391-AC-A'
         assert results['HG536_PATCH-10391-AC-A']['g_hgvs'] == 'NW_003571046.1:g.10396del'
@@ -5553,13 +5183,11 @@ class TestVariantsAuto(object):
         assert results['HG536_PATCH-10391-AC-A']['hgvs_t_and_p']['NM_005247.2']['p_hgvs_slc'] == 'NP_005238.1:p.(V206Sfs*117)'
         assert results['HG536_PATCH-10391-AC-A']['hgvs_t_and_p']['NM_005247.2']['transcript_variant_error'] is None
 
-
     def test_variant186(self):
         variant = 'HG865_PATCH-33547-G-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'HG865_PATCH-33547-G-A' in results.keys()
         assert results['HG865_PATCH-33547-G-A']['p_vcf'] == 'HG865_PATCH-33547-G-A'
         assert results['HG865_PATCH-33547-G-A']['g_hgvs'] == 'NW_004070871.1:g.33547G>A'
@@ -5591,13 +5219,11 @@ class TestVariantsAuto(object):
         assert results['HG865_PATCH-33547-G-A']['hgvs_t_and_p']['NM_133266.3']['p_hgvs_slc'] == 'NP_573573.2:p.(L268=)'
         assert results['HG865_PATCH-33547-G-A']['hgvs_t_and_p']['NM_133266.3']['transcript_variant_error'] is None
 
-
     def test_variant187(self):
         variant = 'HG865_PATCH-569441-G-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'HG865_PATCH-569441-G-T' in results.keys()
         assert results['HG865_PATCH-569441-G-T']['p_vcf'] == 'HG865_PATCH-569441-G-T'
         assert results['HG865_PATCH-569441-G-T']['g_hgvs'] == 'NW_004070871.1:g.569441G>T'
@@ -5614,13 +5240,11 @@ class TestVariantsAuto(object):
         # assert results['HG865_PATCH-569441-G-T']['hgvs_t_and_p']['NM_012309.3']['p_hgvs_slc'] is None
         # assert results['HG865_PATCH-569441-G-T']['hgvs_t_and_p']['NM_012309.3']['transcript_variant_error'] == 'start or end or both are beyond the bounds of transcript record'
 
-
     def test_variant188(self):
         variant = 'HG865_PATCH-574546-C-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'HG865_PATCH-574546-C-T' in results.keys()
         assert results['HG865_PATCH-574546-C-T']['p_vcf'] == 'HG865_PATCH-574546-C-T'
         assert results['HG865_PATCH-574546-C-T']['g_hgvs'] == 'NW_004070871.1:g.574546C>T'
@@ -5637,13 +5261,11 @@ class TestVariantsAuto(object):
         # assert results['HG865_PATCH-574546-C-T']['hgvs_t_and_p']['NM_012309.3']['p_hgvs_slc'] is None
         # assert results['HG865_PATCH-574546-C-T']['hgvs_t_and_p']['NM_012309.3']['transcript_variant_error'] == 'start or end or both are beyond the bounds of transcript record'
 
-
     def test_variant189(self):
         variant = 'HSCHR1_1_CTG31-133178-TAG-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'HSCHR1_1_CTG31-133178-TAG-T' in results.keys()
         assert results['HSCHR1_1_CTG31-133178-TAG-T']['p_vcf'] == 'HSCHR1_1_CTG31-133178-TAG-T'
         assert results['HSCHR1_1_CTG31-133178-TAG-T']['g_hgvs'] == 'NW_003315905.1:g.133179_133180del'
@@ -5654,13 +5276,11 @@ class TestVariantsAuto(object):
         assert results['HSCHR1_1_CTG31-133178-TAG-T']['hgvs_t_and_p']['NM_020699.4']['p_hgvs_slc'] == 'NP_065750.1:p.(M259Vfs*22)'
         assert results['HSCHR1_1_CTG31-133178-TAG-T']['hgvs_t_and_p']['NM_020699.4']['transcript_variant_error'] is None
 
-
     def test_variant190(self):
         variant = 'HSCHR6_MHC_MANN_CTG1-3848158-T-G'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'HSCHR6_MHC_MANN_CTG1-3848158-T-G' in results.keys()
         assert results['HSCHR6_MHC_MANN_CTG1-3848158-T-G']['p_vcf'] == 'HSCHR6_MHC_MANN_CTG1-3848158-T-G'
         assert results['HSCHR6_MHC_MANN_CTG1-3848158-T-G']['g_hgvs'] == 'NT_167246.1:g.3848158T>G'
@@ -5671,13 +5291,11 @@ class TestVariantsAuto(object):
         assert results['HSCHR6_MHC_MANN_CTG1-3848158-T-G']['hgvs_t_and_p']['NM_021983.4']['p_hgvs_slc'] == 'NP_068818.4:p.(G164R)'
         assert results['HSCHR6_MHC_MANN_CTG1-3848158-T-G']['hgvs_t_and_p']['NM_021983.4']['transcript_variant_error'] is None
 
-
     def test_variant191(self):
         variant = 'HSCHR6_MHC_MANN_CTG1-3851043-C-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'HSCHR6_MHC_MANN_CTG1-3851043-C-A' in results.keys()
         assert results['HSCHR6_MHC_MANN_CTG1-3851043-C-A']['p_vcf'] == 'HSCHR6_MHC_MANN_CTG1-3851043-C-A'
         assert results['HSCHR6_MHC_MANN_CTG1-3851043-C-A']['g_hgvs'] == 'NT_167246.1:g.3851043C>A'
@@ -5688,13 +5306,11 @@ class TestVariantsAuto(object):
         assert results['HSCHR6_MHC_MANN_CTG1-3851043-C-A']['hgvs_t_and_p']['NM_021983.4']['p_hgvs_slc'] == 'NP_068818.4:p.(E116*)'
         assert results['HSCHR6_MHC_MANN_CTG1-3851043-C-A']['hgvs_t_and_p']['NM_021983.4']['transcript_variant_error'] is None
 
-
     def test_variant192(self):
         variant = 'X-70443101-C-T'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'X-70443101-C-T' in results.keys()
         assert results['X-70443101-C-T']['p_vcf'] == 'X-70443101-C-T'
         assert results['X-70443101-C-T']['g_hgvs'] == 'NC_000023.10:g.70443101C>T'
@@ -5710,13 +5326,11 @@ class TestVariantsAuto(object):
         assert results['X-70443101-C-T']['hgvs_t_and_p']['NM_001097642.2']['p_hgvs_slc'] == 'NP_001091111.1:p.?'
         assert results['X-70443101-C-T']['hgvs_t_and_p']['NM_001097642.2']['transcript_variant_error'] is None
 
-
     def test_variant193(self):
         variant = 'X-153296777-G-A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'X-153296777-G-A' in results.keys()
         assert results['X-153296777-G-A']['p_vcf'] == 'X-153296777-G-A'
         assert results['X-153296777-G-A']['g_hgvs'] == 'NC_000023.10:g.153296777G>A'
@@ -5737,13 +5351,11 @@ class TestVariantsAuto(object):
         assert results['X-153296777-G-A']['hgvs_t_and_p']['NM_001110792.1']['p_hgvs_slc'] == 'NP_001104262.1:p.(R180*)'
         assert results['X-153296777-G-A']['hgvs_t_and_p']['NM_001110792.1']['transcript_variant_error'] is None
 
-
     def test_variant194(self):
         variant = 'NC_000023.11:g.33215693T>G'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.33215693T>G' in results.keys()
         assert results['NC_000023.11:g.33215693T>G']['p_vcf'] == 'X:33215693:T:G'
         assert results['NC_000023.11:g.33215693T>G']['g_hgvs'] == 'NC_000023.11:g.33215693T>G'
@@ -5754,13 +5366,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.33215693T>G']['hgvs_t_and_p']['NM_000109.3']['p_hgvs_slc'] == 'NP_000100.2:p.?'
         assert results['NC_000023.11:g.33215693T>G']['hgvs_t_and_p']['NM_000109.3']['transcript_variant_error'] is None
 
-
     def test_variant195(self):
         variant = 'NC_000023.11:g.33211557T>C'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.33211557T>C' in results.keys()
         assert results['NC_000023.11:g.33211557T>C']['p_vcf'] == 'X:33211557:T:C'
         assert results['NC_000023.11:g.33211557T>C']['g_hgvs'] == 'NC_000023.11:g.33211557T>C'
@@ -5771,13 +5381,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.33211557T>C']['hgvs_t_and_p']['NM_000109.3']['p_hgvs_slc'] == 'NP_000100.2:p.?'
         assert results['NC_000023.11:g.33211557T>C']['hgvs_t_and_p']['NM_000109.3']['transcript_variant_error'] is None
 
-
     def test_variant196(self):
         variant = 'NC_000023.11:g.33211556A>T'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.33211556A>T' in results.keys()
         assert results['NC_000023.11:g.33211556A>T']['p_vcf'] == 'X:33211556:A:T'
         assert results['NC_000023.11:g.33211556A>T']['g_hgvs'] == 'NC_000023.11:g.33211556A>T'
@@ -5793,13 +5401,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.33211556A>T']['hgvs_t_and_p']['NM_004006.2']['p_hgvs_slc'] == 'NP_003997.1:p.?'
         assert results['NC_000023.11:g.33211556A>T']['hgvs_t_and_p']['NM_004006.2']['transcript_variant_error'] is None
 
-
     def test_variant197(self):
         variant = 'NC_000023.11:g.33211450C>G'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.33211450C>G' in results.keys()
         assert results['NC_000023.11:g.33211450C>G']['p_vcf'] == 'X:33211450:C:G'
         assert results['NC_000023.11:g.33211450C>G']['g_hgvs'] == 'NC_000023.11:g.33211450C>G'
@@ -5815,13 +5421,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.33211450C>G']['hgvs_t_and_p']['NM_004006.2']['p_hgvs_slc'] == 'NP_003997.1:p.?'
         assert results['NC_000023.11:g.33211450C>G']['hgvs_t_and_p']['NM_004006.2']['transcript_variant_error'] is None
 
-
     def test_variant198(self):
         variant = 'NC_000006.12:g.152637185C>A'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000006.12:g.152637185C>A' in results.keys()
         assert results['NC_000006.12:g.152637185C>A']['p_vcf'] == '6:152637185:C:A'
         assert results['NC_000006.12:g.152637185C>A']['g_hgvs'] == 'NC_000006.12:g.152637185C>A'
@@ -5832,13 +5436,11 @@ class TestVariantsAuto(object):
         assert results['NC_000006.12:g.152637185C>A']['hgvs_t_and_p']['NM_182961.3']['p_hgvs_slc'] == 'NP_892006.3:p.?'
         assert results['NC_000006.12:g.152637185C>A']['hgvs_t_and_p']['NM_182961.3']['transcript_variant_error'] is None
 
-
     def test_variant199(self):
         variant = 'NC_000006.12:g.152636926C>A'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000006.12:g.152636926C>A' in results.keys()
         assert results['NC_000006.12:g.152636926C>A']['p_vcf'] == '6:152636926:C:A'
         assert results['NC_000006.12:g.152636926C>A']['g_hgvs'] == 'NC_000006.12:g.152636926C>A'
@@ -5849,13 +5451,11 @@ class TestVariantsAuto(object):
         assert results['NC_000006.12:g.152636926C>A']['hgvs_t_and_p']['NM_182961.3']['p_hgvs_slc'] == 'NP_892006.3:p.?'
         assert results['NC_000006.12:g.152636926C>A']['hgvs_t_and_p']['NM_182961.3']['transcript_variant_error'] is None
 
-
     def test_variant200(self):
         variant = 'NC_000023.11:g.33211312T>C'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.33211312T>C' in results.keys()
         assert results['NC_000023.11:g.33211312T>C']['p_vcf'] == 'X:33211312:T:C'
         assert results['NC_000023.11:g.33211312T>C']['g_hgvs'] == 'NC_000023.11:g.33211312T>C'
@@ -5871,13 +5471,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.33211312T>C']['hgvs_t_and_p']['NM_004006.2']['p_hgvs_slc'] == 'NP_003997.1:p.(M1?)'
         assert results['NC_000023.11:g.33211312T>C']['hgvs_t_and_p']['NM_004006.2']['transcript_variant_error'] is None
 
-
     def test_variant201(self):
         variant = 'NC_000023.11:g.33211311A>T'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.33211311A>T' in results.keys()
         assert results['NC_000023.11:g.33211311A>T']['p_vcf'] == 'X:33211311:A:T'
         assert results['NC_000023.11:g.33211311A>T']['g_hgvs'] == 'NC_000023.11:g.33211311A>T'
@@ -5893,13 +5491,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.33211311A>T']['hgvs_t_and_p']['NM_004006.2']['p_hgvs_slc'] == 'NP_003997.1:p.(M1?)'
         assert results['NC_000023.11:g.33211311A>T']['hgvs_t_and_p']['NM_004006.2']['transcript_variant_error'] is None
 
-
     def test_variant202(self):
         variant = 'NC_000023.11:g.33211310C>G'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.33211310C>G' in results.keys()
         assert results['NC_000023.11:g.33211310C>G']['p_vcf'] == 'X:33211310:C:G'
         assert results['NC_000023.11:g.33211310C>G']['g_hgvs'] == 'NC_000023.11:g.33211310C>G'
@@ -5915,13 +5511,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.33211310C>G']['hgvs_t_and_p']['NM_004006.2']['p_hgvs_slc'] == 'NP_003997.1:p.(M1?)'
         assert results['NC_000023.11:g.33211310C>G']['hgvs_t_and_p']['NM_004006.2']['transcript_variant_error'] is None
 
-
     def test_variant203(self):
         variant = 'NC_000023.11:g.32849793A>T'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.32849793A>T' in results.keys()
         assert results['NC_000023.11:g.32849793A>T']['p_vcf'] == 'X:32849793:A:T'
         assert results['NC_000023.11:g.32849793A>T']['g_hgvs'] == 'NC_000023.11:g.32849793A>T'
@@ -5947,13 +5541,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.32849793A>T']['hgvs_t_and_p']['NM_004010.3']['p_hgvs_slc'] == 'NP_004001.1:p.?'
         assert results['NC_000023.11:g.32849793A>T']['hgvs_t_and_p']['NM_004010.3']['transcript_variant_error'] is None
 
-
     def test_variant204(self):
         variant = 'NC_000023.11:g.32823295C>G'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.32823295C>G' in results.keys()
         assert results['NC_000023.11:g.32823295C>G']['p_vcf'] == 'X:32823295:C:G'
         assert results['NC_000023.11:g.32823295C>G']['g_hgvs'] == 'NC_000023.11:g.32823295C>G'
@@ -5979,13 +5571,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.32823295C>G']['hgvs_t_and_p']['NM_004010.3']['p_hgvs_slc'] == 'NP_004001.1:p.?'
         assert results['NC_000023.11:g.32823295C>G']['hgvs_t_and_p']['NM_004010.3']['transcript_variant_error'] is None
 
-
     def test_variant205(self):
         variant = 'NC_000023.11:g.32823294C>A'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.32823294C>A' in results.keys()
         assert results['NC_000023.11:g.32823294C>A']['p_vcf'] == 'X:32823294:C:A'
         assert results['NC_000023.11:g.32823294C>A']['g_hgvs'] == 'NC_000023.11:g.32823294C>A'
@@ -6011,13 +5601,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.32823294C>A']['hgvs_t_and_p']['NM_004010.3']['p_hgvs_slc'] == 'NP_004001.1:p.?'
         assert results['NC_000023.11:g.32823294C>A']['hgvs_t_and_p']['NM_004010.3']['transcript_variant_error'] is None
 
-
     def test_variant206(self):
         variant = 'NC_000023.11:g.32823293A>G'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.32823293A>G' in results.keys()
         assert results['NC_000023.11:g.32823293A>G']['p_vcf'] == 'X:32823293:A:G'
         assert results['NC_000023.11:g.32823293A>G']['g_hgvs'] == 'NC_000023.11:g.32823293A>G'
@@ -6043,13 +5631,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.32823293A>G']['hgvs_t_and_p']['NM_004010.3']['p_hgvs_slc'] == 'NP_004001.1:p.?'
         assert results['NC_000023.11:g.32823293A>G']['hgvs_t_and_p']['NM_004010.3']['transcript_variant_error'] is None
 
-
     def test_variant207(self):
         variant = 'NC_000023.11:g.32823292T>G'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.32823292T>G' in results.keys()
         assert results['NC_000023.11:g.32823292T>G']['p_vcf'] == 'X:32823292:T:G'
         assert results['NC_000023.11:g.32823292T>G']['g_hgvs'] == 'NC_000023.11:g.32823292T>G'
@@ -6075,13 +5661,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.32823292T>G']['hgvs_t_and_p']['NM_004010.3']['p_hgvs_slc'] == 'NP_004001.1:p.?'
         assert results['NC_000023.11:g.32823292T>G']['hgvs_t_and_p']['NM_004010.3']['transcript_variant_error'] is None
 
-
     def test_variant208(self):
         variant = 'NC_000023.11:g.32823291T>G'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.32823291T>G' in results.keys()
         assert results['NC_000023.11:g.32823291T>G']['p_vcf'] == 'X:32823291:T:G'
         assert results['NC_000023.11:g.32823291T>G']['g_hgvs'] == 'NC_000023.11:g.32823291T>G'
@@ -6107,13 +5691,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.32823291T>G']['hgvs_t_and_p']['NM_004010.3']['p_hgvs_slc'] == 'NP_004001.1:p.?'
         assert results['NC_000023.11:g.32823291T>G']['hgvs_t_and_p']['NM_004010.3']['transcript_variant_error'] is None
 
-
     def test_variant209(self):
         variant = 'NC_000023.11:g.32823290C>G'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.32823290C>G' in results.keys()
         assert results['NC_000023.11:g.32823290C>G']['p_vcf'] == 'X:32823290:C:G'
         assert results['NC_000023.11:g.32823290C>G']['g_hgvs'] == 'NC_000023.11:g.32823290C>G'
@@ -6139,13 +5721,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.32823290C>G']['hgvs_t_and_p']['NM_004010.3']['p_hgvs_slc'] == 'NP_004001.1:p.?'
         assert results['NC_000023.11:g.32823290C>G']['hgvs_t_and_p']['NM_004010.3']['transcript_variant_error'] is None
 
-
     def test_variant210(self):
         variant = 'NC_000023.11:g.32823289T>A'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.32823289T>A' in results.keys()
         assert results['NC_000023.11:g.32823289T>A']['p_vcf'] == 'X:32823289:T:A'
         assert results['NC_000023.11:g.32823289T>A']['g_hgvs'] == 'NC_000023.11:g.32823289T>A'
@@ -6171,13 +5751,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.32823289T>A']['hgvs_t_and_p']['NM_004010.3']['p_hgvs_slc'] == 'NP_004001.1:p.?'
         assert results['NC_000023.11:g.32823289T>A']['hgvs_t_and_p']['NM_004010.3']['transcript_variant_error'] is None
 
-
     def test_variant211(self):
         variant = 'NC_000023.11:g.32823288T>G'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.32823288T>G' in results.keys()
         assert results['NC_000023.11:g.32823288T>G']['p_vcf'] == 'X:32823288:T:G'
         assert results['NC_000023.11:g.32823288T>G']['g_hgvs'] == 'NC_000023.11:g.32823288T>G'
@@ -6203,13 +5781,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.32823288T>G']['hgvs_t_and_p']['NM_004010.3']['p_hgvs_slc'] == 'NP_004001.1:p.?'
         assert results['NC_000023.11:g.32823288T>G']['hgvs_t_and_p']['NM_004010.3']['transcript_variant_error'] is None
 
-
     def test_variant212(self):
         variant = 'NC_000023.11:g.32820903T>A'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.32820903T>A' in results.keys()
         assert results['NC_000023.11:g.32820903T>A']['p_vcf'] == 'X:32820903:T:A'
         assert results['NC_000023.11:g.32820903T>A']['g_hgvs'] == 'NC_000023.11:g.32820903T>A'
@@ -6235,13 +5811,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.32820903T>A']['hgvs_t_and_p']['NM_004010.3']['p_hgvs_slc'] == 'NP_004001.1:p.?'
         assert results['NC_000023.11:g.32820903T>A']['hgvs_t_and_p']['NM_004010.3']['transcript_variant_error'] is None
 
-
     def test_variant213(self):
         variant = 'NC_000023.11:g.32819968A>G'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.32819968A>G' in results.keys()
         assert results['NC_000023.11:g.32819968A>G']['p_vcf'] == 'X:32819968:A:G'
         assert results['NC_000023.11:g.32819968A>G']['g_hgvs'] == 'NC_000023.11:g.32819968A>G'
@@ -6267,13 +5841,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.32819968A>G']['hgvs_t_and_p']['NM_004010.3']['p_hgvs_slc'] == 'NP_004001.1:p.?'
         assert results['NC_000023.11:g.32819968A>G']['hgvs_t_and_p']['NM_004010.3']['transcript_variant_error'] is None
 
-
     def test_variant214(self):
         variant = 'NC_000023.11:g.32698556G>C'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.32698556G>C' in results.keys()
         assert results['NC_000023.11:g.32698556G>C']['p_vcf'] == 'X:32698556:G:C'
         assert results['NC_000023.11:g.32698556G>C']['g_hgvs'] == 'NC_000023.11:g.32698556G>C'
@@ -6299,13 +5871,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.32698556G>C']['hgvs_t_and_p']['NM_004010.3']['p_hgvs_slc'] == 'NP_004001.1:p.?'
         assert results['NC_000023.11:g.32698556G>C']['hgvs_t_and_p']['NM_004010.3']['transcript_variant_error'] is None
 
-
     def test_variant215(self):
         variant = 'NC_000023.11:g.32698555T>G'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.32698555T>G' in results.keys()
         assert results['NC_000023.11:g.32698555T>G']['p_vcf'] == 'X:32698555:T:G'
         assert results['NC_000023.11:g.32698555T>G']['g_hgvs'] == 'NC_000023.11:g.32698555T>G'
@@ -6331,13 +5901,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.32698555T>G']['hgvs_t_and_p']['NM_004010.3']['p_hgvs_slc'] == 'NP_004001.1:p.?'
         assert results['NC_000023.11:g.32698555T>G']['hgvs_t_and_p']['NM_004010.3']['transcript_variant_error'] is None
 
-
     def test_variant216(self):
         variant = 'NC_000023.11:g.32698554A>C'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.32698554A>C' in results.keys()
         assert results['NC_000023.11:g.32698554A>C']['p_vcf'] == 'X:32698554:A:C'
         assert results['NC_000023.11:g.32698554A>C']['g_hgvs'] == 'NC_000023.11:g.32698554A>C'
@@ -6363,13 +5931,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.32698554A>C']['hgvs_t_and_p']['NM_004010.3']['p_hgvs_slc'] == 'NP_004001.1:p.?'
         assert results['NC_000023.11:g.32698554A>C']['hgvs_t_and_p']['NM_004010.3']['transcript_variant_error'] is None
 
-
     def test_variant217(self):
         variant = 'NC_000023.11:g.32819967G>T'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.32819967G>T' in results.keys()
         assert results['NC_000023.11:g.32819967G>T']['p_vcf'] == 'X:32819967:G:T'
         assert results['NC_000023.11:g.32819967G>T']['g_hgvs'] == 'NC_000023.11:g.32819967G>T'
@@ -6395,13 +5961,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.32819967G>T']['hgvs_t_and_p']['NM_004010.3']['p_hgvs_slc'] == 'NP_004001.1:p.?'
         assert results['NC_000023.11:g.32819967G>T']['hgvs_t_and_p']['NM_004010.3']['transcript_variant_error'] is None
 
-
     def test_variant218(self):
         variant = 'NC_000023.11:g.32819475T>A'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.32819475T>A' in results.keys()
         assert results['NC_000023.11:g.32819475T>A']['p_vcf'] == 'X:32819475:T:A'
         assert results['NC_000023.11:g.32819475T>A']['g_hgvs'] == 'NC_000023.11:g.32819475T>A'
@@ -6427,13 +5991,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.32819475T>A']['hgvs_t_and_p']['NM_004010.3']['p_hgvs_slc'] == 'NP_004001.1:p.?'
         assert results['NC_000023.11:g.32819475T>A']['hgvs_t_and_p']['NM_004010.3']['transcript_variant_error'] is None
 
-
     def test_variant219(self):
         variant = 'NC_000023.11:g.32816643A>C'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.32816643A>C' in results.keys()
         assert results['NC_000023.11:g.32816643A>C']['p_vcf'] == 'X:32816643:A:C'
         assert results['NC_000023.11:g.32816643A>C']['g_hgvs'] == 'NC_000023.11:g.32816643A>C'
@@ -6459,13 +6021,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.32816643A>C']['hgvs_t_and_p']['NM_004010.3']['p_hgvs_slc'] == 'NP_004001.1:p.?'
         assert results['NC_000023.11:g.32816643A>C']['hgvs_t_and_p']['NM_004010.3']['transcript_variant_error'] is None
 
-
     def test_variant220(self):
         variant = 'NC_000023.11:g.32816642T>A'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.32816642T>A' in results.keys()
         assert results['NC_000023.11:g.32816642T>A']['p_vcf'] == 'X:32816642:T:A'
         assert results['NC_000023.11:g.32816642T>A']['g_hgvs'] == 'NC_000023.11:g.32816642T>A'
@@ -6491,13 +6051,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.32816642T>A']['hgvs_t_and_p']['NM_004010.3']['p_hgvs_slc'] == 'NP_004001.1:p.?'
         assert results['NC_000023.11:g.32816642T>A']['hgvs_t_and_p']['NM_004010.3']['transcript_variant_error'] is None
 
-
     def test_variant221(self):
         variant = 'NC_000023.11:g.32816641C>T'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.32816641C>T' in results.keys()
         assert results['NC_000023.11:g.32816641C>T']['p_vcf'] == 'X:32816641:C:T'
         assert results['NC_000023.11:g.32816641C>T']['g_hgvs'] == 'NC_000023.11:g.32816641C>T'
@@ -6523,13 +6081,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.32816641C>T']['hgvs_t_and_p']['NM_004010.3']['p_hgvs_slc'] == 'NP_004001.1:p.?'
         assert results['NC_000023.11:g.32816641C>T']['hgvs_t_and_p']['NM_004010.3']['transcript_variant_error'] is None
 
-
     def test_variant222(self):
         variant = 'NC_000023.11:g.32816640C>T'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.32816640C>T' in results.keys()
         assert results['NC_000023.11:g.32816640C>T']['p_vcf'] == 'X:32816640:C:T'
         assert results['NC_000023.11:g.32816640C>T']['g_hgvs'] == 'NC_000023.11:g.32816640C>T'
@@ -6555,13 +6111,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.32816640C>T']['hgvs_t_and_p']['NM_004010.3']['p_hgvs_slc'] == 'NP_004001.1:p.?'
         assert results['NC_000023.11:g.32816640C>T']['hgvs_t_and_p']['NM_004010.3']['transcript_variant_error'] is None
 
-
     def test_variant223(self):
         variant = 'NC_000023.11:g.31121921A>G'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.31121921A>G' in results.keys()
         assert results['NC_000023.11:g.31121921A>G']['p_vcf'] == 'X:31121921:A:G'
         assert results['NC_000023.11:g.31121921A>G']['g_hgvs'] == 'NC_000023.11:g.31121921A>G'
@@ -6647,13 +6201,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.31121921A>G']['hgvs_t_and_p']['NM_004012.3']['p_hgvs_slc'] == 'NP_004003.1:p.(*2342Qext*17)'
         assert results['NC_000023.11:g.31121921A>G']['hgvs_t_and_p']['NM_004012.3']['transcript_variant_error'] is None
 
-
     def test_variant224(self):
         variant = 'NC_000023.11:g.31121920T>C'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.31121920T>C' in results.keys()
         assert results['NC_000023.11:g.31121920T>C']['p_vcf'] == 'X:31121920:T:C'
         assert results['NC_000023.11:g.31121920T>C']['g_hgvs'] == 'NC_000023.11:g.31121920T>C'
@@ -6739,13 +6291,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.31121920T>C']['hgvs_t_and_p']['NM_004012.3']['p_hgvs_slc'] == 'NP_004003.1:p.(*2342Wext*17)'
         assert results['NC_000023.11:g.31121920T>C']['hgvs_t_and_p']['NM_004012.3']['transcript_variant_error'] is None
 
-
     def test_variant225(self):
         variant = 'NC_000023.11:g.31121919C>A'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.31121919C>A' in results.keys()
         assert results['NC_000023.11:g.31121919C>A']['p_vcf'] == 'X:31121919:C:A'
         assert results['NC_000023.11:g.31121919C>A']['g_hgvs'] == 'NC_000023.11:g.31121919C>A'
@@ -6831,13 +6381,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.31121919C>A']['hgvs_t_and_p']['NM_004012.3']['p_hgvs_slc'] == 'NP_004003.1:p.(*2342Yext*17)'
         assert results['NC_000023.11:g.31121919C>A']['hgvs_t_and_p']['NM_004012.3']['transcript_variant_error'] is None
 
-
     def test_variant226(self):
         variant = 'NC_000023.11:g.31121131T>G'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.31121131T>G' in results.keys()
         assert results['NC_000023.11:g.31121131T>G']['p_vcf'] == 'X:31121131:T:G'
         assert results['NC_000023.11:g.31121131T>G']['g_hgvs'] == 'NC_000023.11:g.31121131T>G'
@@ -6923,39 +6471,33 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.31121131T>G']['hgvs_t_and_p']['NM_004012.3']['p_hgvs_slc'] == 'NP_004003.1:p.?'
         assert results['NC_000023.11:g.31121131T>G']['hgvs_t_and_p']['NM_004012.3']['transcript_variant_error'] is None
 
-
     # Test removed due to major changes to the transcript versions an QC requirments between UTA and VVTA.
     def test_variant227(self):
         variant = 'NC_000023.11:g.31119228G>T'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.31119228G>T' in results.keys()
         assert results['NC_000023.11:g.31119228G>T']['p_vcf'] == 'X:31119228:G:T'
         assert results['NC_000023.11:g.31119228G>T']['g_hgvs'] == 'NC_000023.11:g.31119228G>T'
         assert results['NC_000023.11:g.31119228G>T']['genomic_variant_error'] is None
-
 
     def test_variant229(self):
         variant = 'NC_000023.11:g.31118748C>A'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.31118748C>A' in results.keys()
         assert results['NC_000023.11:g.31118748C>A']['p_vcf'] == 'X:31118748:C:A'
         assert results['NC_000023.11:g.31118748C>A']['g_hgvs'] == 'NC_000023.11:g.31118748C>A'
         assert results['NC_000023.11:g.31118748C>A']['genomic_variant_error'] is None
         assert results['NC_000023.11:g.31118748C>A']['hgvs_t_and_p'] == {'intergenic': {'alt_genomic_loci': None}}
 
-
     def test_variant230(self):
         variant = 'NC_000011.10:g.70487682T>A'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000011.10:g.70487682T>A' in results.keys()
         assert results['NC_000011.10:g.70487682T>A']['p_vcf'] == '11:70487682:T:A'
         assert results['NC_000011.10:g.70487682T>A']['g_hgvs'] == 'NC_000011.10:g.70487682T>A'
@@ -6975,14 +6517,12 @@ class TestVariantsAuto(object):
         assert results['NC_000011.10:g.70487682T>A']['hgvs_t_and_p']['NR_110766.1']['p_hgvs_tlc'] is None
         assert results['NC_000011.10:g.70487682T>A']['hgvs_t_and_p']['NR_110766.1']['p_hgvs_slc'] is None
         assert results['NC_000011.10:g.70487682T>A']['hgvs_t_and_p']['NR_110766.1']['transcript_variant_error'] is None
-
 
     def test_variant231(self):
         variant = 'NC_000011.10:g.70487682T>A'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000011.10:g.70487682T>A' in results.keys()
         assert results['NC_000011.10:g.70487682T>A']['p_vcf'] == '11:70487682:T:A'
         assert results['NC_000011.10:g.70487682T>A']['g_hgvs'] == 'NC_000011.10:g.70487682T>A'
@@ -7003,13 +6543,11 @@ class TestVariantsAuto(object):
         assert results['NC_000011.10:g.70487682T>A']['hgvs_t_and_p']['NR_110766.1']['p_hgvs_slc'] is None
         assert results['NC_000011.10:g.70487682T>A']['hgvs_t_and_p']['NR_110766.1']['transcript_variant_error'] is None
 
-
     def test_variant232(self):
         variant = 'NC_000023.11:g.32485077T>C'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.32485077T>C' in results.keys()
         assert results['NC_000023.11:g.32485077T>C']['p_vcf'] == 'X:32485077:T:C'
         assert results['NC_000023.11:g.32485077T>C']['g_hgvs'] == 'NC_000023.11:g.32485077T>C'
@@ -7035,13 +6573,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.32485077T>C']['hgvs_t_and_p']['NM_004010.3']['p_hgvs_slc'] == 'NP_004001.1:p.(G759=)'
         assert results['NC_000023.11:g.32485077T>C']['hgvs_t_and_p']['NM_004010.3']['transcript_variant_error'] is None
 
-
     def test_variant233(self):
         variant = 'NC_000011.10:g.70487682T>A'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000011.10:g.70487682T>A' in results.keys()
         assert results['NC_000011.10:g.70487682T>A']['p_vcf'] == '11:70487682:T:A'
         assert results['NC_000011.10:g.70487682T>A']['g_hgvs'] == 'NC_000011.10:g.70487682T>A'
@@ -7062,26 +6598,22 @@ class TestVariantsAuto(object):
         assert results['NC_000011.10:g.70487682T>A']['hgvs_t_and_p']['NR_110766.1']['p_hgvs_slc'] is None
         assert results['NC_000011.10:g.70487682T>A']['hgvs_t_and_p']['NR_110766.1']['transcript_variant_error'] is None
 
-
     def test_variant234(self):
         variant = 'NC_000023.11:g.32503194A>N'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.32503194A>N' in results.keys()
         assert results['NC_000023.11:g.32503194A>N']['p_vcf'] is None
         assert results['NC_000023.11:g.32503194A>N']['g_hgvs'] is None
         assert results['NC_000023.11:g.32503194A>N']['genomic_variant_error'] == 'NC_000023.11:g.32503194A>N: Variant reference (A) does not agree with reference sequence (C)'
         assert results['NC_000023.11:g.32503194A>N']['hgvs_t_and_p'] is None
 
-
     def test_variant235(self):
         variant = 'NC_000023.11:g.32503194C>N'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.32503194C>N' in results.keys()
         assert results['NC_000023.11:g.32503194C>N']['p_vcf'] == 'X:32503194:C:N'
         assert results['NC_000023.11:g.32503194C>N']['g_hgvs'] == 'NC_000023.11:g.32503194C>N'
@@ -7107,13 +6639,11 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.32503194C>N']['hgvs_t_and_p']['NM_004010.3']['p_hgvs_slc'] == 'NP_004001.1:p.?'
         assert results['NC_000023.11:g.32503194C>N']['hgvs_t_and_p']['NM_004010.3']['transcript_variant_error'] is None
 
-
     def test_variant236(self):
         variant = 'NC_000023.11:g.32644229='
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.32644229=' in results.keys()
         assert results['NC_000023.11:g.32644229=']['p_vcf'] == 'X:32644229:A:A'
         assert results['NC_000023.11:g.32644229=']['g_hgvs'] == 'NC_000023.11:g.32644229='
@@ -7139,39 +6669,33 @@ class TestVariantsAuto(object):
         assert results['NC_000023.11:g.32644229=']['hgvs_t_and_p']['NM_004010.3']['p_hgvs_slc'] == 'NP_004001.1:p.(L289=)'
         assert results['NC_000023.11:g.32644229=']['hgvs_t_and_p']['NM_004010.3']['transcript_variant_error'] is None
 
-
     def test_variant237(self):
         variant = 'NC_000023.11:g.32849761C>A'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000023.11:g.32849761C>A' in results.keys()
         assert results['NC_000023.11:g.32849761C>A']['p_vcf'] is None
         assert results['NC_000023.11:g.32849761C>A']['g_hgvs'] is None
         assert results['NC_000023.11:g.32849761C>A']['genomic_variant_error'] == 'NC_000023.11:g.32849761C>A: Variant reference (C) does not agree with reference sequence (T)'
         assert results['NC_000023.11:g.32849761C>A']['hgvs_t_and_p'] is None
 
-
     def test_variant238(self):
         variant = '14-105246588-TCT-T'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '14-105246588-TCT-T' in results.keys()
         assert results['14-105246588-TCT-T']['p_vcf'] is None
         assert results['14-105246588-TCT-T']['g_hgvs'] is None
         assert results['14-105246588-TCT-T']['genomic_variant_error'] == 'NC_000014.9:g.105246588_105246590delTCTinsT: Variant reference (TCT) does not agree with reference sequence (GCC)'
         assert results['14-105246588-TCT-T']['hgvs_t_and_p'] is None
 
-
     def test_variant239(self):
         variant = '11-108218120-C-CT'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '11-108218120-C-CT' in results.keys()
         assert results['11-108218120-C-CT']['p_vcf'] == '11-108218120-C-CT'
         assert results['11-108218120-C-CT']['g_hgvs'] == 'NC_000011.10:g.108218122dup'
@@ -7187,13 +6711,11 @@ class TestVariantsAuto(object):
         assert results['11-108218120-C-CT']['hgvs_t_and_p']['NM_001321307.1']['p_hgvs_slc'] == 'NP_001308236.1:p.?'
         assert results['11-108218120-C-CT']['hgvs_t_and_p']['NM_001321307.1']['transcript_variant_error'] is None
 
-
     def test_variant240(self):
         variant = '11-108218120-CT-C'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert '11-108218120-CT-C' in results.keys()
         assert results['11-108218120-CT-C']['p_vcf'] == '11-108218120-CT-C'
         assert results['11-108218120-CT-C']['g_hgvs'] == 'NC_000011.10:g.108218122del'
@@ -7209,13 +6731,11 @@ class TestVariantsAuto(object):
         assert results['11-108218120-CT-C']['hgvs_t_and_p']['NM_001321307.1']['p_hgvs_slc'] == 'NP_001308236.1:p.?'
         assert results['11-108218120-CT-C']['hgvs_t_and_p']['NM_001321307.1']['transcript_variant_error'] is None
 
-
     def test_variant241(self):
         variant = 'X-76813149-AT-AATA'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'X-76813149-AT-AATA' in results.keys()
         assert results['X-76813149-AT-AATA']['p_vcf'] == 'X-76813149-AT-AATA'
         assert results['X-76813149-AT-AATA']['g_hgvs'] == 'NC_000023.11:g.76813150delinsATA'
@@ -7256,25 +6776,21 @@ class TestVariantsAuto(object):
         assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110403.2']['p_hgvs_slc'] is None
         assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110403.2']['transcript_variant_error'] is None
 
-
     def test_issue_322a(self):
         variant = 'NC_000017.10:g.48275363CC>A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000017.10:g.48275363CC>A' in results.keys()
         assert results['NC_000017.10:g.48275363CC>A']['g_hgvs'] == 'NC_000017.10:g.48275363_48275364delinsA'
         assert results['NC_000017.10:g.48275363CC>A']['genomic_variant_error'] == "NC_000017.10:g.48275363CC>A automapped to" \
                                                                                   " NC_000017.10:g.48275363_48275364delCCinsA"
-
 
     def test_issue_322b(self):
         variant = 'NC_000017.10:g.48275363CG>A'
         results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-
         assert 'NC_000017.10:g.48275363CG>A' in results.keys()
         assert results['NC_000017.10:g.48275363CG>A']['g_hgvs'] is None
         assert results['NC_000017.10:g.48275363CG>A']['genomic_variant_error'] == "NC_000017.10:g.48275363CG>A " \
@@ -7285,4 +6801,3 @@ class TestVariantsAuto(object):
                                                                                   "48275363_48275364delCGinsA: Variant " \
                                                                                   "reference (CG) does not agree with " \
                                                                                   "reference sequence (CC)"
-
