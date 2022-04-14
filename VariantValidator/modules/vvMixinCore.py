@@ -180,6 +180,16 @@ class Mixin(vvMixinConverters.Mixin):
                         primary_assembly = my_variant.primary_assembly
                     logger.debug("Completed string formatting")
 
+                    # Sort out o.
+                    if ":o." in my_variant.quibble:
+                        if "NC_012920.1" in my_variant.quibble or "NC_001807.4" in my_variant.quibble:
+                            my_variant.quibble = my_variant.quibble.replace(":o.", ":m.")
+                            my_variant.warnings.append("Reference sequence type o. should only be used for circular "
+                                                       "reference sequences that are not mitochondrial. Instead use m.")
+                        else:
+                            my_variant.warnings.append("Reference sequence type o. should only be used for circular "
+                                                       "reference sequences that are not mitochondrial. Instead use m.")
+
                     try:
                         toskip = format_converters.initial_format_conversions(my_variant, self,
                                                                               select_transcripts_dict_plus_version)
@@ -509,13 +519,11 @@ class Mixin(vvMixinConverters.Mixin):
                     # Current theory, should apply to delins, ins.
                     # We may also need to expand to http://varnomen.hgvs.org/recommendations/DNA/variant/insertion/
                     # complex insertions
-
                     # Validate syntax of the now HGVS variants
                     try:
                         input_parses = self.hp.parse_hgvs_variant(str(formatted_variant))
                         my_variant.hgvs_formatted = input_parses
                     except vvhgvs.exceptions.HGVSError as e:
-
                         # Look for T not U!
                         posedit = formatted_variant.split(':')[-1]
                         if 'T' in posedit and "r." in posedit:
@@ -639,11 +647,13 @@ class Mixin(vvMixinConverters.Mixin):
                                 continue
 
                     elif my_variant.hgvs_formatted.posedit.pos.end.base < my_variant.hgvs_formatted.posedit.pos.start.base:
-                        error = 'Interval end position ' + str(my_variant.hgvs_formatted.posedit.pos.end.base) + \
-                                ' < interval start position ' + str(my_variant.hgvs_formatted.posedit.pos.start.base)
-                        my_variant.warnings.append(error)
-                        logger.warning(error)
-                        continue
+                        if "NC_012920.1" not in my_variant.hgvs_formatted.ac and\
+                                "NC_001807.4" not in my_variant.hgvs_formatted.ac:
+                            error = 'Interval end position ' + str(my_variant.hgvs_formatted.posedit.pos.end.base) + \
+                                    ' < interval start position ' + str(my_variant.hgvs_formatted.posedit.pos.start.base)
+                            my_variant.warnings.append(error)
+                            logger.warning(error)
+                            continue
 
                     # Catch missing version number in refseq
                     is_version = re.compile(r"\d\.\d")
@@ -924,6 +934,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                                       self.sf)
                             except vvhgvs.exceptions.HGVSInvalidVariantError:
                                 continue
+
                             # Identify primary assembly positions
                             if 'NC_' in alt_gen_var.ac and par is False:
                                 if 'NC_000' not in alt_gen_var.ac and 'NC_012920.1' not in alt_gen_var.ac and \
@@ -1326,10 +1337,17 @@ class Mixin(vvMixinConverters.Mixin):
                 variant_warnings = []
                 accession = variant.hgvs_transcript_variant.split(':')[0]
                 term = "(" + accession + ")"
+                term_2 = "%s automapped to" % tx_variant
+                term_3 = "%s automapped to" % genomic_variant
                 for vt in variant.warnings:
+a
                     #  Do not warn a transcript update is available for the most recent transcript
                     if term in vt and "A more recent version of the selected reference sequence" in vt:
                         continue
+                    # Remove spurious updates away form the correct output
+                    elif (term_2 in vt and tx_variant != "") or (term_3 in vt and genomic_variant != ""):
+                        continue
+
                     else:
                         variant_warnings.append(vt)
                 variant.warnings = variant_warnings

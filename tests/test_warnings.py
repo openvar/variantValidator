@@ -232,6 +232,10 @@ class TestWarnings(TestCase):
                "please use (m). For g. variants, please use a linear genomic reference sequence" in \
                result["NC_012920.1:g.100del"]["NC_012920.1:g.100del"]["genomic_variant_error"]
 
+        result = simpleVariantFormatter.format('NC_012920.1:g.100del', 'hg19', 'refseq', None, False, True)
+        assert "NC_012920.1 is not associated with genome build hg19, instead use genome build GRCh37" in \
+               result["NC_012920.1:g.100del"]["NC_012920.1:g.100del"]["genomic_variant_error"]
+
         variant = 'NC_012920.1:g.100del'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
@@ -239,6 +243,43 @@ class TestWarnings(TestCase):
                "please use (m). For g. variants, please use a linear genomic reference sequence" in \
                results['mitochondrial_variant_1']['validation_warnings'][0]
 
+    def test_issue_351(self):
+        variant = 'M:m.1000_100del'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'This is not a valid HGVS variant description, because no reference sequence ID has been provided, ' \
+               'instead use NC_012920.1:m.1000_100del' in \
+               results['validation_warning_1']['validation_warnings'][0]
+        assert 'The variant positions are valid but we cannot normalize variants spanning the origin of ' \
+               'circular reference sequences' in \
+               results['validation_warning_1']['validation_warnings'][1]
+
+        variant = 'chr1:g.100000del'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'This is not a valid HGVS variant description, because no reference sequence ID has been provided' in \
+               results['intergenic_variant_1']['validation_warnings'][0]
+
+    def test_issue_352(self):
+        variant = 'NC_000001.10:o.100_1000del'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'Reference sequence type o. should only be used for circular reference sequences that are ' \
+               'not mitochondrial. Instead use m.' in \
+               results['validation_warning_1']['validation_warnings'][0]
+
+        variant = 'NC_012920.1:o.100_1000del'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'Reference sequence type o. should only be used for circular reference sequences that are not ' \
+               'mitochondrial. Instead use m.' in \
+               results['mitochondrial_variant_1']['validation_warnings'][0]
+
+    def test_issue_365(self):
+        variant = 'NM_000277.3:c.1315+5_1315+6insGTGTAACAG'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert results['NM_000277.3:c.1315+5_1315+6insGTGTAACAG']['validation_warnings'] == []
 
 # <LICENSE>
 # Copyright (C) 2016-2022 VariantValidator Contributors

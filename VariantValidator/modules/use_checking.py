@@ -69,9 +69,10 @@ def structure_checks(variant, validator):
     input_parses = validator.hp.parse_hgvs_variant(variant.quibble)
     variant.input_parses = input_parses
     variant.gene_symbol = validator.db.get_gene_symbol_from_transcript_id(variant.input_parses.ac)
+
     if variant.gene_symbol == 'none':
         variant.gene_symbol = ''
-    if input_parses.type == 'g':
+    if input_parses.type == 'g' or input_parses.type == 'm':
         check = structure_checks_g(variant, validator)
         if check:
             return True
@@ -105,10 +106,24 @@ def structure_checks_g(variant, validator):
     except Exception as e:
         if "does not agree with reference sequence ()" in str(e):
             e = "The specified coordinate is outside the boundaries of reference sequence %s " % variant.input_parses.ac
-        error = str(e)
-        variant.warnings.append(error)
-        logger.warning(error)
-        return True
+
+        if "base start position must be <= end position" in str(e) and (
+                "NC_012920.1" in variant.hgvs_formatted.ac or
+                "NC_001807.4" in variant.hgvs_formatted.ac):
+
+            if variant.hgvs_formatted.ac not in variant.original:
+                err = "This is not a valid HGVS variant description, because no reference sequence ID has " \
+                      "been provided, instead use %s" % str(variant.hgvs_formatted)
+                variant.warnings.append(err)
+            variant.warnings.append("The variant positions are valid but we cannot normalize variants spanning "
+                                    "the origin of circular reference sequences")
+            return True
+
+        else:
+            error = str(e)
+            variant.warnings.append(error)
+            logger.warning(error)
+            return True
 
     # Additional test
     try:

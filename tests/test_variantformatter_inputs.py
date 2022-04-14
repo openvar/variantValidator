@@ -745,8 +745,6 @@ class TestVariantsAuto(object):
         assert 'NC_012920.1:m.1011C>T' in results.keys()
         assert results['NC_012920.1:m.1011C>T']['p_vcf'] == 'M:1011:C:T'
         assert results['NC_012920.1:m.1011C>T']['g_hgvs'] == 'NC_012920.1:m.1011C>T'
-        assert "The given reference sequence (NC_012920.1) does not match the DNA type (g)" \
-               in results['NC_012920.1:m.1011C>T']['genomic_variant_error']
         assert results['NC_012920.1:m.1011C>T']['hgvs_t_and_p'] == {'intergenic': {'alt_genomic_loci': None}}
 
     def test_variant43(self):
