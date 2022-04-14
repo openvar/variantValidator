@@ -137,11 +137,12 @@ def vcf2hgvs_stage2(variant, validator):
     The LRG ID data ia stored in the VariantValidator MySQL database.
     The reference sequence type is also assigned.
     """
+
     skipvar = False
     if (re.search(r'\w+:', variant.quibble) or re.search(r'\w+\(\w+\):', variant.quibble)) and not \
-            (re.search(r'\w+:[gcnmrpGCNMRP]\.', variant.quibble) or re.search(r'\w+\(\w+\):[gcnmrpGCNMRP]\.',
+            (re.search(r'\w+:[gcnmrpoGCNMRPO]\.', variant.quibble) or re.search(r'\w+\(\w+\):[gcnmrpoGCNMRPO]\.',
                                                                               variant.quibble)):
-        if re.search(r'\w+:[gcnmrp]', variant.quibble) and not re.search(r'\w+:[gcnmrp]\.', variant.quibble):
+        if re.search(r'\w+:[gcnmrpo]', variant.quibble) and not re.search(r'\w+:[gcnmrpo]\.', variant.quibble):
             # Missing dot
             pass
         else:
