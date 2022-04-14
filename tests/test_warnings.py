@@ -256,6 +256,21 @@ class TestWarnings(TestCase):
         assert 'This is not a valid HGVS variant description, because no reference sequence ID has been provided' in \
                results['intergenic_variant_1']['validation_warnings'][0]
 
+    def test_issue_352(self):
+        variant = 'NC_000001.10:o.100_1000del'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'Reference sequence type o. should only be used for circular reference sequences that are ' \
+               'not mitochondrial. Instead use m.' in \
+               results['validation_warning_1']['validation_warnings'][0]
+
+        variant = 'NC_012920.1:o.100_1000del'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'Reference sequence type o. should only be used for circular reference sequences that are not ' \
+               'mitochondrial. Instead use m.' in \
+               results['mitochondrial_variant_1']['validation_warnings'][0]
+
 
 
 # <LICENSE>
