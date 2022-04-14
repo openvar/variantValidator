@@ -232,6 +232,10 @@ class TestWarnings(TestCase):
                "please use (m). For g. variants, please use a linear genomic reference sequence" in \
                result["NC_012920.1:g.100del"]["NC_012920.1:g.100del"]["genomic_variant_error"]
 
+        result = simpleVariantFormatter.format('NC_012920.1:g.100del', 'hg19', 'refseq', None, False, True)
+        assert "NC_012920.1 is not associated with genome build hg19, instead use genome build GRCh37" in \
+               result["NC_012920.1:g.100del"]["NC_012920.1:g.100del"]["genomic_variant_error"]
+
         variant = 'NC_012920.1:g.100del'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
@@ -239,9 +243,7 @@ class TestWarnings(TestCase):
                "please use (m). For g. variants, please use a linear genomic reference sequence" in \
                results['mitochondrial_variant_1']['validation_warnings'][0]
 
-        result = simpleVariantFormatter.format('NC_012920.1:g.100del', 'hg19', 'refseq', None, False, True)
-        assert "NC_012920.1 is not associated with genome build hg19, instead use genome build GRCh37" in \
-               result["NC_012920.1:g.100del"]["NC_012920.1:g.100del"]["genomic_variant_error"]
+
 
 
     def test_issue_351(self):
