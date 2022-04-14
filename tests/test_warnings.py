@@ -243,9 +243,6 @@ class TestWarnings(TestCase):
                "please use (m). For g. variants, please use a linear genomic reference sequence" in \
                results['mitochondrial_variant_1']['validation_warnings'][0]
 
-
-
-
     def test_issue_351(self):
         variant = 'M:m.1000_100del'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
@@ -278,7 +275,11 @@ class TestWarnings(TestCase):
                'mitochondrial. Instead use m.' in \
                results['mitochondrial_variant_1']['validation_warnings'][0]
 
-
+    def test_issue_365(self):
+        variant = 'NM_000277.3:c.1315+5_1315+6insGTGTAACAG'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert results['NM_000277.3:c.1315+5_1315+6insGTGTAACAG']['validation_warnings'] == []
 
 # <LICENSE>
 # Copyright (C) 2016-2022 VariantValidator Contributors

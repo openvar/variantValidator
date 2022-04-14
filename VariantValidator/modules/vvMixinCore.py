@@ -1337,10 +1337,17 @@ class Mixin(vvMixinConverters.Mixin):
                 variant_warnings = []
                 accession = variant.hgvs_transcript_variant.split(':')[0]
                 term = "(" + accession + ")"
+                term_2 = "%s automapped to" % tx_variant
+                term_3 = "%s automapped to" % genomic_variant
                 for vt in variant.warnings:
+a
                     #  Do not warn a transcript update is available for the most recent transcript
                     if term in vt and "A more recent version of the selected reference sequence" in vt:
                         continue
+                    # Remove spurious updates away form the correct output
+                    elif (term_2 in vt and tx_variant != "") or (term_3 in vt and genomic_variant != ""):
+                        continue
+
                     else:
                         variant_warnings.append(vt)
                 variant.warnings = variant_warnings

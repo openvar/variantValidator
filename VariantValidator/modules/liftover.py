@@ -325,7 +325,10 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
             not_delins = str(not_delins)
             hgvs_not_delins = validator.hp.parse_hgvs_variant(not_delins)
 
-            hgvs_lifted = hn.normalize(hgvs_not_delins)
+            try:
+                hgvs_lifted = hn.normalize(hgvs_not_delins)
+            except vvhgvs.exceptions.HGVSDataNotAvailableError:
+                continue
             # Now try map back
             lo = LiftOver(lo_to, lo_from)
 
