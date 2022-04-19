@@ -13,6 +13,7 @@ from . import seq_data
 from . import hgvs_utils
 from pyliftover import LiftOver
 from Bio.Seq import Seq
+import copy
 
 # Pre compile variables
 vvhgvs.global_config.formatting.max_ref_length = 1000000
@@ -314,26 +315,40 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
             lifted_ref_bases = my_seq.reverse_complement()
             your_seq = Seq(lifted_alt_bases)
             lifted_alt_bases = your_seq.reverse_complement()
+
+        # Find the accession
         accession = seq_data.to_accession(chrom, lo_to)
         if accession is None:
             wrn = 'Unable to identify an equivalent %s chromosome ID for %s' % (str(lo_to), str(chrom))
             logger.info(wrn)
             continue
+
         else:
-            not_delins = accession + ':g.' + str(pos) + '_' + str(
-                (pos - 1) + len(lifted_ref_bases)) + 'delins' + lifted_alt_bases
-            not_delins = str(not_delins)
-            hgvs_not_delins = validator.hp.parse_hgvs_variant(not_delins)
-
-            try:
-                hgvs_lifted = hn.normalize(hgvs_not_delins)
-            except vvhgvs.exceptions.HGVSDataNotAvailableError:
-                continue
-            # Now try map back
-            lo = LiftOver(lo_to, lo_from)
-
-            # Lift back
-            liftback_list = lo.convert_coordinate(chrom, pos)
+            # Correct 38 to GRCh37 mito liftover
+            if build_to == "GRCh37" and "38" in build_from and accession == "NC_001807.4":
+                hgvs_lifted = hgvs_genomic
+                # Fix the GRC CHR
+                if from_vcf[from_set].startswith('chr'):
+                    chrom = from_vcf[from_set]
+                    pos = int(from_vcf['pos'])
+                else:
+                    chrom = 'chr' + from_vcf[from_set]
+                    pos = int(from_vcf['pos'])
+                liftback_list = [(chrom, pos, "+")]
+            else:
+                not_delins = accession + ':g.' + str(pos) + '_' + str(
+                    (pos - 1) + len(lifted_ref_bases)) + 'delins' + lifted_alt_bases
+                not_delins = str(not_delins)
+                hgvs_not_delins = validator.hp.parse_hgvs_variant(not_delins)
+                try:
+                    hgvs_lifted = hn.normalize(hgvs_not_delins)
+                except vvhgvs.exceptions.HGVSDataNotAvailableError:
+                    continue
+            
+                # Now try map back
+                lo = LiftOver(lo_to, lo_from)
+                # Lift back
+                liftback_list = lo.convert_coordinate(chrom, pos)
 
             for lifted_back in liftback_list:
                 # Pull out the good guys!
@@ -362,6 +377,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                                             'alt': vcf_dict['alt']
                                             }
                                 }
+
                                 lifted_response[alt_build_to.lower()][hgvs_lifted.ac] = {
                                     'hgvs_genomic_description': mystr(hgvs_lifted),
                                     'vcf': {'chr': vcf_dict['ucsc_chr'],
@@ -370,6 +386,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                                             'alt': vcf_dict['alt']
                                             }
                                 }
+
                             else:
                                 lifted_response[build_to.lower()][hgvs_lifted.ac] = {
                                     'hgvs_genomic_description': mystr(hgvs_lifted),
@@ -379,6 +396,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                                             'alt': vcf_dict['alt']
                                             }
                                 }
+
                                 lifted_response[alt_build_to.lower()][hgvs_lifted.ac] = {
                                     'hgvs_genomic_description': mystr(hgvs_lifted),
                                     'vcf': {'chr': vcf_dict['grc_chr'],
@@ -387,6 +405,13 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                                             'alt': vcf_dict['alt']
                                             }
                                 }
+
+    # Remove known bad lifts
+    cp_lifted_response = copy.deepcopy(lifted_response)
+    for key, val in cp_lifted_response.items():
+        if key == "hg19" and "NC_012920.1" in val.keys():
+            lifted_response.pop(key)
+
     return lifted_response
 
 # <LICENSE>
