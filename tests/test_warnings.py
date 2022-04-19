@@ -236,12 +236,52 @@ class TestWarnings(TestCase):
         assert "NC_012920.1 is not associated with genome build hg19, instead use genome build GRCh37" in \
                result["NC_012920.1:g.100del"]["NC_012920.1:g.100del"]["genomic_variant_error"]
 
+        result = simpleVariantFormatter.format('NC_012920.1:m.1011C>T', 'GRCh37', 'refseq', None, False, True)
+        assert "grch37" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"]["hgvs_t_and_p"][
+            "intergenic"]["primary_assembly_loci"].keys()
+        assert "grch38" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"]["hgvs_t_and_p"][
+            "intergenic"]["primary_assembly_loci"].keys()
+        assert "hg38" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"]["hgvs_t_and_p"][
+            "intergenic"]["primary_assembly_loci"].keys()
+        assert "hg19" not in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"]["hgvs_t_and_p"][
+            "intergenic"]["primary_assembly_loci"].keys()
+
+        result = simpleVariantFormatter.format('NC_012920.1:m.1011C>T', 'GRCh38', 'refseq', None, False, True)
+        assert "grch37" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"]["hgvs_t_and_p"][
+            "intergenic"]["primary_assembly_loci"].keys()
+        assert "grch38" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"]["hgvs_t_and_p"][
+            "intergenic"]["primary_assembly_loci"].keys()
+        assert "hg38" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"]["hgvs_t_and_p"][
+            "intergenic"]["primary_assembly_loci"].keys()
+        assert "hg19" not in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"]["hgvs_t_and_p"][
+            "intergenic"]["primary_assembly_loci"].keys()
+
+        result = simpleVariantFormatter.format('NC_012920.1:m.1011C>T', 'hg38', 'refseq', None, False, True)
+        assert "grch37" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"]["hgvs_t_and_p"][
+            "intergenic"]["primary_assembly_loci"].keys()
+        assert "grch38" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"]["hgvs_t_and_p"][
+            "intergenic"]["primary_assembly_loci"].keys()
+        assert "hg38" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"]["hgvs_t_and_p"][
+            "intergenic"]["primary_assembly_loci"].keys()
+        assert "hg19" not in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"]["hgvs_t_and_p"][
+            "intergenic"]["primary_assembly_loci"].keys()
+
+
+
         variant = 'NC_012920.1:g.100del'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
         assert "The given reference sequence (NC_012920.1) does not match the DNA type (g). For NC_012920.1, " \
                "please use (m). For g. variants, please use a linear genomic reference sequence" in \
                results['mitochondrial_variant_1']['validation_warnings'][0]
+
+
+
+
+
+
+
+
 
     def test_issue_351(self):
         variant = 'M:m.1000_100del'
