@@ -1,5 +1,6 @@
 import VariantFormatter
 import VariantFormatter.variantformatter as vf
+import VariantFormatter.simpleVariantFormatter
 import VariantValidator
 vfo = VariantValidator.Validator()
 
@@ -6799,3 +6800,31 @@ class TestVariantsAuto(object):
                                                                                   "48275363_48275364delCGinsA: Variant " \
                                                                                   "reference (CG) does not agree with " \
                                                                                   "reference sequence (CC)"
+
+    def test_issue_360a(self):
+        results = VariantFormatter.simpleVariantFormatter.format('NC_012920.1:m.1011C>T',
+                                                                 'GRCh38', 'refseq', None, False, True)
+        print(results)
+        assert 'NC_012920.1:m.1011C>T' in results.keys()
+        assert "NC_001807.4" in results['NC_012920.1:m.1011C>T']['NC_012920.1:m.1011C>T']['hgvs_t_and_p'][
+            'intergenic']['primary_assembly_loci']['hg19'].keys()
+        assert "NC_012920.1" in results['NC_012920.1:m.1011C>T']['NC_012920.1:m.1011C>T']['hgvs_t_and_p'][
+            'intergenic']['primary_assembly_loci']['hg38'].keys()
+        assert "NC_012920.1" in results['NC_012920.1:m.1011C>T']['NC_012920.1:m.1011C>T']['hgvs_t_and_p'][
+            'intergenic']['primary_assembly_loci']['grch37'].keys()
+        assert "NC_012920.1" in results['NC_012920.1:m.1011C>T']['NC_012920.1:m.1011C>T']['hgvs_t_and_p'][
+            'intergenic']['primary_assembly_loci']['grch38'].keys()
+
+    def test_issue_360b(self):
+        results = VariantFormatter.simpleVariantFormatter.format('NC_001807.4:m.1013C>T',
+                                                                 'hg19', 'refseq', None, False, True)
+        print(results)
+        assert 'NC_001807.4:m.1013C>T' in results.keys()
+        assert "NC_001807.4" in results['NC_001807.4:m.1013C>T']['NC_001807.4:m.1013C>T']['hgvs_t_and_p'][
+            'intergenic']['primary_assembly_loci']['hg19'].keys()
+        assert "NC_012920.1" in results['NC_001807.4:m.1013C>T']['NC_001807.4:m.1013C>T']['hgvs_t_and_p'][
+            'intergenic']['primary_assembly_loci']['hg38'].keys()
+        assert "NC_012920.1" in results['NC_001807.4:m.1013C>T']['NC_001807.4:m.1013C>T']['hgvs_t_and_p'][
+            'intergenic']['primary_assembly_loci']['grch37'].keys()
+        assert "NC_012920.1" in results['NC_001807.4:m.1013C>T']['NC_001807.4:m.1013C>T']['hgvs_t_and_p'][
+            'intergenic']['primary_assembly_loci']['grch38'].keys()

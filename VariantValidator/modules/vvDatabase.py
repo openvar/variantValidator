@@ -342,6 +342,8 @@ class Database(vvDBInsert.Mixin):
             for keywd in record.annotations['keywords']:
                 if 'Select' in keywd:
                     my_tags['db_xref'] = my_tags['db_xref'] + ['select:' + keywd.split(' ')[0]]
+                elif 'Plus Clinical' in keywd:
+                    my_tags['db_xref'] = my_tags['db_xref'] + ['select:' + keywd.replace(' ', '_')]
                 else:
                     my_tags['db_xref'] = my_tags['db_xref'] + ['select:' + 'False']
 
@@ -385,6 +387,8 @@ class Database(vvDBInsert.Mixin):
                 all_tags_formatted["refseq_select"] = True  # Assumes no conflict between MANE Select and RefSeq Select
             if all_tags_formatted["db_xref"]["select"] == "RefSeq":
                 all_tags_formatted["refseq_select"] = True
+            if all_tags_formatted["db_xref"]["select"] == "MANE_Plus_Clinical":
+                all_tags_formatted["mane_plus_clinical"] = True
             try:
                 all_tags_formatted["db_xref"]["HGNC"] = "HGNC:" + all_tags_formatted["db_xref"]["HGNC"]
             except KeyError:
@@ -452,8 +456,6 @@ class Database(vvDBInsert.Mixin):
             variant.pop("previous_symbol")
         except KeyError:
             pass
-
-        # print(json.dumps(variant, sort_keys=False, indent=4, separators=(',', ': ')))
 
         # Make into a json for storage
         variant = json.dumps(variant)

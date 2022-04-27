@@ -1577,7 +1577,7 @@ def to_chr_num_ucsc(accession, primary_assembly):
         "NC_000023.10": "chrX",
         "NC_000024.9": "chrY",
         "NC_012920.1": "chrM",  # Cambridge revised mitochondrial
-        "NC_001807.1": "chrM",  # hg19 mitochondrial
+        "NC_001807.4": "chrM",  # hg19 mitochondrial
 
         # UCSC hg19 ALTS
         "NT_113921.2": "chr11_gl000202_random",

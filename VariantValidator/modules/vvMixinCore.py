@@ -1078,6 +1078,18 @@ class Mixin(vvMixinConverters.Mixin):
                                     # Append
                                     alt_genomic_dicts.append(alt_dict)
 
+                # Clean up mito genome issues
+                cp_lifted_response = copy.deepcopy(primary_genomic_dicts)
+                for key, val in cp_lifted_response.items():
+                    if key == "hg19" and "NC_012920.1" in val["hgvs_genomic_description"]:
+                        primary_genomic_dicts.pop(key)
+                    elif key == "grch37" and "NC_001807.4" in val["hgvs_genomic_description"]:
+                        primary_genomic_dicts.pop(key)
+
+                print(primary_genomic_dicts)
+
+
+
                 # Warn not directly mapped to specified genome build
                 if genomic_accession != '':
                     if primary_assembly.lower() not in list(primary_genomic_dicts.keys()):
