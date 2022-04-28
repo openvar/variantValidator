@@ -777,7 +777,16 @@ def mitochondrial(variant, validator):
         hgvs_mito = copy.deepcopy(variant.hgvs_formatted)
         if hgvs_mito.type == 'g' and (hgvs_mito.ac == 'NC_012920.1' or hgvs_mito.ac == 'NC_001807.4'):
             hgvs_mito.type = 'm'
-            wrn = "The given reference sequence (%s) does not match the DNA type (g). For %s, please use (m). " \
+            if "NC_012920.1" in hgvs_mito.ac and "hg19" in variant.selected_assembly:
+                wrn = "NC_012920.1 is not associated with genome build hg19, instead use genome build GRCh37"
+                variant.warnings.append(wrn)
+                return True
+            elif "NC_001807.4" in hgvs_mito.ac and "GRCh37" in variant.selected_assembly:
+                wrn = "NC_001807.4 is not associated with genome build GRCh37, instead use genome build hg19"
+                variant.warnings.append(wrn)
+                return True
+            else:
+                wrn = "The given reference sequence (%s) does not match the DNA type (g). For %s, please use (m). " \
                   "For g. variants, please use a linear genomic reference sequence" % (hgvs_mito.ac, hgvs_mito.ac)
             variant.warnings.append(wrn)
 

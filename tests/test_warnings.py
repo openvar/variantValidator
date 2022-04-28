@@ -266,8 +266,7 @@ class TestWarnings(TestCase):
         assert "hg19" not in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"]["hgvs_t_and_p"][
             "intergenic"]["primary_assembly_loci"].keys()
 
-
-
+    def test_issue_360(self):
         variant = 'NC_012920.1:g.100del'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
@@ -275,13 +274,19 @@ class TestWarnings(TestCase):
                "please use (m). For g. variants, please use a linear genomic reference sequence" in \
                results['mitochondrial_variant_1']['validation_warnings'][0]
 
+    def test_issue_360a(self):
+        variant = 'NC_012920.1:g.100del'
+        results = self.vv.validate(variant, 'hg19', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert "NC_012920.1 is not associated with genome build hg19, instead use genome build GRCh37" in \
+               results['mitochondrial_variant_1']['validation_warnings'][0]
 
-
-
-
-
-
-
+    def test_issue_360b(self):
+        variant = 'NC_001807.4:g.100del'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert "NC_001807.4 is not associated with genome build GRCh37, instead use genome build hg19" in \
+               results['mitochondrial_variant_1']['validation_warnings'][0]
 
     def test_issue_351(self):
         variant = 'M:m.1000_100del'

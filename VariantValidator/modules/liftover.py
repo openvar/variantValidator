@@ -324,8 +324,22 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
             continue
 
         else:
+            # Correct 37 to GRCh38 mito liftover - Applies when lifting from GRCh37 only!
+            if "38" in build_to and "GRCh37" in build_from and accession == "NC_012920.1":
+                mito_correction = True
+                hgvs_lifted = hgvs_genomic
+
+                # Fix the GRC CHR
+                if from_vcf[from_set].startswith('chr'):
+                    chrom = from_vcf[from_set]
+                    pos = int(from_vcf['pos'])
+                else:
+                    chrom = 'chr' + from_vcf[from_set]
+                    pos = int(from_vcf['pos'])
+                liftback_list = [(chrom, pos, "+", "GRCh38"), (chrom, pos, "+", "GRCh37")]
+
             # Correct 38 to GRCh37 mito liftover - Applies when lifting from GRCh38/hg38 only!
-            if build_to == "GRCh37" and "38" in build_from and accession == "NC_001807.4":
+            elif build_to == "GRCh37" and "38" in build_from and accession == "NC_001807.4":
                 mito_correction = True
                 hgvs_lifted = hgvs_genomic
 
@@ -402,7 +416,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                 # for hg19 and GRCh37 mito, we need to accign the origin build
                 mito_build = False
                 try:
-                    if "38" not in str(lifted_back[3]) and mito_correction is True:
+                    if mito_correction is True:
                         mito_build = lifted_back[3]
                 except IndexError:
                     pass
