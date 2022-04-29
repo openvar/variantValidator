@@ -64,8 +64,8 @@ before_install:
   - cp configuration/travis.ini "$HOME"/.variantvalidator
 
   # Get validator database
-  - wget --output-document=validator_2021-07-21.sql.gz https://www528.lamp.le.ac.uk/vvdata/validator/validator_2021-07-21.sql.gz
-  - gunzip validator_2021-07-21.sql.gz
+  - wget --output-document=validator_2022_04.sql.gz https://www528.lamp.le.ac.uk/vvdata/validator/validator_2022_04.sql.gz
+  - gunzip validator_2022_04.sql.gz
 
 install:
 
@@ -75,14 +75,14 @@ install:
 
   ## get seqrepo data and load it into now installed seqrepo
   - mkdir "$HOME"/vvta_seqrepo
-  - wget --output-document="$HOME"/vvta_seqrepo/VV_SR_20212_02.tar https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_20212_02.tar
+  - wget --output-document="$HOME"/vvta_seqrepo/VV_SR_2022_02.tar https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_2022_02.tar
   - cd "$HOME"/vvta_seqrepo/
-  - tar -xvf VV_SR_20212_02.tar
+  - tar -xvf VV_SR_2022_02.tar
   - cd -
 
   # Set up validator database
-  - mysql validator < validator_2021-07-21.sql
-  - rm validator_2021-07-21.sql
+  - mysql validator < validator_2022_04.sql
+  - rm validator_2022_04.sql
 
   #  - update_vdb.py
   - df -h
