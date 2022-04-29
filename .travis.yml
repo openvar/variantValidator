@@ -75,9 +75,9 @@ install:
 
   ## get seqrepo data and load it into now installed seqrepo
   - mkdir "$HOME"/vvta_seqrepo
-  - wget --output-document="$HOME"/vvta_seqrepo/VVTA_2021_RS_and_RSG_seqrepo.tar https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VVTA_2021_RS_and_RSG_seqrepo.tar
+  - wget --output-document="$HOME"/vvta_seqrepo/VV_SR_20212_02.tar https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_20212_02.tar
   - cd "$HOME"/vvta_seqrepo/
-  - tar -xvf VVTA_2021_RS_and_RSG_seqrepo.tar
+  - tar -xvf VV_SR_20212_02.tar
   - cd -
 
   # Set up validator database
