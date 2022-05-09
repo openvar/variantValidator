@@ -30484,6 +30484,16 @@ class TestVariantsAuto(TestCase):
         assert 'NC_001807.4:m.1013C>T' in results['mitochondrial_variant_1'][
             'primary_assembly_loci']['hg19']["hgvs_genomic_description"]
 
+    def test_issue_370(self):
+        variant = 'NC_000008.10:g.24811072C>T'
+        results = self.vv.validate(variant, 'hg19', 'mane', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'NM_006158.5:c.1407delinsAC' in results.keys()
+        assert 'NC_000008.10:g.24811072C>T' in results['NM_006158.5:c.1407delinsAC'][
+            'primary_assembly_loci']['hg19']["hgvs_genomic_description"]
+        assert 'NC_000008.11:g.24953558delinsGT' in results['NM_006158.5:c.1407delinsAC'][
+            'primary_assembly_loci']['hg38']["hgvs_genomic_description"]
+
 
 
 # <LICENSE>

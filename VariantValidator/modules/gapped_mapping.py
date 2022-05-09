@@ -105,6 +105,7 @@ class GapMapper(object):
 
         # loop through rel_var and amend where required
         for var in rel_var:
+
             # Store the current hgvs:c. description
             try:
                 saved_hgvs_coding = self.validator.hp.parse_hgvs_variant(var)
@@ -457,7 +458,8 @@ class GapMapper(object):
 
                     # ANY VARIANT WHOLLY WITHIN THE GAP
                     hgvs_refreshed_variant = self.transcript_disparity(reverse_normalized_hgvs_genomic,
-                                                                       stored_hgvs_not_delins, self.variant.hgvs_genomic, 1)
+                                                                       stored_hgvs_not_delins,
+                                                                       self.variant.hgvs_genomic, 1)
 
                 # GAP IN THE CHROMOSOME
                 elif self.disparity_deletion_in[0] == 'chromosome':
