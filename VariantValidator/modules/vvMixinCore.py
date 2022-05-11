@@ -1078,6 +1078,14 @@ class Mixin(vvMixinConverters.Mixin):
                                     # Append
                                     alt_genomic_dicts.append(alt_dict)
 
+                # Clean up mito genome issues
+                cp_lifted_response = copy.deepcopy(primary_genomic_dicts)
+                for key, val in cp_lifted_response.items():
+                    if key == "hg19" and "NC_012920.1" in val["hgvs_genomic_description"]:
+                        primary_genomic_dicts.pop(key)
+                    elif key == "grch37" and "NC_001807.4" in val["hgvs_genomic_description"]:
+                        primary_genomic_dicts.pop(key)
+
                 # Warn not directly mapped to specified genome build
                 if genomic_accession != '':
                     if primary_assembly.lower() not in list(primary_genomic_dicts.keys()):
@@ -1246,9 +1254,11 @@ class Mixin(vvMixinConverters.Mixin):
                 if ref_records != {}:
                     variant.reference_sequence_records = ref_records
                 if (variant.output_type_flag == 'intergenic' and liftover_level is not None) or \
-                        ('grch37' not in variant.primary_assembly_loci.keys())\
-                        or ('grch38' not in variant.primary_assembly_loci.keys()
-                            and liftover_level is not None):
+                        (('grch37' not in variant.primary_assembly_loci.keys() or
+                          'grch38' not in variant.primary_assembly_loci.keys() or
+                          'hg38' not in variant.primary_assembly_loci.keys() or
+                          'hg19' not in variant.primary_assembly_loci.keys())
+                         and liftover_level is not None):
 
                     # Simple cache
                     lo_cache = {}
@@ -1257,6 +1267,7 @@ class Mixin(vvMixinConverters.Mixin):
                     # Note: pyliftover uses the UCSC liftOver tool.
                     # https://pypi.org/project/pyliftover/
                     genomic_position_info = variant.primary_assembly_loci
+
                     for g_p_key in list(genomic_position_info.keys()):
                         build_to = ''
                         build_from = ''
@@ -1287,7 +1298,10 @@ class Mixin(vvMixinConverters.Mixin):
                             g_to_g = True
 
                         # Lift-over
-                        if genomic_position_info[g_p_key]['hgvs_genomic_description'] not in lo_cache.keys():
+
+                        if (genomic_position_info[g_p_key]['hgvs_genomic_description'] not in lo_cache.keys()) or (
+                                "NC_012920.1" in genomic_position_info[g_p_key]['hgvs_genomic_description']
+                                and build_from == "hg38" and build_to == "hg19"):
                             lifted_response = liftover(genomic_position_info[g_p_key]['hgvs_genomic_description'],
                                                        build_from,
                                                        build_to, variant.hn, variant.reverse_normalizer,
@@ -1296,6 +1310,22 @@ class Mixin(vvMixinConverters.Mixin):
                                                        specify_tx=False,
                                                        liftover_level=liftover_level,
                                                        g_to_g=g_to_g)
+
+                            if "NC_012920.1" in genomic_position_info[g_p_key]['hgvs_genomic_description'] or \
+                                    "NC_001807.4:" in genomic_position_info[g_p_key]['hgvs_genomic_description']:
+                                capture_corrected_response = False
+                                for key, val in lifted_response.items():
+                                    if "grch38" in key:
+                                        capture_corrected_response = val
+                                    if val == {} and "grch37" in key:
+                                        if capture_corrected_response is not False:
+                                            lifted_response[key] = capture_corrected_response
+                                for key, val in lifted_response.items():
+                                    if "grch38" in key:
+                                        capture_corrected_response = val
+                                    if val == {} and "grch37" in key:
+                                        if capture_corrected_response is not False:
+                                            lifted_response[key] = capture_corrected_response
 
                             lo_cache[genomic_position_info[g_p_key]['hgvs_genomic_description']] = lifted_response
                         else:

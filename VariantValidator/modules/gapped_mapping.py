@@ -105,6 +105,7 @@ class GapMapper(object):
 
         # loop through rel_var and amend where required
         for var in rel_var:
+
             # Store the current hgvs:c. description
             try:
                 saved_hgvs_coding = self.validator.hp.parse_hgvs_variant(var)
@@ -114,7 +115,8 @@ class GapMapper(object):
                 saved_hgvs_coding = var
 
             # Remove un-selected transcripts
-            if self.validator.select_transcripts != 'all' and "select" not in self.validator.select_transcripts:
+            if self.validator.select_transcripts != 'all' and "select" not in self.validator.select_transcripts and\
+                    "mane" not in self.validator.select_transcripts:
                 tx_ac = saved_hgvs_coding.ac
                 # If it's in the selected tx dict, keep it
                 if tx_ac.split('.')[0] in list(select_transcripts_dict.keys()):
@@ -127,8 +129,17 @@ class GapMapper(object):
             elif self.validator.select_transcripts == "select":
                 tx_ac = saved_hgvs_coding.ac
                 annotation = self.validator.db.get_transcript_annotation(tx_ac)
-                if 'mane_select": true' in annotation or 'refseq_select": true' in annotation or \
-                        'ensembl_select: true' in annotation:
+                if '"select": "MANE"' in annotation or '"select": "RefSeq"' in annotation or \
+                        '"select": "Ensembl"' in annotation:
+                    pass
+                else:
+                    continue
+
+            # Filter for MANE transcripts only
+            elif self.validator.select_transcripts == "mane":
+                tx_ac = saved_hgvs_coding.ac
+                annotation = self.validator.db.get_transcript_annotation(tx_ac)
+                if '"mane_select": true' in annotation or '"mane_plus_clinical": true' in annotation:
                     pass
                 else:
                     continue
@@ -137,7 +148,7 @@ class GapMapper(object):
             elif self.validator.select_transcripts == "mane_select":
                 tx_ac = saved_hgvs_coding.ac
                 annotation = self.validator.db.get_transcript_annotation(tx_ac)
-                if 'mane_select": true' in annotation:
+                if '"mane_select": true' in annotation:
                     pass
                 else:
                     continue
@@ -146,7 +157,7 @@ class GapMapper(object):
             elif self.validator.select_transcripts == "refseq_select":
                 tx_ac = saved_hgvs_coding.ac
                 annotation = self.validator.db.get_transcript_annotation(tx_ac)
-                if 'refseq_select": true' in annotation:
+                if '"refseq_select": true' in annotation:
                     pass
                 else:
                     continue
@@ -155,7 +166,7 @@ class GapMapper(object):
             elif self.validator.select_transcripts == "ensembl_select":
                 tx_ac = saved_hgvs_coding.ac
                 annotation = self.validator.db.get_transcript_annotation(tx_ac)
-                if 'ensembl_select": true' in annotation:
+                if '"ensembl_select": true' in annotation:
                     pass
                 else:
                     continue
@@ -447,7 +458,8 @@ class GapMapper(object):
 
                     # ANY VARIANT WHOLLY WITHIN THE GAP
                     hgvs_refreshed_variant = self.transcript_disparity(reverse_normalized_hgvs_genomic,
-                                                                       stored_hgvs_not_delins, self.variant.hgvs_genomic, 1)
+                                                                       stored_hgvs_not_delins,
+                                                                       self.variant.hgvs_genomic, 1)
 
                 # GAP IN THE CHROMOSOME
                 elif self.disparity_deletion_in[0] == 'chromosome':

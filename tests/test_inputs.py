@@ -6263,43 +6263,43 @@ class TestVariantsAuto(TestCase):
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['validation_warning_1']['alt_genomic_loci'], [])
-        # assert 'hg19' not in list(results['validation_warning_1']['primary_assembly_loci'].keys())
-        # # assert 'hg38' not in list(results['validation_warning_1']['primary_assembly_loci'].keys())
-        # assert 'grch37' not in list(results['validation_warning_1']['primary_assembly_loci'].keys())
-        # assert 'grch38' not in list(results['validation_warning_1']['primary_assembly_loci'].keys())
         assert results['validation_warning_1']['reference_sequence_records'] == ''
 
-    def test_variant135(self):
-        variant = 'NC_012920.1:m.1011C>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
-        print(results)
+    """
+    Deprecated test. See test_issue_360 tests instead
+    """
 
-        assert results['flag'] == 'mitochondrial'
-        assert 'mitochondrial_variant_1' in list(results.keys())
-        assert results['mitochondrial_variant_1']['submitted_variant'] == 'NC_012920.1:m.1011C>T'
-        assert results['mitochondrial_variant_1']['gene_symbol'] == ''
-        assert results['mitochondrial_variant_1']['gene_ids'] == {}
-        assert results['mitochondrial_variant_1']['hgvs_transcript_variant'] == ''
-        assert results['mitochondrial_variant_1']['genome_context_intronic_sequence'] == ''
-        assert results['mitochondrial_variant_1']['refseqgene_context_intronic_sequence'] == ''
-        assert results['mitochondrial_variant_1']['hgvs_refseqgene_variant'] == ''
-        assert results['mitochondrial_variant_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
-        assert results['mitochondrial_variant_1']['hgvs_lrg_transcript_variant'] == ''
-        assert results['mitochondrial_variant_1']['hgvs_lrg_variant'] == ''
-        self.assertCountEqual(results['mitochondrial_variant_1']['alt_genomic_loci'], [])
-        assert results['mitochondrial_variant_1']['primary_assembly_loci']['hg19'] == {
-            'hgvs_genomic_description': 'NC_012920.1:m.1011C>T',
-            'vcf': {'chr': 'chrM', 'pos': '1011', 'ref': 'C', 'alt': 'T'}}
-        assert results['mitochondrial_variant_1']['primary_assembly_loci']['hg38'] == {
-            'hgvs_genomic_description': 'NC_012920.1:m.1011C>T',
-            'vcf': {'chr': 'chrM', 'pos': '1011', 'ref': 'C', 'alt': 'T'}}
-        assert results['mitochondrial_variant_1']['primary_assembly_loci']['grch37'] == {
-            'hgvs_genomic_description': 'NC_012920.1:m.1011C>T',
-            'vcf': {'chr': 'M', 'pos': '1011', 'ref': 'C', 'alt': 'T'}}
-        assert results['mitochondrial_variant_1']['primary_assembly_loci']['grch38'] == {
-            'hgvs_genomic_description': 'NC_012920.1:m.1011C>T',
-            'vcf': {'chr': 'M', 'pos': '1011', 'ref': 'C', 'alt': 'T'}}
-        assert results['mitochondrial_variant_1']['reference_sequence_records'] == ''
+    # def test_variant135(self):
+    #     variant = 'NC_012920.1:m.1011C>T'
+    #     results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+    #     print(results)
+    #
+    #     assert results['flag'] == 'mitochondrial'
+    #     assert 'mitochondrial_variant_1' in list(results.keys())
+    #     assert results['mitochondrial_variant_1']['submitted_variant'] == 'NC_012920.1:m.1011C>T'
+    #     assert results['mitochondrial_variant_1']['gene_symbol'] == ''
+    #     assert results['mitochondrial_variant_1']['gene_ids'] == {}
+    #     assert results['mitochondrial_variant_1']['hgvs_transcript_variant'] == ''
+    #     assert results['mitochondrial_variant_1']['genome_context_intronic_sequence'] == ''
+    #     assert results['mitochondrial_variant_1']['refseqgene_context_intronic_sequence'] == ''
+    #     assert results['mitochondrial_variant_1']['hgvs_refseqgene_variant'] == ''
+    #     assert results['mitochondrial_variant_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
+    #     assert results['mitochondrial_variant_1']['hgvs_lrg_transcript_variant'] == ''
+    #     assert results['mitochondrial_variant_1']['hgvs_lrg_variant'] == ''
+    #     self.assertCountEqual(results['mitochondrial_variant_1']['alt_genomic_loci'], [])
+    #     assert results['mitochondrial_variant_1']['primary_assembly_loci']['hg19'] == {
+    #         'hgvs_genomic_description': 'NC_012920.1:m.1011C>T',
+    #         'vcf': {'chr': 'chrM', 'pos': '1011', 'ref': 'C', 'alt': 'T'}}
+    #     assert results['mitochondrial_variant_1']['primary_assembly_loci']['hg38'] == {
+    #         'hgvs_genomic_description': 'NC_012920.1:m.1011C>T',
+    #         'vcf': {'chr': 'chrM', 'pos': '1011', 'ref': 'C', 'alt': 'T'}}
+    #     assert results['mitochondrial_variant_1']['primary_assembly_loci']['grch37'] == {
+    #         'hgvs_genomic_description': 'NC_012920.1:m.1011C>T',
+    #         'vcf': {'chr': 'M', 'pos': '1011', 'ref': 'C', 'alt': 'T'}}
+    #     assert results['mitochondrial_variant_1']['primary_assembly_loci']['grch38'] == {
+    #         'hgvs_genomic_description': 'NC_012920.1:m.1011C>T',
+    #         'vcf': {'chr': 'M', 'pos': '1011', 'ref': 'C', 'alt': 'T'}}
+    #     assert results['mitochondrial_variant_1']['reference_sequence_records'] == ''
 
     def test_variant136(self):
         variant = 'NC_000006.11:g.90403795='
@@ -30456,6 +30456,44 @@ class TestVariantsAuto(TestCase):
         results = self.vv.validate(variant, 'GRCh37', 'NR_147092.1', liftover_level='primary').format_as_dict(test=True)
         print(results)
         assert 'NR_147092.1:n.957A>T' in results.keys()
+
+    def test_issue_360a(self):
+        variant = 'NC_001807.4:m.1013C>T'
+        results = self.vv.validate(variant, 'hg19', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'NC_012920.1:m.1011C>T' in results['mitochondrial_variant_1'][
+            'primary_assembly_loci']['grch37']["hgvs_genomic_description"]
+        assert 'NC_001807.4:m.1013C>T' in results['mitochondrial_variant_1'][
+            'primary_assembly_loci']['hg19']["hgvs_genomic_description"]
+
+    def test_issue_360b(self):
+        variant = 'NC_012920.1:m.1011C>T'
+        results = self.vv.validate(variant, 'GRCh38', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'NC_012920.1:m.1011C>T' in results['mitochondrial_variant_1'][
+            'primary_assembly_loci']['grch37']["hgvs_genomic_description"]
+        assert 'NC_001807.4:m.1013C>T' in results['mitochondrial_variant_1'][
+            'primary_assembly_loci']['hg19']["hgvs_genomic_description"]
+
+    def test_issue_360c(self):
+        variant = 'NC_012920.1:m.1011C>T'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'NC_012920.1:m.1011C>T' in results['mitochondrial_variant_1'][
+            'primary_assembly_loci']['grch37']["hgvs_genomic_description"]
+        assert 'NC_001807.4:m.1013C>T' in results['mitochondrial_variant_1'][
+            'primary_assembly_loci']['hg19']["hgvs_genomic_description"]
+
+    def test_issue_370(self):
+        variant = 'NC_000008.10:g.24811072C>T'
+        results = self.vv.validate(variant, 'hg19', 'mane', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'NM_006158.5:c.1407delinsAC' in results.keys()
+        assert 'NC_000008.10:g.24811072C>T' in results['NM_006158.5:c.1407delinsAC'][
+            'primary_assembly_loci']['hg19']["hgvs_genomic_description"]
+        assert 'NC_000008.11:g.24953558delinsGT' in results['NM_006158.5:c.1407delinsAC'][
+            'primary_assembly_loci']['hg38']["hgvs_genomic_description"]
+
 
 
 # <LICENSE>

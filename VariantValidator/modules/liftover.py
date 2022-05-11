@@ -128,6 +128,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
            'alt': vcf['alt']
         }
     }
+
     # From dictionary currently blank
     lifted_response[build_to.lower()] = {}
     lifted_response[alt_build_to.lower()] = {}
@@ -290,7 +291,6 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
 
     # Create liftover vcf
     from_vcf = hgvs_utils.report_hgvs2vcf(hgvs_genomic, lo_from, reverse_normalizer, validator.sf)
-
     lo = LiftOver(lo_from, lo_to)
 
     # Fix the GRC CHR
@@ -324,9 +324,11 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
             continue
 
         else:
-            # Correct 38 to GRCh37 mito liftover
-            if build_to == "GRCh37" and "38" in build_from and accession == "NC_001807.4":
+            # Correct 37 to GRCh38 mito liftover - Applies when lifting from GRCh37 only!
+            if "38" in build_to and "GRCh37" in build_from and accession == "NC_012920.1":
+                mito_correction = True
                 hgvs_lifted = hgvs_genomic
+
                 # Fix the GRC CHR
                 if from_vcf[from_set].startswith('chr'):
                     chrom = from_vcf[from_set]
@@ -334,8 +336,68 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                 else:
                     chrom = 'chr' + from_vcf[from_set]
                     pos = int(from_vcf['pos'])
-                liftback_list = [(chrom, pos, "+")]
+                liftback_list = [(chrom, pos, "+", "GRCh38"), (chrom, pos, "+", "GRCh37")]
+
+            # Correct 38 to GRCh37 mito liftover - Applies when lifting from GRCh38/hg38 only!
+            elif build_to == "GRCh37" and "38" in build_from and accession == "NC_001807.4":
+                mito_correction = True
+                hgvs_lifted = hgvs_genomic
+
+                # Flag lifted genome build as hg19
+                lst_liftover = list(lifted)
+                lst_liftover[-1] = "hg19"
+                lifted = tuple(lst_liftover)
+
+                # Fix the GRC CHR
+                if from_vcf[from_set].startswith('chr'):
+                    chrom = from_vcf[from_set]
+                    pos = int(from_vcf['pos'])
+                else:
+                    chrom = 'chr' + from_vcf[from_set]
+                    pos = int(from_vcf['pos'])
+                liftback_list = [(chrom, pos, "+", "GRCh37"), lifted]
+
+                # Create the necessary hg19 mito hgvs
+                m19_not_delins = accession + ':g.' + str(lifted[1]) + '_' + str(
+                    (int(lifted[1]) - 1) + len(lifted_ref_bases)) + 'delins' + lifted_alt_bases
+                m19_not_delins = str(m19_not_delins)
+                m19_hgvs_not_delins = validator.hp.parse_hgvs_variant(m19_not_delins)
+                try:
+                    m19_hgvs_lifted = hn.normalize(m19_hgvs_not_delins)
+                except vvhgvs.exceptions.HGVSError:
+                    pass
+
+            # Correct 37 to GRCh38 mito liftover - Applies when lifting from GRCh38/hg38 only!
+            elif build_to == "GRCh38" and ("37" in build_from or "19" in build_from) and hgvs_genomic.ac == "NC_001807.4":
+                mito_correction = True
+
+                # Flag lifted genome build as hg19
+                m19_hgvs_lifted = hgvs_genomic
+                lst_liftover = list(lifted)
+                lst_liftover[-1] = "GRCh37"
+                lifted = tuple(lst_liftover)
+
+                # Fix the GRC CHR
+                if from_vcf[from_set].startswith('chr'):
+                    chrom = from_vcf[from_set]
+                    pos = int(from_vcf['pos'])
+                else:
+                    chrom = 'chr' + from_vcf[from_set]
+                    pos = int(from_vcf['pos'])
+                liftback_list = [lifted, (chrom, pos, "+", "hg19")]
+
+                # Create the necessary hg19 mito hgvs
+                m38_not_delins = accession + ':g.' + str(lifted[1]) + '_' + str(
+                    (int(lifted[1]) - 1) + len(lifted_ref_bases)) + 'delins' + lifted_alt_bases
+                m38_not_delins = str(m38_not_delins)
+                m38_hgvs_not_delins = validator.hp.parse_hgvs_variant(m38_not_delins)
+                try:
+                    hgvs_lifted = hn.normalize(m38_hgvs_not_delins)
+                except vvhgvs.exceptions.HGVSError:
+                     pass
+
             else:
+                mito_correction = False
                 not_delins = accession + ':g.' + str(pos) + '_' + str(
                     (pos - 1) + len(lifted_ref_bases)) + 'delins' + lifted_alt_bases
                 not_delins = str(not_delins)
@@ -351,6 +413,21 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                 liftback_list = lo.convert_coordinate(chrom, pos)
 
             for lifted_back in liftback_list:
+                # for hg19 and GRCh37 mito, we need to accign the origin build
+                mito_build = False
+                try:
+                    if mito_correction is True:
+                        mito_build = lifted_back[3]
+                except IndexError:
+                    pass
+
+                # Set the necessary hg19 m. data
+                if mito_build == 'hg19':
+                    try:
+                        hgvs_lifted = m19_hgvs_lifted
+                    except NameError:
+                        continue
+
                 # Pull out the good guys!
                 # Need to add chr to the from_set
                 if not lifted_back[0].startswith('chr'):
@@ -359,7 +436,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                     my_from_chr = lifted_back[0]
 
                 if lifted_back[0] == from_vcf[from_set] or lifted_back[0] == my_from_chr:
-                    if lifted_back[1] == int(from_vcf['pos']):
+                    if lifted_back[1] == int(from_vcf['pos']) or mito_build == "hg19" or mito_build == "GRCh37":
                         for build in genome_builds:
                             vcf_dict = hgvs_utils.report_hgvs2vcf(
                                 hgvs_lifted, build, reverse_normalizer, validator.sf)
@@ -368,49 +445,93 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                             if 'NC_012920.1' in hgvs_lifted.ac or 'NC_001807.4' in hgvs_lifted.ac:
                                 hgvs_lifted.type = "m"
 
-                            if build.startswith('GRC'):
-                                lifted_response[build_to.lower()][hgvs_lifted.ac] = {
-                                    'hgvs_genomic_description': mystr(hgvs_lifted),
-                                    'vcf': {'chr': vcf_dict['grc_chr'],
-                                            'pos': str(vcf_dict['pos']),
-                                            'ref': vcf_dict['ref'],
-                                            'alt': vcf_dict['alt']
-                                            }
-                                }
+                            # Compile the dictionary
+                            if mito_build is False:
+                                if build.startswith('GRC'):
+                                    lifted_response[build_to.lower()][hgvs_lifted.ac] = {
+                                        'hgvs_genomic_description': mystr(hgvs_lifted),
+                                        'vcf': {'chr': vcf_dict['grc_chr'],
+                                                'pos': str(vcf_dict['pos']),
+                                                'ref': vcf_dict['ref'],
+                                                'alt': vcf_dict['alt']
+                                                }
+                                    }
 
-                                lifted_response[alt_build_to.lower()][hgvs_lifted.ac] = {
-                                    'hgvs_genomic_description': mystr(hgvs_lifted),
-                                    'vcf': {'chr': vcf_dict['ucsc_chr'],
-                                            'pos': str(vcf_dict['pos']),
-                                            'ref': vcf_dict['ref'],
-                                            'alt': vcf_dict['alt']
-                                            }
-                                }
+                                    lifted_response[alt_build_to.lower()][hgvs_lifted.ac] = {
+                                        'hgvs_genomic_description': mystr(hgvs_lifted),
+                                        'vcf': {'chr': vcf_dict['ucsc_chr'],
+                                                'pos': str(vcf_dict['pos']),
+                                                'ref': vcf_dict['ref'],
+                                                'alt': vcf_dict['alt']
+                                                }
+                                    }
+
+                                else:
+                                    lifted_response[build_to.lower()][hgvs_lifted.ac] = {
+                                        'hgvs_genomic_description': mystr(hgvs_lifted),
+                                        'vcf': {'chr': vcf_dict['ucsc_chr'],
+                                                'pos': str(vcf_dict['pos']),
+                                                'ref': vcf_dict['ref'],
+                                                'alt': vcf_dict['alt']
+                                                }
+                                    }
+
+                                    lifted_response[alt_build_to.lower()][hgvs_lifted.ac] = {
+                                        'hgvs_genomic_description': mystr(hgvs_lifted),
+                                        'vcf': {'chr': vcf_dict['grc_chr'],
+                                                'pos': str(vcf_dict['pos']),
+                                                'ref': vcf_dict['ref'],
+                                                'alt': vcf_dict['alt']
+                                                }
+                                    }
 
                             else:
-                                lifted_response[build_to.lower()][hgvs_lifted.ac] = {
-                                    'hgvs_genomic_description': mystr(hgvs_lifted),
-                                    'vcf': {'chr': vcf_dict['ucsc_chr'],
-                                            'pos': str(vcf_dict['pos']),
-                                            'ref': vcf_dict['ref'],
-                                            'alt': vcf_dict['alt']
-                                            }
-                                }
+                                if mito_build.startswith('GRC'):
+                                    lifted_response[mito_build.lower()][hgvs_lifted.ac] = {
+                                        'hgvs_genomic_description': mystr(hgvs_lifted),
+                                        'vcf': {'chr': vcf_dict['grc_chr'],
+                                                'pos': str(vcf_dict['pos']),
+                                                'ref': vcf_dict['ref'],
+                                                'alt': vcf_dict['alt']
+                                                }
+                                    }
 
-                                lifted_response[alt_build_to.lower()][hgvs_lifted.ac] = {
-                                    'hgvs_genomic_description': mystr(hgvs_lifted),
-                                    'vcf': {'chr': vcf_dict['grc_chr'],
-                                            'pos': str(vcf_dict['pos']),
-                                            'ref': vcf_dict['ref'],
-                                            'alt': vcf_dict['alt']
-                                            }
-                                }
+                                    if lifted_response["grch38"] == {}:
+                                        lifted_response["grch38"][hgvs_lifted.ac] = {
+                                            'hgvs_genomic_description': mystr(hgvs_lifted),
+                                            'vcf': {'chr': vcf_dict['grc_chr'],
+                                                    'pos': str(vcf_dict['pos']),
+                                                    'ref': vcf_dict['ref'],
+                                                    'alt': vcf_dict['alt']
+                                                    }
+                                        }
+                                        lifted_response["hg38"][hgvs_lifted.ac] = {
+                                            'hgvs_genomic_description': mystr(hgvs_lifted),
+                                            'vcf': {'chr': 'chrM',
+                                                    'pos': str(vcf_dict['pos']),
+                                                    'ref': vcf_dict['ref'],
+                                                    'alt': vcf_dict['alt']
+                                                    }
+                                        }
+
+
+                                else:
+                                    lifted_response[mito_build.lower()][hgvs_lifted.ac] = {
+                                        'hgvs_genomic_description': mystr(hgvs_lifted),
+                                        'vcf': {'chr': vcf_dict['ucsc_chr'],
+                                                'pos': str(vcf_dict['pos']),
+                                                'ref': vcf_dict['ref'],
+                                                'alt': vcf_dict['alt']
+                                                }
+                                    }
 
     # Remove known bad lifts
     cp_lifted_response = copy.deepcopy(lifted_response)
     for key, val in cp_lifted_response.items():
         if key == "hg19" and "NC_012920.1" in val.keys():
             lifted_response.pop(key)
+        elif key == "grch37" and "NC_001807.4" in val.keys():
+            lifted_response[key].pop("NC_001807.4")
 
     return lifted_response
 

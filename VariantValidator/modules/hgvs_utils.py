@@ -1280,6 +1280,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                         # We merge the "gap" variant and the variant itself
                         v1 = hgvs_genomic
                         v2 = map_back
+
                         if v2.posedit.edit.type == "identity":
                             needs_a_push = True  # Return new vcf only
                             break
@@ -1302,7 +1303,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                                     merged_variant = vm.g_to_n(pre_merged_variant, tx_ac)
                                 else:
                                     merged_variant = pre_merged_variant
-                            except utils.mergeHGVSerror as e:
+                            except utils.mergeHGVSerror:
                                 needs_a_push = True  # Return new vcf only
                                 break
                             except vvhgvs.exceptions.HGVSParseError:
@@ -1313,13 +1314,17 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                             if merged_variant is not False:
                                 try:
                                     if (merged_variant.posedit.pos.start.offset != 0
-                                            or merged_variant.posedit.pos.start.offset != 0):
+                                            or merged_variant.posedit.pos.end.offset != 0):
                                         # Try from normalized genomic
-                                        pre_merged_variant = hn.normalize(pre_merged_variant)
+                                        try:
+                                            pre_merged_variant = hn.normalize(pre_merged_variant)
+                                        except vvhgvs.exceptions.HGVSError:
+                                            pass
                                         test_merged_variant = vm.g_to_n(pre_merged_variant, tx_ac)
+
                                         if (test_merged_variant.posedit.pos.start.offset == 0
                                                 and test_merged_variant.posedit.pos.start.offset == 0):
-                                            merged_variant = pre_merged_variant
+                                            merged_variant = test_merged_variant
                                         else:
                                             pre_merged_variant = reverse_normalizer.normalize(pre_merged_variant)
                                             test_merged_variant = vm.g_to_n(pre_merged_variant, tx_ac)
@@ -1360,16 +1365,6 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
             # Re-sep pos-ref-alt (pos remains equal)
             ref = push_ref
             alt = push_alt
-        # else:
-        #     # Old behavior
-        #     # Hard addition of 2 post bases for sequence mismatches in gaps
-        #     pos = int(pos)
-        #     pre_end_pos = pos + len(ref)
-        #     end_pos = pre_end_pos + 1
-        #     if pre_end_pos <= exon_end_genomic:
-        #         post = sf.fetch_seq(str(normalized_hgvs_genomic.ac), pre_end_pos - 1, end_pos)
-        #         ref = ref + post
-        #         alt = alt + post
 
     # Dictionary the VCF
     vcf_dict = {'chr': chr, 'pos': pos, 'ref': ref, 'alt': alt, 'normalized_hgvs': normalized_hgvs_genomic,
@@ -1869,13 +1864,16 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
                             if merged_variant is not False:
                                 try:
                                     if (merged_variant.posedit.pos.start.offset != 0
-                                            or merged_variant.posedit.pos.start.offset != 0):
+                                            or merged_variant.posedit.pos.end.offset != 0):
                                         # Try from normalized genomic
-                                        pre_merged_variant = hn.normalize(pre_merged_variant)
+                                        try:
+                                            pre_merged_variant = hn.normalize(pre_merged_variant)
+                                        except vvhgvs.exceptions.HGVSError:
+                                            pass
                                         test_merged_variant = vm.g_to_n(pre_merged_variant, tx_ac)
                                         if (test_merged_variant.posedit.pos.start.offset == 0
                                                 and test_merged_variant.posedit.pos.start.offset == 0):
-                                            merged_variant = pre_merged_variant
+                                            merged_variant = test_merged_variant
                                         else:
                                             pre_merged_variant = reverse_normalizer.normalize(pre_merged_variant)
                                             test_merged_variant = vm.g_to_n(pre_merged_variant, tx_ac)

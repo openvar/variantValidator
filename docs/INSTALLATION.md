@@ -129,8 +129,8 @@ Where:
 
 To fill this database, download the gzipped uta genetics database, and upload it into psql.
 ```
-$ wget --output-document=VVTA_2021_2_noseq.psql.gz https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_2021_2_noseq.psql.gz
-$ gzip -cdq VVTA_2021_2_noseq.psql.gz | psql -U <USER> -v ON_ERROR_STOP=0 -d vvta -Eae
+$ wget --output-document=VVTA_2022_02.noseq.psql.gz https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_2022_02.noseq.psql.gz
+$ gzip -cdq VVTA_2022_02.noseq.psql.gz | psql -U <USER> -v ON_ERROR_STOP=0 -d vvta -Eae
 ```
 
 ## Configuration
