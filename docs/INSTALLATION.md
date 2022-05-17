@@ -82,7 +82,9 @@ Where:
 
 *Note: We have had reports that on some systems ALL PRIVILEGES may be required rather than SELECT,INSERT,UPDATE,DELETE*
 
-Download and our pre-populated database to MySQL as follows. ***Note: check [here](https://www528.lamp.le.ac.uk/vvdata/validator/) for the most up-to-date version***
+Download and our pre-populated database to MySQL as follows. 
+
+***Essential Step: check [here](https://www528.lamp.le.ac.uk/vvdata/validator/) and make sure you download and install the most up-to-date version***
 
 ```bash
 $ wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_2021-07-21.sql.gz
@@ -97,7 +99,8 @@ If you wish to test your installation using pytest (see below) we recommend that
 ## Setting up Seqrepo (SQLite >=3.8)
 
 VariantValidator requires a local SeqRepo database. The seqrepo package has already been installed into the virtual environment, but you'll need to download an actual seqrepo database. This can go anywhere on your system drive.
-***Note: check [here](https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/) for the most up-to-date version where the required file is
+
+***Essential Step: check [here](https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/) and make sure you download and install the most up-to-date version where the required file is
  e.g. VV_SR_2021_2.tar and the numbers indicate the creation date i.e. 2021_02 = February 2021***
 
 ```
@@ -128,6 +131,9 @@ Where:
 - password is a unique password for user
 
 To fill this database, download the gzipped uta genetics database, and upload it into psql.
+
+***Essential Step: check [here](https://www528.lamp.le.ac.uk/vvdata/vvta/) and make sure you download and install the most up-to-date version***
+
 ```
 $ wget --output-document=VVTA_2022_02.noseq.psql.gz https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_2022_02.noseq.psql.gz
 $ gzip -cdq VVTA_2022_02.noseq.psql.gz | psql -U <USER> -v ON_ERROR_STOP=0 -d vvta -Eae
