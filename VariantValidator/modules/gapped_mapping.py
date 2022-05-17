@@ -1176,7 +1176,7 @@ class GapMapper(object):
                     self.variant.warnings.append("Caution should be used when reporting the displayed variant "
                                                  "descriptions: If you are unsure, please contact admin")
                     self.variant.warnings.append('The displayed variants may be artefacts of aligning '
-                                                 '' + hgvs_coding.ac + ' with genomeic reference '
+                                                 '' + hgvs_coding.ac + ' with genomic reference '
                                                                        '' + disparity_info[3].ac)
                     suppress_c_normalization = 'true'
                     hard_set_outputs = True
@@ -2019,7 +2019,7 @@ class GapMapper(object):
                     self.variant.warnings.append("Caution should be used when reporting the displayed variant "
                                                  "descriptions: If you are unsure, please contact admin")
                     self.variant.warnings.append('The displayed variants may be artefacts of aligning '
-                                                 '' + hgvs_coding.ac + ' with genomeic reference '
+                                                 '' + hgvs_coding.ac + ' with genomic reference '
                                                                        '' + disparity_info[3].ac)
                     hard_set_outputs = True
 
