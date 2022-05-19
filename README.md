@@ -1,6 +1,6 @@
 # VariantValidator
 
-[![codecov](https://codecov.io/gh/openvar/variantValidator/branch/restructuring_py3/graph/badge.svg)](https://codecov.io/gh/openvar/variantValidator) [![Build Status](https://app.travis-ci.com/openvar/variantValidator.svg?branch=master)](https://app.travis-ci.com/github/openvar/variantValidator)
+[![codecov](https://codecov.io/gh/openvar/variantValidator/branch/restructuring_py3/graph/badge.svg)](https://codecov.io/gh/openvar/variantValidator) [![Build Status](https://app.travis-ci.com/openvar/variantValidator.svg?branch=master)](https://app.travis-ci.com/github/openvar/variantValidator) [![Join the chat at https://gitter.im/variantValidatorDiscuss/community](https://badges.gitter.im/variantValidatorDiscuss/community.svg)](https://gitter.im/variantValidatorDiscuss/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## About
 
