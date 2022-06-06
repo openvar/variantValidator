@@ -89,9 +89,9 @@ Download and our pre-populated database to MySQL as follows.
 ***Essential Step: check [here](https://www528.lamp.le.ac.uk/vvdata/validator/) and make sure you download and install the most up-to-date version***
 
 ```bash
-$ wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_2021-07-21.sql.gz
-$ gunzip validator_2021-07-21.sql.gz
-$ mysql validator < validator_2021-07-21.sql -u HOST -p
+$ wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_2022_04.sql.gz
+$ gunzip validator_2022_04.sql.gz
+$ mysql validator < validator_2022_04.sql -u HOST -p
 ```
 
 See the [Manual](MANUAL.md) for instructions on updating this database, which should be done regularly.
@@ -108,9 +108,9 @@ VariantValidator requires a local SeqRepo database. The seqrepo package has alre
 ```
 $ mkdir /path/to/seqrepo
 $ cd /path/to/seqrepo
-$ wget https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_2021_2.tar
-$ tar -xvf VV_SR_2021_2.tar
-$ rm VV_SR_2021_2.tar
+$ wget https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_2022_02.tar
+$ tar -xvf VV_SR_2022_02.tar
+$ rm VV_SR_2022_02.tar
 ```
 where /path/to/seqrepo should be where you install the database e.g. /Users/Shared/seqrepo_dumps/ or /local/seqrepo
 
