@@ -128,14 +128,18 @@ where /path/to/seqrepo should be where you install the database e.g. /Users/Shar
 
 ## Setting up VVTA database (PostGreSQL >=10.5)
 
+You need to start the PostGreSQL service before creating the database. It can be done so in the following way:
+
+```
+sudo service postgresql start
+```
+
 You will need to install a local version of the VVTA database. 
 
 First create the database and a user account:
 
 ```psql
-CREATE ROLE <USER> WITH CREATEDB;
-ALTER ROLE <USER> WITH LOGIN;
-ALTER ROLE <USER> WITH PASSWORD '<password>';
+CREATE USER <USER> WITH CREATEDB PASSWORD '<password>';
 CREATE DATABASE vvta WITH OWNER=<USER> TEMPLATE=template0;
 ```
 
@@ -149,7 +153,7 @@ To fill this database, download the gzipped uta genetics database, and upload it
 
 ```
 $ wget --output-document=VVTA_2022_02.noseq.sql.gz https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_2022_02_noseq.sql.gz
-$ gzip -cdq VVTA_2022_02.noseq.sql.gz | psql -U <USER> -v ON_ERROR_STOP=0 -d vvta -Eae
+$ gzip -cdq VVTA_2022_02.noseq.sql.gz | psql -U <USER> -h localhost -v ON_ERROR_STOP=0 -d vvta -Eae
 ```
 
 ## Configuration
