@@ -13,8 +13,9 @@ Optional:
 * PostgreSQL version 10.5 or above. 
 
 ## Install Linux as Windows subsystem
-Windows Subsystem for Linux (WSL) can be installed by following the instructions [here](https://ubuntu.com/tutorials/install-ubuntu-on-wsl2-on-windows-11-with-gui-support#1-overview)
+Windows Subsystem for Linux (WSL) can be installed by following the instructions [here](https://ubuntu.com/tutorials/install-ubuntu-on-wsl2-on-windows-11-with-gui-support#1-overview). This installs Ubuntu as a subsystem. 
 
+The rest of the installation is done via the Ubuntu application. 
 
 ## Download the source code
 
@@ -69,14 +70,21 @@ $ pip install -e .
 
 ## Setting up validator database (MySQL)
 
+You need to start the mySQL service before setting up the validator database. It can be done so in the following way:
+
+```
+sudo service mysql start
+```
+
 A MySQL database called validator is required to run VariantValidator. We recommend creating a user and password specific to the
 validator database, for example:
 
-```mysql
+```
 CREATE USER 'USER'@'HOST' IDENTIFIED BY 'PASSWORD';
 CREATE DATABASE validator;
 GRANT SELECT,INSERT,UPDATE,DELETE ON validator.* TO 'USER'@'HOST';
 ```
+
 Where:
 - USER should be a user-name e.g. vvadmin
 - HOST is the MySQL host ID, usually 127.0.0.1
@@ -122,7 +130,6 @@ You will need to install a local version of the VVTA database.
 First create the database and a user account:
 
 ```
-psql
 CREATE ROLE <USER> WITH CREATEDB;
 ALTER ROLE <USER> WITH LOGIN;
 ALTER ROLE <USER> WITH PASSWORD '<password>';
@@ -137,8 +144,8 @@ To fill this database, download the gzipped uta genetics database, and upload it
 ***Essential Step: check [here](https://www528.lamp.le.ac.uk/vvdata/vvta/) and make sure you download and install the most up-to-date version***
 
 ```
-$ wget --output-document=VVTA_2022_02.noseq.psql.gz https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_2022_02.noseq.psql.gz
-$ gzip -cdq VVTA_2022_02.noseq.psql.gz | psql -U <USER> -v ON_ERROR_STOP=0 -d vvta -Eae
+$ wget --output-document=VVTA_2022_02.noseq.sql.gz https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_2022_02.noseq.sql.gz
+$ gzip -cdq VVTA_2022_02.noseq.sql.gz | psql -U <USER> -v ON_ERROR_STOP=0 -d vvta -Eae
 ```
 
 ## Configuration
