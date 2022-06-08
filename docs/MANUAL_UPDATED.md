@@ -18,6 +18,7 @@ if you don't enter anything else. The items in the configuration file are:
 [mysql]
 host = localhost
 database = validator
+port = 3306
 user = USERNAME
 password = PASSWORD
 version = vvdb_2022_04
