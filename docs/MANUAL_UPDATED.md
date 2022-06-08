@@ -23,7 +23,7 @@ password = PASSWORD
 version = vvdb_2022_04
 
 [seqrepo]
-version = 2022-04
+version = VV_SR_2022_02
 location = /PATH/TO/SEQREPO
 
 [postgres]
