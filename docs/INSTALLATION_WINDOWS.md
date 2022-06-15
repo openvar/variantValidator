@@ -145,7 +145,7 @@ Download and our pre-populated database to MySQL as follows.
 ```bash
 $ wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_2022_04.sql.gz
 $ gunzip validator_2022_04.sql.gz
-$ mysql validator < validator_2022_04.sql -u HOST -p
+$ mysql validator < validator_2022_04.sql -u USER -p
 ```
 
 See the [Manual](MANUAL.md) for instructions on updating this database, which should be done regularly.
@@ -201,8 +201,13 @@ To fill this database, download the gzipped uta genetics database, and upload it
 
 ```
 $ wget --output-document=VVTA_2022_02.noseq.sql.gz https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_2022_02_noseq.sql.gz
-$ gzip -cdq VVTA_2022_02.noseq.sql.gz | psql -U <USER> -h localhost -v ON_ERROR_STOP=0 -d vvta -Eae
+$ gzip -cdq VVTA_2022_02.noseq.sql.gz | psql -U <USER> -v ON_ERROR_STOP=0 -d vvta -Eae
 ```
+
+***Possible error***
+If you get a 'Peer authnetication' error whilst doing the gzip command, you may need to update the [pg_hba.conf file](https://www.postgresql.org/docs/8.3/auth-pg-hba-conf.html). Change the method of authentication from peer to md5 and restart the postgresql service. 
+
+More information on fixing it can be found [here](https://stackoverflow.com/a/21889759).
 
 ## Configuration
 
