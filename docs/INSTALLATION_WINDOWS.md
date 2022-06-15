@@ -32,10 +32,12 @@ When installing VariantValidator we recommend using a virtual environment, as it
 
 #### Via conda  
 After [installing conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/) you can create a new virtual environment with the correct python and sqlite versions by running:
+
 ```
 $ conda env create -f environment.yml
-$ conda activate vvenv
+$ conda activate vvenvcond
 ```
+
 The packages required for VariantValidator to function are now set up in the environment "vvenv".
 
 #### Via pip
@@ -73,10 +75,51 @@ $ pip install -e .
 
 ## Setting up validator database (MySQL)
 
-You need to start the mySQL service before setting up the validator database. It can be done so in the following way:
+You need to check the mySQL service is working correctly and connect to the server. It can be done so in the following way:
+
+1. Start the mySQL service
 
 ```
-sudo service mysql start
+$ sudo service mysql start
+```
+
+2. Check the status of the service
+
+```
+$ sudo service mysql status
+```
+
+The output should look something like this:
+
+```
+* /usr/bin/mysqladmin  Ver 8.0.29-0ubuntu0.20.04.3 for Linux on x86_64 ((Ubuntu))
+Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Server version          8.0.29-0ubuntu0.20.04.3
+Protocol version        10
+Connection              Localhost via UNIX socket
+UNIX socket             /var/run/mysqld/mysqld.sock
+Uptime:                 28 min 28 sec
+
+Threads: 2  Questions: 10  Slow queries: 0  Opens: 117  Flush tables: 3  Open tables: 36  Queries per second avg: 0.005
+```
+
+3. Start the security script
+
+```
+sudo mysql_secure_installation
+```
+
+This command prompts you to answer a series of security questions to configure and secure the mySQL server. 
+
+4. Connect to the mySQL server
+
+```
+sudo mysql -u root -p
 ```
 
 A MySQL database called validator is required to run VariantValidator. We recommend creating a user and password specific to the
@@ -132,6 +175,11 @@ You need to start the PostGreSQL service before creating the database. It can be
 
 ```
 sudo service postgresql start
+```
+
+```
+su - postgres
+psql
 ```
 
 You will need to install a local version of the VVTA database. 
