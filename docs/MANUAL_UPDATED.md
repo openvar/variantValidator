@@ -24,13 +24,14 @@ password = PASSWORD
 version = vvdb_2022_04
 
 [seqrepo]
-version = VV_SR_2022_02
+version = VV_SR_2022_02/master
 location = /PATH/TO/SEQREPO
 
 [postgres]
 host = localhost
 database = vvta
-version = vvta_202204
+port: 5432
+version = vvta_2022_02
 user = USERNAME
 password = PASSWORD
 
