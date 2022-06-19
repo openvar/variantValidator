@@ -14,7 +14,6 @@ VariantValidator/testing/outputs*
 *.bak
 
 .eggs
-T
 Users
 *.sql
 *.pyc

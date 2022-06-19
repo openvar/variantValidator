@@ -61,8 +61,8 @@ class TestVariantsEnsembl(TestCase):
         assert results['validation_warning_1']['gene_ids'] == {}
         assert results['validation_warning_1']['hgvs_transcript_variant'] == ''
         assert results['validation_warning_1']['genome_context_intronic_sequence'] == ''
-        assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
-        assert results['validation_warning_1']['hgvs_refseqgene_variant'] == ''
+        # assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
+        # assert results['validation_warning_1']['hgvs_refseqgene_variant'] == ''
         assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
         assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
         assert results['validation_warning_1']['hgvs_lrg_variant'] == ''
@@ -87,8 +87,8 @@ class TestVariantsEnsembl(TestCase):
                                                                    'ucsc_id': 'uc060aur.1', 'omim_id': ['191170']}
         assert results['ENST00000269305.9:c.652_654del']['hgvs_transcript_variant'] == 'ENST00000269305.9:c.652_654del'
         assert results['ENST00000269305.9:c.652_654del']['genome_context_intronic_sequence'] == ''
-        assert results['ENST00000269305.9:c.652_654del']['refseqgene_context_intronic_sequence'] == ''
-        assert results['ENST00000269305.9:c.652_654del']['hgvs_refseqgene_variant'] == 'NG_017013.2:g.17672_17674del'
+        # assert results['ENST00000269305.9:c.652_654del']['refseqgene_context_intronic_sequence'] == ''
+        # assert results['ENST00000269305.9:c.652_654del']['hgvs_refseqgene_variant'] == 'NG_017013.2:g.17672_17674del'
         assert results['ENST00000269305.9:c.652_654del']['hgvs_predicted_protein_consequence'] == {
             'tlr': 'ENSP00000269305.4:p.(Val218del)', 'slr': 'ENSP00000269305.4:p.(V218del)'}
         assert results['ENST00000269305.9:c.652_654del']['hgvs_lrg_transcript_variant'] == 'LRG_321t1:c.652_654del'
@@ -128,9 +128,9 @@ class TestVariantsEnsembl(TestCase):
         assert results['ENST00000296388.10:c.2055+18G>A']['hgvs_transcript_variant'] == 'ENST00000296388.10:c.2055+18G>A'
         assert results['ENST00000296388.10:c.2055+18G>A'][
                    'genome_context_intronic_sequence'] == 'NC_000001.10(ENST00000296388.10):c.2055+18G>A'
-        assert results['ENST00000296388.10:c.2055+18G>A'][
-                   'refseqgene_context_intronic_sequence'] == 'NG_008123.1(ENST00000296388.10):c.2055+18G>A'
-        assert results['ENST00000296388.10:c.2055+18G>A']['hgvs_refseqgene_variant'] == 'NG_008123.1:g.24831G>A'
+        # assert results['ENST00000296388.10:c.2055+18G>A'][
+        #     'refseqgene_context_intronic_sequence'] == 'NG_008123.1(ENST00000296388.10):c.2055+18G>A'
+        # assert results['ENST00000296388.10:c.2055+18G>A']['hgvs_refseqgene_variant'] == 'NG_008123.1:g.24831G>A'
         assert results['ENST00000296388.10:c.2055+18G>A']['hgvs_predicted_protein_consequence'] == {
             'tlr': 'ENSP00000296388.5:p.?', 'slr': 'ENSP00000296388.5:p.?'}
         assert results['ENST00000296388.10:c.2055+18G>A']['hgvs_lrg_transcript_variant'] == 'LRG_5t1:c.2055+18G>A'
@@ -168,8 +168,8 @@ class TestVariantsEnsembl(TestCase):
                                                                      'ucsc_id': 'uc002ict.4', 'omim_id': ['113705']}
         assert results['ENST00000357654.9:c.*103_*106del']['hgvs_transcript_variant'] == 'ENST00000357654.9:c.*103_*106del'
         assert results['ENST00000357654.9:c.*103_*106del']['genome_context_intronic_sequence'] == ''
-        assert results['ENST00000357654.9:c.*103_*106del']['refseqgene_context_intronic_sequence'] == ''
-        assert results['ENST00000357654.9:c.*103_*106del']['hgvs_refseqgene_variant'] == 'NG_005905.2:g.172409_172412del'
+        # assert results['ENST00000357654.9:c.*103_*106del']['refseqgene_context_intronic_sequence'] == ''
+        # assert results['ENST00000357654.9:c.*103_*106del']['hgvs_refseqgene_variant'] == 'NG_005905.2:g.172409_172412del'
         assert results['ENST00000357654.9:c.*103_*106del']['hgvs_predicted_protein_consequence'] == {
             'tlr': 'ENSP00000350283.3:p.?', 'slr': 'ENSP00000350283.3:p.?'}
         assert results['ENST00000357654.9:c.*103_*106del']['hgvs_lrg_transcript_variant'] == 'LRG_292t1:c.*103_*106del'
@@ -208,8 +208,8 @@ class TestVariantsEnsembl(TestCase):
                                                                'ucsc_id': 'uc001uub.2', 'omim_id': ['600185']}
         assert results['ENST00000380152.8:c.7397=']['hgvs_transcript_variant'] == 'ENST00000380152.8:c.7397='
         assert results['ENST00000380152.8:c.7397=']['genome_context_intronic_sequence'] == ''
-        assert results['ENST00000380152.8:c.7397=']['refseqgene_context_intronic_sequence'] == ''
-        assert results['ENST00000380152.8:c.7397=']['hgvs_refseqgene_variant'] == 'NG_012772.3:g.44771='
+        # assert results['ENST00000380152.8:c.7397=']['refseqgene_context_intronic_sequence'] == ''
+        # assert results['ENST00000380152.8:c.7397=']['hgvs_refseqgene_variant'] == 'NG_012772.3:g.44771='
         assert results['ENST00000380152.8:c.7397=']['hgvs_predicted_protein_consequence'] == {
             'tlr': 'ENSP00000369497.3:p.(Ala2466=)', 'slr': 'ENSP00000369497.3:p.(A2466=)'}
         assert results['ENST00000380152.8:c.7397=']['hgvs_lrg_transcript_variant'] == 'LRG_293t1:c.7397='
@@ -248,8 +248,8 @@ class TestVariantsEnsembl(TestCase):
                                                               'ucsc_id': 'uc001mae.2', 'omim_id': ['141900']}
         assert results['ENST00000335295.4:c.20A>T']['hgvs_transcript_variant'] == 'ENST00000335295.4:c.20A>T'
         assert results['ENST00000335295.4:c.20A>T']['genome_context_intronic_sequence'] == ''
-        assert results['ENST00000335295.4:c.20A>T']['refseqgene_context_intronic_sequence'] == ''
-        assert results['ENST00000335295.4:c.20A>T']['hgvs_refseqgene_variant'] == 'NG_059281.1:g.5070A>T'
+        # assert results['ENST00000335295.4:c.20A>T']['refseqgene_context_intronic_sequence'] == ''
+        # assert results['ENST00000335295.4:c.20A>T']['hgvs_refseqgene_variant'] == 'NG_059281.1:g.5070A>T'
         assert results['ENST00000335295.4:c.20A>T']['hgvs_predicted_protein_consequence'] == {
             'tlr': 'NP_000509.1:p.(Glu7Val)', 'slr': 'NP_000509.1:p.(E7V)'}
         assert results['ENST00000335295.4:c.20A>T']['hgvs_lrg_transcript_variant'] == 'LRG_1232t1:c.20A>T'
@@ -283,8 +283,8 @@ class TestVariantsEnsembl(TestCase):
                                                                'ucsc_id': 'uc001euz.4', 'omim_id': ['159552']}
         assert results['ENST00000369026.3:c.740C>T']['hgvs_transcript_variant'] == 'ENST00000369026.3:c.740C>T'
         assert results['ENST00000369026.3:c.740C>T']['genome_context_intronic_sequence'] == ''
-        assert results['ENST00000369026.3:c.740C>T']['refseqgene_context_intronic_sequence'] == ''
-        assert results['ENST00000369026.3:c.740C>T']['hgvs_refseqgene_variant'] == 'NG_029146.1:g.6299C>T'
+        # assert results['ENST00000369026.3:c.740C>T']['refseqgene_context_intronic_sequence'] == ''
+        # assert results['ENST00000369026.3:c.740C>T']['hgvs_refseqgene_variant'] == 'NG_029146.1:g.6299C>T'
         assert results['ENST00000369026.3:c.740C>T']['hgvs_predicted_protein_consequence'] == {
             'tlr': 'ENSP00000358022.2:p.(Ser247Phe)', 'slr': 'ENSP00000358022.2:p.(S247F)'}
         assert results['ENST00000369026.3:c.740C>T']['hgvs_lrg_transcript_variant'] == ''
@@ -321,8 +321,8 @@ class TestVariantsEnsembl(TestCase):
                                                                     'ucsc_id': 'uc063nnw.1', 'omim_id': ['600985']}
         assert results['ENST00000644971.2.1:c.10717del']['hgvs_transcript_variant'] == 'ENST00000644971.2.1:c.10717del'
         assert results['ENST00000644971.2.1:c.10717del']['genome_context_intronic_sequence'] == ''
-        assert results['ENST00000644971.2.1:c.10717del']['refseqgene_context_intronic_sequence'] == ''
-        assert results['ENST00000644971.2.1:c.10717del']['hgvs_refseqgene_variant'] == ''
+        # assert results['ENST00000644971.2.1:c.10717del']['refseqgene_context_intronic_sequence'] == ''
+        # assert results['ENST00000644971.2.1:c.10717del']['hgvs_refseqgene_variant'] == ''
         assert results['ENST00000644971.2.1:c.10717del']['hgvs_predicted_protein_consequence'] == {
             'tlr': 'ENSP00000496448.1:p.(Arg3573AlafsTer91)', 'slr': 'ENSP00000496448.1:p.(R3573Afs*91)'}
         assert results['ENST00000644971.2.1:c.10717del']['hgvs_lrg_transcript_variant'] == ''
@@ -366,9 +366,9 @@ class TestVariantsEnsembl(TestCase):
         assert results['ENST00000298552.9:c.363+1dup']['hgvs_transcript_variant'] == 'ENST00000298552.9:c.363+1dup'
         assert results['ENST00000298552.9:c.363+1dup'][
                    'genome_context_intronic_sequence'] == 'NC_000009.11(ENST00000298552.9):c.363+1dup'
-        assert results['ENST00000298552.9:c.363+1dup'][
-                   'refseqgene_context_intronic_sequence'] == 'NG_012386.1(ENST00000298552.9):c.363+1dup'
-        assert results['ENST00000298552.9:c.363+1dup']['hgvs_refseqgene_variant'] == 'NG_012386.1:g.24048dup'
+        # assert results['ENST00000298552.9:c.363+1dup'][
+        #            'refseqgene_context_intronic_sequence'] == 'NG_012386.1(ENST00000298552.9):c.363+1dup'
+        # assert results['ENST00000298552.9:c.363+1dup']['hgvs_refseqgene_variant'] == 'NG_012386.1:g.24048dup'
         assert results['ENST00000298552.9:c.363+1dup']['hgvs_predicted_protein_consequence'] == {
             'tlr': 'ENSP00000298552.3:p.?', 'slr': 'ENSP00000298552.3:p.?'}
         assert results['ENST00000298552.9:c.363+1dup']['hgvs_lrg_transcript_variant'] == 'LRG_486t1:c.363+1dup'
@@ -407,8 +407,8 @@ class TestVariantsEnsembl(TestCase):
                                                                'ucsc_id': 'uc002con.4', 'omim_id': ['191092']}
         assert results['ENST00000219476.9:c.277C>T']['hgvs_transcript_variant'] == 'ENST00000219476.9:c.277C>T'
         assert results['ENST00000219476.9:c.277C>T']['genome_context_intronic_sequence'] == ''
-        assert results['ENST00000219476.9:c.277C>T']['refseqgene_context_intronic_sequence'] == ''
-        assert results['ENST00000219476.9:c.277C>T']['hgvs_refseqgene_variant'] == ''
+        # assert results['ENST00000219476.9:c.277C>T']['refseqgene_context_intronic_sequence'] == ''
+        # assert results['ENST00000219476.9:c.277C>T']['hgvs_refseqgene_variant'] == ''
         assert results['ENST00000219476.9:c.277C>T']['hgvs_predicted_protein_consequence'] == {
             'tlr': 'ENSP00000219476.3:p.(Arg93Trp)', 'slr': 'ENSP00000219476.3:p.(R93W)'}
         assert results['ENST00000219476.9:c.277C>T']['hgvs_lrg_transcript_variant'] == ''
