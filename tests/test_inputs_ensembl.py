@@ -193,6 +193,46 @@ class TestVariantsEnsembl(TestCase):
             #'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_005905.2',
             #'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_292.xml'
             }
+    
+    # BRCA2
+    def test_variant62(self):
+        variant = 'NC_000013.10:g.32929387T>C'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+
+        assert results['flag'] == 'gene_variant'
+        assert 'ENST00000380152.8:c.7397=' in list(results.keys())
+        assert results['ENST00000380152.8:c.7397=']['submitted_variant'] == 'NC_000013.10:g.32929387T>C'
+        assert results['ENST00000380152.8:c.7397=']['gene_symbol'] == 'BRCA2'
+        assert results['ENST00000380152.8:c.7397=']['gene_ids'] == {'hgnc_id': 'HGNC:1101', 'entrez_gene_id': '675',
+                                                               'ucsc_id': 'uc001uub.2', 'omim_id': ['600185']}
+        assert results['ENST00000380152.8:c.7397=']['hgvs_transcript_variant'] == 'ENST00000380152.8:c.7397='
+        assert results['ENST00000380152.8:c.7397=']['genome_context_intronic_sequence'] == ''
+        assert results['ENST00000380152.8:c.7397=']['refseqgene_context_intronic_sequence'] == ''
+        assert results['ENST00000380152.8:c.7397=']['hgvs_refseqgene_variant'] == 'NG_012772.3:g.44771='
+        assert results['ENST00000380152.8:c.7397=']['hgvs_predicted_protein_consequence'] == {
+            'tlr': 'ENSP00000369497.3:p.(Ala2466=)', 'slr': 'ENSP00000369497.3:p.(A2466=)'}
+        assert results['ENST00000380152.8:c.7397=']['hgvs_lrg_transcript_variant'] == 'LRG_293t1:c.7397='
+        assert results['ENST00000380152.8:c.7397=']['hgvs_lrg_variant'] == 'LRG_293:g.44771='
+        self.assertCountEqual(results['ENST00000380152.8:c.7397=']['alt_genomic_loci'], [])
+        assert results['ENST00000380152.8:c.7397=']['primary_assembly_loci']['hg19'] == {
+            'hgvs_genomic_description': 'NC_000013.10:g.32929387T>C',
+            'vcf': {'chr': 'chr13', 'pos': '32929387', 'ref': 'T', 'alt': 'C'}}
+        assert results['ENST00000380152.8:c.7397=']['primary_assembly_loci']['hg38'] == {
+            'hgvs_genomic_description': 'NC_000013.11:g.32355250T>C',
+            'vcf': {'chr': 'chr13', 'pos': '32355250', 'ref': 'T', 'alt': 'C'}}
+        assert results['ENST00000380152.8:c.7397=']['primary_assembly_loci']['grch37'] == {
+            'hgvs_genomic_description': 'NC_000013.10:g.32929387T>C',
+            'vcf': {'chr': '13', 'pos': '32929387', 'ref': 'T', 'alt': 'C'}}
+        assert results['ENST00000380152.8:c.7397=']['primary_assembly_loci']['grch38'] == {
+            'hgvs_genomic_description': 'NC_000013.11:g.32355250T>C',
+            'vcf': {'chr': '13', 'pos': '32355250', 'ref': 'T', 'alt': 'C'}}
+        assert results['ENST00000380152.8:c.7397=']['reference_sequence_records'] == {
+            'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_000059.4',
+            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_000050.3',
+            #'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_012772.3',
+            #'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_293.xml'
+            }
 
     
 
