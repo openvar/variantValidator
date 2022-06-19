@@ -25,7 +25,7 @@ class TestVariantsEnsembl(TestCase):
         # assert results['NM_000088.3:c.590del']['refseqgene_context_intronic_sequence'] == ''
         # assert results['NM_000088.3:c.590del']['hgvs_refseqgene_variant'] == 'NG_007400.1:g.8639del'
         assert results['ENST00000225964.10:c.590del']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_000079.2:p.(Gly197ValfsTer68)', 'slr': 'NP_000079.2:p.(G197Vfs*68)'}
+            'tlr': 'ENSP00000225964.6:p.(Gly197ValfsTer68)', 'slr': 'ENSP00000225964.6:p.(G197Vfs*68)'}
         # assert results['NM_000088.3:c.590del']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.590del'
         # assert results['NM_000088.3:c.590del']['hgvs_lrg_variant'] == 'LRG_1:g.8639del'
         self.assertCountEqual(results['ENST00000225964.10:c.590del']['alt_genomic_loci'], [])
