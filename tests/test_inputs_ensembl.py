@@ -113,6 +113,48 @@ class TestVariantsEnsembl(TestCase):
             #'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_321.xml'
             }
 
+    # P3H1
+    def test_variant4(self):
+        variant = 'NG_008123.1(ENST00000296388.10):c.2055+18G>A'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+
+        assert results['flag'] == 'gene_variant'
+        assert 'ENST00000296388.10:c.2055+18G>A' in list(results.keys())
+        assert results['ENST00000296388.10:c.2055+18G>A']['submitted_variant'] == 'NG_008123.1(ENST00000296388.10):c.2055+18G>A'
+        assert results['ENST00000296388.10:c.2055+18G>A']['gene_symbol'] == 'P3H1'
+        assert results['ENST00000296388.10:c.2055+18G>A']['gene_ids'] == {'hgnc_id': 'HGNC:19316', 'entrez_gene_id': '64175',
+                                                                   'ucsc_id': '', 'omim_id': ['610339']}
+        assert results['ENST00000296388.10:c.2055+18G>A']['hgvs_transcript_variant'] == 'ENST00000296388.10:c.2055+18G>A'
+        assert results['ENST00000296388.10:c.2055+18G>A'][
+                   'genome_context_intronic_sequence'] == 'NC_000001.10(ENST00000296388.10):c.2055+18G>A'
+        assert results['ENST00000296388.10:c.2055+18G>A'][
+                   'refseqgene_context_intronic_sequence'] == 'NG_008123.1(ENST00000296388.10):c.2055+18G>A'
+        assert results['ENST00000296388.10:c.2055+18G>A']['hgvs_refseqgene_variant'] == 'NG_008123.1:g.24831G>A'
+        assert results['ENST00000296388.10:c.2055+18G>A']['hgvs_predicted_protein_consequence'] == {
+            'tlr': 'ENSP00000296388.5:p.?', 'slr': 'ENSP00000296388.5:p.?'}
+        assert results['ENST00000296388.10:c.2055+18G>A']['hgvs_lrg_transcript_variant'] == 'LRG_5t1:c.2055+18G>A'
+        assert results['ENST00000296388.10:c.2055+18G>A']['hgvs_lrg_variant'] == 'LRG_5:g.24831G>A'
+        self.assertCountEqual(results['ENST00000296388.10:c.2055+18G>A']['alt_genomic_loci'], [])
+        assert results['ENST00000296388.10:c.2055+18G>A']['primary_assembly_loci']['hg19'] == {
+            'hgvs_genomic_description': 'NC_000001.10:g.43212925C>T',
+            'vcf': {'chr': 'chr1', 'pos': '43212925', 'ref': 'C', 'alt': 'T'}}
+        assert results['ENST00000296388.10:c.2055+18G>A']['primary_assembly_loci']['hg38'] == {
+            'hgvs_genomic_description': 'NC_000001.11:g.42747254C>T',
+            'vcf': {'chr': 'chr1', 'pos': '42747254', 'ref': 'C', 'alt': 'T'}}
+        assert results['ENST00000296388.10:c.2055+18G>A']['primary_assembly_loci']['grch37'] == {
+            'hgvs_genomic_description': 'NC_000001.10:g.43212925C>T',
+            'vcf': {'chr': '1', 'pos': '43212925', 'ref': 'C', 'alt': 'T'}}
+        assert results['ENST00000296388.10:c.2055+18G>A']['primary_assembly_loci']['grch38'] == {
+            'hgvs_genomic_description': 'NC_000001.11:g.42747254C>T',
+            'vcf': {'chr': '1', 'pos': '42747254', 'ref': 'C', 'alt': 'T'}}
+        assert results['ENST00000296388.10:c.2055+18G>A']['reference_sequence_records'] == {
+            'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_022356.4',
+            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_071751.3',
+            #'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_008123.1',
+            #'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_5.xml'
+            }
+
     
 
    
