@@ -155,6 +155,45 @@ class TestVariantsEnsembl(TestCase):
             #'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_5.xml'
             }
 
+    # BRCA1
+    def test_variant5(self):
+        variant = '17-41197588-GGACA-G'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        
+        assert 'ENST00000357654.9:c.*103_*106del' in list(results.keys())
+        assert results['ENST00000357654.9:c.*103_*106del']['submitted_variant'] == '17-41197588-GGACA-G'
+        assert results['ENST00000357654.9:c.*103_*106del']['gene_symbol'] == 'BRCA1'
+        assert results['ENST00000357654.9:c.*103_*106del']['gene_ids'] == {'hgnc_id': 'HGNC:1100', 'entrez_gene_id': '672',
+                                                                     'ucsc_id': 'uc002ict.4', 'omim_id': ['113705']}
+        assert results['ENST00000357654.9:c.*103_*106del']['hgvs_transcript_variant'] == 'ENST00000357654.9:c.*103_*106del'
+        assert results['ENST00000357654.9:c.*103_*106del']['genome_context_intronic_sequence'] == ''
+        assert results['ENST00000357654.9:c.*103_*106del']['refseqgene_context_intronic_sequence'] == ''
+        assert results['ENST00000357654.9:c.*103_*106del']['hgvs_refseqgene_variant'] == 'NG_005905.2:g.172409_172412del'
+        assert results['ENST00000357654.9:c.*103_*106del']['hgvs_predicted_protein_consequence'] == {
+            'tlr': 'ENSP00000350283.3:p.?', 'slr': 'ENSP00000350283.3:p.?'}
+        assert results['ENST00000357654.9:c.*103_*106del']['hgvs_lrg_transcript_variant'] == 'LRG_292t1:c.*103_*106del'
+        assert results['ENST00000357654.9:c.*103_*106del']['hgvs_lrg_variant'] == 'LRG_292:g.172409_172412del'
+        self.assertCountEqual(results['ENST00000357654.9:c.*103_*106del']['alt_genomic_loci'], [])
+        assert results['ENST00000357654.9:c.*103_*106del']['primary_assembly_loci']['hg19'] == {
+            'hgvs_genomic_description': 'NC_000017.10:g.41197590_41197593del',
+            'vcf': {'chr': 'chr17', 'pos': '41197588', 'ref': 'GGACA', 'alt': 'G'}}
+        assert results['ENST00000357654.9:c.*103_*106del']['primary_assembly_loci']['hg38'] == {
+            'hgvs_genomic_description': 'NC_000017.11:g.43045573_43045576del',
+            'vcf': {'chr': 'chr17', 'pos': '43045571', 'ref': 'GGACA', 'alt': 'G'}}
+        assert results['ENST00000357654.9:c.*103_*106del']['primary_assembly_loci']['grch37'] == {
+            'hgvs_genomic_description': 'NC_000017.10:g.41197590_41197593del',
+            'vcf': {'chr': '17', 'pos': '41197588', 'ref': 'GGACA', 'alt': 'G'}}
+        assert results['ENST00000357654.9:c.*103_*106del']['primary_assembly_loci']['grch38'] == {
+            'hgvs_genomic_description': 'NC_000017.11:g.43045573_43045576del',
+            'vcf': {'chr': '17', 'pos': '43045571', 'ref': 'GGACA', 'alt': 'G'}}
+        assert results['ENST00000357654.9:c.*103_*106del']['reference_sequence_records'] == {
+            'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_007294.4',
+            'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_009225.1',
+            #'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_005905.2',
+            #'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_292.xml'
+            }
+
     
 
    
