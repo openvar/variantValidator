@@ -22,12 +22,12 @@ class TestVariantsEnsembl(TestCase):
                                                                'ucsc_id': 'uc002iqm.4', 'omim_id': ['120150']}
         assert results['ENST00000225964.10:c.590del']['hgvs_transcript_variant'] == 'ENST00000225964.10:c.590del'
         assert results['ENST00000225964.10:c.590del']['genome_context_intronic_sequence'] == ''
-        # assert results['NM_000088.3:c.590del']['refseqgene_context_intronic_sequence'] == ''
-        # assert results['NM_000088.3:c.590del']['hgvs_refseqgene_variant'] == 'NG_007400.1:g.8639del'
+        # assert results['ENST00000225964.10:c.590del']['refseqgene_context_intronic_sequence'] == ''
+        # assert results['ENST00000225964.10:c.590del']['hgvs_refseqgene_variant'] == 'NG_007400.1:g.8639del'
         assert results['ENST00000225964.10:c.590del']['hgvs_predicted_protein_consequence'] == {
             'tlr': 'ENSP00000225964.6:p.(Gly197ValfsTer68)', 'slr': 'ENSP00000225964.6:p.(G197Vfs*68)'}
-        # assert results['NM_000088.3:c.590del']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.590del'
-        # assert results['NM_000088.3:c.590del']['hgvs_lrg_variant'] == 'LRG_1:g.8639del'
+        # assert results['ENST00000225964.10:c.590del']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.590del'
+        # assert results['ENST00000225964.10:c.590del']['hgvs_lrg_variant'] == 'LRG_1:g.8639del'
         self.assertCountEqual(results['ENST00000225964.10:c.590del']['alt_genomic_loci'], [])
         assert results['ENST00000225964.10:c.590del']['primary_assembly_loci']['hg19'] == {
             'hgvs_genomic_description': 'NC_000017.10:g.48275364del',
@@ -50,28 +50,40 @@ class TestVariantsEnsembl(TestCase):
 
     # COL5A1
     def test_variant2(self):
-        variant = 'COL5A1:c.5071A>T'
+        variant = 'ENST00000371817.8:c.5071A>T'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
 
-        assert results['flag'] == 'warning'
-        assert 'validation_warning_1' in list(results.keys())
-        assert results['validation_warning_1']['submitted_variant'] == 'COL5A1:c.5071A>T'
-        assert results['validation_warning_1']['gene_symbol'] == ''
-        assert results['validation_warning_1']['gene_ids'] == {}
-        assert results['validation_warning_1']['hgvs_transcript_variant'] == ''
-        assert results['validation_warning_1']['genome_context_intronic_sequence'] == ''
-        # assert results['validation_warning_1']['refseqgene_context_intronic_sequence'] == ''
-        # assert results['validation_warning_1']['hgvs_refseqgene_variant'] == ''
-        assert results['validation_warning_1']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
-        assert results['validation_warning_1']['hgvs_lrg_transcript_variant'] == ''
-        assert results['validation_warning_1']['hgvs_lrg_variant'] == ''
-        self.assertCountEqual(results['validation_warning_1']['alt_genomic_loci'], [])
-        # assert 'hg19' not in list(results['validation_warning_1']['primary_assembly_loci'].keys())
-        # # assert 'hg38' not in list(results['validation_warning_1']['primary_assembly_loci'].keys())
-        # assert 'grch37' not in list(results['validation_warning_1']['primary_assembly_loci'].keys())
-        # assert 'grch38' not in list(results['validation_warning_1']['primary_assembly_loci'].keys())
-        assert results['validation_warning_1']['reference_sequence_records'] == ''
+        assert results['flag'] == 'gene_variant'
+        assert 'ENST00000371817.8:c.5071A>T' in list(results.keys())
+        assert results['ENST00000371817.8:c.5071A>T']['submitted_variant'] == 'COL5A1:c.5071A>T'
+        assert results['ENST00000371817.8:c.5071A>T']['gene_symbol'] == 'COL5A1'
+        assert results['ENST00000371817.8:c.5071A>T']['gene_ids'] == {'hgnc_id': 'HGNC:2209', 'entrez_gene_id': '1289',
+                                                               'ucsc_id': 'uc004cfe.5', 'omim_id': ['120215']}
+        assert results['ENST00000371817.8:c.5071A>T']['hgvs_transcript_variant'] == 'ENST00000371817.8:c.5071A>T'
+        assert results['ENST00000371817.8:c.5071A>T']['genome_context_intronic_sequence'] == ''
+        # assert results['ENST00000371817.8:c.5071A>T']['refseqgene_context_intronic_sequence'] == ''
+        # assert results['ENST00000371817.8:c.5071A>T']['hgvs_refseqgene_variant'] == ''
+        assert results['ENST00000371817.8:c.5071A>T']['hgvs_predicted_protein_consequence'] == {
+            'tlr': 'ENSP00000360882.3:p.(Arg1691Ter)', 'slr': 'ENSP00000360882.3p.(R1691*)'}
+        # assert results['ENST00000371817.8:c.5071A>T']['hgvs_lrg_transcript_variant'] == ''
+        # assert results['ENST00000371817.8:c.5071A>T']['hgvs_lrg_variant'] == ''
+        self.assertCountEqual(results['ENST00000371817.8:c.5071A>T']['alt_genomic_loci'], [])
+        assert results['ENST00000371817.8:c.5071A>T']['primary_assembly_loci']['hg19'] == {
+            'hgvs_genomic_description': 'NC_000009.11:g.137721825A>T', 
+            'vcf': {'chr': 'chr9', 'pos': '137721825', 'ref': 'A', 'alt': 'T'}}
+        assert results['ENST00000371817.8:c.5071A>T']['primary_assembly_loci']['hg38'] == {
+            'hgvs_genomic_description': 'NC_000009.12:g.134829979A>T', 
+            'vcf': {'chr': 'chr9', 'pos': '134829979', 'ref': 'A', 'alt': 'T'}}
+        assert results['ENST00000371817.8:c.5071A>T']['primary_assembly_loci']['grch37'] == {
+            'hgvs_genomic_description': 'NC_000009.11:g.137721825A>T', 
+            'vcf': {'chr': '9', 'pos': '137721825', 'ref': 'A', 'alt': 'T'}}
+        assert results['ENST00000371817.8:c.5071A>T']['primary_assembly_loci']['grch38'] == {
+            'hgvs_genomic_description': 'NC_000009.12:g.134829979A>T', 
+            'vcf': {'chr': '9', 'pos': '134829979', 'ref': 'A', 'alt': 'T'}}
+        assert results['ENST00000371817.8:c.5071A>T']['reference_sequence_records'] == {
+             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_000093.5',
+             'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_000084.3'}
 
     # TP53
     def test_variant3(self):
