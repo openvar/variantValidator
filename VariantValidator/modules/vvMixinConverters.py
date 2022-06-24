@@ -1714,8 +1714,15 @@ class Mixin(vvMixinInit.Mixin):
             except Exception as err:
                 logger.warning('non expected err type', str(err))
                 continue
+            try:
+                reverse_normalizer.normalize(variant)
+            except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
+                if "Unsupported normalization of variants spanning the exon-intron " \
+                   "boundary" in str(e) and variant.posedit.edit.type == "ins":
+                    variant.posedit.pos.end.base = variant.posedit.pos.start.base
+                    variant.posedit.pos.end.offset = 1
 
-            # Corrective Normalisation of intronic descriptions in the antisense oriemtation
+            # Corrective Normalisation of intronic descriptions in the antisense orientation
             if '+' in str(variant) or '-' in str(variant) or '*' in str(variant):
                 tx_ac = variant.ac
                 alt_ac = hgvs_genomic.ac
