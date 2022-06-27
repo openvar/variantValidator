@@ -1487,16 +1487,6 @@ class Mixin(vvMixinInit.Mixin):
 
         return hgvs_genomic
 
-    # def hgvs_protein(self, variant, hpOld):
-    #     """
-    #     parse p. strings into hgvs p. objects
-    #     """
-    #     # If the :p. pattern is present in the input variant
-    #     if ':p.' in variant:
-    #         # convert the input string into a hgvs object
-    #         var_p = self.hp.parse_hgvs_variant(variant)
-    #         return var_p
-
     def hgvs_r_to_c(self, hgvs_object):
         """
         Convert r. into c.
@@ -1511,95 +1501,15 @@ class Mixin(vvMixinInit.Mixin):
         hgvs_object.type = 'c'
         edit = str(hgvs_object.posedit.edit)
         edit = edit.upper()
+
         # lowercase the supported variant types
         edit = edit.replace('DEL', 'del')
         edit = edit.replace('INS', 'ins')
         edit = edit.replace('INV', 'inv')
         edit = edit.replace('DUP', 'dup')
-        # edit = edit.replace('CON', 'con')
-        # edit = edit.replace('TRA', 'tra')
         edit = edit.replace('U', 'T')
         hgvs_object.posedit.edit = edit
         return hgvs_object
-
-    # def hgvs_c_to_r(self, hgvs_object):
-    #     """
-    #     Convert c. into r.
-    #     """
-    #     hgvs_object.type = 'r'
-    #     edit = str(hgvs_object.posedit.edit)
-    #     edit = edit.lower()
-    #     edit = edit.replace('t', 'u')
-    #     hgvs_object.posedit.edit = edit
-    #     return hgvs_object
-
-    # def tx_identity_info(self, variant):
-    #     """
-    #     Input c. r. n. variant string
-    #     Use uta.py (hdp) to return the identity information for the transcript variant
-    #     see vvhgvs.dataproviders.uta.py for details
-    #     """
-    #     # If the :c. pattern is present in the input variant
-    #     if ':c.' in variant:
-    #         # Remove all text to the right and including pat_c
-    #         tx_ac = variant[:variant.index(':c.') + len(':c.')]
-    #         tx_ac = tx_ac.replace(':c.', '')
-    #         # Interface with the UTA database via get_tx_identity in uta.py
-    #         tx_id_info = self.hdp.get_tx_identity_info(tx_ac)
-    #         # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
-    #         return tx_id_info
-    #
-    #     # If the :n. pattern is present in the input variant
-    #     if ':n.' in variant:
-    #         # Remove all text to the right and including pat_c
-    #         tx_ac = variant[:variant.index(':n.') + len(':n.')]
-    #         tx_ac = tx_ac.replace(':n.', '')
-    #         # Interface with the UTA database via get_tx_identity in uta.py
-    #         tx_id_info = self.hdp.get_tx_identity_info(tx_ac)
-    #         # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
-    #         return tx_id_info
-    #
-    #     # If the :r. pattern is present in the input variant
-    #     if ':r.' in variant:
-    #         # Remove all text to the right and including pat_c
-    #         tx_ac = variant[:variant.index(':r.') + len(':r.')]
-    #         tx_ac = tx_ac.replace(':r.', '')
-    #         # Interface with the UTA database via get_tx_identity in uta.py
-    #         tx_id_info = self.hdp.get_tx_identity_info(tx_ac)
-    #         # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
-    #         return tx_id_info
-
-    # def tx_id_info(self, alt_ac):
-    #     """
-    #     Input c. r. nd accession string
-    #     Use uta.py (hdp) to return the identity information for the transcript variant
-    #     see vvhgvs.dataproviders.uta.py for details
-    #     """
-    #     tx_id_info = self.hdp.get_tx_identity_info(alt_ac)
-    #     # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
-    #     return tx_id_info
-
-    # def tx_for_gene(self, hgnc):
-    #     """
-    #     Use uta.py (hdp) to return the transcript information for a specified gene (HGNC SYMBOL)
-    #     see vvhgvs.dataproviders.uta.py for details
-    #     """
-    #     # Interface with the UTA database via get_tx_for_gene in uta.py
-    #     tx_for_gene = self.hdp.get_tx_for_gene(hgnc)
-    #     return tx_for_gene
-
-    # def ng_extract(self, tx_for_gene):
-    #     """
-    #     Extract RefSeqGene Accession from transcript information
-    #     see vvhgvs.dataproviders.uta.py for details
-    #     """
-    #     # For each list in the list of lists tx_for_gene
-    #     for item in tx_for_gene:
-    #         # If the pattern NG_ is found in element 4
-    #         if 'NG_' in item[4]:
-    #             # The gene accession is set to list element 4
-    #             gene_ac = item[4]
-    #             return gene_ac
 
     def tx_exons(self, tx_ac, alt_ac, alt_aln_method):
         """
