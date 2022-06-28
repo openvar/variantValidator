@@ -181,28 +181,28 @@ class Mixin:
                                                                          )
 
         # create no_norm_evm
-        self.no_norm_evm_38 = vvhgvs.assemblymapper.AssemblyMapper(self.hdp,
+        self.no_norm_splign_evm_38 = vvhgvs.assemblymapper.AssemblyMapper(self.hdp,
                                                                    assembly_name='GRCh38',
                                                                    alt_aln_method='splign', # RefSeq
                                                                    normalize=False,
                                                                    replace_reference=True
                                                                    )
         
-        self.no_norm_evm_38 = vvhgvs.assemblymapper.AssemblyMapper(self.hdp,
+        self.no_norm_genebuild_evm_38 = vvhgvs.assemblymapper.AssemblyMapper(self.hdp,
                                                                    assembly_name='GRCh38',
                                                                    alt_aln_method='genebuild', # Ensembl
                                                                    normalize=False,
                                                                    replace_reference=True
                                                                    )
 
-        self.no_norm_evm_37 = vvhgvs.assemblymapper.AssemblyMapper(self.hdp,
+        self.no_norm_splign_evm_37 = vvhgvs.assemblymapper.AssemblyMapper(self.hdp,
                                                                    assembly_name='GRCh37',
                                                                    alt_aln_method='splign', # RefSeq
                                                                    normalize=False,
                                                                    replace_reference=True
                                                                    )
 
-        self.no_norm_evm_37 = vvhgvs.assemblymapper.AssemblyMapper(self.hdp,
+        self.no_norm_genebuild_evm_37 = vvhgvs.assemblymapper.AssemblyMapper(self.hdp,
                                                                    assembly_name='GRCh37',
                                                                    alt_aln_method='genebuild', # Ensembl
                                                                    normalize=False,

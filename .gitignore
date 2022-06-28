@@ -17,3 +17,4 @@ VariantValidator/testing/outputs*
 Users
 *.sql
 *.pyc
+temp.py
