@@ -131,11 +131,11 @@ class Mixin:
         self.utaSchema = str(self.hdp.data_version())
 
         # Create normalizer
-        self.reverse_hn = vvhgvs.normalizer.Normalizer(self.hdp,
-                                                       cross_boundaries=False,
-                                                       shuffle_direction=5,
-                                                       alt_aln_method='splign'
-                                                       )
+        #self.reverse_hn = vvhgvs.normalizer.Normalizer(self.hdp,
+        #                                               cross_boundaries=False,
+        #                                               shuffle_direction=5,
+        #                                               alt_aln_method='splign'
+        #                                               )
 
         #self.merge_normalizer = vvhgvs.normalizer.Normalizer(
         #    self.hdp,
