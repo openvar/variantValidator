@@ -137,20 +137,20 @@ class Mixin:
                                                        alt_aln_method='splign'
                                                        )
 
-        self.merge_normalizer = vvhgvs.normalizer.Normalizer(
-            self.hdp,
-            cross_boundaries=False,
-            shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
-            alt_aln_method='splign',
-            validate=False
-        )
-        self.reverse_merge_normalizer = vvhgvs.normalizer.Normalizer(
-            self.hdp,
-            cross_boundaries=False,
-            shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
-            alt_aln_method='splign',
-            validate=False
-        )
+        #self.merge_normalizer = vvhgvs.normalizer.Normalizer(
+        #    self.hdp,
+        #    cross_boundaries=False,
+        #    shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
+        #    alt_aln_method='splign',
+        #    validate=False
+        #)
+        #self.reverse_merge_normalizer = vvhgvs.normalizer.Normalizer(
+        #    self.hdp,
+        #    cross_boundaries=False,
+        #    shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
+        #    alt_aln_method='splign',
+        #    validate=False
+        #)
 
         # When we are able to access Ensembl data we will need to use these normalizer instances
         # These are currently implemented in VF
@@ -183,17 +183,33 @@ class Mixin:
         # create no_norm_evm
         self.no_norm_evm_38 = vvhgvs.assemblymapper.AssemblyMapper(self.hdp,
                                                                    assembly_name='GRCh38',
-                                                                   alt_aln_method='splign',
+                                                                   alt_aln_method='splign', # RefSeq
+                                                                   normalize=False,
+                                                                   replace_reference=True
+                                                                   )
+        
+        self.no_norm_evm_38 = vvhgvs.assemblymapper.AssemblyMapper(self.hdp,
+                                                                   assembly_name='GRCh38',
+                                                                   alt_aln_method='genebuild', # Ensembl
                                                                    normalize=False,
                                                                    replace_reference=True
                                                                    )
 
         self.no_norm_evm_37 = vvhgvs.assemblymapper.AssemblyMapper(self.hdp,
                                                                    assembly_name='GRCh37',
-                                                                   alt_aln_method='splign',
+                                                                   alt_aln_method='splign', # RefSeq
                                                                    normalize=False,
                                                                    replace_reference=True
                                                                    )
+
+        self.no_norm_evm_37 = vvhgvs.assemblymapper.AssemblyMapper(self.hdp,
+                                                                   assembly_name='GRCh37',
+                                                                   alt_aln_method='genebuild', # Ensembl
+                                                                   normalize=False,
+                                                                   replace_reference=True
+                                                                   )
+
+
         # Created during validate method
         self.selected_assembly = None
         self.select_transcripts = None
