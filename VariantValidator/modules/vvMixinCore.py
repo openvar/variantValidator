@@ -51,8 +51,8 @@ class Mixin(vvMixinConverters.Mixin):
             self.alt_aln_method = 'splign'
         elif transcript_set == "ensembl":
             self.alt_aln_method = 'genebuild'
-            logger.warning("Ensembl is currently not supported")
-            raise Exception("Ensembl is currently not supported")
+            # logger.warning("Ensembl is currently not supported")
+            # raise Exception("Ensembl is currently not supported")
         else:
             raise Exception("The transcriptSet variable '%s' is invalid, it must be 'refseq' or 'ensembl'" %
                             transcript_set)
