@@ -12,3 +12,8 @@ VariantValidator/testing/outputs*
 
 # backedup files after 2to3 conversion
 *.bak
+
+.eggs
+Users
+*.sql
+*.pyc
