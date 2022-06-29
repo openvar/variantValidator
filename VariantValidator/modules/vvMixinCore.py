@@ -314,8 +314,8 @@ class Mixin(vvMixinConverters.Mixin):
                                     ) or re.match("GRCh", test_for_invalid_case_in_accession, re.IGNORECASE
                                                   ) or re.match("hg", test_for_invalid_case_in_accession, re.IGNORECASE
                                                                 ):
-                            e = "This is not a valid HGVS variant description because a valid reference sequence ID " \
-                                "has not been provided"
+                            e = "This is not a valid HGVS variant description, because no reference sequence ID " \
+                                "has been provided"
                         else:
                             e = "This not a valid HGVS description, due to characters being in the wrong case. " \
                                 "Please check the use of upper- and lowercase characters."
@@ -963,7 +963,8 @@ class Mixin(vvMixinConverters.Mixin):
                                                 }
                                     }
                                 if build == 'GRCh38':
-                                    vcf_dict = hgvs_utils.report_hgvs2vcf(alt_gen_var, 'hg38', variant.reverse_normalizer,
+                                    vcf_dict = hgvs_utils.report_hgvs2vcf(alt_gen_var, 'hg38'
+                                                                          , variant.reverse_normalizer,
                                                                           self.sf)
                                     primary_genomic_dicts['hg38'] = {
                                         'hgvs_genomic_description': fn.valstr(alt_gen_var),
@@ -1033,7 +1034,8 @@ class Mixin(vvMixinConverters.Mixin):
                                                 }
                                     }
                                 if build == 'GRCh38':
-                                    vcf_dict = hgvs_utils.report_hgvs2vcf(alt_gen_var, 'hg38', variant.reverse_normalizer,
+                                    vcf_dict = hgvs_utils.report_hgvs2vcf(alt_gen_var, 'hg38',
+                                                                          variant.reverse_normalizer,
                                                                           self.sf)
                                     primary_genomic_dicts['hg38'] = {
                                         'hgvs_genomic_description': fn.valstr(alt_gen_var),

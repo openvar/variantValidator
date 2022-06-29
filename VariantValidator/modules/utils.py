@@ -160,6 +160,7 @@ def remove_reference(hgvs_nucleotide):
 
 
 def remove_reference_string(variant_string):
+
     """
     format stringified nucleotide descriptions to not display reference base
     """
