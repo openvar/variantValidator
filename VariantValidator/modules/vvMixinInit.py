@@ -171,13 +171,13 @@ class Mixin:
         self.reverse_splign_normalizer = vvhgvs.normalizer.Normalizer(self.hdp,
                                                                       cross_boundaries=False,
                                                                       shuffle_direction=5,
-                                                                      alt_aln_method='splign'
+                                                                      alt_aln_method='splign' # RefSeq
                                                                       )
 
         self.reverse_genebuild_normalizer = vvhgvs.normalizer.Normalizer(self.hdp,
                                                                          cross_boundaries=False,
                                                                          shuffle_direction=5,
-                                                                         alt_aln_method='genebuild'
+                                                                         alt_aln_method='genebuild' # Ensembl
                                                                          )
 
         # create no_norm_evm
