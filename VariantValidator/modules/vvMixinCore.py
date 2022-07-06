@@ -551,26 +551,26 @@ class Mixin(vvMixinConverters.Mixin):
 
                     # ENST support needs to be re-evaluated, but is very low priority
                     # ENST not supported by ACMG and is under review by HGVS
-                    if my_variant.refsource == 'ENS':
-                        trap_ens_in = str(my_variant.hgvs_formatted)
-                        sim_tx = self.hdp.get_similar_transcripts(my_variant.hgvs_formatted.ac)
-                        for line in sim_tx:
-                            if line[2] and line[3] and line[4] and line[5] and line[6]:
-                                my_variant.hgvs_formatted.ac = line[1]
-                                my_variant.set_quibble(str(my_variant.hgvs_formatted))
-                                formatted_variant = my_variant.quibble
-                                break
-                        if my_variant.refsource == 'ENS':
-                            error = 'Unable to map ' + my_variant.hgvs_formatted.ac + \
-                                    ' to an equivalent RefSeq transcript'
-                            my_variant.warnings.append(error)
-                            logger.warning(error)
-                            continue
-                        else:
-                            my_variant.warnings.append(str(trap_ens_in) + ' automapped to equivalent RefSeq transcript '
-                                                       + my_variant.quibble)
-                            logger.info(str(trap_ens_in) + ' automapped to equivalent RefSeq '
-                                                           'transcript ' + my_variant.quibble)
+                    #if my_variant.refsource == 'ENS':
+                    #    trap_ens_in = str(my_variant.hgvs_formatted)
+                    #    sim_tx = self.hdp.get_similar_transcripts(my_variant.hgvs_formatted.ac)
+                    #    for line in sim_tx:
+                    #        if line[2] and line[3] and line[4] and line[5] and line[6]:
+                    #           my_variant.hgvs_formatted.ac = line[1]
+                    #           my_variant.set_quibble(str(my_variant.hgvs_formatted))
+                    #           formatted_variant = my_variant.quibble
+                    #            break
+                    #    if my_variant.refsource == 'ENS':
+                    #       error = 'Unable to map ' + my_variant.hgvs_formatted.ac + \
+                    #               ' to an equivalent RefSeq transcript'
+                    #       my_variant.warnings.append(error)
+                    #       logger.warning(error)
+                    #       continue
+                    #   else:
+                    #       my_variant.warnings.append(str(trap_ens_in) + ' automapped to equivalent RefSeq transcript '
+                    #                                   + my_variant.quibble)
+                    #       logger.info(str(trap_ens_in) + ' automapped to equivalent RefSeq '
+                    #                                   'transcript ' + my_variant.quibble)
                     logger.debug("HVGS acceptance test passed")
 
                     # Check whether supported genome build is requested for non g. descriptions
