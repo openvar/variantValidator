@@ -1963,7 +1963,7 @@ class Mixin(vvMixinConverters.Mixin):
                             error = '%s. Please try again later and if the problem persists contact admin.' % str(e)
                             variant.warnings.append(error)
                             logger.warning(error)
-                            return True
+
                     variant.description = entry['description']
                 else:
                     variant.description = entry['description']
