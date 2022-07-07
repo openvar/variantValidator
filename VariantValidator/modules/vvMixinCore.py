@@ -33,7 +33,7 @@ class Mixin(vvMixinConverters.Mixin):
                  batch_variant,
                  selected_assembly,
                  select_transcripts,
-                 transcript_set="refseq",
+                 transcript_set=None,
                  liftover_level=False):
         """
         This is the main validator function.
@@ -47,7 +47,7 @@ class Mixin(vvMixinConverters.Mixin):
         """
         logger.debug("Running validate with inputs %s and assembly %s", batch_variant, selected_assembly)
 
-        if transcript_set == "refseq":
+        if transcript_set == "refseq" or transcript_set is None:
             self.alt_aln_method = 'splign'
         elif transcript_set == "ensembl":
             self.alt_aln_method = 'genebuild'
@@ -1177,7 +1177,8 @@ class Mixin(vvMixinConverters.Mixin):
                     # Add or update stable ID and transcript data
                     if gene_stable_info[1] == 'No data' and hgvs_tx_variant is not None:
                         try:
-                            self.db.update_transcript_info_record(hgvs_tx_variant.ac, self)
+                            self.db.update_transcript_info_record(hgvs_tx_variant.ac,
+                                                                  genome_build=self.selected_assembly)
                         except fn.DatabaseConnectionError as e:
                             error = 'Currently unable to update all gene_ids or transcript information records ' \
                                     'because ' \
@@ -1230,7 +1231,8 @@ class Mixin(vvMixinConverters.Mixin):
                         annotation_info.keys()
                     except Exception:
                         try:
-                            self.db.update_transcript_info_record(hgvs_tx_variant.ac, self)
+                            self.db.update_transcript_info_record(hgvs_tx_variant.ac,
+                                                                  genome_build=self.selected_assembly)
                         except fn.DatabaseConnectionError as e:
                             error = 'Currently unable to update all gene_ids or transcript information records ' \
                                     'because ' \
@@ -1936,7 +1938,32 @@ class Mixin(vvMixinConverters.Mixin):
             elif 'accession' in entry:
                 # If the current entry is too old
                 if entry['expiry'] == 'true':
-                    entry = self.db.data_add(accession=accession, validator=self)
+                    try:
+                        entry = self.db.data_add(accession=accession,
+                                                 validator=self,
+                                                 genome_build=variant.selected_assembly)
+                    except vvhgvs.exceptions.HGVSError:
+                        error = 'Transcript %s is not currently supported' % accession
+                        variant.warnings.append(error)
+                        logger.warning(error)
+                        return True
+                    except fn.ObsoleteSeqError as e:
+                        error = 'Unable to assign transcript identity records to %s. %s' % (accession, str(e))
+                        variant.warnings.append(error)
+                        logger.info(error)
+                        return True
+                    except fn.DatabaseConnectionError as e:
+                        # If the none key is found add the description to the database
+                        if 'UTA' in str(e):
+                            error = '%s. Please try again later and if the problem persists contact admin.' % str(e)
+                            variant.warnings.append(error)
+                            logger.warning(error)
+                            return True
+                        elif "Cannot retrieve data from Ensembl REST for record" in str(e):
+                            error = '%s. Please try again later and if the problem persists contact admin.' % str(e)
+                            variant.warnings.append(error)
+                            logger.warning(error)
+                            return True
                     variant.description = entry['description']
                 else:
                     variant.description = entry['description']
