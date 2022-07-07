@@ -310,7 +310,10 @@ class Mixin(vvMixinConverters.Mixin):
                     elif (test_for_invalid_case_in_accession != query_for_invalid_case_in_accession) \
                             and "LRG" not in test_for_invalid_case_in_accession:
                         # See issue #357
-                        if re.match("chr", test_for_invalid_case_in_accession, re.IGNORECASE):
+                        if re.match("chr", test_for_invalid_case_in_accession, re.IGNORECASE
+                                    ) or re.match("GRCh", test_for_invalid_case_in_accession, re.IGNORECASE
+                                                  ) or re.match("hg", test_for_invalid_case_in_accession, re.IGNORECASE
+                                                                ):
                             e = "This is not a valid HGVS variant description, because no reference sequence ID " \
                                 "has been provided"
                         else:
@@ -583,7 +586,7 @@ class Mixin(vvMixinConverters.Mixin):
                     if is_mapable:
 
                         # These objects cannot be moved outside of the main function because they gather data from the
-                        # iuser input e.g. alignment method and genome build
+                        # user input e.g. alignment method and genome build
                         # They initiate quickly, so no need to move them unnecessarily
 
                         # Create easy variant mapper (over variant mapper) and splign locked evm
@@ -960,7 +963,8 @@ class Mixin(vvMixinConverters.Mixin):
                                                 }
                                     }
                                 if build == 'GRCh38':
-                                    vcf_dict = hgvs_utils.report_hgvs2vcf(alt_gen_var, 'hg38', variant.reverse_normalizer,
+                                    vcf_dict = hgvs_utils.report_hgvs2vcf(alt_gen_var, 'hg38'
+                                                                          , variant.reverse_normalizer,
                                                                           self.sf)
                                     primary_genomic_dicts['hg38'] = {
                                         'hgvs_genomic_description': fn.valstr(alt_gen_var),
@@ -1030,7 +1034,8 @@ class Mixin(vvMixinConverters.Mixin):
                                                 }
                                     }
                                 if build == 'GRCh38':
-                                    vcf_dict = hgvs_utils.report_hgvs2vcf(alt_gen_var, 'hg38', variant.reverse_normalizer,
+                                    vcf_dict = hgvs_utils.report_hgvs2vcf(alt_gen_var, 'hg38',
+                                                                          variant.reverse_normalizer,
                                                                           self.sf)
                                     primary_genomic_dicts['hg38'] = {
                                         'hgvs_genomic_description': fn.valstr(alt_gen_var),
@@ -1374,11 +1379,12 @@ class Mixin(vvMixinConverters.Mixin):
                     #  Do not warn a transcript update is available for the most recent transcript
                     if term in vt and "A more recent version of the selected reference sequence" in vt:
                         continue
-
                     # Remove spurious updates away form the correct output
                     elif (term_2 in vt and tx_variant != "") or (term_3 in vt and genomic_variant != ""):
                         continue
-
+                    # Suppress "RefSeqGene record not available"
+                    elif "RefSeqGene record not available" in vt:
+                        continue
                     else:
                         variant_warnings.append(vt)
                 variant.warnings = variant_warnings
