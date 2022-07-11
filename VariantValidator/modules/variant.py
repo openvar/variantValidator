@@ -239,7 +239,7 @@ class Variant(object):
     def process_warnings(self):
         refined = []
         for warning in self.warnings:
-            warning = re.sub('del[GATC][GATC][GATC][GATC]+', 'del', warning)
+            warning = re.sub('del[GATC][GATC][GATC][GATC]+', 'del', str(warning))
             warning = warning.strip()
             warning = warning.replace("'", "")
             if warning == '':

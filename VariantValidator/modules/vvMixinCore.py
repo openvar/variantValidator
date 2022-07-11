@@ -697,6 +697,7 @@ class Mixin(vvMixinConverters.Mixin):
                     toskip = format_converters.proteins(my_variant, self)
                     if toskip:
                         continue
+
                     trapped_input = str(my_variant.hgvs_formatted)
                     my_variant.pre_RNA_conversion = trapped_input
                     toskip = format_converters.rna(my_variant, self)
@@ -1385,6 +1386,11 @@ class Mixin(vvMixinConverters.Mixin):
                     # Suppress "RefSeqGene record not available"
                     elif "RefSeqGene record not available" in vt:
                         continue
+                    elif 'NP_' in vt and 'transcript' in vt:
+                        continue
+                    elif "Xaa" in vt:
+                        vt = vt.replace("Xaa", "Ter")
+                        variant_warnings.append(vt)
                     else:
                         variant_warnings.append(vt)
                 variant.warnings = variant_warnings

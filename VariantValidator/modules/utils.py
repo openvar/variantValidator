@@ -112,10 +112,6 @@ def ensembl_tark(id, endpoint, options=False):
     try:
         r = requests.get(url, headers=headers)
     except requests.exceptions.InvalidSchema as e:
-        # import sys
-        # import traceback
-        # exc_type, exc_value, last_traceback = sys.exc_info()
-        # traceback.print_tb(last_traceback)
         my_error = str(e)
         data['error'] = my_error
         return data
@@ -514,8 +510,27 @@ def one_to_three(seq):
         out.append(get_value)
 
     threed_up = ''.join(out)
-
     return threed_up
+
+
+def three_to_one(seq):
+    aacode = {
+        'Ala': 'A', 'Cys': 'C', 'Asp': 'D', 'Glu': 'E',
+        'Phe': 'F', 'Gly': 'G', 'His': 'H', 'Ile': 'I',
+        'Lys': 'K', 'Leu': 'L', 'Met': 'M', 'Asn': 'N',
+        'Pro': 'P', 'Gln': 'Q', 'Arg': 'R', 'ser': 'S',
+        'Thr': 'T', 'Val': 'V', 'Trp': 'W', 'Tyr': 'Y',
+        'Ter': '*'}
+
+    threed = [seq[i:i + 3] for i in range(0, len(seq), 3)]
+    out = []
+
+    for aa in threed:
+        get_value = aacode.get(aa)
+        out.append(get_value)
+
+    oned_up = ''.join(out)
+    return oned_up
 
 
 # n. Inversions - This comes from VariantValidator, not validation!!!!
