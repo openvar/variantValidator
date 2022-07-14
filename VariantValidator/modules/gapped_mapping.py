@@ -447,10 +447,43 @@ class GapMapper(object):
                 except Exception as e:
                     if str(e) == "'Dup' object has no attribute 'alt'":
                         tx_hgvs_not_delins_delins_from_dup = fn.hgvs_dup2indel(self.tx_hgvs_not_delins)
-                        self.tx_hgvs_not_delins = self.validator.hp.parse_hgvs_variant(tx_hgvs_not_delins_delins_from_dup)
+                        self.tx_hgvs_not_delins = \
+                            self.validator.hp.parse_hgvs_variant(tx_hgvs_not_delins_delins_from_dup)
 
                 # GAP IN THE TRANSCRIPT DISPARITY DETECTED
                 if self.disparity_deletion_in[0] == 'transcript':
+
+                    # Check for issue https://github.com/openvar/variantValidator/issues/385 where the gap is
+                    # being identified but oddly the vm is not compensating, likely due to odd sequence
+                    try:
+                        if len(self.tx_hgvs_not_delins.posedit.edit.ref) > \
+                                len(self.tx_hgvs_not_delins.posedit.edit.alt):
+                            gen_len_difference = len(hgvs_not_delins.posedit.edit.ref) - \
+                                                 len(hgvs_not_delins.posedit.edit.alt)
+                            tx_len_difference = len(self.tx_hgvs_not_delins.posedit.edit.ref) - \
+                                                 len(self.tx_hgvs_not_delins.posedit.edit.alt)
+                        else:
+                            gen_len_difference = len(hgvs_not_delins.posedit.edit.alt) - \
+                                                 len(hgvs_not_delins.posedit.edit.ref)
+                            tx_len_difference = len(self.tx_hgvs_not_delins.posedit.edit.alt) - \
+                                                 len(self.tx_hgvs_not_delins.posedit.edit.ref)
+
+                        # The logic here. Since there is a gap in the transcript,
+                        # the actual length should be == gen_len_difference - 1 not == gen_len_difference
+                        if tx_len_difference - self.disparity_deletion_in[1] == gen_len_difference:
+                            # So here we know we need to knock off disparity_deletion_in[1] bases
+                            if len(hgvs_not_delins.posedit.edit.alt) == len(self.tx_hgvs_not_delins.posedit.edit.alt):
+                                if self.orientation == 1:
+                                    self.tx_hgvs_not_delins.posedit.edit.ref = hgvs_not_delins.posedit.ref
+                                else:
+                                    replace_ref_bases = self.validator.revcomp(hgvs_not_delins.posedit.edit.ref)
+                                    self.tx_hgvs_not_delins.posedit.edit.ref = replace_ref_bases
+                                self.tx_hgvs_not_delins.posedit.pos.end.offset = self.disparity_deletion_in[1]
+
+                    except TypeError:
+                        pass
+                    except AttributeError:
+                        pass
 
                     gapped_alignment_warning = str(self.hgvs_genomic_5pr) + ' does not represent a true variant ' \
                         'because it is an artefact of aligning the transcripts listed below with genome build ' + \

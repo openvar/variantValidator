@@ -208,7 +208,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     # Se rec_var to '' so it can be updated later
     rec_var = ''
 
-    # First task is to get the genomic equivalent, and print useful error messages if it can't be found.
+    # First task is to get the genomic equivalent, and pri nt useful error messages if it can't be found.
     try:
         to_g = validator.myevm_t_to_g(obj, variant.no_norm_evm, variant.primary_assembly, variant.hn)
         genomic_ac = to_g.ac
