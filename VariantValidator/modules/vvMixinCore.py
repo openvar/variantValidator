@@ -1092,8 +1092,6 @@ class Mixin(vvMixinConverters.Mixin):
 
                 # Warn not directly mapped to specified genome build
                 if genomic_accession != '':
-                    logger.info(primary_assembly)
-                    logger.info(primary_genomic_dicts)
                     if primary_assembly.lower() not in list(primary_genomic_dicts.keys()):
                         variant.warnings.extend([
                             str(variant.hgvs_coding) + ' cannot be mapped directly to genome build ' + primary_assembly,
