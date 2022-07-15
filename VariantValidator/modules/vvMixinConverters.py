@@ -16,7 +16,7 @@ from vvhgvs.exceptions import HGVSError, HGVSDataNotAvailableError, HGVSUnsuppor
      HGVSInvalidVariantError
 
 logger = logging.getLogger(__name__)
-
+logger.setLevel(logging.DEBUG)
 
 class Mixin(vvMixinInit.Mixin):
     """
@@ -177,12 +177,13 @@ class Mixin(vvMixinInit.Mixin):
 
         # Gap gene black list
         try:
-            gene_symbol = self.db.get_gene_symbol_from_transcript_id(hgvs_c.ac)
+            gene_symbol = self.db.get_gene_symbol_from_transcript_id(hgvs_c.ac)         
         except Exception:
             utilise_gap_code = False
         else:
             # If the gene symbol is not in the list, the value False will be returned
             utilise_gap_code = seq_data.gap_black_list(gene_symbol)
+
         # Warn gap code in use
         logger.debug("gap_compensation_myevm = " + str(utilise_gap_code))
 
@@ -313,11 +314,21 @@ class Mixin(vvMixinInit.Mixin):
 
         try:
             hgvs_genomic = no_norm_evm.t_to_g(hgvs_c)
+            logger.debug("no_norm_evm.t_to_g complete")
+
             hn.normalize(hgvs_genomic)  # Check the validity of the mapping
+
             # This will fail on multiple refs for NC_
+        except Exception as e:
+                        error = str(e)
+                        logger.warning('Error in no_norm_evm.t_to_g: ' + error)
+
         except vvhgvs.exceptions.HGVSError:
+            logger.debug("Exception with no_norm_evm.t_to_g")
+
             # Recover all available mapping options from UTA
             mapping_options = self.hdp.get_tx_mapping_options(hgvs_c.ac)
+            logger.debug(mapping_options)
 
             if not mapping_options:
                 raise HGVSDataNotAvailableError(
@@ -400,7 +411,10 @@ class Mixin(vvMixinInit.Mixin):
 
         # If not mapped, raise error
         if hgvs_genomic is None:
+            logger.debug("HGVS data not avaialable error")
             raise HGVSDataNotAvailableError(attempted_mapping_error)
+
+    
 
         if hgvs_c.posedit.edit.type == 'identity' and hgvs_genomic.posedit.edit.type == 'delins' and \
                 hgvs_genomic.posedit.edit.alt == '' and not expand_out:
