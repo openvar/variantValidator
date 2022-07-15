@@ -172,14 +172,17 @@ class Mixin(vvMixinInit.Mixin):
         returns parsed hgvs g. object
         """
         # store the input
+        alt_aln_method = self.alt_aln_method
         stored_hgvs_c = copy.deepcopy(hgvs_c)
         expand_out = False
 
         # Gap gene black list
         try:
             gene_symbol = self.db.get_gene_symbol_from_transcript_id(hgvs_c.ac)         
+
         except Exception:
             utilise_gap_code = False
+
         else:
             # If the gene symbol is not in the list, the value False will be returned
             utilise_gap_code = seq_data.gap_black_list(gene_symbol)
@@ -319,14 +322,9 @@ class Mixin(vvMixinInit.Mixin):
             hn.normalize(hgvs_genomic)  # Check the validity of the mapping
 
             # This will fail on multiple refs for NC_
-        except Exception as e:
-                        error = str(e)
-                        logger.warning('Error in no_norm_evm.t_to_g: ' + error)
-
         except vvhgvs.exceptions.HGVSError:
-            logger.debug("Exception with no_norm_evm.t_to_g")
-
             # Recover all available mapping options from UTA
+
             mapping_options = self.hdp.get_tx_mapping_options(hgvs_c.ac)
             logger.debug(mapping_options)
 
@@ -336,7 +334,7 @@ class Mixin(vvMixinInit.Mixin):
                     "genomic reference sequences (including alternate chromosome assemblies, patches and RefSeqGenes) "
                     "are available.")
 
-            def search_through_options(hgvs_genomic, seqtype, chr_num_val, final=False):
+            def search_through_options(hgvs_genomic, seqtype, chr_num_val, alt_aln_method=None, final=False):
                 err = ''
                 for option in mapping_options:
                     if option[2].startswith('blat'):
@@ -345,21 +343,21 @@ class Mixin(vvMixinInit.Mixin):
                         chr_num = seq_data.supported_for_mapping(str(option[1]), primary_assembly)
                         if final:
                             try:
-                                hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
+                                hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]), alt_aln_method)
                                 break
                             except Exception as e:
                                 err += str(e) + "/" + hgvs_c.ac + "/" + option[1] + '~'
                                 continue
                         if chr_num_val and chr_num != 'false':
                             try:
-                                hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
+                                hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]), alt_aln_method)
                                 break
                             except Exception as e:
                                 err += str(e) + "/" + hgvs_c.ac + "/" + option[1] + '~'
                                 continue
                         elif chr_num_val is False and chr_num == 'false':
                             try:
-                                hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]))
+                                hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]), alt_aln_method)
                                 break
                             except Exception as e:
                                 err += str(e) + "/" + hgvs_c.ac + "/" + option[1] + '~'
@@ -367,54 +365,54 @@ class Mixin(vvMixinInit.Mixin):
 
                 return hgvs_genomic, err
 
-            hgvs_genomic, new_error = search_through_options(hgvs_genomic, 'NC_', True)
+            hgvs_genomic, new_error = search_through_options(hgvs_genomic, 'NC_', True, alt_aln_method)
             attempted_mapping_error += new_error
 
             # If not mapped, raise error
             try:
                 hn.normalize(hgvs_genomic)
             except:
-                hgvs_genomic, new_error = search_through_options(hgvs_genomic, 'NC_', False)
+                hgvs_genomic, new_error = search_through_options(hgvs_genomic, 'NC_', False, alt_aln_method)
                 attempted_mapping_error += new_error
 
                 try:
                     hn.normalize(hgvs_genomic)
                 except:
-                    hgvs_genomic, new_error = search_through_options(hgvs_genomic, 'NT_', True)
+                    hgvs_genomic, new_error = search_through_options(hgvs_genomic, 'NT_', True, alt_aln_method)
                     attempted_mapping_error += new_error
 
                     try:
                         hn.normalize(hgvs_genomic)
                     except:
-                        hgvs_genomic, new_error = search_through_options(hgvs_genomic, 'NT_', False)
+                        hgvs_genomic, new_error = search_through_options(hgvs_genomic, 'NT_', False, alt_aln_method)
                         attempted_mapping_error += new_error
 
                         try:
                             hn.normalize(hgvs_genomic)
                         except:
-                            hgvs_genomic, new_error = search_through_options(hgvs_genomic, 'NW_', True)
+                            hgvs_genomic, new_error = search_through_options(hgvs_genomic, 'NW_', True, alt_aln_method)
                             attempted_mapping_error += new_error
 
                             try:
                                 hn.normalize(hgvs_genomic)
                             except:
-                                hgvs_genomic, new_error = search_through_options(hgvs_genomic, 'NW_', False)
+                                hgvs_genomic, new_error = search_through_options(hgvs_genomic, 'NW_', False, alt_aln_method)
                                 attempted_mapping_error += new_error
 
                                 # Only a RefSeqGene available
                                 try:
                                     hn.normalize(hgvs_genomic)
                                 except:
-                                    hgvs_genomic, new_error = search_through_options(hgvs_genomic, 'NG_', True,
+                                    hgvs_genomic, new_error = search_through_options(hgvs_genomic, 'NG_', True, alt_aln_method,
                                                                                      final=True)
                                     attempted_mapping_error += new_error
+
+        logger.debug(attempted_mapping_error)
 
         # If not mapped, raise error
         if hgvs_genomic is None:
             logger.debug("HGVS data not avaialable error")
             raise HGVSDataNotAvailableError(attempted_mapping_error)
-
-    
 
         if hgvs_c.posedit.edit.type == 'identity' and hgvs_genomic.posedit.edit.type == 'delins' and \
                 hgvs_genomic.posedit.edit.alt == '' and not expand_out:
