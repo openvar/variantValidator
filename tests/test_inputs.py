@@ -30494,7 +30494,19 @@ class TestVariantsAuto(TestCase):
         assert 'NC_000008.11:g.24953558delinsGT' in results['NM_006158.5:c.1407delinsAC'][
             'primary_assembly_loci']['hg38']["hgvs_genomic_description"]
 
-
+    def test_issue_382(self):
+        variant = 'NC_000017.11:g.7675994_7675995insTTC'
+        results = self.vv.validate(variant, 'GRCh38', 'mane', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'NM_000546.6:c.375_375+1insAAG' in results.keys()
+        assert 'NC_000017.10:g.7579312_7579313insTTC' in results['NM_000546.6:c.375_375+1insAAG'][
+            'primary_assembly_loci']['hg19']["hgvs_genomic_description"]
+        assert 'NC_000017.11:g.7675994_7675995insTTC' in results['NM_000546.6:c.375_375+1insAAG'][
+            'primary_assembly_loci']['hg38']["hgvs_genomic_description"]
+        assert 'NP_000537.3:p.?' in \
+               results['NM_000546.6:c.375_375+1insAAG']['hgvs_predicted_protein_consequence']['tlr']
+        assert 'NP_000537.3:p.?' in \
+               results['NM_000546.6:c.375_375+1insAAG']['hgvs_predicted_protein_consequence']['slr']
 
 # <LICENSE>
 # Copyright (C) 2016-2022 VariantValidator Contributors

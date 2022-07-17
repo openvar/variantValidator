@@ -33,7 +33,7 @@ class Mixin(vvMixinConverters.Mixin):
                  batch_variant,
                  selected_assembly,
                  select_transcripts,
-                 transcript_set="refseq",
+                 transcript_set=None,
                  liftover_level=False):
         """
         This is the main validator function.
@@ -42,17 +42,15 @@ class Mixin(vvMixinConverters.Mixin):
         :param select_transcripts: Can be an array of different transcripts, or 'all'
         :param liftover_level: True or False - liftover to different gene/genome builds or not
         Selecting multiple transcripts will lead to a multiple variant outputs.
-        :param transcript_set: 'refseq' or 'ensembl'. Currently only 'refseq' is supported
+        :param transcript_set: 'refseq' or 'ensembl'
         :return:
         """
         logger.debug("Running validate with inputs %s and assembly %s", batch_variant, selected_assembly)
 
-        if transcript_set == "refseq":
+        if transcript_set == "refseq" or transcript_set is None:
             self.alt_aln_method = 'splign'
         elif transcript_set == "ensembl":
             self.alt_aln_method = 'genebuild'
-            logger.warning("Ensembl is currently not supported")
-            raise Exception("Ensembl is currently not supported")
         else:
             raise Exception("The transcriptSet variable '%s' is invalid, it must be 'refseq' or 'ensembl'" %
                             transcript_set)
@@ -310,7 +308,10 @@ class Mixin(vvMixinConverters.Mixin):
                     elif (test_for_invalid_case_in_accession != query_for_invalid_case_in_accession) \
                             and "LRG" not in test_for_invalid_case_in_accession:
                         # See issue #357
-                        if re.match("chr", test_for_invalid_case_in_accession, re.IGNORECASE):
+                        if re.match("chr", test_for_invalid_case_in_accession, re.IGNORECASE
+                                    ) or re.match("GRCh", test_for_invalid_case_in_accession, re.IGNORECASE
+                                                  ) or re.match("hg", test_for_invalid_case_in_accession, re.IGNORECASE
+                                                                ):
                             e = "This is not a valid HGVS variant description, because no reference sequence ID " \
                                 "has been provided"
                         else:
@@ -551,26 +552,26 @@ class Mixin(vvMixinConverters.Mixin):
 
                     # ENST support needs to be re-evaluated, but is very low priority
                     # ENST not supported by ACMG and is under review by HGVS
-                    if my_variant.refsource == 'ENS':
-                        trap_ens_in = str(my_variant.hgvs_formatted)
-                        sim_tx = self.hdp.get_similar_transcripts(my_variant.hgvs_formatted.ac)
-                        for line in sim_tx:
-                            if line[2] and line[3] and line[4] and line[5] and line[6]:
-                                my_variant.hgvs_formatted.ac = line[1]
-                                my_variant.set_quibble(str(my_variant.hgvs_formatted))
-                                formatted_variant = my_variant.quibble
-                                break
-                        if my_variant.refsource == 'ENS':
-                            error = 'Unable to map ' + my_variant.hgvs_formatted.ac + \
-                                    ' to an equivalent RefSeq transcript'
-                            my_variant.warnings.append(error)
-                            logger.warning(error)
-                            continue
-                        else:
-                            my_variant.warnings.append(str(trap_ens_in) + ' automapped to equivalent RefSeq transcript '
-                                                       + my_variant.quibble)
-                            logger.info(str(trap_ens_in) + ' automapped to equivalent RefSeq '
-                                                           'transcript ' + my_variant.quibble)
+                    #if my_variant.refsource == 'ENS':
+                    #    trap_ens_in = str(my_variant.hgvs_formatted)
+                    #    sim_tx = self.hdp.get_similar_transcripts(my_variant.hgvs_formatted.ac)
+                    #    for line in sim_tx:
+                    #        if line[2] and line[3] and line[4] and line[5] and line[6]:
+                    #           my_variant.hgvs_formatted.ac = line[1]
+                    #           my_variant.set_quibble(str(my_variant.hgvs_formatted))
+                    #           formatted_variant = my_variant.quibble
+                    #            break
+                    #    if my_variant.refsource == 'ENS':
+                    #       error = 'Unable to map ' + my_variant.hgvs_formatted.ac + \
+                    #               ' to an equivalent RefSeq transcript'
+                    #       my_variant.warnings.append(error)
+                    #       logger.warning(error)
+                    #       continue
+                    #   else:
+                    #       my_variant.warnings.append(str(trap_ens_in) + ' automapped to equivalent RefSeq transcript '
+                    #                                   + my_variant.quibble)
+                    #       logger.info(str(trap_ens_in) + ' automapped to equivalent RefSeq '
+                    #                                   'transcript ' + my_variant.quibble)
                     logger.debug("HVGS acceptance test passed")
 
                     # Check whether supported genome build is requested for non g. descriptions
@@ -583,7 +584,7 @@ class Mixin(vvMixinConverters.Mixin):
                     if is_mapable:
 
                         # These objects cannot be moved outside of the main function because they gather data from the
-                        # iuser input e.g. alignment method and genome build
+                        # user input e.g. alignment method and genome build
                         # They initiate quickly, so no need to move them unnecessarily
 
                         # Create easy variant mapper (over variant mapper) and splign locked evm
@@ -960,7 +961,8 @@ class Mixin(vvMixinConverters.Mixin):
                                                 }
                                     }
                                 if build == 'GRCh38':
-                                    vcf_dict = hgvs_utils.report_hgvs2vcf(alt_gen_var, 'hg38', variant.reverse_normalizer,
+                                    vcf_dict = hgvs_utils.report_hgvs2vcf(alt_gen_var, 'hg38'
+                                                                          , variant.reverse_normalizer,
                                                                           self.sf)
                                     primary_genomic_dicts['hg38'] = {
                                         'hgvs_genomic_description': fn.valstr(alt_gen_var),
@@ -1030,7 +1032,8 @@ class Mixin(vvMixinConverters.Mixin):
                                                 }
                                     }
                                 if build == 'GRCh38':
-                                    vcf_dict = hgvs_utils.report_hgvs2vcf(alt_gen_var, 'hg38', variant.reverse_normalizer,
+                                    vcf_dict = hgvs_utils.report_hgvs2vcf(alt_gen_var, 'hg38',
+                                                                          variant.reverse_normalizer,
                                                                           self.sf)
                                     primary_genomic_dicts['hg38'] = {
                                         'hgvs_genomic_description': fn.valstr(alt_gen_var),
@@ -1172,7 +1175,8 @@ class Mixin(vvMixinConverters.Mixin):
                     # Add or update stable ID and transcript data
                     if gene_stable_info[1] == 'No data' and hgvs_tx_variant is not None:
                         try:
-                            self.db.update_transcript_info_record(hgvs_tx_variant.ac, self)
+                            self.db.update_transcript_info_record(hgvs_tx_variant.ac,
+                                                                  genome_build=self.selected_assembly)
                         except fn.DatabaseConnectionError as e:
                             error = 'Currently unable to update all gene_ids or transcript information records ' \
                                     'because ' \
@@ -1225,7 +1229,8 @@ class Mixin(vvMixinConverters.Mixin):
                         annotation_info.keys()
                     except Exception:
                         try:
-                            self.db.update_transcript_info_record(hgvs_tx_variant.ac, self)
+                            self.db.update_transcript_info_record(hgvs_tx_variant.ac,
+                                                                  genome_build=self.selected_assembly)
                         except fn.DatabaseConnectionError as e:
                             error = 'Currently unable to update all gene_ids or transcript information records ' \
                                     'because ' \
@@ -1374,11 +1379,12 @@ class Mixin(vvMixinConverters.Mixin):
                     #  Do not warn a transcript update is available for the most recent transcript
                     if term in vt and "A more recent version of the selected reference sequence" in vt:
                         continue
-
                     # Remove spurious updates away form the correct output
                     elif (term_2 in vt and tx_variant != "") or (term_3 in vt and genomic_variant != ""):
                         continue
-
+                    # Suppress "RefSeqGene record not available"
+                    elif "RefSeqGene record not available" in vt:
+                        continue
                     else:
                         variant_warnings.append(vt)
                 variant.warnings = variant_warnings
@@ -1930,7 +1936,32 @@ class Mixin(vvMixinConverters.Mixin):
             elif 'accession' in entry:
                 # If the current entry is too old
                 if entry['expiry'] == 'true':
-                    entry = self.db.data_add(accession=accession, validator=self)
+                    try:
+                        entry = self.db.data_add(accession=accession,
+                                                 validator=self,
+                                                 genome_build=variant.selected_assembly)
+                    except vvhgvs.exceptions.HGVSError:
+                        error = 'Transcript %s is not currently supported' % accession
+                        variant.warnings.append(error)
+                        logger.warning(error)
+                        return True
+                    except fn.ObsoleteSeqError as e:
+                        error = 'Unable to assign transcript identity records to %s. %s' % (accession, str(e))
+                        variant.warnings.append(error)
+                        logger.info(error)
+                        return True
+                    except fn.DatabaseConnectionError as e:
+                        # If the none key is found add the description to the database
+                        if 'UTA' in str(e):
+                            error = '%s. Please try again later and if the problem persists contact admin.' % str(e)
+                            variant.warnings.append(error)
+                            logger.warning(error)
+                            return True
+                        elif "Cannot retrieve data from Ensembl REST for record" in str(e):
+                            error = '%s. Please try again later and if the problem persists contact admin.' % str(e)
+                            variant.warnings.append(error)
+                            logger.warning(error)
+
                     variant.description = entry['description']
                 else:
                     variant.description = entry['description']

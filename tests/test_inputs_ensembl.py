@@ -11,7 +11,7 @@ class TestVariantsEnsembl(TestCase):
     # COL1A1
     def test_variant1(self):
         variant = 'ENST00000225964.10:c.589-1GG>G'
-        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -51,7 +51,7 @@ class TestVariantsEnsembl(TestCase):
     # COL5A1
     def test_variant2(self):
         variant = 'ENST00000371817.8:c.5071A>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -88,7 +88,7 @@ class TestVariantsEnsembl(TestCase):
     # TP53
     def test_variant3(self):
         variant = 'ENST00000269305.9:c.652_654del'
-        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -128,7 +128,7 @@ class TestVariantsEnsembl(TestCase):
     # P3H1
     def test_variant4(self):
         variant = 'ENST00000296388.10:c.2055+18G>A'
-        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -170,7 +170,7 @@ class TestVariantsEnsembl(TestCase):
     # BRCA1
     def test_variant5(self):
         variant = 'ENST00000357654.9:c.301+1G>C'
-        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
         
         assert 'ENST00000357654.9:c.301+1G>C' in list(results.keys())
@@ -211,7 +211,7 @@ class TestVariantsEnsembl(TestCase):
     # BRCA2
     def test_variant6(self):
         variant = 'NC_000013.10:g.32929387T>C'
-        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -251,7 +251,7 @@ class TestVariantsEnsembl(TestCase):
     # HBB
     def test_variant7(self):
         variant = '11-5248232-T-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -291,7 +291,7 @@ class TestVariantsEnsembl(TestCase):
     # MCL1
     def test_variant8(self):
         variant = '1:150550916G>A'
-        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
 
         assert 'ENST00000369026.3:c.740C>T' in list(results.keys())
@@ -329,7 +329,7 @@ class TestVariantsEnsembl(TestCase):
     # TNXB
     def test_variant9(self):
         variant = '6-32012992-CG-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
 
         assert 'ENST00000644971.2:c.10717del' in list(results.keys())
@@ -377,7 +377,7 @@ class TestVariantsEnsembl(TestCase):
     # TSC1
     def test_variant10(self):
         variant = 'ENST00000298552.9:c.363+1dupG'
-        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
 
         assert 'ENST00000298552.9:c.363+1dup' in list(results.keys())
@@ -418,7 +418,7 @@ class TestVariantsEnsembl(TestCase):
     # TSC2
     def test_variant11(self):
         variant = 'NC_000016.9:g.2099572TC>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
 
         assert results['flag'] == 'gene_variant'
