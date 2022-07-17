@@ -21,7 +21,6 @@ from .liftover import liftover
 from . import complex_descriptions
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class Mixin(vvMixinConverters.Mixin):
@@ -43,7 +42,7 @@ class Mixin(vvMixinConverters.Mixin):
         :param select_transcripts: Can be an array of different transcripts, or 'all'
         :param liftover_level: True or False - liftover to different gene/genome builds or not
         Selecting multiple transcripts will lead to a multiple variant outputs.
-        :param transcript_set: 'refseq' or 'ensembl'. Currently only 'refseq' is supported
+        :param transcript_set: 'refseq' or 'ensembl'
         :return:
         """
         logger.debug("Running validate with inputs %s and assembly %s", batch_variant, selected_assembly)

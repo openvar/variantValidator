@@ -16,7 +16,6 @@ from vvhgvs.exceptions import HGVSError, HGVSDataNotAvailableError, HGVSUnsuppor
      HGVSInvalidVariantError
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 class Mixin(vvMixinInit.Mixin):
     """
@@ -974,7 +973,6 @@ class Mixin(vvMixinInit.Mixin):
             utilise_gap_code = seq_data.gap_black_list(gene_symbol)
         # Warn gap code in use
         logger.debug("gap_compensation_mvm = " + str(utilise_gap_code))
-        logger.debug(hgvs_c.ac)
 
         if utilise_gap_code and (hgvs_c.posedit.edit.type == 'identity' or hgvs_c.posedit.edit.type == 'del'
                                  or hgvs_c.posedit.edit.type == 'delins' or hgvs_c.posedit.edit.type == 'dup'
