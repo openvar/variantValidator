@@ -326,6 +326,44 @@ class TestWarnings(TestCase):
         print(results)
         assert results['NM_000277.3:c.1315+5_1315+6insGTGTAACAG']['validation_warnings'] == []
 
+    def test_issue_46(self):
+        variant = 'NP_001119590.1:p.R175_H178delinsX'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert results['validation_warning_1']['validation_warnings'] == [
+            "The amino acid at position 175 of NP_001119590.1 is H not R",
+            "The amino acid at position 178 of NP_001119590.1 is V not H"
+        ]
+
+        variant = 'NP_001119590.1:p.R175delinsX'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert results['validation_warning_1']['validation_warnings'] == [
+            "The amino acid at position 175 of NP_001119590.1 is H not R"
+        ]
+
+        variant = 'NP_001119590.1:p.H175_V178delinsX'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert results['validation_warning_1']['validation_warnings'] == [
+            "Protein level variant descriptions are not fully supported due to redundancy in the genetic code",
+            "NP_001119590.1:p.His175_Val178delinsTer is HGVS compliant and contains a valid reference amino acid "
+            "description"
+        ]
+        assert results['validation_warning_1'][
+
+                   'hgvs_predicted_protein_consequence']["tlr"] == "NP_001119590.1:p.His175_Val178delinsXaa"
+
+        variant = 'NP_001119590.1:p.H175delinsX'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert results['validation_warning_1']['validation_warnings'] == [
+            "Protein level variant descriptions are not fully supported due to redundancy in the genetic code",
+            "NP_001119590.1:p.His175delinsTer is HGVS compliant and contains a valid reference amino acid description"
+        ]
+        assert results['validation_warning_1'][
+                   'hgvs_predicted_protein_consequence']["tlr"] == "NP_001119590.1:p.His175delinsXaa"
+
 # <LICENSE>
 # Copyright (C) 2016-2022 VariantValidator Contributors
 #
