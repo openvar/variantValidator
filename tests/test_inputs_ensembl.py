@@ -214,34 +214,34 @@ class TestVariantsEnsembl(TestCase):
         print(results)
 
         assert results['flag'] == 'gene_variant'
-        assert 'ENST00000380152.8:c.7397=' in list(results.keys())
-        assert results['ENST00000380152.8:c.7397=']['submitted_variant'] == 'NC_000013.10:g.32929387T>C'
-        assert results['ENST00000380152.8:c.7397=']['gene_symbol'] == 'BRCA2'
-        assert results['ENST00000380152.8:c.7397=']['gene_ids'] == {'hgnc_id': 'HGNC:1101', 'entrez_gene_id': '675',
+        assert 'ENST00000380152.3:c.7397T>C' in list(results.keys())
+        assert results['ENST00000380152.3:c.7397T>C']['submitted_variant'] == 'NC_000013.10:g.32929387T>C'
+        assert results['ENST00000380152.3:c.7397T>C']['gene_symbol'] == 'BRCA2'
+        assert results['ENST00000380152.3:c.7397T>C']['gene_ids'] == {'hgnc_id': 'HGNC:1101', 'entrez_gene_id': '675',
                                                                'ucsc_id': 'uc001uub.2', 'omim_id': ['600185']}
-        assert results['ENST00000380152.8:c.7397=']['hgvs_transcript_variant'] == 'ENST00000380152.8:c.7397='
-        assert results['ENST00000380152.8:c.7397=']['genome_context_intronic_sequence'] == ''
-        # assert results['ENST00000380152.8:c.7397=']['refseqgene_context_intronic_sequence'] == ''
-        # assert results['ENST00000380152.8:c.7397=']['hgvs_refseqgene_variant'] == 'NG_012772.3:g.44771='
-        assert results['ENST00000380152.8:c.7397=']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'ENSP00000369497.3:p.(Ala2466=)', 'slr': 'ENSP00000369497.3:p.(A2466=)'}
-        # assert results['ENST00000380152.8:c.7397=']['hgvs_lrg_transcript_variant'] == 'LRG_293t1:c.7397='
-        # assert results['ENST00000380152.8:c.7397=']['hgvs_lrg_variant'] == 'LRG_293:g.44771='
-        self.assertCountEqual(results['ENST00000380152.8:c.7397=']['alt_genomic_loci'], [])
-        assert results['ENST00000380152.8:c.7397=']['primary_assembly_loci']['hg19'] == {
+        assert results['ENST00000380152.3:c.7397T>C']['hgvs_transcript_variant'] == 'ENST00000380152.3:c.7397T>C'
+        assert results['ENST00000380152.3:c.7397T>C']['genome_context_intronic_sequence'] == ''
+        # assert results['ENST00000380152.3:c.7397T>C']['refseqgene_context_intronic_sequence'] == ''
+        # assert results['ENST00000380152.3:c.7397T>C']['hgvs_refseqgene_variant'] == 'NG_012772.3:g.44771='
+        assert results['ENST00000380152.3:c.7397T>C']['hgvs_predicted_protein_consequence'] == {
+            'tlr': 'ENSP00000369497.3:p.(Val2466Ala)', 'slr': 'ENSP00000369497.3:p.(V2466A)'}
+        # assert results['ENST00000380152.3:c.7397T>C']['hgvs_lrg_transcript_variant'] == 'LRG_293t1:c.7397T>C'
+        # assert results['ENST00000380152.3:c.7397T>C']['hgvs_lrg_variant'] == 'LRG_293:g.44771='
+        self.assertCountEqual(results['ENST00000380152.3:c.7397T>C']['alt_genomic_loci'], [])
+        assert results['ENST00000380152.3:c.7397T>C']['primary_assembly_loci']['hg19'] == {
             'hgvs_genomic_description': 'NC_000013.10:g.32929387T>C',
             'vcf': {'chr': 'chr13', 'pos': '32929387', 'ref': 'T', 'alt': 'C'}}
-        assert results['ENST00000380152.8:c.7397=']['primary_assembly_loci']['hg38'] == {
+        assert results['ENST00000380152.3:c.7397T>C']['primary_assembly_loci']['hg38'] == {
             'hgvs_genomic_description': 'NC_000013.11:g.32355250T>C',
             'vcf': {'chr': 'chr13', 'pos': '32355250', 'ref': 'T', 'alt': 'C'}}
-        assert results['ENST00000380152.8:c.7397=']['primary_assembly_loci']['grch37'] == {
+        assert results['ENST00000380152.3:c.7397T>C']['primary_assembly_loci']['grch37'] == {
             'hgvs_genomic_description': 'NC_000013.10:g.32929387T>C',
             'vcf': {'chr': '13', 'pos': '32929387', 'ref': 'T', 'alt': 'C'}}
-        assert results['ENST00000380152.8:c.7397=']['primary_assembly_loci']['grch38'] == {
+        assert results['ENST00000380152.3:c.7397T>C']['primary_assembly_loci']['grch38'] == {
             'hgvs_genomic_description': 'NC_000013.11:g.32355250T>C',
             'vcf': {'chr': '13', 'pos': '32355250', 'ref': 'T', 'alt': 'C'}}
-        assert results['ENST00000380152.8:c.7397=']['reference_sequence_records'] == {
-            'transcript': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000380152.8',
+        assert results['ENST00000380152.3:c.7397T>C']['reference_sequence_records'] == {
+            'transcript': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000380152.3',
             'protein': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?db=core;p=ENSP00000369497.3'
             #'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_012772.3',
             #'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_293.xml'
