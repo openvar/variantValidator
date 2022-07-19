@@ -138,8 +138,7 @@ class TestVariantsEnsembl(TestCase):
         assert results['ENST00000296388.10:c.2055+18G>A']['gene_ids'] == {'hgnc_id': 'HGNC:19316', 'entrez_gene_id': '64175',
                                                                    'ucsc_id': '', 'omim_id': ['610339']}
         assert results['ENST00000296388.10:c.2055+18G>A']['hgvs_transcript_variant'] == 'ENST00000296388.10:c.2055+18G>A'
-        assert results['ENST00000296388.10:c.2055+18G>A'][
-                   'genome_context_intronic_sequence'] == 'NC_000001.10(ENST00000296388.10):c.2055+18G>A'
+        assert results['ENST00000296388.10:c.2055+18G>A']['genome_context_intronic_sequence'] == 'NC_000001.11(ENST00000296388.10):c.2055+18G>A'
         # assert results['ENST00000296388.10:c.2055+18G>A'][
         #     'refseqgene_context_intronic_sequence'] == 'NG_008123.1(ENST00000296388.10):c.2055+18G>A'
         # assert results['ENST00000296388.10:c.2055+18G>A']['hgvs_refseqgene_variant'] == 'NG_008123.1:g.24831G>A'
@@ -180,12 +179,12 @@ class TestVariantsEnsembl(TestCase):
                                                                  'ucsc_id': 'uc002ict.4', 'omim_id': ['113705']}
         assert results['ENST00000357654.9:c.301+1G>C']['hgvs_transcript_variant'] == 'ENST00000357654.9:c.301+1G>C'
         assert results['ENST00000357654.9:c.301+1G>C'][
-                   'genome_context_intronic_sequence'] == 'NC_000017.10(ENST00000357654.9):c.301+1G>C'
+                   'genome_context_intronic_sequence'] == 'NC_000017.11(ENST00000357654.9):c.301+1G>C'
         # assert results['ENST00000357654.9:c.301+1G>C'][
         #           'refseqgene_context_intronic_sequence'] == 'NG_005905.2(ENST00000357654.9):c.301+1G>C'
         # assert results['ENST00000357654.9:c.301+1G>C']['hgvs_refseqgene_variant'] == 'NG_005905.2:g.113117G>C'
         assert results['ENST00000357654.9:c.301+1G>C']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_009225.1:p.?', 'slr': 'NP_009225.1:p.?'}
+            'tlr': 'ENSP00000350283.3:p.?', 'slr': 'ENSP00000350283.3:p.?'}
         # assert results['ENST00000357654.9:c.301+1G>C']['hgvs_lrg_transcript_variant'] == 'LRG_292t1:c.301+1G>C'
         # assert results['ENST00000357654.9:c.301+1G>C']['hgvs_lrg_variant'] == 'LRG_292:g.113117G>C'
         self.assertCountEqual(results['ENST00000357654.9:c.301+1G>C']['alt_genomic_loci'], [])
@@ -203,7 +202,7 @@ class TestVariantsEnsembl(TestCase):
             'vcf': {'chr': '17', 'pos': '43104867', 'ref': 'C', 'alt': 'G'}}
         assert results['ENST00000357654.9:c.301+1G>C']['reference_sequence_records'] == {
             'transcript': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000357654.9',
-            'protein': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?db=core;p=ENSP00000296388.5'
+            'protein': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?db=core;p=ENSP00000350283.3'
             #'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_005905.2',
             #'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_292.xml'
             }
