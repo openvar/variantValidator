@@ -11,7 +11,7 @@ class TestVariantsEnsembl(TestCase):
     # COL1A1
     def test_variant1(self):
         variant = 'ENST00000225964.10:c.589-1GG>G'
-        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="ensembl").format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -42,8 +42,8 @@ class TestVariantsEnsembl(TestCase):
             'hgvs_genomic_description': 'NC_000017.11:g.50198003del',
             'vcf': {'chr': '17', 'pos': '50198000', 'ref': 'AC', 'alt': 'A'}}
         assert results['ENST00000225964.10:c.590del']['reference_sequence_records'] == {
-             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_000088.4',
-             'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_000079.2',
+             'transcript': 'https://www.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000225964.10',
+             'protein': 'https://www.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?db=core;p=ENSP00000225964.6',
             # 'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_007400.1',
             # 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_1.xml'
             }
