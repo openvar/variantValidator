@@ -65,7 +65,7 @@ class TestVariantsEnsembl(TestCase):
         # assert results['ENST00000371817.8:c.5071A>T']['refseqgene_context_intronic_sequence'] == ''
         # assert results['ENST00000371817.8:c.5071A>T']['hgvs_refseqgene_variant'] == ''
         assert results['ENST00000371817.8:c.5071A>T']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'ENSP00000360882.3:p.(Arg1691Ter)', 'slr': 'ENSP00000360882.3p.(R1691*)'}
+            'tlr': 'ENSP00000360882.3:p.(Arg1691Ter)', 'slr': 'ENSP00000360882.3:p.(R1691*)'}
         # assert results['ENST00000371817.8:c.5071A>T']['hgvs_lrg_transcript_variant'] == ''
         # assert results['ENST00000371817.8:c.5071A>T']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['ENST00000371817.8:c.5071A>T']['alt_genomic_loci'], [])
@@ -82,8 +82,8 @@ class TestVariantsEnsembl(TestCase):
             'hgvs_genomic_description': 'NC_000009.12:g.134829979A>T', 
             'vcf': {'chr': '9', 'pos': '134829979', 'ref': 'A', 'alt': 'T'}}
         assert results['ENST00000371817.8:c.5071A>T']['reference_sequence_records'] == {
-             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_000093.5',
-             'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_000084.3'}
+             'transcript': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000371817.8',
+             'protein': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?db=core;p=ENSP00000360882.3'}
 
     # TP53
     def test_variant3(self):
