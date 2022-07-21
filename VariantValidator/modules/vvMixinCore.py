@@ -21,7 +21,7 @@ from .liftover import liftover
 from . import complex_descriptions
 
 logger = logging.getLogger(__name__)
-
+logger.setLevel(logging.DEBUG)
 
 class Mixin(vvMixinConverters.Mixin):
     """
@@ -1093,7 +1093,9 @@ class Mixin(vvMixinConverters.Mixin):
                 if genomic_accession != '':
                     if primary_assembly.lower() not in list(primary_genomic_dicts.keys()):
                         variant.warnings.extend([
-                            str(variant.hgvs_coding) + ' cannot be mapped directly to genome build ' + primary_assembly,
+                            str(variant.hgvs_coding) + ' is not part of genome build ' + primary_assembly,
+                            str(variant.hgvs_coding) + ' cannot be mapped directly to genome build ' + primary_assembly 
+                            + ", did you mean " + list(primary_genomic_dicts.keys())[0] + "?",
                             'See alternative genomic loci or alternative genome builds for aligned genomic positions'
                         ])
 
