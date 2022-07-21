@@ -2640,7 +2640,7 @@ class GapMapper(object):
                 # Continue
                 if internal_possibility == '':
                     continue
-                hgvs_t_possibility = self.validator.vm.g_to_t(internal_possibility, hgvs_coding.ac)
+                hgvs_t_possibility = self.validator.vm.g_to_t(internal_possibility, hgvs_coding.ac, self.validator.alt_aln_method)
                 if hgvs_t_possibility.posedit.edit.type == 'ins':
                     try:
                         hgvs_t_possibility = self.validator.vm.c_to_n(hgvs_t_possibility)

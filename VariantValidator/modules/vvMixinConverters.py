@@ -1149,7 +1149,7 @@ class Mixin(vvMixinInit.Mixin):
         # First look for variants mapping to the flanks of gaps
         # either in the gap or on the flank but not fully within the gap
         if expand_out:
-            nr_genomic = self.nr_vm.t_to_g(hgvs_c, hgvs_genomic.ac)
+            nr_genomic = self.nr_vm.t_to_g(hgvs_c, hgvs_genomic.ac, alt_aln_method)
             try:
                 hn.normalize(nr_genomic)
             except vvhgvs.exceptions.HGVSInvalidVariantError as e:

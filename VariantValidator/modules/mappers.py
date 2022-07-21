@@ -213,30 +213,33 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         to_g = validator.myevm_t_to_g(obj, variant.no_norm_evm, variant.primary_assembly, variant.hn)
         genomic_ac = to_g.ac
     except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
+        errors = []
+
         if ('~' in str(e) and 'Alignment is incomplete' in str(e)) or "No relevant genomic mapping options" in str(e):
             # Unable to map the input variant onto a genomic position
             if '~' in str(e) and 'Alignment is incomplete' in str(e):
-                error = 'Full alignment data between the specified transcript reference sequence and all GRCh37 ' \
+                errors.append('Full alignment data between the specified transcript reference sequence and all GRCh37 ' \
                         'and GRCh38 genomic reference sequences (including alternate chromosome assemblies, ' \
                         'patches and RefSeqGenes) are not available: Consequently the input variant description ' \
                         'cannot be fully validated and is not supported: Use the Gene to Transcripts function to ' \
-                        'determine whether an updated transcript reference sequence is available'
+                        'determine whether an updated transcript reference sequence is available')
             else:
-                error = str(e)
-                error = error + ': Consequently the input variant description cannot be fully validated and is not ' \
+                errors.append(str(e) + ': Consequently the input variant description cannot be fully validated and is not ' \
                                 'supported: Use the Gene to Transcripts function to determine whether an updated ' \
-                                'transcript reference sequence is available'
-            variant.warnings.append(error)
-            logger.warning(error)
-            return True
+                                'transcript reference sequence is available')
 
         if 'does not agree with reference sequence' not in str(e):
-            errors = ['Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive',
-                      'Query gene2transcripts with search term %s for '
-                      'available transcripts' % tx_ac.split('.')[0]]
+            errors.append('Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive')
+            errors.append('Query gene2transcripts with search term %s for available transcripts' % tx_ac.split('.')[0])
+        
+        if 'does agree with reference sequence' in str(e):
+            errors.append(str(e))
+        
+        
         variant.warnings.extend(errors)
         logger.info(str(errors))
         return True
+        
     except TypeError:
         errors = ['Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive',
                   'Query gene2transcripts with search term %s for '
