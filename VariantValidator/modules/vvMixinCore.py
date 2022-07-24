@@ -1099,12 +1099,12 @@ class Mixin(vvMixinConverters.Mixin):
                             errors.append('See alternative genomic loci or alternative genome builds for aligned genomic positions')
 
                         elif self.alt_aln_method == "genebuild":
-
+                            # Get the alternative genome build to recommend
                             if primary_assembly == "GRCh38" or primary_assembly == "hg38":
                                 alt_build = "GRCh37"
                             elif primary_assembly == "GRCh37" or primary_assembly == "hg19":
                                 alt_build = "GRCh38"
-
+                                # Shows the alternative genome build too
                             errors.append(str(variant.hgvs_coding) + ' cannot be mapped directly to genome build ' + primary_assembly 
                                             + ', did you mean ' + alt_build + '?')
                             
