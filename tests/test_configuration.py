@@ -179,7 +179,7 @@ class TestConfigValues(unittest.TestCase):
         self.assertEqual(self.config.sections(), ['mysql', 'seqrepo', 'postgres',  'logging', 'Entrez'])
         self.assertEqual(list(self.config['mysql']), ['host', 'port', 'database', 'user', 'password', 'version'])
         self.assertEqual(list(self.config['seqrepo']), ['version', 'location'])
-        self.assertEqual(list(self.config['postgres']), ['host', 'port', 'database', 'version', 'user', 'password'])
+        self.assertEqual(list(self.config['postgres']), ['host', 'database', 'port', 'version', 'user', 'password'])
         self.assertEqual(list(self.config['logging']), ['log', 'console', 'file'])
         self.assertEqual(list(self.config['Entrez']), ['email', 'api_key'])
 

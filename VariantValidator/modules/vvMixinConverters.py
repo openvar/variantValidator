@@ -337,21 +337,28 @@ class Mixin(vvMixinInit.Mixin):
                         continue
                     if option[1].startswith(seqtype):
                         chr_num = seq_data.supported_for_mapping(str(option[1]), primary_assembly)
-                        if final:
-                            try:
-                                hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]), alt_aln_method)
-                                break
-                            except Exception as e:
-                                err += str(e) + "/" + hgvs_c.ac + "/" + option[1] + '~'
-                                continue
-                        if chr_num_val and chr_num != 'false':
-                            try:
-                                hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]), alt_aln_method)
-                                break
-                            except Exception as e:
-                                err += str(e) + "/" + hgvs_c.ac + "/" + option[1] + '~'
-                                continue
-                        elif chr_num_val is False and chr_num == 'false':
+                        # if final:
+                        #     try:
+                        #         hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]), alt_aln_method)
+                        #         break
+                        #     except Exception as e:
+                        #         err += str(e) + "/" + hgvs_c.ac + "/" + option[1] + '~'
+                        #         continue
+                        # if chr_num_val and chr_num != 'false':
+                        #     try:
+                        #         hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]), alt_aln_method)
+                        #         break
+                        #     except Exception as e:
+                        #         err += str(e) + "/" + hgvs_c.ac + "/" + option[1] + '~'
+                        #         continue
+                        # elif chr_num_val is False and chr_num == 'false':
+                        #     try:
+                        #         hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]), alt_aln_method)
+                        #         break
+                        #     except Exception as e:
+                        #         err += str(e) + "/" + hgvs_c.ac + "/" + option[1] + '~'
+                        #         continue
+                        if final or (chr_num_val and chr_num is False) or (chr_num_val is False and chr_num is False):
                             try:
                                 hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]), alt_aln_method)
                                 break
@@ -1142,7 +1149,7 @@ class Mixin(vvMixinInit.Mixin):
         # First look for variants mapping to the flanks of gaps
         # either in the gap or on the flank but not fully within the gap
         if expand_out:
-            nr_genomic = self.nr_vm.t_to_g(hgvs_c, hgvs_genomic.ac)
+            nr_genomic = self.nr_vm.t_to_g(hgvs_c, hgvs_genomic.ac, alt_aln_method)
             try:
                 hn.normalize(nr_genomic)
             except vvhgvs.exceptions.HGVSInvalidVariantError as e:
