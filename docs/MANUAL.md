@@ -30,7 +30,7 @@ location = /PATH/TO/SEQREPO
 [postgres]
 host = localhost
 database = vvta
-port: 5432
+port = 5432
 version = vvta_2022_02
 user = USERNAME
 password = PASSWORD
