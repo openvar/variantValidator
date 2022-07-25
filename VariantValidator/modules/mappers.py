@@ -11,7 +11,7 @@ from . import gapped_mapping
 from operator import itemgetter
 
 logger = logging.getLogger(__name__)
-
+logger.setLevel(logging.DEBUG)
 
 # Exceptions
 class MappersError(Exception):
@@ -683,10 +683,18 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         hgvs_updated = fn.remove_reference(hgvs_updated)
         hgvs_updated = validator.hp.parse_hgvs_variant(hgvs_updated)
         updated_transcript_variant = hgvs_updated
-        variant.warnings.append('A more recent version of the selected reference sequence ' + hgvs_coding.ac +
-                                ' is available (' + updated_transcript_variant.ac + ')' + ': ' +
-                                str(updated_transcript_variant) + ' MUST be fully validated prior to use in reports: '
-                                'select_variants=' + fn.valstr(updated_transcript_variant))
+
+        if validator.alt_aln_method == "genebuild":
+            variant.warnings.append('A more recent version of the selected reference sequence ' + hgvs_coding.ac +
+                                    ' is available (' + updated_transcript_variant.ac + ')' + ': ' +
+                                    str(updated_transcript_variant) + ' MUST be fully validated prior to use in reports: '
+                                    'select_variants=' + fn.valstr(updated_transcript_variant) + 
+                                    ', genome_build=' + variant.primary_assembly)
+        else:
+            variant.warnings.append('A more recent version of the selected reference sequence ' + hgvs_coding.ac +
+                                    ' is available (' + updated_transcript_variant.ac + ')' + ': ' +
+                                    str(updated_transcript_variant) + ' MUST be fully validated prior to use in reports: '
+                                    'select_variants=' + fn.valstr(updated_transcript_variant))
 
     variant.coding = str(hgvs_coding)
     variant.genomic_r = str(hgvs_refseq)
