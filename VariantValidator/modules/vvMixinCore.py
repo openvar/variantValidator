@@ -21,7 +21,7 @@ from .liftover import liftover
 from . import complex_descriptions
 
 logger = logging.getLogger(__name__)
-
+logger.setLevel(logging.DEBUG)
 
 class Mixin(vvMixinConverters.Mixin):
     """
@@ -1092,11 +1092,25 @@ class Mixin(vvMixinConverters.Mixin):
                 # Warn not directly mapped to specified genome build
                 if genomic_accession != '':
                     if primary_assembly.lower() not in list(primary_genomic_dicts.keys()):
-                        variant.warnings.extend([
-                            str(variant.hgvs_coding) + ' cannot be mapped directly to genome build ' + primary_assembly,
-                            'See alternative genomic loci or alternative genome builds for aligned genomic positions'
-                        ])
+                        errors = [str(variant.hgvs_coding) + ' is not part of genome build ' + primary_assembly]
 
+                        if self.alt_aln_method == "splign":
+                            errors.append(str(variant.hgvs_coding) + ' cannot be mapped directly to genome build ' + primary_assembly)
+                            errors.append('See alternative genomic loci or alternative genome builds for aligned genomic positions')
+
+                        elif self.alt_aln_method == "genebuild":
+                            # Get the alternative genome build to recommend
+                            if primary_assembly == "GRCh38" or primary_assembly == "hg38":
+                                alt_build = "GRCh37"
+                            elif primary_assembly == "GRCh37" or primary_assembly == "hg19":
+                                alt_build = "GRCh38"
+                                # Shows the alternative genome build too
+                            errors.append(str(variant.hgvs_coding) + ' cannot be mapped directly to genome build ' + primary_assembly 
+                                            + ', did you mean ' + alt_build + '?')
+                            
+                        variant.warnings.extend(errors)
+
+                        
                 # Ensure Variants have had the refs removed.
                 # if not hasattr(posedit, refseqgene_variant):
                 if refseqgene_variant != '':

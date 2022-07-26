@@ -386,11 +386,11 @@ class GapMapper(object):
                         # store stash_hgvs_not_delins for restorstion after error below
                         restore_stash_hgvs_not_delins = copy.copy(stash_hgvs_not_delins)
                         try:
-                            hgvs_stash_t = self.validator.vm.g_to_t(stash_hgvs_not_delins, saved_hgvs_coding.ac)
+                            hgvs_stash_t = self.validator.vm.g_to_t(stash_hgvs_not_delins, saved_hgvs_coding.ac, self.validator.alt_aln_method)
                         except vvhgvs.exceptions.HGVSError as e:
                             if 'bounds' in str(e):
                                 stash_hgvs_not_delins = copy.copy(stored_hgvs_not_delins)
-                                hgvs_stash_t = self.validator.vm.g_to_t(stash_hgvs_not_delins, saved_hgvs_coding.ac)
+                                hgvs_stash_t = self.validator.vm.g_to_t(stash_hgvs_not_delins, saved_hgvs_coding.ac, self.validator.alt_aln_method)
 
                         if len(stash_hgvs_not_delins.posedit.edit.ref) > len(hgvs_stash_t.posedit.edit.ref):
                             try:
@@ -2640,7 +2640,7 @@ class GapMapper(object):
                 # Continue
                 if internal_possibility == '':
                     continue
-                hgvs_t_possibility = self.validator.vm.g_to_t(internal_possibility, hgvs_coding.ac)
+                hgvs_t_possibility = self.validator.vm.g_to_t(internal_possibility, hgvs_coding.ac, self.validator.alt_aln_method)
                 if hgvs_t_possibility.posedit.edit.type == 'ins':
                     try:
                         hgvs_t_possibility = self.validator.vm.c_to_n(hgvs_t_possibility)
