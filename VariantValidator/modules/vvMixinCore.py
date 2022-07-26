@@ -1,3 +1,4 @@
+from cmath import log
 import vvhgvs
 import vvhgvs.exceptions
 import vvhgvs.normalizer
@@ -1385,13 +1386,18 @@ class Mixin(vvMixinConverters.Mixin):
                 # Remove duplicate warnings
                 variant_warnings = []
                 accession = variant.hgvs_transcript_variant.split(':')[0]
-                term = "(" + accession + ")"
+                term = str(accession)
                 term_2 = "%s automapped to" % tx_variant
                 term_3 = "%s automapped to" % genomic_variant
                 for vt in variant.warnings:
-
-                    #  Do not warn a transcript update is available for the most recent transcript
-                    if term in vt and "A more recent version of the selected reference sequence" in vt:
+                    # Do not warn a transcript update if it's not the relevant transcript
+                    if "A more recent version of the selected reference sequence" in vt and term not in vt:
+                        continue
+                    # Do not warn transcript not part of build if it's not the relevant transcript
+                    elif "is not part of genome build" in vt and term not in vt:
+                        continue
+                    # Do not warn transcript cannot be mapped to build if it's not the relevant transcript
+                    elif "cannot be mapped directly to genome build" in vt and term not in vt:
                         continue
                     # Remove spurious updates away form the correct output
                     elif (term_2 in vt and tx_variant != "") or (term_3 in vt and genomic_variant != ""):
