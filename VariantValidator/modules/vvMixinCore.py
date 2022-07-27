@@ -1985,6 +1985,7 @@ class Mixin(vvMixinConverters.Mixin):
                     variant.description = entry['description']
                 else:
                     variant.description = entry['description']
+
             # If the none key is found add the description to the database
             elif 'none' in entry:
                 try:

@@ -74,7 +74,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
             else:
                 continue
 
-    #  Tripple check this assumption by querying the gene position database
+    #  Triple check this assumption by querying the gene position database
     if len(rel_var) == 0:
         try:
             vcf_dict = hgvs_utils.hgvs2vcf(variant.hgvs_genomic, variant.primary_assembly, variant.reverse_normalizer,
@@ -232,9 +232,8 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             errors.append('Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive')
             errors.append('Query gene2transcripts with search term %s for available transcripts' % tx_ac.split('.')[0])
         
-        if 'does agree with reference sequence' in str(e):
+        if 'does not agree with reference sequence' in str(e):
             errors.append(str(e))
-        
         
         variant.warnings.extend(errors)
         logger.info(str(errors))

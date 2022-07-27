@@ -51,7 +51,7 @@ class TestVariantsEnsembl(TestCase):
     # COL5A1
     def test_variant2(self):
         variant = 'ENST00000371817.8:c.5071A>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="ensembl").format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -82,13 +82,13 @@ class TestVariantsEnsembl(TestCase):
             'hgvs_genomic_description': 'NC_000009.12:g.134829979A>T', 
             'vcf': {'chr': '9', 'pos': '134829979', 'ref': 'A', 'alt': 'T'}}
         assert results['ENST00000371817.8:c.5071A>T']['reference_sequence_records'] == {
-             'transcript': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000371817.8',
-             'protein': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?db=core;p=ENSP00000360882.3'}
+             'transcript': 'https://www.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000371817.8',
+             'protein': 'https://www.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?db=core;p=ENSP00000360882.3'}
 
     # TP53
     def test_variant3(self):
         variant = 'ENST00000269305.9:c.652_654del'
-        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="ensembl").format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -119,8 +119,8 @@ class TestVariantsEnsembl(TestCase):
             'hgvs_genomic_description': 'NC_000017.11:g.7674883_7674885del',
             'vcf': {'chr': '17', 'pos': '7674876', 'ref': 'GCAC', 'alt': 'G'}}
         assert results['ENST00000269305.9:c.652_654del']['reference_sequence_records'] == {
-            'transcript': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000269305.9',
-            'protein': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?db=core;p=ENSP00000269305.4'
+            'transcript': 'https://www.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000269305.9',
+            'protein': 'https://www.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?db=core;p=ENSP00000269305.4'
             #'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_017013.2',
             #'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_321.xml'
             }
@@ -128,7 +128,7 @@ class TestVariantsEnsembl(TestCase):
     # P3H1
     def test_variant4(self):
         variant = 'ENST00000296388.10:c.2055+18G>A'
-        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="ensembl").format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -160,8 +160,8 @@ class TestVariantsEnsembl(TestCase):
             'hgvs_genomic_description': 'NC_000001.11:g.42747254C>T',
             'vcf': {'chr': '1', 'pos': '42747254', 'ref': 'C', 'alt': 'T'}}
         assert results['ENST00000296388.10:c.2055+18G>A']['reference_sequence_records'] == {
-            'transcript': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000296388.10',
-            'protein': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?db=core;p=ENSP00000296388.5'
+            'transcript': 'https://www.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000296388.10',
+            'protein': 'https://www.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?db=core;p=ENSP00000296388.5'
             #'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_008123.1',
             #'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_5.xml'
             }
@@ -169,7 +169,7 @@ class TestVariantsEnsembl(TestCase):
     # BRCA1
     def test_variant5(self):
         variant = 'ENST00000357654.9:c.301+1G>C'
-        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="ensembl").format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
         
         assert 'ENST00000357654.9:c.301+1G>C' in list(results.keys())
@@ -201,8 +201,8 @@ class TestVariantsEnsembl(TestCase):
             'hgvs_genomic_description': 'NC_000017.11:g.43104867C>G',
             'vcf': {'chr': '17', 'pos': '43104867', 'ref': 'C', 'alt': 'G'}}
         assert results['ENST00000357654.9:c.301+1G>C']['reference_sequence_records'] == {
-            'transcript': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000357654.9',
-            'protein': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?db=core;p=ENSP00000350283.3'
+            'transcript': 'https://www.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000357654.9',
+            'protein': 'https://www.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?db=core;p=ENSP00000350283.3'
             #'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_005905.2',
             #'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_292.xml'
             }
@@ -210,7 +210,7 @@ class TestVariantsEnsembl(TestCase):
     # BRCA2
     def test_variant6(self):
         variant = 'NC_000013.10:g.32929387T>C'
-        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="ensembl").format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -241,8 +241,8 @@ class TestVariantsEnsembl(TestCase):
             'hgvs_genomic_description': 'NC_000013.11:g.32355250T>C',
             'vcf': {'chr': '13', 'pos': '32355250', 'ref': 'T', 'alt': 'C'}}
         assert results['ENST00000380152.3:c.7397T>C']['reference_sequence_records'] == {
-            'transcript': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000380152.3',
-            'protein': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?db=core;p=ENSP00000369497.3'
+            'transcript': 'https://www.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000380152.3',
+            'protein': 'https://www.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?db=core;p=ENSP00000369497.3'
             #'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_012772.3',
             #'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_293.xml'
             }
@@ -250,7 +250,7 @@ class TestVariantsEnsembl(TestCase):
     # HBB
     def test_variant7(self):
         variant = '11-5248232-T-A'
-        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="ensembl").format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -281,8 +281,8 @@ class TestVariantsEnsembl(TestCase):
             'hgvs_genomic_description': 'NC_000011.10:g.5227002T>A', 
             'vcf': {'chr': '11', 'pos': '5227002', 'ref': 'T', 'alt': 'A'}}
         assert results['ENST00000335295.4:c.20A>T']['reference_sequence_records'] == {
-            'transcript': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000335295.4',
-            'protein': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?db=core;p=ENSP00000333994.3'
+            'transcript': 'https://www.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000335295.4',
+            'protein': 'https://www.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?db=core;p=ENSP00000333994.3'
             #'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_059281.1',
             #'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/pending/LRG_1232.xml'
             }
@@ -290,7 +290,7 @@ class TestVariantsEnsembl(TestCase):
     # MCL1
     def test_variant8(self):
         variant = '1:150550916G>A'
-        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="ensembl").format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
 
         assert 'ENST00000369026.3:c.740C>T' in list(results.keys())
@@ -320,15 +320,15 @@ class TestVariantsEnsembl(TestCase):
             'hgvs_genomic_description': 'NC_000001.11:g.150578440G>A',
             'vcf': {'chr': '1', 'pos': '150578440', 'ref': 'G', 'alt': 'A'}}
         assert results['ENST00000369026.3:c.740C>T']['reference_sequence_records'] == {
-            'transcript': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000369026.3',
-            'protein': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?db=core;p=ENSP00000358022.2'
+            'transcript': 'https://www.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000369026.3',
+            'protein': 'https://www.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?db=core;p=ENSP00000358022.2'
             #'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_029146.1'
             }
 
     # TNXB
     def test_variant9(self):
         variant = '6-32012992-CG-C'
-        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="ensembl").format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
 
         assert 'ENST00000644971.2:c.10717del' in list(results.keys())
@@ -370,14 +370,14 @@ class TestVariantsEnsembl(TestCase):
             'hgvs_genomic_description': 'NC_000006.12:g.32045216del', 
             'vcf': {'chr': '6', 'pos': '32045215', 'ref': 'CG', 'alt': 'C'}}
         assert results['ENST00000644971.2:c.10717del']['reference_sequence_records'] == {
-            'transcript': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000644971.2',
-            'protein': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?db=core;p=ENSP00000496448.1'
+            'transcript': 'https://www.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000644971.2',
+            'protein': 'https://www.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?db=core;p=ENSP00000496448.1'
             }
 
     # TSC1
     def test_variant10(self):
         variant = 'ENST00000298552.9:c.363+1dupG'
-        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="ensembl").format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
 
         assert 'ENST00000298552.9:c.363+1dup' in list(results.keys())
@@ -409,8 +409,8 @@ class TestVariantsEnsembl(TestCase):
             'hgvs_genomic_description': 'NC_000009.12:g.132925587dup',
             'vcf': {'chr': '9', 'pos': '132925585', 'ref': 'A', 'alt': 'AC'}}
         assert results['ENST00000298552.9:c.363+1dup']['reference_sequence_records'] == {
-            'transcript': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000298552.9',
-            'protein': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?db=core;p=ENSP00000298552.3'
+            'transcript': 'https://www.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000298552.9',
+            'protein': 'https://www.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?db=core;p=ENSP00000298552.3'
             #'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_012386.1',
             #'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_486.xml'
             }
@@ -418,7 +418,7 @@ class TestVariantsEnsembl(TestCase):
     # TSC2
     def test_variant11(self):
         variant = 'NC_000016.9:g.2099572TC>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="ensembl").format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -450,14 +450,14 @@ class TestVariantsEnsembl(TestCase):
             'hgvs_genomic_description': 'NC_000016.10:g.2049574del',
             'vcf': {'chr': '16', 'pos': '2049571', 'ref': 'TC', 'alt': 'T'}}
         assert results['ENST00000219476.9:c.138+821del']['reference_sequence_records'] == {
-            'transcript': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000219476.9',
-            'protein': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?db=core;p=ENSP00000219476.3'
+            'transcript': 'https://www.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000219476.9',
+            'protein': 'https://www.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?db=core;p=ENSP00000219476.3'
             }
 
     # COL1A1
     def test_variant12(self):
         variant = 'ENST00000225964.10:c.589-1GG>G'
-        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="ensembl").format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -488,8 +488,8 @@ class TestVariantsEnsembl(TestCase):
             'hgvs_genomic_description': 'NC_000017.11:g.50198003del',
             'vcf': {'chr': '17', 'pos': '50198000', 'ref': 'AC', 'alt': 'A'}}
         assert results['ENST00000225964.10:c.590del']['reference_sequence_records'] == {
-             'transcript': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000225964.10',
-             'protein': 'https://grch37.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?db=core;p=ENSP00000225964.6',
+             'transcript': 'https://www.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=ENST00000225964.10',
+             'protein': 'https://www.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?db=core;p=ENSP00000225964.6',
             # 'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_007400.1',
             # 'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_1.xml'
             }
