@@ -37,14 +37,13 @@ def vcfcp_to_hgvsstr(vcf_dict, start_hgvs):
     return str_hgvs
 
 
-def hgvs_to_delins_hgvs(hgvs_object, hp, hn):
+def hgvs_to_delins_hgvs(hgvs_object, hp, hn, allow_fix=False):
     """
     :param hgvs_object: parsed hgvs string
     :param hp: hgvs_parser
     :param hn: hgvs_normalizer (check function for hn vs reverse hn rules)
     :return: hgvs_object in delins format, see if statements for the details
     """
-
     # Duplications (alt = ref + ref)
     if hgvs_object.posedit.edit.type == "dup":
         v_pos = hgvs_object.posedit.pos.start.base
@@ -53,14 +52,30 @@ def hgvs_to_delins_hgvs(hgvs_object, hp, hn):
 
     # Insertions (Generate the ref, then alt = ref[0] + insertion + ref[1]
     if hgvs_object.posedit.edit.type == "ins":
+
+        # Handle incorrectly formatted ins
+        ref_not_two = False
+        try:
+            if (hgvs_object.posedit.pos.end.base - hgvs_object.posedit.pos.start.base) > 1:
+                ref_not_two = True
+        except vvhgvs.exceptions.HGVSError:
+            pass
+
         alt_bs = hgvs_object.posedit.edit.alt
         hgvs_object.posedit.edit.alt = ""
         hgvs_object.posedit.edit.ref = ""
         hgvs_object = hn.normalize(hgvs_object)
-        hgvs_object.posedit.edit.alt = \
-            hgvs_object.posedit.edit.alt[0] + \
-            alt_bs + \
-            hgvs_object.posedit.edit.alt[1]
+
+        if ref_not_two is False or allow_fix is False:
+            hgvs_object.posedit.edit.alt = \
+                hgvs_object.posedit.edit.ref[0] + \
+                alt_bs + \
+                hgvs_object.posedit.edit.ref[-1]
+        else:
+            hgvs_object.posedit.edit.alt = \
+                hgvs_object.posedit.edit.ref[0] + \
+                alt_bs
+
         # No stringing needed, return directly
         return hgvs_object
 
@@ -933,6 +948,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
     merged_variant = False
     pre_merged_variant = False
     identifying_variant = False
+    identifying_g_variant = False
 
     if chr != '' and pos != '' and ref != '' and alt != '':
 
@@ -1287,6 +1303,26 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                         if "g" not in hgvs_genomic.type:
                             v1 = vm.n_to_g(hgvs_genomic, genomic_ac)
                             v2 = vm.n_to_g(map_back, genomic_ac)
+
+                        # Known examples of incorrect formatting from vm
+                        ################################################
+
+                        # 1. vm causes an insertion length of > 1 because of the gap - issue #392
+                        if "ins" in v1.posedit.edit.type and "sub" in v2.posedit.edit.type:
+                            try:
+                                v1 = hn.normalize(v1)
+                            except vvhgvs.exceptions.HGVSInvalidVariantError as e:
+                                if "insertion length must be 1" in str(e):
+                                    v1 = hgvs_to_delins_hgvs(v1, hp, hn, allow_fix=True)
+                                    identifying_g_variant = v1
+
+                        elif "ins" in v2.posedit.edit.type and "sub" in v1.posedit.edit.type:
+                            try:
+                                v2 = hn.normalize(v2)
+                            except vvhgvs.exceptions.HGVSInvalidVariantError as e:
+                                if "insertion length must be 1" in str(e):
+                                    v2 = hgvs_to_delins_hgvs(v2, hp, hn, allow_fix=True)
+                                    identifying_g_variant = v2
                         try:
                             v1 = hn.normalize(v1)
                             v2 = hn.normalize(v2)
@@ -1369,7 +1405,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
     # Dictionary the VCF
     vcf_dict = {'chr': chr, 'pos': pos, 'ref': ref, 'alt': alt, 'normalized_hgvs': normalized_hgvs_genomic,
                 'merged_variant': merged_variant, 'identifying_variant': identifying_variant,
-                'pre_merged_variant': pre_merged_variant}
+                'pre_merged_variant': pre_merged_variant, 'identifying_g_variant': identifying_g_variant}
     str_hgvs = vcfcp_to_hgvsstr(vcf_dict, hgvs_genomic)
     vcf_dict['str_hgvs'] = str_hgvs
     vcf_dict['needs_a_push'] = needs_a_push
@@ -1637,6 +1673,7 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
     merged_variant = False
     pre_merged_variant = False
     identifying_variant = False
+    identifying_g_variant = False
 
     if chr != '' and pos != '' and ref != '' and alt != '':
 
@@ -2012,6 +2049,26 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
                             v1 = vm.n_to_g(hgvs_genomic, genomic_ac)
                             v2 = vm.n_to_g(map_back, genomic_ac)
 
+                        # Known examples of incorrect formatting from vm
+                        ################################################
+
+                        # 1. vm causes an insertion length of > 1 because of the gap - issue #392
+                        if "ins" in v1.posedit.edit.type and "sub" in v2.posedit.edit.type:
+                            try:
+                                v1 = hn.normalize(v1)
+                            except vvhgvs.exceptions.HGVSInvalidVariantError as e:
+                                if "insertion length must be 1" in str(e):
+                                    v1 = hgvs_to_delins_hgvs(v1, hp, hn, allow_fix=True)
+                                    identifying_g_variant = v1
+
+                        elif "ins" in v2.posedit.edit.type and "sub" in v1.posedit.edit.type:
+                            try:
+                                v2 = hn.normalize(v2)
+                            except vvhgvs.exceptions.HGVSInvalidVariantError as e:
+                                if "insertion length must be 1" in str(e):
+                                    v2 = hgvs_to_delins_hgvs(v2, hp, hn, allow_fix=True)
+                                    identifying_g_variant = v2
+
                         try:
                             v1 = reverse_normalizer.normalize(v1)
                             v2 = reverse_normalizer.normalize(v2)
@@ -2093,20 +2150,11 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
             pos = (int(pos) - (push_pos_by-1))
             ref = push_ref
             alt = push_alt
-        # else:
-        #     # Old behavior
-        #     # Hard addition of 2 post bases for sequence mismatches in gaps
-        #     pre_pos = int(pos) - 1
-        #     if pre_pos >= exon_start_genomic:
-        #         prev = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), pre_pos - 1, pre_pos)
-        #         pos = str(pre_pos)
-        #         ref = prev + ref
-        #         alt = prev + alt
 
     # Dictionary the VCF
     vcf_dict = {'chr': chr, 'pos': pos, 'ref': ref, 'alt': alt, 'normalized_hgvs': reverse_normalized_hgvs_genomic,
                 'merged_variant': merged_variant, 'identifying_variant': identifying_variant,
-                'pre_merged_variant': pre_merged_variant}
+                'pre_merged_variant': pre_merged_variant, 'identifying_g_variant': identifying_g_variant}
     str_hgvs = vcfcp_to_hgvsstr(vcf_dict, hgvs_genomic)
     vcf_dict['str_hgvs'] = str_hgvs
     vcf_dict['needs_a_push'] = needs_a_push

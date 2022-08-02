@@ -349,8 +349,10 @@ class GapMapper(object):
                     # Create normalized version of tx_hgvs_not_delins
                     rn_tx_hgvs_not_delins = copy.deepcopy(self.tx_hgvs_not_delins)
                     # Check for +ve base and adjust
-                    if ('+' in str(rn_tx_hgvs_not_delins.posedit.pos.start) or '-' in str(rn_tx_hgvs_not_delins.posedit.pos.start)) and (
-                            '+' in str(rn_tx_hgvs_not_delins.posedit.pos.end) or '-' in str(rn_tx_hgvs_not_delins.posedit.pos.end)):
+                    if ('+' in str(rn_tx_hgvs_not_delins.posedit.pos.start) or '-' in
+                        str(rn_tx_hgvs_not_delins.posedit.pos.start)) and (
+                            '+' in str(rn_tx_hgvs_not_delins.posedit.pos.end) or '-' in
+                            str(rn_tx_hgvs_not_delins.posedit.pos.end)):
                         rn_tx_hgvs_not_delins = self.remove_offsetting_to_span_gap(rn_tx_hgvs_not_delins)
 
                     elif '+' in str(rn_tx_hgvs_not_delins.posedit.pos.end):
@@ -362,7 +364,8 @@ class GapMapper(object):
                             rn_tx_hgvs_not_delins, saved_hgvs_coding)
 
                     # Check for -ve base and adjust
-                    elif '-' in str(rn_tx_hgvs_not_delins.posedit.pos.end) and '-' in str(rn_tx_hgvs_not_delins.posedit.pos.start):
+                    elif '-' in str(rn_tx_hgvs_not_delins.posedit.pos.end) and '-' in \
+                            str(rn_tx_hgvs_not_delins.posedit.pos.start):
                         rn_tx_hgvs_not_delins = self.remove_offsetting_to_span_gap(rn_tx_hgvs_not_delins)
 
                     elif '-' in str(rn_tx_hgvs_not_delins.posedit.pos.end):
@@ -502,7 +505,8 @@ class GapMapper(object):
                         self.variant.primary_assembly
                     hgvs_refreshed_variant = self.tx_hgvs_not_delins
                     # Warn
-                    self.auto_info += str(hgvs_refreshed_variant.ac) + ':c.' + str(hgvs_refreshed_variant.posedit.pos)+\
+                    self.auto_info += str(hgvs_refreshed_variant.ac) + ':c.' + str(hgvs_refreshed_variant.posedit.pos
+                                                                                   ) + \
                         ' contains ' + str(self.disparity_deletion_in[1]) + ' transcript base(s) that fail to align ' \
                         'to chromosome ' + str(self.variant.hgvs_genomic.ac) + '\n'
                     self.gapped_transcripts = self.gapped_transcripts + str(hgvs_refreshed_variant.ac) + ' '
@@ -555,7 +559,8 @@ class GapMapper(object):
                         stash_end_left = str(stash_pos_left + len(stash_ref_left) - 1)
                         stash_hgvs_not_delins_left = self.validator.hp.parse_hgvs_variant(
                             stash_ac + ':' + hgvs_stash.type + '.' + str(
-                                stash_pos_left) + '_' + stash_end_left + 'del' + stash_ref_left + 'ins' + stash_alt_left)
+                                stash_pos_left) + '_' + stash_end_left + 'del' + stash_ref_left + 'ins' +
+                            stash_alt_left)
 
                         # Map in-situ to the transcript left and right
                         try:
@@ -577,20 +582,27 @@ class GapMapper(object):
 
                         try:
                             # The Logic - Currently limited to genome gaps
-                            if len(stash_hgvs_not_delins_right.posedit.edit.ref) < len(tx_hard_right.posedit.edit.ref) or \
-                                    len(stash_hgvs_not_delins_right.posedit.edit.ref) > len(tx_hard_right.posedit.edit.ref):
+                            if len(stash_hgvs_not_delins_right.posedit.edit.ref) < len(
+                                    tx_hard_right.posedit.edit.ref) or \
+                                    len(stash_hgvs_not_delins_right.posedit.edit.ref) > \
+                                    len(tx_hard_right.posedit.edit.ref):
                                 tx_hard_right = self.variant.hn.normalize(tx_hard_right)
-                                gapped_alignment_warning = str(self.hgvs_genomic_5pr) + ' may be an artefact of aligning ' \
+                                gapped_alignment_warning = str(self.hgvs_genomic_5pr) + ' may be an artefact of ' \
+                                                                                        'aligning ' \
                                                                                         'the ' \
                                     'transcripts listed below with genome build ' + self.variant.primary_assembly
                                 hgvs_refreshed_variant = tx_hard_right
                                 self.gapped_transcripts = self.gapped_transcripts + str(tx_hard_right.ac) + ' '
-                            elif len(stash_hgvs_not_delins_left.posedit.edit.ref) < len(tx_hard_left.posedit.edit.ref) or \
-                                    len(stash_hgvs_not_delins_left.posedit.edit.ref) > len(tx_hard_left.posedit.edit.ref):
+                            elif len(stash_hgvs_not_delins_left.posedit.edit.ref) < \
+                                    len(tx_hard_left.posedit.edit.ref) or \
+                                    len(stash_hgvs_not_delins_left.posedit.edit.ref) > \
+                                    len(tx_hard_left.posedit.edit.ref):
                                 tx_hard_left = self.variant.hn.normalize(tx_hard_left)
-                                gapped_alignment_warning = str(self.hgvs_genomic_5pr) + ' may be an artefact of aligning ' \
-                                                                                        'the ' \
-                                    'transcripts listed below with genome build ' + self.variant.primary_assembly
+                                gapped_alignment_warning = str(self.hgvs_genomic_5pr) + ' may be an artefact of ' \
+                                                                                        'aligning the transcripts ' \
+                                                                                        'listed below with genome ' \
+                                                                                        'build ' \
+                                                           + self.variant.primary_assembly
                                 hgvs_refreshed_variant = tx_hard_left
                                 self.gapped_transcripts = self.gapped_transcripts + str(tx_hard_left.ac) + ' '
                             else:
@@ -733,56 +745,58 @@ class GapMapper(object):
                     self.hgvs_genomic_possibilities.append([stash_genomic, ['false', 'false']])
 
             # IDENTIFY GAP AND HARD SET
-            if stash_dict['needs_a_push'] is True:
+            if stash_dict['needs_a_push'] is True or stash_dict['identifying_g_variant'] is not False:
 
                 # Look for merged variant from hard push
                 if stash_dict['merged_variant'] is not False:
-                    if stash_dict['merged_variant'] is not False:
-                        merged_variant = stash_dict['merged_variant']
-                        try:
-                            merged_variant = self.validator.vm.n_to_c(merged_variant)
-                        except TypeError:
-                            pass
-                        except vvhgvs.exceptions.HGVSInvalidVariantError:
-                            pass
-                        identifying_variant = stash_dict['identifying_variant']
-                        try:
-                            identifying_variant = self.validator.vm.n_to_c(identifying_variant)
-                        except TypeError:
-                            pass
-                        except vvhgvs.exceptions.HGVSInvalidVariantError:
-                            pass
-                        stash_genomic = self.validator.myvm_t_to_g(identifying_variant, stash_genomic.ac,
-                                                                   self.variant.no_norm_evm,
-                                                                   self.variant.hn)
-                        stash_hgvs_not_delins = merged_variant
-                        test_stash_tx_right = merged_variant
+                    merged_variant = stash_dict['merged_variant']
+                    try:
+                        merged_variant = self.validator.vm.n_to_c(merged_variant)
+                    except TypeError:
+                        pass
+                    except vvhgvs.exceptions.HGVSInvalidVariantError:
+                        pass
+                    identifying_variant = stash_dict['identifying_variant']
+                    try:
+                        identifying_variant = self.validator.vm.n_to_c(identifying_variant)
+                    except TypeError:
+                        pass
+                    except vvhgvs.exceptions.HGVSInvalidVariantError:
+                        pass
+                    stash_genomic = self.validator.myvm_t_to_g(identifying_variant, stash_genomic.ac,
+                                                               self.variant.no_norm_evm,
+                                                               self.variant.hn)
+                    stash_hgvs_not_delins = merged_variant
+                    test_stash_tx_right = merged_variant
 
-                    # Look for gap info
-                    normalized_stash_genomic = self.variant.hn.normalize(stash_genomic)
-                    stash_tx_right = test_stash_tx_right
-                    if stash_hgvs_not_delins.posedit.edit.type == "ins":
-                        len_tx = 2
-                    else:
-                        len_tx = len(stash_hgvs_not_delins.posedit.edit.ref)
-                    if stash_genomic.posedit.edit.type == "ins":
-                        len_gen = 2
-                    else:
-                        len_gen = len(stash_genomic.posedit.edit.ref)
-                    if len_tx > len_gen:
-                        gap_in = 'chromosome'
-                        gap_len = len_tx - len_gen
-                    else:
-                        gap_in = 'transcript'
-                        gap_len = len_gen - len_tx
+                elif stash_dict['identifying_g_variant'] is not False:
+                    stash_hgvs_not_delins = stash_dict['identifying_g_variant']
+                    stash_genomic = stash_dict['identifying_g_variant']
+                    normalized_stash_genomic = stash_dict['identifying_g_variant']
 
-                    # Set the options to a single option based on the results of pushing
-                    self.hgvs_genomic_possibilities = [[normalized_stash_genomic, [gap_in,
-                                                                                   gap_len,
-                                                                                   stash_hgvs_not_delins,
-                                                                                   stash_genomic]]]
+                # Look for gap info
+                normalized_stash_genomic = self.variant.hn.normalize(stash_genomic)
+                stash_tx_right = test_stash_tx_right
+                if stash_hgvs_not_delins.posedit.edit.type == "ins":
+                    len_tx = 2
+                else:
+                    len_tx = len(stash_hgvs_not_delins.posedit.edit.ref)
+                if stash_genomic.posedit.edit.type == "ins":
+                    len_gen = 2
+                else:
+                    len_gen = len(stash_genomic.posedit.edit.ref)
+                if len_tx > len_gen:
+                    gap_in = 'chromosome'
+                    gap_len = len_tx - len_gen
+                else:
+                    gap_in = 'transcript'
+                    gap_len = len_gen - len_tx
 
-
+                # Set the options to a single option based on the results of pushing
+                self.hgvs_genomic_possibilities = [[normalized_stash_genomic, [gap_in,
+                                                                               gap_len,
+                                                                               stash_hgvs_not_delins,
+                                                                               stash_genomic]]]
         except vvhgvs.exceptions.HGVSError as e:
             logger.debug("Except passed, %s", e)
         # Intronic positions not supported. Will cause a Value Error
@@ -795,7 +809,6 @@ class GapMapper(object):
             hgvs_stash = self.variant.no_norm_evm.c_to_n(hgvs_stash)
         except Exception as e:
             logger.debug("Except passed, %s", e)
-
         try:
             stash_ac = hgvs_stash.ac
             stash_dict = hgvs_utils.hard_left_hgvs2vcf(hgvs_stash,
@@ -875,7 +888,8 @@ class GapMapper(object):
                     self.hgvs_genomic_possibilities.append([stash_genomic, ['false', 'false']])
 
             # IDENTIFY GAP AND HARD SET
-            if stash_dict['needs_a_push'] is True:
+            if stash_dict['needs_a_push'] is True or stash_dict['identifying_g_variant'] is not False:
+
                 # Look for merged variant from hard push
                 if stash_dict['merged_variant'] is not False:
                     merged_variant = stash_dict['merged_variant']
@@ -898,30 +912,34 @@ class GapMapper(object):
                     stash_hgvs_not_delins = merged_variant
                     test_stash_tx_left = merged_variant
 
-                    # Look for gap info
-                    normalized_stash_genomic = self.variant.hn.normalize(stash_genomic)
-                    stash_tx_left = test_stash_tx_left
-                    if stash_hgvs_not_delins.posedit.edit.type == "ins":
-                        len_tx = 2
-                    else:
-                        len_tx = len(stash_hgvs_not_delins.posedit.edit.ref)
-                    if stash_genomic.posedit.edit.type == "ins":
-                        len_gen = 2
-                    else:
-                        len_gen = len(stash_genomic.posedit.edit.ref)
-                    if len_tx > len_gen:
-                        gap_in = 'chromosome'
-                        gap_len = len_tx - len_gen
-                    else:
-                        gap_in = 'transcript'
-                        gap_len = len_gen - len_tx
+                elif stash_dict['identifying_g_variant'] is not False:
+                    stash_hgvs_not_delins = stash_dict['identifying_g_variant']
+                    stash_genomic = stash_dict['identifying_g_variant']
+                    normalized_stash_genomic = stash_dict['identifying_g_variant']
 
-                    # Set the options to a single option based on the results of pushing
-                    self.hgvs_genomic_possibilities = [[normalized_stash_genomic, [gap_in,
-                                                                                   gap_len,
-                                                                                   stash_hgvs_not_delins,
-                                                                                   stash_genomic]]]
+                # Look for gap info
+                normalized_stash_genomic = self.variant.hn.normalize(stash_genomic)
+                stash_tx_left = test_stash_tx_left
+                if stash_hgvs_not_delins.posedit.edit.type == "ins":
+                    len_tx = 2
+                else:
+                    len_tx = len(stash_hgvs_not_delins.posedit.edit.ref)
+                if stash_genomic.posedit.edit.type == "ins":
+                    len_gen = 2
+                else:
+                    len_gen = len(stash_genomic.posedit.edit.ref)
+                if len_tx > len_gen:
+                    gap_in = 'chromosome'
+                    gap_len = len_tx - len_gen
+                else:
+                    gap_in = 'transcript'
+                    gap_len = len_gen - len_tx
 
+                # Set the options to a single option based on the results of pushing
+                self.hgvs_genomic_possibilities = [[normalized_stash_genomic, [gap_in,
+                                                                               gap_len,
+                                                                               stash_hgvs_not_delins,
+                                                                               stash_genomic]]]
         except vvhgvs.exceptions.HGVSError as e:
             logger.debug("Except passed, %s", e)
         # Intronic positions not supported. Will cause a Value Error
@@ -948,8 +966,6 @@ class GapMapper(object):
         for hard_set_check in self.hgvs_genomic_possibilities:
             if hard_set_check[1] != ['false', 'false']:
                 hard_possibility.append(hard_set_check)
-        if len(hard_possibility) >= 1:
-            self.hgvs_genomic_possibilities = hard_possibility
 
         # Copy a version of hgvs_genomic_possibilities
         for a_possibility in self.hgvs_genomic_possibilities:
@@ -1016,7 +1032,9 @@ class GapMapper(object):
 
             # Store a not real deletion insertion to test for gapping
             stored_hgvs_not_delins = self.validator.hp.parse_hgvs_variant(str(self.hgvs_genomic_5pr.ac) + ':' +
-                self.hgvs_genomic_5pr.type + '.' + pos + '_' + end + 'del' + ref + 'ins' + alt)
+                                                                          self.hgvs_genomic_5pr.type +
+                                                                          '.' + pos + '_' + end + 'del' + ref +
+                                                                          'ins' + alt)
 
             # Detect intronic variation using normalization
             intronic_variant = 'false'
@@ -1093,7 +1111,7 @@ class GapMapper(object):
                         intronic_variant = 'true'
 
             if intronic_variant != 'true':
-                # Flag RefSeqGene for ammendment
+                # Flag RefSeqGene for amendment
                 # amend_RefSeqGene = 'false'
                 # Attempt to find gaps in reference sequence by catching disparity in genome length and overlapping
                 # transcript lengths
@@ -1159,7 +1177,6 @@ class GapMapper(object):
                             # We know that this cannot be because of an intronic variant, so must be aligned to tx gap
                             self.disparity_deletion_in = ['transcript', 'Requires Analysis']
 
-                # amend_RefSeqGene = 'false'
                 # Recreate hgvs_genomic
                 if self.disparity_deletion_in[0] == 'transcript':
                     hgvs_genomic = hgvs_not_delins
@@ -1311,6 +1328,7 @@ class GapMapper(object):
             self.auto_info = self.auto_info.replace('\n', ': ')
             self.variant.warnings.append(self.auto_info)
             logger.info(self.auto_info)
+
         # Normailse hgvs_genomic
         try:
             hgvs_genomic = self.variant.hn.normalize(hgvs_genomic)
@@ -1598,7 +1616,7 @@ class GapMapper(object):
 
             # IDENTIFY GAP AND HARD SET
 
-            if stash_dict['needs_a_push'] is True:
+            if stash_dict['needs_a_push'] is True or stash_dict['identifying_g_variant'] is not False:
 
                 # Look for merged variant from hard push
                 if stash_dict['merged_variant'] is not False:
@@ -1622,29 +1640,34 @@ class GapMapper(object):
                     stash_hgvs_not_delins = merged_variant
                     test_stash_tx_right = merged_variant
 
-                    # Look for gap info
-                    normalized_stash_genomic = self.variant.hn.normalize(stash_genomic)
-                    stash_tx_right = test_stash_tx_right
-                    if stash_hgvs_not_delins.posedit.edit.type == "ins":
-                        len_tx = 2
-                    else:
-                        len_tx = len(stash_hgvs_not_delins.posedit.edit.ref)
-                    if stash_genomic.posedit.edit.type == "ins":
-                        len_gen = 2
-                    else:
-                        len_gen = len(stash_genomic.posedit.edit.ref)
-                    if len_tx > len_gen:
-                        gap_in = 'chromosome'
-                        gap_len = len_tx - len_gen
-                    else:
-                        gap_in = 'transcript'
-                        gap_len = len_gen - len_tx
+                elif stash_dict['identifying_g_variant'] is not False:
+                    stash_hgvs_not_delins = stash_dict['identifying_g_variant']
+                    stash_genomic = stash_dict['identifying_g_variant']
+                    normalized_stash_genomic = stash_dict['identifying_g_variant']
 
-                    # Set the options to a single option based on the results of pushing
-                    self.hgvs_genomic_possibilities = [[normalized_stash_genomic, [gap_in,
-                                                                                   gap_len,
-                                                                                   stash_hgvs_not_delins,
-                                                                                   stash_genomic]]]
+                # Look for gap info
+                normalized_stash_genomic = self.variant.hn.normalize(stash_genomic)
+                stash_tx_right = test_stash_tx_right
+                if stash_hgvs_not_delins.posedit.edit.type == "ins":
+                    len_tx = 2
+                else:
+                    len_tx = len(stash_hgvs_not_delins.posedit.edit.ref)
+                if stash_genomic.posedit.edit.type == "ins":
+                    len_gen = 2
+                else:
+                    len_gen = len(stash_genomic.posedit.edit.ref)
+                if len_tx > len_gen:
+                    gap_in = 'chromosome'
+                    gap_len = len_tx - len_gen
+                else:
+                    gap_in = 'transcript'
+                    gap_len = len_gen - len_tx
+
+                # Set the options to a single option based on the results of pushing
+                self.hgvs_genomic_possibilities = [[normalized_stash_genomic, [gap_in,
+                                                                               gap_len,
+                                                                               stash_hgvs_not_delins,
+                                                                               stash_genomic]]]
 
         except vvhgvs.exceptions.HGVSError as e:
             logger.debug("Except passed, %s", e)
@@ -1735,7 +1758,7 @@ class GapMapper(object):
                     self.hgvs_genomic_possibilities.append([stash_genomic, ['false', 'false']])
 
             # IDENTIFY GAP AND HARD SET
-            if stash_dict['needs_a_push'] is True:
+            if stash_dict['needs_a_push'] is True or stash_dict['identifying_g_variant'] is not False:
 
                 # Look for merged variant from hard push
                 if stash_dict['merged_variant'] is not False:
@@ -1759,29 +1782,34 @@ class GapMapper(object):
                     stash_hgvs_not_delins = merged_variant
                     test_stash_tx_left = merged_variant
 
-                    # Look for gap info
-                    normalized_stash_genomic = self.variant.hn.normalize(stash_genomic)
-                    stash_tx_left = test_stash_tx_left
-                    if stash_hgvs_not_delins.posedit.edit.type == "ins":
-                        len_tx = 2
-                    else:
-                        len_tx = len(stash_hgvs_not_delins.posedit.edit.ref)
-                    if stash_genomic.posedit.edit.type == "ins":
-                        len_gen = 2
-                    else:
-                        len_gen = len(stash_genomic.posedit.edit.ref)
-                    if len_tx > len_gen:
-                        gap_in = 'chromosome'
-                        gap_len = len_tx - len_gen
-                    else:
-                        gap_in = 'transcript'
-                        gap_len = len_gen - len_tx
+                elif stash_dict['identifying_g_variant'] is not False:
+                    stash_hgvs_not_delins = stash_dict['identifying_g_variant']
+                    stash_genomic = stash_dict['identifying_g_variant']
+                    normalized_stash_genomic = stash_dict['identifying_g_variant']
 
-                    # Set the options to a single option based on the results of pushing
-                    self.hgvs_genomic_possibilities = [[normalized_stash_genomic, [gap_in,
-                                                                                   gap_len,
-                                                                                   stash_hgvs_not_delins,
-                                                                                   stash_genomic]]]
+                # Look for gap info
+                normalized_stash_genomic = self.variant.hn.normalize(stash_genomic)
+                stash_tx_left = test_stash_tx_left
+                if stash_hgvs_not_delins.posedit.edit.type == "ins":
+                    len_tx = 2
+                else:
+                    len_tx = len(stash_hgvs_not_delins.posedit.edit.ref)
+                if stash_genomic.posedit.edit.type == "ins":
+                    len_gen = 2
+                else:
+                    len_gen = len(stash_genomic.posedit.edit.ref)
+                if len_tx > len_gen:
+                    gap_in = 'chromosome'
+                    gap_len = len_tx - len_gen
+                else:
+                    gap_in = 'transcript'
+                    gap_len = len_gen - len_tx
+
+                # Set the options to a single option based on the results of pushing
+                self.hgvs_genomic_possibilities = [[normalized_stash_genomic, [gap_in,
+                                                                               gap_len,
+                                                                               stash_hgvs_not_delins,
+                                                                               stash_genomic]]]
 
         except vvhgvs.exceptions.HGVSError as e:
             logger.debug("Except passed, %s", e)
