@@ -1516,6 +1516,7 @@ class Mixin(vvMixinConverters.Mixin):
             # First perform a search against the input gene symbol or the symbol inferred from UTA
             symbol_identified = False
             vvta_record = self.hdp.get_gene_info(hgnc)
+
             # Check for a record
             if vvta_record is not None:
                 current_sym = hgnc
