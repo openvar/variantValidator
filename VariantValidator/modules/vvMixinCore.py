@@ -639,6 +639,9 @@ class Mixin(vvMixinConverters.Mixin):
                         # Create easy variant mapper (over variant mapper) and splign locked evm
                         try:
                             to_n = my_variant.evm.c_to_n(input_parses_copy)
+                        except Exception as e:
+                            logger.debug("Error with to_n")
+                            logger.debug(str(e))
                         except vvhgvs.exceptions.HGVSError as e:
                             logger.debug("Except passed, %s", e)
                         else:
