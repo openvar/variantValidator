@@ -6828,3 +6828,27 @@ class TestVariantsAuto(object):
             'intergenic']['primary_assembly_loci']['grch37'].keys()
         assert "NC_012920.1" in results['NC_001807.4:m.1013C>T']['NC_001807.4:m.1013C>T']['hgvs_t_and_p'][
             'intergenic']['primary_assembly_loci']['grch38'].keys()
+
+    def test_issue_392a(self):
+        results = VariantFormatter.simpleVariantFormatter.format('NC_000008.10:g.6673379del',
+                                                                 'GRCh37', 'refseq', None, False, True)
+        print(results)
+        assert 'NC_000008.10:g.6673379del' in results.keys()
+        assert 'NC_000008.10:g.6673379del' in results['NC_000008.10:g.6673379del'][
+            'NC_000008.10:g.6673379del']['g_hgvs']
+        assert 'NC_000008.11:g.6815857G>A' in results['NC_000008.10:g.6673379del'][
+            'NC_000008.10:g.6673379del']['hgvs_t_and_p']['NM_001289973.1']['primary_assembly_loci'][
+            'grch38']['NC_000008.11']['hgvs_genomic_description']
+
+    def test_issue_392b(self):
+        results = VariantFormatter.simpleVariantFormatter.format('NC_000008.11:g.6815857G>A',
+                                                                 'GRCh38', 'refseq', None, False, True)
+        print(results)
+        assert 'NC_000008.11:g.6815857G>A' in results.keys()
+        assert 'NC_000008.11:g.6815857G>A' in results['NC_000008.11:g.6815857G>A'][
+            'NC_000008.11:g.6815857G>A']['g_hgvs']
+        assert 'NC_000008.10:g.6673379del' in results['NC_000008.11:g.6815857G>A'][
+            'NC_000008.11:g.6815857G>A']['hgvs_t_and_p']['NM_001289973.1']['primary_assembly_loci'][
+            'grch37']['NC_000008.10']['hgvs_genomic_description']
+
+

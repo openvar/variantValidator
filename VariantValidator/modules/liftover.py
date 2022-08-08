@@ -27,7 +27,8 @@ def mystr(hgvs_nucleotide):
 
 
 def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, validator,
-             specify_tx=False, liftover_level=False, g_to_g=False):
+             specify_tx=False, liftover_level=False, g_to_g=False, gap_map=False, vfo=False,
+             specified_tx_variant=False):
     """
     Step 1, attempt to liftover using a common RefSeq transcript
     Step 2, attempt to liftover using PyLiftover.
@@ -224,6 +225,25 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                     # In this instance, do not mark added data as True
                     hgvs_tx = validator.vm.g_to_t(hgvs_genomic, val[0])
                     hgvs_alt_genomic = validator.vm.t_to_g(hgvs_tx, key)
+
+                    # Gap compensation edit for the VariantFormatter pathway
+                    if gap_map is not False:  # and key in hgvs_genomic.ac:
+                        # Set genome assembly for gap mapping
+                        get_assembly = seq_data.supported_for_mapping(key, "GRCh37")
+                        if get_assembly is True:
+                            map_to_assembly = "GRCh37"
+                        get_assembly = seq_data.supported_for_mapping(key, "GRCh38")
+                        if get_assembly is True:
+                            map_to_assembly = "GRCh38"
+                        try:
+                            am_i_gapped = gap_map(specified_tx_variant, hgvs_alt_genomic, map_to_assembly, vfo)
+                        except AttributeError:
+                            if specified_tx_variant is None:
+                                am_i_gapped = gap_map(hgvs_tx, hgvs_alt_genomic, map_to_assembly, vfo)
+
+                        hgvs_alt_genomic = am_i_gapped["hgvs_genomic"]
+
+
                     alt_vcf = hgvs_utils.report_hgvs2vcf(hgvs_alt_genomic, build_to, reverse_normalizer, validator.sf)
                     alt_vcf_b = hgvs_utils.report_hgvs2vcf(hgvs_alt_genomic, build_from, reverse_normalizer,
                                                            validator.sf)
