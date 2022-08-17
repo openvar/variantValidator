@@ -109,10 +109,13 @@ class GapMapper(object):
             # Store the current hgvs:c. description
             try:
                 saved_hgvs_coding = self.validator.hp.parse_hgvs_variant(var)
+                original_var = self.validator.hp.parse_hgvs_variant(var)
             except TypeError:
                 saved_hgvs_coding = var
+                original_var = var
             except vvhgvs.exceptions.HGVSInvalidVariantError:
                 saved_hgvs_coding = var
+                original_var = var
 
             # Remove un-selected transcripts
             if self.validator.select_transcripts != 'all' and "select" not in self.validator.select_transcripts and\
@@ -417,6 +420,20 @@ class GapMapper(object):
                                 self.tx_hgvs_not_delins = hgvs_stash_t
                             hgvs_not_delins = stash_hgvs_not_delins
                             self.hgvs_genomic_5pr = stash_hgvs_not_delins
+                        else:
+                            try:
+                                var_a = self.variant.hn.normalize(hgvs_stash_t)
+                                var_b = self.variant.hn.normalize(original_var)
+                            except vvhgvs.exceptions.HGVSError:
+                                pass
+                            else:
+                                if var_a.posedit.edit.type != var_b.posedit.edit.type:
+                                    # self.disparity_deletion_in = ['transcript', 'Requires Analysis']
+                                    gapped_alignment_warning = str(hgvs_stash_t) + ' does not represent a true ' \
+                                                                                   'variant because it is an artefact' \
+                                                                                   ' of aligning ' + hgvs_stash_t.ac + \
+                                                                                   'with genome build ' + \
+                                                               self.variant.primary_assembly
 
                         # Restore stash_hgvs_not_delins
                         stash_hgvs_not_delins = restore_stash_hgvs_not_delins

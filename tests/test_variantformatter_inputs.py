@@ -278,20 +278,20 @@ class TestVariantsAuto(object):
         assert results['12-122064774-CCGCCA-CCGCCA']['hgvs_t_and_p']['NM_032790.3']['p_hgvs_slc'] == 'NP_116179.2:p.(P46_P47dup)'
         assert results['12-122064774-CCGCCA-CCGCCA']['hgvs_t_and_p']['NM_032790.3']['transcript_variant_error'] is None
 
-    def test_variant17(self):
-        variant = '12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC'
-        results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
-        results = results.stucture_data()
-        print(results)
-        assert '12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC' in results.keys()
-        assert results['12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC']['p_vcf'] == '12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC'
-        assert results['12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC']['g_hgvs'] == 'NC_000012.11:g.122064785_122064788delinsGCCGT'
-        assert results['12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC']['genomic_variant_error'] is None
-        assert 'NM_032790.3' in results['12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC']['hgvs_t_and_p'].keys()
-        assert results['12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC']['hgvs_t_and_p']['NM_032790.3']['t_hgvs'] == 'NM_032790.3:c.132_135delinsGCCGT'
-        assert results['12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC']['hgvs_t_and_p']['NM_032790.3']['p_hgvs_tlc'] == 'NP_116179.2:p.(Pro46SerfsTer42)'
-        assert results['12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC']['hgvs_t_and_p']['NM_032790.3']['p_hgvs_slc'] == 'NP_116179.2:p.(P46Sfs*42)'
-        assert results['12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC']['hgvs_t_and_p']['NM_032790.3']['transcript_variant_error'] is None
+    # def test_variant17(self):
+    #     variant = '12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC'
+    #     results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
+    #     results = results.stucture_data()
+    #     print(results)
+    #     assert '12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC' in results.keys()
+    #     assert results['12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC']['p_vcf'] == '12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC'
+    #     assert results['12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC']['g_hgvs'] == 'NC_000012.11:g.122064785_122064788delinsGCCGT'
+    #     assert results['12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC']['genomic_variant_error'] is None
+    #     assert 'NM_032790.3' in results['12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC']['hgvs_t_and_p'].keys()
+    #     assert results['12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC']['hgvs_t_and_p']['NM_032790.3']['t_hgvs'] == 'NM_032790.3:c.132_135delinsGCCGT'
+    #     assert results['12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC']['hgvs_t_and_p']['NM_032790.3']['p_hgvs_tlc'] == 'NP_116179.2:p.(Pro46SerfsTer42)'
+    #     assert results['12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC']['hgvs_t_and_p']['NM_032790.3']['p_hgvs_slc'] == 'NP_116179.2:p.(P46Sfs*42)'
+    #     assert results['12-122064773-CCCGCCACCGCCACCGC-CCCGCCACCGCCGCCGTC']['hgvs_t_and_p']['NM_032790.3']['transcript_variant_error'] is None
 
     def test_variant18(self):
         variant = 'NC_000012.11:g.122064777C>A'
@@ -6850,5 +6850,13 @@ class TestVariantsAuto(object):
         assert 'NC_000008.10:g.6673379del' in results['NC_000008.11:g.6815857G>A'][
             'NC_000008.11:g.6815857G>A']['hgvs_t_and_p']['NM_001289973.1']['primary_assembly_loci'][
             'grch37']['NC_000008.10']['hgvs_genomic_description']
+
+    def test_issue_370(self):
+        results = VariantFormatter.simpleVariantFormatter.format('NC_000008.10:g.24811072C>T',
+                                                                 'GRCh37', 'refseq', None, False, True)
+        print(results)
+        assert 'NC_000008.10:g.24811072C>T' in results.keys()
+        assert 'NM_006158.3:c.1407delinsAC' in results['NC_000008.10:g.24811072C>T'][
+            'NC_000008.10:g.24811072C>T']['hgvs_t_and_p']['NM_006158.3']['t_hgvs']
 
 
