@@ -429,11 +429,17 @@ class GapMapper(object):
                             else:
                                 if var_a.posedit.edit.type != var_b.posedit.edit.type:
                                     # self.disparity_deletion_in = ['transcript', 'Requires Analysis']
-                                    gapped_alignment_warning = str(hgvs_stash_t) + ' does not represent a true ' \
+                                    gapped_alignment_warning = str(self.hgvs_genomic_5pr) + ' does not represent ' \
+                                                                                            'a true ' \
                                                                                    'variant because it is an artefact' \
                                                                                    ' of aligning ' + hgvs_stash_t.ac + \
-                                                                                   'with genome build ' + \
+                                                                                   ' with genome build ' + \
                                                                self.variant.primary_assembly
+                                    self.auto_info = self.auto_info + 'Genome position ' + str(
+                                        stored_hgvs_not_delins.ac) + ':g.' + str(
+                                        stored_hgvs_not_delins.posedit.pos.end.base + 1) + ' aligns within a gap ' \
+                                                                                           'in transcript ' + str(
+                                        self.tx_hgvs_not_delins.ac)
 
                         # Restore stash_hgvs_not_delins
                         stash_hgvs_not_delins = restore_stash_hgvs_not_delins
