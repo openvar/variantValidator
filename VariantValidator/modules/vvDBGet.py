@@ -186,7 +186,7 @@ class Mixin(vvDBInit.Mixin):
                                      'db=core;p=%s' % str(
                                         dict_out['hgvs_predicted_protein_consequence']['slr']).split(':')[0]
         
-        # When selectec_assembly is GRCh38
+        # When selected_assembly is GRCh38
         if 'ENST' in dict_out['hgvs_transcript_variant'] and str(dict_out['selected_assembly']).lower() == 'grch38':
             report_urls['transcript'] = 'https://www.ensembl.org/Homo_sapiens/Transcript/Summary?' \
                                         'db=core;t=%s' % dict_out['hgvs_transcript_variant'].split(':')[0]

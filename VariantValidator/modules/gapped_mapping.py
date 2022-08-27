@@ -2275,6 +2275,8 @@ class GapMapper(object):
         return hgvs_refreshed_variant
 
     def c1_pos_edit(self, hgvs_genomic):
+        alt_aln_method = self.validator.alt_aln_method
+
         try:
             c1 = self.validator.vm.n_to_c(self.tx_hgvs_not_delins)
         except:
@@ -2286,12 +2288,12 @@ class GapMapper(object):
         c2.posedit.edit.ref = ''
         c2.posedit.edit.alt = ''
         if self.orientation != -1:
-            g1 = self.validator.vm.t_to_g(c1, hgvs_genomic.ac)
-            g2 = self.validator.vm.t_to_g(c2, hgvs_genomic.ac)
+            g1 = self.validator.vm.t_to_g(c1, hgvs_genomic.ac, alt_aln_method) 
+            g2 = self.validator.vm.t_to_g(c2, hgvs_genomic.ac, alt_aln_method)
             g2.posedit.edit.alt = g2.posedit.edit.ref
         else:
-            g1 = self.validator.vm.t_to_g(c2, hgvs_genomic.ac)
-            g2 = self.validator.vm.t_to_g(c1, hgvs_genomic.ac)
+            g1 = self.validator.vm.t_to_g(c2, hgvs_genomic.ac, alt_aln_method)
+            g2 = self.validator.vm.t_to_g(c1, hgvs_genomic.ac, alt_aln_method)
             g1.posedit.edit.alt = g1.posedit.edit.ref
         reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
         alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
@@ -2299,7 +2301,7 @@ class GapMapper(object):
         g3.posedit.pos.end.base = g2.posedit.pos.end.base
         g3.posedit.edit.ref = reference
         g3.posedit.edit.alt = alternate
-        c3 = self.validator.vm.g_to_t(g3, c1.ac)
+        c3 = self.validator.vm.g_to_t(g3, c1.ac, alt_aln_method)
         hgvs_refreshed_variant = c3
 
         return hgvs_refreshed_variant
