@@ -331,35 +331,17 @@ class Mixin(vvMixinInit.Mixin):
                     "are available.")
 
             def search_through_options(hgvs_genomic, seqtype, chr_num_val, alt_aln_method=None, final=False):
+
                 err = ''
                 for option in mapping_options:
                     if option[2].startswith('blat'):
                         continue
                     if option[1].startswith(seqtype):
                         chr_num = seq_data.supported_for_mapping(str(option[1]), primary_assembly)
-                        # if final:
-                        #     try:
-                        #         hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]), alt_aln_method)
-                        #         break
-                        #     except Exception as e:
-                        #         err += str(e) + "/" + hgvs_c.ac + "/" + option[1] + '~'
-                        #         continue
-                        # if chr_num_val and chr_num != 'false':
-                        #     try:
-                        #         hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]), alt_aln_method)
-                        #         break
-                        #     except Exception as e:
-                        #         err += str(e) + "/" + hgvs_c.ac + "/" + option[1] + '~'
-                        #         continue
-                        # elif chr_num_val is False and chr_num == 'false':
-                        #     try:
-                        #         hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]), alt_aln_method)
-                        #         break
-                        #     except Exception as e:
-                        #         err += str(e) + "/" + hgvs_c.ac + "/" + option[1] + '~'
-                        #         continue
+
                         if final or (chr_num_val and chr_num is False) or (chr_num_val is False and chr_num is False):
                             try:
+                                
                                 hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]), alt_aln_method)
                                 break
                             except Exception as e:

@@ -22,7 +22,6 @@ from .liftover import liftover
 from . import complex_descriptions
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 class Mixin(vvMixinConverters.Mixin):
     """

@@ -11,7 +11,6 @@ from . import gapped_mapping
 from operator import itemgetter
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 # Exceptions
 class MappersError(Exception):

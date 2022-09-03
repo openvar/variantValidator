@@ -3,7 +3,6 @@ from .utils import handleCursor
 from . import vvDBInit
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 class Mixin(vvDBInit.Mixin):
     """
