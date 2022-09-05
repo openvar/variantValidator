@@ -4,7 +4,7 @@ import VariantFormatter.simpleVariantFormatter
 import VariantValidator
 vfo = VariantValidator.Validator()
 
-class TestVariantsAuto(object):
+class TestVFvariantsAuto(object):
     @classmethod
     def setup_class(cls):
         VariantFormatter.__version__
@@ -6784,23 +6784,6 @@ class TestVariantsAuto(object):
         assert results['NC_000017.10:g.48275363CC>A']['g_hgvs'] == 'NC_000017.10:g.48275363_48275364delinsA'
         assert results['NC_000017.10:g.48275363CC>A']['genomic_variant_error'] == "NC_000017.10:g.48275363CC>A automapped to" \
                                                                                   " NC_000017.10:g.48275363_48275364delCCinsA"
-
-    def test_issue_322b(self):
-        variant = 'NC_000017.10:g.48275363CG>A'
-        results = vf.FormatVariant(variant, 'GRCh37', vfo,  'refseq', None)
-        results = results.stucture_data()
-        print(results)
-        assert 'NC_000017.10:g.48275363CG>A' in results.keys()
-        assert results['NC_000017.10:g.48275363CG>A']['g_hgvs'] is None
-        assert results['NC_000017.10:g.48275363CG>A']['genomic_variant_error'] == "NC_000017.10:g.48275363CG>A " \
-                                                                                  "automapped to NC_000017.10:g.4827536" \
-                                                                                  "3_48275364delCGinsA, Removing " \
-                                                                                  "redundant reference bases from " \
-                                                                                  "variant description, NC_000017.10:g." \
-                                                                                  "48275363_48275364delCGinsA: Variant " \
-                                                                                  "reference (CG) does not agree with " \
-                                                                                  "reference sequence (CC)"
-
     def test_issue_360a(self):
         results = VariantFormatter.simpleVariantFormatter.format('NC_012920.1:m.1011C>T',
                                                                  'GRCh38', 'refseq', None, False, True)
