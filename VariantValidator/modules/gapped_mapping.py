@@ -516,7 +516,10 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                         except vvhgvs.exceptions.HGVSError as e:
                             if 'bounds' in str(e):
                                 stash_hgvs_not_delins = copy.copy(stored_hgvs_not_delins)
-                                hgvs_stash_t = self.validator.vm.g_to_t(stash_hgvs_not_delins, saved_hgvs_coding.ac)
+                                try:
+                                    hgvs_stash_t = self.validator.vm.g_to_t(stash_hgvs_not_delins, saved_hgvs_coding.ac)
+                                except vvhgvs.exceptions.HGVSError:
+                                    hgvs_stash_t = saved_hgvs_coding
 
                         if len(stash_hgvs_not_delins.posedit.edit.ref) > len(hgvs_stash_t.posedit.edit.ref):
                             try:
@@ -653,17 +656,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                         gapped_alignment_warning = gap_warnings["gapped_alignment_warning"]
                         self.auto_info = self.auto_info + gap_warnings["auto_info"]
 
-
-                    # gapped_alignment_warning = str(self.hgvs_genomic_5pr) + ' does not represent a true variant ' \
-                    #     'because it is an artefact of aligning the transcripts listed below with genome build ' + \
-                    #     self.variant.primary_assembly
                     hgvs_refreshed_variant = self.tx_hgvs_not_delins
-                    # Warn
-                    # self.auto_info += str(hgvs_refreshed_variant.ac) + ':c.' + str(hgvs_refreshed_variant.posedit.pos
-                    #                                                                ) + \
-                    #     ' contains ' + str(self.disparity_deletion_in[1]) + ' transcript base(s) that fail to align ' \
-                    #     'to chromosome ' + str(self.variant.hgvs_genomic.ac) + '\n'
-                    # self.gapped_transcripts = self.gapped_transcripts + str(hgvs_refreshed_variant.ac) + ' '
 
                 else:
                     # Have we already had a hard push?
@@ -750,13 +743,8 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                         and gap_warnings["auto_info"] is not None:
                                     gapped_alignment_warning = gap_warnings["gapped_alignment_warning"]
                                     self.auto_info = self.auto_info + gap_warnings["auto_info"]
-
-                                # gapped_alignment_warning = str(self.hgvs_genomic_5pr) + ' may be an artefact of ' \
-                                #                                                         'aligning ' \
-                                #                                                         'the ' \
-                                #     'transcripts listed below with genome build ' + self.variant.primary_assembly
                                 hgvs_refreshed_variant = tx_hard_right
-                                # self.gapped_transcripts = self.gapped_transcripts + str(tx_hard_right.ac) + ' '
+
                             elif len(stash_hgvs_not_delins_left.posedit.edit.ref) < \
                                     len(tx_hard_left.posedit.edit.ref) or \
                                     len(stash_hgvs_not_delins_left.posedit.edit.ref) > \
@@ -770,20 +758,16 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                         and gap_warnings["auto_info"] is not None:
                                     gapped_alignment_warning = gap_warnings["gapped_alignment_warning"]
                                     self.auto_info = self.auto_info + gap_warnings["auto_info"]
-
-                                # gapped_alignment_warning = str(self.hgvs_genomic_5pr) + ' may be an artefact of ' \
-                                #                                                         'aligning the transcripts ' \
-                                #                                                         'listed below with genome ' \
-                                #                                                         'build ' \
-                                #                            + self.variant.primary_assembly
                                 hgvs_refreshed_variant = tx_hard_left
-                                #self.gapped_transcripts = self.gapped_transcripts + str(tx_hard_left.ac) + ' '
+
                             else:
                                 # Keep the same by re-setting rel_var
                                 hgvs_refreshed_variant = saved_hgvs_coding
+
                         except TypeError:
                             # e.g. chr1:156561557G>GGGGTC (investigate at a later date)
                             hgvs_refreshed_variant = saved_hgvs_coding
+
                         except vvhgvs.exceptions.HGVSUnsupportedOperationError:
                             # e.g. NG_005895.1:g.3684_44407del
                             hgvs_refreshed_variant = saved_hgvs_coding
@@ -1398,11 +1382,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     self.disparity_deletion_in = [disparity_info[0], disparity_info[1]]
                     hgvs_refreshed_variant = hgvs_coding
                     hgvs_genomic = possibility
-                    # self.variant.warnings.append("Caution should be used when reporting the displayed variant "
-                    #                              "descriptions: If you are unsure, please contact admin")
-                    # self.variant.warnings.append('The displayed variants may be artefacts of aligning '
-                    #                              '' + hgvs_coding.ac + ' with genomic reference '
-                    #                                                    '' + disparity_info[3].ac)
                     suppress_c_normalization = 'true'
                     hard_set_outputs = True
 
@@ -1485,24 +1464,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             # Break if gap has been detected
             if self.disparity_deletion_in[0] != 'false':
                 break
-
-        # Warn user about gapping
-        # if self.auto_info != '':
-        #     info_lines = self.auto_info.split('\n')
-        #     info_keys = {}
-        #     for information in info_lines:
-        #         info_keys[information] = ''
-        #     info_out = []
-        #     info_out.append('The displayed variants may be artefacts of aligning ' + hgvs_coding.ac + ' with genome '
-        #                     'build ' + self.variant.primary_assembly)
-        #     for ky in list(info_keys.keys()):
-        #         info_out.append(ky)
-        #     self.auto_info = '\n'.join(info_out)
-        #     self.auto_info = self.auto_info + '\nCaution should be used when reporting the displayed variant ' \
-        #                                       'descriptions: If you are unsure, please contact admin'
-        #     self.auto_info = self.auto_info.replace('\n', ': ')
-        #     self.variant.warnings.append(self.auto_info)
-        #     logger.info(self.auto_info)
 
         # Normailse hgvs_genomic
         try:
@@ -1659,11 +1620,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             # GAP IN THE CHROMOSOME
             elif self.disparity_deletion_in[0] == 'chromosome':
                 hgvs_refreshed_variant = self.tx_hgvs_not_delins
-                # Warn
-                # self.auto_info = self.auto_info + str(hgvs_refreshed_variant.ac) + ':c.' + str(
-                #     hgvs_refreshed_variant.posedit.pos) + ' contains ' + str(self.disparity_deletion_in[1]) + \
-                #     ' transcript base(s) that fail to align to chromosome ' + str(hgvs_genomic.ac) + '\n'
-                # self.gapped_transcripts = self.gapped_transcripts + str(hgvs_refreshed_variant.ac) + ' '
+
             else:
                 # Keep the same by re-setting rel_var
                 hgvs_refreshed_variant = saved_hgvs_coding
@@ -1740,7 +1697,8 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 stash_hgvs_not_delins = self.variant.no_norm_evm.n_to_c(stash_hgvs_not_delins)
             except Exception as e:
                 logger.debug("Except passed, %s", e)
-                # Store a tx copy for later use
+
+            # Store a tx copy for later use
             test_stash_tx_right = copy.deepcopy(stash_hgvs_not_delins)
             stash_genomic = self.validator.myvm_t_to_g(test_stash_tx_right, hgvs_alt_genomic.ac,
                                                        self.variant.no_norm_evm, self.variant.hn)
@@ -2464,13 +2422,20 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                  with_base_subtract=False):
         # move tx start base to previous available non-offset base
         rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
-        if with_base_subtract:
+        if with_base_subtract and rn_tx_hgvs_not_delins.posedit.pos.start.base > 1:
             rn_tx_hgvs_not_delins.posedit.pos.start.base = rn_tx_hgvs_not_delins.posedit.pos.start.base - 1
         rn_tx_hgvs_not_delins.posedit.edit.ref = ''
         if 'NM_' in str(rn_tx_hgvs_not_delins):
-            test_tx_var = self.variant.no_norm_evm.n_to_c(rn_tx_hgvs_not_delins)
+            try:
+                test_tx_var = self.variant.no_norm_evm.n_to_c(rn_tx_hgvs_not_delins)
+            except vvhgvs.exceptions.HGVSInvalidVariantError as e:
+                if "Expected n. variant;" in str(e):
+                    rn_tx_hgvs_not_delins = self.validator.vm.c_to_n(rn_tx_hgvs_not_delins)
+                    test_tx_var = self.variant.no_norm_evm.n_to_c(rn_tx_hgvs_not_delins)
+
         else:
             test_tx_var = rn_tx_hgvs_not_delins
+
         # re-make genomic and tx
         hgvs_not_delins = self.validator.myevm_t_to_g(test_tx_var, self.variant.no_norm_evm,
                                                       self.variant.primary_assembly, self.variant.hn)
@@ -2838,6 +2803,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                           0:-1]
                 hgvs_refreshed_variant.posedit.pos.end.base = hgvs_refreshed_variant.posedit.pos.end.base - 1
                 hgvs_refreshed_variant = self.variant.hn.normalize(hgvs_refreshed_variant)
+
             elif hgvs_refreshed_variant.posedit.edit.type == 'delins' and \
                     hgvs_refreshed_variant.posedit.edit.ref[0] == \
                     hgvs_refreshed_variant.posedit.edit.alt[0]:
@@ -2847,12 +2813,19 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                           1:]
                 hgvs_refreshed_variant.posedit.pos.start.base = hgvs_refreshed_variant.posedit.pos.start.base + 1
                 hgvs_refreshed_variant = self.variant.hn.normalize(hgvs_refreshed_variant)
+
         except Exception as e:
             error = str(e)
             # Ensure the final variant is not intronic nor does it cross exon boundaries
             if 'Normalization of intronic variants is not supported' in error or \
-                    'Unsupported normalization of variants spanning the exon-intron boundary' in error:
+                    'Unsupported normalization of variants spanning the exon-intron boundary' in error or \
+                    "Unsupported normalization of variants spanning the UTR-exon boundary" in error:
                 hgvs_refreshed_variant = saved_hgvs_coding
+
+                if hgvs_refreshed_variant.posedit.edit.type == 'delins' and \
+                        hgvs_refreshed_variant.posedit.edit.alt == "":
+                    hgvs_refreshed_variant = str(hgvs_refreshed_variant).replace("ins", "")
+                    hgvs_refreshed_variant = self.validator.hp.parse(hgvs_refreshed_variant)
 
         return hgvs_refreshed_variant
 
