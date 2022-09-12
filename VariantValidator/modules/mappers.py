@@ -172,9 +172,23 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
         data, nw_rel_var = gap_mapper.gapped_g_to_c(rel_var, select_transcripts_dict)
         rel_var = nw_rel_var
 
+        auto_info_list = []
+        if data["gapped_alignment_warning"] != "":
+            data["auto_info"] = data["auto_info"].replace("NM_", ";NM_")
+            data["auto_info"] = data["auto_info"].replace("NR_", ";NR_")
+            auto_info_list = data["auto_info"].split(";")
+
         # Set the values and append to batch_list
         for c_description in rel_var:
-            query = Variant(variant.original, quibble=str(c_description), warnings=variant.warnings,
+            # Add gap warnings
+            gap_warnings = []
+            if data["gapped_alignment_warning"] != "":
+                for aut_inf in auto_info_list:
+                    if c_description.ac in aut_inf:
+                        gap_warnings.append(data["gapped_alignment_warning"])
+                        gap_warnings.append(aut_inf)
+
+            query = Variant(variant.original, quibble=str(c_description), warnings=variant.warnings + gap_warnings,
                             primary_assembly=variant.primary_assembly, order=variant.order,
                             selected_assembly=variant.selected_assembly)
             validator.batch_list.append(query)

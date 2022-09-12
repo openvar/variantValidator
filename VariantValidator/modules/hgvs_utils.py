@@ -784,18 +784,18 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                     hgvs_genomic_n_assembled = copy.deepcopy(hgvs_genomic_n_identity)
                     if v3 is not False:
                         hgvs_genomic_n_assembled.posedit.pos.end.base = v3.posedit.pos.end.base
-                        ass_ref = (v1.posedit.edit.ref +
-                                   normalized_hgvs_genomic.posedit.edit.ref +
+                        ass_ref = (v1.posedit.edit.ref + \
+                                   normalized_hgvs_genomic.posedit.edit.ref + \
                                    v3.posedit.edit.ref)
-                        ass_alt = (v1.posedit.edit.alt +
-                                   normalized_hgvs_genomic.posedit.edit.alt +
+                        ass_alt = (v1.posedit.edit.alt + \
+                                   normalized_hgvs_genomic.posedit.edit.alt + \
                                    v3.posedit.edit.alt)
                     else:
                         hgvs_genomic_n_assembled.posedit.pos.end.base = \
                             normalized_hgvs_genomic.posedit.pos.end.base
-                        ass_ref = (v1.posedit.edit.ref +
+                        ass_ref = (v1.posedit.edit.ref + \
                                    normalized_hgvs_genomic.posedit.edit.ref)
-                        ass_alt = (v1.posedit.edit.alt +
+                        ass_alt = (v1.posedit.edit.alt + \
                                    normalized_hgvs_genomic.posedit.edit.alt)
                     hgvs_genomic_n_assembled.posedit.edit.ref = ass_ref
                     hgvs_genomic_n_assembled.posedit.edit.alt = ass_alt

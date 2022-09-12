@@ -18,15 +18,135 @@ class GapMapper(object):
         """
         self.variant = variant
         self.validator = validator
-
         self.gapped_transcripts = ''
         self.auto_info = ''
         self.orientation = None
         self.hgvs_genomic_possibilities = []
         self.disparity_deletion_in = []
-
         self.hgvs_genomic_5pr = None
         self.tx_hgvs_not_delins = None
+
+    def make_gap_warnings(self, tx_ac, gen_ac, primary_assembly):
+        # Look at Cigar strings and calculate the gap size and location
+        tx_exons = self.validator.hdp.get_tx_exons(tx_ac, gen_ac, 'splign')
+
+        # Locate all the gaps
+        gap_in_alignment = []
+        for exon in tx_exons:
+            data_required = [exon[0],
+                             exon[1],
+                             exon[3],
+                             int(exon[5]) + 1,
+                             int(exon[6]),
+                             int(exon[7]),
+                             int(exon[8]) + 1,
+                             exon[9]]
+
+            if "I" in data_required[-1] or "D" in data_required[-1]:
+                gap_in_alignment.append(data_required)
+
+        # Create warnings
+        gap_information_dict = {"gapped_alignment_warning": "",
+                                "auto_info": ""
+                                }
+        # Identify gaps
+        if gap_in_alignment is not []:
+            found_gaps = []
+            for gap_loc in gap_in_alignment:
+                cigar = gap_loc[-1]
+                split_my_cigar = cigar.replace("=", "=:")
+                split_my_cigar = split_my_cigar.replace("I", "I:")
+                split_my_cigar = split_my_cigar.replace("D", "D:")
+                split_my_cigar = split_my_cigar.replace("X", "X:")
+                split_my_cigar = split_my_cigar.split(":")
+
+                # Get annotation
+                tx_exon_start = int(gap_loc[3])
+                tx_annotation = self.validator.hdp.get_tx_identity_info(gap_loc[0])
+                try:
+                    cds_start = int(tx_annotation[3]) + 1
+                    cds_end = int(tx_annotation[4])
+                    c_tx_exon_start = tx_exon_start - cds_start
+                except TypeError:
+                    c_tx_exon_start = tx_exon_start
+
+                # Get all gap locations in the transcript split into ins and del
+                for gap in split_my_cigar:
+                    gap = gap.replace("X", "=")
+
+                    if "=" in gap and "I" not in gap and "D" not in gap:
+                        if "NM_" in tx_ac:
+                            c_tx_exon_start = c_tx_exon_start + int(gap.split("=")[0])
+                        else:
+                            c_tx_exon_start = c_tx_exon_start + int(gap.split("=")[0])
+
+                    elif "D" in gap:
+                        if "NM_" in tx_ac:
+                            pos_n_len = ["c." + str(c_tx_exon_start) + "_"
+                                         + str(c_tx_exon_start + int(gap.split("D")[0])+1),
+                                         str(gap.split("D")[0]) + " extra bases"
+                                         ]
+                        else:
+                            pos_n_len = ["n." + str(c_tx_exon_start) + "_"
+                                         + str(c_tx_exon_start + int(gap.split("D")[0])+1),
+                                         str(gap.split("D")[0]) + " extra bases"
+                                         ]
+
+                        found_gaps.append(pos_n_len[1] + " between " + pos_n_len[0])
+                        c_tx_exon_start = c_tx_exon_start + int(gap.split("D")[0])
+
+                    elif "I" in gap:
+                        if "NM_" in tx_ac:
+                            pos_n_len = ["c." + str(c_tx_exon_start) + "_"
+                                         + str(c_tx_exon_start + 1),
+                                         str(gap.split("I")[0]) + " fewer bases"
+                                        ]
+
+                        elif "NR_" in tx_ac:
+                            pos_n_len = ["n." + str(c_tx_exon_start) + "_"
+                                         + str(c_tx_exon_start + 1),
+                                         str(gap.split("I")[0]) + " fewer bases"
+                                        ]
+
+                        found_gaps.append(pos_n_len[1] + " between " + pos_n_len[0])
+                        c_tx_exon_start = c_tx_exon_start + int(gap.split("I")[0])
+
+            # Correct for UTR variants
+            if "NM_" in tx_ac:
+                cp_found_gaps = copy.copy(found_gaps)
+                found_gaps = []
+                for each_found in cp_found_gaps:
+                    crds = each_found.split("c.")[-1]
+                    start = int(crds.split("_")[0])
+
+                    # 3 prime UTR
+                    if start+cds_start >= cds_end:
+                        utr_3 = start - cds_end
+                        utr_3_pos = "*%s_*%s" % (str(utr_3 + cds_start), str(utr_3+1+cds_start))
+                        each_found = each_found.replace(crds, utr_3_pos)
+                        found_gaps.append(each_found)
+
+                    # 5 prime UTR
+                    elif start+cds_start <= cds_start:
+                        each_found = "5' UTR (please contact admin and propvide the submitted variant description)"
+                        found_gaps.append(each_found)
+
+                    # CDS gap
+                    else:
+                        found_gaps.append(each_found)
+
+            # Create the warnings
+            gap_string = ", and ".join(found_gaps)
+            gapped_alignment_warning = """Submitted description does not represent a true variant because 
+it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, primary_assembly)
+
+            auto_info = """%s contains %s than %s""" % (tx_ac, gap_string, gen_ac)
+
+            gap_information_dict["gapped_alignment_warning"] = gapped_alignment_warning. \
+                replace("\n", "")
+            gap_information_dict["auto_info"] = auto_info.replace("\n", "")
+
+        return gap_information_dict
 
     def gapped_g_to_c(self, rel_var, select_transcripts_dict):
         """
@@ -396,7 +516,10 @@ class GapMapper(object):
                         except vvhgvs.exceptions.HGVSError as e:
                             if 'bounds' in str(e):
                                 stash_hgvs_not_delins = copy.copy(stored_hgvs_not_delins)
-                                hgvs_stash_t = self.validator.vm.g_to_t(stash_hgvs_not_delins, saved_hgvs_coding.ac)
+                                try:
+                                    hgvs_stash_t = self.validator.vm.g_to_t(stash_hgvs_not_delins, saved_hgvs_coding.ac)
+                                except vvhgvs.exceptions.HGVSError:
+                                    hgvs_stash_t = saved_hgvs_coding
 
                         if len(stash_hgvs_not_delins.posedit.edit.ref) > len(hgvs_stash_t.posedit.edit.ref):
                             try:
@@ -428,18 +551,14 @@ class GapMapper(object):
                                 pass
                             else:
                                 if var_a.posedit.edit.type != var_b.posedit.edit.type:
-                                    # self.disparity_deletion_in = ['transcript', 'Requires Analysis']
-                                    gapped_alignment_warning = str(self.hgvs_genomic_5pr) + ' does not represent ' \
-                                                                                            'a true ' \
-                                                                                   'variant because it is an artefact' \
-                                                                                   ' of aligning ' + hgvs_stash_t.ac + \
-                                                                                   ' with genome build ' + \
-                                                               self.variant.primary_assembly
-                                    self.auto_info = self.auto_info + 'Genome position ' + str(
-                                        stored_hgvs_not_delins.ac) + ':g.' + str(
-                                        stored_hgvs_not_delins.posedit.pos.end.base + 1) + ' aligns within a gap ' \
-                                                                                           'in transcript ' + str(
-                                        self.tx_hgvs_not_delins.ac)
+                                    gap_warnings = self.make_gap_warnings(self.tx_hgvs_not_delins.ac,
+                                                                          self.hgvs_genomic_5pr.ac,
+                                                                          self.variant.primary_assembly)
+
+                                    if gap_warnings["gapped_alignment_warning"] is not None \
+                                            and gap_warnings["auto_info"] is not None:
+                                            gapped_alignment_warning = gap_warnings["gapped_alignment_warning"]
+                                            self.auto_info = self.auto_info + gap_warnings["auto_info"]
 
                         # Restore stash_hgvs_not_delins
                         stash_hgvs_not_delins = restore_stash_hgvs_not_delins
@@ -487,12 +606,12 @@ class GapMapper(object):
                             gen_len_difference = len(hgvs_not_delins.posedit.edit.ref) - \
                                                  len(hgvs_not_delins.posedit.edit.alt)
                             tx_len_difference = len(self.tx_hgvs_not_delins.posedit.edit.ref) - \
-                                                 len(self.tx_hgvs_not_delins.posedit.edit.alt)
+                                                len(self.tx_hgvs_not_delins.posedit.edit.alt)
                         else:
                             gen_len_difference = len(hgvs_not_delins.posedit.edit.alt) - \
                                                  len(hgvs_not_delins.posedit.edit.ref)
                             tx_len_difference = len(self.tx_hgvs_not_delins.posedit.edit.alt) - \
-                                                 len(self.tx_hgvs_not_delins.posedit.edit.ref)
+                                                len(self.tx_hgvs_not_delins.posedit.edit.ref)
 
                         # The logic here. Since there is a gap in the transcript,
                         # the actual length should be == gen_len_difference - 1 not == gen_len_difference
@@ -511,9 +630,14 @@ class GapMapper(object):
                     except AttributeError:
                         pass
 
-                    gapped_alignment_warning = str(self.hgvs_genomic_5pr) + ' does not represent a true variant ' \
-                        'because it is an artefact of aligning the transcripts listed below with genome build ' + \
-                        self.variant.primary_assembly
+                    gap_warnings = self.make_gap_warnings(self.tx_hgvs_not_delins.ac,
+                                                          self.hgvs_genomic_5pr.ac,
+                                                          self.variant.primary_assembly)
+
+                    if gap_warnings["gapped_alignment_warning"] is not None \
+                            and gap_warnings["auto_info"] is not None:
+                        gapped_alignment_warning = gap_warnings["gapped_alignment_warning"]
+                        self.auto_info = self.auto_info + gap_warnings["auto_info"]
 
                     # ANY VARIANT WHOLLY WITHIN THE GAP
                     hgvs_refreshed_variant = self.transcript_disparity(reverse_normalized_hgvs_genomic,
@@ -523,16 +647,16 @@ class GapMapper(object):
                 # GAP IN THE CHROMOSOME
                 elif self.disparity_deletion_in[0] == 'chromosome':
                     # Set warning variables
-                    gapped_alignment_warning = str(self.hgvs_genomic_5pr) + ' does not represent a true variant ' \
-                        'because it is an artefact of aligning the transcripts listed below with genome build ' + \
-                        self.variant.primary_assembly
+                    gap_warnings = self.make_gap_warnings(self.tx_hgvs_not_delins.ac,
+                                                          self.hgvs_genomic_5pr.ac,
+                                                          self.variant.primary_assembly)
+
+                    if gap_warnings["gapped_alignment_warning"] is not None \
+                            and gap_warnings["auto_info"] is not None:
+                        gapped_alignment_warning = gap_warnings["gapped_alignment_warning"]
+                        self.auto_info = self.auto_info + gap_warnings["auto_info"]
+
                     hgvs_refreshed_variant = self.tx_hgvs_not_delins
-                    # Warn
-                    self.auto_info += str(hgvs_refreshed_variant.ac) + ':c.' + str(hgvs_refreshed_variant.posedit.pos
-                                                                                   ) + \
-                        ' contains ' + str(self.disparity_deletion_in[1]) + ' transcript base(s) that fail to align ' \
-                        'to chromosome ' + str(self.variant.hgvs_genomic.ac) + '\n'
-                    self.gapped_transcripts = self.gapped_transcripts + str(hgvs_refreshed_variant.ac) + ' '
 
                 else:
                     # Have we already had a hard push?
@@ -610,36 +734,47 @@ class GapMapper(object):
                                     len(stash_hgvs_not_delins_right.posedit.edit.ref) > \
                                     len(tx_hard_right.posedit.edit.ref):
                                 tx_hard_right = self.variant.hn.normalize(tx_hard_right)
-                                gapped_alignment_warning = str(self.hgvs_genomic_5pr) + ' may be an artefact of ' \
-                                                                                        'aligning ' \
-                                                                                        'the ' \
-                                    'transcripts listed below with genome build ' + self.variant.primary_assembly
+
+                                gap_warnings = self.make_gap_warnings(self.tx_hgvs_not_delins.ac,
+                                                                      self.hgvs_genomic_5pr.ac,
+                                                                      self.variant.primary_assembly)
+
+                                if gap_warnings["gapped_alignment_warning"] is not None \
+                                        and gap_warnings["auto_info"] is not None:
+                                    gapped_alignment_warning = gap_warnings["gapped_alignment_warning"]
+                                    self.auto_info = self.auto_info + gap_warnings["auto_info"]
                                 hgvs_refreshed_variant = tx_hard_right
-                                self.gapped_transcripts = self.gapped_transcripts + str(tx_hard_right.ac) + ' '
+
                             elif len(stash_hgvs_not_delins_left.posedit.edit.ref) < \
                                     len(tx_hard_left.posedit.edit.ref) or \
                                     len(stash_hgvs_not_delins_left.posedit.edit.ref) > \
                                     len(tx_hard_left.posedit.edit.ref):
                                 tx_hard_left = self.variant.hn.normalize(tx_hard_left)
-                                gapped_alignment_warning = str(self.hgvs_genomic_5pr) + ' may be an artefact of ' \
-                                                                                        'aligning the transcripts ' \
-                                                                                        'listed below with genome ' \
-                                                                                        'build ' \
-                                                           + self.variant.primary_assembly
+                                gap_warnings = self.make_gap_warnings(self.tx_hgvs_not_delins.ac,
+                                                                      self.hgvs_genomic_5pr.ac,
+                                                                      self.variant.primary_assembly)
+
+                                if gap_warnings["gapped_alignment_warning"] is not None \
+                                        and gap_warnings["auto_info"] is not None:
+                                    gapped_alignment_warning = gap_warnings["gapped_alignment_warning"]
+                                    self.auto_info = self.auto_info + gap_warnings["auto_info"]
                                 hgvs_refreshed_variant = tx_hard_left
-                                self.gapped_transcripts = self.gapped_transcripts + str(tx_hard_left.ac) + ' '
+
                             else:
                                 # Keep the same by re-setting rel_var
                                 hgvs_refreshed_variant = saved_hgvs_coding
+
                         except TypeError:
                             # e.g. chr1:156561557G>GGGGTC (investigate at a later date)
                             hgvs_refreshed_variant = saved_hgvs_coding
+
                         except vvhgvs.exceptions.HGVSUnsupportedOperationError:
                             # e.g. NG_005895.1:g.3684_44407del
                             hgvs_refreshed_variant = saved_hgvs_coding
 
                 # Edit the output
                 hgvs_refreshed_variant = self.edit_output(hgvs_refreshed_variant, saved_hgvs_coding)
+
                 # Send to empty nw_rel_var
                 nw_rel_var.append(hgvs_refreshed_variant)
 
@@ -657,6 +792,7 @@ class GapMapper(object):
             'disparity_deletion_in': self.disparity_deletion_in,
             'gapped_transcripts': self.gapped_transcripts
         }
+
         return data, nw_rel_var
 
     def g_to_t_compensation(self, ori, hgvs_coding, rec_var):
@@ -1246,11 +1382,6 @@ class GapMapper(object):
                     self.disparity_deletion_in = [disparity_info[0], disparity_info[1]]
                     hgvs_refreshed_variant = hgvs_coding
                     hgvs_genomic = possibility
-                    self.variant.warnings.append("Caution should be used when reporting the displayed variant "
-                                                 "descriptions: If you are unsure, please contact admin")
-                    self.variant.warnings.append('The displayed variants may be artefacts of aligning '
-                                                 '' + hgvs_coding.ac + ' with genomic reference '
-                                                                       '' + disparity_info[3].ac)
                     suppress_c_normalization = 'true'
                     hard_set_outputs = True
 
@@ -1274,9 +1405,9 @@ class GapMapper(object):
                         hgvs_refreshed_variant = chromosome_normalized_hgvs_coding
 
                     # Warn
-                    self.auto_info = self.auto_info + hgvs_refreshed_variant.ac + ':c.' + str(
-                        hgvs_refreshed_variant.posedit.pos) + ' contains ' + str(self.disparity_deletion_in[
-                            1]) + ' transcript base(s) that fail to align to chromosome ' + hgvs_genomic.ac + '\n'
+                    # self.auto_info = self.auto_info + hgvs_refreshed_variant.ac + ':c.' + str(
+                    #     hgvs_refreshed_variant.posedit.pos) + ' contains ' + str(self.disparity_deletion_in[
+                    #         1]) + ' transcript base(s) that fail to align to chromosome ' + hgvs_genomic.ac + '\n'
                 else:
                     # Keep the same by re-setting rel_var
                     hgvs_refreshed_variant = hgvs_coding
@@ -1333,24 +1464,6 @@ class GapMapper(object):
             # Break if gap has been detected
             if self.disparity_deletion_in[0] != 'false':
                 break
-
-        # Warn user about gapping
-        if self.auto_info != '':
-            info_lines = self.auto_info.split('\n')
-            info_keys = {}
-            for information in info_lines:
-                info_keys[information] = ''
-            info_out = []
-            info_out.append('The displayed variants may be artefacts of aligning ' + hgvs_coding.ac + ' with genome '
-                            'build ' + self.variant.primary_assembly)
-            for ky in list(info_keys.keys()):
-                info_out.append(ky)
-            self.auto_info = '\n'.join(info_out)
-            self.auto_info = self.auto_info + '\nCaution should be used when reporting the displayed variant ' \
-                                              'descriptions: If you are unsure, please contact admin'
-            self.auto_info = self.auto_info.replace('\n', ': ')
-            self.variant.warnings.append(self.auto_info)
-            logger.info(self.auto_info)
 
         # Normailse hgvs_genomic
         try:
@@ -1507,11 +1620,7 @@ class GapMapper(object):
             # GAP IN THE CHROMOSOME
             elif self.disparity_deletion_in[0] == 'chromosome':
                 hgvs_refreshed_variant = self.tx_hgvs_not_delins
-                # Warn
-                self.auto_info = self.auto_info + str(hgvs_refreshed_variant.ac) + ':c.' + str(
-                    hgvs_refreshed_variant.posedit.pos) + ' contains ' + str(self.disparity_deletion_in[1]) + \
-                    ' transcript base(s) that fail to align to chromosome ' + str(hgvs_genomic.ac) + '\n'
-                self.gapped_transcripts = self.gapped_transcripts + str(hgvs_refreshed_variant.ac) + ' '
+
             else:
                 # Keep the same by re-setting rel_var
                 hgvs_refreshed_variant = saved_hgvs_coding
@@ -1588,7 +1697,8 @@ class GapMapper(object):
                 stash_hgvs_not_delins = self.variant.no_norm_evm.n_to_c(stash_hgvs_not_delins)
             except Exception as e:
                 logger.debug("Except passed, %s", e)
-                # Store a tx copy for later use
+
+            # Store a tx copy for later use
             test_stash_tx_right = copy.deepcopy(stash_hgvs_not_delins)
             stash_genomic = self.validator.myvm_t_to_g(test_stash_tx_right, hgvs_alt_genomic.ac,
                                                        self.variant.no_norm_evm, self.variant.hn)
@@ -2100,11 +2210,11 @@ class GapMapper(object):
                     self.disparity_deletion_in = [disparity_info[0], disparity_info[1]]
                     hgvs_refreshed_variant = hgvs_coding
                     hgvs_alt_genomic = possibility
-                    self.variant.warnings.append("Caution should be used when reporting the displayed variant "
-                                                 "descriptions: If you are unsure, please contact admin")
-                    self.variant.warnings.append('The displayed variants may be artefacts of aligning '
-                                                 '' + hgvs_coding.ac + ' with genomic reference '
-                                                                       '' + disparity_info[3].ac)
+                    # self.variant.warnings.append("Caution should be used when reporting the displayed variant "
+                    #                              "descriptions: If you are unsure, please contact admin")
+                    # self.variant.warnings.append('The displayed variants may be artefacts of aligning '
+                    #                              '' + hgvs_coding.ac + ' with genomic reference '
+                    #                                                    '' + disparity_info[3].ac)
                     hard_set_outputs = True
 
                 elif self.disparity_deletion_in[0] == 'transcript':
@@ -2122,11 +2232,11 @@ class GapMapper(object):
                     else:
                         hgvs_refreshed_variant = chromosome_normalized_hgvs_coding
                     # Warn
-                    self.auto_info = self.auto_info + str(hgvs_refreshed_variant.ac) + ':c.' + str(
-                        hgvs_refreshed_variant.posedit.pos) + ' contains ' + str(
-                        self.disparity_deletion_in[
-                            1]) + ' transcript base(s) that fail to align to chromosome ' + str(
-                        hgvs_genomic.ac) + '\n'
+                    # self.auto_info = self.auto_info + str(hgvs_refreshed_variant.ac) + ':c.' + str(
+                    #     hgvs_refreshed_variant.posedit.pos) + ' contains ' + str(
+                    #     self.disparity_deletion_in[
+                    #         1]) + ' transcript base(s) that fail to align to chromosome ' + str(
+                    #     hgvs_genomic.ac) + '\n'
 
                 else:
                     # Keep the same by re-setting rel_var
@@ -2312,13 +2422,20 @@ class GapMapper(object):
                                                  with_base_subtract=False):
         # move tx start base to previous available non-offset base
         rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
-        if with_base_subtract:
+        if with_base_subtract and rn_tx_hgvs_not_delins.posedit.pos.start.base > 1:
             rn_tx_hgvs_not_delins.posedit.pos.start.base = rn_tx_hgvs_not_delins.posedit.pos.start.base - 1
         rn_tx_hgvs_not_delins.posedit.edit.ref = ''
         if 'NM_' in str(rn_tx_hgvs_not_delins):
-            test_tx_var = self.variant.no_norm_evm.n_to_c(rn_tx_hgvs_not_delins)
+            try:
+                test_tx_var = self.variant.no_norm_evm.n_to_c(rn_tx_hgvs_not_delins)
+            except vvhgvs.exceptions.HGVSInvalidVariantError as e:
+                if "Expected n. variant;" in str(e):
+                    rn_tx_hgvs_not_delins = self.validator.vm.c_to_n(rn_tx_hgvs_not_delins)
+                    test_tx_var = self.variant.no_norm_evm.n_to_c(rn_tx_hgvs_not_delins)
+
         else:
             test_tx_var = rn_tx_hgvs_not_delins
+
         # re-make genomic and tx
         hgvs_not_delins = self.validator.myevm_t_to_g(test_tx_var, self.variant.no_norm_evm,
                                                       self.variant.primary_assembly, self.variant.hn)
@@ -2390,6 +2507,7 @@ class GapMapper(object):
 
     def transcript_disparity(self, reverse_normalized_hgvs_genomic, stored_hgvs_not_delins, hgvs_genomic,
                              running_option):
+
         if ('+' in str(self.tx_hgvs_not_delins.posedit.pos.start) or '-' in str(
                 self.tx_hgvs_not_delins.posedit.pos.start)) and (
                 '+' in str(self.tx_hgvs_not_delins.posedit.pos.end) or '-' in str(
@@ -2506,22 +2624,22 @@ class GapMapper(object):
             # Set warning
             gap_size = str(len(genomic_gap_fill_variant.posedit.edit.ref) - 2)
             self.disparity_deletion_in[1] = [gap_size]
-            self.auto_info = self.auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(
-                stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + gap_size + \
-                ' genomic base(s) that fail to align to transcript ' + str(self.tx_hgvs_not_delins.ac)
+            # self.auto_info = self.auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(
+            #     stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + gap_size + \
+            #     ' genomic base(s) that fail to align to transcript ' + str(self.tx_hgvs_not_delins.ac)
 
             # Alignment position
-            for_location_c = copy.deepcopy(hgvs_refreshed_variant)
-            if 'NM_' in str(for_location_c):
-                for_location_c = self.variant.no_norm_evm.n_to_c(self.tx_hgvs_not_delins)
-            if '-' in str(for_location_c.posedit.pos.start.offset):
-                gps = for_location_c.posedit.pos.start.base - 1
-                gpe = for_location_c.posedit.pos.start.base
-            else:
-                gps = for_location_c.posedit.pos.start.base
-                gpe = for_location_c.posedit.pos.start.base + 1
-            gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
-            self.auto_info = self.auto_info + '%s' % (gap_position)
+            # for_location_c = copy.deepcopy(hgvs_refreshed_variant)
+            # if 'NM_' in str(for_location_c):
+            #     for_location_c = self.variant.no_norm_evm.n_to_c(self.tx_hgvs_not_delins)
+            # if '-' in str(for_location_c.posedit.pos.start.offset):
+            #     gps = for_location_c.posedit.pos.start.base - 1
+            #     gpe = for_location_c.posedit.pos.start.base
+            # else:
+            #     gps = for_location_c.posedit.pos.start.base
+            #     gpe = for_location_c.posedit.pos.start.base + 1
+            # gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
+            # self.auto_info = self.auto_info + '%s' % (gap_position)
 
         else:
             if self.tx_hgvs_not_delins.posedit.pos.start.offset == 0 and \
@@ -2533,10 +2651,10 @@ class GapMapper(object):
                     c1 = self.validator.vm.n_to_c(self.tx_hgvs_not_delins)
                 except:
                     c1 = self.tx_hgvs_not_delins
-                g1 = self.validator.nr_vm.t_to_g(c1, hgvs_genomic.ac)
+                # g1 = self.validator.nr_vm.t_to_g(c1, hgvs_genomic.ac)
                 g3 = self.validator.nr_vm.t_to_g(c1, hgvs_genomic.ac)
                 g2 = self.validator.vm.t_to_g(c1, hgvs_genomic.ac)
-                ng2 = self.variant.hn.normalize(g2)
+                # ng2 = self.variant.hn.normalize(g2)
                 g3.posedit.pos.end.base = g3.posedit.pos.start.base + (len(g3.posedit.edit.ref) - 1)
                 try:
                     c2 = self.validator.vm.g_to_t(g3, c1.ac)
@@ -2553,66 +2671,70 @@ class GapMapper(object):
 
             if '+' in str(self.tx_hgvs_not_delins.posedit.pos.start) and \
                     '+' not in str(self.tx_hgvs_not_delins.posedit.pos.end):
-                self.auto_info = self.auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(
-                    stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(
-                    self.disparity_deletion_in[
-                        1]) + ' genomic base(s) that fail to align to transcript ' + str(
-                    self.tx_hgvs_not_delins.ac)
+                # self.auto_info = self.auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(
+                #     stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(
+                #     self.disparity_deletion_in[
+                #         1]) + ' genomic base(s) that fail to align to transcript ' + str(
+                #     self.tx_hgvs_not_delins.ac)
                 hgvs_refreshed_variant = self.c2_pos_edit(hgvs_genomic)
 
                 # Alignment position
-                for_location_c = copy.deepcopy(hgvs_refreshed_variant)
-                if 'NM_' in str(for_location_c):
-                    for_location_c = self.variant.no_norm_evm.n_to_c(self.tx_hgvs_not_delins)
-                gps = for_location_c.posedit.pos.start.base
-                gpe = for_location_c.posedit.pos.start.base + 1
-                gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
-                # Warn update
-                self.auto_info = self.auto_info + '%s' % gap_position
+                # for_location_c = copy.deepcopy(hgvs_refreshed_variant)
+                # if 'NM_' in str(for_location_c):
+                #     for_location_c = self.variant.no_norm_evm.n_to_c(self.tx_hgvs_not_delins)
+                # gps = for_location_c.posedit.pos.start.base
+                # gpe = for_location_c.posedit.pos.start.base + 1
+                # gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
+                # # Warn update
+                # self.auto_info = self.auto_info + '%s' % gap_position
             elif '+' in str(self.tx_hgvs_not_delins.posedit.pos.end) and \
                     '+' not in str(self.tx_hgvs_not_delins.posedit.pos.start):
-                self.auto_info = self.auto_info + 'Genome position ' + str(
-                    stored_hgvs_not_delins.ac) + ':g.' + str(
-                    stored_hgvs_not_delins.posedit.pos.end.base + 1) + ' aligns within a ' + str(
-                    self.disparity_deletion_in[1]) + '-bp gap in transcript ' + str(
-                    self.tx_hgvs_not_delins.ac)
+
+                self.auto_info = self.auto_info
+                # 'Genome position ' + str(
+                #     stored_hgvs_not_delins.ac) + ':g.' + str(
+                #     stored_hgvs_not_delins.posedit.pos.end.base + 1) + ' aligns within a ' + str(
+                #     self.disparity_deletion_in[1]) + '-bp gap in transcript ' + str(
+                #     self.tx_hgvs_not_delins.ac)
                 self.gapped_transcripts = self.gapped_transcripts + ' ' + str(self.tx_hgvs_not_delins.ac)
                 hgvs_refreshed_variant = self.c1_pos_edit(hgvs_genomic)
 
                 # Alignment position
-                for_location_c = copy.deepcopy(hgvs_refreshed_variant)
-                if 'NM_' in str(for_location_c):
-                    for_location_c = self.variant.no_norm_evm.n_to_c(self.tx_hgvs_not_delins)
-                gps = for_location_c.posedit.pos.end.base
-                gpe = for_location_c.posedit.pos.end.base + 1
-                gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
-                # Warn update
-                self.auto_info = self.auto_info + '%s' % gap_position
+                # for_location_c = copy.deepcopy(hgvs_refreshed_variant)
+                # if 'NM_' in str(for_location_c):
+                #     for_location_c = self.variant.no_norm_evm.n_to_c(self.tx_hgvs_not_delins)
+                # gps = for_location_c.posedit.pos.end.base
+                # gpe = for_location_c.posedit.pos.end.base + 1
+                # gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
+                # # Warn update
+                # self.auto_info = self.auto_info + '%s' % gap_position
+
             elif '-' in str(self.tx_hgvs_not_delins.posedit.pos.start) and \
                     '-' not in str(self.tx_hgvs_not_delins.posedit.pos.end):
-                self.auto_info = self.auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(
-                    stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(
-                    self.disparity_deletion_in[
-                        1]) + ' genomic base(s) that fail to align to transcript ' + str(
-                    self.tx_hgvs_not_delins.ac)
+                # self.auto_info = self.auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(
+                #     stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(
+                #     self.disparity_deletion_in[
+                #         1]) + ' genomic base(s) that fail to align to transcript ' + str(
+                #     self.tx_hgvs_not_delins.ac)
                 hgvs_refreshed_variant = self.c2_pos_edit(hgvs_genomic)
 
                 # Alignment position
-                for_location_c = copy.deepcopy(hgvs_refreshed_variant)
-                if 'NM_' in str(for_location_c):
-                    for_location_c = self.variant.no_norm_evm.n_to_c(self.tx_hgvs_not_delins)
-                gps = for_location_c.posedit.pos.start.base - 1
-                gpe = for_location_c.posedit.pos.start.base
-                gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
-                # Warn update
-                self.auto_info = self.auto_info + '%s' % gap_position
+                # for_location_c = copy.deepcopy(hgvs_refreshed_variant)
+                # if 'NM_' in str(for_location_c):
+                #     for_location_c = self.variant.no_norm_evm.n_to_c(self.tx_hgvs_not_delins)
+                # gps = for_location_c.posedit.pos.start.base - 1
+                # gpe = for_location_c.posedit.pos.start.base
+                # gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
+                # # Warn update
+                # self.auto_info = self.auto_info + '%s' % gap_position
             elif '-' in str(self.tx_hgvs_not_delins.posedit.pos.end) and \
                     '-' not in str(self.tx_hgvs_not_delins.posedit.pos.start):
-                self.auto_info = self.auto_info + 'Genome position ' + str(
-                    stored_hgvs_not_delins.ac) + ':g.' + str(
-                    stored_hgvs_not_delins.posedit.pos.end.base + 1) + ' aligns within a ' + str(
-                    self.disparity_deletion_in[1]) + '-bp gap in transcript ' + str(
-                    self.tx_hgvs_not_delins.ac)
+                self.auto_info = self.auto_info #
+                # + 'Genome position ' + str(
+                #     stored_hgvs_not_delins.ac) + ':g.' + str(
+                #     stored_hgvs_not_delins.posedit.pos.end.base + 1) + ' aligns within a ' + str(
+                #     self.disparity_deletion_in[1]) + '-bp gap in transcript ' + str(
+                #     self.tx_hgvs_not_delins.ac)
                 self.gapped_transcripts = self.gapped_transcripts + ' ' + str(self.tx_hgvs_not_delins.ac)
 
                 # Have variation in first copy here!
@@ -2629,7 +2751,7 @@ class GapMapper(object):
                     c2.posedit.edit.alt = ''
                     g2 = self.validator.vm.t_to_g(c2, self.variant.hgvs_genomic.ac)
                     c2 = self.validator.vm.g_to_t(g2, c2.ac)
-                    reference = c1.posedit.edit.ref + c2.posedit.edit.ref[1:]
+                    # reference = c1.posedit.edit.ref + c2.posedit.edit.ref[1:]
                     alternate = c1.posedit.edit.alt + c2.posedit.edit.ref[1:]
                     c3 = copy.deepcopy(c1)
                     c3.posedit.pos.end = c2.posedit.pos.end
@@ -2640,20 +2762,20 @@ class GapMapper(object):
                     hgvs_refreshed_variant = self.c1_pos_edit(hgvs_genomic)
 
                 # Alignment position
-                for_location_c = copy.deepcopy(hgvs_refreshed_variant)
-                if 'NM_' in str(for_location_c):
-                    for_location_c = self.variant.no_norm_evm.n_to_c(self.tx_hgvs_not_delins)
-                gps = for_location_c.posedit.pos.end.base - 1
-                gpe = for_location_c.posedit.pos.end.base
-                gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
-                # Warn update
-                self.auto_info = self.auto_info + '%s' % (gap_position)
+                # for_location_c = copy.deepcopy(hgvs_refreshed_variant)
+                # if 'NM_' in str(for_location_c):
+                #     for_location_c = self.variant.no_norm_evm.n_to_c(self.tx_hgvs_not_delins)
+                # gps = for_location_c.posedit.pos.end.base - 1
+                # gpe = for_location_c.posedit.pos.end.base
+                # gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
+                # # Warn update
+                # self.auto_info = self.auto_info + '%s' % (gap_position)
             else:
-                self.auto_info = self.auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(
-                    stored_hgvs_not_delins.posedit.pos) + ' contains ' + str(
-                    self.disparity_deletion_in[
-                        1]) + ' genomic base(s) that fail to align to transcript ' + str(
-                    self.tx_hgvs_not_delins.ac) + '\n'
+                # self.auto_info = self.auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(
+                #     stored_hgvs_not_delins.posedit.pos) + ' contains ' + str(
+                #     self.disparity_deletion_in[
+                #         1]) + ' genomic base(s) that fail to align to transcript ' + str(
+                #     self.tx_hgvs_not_delins.ac) + '\n'
 
                 # Have variation in second copy here!
                 if running_option == 2:
@@ -2681,6 +2803,7 @@ class GapMapper(object):
                                                           0:-1]
                 hgvs_refreshed_variant.posedit.pos.end.base = hgvs_refreshed_variant.posedit.pos.end.base - 1
                 hgvs_refreshed_variant = self.variant.hn.normalize(hgvs_refreshed_variant)
+
             elif hgvs_refreshed_variant.posedit.edit.type == 'delins' and \
                     hgvs_refreshed_variant.posedit.edit.ref[0] == \
                     hgvs_refreshed_variant.posedit.edit.alt[0]:
@@ -2690,12 +2813,19 @@ class GapMapper(object):
                                                           1:]
                 hgvs_refreshed_variant.posedit.pos.start.base = hgvs_refreshed_variant.posedit.pos.start.base + 1
                 hgvs_refreshed_variant = self.variant.hn.normalize(hgvs_refreshed_variant)
+
         except Exception as e:
             error = str(e)
             # Ensure the final variant is not intronic nor does it cross exon boundaries
             if 'Normalization of intronic variants is not supported' in error or \
-                    'Unsupported normalization of variants spanning the exon-intron boundary' in error:
+                    'Unsupported normalization of variants spanning the exon-intron boundary' in error or \
+                    "Unsupported normalization of variants spanning the UTR-exon boundary" in error:
                 hgvs_refreshed_variant = saved_hgvs_coding
+
+                if hgvs_refreshed_variant.posedit.edit.type == 'delins' and \
+                        hgvs_refreshed_variant.posedit.edit.alt == "":
+                    hgvs_refreshed_variant = str(hgvs_refreshed_variant).replace("ins", "")
+                    hgvs_refreshed_variant = self.validator.hp.parse(hgvs_refreshed_variant)
 
         return hgvs_refreshed_variant
 

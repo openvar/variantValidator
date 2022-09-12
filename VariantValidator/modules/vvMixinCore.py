@@ -278,8 +278,9 @@ class Mixin(vvMixinConverters.Mixin):
                             warning = "Removing redundant gene symbol %s from variant description" % is_it_a_gene
                             my_variant.warnings.append(warning)
                             logger.warning(warning)
-                    if re.search('del[GATC]+', my_variant.quibble) or re.search('inv[GATC]+', my_variant.quibble) or\
-                            re.search('dup[GATC]+', my_variant.quibble):
+                    if re.search('del[GATC]+', my_variant.original) or re.search('inv[GATC]+', my_variant.original) or \
+                            re.search('dup[GATC]+', my_variant.original):
+
                         warning = "Removing redundant reference bases from variant description"
                         my_variant.warnings.append(warning)
                         logger.warning(warning)

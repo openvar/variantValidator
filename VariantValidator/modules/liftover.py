@@ -43,9 +43,11 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
     :param specify_tx: Specify a specific transcript = False or str(transcript_ID)
     :param liftover_level: False or 'primary'
     :param g_to_g: True or False
+    :param gap_map: True or VariantFormatter gap_map function passed (Required for VariantFormatter methods only)
+    :param vfo: False or VariantFormatter VFO object passed
+    :param specified_tx_variant: False or specific HGVS transcript object
     :return:
     """
-
     try:
         hgvs_genomic = validator.hp.parse(hgvs_genomic)
     except TypeError as e:
@@ -227,7 +229,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                     hgvs_alt_genomic = validator.vm.t_to_g(hgvs_tx, key)
 
                     # Gap compensation edit for the VariantFormatter pathway
-                    if gap_map is not False:  # and key in hgvs_genomic.ac:
+                    if gap_map is not False and build_from not in val:
                         # Set genome assembly for gap mapping
                         get_assembly = seq_data.supported_for_mapping(key, "GRCh37")
                         if get_assembly is True:
@@ -242,7 +244,6 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                                 am_i_gapped = gap_map(hgvs_tx, hgvs_alt_genomic, map_to_assembly, vfo)
 
                         hgvs_alt_genomic = am_i_gapped["hgvs_genomic"]
-
 
                     alt_vcf = hgvs_utils.report_hgvs2vcf(hgvs_alt_genomic, build_to, reverse_normalizer, validator.sf)
                     alt_vcf_b = hgvs_utils.report_hgvs2vcf(hgvs_alt_genomic, build_from, reverse_normalizer,
@@ -294,6 +295,12 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                                 'alt': alt_vcf_b['alt']
                             }
                         }
+
+                    # Add gap warnings if found
+                    try:
+                        lifted_response["am_i_gapped"] = am_i_gapped
+                    except UnboundLocalError:
+                        pass
 
                     added_data = True
 
