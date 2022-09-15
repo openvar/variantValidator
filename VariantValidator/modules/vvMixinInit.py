@@ -69,10 +69,10 @@ class Mixin:
 
         self.seqrepoVersion = config["seqrepo"]["version"]
         self.check_same_thread = config["seqrepo"]["require_threading"]
-        if self.check_same_thread is True:
-            self.check_same_thread = False
-        elif self.check_same_thread is False:
-            self.check_same_thread = True
+        if self.check_same_thread == "True":  # This is because the question asked is oposed to the required action
+            self.check_same_thread = "False"
+        elif self.check_same_thread == "False":
+            self.check_same_thread = "True"
         self.seqrepoPath = os.path.join(config["seqrepo"]["location"], self.seqrepoVersion)
         self.vvdbVersion = config["mysql"]["version"]
 
