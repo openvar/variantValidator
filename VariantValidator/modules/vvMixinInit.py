@@ -68,8 +68,10 @@ class Mixin:
             self.entrez_api_key = config['Entrez']['api_key']
 
         self.seqrepoVersion = config["seqrepo"]["version"]
+        self.check_same_thread = config["seqrepo"]["require_threading"]
         self.seqrepoPath = os.path.join(config["seqrepo"]["location"], self.seqrepoVersion)
         self.vvdbVersion = config["mysql"]["version"]
+
         os.environ['HGVS_SEQREPO_DIR'] = self.seqrepoPath
 
         os.environ['UTA_DB_URL'] = "postgresql://%s:%s@%s:%s/%s/%s" % (
@@ -124,7 +126,7 @@ class Mixin:
                                                           )
 
         self.nr_vm = vvhgvs.variantmapper.VariantMapper(self.hdp, replace_reference=False)  # No reverse variant mapper
-        self.sf = vvhgvs.dataproviders.seqfetcher.SeqFetcher()  # Seqfetcher
+        self.sf = vvhgvs.dataproviders.seqfetcher.SeqFetcher(self.check_same_thread)  # Seqfetcher
 
         # Set standard genome builds
         self.genome_builds = ['GRCh37', 'hg19', 'GRCh38']
