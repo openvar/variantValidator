@@ -125,6 +125,12 @@ class Mixin(vvMixinConverters.Mixin):
                                                                              shuffle_direction=5,
                                                                              alt_aln_method=self.alt_aln_method
                                                                              )
+                my_variant.cross_hn = vvhgvs.normalizer.Normalizer(self.hdp,
+                                                                   cross_boundaries=True,
+                                                                   shuffle_direction=3,
+                                                                   alt_aln_method=self.alt_aln_method
+                                                                   )
+
                 # This will be used to order the final output
                 if not my_variant.order:
                     ordering = ordering + 1
@@ -699,6 +705,7 @@ class Mixin(vvMixinConverters.Mixin):
                     if toskip:
                         continue
 
+                    # RNA variants
                     trapped_input = str(my_variant.hgvs_formatted)
                     my_variant.pre_RNA_conversion = trapped_input
                     toskip = format_converters.rna(my_variant, self)
