@@ -512,16 +512,26 @@ class Mixin(vvMixinConverters.Mixin):
                         query_r_var = formatted_variant
                         formatted_variant = formatted_variant.upper()
                         formatted_variant = formatted_variant.replace(':R.', ':r.')
+
                         # lowercase the supported variant types
                         formatted_variant = formatted_variant.replace('DEL', 'del')
                         formatted_variant = formatted_variant.replace('INS', 'ins')
                         formatted_variant = formatted_variant.replace('INV', 'inv')
                         formatted_variant = formatted_variant.replace('DUP', 'dup')
+                        ref, edit_ori = formatted_variant.split(":r.")
+                        edit = copy.copy(edit_ori)
+                        edit = edit.replace("G", "g")
+                        edit = edit.replace("A", "a")
+                        edit = edit.replace("T", "t")
+                        edit = edit.replace("C", "c")
+                        edit = edit.replace("U", "u")
+                        formatted_variant = ref + ":r." + edit
                         if query_r_var != formatted_variant:
                             e = "This not a valid HGVS description, due to characters being in the wrong case. " \
                                 "Please check the use of upper- and lowercase characters."
                             my_variant.warnings.append(str(e))
                             logger.warning(str(e))
+                        formatted_variant = formatted_variant.replace(edit, edit_ori)
 
                     # Handle <position><edit><position> style variants
                     # Refer to https://github.com/openvar/variantValidator/issues/161
@@ -864,8 +874,11 @@ class Mixin(vvMixinConverters.Mixin):
                                 hgvs_refseqgene_variant = self.hp.parse_hgvs_variant(
                                     fn.remove_reference_string(refseqgene_variant))
                                 refseqgene_accession = hgvs_refseqgene_variant.ac
-                                hgvs_coding_from_refseqgene = self.vm.g_to_t(hgvs_refseqgene_variant,
+                                try:
+                                    hgvs_coding_from_refseqgene = self.vm.g_to_t(hgvs_refseqgene_variant,
                                                                              hgvs_transcript_variant.ac)
+                                except vvhgvs.exceptions.HGVSInvalidIntervalError:
+                                    hgvs_coding_from_refseqgene = hgvs_transcript_variant
                                 hgvs_coding_from_refseqgene = fn.valstr(hgvs_coding_from_refseqgene)
                                 hgvs_coding_from_refseqgene = self.hp.parse_hgvs_variant(
                                     fn.remove_reference_string(hgvs_coding_from_refseqgene))

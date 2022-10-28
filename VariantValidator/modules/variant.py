@@ -70,7 +70,7 @@ class Variant(object):
         self.reference_sequence_records = None
         self.validated = False
         self.exonic_positions = None
-        self.rna_input_data = None
+        self.rna_data = None
 
     def is_ascii(self):
         """
@@ -208,6 +208,8 @@ class Variant(object):
             except KeyError:
                 pass
 
+        print(self.rna_data)
+
         dict_out = {
             'selected_assembly': self.selected_assembly,
             'submitted_variant': self.original,
@@ -216,6 +218,7 @@ class Variant(object):
             'annotations': self.annotations,
             'transcript_description': self.description,
             'hgvs_transcript_variant': self.hgvs_transcript_variant,
+            'rna_variant_descriptions': self.rna_data,
             'genome_context_intronic_sequence': self.genome_context_intronic_sequence,
             'refseqgene_context_intronic_sequence': self.refseqgene_context_intronic_sequence,
             'hgvs_refseqgene_variant': self.hgvs_refseqgene_variant,

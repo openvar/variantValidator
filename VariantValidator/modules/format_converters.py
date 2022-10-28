@@ -5,6 +5,7 @@ import logging
 from .variant import Variant
 from . import seq_data
 from . import utils as fn
+import VariantValidator.modules.rna_formatter
 
 logger = logging.getLogger(__name__)
 
@@ -1027,19 +1028,48 @@ def rna(variant, validator):
     """
     convert r, into c.
     """
-    if variant.reftype == ':r.':
-        hgvs_input = validator.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
+    if variant.reftype == ':r.' or ":r." in variant.original:
+        if ":r.(" in str(variant.hgvs_formatted):
+            strip_prediction = str(variant.hgvs_formatted).replace("(", "")
+            strip_prediction = strip_prediction[:-1]
+            hgvs_input = validator.hp.parse_hgvs_variant(strip_prediction)
+        else:
+            hgvs_input = validator.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
         # Change to coding variant
         variant.reftype = ':c.'
         # Change input to reflect!
         try:
             hgvs_c = validator.hgvs_r_to_c(hgvs_input)
+            hgvs_c = validator.hp.parse_hgvs_variant(str(hgvs_c))
         except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
             error = str(e)
             variant.warnings.append(error)
             logger.warning(str(error))
             return True
         variant.hgvs_formatted = hgvs_c
+
+        # Create variant.rna_data dictionary
+        rnd = VariantValidator.modules.rna_formatter.RnaDescriptions(validator.alt_aln_method,
+                                                                     variant.primary_assembly,
+                                                                     validator)
+        try:
+            rnd.check_syntax(str(variant.original))
+        except VariantValidator.modules.rna_formatter.RnaVariantSyntaxError as e:
+            error = str(e)
+            variant.warnings.append(error)
+            logger.warning(str(error))
+            return True
+        except vvhgvs.exceptions.HGVSParseError:
+            try:
+                rnd.check_syntax(str(variant.quibble))
+            except VariantValidator.modules.rna_formatter.RnaVariantSyntaxError as e:
+                error = str(e)
+                variant.warnings.append(error)
+                logger.warning(str(error))
+                return True
+
+        # Add data to the variant object
+        variant.rna_data = rnd.output_dict()
 
     return False
 
@@ -1055,6 +1085,8 @@ def uncertain_pos(variant):
             if 'p.' in posedit or '[' in posedit or ']' in posedit or '(;)' in posedit or '(:)' in posedit:
                 return False
             elif re.search("ins\(\d+\)$", posedit) or re.search("ins\(\d+_\d+\)$", posedit):
+                return False
+            elif ":r.(" in to_check:
                 return False
             error = 'Uncertain positions are not currently supported'
             variant.warnings.append(error)
