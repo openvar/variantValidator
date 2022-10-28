@@ -1864,6 +1864,7 @@ class Mixin(vvMixinConverters.Mixin):
         try:
             self.hdp.get_tx_identity_info(str(hgvs_vt.ac))
         except vvhgvs.exceptions.HGVSError as e:
+            print("boo")
             error = 'Please inform admin of the following error: ' + str(e)
             reason = "VariantValidator cannot recover information for transcript " + str(
                 hgvs_vt.ac) + ' because it is not available in the Universal Transcript Archive'

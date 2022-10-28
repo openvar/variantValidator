@@ -328,7 +328,6 @@ class Mixin:
 
                 # Use inv delins code?
                 if not not_delins:
-
                     # Collect the associated protein
                     associated_protein_accession = self.hdp.get_pro_ac_for_tx_ac(hgvs_transcript.ac)
 
@@ -415,6 +414,18 @@ class Mixin:
                                 error = 'Unable to generate protein variant description'
                                 hgvs_transcript_to_hgvs_protein['error'] = error
                                 return hgvs_transcript_to_hgvs_protein
+                        elif ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and
+                            hgvs_transcript.posedit.pos.start.offset == 0) or (1 <=
+                            hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset == 0))\
+                                and '*' not in str(hgvs_transcript.posedit.pos):
+
+                            residue_one = self.sf.fetch_seq(associated_protein_accession, start_i=1 - 1, end_i=1)
+                            threed_residue_one = utils.one_to_three(residue_one)
+                            r_one_report = '(%s1?)' % threed_residue_one  # was (MET1?)
+                            hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
+                                                                                  type='p', posedit=r_one_report)
+                            hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
+                            return hgvs_transcript_to_hgvs_protein
                         else:
                             # Gather the required information regarding variant interval and sequences
                             if hgvs_transcript.posedit.edit.type != 'delins' and \
