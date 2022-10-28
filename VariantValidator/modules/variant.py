@@ -208,8 +208,6 @@ class Variant(object):
             except KeyError:
                 pass
 
-        print(self.rna_data)
-
         dict_out = {
             'selected_assembly': self.selected_assembly,
             'submitted_variant': self.original,
