@@ -1584,7 +1584,10 @@ class Mixin(vvMixinConverters.Mixin):
             tx_for_gene = kept_tx
 
         for line in tx_for_gene:
-            if (line[3].startswith('NM_') or line[3].startswith('NR_')) and '..' not in line[3]:
+            if (line[3].startswith('NM_') or line[3].startswith('NR_')) and \
+                    '..' not in line[3] and \
+                    '_NG_' not in line[3] and \
+                    "~" not in line[3]:
 
                 # Transcript ID
                 tx = line[3]
