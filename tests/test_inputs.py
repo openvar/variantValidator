@@ -30542,8 +30542,6 @@ class TestVariantsAuto(TestCase):
                ] == "NM_000089.3:r.(1034_1036del)"
         assert results['NM_000089.3:c.1035_1035+2del']['rna_variant_descriptions']['translation'
                ] == "NP_000080.2:p.(Val345del)"
-        assert results['NM_000089.3:c.1035_1035+2del']['rna_variant_descriptions']['submitted_variant'
-               ] == "NM_000089.3:r.(1033_1035delguu)"
 
     def test_issue_419b(self):
         variant = 'NM_000089.3:r.1033_1035delguu'  # This is not a prediction, unlike the above hence no ()
@@ -30559,8 +30557,7 @@ class TestVariantsAuto(TestCase):
                ] == "NM_000089.3:r.1034_1036del"
         assert results['NM_000089.3:c.1035_1035+2del']['rna_variant_descriptions']['translation'
                ] == "NP_000080.2:p.Val345del"
-        assert results['NM_000089.3:c.1035_1035+2del']['rna_variant_descriptions']['submitted_variant'
-               ] == "NM_000089.3:r.1033_1035delguu"
+
         
     def test_issue_419c(self):
         variant = 'NM_000484.4:r.2065_2211del'
@@ -30576,8 +30573,7 @@ class TestVariantsAuto(TestCase):
                ] == "NM_000484.4:r.2067_2213del"
         assert results['NM_000484.4:c.2067_2211+2del']['rna_variant_descriptions']['translation'
                ] == "NP_000475.1:p.Phe690_Val738del"
-        assert results['NM_000484.4:c.2067_2211+2del']['rna_variant_descriptions']['submitted_variant'
-               ] == "NM_000484.4:r.2065_2211del"
+
 
 
 # <LICENSE>

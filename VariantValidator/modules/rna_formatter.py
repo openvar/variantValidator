@@ -133,7 +133,6 @@ class RnaDescriptions(object):
         :return: Dict
         """
         variant_dict = {"usage_warnings": self.usage_warnings,
-                        "submitted_variant": self.input,
                         "rna_variant": self.rna_variant,
                         "translation": str(self.protein_variant)}
         return variant_dict
