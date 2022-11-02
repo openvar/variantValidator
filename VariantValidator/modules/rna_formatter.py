@@ -5,7 +5,9 @@ import vvhgvs.exceptions
 import vvhgvs.assemblymapper
 import vvhgvs.variantmapper
 import vvhgvs.normalizer
+from . import utils
 import VariantFormatter.formatter as formatter  # VariantFormatter has handy lightweight functions that make this easier
+
 
 # Custom Exceptions
 class RnaVariantSyntaxError(Exception):
@@ -29,6 +31,7 @@ class RnaDescriptions(object):
                                                              shuffle_direction=3,
                                                              alt_aln_method=self.alt_aln_method)
         self.protein_variant = None
+        self.protein_variant_slr = None
         self.rna_variant = None
         self.dna_variant = None
         self.is_a_prediction = False
@@ -80,13 +83,19 @@ class RnaDescriptions(object):
         :param hgvs_variant: must be c.
         :return: None
         """
-        protein_variant = str(self.translate(hgvs_variant, self.genome_build, self.vfo))
+        protein_variant = self.translate(hgvs_variant, self.genome_build, self.vfo)
+        protein_variant_slr = str(utils.single_letter_protein(protein_variant))
+        protein_variant = str(protein_variant)
+
         if self.is_a_prediction is False:
             protein_variant = protein_variant.replace("(", "")
             protein_variant = protein_variant.replace(")", "")
+            protein_variant_slr = protein_variant_slr.replace("(", "")
+            protein_variant_slr = protein_variant_slr.replace(")", "")
         else:
             self.input = self.is_a_prediction
         self.protein_variant = protein_variant
+        self.protein_variant_slr = protein_variant_slr
 
     def check_syntax(self, variant_string):
         """
@@ -134,7 +143,8 @@ class RnaDescriptions(object):
         """
         variant_dict = {"usage_warnings": self.usage_warnings,
                         "rna_variant": self.rna_variant,
-                        "translation": str(self.protein_variant)}
+                        "translation": str(self.protein_variant),
+                        "translation_slr": str(self.protein_variant_slr)}
         return variant_dict
 
 # <LICENSE>
