@@ -30528,6 +30528,54 @@ class TestVariantsAuto(TestCase):
         assert 'NC_000008.11:g.6815857del' in results['NM_207411.5:c.869del'][
             'primary_assembly_loci']['hg38']["hgvs_genomic_description"]
 
+    def test_issue_419a(self):
+        variant = 'NM_000089.3:r.(1033_1035delguu)'
+        results = self.vv.validate(variant, 'GRCh38', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'NM_000089.3:c.1035_1035+2del' in results.keys()
+        assert results['NM_000089.3:c.1035_1035+2del']['rna_variant_descriptions']["usage_warnings"] == [
+            "RNA (r.) descriptions are independent of cDNA descriptions (c.)",
+            "RNA descriptions must only be used if the RNA has been sequenced and must not be inferred from a cDNA description",
+            "c. and g. descriptions provided by VariantValidator must only be used if the DNA sequence has been confirmed"
+        ]
+        assert results['NM_000089.3:c.1035_1035+2del']['rna_variant_descriptions']['rna_variant'
+               ] == "NM_000089.3:r.(1034_1036del)"
+        assert results['NM_000089.3:c.1035_1035+2del']['rna_variant_descriptions']['translation'
+               ] == "NP_000080.2:p.(Val345del)"
+
+    def test_issue_419b(self):
+        variant = 'NM_000089.3:r.1033_1035delguu'  # This is not a prediction, unlike the above hence no ()
+        results = self.vv.validate(variant, 'GRCh38', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'NM_000089.3:c.1035_1035+2del' in results.keys()
+        assert results['NM_000089.3:c.1035_1035+2del']['rna_variant_descriptions']["usage_warnings"] == [
+            "RNA (r.) descriptions are independent of cDNA descriptions (c.)",
+            "RNA descriptions must only be used if the RNA has been sequenced and must not be inferred from a cDNA description",
+            "c. and g. descriptions provided by VariantValidator must only be used if the DNA sequence has been confirmed"
+        ]
+        assert results['NM_000089.3:c.1035_1035+2del']['rna_variant_descriptions']['rna_variant'
+               ] == "NM_000089.3:r.1034_1036del"
+        assert results['NM_000089.3:c.1035_1035+2del']['rna_variant_descriptions']['translation'
+               ] == "NP_000080.2:p.Val345del"
+
+        
+    def test_issue_419c(self):
+        variant = 'NM_000484.4:r.2065_2211del'
+        results = self.vv.validate(variant, 'GRCh38', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'NM_000484.4:c.2067_2211+2del' in results.keys()
+        assert results['NM_000484.4:c.2067_2211+2del']['rna_variant_descriptions']["usage_warnings"] == [
+            "RNA (r.) descriptions are independent of cDNA descriptions (c.)",
+            "RNA descriptions must only be used if the RNA has been sequenced and must not be inferred from a cDNA description",
+            "c. and g. descriptions provided by VariantValidator must only be used if the DNA sequence has been confirmed"
+        ]
+        assert results['NM_000484.4:c.2067_2211+2del']['rna_variant_descriptions']['rna_variant'
+               ] == "NM_000484.4:r.2067_2213del"
+        assert results['NM_000484.4:c.2067_2211+2del']['rna_variant_descriptions']['translation'
+               ] == "NP_000475.1:p.Phe690_Val738del"
+
+
+
 # <LICENSE>
 # Copyright (C) 2016-2022 VariantValidator Contributors
 #

@@ -337,10 +337,18 @@ def structure_checks_c(variant, validator):
                     return True
 
     elif re.search(r'\d-', str(variant.input_parses)) or re.search(r'\d\+', str(variant.input_parses)):
+
+        # Create a no_replace vm instance
+        variant.no_replace_vm = vvhgvs.variantmapper.VariantMapper(validator.hdp,
+                                                                   replace_reference=False,
+                                                                   prevalidation_level=None)
+
         # Quick look at syntax validation
         try:
             validator.vr.validate(variant.input_parses)
         except vvhgvs.exceptions.HGVSInvalidVariantError as e:
+            print("The error")
+            print(e)
             error = str(e)
             if 'bounds' in error:
                 try:
@@ -376,9 +384,16 @@ def structure_checks_c(variant, validator):
         try:
             output = validator.noreplace_myevm_t_to_g(variant.input_parses, variant)
         except vvhgvs.exceptions.HGVSDataNotAvailableError:
-            errors = ['Required information for ' + variant.input_parses.ac + ' is missing from the Universal '
-                      'Transcript Archive', 'Query gene2transcripts with search term %s for '
-                      'available transcripts' % variant.input_parses.ac.split('.')[0]]
+            tx_info = validator.hdp.get_tx_identity_info(variant.input_parses.ac)
+            if (variant.input_parses.posedit.pos.end.base > int(tx_info[4]) or variant.input_parses.posedit.pos.end.base
+                > int(tx_info[4])) and ("*" not in str(variant.input_parses.posedit.pos.end) or "*" not in
+                                        str(variant.input_parses.posedit.pos.start)):
+                errors = ["Variant start position and/or end position are beyond the CDS end position "
+                          "and likely also beyond the end of the selected reference sequence"]
+            else:
+                errors = ['Required information for ' + variant.input_parses.ac + ' is missing from the Universal '
+                          'Transcript Archive', 'Query gene2transcripts with search term %s for '
+                          'available transcripts' % variant.input_parses.ac.split('.')[0]]
             variant.warnings.extend(errors)
             logger.info(str(errors))
             return True
@@ -417,12 +432,34 @@ def structure_checks_c(variant, validator):
             logger.warning(error)
             return True
 
+        # Check that the reference is correct by direct mapping without replacing reference
+        check_ref_g = variant.no_replace_vm.t_to_g(variant.input_parses, output.ac)
+        check_ref_t = variant.no_replace_vm.g_to_t(check_ref_g, variant.input_parses.ac)
+
+        # Snapshot current variant error log
+        if "*" in str(check_ref_t) and "*" not in str(variant.input_parses):
+            convert = "%s auto-mapped to %s" % (variant.input_parses, check_ref_t)
+            variant.warnings.append(convert)
+        snap = copy.copy(variant.warnings)
+
+        # Look for syntax errors
+        try:
+            validator.vr.validate(check_ref_t)
+        except vvhgvs.exceptions.HGVSError as e:
+            if "intron" not in str(e) and "bounds" not in str(e) and "insertion length must be 1" not in str(e) and \
+                    "base start position must be <= end position" not in str(e):
+                error = str(e)
+                variant.warnings.append(error)
+                logger.warning(error)
         try:
             validator.vr.validate(output)
         except vvhgvs.exceptions.HGVSError as e:
             error = str(e)
             variant.warnings.append(error)
             logger.warning(error)
+
+        # Check for additional warnings
+        if len(variant.warnings) > len(snap):
             return True
 
     else:
@@ -595,6 +632,7 @@ def structure_checks_n(variant, validator):
         try:
             output = validator.noreplace_myevm_t_to_g(variant.input_parses, variant)
         except vvhgvs.exceptions.HGVSDataNotAvailableError:
+            print("ararar")
             errors = ['Required information for ' + variant.input_parses.ac + ' is missing from the Universal '
                                                                               'Transcript Archive',
                       'Query gene2transcripts with search term %s for '

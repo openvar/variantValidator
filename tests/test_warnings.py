@@ -375,11 +375,21 @@ class TestWarnings(TestCase):
         assert "Variant reference (CG) does not agree with reference sequence (CC)" in results[
             'NC_000017.10:g.48275363CG>A']['NC_000017.10:g.48275363CG>A']['genomic_variant_error']
 
+    def test_issue_432(self):
+        variant = 'NM_024649.4:c.1779+7A>G'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+
+        print(results)
+        assert results['validation_warning_1']['validation_warnings'] == [
+            "NM_024649.4:c.1779+7A>G auto-mapped to NM_024649.4:c.*4A>G",
+            "NM_024649.4:c.*4A>G: Variant reference (A) does not agree with reference sequence (C)"
+        ]
+
+
 class TestVFGapWarnings(TestCase):
 
     def test_vf_series_1(self):
-        results = simpleVariantFormatter.format('NC_000004.11:g.140811117C>A',
-                                                                 'GRCh37', 'refseq', None, False, True)
+        results = simpleVariantFormatter.format('NC_000004.11:g.140811117C>A', 'GRCh37', 'refseq', None, False, True)
         print(results)
         assert 'NC_000004.11:g.140811117C>A' in results.keys()
         assert 'NM_018717.4 contains 3 fewer bases between c.2276_2277, and 12 fewer bases between c.1467_1468 ' \
@@ -509,76 +519,76 @@ class TestVFGapWarnings(TestCase):
             'NC_000002.11:g.95847041_95847043GCG=']['NC_000002.11:g.95847041_95847043GCG=']['hgvs_t_and_p'][
             'NM_021088.3']['gap_statement']
 
-        def test_vf_series_8(self):
-            results = simpleVariantFormatter.format('NC_000003.11:g.14561629_14561630insG',
-                                                    'GRCh37', 'refseq', None, False, True)
-            print(results)
-            assert 'NC_000002.11:g.95847041_95847043GCG=' in results.keys()
-            assert 'NM_001080423.2 contains 1 extra bases between c.1308_1310 than NC_000003.11' in results[
-                'NC_000003.11:g.14561629_14561630insG']['NC_000003.11:g.14561629_14561630insG']['hgvs_t_and_p'][
-                'NM_001080423.2']['gap_statement']
-            assert 'NM_001080423.3 contains 1 extra bases between c.1017_1019 than NC_000003.11' in results[
-                'NC_000003.11:g.14561629_14561630insG']['NC_000003.11:g.14561629_14561630insG']['hgvs_t_and_p'][
-                'NM_001080423.3']['gap_statement']
-            assert 'NM_001080423.4 contains 1 extra bases between c.1019_1021 than NC_000003.11' in results[
-                'NC_000003.11:g.14561629_14561630insG']['NC_000003.11:g.14561629_14561630insG']['hgvs_t_and_p'][
-                'NM_001080423.4']['gap_statement']
+    def test_vf_series_8(self):
+        results = simpleVariantFormatter.format('NC_000003.11:g.14561629_14561630insG',
+                                                'GRCh37', 'refseq', None, False, True)
+        print(results)
+        assert 'NM_001080423.2 contains 1 extra bases between c.1308_1310 than NC_000003.11' in results[
+            'NC_000003.11:g.14561629_14561630insG']['NC_000003.11:g.14561629_14561630insG']['hgvs_t_and_p'][
+            'NM_001080423.2']['gap_statement']
+        assert 'NM_001080423.3 contains 1 extra bases between c.1017_1019 than NC_000003.11' in results[
+            'NC_000003.11:g.14561629_14561630insG']['NC_000003.11:g.14561629_14561630insG']['hgvs_t_and_p'][
+            'NM_001080423.3']['gap_statement']
+        assert 'NM_001080423.4 contains 1 extra bases between c.1019_1021 than NC_000003.11' in results[
+            'NC_000003.11:g.14561629_14561630insG']['NC_000003.11:g.14561629_14561630insG']['hgvs_t_and_p'][
+            'NM_001080423.4']['gap_statement']
 
-        def test_vf_series_9(self):
-            results = simpleVariantFormatter.format('NC_000004.11:g.140811117C>A',
-                                                    'GRCh37', 'refseq', None, False, True)
-            print(results)
-            assert 'NC_000004.11:g.140811117C>A' in results.keys()
-            assert 'NM_018717.4 contains 3 fewer bases between c.2276_2277, and 12 fewer bases between c.1467_1468 ' \
-                   'than NC_000004.11' in results[
-                'NC_000004.11:g.140811117C>A']['NC_000004.11:g.140811117C>A']['hgvs_t_and_p'][
-                'NM_018717.4']['gap_statement']
+    def test_vf_series_9(self):
+        results = simpleVariantFormatter.format('NC_000004.11:g.140811117C>A',
+                                                'GRCh37', 'refseq', None, False, True)
+        print(results)
+        assert 'NC_000004.11:g.140811117C>A' in results.keys()
+        assert 'NM_018717.4 contains 3 fewer bases between c.2276_2277, and 12 fewer bases between c.1467_1468 ' \
+               'than NC_000004.11' in results[
+            'NC_000004.11:g.140811117C>A']['NC_000004.11:g.140811117C>A']['hgvs_t_and_p'][
+            'NM_018717.4']['gap_statement']
 
-        def test_vf_series_10(self):
-            results = simpleVariantFormatter.format('NC_000009.11:g.136132908_136132909TA=',
-                                                    'GRCh37', 'refseq', None, False, True)
-            print(results)
-            assert 'NC_000009.11:g.136132908_136132909TA=' in results.keys()
-            assert 'NM_020469.2 contains 1 extra bases between c.260_262 than NC_000009.11' in results[
-                'NC_000009.11:g.136132908_136132909TA=']['NC_000009.11:g.136132908_136132909TA=']['hgvs_t_and_p'][
-                'NM_020469.2']['gap_statement']
-            assert 'NM_020469.3 contains 22 extra bases between c.*756_*757, and 2 extra bases between c.*797_*798, ' \
-                   'and 110 extra bases between c.*840_*841, and 2 extra bases between c.*4648_*4649, and 1 extra ' \
-                   'bases between c.260_262 than NC_000009.11' in results[
-                'NC_000009.11:g.136132908_136132909TA=']['NC_000009.11:g.136132908_136132909TA=']['hgvs_t_and_p'][
-                'NM_020469.3']['gap_statement']
+    def test_vf_series_10(self):
+        results = simpleVariantFormatter.format('NC_000009.11:g.136132908_136132909TA=',
+                                                'GRCh37', 'refseq', None, False, True)
+        print(results)
+        assert 'NC_000009.11:g.136132908_136132909TA=' in results.keys()
+        assert 'NM_020469.2 contains 1 extra bases between c.260_262 than NC_000009.11' in results[
+            'NC_000009.11:g.136132908_136132909TA=']['NC_000009.11:g.136132908_136132909TA=']['hgvs_t_and_p'][
+            'NM_020469.2']['gap_statement']
+        assert 'NM_020469.3 contains 22 extra bases between c.*756_*757, and 2 extra bases between c.*797_*798, ' \
+               'and 110 extra bases between c.*840_*841, and 2 extra bases between c.*4648_*4649, and 1 extra ' \
+               'bases between c.260_262 than NC_000009.11' in results[
+            'NC_000009.11:g.136132908_136132909TA=']['NC_000009.11:g.136132908_136132909TA=']['hgvs_t_and_p'][
+            'NM_020469.3']['gap_statement']
 
-        def test_vf_series_11(self):
-            results = simpleVariantFormatter.format('NC_000019.10:g.50378563_50378564insTAC',
-                                                    'GRCh38', 'refseq', None, False, True)
-            print(results)
-            assert 'NC_000019.10:g.50378563_50378564insTAC' in results.keys()
-            assert 'NM_001256647.1 contains 3 extra bases between c.223_227 than NC_000019.10' in results[
-                'NC_000019.10:g.50378563_50378564insTAC']['NC_000019.10:g.50378563_50378564insTAC']['hgvs_t_and_p'][
-                'NM_001256647.1']['gap_statement']
-            assert 'NM_007121.5 contains 3 extra bases between c.514_518 than NC_000019.10' in results[
-                'NC_000019.10:g.50378563_50378564insTAC']['NC_000019.10:g.50378563_50378564insTAC']['hgvs_t_and_p'][
-                'NM_007121.5']['gap_statement']
+    def test_vf_series_11(self):
+        results = simpleVariantFormatter.format('NC_000019.10:g.50378563_50378564insTAC',
+                                                'GRCh38', 'refseq', None, False, True)
+        print(results)
+        assert 'NC_000019.10:g.50378563_50378564insTAC' in results.keys()
+        assert 'NM_001256647.1 contains 3 extra bases between c.223_227 than NC_000019.10' in results[
+            'NC_000019.10:g.50378563_50378564insTAC']['NC_000019.10:g.50378563_50378564insTAC']['hgvs_t_and_p'][
+            'NM_001256647.1']['gap_statement']
+        assert 'NM_007121.5 contains 3 extra bases between c.514_518 than NC_000019.10' in results[
+            'NC_000019.10:g.50378563_50378564insTAC']['NC_000019.10:g.50378563_50378564insTAC']['hgvs_t_and_p'][
+            'NM_007121.5']['gap_statement']
 
-        def test_vf_series_12(self):
-            results = simpleVariantFormatter.format('NC_000007.13:g.149476664_149476666delinsTC',
-                                                    'GRCh37', 'refseq', None, False, True)
-            print(results)
-            assert 'NC_000007.13:g.149476664_149476666delinsTC' in results.keys()
-            assert 'NR_163594.1 contains 1 extra bases between n.1129_1131, and 1 fewer bases between n.11675_11676 ' \
-                   'than NC_000007.13' in results[
-                'NC_000007.13:g.149476664_149476666delinsTC']['NC_000007.13:g.149476664_149476666delinsTC'][
-                'hgvs_t_and_p']['NR_163594.1']['gap_statement']
+    def test_vf_series_12(self):
+        results = simpleVariantFormatter.format('NC_000007.13:g.149476664_149476666delinsTC',
+                                                'GRCh37', 'refseq', None, False, True)
+        print(results)
+        assert 'NC_000007.13:g.149476664_149476666delinsTC' in results.keys()
+        assert 'NR_163594.1 contains 1 extra bases between n.1129_1131, and 1 fewer bases between n.11675_11676 ' \
+               'than NC_000007.13' in results[
+            'NC_000007.13:g.149476664_149476666delinsTC']['NC_000007.13:g.149476664_149476666delinsTC'][
+            'hgvs_t_and_p']['NR_163594.1']['gap_statement']
 
-        def test_vf_series_13(self):
-            results = simpleVariantFormatter.format('NC_000004.12:g.139889957_139889968del',
-                                                    'GRCh38', 'refseq', None, False, True)
-            print(results)
-            assert 'NC_000004.12:g.139889957_139889968del' in results.keys()
-            assert 'NM_018717.4 contains 3 fewer bases between c.2276_2277, and 12 fewer bases between c.1467_1468 ' \
-                   'than NC_000004.12' in results[
-                'NC_000004.12:g.139889957_139889968del']['NC_000004.12:g.139889957_139889968del']['hgvs_t_and_p'][
-                'NM_018717.4']['gap_statement']
+    def test_vf_series_13(self):
+        results = simpleVariantFormatter.format('NC_000004.12:g.139889957_139889968del',
+                                                'GRCh38', 'refseq', None, False, True)
+        print(results)
+        assert 'NC_000004.12:g.139889957_139889968del' in results.keys()
+        assert 'NM_018717.4 contains 3 fewer bases between c.2276_2277, and 12 fewer bases between c.1467_1468 ' \
+               'than NC_000004.12' in results[
+            'NC_000004.12:g.139889957_139889968del']['NC_000004.12:g.139889957_139889968del']['hgvs_t_and_p'][
+            'NM_018717.4']['gap_statement']
+
 
 class TestVVGapWarnings(TestCase):
 

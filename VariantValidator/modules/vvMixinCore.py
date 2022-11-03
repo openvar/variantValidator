@@ -125,6 +125,12 @@ class Mixin(vvMixinConverters.Mixin):
                                                                              shuffle_direction=5,
                                                                              alt_aln_method=self.alt_aln_method
                                                                              )
+                my_variant.cross_hn = vvhgvs.normalizer.Normalizer(self.hdp,
+                                                                   cross_boundaries=True,
+                                                                   shuffle_direction=3,
+                                                                   alt_aln_method=self.alt_aln_method
+                                                                   )
+
                 # This will be used to order the final output
                 if not my_variant.order:
                     ordering = ordering + 1
@@ -506,16 +512,26 @@ class Mixin(vvMixinConverters.Mixin):
                         query_r_var = formatted_variant
                         formatted_variant = formatted_variant.upper()
                         formatted_variant = formatted_variant.replace(':R.', ':r.')
+
                         # lowercase the supported variant types
                         formatted_variant = formatted_variant.replace('DEL', 'del')
                         formatted_variant = formatted_variant.replace('INS', 'ins')
                         formatted_variant = formatted_variant.replace('INV', 'inv')
                         formatted_variant = formatted_variant.replace('DUP', 'dup')
+                        ref, edit_ori = formatted_variant.split(":r.")
+                        edit = copy.copy(edit_ori)
+                        edit = edit.replace("G", "g")
+                        edit = edit.replace("A", "a")
+                        edit = edit.replace("T", "t")
+                        edit = edit.replace("C", "c")
+                        edit = edit.replace("U", "u")
+                        formatted_variant = ref + ":r." + edit
                         if query_r_var != formatted_variant:
                             e = "This not a valid HGVS description, due to characters being in the wrong case. " \
                                 "Please check the use of upper- and lowercase characters."
                             my_variant.warnings.append(str(e))
                             logger.warning(str(e))
+                        formatted_variant = formatted_variant.replace(edit, edit_ori)
 
                     # Handle <position><edit><position> style variants
                     # Refer to https://github.com/openvar/variantValidator/issues/161
@@ -699,6 +715,7 @@ class Mixin(vvMixinConverters.Mixin):
                     if toskip:
                         continue
 
+                    # RNA variants
                     trapped_input = str(my_variant.hgvs_formatted)
                     my_variant.pre_RNA_conversion = trapped_input
                     toskip = format_converters.rna(my_variant, self)
@@ -857,8 +874,11 @@ class Mixin(vvMixinConverters.Mixin):
                                 hgvs_refseqgene_variant = self.hp.parse_hgvs_variant(
                                     fn.remove_reference_string(refseqgene_variant))
                                 refseqgene_accession = hgvs_refseqgene_variant.ac
-                                hgvs_coding_from_refseqgene = self.vm.g_to_t(hgvs_refseqgene_variant,
+                                try:
+                                    hgvs_coding_from_refseqgene = self.vm.g_to_t(hgvs_refseqgene_variant,
                                                                              hgvs_transcript_variant.ac)
+                                except vvhgvs.exceptions.HGVSInvalidIntervalError:
+                                    hgvs_coding_from_refseqgene = hgvs_transcript_variant
                                 hgvs_coding_from_refseqgene = fn.valstr(hgvs_coding_from_refseqgene)
                                 hgvs_coding_from_refseqgene = self.hp.parse_hgvs_variant(
                                     fn.remove_reference_string(hgvs_coding_from_refseqgene))
@@ -1564,7 +1584,10 @@ class Mixin(vvMixinConverters.Mixin):
             tx_for_gene = kept_tx
 
         for line in tx_for_gene:
-            if (line[3].startswith('NM_') or line[3].startswith('NR_')) and '..' not in line[3]:
+            if (line[3].startswith('NM_') or line[3].startswith('NR_')) and \
+                    '..' not in line[3] and \
+                    '_NG_' not in line[3] and \
+                    "~" not in line[3]:
 
                 # Transcript ID
                 tx = line[3]

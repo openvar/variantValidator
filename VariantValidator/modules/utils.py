@@ -466,7 +466,13 @@ def translate(ed_seq, cds_start):
     met = ed_seq[cds_start:cds_start + 3]
 
     # Extended translation table see http://biopython.org/DIST/docs/tutorial/Tutorial.html#sec27
-    if (met == 'ATG') or (met == 'atg') or (met == 'TTG') or (met == 'ttg') or (met == 'CTG') or (met == 'ctg'):
+    """
+    >>> mito_table.start_codons
+    ['ATT', 'ATC', 'ATA', 'ATG', 'GTG']
+    """
+    if (met == 'ATG') or (met == 'atg') or (met == 'TTG') or (met == 'ttg') or (met == 'CTG') or (met == 'ctg') \
+        or (met == 'GTG') or (met == 'gtg') or (met == 'ATT') or (met == 'att') or (met == 'ATC') or (met == 'atc') \
+        or (met == 'ATA') or (met == 'ata'):
         # Remove the 5 prime UTR
         sequence = ed_seq[cds_start:]
         coding_dna = Seq(str(sequence))

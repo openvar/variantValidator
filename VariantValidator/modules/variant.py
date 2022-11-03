@@ -42,19 +42,19 @@ class Variant(object):
         self.order = order
         self.output_type_flag = 'warning'
         self.gene_symbol = ''
-
         self.timing = {}
-
         self.refsource = None
         self.reftype = None
 
-        # Normalizers
+        # Normalizers and mappers
         self.hn = None
         self.reverse_normalizer = None
+        self.cross_hn = None  # allows crossing of intron/exon boundaries for c. variants
         self.evm = None
         self.no_norm_evm = None
         self.min_evm = None
         self.lose_vm = None
+        self.no_replace_vm = None
 
         # Required for output
         self.stable_gene_ids = None
@@ -70,6 +70,7 @@ class Variant(object):
         self.reference_sequence_records = None
         self.validated = False
         self.exonic_positions = None
+        self.rna_data = None
 
     def is_ascii(self):
         """
@@ -215,6 +216,7 @@ class Variant(object):
             'annotations': self.annotations,
             'transcript_description': self.description,
             'hgvs_transcript_variant': self.hgvs_transcript_variant,
+            'rna_variant_descriptions': self.rna_data,
             'genome_context_intronic_sequence': self.genome_context_intronic_sequence,
             'refseqgene_context_intronic_sequence': self.refseqgene_context_intronic_sequence,
             'hgvs_refseqgene_variant': self.hgvs_refseqgene_variant,

@@ -54,7 +54,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                                              variant.reverse_normalizer)
 
     # Double check rel_vars have not been missed when mapping from a RefSeqGene
-    if len(rel_var) != 0 and 'NG_' in variant.hgvs_genomic.ac:
+    if len(rel_var) != 0 and 'NG_' in variant.hgvs_genomic.ac and validator.select_transcripts is not "refseqgene":
         for var in rel_var:
             try:
                 hgvs_coding_variant = validator.hp.parse_hgvs_variant(var)
@@ -171,7 +171,6 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
         gap_mapper = gapped_mapping.GapMapper(variant, validator)
         data, nw_rel_var = gap_mapper.gapped_g_to_c(rel_var, select_transcripts_dict)
         rel_var = nw_rel_var
-
         auto_info_list = []
         if data["gapped_alignment_warning"] != "":
             data["auto_info"] = data["auto_info"].replace("NM_", ";NM_")
@@ -193,6 +192,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                             selected_assembly=variant.selected_assembly)
             validator.batch_list.append(query)
             logger.info("Submitting new variant with format %s", str(c_description))
+
         # Call next description
         return True
     return False
@@ -213,7 +213,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
 
     # Do we keep it?
     if validator.select_transcripts != 'all' and "select" not in validator.select_transcripts and \
-            "mane" not in validator.select_transcripts:
+            "mane" not in validator.select_transcripts and "refseqgene" not in validator.select_transcripts:
         if tx_ac not in list(select_transcripts_dict_plus_version.keys()):
             # By marking it as Do Not Write and continuing through the validation loop
             variant.write = False
@@ -245,6 +245,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             return True
 
         if 'does not agree with reference sequence' not in str(e):
+            print("bing")
             errors = ['Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive',
                       'Query gene2transcripts with search term %s for '
                       'available transcripts' % tx_ac.split('.')[0]]
@@ -252,6 +253,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         logger.info(str(errors))
         return True
     except TypeError:
+        print("bong")
         errors = ['Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive',
                   'Query gene2transcripts with search term %s for '
                   'available transcripts' % tx_ac.split('.')[0]]

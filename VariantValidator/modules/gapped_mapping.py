@@ -238,8 +238,9 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 original_var = var
 
             # Remove un-selected transcripts
-            if self.validator.select_transcripts != 'all' and "select" not in self.validator.select_transcripts and\
-                    "mane" not in self.validator.select_transcripts:
+            if self.validator.select_transcripts != 'all' and "select" not in self.validator.select_transcripts and \
+                    "mane" not in self.validator.select_transcripts and "refseqgene" not in \
+                    self.validator.select_transcripts:
                 tx_ac = saved_hgvs_coding.ac
                 # If it's in the selected tx dict, keep it
                 if tx_ac.split('.')[0] in list(select_transcripts_dict.keys()):

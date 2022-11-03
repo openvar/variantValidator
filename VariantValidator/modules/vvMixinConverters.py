@@ -1553,7 +1553,7 @@ class Mixin(vvMixinInit.Mixin):
             rts_dict[tx_dat_2] = True
         rts = list(rts_dict.keys())
 
-        # First if we have a ins prepare for hgvs "ins" mishandling, which
+        # First if we have an ins prepare for hgvs "ins" mishandling, which
         # causes failures on any ins->non ins case, start by making a forced
         # "delins", equivilent to the vcf format ins requirements, then use
         # if needed. This is similar to the 'Triple check' code in mappers.py,
