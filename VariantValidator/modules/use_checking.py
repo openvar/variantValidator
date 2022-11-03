@@ -347,6 +347,8 @@ def structure_checks_c(variant, validator):
         try:
             validator.vr.validate(variant.input_parses)
         except vvhgvs.exceptions.HGVSInvalidVariantError as e:
+            print("The error")
+            print(e)
             error = str(e)
             if 'bounds' in error:
                 try:
@@ -382,9 +384,16 @@ def structure_checks_c(variant, validator):
         try:
             output = validator.noreplace_myevm_t_to_g(variant.input_parses, variant)
         except vvhgvs.exceptions.HGVSDataNotAvailableError:
-            errors = ['Required information for ' + variant.input_parses.ac + ' is missing from the Universal '
-                      'Transcript Archive', 'Query gene2transcripts with search term %s for '
-                      'available transcripts' % variant.input_parses.ac.split('.')[0]]
+            tx_info = validator.hdp.get_tx_identity_info(variant.input_parses.ac)
+            if (variant.input_parses.posedit.pos.end.base > int(tx_info[4]) or variant.input_parses.posedit.pos.end.base
+                > int(tx_info[4])) and ("*" not in str(variant.input_parses.posedit.pos.end) or "*" not in
+                                        str(variant.input_parses.posedit.pos.start)):
+                errors = ["Variant start position and/or end position are beyond the CDS end position "
+                          "and likely also beyond the end of the selected reference sequence"]
+            else:
+                errors = ['Required information for ' + variant.input_parses.ac + ' is missing from the Universal '
+                          'Transcript Archive', 'Query gene2transcripts with search term %s for '
+                          'available transcripts' % variant.input_parses.ac.split('.')[0]]
             variant.warnings.extend(errors)
             logger.info(str(errors))
             return True
@@ -623,6 +632,7 @@ def structure_checks_n(variant, validator):
         try:
             output = validator.noreplace_myevm_t_to_g(variant.input_parses, variant)
         except vvhgvs.exceptions.HGVSDataNotAvailableError:
+            print("ararar")
             errors = ['Required information for ' + variant.input_parses.ac + ' is missing from the Universal '
                                                                               'Transcript Archive',
                       'Query gene2transcripts with search term %s for '

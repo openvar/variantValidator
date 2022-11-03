@@ -245,6 +245,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             return True
 
         if 'does not agree with reference sequence' not in str(e):
+            print("bing")
             errors = ['Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive',
                       'Query gene2transcripts with search term %s for '
                       'available transcripts' % tx_ac.split('.')[0]]
@@ -252,6 +253,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         logger.info(str(errors))
         return True
     except TypeError:
+        print("bong")
         errors = ['Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive',
                   'Query gene2transcripts with search term %s for '
                   'available transcripts' % tx_ac.split('.')[0]]
