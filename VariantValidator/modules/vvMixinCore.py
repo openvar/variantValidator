@@ -666,8 +666,9 @@ class Mixin(vvMixinConverters.Mixin):
                                 logger.warning(error)
                                 continue
 
-                    elif my_variant.hgvs_formatted.posedit.pos.end.base < my_variant.hgvs_formatted.posedit.pos.start.base:
-                        if "NC_012920.1" not in my_variant.hgvs_formatted.ac and\
+                    elif my_variant.hgvs_formatted.posedit.pos.end.base < \
+                            my_variant.hgvs_formatted.posedit.pos.start.base:
+                        if "NC_012920.1" not in my_variant.hgvs_formatted.ac and \
                                 "NC_001807.4" not in my_variant.hgvs_formatted.ac:
                             error = 'Interval end position ' + str(my_variant.hgvs_formatted.posedit.pos.end.base) + \
                                     ' < interval start position ' + str(my_variant.hgvs_formatted.posedit.pos.start.base)

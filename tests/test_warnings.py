@@ -22,8 +22,8 @@ class TestWarnings(TestCase):
         variant = 'NC_000017.10(NM_007294.3):c.4421-63A>G'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert 'The entered coordinates do not agree with the intron/exon boundaries for the selected transcript' in \
-               results['validation_warning_1']['validation_warnings'][0]
+        assert 'ExonBoundaryError: Position c.4421-63 does not correspond with an exon boundary for transcript NM_007294.3' in \
+               results['validation_warning_1']['validation_warnings']
 
     def test_issue_176(self):
         variant = 'NC_000023.10(NM_004006.2):c.8810A>G'
@@ -600,7 +600,6 @@ class TestVVGapWarnings(TestCase):
         variant = 'NC_000004.11:g.140811117C>A'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-
         assert "NM_018717.4 contains 3 fewer bases between c.2276_2277, and 12 fewer bases between c.1467_1468 than NC_000004.11" in \
                results['NM_018717.4:c.1472_1473insTCAGCAGCAGCA']['validation_warnings']
 
@@ -608,7 +607,6 @@ class TestVVGapWarnings(TestCase):
         variant = 'NC_000008.10:g.24811072C>T'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-
         assert "NM_006158.5 contains 1 fewer bases between c.1413_1414 than NC_000008.10" in \
                results['NM_006158.5:c.1407delinsAC']['validation_warnings']
         assert "NM_006158.4 contains 1 fewer bases between c.1407_1408 than NC_000008.10" in \
@@ -620,7 +618,6 @@ class TestVVGapWarnings(TestCase):
         variant = 'NC_000015.9:g.72105933del'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-
         assert "NM_016346.4 contains 1 fewer bases between c.951_952 than NC_000015.9" in \
                results['NM_016346.4:c.951_952=']['validation_warnings']
         assert "NM_016346.3 contains 1 fewer bases between c.947_948 than NC_000015.9" in \
@@ -638,7 +635,6 @@ class TestVVGapWarnings(TestCase):
         variant = 'NC_000019.9:g.41123095dup'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-
         assert "NM_003573.2 contains 1 extra bases between c.3122_3124 than NC_000019.9" in \
                results['NM_003573.2:c.3122_3124=']['validation_warnings']
         assert "NM_001042545.2 contains 1 extra bases between c.3034_3036 than NC_000019.9" in \
@@ -652,7 +648,6 @@ class TestVVGapWarnings(TestCase):
         variant = 'NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG='
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-
         assert "NM_004703.6 contains 25 fewer bases between c.*369_*370 than NC_000017.10" in \
                results['NM_004703.6:c.*344_*368dup']['validation_warnings']
         assert "NM_004703.5 contains 25 fewer bases between c.*344_*345 than NC_000017.10" in \
@@ -674,7 +669,6 @@ class TestVVGapWarnings(TestCase):
         variant = 'NC_000012.11:g.122064777C>A'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-
         assert "NM_032790.3 contains 6 fewer bases between c.126_127 than NC_000012.11" in \
                results['NM_032790.3:c.129_130insACACCG']['validation_warnings']
 
@@ -682,7 +676,6 @@ class TestVVGapWarnings(TestCase):
         variant = 'NC_000002.11:g.95847041_95847043GCG='
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-
         assert "NM_021088.3 contains 3 fewer bases between c.467_468 than NC_000002.11" in \
                results['NM_021088.3:c.471_473dup']['validation_warnings']
         assert "NM_021088.2 contains 3 fewer bases between c.467_468 than NC_000002.11" in \
@@ -702,7 +695,6 @@ class TestVVGapWarnings(TestCase):
         variant = 'NC_000003.11:g.14561629_14561630insG'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-
         assert "NM_001080423.4 contains 1 extra bases between c.1019_1021 than NC_000003.11" in \
                results['NM_001080423.4:c.1019_1021=']['validation_warnings']
         assert "NM_001080423.3 contains 1 extra bases between c.1017_1019 than NC_000003.11" in \
@@ -714,7 +706,6 @@ class TestVVGapWarnings(TestCase):
         variant = 'NC_000004.11:g.140811117C>A'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-
         assert "NM_018717.4 contains 3 fewer bases between c.2276_2277, and 12 fewer bases between c.1467_1468 than NC_000004.11" in \
                results['NM_018717.4:c.1472_1473insTCAGCAGCAGCA']['validation_warnings']
 
@@ -722,7 +713,6 @@ class TestVVGapWarnings(TestCase):
         variant = 'NC_000009.11:g.136132908_136132909TA='
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-
         assert "NM_020469.3 contains 22 extra bases between c.*756_*757, and 2 extra bases between c.*797_*798, and 110 extra bases between c.*840_*841, and 2 extra bases between c.*4648_*4649, and 1 extra bases between c.260_262 than NC_000009.11" in \
                results['NM_020469.3:c.261del']['validation_warnings']
         assert "NM_020469.2 contains 1 extra bases between c.260_262 than NC_000009.11" in \
@@ -732,7 +722,6 @@ class TestVVGapWarnings(TestCase):
         variant = 'NC_000019.10:g.50378563_50378564insTAC'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-
         assert "NM_007121.5 contains 3 extra bases between c.514_518 than NC_000019.10" in \
                results['NM_007121.5:c.515A>T']['validation_warnings']
         assert "NM_001256647.1 contains 3 extra bases between c.223_227 than NC_000019.10" in \
@@ -742,7 +731,6 @@ class TestVVGapWarnings(TestCase):
         variant = 'NC_000007.13:g.149476664_149476666delinsTC'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-
         assert "NR_163594.1 contains 1 extra bases between n.1129_1131, and 1 fewer bases between n.11675_11676 than NC_000007.13" in \
                results['NR_163594.1:n.1122_1124delinsT']['validation_warnings']
 
@@ -750,9 +738,22 @@ class TestVVGapWarnings(TestCase):
         variant = 'NC_000004.12:g.139889957_139889968del'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-
         assert "NM_018717.4 contains 3 fewer bases between c.2276_2277, and 12 fewer bases between c.1467_1468 than NC_000004.12" in \
                results['NM_018717.4:c.1466_1468=']['validation_warnings']
+
+    def test_vv_series_14(self):
+        variant = 'NM_000516.7:c.2780+73C>T'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "CDSError: Variant start position and/or end position are beyond the CDS end position and likely also beyond the end of the selected reference sequence" in \
+               results['validation_warning_1']['validation_warnings']
+
+    def test_vv_series_15(self):
+        variant = 'NM_000518.5:c.89+25del'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "ExonBoundaryError: Position c.89+25 does not correspond with an exon boundary for transcript NM_000518.5" in \
+               results['validation_warning_1']['validation_warnings']
 
 
 # <LICENSE>

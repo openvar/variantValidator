@@ -347,8 +347,6 @@ def structure_checks_c(variant, validator):
         try:
             validator.vr.validate(variant.input_parses)
         except vvhgvs.exceptions.HGVSInvalidVariantError as e:
-            print("The error")
-            print(e)
             error = str(e)
             if 'bounds' in error:
                 try:
@@ -388,7 +386,7 @@ def structure_checks_c(variant, validator):
             if (variant.input_parses.posedit.pos.end.base > int(tx_info[4]) or variant.input_parses.posedit.pos.end.base
                 > int(tx_info[4])) and ("*" not in str(variant.input_parses.posedit.pos.end) or "*" not in
                                         str(variant.input_parses.posedit.pos.start)):
-                errors = ["Variant start position and/or end position are beyond the CDS end position "
+                errors = ["CDSError: Variant start position and/or end position are beyond the CDS end position "
                           "and likely also beyond the end of the selected reference sequence"]
             else:
                 errors = ['Required information for ' + variant.input_parses.ac + ' is missing from the Universal '

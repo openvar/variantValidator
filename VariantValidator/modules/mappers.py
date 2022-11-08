@@ -37,6 +37,16 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
 
     # Set test to see if Norm alters the coords
     g_test = variant.hn.normalize(g_query)
+    try:
+        if "N" in g_test.posedit.edit.ref:
+            variant.warnings.append("Submitted variant description cannot be validated as it is located in a region of "
+                                    "the reference sequence represented by base 'N' and not 'GATC'")
+            logger.warning(error)
+            return True
+    except AttributeError:
+        pass
+    except TypeError:
+        pass
 
     # Perform test
     if g_query.posedit.pos != g_test.posedit.pos:
@@ -389,6 +399,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                     return True
                 else:
                     logger.debug("Except passed, %s", e)
+
             # genome back to C coordinates
             try:
                 post_var = validator.myevm_g_to_t(variant.evm, pre_var, trans_acc)
@@ -397,13 +408,12 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                 logger.warning(str(error))
                 return True
             test = validator.hp.parse_hgvs_variant(quibble_input)
-
             if post_var.posedit.pos.start.base != test.posedit.pos.start.base or \
                     post_var.posedit.pos.end.base != test.posedit.pos.end.base:
-                caution = 'The entered coordinates do not agree with the intron/exon boundaries for the ' \
-                          'selected transcript'
+                caution = "ExonBoundaryError: Position c.%s does not correspond with an exon boundary for transcript " \
+                          "%s" % (test.posedit.pos, test.ac)
                 variant.warnings.extend([caution])
-                # raise MappersError(caution)
+                raise MappersError(caution)
 
         else:  # del not in formatted_variant
 
@@ -415,14 +425,13 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
 
             # genome back to C coordinates
             post_var = validator.myevm_g_to_t(variant.evm, pre_var, trans_acc)
-
             test = validator.hp.parse_hgvs_variant(quibble_input)
             if post_var.posedit.pos.start.base != test.posedit.pos.start.base or \
                     post_var.posedit.pos.end.base != test.posedit.pos.end.base:
-                caution = 'The entered coordinates do not agree with the intron/exon boundaries for the ' \
-                          'selected transcript'
+                caution = "ExonBoundaryError: Position c.%s does not correspond with an exon boundary for transcript " \
+                          "%s" % (test.posedit.pos, test.ac)
                 variant.warnings.extend([caution])
-                # raise MappersError(caution)
+                raise MappersError(caution)
 
     elif ':g.' not in quibble_input:
         query = validator.hp.parse_hgvs_variant(formatted_variant)
