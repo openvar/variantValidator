@@ -3350,15 +3350,52 @@ class TestVariantsAuto(TestCase):
         assert results['NM_032790.3:c.125_126delinsGCCA'][
                    'hgvs_lrg_transcript_variant'] == 'LRG_93t1:c.125_126delinsGCCA'
         assert results['NM_032790.3:c.125_126delinsGCCA']['hgvs_lrg_variant'] == 'LRG_93:g.5298_5299delinsGCCA'
-        self.assertCountEqual(results['NM_032790.3:c.125_126delinsGCCA']['alt_genomic_loci'], [{'grch37': {
-            'hgvs_genomic_description': 'NW_004504303.2:g.302870_302873del',
-            'vcf': {'chr': 'HG1595_PATCH', 'pos': '302869', 'ref': 'GCCCC', 'alt': 'G'}}}, {'hg19': {
-            'hgvs_genomic_description': 'NW_004504303.2:g.302870_302873del',
-            'vcf': {'chr': 'NW_004504303.2', 'pos': '302869', 'ref': 'GCCCC', 'alt': 'G'}}}, {'grch38': {
-            'hgvs_genomic_description': 'NW_018654719.1:g.32643_32644delinsGCCA', 
-            'vcf': {'chr': 'HG2047_PATCH', 'pos': '32643', 'ref': 'CC', 'alt': 'GCCA'}}}, {'hg38': {
-            'hgvs_genomic_description': 'NW_018654719.1:g.32643_32644delinsGCCA',
-            'vcf': {'chr': 'NW_018654719.1', 'pos': '32643', 'ref': 'CC', 'alt': 'GCCA'}}}])
+        self.assertCountEqual(results['NM_032790.3:c.125_126delinsGCCA']['alt_genomic_loci'],  [
+            {
+                "grch37": {
+                    "hgvs_genomic_description": "NW_004504303.2:g.302870_302873del",
+                    "vcf": {
+                        "alt": "G",
+                        "chr": "HG1595_PATCH",
+                        "pos": "302869",
+                        "ref": "GCCCC"
+                    }
+                }
+            },
+            {
+                "hg19": {
+                    "hgvs_genomic_description": "NW_004504303.2:g.302870_302873del",
+                    "vcf": {
+                        "alt": "G",
+                        "chr": "NW_004504303.2",
+                        "pos": "302869",
+                        "ref": "GCCCC"
+                    }
+                }
+            },
+            {
+                "grch38": {
+                    "hgvs_genomic_description": "NW_018654719.1:g.32643_32644delinsGCCA",
+                    "vcf": {
+                        "alt": "GCCA",
+                        "chr": "HG2047_PATCH",
+                        "pos": "32643",
+                        "ref": "CC"
+                    }
+                }
+            },
+            {
+                "hg38": {
+                    "hgvs_genomic_description": "NW_018654719.1:g.32643_32644delinsGCCA",
+                    "vcf": {
+                        "alt": "GCCA",
+                        "chr": "chr12_KZ208917v1_fix",
+                        "pos": "32643",
+                        "ref": "CC"
+                    }
+                }
+            }
+        ])
         assert results['NM_032790.3:c.125_126delinsGCCA']['primary_assembly_loci']['hg19'] == {
             'hgvs_genomic_description': 'NC_000012.11:g.122064772_122064775del',
             'vcf': {'chr': 'chr12', 'pos': '122064771', 'ref': 'GCCCC', 'alt': 'G'}}
@@ -3597,15 +3634,52 @@ class TestVariantsAuto(TestCase):
             'tlr': 'NP_116179.2:p.(Pro43ThrfsTer45)', 'slr': 'NP_116179.2:p.(P43Tfs*45)'}
         assert results['NM_032790.3:c.126_127insA']['hgvs_lrg_transcript_variant'] == 'LRG_93t1:c.126_127insA'
         assert results['NM_032790.3:c.126_127insA']['hgvs_lrg_variant'] == 'LRG_93:g.5299_5300insA'
-        self.assertCountEqual(results['NM_032790.3:c.126_127insA']['alt_genomic_loci'], [{'grch37': {
-            'hgvs_genomic_description': 'NW_004504303.2:g.302872_302876del',
-            'vcf': {'chr': 'HG1595_PATCH', 'pos': '302868', 'ref': 'GGCCCC', 'alt': 'G'}}}, {'hg19': {
-            'hgvs_genomic_description': 'NW_004504303.2:g.302872_302876del',
-            'vcf': {'chr': 'NW_004504303.2', 'pos': '302868', 'ref': 'GGCCCC', 'alt': 'G'}}}, {'grch38': {
-            'hgvs_genomic_description': 'NW_018654719.1:g.32644_32645insA',
-            'vcf': {'chr': 'HG2047_PATCH', 'pos': '32644', 'ref': 'C', 'alt': 'CA'}}}, {'hg38': {
-            'hgvs_genomic_description': 'NW_018654719.1:g.32644_32645insA',
-            'vcf': {'chr': 'NW_018654719.1', 'pos': '32644', 'ref': 'C', 'alt': 'CA'}}}])
+        self.assertCountEqual(results['NM_032790.3:c.126_127insA']['alt_genomic_loci'], [
+            {
+                "grch37": {
+                    "hgvs_genomic_description": "NW_004504303.2:g.302872_302876del",
+                    "vcf": {
+                        "alt": "G",
+                        "chr": "HG1595_PATCH",
+                        "pos": "302868",
+                        "ref": "GGCCCC"
+                    }
+                }
+            },
+            {
+                "hg19": {
+                    "hgvs_genomic_description": "NW_004504303.2:g.302872_302876del",
+                    "vcf": {
+                        "alt": "G",
+                        "chr": "NW_004504303.2",
+                        "pos": "302868",
+                        "ref": "GGCCCC"
+                    }
+                }
+            },
+            {
+                "grch38": {
+                    "hgvs_genomic_description": "NW_018654719.1:g.32644_32645insA",
+                    "vcf": {
+                        "alt": "CA",
+                        "chr": "HG2047_PATCH",
+                        "pos": "32644",
+                        "ref": "C"
+                    }
+                }
+            },
+            {
+                "hg38": {
+                    "hgvs_genomic_description": "NW_018654719.1:g.32644_32645insA",
+                    "vcf": {
+                        "alt": "CA",
+                        "chr": "chr12_KZ208917v1_fix",
+                        "pos": "32644",
+                        "ref": "C"
+                    }
+                }
+            }
+        ])
         assert results['NM_032790.3:c.126_127insA']['primary_assembly_loci']['hg19'] == {
             'hgvs_genomic_description': 'NC_000012.11:g.122064774_122064778del',
             'vcf': {'chr': 'chr12', 'pos': '122064770', 'ref': 'GGCCCC', 'alt': 'G'}}
@@ -30573,8 +30647,6 @@ class TestVariantsAuto(TestCase):
                ] == "NM_000484.4:r.2067_2213del"
         assert results['NM_000484.4:c.2067_2211+2del']['rna_variant_descriptions']['translation'
                ] == "NP_000475.1:p.Phe690_Val738del"
-
-
 
 # <LICENSE>
 # Copyright (C) 2016-2022 VariantValidator Contributors
