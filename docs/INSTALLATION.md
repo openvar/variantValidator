@@ -71,10 +71,11 @@ A MySQL database called validator is required to run VariantValidator. We recomm
 validator database, for example:
 
 ```mysql
-CREATE USER 'USER'@'HOST' IDENTIFIED BY 'PASSWORD';
+CREATE USER 'USER'@'HOST' IDENTIFIED WITH mysql_native_password BY 'PASSWORD';
 CREATE DATABASE validator;
 GRANT SELECT,INSERT,UPDATE,DELETE ON validator.* TO 'USER'@'HOST';
 ```
+
 Where:
 - USER should be a user-name e.g. vvadmin
 - HOST is the MySQL host ID, usually 127.0.0.1
@@ -87,9 +88,9 @@ Download and our pre-populated database to MySQL as follows.
 ***Essential Step: check [here](https://www528.lamp.le.ac.uk/vvdata/validator/) and make sure you download and install the most up-to-date version***
 
 ```bash
-$ wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_2021-07-21.sql.gz
-$ gunzip validator_2021-07-21.sql.gz
-$ mysql validator < validator_2021-07-21.sql -u HOST -p
+$ wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_202x-xx-xx.sql.gz
+$ gunzip validator_202x-xx-xx.sql.gz
+$ mysql validator < validator_202x-xx-xx.sql -u HOST -p
 ```
 
 See the [Manual](MANUAL.md) for instructions on updating this database, which should be done regularly.
@@ -106,9 +107,9 @@ VariantValidator requires a local SeqRepo database. The seqrepo package has alre
 ```
 $ mkdir /path/to/seqrepo
 $ cd /path/to/seqrepo
-$ wget https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_2021_2.tar
-$ tar -xvf VV_SR_2021_2.tar
-$ rm VV_SR_2021_2.tar
+$ wget https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_20xx_xx.tar
+$ tar -xvf VV_SR_20xx_xx.tar
+$ rm VV_SR_20xx_xx.tar
 ```
 where /path/to/seqrepo should be where you install the database e.g. /Users/Shared/seqrepo_dumps/ or /local/seqrepo
 
@@ -134,9 +135,16 @@ To fill this database, download the gzipped uta genetics database, and upload it
 
 ***Essential Step: check [here](https://www528.lamp.le.ac.uk/vvdata/vvta/) and make sure you download and install the most up-to-date version***
 
+*Postgres < version 14.0*
 ```
-$ wget --output-document=VVTA_2022_02.noseq.psql.gz https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_2022_02.noseq.psql.gz
-$ gzip -cdq VVTA_2022_02.noseq.psql.gz | psql -U <USER> -v ON_ERROR_STOP=0 -d vvta -Eae
+$ wget --output-document=VVTA_202x_xx.noseq.psql.gz https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_202x_xx.noseq.psql.gz
+$ gzip -cdq VVTA_202x_xx.noseq.psql.gz | psql -U <USER> -v ON_ERROR_STOP=0 -d vvta -Eae
+```
+
+*Postgres >= version 14.0*
+```
+$ wget --output-document=VVTA_202x_xx.noseq.psql.gz https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_202x_xx.noseq.psql.gz
+$ gzip -cdq -k VVTA_202x_xx.noseq.psql.gz | sed 's/anyarray/anycompatiblearray/g' | psql -U <USER> -v ON_ERROR_STOP=0 -d vvta -Eae
 ```
 
 ## Configuration

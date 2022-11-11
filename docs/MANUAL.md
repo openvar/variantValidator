@@ -16,23 +16,28 @@ if you don't enter anything else. The items in the configuration file are:
 
 ```text
 [mysql]
-host = localhost
+host = 127.0.0.1
+port = 3306
 database = validator
 user = USERNAME
 password = PASSWORD
+version = VERSION
 
 [seqrepo]
-version = 2018-08-21
+version = VERSION/master
 location = /PATH/TO/SEQREPO
+require_threading = False  # Set to True if you want to deploy VV in a web application
 
 [postgres]
-host = localhost
-database = uta
-version = uta_20180821
+host = 127.0.0.1
+database = vvta
+port = 5432
+version = VERSION
 user = USERNAME
 password = PASSWORD
 
 [logging]
+# Levels control verbosity and can be set to "CRITICAL" "ERROR" "WARNING" "INFO" or "DEBUG".
 log = True
 console = INFO
 file = WARNING
@@ -43,6 +48,14 @@ api_key = YOUR_API_KEY
 ```
 
 The values in capitals must be replaced for VariantValidator to run, see below for more details.
+
+**Standard formats for configuration**
+
+*Update the dates of each database build to match the version you downloaded*
+
+- mysql database version e.g. vvdb_2022_04 (update the data to the latest build to match your download)
+- vvSeqRepo [VERSION/master] e.g. VV_SR_2022_02/master
+- VVTA database version e.g. vvta_2022_02
 
 **This script can also be used to uodate your configuration at a later date**
 

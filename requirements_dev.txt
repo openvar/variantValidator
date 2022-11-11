@@ -10,4 +10,5 @@ requests
 biopython
 pytest>=3.6
 pytest-cov
+pysam
 codecov
