@@ -8,3 +8,4 @@ biotools>=0.3.0
 mysql-connector-python
 biopython
 requests
+pysam
