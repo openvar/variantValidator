@@ -1,12 +1,7 @@
 #!/usr/bin/env python
 
 # Prefer setuptools over distutils
-from setuptools import setup, find_packages
-
-# with open('VariantValidator/version.py') as ins:
-#     version = ins.read()
-#     version = version.split('=')[1].strip()
-#     version = version.replace("'", "")
+from setuptools import setup
 
 setup(
     name='VariantValidator',
@@ -43,6 +38,7 @@ setup(
     data_files=[
         ('configuration', ['configuration/default.ini', 'configuration/empty_vv_db.sql'])
     ],
+
     # What does your project relate to?
     keywords=[
         "bioinformatics",
