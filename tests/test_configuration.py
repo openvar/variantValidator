@@ -195,7 +195,8 @@ class TestConfigValues(unittest.TestCase):
         self.assertIn(self.config['logging']['console'].upper(), ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'])
         self.assertIn(self.config['logging']['file'].upper(), ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'])
 
-        self.assertRegex(self.config['Entrez']['email'], r'\w+@\w+.\w+')
+        if self.config['Entrez']['email'] != "OPTIONAL":
+            self.assertRegex(self.config['Entrez']['email'], r'\w+@\w+.\w+')
 
     def test_file_parsing(self):
         import VariantValidator

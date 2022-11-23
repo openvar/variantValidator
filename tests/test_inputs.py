@@ -13567,7 +13567,7 @@ class TestVariantsAuto(TestCase):
                    'genome_context_intronic_sequence'] == 'NC_000011.9(NM_024740.2):c.406-7C>T'
         assert results['NM_024740.2:c.406-7C>T'][
                    'refseqgene_context_intronic_sequence'] == 'NG_009210.2(NM_024740.2):c.406-7C>T'
-        assert results['NM_024740.2:c.406-7C>T']['hgvs_refseqgene_variant'] == 'NG_009210.2:g.11324C>T'
+        assert results['NM_024740.2:c.406-7C>T']['hgvs_refseqgene_variant'] == 'NG_009210.2:g.11323C>T'
         assert results['NM_024740.2:c.406-7C>T']['hgvs_predicted_protein_consequence'] == {'tlr': 'NP_079016.2:p.?',
                                                                                            'slr': 'NP_079016.2:p.?'}
         assert results['NM_024740.2:c.406-7C>T']['hgvs_lrg_transcript_variant'] == ''
