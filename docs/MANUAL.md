@@ -73,16 +73,6 @@ the respective configuration setting. Optionally, you can also provide an NCBI A
 made per second. See [this article](https://ncbiinsights.ncbi.nlm.nih.gov/2017/11/02/new-api-keys-for-the-e-utilities/) on how to generate an API key.
 
 
-## Database updates
-
-To import the initial data into the Validator MySQL database, run the following script:
-
-```bash
-python bin/update_vdb.py
-```
-
-This will download the required data to convert between LRG and RefSeq IDs. We recommend re-running this command on a regular basis as changes are continually made to the RefSeq and LRG collections.  
-
 ## Operation
 
 To run VariantValidator, we have provided the installed script `bin/variant_validator.py`, running this with the flag `-h` shows the running options:
@@ -113,6 +103,19 @@ optional arguments:
 ```
 
 From this script you can run the validator with a number of different input and output options.
+
+**Simple Example**
+```bash
+# Note: Variant descriptions must always be contained in '' or ""
+$ bin/variant_validator.py -v 'NC_000017.11:g.50198002C>A' -g GRCh38 -t mane -s individual -f json -m -o stdout
+```
+
+**Capture the output using Python**
+```python
+import subprocess
+validation = subprocess.run("./bin/variant_validator.py -v 'NC_000017.11:g.50198002C>A' -g GRCh38 -t mane -s individual -f json -m -o stdout", stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, shell=True)
+print(validation.stdout.decode("utf-8"))
+```
 
 You can also import and use the package directly within python. For example:
 

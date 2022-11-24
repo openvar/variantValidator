@@ -46,12 +46,19 @@ if __name__ == '__main__':
     if args.submission == 'individual':
         for variant in args.variant:
             output = validator.validate(variant, args.genome, args.transcripts)
-            args.output.write(output_results(output, args.output_format, args.meta) + '\n')
+            print(args.output.name)
+            if args.output.name == "stdout":
+                print(output_results(output, args.output_format, args.meta))
+            else:
+                args.output.write(output_results(output, args.output_format, args.meta) + '\n')
     else:
         batch = '|'.join(args.variant)
         sys.stderr.write("Submitting batch query: %s\n" % batch)
         output = validator.validate(batch, args.genome, args.transcripts)
-        args.output.write(output_results(output, args.output_format, args.meta) + '\n')
+        if args.output.name == "stdout":
+            print(output_results(output, args.output_format, args.meta))
+        else:
+            args.output.write(output_results(output, args.output_format, args.meta) + '\n')
 
 # <LICENSE>
 # Copyright (C) 2016-2022 VariantValidator Contributors
