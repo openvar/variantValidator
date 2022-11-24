@@ -6,8 +6,8 @@ RUN apt-get install -y wget
 
 RUN mkdir -p /usr/local/share/seqrepo
 
-RUN wget --output-document=/usr/local/share/seqrepo/VV_SR_2022_02.tar https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_2022_02.tar
+RUN wget --output-document=/usr/local/share/seqrepo/VV_SR_2022_11.tar https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_2022_11.tar
 
-RUN tar -xvf /usr/local/share/seqrepo/VV_SR_2022_02.tar --directory /usr/local/share/seqrepo
+RUN tar -xvf /usr/local/share/seqrepo/VV_SR_2022_11.tar --directory /usr/local/share/seqrepo
 
-RUN rm /usr/local/share/seqrepo/VV_SR_2022_02.tar
+RUN rm /usr/local/share/seqrepo/VV_SR_2022_11.tar

@@ -48,6 +48,18 @@ $ mkdir ~/variantvalidator_data/share
 ```
 i.e. a directory called share in your home directory
 
+- Edit the `vdb_docker.df` file 
+
+You need to select your chip set e.g. Arm or Intel and remove the relevant hash. Default is intel
+
+```
+# For Arm chips e.g. Apple M1
+# FROM biarms/mysql:5.7
+
+# For Intel chips
+FROM mysql:5.7
+```
+
 - Build
 
 ```bash
@@ -165,6 +177,7 @@ VV_SR_2021_2
 ``` 
 
 ```bash
+$ cd /app
 $ pytest
 ```
 
@@ -180,6 +193,19 @@ run the validator script
 
 ```bash
 $ docker-compose run vv variant_validator.py
+```
+
+**Example**
+```bash
+# Note: The variant description must be contained in '' or "". See MANUAL.md for more examples
+$ docker-compose run vv variant_validator.py -v 'NC_000017.11:g.50198002C>A' -g GRCh38 -t mane -s individual -f json -m -o stdout
+```
+
+**Example 2 - use Python to collect output**
+```python
+import subprocess
+validation = subprocess.run(["docker-compose run vv variant_validator.py -v 'NC_000017.11:g.50198002C>A' -g GRCh38 -t mane -s individual -f json -m -o stdout"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, shell=True)
+print(validation.stdout.decode("utf-8"))
 ```
 
 run python
