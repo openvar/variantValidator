@@ -1,8 +1,8 @@
 # For Arm chips e.g. Apple M1
-FROM biarms/mysql:5.7
+# FROM biarms/mysql:5.7
 
 # For Intel chips
-# FROM mysql:5.7
+FROM mysql:5.7
 
 ENV MYSQL_RANDOM_ROOT_PASSWORD yes
 
