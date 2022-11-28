@@ -1281,6 +1281,8 @@ class Mixin(vvMixinConverters.Mixin):
                 ref_records = self.db.get_urls(variant.output_dict())
                 if ref_records != {}:
                     variant.reference_sequence_records = ref_records
+
+                # Liftover intergenic positions genome to genome
                 if (variant.output_type_flag == 'intergenic' and liftover_level is not None) or \
                         (('grch37' not in variant.primary_assembly_loci.keys() or
                           'grch38' not in variant.primary_assembly_loci.keys() or
@@ -1326,7 +1328,6 @@ class Mixin(vvMixinConverters.Mixin):
                             g_to_g = True
 
                         # Lift-over
-
                         if (genomic_position_info[g_p_key]['hgvs_genomic_description'] not in lo_cache.keys()) or (
                                 "NC_012920.1" in genomic_position_info[g_p_key]['hgvs_genomic_description']
                                 and build_from == "hg38" and build_to == "hg19"):

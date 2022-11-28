@@ -64,7 +64,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                                              variant.reverse_normalizer)
 
     # Double check rel_vars have not been missed when mapping from a RefSeqGene
-    if len(rel_var) != 0 and 'NG_' in variant.hgvs_genomic.ac and validator.select_transcripts is not "refseqgene":
+    if len(rel_var) != 0 and 'NG_' in variant.hgvs_genomic.ac and validator.select_transcripts != "refseqgene":
         for var in rel_var:
             try:
                 hgvs_coding_variant = validator.hp.parse_hgvs_variant(var)
@@ -255,7 +255,6 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             return True
 
         if 'does not agree with reference sequence' not in str(e):
-            print("bing")
             errors = ['Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive',
                       'Query gene2transcripts with search term %s for '
                       'available transcripts' % tx_ac.split('.')[0]]
@@ -263,7 +262,6 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         logger.info(str(errors))
         return True
     except TypeError:
-        print("bong")
         errors = ['Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive',
                   'Query gene2transcripts with search term %s for '
                   'available transcripts' % tx_ac.split('.')[0]]
@@ -583,9 +581,9 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     # Replace p.= with p.(=)
     # Replace p.? with p.(?)
     try:
-        if protein_dict['hgvs_protein'].posedit is '=':
+        if protein_dict['hgvs_protein'].posedit == '=':
             protein_dict['hgvs_protein'].posedit = '(=)'
-        if protein_dict['hgvs_protein'].posedit is '?':
+        if protein_dict['hgvs_protein'].posedit == '?':
             protein_dict['hgvs_protein'].posedit = '(?)'
     except AttributeError:
         pass
@@ -758,7 +756,7 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=
     for alt_chr in mapping_options:
         if liftover_level is None:
             multi_list.append(variant.genomic_g.split(":")[0])
-        elif liftover_level is 'primary':
+        elif liftover_level == 'primary':
             if ('NC_' in alt_chr[1]) and alt_chr[2] == validator.alt_aln_method:
                 multi_list.append(alt_chr[1])
         else:
