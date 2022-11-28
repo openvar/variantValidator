@@ -6,9 +6,9 @@ services:
       context: .
       dockerfile: vdb_docker.df
     ports:
-      - "33060:3306"
+      - "53306:3306"
     expose:
-      - "33060"
+      - "53306"
     networks:
       - vv-internal
   vvta:
@@ -16,9 +16,9 @@ services:
       context: .
       dockerfile: vvta_docker.df
     ports:
-      - "54320:5432"
+      - "54321:5432"
     expose:
-      - "54320"
+      - "54321"
     networks:
       - vv-internal
   seqrepo:
