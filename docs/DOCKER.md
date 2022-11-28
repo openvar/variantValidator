@@ -270,17 +270,18 @@ Start the container
 $ docker-compose run vv bash
 ```
 
-ON YOUR COMPUTER change into the share directory
+ON YOUR COMPUTER change into the shared directory
 
 ```bash
-$ cd ~/share
+$ cd /usr/local/share/
+
 ```
 
 Then create a directory for development
 
 ```bash
-$ mkdir DevelopmentRepos
-$ cd ~/share/DevelopmentRepos
+$ mkdir repos
+$ cd /usr/local/share/repos
 ```
 
 Clone the VariantValidator Repo
@@ -324,10 +325,7 @@ validation = validate.format_as_dict(with_meta=True)
 print(json.dumps(validation, sort_keys=True, indent=4, separators=(',', ': ')))
 ```
 
-## Updating rest_variantValidator using docker-compose
-Update requires that the restvv container is deleted from your system. This is not achieved by removing the container
-
-If you are only running rest_variantValidator in docker, we recommend deleting and re-building all containers
+# Removing and re-building
 
 ```bash
 # Delete all containers

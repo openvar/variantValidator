@@ -335,13 +335,12 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
 
         lifted_ref_bases = from_vcf['ref']
         lifted_alt_bases = from_vcf['alt']
+        if hgvs_genomic.posedit.edit.type == "dup":
+            lifted_alt_bases = lifted_alt_bases + lifted_alt_bases[1:]
 
         # Inverted sequence
         if orientated != '+':
-            my_seq = Seq(lifted_ref_bases)
-            lifted_ref_bases = my_seq.reverse_complement()
-            your_seq = Seq(lifted_alt_bases)
-            lifted_alt_bases = your_seq.reverse_complement()
+            continue
 
         # Find the accession
         accession = seq_data.to_accession(chrom, lo_to)
@@ -395,7 +394,8 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                     pass
 
             # Correct 37 to GRCh38 mito liftover - Applies when lifting from GRCh38/hg38 only!
-            elif build_to == "GRCh38" and ("37" in build_from or "19" in build_from) and hgvs_genomic.ac == "NC_001807.4":
+            elif build_to == "GRCh38" and ("37" in build_from or "19" in build_from) and hgvs_genomic.ac \
+                    == "NC_001807.4":
                 mito_correction = True
 
                 # Flag lifted genome build as hg19
@@ -429,11 +429,12 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                     (pos - 1) + len(lifted_ref_bases)) + 'delins' + lifted_alt_bases
                 not_delins = str(not_delins)
                 hgvs_not_delins = validator.hp.parse_hgvs_variant(not_delins)
+
                 try:
                     hgvs_lifted = hn.normalize(hgvs_not_delins)
                 except vvhgvs.exceptions.HGVSDataNotAvailableError:
                     continue
-            
+
                 # Now try map back
                 lo = LiftOver(lo_to, lo_from)
                 # Lift back
@@ -540,7 +541,6 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                                                     'alt': vcf_dict['alt']
                                                     }
                                         }
-
 
                                 else:
                                     lifted_response[mito_build.lower()][hgvs_lifted.ac] = {
