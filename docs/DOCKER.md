@@ -35,6 +35,11 @@ As is adding an email address
 *Note: some of these steps take >>1hr to complete depending on the speed of your internet connection, particularly 
 compiling SeqRepo*
 
+*Note: Depending on your system setup you may need to use `sudo` or be root to run docker. If you are using `sudo`
+you will need to prefix the `docker-compose` commands below with `sudo --preserve-env=HOME`, or else if just
+using `sudo` edit the `docker-comose.yml` file to replace `${HOME}` with a location of your choice, making sure to
+create the `variantvalidator_data` and `share` folders as needed.*
+
 - Pull images
 
 ```bash
