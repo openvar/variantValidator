@@ -62,7 +62,7 @@ You need to select your chip set e.g. Arm or Intel and remove the relevant hash.
 # FROM biarms/mysql:5.7
 
 # For Intel chips
-FROM mysql:5.7
+FROM mysql:5.7-debian
 ```
 
 - Build
@@ -92,13 +92,24 @@ ctrl + c
 
 ### Build errors you may encounter
 
-***If you have MySQL and or Postgres databases already running, you may encounter an error***  
+***If other services on your system conflict with the network resources used to expose the docker versions of MySQL
+and or Postgres databases you may encounter an error***
 
-> "ERROR: for vdb  Cannot start service vdb: Ports are not available: listen tcp 0.0.0.0:3306: bind: address already in use" 
+> "ERROR: for vdb Cannot start service vdb: Ports are not available: listen tcp 0.0.0.0:53306: bind: address already in use"
 
-If you encounter these issues, stop the build by pressing `ctrl+c`
+or
 
-- Reconfigure the ports used in the `docker-comose.yml` file as shown here
+> "ERROR: for vvta Cannot start service vvta: Ports are not available: listen tcp 0.0.0.0:54321: bind: address already in use"
+
+If you encounter either of these issues, stop the build by pressing `ctrl+c`
+
+- Reconfigure the ports used in the `docker-comose.yml` file
+    - If you do not intend to use the databases except to run VariantValidator you can just remove the 'ports:' and
+      'expose:' sections containing the offending port number
+    - Otherwise you can fix the problem by moving to an unused port, via advancing the port number mentioned in the
+      error message by 1
+    - you are recommended to hash (`#`) the conflicting port first, then add the new ports if wanted by advancing the
+      external (first) port numbers, as shown below
 ```yml
 services:
   vdb:
@@ -106,58 +117,29 @@ services:
       context: .
       dockerfile: vdb_docker.df
     ports:
-      # - "33060:3306"
-      - "3306:3306"
+      # - "53306:3306"
+      - "53307:3306"
     expose:
-      # - "33060"
-      - "3306"
-  uta:
+      # - "53306"
+      - "53307"
+```
+or
+```yml
+  vvta:
     build:
       context: .
       dockerfile: uta_docker.df
     ports:
-      - "54320:5432"
+      # - "54321:5432"
+      - "54322:5432"
     expose:
-      - "54320"
-
+      # - "54321"
+      - "54322"
 ``` 
-- hash (`#`) the conflicting port and add the new ports as shown above
-- force-recreate the container
 
-```bash
-$ docker-compose down
-$ docker-compose up --force-recreate
-```
+- save the file once you have finished editing
 
-***You may encounter a build error relating to other unavailable ports***  
-
-> "Cannot start service restvv: Ports are not available: listen tcp 0.0.0.0:8000: bind: address already in use" 
-
-If you encounter these issues, stop the build by pressing `ctrl+c`
-
-- Reconfigure the ports used in the `docker-comose.yml` file as shown here
-
-```yml
-  restvv:
-    build: .
-    depends_on:
-      - vdb
-      - uta
-    volumes:
-      - seqdata:/usr/local/share/seqrepo
-    ports:
-      - "5000:5000"
-      # - "8000:8000"
-      - "8080:8080"
-    expose:
-      - "5000"
-      # - "8000"
-      - 8080
-```
-
-- hash (`#`) the conflicting port and add the new ports as shown above
-- Change the command in Dockerfile to reflect the changes e.g. `CMD gunicorn  -b 0.0.0.0:8080 app --threads=5 --chdir ./rest_VariantValidator/`
-- force-recreate the container
+- force-recreate the container to apply the new settings, by running the following docker commands
 
 ```bash
 $ docker-compose down
@@ -255,13 +237,10 @@ $ exit
 
 #### What you can do in bash mode
 
-1. Run VariantValidator can be run on the commandline from within the container
+1. Run pytest on VariantValidator, to test the function of your VariantValidator install
+
+2. Run VariantValidator, which can be run on the commandline from within the container
     - Instructions can be found in the VariantValidator [manual](https://github.com/openvar/variantValidator/blob/master/docs/MANUAL.md) under sections **Database updates** and **Operation**
-    
-2. Start the REST services in development mode, bound to port 5000 
-    - For example, this is useful if you want to develop new methods and test them
-    - Note: Under the terms and conditions of our [license](https://github.com/openvar/rest_variantValidator/blob/master/LICENSE.txt) changes to the code and improvements must be made available to the community so that we can integrate them for the good of all our users 
-    - See instructions on VariantValidator development in Docker 
 
 
 ## Developing VariantValidator in Docker
@@ -329,10 +308,10 @@ validation = validate.format_as_dict(with_meta=True)
 print(json.dumps(validation, sort_keys=True, indent=4, separators=(',', ': ')))
 ```
 
-## Updating rest_variantValidator using docker-compose
-Update requires that the restvv container is deleted from your system. This is not achieved by removing the container
+## Updating variantValidator using docker-compose
+Update requires that the vv container is deleted from your system. This is not achieved by removing the container
 
-If you are only running rest_variantValidator in docker, we recommend deleting and re-building all containers
+If you are only running variantValidator in docker, we recommend deleting and re-building all containers
 
 ```bash
 # Delete all containers
@@ -350,6 +329,6 @@ $ docker-compose down
 $ docker-compose up --force-recreate
 ```
 
-***If you choose this option, make sure you see the container restvv being re-created and all Python packages being 
+***If you choose this option, make sure you see the container vv being re-created and all Python packages being
 reinstalled in the printed logs, otherwise the container may not actually be rebuilt and the contained modules may not
  update***
