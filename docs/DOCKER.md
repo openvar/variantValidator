@@ -35,6 +35,11 @@ As is adding an email address
 *Note: some of these steps take >>1hr to complete depending on the speed of your internet connection, particularly 
 compiling SeqRepo*
 
+*Note: Depending on your system setup you may need to use `sudo` or be root to run docker. If you are using `sudo`
+you will need to prefix the `docker-compose` commands below with `sudo --preserve-env=HOME`, or else if just
+using `sudo` edit the `docker-comose.yml` file to replace `${HOME}` with a location of your choice, making sure to
+create the `variantvalidator_data` and `share` folders as needed.*
+
 - Pull images
 
 ```bash
@@ -270,17 +275,18 @@ Start the container
 $ docker-compose run vv bash
 ```
 
-ON YOUR COMPUTER change into the share directory
+ON YOUR COMPUTER change into the shared directory
 
 ```bash
-$ cd ~/share
+$ cd /usr/local/share/
+
 ```
 
 Then create a directory for development
 
 ```bash
-$ mkdir DevelopmentRepos
-$ cd ~/share/DevelopmentRepos
+$ mkdir repos
+$ cd /usr/local/share/repos
 ```
 
 Clone the VariantValidator Repo
@@ -324,10 +330,7 @@ validation = validate.format_as_dict(with_meta=True)
 print(json.dumps(validation, sort_keys=True, indent=4, separators=(',', ': ')))
 ```
 
-## Updating rest_variantValidator using docker-compose
-Update requires that the restvv container is deleted from your system. This is not achieved by removing the container
-
-If you are only running rest_variantValidator in docker, we recommend deleting and re-building all containers
+# Removing and re-building
 
 ```bash
 # Delete all containers
