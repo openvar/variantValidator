@@ -385,6 +385,16 @@ class TestWarnings(TestCase):
             "NM_024649.4:c.*4A>G: Variant reference (A) does not agree with reference sequence (C)"
         ]
 
+    def test_issue_455(self):
+        variant = 'NP_000483.3:p.?'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+
+        print(results)
+        assert results['validation_warning_1']['validation_warnings'] == [
+            "Protein level variant descriptions are not fully supported due to redundancy in the genetic code",
+            "NP_000483.3:p.? is HGVS compliant and contains a valid reference amino acid description"
+        ]
+
 
 class TestVFGapWarnings(TestCase):
 
