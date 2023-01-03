@@ -846,6 +846,7 @@ def proteins(variant, validator):
             hgvs_object = validator.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
         except vvhgvs.exceptions.HGVSError as e:
             error = str(e)
+
         try:
             validator.vr.validate(hgvs_object)
 
