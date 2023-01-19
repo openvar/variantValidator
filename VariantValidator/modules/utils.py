@@ -520,6 +520,7 @@ def one_to_three(seq):
 
 
 def three_to_one(seq):
+
     aacode = {
         'Ala': 'A', 'Cys': 'C', 'Asp': 'D', 'Glu': 'E',
         'Phe': 'F', 'Gly': 'G', 'His': 'H', 'Ile': 'I',
