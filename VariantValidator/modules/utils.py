@@ -520,6 +520,7 @@ def one_to_three(seq):
 
 
 def three_to_one(seq):
+
     aacode = {
         'Ala': 'A', 'Cys': 'C', 'Asp': 'D', 'Glu': 'E',
         'Phe': 'F', 'Gly': 'G', 'His': 'H', 'Ile': 'I',
@@ -589,7 +590,7 @@ class ObsoleteSeqError(Exception):
     pass
 
 # <LICENSE>
-# Copyright (C) 2016-2022 VariantValidator Contributors
+# Copyright (C) 2016-2023 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

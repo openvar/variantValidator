@@ -859,6 +859,8 @@ def proteins(variant, validator):
 
                 if "_" in posedit:
                     start_edit, end_edit = posedit.split("_")
+                    if "(" in start_edit:
+                        start_edit = start_edit.replace("(", "")
                     start_aa = str(start_edit).replace(str(start_pos), "")
                     end_aa = str(end_edit).replace(str(end_pos), "")
                     start_aa_sl = fn.three_to_one(start_aa)
@@ -1099,7 +1101,7 @@ def uncertain_pos(variant):
 
 
 # <LICENSE>
-# Copyright (C) 2016-2022 VariantValidator Contributors
+# Copyright (C) 2016-2023 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

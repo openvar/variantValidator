@@ -557,6 +557,15 @@ class Mixin(vvMixinConverters.Mixin):
                         my_variant.hgvs_formatted.ac.replace('T', 't')
                     else:
                         my_variant.hgvs_formatted.ac = my_variant.hgvs_formatted.ac.upper()
+
+                    if my_variant.hgvs_formatted.type == "p" and my_variant.hgvs_formatted.posedit is None \
+                            and ":p.?" in str(my_variant.hgvs_formatted):
+
+                        # Protein variants needed early!
+                        toskip = format_converters.proteins(my_variant, self)
+                        if toskip:
+                            continue
+
                     if hasattr(my_variant.hgvs_formatted.posedit.edit, 'alt'):
                         if my_variant.hgvs_formatted.posedit.edit.alt is not None:
                             my_variant.hgvs_formatted.posedit.edit.alt = \
@@ -2006,7 +2015,7 @@ class Mixin(vvMixinConverters.Mixin):
         self.db.update_transcript_info_record(tx_id, self, **kwargs)
 
 # <LICENSE>
-# Copyright (C) 2016-2022 VariantValidator Contributors
+# Copyright (C) 2016-2023 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

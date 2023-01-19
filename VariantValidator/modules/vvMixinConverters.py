@@ -23,93 +23,6 @@ class Mixin(vvMixinInit.Mixin):
     This mixin contains converters that use the validator's configuration information.
     It inherits the Init mixin
     """
-    # def r_to_c(self, variant, evm):
-    #     """
-    #     r_to_c
-    #     parses r. variant strings into hgvs object and maps to the c. equivalent.
-    #     """
-    #     # convert the input string into a hgvs object by parsing
-    #     var_r = self.hp.parse_hgvs_variant(variant)
-    #     # map to the coding sequence
-    #     var_c = evm.r_to_c(var_r)  # coding level variant
-    #     variant = str(var_c)
-    #     c_from_r = {'variant': variant, 'type': ':c.'}
-    #     return c_from_r
-    #
-    # def refseq(self, variant, refseq_ac, evm, primary_assembly):
-    #     """
-    #     Maps transcript variant descriptions onto specified RefSeqGene reference sequences
-    #     Return an hgvs object containing the genomic sequence variant relative to the RefSeqGene
-    #     acession
-    #     refseq_ac = RefSeqGene ac
-    #     """
-    #     vr = vvhgvs.validator.Validator(self.hdp)
-    #     # parse the variant into hgvs object
-    #     var_c = self.hp.parse_hgvs_variant(variant)
-    #     # map to the genomic co-ordinates using the easy variant mapper set to alt_aln_method = alt_aln_method
-    #     var_g = self.myevm_t_to_g(var_c, evm, self.hdp, primary_assembly)
-    #     # Get overlapping transcripts - forcing a splign alignment
-    #     start_i = var_g.posedit.pos.start.base
-    #     end_i = var_g.posedit.pos.end.base
-    #     alt_ac = var_g.ac
-    #     alt_aln_method = 'splign'
-    #     transcripts = self.hdp.get_tx_for_region(alt_ac, alt_aln_method, start_i - 1, end_i)
-    #     # Take the first transcript
-    #     ref_g_dict = {
-    #         'ref_g': '',
-    #         'error': 'false'
-    #     }
-    #     for trans in transcripts:
-    #         tx_ac = trans[0]
-    #         try:
-    #             ref_c = self.vm.g_to_t(var_g, tx_ac, alt_aln_method='splign')
-    #         except:
-    #             continue
-    #         else:
-    #             try:
-    #                 ref_g_dict['ref_g'] = self.vm.t_to_g(ref_c, alt_ac=refseq_ac, alt_aln_method='splign')
-    #             except:
-    #                 e = sys.exc_info()[0]
-    #                 ref_g_dict['error'] = e
-    #             try:
-    #                 vr.validate(ref_g_dict['ref_g'])
-    #             except:
-    #                 e = sys.exc_info()[0]
-    #                 ref_g_dict['error'] = e
-    #             if ref_g_dict['error'] == 'false':
-    #                 return ref_g_dict
-    #             else:
-    #                 continue
-    #     # Return as an error if all fail
-    #     return ref_g_dict
-    #
-    # def g_to_c(self, var_g, tx_ac, evm):
-    #     """
-    #     Parses genomic variant strings into hgvs objects
-    #     Maps genomic hgvs object into a coding hgvs object if the c accession string is provided
-    #     returns a c. variant description string
-    #     """
-    #     # If the :g. pattern is present in the input variant
-    #     if ':g.' in var_g:
-    #         # convert the input string into a hgvs object by parsing
-    #         var_g = self.hp.parse_hgvs_variant(var_g)
-    #         # Map to coding variant
-    #         var_c = str(evm.g_to_c(var_g, tx_ac))
-    #         return var_c
-    #
-    # def g_to_n(self, var_g, tx_ac, evm):
-    #     """
-    #     Parses genomic variant strings into hgvs objects
-    #     Maps genomic hgvs object into a non-coding hgvs object if the n accession string is provided
-    #     returns a n. variant description string
-    #     """
-    #     # If the :g. pattern is present in the input variant
-    #     if ':g.' in var_g:
-    #         # convert the input string into a hgvs object by parsing
-    #         var_g = self.hp.parse_hgvs_variant(var_g)
-    #         # Map to coding variant
-    #         var_n = str(evm.g_to_n(var_g, tx_ac))
-    #         return var_n
 
     def coding(self, variant):
         """
@@ -142,17 +55,6 @@ class Mixin(vvMixinInit.Mixin):
             # convert the input string into a hgvs object
             var_g = self.hp.parse_hgvs_variant(variant)
             return var_g
-
-    # def hgvs_genomic(self, variant):
-    #     """
-    #     Ensures variant strings are g.
-    #     returns parsed hgvs g. object
-    #     """
-    #     # If the :g. pattern is present in the input variant
-    #     if ':g.' in variant:
-    #         # convert the input string into a hgvs object
-    #         var_g = self.hp.parse_hgvs_variant(variant)
-    #         return var_g
 
     def myevm_t_to_g(self, hgvs_c, no_norm_evm, primary_assembly, hn):
         """
@@ -1701,37 +1603,6 @@ class Mixin(vvMixinInit.Mixin):
         else:
             return 'false'
 
-    # def hgnc_rest(self, path):
-    #     """
-    #     Search HGNC rest
-    #     """
-    #     data = {
-    #         'record': '',
-    #         'error': 'false'
-    #     }
-    #     # HGNC server
-    #     headers = {
-    #         'Accept': 'application/json',
-    #     }
-    #     uri = 'http://rest.genenames.org'
-    #     target = urlparse(uri + path)
-    #     method = 'GET'
-    #     body = ''
-    #     h = http.Http()
-    #     # collect the response
-    #     response, content = h.request(
-    #         target.geturl(),
-    #         method,
-    #         body,
-    #         headers)
-    #     if response['status'] == '200':
-    #         # assume that content is a json reply
-    #         # parse content with the json module
-    #         data['record'] = json.loads(content)
-    #     else:
-    #         data['error'] = "Unable to contact the HGNC database: Please try again later"
-    #     return data
-
     def entrez_efetch(self, db, id, rettype, retmode):
         """
         Search Entrez databases with efetch and SeqIO
@@ -1749,22 +1620,6 @@ class Mixin(vvMixinInit.Mixin):
         # text = handle.read()
         handle.close()
         return record
-
-    # def entrez_read(self,db, id, retmode):
-    #     """
-    #     search Entrez databases with efetch and read
-    #     """
-    #     # IMPORT Bio modules
-    #     # from Bio import Entrez
-    #     Entrez.email = self.entrezID
-    #     # from Bio import SeqIO
-    #     handle = Entrez.efetch(db=db, id=id, retmode=retmode)
-    #     # Get record
-    #     record = Entrez.read(handle)
-    #     # Place into text
-    #     # text = handle.read()
-    #     handle.close()
-    #     return record
 
     def revcomp(self, bases):
         """
@@ -2474,7 +2329,7 @@ class Mixin(vvMixinInit.Mixin):
         return descriptions
 
 # <LICENSE>
-# Copyright (C) 2016-2022 VariantValidator Contributors
+# Copyright (C) 2016-2023 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
