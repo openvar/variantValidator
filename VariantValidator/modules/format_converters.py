@@ -846,7 +846,6 @@ def proteins(variant, validator):
             hgvs_object = validator.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
         except vvhgvs.exceptions.HGVSError as e:
             error = str(e)
-
         try:
             validator.vr.validate(hgvs_object)
 
@@ -860,6 +859,8 @@ def proteins(variant, validator):
 
                 if "_" in posedit:
                     start_edit, end_edit = posedit.split("_")
+                    if "(" in start_edit:
+                        start_edit = start_edit.replace("(", "")
                     start_aa = str(start_edit).replace(str(start_pos), "")
                     end_aa = str(end_edit).replace(str(end_pos), "")
                     start_aa_sl = fn.three_to_one(start_aa)
