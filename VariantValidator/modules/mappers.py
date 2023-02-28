@@ -61,7 +61,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
     transcripts
     """
     rel_var = validator.relevant_transcripts(variant.hgvs_genomic, variant.evm, validator.alt_aln_method,
-                                             variant.reverse_normalizer)
+                                             variant.reverse_normalizer, validator.select_transcripts)
 
     # Double check rel_vars have not been missed when mapping from a RefSeqGene
     if len(rel_var) != 0 and 'NG_' in variant.hgvs_genomic.ac and validator.select_transcripts != "refseqgene":
@@ -77,7 +77,8 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                 try_rel_var = []
             else:
                 try_rel_var = validator.relevant_transcripts(variant.hgvs_genomic, variant.evm,
-                                                             validator.alt_aln_method, variant.reverse_normalizer)
+                                                             validator.alt_aln_method, variant.reverse_normalizer,
+                                                             validator.select_transcripts)
             if len(try_rel_var) > len(rel_var):
                 rel_var = try_rel_var
                 break
@@ -96,7 +97,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                     vcf_dict['alt']
                 hgvs_not_di = validator.hp.parse_hgvs_variant(not_di)
                 rel_var = validator.relevant_transcripts(hgvs_not_di, variant.evm, validator.alt_aln_method,
-                                                         variant.reverse_normalizer)
+                                                         variant.reverse_normalizer, validator.select_transcripts)
         except vvhgvs.exceptions.HGVSDataNotAvailableError:
             pass
 

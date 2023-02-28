@@ -7,6 +7,7 @@ class TestVariantsAuto(TestCase):
     @classmethod
     def setup_class(cls):
         cls.vv = Validator()
+        cls.vv.testing = True
 
     def test_variant1(self):
         variant = 'NM_015120.4:c.35T>C'

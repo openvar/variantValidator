@@ -4,10 +4,12 @@ import VariantFormatter.simpleVariantFormatter
 import VariantValidator
 vfo = VariantValidator.Validator()
 
+
 class TestVFvariantsAuto(object):
     @classmethod
     def setup_class(cls):
         VariantFormatter.__version__
+        vfo.testing = True
 
     def test_variant1(self):
         variant = 'NC_000019.10:g.50378563_50378564insTAC'
@@ -6813,8 +6815,9 @@ class TestVFvariantsAuto(object):
             'intergenic']['primary_assembly_loci']['grch38'].keys()
 
     def test_issue_392a(self):
+        vfo.testing = False
         results = VariantFormatter.simpleVariantFormatter.format('NC_000008.10:g.6673379del',
-                                                                 'GRCh37', 'refseq', None, False, True)
+                                                                 'GRCh37', 'refseq', None, False, True, testing=True)
         print(results)
         assert 'NC_000008.10:g.6673379del' in results.keys()
         assert 'NC_000008.10:g.6673379del' in results['NC_000008.10:g.6673379del'][
@@ -6822,10 +6825,11 @@ class TestVFvariantsAuto(object):
         assert 'NC_000008.11:g.6815857G>A' in results['NC_000008.10:g.6673379del'][
             'NC_000008.10:g.6673379del']['hgvs_t_and_p']['NM_001289973.1']['primary_assembly_loci'][
             'grch38']['NC_000008.11']['hgvs_genomic_description']
+        vfo.testing = True
 
     def test_issue_392b(self):
         results = VariantFormatter.simpleVariantFormatter.format('NC_000008.11:g.6815857G>A',
-                                                                 'GRCh38', 'refseq', None, False, True)
+                                                                 'GRCh38', 'refseq', None, False, True, testing=True)
         print(results)
         assert 'NC_000008.11:g.6815857G>A' in results.keys()
         assert 'NC_000008.11:g.6815857G>A' in results['NC_000008.11:g.6815857G>A'][
@@ -6836,7 +6840,7 @@ class TestVFvariantsAuto(object):
 
     def test_issue_370(self):
         results = VariantFormatter.simpleVariantFormatter.format('NC_000008.10:g.24811072C>T',
-                                                                 'GRCh37', 'refseq', None, False, True)
+                                                                 'GRCh37', 'refseq', None, False, True, testing=True)
         print(results)
         assert 'NC_000008.10:g.24811072C>T' in results.keys()
         assert 'NM_006158.3:c.1407delinsAC' in results['NC_000008.10:g.24811072C>T'][

@@ -112,6 +112,9 @@ class Mixin:
             self.releasedVersion = False
         self.hgvsVersion = vvhgvs.__version__
 
+        # Set up for test mode
+        self.testing = False
+
         # Set up HGVS
         # Configure hgvs package global settings
         vvhgvs.global_config.uta.pool_max = 25

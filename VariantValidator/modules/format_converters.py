@@ -823,7 +823,7 @@ def mitochondrial(variant, validator):
 
             # Are there any transcripts?
             rel_var = validator.relevant_transcripts(hgvs_mito, variant.evm, validator.alt_aln_method,
-                                                     variant.reverse_normalizer)
+                                                     variant.reverse_normalizer, validator.select_transcripts)
 
             # Add a description of the reference sequence type and continue
             variant.hgvs_genomic = hgvs_mito
