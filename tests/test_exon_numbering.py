@@ -12,6 +12,7 @@ class TestExonNumbering(unittest.TestCase):
     @classmethod
     def setup_class(cls):
         cls.vv = Validator()
+        cls.vv.testing = True
 
     """
     Class TextExonNumbering automates running the tests, and reports failure if
