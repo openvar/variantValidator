@@ -14,7 +14,6 @@ class ValOutput(object):
 
     def format_as_dict(self, with_meta=True, test=False):
         validation_output = {'flag': 'warning'}
-
         validation_error_counter = 0
         validation_obsolete_counter = 0
         validation_warning_counter = 0

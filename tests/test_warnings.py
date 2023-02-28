@@ -10,6 +10,7 @@ class TestWarnings(TestCase):
     @classmethod
     def setup_class(cls):
         cls.vv = Validator()
+        cls.vv.testing = True
 
     def test_t_in_rna_string(self):
         variant = 'NM_007075.3:r.235_236insGCCCACCCACCTGCCAG'
@@ -605,6 +606,7 @@ class TestVVGapWarnings(TestCase):
     @classmethod
     def setup_class(cls):
         cls.vv = Validator()
+        cls.vv.testing = True
 
     def test_vv_series_1(self):
         variant = 'NC_000004.11:g.140811117C>A'
