@@ -1457,18 +1457,8 @@ class Mixin(vvMixinInit.Mixin):
         rts = list(rts_dict.keys())
 
         # Filter out transcripts that are not the latest versions
-        if (select_transcripts == "all" or select_transcripts == "None") and self.testing is not True:
-            latest_version = {}
-            for tx_id in rts:
-                accession, version = tx_id.split(".")
-                if accession not in latest_version.keys():
-                    latest_version[accession] = version
-                else:
-                    if version > latest_version[accession]:
-                        latest_version[accession] = version
-            rts = []
-            for k, v in latest_version.items():
-                rts.append(k + "." + v)
+        if select_transcripts == "all" or select_transcripts == "None" or select_transcripts is None:
+            rts = self.transcript_filter(rts)
 
         # First if we have an ins prepare for hgvs "ins" mishandling, which
         # causes failures on any ins->non ins case, start by making a forced
@@ -2342,6 +2332,46 @@ class Mixin(vvMixinInit.Mixin):
 
         # Return the required data. This is a dictionary containing the rsg description, validation status and gene ID
         return descriptions
+
+    def transcript_filter(self, rts):
+        if self.testing is not True:
+            latest_version = {}
+            for tx_id in rts:
+                if type(tx_id) == str:
+                    # VV method
+                    accession, version = tx_id.split(".")
+                    if accession not in latest_version.keys():
+                        latest_version[accession] = version
+                    else:
+                        if version > latest_version[accession]:
+                            latest_version[accession] = version
+                else:
+                    # VF method
+                    accession, version = tx_id[0].split(".")
+                    if accession not in latest_version.keys():
+                        latest_version[accession] = {}
+                        latest_version[accession]["version"] = version
+                        latest_version[accession]["list"] = tx_id[1:]
+                    else:
+                        if version > latest_version[accession]["version"]:
+                            latest_version[accession]["version"] = version
+                            latest_version[accession]["list"] = tx_id[1:]
+
+            # Recreate list with only latest versions
+            rts = []
+            for k, v in latest_version.items():
+                try:
+                    v.keys()
+                except AttributeError:
+                    # VV method
+                    rts.append(k + "." + v)
+                else:
+                    # VF method
+                    accession = str(k + "." + v["version"])
+                    rts.append([accession] + v["list"])
+            return rts
+        else:
+            return rts
 
 # <LICENSE>
 # Copyright (C) 2016-2023 VariantValidator Contributors
