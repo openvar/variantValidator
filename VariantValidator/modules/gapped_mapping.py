@@ -430,6 +430,12 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 if "insertion length must be 1" in str(e):
                     pass
 
+            print("INTRONIC")
+            print(hgvs_seek_var)
+
+
+
+
             if re.search(r'\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search(r'\d+-', str(
                     hgvs_seek_var.posedit.pos)) or re.search(r'\*\d+\+', str(
                     hgvs_seek_var.posedit.pos)) or re.search(r'\*\d+-', str(hgvs_seek_var.posedit.pos)):
@@ -2440,8 +2446,11 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
         # re-make genomic and tx
         hgvs_not_delins = self.validator.myevm_t_to_g(test_tx_var, self.variant.no_norm_evm,
                                                       self.variant.primary_assembly, self.variant.hn)
-        rn_tx_hgvs_not_delins = self.variant.no_norm_evm.g_to_n(hgvs_not_delins,
+        try:
+            rn_tx_hgvs_not_delins = self.variant.no_norm_evm.g_to_n(hgvs_not_delins,
                                                                 str(saved_hgvs_coding.ac))
+        except vvhgvs.exceptions.HGVSInvalidIntervalError:
+            rn_tx_hgvs_not_delins = test_tx_var
         rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
 
         return rn_tx_hgvs_not_delins, hgvs_not_delins
