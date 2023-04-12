@@ -1408,7 +1408,7 @@ class Mixin(vvMixinConverters.Mixin):
                 term_2 = "%s automapped to" % tx_variant
                 term_3 = "%s automapped to" % genomic_variant
                 for vt in variant.warnings:
-
+                    vt = str(vt)
                     #  Do not warn a transcript update is available for the most recent transcript
                     if term in vt and "A more recent version of the selected reference sequence" in vt:
                         continue
