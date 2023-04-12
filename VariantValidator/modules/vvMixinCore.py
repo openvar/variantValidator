@@ -366,10 +366,6 @@ class Mixin(vvMixinConverters.Mixin):
                     else:
                         # 3. Here we handle syntax errors in ins and delins variants
                         # https://github.com/openvar/variantValidator/issues/359
-
-                        print("Ahoy")
-                        print(my_variant.quibble)
-
                         if re.search("ins$", my_variant.quibble):
                             my_variant.warnings.append("The inserted sequence must be provided for insertions or "
                                                        "deletion-insertions")
