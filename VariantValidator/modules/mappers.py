@@ -365,12 +365,14 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     if plus.search(quibble_input):
         # Regular expression catches the start of the interval only based on .00+00 pattern
         inv_start = re.compile(r"\.\d+\+\d")
-        if inv_start.search(quibble_input):
+        inv_end = re.compile(r"_\d+\+\d")
+        if inv_start.search(quibble_input) or inv_end.search(quibble_input):
             cck = True
     if minus.search(quibble_input):
         # Regular expression catches the start of the interval only based on .00-00 pattern
         inv_start = re.compile(r"\.\d+-\d")
-        if inv_start.search(quibble_input):
+        inv_end = re.compile(r"_\d+-\d")
+        if inv_start.search(quibble_input) or inv_end.search(quibble_input):
             cck = True
 
     # COORDINATE CHECKER
@@ -406,11 +408,12 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                 variant.warnings.append(str(error))
                 logger.warning(str(error))
                 return True
+
             test = validator.hp.parse_hgvs_variant(quibble_input)
             if post_var.posedit.pos.start.base != test.posedit.pos.start.base or \
                     post_var.posedit.pos.end.base != test.posedit.pos.end.base:
                 caution = "ExonBoundaryError: Position c.%s does not correspond with an exon boundary for transcript " \
-                          "%s" % (test.posedit.pos, test.ac)
+                          "%s" % (str(test.posedit.pos).split("_")[-1], test.ac)
                 variant.warnings.extend([caution])
                 raise MappersError(caution)
 
@@ -428,7 +431,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             if post_var.posedit.pos.start.base != test.posedit.pos.start.base or \
                     post_var.posedit.pos.end.base != test.posedit.pos.end.base:
                 caution = "ExonBoundaryError: Position c.%s does not correspond with an exon boundary for transcript " \
-                          "%s" % (test.posedit.pos, test.ac)
+                          "%s" % (str(test.posedit.pos).split("_")[-1], test.ac)
                 variant.warnings.extend([caution])
                 raise MappersError(caution)
 

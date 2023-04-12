@@ -630,7 +630,6 @@ def structure_checks_n(variant, validator):
         try:
             output = validator.noreplace_myevm_t_to_g(variant.input_parses, variant)
         except vvhgvs.exceptions.HGVSDataNotAvailableError:
-            print("ararar")
             errors = ['Required information for ' + variant.input_parses.ac + ' is missing from the Universal '
                                                                               'Transcript Archive',
                       'Query gene2transcripts with search term %s for '

@@ -400,7 +400,8 @@ class TestWarnings(TestCase):
 class TestVFGapWarnings(TestCase):
 
     def test_vf_series_1(self):
-        results = simpleVariantFormatter.format('NC_000004.11:g.140811117C>A', 'GRCh37', 'refseq', None, False, True)
+        results = simpleVariantFormatter.format('NC_000004.11:g.140811117C>A', 'GRCh37', 'refseq', None, False, True,
+                                                testing=True)
         print(results)
         assert 'NC_000004.11:g.140811117C>A' in results.keys()
         assert 'NM_018717.4 contains 3 fewer bases between c.2276_2277, and 12 fewer bases between c.1467_1468 ' \
@@ -409,7 +410,7 @@ class TestVFGapWarnings(TestCase):
 
     def test_vf_series_2(self):
         results = simpleVariantFormatter.format('NC_000008.10:g.24811072C>T',
-                                                                 'GRCh37', 'refseq', None, False, True)
+                                                                 'GRCh37', 'refseq', None, False, True, testing=True)
         print(results)
         assert 'NC_000008.10:g.24811072C>T' in results.keys()
         assert 'NM_006158.3 contains 1 fewer bases between c.1407_1408 than NC_000008.10' in results[
@@ -424,7 +425,7 @@ class TestVFGapWarnings(TestCase):
 
     def test_vf_series_3(self):
         results = simpleVariantFormatter.format('NC_000015.9:g.72105933del',
-                                                                 'GRCh37', 'refseq', None, False, True)
+                                                                 'GRCh37', 'refseq', None, False, True, testing=True)
         print(results)
         assert 'NC_000015.9:g.72105933del' in results.keys()
         assert 'NM_014249.2 contains 1 fewer bases between c.947_948 than NC_000015.9' in results[
@@ -448,7 +449,7 @@ class TestVFGapWarnings(TestCase):
 
     def test_vf_series_4(self):
         results = simpleVariantFormatter.format('NC_000019.9:g.41123095dup',
-                                                                 'GRCh37', 'refseq', None, False, True)
+                                                                 'GRCh37', 'refseq', None, False, True, testing=True)
         print(results)
         assert 'NC_000019.9:g.41123095dup' in results.keys()
         assert 'NM_001042544.1 contains 1 extra bases between c.3233_3235 than NC_000019.9' in results[
@@ -466,7 +467,7 @@ class TestVFGapWarnings(TestCase):
 
     def test_vf_series_5(self):
         results = simpleVariantFormatter.format('NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG=',
-                                                                 'GRCh37', 'refseq', None, False, True)
+                                                                 'GRCh37', 'refseq', None, False, True, testing=True)
         print(results)
         assert 'NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG=' in results.keys()
         assert 'NM_001083585.1 contains 25 fewer bases between c.*344_*345 than NC_000017.10' in results[
@@ -496,7 +497,7 @@ class TestVFGapWarnings(TestCase):
 
     def test_vf_series_6(self):
         results = simpleVariantFormatter.format('NC_000012.11:g.122064777C>A',
-                                                                 'GRCh37', 'refseq', None, False, True)
+                                                                 'GRCh37', 'refseq', None, False, True, testing=True)
         print(results)
         assert 'NC_000012.11:g.122064777C>A' in results.keys()
         assert 'NM_032790.3 contains 6 fewer bases between c.126_127 than NC_000012.11' in results[
@@ -505,7 +506,7 @@ class TestVFGapWarnings(TestCase):
 
     def test_vf_series_7(self):
         results = simpleVariantFormatter.format('NC_000002.11:g.95847041_95847043GCG=',
-                                                                 'GRCh37', 'refseq', None, False, True)
+                                                                 'GRCh37', 'refseq', None, False, True, testing=True)
         print(results)
         assert 'NC_000002.11:g.95847041_95847043GCG=' in results.keys()
         assert 'NM_001017396.1 contains 3 fewer bases between c.341_342 than NC_000002.11' in results[
@@ -532,7 +533,7 @@ class TestVFGapWarnings(TestCase):
 
     def test_vf_series_8(self):
         results = simpleVariantFormatter.format('NC_000003.11:g.14561629_14561630insG',
-                                                'GRCh37', 'refseq', None, False, True)
+                                                'GRCh37', 'refseq', None, False, True, testing=True)
         print(results)
         assert 'NM_001080423.2 contains 1 extra bases between c.1308_1310 than NC_000003.11' in results[
             'NC_000003.11:g.14561629_14561630insG']['NC_000003.11:g.14561629_14561630insG']['hgvs_t_and_p'][
@@ -546,7 +547,7 @@ class TestVFGapWarnings(TestCase):
 
     def test_vf_series_9(self):
         results = simpleVariantFormatter.format('NC_000004.11:g.140811117C>A',
-                                                'GRCh37', 'refseq', None, False, True)
+                                                'GRCh37', 'refseq', None, False, True, testing=True)
         print(results)
         assert 'NC_000004.11:g.140811117C>A' in results.keys()
         assert 'NM_018717.4 contains 3 fewer bases between c.2276_2277, and 12 fewer bases between c.1467_1468 ' \
@@ -556,7 +557,7 @@ class TestVFGapWarnings(TestCase):
 
     def test_vf_series_10(self):
         results = simpleVariantFormatter.format('NC_000009.11:g.136132908_136132909TA=',
-                                                'GRCh37', 'refseq', None, False, True)
+                                                'GRCh37', 'refseq', None, False, True, testing=True)
         print(results)
         assert 'NC_000009.11:g.136132908_136132909TA=' in results.keys()
         assert 'NM_020469.2 contains 1 extra bases between c.260_262 than NC_000009.11' in results[
@@ -570,7 +571,7 @@ class TestVFGapWarnings(TestCase):
 
     def test_vf_series_11(self):
         results = simpleVariantFormatter.format('NC_000019.10:g.50378563_50378564insTAC',
-                                                'GRCh38', 'refseq', None, False, True)
+                                                'GRCh38', 'refseq', None, False, True, testing=True)
         print(results)
         assert 'NC_000019.10:g.50378563_50378564insTAC' in results.keys()
         assert 'NM_001256647.1 contains 3 extra bases between c.223_227 than NC_000019.10' in results[
@@ -582,7 +583,7 @@ class TestVFGapWarnings(TestCase):
 
     def test_vf_series_12(self):
         results = simpleVariantFormatter.format('NC_000007.13:g.149476664_149476666delinsTC',
-                                                'GRCh37', 'refseq', None, False, True)
+                                                'GRCh37', 'refseq', None, False, True, testing=True)
         print(results)
         assert 'NC_000007.13:g.149476664_149476666delinsTC' in results.keys()
         assert 'NR_163594.1 contains 1 extra bases between n.1129_1131, and 1 fewer bases between n.11675_11676 ' \
@@ -592,7 +593,7 @@ class TestVFGapWarnings(TestCase):
 
     def test_vf_series_13(self):
         results = simpleVariantFormatter.format('NC_000004.12:g.139889957_139889968del',
-                                                'GRCh38', 'refseq', None, False, True)
+                                                'GRCh38', 'refseq', None, False, True, testing=True)
         print(results)
         assert 'NC_000004.12:g.139889957_139889968del' in results.keys()
         assert 'NM_018717.4 contains 3 fewer bases between c.2276_2277, and 12 fewer bases between c.1467_1468 ' \
@@ -766,6 +767,20 @@ class TestVVGapWarnings(TestCase):
         print(results)
         assert "ExonBoundaryError: Position c.89+25 does not correspond with an exon boundary for transcript NM_000518.5" in \
                results['validation_warning_1']['validation_warnings']
+
+    def test_vv_series_16(self):
+        variant = 'NM_207122.2:c.1174_1174+1insAT'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "ExonBoundaryError: Position c.1174+1 does not correspond with an exon boundary for transcript NM_207122.2" in \
+               results['validation_warning_1']['validation_warnings']
+
+    def test_vv_series_17(self):
+        variant = 'chr17:g.7578554_7578555delinsCC'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert "This is not a valid HGVS variant description, because no reference sequence ID has been provided" in \
+               results['NM_001276761.3:c.259T>G']['validation_warnings']
 
 
 # <LICENSE>
