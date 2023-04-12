@@ -30835,6 +30835,14 @@ class TestVariantsAuto(TestCase):
         assert results['NM_000484.4:c.2067_2211+2del']['rna_variant_descriptions']['translation'
                ] == "NP_000475.1:p.Phe690_Val738del"
 
+
+    def test_issue_479(self):
+        variant = 'NC_000009.12:g.35736866_35737447del'
+        results = self.vv.validate(variant, 'GRCh38', 'mane_select', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'NM_020944.3:c.2506_*303del' in results.keys()
+
+
 # <LICENSE>
 # Copyright (C) 2016-2023 VariantValidator Contributors
 #

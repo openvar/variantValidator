@@ -372,23 +372,23 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
 
                 # Collect the hard_pushed variant information and adjust the variants accordingly
                 if needs_a_push is not False:
-                        if merged_variant is not False:
-                            saved_hgvs_coding = merged_variant
-                            stash_hgvs_not_delins = self.validator.vm.t_to_g(saved_hgvs_coding,
-                                                                             hgvs_genomic_variant.ac)
-                            # The merged variant may have created an ins or a del
-                            if stash_hgvs_not_delins.posedit.edit.type == "del":
-                                stash_hgvs_not_delins.posedit.edit.alt = ""
-                            if stash_hgvs_not_delins.posedit.edit.type == "ins":
-                                get_ref = copy.deepcopy(stash_hgvs_not_delins)
-                                get_ref.posedit.edit.ref = ''
-                                get_ref.posedit.edit.alt = ''
-                                get_ref = self.variant.hn.normalize(get_ref)
-                                ref_bases = get_ref.posedit.edit.ref
-                                stash_hgvs_not_delins.posedit.edit.ref = ref_bases
-                                stash_hgvs_not_delins.posedit.edit.alt = ref_bases[0] \
-                                                                         + stash_hgvs_not_delins.posedit.edit.alt \
-                                                                         + ref_bases[1]
+                    if merged_variant is not False:
+                        saved_hgvs_coding = merged_variant
+                        stash_hgvs_not_delins = self.validator.vm.t_to_g(saved_hgvs_coding,
+                                                                         hgvs_genomic_variant.ac)
+                        # The merged variant may have created an ins or a del
+                        if stash_hgvs_not_delins.posedit.edit.type == "del":
+                            stash_hgvs_not_delins.posedit.edit.alt = ""
+                        if stash_hgvs_not_delins.posedit.edit.type == "ins":
+                            get_ref = copy.deepcopy(stash_hgvs_not_delins)
+                            get_ref.posedit.edit.ref = ''
+                            get_ref.posedit.edit.alt = ''
+                            get_ref = self.variant.hn.normalize(get_ref)
+                            ref_bases = get_ref.posedit.edit.ref
+                            stash_hgvs_not_delins.posedit.edit.ref = ref_bases
+                            stash_hgvs_not_delins.posedit.edit.alt = ref_bases[0] \
+                                                                     + stash_hgvs_not_delins.posedit.edit.alt \
+                                                                     + ref_bases[1]
 
             # Get orientation of the gene wrt genome and a list of exons mapped to the genome
             ori = self.validator.tx_exons(tx_ac=saved_hgvs_coding.ac, alt_ac=self.hgvs_genomic_5pr.ac,
@@ -429,12 +429,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             except vvhgvs.exceptions.HGVSInvalidVariantError as e:
                 if "insertion length must be 1" in str(e):
                     pass
-
-            print("INTRONIC")
-            print(hgvs_seek_var)
-
-
-
 
             if re.search(r'\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search(r'\d+-', str(
                     hgvs_seek_var.posedit.pos)) or re.search(r'\*\d+\+', str(
@@ -662,7 +656,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                             and gap_warnings["auto_info"] is not None:
                         gapped_alignment_warning = gap_warnings["gapped_alignment_warning"]
                         self.auto_info = self.auto_info + gap_warnings["auto_info"]
-
                     hgvs_refreshed_variant = self.tx_hgvs_not_delins
 
                 else:
@@ -783,6 +776,10 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 hgvs_refreshed_variant = self.edit_output(hgvs_refreshed_variant, saved_hgvs_coding)
 
                 # Send to empty nw_rel_var
+                if hgvs_refreshed_variant.posedit.edit.type == "delins" and \
+                        hgvs_refreshed_variant.posedit.edit.alt == "":
+                    correct = str(hgvs_refreshed_variant).replace("ins", "")
+                    hgvs_refreshed_variant = self.validator.hp.parse(correct)
                 nw_rel_var.append(hgvs_refreshed_variant)
 
             # Otherwise these variants need to be set
@@ -799,7 +796,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             'disparity_deletion_in': self.disparity_deletion_in,
             'gapped_transcripts': self.gapped_transcripts
         }
-
         return data, nw_rel_var
 
     def g_to_t_compensation(self, ori, hgvs_coding, rec_var):
