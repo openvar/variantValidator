@@ -30842,6 +30842,17 @@ class TestVariantsAuto(TestCase):
         print(results)
         assert 'NM_020944.3:c.2506_*303del' in results.keys()
 
+    def test_transcripts_all_vs_raw(self):
+        self.vv.testing = False
+        variant = 'NC_000008.10:g.6673379del'
+        results = self.vv.validate(variant, 'GRCh38', 'all', liftover_level='primary').format_as_dict(test=False)
+        print(results)
+        assert 'NM_001289973.1:c.380C>T' not in results.keys()
+        assert 'NM_207411.4:c.869C>T' not in results.keys()
+        results = self.vv.validate(variant, 'GRCh38', 'raw', liftover_level='primary').format_as_dict(test=False)
+        assert 'NM_001289973.1:c.380C>T' in results.keys()
+        assert 'NM_207411.4:c.869C>T' in results.keys()
+        self.vv.testing = True
 
 # <LICENSE>
 # Copyright (C) 2016-2023 VariantValidator Contributors

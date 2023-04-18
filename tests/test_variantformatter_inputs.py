@@ -6814,17 +6814,31 @@ class TestVFvariantsAuto(object):
         assert "NC_012920.1" in results['NC_001807.4:m.1013C>T']['NC_001807.4:m.1013C>T']['hgvs_t_and_p'][
             'intergenic']['primary_assembly_loci']['grch38'].keys()
 
+    # test select_transcripts 'all' vs 'raw'
     def test_issue_392a(self):
         vfo.testing = False
         results = VariantFormatter.simpleVariantFormatter.format('NC_000008.10:g.6673379del',
-                                                                 'GRCh37', 'refseq', None, False, True, testing=True)
+                                                                 'GRCh37', 'refseq', 'all', False, True, testing=False)
         print(results)
         assert 'NC_000008.10:g.6673379del' in results.keys()
         assert 'NC_000008.10:g.6673379del' in results['NC_000008.10:g.6673379del'][
             'NC_000008.10:g.6673379del']['g_hgvs']
-        assert 'NC_000008.11:g.6815857G>A' in results['NC_000008.10:g.6673379del'][
-            'NC_000008.10:g.6673379del']['hgvs_t_and_p']['NM_001289973.1']['primary_assembly_loci'][
-            'grch38']['NC_000008.11']['hgvs_genomic_description']
+        assert 'NM_207411.4' not in results['NC_000008.10:g.6673379del']['NC_000008.10:g.6673379del']\
+            ['hgvs_t_and_p'].keys()
+        assert 'NM_001289973.1' not in results['NC_000008.10:g.6673379del']['NC_000008.10:g.6673379del']\
+            ['hgvs_t_and_p'].keys()
+
+        results = VariantFormatter.simpleVariantFormatter.format('NC_000008.10:g.6673379del',
+                                                                 'GRCh37', 'refseq', 'raw', False, True, testing=False)
+        print(results)
+        assert 'NC_000008.10:g.6673379del' in results.keys()
+        assert 'NC_000008.10:g.6673379del' in results['NC_000008.10:g.6673379del'][
+            'NC_000008.10:g.6673379del']['g_hgvs']
+        assert 'NM_207411.4' in results['NC_000008.10:g.6673379del']['NC_000008.10:g.6673379del']\
+            ['hgvs_t_and_p'].keys()
+        assert 'NM_001289973.1' in results['NC_000008.10:g.6673379del']['NC_000008.10:g.6673379del']\
+            ['hgvs_t_and_p'].keys()
+
         vfo.testing = True
 
     def test_issue_392b(self):
@@ -6837,6 +6851,14 @@ class TestVFvariantsAuto(object):
         assert 'NC_000008.10:g.6673379del' in results['NC_000008.11:g.6815857G>A'][
             'NC_000008.11:g.6815857G>A']['hgvs_t_and_p']['NM_001289973.1']['primary_assembly_loci'][
             'grch37']['NC_000008.10']['hgvs_genomic_description']
+
+    def test_issue_370(self):
+        results = VariantFormatter.simpleVariantFormatter.format('NC_000008.10:g.24811072C>T',
+                                                                 'GRCh37', 'refseq', None, False, True, testing=True)
+        print(results)
+        assert 'NC_000008.10:g.24811072C>T' in results.keys()
+        assert 'NM_006158.3:c.1407delinsAC' in results['NC_000008.10:g.24811072C>T'][
+            'NC_000008.10:g.24811072C>T']['hgvs_t_and_p']['NM_006158.3']['t_hgvs']
 
     def test_issue_370(self):
         results = VariantFormatter.simpleVariantFormatter.format('NC_000008.10:g.24811072C>T',
