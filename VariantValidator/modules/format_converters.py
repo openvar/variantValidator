@@ -307,7 +307,7 @@ def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version):
                         if tx[3] not in select_from_these_transcripts:
                             select_from_these_transcripts.append(tx[3])
                 select_from_these_transcripts = '|'.join(select_from_these_transcripts)
-                if validator.select_transcripts != 'all':
+                if validator.select_transcripts != 'all' and validator.select_transcripts != 'raw':
                     variant.write = False
                     for transcript in list(select_transcripts_dict_plus_version.keys()):
                         variant.warnings = ['HGVS variant nomenclature does not allow the use of a gene symbol (' +
@@ -358,7 +358,7 @@ def refseq_catch(variant, validator, select_transcripts_dict_plus_version):
                             if tx[3] not in select_from_these_transcripts:
                                 select_from_these_transcripts.append(tx[3])
                     select_from_these_transcripts = '|'.join(select_from_these_transcripts)
-                    if validator.select_transcripts != 'all':
+                    if validator.select_transcripts != 'all' and validator.select_transcripts != 'raw':
                         variant.write = False
                         for transcript in list(select_transcripts_dict_plus_version.keys()):
                             variant.warnings = ['NG_:c.PositionVariation descriptions should not be used unless a '

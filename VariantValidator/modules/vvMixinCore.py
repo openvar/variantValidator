@@ -67,7 +67,7 @@ class Mixin(vvMixinConverters.Mixin):
             # Create a dictionary of transcript ID : ''
             select_transcripts_dict = {}
             select_transcripts_dict_plus_version = {}
-            if select_transcripts != 'all':
+            if select_transcripts != 'all' and select_transcripts != 'raw':
                 select_transcripts_list = select_transcripts.split('|')
                 for trans_id in select_transcripts_list:
                     trans_id = trans_id.strip()
