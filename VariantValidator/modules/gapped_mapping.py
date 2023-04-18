@@ -225,7 +225,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
 
         # loop through rel_var and amend where required
         for var in rel_var:
-
             # Store the current hgvs:c. description
             try:
                 saved_hgvs_coding = self.validator.hp.parse_hgvs_variant(var)
@@ -238,7 +237,8 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 original_var = var
 
             # Remove un-selected transcripts
-            if self.validator.select_transcripts != 'all' and "select" not in self.validator.select_transcripts and \
+            if self.validator.select_transcripts != 'all' and self.validator.select_transcripts != 'raw' and \
+                    "select" not in self.validator.select_transcripts and \
                     "mane" not in self.validator.select_transcripts and "refseqgene" not in \
                     self.validator.select_transcripts:
                 tx_ac = saved_hgvs_coding.ac
