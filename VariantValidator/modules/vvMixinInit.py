@@ -210,7 +210,10 @@ class Mixin:
         self.batch_list = []
 
     def __del__(self):
-        del self.db
+        try:
+            del self.db
+        except AttributeError:
+            pass
 
     def my_config(self):
         """
