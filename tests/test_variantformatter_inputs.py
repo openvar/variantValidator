@@ -5872,6 +5872,7 @@ class TestVFvariantsAuto(object):
         assert results['NC_000023.11:g.32698556G>C']['hgvs_t_and_p']['NM_004010.3']['p_hgvs_slc'] == 'NP_004001.1:p.?'
         assert results['NC_000023.11:g.32698556G>C']['hgvs_t_and_p']['NM_004010.3']['transcript_variant_error'] is None
 
+    # Center of the intron.
     def test_variant215(self):
         variant = 'NC_000023.11:g.32698555T>G'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
