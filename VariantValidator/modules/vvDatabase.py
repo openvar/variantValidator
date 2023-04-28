@@ -182,7 +182,7 @@ class Database(vvDBInsert.Mixin):
             if genome_build is None:
                 raise utils.DatabaseConnectionError("Connection to Ensembl database requires specification of "
                                                     "a genome build (GRCh37 or GRCh38)")
-            elif genome_build is 'GRCh37' or genome_build is 'GRCh38':
+            elif genome_build is 'GRCh37' == genome_build == 'GRCh38':
                 ens_record = utils.ensembl_rest(id=enst_accession, endpoint="/lookup/id/", genome=genome_build)
                 ens_json = ens_record['record']
 

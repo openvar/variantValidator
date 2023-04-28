@@ -1463,9 +1463,6 @@ class Mixin(vvMixinConverters.Mixin):
             # Remove whitespace
             query = ''.join(query.split())
 
-            print("HAHAHA")
-            print(query)
-
             # Search by gene IDs
             if "HGNC:" in query:
                 query = query.upper()
@@ -1610,8 +1607,6 @@ class Mixin(vvMixinConverters.Mixin):
 
             tx_for_gene = kept_tx
 
-
-        print("BOO YAH")
         for line in tx_for_gene:
             # Remove unrequested transcript_sets
             if transcript_set == "refseq":

@@ -719,7 +719,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
     normalized_hgvs_genomic = hn.normalize(hgvs_genomic_variant)
 
     # Variants in/on a genomic gap that cause issues need sorting by making them span so coordinates do not reverse
-    if hgvs_genomic.type is not "g":
+    if hgvs_genomic.type != "g":
         hgvs_genomic_g = vm.n_to_g(normalized_hgvs_genomic, genomic_ac)
         try:
             hn.normalize(hgvs_genomic_g)
@@ -1444,7 +1444,7 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
     reverse_normalized_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic_variant)
 
     # Variants in/on a genomic gap that cause issues need sorting by making them span so coordinates do not reverse
-    if hgvs_genomic.type is not "g":
+    if hgvs_genomic.type != "g":
         hgvs_genomic_g = vm.n_to_g(reverse_normalized_hgvs_genomic, genomic_ac)
         try:
             hn.normalize(hgvs_genomic_g)
