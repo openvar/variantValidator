@@ -1449,9 +1449,9 @@ class Mixin(vvMixinConverters.Mixin):
         :param validator: Validator object
         :param bypass_web_searches: bool  Shortens the output by looping out code not needed for internal processing
         :param select_transcripts: bool False or string of transcript IDs "|" delimited
+        :param transcript_set: String that defines all, refseq or ensembl
         :return: dictionary of transcript information
         """
-
         # List of transcripts
         sel_tx_lst = False
         if select_transcripts is not None:
@@ -1604,6 +1604,8 @@ class Mixin(vvMixinConverters.Mixin):
                     if '"mane_select": true' in annotation or '"refseq_select": true' in annotation \
                             or '"ensembl_select": true' in annotation:
                         kept_tx.append(tx)
+                elif "all" in sel_tx_lst or None in sel_tx_lst:
+                    kept_tx.append(tx)
 
             tx_for_gene = kept_tx
 
