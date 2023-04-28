@@ -166,11 +166,15 @@ class TestGene2Transcripts(unittest.TestCase):
         output_b = self.vv.gene2transcripts('BRCA2', select_transcripts='NM_000059.3')
         output_c = self.vv.gene2transcripts('BRCA2', select_transcripts='NM_000059.3|NM_000059.4')
         output_d = self.vv.gene2transcripts('BRCA2', select_transcripts='flibble')
+        output_e = self.vv.gene2transcripts('BRAF', select_transcripts='mane_select')
+        output_f = self.vv.gene2transcripts('BRAF', select_transcripts='mane')
         print(output)
         assert len(output['transcripts']) == 3
         assert len(output_b['transcripts']) == 1
         assert len(output_c['transcripts']) == 2
         assert len(output_d['transcripts']) == 0
+        assert len(output_e['transcripts']) == 1
+        assert len(output_f['transcripts']) == 2
 
     def test_symbol_valid_hgnc_id(self):
         symbol = 'HGNC:2197'
@@ -178,8 +182,20 @@ class TestGene2Transcripts(unittest.TestCase):
         print(results)
         assert results["current_symbol"] == "COL1A1"
 
+    def test_transcript_set(self):
+        output = self.vv.gene2transcripts('COL1A1', select_transcripts=None, transcript_set="refseq")
+        print(output)
+        tx_list = [i["reference"] for i in output["transcripts"]]
+        assert "ENST" not in "".join(tx_list)
+        output = self.vv.gene2transcripts('COL1A1', select_transcripts=None, transcript_set="ensembl")
+        print(output)
+        tx_list = [i["reference"] for i in output["transcripts"]]
+        assert "NM_" not in "".join(tx_list)
 
-# <LICENSE>
+
+
+
+    # <LICENSE>
 # Copyright (C) 2016-2023 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify

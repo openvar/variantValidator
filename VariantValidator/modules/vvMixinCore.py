@@ -1441,7 +1441,8 @@ class Mixin(vvMixinConverters.Mixin):
             logger.critical(str(exc_type) + " " + str(exc_value))
             raise fn.VariantValidatorError('Validation error')
 
-    def gene2transcripts(self, query, validator=False, bypass_web_searches=False, select_transcripts=None):
+    def gene2transcripts(self, query, validator=False, bypass_web_searches=False, select_transcripts=None,
+                         transcript_set="refseq"):
         """
         Generates a list of transcript (UTA supported) and transcript names from a gene symbol or RefSeq transcript ID
         :param query: string gene symbol or RefSeq ID (e.g. NANOG or NM_024865.3) or if used internally, variant object
@@ -1461,6 +1462,9 @@ class Mixin(vvMixinConverters.Mixin):
         else:
             # Remove whitespace
             query = ''.join(query.split())
+
+            print("HAHAHA")
+            print(query)
 
             # Search by gene IDs
             if "HGNC:" in query:
@@ -1509,7 +1513,7 @@ class Mixin(vvMixinConverters.Mixin):
         else:
             # Search for gene symbol on Transcript inputs
             hgnc = query
-            if 'NM_' in hgnc or 'NR_' in hgnc:  # or re.match('ENST', hgnc):
+            if 'NM_' in hgnc or 'NR_' in hgnc or "ENST" in hgnc:
 
                 # Remove version
                 if '.' in hgnc:
@@ -1590,12 +1594,34 @@ class Mixin(vvMixinConverters.Mixin):
         if sel_tx_lst is not False:
             kept_tx = []
             for tx in tx_for_gene:
+                annotation = self.db.get_transcript_annotation(tx[3])
                 if tx[3] in sel_tx_lst:
                     kept_tx.append(tx)
+                elif "mane_select" in sel_tx_lst:
+                    if '"mane_select": true' in annotation:
+                        kept_tx.append(tx)
+                elif "mane" in sel_tx_lst:
+                    if '"mane_select": true' in annotation or '"mane_plus_clinical": true' in annotation:
+                        kept_tx.append(tx)
+                elif "select" in sel_tx_lst:
+                    if '"mane_select": true' in annotation or '"refseq_select": true' in annotation \
+                            or '"ensembl_select": true' in annotation:
+                        kept_tx.append(tx)
+
             tx_for_gene = kept_tx
 
+
+        print("BOO YAH")
         for line in tx_for_gene:
-            if (line[3].startswith('NM_') or line[3].startswith('NR_')) and \
+            # Remove unrequested transcript_sets
+            if transcript_set == "refseq":
+                if "ENST" in line[3]:
+                    continue
+            elif transcript_set == "ensembl":
+                if re.match("N[MR]_", line[3]):
+                    continue
+
+            if (line[3].startswith('NM_') or line[3].startswith('NR_') or line[3].startswith('ENST')) and \
                     '..' not in line[3] and \
                     '_NG_' not in line[3] and \
                     "~" not in line[3]:
@@ -1695,8 +1721,12 @@ class Mixin(vvMixinConverters.Mixin):
                     tx_description = self.db.get_transcript_description(tx)
 
                 # Get annotation
-                tx_annotation = self.db.get_transcript_annotation(tx)
-                tx_annotation = json.loads(tx_annotation)
+                try:
+                    tx_annotation = self.db.get_transcript_annotation(tx)
+                    tx_annotation = json.loads(tx_annotation)
+                # Missing annotation data
+                except json.decoder.JSONDecodeError:
+                    continue
 
                 # Check for duplicates
                 if tx not in recovered:
