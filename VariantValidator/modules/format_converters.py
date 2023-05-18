@@ -856,6 +856,7 @@ def proteins(variant, validator):
                 end_pos = hgvs_object.posedit.pos.end.pos
                 posedit = hgvs_object.posedit
                 posedit = str(posedit).split(str(hgvs_object.posedit.edit))[0]
+                posedit = posedit.replace("(", "").replace(")", "")
 
                 if "_" in posedit:
                     start_edit, end_edit = posedit.split("_")
@@ -1036,7 +1037,14 @@ def rna(variant, validator):
             strip_prediction = strip_prediction[:-1]
             hgvs_input = validator.hp.parse_hgvs_variant(strip_prediction)
         else:
-            hgvs_input = validator.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
+            hgvs_input = variant.hgvs_formatted
+
+        tx_info = validator.hdp.get_tx_identity_info(hgvs_input.ac)
+        if tx_info[3] is None:
+            error = "Invalid variant type for non-coding transcript. Instead use n."
+            variant.warnings.append(error)
+            logger.warning(str(error))
+            return True
         # Change to coding variant
         variant.reftype = ':c.'
         # Change input to reflect!

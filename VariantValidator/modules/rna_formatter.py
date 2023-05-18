@@ -66,7 +66,10 @@ class RnaDescriptions(object):
         :param variant_string:
         :return: None
         """
-        reference, edit = variant_string.split(":c.")
+        if "c." in variant_string:
+            reference, edit = variant_string.split(":c.")
+        else:
+            reference, edit = variant_string.split(":r.")
         edit = edit.replace("T", "u")
         edit = edit.replace("G", "g")
         edit = edit.replace("C", "c")
@@ -123,7 +126,10 @@ class RnaDescriptions(object):
         self.replace_and_upper(self.input)
 
         # parse the string into hgvs object
-        hgvs_rna = self.parse(self.dna_variant, self.vfo)
+        if "NR_" in self.input:
+            raise RnaVariantSyntaxError("Invalid variant type for non-coding transcript. Instead use n.")
+        else:
+            hgvs_rna = self.parse(self.dna_variant, self.vfo)
 
         # normalize
         hgvs_rna = self.cross_normalizer.normalize(hgvs_rna)
