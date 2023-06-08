@@ -782,6 +782,13 @@ class TestVVGapWarnings(TestCase):
         assert "This is not a valid HGVS variant description, because no reference sequence ID has been provided" in \
                results['NM_001276761.3:c.259T>G']['validation_warnings']
 
+    def test_vv_series_18(self):
+        variant = 'NR_033955.2:r.164c>a'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert "Invalid variant type for non-coding transcript. Instead use n." in \
+               results['validation_warning_1']['validation_warnings']
+
 
 # <LICENSE>
 # Copyright (C) 2016-2023 VariantValidator Contributors
