@@ -384,11 +384,19 @@ class Mixin:
                         var_seq = utils.n_inversion(ref_seq, del_seq, inv_seq,
                                                     hgvs_naughty.posedit.pos.start.base,
                                                     hgvs_naughty.posedit.pos.end.base)
+
+                        # Check for modified amino acids
+                        prot_seq = self.sf.fetch_seq(associated_protein_accession)
+                        if "U" in prot_seq:
+                            modified_aa = "Sel"
+                        else:
+                            modified_aa = None
+
                         # Translate the reference and variant proteins
-                        prot_ref_seq = utils.translate(ref_seq, cds_start)
+                        prot_ref_seq = utils.translate(ref_seq, cds_start, modified_aa)
 
                         try:
-                            prot_var_seq = utils.translate(var_seq, cds_start)
+                            prot_var_seq = utils.translate(var_seq, cds_start, modified_aa)
                         except IndexError:
                             hgvs_transcript_to_hgvs_protein['error'] = \
                                 'Cannot identify an in-frame Termination codon in the variant mRNA sequence'
@@ -497,6 +505,7 @@ class Mixin:
                                 # Where possible, identify the exact positions of the amino acids
                                 if isinstance(hgvs_transcript.posedit.pos.start.base, int) and isinstance(
                                         hgvs_transcript.posedit.pos.end.base, int):
+
                                     aa_start_pos = int(hgvs_transcript.posedit.pos.start.base/3)
                                     aa_end_pos = int(hgvs_transcript.posedit.pos.end.base / 3)
                                     aa_seq = self.sf.fetch_seq(associated_protein_accession, start_i=aa_start_pos - 1,
@@ -540,10 +549,18 @@ class Mixin:
                                         pro_inv_info['edit_end'] = pro_inv_info['edit_start']
                                     elif hgvs_transcript.posedit.edit.type == 'dup' and pro_inv_info["prot_del_seq"] \
                                             == "" and (int(pro_inv_info["edit_end"]) < int(pro_inv_info["edit_start"])):
+
+                                        # Handles in-frame dups only
+                                        dup_len = (int(hgvs_transcript.posedit.pos.end.base) - int(
+                                            hgvs_transcript.posedit.pos.start.base) + 1) / 3
                                         pro_inv_info['prot_del_seq'] = pro_inv_info['prot_ins_seq']
                                         pro_inv_info['edit_start'] = pro_inv_info['edit_end'] - \
                                                                      len(pro_inv_info['prot_del_seq']) + 1
-                                        pro_inv_info['prot_ins_seq'] = pro_inv_info['prot_ins_seq'] + \
+                                        start_aa = self.sf.fetch_seq(associated_protein_accession,
+                                                                     int(pro_inv_info['edit_start']-1),
+                                                                     int(pro_inv_info['edit_start']) + (dup_len -1))
+                                        pro_inv_info['prot_del_seq'] = start_aa
+                                        pro_inv_info['prot_ins_seq'] = start_aa + \
                                                                        pro_inv_info['prot_ins_seq']
 
                                 # Complete variant description
@@ -558,6 +575,7 @@ class Mixin:
 
                                 # Handle a range of amino acids
                                 if pro_inv_info['edit_start'] != pro_inv_info['edit_end']:
+
                                     # Handle duplications
                                     if pro_inv_info["prot_ins_seq"] == (pro_inv_info["prot_del_seq"]
                                                                           + pro_inv_info["prot_del_seq"]):
@@ -582,6 +600,20 @@ class Mixin:
                                     if pro_inv_info["prot_ins_seq"] == (pro_inv_info["prot_del_seq"]
                                                                           + pro_inv_info["prot_del_seq"]):
                                         posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + 'dup)'
+
+                                    # Handle insertions
+
+                                    elif len(pro_inv_info["prot_ins_seq"]) > len(pro_inv_info["prot_del_seq"]) \
+                                        and pro_inv_info["prot_ins_seq"] != (pro_inv_info["prot_del_seq"]
+                                                                          + pro_inv_info["prot_del_seq"]) and \
+                                            (pro_inv_info["prot_ins_seq"][0] == pro_inv_info["prot_del_seq"][0]):
+
+                                        to_aa = self.sf.fetch_seq(associated_protein_accession,
+                                                                     int(pro_inv_info['edit_start']),
+                                                                     int(pro_inv_info['edit_start'] + 1))
+                                        posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + "_" + \
+                                            to_aa + str(pro_inv_info['edit_start'] + 1) + "ins" + \
+                                                  pro_inv_info["prot_ins_seq"][1:] + ")"
 
                                     # Handle extended proteins i.e. stop_lost
                                     elif del_thr == 'Ter' and (len(ins_thr) > len(del_thr)):
