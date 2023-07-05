@@ -336,6 +336,8 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
         lifted_ref_bases = from_vcf['ref']
         lifted_alt_bases = from_vcf['alt']
         if hgvs_genomic.posedit.edit.type == "dup":
+            # put complete original in ref and both copies of dup in alt
+            lifted_ref_bases = lifted_ref_bases + lifted_alt_bases[1:]
             lifted_alt_bases = lifted_alt_bases + lifted_alt_bases[1:]
 
         # Inverted sequence
