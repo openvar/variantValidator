@@ -273,7 +273,6 @@ class Mixin(vvMixinConverters.Mixin):
                     In this section of the code we are compiling HGVS errors and providing improved warnings/error 
                     messages
                     """
-
                     # 1. Requested warnings from https://github.com/openvar/variantValidator/issues/195
                     if re.search(r'\(.+?\)', my_variant.quibble):  # Pattern looks for (....)
                         gene_symbol_query = re.search(r'\(.+?\)', my_variant.quibble).group(0)
@@ -284,8 +283,9 @@ class Mixin(vvMixinConverters.Mixin):
                             warning = "Removing redundant gene symbol %s from variant description" % is_it_a_gene
                             my_variant.warnings.append(warning)
                             logger.warning(warning)
-                    if re.search('del[GATC]+', my_variant.original) or re.search('inv[GATC]+', my_variant.original) or \
-                            re.search('dup[GATC]+', my_variant.original):
+                    if re.search('del[GATC]+', my_variant.original) or re.search('inv[GATC]+', my_variant.original) \
+                            or \
+                       re.search('dup[GATC]+', my_variant.original) or re.search('ins[GATC]+', my_variant.original):
 
                         warning = "Removing redundant reference bases from variant description"
                         my_variant.warnings.append(warning)
@@ -440,10 +440,9 @@ class Mixin(vvMixinConverters.Mixin):
 
                             continue
 
-                        elif re.search("ins[GATC]+\[\d+\]$", my_variant.quibble) or re.search("ins\[[GATC]+\[\d+\];",
+                        elif re.search("ins[GATCN]+\[\d+\]$", my_variant.quibble) or re.search("ins\[[GATCN]+\[\d+\];",
                                                                                               my_variant.quibble):
-
-                            if re.search("ins\[[GATC]+\[\d+\];", my_variant.quibble):
+                            if re.search("ins\[[GATCN]+\[\d+\];", my_variant.quibble):
                                 sections = my_variant.quibble.split("ins")[1]
                                 sections = sections[1:-1]
                                 sections_listed = sections.split(";")
@@ -473,7 +472,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 vt_in_full = my_variant.quibble.split("ins")[0] + "ins" + ins_seq_in_full
                             else:
                                 vt_in_full = my_variant.quibble.split("delins")[0] + "delins" + ins_seq_in_full
-                            warn = "%s is better written as %s " % (my_variant.quibble, vt_in_full)
+                            warn = "%s may also be written as %s " % (my_variant.quibble, vt_in_full)
                             my_variant.warnings.append(warn)
 
                             try:
@@ -1147,54 +1146,57 @@ class Mixin(vvMixinConverters.Mixin):
                     predicted_protein_variant_dict["lrg_tlr"] = ''
                     predicted_protein_variant_dict["lrg_slr"] = ''
                     if 'Non-coding :n.' not in predicted_protein_variant:
-                        try:
-                            # Add single letter AA code to protein descriptions
-                            predicted_protein_variant_dict = {"tlr": str(predicted_protein_variant), "slr": ''}
-                            if re.search('p.=', predicted_protein_variant_dict['tlr']) \
-                                    or re.search('p.?', predicted_protein_variant_dict['tlr']):
+                        if "N" in str(hgvs_tx_variant.posedit.edit):
+                            pass
+                        else:
+                            try:
+                                # Add single letter AA code to protein descriptions
+                                predicted_protein_variant_dict = {"tlr": str(predicted_protein_variant), "slr": ''}
+                                if re.search('p.=', predicted_protein_variant_dict['tlr']) \
+                                        or re.search('p.?', predicted_protein_variant_dict['tlr']):
+                                    # Replace p.= with p.(=)
+                                    predicted_protein_variant_dict['tlr'] = predicted_protein_variant_dict['tlr'].replace(
+                                        'p.=',
+                                        'p.(=)')
+
+                                # Remove LRG
+                                format_p = predicted_protein_variant_dict['tlr']
+
+                                if 'LRG' in format_p:
+                                    format_lrg = copy.copy(format_p)
+                                    format_p = re.sub(r'\(LRG_.+?\)', '', format_p)
+                                    format_lrg = format_lrg.split('(')[1]
+                                    format_lrg = format_lrg.replace(')', '')
+                                else:
+                                    format_lrg = None
+                                    pass
+
+                                re_parse_protein = self.hp.parse_hgvs_variant(format_p)
+
+                                # Set formatted tlr
+                                predicted_protein_variant_dict['tlr'] = str(copy.copy(re_parse_protein))
+                                re_parse_protein_single_aa = fn.single_letter_protein(re_parse_protein)
+
                                 # Replace p.= with p.(=)
-                                predicted_protein_variant_dict['tlr'] = predicted_protein_variant_dict['tlr'].replace(
-                                    'p.=',
-                                    'p.(=)')
+                                if re.search('p.=', re_parse_protein_single_aa
+                                             ) or re.search('p.?', re_parse_protein_single_aa):
+                                    re_parse_protein_single_aa = re_parse_protein_single_aa.replace('p.=',
+                                                                                                    'p.(=)')
 
-                            # Remove LRG
-                            format_p = predicted_protein_variant_dict['tlr']
+                                predicted_protein_variant_dict["slr"] = str(re_parse_protein_single_aa)
 
-                            if 'LRG' in format_p:
-                                format_lrg = copy.copy(format_p)
-                                format_p = re.sub(r'\(LRG_.+?\)', '', format_p)
-                                format_lrg = format_lrg.split('(')[1]
-                                format_lrg = format_lrg.replace(')', '')
-                            else:
-                                format_lrg = None
-                                pass
+                                # set LRG outputs
+                                if format_lrg is not None:
+                                    predicted_protein_variant_dict["lrg_tlr"] = \
+                                        format_lrg.split(':')[0] + ':' + predicted_protein_variant_dict["tlr"].split(':')[1]
+                                    predicted_protein_variant_dict["lrg_slr"] = \
+                                        format_lrg.split(':')[0] + ':' + predicted_protein_variant_dict["slr"].split(':')[1]
+                                else:
+                                    predicted_protein_variant_dict["lrg_tlr"] = ''
+                                    predicted_protein_variant_dict["lrg_slr"] = ''
 
-                            re_parse_protein = self.hp.parse_hgvs_variant(format_p)
-
-                            # Set formatted tlr
-                            predicted_protein_variant_dict['tlr'] = str(copy.copy(re_parse_protein))
-                            re_parse_protein_single_aa = fn.single_letter_protein(re_parse_protein)
-
-                            # Replace p.= with p.(=)
-                            if re.search('p.=', re_parse_protein_single_aa
-                                         ) or re.search('p.?', re_parse_protein_single_aa):
-                                re_parse_protein_single_aa = re_parse_protein_single_aa.replace('p.=',
-                                                                                                'p.(=)')
-
-                            predicted_protein_variant_dict["slr"] = str(re_parse_protein_single_aa)
-
-                            # set LRG outputs
-                            if format_lrg is not None:
-                                predicted_protein_variant_dict["lrg_tlr"] = \
-                                    format_lrg.split(':')[0] + ':' + predicted_protein_variant_dict["tlr"].split(':')[1]
-                                predicted_protein_variant_dict["lrg_slr"] = \
-                                    format_lrg.split(':')[0] + ':' + predicted_protein_variant_dict["slr"].split(':')[1]
-                            else:
-                                predicted_protein_variant_dict["lrg_tlr"] = ''
-                                predicted_protein_variant_dict["lrg_slr"] = ''
-
-                        except vvhgvs.exceptions.HGVSParseError as e:
-                            logger.debug("Except passed, %s", e)
+                            except vvhgvs.exceptions.HGVSParseError as e:
+                                logger.debug("Except passed, %s", e)
                 else:
                     predicted_protein_variant_dict = {}
                     predicted_protein_variant_dict["slr"] = ''
