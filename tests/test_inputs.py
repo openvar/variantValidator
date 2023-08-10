@@ -30842,6 +30842,32 @@ class TestVariantsAuto(TestCase):
         print(results)
         assert 'NM_020944.3:c.2506_*303del' in results.keys()
 
+    def test_issue_510(self):
+        # issue 510 was caused by incorrect handling of dup type variants
+        # during liftover, in the intergenic liftover code.
+        # This triggered on NM_000892.3 which only has GRCh37 mapping so
+        # counts as intergenic when mapped with GRCh38 as a target genome
+        orig_variant = 'NM_000892.3:c.451dup'
+        results = self.vv.validate(orig_variant, 'GRCh38', 'mane_select', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'NM_000892.3:c.451dup' in results.keys()
+        assert results["NM_000892.3:c.451dup"]["primary_assembly_loci"]['grch37']["hgvs_genomic_description"] == "NC_000004.11:g.187158057dup"
+        assert results["NM_000892.3:c.451dup"]["primary_assembly_loci"]['grch38']["hgvs_genomic_description"] == "NC_000004.12:g.186236903dup"
+        #now test again for real currently intergenic region
+        intergenic_variant = 'NC_000001.10:g.79445dup'
+        results = self.vv.validate(intergenic_variant, 'GRCh37', 'mane_select', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'intergenic_variant_1' in results.keys()
+        assert results['intergenic_variant_1']["primary_assembly_loci"]['grch38']["hgvs_genomic_description"] == 'NC_000001.11:g.79445dup'
+
+        # check on multi-base intergenic dup too
+        multibase_intergenic_variant = 'NC_000001.10:g.79444_79445dup'
+        results = self.vv.validate(multibase_intergenic_variant, 'GRCh37', 'mane_select', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'intergenic_variant_1' in results.keys()
+        assert results['intergenic_variant_1']["primary_assembly_loci"]['grch38']["hgvs_genomic_description"] == 'NC_000001.11:g.79444_79445dup'
+
+
     def test_transcripts_all_vs_raw(self):
         self.vv.testing = False
         variant = 'NC_000008.10:g.6673379del'
