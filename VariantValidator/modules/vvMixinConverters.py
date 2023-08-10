@@ -1571,7 +1571,10 @@ class Mixin(vvMixinInit.Mixin):
                         # map back to coding
                         variant = evm.g_to_t(rev_hgvs_genomic, tx_ac)
                 except vvhgvs.exceptions.HGVSInvalidIntervalError:
-                    variant = evm.g_to_t(hgvs_genomic, tx_ac)
+                    try:
+                        variant = evm.g_to_t(hgvs_genomic, tx_ac)
+                    except vvhgvs.exceptions.HGVSInvalidIntervalError:
+                        pass
             try:
                 self.hp.parse_hgvs_variant(str(variant))
             except vvhgvs.exceptions.HGVSError:
