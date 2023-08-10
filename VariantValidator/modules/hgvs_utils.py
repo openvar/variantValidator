@@ -473,11 +473,22 @@ def report_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
         start = start - 1
         # Recover sequences
         hgvs_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), start, end)
-        pre_base = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, start)
+        post_base = None
+        try:
+            pre_base = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, start)
+        except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
+            if "(start out of range (-1)" in str(e):
+                post_base = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), end, end + 1)
         # Assemble
         pos = str(start)
-        ref = pre_base + hgvs_del_seq
-        alt = pre_base
+        if post_base is None:
+            ref = pre_base + hgvs_del_seq
+            alt = pre_base
+        else:
+            ref = hgvs_del_seq + post_base
+            alt = post_base
+            if pos == "0":
+                pos = "1"
 
     # inv
     elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'inv':

@@ -101,7 +101,7 @@ class TestVariantsAuto(TestCase):
         assert results['NM_015120.4:c.34C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_015120.4:c.34C>T']['hgvs_refseqgene_variant'] == 'NG_011690.1:g.5145C>T'
         assert results['NM_015120.4:c.34C>T']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_055935.4:p.(Leu12=)', 'slr': 'NP_055935.4:p.(L12=)'}
+            'tlr': 'NP_055935.4:p.(Glu11_Leu12=)', 'slr': 'NP_055935.4:p.(E11_L12=)'}
         assert results['NM_015120.4:c.34C>T']['hgvs_lrg_transcript_variant'] == 'LRG_741t1:c.34C>T'
         assert results['NM_015120.4:c.34C>T']['hgvs_lrg_variant'] == 'LRG_741:g.5145C>T'
         self.assertCountEqual(results['NM_015120.4:c.34C>T']['alt_genomic_loci'], [])
@@ -139,7 +139,7 @@ class TestVariantsAuto(TestCase):
         assert results['NM_015120.4:c.34C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_015120.4:c.34C>T']['hgvs_refseqgene_variant'] == 'NG_011690.1:g.5145C>T'
         assert results['NM_015120.4:c.34C>T']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_055935.4:p.(Leu12=)', 'slr': 'NP_055935.4:p.(L12=)'}
+            'tlr': 'NP_055935.4:p.(Glu11_Leu12=)', 'slr': 'NP_055935.4:p.(E11_L12=)'}
         assert results['NM_015120.4:c.34C>T']['hgvs_lrg_transcript_variant'] == 'LRG_741t1:c.34C>T'
         assert results['NM_015120.4:c.34C>T']['hgvs_lrg_variant'] == 'LRG_741:g.5145C>T'
         self.assertCountEqual(results['NM_015120.4:c.34C>T']['alt_genomic_loci'], [])
@@ -29138,7 +29138,7 @@ class TestVariantsAuto(TestCase):
         assert results['NM_012309.4:c.2566C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_012309.4:c.2566C>T']['hgvs_refseqgene_variant'] == 'NG_042866.1:g.640463C>T'
         assert results['NM_012309.4:c.2566C>T']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_036441.2:p.(Leu856=)', 'slr': 'NP_036441.2:p.(L856=)'}
+            'tlr': 'NP_036441.2:p.(Phe855_Leu856=)', 'slr': 'NP_036441.2:p.(F855_L856=)'}
         assert results['NM_012309.4:c.2566C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_012309.4:c.2566C>T']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_012309.4:c.2566C>T']['alt_genomic_loci'], [{'grch37': {
@@ -29175,7 +29175,7 @@ class TestVariantsAuto(TestCase):
         assert results['NM_133266.3:c.802C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_133266.3:c.802C>T']['hgvs_refseqgene_variant'] == ''
         assert results['NM_133266.3:c.802C>T']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_573573.2:p.(Leu268=)', 'slr': 'NP_573573.2:p.(L268=)'}
+            'tlr': 'NP_573573.2:p.(Phe267_Leu268=)', 'slr': 'NP_573573.2:p.(F267_L268=)'}
         assert results['NM_133266.3:c.802C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_133266.3:c.802C>T']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_133266.3:c.802C>T']['alt_genomic_loci'], [{'grch37': {
@@ -29205,7 +29205,7 @@ class TestVariantsAuto(TestCase):
         assert results['NM_133266.4:c.802C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_133266.4:c.802C>T']['hgvs_refseqgene_variant'] == ''
         assert results['NM_133266.4:c.802C>T']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_573573.2:p.(Leu268=)', 'slr': 'NP_573573.2:p.(L268=)'}
+            'tlr': 'NP_573573.2:p.(Phe267_Leu268=)', 'slr': 'NP_573573.2:p.(F267_L268=)'}
         assert results['NM_133266.4:c.802C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_133266.4:c.802C>T']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_133266.4:c.802C>T']['alt_genomic_loci'], [{'grch37': {
@@ -30842,6 +30842,32 @@ class TestVariantsAuto(TestCase):
         print(results)
         assert 'NM_020944.3:c.2506_*303del' in results.keys()
 
+    def test_issue_510(self):
+        # issue 510 was caused by incorrect handling of dup type variants
+        # during liftover, in the intergenic liftover code.
+        # This triggered on NM_000892.3 which only has GRCh37 mapping so
+        # counts as intergenic when mapped with GRCh38 as a target genome
+        orig_variant = 'NM_000892.3:c.451dup'
+        results = self.vv.validate(orig_variant, 'GRCh38', 'mane_select', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'NM_000892.3:c.451dup' in results.keys()
+        assert results["NM_000892.3:c.451dup"]["primary_assembly_loci"]['grch37']["hgvs_genomic_description"] == "NC_000004.11:g.187158057dup"
+        assert results["NM_000892.3:c.451dup"]["primary_assembly_loci"]['grch38']["hgvs_genomic_description"] == "NC_000004.12:g.186236903dup"
+        #now test again for real currently intergenic region
+        intergenic_variant = 'NC_000001.10:g.79445dup'
+        results = self.vv.validate(intergenic_variant, 'GRCh37', 'mane_select', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'intergenic_variant_1' in results.keys()
+        assert results['intergenic_variant_1']["primary_assembly_loci"]['grch38']["hgvs_genomic_description"] == 'NC_000001.11:g.79445dup'
+
+        # check on multi-base intergenic dup too
+        multibase_intergenic_variant = 'NC_000001.10:g.79444_79445dup'
+        results = self.vv.validate(multibase_intergenic_variant, 'GRCh37', 'mane_select', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'intergenic_variant_1' in results.keys()
+        assert results['intergenic_variant_1']["primary_assembly_loci"]['grch38']["hgvs_genomic_description"] == 'NC_000001.11:g.79444_79445dup'
+
+
     def test_transcripts_all_vs_raw(self):
         self.vv.testing = False
         variant = 'NC_000008.10:g.6673379del'
@@ -30853,6 +30879,24 @@ class TestVariantsAuto(TestCase):
         assert 'NM_001289973.1:c.380C>T' in results.keys()
         assert 'NM_207411.4:c.869C>T' in results.keys()
         self.vv.testing = True
+
+    def test_issue_503(self):
+        variant = 'NM_020451.2:c.481C>T'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'NP_065184.2:p.(Arg161Sec)' in \
+               results['NM_020451.2:c.481C>T']['hgvs_predicted_protein_consequence']['tlr']
+        assert 'NP_065184.2:p.(R161U)' in \
+               results['NM_020451.2:c.481C>T']['hgvs_predicted_protein_consequence']['slr']
+
+    def test_issue_482(self):
+        variant = 'NM_152641.4:c.915_916delinsAC'
+        results = self.vv.validate(variant, 'GRCh38', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'NP_689854.2:p.(Leu305_Leu306=)' in \
+               results['NM_152641.4:c.915_916delinsAC']['hgvs_predicted_protein_consequence']['tlr']
+        assert 'NP_689854.2:p.(L305_L306=)' in \
+               results['NM_152641.4:c.915_916delinsAC']['hgvs_predicted_protein_consequence']['slr']
 
 # <LICENSE>
 # Copyright (C) 2016-2023 VariantValidator Contributors
