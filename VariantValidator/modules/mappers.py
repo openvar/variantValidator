@@ -39,10 +39,10 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
     g_test = variant.hn.normalize(g_query)
     try:
         if "N" in g_test.posedit.edit.ref:
-            variant.warnings.append("Submitted variant description cannot be validated as it is located in a region of "
-                                    "the reference sequence represented by base 'N' and not 'GATC'")
+            variant.warnings.append("Submitted variant description cannot be fully validated because it spans "
+                                    "a region of the reference sequence represented by base 'N' and not bases 'GATC'")
             logger.warning(error)
-            return True
+            # return True
     except AttributeError:
         pass
     except TypeError:
@@ -413,10 +413,31 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             test = validator.hp.parse_hgvs_variant(quibble_input)
             if post_var.posedit.pos.start.base != test.posedit.pos.start.base or \
                     post_var.posedit.pos.end.base != test.posedit.pos.end.base:
-                caution = "ExonBoundaryError: Position c.%s does not correspond with an exon boundary for transcript " \
-                          "%s" % (str(test.posedit.pos).split("_")[-1], test.ac)
+
+                # If this is a boundary issue with a valid boundary stated, but incorrect intronic numbering we can
+                # Refer to https://github.com/openvar/variantValidator/issues/518
+                can_we_autocorrect = False
+                if post_var.posedit.pos.start.base != test.posedit.pos.start.base:
+                    if "-" in str(test.posedit.pos.start) and "+" in str(post_var.posedit.pos.start) and \
+                            post_var.posedit.pos.start.base == test.posedit.pos.start.base - 1:
+                        can_we_autocorrect = True
+                    elif "+" in str(test.posedit.pos.start) and "-" in str(post_var.posedit.pos.start) and \
+                            post_var.posedit.pos.start.base == test.posedit.pos.start.base + 1:
+                        can_we_autocorrect = True
+                    caution = "ExonBoundaryError: Position c.%s does not correspond with an exon boundary for " \
+                              "transcript %s" % (str(test.posedit.pos).split("_")[0], test.ac)
+                elif post_var.posedit.pos.end.base != test.posedit.pos.end.base:
+                    if "-" in str(test.posedit.pos.end) and "+" in str(post_var.posedit.pos.end) and \
+                            post_var.posedit.pos.end.base == test.posedit.pos.end.base - 1:
+                        can_we_autocorrect = True
+                    elif "+" in str(test.posedit.pos.end) and "-" in str(post_var.posedit.pos.end) and \
+                            post_var.posedit.pos.end.base == test.posedit.pos.end.base + 1:
+                        can_we_autocorrect = True
+                    caution = "ExonBoundaryError: Position c.%s does not correspond with an exon boundary for " \
+                              "transcript %s" % (str(test.posedit.pos).split("_")[0], test.ac)
                 variant.warnings.extend([caution])
-                raise MappersError(caution)
+                if can_we_autocorrect is False:
+                    raise MappersError(caution)
 
         else:  # del not in formatted_variant
 
@@ -431,10 +452,31 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             test = validator.hp.parse_hgvs_variant(quibble_input)
             if post_var.posedit.pos.start.base != test.posedit.pos.start.base or \
                     post_var.posedit.pos.end.base != test.posedit.pos.end.base:
-                caution = "ExonBoundaryError: Position c.%s does not correspond with an exon boundary for transcript " \
-                          "%s" % (str(test.posedit.pos).split("_")[-1], test.ac)
+
+                # If this is a boundary issue with a valid boundary stated, but incorrect intronic numbering we can
+                # Refer to https://github.com/openvar/variantValidator/issues/518
+                can_we_autocorrect = False
+                if post_var.posedit.pos.start.base != test.posedit.pos.start.base:
+                    if "-" in str(test.posedit.pos.start) and "+" in str(post_var.posedit.pos.start) and \
+                            post_var.posedit.pos.start.base == test.posedit.pos.start.base - 1:
+                        can_we_autocorrect = True
+                    elif "+" in str(test.posedit.pos.start) and "-" in str(post_var.posedit.pos.start) and \
+                            post_var.posedit.pos.start.base == test.posedit.pos.start.base + 1:
+                        can_we_autocorrect = True
+                    caution = "ExonBoundaryError: Position c.%s does not correspond with an exon boundary for " \
+                              "transcript %s" % (str(test.posedit.pos).split("_")[0], test.ac)
+                elif post_var.posedit.pos.end.base != test.posedit.pos.end.base:
+                    if "-" in str(test.posedit.pos.end) and "+" in str(post_var.posedit.pos.end) and \
+                            post_var.posedit.pos.end.base == test.posedit.pos.end.base - 1:
+                        can_we_autocorrect = True
+                    elif "+" in str(test.posedit.pos.end) and "-" in str(post_var.posedit.pos.end) and \
+                            post_var.posedit.pos.end.base == test.posedit.pos.end.base + 1:
+                        can_we_autocorrect = True
+                    caution = "ExonBoundaryError: Position c.%s does not correspond with an exon boundary for " \
+                              "transcript %s" % (str(test.posedit.pos).split("_")[0], test.ac)
                 variant.warnings.extend([caution])
-                raise MappersError(caution)
+                if can_we_autocorrect is False:
+                    raise MappersError(caution)
 
     elif ':g.' not in quibble_input:
         query = validator.hp.parse_hgvs_variant(formatted_variant)

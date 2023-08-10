@@ -393,7 +393,10 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             # Get orientation of the gene wrt genome and a list of exons mapped to the genome
             ori = self.validator.tx_exons(tx_ac=saved_hgvs_coding.ac, alt_ac=self.hgvs_genomic_5pr.ac,
                                           alt_aln_method=self.validator.alt_aln_method)
-            self.orientation = int(ori[0]['alt_strand'])
+            try:
+                self.orientation = int(ori[0]['alt_strand'])
+            except TypeError:
+                continue
 
             # Set intronic params
             intronic_variant = 'false'

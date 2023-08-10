@@ -1,4 +1,3 @@
-from Bio.Seq import Seq
 import requests
 import functools
 import logging
@@ -455,12 +454,11 @@ def pro_delins_info(prot_ref_seq, prot_var_seq, in_frame=False):
             return info
 
 
-def translate(ed_seq, cds_start):
+def translate(ed_seq, cds_start, modified_aa=None):
     """
     Translate c. reference sequences, including those that have been modified
     must have the CDS in the specified position
     """
-    # ed_seq = ed_seq.replace('\n', '')
     ed_seq = ed_seq.strip()
     # Ensure the starting codon is in the correct position
     met = ed_seq[cds_start:cds_start + 3]
@@ -474,10 +472,54 @@ def translate(ed_seq, cds_start):
         or (met == 'GTG') or (met == 'gtg') or (met == 'ATT') or (met == 'att') or (met == 'ATC') or (met == 'atc') \
         or (met == 'ATA') or (met == 'ata'):
         # Remove the 5 prime UTR
-        sequence = ed_seq[cds_start:]
-        coding_dna = Seq(str(sequence))
+        coding_sequence = ed_seq[cds_start:].upper()
+
+        # Translation table
+        translation_dict = \
+            {
+                ('TCT', 'TCC', 'TCA', 'TCG', 'AGT', 'AGC'): 'S', ('TTA', 'TTG', 'CTT', 'CTC', 'CTA', 'CTG'): 'L',
+                ('TGT', 'TGC'): 'C', 'TGG': 'W', ('GAA', 'GAG'): 'E', ('GAT', 'GAC'): 'D', ('CCT', 'CCC', 'CCA',
+                                                                                            'CCG'): 'P',
+                ('GTT', 'GTC', 'GTA', 'GTG'): 'V', ('AAT', 'AAC'): 'N', 'ATG': 'M', ('AAA', 'AAG'): 'K', ('TAT',
+                                                                                                          'TAC'): 'Y',
+                ('ATT', 'ATC', 'ATA'): 'I', ('CAA', 'CAG'): 'Q', ('TTT', 'TTC'): 'F', ('CGT', 'CGC', 'CGA', 'CGG',
+                                                                                       'AGA', 'AGG'): 'R',
+                ('ACT', 'ACC', 'ACA', 'ACG'): 'T', ('GCT', 'GCC', 'GCA', 'GCG'): 'A', ('GGT', 'GGC', 'GGA', 'GGG'): 'G',
+                ('CAT', 'CAC'): 'H', ('TAA', 'TAG', 'TGA'): '*'
+
+            }
+
+        translation_dict_sel = \
+            {
+                ('TCT', 'TCC', 'TCA', 'TCG', 'AGT', 'AGC'): 'S', ('TTA', 'TTG', 'CTT', 'CTC', 'CTA', 'CTG'): 'L',
+                ('TGT', 'TGC'): 'C', 'TGG': 'W', ('GAA', 'GAG'): 'E', ('GAT', 'GAC'): 'D', ('CCT', 'CCC', 'CCA',
+                                                                                            'CCG'): 'P',
+                ('GTT', 'GTC', 'GTA', 'GTG'): 'V', ('AAT', 'AAC'): 'N', 'ATG': 'M', ('AAA', 'AAG'): 'K', ('TAT',
+                                                                                                          'TAC'): 'Y',
+                ('ATT', 'ATC', 'ATA'): 'I', ('CAA', 'CAG'): 'Q', ('TTT', 'TTC'): 'F', ('CGT', 'CGC', 'CGA', 'CGG',
+                                                                                       'AGA', 'AGG'): 'R',
+                ('ACT', 'ACC', 'ACA', 'ACG'): 'T', ('GCT', 'GCC', 'GCA', 'GCG'): 'A', ('GGT', 'GGC', 'GGA', 'GGG'): 'G',
+                ('CAT', 'CAC'): 'H', ('TAA', 'TAG'): '*', 'TGA': 'U'
+
+            }
+
+        if modified_aa == "Sec":
+            use_dict = translation_dict_sel
+        else:
+            use_dict = translation_dict
+
         # Translate
-        trans = coding_dna.translate()
+        codon_list = [coding_sequence[i:i+3] for i in range(0, len(coding_sequence), 3)]
+        translation = []
+        for codon in codon_list:
+            for key, val in use_dict.items():
+                if str(codon) in key:
+                    translation.append(val)
+                    break
+                else:
+                    continue
+
+        trans = "".join(translation)
         aain = list(trans)
         aaout = []
         count = 0
@@ -507,7 +549,7 @@ def one_to_three(seq):
         'K': 'Lys', 'L': 'Leu', 'M': 'Met', 'N': 'Asn',
         'P': 'Pro', 'Q': 'Gln', 'R': 'Arg', 'S': 'Ser',
         'T': 'Thr', 'V': 'Val', 'W': 'Trp', 'Y': 'Tyr',
-        '*': 'Ter'}
+        '*': 'Ter', 'U': 'Sec'}
 
     oned = list(seq)
     out = []

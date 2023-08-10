@@ -78,7 +78,12 @@ def vcf2hgvs_stage1(variant, validator):
             variant.quibble = '-'.join(in_list[1:])
         pre_input = variant.quibble
         vcf_elements = pre_input.split('-')
-        variant.quibble = '%s:%s%s>%s' % (vcf_elements[0], vcf_elements[1], vcf_elements[2], vcf_elements[3])
+        try:
+            variant.quibble = '%s:%s%s>%s' % (vcf_elements[0], vcf_elements[1], vcf_elements[2], vcf_elements[3])
+        except IndexError:
+            variant.warnings.append("Insufficient or incorrect  VCF elements provided. "
+                                    "Elements required are chr-pos-ref-alt")
+            return True
     elif re.search(r'[-:]\d+[-:][GATC]+[-:]', variant.quibble):
         variant.quibble = variant.quibble.replace(':', '-')
         # Extract primary_assembly if provided
@@ -233,7 +238,8 @@ def vcf2hgvs_stage3(variant, validator):
     software
     """
     skipvar = False
-    if (re.search(r'\w+:[gcnmrp]\.', variant.quibble) or re.search(r'\w+\(\w+\):[gcnmrp]\.', variant.quibble)) \
+    if (re.search(r'\w+:[gcnmrpGCMNRP]\.', variant.quibble) or re.search(r'\w+\(\w+\):[gcnmrpGCMNRP]\.',
+                                                                         variant.quibble)) \
             and not re.match(r'N[CGTWMRP]_', variant.quibble):
         # Take out lowercase Accession characters
         lower_cased_list = variant.quibble.split(':')
@@ -856,6 +862,7 @@ def proteins(variant, validator):
                 end_pos = hgvs_object.posedit.pos.end.pos
                 posedit = hgvs_object.posedit
                 posedit = str(posedit).split(str(hgvs_object.posedit.edit))[0]
+                posedit = posedit.replace("(", "").replace(")", "")
 
                 if "_" in posedit:
                     start_edit, end_edit = posedit.split("_")
@@ -1036,7 +1043,14 @@ def rna(variant, validator):
             strip_prediction = strip_prediction[:-1]
             hgvs_input = validator.hp.parse_hgvs_variant(strip_prediction)
         else:
-            hgvs_input = validator.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
+            hgvs_input = variant.hgvs_formatted
+
+        tx_info = validator.hdp.get_tx_identity_info(hgvs_input.ac)
+        if tx_info[3] is None:
+            error = "Invalid variant type for non-coding transcript. Instead use n."
+            variant.warnings.append(error)
+            logger.warning(str(error))
+            return True
         # Change to coding variant
         variant.reftype = ':c.'
         # Change input to reflect!
