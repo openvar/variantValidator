@@ -503,7 +503,7 @@ def translate(ed_seq, cds_start, modified_aa=None):
 
             }
 
-        if modified_aa == "Sel":
+        if modified_aa == "Sec":
             use_dict = translation_dict_sel
         else:
             use_dict = translation_dict
@@ -553,7 +553,7 @@ def one_to_three(seq):
         'K': 'Lys', 'L': 'Leu', 'M': 'Met', 'N': 'Asn',
         'P': 'Pro', 'Q': 'Gln', 'R': 'Arg', 'S': 'Ser',
         'T': 'Thr', 'V': 'Val', 'W': 'Trp', 'Y': 'Tyr',
-        '*': 'Ter', 'U': 'Sel'}
+        '*': 'Ter', 'U': 'Sec'}
 
     oned = list(seq)
     out = []

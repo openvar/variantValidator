@@ -233,7 +233,8 @@ def vcf2hgvs_stage3(variant, validator):
     software
     """
     skipvar = False
-    if (re.search(r'\w+:[gcnmrp]\.', variant.quibble) or re.search(r'\w+\(\w+\):[gcnmrp]\.', variant.quibble)) \
+    if (re.search(r'\w+:[gcnmrpGCMNRP]\.', variant.quibble) or re.search(r'\w+\(\w+\):[gcnmrpGCMNRP]\.',
+                                                                         variant.quibble)) \
             and not re.match(r'N[CGTWMRP]_', variant.quibble):
         # Take out lowercase Accession characters
         lower_cased_list = variant.quibble.split(':')
