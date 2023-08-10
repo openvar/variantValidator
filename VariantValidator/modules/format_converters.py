@@ -78,7 +78,12 @@ def vcf2hgvs_stage1(variant, validator):
             variant.quibble = '-'.join(in_list[1:])
         pre_input = variant.quibble
         vcf_elements = pre_input.split('-')
-        variant.quibble = '%s:%s%s>%s' % (vcf_elements[0], vcf_elements[1], vcf_elements[2], vcf_elements[3])
+        try:
+            variant.quibble = '%s:%s%s>%s' % (vcf_elements[0], vcf_elements[1], vcf_elements[2], vcf_elements[3])
+        except IndexError:
+            variant.warnings.append("Insufficient or incorrect  VCF elements provided. "
+                                    "Elements required are chr-pos-ref-alt")
+            return True
     elif re.search(r'[-:]\d+[-:][GATC]+[-:]', variant.quibble):
         variant.quibble = variant.quibble.replace(':', '-')
         # Extract primary_assembly if provided
