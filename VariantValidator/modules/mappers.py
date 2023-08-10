@@ -39,10 +39,10 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
     g_test = variant.hn.normalize(g_query)
     try:
         if "N" in g_test.posedit.edit.ref:
-            variant.warnings.append("Submitted variant description cannot be validated as it is located in a region of "
-                                    "the reference sequence represented by base 'N' and not 'GATC'")
+            variant.warnings.append("Submitted variant description cannot be fully validated because it spans "
+                                    "a region of the reference sequence represented by base 'N' and not bases 'GATC'")
             logger.warning(error)
-            return True
+            # return True
     except AttributeError:
         pass
     except TypeError:
