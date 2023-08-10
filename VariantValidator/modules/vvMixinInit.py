@@ -246,13 +246,11 @@ class Mixin:
                 associated_protein_accession = p.ac
 
         if hgvs_transcript.type == 'c':
-            # Handle non inversions with simple c_to_p mapping
-            print("TYPE")
-            print(hgvs_transcript.posedit.edit.type)
 
+            # Handle non inversions with simple c_to_p mapping
             if (hgvs_transcript.posedit.edit.type != 'inv') and (hgvs_transcript.posedit.edit.type != 'dup') and \
                     (hgvs_transcript.posedit.edit.type != 'delins') and (hgvs_transcript.posedit.edit.type != 'sub') \
-                        and (re_to_p is False):
+                    and (re_to_p is False):
                 hgvs_protein = None
                 # Does the edit affect the start codon?
                 if ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and hgvs_transcript.posedit.pos.start.offset == 0)
@@ -330,8 +328,12 @@ class Mixin:
                 if hgvs_transcript.posedit.edit.type != 'inv':
                     try:
                         shifts = evm.c_to_p(hgvs_transcript)
+                        if "identity" in shifts.posedit.edit.type:
+                            not_delins = False
                         if 'del' in shifts.posedit.edit.type or 'dup' in shifts.posedit.edit.type:
                             not_delins = False
+                        if "fs" in shifts.posedit.edit.type:
+                            not_delins = True
                     except Exception:
                         not_delins = False
                 else:
@@ -339,6 +341,7 @@ class Mixin:
 
                 # Use inv delins code?
                 if not not_delins:
+
                     # Collect the associated protein
                     associated_protein_accession = self.hdp.get_pro_ac_for_tx_ac(hgvs_transcript.ac)
 
@@ -399,7 +402,6 @@ class Mixin:
 
                         # Translate the reference and variant proteins
                         prot_ref_seq = utils.translate(ref_seq, cds_start, modified_aa)
-
                         try:
                             prot_var_seq = utils.translate(var_seq, cds_start, modified_aa)
                         except IndexError:
@@ -504,6 +506,7 @@ class Mixin:
 
                             # The Nucleotide variant has not affected the protein sequence i.e. synonymous
                             elif pro_inv_info['variant'] != 'true':
+
                                 # Make the variant
                                 hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
                                                                                       type='p', posedit='=')
@@ -511,8 +514,15 @@ class Mixin:
                                 if isinstance(hgvs_transcript.posedit.pos.start.base, int) and isinstance(
                                         hgvs_transcript.posedit.pos.end.base, int):
 
-                                    aa_start_pos = int(hgvs_transcript.posedit.pos.start.base/3)
-                                    aa_end_pos = int(hgvs_transcript.posedit.pos.end.base / 3)
+                                    aa_start_pos = int(hgvs_transcript.posedit.pos.start.base / 3)
+                                    aa_end_pos = float(hgvs_transcript.posedit.pos.end.base / 3)
+
+                                    # end pos may be in the next amino acid i.e. float>0
+                                    if not aa_end_pos.is_integer():
+                                        aa_end_pos = int(aa_end_pos + 1)
+                                    else:
+                                        aa_end_pos = int(aa_end_pos)
+
                                     aa_seq = self.sf.fetch_seq(associated_protein_accession, start_i=aa_start_pos - 1,
                                                                end_i=aa_end_pos)
                                     start_aa = utils.one_to_three(aa_seq[0])
@@ -607,7 +617,6 @@ class Mixin:
                                         posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + 'dup)'
 
                                     # Handle insertions
-
                                     elif len(pro_inv_info["prot_ins_seq"]) > len(pro_inv_info["prot_del_seq"]) \
                                         and pro_inv_info["prot_ins_seq"] != (pro_inv_info["prot_del_seq"]
                                                                           + pro_inv_info["prot_del_seq"]) and \

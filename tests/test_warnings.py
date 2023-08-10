@@ -158,7 +158,7 @@ class TestWarnings(TestCase):
         variant = 'NM_001371623.1:c.483insA[10]'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
-        assert 'NM_001371623.1:c.483insA[10] is better written as NM_001371623.1:c.483insAAAAAAAAAA' in \
+        assert 'NM_001371623.1:c.483insA[10] may also be written as NM_001371623.1:c.483insAAAAAAAAAA' in \
                results['validation_warning_1']['validation_warnings'][0]
         assert 'An insertion must be provided with the two positions between which the insertion has taken place' in \
                results['validation_warning_1']['validation_warnings'][1]
@@ -168,25 +168,25 @@ class TestWarnings(TestCase):
         variant = 'NM_001371623.1:c.483delinsA[10]'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
-        assert 'NM_001371623.1:c.483delinsA[10] is better written as NM_001371623.1:c.483delinsAAAAAAAAAA' in \
+        assert 'NM_001371623.1:c.483delinsA[10] may also be written as NM_001371623.1:c.483delinsAAAAAAAAAA' in \
                results['NM_001371623.1:c.483_484insAAAAAAAAA']['validation_warnings'][0]
 
         variant = 'NM_001371623.1:c.483_484insA[10]'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
-        assert 'NM_001371623.1:c.483_484insA[10] is better written as NM_001371623.1:c.483_484insAAAAAAAAAA' in \
+        assert 'NM_001371623.1:c.483_484insA[10] may also be written as NM_001371623.1:c.483_484insAAAAAAAAAA' in \
                results['NM_001371623.1:c.483_484insAAAAAAAAAA']['validation_warnings'][0]
 
         variant = 'NM_001371623.1:c.483_484ins[A[10];T]'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
-        assert 'NM_001371623.1:c.483_484ins[A[10];T] is better written as NM_001371623.1:c.483_484insAAAAAAAAAAT' in \
+        assert 'NM_001371623.1:c.483_484ins[A[10];T] may also be written as NM_001371623.1:c.483_484insAAAAAAAAAAT' in \
                results['NM_001371623.1:c.483_484insAAAAAAAAAAT']['validation_warnings'][0]
 
         variant = 'NM_001371623.1:c.483_484delins[A[10];T]'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
-        assert 'NM_001371623.1:c.483_484delins[A[10];T] is better written as ' \
+        assert 'NM_001371623.1:c.483_484delins[A[10];T] may also be written as ' \
                'NM_001371623.1:c.483_484delinsAAAAAAAAAAT' in \
                results['NM_001371623.1:c.484delinsAAAAAAAAAT']['validation_warnings'][0]
 

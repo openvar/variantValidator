@@ -287,9 +287,10 @@ class Mixin(vvMixinConverters.Mixin):
                             or \
                        re.search('dup[GATC]+', my_variant.original) or re.search('ins[GATC]+', my_variant.original):
 
-                        warning = "Removing redundant reference bases from variant description"
-                        my_variant.warnings.append(warning)
-                        logger.warning(warning)
+                        if not re.search('ins[GATC]+', my_variant.original):
+                            warning = "Removing redundant reference bases from variant description"
+                            my_variant.warnings.append(warning)
+                            logger.warning(warning)
 
                     invalid = my_variant.format_quibble()
 
@@ -1146,16 +1147,21 @@ class Mixin(vvMixinConverters.Mixin):
                     predicted_protein_variant_dict["lrg_tlr"] = ''
                     predicted_protein_variant_dict["lrg_slr"] = ''
                     if 'Non-coding :n.' not in predicted_protein_variant:
-                        if "N" in str(hgvs_tx_variant.posedit.edit):
+                        add_p_descps = True
+                        try:
+                            if "N" in str(hgvs_tx_variant.posedit.edit):
+                                add_p_descps = False
+                        except AttributeError:
                             pass
-                        else:
+                        if add_p_descps is True:
                             try:
                                 # Add single letter AA code to protein descriptions
                                 predicted_protein_variant_dict = {"tlr": str(predicted_protein_variant), "slr": ''}
                                 if re.search('p.=', predicted_protein_variant_dict['tlr']) \
                                         or re.search('p.?', predicted_protein_variant_dict['tlr']):
                                     # Replace p.= with p.(=)
-                                    predicted_protein_variant_dict['tlr'] = predicted_protein_variant_dict['tlr'].replace(
+                                    predicted_protein_variant_dict['tlr'] = \
+                                        predicted_protein_variant_dict['tlr'].replace(
                                         'p.=',
                                         'p.(=)')
 
