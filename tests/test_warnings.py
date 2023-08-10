@@ -396,6 +396,16 @@ class TestWarnings(TestCase):
             "NP_000483.3:p.? is HGVS compliant and contains a valid reference amino acid description"
         ]
 
+    def test_issue_518a(self):
+        variant = 'NM_000086.2(CLN3):c.791-802_1056+1445del'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+
+        print(results)
+        assert results['NM_000086.2:c.790+532_1056+1445del']['validation_warnings'] == [
+            "Removing redundant gene symbol CLN3 from variant description",
+            "ExonBoundaryError: Position c.791-802 does not correspond with an exon boundary for transcript NM_000086.2"
+        ]
+
 
 class TestVFGapWarnings(TestCase):
 
@@ -772,7 +782,7 @@ class TestVVGapWarnings(TestCase):
         variant = 'NM_207122.2:c.1174_1174+1insAT'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "ExonBoundaryError: Position c.1174+1 does not correspond with an exon boundary for transcript NM_207122.2" in \
+        assert "ExonBoundaryError: Position c.1174 does not correspond with an exon boundary for transcript NM_207122.2" in \
                results['validation_warning_1']['validation_warnings']
 
     def test_vv_series_17(self):

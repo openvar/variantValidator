@@ -520,6 +520,10 @@ def translate(ed_seq, cds_start, modified_aa=None):
                     continue
 
         trans = "".join(translation)
+
+        print("It translates to")
+        print(trans)
+
         aain = list(trans)
         aaout = []
         count = 0

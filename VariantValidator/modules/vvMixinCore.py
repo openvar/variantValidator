@@ -1159,16 +1159,24 @@ class Mixin(vvMixinConverters.Mixin):
 
                             # Remove LRG
                             format_p = predicted_protein_variant_dict['tlr']
+
+                            print("SEE LRG")
+                            print(format_p)
+
                             if 'LRG' in format_p:
+                                print(format_p)
                                 format_lrg = copy.copy(format_p)
                                 format_p = re.sub(r'\(LRG_.+?\)', '', format_p)
+                                print(format_p)
                                 format_lrg = format_lrg.split('(')[1]
                                 format_lrg = format_lrg.replace(')', '')
+                                print(format_lrg)
                             else:
                                 format_lrg = None
                                 pass
 
                             re_parse_protein = self.hp.parse_hgvs_variant(format_p)
+                            print(re_parse_protein)
 
                             # Set formatted tlr
                             predicted_protein_variant_dict['tlr'] = str(copy.copy(re_parse_protein))

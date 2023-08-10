@@ -247,9 +247,12 @@ class Mixin:
 
         if hgvs_transcript.type == 'c':
             # Handle non inversions with simple c_to_p mapping
+            print("TYPE")
+            print(hgvs_transcript.posedit.edit.type)
 
             if (hgvs_transcript.posedit.edit.type != 'inv') and (hgvs_transcript.posedit.edit.type != 'dup') and \
-                    (hgvs_transcript.posedit.edit.type != 'delins')and (re_to_p is False):
+                    (hgvs_transcript.posedit.edit.type != 'delins') and (hgvs_transcript.posedit.edit.type != 'sub') \
+                        and (re_to_p is False):
                 hgvs_protein = None
                 # Does the edit affect the start codon?
                 if ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and hgvs_transcript.posedit.pos.start.offset == 0)
@@ -318,6 +321,8 @@ class Mixin:
                         inv_seq = ''
                 elif 'dup' in hgvs_transcript.posedit.edit.type:
                     inv_seq = del_seq + del_seq
+                elif 'sub' in hgvs_transcript.posedit.edit.type:
+                    inv_seq = hgvs_transcript.posedit.edit.alt
 
                 shifts = ''
                 # Look for p. delins or del
