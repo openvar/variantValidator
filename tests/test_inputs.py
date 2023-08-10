@@ -30880,6 +30880,15 @@ class TestVariantsAuto(TestCase):
         assert 'NM_207411.4:c.869C>T' in results.keys()
         self.vv.testing = True
 
+    def test_issue_503(self):
+        variant = 'NM_020451.2:c.481C>T'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'NP_065184.2:p.(Arg161Sec)' in \
+               results['NM_020451.2:c.481C>T']['hgvs_predicted_protein_consequence']['tlr']
+        assert 'NP_065184.2:p.(R161U)' in \
+               results['NM_020451.2:c.481C>T']['hgvs_predicted_protein_consequence']['slr']
+
 # <LICENSE>
 # Copyright (C) 2016-2023 VariantValidator Contributors
 #

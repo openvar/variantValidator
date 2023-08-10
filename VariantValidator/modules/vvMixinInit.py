@@ -393,7 +393,7 @@ class Mixin:
                         # Check for modified amino acids
                         prot_seq = self.sf.fetch_seq(associated_protein_accession)
                         if "U" in prot_seq:
-                            modified_aa = "Sel"
+                            modified_aa = "Sec"
                         else:
                             modified_aa = None
 
