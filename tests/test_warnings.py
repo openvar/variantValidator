@@ -401,10 +401,10 @@ class TestWarnings(TestCase):
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
 
         print(results)
-        assert results['NM_000086.2:c.790+532_1056+1445del']['validation_warnings'] == [
-            "Removing redundant gene symbol CLN3 from variant description",
-            "ExonBoundaryError: Position c.791-802 does not correspond with an exon boundary for transcript NM_000086.2"
-        ]
+        assert results['NM_000086.2:c.790+532_1056+1445del'][
+                   'validation_warnings'] == ['Removing redundant gene symbol CLN3 from variant description',
+                                              'ExonBoundaryError: Position c.791-802 has been updated to position to '
+                                              '790+532 ensuring correct HGVS numbering for transcript NM_000086.2']
 
 
 class TestVFGapWarnings(TestCase):
@@ -782,7 +782,7 @@ class TestVVGapWarnings(TestCase):
         variant = 'NM_207122.2:c.1174_1174+1insAT'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "ExonBoundaryError: Position c.1174 does not correspond with an exon boundary for transcript NM_207122.2" in \
+        assert "ExonBoundaryError: Position c.1174+1 does not correspond with an exon boundary for transcript NM_207122.2" in \
                results['validation_warning_1']['validation_warnings']
 
     def test_vv_series_17(self):
@@ -798,6 +798,14 @@ class TestVVGapWarnings(TestCase):
         print(results)
         assert "Invalid variant type for non-coding transcript. Instead use n." in \
                results['validation_warning_1']['validation_warnings']
+
+    def test_vv_series_17(self):
+        variant = 'NM_000086.2(CLN3):c.791-802_1056+1445del'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "ExonBoundaryError: Position c.791-802 has been updated to position to 790+532 ensuring correct HGVS " \
+               "numbering for transcript NM_000086.2" in \
+               results['NM_000086.2:c.790+532_1056+1445del']['validation_warnings']
 
 
 # <LICENSE>
