@@ -138,13 +138,13 @@ To fill this database, download the gzipped uta genetics database, and upload it
 *Postgres < version 14.0*
 ```
 $ wget --output-document=VVTA_202x_xx.noseq.psql.gz https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_202x_xx.noseq.psql.gz
-$ gzip -cdq VVTA_202x_xx.noseq.psql.gz | psql -U <USER> -v ON_ERROR_STOP=0 -d vvta -Eae
+$ gzip -cdq vvta_202x_xx.noseq.psql.gz | psql -U <USER> -v ON_ERROR_STOP=1 -d vvta -Eae
 ```
 
 *Postgres >= version 14.0*
 ```
 $ wget --output-document=VVTA_202x_xx.noseq.psql.gz https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_202x_xx.noseq.psql.gz
-$ gzip -cdq -k VVTA_202x_xx.noseq.psql.gz | sed 's/anyarray/anycompatiblearray/g' | psql -U <USER> -v ON_ERROR_STOP=0 -d vvta -Eae
+$ gzip -cdq -k vvta_202x_xx.noseq.psql.gz | sed 's/anyarray/anycompatiblearray/g' | psql -U <USER> -v ON_ERROR_STOP=1 -d vvta -Eae
 ```
 
 ## Configuration
