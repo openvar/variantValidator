@@ -23,7 +23,7 @@ $ git clone https://github.com/openvar/variantValidator.git
 $ cd variantValidator/
 ```
 
-## Python 3.6 environment
+## Python environment
 
 When installing VariantValidator we recommend using a virtual environment, as it requires specific versions of several libraries including python and sqlite. This can be done either via conda **or** pip.
 
@@ -153,14 +153,4 @@ Before using VariantValidator some configuration is required, as described in th
 
 ## Developers
 
-To work on the VariantValidator code, you'll need to install additional dependencies and install VariantValidator in an editable manner. Tests can be run using PyTest.
-
-```bash
-cd variantValidator/
-pip install -r requirements.txt
-pip install -r requirements_dev.txt
-pip install -e .
-pytest
-```
-  
-Please make all Pull Requests to the develop branch. Id you are unsure, contact admin via [issues](https://github.com/openvar/variantValidator/issues)
+Please make all Pull Requests to the develop branch. If you are unsure, contact admin via [issues](https://github.com/openvar/variantValidator/issues)
