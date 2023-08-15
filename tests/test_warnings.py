@@ -807,6 +807,30 @@ class TestVVGapWarnings(TestCase):
                "numbering for transcript NM_000086.2" in \
                results['NM_000086.2:c.790+532_1056+1445del']['validation_warnings']
 
+    def test_vv_series_17a(self):
+        variant = 'NM_000088.4:c.2559_2559+54del'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "ExonBoundaryError: Position c.2559+54 has been updated to position to 2560-35 ensuring correct HGVS " \
+               "numbering for transcript NM_000088.4" in \
+               results['NM_000088.4:c.2559_2560-35del']['validation_warnings']
+
+    def test_vv_series_17b(self):
+        variant = 'NM_000086.2:c.790_791-802del'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "ExonBoundaryError: Position c.791-802 has been updated to position to 790+532 ensuring correct HGVS " \
+               "numbering for transcript NM_000086.2" in \
+               results['NM_000086.2:c.790+1_790+533del']['validation_warnings']
+
+    def test_vv_series_17c(self):
+        variant = 'NM_000088.4:c.2559+54_2560del'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "ExonBoundaryError: Position c.2559+54 has been updated to position to 2560-35 ensuring correct HGVS " \
+               "numbering for transcript NM_000088.4" in \
+               results['NM_000088.4:c.2560-34_2561del']['validation_warnings']
+
 
 # <LICENSE>
 # Copyright (C) 2016-2023 VariantValidator Contributors

@@ -63,6 +63,7 @@ setup(
         "biopython",
         "requests",
         "mysql-connector-python",
+        "setuptools==58.2.0",
     ],
     setup_requires=[
         "setuptools_scm",

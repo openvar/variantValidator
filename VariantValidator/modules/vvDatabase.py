@@ -172,7 +172,7 @@ class Database(vvDBInsert.Mixin):
             They also interchangeably decide whether or not they accept version information
             Therefore, assume they do not and check using Accession.Version Python split 
             """
-            enst_accession, enst_version = accession.split('.')
+            enst_accession, enst_version = accession.strip().split('.')
             try:
                 genome_build = kwargs['genome_build']
             except KeyError:
@@ -182,7 +182,7 @@ class Database(vvDBInsert.Mixin):
             if genome_build is None:
                 raise utils.DatabaseConnectionError("Connection to Ensembl database requires specification of "
                                                     "a genome build (GRCh37 or GRCh38)")
-            elif genome_build is 'GRCh37' == genome_build == 'GRCh38':
+            elif genome_build == 'GRCh37' or genome_build == 'GRCh38':
                 ens_record = utils.ensembl_rest(id=enst_accession, endpoint="/lookup/id/", genome=genome_build)
                 ens_json = ens_record['record']
 
@@ -268,17 +268,16 @@ class Database(vvDBInsert.Mixin):
                         logger.info("Unable to connect to genenames.org with symbol %s", bypass_with_symbol)
                         connection_error = "Cannot connect to genenames.org with symbol %s", bypass_with_symbol
                 raise utils.DatabaseConnectionError(connection_error)
-            except Exception:
+            except Exception as e:
                 warning = "Ensembl transcript %s is not identified in the Ensembl APIs" % accession
                 raise utils.DatabaseConnectionError(warning)
         else:
             """
             Search Entrez for corresponding record for the RefSeq ID
             """
-
             try:
                 record = validator.entrez_efetch(db="nucleotide", id=accession, rettype="gb", retmode="text")
-            except IOError:
+            except IOError as e:
                 connection_error = "Cannot retrieve data from NCBI Entrez for record %s" % accession
                 if bypass_with_symbol is not False:
                     try:
