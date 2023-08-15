@@ -417,25 +417,29 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                 # If this is a boundary issue with a valid boundary stated, but incorrect intronic numbering we can
                 # Refer to https://github.com/openvar/variantValidator/issues/518
                 can_we_autocorrect = False
-                if post_var.posedit.pos.start.base != test.posedit.pos.start.base:
-                    if ("-" in str(test.posedit.pos.start) and "+" in str(post_var.posedit.pos.start) and
-                        post_var.posedit.pos.start.base == test.posedit.pos.start.base - 1) or \
-                            ("+" in str(test.posedit.pos.start) and "-" in str(post_var.posedit.pos.start) and
-                             post_var.posedit.pos.start.base == test.posedit.pos.start.base + 1):
-                        can_we_autocorrect = True
-                        if post_var.posedit.pos.start.base != test.posedit.pos.start.base:
-                            caution = "ExonBoundaryError: Position c.%s has been updated to position to %s ensuring " \
-                                      "correct HGVS numbering for transcript %s" % (str(test.posedit.pos.start),
-                                                                                    str(post_var.posedit.pos.start),
-                                                                                    test.ac)
-                        elif post_var.posedit.pos.end.base != test.posedit.pos.end.base:
-                            caution = "ExonBoundaryError: Position c.%s has been updated to position to %s ensuring " \
-                                      "correct HGVS numbering for transcript %s" % (str(test.posedit.pos.end),
-                                                                                    str(post_var.posedit.pos.end),
-                                                                                    test.ac)
-
+                if ("-" in str(test.posedit.pos.start) and "+" in str(post_var.posedit.pos.start) and
+                    post_var.posedit.pos.start.base == test.posedit.pos.start.base - 1) or \
+                        ("+" in str(test.posedit.pos.start) and "-" in str(post_var.posedit.pos.start) and
+                         post_var.posedit.pos.start.base == test.posedit.pos.start.base + 1) or \
+                        ("-" in str(test.posedit.pos.end) and "+" in str(post_var.posedit.pos.end) and
+                         post_var.posedit.pos.end.base == test.posedit.pos.end.base - 1) or \
+                        ("+" in str(test.posedit.pos.end) and "-" in str(post_var.posedit.pos.end) and
+                             post_var.posedit.pos.end.base == test.posedit.pos.end.base + 1):
+                    can_we_autocorrect = True
+                    if post_var.posedit.pos.start.base != test.posedit.pos.start.base:
+                        caution = "ExonBoundaryError: Position c.%s has been updated to position to %s ensuring " \
+                                  "correct HGVS numbering for transcript %s" % (str(test.posedit.pos.start),
+                                                                                str(post_var.posedit.pos.start),
+                                                                                test.ac)
+                        variant.warnings.extend([caution])
+                    if post_var.posedit.pos.end.base != test.posedit.pos.end.base:
+                        caution = "ExonBoundaryError: Position c.%s has been updated to position to %s ensuring " \
+                                  "correct HGVS numbering for transcript %s" % (str(test.posedit.pos.end),
+                                                                                str(post_var.posedit.pos.end),
+                                                                                test.ac)
                         variant.warnings.extend([caution])
 
+                # Pass and raise
                 if can_we_autocorrect is False:
                     if post_var.posedit.pos.start != test.posedit.pos.start:
                         caution = "ExonBoundaryError: Position c.%s does not correspond with an exon boundary for " \
@@ -463,37 +467,29 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                 # If this is a boundary issue with a valid boundary stated, but incorrect intronic numbering we can
                 # Refer to https://github.com/openvar/variantValidator/issues/518
                 can_we_autocorrect = False
-                if post_var.posedit.pos.start.base != test.posedit.pos.start.base:
-                    if ("-" in str(test.posedit.pos.start) and "+" in str(post_var.posedit.pos.start) and
-                            post_var.posedit.pos.start.base == test.posedit.pos.start.base - 1) or \
+                if ("-" in str(test.posedit.pos.start) and "+" in str(post_var.posedit.pos.start) and
+                    post_var.posedit.pos.start.base == test.posedit.pos.start.base - 1) or \
                         ("+" in str(test.posedit.pos.start) and "-" in str(post_var.posedit.pos.start) and
-                            post_var.posedit.pos.start.base == test.posedit.pos.start.base + 1):
-                        can_we_autocorrect = True
-                        if post_var.posedit.pos.start.base != test.posedit.pos.start.base:
-                            caution = "ExonBoundaryError: Position c.%s has been updated to position to %s ensuring " \
-                                      "correct HGVS numbering for transcript %s" % (str(test.posedit.pos.start),
-                                                                                    str(post_var.posedit.pos.start),
-                                                                                    test.ac)
-                        elif post_var.posedit.pos.end.base != test.posedit.pos.end.base:
-                            caution = "ExonBoundaryError: Position c.%s has been updated to position to %s ensuring " \
-                                      "correct HGVS numbering for transcript %s" % (str(test.posedit.pos.end),
-                                                                                    str(post_var.posedit.pos.end),
-                                                                                    test.ac)
-
+                         post_var.posedit.pos.start.base == test.posedit.pos.start.base + 1) or \
+                        ("-" in str(test.posedit.pos.end) and "+" in str(post_var.posedit.pos.end) and
+                         post_var.posedit.pos.end.base == test.posedit.pos.end.base - 1) or \
+                        ("+" in str(test.posedit.pos.end) and "-" in str(post_var.posedit.pos.end) and
+                             post_var.posedit.pos.end.base == test.posedit.pos.end.base + 1):
+                    can_we_autocorrect = True
+                    if post_var.posedit.pos.start.base != test.posedit.pos.start.base:
+                        caution = "ExonBoundaryError: Position c.%s has been updated to position to %s ensuring " \
+                                  "correct HGVS numbering for transcript %s" % (str(test.posedit.pos.start),
+                                                                                str(post_var.posedit.pos.start),
+                                                                                test.ac)
                         variant.warnings.extend([caution])
-
-                elif post_var.posedit.pos.end.base != test.posedit.pos.end.base:
-                    if ("-" in str(test.posedit.pos.end) and "+" in str(post_var.posedit.pos.end) and
-                            post_var.posedit.pos.end.base == test.posedit.pos.end.base - 1) or \
-                            ("+" in str(test.posedit.pos.end) and "-" in str(post_var.posedit.pos.end) and
-                            post_var.posedit.pos.end.base == test.posedit.pos.end.base + 1):
-                        can_we_autocorrect = True
+                    if post_var.posedit.pos.end.base != test.posedit.pos.end.base:
                         caution = "ExonBoundaryError: Position c.%s has been updated to position to %s ensuring " \
                                   "correct HGVS numbering for transcript %s" % (str(test.posedit.pos.end),
                                                                                 str(post_var.posedit.pos.end),
                                                                                 test.ac)
                         variant.warnings.extend([caution])
 
+                # Pass and raise
                 if can_we_autocorrect is False:
                     if post_var.posedit.pos.start != test.posedit.pos.start:
                         caution = "ExonBoundaryError: Position c.%s does not correspond with an exon boundary for " \
