@@ -1,0 +1,87 @@
+[project]
+name = "VariantValidator"
+dynamic = ["version"]
+description = "API for accurate, mapping and formatting of sequence variants using HGVS nomenclature"
+license = {file = "LICENSE.txt"}
+authors = [{name = "VariantValidator Contributors", email = "admin@variantvalidator.org"}]
+readme = "README.md"
+keywords = ["bioinformatics",
+        "computational biology",
+        "genome variants",
+        "genome variation",
+        "genomic variants",
+        "genomic variation",
+        "genomics",
+        "hgvs",
+        "HGVS",
+        "sequencevariants"
+]
+
+requires-python = ">=3.10"
+
+dependencies = ["biocommons.seqrepo>=0.5.1",
+                "httplib2>=0.9.0",
+                "configparser>=3.5.0",
+                "pyliftover>=0.3",
+                "biotools>=0.3.0",
+                "mysql-connector-python",
+                "requests",
+                "biopython",
+                "pytest>=3.6",
+                "pytest-cov",
+                "pysam",
+                "codecov",
+                "numpy",
+                "httplib2>=0.9.0",
+                "configparser>=3.5.0",
+                "requests",
+                "protobuf",
+                "vvhgvs@git+https://github.com/openvar/vv_hgvs@master#egg=vvhgvs",
+                "VariantFormatter@git+https://github.com/openvar/variantFormatter@master#egg=VariantFormatter"
+]
+
+classifiers = [
+  # How mature is this project? Common values are
+  #   3 - Alpha
+  #   4 - Beta
+  #   5 - Production/Stable
+  "Development Status :: 5 - Production/Stable",
+
+  # Indicate who your project is intended for
+  "Intended Audience :: Developers",
+  "Topic :: Software Development :: Build Tools",
+
+  # Pick your license as you wish
+  "License :: OSI Approved :: AGPL-3.0",
+
+  # Specify the Python versions you support here. In particular, ensure
+  # that you indicate you support Python 3. These classifiers are *not*
+  # checked by "pip install". See instead "python_requires" below.
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+]
+
+[project.urls]
+"Homepage" = "https://variantvalidator.org/"
+"Source" = "https://github.com/openvar/variantValidator"
+"Bug Reports" = "https://github.com/openvar/variantValidator/issues"
+"Say Thanks!" = "https://www.buymeacoffee.com/VariantValidatr"
+
+[scripts]
+update_vdb = "bin/update_vdb:main"
+variant_validator = "bin/variant_validator:main"
+vv_configure = "bin/vv_configure:main"
+
+data = [
+    { include = "configuration", glob = "configuration/default.ini" },
+    { include = "configuration", glob = "configuration/empty_vv_db.sql" }
+]
+
+[tool.setuptools]
+py-modules = ["VariantValidator"]
+
+[build-system]
+requires = ["setuptools" ,"setuptools-scm"]
+build-backend = "setuptools.build_meta"
