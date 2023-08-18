@@ -39,7 +39,8 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
     g_test = variant.hn.normalize(g_query)
     try:
         if "N" in g_test.posedit.edit.ref:
-            variant.warnings.append("Submitted variant description cannot be fully validated because it spans "
+            variant.warnings.append("UndefinedSequenceError: Submitted variant description cannot be fully validated "
+                                    "because it spans "
                                     "a region of the reference sequence represented by base 'N' and not bases 'GATC'")
             logger.warning(error)
             # return True

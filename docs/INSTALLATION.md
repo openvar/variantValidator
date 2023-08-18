@@ -27,7 +27,7 @@ $ cd variantValidator/
 
 When installing VariantValidator we recommend using a virtual environment, as it requires specific versions of several libraries including python and sqlite. This can be done either via conda **or** pip.
 
-#### Via conda  
+#### Via conda (Recommended) 
 After [installing conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/) you can create a new virtual environment with the correct python and sqlite versions by running:
 ```
 $ conda env create -f environment.yml
@@ -37,12 +37,11 @@ The packages required for VariantValidator to function are now set up in the env
 
 #### Via pip
 
-If you already have the right versions of python (>=3.6) and sqlite (>=3.8), then you can use pip to BT create a new virtual envionment and install the packages required for VariantValidator to function.
+If you already have the right versions of python (>=3.9) and sqlite (>=3.8), then you can use pip to BT create a new virtual envionment and install the packages required for VariantValidator to function.
 
 ```
 $ python -m venv vvenv
 $ source activate vvenv
-$ pip install -r requirements.txt
 ```
 
 ## Additional steps for running MariaDB
@@ -62,7 +61,7 @@ Hint: your new environment vvenv should still be activated from the previous ste
 
 To install VariantValidator within your virtual environment run:
 ```
-$ pip install -e .
+$ pip install .
 ```
 
 ## Setting up validator database (MySQL)

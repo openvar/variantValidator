@@ -249,7 +249,7 @@ class Mixin:
 
             # Handle non inversions with simple c_to_p mapping
             if (hgvs_transcript.posedit.edit.type != 'inv') and (hgvs_transcript.posedit.edit.type != 'dup') and \
-                    (hgvs_transcript.posedit.edit.type != 'delins') and (hgvs_transcript.posedit.edit.type != 'sub') \
+                    (hgvs_transcript.posedit.edit.type != 'delins') and (hgvs_transcript.posedit.edit.type != 'sub') and (hgvs_transcript.posedit.edit.type != 'identity') \
                     and (re_to_p is False):
                 hgvs_protein = None
                 # Does the edit affect the start codon?
@@ -321,6 +321,8 @@ class Mixin:
                     inv_seq = del_seq + del_seq
                 elif 'sub' in hgvs_transcript.posedit.edit.type:
                     inv_seq = hgvs_transcript.posedit.edit.alt
+                elif 'identity' in hgvs_transcript.posedit.edit.type:
+                    inv_seq = hgvs_transcript.posedit.edit.ref
 
                 shifts = ''
                 # Look for p. delins or del
@@ -448,12 +450,13 @@ class Mixin:
                             hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
                             return hgvs_transcript_to_hgvs_protein
                         else:
+
                             # Gather the required information regarding variant interval and sequences
                             if hgvs_transcript.posedit.edit.type != 'delins' and \
                                     hgvs_transcript.posedit.edit.type != 'dup':
                                 pro_inv_info = utils.pro_inv_info(prot_ref_seq, prot_var_seq)
                             else:
-                                # Test whether the length of the deletion, plus the insertion can be devided by 3
+                                # Test whether the length of the deletion, plus the insertion can be divided by 3
                                 # This is trying to spot the difference between amino acid deletions
                                 # and early terminations
 
@@ -514,7 +517,7 @@ class Mixin:
                                 if isinstance(hgvs_transcript.posedit.pos.start.base, int) and isinstance(
                                         hgvs_transcript.posedit.pos.end.base, int):
 
-                                    aa_start_pos = int(hgvs_transcript.posedit.pos.start.base / 3)
+                                    aa_start_pos = float(hgvs_transcript.posedit.pos.start.base / 3)
                                     aa_end_pos = float(hgvs_transcript.posedit.pos.end.base / 3)
 
                                     # end pos may be in the next amino acid i.e. float>0
@@ -522,6 +525,10 @@ class Mixin:
                                         aa_end_pos = int(aa_end_pos + 1)
                                     else:
                                         aa_end_pos = int(aa_end_pos)
+                                    if not aa_start_pos.is_integer():
+                                        aa_start_pos = int(aa_start_pos + 1)
+                                    else:
+                                        aa_start_pos = int(aa_start_pos)
 
                                     aa_seq = self.sf.fetch_seq(associated_protein_accession, start_i=aa_start_pos - 1,
                                                                end_i=aa_end_pos)
@@ -547,6 +554,14 @@ class Mixin:
                                 return hgvs_transcript_to_hgvs_protein
 
                             else:
+
+                                # Adjust extended aas if necessary
+                                if modified_aa == "Sec":
+                                    if "U" in pro_inv_info['prot_ins_seq'] and "U" not in pro_inv_info['prot_del_seq']:
+                                        pro_inv_info['prot_ins_seq'] = pro_inv_info['prot_ins_seq'].replace("U", "*")
+                                        pro_inv_info['ter_pos'] = pro_inv_info['edit_start'] + len(
+                                            pro_inv_info['prot_ins_seq'].split("*")[0])
+
                                 # Early termination i.e. stop gained
                                 if pro_inv_info['terminate'] == 'true' and \
                                         (hgvs_transcript.posedit.edit.type == 'delins' or
