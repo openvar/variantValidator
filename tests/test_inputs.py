@@ -98,8 +98,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_015120.4:c.34C>T']['genome_context_intronic_sequence'] == ''
         assert results['NM_015120.4:c.34C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_015120.4:c.34C>T']['hgvs_refseqgene_variant'] == 'NG_011690.1:g.5145C>T'
-        assert results['NM_015120.4:c.34C>T']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_055935.4:p.(Glu11_Leu12=)', 'slr': 'NP_055935.4:p.(E11_L12=)'}
+        assert results['NM_015120.4:c.34C>T']['hgvs_predicted_protein_consequence'] == \
+               {'tlr': 'NP_055935.4:p.(Leu12=)', 'slr': 'NP_055935.4:p.(L12=)'}
         assert results['NM_015120.4:c.34C>T']['hgvs_lrg_transcript_variant'] == 'LRG_741t1:c.34C>T'
         assert results['NM_015120.4:c.34C>T']['hgvs_lrg_variant'] == 'LRG_741:g.5145C>T'
         assert results['NM_015120.4:c.34C>T']['primary_assembly_loci']['hg19'] == {
@@ -135,8 +135,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_015120.4:c.34C>T']['genome_context_intronic_sequence'] == ''
         assert results['NM_015120.4:c.34C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_015120.4:c.34C>T']['hgvs_refseqgene_variant'] == 'NG_011690.1:g.5145C>T'
-        assert results['NM_015120.4:c.34C>T']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_055935.4:p.(Glu11_Leu12=)', 'slr': 'NP_055935.4:p.(E11_L12=)'}
+        assert results['NM_015120.4:c.34C>T']['hgvs_predicted_protein_consequence'] == \
+               {'tlr': 'NP_055935.4:p.(Leu12=)', 'slr': 'NP_055935.4:p.(L12=)'}
         assert results['NM_015120.4:c.34C>T']['hgvs_lrg_transcript_variant'] == 'LRG_741t1:c.34C>T'
         assert results['NM_015120.4:c.34C>T']['hgvs_lrg_variant'] == 'LRG_741:g.5145C>T'
         assert results['NM_015120.4:c.34C>T']['primary_assembly_loci']['hg19'] == {
@@ -2899,8 +2899,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_001042545.1:c.3032_3034=']['genome_context_intronic_sequence'] == ''
         assert results['NM_001042545.1:c.3032_3034=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001042545.1:c.3032_3034=']['hgvs_refseqgene_variant'] == 'NG_021201.1:g.29022_29024='
-        assert results['NM_001042545.1:c.3032_3034=']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_001036010.1:p.(Gln1011=)', 'slr': 'NP_001036010.1:p.(Q1011=)'}
+        assert results['NM_001042545.1:c.3032_3034=']['hgvs_predicted_protein_consequence'] == \
+                              {'tlr': 'NP_001036010.1:p.(Gln1011_Gly1012=)', 'slr': 'NP_001036010.1:p.(Q1011_G1012=)'}
         assert results['NM_001042545.1:c.3032_3034=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001042545.1:c.3032_3034=']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_001042545.1:c.3032_3034=']['alt_genomic_loci'], [])
@@ -2930,8 +2930,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_003573.2:c.3122_3124=']['genome_context_intronic_sequence'] == ''
         assert results['NM_003573.2:c.3122_3124=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003573.2:c.3122_3124=']['hgvs_refseqgene_variant'] == 'NG_021201.1:g.29022_29024='
-        assert results['NM_003573.2:c.3122_3124=']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_003564.2:p.(Gln1041=)', 'slr': 'NP_003564.2:p.(Q1041=)'}
+        assert results['NM_003573.2:c.3122_3124=']['hgvs_predicted_protein_consequence'] == \
+                              {'tlr': 'NP_003564.2:p.(Gln1041_Gly1042=)', 'slr': 'NP_003564.2:p.(Q1041_G1042=)'}
         assert results['NM_003573.2:c.3122_3124=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003573.2:c.3122_3124=']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_003573.2:c.3122_3124=']['alt_genomic_loci'], [])
@@ -2961,8 +2961,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_001042544.1:c.3233_3235=']['genome_context_intronic_sequence'] == ''
         assert results['NM_001042544.1:c.3233_3235=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001042544.1:c.3233_3235=']['hgvs_refseqgene_variant'] == 'NG_021201.1:g.29022_29024='
-        assert results['NM_001042544.1:c.3233_3235=']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_001036009.1:p.(Gln1078=)', 'slr': 'NP_001036009.1:p.(Q1078=)'}
+        assert results['NM_001042544.1:c.3233_3235=']['hgvs_predicted_protein_consequence'] == \
+                              {'tlr': 'NP_001036009.1:p.(Gln1078_Gly1079=)', 'slr': 'NP_001036009.1:p.(Q1078_G1079=)'}
         assert results['NM_001042544.1:c.3233_3235=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001042544.1:c.3233_3235=']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_001042544.1:c.3233_3235=']['alt_genomic_loci'], [])
@@ -3027,8 +3027,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_032790.3:c.126_127=']['genome_context_intronic_sequence'] == ''
         assert results['NM_032790.3:c.126_127=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_032790.3:c.126_127=']['hgvs_refseqgene_variant'] == 'NG_007500.1:g.5299_5300='
-        assert results['NM_032790.3:c.126_127=']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_116179.2:p.(Ala42=)', 'slr': 'NP_116179.2:p.(A42=)'}
+        assert results['NM_032790.3:c.126_127=']['hgvs_predicted_protein_consequence'] == \
+                              {'tlr': 'NP_116179.2:p.(Ala42_Pro43=)', 'slr': 'NP_116179.2:p.(A42_P43=)'}
         assert results['NM_032790.3:c.126_127=']['hgvs_lrg_transcript_variant'] == 'LRG_93t1:c.126_127='
         assert results['NM_032790.3:c.126_127=']['hgvs_lrg_variant'] == 'LRG_93:g.5299_5300='
         assert results['NM_032790.3:c.126_127=']['primary_assembly_loci']['hg19'] == {
@@ -4231,8 +4231,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_001080423.4:c.1019_1021=']['genome_context_intronic_sequence'] == ''
         assert results['NM_001080423.4:c.1019_1021=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001080423.4:c.1019_1021=']['hgvs_refseqgene_variant'] == ''
-        assert results['NM_001080423.4:c.1019_1021=']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_001073892.3:p.(Pro340=)', 'slr': 'NP_001073892.3:p.(P340=)'}
+        assert results['NM_001080423.4:c.1019_1021=']['hgvs_predicted_protein_consequence'] == \
+               {'tlr': 'NP_001073892.3:p.(Pro340_Ser341=)', 'slr': 'NP_001073892.3:p.(P340_S341=)'}
         assert results['NM_001080423.4:c.1019_1021=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001080423.4:c.1019_1021=']['hgvs_lrg_variant'] == ''
         assert results['NM_001080423.4:c.1019_1021=']['primary_assembly_loci']['hg19'] == {
@@ -4262,8 +4262,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_018717.4:c.1466_1468=']['genome_context_intronic_sequence'] == ''
         assert results['NM_018717.4:c.1466_1468=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_018717.4:c.1466_1468=']['hgvs_refseqgene_variant'] == ''
-        assert results['NM_018717.4:c.1466_1468=']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_061187.2:p.(Gln489=)', 'slr': 'NP_061187.2:p.(Q489=)'}
+        assert results['NM_018717.4:c.1466_1468=']['hgvs_predicted_protein_consequence'] == \
+                              {'tlr': 'NP_061187.2:p.(Gln489_Gln490=)', 'slr': 'NP_061187.2:p.(Q489_Q490=)'}
         assert results['NM_018717.4:c.1466_1468=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_018717.4:c.1466_1468=']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_018717.4:c.1466_1468=']['alt_genomic_loci'], [])
@@ -4299,8 +4299,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_018717.5:c.1468_1479=']['genome_context_intronic_sequence'] == ''
         assert results['NM_018717.5:c.1468_1479=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_018717.5:c.1468_1479=']['hgvs_refseqgene_variant'] == ''
-        assert results['NM_018717.5:c.1468_1479=']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_061187.3:p.(Gln490=)', 'slr': 'NP_061187.3:p.(Q490=)'}
+        assert results['NM_018717.5:c.1468_1479=']['hgvs_predicted_protein_consequence'] == \
+                              {'tlr': 'NP_061187.3:p.(Gln490_Gln493=)', 'slr': 'NP_061187.3:p.(Q490_Q493=)'}
         assert results['NM_018717.5:c.1468_1479=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_018717.5:c.1468_1479=']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_018717.5:c.1468_1479=']['alt_genomic_loci'], [])
@@ -4544,8 +4544,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_015120.4:c.1573_1579=']['genome_context_intronic_sequence'] == ''
         assert results['NM_015120.4:c.1573_1579=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_015120.4:c.1573_1579=']['hgvs_refseqgene_variant'] == 'NG_011690.1:g.67345_67351='
-        assert results['NM_015120.4:c.1573_1579=']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_055935.4:p.(Ser525=)', 'slr': 'NP_055935.4:p.(S525=)'}
+        assert results['NM_015120.4:c.1573_1579=']['hgvs_predicted_protein_consequence'] == \
+                              {'tlr': 'NP_055935.4:p.(Ser525_Leu527=)', 'slr': 'NP_055935.4:p.(S525_L527=)'}
         assert results['NM_015120.4:c.1573_1579=']['hgvs_lrg_transcript_variant'] == 'LRG_741t1:c.1573_1579='
         assert results['NM_015120.4:c.1573_1579=']['hgvs_lrg_variant'] == 'LRG_741:g.67345_67351='
         assert results['NM_015120.4:c.1573_1579=']['primary_assembly_loci']['hg19']['hgvs_genomic_description'
@@ -4577,8 +4577,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_020469.2:c.260_262=']['genome_context_intronic_sequence'] == ''
         assert results['NM_020469.2:c.260_262=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_020469.2:c.260_262=']['hgvs_refseqgene_variant'] == 'NG_006669.1:g.20145_20147='
-        assert results['NM_020469.2:c.260_262=']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_065202.2:p.(Val87=)', 'slr': 'NP_065202.2:p.(V87=)'}
+        assert results['NM_020469.2:c.260_262=']['hgvs_predicted_protein_consequence'] == \
+                              {'tlr': 'NP_065202.2:p.(Val87_Thr88=)', 'slr': 'NP_065202.2:p.(V87_T88=)'}
         assert results['NM_020469.2:c.260_262=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_020469.2:c.260_262=']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_020469.2:c.260_262=']['alt_genomic_loci'], [{'grch37': {
@@ -4744,8 +4744,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_020469.2:c.260_262=']['genome_context_intronic_sequence'] == ''
         assert results['NM_020469.2:c.260_262=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_020469.2:c.260_262=']['hgvs_refseqgene_variant'] == 'NG_006669.1:g.20145_20147='
-        assert results['NM_020469.2:c.260_262=']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_065202.2:p.(Val87=)', 'slr': 'NP_065202.2:p.(V87=)'}
+        assert results['NM_020469.2:c.260_262=']['hgvs_predicted_protein_consequence'] == \
+                              {'tlr': 'NP_065202.2:p.(Val87_Thr88=)', 'slr': 'NP_065202.2:p.(V87_T88=)'}
         assert results['NM_020469.2:c.260_262=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_020469.2:c.260_262=']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_020469.2:c.260_262=']['alt_genomic_loci'], [{'grch37': {
@@ -5114,8 +5114,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_007121.5:c.514_520=']['genome_context_intronic_sequence'] == ''
         assert results['NM_007121.5:c.514_520=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_007121.5:c.514_520=']['hgvs_refseqgene_variant'] == ''
-        assert results['NM_007121.5:c.514_520=']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_009052.3:p.(Lys172=)', 'slr': 'NP_009052.3:p.(K172=)'}
+        assert results['NM_007121.5:c.514_520=']['hgvs_predicted_protein_consequence'] == \
+               {'tlr': 'NP_009052.3:p.(Lys172_Gln174=)', 'slr': 'NP_009052.3:p.(K172_Q174=)'}
         assert results['NM_007121.5:c.514_520=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_007121.5:c.514_520=']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_007121.5:c.514_520=']['alt_genomic_loci'], [])
@@ -5144,8 +5144,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_001256647.1:c.223_229=']['genome_context_intronic_sequence'] == ''
         assert results['NM_001256647.1:c.223_229=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001256647.1:c.223_229=']['hgvs_refseqgene_variant'] == ''
-        assert results['NM_001256647.1:c.223_229=']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_001243576.1:p.(Lys75=)', 'slr': 'NP_001243576.1:p.(K75=)'}
+        assert results['NM_001256647.1:c.223_229=']['hgvs_predicted_protein_consequence'] == \
+               {'tlr': 'NP_001243576.1:p.(Lys75_Gln77=)', 'slr': 'NP_001243576.1:p.(K75_Q77=)'}
         assert results['NM_001256647.1:c.223_229=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001256647.1:c.223_229=']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_001256647.1:c.223_229=']['alt_genomic_loci'], [])
@@ -5621,8 +5621,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_198455.2:c.1116_1118=']['genome_context_intronic_sequence'] == ''
         assert results['NM_198455.2:c.1116_1118=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_198455.2:c.1116_1118=']['hgvs_refseqgene_variant'] == ''
-        assert results['NM_198455.2:c.1116_1118=']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_940857.2:p.(Asp372=)', 'slr': 'NP_940857.2:p.(D372=)'}
+        assert results['NM_198455.2:c.1116_1118=']['hgvs_predicted_protein_consequence'] == \
+               {'tlr': 'NP_940857.2:p.(Asp372_Pro373=)', 'slr': 'NP_940857.2:p.(D372_P373=)'}
         assert results['NM_198455.2:c.1116_1118=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_198455.2:c.1116_1118=']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_198455.2:c.1116_1118=']['alt_genomic_loci'], [])
@@ -5658,8 +5658,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_198455.2:c.1116_1118=']['genome_context_intronic_sequence'] == ''
         assert results['NM_198455.2:c.1116_1118=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_198455.2:c.1116_1118=']['hgvs_refseqgene_variant'] == ''
-        assert results['NM_198455.2:c.1116_1118=']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_940857.2:p.(Asp372=)', 'slr': 'NP_940857.2:p.(D372=)'}
+        assert results['NM_198455.2:c.1116_1118=']['hgvs_predicted_protein_consequence'] == \
+               {'tlr': 'NP_940857.2:p.(Asp372_Pro373=)', 'slr': 'NP_940857.2:p.(D372_P373=)'}
         assert results['NM_198455.2:c.1116_1118=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_198455.2:c.1116_1118=']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_198455.2:c.1116_1118=']['alt_genomic_loci'], [])
@@ -7534,8 +7534,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_015120.4:c.1573_1579=']['genome_context_intronic_sequence'] == ''
         assert results['NM_015120.4:c.1573_1579=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_015120.4:c.1573_1579=']['hgvs_refseqgene_variant'] == 'NG_011690.1:g.67345_67351='
-        assert results['NM_015120.4:c.1573_1579=']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_055935.4:p.(Ser525=)', 'slr': 'NP_055935.4:p.(S525=)'}
+        assert results['NM_015120.4:c.1573_1579=']['hgvs_predicted_protein_consequence'] == \
+               {'tlr': 'NP_055935.4:p.(Ser525_Leu527=)', 'slr': 'NP_055935.4:p.(S525_L527=)'}
         assert results['NM_015120.4:c.1573_1579=']['hgvs_lrg_transcript_variant'] == 'LRG_741t1:c.1573_1579='
         assert results['NM_015120.4:c.1573_1579=']['hgvs_lrg_variant'] == 'LRG_741:g.67345_67351='
         assert results['NM_015120.4:c.1573_1579=']['primary_assembly_loci']['hg19'] == {
@@ -7606,8 +7606,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_001080423.3:c.1017_1020=']['genome_context_intronic_sequence'] == ''
         assert results['NM_001080423.3:c.1017_1020=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001080423.3:c.1017_1020=']['hgvs_refseqgene_variant'] == ''
-        assert results['NM_001080423.3:c.1017_1020=']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_001073892.3:p.(Arg339=)', 'slr': 'NP_001073892.3:p.(R339=)'}
+        assert results['NM_001080423.3:c.1017_1020=']['hgvs_predicted_protein_consequence'] == \
+                              {'tlr': 'NP_001073892.3:p.(Arg339_Pro340=)', 'slr': 'NP_001073892.3:p.(R339_P340=)'}
         assert results['NM_001080423.3:c.1017_1020=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001080423.3:c.1017_1020=']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_001080423.3:c.1017_1020=']['alt_genomic_loci'], [])
@@ -10278,8 +10278,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_001042545.1:c.3032_3034=']['genome_context_intronic_sequence'] == ''
         assert results['NM_001042545.1:c.3032_3034=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001042545.1:c.3032_3034=']['hgvs_refseqgene_variant'] == 'NG_021201.1:g.29022_29024='
-        assert results['NM_001042545.1:c.3032_3034=']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_001036010.1:p.(Gln1011=)', 'slr': 'NP_001036010.1:p.(Q1011=)'}
+        assert results['NM_001042545.1:c.3032_3034=']['hgvs_predicted_protein_consequence'] == \
+                              {'tlr': 'NP_001036010.1:p.(Gln1011_Gly1012=)', 'slr': 'NP_001036010.1:p.(Q1011_G1012=)'}
         assert results['NM_001042545.1:c.3032_3034=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001042545.1:c.3032_3034=']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_001042545.1:c.3032_3034=']['alt_genomic_loci'], [])
@@ -10309,8 +10309,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_003573.2:c.3122_3124=']['genome_context_intronic_sequence'] == ''
         assert results['NM_003573.2:c.3122_3124=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_003573.2:c.3122_3124=']['hgvs_refseqgene_variant'] == 'NG_021201.1:g.29022_29024='
-        assert results['NM_003573.2:c.3122_3124=']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_003564.2:p.(Gln1041=)', 'slr': 'NP_003564.2:p.(Q1041=)'}
+        assert results['NM_003573.2:c.3122_3124=']['hgvs_predicted_protein_consequence'] == \
+                              {'tlr': 'NP_003564.2:p.(Gln1041_Gly1042=)', 'slr': 'NP_003564.2:p.(Q1041_G1042=)'}
         assert results['NM_003573.2:c.3122_3124=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_003573.2:c.3122_3124=']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_003573.2:c.3122_3124=']['alt_genomic_loci'], [])
@@ -10340,8 +10340,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_001042544.1:c.3233_3235=']['genome_context_intronic_sequence'] == ''
         assert results['NM_001042544.1:c.3233_3235=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_001042544.1:c.3233_3235=']['hgvs_refseqgene_variant'] == 'NG_021201.1:g.29022_29024='
-        assert results['NM_001042544.1:c.3233_3235=']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_001036009.1:p.(Gln1078=)', 'slr': 'NP_001036009.1:p.(Q1078=)'}
+        assert results['NM_001042544.1:c.3233_3235=']['hgvs_predicted_protein_consequence'] == \
+                              {'tlr': 'NP_001036009.1:p.(Gln1078_Gly1079=)', 'slr': 'NP_001036009.1:p.(Q1078_G1079=)'}
         assert results['NM_001042544.1:c.3233_3235=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_001042544.1:c.3233_3235=']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_001042544.1:c.3233_3235=']['alt_genomic_loci'], [])
@@ -15569,8 +15569,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_014249.4:c.951_952=']['genome_context_intronic_sequence'] == ''
         assert results['NM_014249.4:c.951_952=']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_014249.4:c.951_952=']['hgvs_refseqgene_variant'] == 'NG_009113.2:g.8038_8039='
-        assert results['NM_014249.4:c.951_952=']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_055064.1:p.(Pro317=)', 'slr': 'NP_055064.1:p.(P317=)'}
+        assert results['NM_014249.4:c.951_952=']['hgvs_predicted_protein_consequence'] == \
+                              {'tlr': 'NP_055064.1:p.(Pro317_Thr318=)', 'slr': 'NP_055064.1:p.(P317_T318=)'}
         assert results['NM_014249.4:c.951_952=']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_014249.4:c.951_952=']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_014249.4:c.951_952=']['alt_genomic_loci'], [])
@@ -29131,8 +29131,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_012309.4:c.2566C>T']['genome_context_intronic_sequence'] == ''
         assert results['NM_012309.4:c.2566C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_012309.4:c.2566C>T']['hgvs_refseqgene_variant'] == 'NG_042866.1:g.640463C>T'
-        assert results['NM_012309.4:c.2566C>T']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_036441.2:p.(Phe855_Leu856=)', 'slr': 'NP_036441.2:p.(F855_L856=)'}
+        assert results['NM_012309.4:c.2566C>T']['hgvs_predicted_protein_consequence'] == \
+                              {'tlr': 'NP_036441.2:p.(Leu856=)', 'slr': 'NP_036441.2:p.(L856=)'}
         assert results['NM_012309.4:c.2566C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_012309.4:c.2566C>T']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_012309.4:c.2566C>T']['alt_genomic_loci'], [{'grch37': {
@@ -29168,8 +29168,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_133266.3:c.802C>T']['genome_context_intronic_sequence'] == ''
         assert results['NM_133266.3:c.802C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_133266.3:c.802C>T']['hgvs_refseqgene_variant'] == ''
-        assert results['NM_133266.3:c.802C>T']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_573573.2:p.(Phe267_Leu268=)', 'slr': 'NP_573573.2:p.(F267_L268=)'}
+        assert results['NM_133266.3:c.802C>T']['hgvs_predicted_protein_consequence'] == \
+               {'tlr': 'NP_573573.2:p.(Leu268=)', 'slr': 'NP_573573.2:p.(L268=)'}
         assert results['NM_133266.3:c.802C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_133266.3:c.802C>T']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_133266.3:c.802C>T']['alt_genomic_loci'], [{'grch37': {
@@ -29198,8 +29198,8 @@ class TestVariantsAuto(TestCase):
         assert results['NM_133266.4:c.802C>T']['genome_context_intronic_sequence'] == ''
         assert results['NM_133266.4:c.802C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_133266.4:c.802C>T']['hgvs_refseqgene_variant'] == ''
-        assert results['NM_133266.4:c.802C>T']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_573573.2:p.(Phe267_Leu268=)', 'slr': 'NP_573573.2:p.(F267_L268=)'}
+        assert results['NM_133266.4:c.802C>T']['hgvs_predicted_protein_consequence'] == \
+               {'tlr': 'NP_573573.2:p.(Leu268=)', 'slr': 'NP_573573.2:p.(L268=)'}
         assert results['NM_133266.4:c.802C>T']['hgvs_lrg_transcript_variant'] == ''
         assert results['NM_133266.4:c.802C>T']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_133266.4:c.802C>T']['alt_genomic_loci'], [{'grch37': {
@@ -30874,15 +30874,6 @@ class TestVariantsAuto(TestCase):
         assert 'NM_207411.4:c.869C>T' in results.keys()
         self.vv.testing = True
 
-    def test_issue_503(self):
-        variant = 'NM_020451.2:c.481C>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
-        print(results)
-        assert 'NP_065184.2:p.(Arg161Sec)' in \
-               results['NM_020451.2:c.481C>T']['hgvs_predicted_protein_consequence']['tlr']
-        assert 'NP_065184.2:p.(R161U)' in \
-               results['NM_020451.2:c.481C>T']['hgvs_predicted_protein_consequence']['slr']
-
     def test_issue_482(self):
         variant = 'NM_152641.4:c.915_916delinsAC'
         results = self.vv.validate(variant, 'GRCh38', 'all', liftover_level='primary').format_as_dict(test=True)
@@ -30891,6 +30882,42 @@ class TestVariantsAuto(TestCase):
                results['NM_152641.4:c.915_916delinsAC']['hgvs_predicted_protein_consequence']['tlr']
         assert 'NP_689854.2:p.(L305_L306=)' in \
                results['NM_152641.4:c.915_916delinsAC']['hgvs_predicted_protein_consequence']['slr']
+
+    def test_issue_503a(self):
+        variant = 'NM_020451.2:c.827_829dup'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'NP_065184.2:p.(Ala276_Cys277insSer)' in \
+               results['NM_020451.2:c.827_829dup']['hgvs_predicted_protein_consequence']['tlr']
+        assert 'NP_065184.2:p.(A276_C277insS)' in \
+               results['NM_020451.2:c.827_829dup']['hgvs_predicted_protein_consequence']['slr']
+
+    def test_issue_503b(self):
+        variant = 'NM_020451.2:c.481C>T'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'NP_065184.2:p.(Arg161Ter)' in \
+               results['NM_020451.2:c.481C>T']['hgvs_predicted_protein_consequence']['tlr']
+        assert 'NP_065184.2:p.(R161*)' in \
+               results['NM_020451.2:c.481C>T']['hgvs_predicted_protein_consequence']['slr']
+
+    def test_issue_503c(self):
+        variant = 'NM_020451.2:c.379_381='
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'NP_065184.2:p.(Sec127=)' in \
+               results['NM_020451.2:c.379_381=']['hgvs_predicted_protein_consequence']['tlr']
+        assert 'NP_065184.2:p.(U127=)' in \
+               results['NM_020451.2:c.379_381=']['hgvs_predicted_protein_consequence']['slr']
+
+    def test_issue_503c(self):
+        variant = 'NM_020451.2:c.379T>A'
+        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'NP_065184.2:p.(Sec127Arg)' in \
+               results['NM_020451.2:c.379T>A']['hgvs_predicted_protein_consequence']['tlr']
+        assert 'NP_065184.2:p.(U127R)' in \
+               results['NM_020451.2:c.379T>A']['hgvs_predicted_protein_consequence']['slr']
 
 # <LICENSE>
 # Copyright (C) 2016-2023 VariantValidator Contributors
