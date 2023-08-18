@@ -17,7 +17,7 @@ keywords = ["bioinformatics",
         "sequencevariants"
 ]
 
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 
 dependencies = ["biocommons.seqrepo>=0.5.1",
                 "httplib2>=0.9.0",
@@ -76,12 +76,15 @@ vv_configure = "bin/vv_configure:main"
 
 data = [
     { include = "configuration", glob = "configuration/default.ini" },
-    { include = "configuration", glob = "configuration/empty_vv_db.sql" }
 ]
 
-[tool.setuptools]
-py-modules = ["VariantValidator"]
+[tool.setuptools_scm]
+
+[tool.setuptools.packages.find]
+where = ["."]  # Look for packages in the 'root' directory
+include = ["VariantValidator*"]  # Match package names starting with "VariantValidator"
+exclude = ["batch"]
 
 [build-system]
-requires = ["setuptools" ,"setuptools-scm"]
+requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2", "wheel"]
 build-backend = "setuptools.build_meta"
