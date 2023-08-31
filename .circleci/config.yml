@@ -3,7 +3,7 @@ version: 2.1
 executors:
   conda-executor:
     docker:
-      - image: continuumio/miniconda3
+      - image: continuumio/miniconda3:22.11.1
 
 jobs:
   build:
@@ -13,7 +13,7 @@ jobs:
       - checkout
 
       - setup_remote_docker:
-          version: 22.11.1
+          version: 20.10.7
 
       - run:
           name: Create Conda environment
