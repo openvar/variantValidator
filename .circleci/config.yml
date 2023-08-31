@@ -35,7 +35,7 @@ jobs:
       - run:
           name: Set up MySQL database
           command: |
-            service restart mysql.service
+            service mysql.service restart
             sleep 3
             mysql -e 'CREATE DATABASE validator;'
 
