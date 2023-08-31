@@ -27,15 +27,16 @@ jobs:
       - run:
           name: Install required Conda packages
           command: |
-            conda install -c conda-forge mysql
-            conda install -c anaconda postgresql
-            conda install -c bioconda tabix
+            conda install -c conda-forge mysql=8
+            conda install -c conda-forge postgresql=14
+            conda install -c conda-forge tabix
             conda install -c anaconda wget
 
       - run:
           name: Set up MySQL database
           command: |
             systemctl start mysql.service
+            sleep 3
             mysql -e 'CREATE DATABASE validator;'
 
       - run:
@@ -70,8 +71,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            pip install -r requirements_dev.txt
-            pip install -e .
+            pip install .
 
       - run:
           name: Set up seqrepo
