@@ -23,14 +23,14 @@ jobs:
           name: Configure environment activation
           command: echo "conda activate \$(head -1 environment.yml | cut -d' ' -f2)" >> ~/.bashrc
 
+      # Use Conda to install packages
       - run:
-          name: Install required packages
+          name: Install required Conda packages
           command: |
-            apt update && apt install -y \
-            tabix \
-            postgresql postgresql-client \
-            mysql-server \
-            wget
+            conda install -c conda-forge mysql
+            conda install -c anaconda postgresql
+            conda install -c bioconda tabix
+            conda install -c anaconda wget
 
       - run:
           name: Set up MySQL database
