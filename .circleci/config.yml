@@ -16,12 +16,9 @@ jobs:
           version: 20.10.7
 
       - run:
-          name: Increase size of database drive
-          command: mount -o remount,size=50% /var/ramfs
-
-      - run:
           name: Set up MySQL database
           command: |
+            apt-get install mysql-client
             service mysql start
             mysql -e 'CREATE DATABASE validator;'
 
