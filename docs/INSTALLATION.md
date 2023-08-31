@@ -37,7 +37,7 @@ The packages required for VariantValidator to function are now set up in the env
 
 #### Via pip
 
-If you already have the right versions of python (>=3.9) and sqlite (>=3.8), then you can use pip to BT create a new virtual envionment and install the packages required for VariantValidator to function.
+If you already have the right versions of python (>=3.6) and sqlite (>=3.8), then you can use pip to BT create a new virtual envionment and install the packages required for VariantValidator to function.
 
 ```
 $ python -m venv vvenv
