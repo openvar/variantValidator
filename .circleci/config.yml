@@ -9,7 +9,11 @@ workflows:
       - build-mysql
       - build-postgres
       - build-seqrepo
-      - build-and-test-vv
+      - build-and-test-vv:
+          requires:
+            - build-mysql
+            - build-postgres
+            - build-seqrepo
 
 jobs:
   build-mysql:
