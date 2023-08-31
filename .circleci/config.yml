@@ -29,7 +29,7 @@ jobs:
           command: |
             conda install -c conda-forge mysql=8
             conda install -c conda-forge postgresql=14
-            conda install -c conda-forge tabix
+            conda install -c bioconda tabix
             conda install -c anaconda wget
 
       - run:
