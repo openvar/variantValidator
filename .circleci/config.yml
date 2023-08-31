@@ -17,7 +17,7 @@ jobs:
 
       - run:
           name: Increase size of database drive
-          command: sudo mount -o remount,size=50% /var/ramfs
+          command: mount -o remount,size=50% /var/ramfs
 
       - run:
           name: Set up MySQL database
