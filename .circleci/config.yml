@@ -3,7 +3,7 @@ version: 2.1
 executors:
   conda-executor:
     docker:
-      - image: continuumio/miniconda3:22
+      - image: continuumio/miniconda3:22.11.1
 
 jobs:
   build:
