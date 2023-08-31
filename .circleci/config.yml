@@ -1,26 +1,36 @@
 version: 2.1
 
 executors:
-  python-executor:
+  conda-executor:
     docker:
-      - image: python:3.10
+      - image: continuumio/miniconda3
 
 jobs:
   build:
-    executor: python-executor
+    executor: conda-executor
     working_directory: /app
     steps:
       - checkout
 
       - setup_remote_docker:
-          version: 20.10.7
+          version: 22.11.1
+
+      - run:
+          name: Create Conda environment
+          command: conda env create -f environment.yml
+
+      - run:
+          name: Configure environment activation
+          command: echo "conda activate \$(head -1 environment.yml | cut -d' ' -f2)" >> ~/.bashrc
 
       - run:
           name: Install required packages
           command: |
-            apt -y install tabix
-            apt -y install postgresql postgresql-client
-            apt -y install mysql-server
+            apt update && apt install -y \
+            tabix \
+            postgresql postgresql-client \
+            mysql-server \
+            wget
 
       - run:
           name: Set up MySQL database
@@ -49,7 +59,7 @@ jobs:
 
       - run:
           name: Copy configuration file
-          command: cp configuration/continuous_integration.ini"$HOME"/.variantvalidator
+          command: cp configuration/continuous_integration.ini "$HOME"/.variantvalidator
 
       - run:
           name: Get validator database
