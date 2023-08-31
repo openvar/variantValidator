@@ -16,17 +16,17 @@ jobs:
           version: 20.10.7
 
       - run:
-          name: Set up MySQL database
-          command: |
-            apt-get install mysql-client
-            service mysql start
-            mysql -e 'CREATE DATABASE validator;'
-
-      - run:
           name: Install required packages
           command: |
-            apt-get -y install tabix
-            apt-get -y install postgresql-14 postgresql-client-14
+            apt -y install tabix
+            apt -y install postgresql postgresql-client
+            apt -y install mysql-server
+
+      - run:
+          name: Set up MySQL database
+          command: |
+            systemctl start mysql.service
+            mysql -e 'CREATE DATABASE validator;'
 
       - run:
           name: Set up PostgreSQL
