@@ -17,7 +17,7 @@ keywords = ["bioinformatics",
         "sequencevariants"
 ]
 
-requires-python = ">=3.9"
+requires-python = ">=3.6"
 
 dependencies = ["biocommons.seqrepo>=0.5.1",
                 "httplib2>=0.9.0",
@@ -36,31 +36,21 @@ dependencies = ["biocommons.seqrepo>=0.5.1",
                 "configparser>=3.5.0",
                 "requests",
                 "protobuf",
-                "vvhgvs@git+https://github.com/openvar/vv_hgvs@master#egg=vvhgvs",
-                "VariantFormatter@git+https://github.com/openvar/variantFormatter@master#egg=VariantFormatter"
+                "vvhgvs@git+https://github.com/openvar/vv_hgvs@master",
+                "VariantFormatter@git+https://github.com/openvar/variantFormatter@master"
 ]
 
 classifiers = [
-  # How mature is this project? Common values are
-  #   3 - Alpha
-  #   4 - Beta
-  #   5 - Production/Stable
-  "Development Status :: 5 - Production/Stable",
-
-  # Indicate who your project is intended for
-  "Intended Audience :: Developers",
-  "Topic :: Software Development :: Build Tools",
-
-  # Pick your license as you wish
-  "License :: OSI Approved :: AGPL-3.0",
-
-  # Specify the Python versions you support here. In particular, ensure
-  # that you indicate you support Python 3. These classifiers are *not*
-  # checked by "pip install". See instead "python_requires" below.
-  "Programming Language :: Python :: 3.8",
-  "Programming Language :: Python :: 3.9",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Build Tools",
+    "License :: OSI Approved :: AGPL-3.0",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11"
 ]
 
 [project.urls]
