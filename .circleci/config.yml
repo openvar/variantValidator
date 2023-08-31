@@ -4,7 +4,6 @@ executors:
   conda-executor:
     docker:
       - image: continuumio/miniconda3:22.11.1
-    parallelism: 4
 
 jobs:
   build:
@@ -28,14 +27,19 @@ jobs:
           name: Install required Conda packages
           command: |
             conda install -y -c conda-forge mysql=8
-            conda install -y -c conda-forge postgresql=14
             conda install -y -c bioconda tabix
             conda install -y -c anaconda wget
 
       - run:
+          name: Install required apt packages
+          command: |
+            apt update && apt-get install -y \
+            postgresql postgresql-client            
+
+      - run:
           name: Set up MySQL database
           command: |
-            service mysql restart
+            systemctl start mysqld
             sleep 3
             mysql -e 'CREATE DATABASE validator;'
 
