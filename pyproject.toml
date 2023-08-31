@@ -21,7 +21,6 @@ requires-python = ">=3.6"
 
 dependencies = ["biocommons.seqrepo>=0.5.1",
                 "httplib2>=0.9.0",
-                "configparser>=3.5.0",
                 "pyliftover>=0.3",
                 "biotools>=0.3.0",
                 "mysql-connector-python",
