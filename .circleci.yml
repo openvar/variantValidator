@@ -1,0 +1,88 @@
+version: 2.1
+
+executors:
+  python-executor:
+    docker:
+      - image: python:3.10
+
+jobs:
+  build:
+    executor: python-executor
+    working_directory: /app
+    steps:
+      - checkout
+
+      - setup_remote_docker:
+          version: 20.10.7
+
+      - run:
+          name: Increase size of database drive
+          command: sudo mount -o remount,size=50% /var/ramfs
+
+      - run:
+          name: Set up MySQL database
+          command: |
+            service mysql start
+            mysql -e 'CREATE DATABASE validator;'
+
+      - run:
+          name: Install required packages
+          command: |
+            apt-get -y install tabix
+            apt-get -y install postgresql-14 postgresql-client-14
+
+      - run:
+          name: Set up PostgreSQL
+          command: |
+            echo "local all postgres trust" > /etc/postgresql/14/main/pg_hba.conf
+            echo "host all all 0.0.0.0/0 trust" >> /etc/postgresql/14/main/pg_hba.conf
+            service postgresql restart
+            sleep 3
+            createuser -e --createdb uta_admin
+            createdb -e vvta -O uta_admin
+            psql -d vvta -U postgres -c "CREATE USER ta_user WITH PASSWORD 'read_only'"
+            wget --output-document=vvta_2023_05_no_seq.sql.gz https://www528.lamp.le.ac.uk/vvdata/vvta/vvta_2023_05_no_seq.sql.gz
+            gunzip -c vvta_2023_05_no_seq.sql.gz | psql --quiet vvta
+            psql -d vvta -U postgres -c 'GRANT SELECT ON vvta_2023_05.gene TO public;'
+            psql -d vvta -U postgres -c 'GRANT SELECT ON ALL TABLES IN SCHEMA public TO ta_user;'
+            psql -d vvta -U postgres -c 'GRANT SELECT ON vvta_2023_05.tx_def_summary_v TO ta_user;'
+            psql -d vvta -U postgres -c 'GRANT SELECT ON vvta_2023_05.tx_exon_aln_v TO ta_user;'
+            psql -d vvta -U postgres -c 'GRANT SELECT ON vvta_2023_05.transcript_lengths_v TO ta_user;'
+            psql -d vvta -U postgres -c 'GRANT SELECT ON vvta_2023_05.exon_set TO ta_user;'
+
+      - run:
+          name: Copy configuration file
+          command: cp configuration/continuous_integration.ini"$HOME"/.variantvalidator
+
+      - run:
+          name: Get validator database
+          command: |
+            wget --output-document=validator_2023_08.sql.gz https://www528.lamp.le.ac.uk/vvdata/validator/validator_2023_08.sql.gz
+            gunzip validator_2023_08.sql.gz
+
+      - run:
+          name: Install dependencies
+          command: |
+            pip install -r requirements_dev.txt
+            pip install -e .
+
+      - run:
+          name: Set up seqrepo
+          command: |
+            mkdir "$HOME"/vvta_seqrepo
+            wget --output-document="$HOME"/vvta_seqrepo/VV_SR_2023_05.tar https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_2023_05.tar
+            tar -xvf "$HOME"/vvta_seqrepo/VV_SR_2023_05.tar
+
+      - run:
+          name: Set up validator database
+          command: |
+            mysql validator < validator_2023_08.sql
+            rm validator_2023_08.sql
+
+      - run:
+          name: Run tests
+          command: pytest --cov-report=term --cov=VariantValidator/
+
+      - run:
+          name: Upload coverage report
+          command: codecov
