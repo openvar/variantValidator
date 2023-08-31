@@ -35,7 +35,7 @@ jobs:
       - run:
           name: Set up MySQL database
           command: |
-            systemctl start mysql.service
+            service restart mysql
             sleep 3
             mysql -e 'CREATE DATABASE validator;'
 
