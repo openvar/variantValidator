@@ -36,7 +36,7 @@ jobs:
       - run:
           name: Download validator database dump
           command: |
-            wget --output-document=/workspace/validator_2023_08.sql.gz https://www528.lamp.le.ac.uk/vvdata/validator/validator_2023_08.sql.gz
+            wget --output-document=/docker-entrypoint-initdb.d/validator_2023_08.sql.gz https://www528.lamp.le.ac.uk/vvdata/validator/validator_2023_08.sql.gz
 
   build-postgres:
     docker:
@@ -55,10 +55,13 @@ jobs:
       - run:
           name: Download vvta database dump
           command: |
-            wget --output-document=/workspace/vvta_2023_05_noseq.sql.gz https://www528.lamp.le.ac.uk/vvdata/vvta/vvta_2023_05_no_seq.sql.gz
-            gunzip /workspace/vvta_2023_05_noseq.sql.gz
-            sed 's/anyarray/anycompatiblearray/g' /workspace/vvta_2023_05_noseq.sql > /workspace/vvta_2023_05_noseq_modified.sql
-            gzip /workspace/vvta_2023_05_noseq_modified.sql
+            echo "shared_buffers = 2GB" > /docker-entrypoint-initdb.d/postgresql.conf
+            wget https://www528.lamp.le.ac.uk/vvdata/vvta/vvta_2023_05_no_seq.sql.gz -O input_file.sql.gz
+            gzip -dq input_file.sql.gz
+            sed 's/anyarray/anycompatiblearray/g' input_file.sql > modified_file.sql
+            rm input_file.sql
+            gzip modified_file.sql
+            mv modified_file.sql.gz /docker-entrypoint-initdb.d/vvta_2023_05_noseq.sql.gz
 
   build-seqrepo:
     docker:
@@ -73,11 +76,11 @@ jobs:
       - run:
           name: Download and extract Seqrepo data
           command: |
-            mkdir -p /workspace/seqrepo
-            wget --output-document=/workspace/seqrepo/VV_SR_2023_05.tar https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_2023_05.tar
-            tar -xvf /workspace/seqrepo/VV_SR_2023_05.tar --directory /workspace/seqrepo
+            mkdir -p /usr/local/share/seqrepo
+            wget --output-document=/usr/local/share/seqrepo/VV_SR_2023_05.tar https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_2023_05.tar
+            tar -xvf /usr/local/share/seqrepo/VV_SR_2023_05.tar --directory /usr/local/share/seqrepo
       - persist_to_workspace:
-          root: /workspace/seqrepo
+          root: /usr/local/share/seqrepo
           paths:
             - VV_SR_2023_05
 
@@ -86,17 +89,8 @@ jobs:
       - image: cimg/python:3.10.5
     steps:
       - checkout
-      - run:
-          name: Check if workspace exists
-          command: |
-            if [ ! -d "/workspace/seqrepo" ]; then
-              echo "Workspace does not exist"
-              exit 1
-            else
-              echo "Workspace exists"
-            fi
       - attach_workspace:
-          at: /workspace/seqrepo
+          at: /usr/local/share/seqrepo
       - python/install-packages:
           pkg-manager: pip
       - run:
@@ -112,3 +106,14 @@ jobs:
           command: pytest
     environment:
       HOME: /app
+
+      # Add an if-statement example
+      # If the VV_SR_2023_05.tar file exists, echo "Seqrepo data exists", otherwise echo "Seqrepo data not found"
+      - run:
+          name: Check Seqrepo data existence
+          command: |
+            if [ -f "/usr/local/share/seqrepo/VV_SR_2023_05.tar" ]; then
+              echo "Seqrepo data exists"
+            else
+              echo "Seqrepo data not found"
+            fi
