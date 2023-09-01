@@ -2,7 +2,6 @@ version: 2.1
 
 orbs:
   python: circleci/python@2.1.1
-  working_directory: /local
 
 workflows:
   variant_validator_ci:
@@ -76,7 +75,7 @@ jobs:
       - run:
           name: Download and extract Seqrepo data
           command: |
-            mkdir -p /workspace
+            mkdir -p /workspace/seqrepo
             wget --output-document=/workspace/seqrepo/VV_SR_2023_05.tar https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_2023_05.tar
             tar -xvf /workspace/seqrepo/VV_SR_2023_05.tar --directory /workspace/seqrepo
       - persist_to_workspace:
@@ -92,14 +91,14 @@ jobs:
       - run:
           name: Check if workspace exists
           command: |
-            if [ ! -d "/local/workspace" ]; then
+            if [ ! -d "/workspace" ]; then
               echo "Workspace does not exist"
               exit 1
             else
               echo "Workspace exists"
             fi
       - attach_workspace:
-          at: /local/workspace
+          at: /workspace
       - python/install-packages:
           pkg-manager: pip
       - run:
