@@ -71,7 +71,7 @@ jobs:
       - run:
           name: Install necessary dependencies
           command: |
-            apt-get update and apt-get install -y wget
+            apt-get update && apt-get install -y wget
       - run:
           name: Download and extract Seqrepo data
           command: |
