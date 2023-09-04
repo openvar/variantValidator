@@ -12,7 +12,6 @@ pipeline {
                 }
             }
             steps {
-                sh 'apt-get update && apt-get install -y cowsay'
                 sh 'cowsay "Testing syntax check"'
             }
         }
