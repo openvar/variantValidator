@@ -4,6 +4,7 @@ orbs:
   python: circleci/python@2.1.1
 
 workflows:
+  version: 2
   variant_validator_ci:
     jobs:
       - build-mysql
