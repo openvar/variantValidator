@@ -8,11 +8,11 @@ pipeline {
             agent {
                 dockerContainer {
                     image 'postgres:14.7'
-                    args '--network vvta_network -e POSTGRES_DB=vvta -e POSTGRES_USER=uta_admin -e POSTGRES_PASSWORD=uta_admin -p 5432:5432'
                 }
             }
             steps {
                 sh 'docker network create vvta_network'
+                sh 'docker run -d --name postgres-vvta --network vvta_network -e POSTGRES_DB=vvta -e POSTGRES_USER=uta_admin -e POSTGRES_PASSWORD=uta_admin -p 5432:5432 postgres:14.7'
                 sh 'sleep 10'
                 sh 'echo "shared_buffers = 2GB" > postgres_config.conf'
                 sh 'wget https://www528.lamp.le.ac.uk/vvdata/vvta/vvta_2023_05_no_seq.sql.gz -O input_file.sql.gz'
@@ -31,11 +31,10 @@ pipeline {
             agent {
                 dockerContainer {
                     image 'ubuntu/mysql:8.0-22.04_beta'
-                    args '--network vvta_network -e MYSQL_RANDOM_ROOT_PASSWORD=yes -e MYSQL_DATABASE=validator -e MYSQL_USER=vvadmin -e MYSQL_PASSWORD=var1ant -p 3306:3306'
                 }
             }
             steps {
-                sh 'docker run --name mysql-validator -d'
+                sh 'docker run --name mysql-validator -d --network vvta_network -e MYSQL_RANDOM_ROOT_PASSWORD=yes -e MYSQL_DATABASE=validator -e MYSQL_USER=vvadmin -e MYSQL_PASSWORD=var1ant -p 3306:3306 ubuntu/mysql:8.0-22.04_beta'
                 sh 'sleep 10'
                 sh 'docker exec mysql-validator wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_2023_08.sql.gz -O /docker-entrypoint-initdb.d/validator_2023_08.sql.gz'
                 sh 'docker network connect bridge mysql-validator'
