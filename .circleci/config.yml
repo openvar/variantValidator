@@ -82,6 +82,9 @@ jobs:
           root: /workspace
           paths:
             - seqrepo/VV_SR_2023_05
+      - run:
+          name: List Workspace Contents After Persistence
+          command: ls -R /workspace
 
   build-and-test-vv:
     docker:
@@ -97,6 +100,9 @@ jobs:
             else
               echo "Workspace exists"
             fi
+      - run:
+          name: List Workspace Contents Before Attach
+          command: ls -R /workspace
       - attach_workspace:
           at: /workspace
       - python/install-packages:
