@@ -11,18 +11,26 @@ pipeline {
         stage("Before Install") {
             steps {
                 script {
-                    sh 'apt-get update && apt-get -y install wget mysql-server postgresql sqlite3'
-                    sh 'mysql -e "CREATE DATABASE validator;"'
-                    sh 'df -h'
-                    sh ' apt-get -y install tabix'
-                    sh ' sed -i -e "/local.*peer/s/postgres/all/" -e "s/peer\\|md5/trust/g" /etc/postgresql/12/main/pg_hba.conf'
-                    sh ' service postgresql@12-main restart'
+                    def osName = sh(script: "uname -s", returnStdout: true).trim()
+                    if (osName == 'Darwin') {
+                        sh 'brew install wget mysql postgresql@14 sqlite3'
+                        sh 'brew services start postgresql@14'
+                        sh 'brew services start mysql'
+                    } else {
+                        error "Unsupported operating system: ${osName}"
+                    }
+
                     sleep(3)
                     sh 'createuser -e --createdb uta_admin'
                     sh 'createdb -e vvta -O uta_admin'
                     sh 'psql -d vvta -U postgres -c "CREATE USER ta_user WITH PASSWORD \'read_only\'"'
                     sh 'wget --output-document=vvta_2023_05_noseq.sql.gz https://www528.lamp.le.ac.uk/vvdata/vvta/vvta_2023_05_noseq.sql.gz'
-                    sh 'gunzip -c vvta_2023_05_noseq.psql.gz | psql --quiet vvta'
+                    sh 'wget https://www528.lamp.le.ac.uk/vvdata/vvta/vvta_2023_05_no_seq.sql.gz -O input_file.sql.gz'
+                    sh 'gzip -dq input_file.sql.gz'
+                    sh 'sed "s/anyarray/anycompatiblearray/g" input_file.sql > modified_file.sql'
+                    sh 'rm input_file.sql'
+                    sh 'gzip modified_file.sql'
+                    sh 'gunzip -c modified_file.sql | psql --quiet vvta'
                     sh 'psql -d vvta -U postgres -c "GRANT SELECT ON vvta_2023_05.gene TO public;"'
                     sh 'psql -d vvta -U postgres -c "GRANT SELECT ON ALL TABLES IN SCHEMA public TO ta_user;"'
                     sh 'psql -d vvta -U postgres -c "GRANT SELECT ON vvta_2023_05.tx_def_summary_v TO ta_user;"'
