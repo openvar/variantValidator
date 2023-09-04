@@ -1,7 +1,7 @@
 pipeline {
     agent none
     environment {
-        CODECOV_TOKEN = credentials('CODECOV_TOKEN')
+        CODECOV_TOKEN = '50dd5c2e-4259-4cfa-97a7-b4429e0d179e'
     }
     stages {
         stage("Build VVTA") {
