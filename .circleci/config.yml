@@ -57,23 +57,23 @@ jobs:
       - checkout
       - run:
           name: Create seqrepo directory
-          command: mkdir -p /home/seqrepo
+          command: mkdir -p /home/circleci/seqrepo
       - run:
           name: Download and extract Seqrepo data
           command: |
-            wget --output-document=/home/seqrepo/VV_SR_2023_05.tar https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_2023_05.tar
-            tar -xvf /home/seqrepo/VV_SR_2023_05.tar --directory /home/seqrepo
+            wget --output-document=/home/circleci/seqrepo/VV_SR_2023_05.tar https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_2023_05.tar
+            tar -xvf /home/circleci/seqrepo/VV_SR_2023_05.tar --directory /home/circleci/seqrepo
       - run:
           name: Install dependencies
           command: pip install .
       - run:
           name: Copy configuration file
-          command: cp configuration/continuous_integration.ini /home/.variantvalidator
+          command: cp configuration/continuous_integration.ini /home/circleci/.variantvalidator
       - run:
           name: Run tests
           command: pytest
     environment:
-      HOME: /home
+      HOME: /home/circleci
 
 workflows:
   version: 2
