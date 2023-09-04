@@ -70,12 +70,12 @@ jobs:
           name: Copy configuration file
           command: cp configuration/continuous_integration.ini "$HOME"/.variantvalidator
           environment:
-            HOME: /app
+            HOME: ~
       - run:
           name: Run tests
           command: pytest
     environment:
-      HOME: /app
+      HOME: ~
 
 workflows:
   version: 2
