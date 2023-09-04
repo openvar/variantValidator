@@ -74,3 +74,14 @@ jobs:
           command: pytest
     environment:
       HOME: /app
+
+workflows:
+  version: 2
+  variant_validator_ci:
+    jobs:
+      - build-mysql
+      - build-postgres
+      - build-and-test-vv:
+          requires:
+            - build-mysql
+            - build-postgres
