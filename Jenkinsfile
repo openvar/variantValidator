@@ -11,12 +11,12 @@ pipeline {
         stage("Before Install") {
             steps {
                 script {
-                    sh 'sudo mount -o remount,size=50% /var/ramfs'
+                    sh ' mount -o remount,size=50% /var/ramfs'
                     sh 'mysql -e "CREATE DATABASE validator;"'
                     sh 'df -h'
-                    sh 'sudo apt-get -y install tabix'
-                    sh 'sudo sed -i -e "/local.*peer/s/postgres/all/" -e "s/peer\\|md5/trust/g" /etc/postgresql/12/main/pg_hba.conf'
-                    sh 'sudo service postgresql@12-main restart'
+                    sh ' apt-get -y install tabix'
+                    sh ' sed -i -e "/local.*peer/s/postgres/all/" -e "s/peer\\|md5/trust/g" /etc/postgresql/12/main/pg_hba.conf'
+                    sh ' service postgresql@12-main restart'
                     sleep(3)
                     sh 'createuser -e --createdb uta_admin'
                     sh 'createdb -e vvta -O uta_admin'
