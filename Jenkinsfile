@@ -7,7 +7,7 @@ pipeline {
 
         stage("Test Syntax") {
             agent {
-                dockerContainer {
+                docker {
                     image 'debian:bullseye-slim'
                 }
             }
@@ -19,7 +19,7 @@ pipeline {
 
         stage("Build VVTA") {
             agent {
-                dockerContainer {
+                docker {
                     image 'postgres:14.7'
                 }
             }
@@ -42,7 +42,7 @@ pipeline {
 
         stage("Build Validator") {
             agent {
-                dockerContainer {
+                docker {
                     image 'ubuntu/mysql:8.0-22.04_beta'
                 }
             }
@@ -56,7 +56,7 @@ pipeline {
 
         stage("Build and Test") {
             agent {
-                dockerContainer {
+                docker {
                     image 'python:3.10'
                 }
             }
