@@ -11,13 +11,11 @@ pipeline:
     - name: "Before Install"
       steps:
         - script:
-            name: Increase size of database drive
-            code: |
+            script: |
               sudo mount -o remount,size=50% /var/ramfs
 
         - script:
-            name: Set up the databases
-            code: |
+            script: |
               mysql -e 'CREATE DATABASE validator;'
               df -h
 
@@ -30,7 +28,7 @@ pipeline:
               createdb -e vvta -O uta_admin
               psql -d vvta -U postgres -c "CREATE USER ta_user WITH PASSWORD 'read_only'"
               wget --output-document=vvta_2023_05_noseq.sql.gz https://www528.lamp.le.ac.uk/vvdata/vvta/vvta_2023_05_noseq.sql.gz
-              gunzip -c vvta_2023_05.noseq.psql.gz | psql --quiet vvta
+              gunzip -c vvta_2023_05_noseq.psql.gz | psql --quiet vvta
               psql -d vvta -U postgres -c 'GRANT SELECT ON vvta_2023_05.gene TO public;'
               psql -d vvta -U postgres -c 'GRANT SELECT ON ALL TABLES IN SCHEMA public TO ta_user;'
               psql -d vvta -U postgres -c 'GRANT SELECT ON vvta_2023_05.tx_def_summary_v TO ta_user;'
@@ -44,35 +42,30 @@ pipeline:
     - name: "Install"
       steps:
         - script:
-            name: Install Dependencies
-            code: |
+            script: |
               pip install .
 
         - script:
-            name: Get SeqRepo Data
-            code: |
+            script: |
               mkdir "$HOME"/vvta_seqrepo
-              wget --output-document="$HOME"/vvta_seqrepo/VV_SR_2023_05.tar https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_203_05.tar
+              wget --output-document="$HOME"/vvta_seqrepo/VV_SR_2023_05.tar https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_2023_05.tar
               cd "$HOME"/vvta_seqrepo/
               tar -xvf VV_SR_2023_05.tar
               cd -
 
         - script:
-            name: Set up Validator Database
-            code: |
+            script: |
               mysql validator < validator_2023_08.sql
               rm validator_2023_08.sql
 
     - name: "Test"
       steps:
         - script:
-            name: Run Tests
-            code: |
+            script: |
               pytest --cov-report=term --cov=VariantValidator/
 
     - name: "After Script"
       steps:
         - script:
-            name: Upload Code Coverage
-            code: |
+            script: |
               codecov
