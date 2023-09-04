@@ -88,8 +88,6 @@ jobs:
       - image: cimg/python:3.10.5
     steps:
       - checkout
-      - attach_workspace:
-          at: /workspace
       - run:
           name: Check if workspace exists
           command: |
@@ -99,6 +97,8 @@ jobs:
             else
               echo "Workspace exists"
             fi
+      - attach_workspace:
+          at: /workspace
       - python/install-packages:
           pkg-manager: pip
       - run:
