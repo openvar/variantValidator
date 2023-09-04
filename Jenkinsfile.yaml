@@ -8,7 +8,7 @@ pipeline:
     CODECOV_TOKEN: '50dd5c2e-4259-4cfa-97a7-b4429e0d179e'
 
   stages:
-    - stage: Before Install
+    - name: "Before Install"
       steps:
         - script:
             name: Increase size of database drive
@@ -41,7 +41,7 @@ pipeline:
               wget --output-document=validator_2023_08.sql.gz https://www528.lamp.le.ac.uk/vvdata/validator/validator_2023_08.sql.gz
               gunzip validator_2023_08.sql.gz
 
-    - stage: Install
+    - name: "Install"
       steps:
         - script:
             name: Install Dependencies
@@ -63,14 +63,14 @@ pipeline:
               mysql validator < validator_2023_08.sql
               rm validator_2023_08.sql
 
-    - stage: Test
+    - name: "Test"
       steps:
         - script:
             name: Run Tests
             code: |
               pytest --cov-report=term --cov=VariantValidator/
 
-    - stage: After Script
+    - name: "After Script"
       steps:
         - script:
             name: Upload Code Coverage
