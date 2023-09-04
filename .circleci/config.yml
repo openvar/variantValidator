@@ -56,6 +56,10 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Install necessary dependencies
+          command: |
+            apt-get update && apt-get install -y wget
+      - run:
           name: Create seqrepo directory
           command: mkdir -p ~/seqrepo
       - run:
@@ -74,8 +78,8 @@ jobs:
       - run:
           name: Run tests
           command: pytest
-    environment:
-      HOME: ~
+  environment:
+    HOME: ~
 
 workflows:
   version: 2
