@@ -12,7 +12,7 @@ pipeline {
                 }
             }
             steps {
-                sh echo "Running Cow Say"
+                echo "Running Cow Say"
                 sh 'cowsay "Testing syntax check"'
             }
         }
