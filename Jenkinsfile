@@ -11,7 +11,6 @@ pipeline {
         stage("Before Install") {
             steps {
                 script {
-                    sh ' mount -o remount,size=50% /var/ramfs'
                     sh 'mysql -e "CREATE DATABASE validator;"'
                     sh 'df -h'
                     sh ' apt-get -y install tabix'
