@@ -11,12 +11,10 @@ pipeline:
     - stage: "Before Install"
       steps:
         - script:
-            name: "Increase size of database drive"
             script: |
               sudo mount -o remount,size=50% /var/ramfs
 
         - script:
-            name: "Set up the databases"
             script: |
               mysql -e 'CREATE DATABASE validator;'
               df -h
@@ -44,12 +42,10 @@ pipeline:
     - stage: "Install"
       steps:
         - script:
-            name: "Install Dependencies"
             script: |
               pip install .
 
         - script:
-            name: "Get SeqRepo Data"
             script: |
               mkdir "$HOME"/vvta_seqrepo
               wget --output-document="$HOME"/vvta_seqrepo/VV_SR_2023_05.tar https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_2023_05.tar
@@ -58,7 +54,6 @@ pipeline:
               cd -
 
         - script:
-            name: "Set up Validator Database"
             script: |
               mysql validator < validator_2023_08.sql
               rm validator_2023_08.sql
@@ -66,13 +61,11 @@ pipeline:
     - stage: "Test"
       steps:
         - script:
-            name: "Run Tests"
             script: |
               pytest --cov-report=term --cov=VariantValidator/
 
     - stage: "After Script"
       steps:
         - script:
-            name: "Upload Code Coverage"
             script: |
               codecov
