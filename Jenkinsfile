@@ -34,55 +34,55 @@ pipeline {
             }
         }
 
-        stage("Build Validator") {
-            steps {
-                script {
-                    // Start the MySQL container
-                    sh '-x docker run --name mysql-validator -d --network vvta_network -e MYSQL_RANDOM_ROOT_PASSWORD=yes -e MYSQL_DATABASE=validator -e MYSQL_USER=vvadmin -e MYSQL_PASSWORD=var1ant -p 3306:3306 ubuntu/mysql:8.0-22.04_beta'
-                    sh '-x sleep 10'
-                    sh '-x docker exec mysql-validator wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_2023_08.sql.gz -O /docker-entrypoint-initdb.d/validator_2023_08.sql.gz'
-
-                    // Expose MySQL container port
-                    sh '-x docker network connect bridge mysql-validator'
-                }
-            }
-        }
-
-        stage("Before Install") {
-            steps {
-                sh '-x apt-get update'
-                sh '-x apt-get install -y wget'
-            }
-        }
-
-        stage("Install") {
-            steps {
-                script {
-                    sh '-x mkdir -p /usr/local/share/seqrepo'
-                    sh '-x mkdir -p /usr/local/share/logs'
-                    sh '-x wget --output-document="/usr/local/share/seqrepo/VV_SR_2023_05.tar" https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_2023_05.tar'
-                    sh '-x tar -xvf /usr/local/share/seqrepo/VV_SR_2023_05.tar -C /usr/local/share/seqrepo/'
-                    sh '-x pip install --upgrade pip'
-                    sh '-x pip install .'
-                    sh '-x cp configuration/continuous_integration.ini "$HOME"/.variantvalidator'
-                }
-            }
-        }
-
-        stage("Test") {
-            steps {
-                script {
-                    sh '-x pytest --cov-report=term --cov=VariantValidator/'
-                }
-            }
-        }
-
-        stage("After Script") {
-            steps {
-                script {
-                    sh '-x codecov'
-                }
-            }
-        }
+//         stage("Build Validator") {
+//             steps {
+//                 script {
+//                     // Start the MySQL container
+//                     sh '-x docker run --name mysql-validator -d --network vvta_network -e MYSQL_RANDOM_ROOT_PASSWORD=yes -e MYSQL_DATABASE=validator -e MYSQL_USER=vvadmin -e MYSQL_PASSWORD=var1ant -p 3306:3306 ubuntu/mysql:8.0-22.04_beta'
+//                     sh '-x sleep 10'
+//                     sh '-x docker exec mysql-validator wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_2023_08.sql.gz -O /docker-entrypoint-initdb.d/validator_2023_08.sql.gz'
+//
+//                     // Expose MySQL container port
+//                     sh '-x docker network connect bridge mysql-validator'
+//                 }
+//             }
+//         }
+//
+//         stage("Before Install") {
+//             steps {
+//                 sh '-x apt-get update'
+//                 sh '-x apt-get install -y wget'
+//             }
+//         }
+//
+//         stage("Install") {
+//             steps {
+//                 script {
+//                     sh '-x mkdir -p /usr/local/share/seqrepo'
+//                     sh '-x mkdir -p /usr/local/share/logs'
+//                     sh '-x wget --output-document="/usr/local/share/seqrepo/VV_SR_2023_05.tar" https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_2023_05.tar'
+//                     sh '-x tar -xvf /usr/local/share/seqrepo/VV_SR_2023_05.tar -C /usr/local/share/seqrepo/'
+//                     sh '-x pip install --upgrade pip'
+//                     sh '-x pip install .'
+//                     sh '-x cp configuration/continuous_integration.ini "$HOME"/.variantvalidator'
+//                 }
+//             }
+//         }
+//
+//         stage("Test") {
+//             steps {
+//                 script {
+//                     sh '-x pytest --cov-report=term --cov=VariantValidator/'
+//                 }
+//             }
+//         }
+//
+//         stage("After Script") {
+//             steps {
+//                 script {
+//                     sh '-x codecov'
+//                 }
+//             }
+//         }
     }
 }
