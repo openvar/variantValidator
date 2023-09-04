@@ -6,7 +6,7 @@ pipeline {
     stages {
         stage("Build VVTA") {
             agent {
-                docker {
+                dockerContainer {
                     image 'postgres:14.7'
                     args '--network vvta_network -e POSTGRES_DB=vvta -e POSTGRES_USER=uta_admin -e POSTGRES_PASSWORD=uta_admin -p 5432:5432'
                 }
@@ -29,7 +29,7 @@ pipeline {
 
         stage("Build Validator") {
             agent {
-                docker {
+                dockerContainer {
                     image 'ubuntu/mysql:8.0-22.04_beta'
                     args '--network vvta_network -e MYSQL_RANDOM_ROOT_PASSWORD=yes -e MYSQL_DATABASE=validator -e MYSQL_USER=vvadmin -e MYSQL_PASSWORD=var1ant -p 3306:3306'
                 }
@@ -44,7 +44,7 @@ pipeline {
 
         stage("Build and Test") {
             agent {
-                docker {
+                dockerContainer {
                     image 'python:3.10'
                 }
             }
