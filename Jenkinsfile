@@ -4,6 +4,19 @@ pipeline {
         CODECOV_TOKEN = '50dd5c2e-4259-4cfa-97a7-b4429e0d179e'
     }
     stages {
+
+        stage("Test Syntax") {
+            agent {
+                dockerContainer {
+                    image 'debian:bullseye-slim'
+                }
+            }
+            steps {
+                sh 'apt-get update && apt-get install -y cowsay'
+                sh 'cowsay "Testing syntax check"'
+            }
+        }
+
         stage("Build VVTA") {
             agent {
                 dockerContainer {
