@@ -11,6 +11,7 @@ pipeline {
         stage("Before Install") {
             steps {
                 script {
+                    sh 'apt-get update && apt-get -y install wget mysql-server postgresql sqlite3'
                     sh 'mysql -e "CREATE DATABASE validator;"'
                     sh 'df -h'
                     sh ' apt-get -y install tabix'
