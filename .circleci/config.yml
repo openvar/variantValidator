@@ -7,6 +7,8 @@ jobs:
   build-mysql:
     docker:
       - image: ubuntu/mysql:8.0-22.04_beta
+        ports:
+          - "3306:3306"  # Expose the MySQL port
     environment:
       MYSQL_RANDOM_ROOT_PASSWORD: "yes"
       MYSQL_DATABASE: "validator"
@@ -29,6 +31,8 @@ jobs:
   build-postgres:
     docker:
       - image: postgres:14.7
+        ports:
+          - "5432:5432"  # Expose the PostgreSQL port
     environment:
       POSTGRES_DB: "vvta"
       POSTGRES_USER: "uta_admin"
@@ -57,23 +61,31 @@ jobs:
       - checkout
       - run:
           name: Create seqrepo directory
-          command: mkdir -p /home/circleci/seqrepo
+          command: mkdir -p ~/seqrepo
       - run:
           name: Download and extract Seqrepo data
           command: |
-            wget --output-document=/home/circleci/seqrepo/VV_SR_2023_05.tar https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_2023_05.tar
-            tar -xvf /home/circleci/seqrepo/VV_SR_2023_05.tar --directory /home/circleci/seqrepo
+            wget --output-document=~/seqrepo/VV_SR_2023_05.tar https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_2023_05.tar
+            tar -xvf ~/seqrepo/VV_SR_2023_05.tar --directory ~/seqrepo
       - run:
           name: Install dependencies
           command: pip install .
       - run:
           name: Copy configuration file
-          command: cp configuration/continuous_integration.ini /home/circleci/.variantvalidator
+          command: cp configuration/continuous_integration.ini "$HOME"/.variantvalidator
+          environment:
+            HOME: /root
+      - run:
+          name: Wait for MySQL to become available
+          command: dockerize -wait tcp://localhost:3306 -timeout 1m
+      - run:
+          name: Wait for PostgreSQL to become available
+          command: dockerize -wait tcp://localhost:5432 -timeout 1m
       - run:
           name: Run tests
           command: pytest
     environment:
-      HOME: /home/circleci
+      HOME: /root
 
 workflows:
   version: 2
