@@ -18,9 +18,7 @@ pipeline:
             script: |
               mysql -e 'CREATE DATABASE validator;'
               df -h
-
               sudo apt-get -y install tabix
-
               sudo sed -i -e '/local.*peer/s/postgres/all/' -e 's/peer\|md5/trust/g' /etc/postgresql/12/main/pg_hba.conf
               sudo service postgresql@12-main restart
               sleep 3
@@ -52,11 +50,6 @@ pipeline:
               cd "$HOME"/vvta_seqrepo/
               tar -xvf VV_SR_2023_05.tar
               cd -
-
-        - script:
-            script: |
-              mysql validator < validator_2023_08.sql
-              rm validator_2023_08.sql
 
     - stage: "Test"
       steps:
