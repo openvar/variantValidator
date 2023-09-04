@@ -56,11 +56,13 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Create seqrepo directory
+          command: mkdir -p ~/seqrepo
+      - run:
           name: Download and extract Seqrepo data
           command: |
-            mkdir -p /seqrepo
-            wget --output-document=/seqrepo/VV_SR_2023_05.tar https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_2023_05.tar
-            tar -xvf /seqrepo/VV_SR_2023_05.tar --directory /seqrepo
+            wget --output-document=~/seqrepo/VV_SR_2023_05.tar https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_2023_05.tar
+            tar -xvf ~/seqrepo/VV_SR_2023_05.tar --directory ~/seqrepo
       - run:
           name: Install dependencies
           command: pip install .
