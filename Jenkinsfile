@@ -1,6 +1,8 @@
 pipeline {
     agent {
-        docker { image 'python:3.10' }
+        dockerContainer {
+            image 'python:3.10'
+        }
     }
 
     environment {
