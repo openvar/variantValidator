@@ -23,7 +23,7 @@ pipeline {
             steps {
                 script {
                     // Add the Git config command to mark the workspace directory as safe
-                    sh 'git config --global --add safe.directory /var/jenkins_home/workspace/VariantValidator_ci'
+                    sh 'git config --global --add safe.directory "*"'
                 }
             }
         }
