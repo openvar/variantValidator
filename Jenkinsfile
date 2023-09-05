@@ -1,12 +1,11 @@
 pipeline {
-    agent none
+    agent any
     environment {
         CODECOV_TOKEN = '50dd5c2e-4259-4cfa-97a7-b4429e0d179e'
     }
-    stages {
 
+    stages {
         stage("Check Environment") {
-            agent none
             steps {
                 echo "Checking PATH"
                 sh "echo $PATH"
