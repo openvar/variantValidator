@@ -21,8 +21,15 @@ pipeline {
 
         stage("Checkout SCM") {
             steps {
-                sh "git config --global --add safe.directory /var/jenkins_home/workspace/VariantValidator_ci"
+                script {
+                    // Add the Git config command to mark the workspace directory as safe
+                    sh 'git config --global --add safe.directory /var/jenkins_home/workspace/VariantValidator_ci'
+                }
+            }
+        }
 
+        stage("Clone Repository") {
+            steps {
                 checkout scm
             }
         }
