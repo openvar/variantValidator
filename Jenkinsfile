@@ -19,15 +19,6 @@ pipeline {
             }
         }
 
-        stage("Configure git") {
-            steps {
-                script {
-                    // Add the Git config command to mark the workspace directory as safe
-                    sh 'git config --global --add safe.directory "*"'
-                }
-            }
-        }
-
         stage("Clone Repository") {
             steps {
                 checkout scm
