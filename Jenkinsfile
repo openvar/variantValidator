@@ -27,13 +27,13 @@ pipeline {
             steps {
                 sh 'apt-get update'
                 sh 'apt-get install -y wget'
-                sh 'echo "shared_buffers = 2GB" > postgres_config.conf'
+                sh ' echo "shared_buffers = 2GB" > /docker-entrypoint-initdb.d/postgresql.conf'
                 sh 'wget https://www528.lamp.le.ac.uk/vvdata/vvta/vvta_2023_05_no_seq.sql.gz -O input_file.sql.gz'
                 sh 'gzip -dq input_file.sql.gz'
                 sh 'sed "s/anyarray/anycompatiblearray/g" input_file.sql > modified_file.sql'
+                sh 'rm input_file.sql'
                 sh 'gzip modified_file.sql'
-                sh 'docker cp postgres_config.conf postgres-vvta:/docker-entrypoint-initdb.d/postgresql.conf'
-                sh 'docker cp modified_file.sql.gz postgres-vvta:/docker-entrypoint-initdb.d/vvta_2023_05_noseq.sql.gz'
+                sh 'mv modified_file.sql.gz /docker-entrypoint-initdb.d/vvta_2023_05_noseq.sql.gz'
             }
         }
         stage("Mount VVTA") {
