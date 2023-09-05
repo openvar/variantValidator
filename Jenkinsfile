@@ -21,10 +21,6 @@ pipeline {
 
         stage("Clone Repository") {
             steps {
-                // Change ownership of the Jenkins workspace directory to the Jenkins user
-                sh 'chown -R jenkins:jenkins /var/jenkins_home/workspace/VariantValidator_ci'
-
-                // Clone the repository as the Jenkins user
                 checkout scm
             }
         }
@@ -36,8 +32,8 @@ pipeline {
                 }
             }
             steps {
-                echo "Running Cow Say"
-                sh 'cowsay "Testing syntax check"'
+                echo "Running Whale Say"
+                sh 'whalesay "Testing syntax check"'
             }
         }
 
