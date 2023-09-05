@@ -13,17 +13,6 @@ pipeline {
                 checkout scm
             }
         }
-        stage("Test Syntax") {
-            agent {
-                docker {
-                    image "docker/whalesay:latest"
-                }
-            }
-            steps {
-                echo "Running Whale Say"
-                sh 'cowsay "Testing syntax check"'
-            }
-        }
         stage("Build VVTA") {
             agent {
                 docker {
@@ -36,6 +25,8 @@ pipeline {
                 POSTGRES_PASSWORD = "uta_admin"
             }
             steps {
+                sh 'apt-get update'
+                sh 'apt-get install -y wget'
                 sh 'echo "shared_buffers = 2GB" > postgres_config.conf'
                 sh 'wget https://www528.lamp.le.ac.uk/vvdata/vvta/vvta_2023_05_no_seq.sql.gz -O input_file.sql.gz'
                 sh 'gzip -dq input_file.sql.gz'
@@ -97,11 +88,6 @@ pipeline {
                 }
             }
             steps {
-                sh 'apt-get update'
-                sh 'apt-get install -y wget'
-                sh 'mkdir -p /usr/local/share/seqrepo'
-                sh 'wget --output-document="/usr/local/share/seqrepo/VV_SR_2023_05.tar" https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_2023_05.tar'
-                sh 'tar -xvf /usr/local/share/seqrepo/VV_SR_2023_05.tar -C /usr/local/share/seqrepo/'
                 sh 'pip install --upgrade pip'
                 sh 'pip install .'
                 sh 'cp configuration/continuous_integration.ini "$HOME"/.variantvalidator'
