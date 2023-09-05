@@ -21,6 +21,7 @@ pipeline {
 
         stage("Checkout SCM") {
             steps {
+                git config --global --add safe.directory /var/jenkins_home/workspace/VariantValidator_ci
                 checkout scm
             }
         }
