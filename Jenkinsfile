@@ -28,7 +28,7 @@ pipeline {
         stage("Test Syntax") {
             agent {
                 docker {
-                    image 'debian:bullseye-slim'
+                    image 'docker/whalesay'
                 }
             }
             steps {
