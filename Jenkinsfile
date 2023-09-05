@@ -16,9 +16,8 @@ pipeline {
                     steps {
                         sh 'apt-get update'
                         sh 'apt-get install -y docker.io'
-                    }
-                }
-            }
+             }
+        }
 
         stage("Test Syntax") {
             agent {
