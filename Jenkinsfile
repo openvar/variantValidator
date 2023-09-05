@@ -28,7 +28,7 @@ pipeline {
         stage("Test Syntax") {
             agent {
                 docker {
-                    image 'docker/whalesay'
+                    image 'docker/whalesay:latest'
                 }
             }
             steps {
