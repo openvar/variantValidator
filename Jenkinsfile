@@ -9,7 +9,7 @@ pipeline {
             agent none
             steps {
                 echo "Checking PATH"
-                env.PATH
+                sh "echo $PATH"
             }
         }
 
