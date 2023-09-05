@@ -19,7 +19,7 @@ pipeline {
             }
         }
 
-        stage("Checkout SCM") {
+        stage("Configure git") {
             steps {
                 script {
                     // Add the Git config command to mark the workspace directory as safe
