@@ -7,13 +7,12 @@ pipeline {
     environment {
         CODECOV_TOKEN = "50dd5c2e-4259-4cfa-97a7-b4429e0d179e"
     }
-
+    stages {
         stage("Clone Repository") {
             steps {
                 checkout scm
             }
         }
-
         stage("Test Syntax") {
             agent {
                 docker {
@@ -25,7 +24,6 @@ pipeline {
                 sh 'cowsay "Testing syntax check"'
             }
         }
-
         stage("Build VVTA") {
             agent {
                 docker {
@@ -47,14 +45,12 @@ pipeline {
                 sh 'docker cp modified_file.sql.gz postgres-vvta:/docker-entrypoint-initdb.d/vvta_2023_05_noseq.sql.gz'
             }
         }
-
         stage("Mount VVTA") {
             steps {
                 sh 'docker run -d --name postgres-vvta -p 5432:5432 postgres:14.7'
                 sh 'docker network connect bridge postgres-vvta'
             }
         }
-
         stage("Build Validator") {
             agent {
                 docker {
@@ -72,14 +68,12 @@ pipeline {
                 sh 'wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_2023_08.sql.gz -O /docker-entrypoint-initdb.d/validator_2023_08.sql.gz'
             }
         }
-
         stage("Mount Validator") {
             steps {
                 sh 'docker run -d --name mysql-validator -p 3306:33306 ubuntu/mysql:8.0-22.04_beta'
                 sh 'docker network connect bridge mysql-validator'
             }
         }
-
         stage("Build SeqRepo") {
             agent {
                 docker {
@@ -96,7 +90,6 @@ pipeline {
                 sh 'rm /workspace/seqrepo/VV_SR_2023_05.tar'
             }
         }
-
         stage("Build and Test VariantValidator") {
             agent {
                 docker {
@@ -116,7 +109,6 @@ pipeline {
                 sh 'codecov'
             }
         }
-
         stage("Cleanup Docker") {
             steps {
                 sh 'docker stop postgres-vvta'
