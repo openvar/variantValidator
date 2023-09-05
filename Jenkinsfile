@@ -8,21 +8,6 @@ pipeline {
         CODECOV_TOKEN = "50dd5c2e-4259-4cfa-97a7-b4429e0d179e"
     }
 
-    stages {
-        stage("Check Environment") {
-            steps {
-                echo "Checking PATH"
-                sh "echo $PATH"
-            }
-        }
-
-        stage("Install Docker") {
-            steps {
-                sh "apt update"
-                sh "apt install -y git"
-            }
-        }
-
         stage("Clone Repository") {
             steps {
                 checkout scm
