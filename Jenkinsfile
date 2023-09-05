@@ -13,10 +13,16 @@ pipeline {
         }
 
         stage('Install Docker') {
-                    steps {
-                        sh 'apt update'
-                        sh 'apt install -y docker.io'
-             }
+            steps {
+                sh 'apt update'
+                sh 'apt install -y docker.io'
+            }
+        }
+
+        stage("Checkout SCM") {
+            steps {
+                checkout scm
+            }
         }
 
         stage("Test Syntax") {
