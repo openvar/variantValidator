@@ -82,7 +82,6 @@ pipeline {
             }
         }
         stage("Build and Test VariantValidator") {
-            dependsOn "Clone Repository", "Build VVTA", "Mount VVTA", "Build Validator", "Mount Validator", "Build SeqRepo"
             agent {
                 docker {
                     image "python:3.10"
