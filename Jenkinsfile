@@ -36,6 +36,7 @@ pipeline {
                 sh 'rm input_file.sql'
                 sh 'gzip modified_file.sql'
                 sh 'mv modified_file.sql.gz /docker-entrypoint-initdb.d/vvta_2023_05_noseq.sql.gz'
+                sh 'gzip -dq /docker-entrypoint-initdb.d/vvta_2023_05_noseq.sql.gz'
             }
         }
         stage("Build Validator MySQL") {
@@ -54,6 +55,7 @@ pipeline {
             steps {
                 sh 'apt-get update && apt-get install -y wget'
                 sh 'wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_2023_08.sql.gz -O /docker-entrypoint-initdb.d/validator_2023_08.sql.gz'
+                sh 'gzip -dq /docker-entrypoint-initdb.d/validator_2023_08.sql.gz'
             }
         }
         stage("Build SeqRepo") {
