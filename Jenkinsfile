@@ -23,6 +23,8 @@ pipeline {
         stage("Build VVTA PostgreSQL") {
             steps {
                 script {
+                    sh 'pwd'
+                    sh 'ls -l'
                     def postgresImage = docker.build("postgres-vvta-${CONTAINER_SUFFIX}", "/var/jenkins_home/workspace/vvta_docker.df")
                     sh "docker run --name postgres-vvta-${CONTAINER_SUFFIX} -p 5432:5432 -d postgres-vvta-${CONTAINER_SUFFIX}"
                 }
