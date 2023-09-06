@@ -15,38 +15,50 @@ pipeline {
             }
         }
         stage("Build VVTA PostgreSQL") {
-            steps {
-                script {
-                    docker.image("postgres:14.7").withRun("-p 5432:5432 -d --name postgres-vvta-${CONTAINER_SUFFIX}") { c ->
-                        // Container-specific commands for PostgreSQL setup
-                        sh 'apt-get update'
-                        sh 'apt-get install -y wget'
-                        sh 'echo "shared_buffers = 2GB" > /docker-entrypoint-initdb.d/postgresql.conf'
-                        sh 'wget https://www528.lamp.le.ac.uk/vvdata/vvta/vvta_2023_05_no_seq.sql.gz -O input_file.sql.gz'
-                        sh 'gzip -dq input_file.sql.gz'
-                        sh 'sed "s/anyarray/anycompatiblearray/g" input_file.sql > modified_file.sql'
-                        sh 'rm input_file.sql'
-                        sh 'gzip modified_file.sql'
-                        sh 'mv modified_file.sql.gz /docker-entrypoint-initdb.d/vvta_2023_05_noseq.sql.gz'
-                    }
+            agent {
+                docker {
+                    image "postgres:14.7"
+                    args "--name postgres-vvta-${CONTAINER_SUFFIX} -p 5432:5432"
                 }
+            }
+            environment {
+                POSTGRES_DB = "vvta"
+                POSTGRES_USER = "uta_admin"
+                POSTGRES_PASSWORD = "uta_admin"
+            }
+            steps {
+                sh 'apt-get update'
+                sh 'apt-get install -y wget'
+                sh 'echo "shared_buffers = 2GB" > /docker-entrypoint-initdb.d/postgresql.conf'
+                sh 'wget https://www528.lamp.le.ac.uk/vvdata/vvta/vvta_2023_05_no_seq.sql.gz -O input_file.sql.gz'
+                sh 'gzip -dq input_file.sql.gz'
+                sh 'sed "s/anyarray/anycompatiblearray/g" input_file.sql > modified_file.sql'
+                sh 'rm input_file.sql'
+                sh 'gzip modified_file.sql'
+                sh 'mv modified_file.sql.gz /docker-entrypoint-initdb.d/vvta_2023_05_noseq.sql.gz'
             }
         }
         stage("Build Validator MySQL") {
-            steps {
-                script {
-                    docker.image("ubuntu/mysql:8.0-22.04_beta").withRun("-p 3306:33306 -d --name mysql-validator-${CONTAINER_SUFFIX}") { c ->
-                        // Container-specific commands for MySQL setup
-                        sh 'apt-get update && apt-get install -y wget'
-                        sh 'wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_2023_08.sql.gz -O /docker-entrypoint-initdb.d/validator_2023_08.sql.gz'
-                    }
+            agent {
+                docker {
+                    image "ubuntu/mysql:8.0-22.04_beta"
+                    args "--name mysql-validator-${CONTAINER_SUFFIX} -p 3306:33306"
                 }
             }
-        }
-        stage("Start Containers") {
+            environment {
+                MYSQL_RANDOM_ROOT_PASSWORD = "yes"
+                MYSQL_DATABASE = "validator"
+                MYSQL_USER = "vvadmin"
+                MYSQL_PASSWORD = "var1ant"
+            }
             steps {
-                sh 'docker start postgres-vvta-${CONTAINER_SUFFIX}'
-                sh 'docker start mysql-validator-${CONTAINER_SUFFIX}'
+                sh 'apt-get update && apt-get install -y wget'
+                sh 'wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_2023_08.sql.gz -O /docker-entrypoint-initdb.d/validator_2023_08.sql.gz'            }
+        }
+        stage("Run Containers") {
+            steps {
+                sh 'docker run -d --name postgres-vvta-${CONTAINER_SUFFIX} -p 5432:5432 postgres:14.7'
+                sh 'docker run -d --name mysql-validator-${CONTAINER_SUFFIX} -p 3306:33306 ubuntu/mysql:8.0-22.04_beta'
             }
         }
         stage("Build SeqRepo") {
