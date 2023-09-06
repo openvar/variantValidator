@@ -87,20 +87,11 @@ pipeline {
                 sh 'cp configuration/continuous_integration.ini "$HOME"/.variantvalidator'
             }
         }
-        stage("Check running containers") {
+        stage("Run Pytest and Codecov") {
             steps {
                 sh 'docker ps'
-            }
-        }
-        stage("Run Pytest and Codecov") {
-            agent {
-                docker {
-                    label "variantvalidator-${CONTAINER_SUFFIX}"
-                }
-            }
-            steps {
-                sh 'pytest --cov-report=term --cov=VariantValidator/'
-                sh 'codecov'
+                sh 'docker exec variantvalidator-${CONTAINER_SUFFIX} pytest --cov-report=term --cov=VariantValidator/'
+                sh 'docker exec variantvalidator-${CONTAINER_SUFFIX} codecov'
             }
         }
         stage("Cleanup Docker") {
