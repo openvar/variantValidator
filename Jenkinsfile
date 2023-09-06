@@ -23,7 +23,7 @@ pipeline {
         stage("Build VVTA PostgreSQL") {
             steps {
                 script {
-                    def postgresImage = docker.build("postgres-vvta-${CONTAINER_SUFFIX}", "./vvta_docker.df")
+                    def postgresImage = docker.build("postgres-vvta-${CONTAINER_SUFFIX}", "/var/jenkins_home/workspace/vvta_docker.df")
                     sh "docker run --name postgres-vvta-${CONTAINER_SUFFIX} -p 5432:5432 -d postgres-vvta-${CONTAINER_SUFFIX}"
                 }
             }
@@ -31,7 +31,7 @@ pipeline {
         stage("Build Validator MySQL") {
             steps {
                 script {
-                    def mysqlImage = docker.build("mysql-validator-${CONTAINER_SUFFIX}", "./vdb_docker.df")
+                    def mysqlImage = docker.build("mysql-validator-${CONTAINER_SUFFIX}", "/var/jenkins_home/workspace/vdb_docker.df")
                     sh "docker run --name mysql-validator-${CONTAINER_SUFFIX} -p 3306:3306 -d mysql-validator-${CONTAINER_SUFFIX}"
                 }
             }
@@ -39,14 +39,14 @@ pipeline {
         stage("Build SeqRepo") {
             steps {
                 script {
-                    def seqrepoImage = docker.build("sqlite-seqrepo-${CONTAINER_SUFFIX}", "./vvsr_docker.df")
+                    def seqrepoImage = docker.build("sqlite-seqrepo-${CONTAINER_SUFFIX}", "/var/jenkins_home/workspace/vvsr_docker.df")
                 }
             }
         }
         stage("Build VariantValidator") {
             steps {
                 script {
-                    def variantvalidatorImage = docker.build("variantvalidator-${CONTAINER_SUFFIX}", "./Dockerfile")
+                    def variantvalidatorImage = docker.build("variantvalidator-${CONTAINER_SUFFIX}", "/var/jenkins_home/workspace/Dockerfile")
                     sh "docker run --name variantvalidator-${CONTAINER_SUFFIX} -p 5432:5432 -p 3306:3306 -d variantvalidator-${CONTAINER_SUFFIX}"
                 }
             }
