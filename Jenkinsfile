@@ -30,6 +30,9 @@ pipeline {
                     additionalBuildArgs '--build-arg CONTAINER_NAME=postgres-vvta-${CONTAINER_SUFFIX}', '-p', '5432:5432'
                 }
             }
+            steps {
+                sh 'echo Building VVTA PostgreSQL'
+            }
         }
         stage("Build Validator MySQL") {
             agent {
@@ -38,6 +41,9 @@ pipeline {
                     dir './db_dockerfiles/vdb'
                     additionalBuildArgs '--build-arg CONTAINER_NAME=mysql-validator-${CONTAINER_SUFFIX}', '-p', '3306:3306'
                 }
+            }
+            steps {
+                sh 'echo Building Validator MySQL'
             }
         }
         stage("Build SeqRepo") {
@@ -48,6 +54,9 @@ pipeline {
                     additionalBuildArgs '--build-arg CONTAINER_NAME=sqlite-seqrepo-${CONTAINER_SUFFIX}' , '-p', '3306:3306', '-p', '5432:5432'
                 }
             }
+            steps {
+                sh 'echo Building SeqRepo'
+            }
         }
         stage("Build VariantValidator") {
             agent {
@@ -57,6 +66,8 @@ pipeline {
                     additionalBuildArgs '--build-arg CONTAINER_NAME=variantvalidator-${CONTAINER_SUFFIX}'
                 }
             }
+            steps {
+                sh 'echo Building VariantValidator'
         }
         stage("Run Pytest and Codecov") {
             steps {
