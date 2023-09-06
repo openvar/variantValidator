@@ -12,6 +12,7 @@ pipeline {
         stage("Clone Repository") {
             steps {
                 checkout scm
+                sh 'chmod a+r ./*'
             }
         }
         stage("Where am I") {
