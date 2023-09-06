@@ -18,7 +18,7 @@ pipeline {
             agent {
                 docker {
                     image "postgres:14.7"
-                    args "--name postgres-vvta-${CONTAINER_SUFFIX} -p 5432:5432"
+                    args "--name postgres-vvta-${CONTAINER_SUFFIX} -p 5432:5432 -d"
                 }
             }
             environment {
@@ -43,7 +43,7 @@ pipeline {
             agent {
                 docker {
                     image "ubuntu/mysql:8.0-22.04_beta"
-                    args "--name mysql-validator-${CONTAINER_SUFFIX} -p 3306:33306"
+                    args "--name mysql-validator-${CONTAINER_SUFFIX} -p 3306:33306 -d"
                 }
             }
             environment {
