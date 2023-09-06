@@ -36,6 +36,7 @@ pipeline {
                 sh 'rm input_file.sql'
                 sh 'gzip modified_file.sql'
                 sh 'mv modified_file.sql.gz /docker-entrypoint-initdb.d/vvta_2023_05_noseq.sql.gz'
+                sh 'gzip -dq /docker-entrypoint-initdb.d/vvta_2023_05_noseq.sql.gz'
             }
         }
         stage("Build Validator MySQL") {
@@ -53,12 +54,8 @@ pipeline {
             }
             steps {
                 sh 'apt-get update && apt-get install -y wget'
-                sh 'wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_2023_08.sql.gz -O /docker-entrypoint-initdb.d/validator_2023_08.sql.gz'            }
-        }
-        stage("Run Containers") {
-            steps {
-                sh 'docker run -d --name postgres-vvta-${CONTAINER_SUFFIX} -p 5432:5432 postgres:14.7'
-                sh 'docker run -d --name mysql-validator-${CONTAINER_SUFFIX} -p 3306:33306 ubuntu/mysql:8.0-22.04_beta'
+                sh 'wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_2023_08.sql.gz -O /docker-entrypoint-initdb.d/validator_2023_08.sql.gz'
+                sh 'gzip -dq /docker-entrypoint-initdb.d/validator_2023_08.sql.gz'
             }
         }
         stage("Build SeqRepo") {
@@ -88,6 +85,16 @@ pipeline {
                 sh 'pip install --upgrade pip'
                 sh 'pip install .'
                 sh 'cp configuration/continuous_integration.ini "$HOME"/.variantvalidator'
+            }
+        }
+        stage("Run Pytest and Codecov") {
+            agent {
+                docker {
+                    image "python:3.10"
+                    args "-p 3306:3306 -p 5432:5432"
+                }
+            }
+            steps {
                 sh 'pytest --cov-report=term --cov=VariantValidator/'
                 sh 'codecov'
             }
