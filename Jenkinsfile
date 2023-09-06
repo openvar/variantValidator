@@ -6,6 +6,8 @@ pipeline {
     }
     environment {
         CODECOV_TOKEN = "50dd5c2e-4259-4cfa-97a7-b4429e0d179e"
+        // Generate a unique identifier for container names
+        CONTAINER_SUFFIX = "${BUILD_NUMBER}" // You can use another unique identifier if needed
     }
     stages {
         stage("Clone Repository") {
@@ -13,10 +15,12 @@ pipeline {
                 checkout scm
             }
         }
-        stage("Build VVTA") {
+        stage("Build VVTA PostgreSQL") {
             agent {
                 docker {
                     image "postgres:14.7"
+                    // Use the unique identifier to create a dynamic container name
+                    args "--name postgres-vvta-${CONTAINER_SUFFIX}"
                 }
             }
             environment {
@@ -27,7 +31,7 @@ pipeline {
             steps {
                 sh 'apt-get update'
                 sh 'apt-get install -y wget'
-                sh ' echo "shared_buffers = 2GB" > /docker-entrypoint-initdb.d/postgresql.conf'
+                sh 'echo "shared_buffers = 2GB" > /docker-entrypoint-initdb.d/postgresql.conf'
                 sh 'wget https://www528.lamp.le.ac.uk/vvdata/vvta/vvta_2023_05_no_seq.sql.gz -O input_file.sql.gz'
                 sh 'gzip -dq input_file.sql.gz'
                 sh 'sed "s/anyarray/anycompatiblearray/g" input_file.sql > modified_file.sql'
@@ -36,16 +40,19 @@ pipeline {
                 sh 'mv modified_file.sql.gz /docker-entrypoint-initdb.d/vvta_2023_05_noseq.sql.gz'
             }
         }
-        stage("Mount VVTA") {
+        stage("Mount VVTA PostgreSQL") {
             steps {
-                sh 'docker run -d --name postgres-vvta -p 5432:5432 postgres:14.7'
-                sh 'docker network connect bridge postgres-vvta'
+                // Use the same dynamic container name
+                sh 'docker run -d --name postgres-vvta-${CONTAINER_SUFFIX} -p 5432:5432 postgres:14.7'
+                sh 'docker network connect bridge postgres-vvta-${CONTAINER_SUFFIX}'
             }
         }
-        stage("Build Validator") {
+        stage("Build Validator MySQL") {
             agent {
                 docker {
                     image "ubuntu/mysql:8.0-22.04_beta"
+                    // Use the unique identifier to create a dynamic container name
+                    args "--name mysql-validator-${CONTAINER_SUFFIX}"
                 }
             }
             environment {
@@ -59,10 +66,11 @@ pipeline {
                 sh 'wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_2023_08.sql.gz -O /docker-entrypoint-initdb.d/validator_2023_08.sql.gz'
             }
         }
-        stage("Mount Validator") {
+        stage("Mount Validator MySQL") {
             steps {
-                sh 'docker run -d --name mysql-validator -p 3306:33306 ubuntu/mysql:8.0-22.04_beta'
-                sh 'docker network connect bridge mysql-validator'
+                // Use the same dynamic container name
+                sh 'docker run -d --name mysql-validator-${CONTAINER_SUFFIX} -p 3306:33306 ubuntu/mysql:8.0-22.04_beta'
+                sh 'docker network connect bridge mysql-validator-${CONTAINER_SUFFIX}'
             }
         }
         stage("Build SeqRepo") {
@@ -97,10 +105,10 @@ pipeline {
         }
         stage("Cleanup Docker") {
             steps {
-                sh 'docker stop postgres-vvta'
-                sh 'docker rm postgres-vvta'
-                sh 'docker stop mysql-validator'
-                sh 'docker rm mysql-validator'
+                sh 'docker stop postgres-vvta-${CONTAINER_SUFFIX}'
+                sh 'docker rm postgres-vvta-${CONTAINER_SUFFIX}'
+                sh 'docker stop mysql-validator-${CONTAINER_SUFFIX}'
+                sh 'docker rm mysql-validator-${CONTAINER_SUFFIX}'
                 sh 'docker rmi postgres:14.7'
                 sh 'docker rmi ubuntu/mysql:8.0-22.04_beta'
             }
