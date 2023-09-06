@@ -7,6 +7,7 @@ pipeline {
     environment {
         CODECOV_TOKEN = "50dd5c2e-4259-4cfa-97a7-b4429e0d179e"
         CONTAINER_SUFFIX = "${BUILD_NUMBER}"
+    }
     stages {
         stage("Clone Repository") {
             steps {
