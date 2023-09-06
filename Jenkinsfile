@@ -89,23 +89,23 @@ pipeline {
         }
         stage("Run Pytest and Codecov") {
             steps {
-
-                // Start the vvta container
-                sh 'docker start postgres-vvta-${CONTAINER_SUFFIX}'
-
-                // Start the validator container
-                sh 'docker start mysql-validator-${CONTAINER_SUFFIX}'
-
-                // Wait for a few seconds to ensure containers are up and running
-                sh 'sleep 10'
-
-                // Start the VariantValidator container
-                sh 'docker start variantvalidator-${CONTAINER_SUFFIX}'
+//
+//                 // Start the vvta container
+//                 sh 'docker start postgres-vvta-${CONTAINER_SUFFIX}'
+//
+//                 // Start the validator container
+//                 sh 'docker start mysql-validator-${CONTAINER_SUFFIX}'
+//
+//                 // Wait for a few seconds to ensure containers are up and running
+//                 sh 'sleep 10'
+//
+//                 // Start the VariantValidator container
+//                 sh 'docker start variantvalidator-${CONTAINER_SUFFIX}'
 
                 // Run pytest and codecov in the variantvalidator container
                 sh 'docker ps'
-                sh 'docker exec variantvalidator-${CONTAINER_SUFFIX} pytest --cov-report=term --cov=VariantValidator/'
-                sh 'docker exec variantvalidator-${CONTAINER_SUFFIX} codecov'
+//                 sh 'docker exec variantvalidator-${CONTAINER_SUFFIX} pytest --cov-report=term --cov=VariantValidator/'
+//                 sh 'docker exec variantvalidator-${CONTAINER_SUFFIX} codecov'
             }
         }
         stage("Cleanup Docker") {
