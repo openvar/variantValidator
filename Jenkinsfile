@@ -78,7 +78,7 @@ pipeline {
             agent {
                 docker {
                     image "python:3.10"
-                    args "-p 3306:3306 -p 5432:5432"
+                    args "--name variantvalidator-${CONTAINER_SUFFIX} -p 3306:3306 -p 5432:5432"
                 }
             }
             steps {
@@ -87,11 +87,15 @@ pipeline {
                 sh 'cp configuration/continuous_integration.ini "$HOME"/.variantvalidator'
             }
         }
+        stage("Check running containers") {
+            steps {
+                sh 'docker ps'
+            }
+        }
         stage("Run Pytest and Codecov") {
             agent {
                 docker {
-                    image "python:3.10"
-                    args "-p 3306:3306 -p 5432:5432"
+                    label "variantvalidator-${CONTAINER_SUFFIX}"
                 }
             }
             steps {
@@ -107,6 +111,8 @@ pipeline {
                 sh 'docker rm mysql-validator-${CONTAINER_SUFFIX}'
                 sh 'docker rmi postgres:14.7'
                 sh 'docker rmi ubuntu/mysql:8.0-22.04_beta'
+                sh 'docker stop variantvalidator-${CONTAINER_SUFFIX}'
+                sh 'docker rm variantvalidator-${CONTAINER_SUFFIX}'
             }
         }
     }
