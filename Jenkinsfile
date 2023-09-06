@@ -68,7 +68,8 @@ pipeline {
             }
             steps {
                 sh 'echo Building VariantValidator'
-        }
+            }
+        } // This is where the missing brace should be
         stage("Run Pytest and Codecov") {
             steps {
                 // Run pytest and codecov in the variantvalidator container
