@@ -27,7 +27,8 @@ pipeline {
                 dockerfile {
                     filename 'Dockerfile'
                     dir './db_dockerfiles/vvta'
-                    additionalBuildArgs '--build-arg CONTAINER_NAME=postgres-vvta-${CONTAINER_SUFFIX}', '-p', '5432:5432'
+                    additionalBuildArgs '--build-arg CONTAINER_NAME=postgres-vvta-${CONTAINER_SUFFIX}'
+                    args '-p 5432:5432'
                 }
             }
             steps {
@@ -39,7 +40,8 @@ pipeline {
                 dockerfile {
                     filename 'Dockerfile'
                     dir './db_dockerfiles/vdb'
-                    additionalBuildArgs '--build-arg CONTAINER_NAME=mysql-validator-${CONTAINER_SUFFIX}', '-p', '3306:3306'
+                    additionalBuildArgs '--build-arg CONTAINER_NAME=mysql-validator-${CONTAINER_SUFFIX}'
+                    args '-p 3306:3306'
                 }
             }
             steps {
@@ -51,7 +53,8 @@ pipeline {
                 dockerfile {
                     filename 'Dockerfile'
                     dir './db_dockerfiles/vvsr'
-                    additionalBuildArgs '--build-arg CONTAINER_NAME=sqlite-seqrepo-${CONTAINER_SUFFIX}' , '-p', '3306:3306', '-p', '5432:5432'
+                    additionalBuildArgs '--build-arg CONTAINER_NAME=sqlite-seqrepo-${CONTAINER_SUFFIX}'
+                    args '-p 3306:3306', '-p 5432:5432'
                 }
             }
             steps {
@@ -69,7 +72,7 @@ pipeline {
             steps {
                 sh 'echo Building VariantValidator'
             }
-        } // This is where the missing brace should be
+        }
         stage("Run Pytest and Codecov") {
             steps {
                 // Run pytest and codecov in the variantvalidator container
