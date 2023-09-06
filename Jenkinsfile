@@ -27,7 +27,7 @@ pipeline {
                 dockerfile {
                     filename 'Dockerfile'
                     dir './db_dockerfiles/vvta'
-                    additionalRunArgs "-p 5432:5432 --name postgres-vvta-${CONTAINER_SUFFIX}"
+                    additionalBuildArgs '--build-arg CONTAINER_NAME=postgres-vvta-${CONTAINER_SUFFIX}', '-p', '5432:5432'
                 }
             }
         }
@@ -36,7 +36,7 @@ pipeline {
                 dockerfile {
                     filename 'Dockerfile'
                     dir './db_dockerfiles/vdb'
-                    additionalRunArgs "-p 3306:3306 --name mysql-validator-${CONTAINER_SUFFIX}"
+                    additionalBuildArgs '--build-arg CONTAINER_NAME=mysql-validator-${CONTAINER_SUFFIX}', '-p', '3306:3306'
                 }
             }
         }
@@ -45,13 +45,17 @@ pipeline {
                 dockerfile {
                     filename 'Dockerfile'
                     dir './db_dockerfiles/vvsr'
-                    additionalRunArgs "--name sqlite-seqrepo-${CONTAINER_SUFFIX}"
+                    additionalBuildArgs '--build-arg CONTAINER_NAME=sqlite-seqrepo-${CONTAINER_SUFFIX}' , '-p', '3306:3306', '-p', '5432:5432'
                 }
             }
         }
         stage("Build VariantValidator") {
             agent {
-                dockerfile true
+                dockerfile {
+                    filename 'Dockerfile'
+                    dir './'
+                    additionalBuildArgs '--build-arg CONTAINER_NAME=variantvalidator-${CONTAINER_SUFFIX}'
+                }
             }
         }
         stage("Run Pytest and Codecov") {
