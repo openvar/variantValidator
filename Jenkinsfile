@@ -15,30 +15,34 @@ pipeline {
             }
         }
         stage("Build VVTA PostgreSQL") {
-            node {
-                checkout scm
-                def postgresImage = docker.build("postgres-vvta-${CONTAINER_SUFFIX}", "./vvta_docker.df")
-                sh "docker run --name postgres-vvta-${CONTAINER_SUFFIX} -p 5432:5432 -d postgres-vvta-${CONTAINER_SUFFIX}"
+            steps {
+                script {
+                    def postgresImage = docker.build("postgres-vvta-${CONTAINER_SUFFIX}", "./vvta_docker.df")
+                    sh "docker run --name postgres-vvta-${CONTAINER_SUFFIX} -p 5432:5432 -d postgres-vvta-${CONTAINER_SUFFIX}"
+                }
             }
         }
         stage("Build Validator MySQL") {
-            node {
-                checkout scm
-                def mysqlImage = docker.build("mysql-validator-${CONTAINER_SUFFIX}", "./vdb_docker.df")
-                sh "docker run --name mysql-validator-${CONTAINER_SUFFIX} -p 3306:3306 -d mysql-validator-${CONTAINER_SUFFIX}"
+            steps {
+                script {
+                    def mysqlImage = docker.build("mysql-validator-${CONTAINER_SUFFIX}", "./vdb_docker.df")
+                    sh "docker run --name mysql-validator-${CONTAINER_SUFFIX} -p 3306:3306 -d mysql-validator-${CONTAINER_SUFFIX}"
+                }
             }
         }
         stage("Build SeqRepo") {
-            node {
-                checkout scm
-                def seqrepoImage = docker.build("sqlite-seqrepo-${CONTAINER_SUFFIX}", "./vvsr_docker.df")
+            steps {
+                script {
+                    def seqrepoImage = docker.build("sqlite-seqrepo-${CONTAINER_SUFFIX}", "./vvsr_docker.df")
+                }
             }
         }
         stage("Build VariantValidator") {
-            node {
-                checkout scm
-                def variantvalidatorImage = docker.build("variantvalidator-${CONTAINER_SUFFIX}", "./Dockerfile")
-                sh "docker run --name variantvalidator-${CONTAINER_SUFFIX} -p 5432:5432 -p 3306:3306 -d variantvalidator-${CONTAINER_SUFFIX}"
+            steps {
+                script {
+                    def variantvalidatorImage = docker.build("variantvalidator-${CONTAINER_SUFFIX}", "./Dockerfile")
+                    sh "docker run --name variantvalidator-${CONTAINER_SUFFIX} -p 5432:5432 -p 3306:3306 -d variantvalidator-${CONTAINER_SUFFIX}"
+                }
             }
         }
         stage("Run Pytest and Codecov") {
