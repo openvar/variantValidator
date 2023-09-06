@@ -91,16 +91,16 @@ pipeline {
             steps {
 
                 // Start the vvta container
-                sh 'docker start postgres-vvta-${CONTAINER_SUFFIX} -p 3306:3306 -d'
+                sh 'docker run postgres-vvta-${CONTAINER_SUFFIX} -p 3306:3306 -d'
 
                 // Start the validator container
-                sh 'docker start mysql-validator-${CONTAINER_SUFFIX} -p 5432:5432 -d'
+                sh 'docker run mysql-validator-${CONTAINER_SUFFIX} -p 5432:5432 -d'
 
                 // Wait for a few seconds to ensure containers are up and running
                 sh 'sleep 10'
 
                 // Start the VariantValidator container
-                sh 'docker start variantvalidator-${CONTAINER_SUFFIX} -p 3306:3306 -p 5432:5432 -d'
+                sh 'docker run variantvalidator-${CONTAINER_SUFFIX} -p 3306:3306 -p 5432:5432 -d'
 
                 // Run pytest and codecov in the variantvalidator container
                 sh 'docker ps'
