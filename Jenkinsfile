@@ -1,6 +1,5 @@
 pipeline {
-    agent any
-
+    agent node
     stages {
         stage("Clean Up Docker Containers") {
             steps {
@@ -10,7 +9,7 @@ pipeline {
             }
         }
 
-        stage("Docker Container") {
+        stage("Build base Docker Container") {
             agent {
                 docker {
                     image "docker"
@@ -103,17 +102,16 @@ pipeline {
                         sh 'codecov'
                     }
                 }
-
-                stage("Cleanup Docker") {
-                    steps {
-                        sh 'docker stop postgres-vvta-${CONTAINER_SUFFIX}'
-                        sh 'docker rm postgres-vvta-${CONTAINER_SUFFIX}'
-                        sh 'docker stop mysql-validator-${CONTAINER_SUFFIX}'
-                        sh 'docker rm mysql-validator-${CONTAINER_SUFFIX}'
-                        sh 'docker rmi postgres:14.7'
-                        sh 'docker rmi ubuntu/mysql:8.0-22.04_beta'
-                    }
-                }
+            }
+        }
+        stage("Final Docker Clean Up") {
+            steps {
+                sh 'docker stop postgres-vvta-${CONTAINER_SUFFIX}'
+                sh 'docker rm postgres-vvta-${CONTAINER_SUFFIX}'
+                sh 'docker stop mysql-validator-${CONTAINER_SUFFIX}'
+                sh 'docker rm mysql-validator-${CONTAINER_SUFFIX}'
+                sh 'docker rmi postgres:14.7'
+                sh 'docker rmi ubuntu/mysql:8.0-22.04_beta'
             }
         }
     }
