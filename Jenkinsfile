@@ -14,6 +14,12 @@ pipeline {
                 checkout scm
             }
         }
+        stage("Where am I") {
+            steps {
+                sh 'pwd'
+                sh 'ls -l'
+            }
+        }
         stage("Build VVTA PostgreSQL") {
             steps {
                 script {
