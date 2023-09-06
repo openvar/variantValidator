@@ -76,6 +76,7 @@ pipeline {
             agent {
                 docker {
                     image "python:3.10"
+                    args "-p 3306:3306 -p 5432:5432"
                 }
             }
             steps {
