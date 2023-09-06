@@ -54,7 +54,7 @@ pipeline {
                     filename 'Dockerfile'
                     dir './db_dockerfiles/vvsr'
                     additionalBuildArgs '--build-arg CONTAINER_NAME=sqlite-seqrepo-${CONTAINER_SUFFIX}'
-                    args '-p 3306:3306', '-p 5432:5432'
+                    args '-p 3306:3306 -p 5432:5432'
                 }
             }
             steps {
