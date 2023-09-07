@@ -59,7 +59,7 @@ pipeline {
                 script {
                     def dockerfile = './Dockerfile'
                     def variantValidatorContainer = docker.build("variantvalidator-${CONTAINER_SUFFIX}", "-f ${dockerfile} .")
-                    variantValidatorContainer.run("-v ~/variantvalidator_data/share/logs:/usr/local/share/logs -v ~/variantvalidator_data/share/seqrepo:/usr/local/share/seqrepo -d --name variantvalidator-${CONTAINER_SUFFIX} --network $DOCKER_NETWORK")
+                    variantValidatorContainer.run("-v ~/variantvalidator_data/share:/usr/local/share -v ~/variantvalidator_data/share/logs:/usr/local/share/logs -v ~/variantvalidator_data/share/seqrepo:/usr/local/share/seqrepo -d --name variantvalidator-${CONTAINER_SUFFIX} --network $DOCKER_NETWORK")
                     sh 'echo Building and running VariantValidator'
                 }
             }
