@@ -27,5 +27,3 @@ COPY configuration/docker.ini /root/.variantvalidator
 # Define the entrypoint as an empty command
 ENTRYPOINT []
 
-# Start the container with CMD and set Gunicorn timeout to 600 seconds
-CMD ["gunicorn", "-b", "0.0.0.0:8000", "--timeout", "600", "app", "--threads=5", "--chdir", "./rest_VariantValidator/"]
