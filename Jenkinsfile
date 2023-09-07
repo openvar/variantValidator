@@ -10,6 +10,14 @@ pipeline {
         DOCKER_NETWORK = "variantvalidator_docker_network-$CONTAINER_SUFFIX"
     }
     stages {
+        stage("Create Directories on Host") {
+            steps {
+                sh 'mkdir ~/variantvalidator_data'
+                sh 'mkdir ~/variantvalidator_data/share'
+                sh 'mkdir ~/variantvalidator_data/share/seqrepo/'
+                sh 'mkdir ~/variantvalidator_data/share/logs'
+            }
+        }
         stage("Clone Repository and Create Docker Network") {
             steps {
                 checkout scm
@@ -41,7 +49,7 @@ pipeline {
                 script {
                     def dockerfile = './db_dockerfiles/vvsr/Dockerfile'
                     def seqRepoContainer = docker.build("sqlite-seqrepo-${CONTAINER_SUFFIX}", "-f ${dockerfile} ./db_dockerfiles/vvsr")
-                    seqRepoContainer.run("--network $DOCKER_NETWORK")
+                    seqRepoContainer.run("--network $DOCKER_NETWORK -v ~/variantvalidator_data/share/seqrepo:/usr/local/share/seqrepo")
                     sh 'echo Building and running SeqRepo'
                 }
             }
@@ -51,7 +59,7 @@ pipeline {
                 script {
                     def dockerfile = './Dockerfile'
                     def variantValidatorContainer = docker.build("variantvalidator-${CONTAINER_SUFFIX}", "-f ${dockerfile} .")
-                    variantValidatorContainer.run("-v logs:/usr/local/share/logs -v seqdata:/usr/local/share/seqrepo -v share:/usr/local/share -d --name variantvalidator-${CONTAINER_SUFFIX} --network $DOCKER_NETWORK")
+                    variantValidatorContainer.run("-v ~/variantvalidator_data/share/logs:/usr/local/share/logs -v ~/variantvalidator_data/share/seqrepo:/usr/local/share/seqrepo -d --name variantvalidator-${CONTAINER_SUFFIX} --network $DOCKER_NETWORK")
                     sh 'echo Building and running VariantValidator'
                 }
             }
