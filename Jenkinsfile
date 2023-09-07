@@ -57,7 +57,7 @@ pipeline {
                 script {
                     def dockerfile = './Dockerfile'
                     def variantValidatorContainer = docker.build("variantvalidator-${CONTAINER_SUFFIX}", "-f ${dockerfile} .")
-                    variantValidatorContainer.run("-p 3306:3306 -p 5432:5432 -d")
+                    variantValidatorContainer.run()
                     sh 'echo Building and running VariantValidator'
                 }
             }
