@@ -13,9 +13,7 @@ RUN apt-get -y install git
 # Updrade pip
 RUN pip install --upgrade pip
 
-RUN pip install -r requirements_dev.txt
-
-RUN pip install -e .
+RUN pip install .
 
 COPY configuration/docker.ini /root/.variantvalidator
 
