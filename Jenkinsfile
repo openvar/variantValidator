@@ -49,14 +49,13 @@ pipeline {
                 script {
                     def dockerfile = './Dockerfile'
                     def variantValidatorContainer = docker.build("variantvalidator-${CONTAINER_SUFFIX}", "-f ${dockerfile} .")
-                    variantValidatorContainer.run("-d")
+                    variantValidatorContainer.run("-v logs:/usr/local/share/logs -v seqdata:/usr/local/share/seqrepo -v share:/usr/local/share")
                     sh 'echo Building and running VariantValidator'
                 }
             }
         }
         stage("Run Pytest and Codecov") {
             steps {
-                // Run pytest and codecov in the variantvalidator container
                 sh 'docker ps'
                 sh 'docker exec variantvalidator-${CONTAINER_SUFFIX} pytest --cov-report=term --cov=VariantValidator/'
                 sh 'docker exec variantvalidator-${CONTAINER_SUFFIX} codecov'
