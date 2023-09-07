@@ -12,14 +12,6 @@ pipeline {
         stage("Clone Repository") {
             steps {
                 checkout scm
-                sh 'chmod a+r ./*'
-            }
-        }
-        stage("Where am I") {
-            steps {
-                sh 'echo $HOME'
-                sh 'pwd'
-                sh 'ls -l'
             }
         }
         stage("Build and Run VVTA PostgreSQL") {
@@ -57,7 +49,7 @@ pipeline {
                 script {
                     def dockerfile = './Dockerfile'
                     def variantValidatorContainer = docker.build("variantvalidator-${CONTAINER_SUFFIX}", "-f ${dockerfile} .")
-                    variantValidatorContainer.run()
+                    variantValidatorContainer.run("-d")
                     sh 'echo Building and running VariantValidator'
                 }
             }
@@ -66,8 +58,8 @@ pipeline {
             steps {
                 // Run pytest and codecov in the variantvalidator container
                 sh 'docker ps'
-                // sh 'docker exec variantvalidator-${CONTAINER_SUFFIX} pytest --cov-report=term --cov=VariantValidator/'
-                // sh 'docker exec variantvalidator-${CONTAINER_SUFFIX} codecov'
+                sh 'docker exec variantvalidator-${CONTAINER_SUFFIX} pytest --cov-report=term --cov=VariantValidator/'
+                sh 'docker exec variantvalidator-${CONTAINER_SUFFIX} codecov'
             }
         }
         stage("Cleanup Docker") {
