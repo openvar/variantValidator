@@ -19,4 +19,4 @@ COPY configuration/docker.ini /root/.variantvalidator
 
 ENTRYPOINT []
 
-CMD ["/bin/bash"]
+CMD ["tail", "-f", "/dev/null"]
