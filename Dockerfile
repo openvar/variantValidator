@@ -17,4 +17,6 @@ RUN pip install .
 
 COPY configuration/docker.ini /root/.variantvalidator
 
-CMD ["bash"]
+ENTRYPOINT []
+
+CMD ["/bin/bash"]
