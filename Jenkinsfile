@@ -19,7 +19,7 @@ pipeline {
                 script {
                     def dockerfile = './db_dockerfiles/vvta/Dockerfile'
                     def vvtaContainer = docker.build("postgres-vvta-${CONTAINER_SUFFIX}", "-f ${dockerfile} ./db_dockerfiles/vvta")
-                    vvtaContainer.run("-p 5432:5432 -d --name postgres-vvta-${CONTAINER_SUFFIX}")
+                    vvtaContainer.run("-p 5432:5432 -d --name vvta")
                     sh 'echo Building and running VVTA PostgreSQL'
                 }
             }
@@ -29,7 +29,7 @@ pipeline {
                 script {
                     def dockerfile = './db_dockerfiles/vdb/Dockerfile'
                     def validatorContainer = docker.build("mysql-validator-${CONTAINER_SUFFIX}", "-f ${dockerfile} ./db_dockerfiles/vdb")
-                    validatorContainer.run("-p 3306:3306 -d --name mysql-validator-${CONTAINER_SUFFIX}")
+                    validatorContainer.run("-p 3306:3306 -d --name vdb")
                     sh 'echo Building and running Validator MySQL'
                 }
             }
