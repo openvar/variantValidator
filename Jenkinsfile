@@ -10,6 +10,12 @@ pipeline {
         DOCKER_NETWORK = "variantvalidator_docker_network-$CONTAINER_SUFFIX"
     }
     stages {
+        stage("Clone Repository and Create Docker Network") {
+            steps {
+                checkout scm
+                sh 'docker network create $DOCKER_NETWORK'
+            }
+        }
         stage("Create Directories on Host") {
             steps {
                 sh 'mkdir /var/jenkins_home/workspace/VariantValidator_ci/variantvalidator_data'
@@ -22,12 +28,6 @@ pipeline {
             steps {
                 sh 'pwd'
                 sh 'ls -l'
-            }
-        }
-        stage("Clone Repository and Create Docker Network") {
-            steps {
-                checkout scm
-                sh 'docker network create $DOCKER_NETWORK'
             }
         }
         stage("Build and Run VVTA PostgreSQL") {
