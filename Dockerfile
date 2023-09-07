@@ -17,5 +17,4 @@ RUN pip install .
 
 COPY configuration/docker.ini /root/.variantvalidator
 
-# Change the CMD to wait for input from stdin
-CMD ["sh", "-c", "while true; do read -p 'Enter a command: ' command; echo 'Received command: $command'; done"]
+CMD ["tail", "-f", "/dev/null"]
