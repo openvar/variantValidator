@@ -28,7 +28,7 @@ pipeline {
                     filename 'Dockerfile'
                     dir './db_dockerfiles/vvta'
                     additionalBuildArgs '--build-arg CONTAINER_NAME=postgres-vvta-${CONTAINER_SUFFIX}'
-                    args '-p 5432:5432'
+                    args '-p 5432:5432 -d'
                 }
             }
             steps {
@@ -41,7 +41,7 @@ pipeline {
                     filename 'Dockerfile'
                     dir './db_dockerfiles/vdb'
                     additionalBuildArgs '--build-arg CONTAINER_NAME=mysql-validator-${CONTAINER_SUFFIX}'
-                    args '-p 3306:3306'
+                    args '-p 3306:3306 -d'
                 }
             }
             steps {
@@ -53,9 +53,7 @@ pipeline {
                 dockerfile {
                     filename 'Dockerfile'
                     dir './db_dockerfiles/vvsr'
-                    additionalBuildArgs '--build-arg CONTAINER_NAME=sqlite-seqrepo-${CONTAINER_SUFFIX}'
-                    args '-p 3306:3306 -p 5432:5432'
-                }
+                    additionalBuildArgs '--build-arg CONTAINER_NAME=sqlite-seqrepo-${CONTAINER_SUFFIX}'                }
             }
             steps {
                 sh 'echo Building SeqRepo'
@@ -67,6 +65,7 @@ pipeline {
                     filename 'Dockerfile'
                     dir './'
                     additionalBuildArgs '--build-arg CONTAINER_NAME=variantvalidator-${CONTAINER_SUFFIX}'
+                    args '-p 3306:3306 -p 5432:5432 -d'
                 }
             }
             steps {
