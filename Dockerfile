@@ -10,11 +10,12 @@ RUN apt-get update
 # Install git
 RUN apt-get -y install git
 
-# Updrade pip
+# Upgrade pip
 RUN pip install --upgrade pip
 
 RUN pip install .
 
 COPY configuration/docker.ini /root/.variantvalidator
 
-CMD python3 bin/variant_validator.py
+# Change the CMD to wait for input from stdin
+CMD ["sh", "-c", "while true; do read -p 'Enter a command: ' command; echo 'Received command: $command'; done"]
