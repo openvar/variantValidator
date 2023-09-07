@@ -47,7 +47,7 @@ pipeline {
                 script {
                     def dockerfile = './db_dockerfiles/vvsr/Dockerfile'
                     def seqRepoContainer = docker.build("sqlite-seqrepo-${CONTAINER_SUFFIX}", "-f ${dockerfile} ./db_dockerfiles/vvsr")
-                    seqRepoContainer.run("-p 3306:3306 -p 5432:5432 -d")
+                    seqRepoContainer.run()
                     sh 'echo Building and running SeqRepo'
                 }
             }
