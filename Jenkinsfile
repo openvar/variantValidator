@@ -22,54 +22,40 @@ pipeline {
                 sh 'ls -l'
             }
         }
-        stage("Build VVTA PostgreSQL") {
-            agent {
-                dockerfile {
-                    filename 'Dockerfile'
-                    dir './db_dockerfiles/vvta'
-                    additionalBuildArgs '--build-arg CONTAINER_NAME=postgres-vvta-${CONTAINER_SUFFIX}'
-                    args '-p 5432:5432 -d'
+        stage("Build and Run VVTA PostgreSQL") {
+            steps {
+                script {
+                    def vvtaContainer = docker.build("postgres-vvta-${CONTAINER_SUFFIX}", "./db_dockerfiles/vvta/Dockerfile")
+                    vvtaContainer.run("-p 5432:5432 -d")
+                    sh 'echo Building and running VVTA PostgreSQL'
                 }
             }
-            steps {
-                sh 'echo Building VVTA PostgreSQL'
-            }
         }
-        stage("Build Validator MySQL") {
-            agent {
-                dockerfile {
-                    filename 'Dockerfile'
-                    dir './db_dockerfiles/vdb'
-                    additionalBuildArgs '--build-arg CONTAINER_NAME=mysql-validator-${CONTAINER_SUFFIX}'
-                    args '-p 3306:3306 -d'
+        stage("Build and Run Validator MySQL") {
+            steps {
+                script {
+                    def validatorContainer = docker.build("mysql-validator-${CONTAINER_SUFFIX}", "./db_dockerfiles/vdb/Dockerfile")
+                    validatorContainer.run("-p 3306:3306 -d")
+                    sh 'echo Building and running Validator MySQL'
                 }
             }
-            steps {
-                sh 'echo Building Validator MySQL'
-            }
         }
-        stage("Build SeqRepo") {
-            agent {
-                dockerfile {
-                    filename 'Dockerfile'
-                    dir './db_dockerfiles/vvsr'
-                    additionalBuildArgs '--build-arg CONTAINER_NAME=sqlite-seqrepo-${CONTAINER_SUFFIX}'                }
-            }
+        stage("Build and Run SeqRepo") {
             steps {
-                sh 'echo Building SeqRepo'
-            }
-        }
-        stage("Build VariantValidator") {
-            agent {
-                dockerfile {
-                    filename 'Dockerfile'
-                    dir './'
-                    additionalBuildArgs '--build-arg CONTAINER_NAME=variantvalidator-${CONTAINER_SUFFIX}'
-                    args '-p 3306:3306 -p 5432:5432 -d'
+                script {
+                    def seqRepoContainer = docker.build("sqlite-seqrepo-${CONTAINER_SUFFIX}", "./db_dockerfiles/vvsr/Dockerfile")
+                    seqRepoContainer.run("-p 3306:3306 -p 5432:5432 -d")
+                    sh 'echo Building and running SeqRepo'
                 }
             }
+        }
+        stage("Build and Run VariantValidator") {
             steps {
-                sh 'echo Building VariantValidator'
+                script {
+                    def variantValidatorContainer = docker.build("variantvalidator-${CONTAINER_SUFFIX}", "./Dockerfile")
+                    variantValidatorContainer.run("-p 3306:3306 -p 5432:5432 -d")
+                    sh 'echo Building and running VariantValidator'
+                }
             }
         }
         stage("Run Pytest and Codecov") {
