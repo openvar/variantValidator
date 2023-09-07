@@ -63,6 +63,7 @@ pipeline {
         stage("Find Seqrepo Mount") {
             steps {
                 sh 'pwd'
+                sh 'ls -l'
                 sh 'ls -l /var/jenkins_home/workspace/VariantValidator_ci/variantvalidator_data/share/seqrepo/'
             }
         }
