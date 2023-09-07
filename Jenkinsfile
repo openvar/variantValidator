@@ -2,7 +2,7 @@ pipeline {
     agent {
         docker {
             image "docker"
-            user "root"
+            args "-u root"
         }
     }
     environment {
