@@ -10,18 +10,18 @@ pipeline {
         DOCKER_NETWORK = "variantvalidator_docker_network-$CONTAINER_SUFFIX"
     }
     stages {
-        stage("Where am I") {
-            steps {
-                sh 'pwd'
-                sh 'ls -l'
-            }
-        }
         stage("Create Directories on Host") {
             steps {
                 sh 'mkdir /var/jenkins_home/workspace/VariantValidator_ci/variantvalidator_data'
                 sh 'mkdir /var/jenkins_home/workspace/VariantValidator_ci/variantvalidator_data/share'
                 sh 'mkdir /var/jenkins_home/workspace/VariantValidator_ci/variantvalidator_data/share/seqrepo/'
                 sh 'mkdir /var/jenkins_home/workspace/VariantValidator_ci/variantvalidator_data/share/logs'
+            }
+        }
+        stage("Where am I") {
+            steps {
+                sh 'pwd'
+                sh 'ls -l'
             }
         }
         stage("Clone Repository and Create Docker Network") {
@@ -60,6 +60,13 @@ pipeline {
                 }
             }
         }
+//         stages {
+//             stage("Find Seqrepo Mount") {
+//                 steps {
+//                     sh 'pwd'
+//                     sh 'ls -l'
+//                 }
+//             }
         stage("Build and Run VariantValidator") {
             steps {
                 script {
