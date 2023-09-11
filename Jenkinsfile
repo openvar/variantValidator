@@ -22,7 +22,7 @@ pipeline {
                 script {
                     def dockerfile = './db_dockerfiles/vvta/Dockerfile'
                     def vvtaContainer = docker.build("postgres-vvta-${CONTAINER_SUFFIX}", "-f ${dockerfile} ./db_dockerfiles/vvta")
-                    vvtaContainer.run("-p 5432:5432 -d --name vvta --network $DOCKER_NETWORK")
+                    vvtaContainer.run("-p 5432:5432 -d --name vvta --network $DOCKER_NETWORK --shm-size=2g")
                     sh 'echo Building and running VVTA PostgreSQL'
                 }
             }
