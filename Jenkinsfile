@@ -56,12 +56,6 @@ pipeline {
                     sh 'echo Building and running VariantValidator'
                 }
             }
-        }
-        stage("List Contents of DATA_VOLUME") {
-            steps {
-                sh "ls -l $DATA_VOLUME"
-            }
-        }
         stage("Run Pytest and Codecov") {
             steps {
                 sh 'docker ps'
