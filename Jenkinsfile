@@ -55,7 +55,7 @@ pipeline {
                 script {
                     def dockerfile = './db_dockerfiles/vvsr/Dockerfile'
                     def seqRepoContainer = docker.build("sqlite-seqrepo-${CONTAINER_SUFFIX}", "-f ${dockerfile} ./db_dockerfiles/vvsr")
-                    seqRepoContainer.run("--network $DOCKER_NETWORK --privileged -v /var/jenkins_home/workspace/VariantValidator_ci/variantvalidator_data/share:/usr/local/share:rw -v /var/jenkins_home/workspace/VariantValidator_ci/variantvalidator_data/share/seqrepo:/usr/local/share/seqrepo:rw -v /var/jenkins_home/workspace/VariantValidator_ci/variantvalidator_data/share/logs:/usr/local/share/logs:rw")
+                    seqRepoContainer.run("--network $DOCKER_NETWORK --privileged -v /var/jenkins_home/workspace/VariantValidator_ci/variantvalidator_data/share:/usr/local/share:rw -v /var/jenkins_home/workspace/VariantValidator_ci/variantvalidator_data/share/seqrepo:/usr/local/share/seqrepo:rw -v /var/jenkins_home/workspace/VariantValidator_ci/variantvalidator_data/share/logs:/usr/local/share/logs:rw -d")
                     sh 'echo Building and running SeqRepo'
                 }
             }
