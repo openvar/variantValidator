@@ -64,7 +64,6 @@ pipeline {
         }
         stage("Run Pytest and Codecov") {
             steps {
-                sh "ls -l ${env.DATA_VOLUME}"
                 sh 'docker ps'
                 sh 'docker exec variantvalidator-${CONTAINER_SUFFIX} pytest --cov-report=term --cov=VariantValidator/'
                 sh 'docker exec variantvalidator-${CONTAINER_SUFFIX} codecov'
