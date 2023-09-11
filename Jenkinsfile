@@ -8,6 +8,7 @@ pipeline {
         CODECOV_TOKEN = "50dd5c2e-4259-4cfa-97a7-b4429e0d179e"
         CONTAINER_SUFFIX = "${BUILD_NUMBER}"
         DOCKER_NETWORK = "variantvalidator_docker_network-$CONTAINER_SUFFIX"
+        DATA_VOLUME = "jenkins-shared-space"
     }
     stages {
         stage("Clone Repository and Create Docker Network") {
@@ -19,8 +20,8 @@ pipeline {
         stage("Create Directories on Host") {
             steps {
                 sh 'echo $WORKSPACE'
-                sh 'mkdir -p $WORKSPACE/seqrepo'
-                sh 'mkdir -p $WORKSPACE/logs'
+                sh 'mkdir -p /var/shared-data/seqrepo' // Update path
+                sh 'mkdir -p /var/shared-data/logs'     // Update path
             }
         }
         stage("Where am I") {
@@ -54,7 +55,7 @@ pipeline {
                 script {
                     def dockerfile = './db_dockerfiles/vvsr/Dockerfile'
                     def seqRepoContainer = docker.build("sqlite-seqrepo-${CONTAINER_SUFFIX}", "-f ${dockerfile} ./db_dockerfiles/vvsr")
-                    seqRepoContainer.run("--network $DOCKER_NETWORK --privileged -v $WORKSPACE/seqrepo:/usr/local/share/seqrepo:rw -v $WORKSPACE/logs:/usr/local/share/logs:rw -d")
+                    seqRepoContainer.run("--network $DOCKER_NETWORK --privileged -v $DATA_VOLUME:/usr/local/share/seqrepo:rw -v $DATA_VOLUME:/usr/local/share/logs:rw -d") // Update mounts
                     sh 'echo Building and running SeqRepo'
                 }
             }
@@ -63,7 +64,7 @@ pipeline {
             steps {
                 sh 'pwd'
                 sh 'ls -l'
-                sh 'ls -l $WORKSPACE/seqrepo'
+                sh 'ls -l /var/shared-data/seqrepo' // Update path
             }
         }
         stage("Build and Run VariantValidator") {
@@ -71,7 +72,7 @@ pipeline {
                 script {
                     def dockerfile = './Dockerfile'
                     def variantValidatorContainer = docker.build("variantvalidator-${CONTAINER_SUFFIX}", "-f ${dockerfile} .")
-                    variantValidatorContainer.run("--privileged -v $WORKSPACE/seqrepo:/usr/local/share/seqrepo:rw -v $WORKSPACE/logs:/usr/local/share/logs:rw -d --name variantvalidator-${CONTAINER_SUFFIX} --network $DOCKER_NETWORK")
+                    variantValidatorContainer.run("--privileged -v $DATA_VOLUME:/usr/local/share/seqrepo:rw -v $DATA_VOLUME:/usr/local/share/logs:rw -d --name variantvalidator-${CONTAINER_SUFFIX} --network $DOCKER_NETWORK") // Update mounts
                     sh 'echo Building and running VariantValidator'
                 }
             }
