@@ -17,19 +17,6 @@ pipeline {
                 sh 'docker network create $DOCKER_NETWORK'
             }
         }
-        stage("Create Directories on Host") {
-            steps {
-                sh 'echo $WORKSPACE'
-                sh 'mkdir -p /var/shared-data/seqrepo' // Update path
-                sh 'mkdir -p /var/shared-data/logs'     // Update path
-            }
-        }
-        stage("Where am I") {
-            steps {
-                sh 'pwd'
-                sh 'ls -l'
-            }
-        }
         stage("Build and Run VVTA PostgreSQL") {
             steps {
                 script {
@@ -55,16 +42,9 @@ pipeline {
                 script {
                     def dockerfile = './db_dockerfiles/vvsr/Dockerfile'
                     def seqRepoContainer = docker.build("sqlite-seqrepo-${CONTAINER_SUFFIX}", "-f ${dockerfile} ./db_dockerfiles/vvsr")
-                    seqRepoContainer.run("--network $DOCKER_NETWORK --privileged -v $DATA_VOLUME:/usr/local/share/seqrepo:rw -v $DATA_VOLUME:/usr/local/share/logs:rw -d") // Update mounts
+                    seqRepoContainer.run("--network $DOCKER_NETWORK --privileged -v $DATA_VOLUME:$DATA_VOLUME") // Use DATA_VOLUME as shared directory
                     sh 'echo Building and running SeqRepo'
                 }
-            }
-        }
-        stage("Find Seqrepo Mount") {
-            steps {
-                sh 'pwd'
-                sh 'ls -l'
-                sh 'ls -l /var/shared-data/seqrepo' // Update path
             }
         }
         stage("Build and Run VariantValidator") {
@@ -72,13 +52,14 @@ pipeline {
                 script {
                     def dockerfile = './Dockerfile'
                     def variantValidatorContainer = docker.build("variantvalidator-${CONTAINER_SUFFIX}", "-f ${dockerfile} .")
-                    variantValidatorContainer.run("--privileged -v $DATA_VOLUME:/usr/local/share/seqrepo:rw -v $DATA_VOLUME:/usr/local/share/logs:rw -d --name variantvalidator-${CONTAINER_SUFFIX} --network $DOCKER_NETWORK") // Update mounts
+                    variantValidatorContainer.run("--privileged -v $DATA_VOLUME:$DATA_VOLUME -d --name variantvalidator-${CONTAINER_SUFFIX} --network $DOCKER_NETWORK") // Use DATA_VOLUME as shared directory
                     sh 'echo Building and running VariantValidator'
                 }
             }
         }
         stage("Run Pytest and Codecov") {
             steps {
+                sh 'ls $DATA_VOLUME'
                 sh 'docker ps'
                 sh 'docker exec variantvalidator-${CONTAINER_SUFFIX} pytest --cov-report=term --cov=VariantValidator/'
                 sh 'docker exec variantvalidator-${CONTAINER_SUFFIX} codecov'
