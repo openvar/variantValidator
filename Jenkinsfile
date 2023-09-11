@@ -42,7 +42,7 @@ pipeline {
                 script {
                     def dockerfile = './db_dockerfiles/vvsr/Dockerfile'
                     def seqRepoContainer = docker.build("sqlite-seqrepo-${CONTAINER_SUFFIX}", "-f ${dockerfile} ./db_dockerfiles/vvsr")
-                    seqRepoContainer.run("--network $DOCKER_NETWORK --privileged -v $DATA_VOLUME:$DATA_VOLUME") // Use DATA_VOLUME as shared directory
+                    seqRepoContainer.run("--network $DOCKER_NETWORK --privileged -v $DATA_VOLUME:/usr/local/share/seqrepo -d") // Use DATA_VOLUME as shared directory
                     sh 'echo Building and running SeqRepo'
                 }
             }
@@ -52,7 +52,7 @@ pipeline {
                 script {
                     def dockerfile = './Dockerfile'
                     def variantValidatorContainer = docker.build("variantvalidator-${CONTAINER_SUFFIX}", "-f ${dockerfile} .")
-                    variantValidatorContainer.run("--privileged -v $DATA_VOLUME:$DATA_VOLUME -d --name variantvalidator-${CONTAINER_SUFFIX} --network $DOCKER_NETWORK") // Use DATA_VOLUME as shared directory
+                    variantValidatorContainer.run("--privileged -v $DATA_VOLUME:/usr/local/share/seqrepo -d --name variantvalidator-${CONTAINER_SUFFIX} --network $DOCKER_NETWORK") // Use DATA_VOLUME as shared directory
                     sh 'echo Building and running VariantValidator'
                 }
             }
