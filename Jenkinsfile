@@ -18,6 +18,7 @@ pipeline {
         }
         stage("Create Directories on Host") {
             steps {
+                sh 'echo $WORKSPACE'
                 sh 'mkdir /var/jenkins_home/workspace/VariantValidator_ci/variantvalidator_data'
                 sh 'mkdir /var/jenkins_home/workspace/VariantValidator_ci/variantvalidator_data/share'
                 sh 'mkdir /var/jenkins_home/workspace/VariantValidator_ci/variantvalidator_data/share/seqrepo/'
