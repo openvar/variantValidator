@@ -11,3 +11,7 @@ RUN wget --output-document=/usr/local/share/seqrepo/VV_SR_2023_05.tar https://ww
 RUN tar -xvf /usr/local/share/seqrepo/VV_SR_2023_05.tar --directory /usr/local/share/seqrepo
 
 RUN rm /usr/local/share/seqrepo/VV_SR_2023_05.tar
+
+ENTRYPOINT []
+
+CMD ["tail", "-f", "/dev/null"]
