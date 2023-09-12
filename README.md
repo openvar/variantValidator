@@ -1,8 +1,6 @@
 # VariantValidator
 
-[![codecov](https://codecov.io/gh/openvar/variantValidator/branch/restructuring_py3/graph/badge.svg)](https://codecov.io/gh/openvar/variantValidator) [![Build Status](http://127.0.0.1:8080/buildStatus/icon?job=VariantValidator+CI%2Fci)](http://127.0.0.1:8080/job/VariantValidator%20CI/job/ci/)
-
- [![Join the chat at https://gitter.im/variantValidatorDiscuss/community](https://badges.gitter.im/variantValidatorDiscuss/community.svg)](https://gitter.im/variantValidatorDiscuss/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![codecov](https://codecov.io/gh/openvar/variantValidator/branch/restructuring_py3/graph/badge.svg)](https://codecov.io/gh/openvar/variantValidator) [![Build Status](https://c2ea-130-88-208-79.ngrok-free.app/buildStatus/icon?job=VariantValidator+CI%2Fci)](https://c2ea-130-88-208-79.ngrok-free.app/job/VariantValidator%20CI/job/ci/) [![Join the chat at https://gitter.im/variantValidatorDiscuss/community](https://badges.gitter.im/variantValidatorDiscuss/community.svg)](https://gitter.im/variantValidatorDiscuss/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## About
 
