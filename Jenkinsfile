@@ -8,7 +8,7 @@ pipeline {
         CODECOV_TOKEN = "50dd5c2e-4259-4cfa-97a7-b4429e0d179e"
         CONTAINER_SUFFIX = "${BUILD_NUMBER}"
         DOCKER_NETWORK = "variantvalidator_docker_network-$CONTAINER_SUFFIX"
-        DATA_VOLUME = "jenkins-shared-space"
+        DATA_VOLUME = "docker-shared-space"
     }
     stages {
         stage("Clone Repository Romove dangling docker components and Create Docker Network") {
