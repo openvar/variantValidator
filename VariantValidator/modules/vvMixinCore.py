@@ -1607,6 +1607,11 @@ class Mixin(vvMixinConverters.Mixin):
                         variant.warnings.append(error)
                         logger.warning(error)
                         return True
+                except Exception as e:
+                    error = 'Unable to assign transcript identity records to %s. %s' % (accession, str(e))
+                    variant.warnings.append(error)
+                    logger.info(error)
+                    return True
                 variant.description = entry['description']
                 variant.gene_symbol = entry['hgnc_symbol']
 

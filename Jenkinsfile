@@ -11,9 +11,10 @@ pipeline {
         DATA_VOLUME = "jenkins-shared-space"
     }
     stages {
-        stage("Clone Repository and Create Docker Network") {
+        stage("Clone Repository Romove dangling docker components and Create Docker Network") {
             steps {
                 checkout scm
+                sh 'docker system prune -f'
                 sh 'docker network create $DOCKER_NETWORK'
             }
         }
@@ -42,7 +43,7 @@ pipeline {
                 script {
                     def dockerfile = './db_dockerfiles/vvsr/Dockerfile'
                     def seqRepoContainer = docker.build("sqlite-seqrepo-${CONTAINER_SUFFIX}", "--no-cache -f ${dockerfile} ./db_dockerfiles/vvsr")
-                    seqRepoContainer.run("--network $DOCKER_NETWORK --privileged -v $DATA_VOLUME:/usr/local/share:rw")
+                    seqRepoContainer.run("--network $DOCKER_NETWORK --name seqrepo -v $DATA_VOLUME:/usr/local/share:rw")
                     sh 'echo Building and running SeqRepo'
                 }
             }
