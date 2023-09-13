@@ -61,7 +61,7 @@ pipeline {
             steps {
                 sh 'docker ps'
                 sh 'docker exec variantvalidator-${CONTAINER_SUFFIX} pytest --cov-report=term --cov=VariantValidator/'
-                sh 'docker exec variantvalidator-${CONTAINER_SUFFIX} codecov'
+                sh 'docker exec variantvalidator-${CONTAINER_SUFFIX} codecov -t $CODECOV_TOKEN -b ${BRANCH_NAME}'
             }
         }
         stage("Cleanup Docker") {
