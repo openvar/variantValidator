@@ -5,10 +5,12 @@ WORKDIR /app
 COPY . /app
 
 # Update apt-get
-RUN apt-get update
+RUN apt update
 
-# Install git
-RUN apt-get -y install git
+# Install apt managed sofware
+RUN apt -y install git \
+    postgresql-client \
+    sqlite3
 
 # Upgrade pip
 RUN pip install --upgrade pip
