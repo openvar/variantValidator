@@ -67,12 +67,12 @@ pipeline {
         }
         stage("Cleanup Docker") {
             steps {
-                sh 'docker stop vvta'
-                sh 'docker rm vvta'
-                sh 'docker stop vdb'
-                sh 'docker rm vdb'
-                sh 'docker stop sqlite-seqrepo-${CONTAINER_SUFFIX}'
-                sh 'docker rm sqlite-seqrepo-${CONTAINER_SUFFIX}'
+                sh 'docker stop vv-vvta'
+                sh 'docker rm vv-vvta'
+                sh 'docker stop vv-vdb'
+                sh 'docker rm vv-vdb'
+                sh 'docker stop vv-seqrepo'
+                sh 'docker rm vv-seqrepo'
                 sh 'docker stop variantvalidator-${CONTAINER_SUFFIX}'
                 sh 'docker rm variantvalidator-${CONTAINER_SUFFIX}'
                 sh 'docker network rm $DOCKER_NETWORK'
