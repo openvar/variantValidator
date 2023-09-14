@@ -53,7 +53,7 @@ pipeline {
                 script {
                     def dockerfile = './Dockerfile'
                     def variantValidatorContainer = docker.build("variantvalidator-${CONTAINER_SUFFIX}", "--no-cache -f ${dockerfile} .")
-                    variantValidatorContainer.run("-v $DATA_VOLUME:/usr/local/share:rw -d --name VariantValidator --network $DOCKER_NETWORK")
+                    variantValidatorContainer.run("-v $DATA_VOLUME:/usr/local/share:rw -d --name variantvalidator --network $DOCKER_NETWORK")
                     sh 'echo Building and running VariantValidator'
                 }
             }
@@ -72,8 +72,8 @@ pipeline {
 
                     if [ $attempt -le 4 ]; then
                         echo "Connected successfully! Running pytest..."
-                        docker exec VariantValidator pytest --cov-report=term --cov=VariantValidator/
-                        docker exec VariantValidator codecov -t $CODECOV_TOKEN -b ${BRANCH_NAME}
+                        docker exec variantvalidator pytest --cov-report=term --cov=VariantValidator/
+                        docker exec variantvalidator codecov -t $CODECOV_TOKEN -b ${BRANCH_NAME}
                     else
                         echo "All connection attempts failed. Exiting..."
                     fi
@@ -88,8 +88,8 @@ pipeline {
                 sh 'docker rm vv-vdb'
                 sh 'docker stop vv-seqrepo'
                 sh 'docker rm vv-seqrepo'
-                sh 'docker stop VariantValidator'
-                sh 'docker rm VariantValidator'
+                sh 'docker stop variantvalidator'
+                sh 'docker rm variantvalidator'
                 sh 'docker network rm $DOCKER_NETWORK'
             }
         }
