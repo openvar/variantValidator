@@ -63,15 +63,13 @@ pipeline {
                 script {
                     sh 'docker ps'
 
-                    # Retry connecting to the database with a delay
-                    for ((attempt=1; attempt<=5; attempt++)); do
+                    for ((attempt=1; attempt<=5; attempt++)) {
                         echo "Attempt $attempt to connect to the database..."
                         docker exec VariantValidator psql -U uta_admin -d vvta -h vv-vvta -p 5432 && break
                         echo "Connection failed. Waiting for 30 seconds before the next attempt..."
                         sleep 60
-                    done
+                    }
 
-                    # Run pytest and codecov after a successful connection
                     if [ $attempt -le 4 ]; then
                         echo "Connected successfully! Running pytest..."
                         docker exec VariantValidator pytest --cov-report=term --cov=VariantValidator/
