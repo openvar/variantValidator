@@ -53,16 +53,33 @@ pipeline {
                 script {
                     def dockerfile = './Dockerfile'
                     def variantValidatorContainer = docker.build("variantvalidator-${CONTAINER_SUFFIX}", "--no-cache -f ${dockerfile} .")
-                    variantValidatorContainer.run("-v $DATA_VOLUME:/usr/local/share:rw -d --name variantvalidator-${CONTAINER_SUFFIX} --network $DOCKER_NETWORK")
+                    variantValidatorContainer.run("-v $DATA_VOLUME:/usr/local/share:rw -d --name VariantValidator --network $DOCKER_NETWORK")
                     sh 'echo Building and running VariantValidator'
                 }
             }
         }
         stage("Run Pytest and Codecov") {
             steps {
-                sh 'docker ps'
-                sh 'docker exec variantvalidator-${CONTAINER_SUFFIX} pytest --cov-report=term --cov=VariantValidator/'
-                sh 'docker exec variantvalidator-${CONTAINER_SUFFIX} codecov -t $CODECOV_TOKEN -b ${BRANCH_NAME}'
+                script {
+                    sh 'docker ps'
+
+                    # Retry connecting to the database with a delay
+                    for ((attempt=1; attempt<=5; attempt++)); do
+                        echo "Attempt $attempt to connect to the database..."
+                        docker exec VariantValidator psql -U uta_admin -d vvta -h vv-vvta -p 5432 && break
+                        echo "Connection failed. Waiting for 30 seconds before the next attempt..."
+                        sleep 60
+                    done
+
+                    # Run pytest and codecov after a successful connection
+                    if [ $attempt -le 4 ]; then
+                        echo "Connected successfully! Running pytest..."
+                        docker exec VariantValidator pytest --cov-report=term --cov=VariantValidator/
+                        docker exec VariantValidator codecov -t $CODECOV_TOKEN -b ${BRANCH_NAME}
+                    else
+                        echo "All connection attempts failed. Exiting..."
+                    fi
+                }
             }
         }
         stage("Cleanup Docker") {
@@ -73,8 +90,8 @@ pipeline {
                 sh 'docker rm vv-vdb'
                 sh 'docker stop vv-seqrepo'
                 sh 'docker rm vv-seqrepo'
-                sh 'docker stop variantvalidator-${CONTAINER_SUFFIX}'
-                sh 'docker rm variantvalidator-${CONTAINER_SUFFIX}'
+                sh 'docker stop VariantValidator'
+                sh 'docker rm VariantValidator'
                 sh 'docker network rm $DOCKER_NETWORK'
             }
         }
