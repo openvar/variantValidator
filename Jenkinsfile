@@ -63,20 +63,22 @@ pipeline {
                 script {
                     sh 'docker ps'
 
+                    sh '''
                     for attempt in {1..5}; do
-                        sh "echo Attempt $attempt to connect to the database..."
+                        echo "Attempt $attempt to connect to the database..."
                         docker exec variantvalidator psql -U uta_admin -d vvta -h vv-vvta -p 5432 && break
-                        sh "echo Connection failed. Waiting for 30 seconds before the next attempt..."
+                        echo "Connection failed. Waiting for 30 seconds before the next attempt..."
                         sleep 60
-                    }
+                    done
 
                     if [ $attempt -le 4 ]; then
-                        sh "echo Connected successfully! Running pytest..."
+                        echo "Connected successfully! Running pytest..."
                         docker exec variantvalidator pytest --cov-report=term --cov=VariantValidator/
                         docker exec variantvalidator codecov -t $CODECOV_TOKEN -b ${BRANCH_NAME}
                     else
-                        sh "echo All connection attempts failed. Exiting..."
+                        echo "All connection attempts failed. Exiting..."
                     fi
+                    '''
                 }
             }
         }
