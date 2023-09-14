@@ -20,6 +20,8 @@ pipeline {
         }
         stage("Build and Run VVTA PostgreSQL") {
             steps {
+                sh 'docker stop vv-vvta'
+                sh 'docker rm vv-vvta'
                 script {
                     def dockerfile = './db_dockerfiles/vvta/Dockerfile'
                     def vvtaContainer = docker.build("postgres-vvta-${CONTAINER_SUFFIX}", "--no-cache -f ${dockerfile} ./db_dockerfiles/vvta")
@@ -30,6 +32,8 @@ pipeline {
         }
         stage("Build and Run Validator MySQL") {
             steps {
+                sh 'docker stop vv-vdb'
+                sh 'docker rm vv-vdb'
                 script {
                     def dockerfile = './db_dockerfiles/vdb/Dockerfile'
                     def validatorContainer = docker.build("mysql-validator-${CONTAINER_SUFFIX}", "--no-cache -f ${dockerfile} ./db_dockerfiles/vdb")
@@ -40,6 +44,8 @@ pipeline {
         }
         stage("Build and Run SeqRepo") {
             steps {
+                sh 'docker stop vv-seqrepo'
+                sh 'docker rm vv-seqrepo'
                 script {
                     def dockerfile = './db_dockerfiles/vvsr/Dockerfile'
                     def seqRepoContainer = docker.build("sqlite-seqrepo-${CONTAINER_SUFFIX}", "--no-cache -f ${dockerfile} ./db_dockerfiles/vvsr")
@@ -50,6 +56,8 @@ pipeline {
         }
         stage("Build and Run VariantValidator") {
             steps {
+                sh 'docker stop variantvalidator'
+                sh 'docker rm variantvalidator'
                 script {
                     def dockerfile = './Dockerfile'
                     def variantValidatorContainer = docker.build("variantvalidator-${CONTAINER_SUFFIX}", "--no-cache -f ${dockerfile} .")
