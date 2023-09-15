@@ -11,7 +11,7 @@ pipeline {
         DATA_VOLUME = "docker-shared-space"
     }
     stages {
-        stage("Clone Repository Romove dangling docker components and Create Docker Network") {
+        stage("Clone Repository Remove dangling docker components and Create Docker Network") {
             steps {
                 checkout scm
                 sh 'docker system prune -f'

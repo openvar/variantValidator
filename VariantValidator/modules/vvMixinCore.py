@@ -1608,7 +1608,8 @@ class Mixin(vvMixinConverters.Mixin):
                         logger.warning(error)
                         return True
                 except Exception as e:
-                    error = 'Unable to assign transcript identity records to %s. %s' % (accession, str(e))
+                    error = 'Unable to assign transcript identity records to %s.  Please try again later ' \
+                            'and if the problem persists contact admin. error=%s.' % (accession, str(e))
                     variant.warnings.append(error)
                     logger.info(error)
                     return True

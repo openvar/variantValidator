@@ -2930,7 +2930,10 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
         # Normalise intronic, if called with query_genomic
         if with_query_genomic:
             if hgvs_coding.posedit.pos.start.offset != 0:
-                hgvs_coding = self.variant.evm.g_to_t(query_genomic, hgvs_coding.ac)
+                try:
+                    hgvs_coding = self.variant.evm.g_to_t(query_genomic, hgvs_coding.ac)
+                except vvhgvs.exceptions.HGVSInvalidIntervalError:
+                    pass
 
         # Map to the transcript and test for movement
         try:
