@@ -56,16 +56,13 @@ class Database(vvDBInsert.Mixin):
         self.update_transcript_info_record(accession, validator)
         entry = self.in_entries(accession, 'transcript_info')
         i = 1
-        print(accession)
         while i in range(10):
             if 'none' in entry:
-                print(i)
                 i += 1
                 time.sleep(2)
                 entry = self.in_entries(accession, 'transcript_info')
             else:
                 break
-
         return entry
 
     def in_entries(self, entry, table):
