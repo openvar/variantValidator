@@ -470,6 +470,7 @@ class Database(vvDBInsert.Mixin):
 
         # Update the transcript_info table
         returned_data = self.in_entries(version, table)
+        print(returned_data)
         # If the entry is not in the database add it
         if 'none' in returned_data:
             self.insert(version, query_info, table)
