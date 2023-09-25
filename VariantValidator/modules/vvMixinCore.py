@@ -6,6 +6,7 @@ import copy
 import sys
 import logging
 import json
+import time
 from vvhgvs.assemblymapper import AssemblyMapper
 from . import hgvs_utils
 from . import utils as fn
@@ -1279,7 +1280,16 @@ class Mixin(vvMixinConverters.Mixin):
                                     'VariantValidator %s' % str(e)
                             my_variant.warnings.append(error)
                             logger.warning(error)
-                    annotation_info = self.db.get_transcript_annotation(hgvs_tx_variant.ac)
+                    i = 1
+                    while i in range(10):
+                        annotation_info = self.db.get_transcript_annotation(hgvs_tx_variant.ac)
+                        try:
+                            json.loads(annotation_info)
+                        except json.decoder.JSONDecodeError:
+                            i += 1
+                            time.sleep(2)
+                        else:
+                            break
                     reference_annotations = json.loads(annotation_info)
 
                 variant.stable_gene_ids = stable_gene_ids
