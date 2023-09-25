@@ -54,6 +54,9 @@ class Database(vvDBInsert.Mixin):
         """
         self.update_transcript_info_record(accession, validator)
         entry = self.in_entries(accession, 'transcript_info')
+        print("Post")
+        print(accession)
+        print(entry)
         return entry
 
     def in_entries(self, entry, table):

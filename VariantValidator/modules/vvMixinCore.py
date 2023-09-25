@@ -1613,6 +1613,8 @@ class Mixin(vvMixinConverters.Mixin):
                     variant.warnings.append(error)
                     logger.info(error)
                     return True
+                print("Final")
+                print(entry)
                 variant.description = entry['description']
                 variant.gene_symbol = entry['hgnc_symbol']
 
