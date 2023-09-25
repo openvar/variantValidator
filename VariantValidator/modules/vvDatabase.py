@@ -283,8 +283,6 @@ class Database(vvDBInsert.Mixin):
                     try:
                         self.update_gene_stable_identifiers(bypass_with_symbol)
                     except Exception as e:
-                        print("bing")
-                        print(e)
                         logger.debug("Except pass, %s", e)
                         logger.info("Unable to connect to genenames.org with symbol %s", bypass_with_symbol)
                         connection_error = "Cannot connect to genenames.org with symbol %s", bypass_with_symbol
@@ -466,6 +464,8 @@ class Database(vvDBInsert.Mixin):
         """
         # Query information
         query_info = [version, description, variant, version, genbank_symbol, uta_symbol]
+        print("INFO")
+        print(query_info)
         table = 'transcript_info'
 
         # Update the transcript_info table
