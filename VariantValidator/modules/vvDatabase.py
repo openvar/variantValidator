@@ -5,6 +5,7 @@ import re
 import vvhgvs.exceptions
 import logging
 import json
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -54,9 +55,15 @@ class Database(vvDBInsert.Mixin):
         """
         self.update_transcript_info_record(accession, validator)
         entry = self.in_entries(accession, 'transcript_info')
-        print("Post")
-        print(accession)
-        print(entry)
+        i = 1
+        while i in range (10):
+            if 'none' in entry:
+                print(i)
+                i += 1
+                time.sleep(2)
+            else:
+                break
+
         return entry
 
     def in_entries(self, entry, table):
@@ -467,13 +474,10 @@ class Database(vvDBInsert.Mixin):
         """
         # Query information
         query_info = [version, description, variant, version, genbank_symbol, uta_symbol]
-        print("INFO")
-        print(query_info)
         table = 'transcript_info'
 
         # Update the transcript_info table
         returned_data = self.in_entries(version, table)
-        print(returned_data)
         # If the entry is not in the database add it
         if 'none' in returned_data:
             self.insert(version, query_info, table)

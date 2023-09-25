@@ -34,8 +34,6 @@ class Mixin(vvDBGet.Mixin):
         conn.commit()
         cursor.close()
         conn.close()
-        print("SUCCESS IS")
-        print(success)
         return success
 
     @handleCursor
