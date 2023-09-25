@@ -1614,6 +1614,7 @@ class Mixin(vvMixinConverters.Mixin):
                     logger.info(error)
                     return True
                 print("Final")
+                print(accession)
                 print(entry)
                 variant.description = entry['description']
                 variant.gene_symbol = entry['hgnc_symbol']
