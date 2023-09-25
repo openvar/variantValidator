@@ -283,13 +283,12 @@ class Database(vvDBInsert.Mixin):
                     try:
                         self.update_gene_stable_identifiers(bypass_with_symbol)
                     except Exception as e:
+                        print("bing")
+                        print(e)
                         logger.debug("Except pass, %s", e)
                         logger.info("Unable to connect to genenames.org with symbol %s", bypass_with_symbol)
                         connection_error = "Cannot connect to genenames.org with symbol %s", bypass_with_symbol
                 raise utils.DatabaseConnectionError(connection_error)
-            except Exception as e:
-                print("bong")
-                print(e)
 
             version = record.id
             description = record.description
@@ -298,9 +297,6 @@ class Database(vvDBInsert.Mixin):
             except KeyError:
                 raise utils.DatabaseConnectionError("Gene information is not available in the RefSeq record. Record "
                                                     "potentially deprecated")
-            except Exception as e:
-                print("boo")
-                print(e)
             try:
                 # Genbank can be out-of-date so check this is not a historic record
                 # First perform a search against the input gene symbol or the symbol inferred from UTA
@@ -318,9 +314,7 @@ class Database(vvDBInsert.Mixin):
                         genbank_symbol = genbank_symbol
                     else:
                         genbank_symbol = current['record']['response']['docs'][0]['symbol']
-            except Exception as e:
-                print("bing")
-                print(e)
+            except Exception:
                 pass
 
             if 'transcript variant' in description:
