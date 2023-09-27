@@ -121,27 +121,28 @@ pipeline {
         }
     }
     post {
-        success {
-            echo 'Pipeline succeeded! Your project is built and tested.'
-            emailext(
-                subject: 'Pipeline Success',
-                body: 'Your Jenkins pipeline has succeeded. Your project is built and tested successfully.',
-                recipientProviders: [[$class: 'CulpritsRecipientProvider']],
-                to: 'admin@variantvalidator.org'
-            )
-        }
         failure {
-            echo 'Pipeline failed. Please check the logs for details.'
-            currentBuild.result = 'FAILURE' // Mark the build as FAILURE
             script {
-                def errorMessage = currentBuild.rawBuild.getLog(1000).join('\n') // Get the last 1000 lines of build logs
-                emailext(
-                    subject: 'Pipeline Failure',
-                    body: "Your Jenkins pipeline has failed with the following error:\n\n${errorMessage}",
-                    recipientProviders: [[$class: 'CulpritsRecipientProvider']],
-                    to: 'admin@variantvalidator.org'
-                )
+                // Replace placeholders in README with failed badge URLs
+                sh '''
+                    sed -i 's|\\[![codecov].*|![codecov](https://codecov.io/gh/openvar/variantValidator/branch/${BRANCH_NAME}/graph/badge.svg)](https://codecov.io/gh/openvar/variantValidator)|' README.md
+                    sed -i 's|\\[![Build Status].*|![Build Status](https://example.com/failure-badge.svg)|' README.md
+                '''
             }
+            currentBuild.result = 'FAILURE' // Mark the build as FAILURE
+            echo 'Pipeline failed. Please check the logs for details.'
+            def errorMessage = currentBuild.rawBuild.getLog(1000).join('\n')
+            echo "Error Message:\n${errorMessage}"
+        }
+        success {
+            script {
+                // Replace placeholders in README with success badge URLs
+                sh '''
+                    sed -i 's|\\[![codecov].*|![codecov](https://codecov.io/gh/openvar/variantValidator/branch/${BRANCH_NAME}/graph/badge.svg)](https://codecov.io/gh/openvar/variantValidator)|' README.md
+                    sed -i 's|\\[![Build Status].*|![Build Status](https://example.com/success-badge.svg)|' README.md
+                '''
+            }
+            echo 'Pipeline succeeded! Your project is built and tested.'
         }
     }
 }
