@@ -68,7 +68,7 @@ pipeline {
                     for (int attempt = 1; attempt <= 5; attempt++) {
                         echo "Attempt $attempt to connect to the database..."
                         def exitCode = sh(script: '''
-                            docker exec variantvalidator psql -U uta_admin -d vvta -h vv-vvta -p 5432
+                            docker exec -e PGPASSWORD=uta_admin variantvalidator psql -U uta_admin -d vvta -h vv-vvta -p 5432
                         ''', returnStatus: true)
 
                         if (exitCode == 0) {
@@ -96,7 +96,7 @@ pipeline {
                             break
                         }
 
-                        echo "Connection failed. Waiting for 30 seconds before the next attempt..."
+                        echo "Connection failed. Waiting for 60 seconds before the next attempt..."
                         sleep 60
                     }
 
