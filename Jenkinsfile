@@ -63,22 +63,46 @@ pipeline {
                 script {
                     sh 'docker ps'
 
-                    sh '''
-                    for attempt in {1..5}; do
+                    def connectionSuccessful = false
+
+                    for (int attempt = 1; attempt <= 5; attempt++) {
                         echo "Attempt $attempt to connect to the database..."
-                        docker exec variantvalidator psql -U uta_admin -d vvta -h vv-vvta -p 5432 && break
+                        def exitCode = sh(script: '''
+                            docker exec variantvalidator psql -U uta_admin -d vvta -h vv-vvta -p 5432
+                        ''', returnStatus: true)
+
+                        if (exitCode == 0) {
+                            connectionSuccessful = true
+                            echo "Connected successfully! Running pytest..."
+
+                            // Run pytest and capture the output
+                            def pytestOutput = sh(script: '''
+                                docker exec variantvalidator pytest --cov-report=term --cov=VariantValidator/
+                            ''', returnStdout: true)
+
+                            // Check for test failures in the pytest output
+                            if (pytestOutput.contains("collected") && pytestOutput.contains("failed")) {
+                                error "Pytest completed with test failures:\n$pytestOutput"
+                            }
+
+                            // Check the exit code
+                            def pytestExitCode = sh(script: 'echo \$?', returnStatus: true)
+
+                            if (pytestExitCode != 0) {
+                                error "Pytest failed with exit code $pytestExitCode"
+                            }
+
+                            docker exec variantvalidator codecov -t $CODECOV_TOKEN -b ${BRANCH_NAME}
+                            break
+                        }
+
                         echo "Connection failed. Waiting for 30 seconds before the next attempt..."
                         sleep 60
-                    done
+                    }
 
-                    if [ $attempt -le 4 ]; then
-                        echo "Connected successfully! Running pytest..."
-                        docker exec variantvalidator pytest --cov-report=term --cov=VariantValidator/
-                        docker exec variantvalidator codecov -t $CODECOV_TOKEN -b ${BRANCH_NAME}
-                    else
-                        echo "All connection attempts failed. Exiting..."
-                    fi
-                    '''
+                    if (!connectionSuccessful) {
+                        error "All connection attempts failed. Exiting..."
+                    }
                 }
             }
         }
@@ -108,12 +132,16 @@ pipeline {
         }
         failure {
             echo 'Pipeline failed. Please check the logs for details.'
-            emailext(
-                subject: 'Pipeline Failure',
-                body: 'Your Jenkins pipeline has failed. Please check the logs for details.',
-                recipientProviders: [[$class: 'CulpritsRecipientProvider']],
-                to: 'admin@variantvalidator.org'
-            )
+            currentBuild.result = 'FAILURE' // Mark the build as FAILURE
+            script {
+                def errorMessage = currentBuild.rawBuild.getLog(1000).join('\n') // Get the last 1000 lines of build logs
+                emailext(
+                    subject: 'Pipeline Failure',
+                    body: "Your Jenkins pipeline has failed with the following error:\n\n${errorMessage}",
+                    recipientProviders: [[$class: 'CulpritsRecipientProvider']],
+                    to: 'admin@variantvalidator.org'
+                )
+            }
         }
     }
 }
