@@ -123,26 +123,33 @@ pipeline {
     post {
         failure {
             script {
-                // Replace placeholders in README with failed badge URLs
-                sh '''
-                    sed -i 's|\\[![codecov].*|![codecov](https://codecov.io/gh/openvar/variantValidator/branch/${BRANCH_NAME}/graph/badge.svg)](https://codecov.io/gh/openvar/variantValidator)|' README.md
-                    sed -i 's|\\[![Build Status].*|![Build Status](https://example.com/failure-badge.svg)|' README.md
-                '''
                 currentBuild.result = 'FAILURE' // Mark the build as FAILURE
                 echo 'Pipeline failed. Please check the logs for details.'
                 def errorMessage = currentBuild.rawBuild.getLog(1000).join('\n')
                 echo "Error Message:\n${errorMessage}"
+
+                // Update README badges on failure
+                sh 'sed -i "s|\\[![codecov](.*\\)|[![codecov](https://codecov.io/gh/openvar/variantValidator/branch/${BRANCH_NAME}/graph/badge.svg)](https://codecov.io/gh/openvar/variantValidator)|" README.md'
+                sh 'sed -i "s|\\[![Build Status](.*\\)|[![Build Status](https://d174-130-88-226-17.ngrok-free.app/buildStatus/icon?job=VariantValidator+CI%2Fci&branch=${BRANCH_NAME})](https://d174-130-88-226-17.ngrok-free.app/job/VariantValidator%20CI/job/ci/)|" README.md'
+
+                // Commit and push to GitHub
+                sh 'git commit -am "Update README badges to failure by Jenkins"'
+                sh 'git push origin ${BRANCH_NAME}'
             }
         }
         success {
             script {
-                // Replace placeholders in README with success badge URLs
-                sh '''
-                    sed -i 's|\\[![codecov].*|![codecov](https://codecov.io/gh/openvar/variantValidator/branch/${BRANCH_NAME}/graph/badge.svg)](https://codecov.io/gh/openvar/variantValidator)|' README.md
-                    sed -i 's|\\[![Build Status].*|![Build Status](https://example.com/success-badge.svg)|' README.md
-                '''
+                currentBuild.result = 'SUCCESS' // Mark the build as SUCCESS
+                echo 'Pipeline succeeded! Your project is built and tested.'
+
+                // Update README badges on success
+                sh 'sed -i "s|\\[![codecov](.*\\)|[![codecov](https://codecov.io/gh/openvar/variantValidator/branch/${BRANCH_NAME}/graph/badge.svg)](https://codecov.io/gh/openvar/variantValidator)|" README.md'
+                sh 'sed -i "s|\\[![Build Status](.*\\)|[![Build Status](https://d174-130-88-226-17.ngrok-free.app/buildStatus/icon?job=VariantValidator+CI%2Fci&branch=${BRANCH_NAME})](https://d174-130-88-226-17.ngrok-free.app/job/VariantValidator%20CI%2Fci/job/ci/)|" README.md'
+
+                // Commit and push to GitHub
+                sh 'git commit -am "Update README badges to success by Jenkins"'
+                sh 'git push origin ${BRANCH_NAME}'
             }
-            echo 'Pipeline succeeded! Your project is built and tested.'
         }
     }
 }
