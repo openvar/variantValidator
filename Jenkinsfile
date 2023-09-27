@@ -128,11 +128,11 @@ pipeline {
                     sed -i 's|\\[![codecov].*|![codecov](https://codecov.io/gh/openvar/variantValidator/branch/${BRANCH_NAME}/graph/badge.svg)](https://codecov.io/gh/openvar/variantValidator)|' README.md
                     sed -i 's|\\[![Build Status].*|![Build Status](https://example.com/failure-badge.svg)|' README.md
                 '''
+                currentBuild.result = 'FAILURE' // Mark the build as FAILURE
+                echo 'Pipeline failed. Please check the logs for details.'
+                def errorMessage = currentBuild.rawBuild.getLog(1000).join('\n')
+                echo "Error Message:\n${errorMessage}"
             }
-            currentBuild.result = 'FAILURE' // Mark the build as FAILURE
-            echo 'Pipeline failed. Please check the logs for details.'
-            def errorMessage = currentBuild.rawBuild.getLog(1000).join('\n')
-            echo "Error Message:\n${errorMessage}"
         }
         success {
             script {
