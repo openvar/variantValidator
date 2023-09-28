@@ -1,4 +1,4 @@
-import hudson.util.LogTaskListener
+import hudson.util.LogPrintStream
 pipeline {
     agent {
         docker {
