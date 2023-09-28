@@ -83,7 +83,7 @@ pipeline {
 
                             // Run pytest, capture the output, and also print it to console in real-time
                             def pytestProcess = "docker exec variantvalidator pytest --cov-report=term --cov=VariantValidator/".execute()
-                            pytestProcess.consumeProcessOutput(pytestOutputFile, currentBuild.logFile)
+                            pytestProcess.consumeProcessOutput(pytestOutputFile, currentBuild.listener)
 
                             // Display the captured output in the Jenkins console
                             def capturedOutput = pytestOutputFile.text
