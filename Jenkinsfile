@@ -67,49 +67,38 @@ pipeline {
                 script {
                     sh 'docker ps' // List running Docker containers
                     def connectionSuccessful = false
-
                     for (int attempt = 1; attempt <= 5; attempt++) {
                         echo "Attempt $attempt to connect to the database..."
                         def exitCode = sh(script: '''
                             docker exec -e PGPASSWORD=uta_admin variantvalidator psql -U uta_admin -d vvta -h vv-vvta -p 5432
                         ''', returnStatus: true)
-
                         if (exitCode == 0) {
                             connectionSuccessful = true
                             echo "Connected successfully! Running pytest..."
-
                             // Create a temporary file to capture pytest output
                             def pytestOutputFile = new File("${WORKSPACE}/pytest_output.txt")
-
                             // Run pytest, capture the output, and also print it to console in real-time
                             def pytestProcess = "docker exec variantvalidator pytest --cov-report=term --cov=VariantValidator/".execute()
-                            pytestProcess.consumeProcessOutput(pytestOutputFile, pytestOutputFile)
-                            pytestProcess.waitForOrKill(120) // Wait for the process to complete or kill it after 120 seconds
-
+                            pytestProcess.consumeOutput(new FileOutputStream(pytestOutputFile), new LogPrintStream(listener.getLogger()))
                             // Display the captured output in the Jenkins console
                             def capturedOutput = pytestOutputFile.text
                             echo capturedOutput
-
                             // Check for test failures in the captured output
                             if (capturedOutput.contains("collected") && capturedOutput.contains("failed")) {
                                 error "Pytest completed with test failures:\n$capturedOutput"
                             }
-
                             // Check the exit code
                             def pytestExitCode = pytestProcess.exitValue()
                             if (pytestExitCode != 0) {
                                 error "Pytest failed with exit code $pytestExitCode"
                             }
-
                             // Run Codecov with the provided token and branch name
                             docker exec variantvalidator codecov -t $CODECOV_TOKEN -b ${BRANCH_NAME}
                             break
                         }
-
                         echo "Connection failed. Waiting for 60 seconds before the next attempt..."
                         sleep 60
                     }
-
                     if (!connectionSuccessful) {
                         error "All connection attempts failed. Exiting..."
                     }
