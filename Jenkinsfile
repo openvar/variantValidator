@@ -78,20 +78,12 @@ pipeline {
                             connectionSuccessful = true
                             echo "Connected successfully! Running pytest..."
 
-                            // Create a temporary file to capture pytest output
-                            def pytestOutputFile = new File("${WORKSPACE}/pytest_output.txt")
-
-                            // Run pytest, capture the output, and also print it to console in real-time
-                            def pytestProcess = "docker exec variantvalidator pytest --cov-report=term --cov=VariantValidator/".execute()
-                            pytestProcess.consumeProcessOutput(pytestOutputFile, currentBuild.listener)
-
-                            // Display the captured output in the Jenkins console
-                            def capturedOutput = pytestOutputFile.text
-                            echo capturedOutput
+                            // Run pytest
+                            "docker exec variantvalidator pytest --cov-report=term --cov=VariantValidator/"
 
                             // Check for test failures in the captured output
-                            if (capturedOutput.contains("collected") && capturedOutput.contains("failed")) {
-                                error "Pytest completed with test failures:\n$capturedOutput"
+                            if (currentBuild.rawBuild.getLog(2000).join('\n').contains("collected") && currentBuild.rawBuild.getLog(1000).join('\n').contains("failed")) {
+                                error "Pytest completed with test failures"
                             }
 
                             // Check the exit code
