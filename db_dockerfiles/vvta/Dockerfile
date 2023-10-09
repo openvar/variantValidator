@@ -1,4 +1,4 @@
-FROM postgres:14.7
+FROM postgres:14.9
 
 ENV POSTGRES_DB=vvta
 ENV POSTGRES_USER=uta_admin
