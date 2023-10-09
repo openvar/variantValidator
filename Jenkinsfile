@@ -79,17 +79,20 @@ pipeline {
                             echo "Connected successfully! Running pytest..."
 
                             // Run pytest
-                            "docker exec variantvalidator pytest --cov-report=term --cov=VariantValidator/"
+                            sh 'docker exec variantvalidator pytest --cov-report=term --cov=VariantValidator/'
 
                             // Check for test failures in the captured output
                             if (currentBuild.rawBuild.getLog(2000).join('\n').contains("collected") && currentBuild.rawBuild.getLog(1000).join('\n').contains("failed")) {
                                 error "Pytest completed with test failures"
                             }
 
-                            // Check the exit code
-                            def pytestExitCode = pytestProcess.exitValue()
-                            if (pytestExitCode != 0) {
-                                error "Pytest failed with exit code $pytestExitCode"
+                            // Check the Jenkins console log for pytest exit code
+                            def pytestExitCode = currentBuild.rawBuild.getLog(2000).find { line -> line =~ /.*Pytest exit code: (\d+).*/ }
+                            if (pytestExitCode) {
+                                pytestExitCode = Integer.parseInt(pytestExitCode.replaceAll(/.*Pytest exit code: (\d+).*/, '$1'))
+                                if (pytestExitCode != 0) {
+                                    error "Pytest failed with exit code $pytestExitCode"
+                                }
                             }
 
                             // Run Codecov with the provided token and branch name
