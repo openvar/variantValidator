@@ -133,8 +133,8 @@ pipeline {
                 def errorMessage = currentBuild.rawBuild.getLog(1000).join('\n')
                 echo "Error Message:\n${errorMessage}"
                 // Update README badges on failure
-                sh 'sed -i "s|\\[![codecov](.*)\\]|[![codecov](https://codecov.io/gh/openvar/variantValidator/branch/${BRANCH_NAME}/graph/badge.svg)](https://codecov.io/gh/openvar/variantValidator)|" README.md'
-                sh 'sed -i "s|\\[![Build Status](.*\\)|[![Build Status](https://d174-130-88-226-17.ngrok-free.app/buildStatus/icon?job=VariantValidator+CI%2Fci&branch=${BRANCH_NAME})](https://d174-130-88-226-17.ngrok-free.app/job/VariantValidator%20CI/job/ci/)|" README.md'
+                sh 'sed -i "s|\\[\\![codecov\\](.*)\\]|\\[![codecov](https://codecov.io/gh/openvar/variantValidator/branch/${BRANCH_NAME}/graph/badge.svg)](https://codecov.io/gh/openvar/variantValidator)|" README.md'
+                sh 'sed -i "s|\\[\\![Build Status\\](.*\\)|\\[![Build Status](https://d174-130-88-226-17.ngrok-free.app/buildStatus/icon?job=VariantValidator+CI%2Fci&branch=${BRANCH_NAME})](https://d174-130-88-226-17.ngrok-free.app/job/VariantValidator%20CI%2Fci/job/ci/)|" README.md'
                 // Commit and push to GitHub
                 sh 'git commit -am "Update README badges to failure by Jenkins"'
                 sh 'git push origin ${BRANCH_NAME}'
