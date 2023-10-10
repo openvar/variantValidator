@@ -82,7 +82,7 @@ pipeline {
                             sh 'docker exec variantvalidator pytest --cov-report=term --cov=VariantValidator/'
 
                             // Check for test failures in the captured output
-                            if (currentBuild.rawBuild.getLog(2000).join('\n').contains("collected") && currentBuild.rawBuild.getLog(1000).join('\n').contains("failed")) {
+                            if (currentBuild.rawBuild.getLog(2000).join('\n').contains("test summary info") && currentBuild.rawBuild.getLog(2000).join('\n').contains("FAILED")) {
                                 error "Pytest completed with test failures"
                             }
 
@@ -130,8 +130,6 @@ pipeline {
             script {
                 currentBuild.result = 'FAILURE' // Mark the build as FAILURE
                 echo 'Pipeline failed. Please check the logs for details.'
-                def errorMessage = currentBuild.rawBuild.getLog(1000).join('\n')
-                echo "Error Message:\n${errorMessage}"
                 // Update README badges on failure
                 sh 'sed -i "s|\\[\\![codecov\\](.*)\\]|\\[![codecov](https://codecov.io/gh/openvar/variantValidator/branch/${BRANCH_NAME}/graph/badge.svg)](https://codecov.io/gh/openvar/variantValidator)|" README.md'
                 sh 'sed -i "s|\\[\\!\\[Build Status\\](.*)\\]|\\[![Build Status](https://d174-130-88-226-17.ngrok-free.app/buildStatus/icon?job=VariantValidator+CI%2Fci&branch=${BRANCH_NAME})](https://d174-130-88-226-17.ngrok-free.app/job/VariantValidator%20CI%2Fci/job/ci/)|" README.md'
