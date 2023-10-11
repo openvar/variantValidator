@@ -18,6 +18,12 @@ pipeline {
                 sh 'docker network create $DOCKER_NETWORK' // Create a Docker network for containers
             }
         }
+        stage("Install Git") {
+            steps {
+                sh 'apt update'
+                sh 'apk install git'
+            }
+        }
         stage("Build and Run VVTA PostgreSQL") {
             steps {
                 script {
