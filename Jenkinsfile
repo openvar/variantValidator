@@ -1,7 +1,7 @@
 pipeline {
     agent {
         docker {
-            image "docker" // Set the Docker image for the Jenkins agent
+            image "docker:24.0.6-git" // Set the Docker image for the Jenkins agent
         }
     }
     environment {
@@ -16,12 +16,6 @@ pipeline {
                 checkout scm // Checkout the source code from the configured source code management system
                 sh 'docker system prune -f' // Remove unused Docker resources
                 sh 'docker network create $DOCKER_NETWORK' // Create a Docker network for containers
-            }
-        }
-        stage("Install Git") {
-            steps {
-                sh 'apt update'
-                sh 'apk install git'
             }
         }
         stage("Build and Run VVTA PostgreSQL") {
