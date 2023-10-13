@@ -14,7 +14,7 @@ pipeline {
         stage("Clone Repository Remove dangling docker components and Create Docker Network") {
             steps {
                 checkout scm // Checkout the source code from the configured source code management system
-                sh 'docker system prune -f' // Remove unused Docker resources
+                sh 'docker system prune --all --volumes -force' // Remove unused Docker resources
                 sh 'docker network create $DOCKER_NETWORK' // Create a Docker network for containers
             }
         }
