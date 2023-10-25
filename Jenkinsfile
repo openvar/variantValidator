@@ -140,6 +140,7 @@ pipeline {
                 sh 'sed -i "s|\\[\\!\\[Build Status\\](.*)\\]|\\[![Build Status](https://d174-130-88-226-17.ngrok-free.app/buildStatus/icon?job=VariantValidator+CI%2Fci&branch=${BRANCH_NAME})](https://d174-130-88-226-17.ngrok-free.app/job/VariantValidator%20CI%2Fci/job/ci/)|" README.md'
                 // Commit and push to GitHub
                 withCredentials([usernamePassword(credentialsId: 'github-credentials', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                    sh 'git config user.name "$GIT_USERNAME"'
                     sh 'git commit -am "Update README badges to failure by Jenkins"'
                     sh 'git push -u origin ${BRANCH_NAME}'
                 }
@@ -154,6 +155,7 @@ pipeline {
                 sh 'sed -i "s|\\[![Build Status](.*\\)|[![Build Status](https://d174-130-88-226-17.ngrok-free.app/buildStatus/icon?job=VariantValidator+CI%2Fci&branch=${BRANCH_NAME})](https://d174-130-88-226-17.ngrok-free.app/job/VariantValidator%20CI%2Fci/job/ci/)|" README.md'
                 // Commit and push to GitHub
                 withCredentials([usernamePassword(credentialsId: 'github-credentials', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                    sh 'git config user.name "$GIT_USERNAME"'
                     sh 'git commit -am "Update README badges to failure by Jenkins"'
                     sh 'git push -u origin ${BRANCH_NAME}'
                 }
