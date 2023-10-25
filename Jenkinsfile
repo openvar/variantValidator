@@ -85,7 +85,6 @@ pipeline {
 
                             // Run pytest
                             sh 'docker exec variantvalidator pytest --cov-report=term --cov=VariantValidator tests/'
-'
 
                             // Check for test failures in the captured output
                             if (currentBuild.rawBuild.getLog(2000).join('\n').contains("test summary info") && currentBuild.rawBuild.getLog(2000).join('\n').contains("FAILED")) {
