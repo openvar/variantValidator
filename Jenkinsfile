@@ -5,7 +5,7 @@ pipeline {
         }
     }
     environment {
-        CODECOV_TOKEN = "50dd5c2e-4259-4cfa-97a7-b4429e0d179e" // Define an environment variable for the Codecov token
+        CODECOV_TOKEN = "0a0a7043-dd7a-46fe-a1d4-a967b7b7d251" // Define an environment variable for the Codecov token
         CONTAINER_SUFFIX = "${BUILD_NUMBER}" // Use the build number as a container suffix for uniqueness
         DOCKER_NETWORK = "variantvalidator_docker_network-$CONTAINER_SUFFIX" // Create a unique Docker network for this build
         DATA_VOLUME = "docker-shared-space" // Define a data volume for shared data
@@ -139,7 +139,7 @@ pipeline {
                 sh 'sed -i "s|\\[\\![codecov\\](.*)\\]|\\[![codecov](https://codecov.io/gh/openvar/variantValidator/branch/${BRANCH_NAME}/graph/badge.svg)](https://codecov.io/gh/openvar/variantValidator)|" README.md'
                 sh 'sed -i "s|\\[\\!\\[Build Status\\](.*)\\]|\\[![Build Status](https://d174-130-88-226-17.ngrok-free.app/buildStatus/icon?job=VariantValidator+CI%2Fci&branch=${BRANCH_NAME})](https://d174-130-88-226-17.ngrok-free.app/job/VariantValidator%20CI%2Fci/job/ci/)|" README.md'
                 // Commit and push to GitHub
-                withCredentials([string(credentialsId: 'git', variable: 'GITHUB_TOKEN')]) {
+                withCredentials([string(credentialsId: 'your-github-credential-id', variable: 'GITHUB_TOKEN')]) {
                     sh 'git commit -am "Update README badges to failure by Jenkins"'
                     sh 'git push -u origin ${BRANCH_NAME}'
                 }
@@ -153,8 +153,8 @@ pipeline {
                 sh 'sed -i "s|\\[![codecov](.*)\\]|[![codecov](https://codecov.io/gh/openvar/variantValidator/branch/${BRANCH_NAME}/graph/badge.svg)](https://codecov.io/gh/openvar/variantValidator)|" README.md'
                 sh 'sed -i "s|\\[![Build Status](.*\\)|[![Build Status](https://d174-130-88-226-17.ngrok-free.app/buildStatus/icon?job=VariantValidator+CI%2Fci&branch=${BRANCH_NAME})](https://d174-130-88-226-17.ngrok-free.app/job/VariantValidator%20CI%2Fci/job/ci/)|" README.md'
                 // Commit and push to GitHub
-                withCredentials([string(credentialsId: 'git', variable: 'GITHUB_TOKEN')]) {
-                    sh 'git commit -am "Update README badges to passing by Jenkins"'
+                withCredentials([string(credentialsId: 'your-github-credential-id', variable: 'GITHUB_TOKEN')]) {
+                    sh 'git commit -am "Update README badges to failure by Jenkins"'
                     sh 'git push -u origin ${BRANCH_NAME}'
                 }
             }
