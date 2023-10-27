@@ -1,6 +1,6 @@
 # VariantValidator
 
-## Master branche
+## Master branch
 [![Build Status master](http://127.0.0.1:8080/buildStatus/icon?job=VariantValidator+CI%2Fmaster)](http://127.0.0.1:8080/job/VariantValidator%20CI/job/master/)
 [![codecov master](https://codecov.io/gh/openvar/variantValidator/branch/master/graph/badge.svg)](https://codecov.io/gh/openvar/variantValidator)
 
