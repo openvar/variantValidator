@@ -1,9 +1,14 @@
 # VariantValidator
 
-[![codecov](https://codecov.io/gh/openvar/variantValidator/branch/master/graph/badge.svg)](https://codecov.io/gh/openvar/variantValidator)
-[![codecov](https://codecov.io/gh/openvar/variantValidator/branch/ci/graph/badge.svg)](https://codecov.io/gh/openvar/variantValidator)
+## Master branch
 [![Build Status master](http://127.0.0.1:8080/buildStatus/icon?job=VariantValidator+CI%2Fmaster)](http://127.0.0.1:8080/job/VariantValidator%20CI/job/master/)
+[![codecov master](https://codecov.io/gh/openvar/variantValidator/branch/master/graph/badge.svg)](https://codecov.io/gh/openvar/variantValidator)
+
+## Development branch
 [![Build Status ci](http://127.0.0.1:8080/buildStatus/icon?job=VariantValidator+CI%2Fci)](http://127.0.0.1:8080/job/VariantValidator%20CI/job/ci/)
+[![codecov ci](https://codecov.io/gh/openvar/variantValidator/branch/ci/graph/badge.svg)](https://codecov.io/gh/openvar/variantValidator)
+
+## Gitter
 [![Join the chat at https://gitter.im/variantValidatorDiscuss/community](https://badges.gitter.im/variantValidatorDiscuss/community.svg)](https://gitter.im/variantValidatorDiscuss/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## About
