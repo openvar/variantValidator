@@ -88,7 +88,7 @@ pipeline {
 
                             // Check for test failures in the captured output
                             if (currentBuild.rawBuild.getLog(2000).join('\n').contains("test summary info") && currentBuild.rawBuild.getLog(2000).join('\n').contains("FAILED")) {
-                                error "Pytest completed with test failures"
+                                failure(message:"Pytest completed with test failures")
                             }
 
                             // Check the Jenkins console log for pytest exit code
@@ -96,7 +96,7 @@ pipeline {
                             if (pytestExitCode) {
                                 pytestExitCode = Integer.parseInt(pytestExitCode.replaceAll(/.*Pytest exit code: (\d+).*/, '$1'))
                                 if (pytestExitCode != 0) {
-                                    error "Pytest failed with exit code $pytestExitCode"
+                                    failure(message:"Pytest failed with exit code $pytestExitCode")
                                 }
                             }
 
@@ -110,7 +110,7 @@ pipeline {
                     }
 
                     if (!connectionSuccessful) {
-                        error "All connection attempts failed. Exiting..."
+                        failure(message:"All connection attempts failed. Exiting...")
                     }
                 }
             }
