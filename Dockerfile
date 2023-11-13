@@ -1,8 +1,8 @@
+# Declare the base container
 FROM python:3.10
 
+# Create the WorkDir
 WORKDIR /app
-
-VOLUME . /app
 
 # Update apt-get
 RUN apt update
