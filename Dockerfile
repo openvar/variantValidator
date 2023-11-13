@@ -1,5 +1,5 @@
 # Declare the base container
-FROM python:3.10
+FROM python:3.11
 
 # Create the WorkDir
 WORKDIR /app
