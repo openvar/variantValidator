@@ -4,6 +4,9 @@ FROM python:3.10
 # Create the WorkDir
 WORKDIR /app
 
+# Copy the current directory contents into the container's /app directory
+COPY . /app
+
 # Update apt-get
 RUN apt update
 
