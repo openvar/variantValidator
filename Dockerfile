@@ -2,7 +2,7 @@ FROM python:3.10
 
 WORKDIR /app
 
-COPY . /app
+VOLUME . /app
 
 # Update apt-get
 RUN apt update

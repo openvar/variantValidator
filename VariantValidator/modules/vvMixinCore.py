@@ -743,7 +743,15 @@ class Mixin(vvMixinConverters.Mixin):
 
                     # Now start mapping from genome to transcripts
                     if my_variant.reftype == ':g.':
-                        toskip = mappers.gene_to_transcripts(my_variant, self, select_transcripts_dict)
+                        try:
+                            toskip = mappers.gene_to_transcripts(my_variant, self, select_transcripts_dict)
+                        except IndexError:
+                            my_variant.output_type_flag = 'warning'
+                            error = '%s cannot be validated in the context of genome build %s, ' \
+                                    'try an alternative genome build' \
+                                    % (my_variant.quibble, my_variant.primary_assembly)
+                            my_variant.warnings.append(error)
+                            toskip = True
                         if toskip:
                             continue
 
@@ -1190,15 +1198,32 @@ class Mixin(vvMixinConverters.Mixin):
                                              ) or re.search('p.?', re_parse_protein_single_aa):
                                     re_parse_protein_single_aa = re_parse_protein_single_aa.replace('p.=',
                                                                                                     'p.(=)')
+                                if re.search("p.\(Ter\d+=\)", predicted_protein_variant_dict['tlr']):
+                                    predicted_protein_variant_dict['tlr'] = \
+                                        predicted_protein_variant_dict['tlr'].split("p.")[0]
+                                    predicted_protein_variant_dict['tlr'] = \
+                                        predicted_protein_variant_dict['tlr'] + "p.(Ter=)"
+                                    re_parse_protein_single_aa = re_parse_protein_single_aa.split("p.")[0]
+                                    re_parse_protein_single_aa = re_parse_protein_single_aa + "p.(*=)"
+
+                                elif re.search("p.Ter\d+=", predicted_protein_variant_dict['tlr']):
+                                    predicted_protein_variant_dict['tlr'] = \
+                                        predicted_protein_variant_dict['tlr'].split("p.")[0]
+                                    predicted_protein_variant_dict['tlr'] = \
+                                        predicted_protein_variant_dict['tlr'] + "p.Ter="
+                                    re_parse_protein_single_aa = re_parse_protein_single_aa.split("p.")[0]
+                                    re_parse_protein_single_aa = re_parse_protein_single_aa + "p.*="
 
                                 predicted_protein_variant_dict["slr"] = str(re_parse_protein_single_aa)
 
                                 # set LRG outputs
                                 if format_lrg is not None:
                                     predicted_protein_variant_dict["lrg_tlr"] = \
-                                        format_lrg.split(':')[0] + ':' + predicted_protein_variant_dict["tlr"].split(':')[1]
+                                        format_lrg.split(':')[0] + ':' + \
+                                        predicted_protein_variant_dict["tlr"].split(':')[1]
                                     predicted_protein_variant_dict["lrg_slr"] = \
-                                        format_lrg.split(':')[0] + ':' + predicted_protein_variant_dict["slr"].split(':')[1]
+                                        format_lrg.split(':')[0] + ':' + \
+                                        predicted_protein_variant_dict["slr"].split(':')[1]
                                 else:
                                     predicted_protein_variant_dict["lrg_tlr"] = ''
                                     predicted_protein_variant_dict["lrg_slr"] = ''
@@ -1477,7 +1502,6 @@ class Mixin(vvMixinConverters.Mixin):
 
         # return
         return g2d_data
-
 
     def hgvs2ref(self, query):
         """

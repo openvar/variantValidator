@@ -1547,7 +1547,7 @@ class Mixin(vvMixinInit.Mixin):
                 # Interface with the UTA database via get_tx_exons in uta.py
                 try:
                     tx_exons = self.hdp.get_tx_exons(tx_ac, alt_ac, alt_aln_method)
-                except vvhgvs.exceptions.HGVSError as e:
+                except vvhgvs.exceptions.HGVSError:
                     continue
                 try:
                     tx_exons[0]['alt_strand']
@@ -2218,6 +2218,7 @@ class Mixin(vvMixinInit.Mixin):
             hgvs_refseqgene = hn.normalize(hgvs_refseqgene)
         except Exception as e:
             logger.debug("Except passed, %s", e)
+
         # split the description
         # Accessions
         rsg_ac = hgvs_refseqgene.ac
@@ -2232,6 +2233,7 @@ class Mixin(vvMixinInit.Mixin):
 
         # Recover table from MySql
         all_info = self.db.get_g_to_g_info()
+
         for line in all_info:
             # Logic to identify the correct RefSeqGene
             chr_data = {}
@@ -2342,6 +2344,9 @@ class Mixin(vvMixinInit.Mixin):
             for tx_id in rts:
                 if type(tx_id) == str:
                     # VV method
+                    # Remove dud transcript IDs
+                    if "/" in tx_id or "_NG" in tx_id:
+                        continue
                     accession, version = tx_id.split(".")
                     if accession not in latest_version.keys():
                         latest_version[accession] = version

@@ -61,8 +61,9 @@ pipeline {
                 script {
                     def dockerfile = './Dockerfile' // Define the Dockerfile path
                     def variantValidatorContainer = docker.build("variantvalidator-${CONTAINER_SUFFIX}", "--no-cache -f ${dockerfile} .")
-                    // Build and run the VariantValidator container
-                    variantValidatorContainer.run("-v $DATA_VOLUME:/usr/local/share:rw -d --name variantvalidator --network $DOCKER_NETWORK")
+
+                    // Mount the present working directory ($PWD) into the Docker working directory ($WORKDIR)
+                    variantValidatorContainer.run("-v $PWD:$WORKDIR -v $DATA_VOLUME:/usr/local/share:rw -d --name variantvalidator --network $DOCKER_NETWORK")
                     sh 'echo Building and running VariantValidator' // Display a message
                 }
             }
@@ -83,8 +84,8 @@ pipeline {
                             connectionSuccessful = true
                             echo "Connected successfully! Running pytest..."
 
-                            // Run pytest
-                            sh 'docker exec variantvalidator pytest --cov-report=term --cov=VariantValidator tests/'
+                            // Run pytest && Run Codecov with the provided token and branch name
+                            sh 'docker exec variantvalidator pytest --cov-report=term --cov=VariantValidator tests/ && codecov -t $CODECOV_TOKEN -b ${BRANCH_NAME}'
 
                             // Check for test failures in the captured output
                             if (currentBuild.rawBuild.getLog(2000).join('\n').contains("test summary info") && currentBuild.rawBuild.getLog(2000).join('\n').contains("FAILED")) {
@@ -99,9 +100,6 @@ pipeline {
                                     failure(message:"Pytest failed with exit code $pytestExitCode")
                                 }
                             }
-
-                            // Run Codecov with the provided token and branch name
-                            docker exec variantvalidator codecov -t $CODECOV_TOKEN -b ${BRANCH_NAME}
                             break
                         }
 

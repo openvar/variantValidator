@@ -5,6 +5,8 @@ import logging
 from configparser import ConfigParser
 from .modules import vvDatabase
 from . import configure
+import VariantValidator
+validator = VariantValidator.Validator()
 
 logger = logging.getLogger(__name__)
 
@@ -137,7 +139,20 @@ def update_refseq(dbcnx):
                 line.append(rsg_to_symbol[identifier]['gene_id'])
             except KeyError:
                 logger.info("Can't identify gene symbol for %s", line[0])
-                missing.append(line[0])
+                update_success = False
+                try:
+                    record = validator.entrez_efetch(db="nucleotide", id=line[0], rettype="gb", retmode="text")
+                except IOError:
+                    pass
+                else:
+                    # Line format is e.g. ['NG_030321.1', 'NC_000019.9', 'GRCh37', '7791843', '7802057', '-',
+                    # 'CLEC4G', '339390']
+                    line.append(record.features[2].qualifiers["gene"][0])
+                    line.append(record.features[2].qualifiers["db_xref"][2].split(":")[-1])
+                    update_success = True
+
+                if update_success is False:
+                    missing.append(line[0])
 
     # Open a text file to be used as a simple database and write the database
     # rsg_db = open(os.path.join(ROOT, 'rsg_chr_db.txt'), 'w')
@@ -254,7 +269,6 @@ def update_lrg(dbcnx):
 def count_ng_nc(line):
     # Count NG_ to NC_ and remove the entries we don't care about!
     if 'NC_' in line and 'NG_' in line:
-        # print(line)
         pass
     else:
         return None

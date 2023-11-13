@@ -30485,7 +30485,7 @@ class TestVariantsAuto(TestCase):
         variant = 'NC_000009.11:g.130577961C>T'
         results = self.vv.validate(variant, 'GRCh37', 'NM_001278138.1').format_as_dict(test=True)
         print(results)
-        assert '*477=' in results['NM_001278138.1:c.1431G>A']['hgvs_predicted_protein_consequence']['slr']
+        assert '*=' in results['NM_001278138.1:c.1431G>A']['hgvs_predicted_protein_consequence']['slr']
 
     def test_issue_185(self):
         variant = 'NC_000023.10(NM_004006.2):c.6615_7660del'

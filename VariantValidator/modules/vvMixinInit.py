@@ -532,6 +532,14 @@ class Mixin:
 
                                     aa_seq = self.sf.fetch_seq(associated_protein_accession, start_i=aa_start_pos - 1,
                                                                end_i=aa_end_pos)
+
+                                    # Handle Termination unaffected (note, * does not appear in the reference sequence)
+                                    if aa_seq == "":
+                                        ck_aa_seq = self.sf.fetch_seq(associated_protein_accession)
+                                        length = len(ck_aa_seq)
+                                        if aa_start_pos == length + 1 and aa_end_pos == length + 1:
+                                            aa_seq = "*"
+
                                     start_aa = utils.one_to_three(aa_seq[0])
                                     end_aa = utils.one_to_three(aa_seq[-1])
 
