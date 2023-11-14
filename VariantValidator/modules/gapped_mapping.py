@@ -667,50 +667,52 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     if merged_variant is not False:
                         hgvs_refreshed_variant = saved_hgvs_coding
                     else:
+                        try:
+                            # Try the push to see if a gap is identified
+                            hgvs_stash = copy.deepcopy(stash_hgvs_not_delins)
+                            stash_ac = hgvs_stash.ac
 
-                        # Try the push to see if a gap is identified
-                        hgvs_stash = copy.deepcopy(stash_hgvs_not_delins)
-                        stash_ac = hgvs_stash.ac
+                            # Make a hard left and hard right not delins g.
+                            stash_dict_right = hgvs_utils.hard_right_hgvs2vcf(hgvs_stash,
+                                                                              self.variant.primary_assembly,
+                                                                              self.variant.hn,
+                                                                              self.variant.reverse_normalizer,
+                                                                              self.validator.sf,
+                                                                              saved_hgvs_coding.ac,
+                                                                              self.validator.hdp,
+                                                                              self.validator.alt_aln_method,
+                                                                              self.validator.hp,
+                                                                              self.validator.vm,
+                                                                              self.validator.merge_hgvs_3pr)
+                            stash_pos_right = int(stash_dict_right['pos'])
+                            stash_ref_right = stash_dict_right['ref']
+                            stash_alt_right = stash_dict_right['alt']
+                            stash_end_right = str(stash_pos_right + len(stash_ref_right) - 1)
+                            stash_hgvs_not_delins_right = self.validator.hp.parse_hgvs_variant(stash_ac + ':' +
+                                hgvs_stash.type + '.' + str(stash_pos_right) + '_' + stash_end_right + 'del' +
+                                stash_ref_right + 'ins' + stash_alt_right)
 
-                        # Make a hard left and hard right not delins g.
-                        stash_dict_right = hgvs_utils.hard_right_hgvs2vcf(hgvs_stash,
-                                                                          self.variant.primary_assembly,
-                                                                          self.variant.hn,
-                                                                          self.variant.reverse_normalizer,
-                                                                          self.validator.sf,
-                                                                          saved_hgvs_coding.ac,
-                                                                          self.validator.hdp,
-                                                                          self.validator.alt_aln_method,
-                                                                          self.validator.hp,
-                                                                          self.validator.vm,
-                                                                          self.validator.merge_hgvs_3pr)
-                        stash_pos_right = int(stash_dict_right['pos'])
-                        stash_ref_right = stash_dict_right['ref']
-                        stash_alt_right = stash_dict_right['alt']
-                        stash_end_right = str(stash_pos_right + len(stash_ref_right) - 1)
-                        stash_hgvs_not_delins_right = self.validator.hp.parse_hgvs_variant(stash_ac + ':' +
-                            hgvs_stash.type + '.' + str(stash_pos_right) + '_' + stash_end_right + 'del' +
-                            stash_ref_right + 'ins' + stash_alt_right)
-
-                        stash_dict_left = hgvs_utils.hard_left_hgvs2vcf(hgvs_stash,
-                                                                        self.variant.primary_assembly,
-                                                                        self.variant.hn,
-                                                                        self.variant.reverse_normalizer,
-                                                                        self.validator.sf,
-                                                                        saved_hgvs_coding.ac,
-                                                                        self.validator.hdp,
-                                                                        self.validator.alt_aln_method,
-                                                                        self.validator.hp,
-                                                                        self.validator.vm,
-                                                                        self.validator.merge_hgvs_3pr)
-                        stash_pos_left = int(stash_dict_left['pos'])
-                        stash_ref_left = stash_dict_left['ref']
-                        stash_alt_left = stash_dict_left['alt']
-                        stash_end_left = str(stash_pos_left + len(stash_ref_left) - 1)
-                        stash_hgvs_not_delins_left = self.validator.hp.parse_hgvs_variant(
-                            stash_ac + ':' + hgvs_stash.type + '.' + str(
-                                stash_pos_left) + '_' + stash_end_left + 'del' + stash_ref_left + 'ins' +
-                            stash_alt_left)
+                            stash_dict_left = hgvs_utils.hard_left_hgvs2vcf(hgvs_stash,
+                                                                            self.variant.primary_assembly,
+                                                                            self.variant.hn,
+                                                                            self.variant.reverse_normalizer,
+                                                                            self.validator.sf,
+                                                                            saved_hgvs_coding.ac,
+                                                                            self.validator.hdp,
+                                                                            self.validator.alt_aln_method,
+                                                                            self.validator.hp,
+                                                                            self.validator.vm,
+                                                                            self.validator.merge_hgvs_3pr)
+                            stash_pos_left = int(stash_dict_left['pos'])
+                            stash_ref_left = stash_dict_left['ref']
+                            stash_alt_left = stash_dict_left['alt']
+                            stash_end_left = str(stash_pos_left + len(stash_ref_left) - 1)
+                            stash_hgvs_not_delins_left = self.validator.hp.parse_hgvs_variant(
+                                stash_ac + ':' + hgvs_stash.type + '.' + str(
+                                    stash_pos_left) + '_' + stash_end_left + 'del' + stash_ref_left + 'ins' +
+                                stash_alt_left)
+                        except vvhgvs.exceptions.HGVSDataNotAvailableError:
+                            continue
 
                         # Map in-situ to the transcript left and right
                         try:
@@ -2930,7 +2932,10 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
         # Normalise intronic, if called with query_genomic
         if with_query_genomic:
             if hgvs_coding.posedit.pos.start.offset != 0:
-                hgvs_coding = self.variant.evm.g_to_t(query_genomic, hgvs_coding.ac)
+                try:
+                    hgvs_coding = self.variant.evm.g_to_t(query_genomic, hgvs_coding.ac)
+                except vvhgvs.exceptions.HGVSInvalidIntervalError:
+                    pass
 
         # Map to the transcript and test for movement
         try:

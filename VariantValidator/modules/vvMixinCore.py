@@ -6,6 +6,7 @@ import copy
 import sys
 import logging
 import json
+import time
 from vvhgvs.assemblymapper import AssemblyMapper
 from . import hgvs_utils
 from . import utils as fn
@@ -742,7 +743,15 @@ class Mixin(vvMixinConverters.Mixin):
 
                     # Now start mapping from genome to transcripts
                     if my_variant.reftype == ':g.':
-                        toskip = mappers.gene_to_transcripts(my_variant, self, select_transcripts_dict)
+                        try:
+                            toskip = mappers.gene_to_transcripts(my_variant, self, select_transcripts_dict)
+                        except IndexError:
+                            my_variant.output_type_flag = 'warning'
+                            error = '%s cannot be validated in the context of genome build %s, ' \
+                                    'try an alternative genome build' \
+                                    % (my_variant.quibble, my_variant.primary_assembly)
+                            my_variant.warnings.append(error)
+                            toskip = True
                         if toskip:
                             continue
 
@@ -1189,15 +1198,32 @@ class Mixin(vvMixinConverters.Mixin):
                                              ) or re.search('p.?', re_parse_protein_single_aa):
                                     re_parse_protein_single_aa = re_parse_protein_single_aa.replace('p.=',
                                                                                                     'p.(=)')
+                                if re.search("p.\(Ter\d+=\)", predicted_protein_variant_dict['tlr']):
+                                    predicted_protein_variant_dict['tlr'] = \
+                                        predicted_protein_variant_dict['tlr'].split("p.")[0]
+                                    predicted_protein_variant_dict['tlr'] = \
+                                        predicted_protein_variant_dict['tlr'] + "p.(Ter=)"
+                                    re_parse_protein_single_aa = re_parse_protein_single_aa.split("p.")[0]
+                                    re_parse_protein_single_aa = re_parse_protein_single_aa + "p.(*=)"
+
+                                elif re.search("p.Ter\d+=", predicted_protein_variant_dict['tlr']):
+                                    predicted_protein_variant_dict['tlr'] = \
+                                        predicted_protein_variant_dict['tlr'].split("p.")[0]
+                                    predicted_protein_variant_dict['tlr'] = \
+                                        predicted_protein_variant_dict['tlr'] + "p.Ter="
+                                    re_parse_protein_single_aa = re_parse_protein_single_aa.split("p.")[0]
+                                    re_parse_protein_single_aa = re_parse_protein_single_aa + "p.*="
 
                                 predicted_protein_variant_dict["slr"] = str(re_parse_protein_single_aa)
 
                                 # set LRG outputs
                                 if format_lrg is not None:
                                     predicted_protein_variant_dict["lrg_tlr"] = \
-                                        format_lrg.split(':')[0] + ':' + predicted_protein_variant_dict["tlr"].split(':')[1]
+                                        format_lrg.split(':')[0] + ':' + \
+                                        predicted_protein_variant_dict["tlr"].split(':')[1]
                                     predicted_protein_variant_dict["lrg_slr"] = \
-                                        format_lrg.split(':')[0] + ':' + predicted_protein_variant_dict["slr"].split(':')[1]
+                                        format_lrg.split(':')[0] + ':' + \
+                                        predicted_protein_variant_dict["slr"].split(':')[1]
                                 else:
                                     predicted_protein_variant_dict["lrg_tlr"] = ''
                                     predicted_protein_variant_dict["lrg_slr"] = ''
@@ -1279,7 +1305,16 @@ class Mixin(vvMixinConverters.Mixin):
                                     'VariantValidator %s' % str(e)
                             my_variant.warnings.append(error)
                             logger.warning(error)
-                    annotation_info = self.db.get_transcript_annotation(hgvs_tx_variant.ac)
+                    i = 1
+                    while i in range(10):
+                        annotation_info = self.db.get_transcript_annotation(hgvs_tx_variant.ac)
+                        try:
+                            json.loads(annotation_info)
+                        except json.decoder.JSONDecodeError:
+                            i += 1
+                            time.sleep(2)
+                        else:
+                            break
                     reference_annotations = json.loads(annotation_info)
 
                 variant.stable_gene_ids = stable_gene_ids
@@ -1468,7 +1503,6 @@ class Mixin(vvMixinConverters.Mixin):
         # return
         return g2d_data
 
-
     def hgvs2ref(self, query):
         """
         Fetch reference sequence from a HGVS variant description
@@ -1607,6 +1641,12 @@ class Mixin(vvMixinConverters.Mixin):
                         variant.warnings.append(error)
                         logger.warning(error)
                         return True
+                except Exception as e:
+                    error = 'Unable to assign transcript identity records to %s.  Please try again later ' \
+                            'and if the problem persists contact admin. error=%s.' % (accession, str(e))
+                    variant.warnings.append(error)
+                    logger.info(error)
+                    return True
                 variant.description = entry['description']
                 variant.gene_symbol = entry['hgnc_symbol']
 

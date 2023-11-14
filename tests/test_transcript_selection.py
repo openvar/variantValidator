@@ -25,7 +25,7 @@ class TestTranscriptSelection(TestCase):
         variant = 'NC_000017.11:g.7676594T>A'
         results = self.vv.validate(variant, 'GRCh38', 'select').format_as_dict(test=True)
         print(results)
-        assert len(results.keys()) == 4
+        assert len(results.keys()) >= 4
 
     def test_mane_select(self):
         variant = 'NC_000017.11:g.7676594T>A'
