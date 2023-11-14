@@ -2351,7 +2351,7 @@ class Mixin(vvMixinInit.Mixin):
                     if accession not in latest_version.keys():
                         latest_version[accession] = version
                     else:
-                        if version > latest_version[accession]:
+                        if int(version) > int(latest_version[accession]):
                             latest_version[accession] = version
                 else:
                     # VF method
@@ -2361,7 +2361,7 @@ class Mixin(vvMixinInit.Mixin):
                         latest_version[accession]["version"] = version
                         latest_version[accession]["list"] = tx_id[1:]
                     else:
-                        if version > latest_version[accession]["version"]:
+                        if int(version) > int(latest_version[accession]["version"]):
                             latest_version[accession]["version"] = version
                             latest_version[accession]["list"] = tx_id[1:]
 
