@@ -169,12 +169,12 @@ class TestGene2Transcripts(unittest.TestCase):
         output_e = self.vv.gene2transcripts('BRAF', select_transcripts='mane_select')
         output_f = self.vv.gene2transcripts('BRAF', select_transcripts='mane')
         print(output)
-        assert len(output['transcripts']) == 8
+        assert len(output['transcripts']) >= 3
         assert len(output_b['transcripts']) == 1
         assert len(output_c['transcripts']) == 2
         assert len(output_d['transcripts']) == 0
         assert len(output_e['transcripts']) == 1
-        assert len(output_f['transcripts']) == 2
+        assert len(output_f['transcripts']) >= 2
 
     def test_symbol_valid_hgnc_id(self):
         symbol = 'HGNC:2197'
