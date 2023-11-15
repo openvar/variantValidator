@@ -5,7 +5,7 @@ pipeline {
         }
     }
     environment {
-        CODECOV_TOKEN = "0a0a7043-dd7a-46fe-a1d4-a967b7b7d251" // Define an environment variable for the Codecov token
+        CODECOV_TOKEN = credentials('CODECOV_TOKEN') // Use the Codecov token from Jenkins secret
         CONTAINER_SUFFIX = "${BUILD_NUMBER}" // Use the build number as a container suffix for uniqueness
         DOCKER_NETWORK = "variantvalidator_docker_network-$CONTAINER_SUFFIX" // Create a unique Docker network for this build
         DATA_VOLUME = "docker-shared-space" // Define a data volume for shared data
@@ -62,7 +62,7 @@ pipeline {
                     def dockerfile = './Dockerfile' // Define the Dockerfile path
                     def variantValidatorContainer = docker.build("variantvalidator-${CONTAINER_SUFFIX}", "--no-cache -f ${dockerfile} .")
 
-                    // Mount the DATA_VOLUME
+                    // Run variantValidatorContainer and Mount the DATA_VOLUME
                     variantValidatorContainer.run("-v $DATA_VOLUME:/usr/local/share:rw -d --name variantvalidator --network $DOCKER_NETWORK")
 
                     // Display a message indicating that VariantValidator is being built and run
@@ -87,8 +87,6 @@ pipeline {
                             echo "Connected successfully! Running pytest..."
 
                             // Run pytest && Run Codecov with the provided token and branch name
-                            sh 'docker exec variantvalidator pwd'
-                            sh 'docker exec variantvalidator ls -al'
                             sh 'docker exec variantvalidator pytest --cov-report=term --cov=VariantValidator tests/'
                             sh 'docker exec variantvalidator ls -al'
 
