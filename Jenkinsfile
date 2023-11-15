@@ -63,7 +63,7 @@ pipeline {
                     def variantValidatorContainer = docker.build("variantvalidator-${CONTAINER_SUFFIX}", "--no-cache -f ${dockerfile} .")
 
                     // Mount the present working directory ($PWD) into the Docker working directory ($WORKDIR)
-                    variantValidatorContainer.run("-v $PWD:/app:rw -v $DATA_VOLUME:/usr/local/share:rw -d --name variantvalidator --network $DOCKER_NETWORK")
+                    variantValidatorContainer.run("-v $DATA_VOLUME:/usr/local/share:rw -d --name variantvalidator --network $DOCKER_NETWORK")
 
                     // Display a message indicating that VariantValidator is being built and run
                     sh 'echo Building and running VariantValidator'
