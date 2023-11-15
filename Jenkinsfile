@@ -88,10 +88,9 @@ pipeline {
 
                             // Run pytest && Run Codecov with the provided token and branch name
                             sh 'docker exec variantvalidator pytest --cov-report=term --cov=VariantValidator tests/'
-                            sh 'docker exec variantvalidator ls -al'
 
                             // Send coverage report to Codecov
-                            sh 'ls -al && codecov -t $CODECOV_TOKEN -b ${BRANCH_NAME}'
+                            sh 'codecov -t $CODECOV_TOKEN -b ${BRANCH_NAME}'
 
                             // Check for test failures in the captured output
                             if (currentBuild.rawBuild.getLog(2000).join('\n').contains("test summary info") && currentBuild.rawBuild.getLog(2000).join('\n').contains("FAILED")) {
