@@ -9,7 +9,9 @@ ENV MYSQL_PASSWORD var1ant
 RUN apt-get update && apt-get install -y \
     wget
 
+# Set the max_connections directly in the my.cnf
+RUN echo '[mysqld]\nmax_connections=250\n' > /etc/mysql/my.cnf
+
 RUN rm -rf /var/lib/apt/lists/*
 
 RUN wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_2023_08.sql.gz -O /docker-entrypoint-initdb.d/validator_2023_08.sql.gz
-
