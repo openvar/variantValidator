@@ -23,7 +23,6 @@ RUN pip install --upgrade pip
 
 # Install the app
 RUN pip install -e .
-RUN pip install codecov
 
 # Copy the config file into the container home directory
 COPY configuration/docker.ini /root/.variantvalidator
