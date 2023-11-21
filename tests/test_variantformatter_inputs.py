@@ -200,7 +200,7 @@ class TestVFvariantsAuto(object):
         results = results.stucture_data()
         print(results)
         assert '19-41123094-G-GG' in results.keys()
-        assert results['19-41123094-G-GG']['p_vcf'] == '19-41123094-G-GG'
+        assert results['19-41123094-G-GG']['p_vcf'] == '19-41123093-A-AG'
         assert results['19-41123094-G-GG']['g_hgvs'] == 'NC_000019.9:g.41123095dup'
         assert results['19-41123094-G-GG']['genomic_variant_error'] is None
         assert 'NM_001042544.1' in results['19-41123094-G-GG']['hgvs_t_and_p'].keys()
@@ -705,7 +705,7 @@ class TestVFvariantsAuto(object):
         results = results.stucture_data()
         print(results)
         assert '9-136132908-TAC-TCA' in results.keys()
-        assert results['9-136132908-TAC-TCA']['p_vcf'] == '9-136132908-TAC-TCA'
+        assert results['9-136132908-TAC-TCA']['p_vcf'] == '9-136132909-AC-CA'
         assert results['9-136132908-TAC-TCA']['g_hgvs'] == 'NC_000009.11:g.136132909_136132910delinsCA'
         assert results['9-136132908-TAC-TCA']['genomic_variant_error'] is None
         assert 'NM_020469.2' in results['9-136132908-TAC-TCA']['hgvs_t_and_p'].keys()
@@ -809,7 +809,7 @@ class TestVFvariantsAuto(object):
         results = results.stucture_data()
         print(results)
         assert '2-73675227-TCTC-TCTCCTC' in results.keys()
-        assert results['2-73675227-TCTC-TCTCCTC']['p_vcf'] == '2-73675227-TCTC-TCTCCTC'
+        assert results['2-73675227-TCTC-TCTCCTC']['p_vcf'] == '2-73675227-T-TCTC'
         assert results['2-73675227-TCTC-TCTCCTC']['g_hgvs'] == 'NC_000002.11:g.73675228_73675230dup'
         assert results['2-73675227-TCTC-TCTCCTC']['genomic_variant_error'] is None
         assert 'NM_015120.4' in results['2-73675227-TCTC-TCTCCTC']['hgvs_t_and_p'].keys()
@@ -838,7 +838,7 @@ class TestVFvariantsAuto(object):
         results = results.stucture_data()
         print(results)
         assert '3-14561627-AG-AGG' in results.keys()
-        assert results['3-14561627-AG-AGG']['p_vcf'] == '3-14561627-AG-AGG'
+        assert results['3-14561627-AG-AGG']['p_vcf'] == '3-14561627-A-AG'
         assert results['3-14561627-AG-AGG']['g_hgvs'] == 'NC_000003.11:g.14561629dup'
         assert results['3-14561627-AG-AGG']['genomic_variant_error'] is None
         assert 'NM_001080423.2' in results['3-14561627-AG-AGG']['hgvs_t_and_p'].keys()
@@ -1008,7 +1008,7 @@ class TestVFvariantsAuto(object):
         results = results.stucture_data()
         print(results)
         assert '9-135800972-AC-ACC' in results.keys()
-        assert results['9-135800972-AC-ACC']['p_vcf'] == '9-135800972-AC-ACC'
+        assert results['9-135800972-AC-ACC']['p_vcf'] == '9-135800972-A-AC'
         assert results['9-135800972-AC-ACC']['g_hgvs'] == 'NC_000009.11:g.135800974dup'
         assert results['9-135800972-AC-ACC']['genomic_variant_error'] is None
         assert 'NM_001162427.1' in results['9-135800972-AC-ACC']['hgvs_t_and_p'].keys()
@@ -1273,7 +1273,7 @@ class TestVFvariantsAuto(object):
         results = results.stucture_data()
         print(results)
         assert '15-72105928-AC-ATT' in results.keys()
-        assert results['15-72105928-AC-ATT']['p_vcf'] == '15-72105928-AC-ATT'
+        assert results['15-72105928-AC-ATT']['p_vcf'] == '15-72105929-C-TT'
         assert results['15-72105928-AC-ATT']['g_hgvs'] == 'NC_000015.9:g.72105929delinsTT'
         assert results['15-72105928-AC-ATT']['genomic_variant_error'] is None
         assert 'NM_014249.3' in results['15-72105928-AC-ATT']['hgvs_t_and_p'].keys()
@@ -1293,7 +1293,7 @@ class TestVFvariantsAuto(object):
         results = results.stucture_data()
         print(results)
         assert '15-72105928-ACC-ATT' in results.keys()
-        assert results['15-72105928-ACC-ATT']['p_vcf'] == '15-72105928-ACC-ATT'
+        assert results['15-72105928-ACC-ATT']['p_vcf'] == '15-72105929-CC-TT'
         assert results['15-72105928-ACC-ATT']['g_hgvs'] == 'NC_000015.9:g.72105929_72105930delinsTT'
         assert results['15-72105928-ACC-ATT']['genomic_variant_error'] is None
         assert 'NM_014249.3' in results['15-72105928-ACC-ATT']['hgvs_t_and_p'].keys()
@@ -1313,7 +1313,7 @@ class TestVFvariantsAuto(object):
         results = results.stucture_data()
         print(results)
         assert '15-72105927-GACC-GTT' in results.keys()
-        assert results['15-72105927-GACC-GTT']['p_vcf'] == '15-72105927-GACC-GTT'
+        assert results['15-72105927-GACC-GTT']['p_vcf'] == '15-72105928-ACC-TT'
         assert results['15-72105927-GACC-GTT']['g_hgvs'] == 'NC_000015.9:g.72105928_72105930delinsTT'
         assert results['15-72105927-GACC-GTT']['genomic_variant_error'] is None
         assert 'NM_014249.3' in results['15-72105927-GACC-GTT']['hgvs_t_and_p'].keys()
@@ -1495,7 +1495,7 @@ class TestVFvariantsAuto(object):
         results = results.stucture_data()
         print(results)
         assert '1-46655125-CTCAC-C' in results.keys()
-        assert results['1-46655125-CTCAC-C']['p_vcf'] == '1-46655125-CTCAC-C'
+        assert results['1-46655125-CTCAC-C']['p_vcf'] == '1-46655121-GTCAC-G'
         assert results['1-46655125-CTCAC-C']['g_hgvs'] == 'NC_000001.10:g.46655126_46655129del'
         assert results['1-46655125-CTCAC-C']['genomic_variant_error'] is None
         assert 'NM_001290130.1' in results['1-46655125-CTCAC-C']['hgvs_t_and_p'].keys()
@@ -1540,7 +1540,7 @@ class TestVFvariantsAuto(object):
         results = results.stucture_data()
         print(results)
         assert '1-68912526-GCCAGAG-G' in results.keys()
-        assert results['1-68912526-GCCAGAG-G']['p_vcf'] == '1-68912526-GCCAGAG-G'
+        assert results['1-68912526-GCCAGAG-G']['p_vcf'] == '1-68912523-TGAGCCA-T'
         assert results['1-68912526-GCCAGAG-G']['g_hgvs'] == 'NC_000001.10:g.68912527_68912532del'
         assert results['1-68912526-GCCAGAG-G']['genomic_variant_error'] is None
         assert 'NM_000329.2' in results['1-68912526-GCCAGAG-G']['hgvs_t_and_p'].keys()
@@ -1616,7 +1616,6 @@ class TestVFvariantsAuto(object):
         results = results.stucture_data()
         print(results)
         assert '1-156104666-TTGAGAGCCGGCTGGCGGATGCGCT-TCCCC' in results.keys()
-        assert results['1-156104666-TTGAGAGCCGGCTGGCGGATGCGCT-TCCCC']['p_vcf'] == '1-156104666-TTGAGAGCCGGCTGGCGGATGCGCT-TCCCC'
         assert results['1-156104666-TTGAGAGCCGGCTGGCGGATGCGCT-TCCCC']['g_hgvs'] == 'NC_000001.10:g.156104667_156104690delinsCCCC'
         assert results['1-156104666-TTGAGAGCCGGCTGGCGGATGCGCT-TCCCC']['genomic_variant_error'] is None
         assert 'NM_001257374.2' in results['1-156104666-TTGAGAGCCGGCTGGCGGATGCGCT-TCCCC']['hgvs_t_and_p'].keys()
@@ -1666,7 +1665,7 @@ class TestVFvariantsAuto(object):
         results = results.stucture_data()
         print(results)
         assert '1-156108541-G-GG' in results.keys()
-        assert results['1-156108541-G-GG']['p_vcf'] == '1-156108541-G-GG'
+        assert results['1-156108541-G-GG']['p_vcf'] == '1-156108540-C-CG'
         assert results['1-156108541-G-GG']['g_hgvs'] == 'NC_000001.10:g.156108541dup'
         assert results['1-156108541-G-GG']['genomic_variant_error'] is None
         assert 'NM_170707.3' in results['1-156108541-G-GG']['hgvs_t_and_p'].keys()
@@ -2196,7 +2195,7 @@ class TestVFvariantsAuto(object):
         results = results.stucture_data()
         print(results)
         assert '15-42680000-CA-CAA' in results.keys()
-        assert results['15-42680000-CA-CAA']['p_vcf'] == '15-42680000-CA-CAA'
+        assert results['15-42680000-CA-CAA']['p_vcf'] == '15-42680000-C-CA'
         assert results['15-42680000-CA-CAA']['g_hgvs'] == 'NC_000015.9:g.42680002dup'
         assert results['15-42680000-CA-CAA']['genomic_variant_error'] is None
         assert 'NM_173087.1' in results['15-42680000-CA-CAA']['hgvs_t_and_p'].keys()
@@ -2261,7 +2260,7 @@ class TestVFvariantsAuto(object):
         results = results.stucture_data()
         print(results)
         assert '15-42703179-TAG-TTCATCT' in results.keys()
-        assert results['15-42703179-TAG-TTCATCT']['p_vcf'] == '15-42703179-TAG-TTCATCT'
+        assert results['15-42703179-TAG-TTCATCT']['p_vcf'] == '15-42703180-AG-TCATCT'
         assert results['15-42703179-TAG-TTCATCT']['g_hgvs'] == 'NC_000015.9:g.42703180_42703181delinsTCATCT'
         assert results['15-42703179-TAG-TTCATCT']['genomic_variant_error'] is None
         assert 'NM_173087.1' in results['15-42703179-TAG-TTCATCT']['hgvs_t_and_p'].keys()
@@ -2316,7 +2315,7 @@ class TestVFvariantsAuto(object):
         results = results.stucture_data()
         print(results)
         assert '15-72105929-CC-C' in results.keys()
-        assert results['15-72105929-CC-C']['p_vcf'] == '15-72105929-CC-C'
+        assert results['15-72105929-CC-C']['p_vcf'] == '15-72105928-AC-A'
         assert results['15-72105929-CC-C']['g_hgvs'] == 'NC_000015.9:g.72105933del'
         assert results['15-72105929-CC-C']['genomic_variant_error'] is None
         assert 'NM_014249.3' in results['15-72105929-CC-C']['hgvs_t_and_p'].keys()
@@ -2586,7 +2585,7 @@ class TestVFvariantsAuto(object):
         results = results.stucture_data()
         print(results)
         assert '16-89574916-C-CGTC' in results.keys()
-        assert results['16-89574916-C-CGTC']['p_vcf'] == '16-89574916-C-CGTC'
+        assert results['16-89574916-C-CGTC']['p_vcf'] == '16-89574913-A-AGTC'
         assert results['16-89574916-C-CGTC']['g_hgvs'] == 'NC_000016.9:g.89574914_89574916dup'
         assert results['16-89574916-C-CGTC']['genomic_variant_error'] is None
         assert 'NM_003119.3' in results['16-89574916-C-CGTC']['hgvs_t_and_p'].keys()
@@ -2691,7 +2690,7 @@ class TestVFvariantsAuto(object):
         results = results.stucture_data()
         print(results)
         assert '16-89576931-G-GTG' in results.keys()
-        assert results['16-89576931-G-GTG']['p_vcf'] == '16-89576931-G-GTG'
+        assert results['16-89576931-G-GTG']['p_vcf'] == '16-89576929-T-TTG'
         assert results['16-89576931-G-GTG']['g_hgvs'] == 'NC_000016.9:g.89576930_89576931dup'
         assert results['16-89576931-G-GTG']['genomic_variant_error'] is None
         assert 'NM_003119.3' in results['16-89576931-G-GTG']['hgvs_t_and_p'].keys()
@@ -2761,7 +2760,7 @@ class TestVFvariantsAuto(object):
         results = results.stucture_data()
         print(results)
         assert '16-89613064-AGGAGAGGCG-AT' in results.keys()
-        assert results['16-89613064-AGGAGAGGCG-AT']['p_vcf'] == '16-89613064-AGGAGAGGCG-AT'
+        assert results['16-89613064-AGGAGAGGCG-AT']['p_vcf'] == '16-89613065-GGAGAGGCG-T'
         assert results['16-89613064-AGGAGAGGCG-AT']['g_hgvs'] == 'NC_000016.9:g.89613065_89613073delinsT'
         assert results['16-89613064-AGGAGAGGCG-AT']['genomic_variant_error'] is None
         assert 'NM_003119.3' in results['16-89613064-AGGAGAGGCG-AT']['hgvs_t_and_p'].keys()
@@ -2786,7 +2785,7 @@ class TestVFvariantsAuto(object):
         results = results.stucture_data()
         print(results)
         assert '16-89613069-AGGCGGGAGA-AT' in results.keys()
-        assert results['16-89613069-AGGCGGGAGA-AT']['p_vcf'] == '16-89613069-AGGCGGGAGA-AT'
+        assert results['16-89613069-AGGCGGGAGA-AT']['p_vcf'] == '16-89613070-GGCGGGAGA-T'
         assert results['16-89613069-AGGCGGGAGA-AT']['g_hgvs'] == 'NC_000016.9:g.89613070_89613078delinsT'
         assert results['16-89613069-AGGCGGGAGA-AT']['genomic_variant_error'] is None
         assert 'NM_003119.3' in results['16-89613069-AGGCGGGAGA-AT']['hgvs_t_and_p'].keys()
@@ -3719,7 +3718,7 @@ class TestVFvariantsAuto(object):
         results = results.stucture_data()
         print(results)
         assert '2-166929889-GTCCAGGTCCT-GAC' in results.keys()
-        assert results['2-166929889-GTCCAGGTCCT-GAC']['p_vcf'] == '2-166929889-GTCCAGGTCCT-GAC'
+        assert results['2-166929889-GTCCAGGTCCT-GAC']['p_vcf'] == '2-166929890-TCCAGGTCCT-AC'
         assert results['2-166929889-GTCCAGGTCCT-GAC']['g_hgvs'] == 'NC_000002.11:g.166929890_166929899delinsAC'
         assert results['2-166929889-GTCCAGGTCCT-GAC']['genomic_variant_error'] is None
         assert 'NM_001353952.1' in results['2-166929889-GTCCAGGTCCT-GAC']['hgvs_t_and_p'].keys()
@@ -4451,7 +4450,7 @@ class TestVFvariantsAuto(object):
         results = results.stucture_data()
         print(results)
         assert '5-118811422-GGTGAG-G' in results.keys()
-        assert results['5-118811422-GGTGAG-G']['p_vcf'] == '5-118811422-GGTGAG-G'
+        assert results['5-118811422-GGTGAG-G']['p_vcf'] == '5-118811421-GGGTGA-G'
         assert results['5-118811422-GGTGAG-G']['g_hgvs'] == 'NC_000005.9:g.118811423_118811427del'
         assert results['5-118811422-GGTGAG-G']['genomic_variant_error'] is None
         assert 'NM_001292028.1' in results['5-118811422-GGTGAG-G']['hgvs_t_and_p'].keys()
@@ -4547,7 +4546,7 @@ class TestVFvariantsAuto(object):
         results = results.stucture_data()
         print(results)
         assert '6-110036337-TGAT-T' in results.keys()
-        assert results['6-110036337-TGAT-T']['p_vcf'] == '6-110036337-TGAT-T'
+        assert results['6-110036337-TGAT-T']['p_vcf'] == '6-110036336-TTGA-T'
         assert results['6-110036337-TGAT-T']['g_hgvs'] == 'NC_000006.11:g.110036338_110036340del'
         assert results['6-110036337-TGAT-T']['genomic_variant_error'] is None
         assert 'NM_014845.5' in results['6-110036337-TGAT-T']['hgvs_t_and_p'].keys()
@@ -4742,7 +4741,7 @@ class TestVFvariantsAuto(object):
         results = results.stucture_data()
         print(results)
         assert '7-55248992-T-TTCCAGGAAGCCT' in results.keys()
-        assert results['7-55248992-T-TTCCAGGAAGCCT']['p_vcf'] == '7-55248992-T-TTCCAGGAAGCCT'
+        assert results['7-55248992-T-TTCCAGGAAGCCT']['p_vcf'] == '7-55248980-C-CTCCAGGAAGCCT'
         assert results['7-55248992-T-TTCCAGGAAGCCT']['g_hgvs'] == 'NC_000007.13:g.55248981_55248992dup'
         assert results['7-55248992-T-TTCCAGGAAGCCT']['genomic_variant_error'] is None
         assert 'NM_005228.4' in results['7-55248992-T-TTCCAGGAAGCCT']['hgvs_t_and_p'].keys()
@@ -6712,49 +6711,49 @@ class TestVFvariantsAuto(object):
         assert results['11-108218120-CT-C']['hgvs_t_and_p']['NM_001321307.1']['transcript_variant_error'] is None
 
     def test_variant241(self):
-        variant = 'X-76813149-AT-AATA'
+        variant = 'X-76813150-T-ATA'
         results = vf.FormatVariant(variant, 'GRCh38', vfo,  'refseq', None)
         results = results.stucture_data()
         print(results)
-        assert 'X-76813149-AT-AATA' in results.keys()
-        assert results['X-76813149-AT-AATA']['p_vcf'] == 'X-76813149-AT-AATA'
-        assert results['X-76813149-AT-AATA']['g_hgvs'] == 'NC_000023.11:g.76813150delinsATA'
-        assert results['X-76813149-AT-AATA']['genomic_variant_error'] is None
-        assert 'NR_110406.2' in results['X-76813149-AT-AATA']['hgvs_t_and_p'].keys()
-        assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110406.2']['t_hgvs'] == 'NR_110406.2:n.412-154842delinsTAT'
-        assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110406.2']['p_hgvs_tlc'] is None
-        assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110406.2']['p_hgvs_slc'] is None
-        assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110406.2']['transcript_variant_error'] is None
-        assert 'NR_110402.2' in results['X-76813149-AT-AATA']['hgvs_t_and_p'].keys()
-        assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110402.2']['t_hgvs'] == 'NR_110402.2:n.412-120063delinsTAT'
-        assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110402.2']['p_hgvs_tlc'] is None
-        assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110402.2']['p_hgvs_slc'] is None
-        assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110402.2']['transcript_variant_error'] is None
-        assert 'NR_110401.2' in results['X-76813149-AT-AATA']['hgvs_t_and_p'].keys()
-        assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110401.2']['t_hgvs'] == 'NR_110401.2:n.412-154482delinsTAT'
-        assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110401.2']['p_hgvs_tlc'] is None
-        assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110401.2']['p_hgvs_slc'] is None
-        assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110401.2']['transcript_variant_error'] is None
-        assert 'NR_110404.2' in results['X-76813149-AT-AATA']['hgvs_t_and_p'].keys()
-        assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110404.2']['t_hgvs'] == 'NR_110404.2:n.307-154482delinsTAT'
-        assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110404.2']['p_hgvs_tlc'] is None
-        assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110404.2']['p_hgvs_slc'] is None
-        assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110404.2']['transcript_variant_error'] is None
-        assert 'NR_110400.2' in results['X-76813149-AT-AATA']['hgvs_t_and_p'].keys()
-        assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110400.2']['t_hgvs'] == 'NR_110400.2:n.307-120063delinsTAT'
-        assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110400.2']['p_hgvs_tlc'] is None
-        assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110400.2']['p_hgvs_slc'] is None
-        assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110400.2']['transcript_variant_error'] is None
-        assert 'NR_110405.2' in results['X-76813149-AT-AATA']['hgvs_t_and_p'].keys()
-        assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110405.2']['t_hgvs'] == 'NR_110405.2:n.307-31858delinsTAT'
-        assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110405.2']['p_hgvs_tlc'] is None
-        assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110405.2']['p_hgvs_slc'] is None
-        assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110405.2']['transcript_variant_error'] is None
-        assert 'NR_110403.2' in results['X-76813149-AT-AATA']['hgvs_t_and_p'].keys()
-        assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110403.2']['t_hgvs'] == 'NR_110403.2:n.389+24660delinsTAT'
-        assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110403.2']['p_hgvs_tlc'] is None
-        assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110403.2']['p_hgvs_slc'] is None
-        assert results['X-76813149-AT-AATA']['hgvs_t_and_p']['NR_110403.2']['transcript_variant_error'] is None
+        assert 'X-76813150-T-ATA' in results.keys()
+        assert results['X-76813150-T-ATA']['p_vcf'] == 'X-76813150-T-ATA'
+        assert results['X-76813150-T-ATA']['g_hgvs'] == 'NC_000023.11:g.76813150delinsATA'
+        assert results['X-76813150-T-ATA']['genomic_variant_error'] is None
+        assert 'NR_110406.2' in results['X-76813150-T-ATA']['hgvs_t_and_p'].keys()
+        assert results['X-76813150-T-ATA']['hgvs_t_and_p']['NR_110406.2']['t_hgvs'] == 'NR_110406.2:n.412-154842delinsTAT'
+        assert results['X-76813150-T-ATA']['hgvs_t_and_p']['NR_110406.2']['p_hgvs_tlc'] is None
+        assert results['X-76813150-T-ATA']['hgvs_t_and_p']['NR_110406.2']['p_hgvs_slc'] is None
+        assert results['X-76813150-T-ATA']['hgvs_t_and_p']['NR_110406.2']['transcript_variant_error'] is None
+        assert 'NR_110402.2' in results['X-76813150-T-ATA']['hgvs_t_and_p'].keys()
+        assert results['X-76813150-T-ATA']['hgvs_t_and_p']['NR_110402.2']['t_hgvs'] == 'NR_110402.2:n.412-120063delinsTAT'
+        assert results['X-76813150-T-ATA']['hgvs_t_and_p']['NR_110402.2']['p_hgvs_tlc'] is None
+        assert results['X-76813150-T-ATA']['hgvs_t_and_p']['NR_110402.2']['p_hgvs_slc'] is None
+        assert results['X-76813150-T-ATA']['hgvs_t_and_p']['NR_110402.2']['transcript_variant_error'] is None
+        assert 'NR_110401.2' in results['X-76813150-T-ATA']['hgvs_t_and_p'].keys()
+        assert results['X-76813150-T-ATA']['hgvs_t_and_p']['NR_110401.2']['t_hgvs'] == 'NR_110401.2:n.412-154482delinsTAT'
+        assert results['X-76813150-T-ATA']['hgvs_t_and_p']['NR_110401.2']['p_hgvs_tlc'] is None
+        assert results['X-76813150-T-ATA']['hgvs_t_and_p']['NR_110401.2']['p_hgvs_slc'] is None
+        assert results['X-76813150-T-ATA']['hgvs_t_and_p']['NR_110401.2']['transcript_variant_error'] is None
+        assert 'NR_110404.2' in results['X-76813150-T-ATA']['hgvs_t_and_p'].keys()
+        assert results['X-76813150-T-ATA']['hgvs_t_and_p']['NR_110404.2']['t_hgvs'] == 'NR_110404.2:n.307-154482delinsTAT'
+        assert results['X-76813150-T-ATA']['hgvs_t_and_p']['NR_110404.2']['p_hgvs_tlc'] is None
+        assert results['X-76813150-T-ATA']['hgvs_t_and_p']['NR_110404.2']['p_hgvs_slc'] is None
+        assert results['X-76813150-T-ATA']['hgvs_t_and_p']['NR_110404.2']['transcript_variant_error'] is None
+        assert 'NR_110400.2' in results['X-76813150-T-ATA']['hgvs_t_and_p'].keys()
+        assert results['X-76813150-T-ATA']['hgvs_t_and_p']['NR_110400.2']['t_hgvs'] == 'NR_110400.2:n.307-120063delinsTAT'
+        assert results['X-76813150-T-ATA']['hgvs_t_and_p']['NR_110400.2']['p_hgvs_tlc'] is None
+        assert results['X-76813150-T-ATA']['hgvs_t_and_p']['NR_110400.2']['p_hgvs_slc'] is None
+        assert results['X-76813150-T-ATA']['hgvs_t_and_p']['NR_110400.2']['transcript_variant_error'] is None
+        assert 'NR_110405.2' in results['X-76813150-T-ATA']['hgvs_t_and_p'].keys()
+        assert results['X-76813150-T-ATA']['hgvs_t_and_p']['NR_110405.2']['t_hgvs'] == 'NR_110405.2:n.307-31858delinsTAT'
+        assert results['X-76813150-T-ATA']['hgvs_t_and_p']['NR_110405.2']['p_hgvs_tlc'] is None
+        assert results['X-76813150-T-ATA']['hgvs_t_and_p']['NR_110405.2']['p_hgvs_slc'] is None
+        assert results['X-76813150-T-ATA']['hgvs_t_and_p']['NR_110405.2']['transcript_variant_error'] is None
+        assert 'NR_110403.2' in results['X-76813150-T-ATA']['hgvs_t_and_p'].keys()
+        assert results['X-76813150-T-ATA']['hgvs_t_and_p']['NR_110403.2']['t_hgvs'] == 'NR_110403.2:n.389+24660delinsTAT'
+        assert results['X-76813150-T-ATA']['hgvs_t_and_p']['NR_110403.2']['p_hgvs_tlc'] is None
+        assert results['X-76813150-T-ATA']['hgvs_t_and_p']['NR_110403.2']['p_hgvs_slc'] is None
+        assert results['X-76813150-T-ATA']['hgvs_t_and_p']['NR_110403.2']['transcript_variant_error'] is None
 
     def test_issue_322a(self):
         variant = 'NC_000017.10:g.48275363CC>A'
