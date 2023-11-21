@@ -1,16 +1,12 @@
-import importlib.metadata
-import re
-import warnings
+from unittest import TestCase
+from VariantValidator.settings import CONFIG_DIR, LOG_FILE, LOGGING_CONFIG
 
-# Pull in use_scm_version=True enabled version number
-_is_released_version = False
-try:
-    __version__ = importlib.metadata.version("VariantValidator")
-    if re.match(r"^\d+\.\d+\.\d+$", __version__) is not None:
-        _is_released_version = True
-except importlib.metadata.PackageNotFoundError:
-    warnings.warn("can't get __version__ because VariantValidator package isn't installed", Warning)
-    __version__ = None
+
+class TestSettings(TestCase):
+    assert ".variant" in CONFIG_DIR
+    assert ".vv_errorlog" in LOG_FILE
+    assert LOGGING_CONFIG["version"] == 1
+
 
 # <LICENSE>
 # Copyright (C) 2016-2023 VariantValidator Contributors
