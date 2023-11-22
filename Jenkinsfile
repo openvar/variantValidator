@@ -87,7 +87,7 @@ pipeline {
                             echo "Connected successfully! Running pytest..."
 
                             // Run pytest && Run Codecov with the provided token and branch name
-                            sh 'docker exec variantvalidator pytest -n 3 --cov=VariantValidator --cov-report=term tests/'
+                            sh 'docker exec variantvalidator pytest -n 3 --cov=VariantValidator --cov=VariantFormatter --cov-report=term tests/'
 
                             // Send coverage report to Codecov
                             sh 'docker exec variantvalidator codecov -t $CODECOV_TOKEN -b ${BRANCH_NAME}'
