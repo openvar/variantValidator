@@ -831,6 +831,13 @@ class TestVVGapWarnings(TestCase):
                "numbering for transcript NM_000088.4" in \
                results['NM_000088.4:c.2560-34_2561del']['validation_warnings']
 
+    def test_invalid_aa(self):
+        variant = 'NP_000483.3:p.Z1335P'
+        results = self.vv.validate(variant, 'GRCh38', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert "Invalid amino acid Z stated in description NP_000483.3:p.Z1335P" in \
+               results['validation_warning_1']['validation_warnings'][0]
+
 
 # <LICENSE>
 # Copyright (C) 2016-2023 VariantValidator Contributors

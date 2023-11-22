@@ -576,8 +576,14 @@ class Mixin(vvMixinConverters.Mixin):
                         if my_variant.hgvs_formatted.posedit.edit.ref is not None:
                             my_variant.hgvs_formatted.posedit.edit.ref = \
                                 my_variant.hgvs_formatted.posedit.edit.ref.upper()
-                    formatted_variant = str(my_variant.hgvs_formatted)
-
+                    try:
+                        formatted_variant = str(my_variant.hgvs_formatted)
+                    except KeyError as e:
+                        if "p" in my_variant.hgvs_formatted.type:
+                            error = "Invalid amino acid %s stated in description %s" % (str(e),
+                                                                                        my_variant.quibble)
+                            my_variant.warnings.append(error)
+                            continue
                     my_variant.set_quibble(str(my_variant.hgvs_formatted))
 
                     # ENST support needs to be re-evaluated, but is very low priority
@@ -1641,12 +1647,15 @@ class Mixin(vvMixinConverters.Mixin):
                         variant.warnings.append(error)
                         logger.warning(error)
                         return True
+                    else:
+                        return True
                 except Exception as e:
                     error = 'Unable to assign transcript identity records to %s.  Please try again later ' \
                             'and if the problem persists contact admin. error=%s.' % (accession, str(e))
                     variant.warnings.append(error)
                     logger.info(error)
                     return True
+
                 variant.description = entry['description']
                 variant.gene_symbol = entry['hgnc_symbol']
 
