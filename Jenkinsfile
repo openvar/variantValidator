@@ -21,6 +21,7 @@ pipeline {
         stage("Switch to Git Branch") {
             steps {
                 sh "git checkout ${BRANCH_NAME}"
+                sh "git pull"
             }
         }
         stage("Build and Run VVTA PostgreSQL") {
