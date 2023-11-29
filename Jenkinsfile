@@ -133,6 +133,7 @@ pipeline {
                 sh 'docker stop variantvalidator'
                 sh 'docker rm variantvalidator'
                 sh 'docker network rm $DOCKER_NETWORK'
+                sh 'docker system prune --all --volumes --force'
             }
         }
     }
