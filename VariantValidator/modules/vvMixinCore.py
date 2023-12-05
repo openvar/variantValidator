@@ -70,7 +70,11 @@ class Mixin(vvMixinConverters.Mixin):
             select_transcripts_dict = {}
             select_transcripts_dict_plus_version = {}
             if select_transcripts != 'all' and select_transcripts != 'raw':
-                select_transcripts_list = select_transcripts.split('|')
+                try:
+                    select_transcripts_list = json.loads(select_transcripts)
+                except json.decoder.JSONDecodeError:
+                    select_transcripts_list = [select_transcripts]
+
                 for trans_id in select_transcripts_list:
                     trans_id = trans_id.strip()
 
@@ -86,7 +90,10 @@ class Mixin(vvMixinConverters.Mixin):
                     select_transcripts_dict[trans_id] = ''
 
             # split the batch queries into a list
-            batch_queries = batch_variant.split('|')
+            try:
+                batch_queries = json.loads(batch_variant)
+            except json.decoder.JSONDecodeError:
+                batch_queries = [batch_variant]
 
             # Turn each variant into a dictionary. The dictionary will be compiled during validation
             self.batch_list = []
@@ -275,6 +282,7 @@ class Mixin(vvMixinConverters.Mixin):
                     In this section of the code we are compiling HGVS errors and providing improved warnings/error 
                     messages
                     """
+
                     # 1. Requested warnings from https://github.com/openvar/variantValidator/issues/195
                     if re.search(r'\(.+?\)', my_variant.quibble):  # Pattern looks for (....)
                         gene_symbol_query = re.search(r'\(.+?\)', my_variant.quibble).group(0)
@@ -498,7 +506,6 @@ class Mixin(vvMixinConverters.Mixin):
                     formatted_variant = my_variant.quibble
                     stash_input = my_variant.quibble
                     my_variant.post_format_conversion = stash_input
-
                     logger.debug("Variant input formatted, proceeding to validate.")
 
                     # Conversions
@@ -546,6 +553,12 @@ class Mixin(vvMixinConverters.Mixin):
                         input_parses = self.hp.parse_hgvs_variant(str(formatted_variant))
                         my_variant.hgvs_formatted = input_parses
                     except vvhgvs.exceptions.HGVSError as e:
+
+                        # Check for common mistakes
+                        toskip = use_checking.refseq_common_mistakes(my_variant)
+                        if toskip:
+                            continue
+
                         # Look for T not U!
                         posedit = formatted_variant.split(':')[-1]
                         if 'T' in posedit and "r." in posedit:
@@ -1495,12 +1508,19 @@ class Mixin(vvMixinConverters.Mixin):
     def gene2transcripts(self, query, validator=False, bypass_web_searches=False, select_transcripts=None,
                          transcript_set="refseq", genome_build=None, batch_output=False):
 
+        try:
+            gene_symbols = json.loads(query)
+            batch_output = True
+        except json.decoder.JSONDecodeError:
+            pass
+        except TypeError:
+            pass
+
         if batch_output is False:
             g2d_data = gene2transcripts.gene2transcripts(self, query, validator, bypass_web_searches,
                                                          select_transcripts, transcript_set, genome_build)
         else:
             g2d_data = []
-            gene_symbols = query.split("|")
             for symbol in gene_symbols:
                 data_for_gene = gene2transcripts.gene2transcripts(self, symbol, validator, bypass_web_searches,
                                                                   select_transcripts, transcript_set, genome_build)
