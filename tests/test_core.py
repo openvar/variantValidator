@@ -42,7 +42,7 @@ class TestValidator(unittest.TestCase):
     def test_transcript_list_real_pair(self):
         var = 'NM_015120.4:c.34C>T'
 
-        output = self.vv.validate(var, 'GRCh37', 'NM_015120.4|NM_015120.5').format_as_dict()
+        output = self.vv.validate(var, 'GRCh37', '["NM_015120.4", "NM_015120.5"]').format_as_dict()
         print(output)
         self.assertEqual(output['flag'], 'gene_variant')
         self.assertEqual(list(output), ['flag', 'NM_015120.4:c.34C>T', 'metadata'])
@@ -176,7 +176,7 @@ class TestValidator(unittest.TestCase):
         self.assertTrue('NM_015120.4:c.34C>T' in out.keys())
 
     def test_variant_quotes_both(self):
-        var = '"NM_015120.4:c.34C>T"'
+        var = '["NM_015120.4:c.34C>T"]'
 
         out = self.vv.validate(var, 'GRCh37', 'all').format_as_dict()
         self.assertEqual(out['flag'], 'gene_variant')

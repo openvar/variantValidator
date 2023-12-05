@@ -164,7 +164,7 @@ class TestGene2Transcripts(unittest.TestCase):
     def test_select_transcripts(self):
         output = self.vv.gene2transcripts('BRCA2', select_transcripts=None)
         output_b = self.vv.gene2transcripts('BRCA2', select_transcripts='NM_000059.3')
-        output_c = self.vv.gene2transcripts('BRCA2', select_transcripts='NM_000059.3|NM_000059.4')
+        output_c = self.vv.gene2transcripts('BRCA2', select_transcripts='["NM_000059.3", "NM_000059.4"]')
         output_d = self.vv.gene2transcripts('BRCA2', select_transcripts='flibble')
         output_e = self.vv.gene2transcripts('BRAF', select_transcripts='mane_select')
         output_f = self.vv.gene2transcripts('BRAF', select_transcripts='mane')
@@ -182,6 +182,14 @@ class TestGene2Transcripts(unittest.TestCase):
         print(results)
         assert results["current_symbol"] == "COL1A1"
 
+    def test_multiple_genes(self):
+        symbol = '["HGNC:2197", "COL1A1"]'
+        results = self.vv.gene2transcripts(symbol)
+        print(results)
+        assert len(results) == 2
+        assert results[1]["current_symbol"] == "COL1A1"
+        assert results[0]["current_symbol"] == "COL1A1"
+
     def test_transcript_set(self):
         output = self.vv.gene2transcripts('COL1A1', select_transcripts=None, transcript_set="refseq")
         print(output)
@@ -193,9 +201,7 @@ class TestGene2Transcripts(unittest.TestCase):
         assert "NM_" not in "".join(tx_list)
 
 
-
-
-    # <LICENSE>
+# <LICENSE>
 # Copyright (C) 2016-2023 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
