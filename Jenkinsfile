@@ -21,6 +21,7 @@ pipeline {
         stage("Switch to Git Branch") {
             steps {
                 sh "git checkout ${BRANCH_NAME}"
+                sh "git pull"
             }
         }
         stage("Build and Run VVTA PostgreSQL") {
@@ -87,7 +88,7 @@ pipeline {
                             echo "Connected successfully! Running pytest..."
 
                             // Run pytest && Run Codecov with the provided token and branch name
-                            sh 'docker exec variantvalidator pytest -n 3 --cov=VariantValidator --cov-report=term tests/'
+                            sh 'docker exec variantvalidator pytest -n 3 --cov=VariantValidator --cov=VariantFormatter --cov-report=term tests/'
 
                             // Send coverage report to Codecov
                             sh 'docker exec variantvalidator codecov -t $CODECOV_TOKEN -b ${BRANCH_NAME}'
@@ -132,6 +133,7 @@ pipeline {
                 sh 'docker stop variantvalidator'
                 sh 'docker rm variantvalidator'
                 sh 'docker network rm $DOCKER_NETWORK'
+                sh 'docker system prune --all --volumes --force'
             }
         }
     }

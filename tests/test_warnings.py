@@ -838,6 +838,36 @@ class TestVVGapWarnings(TestCase):
         assert "Invalid amino acid Z stated in description NP_000483.3:p.Z1335P" in \
                results['validation_warning_1']['validation_warnings'][0]
 
+    def test_g_with_tc_ref(self):
+        variant = 'NM_000088.4:g.2559del'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "Transcript reference sequence input as genomic (g.) reference sequence. " \
+               "Did you mean NM_000088.4:c.2559del?" in \
+               results['validation_warning_1']['validation_warnings']
+
+        variant = 'NM_000088.4:g.2559+54_2560del'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "Transcript reference sequence input as genomic (g.) reference sequence. " \
+               "Did you mean NM_000088.4:c.2559+54_2560del?" in \
+               results['validation_warning_1']['validation_warnings']
+
+    def test_c_with_tn_ref(self):
+        variant = 'NR_111987.1:c.3633-2T>A'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "Non-coding transcript reference sequence input as coding (c.) reference sequence. " \
+               "Did you mean NR_111987.1:n.3633-2T>A?" in \
+               results['validation_warning_1']['validation_warnings']
+
+    def test_p_with_tc_ref(self):
+        variant = 'NM_000088.3:p.(Gly197Cys)'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "Using a nucleotide reference sequence (NM_ NR_ NG_ NC_) to specify protein-level (p.) " \
+               "variation is not HGVS compliant. Please select an appropriate protein reference sequence (NP_)" in \
+               results['validation_warning_1']['validation_warnings']
 
 # <LICENSE>
 # Copyright (C) 2016-2023 VariantValidator Contributors
