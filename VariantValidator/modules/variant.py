@@ -9,7 +9,7 @@ class Variant(object):
     """
 
     def __init__(self, original, quibble=None, warnings=None, write=True, primary_assembly=False, order=False,
-                 selected_assembly=False):
+                 selected_assembly=False, reformat_output=False):
         self.original = original
         if quibble is None:
             self.quibble = original
@@ -45,6 +45,9 @@ class Variant(object):
         self.timing = {}
         self.refsource = None
         self.reftype = None
+
+        # Set reformat options
+        self.reformat_output = reformat_output
 
         # Normalizers and mappers
         self.hn = None
