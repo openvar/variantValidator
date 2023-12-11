@@ -869,6 +869,34 @@ class TestVVGapWarnings(TestCase):
                "variation is not HGVS compliant. Please select an appropriate protein reference sequence (NP_)" in \
                results['validation_warning_1']['validation_warnings']
 
+    def test_uncertain_1(self):
+        variant = 'NC_000005.9:g.(90136803_90144453)_(90159675_90261231)dup'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "Uncertain positions are not fully supported, however the syntax is valid" in \
+               results['validation_warning_1']['validation_warnings']
+        assert results['validation_warning_1']['primary_assembly_loci'] == {
+            "grch38": {
+                "hgvs_genomic_description": "NC_000005.9:g.(90136803_90144453)_(90159675_90261231)dup"
+            }}
+
+    def test_uncertain_2(self):
+        variant = 'NM_006138.4:n.(1_20)_(30_36)del'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "Coding transcript reference sequence input as non-coding transcript (n.) reference sequence. " \
+               "Did you mean NM_006138.4:c.(1_20)_(30_36)del?" in \
+               results['validation_warning_1']['validation_warnings']
+
+    def test_uncertain_3(self):
+        variant = 'NM_006138.4:c.(1_20)_(30_36)del'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "Uncertain positions are not fully supported, however the syntax is valid" in \
+               results['validation_warning_1']['validation_warnings']
+        assert results['validation_warning_1']['hgvs_transcript_variant'] == "NM_006138.4:c.(1_20)_(30_36)del"
+
+
 # <LICENSE>
 # Copyright (C) 2016-2023 VariantValidator Contributors
 #

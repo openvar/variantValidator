@@ -13,6 +13,10 @@ def refseq_common_mistakes(variant):
     """
     Evolving list of common mistakes, see sections below
     """
+
+    print("IN IT")
+    print(variant.quibble)
+
     # NM_ .g
     if (variant.quibble.startswith('NM_') or variant.quibble.startswith('NR_')) and variant.reftype == ':g.':
         suggestion = variant.quibble.replace(':g.', ':c.')
@@ -36,6 +40,7 @@ def refseq_common_mistakes(variant):
                 'Did you mean ' + suggestion + '?'
         variant.warnings.append(error)
         logger.warning(error)
+        print("YahBoo")
         return True
 
     # NM_ NC_ NG_ NR_ p.

@@ -2,10 +2,11 @@ import re
 import vvhgvs.exceptions
 import copy
 import logging
-from .variant import Variant
-from . import seq_data
-from . import utils as fn
+from VariantValidator.modules.variant import Variant
+from VariantValidator.modules import seq_data
+from VariantValidator.modules import utils as fn
 import VariantValidator.modules.rna_formatter
+from VariantValidator.modules import complex_descriptions, use_checking
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,7 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
         return True
 
     # Uncertain positions
-    toskip = uncertain_pos(variant)
+    toskip = uncertain_pos(variant, validator)
     if toskip:
         return True
 
@@ -1090,7 +1091,7 @@ def rna(variant, validator):
     return False
 
 
-def uncertain_pos(variant):
+def uncertain_pos(variant, validator):
     """
     check for uncertain positions in the variant and return unsupported warning
     """
@@ -1104,9 +1105,22 @@ def uncertain_pos(variant):
                 return False
             elif ":r.(" in to_check:
                 return False
-            error = 'Uncertain positions are not currently supported'
-            variant.warnings.append(error)
-            logger.warning(str(error))
+            else:
+                try:
+                    complex_descriptions.uncertain_positions(variant, validator)
+                except complex_descriptions.IncompatibleTypeError:
+                    print("YYAYAYAY")
+
+                    use_checking.refseq_common_mistakes(variant)
+
+
+
+                    import traceback
+                    traceback.print_exc()
+
+            # error = 'Uncertain positions are not currently supported'
+            # variant.warnings.append(error)
+            # logger.warning(str(error))
             return True
         else:
             return False

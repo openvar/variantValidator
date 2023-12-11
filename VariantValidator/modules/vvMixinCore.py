@@ -276,6 +276,16 @@ class Mixin(vvMixinConverters.Mixin):
                             continue
 
                     if toskip:
+                        print("Out we go")
+                        print(my_variant.warnings)
+                        print(my_variant.hgvs_genomic)
+                        if my_variant.warnings is not None and my_variant.hgvs_genomic is not None:
+                            if "NC_" in my_variant.hgvs_genomic and "Uncertain positions" in str(my_variant.warnings):
+                                my_variant.primary_assembly_loci = {my_variant.primary_assembly.lower():
+                                                                    {"hgvs_genomic_description":
+                                                                     my_variant.hgvs_genomic}}
+                            print(my_variant.primary_assembly_loci)
+
                         continue
 
                     # INITIAL USER INPUT FORMATTING
@@ -1355,7 +1365,6 @@ class Mixin(vvMixinConverters.Mixin):
 
                 variant.stable_gene_ids = stable_gene_ids
                 variant.annotations = reference_annotations
-                variant.hgvs_transcript_variant = tx_variant
                 variant.genome_context_intronic_sequence = genome_context_transcript_variant
                 variant.refseqgene_context_intronic_sequence = refseqgene_context_transcript_variant
                 variant.hgvs_refseqgene_variant = refseqgene_variant
@@ -1363,7 +1372,12 @@ class Mixin(vvMixinConverters.Mixin):
                 variant.hgvs_lrg_transcript_variant = lrg_transcript_variant
                 variant.hgvs_lrg_variant = lrg_variant
                 variant.alt_genomic_loci = alt_genomic_dicts
-                variant.primary_assembly_loci = primary_genomic_dicts
+                if "Uncertain positions are not fully supported, however the syntax is valid" \
+                        not in str(variant.warnings):
+                    variant.primary_assembly_loci = primary_genomic_dicts
+                    variant.hgvs_transcript_variant = tx_variant
+                if variant.hgvs_transcript_variant is None:
+                    variant.hgvs_transcript_variant = tx_variant
                 variant.reference_sequence_records = ''
                 variant.validated = True
 
@@ -1372,107 +1386,111 @@ class Mixin(vvMixinConverters.Mixin):
                 if ref_records != {}:
                     variant.reference_sequence_records = ref_records
 
-                # Liftover intergenic positions genome to genome
-                if (variant.output_type_flag == 'intergenic' and liftover_level is not None) or \
-                        (('grch37' not in variant.primary_assembly_loci.keys() or
-                          'grch38' not in variant.primary_assembly_loci.keys() or
-                          'hg38' not in variant.primary_assembly_loci.keys() or
-                          'hg19' not in variant.primary_assembly_loci.keys())
-                         and liftover_level is not None):
+                # Loop out uncertain position variants
+                if "Uncertain positions are not fully supported, however the syntax is valid" \
+                        not in str(variant.warnings):
 
-                    # Simple cache
-                    lo_cache = {}
+                    # Liftover intergenic positions genome to genome
+                    if (variant.output_type_flag == 'intergenic' and liftover_level is not None) or \
+                            (('grch37' not in variant.primary_assembly_loci.keys() or
+                              'grch38' not in variant.primary_assembly_loci.keys() or
+                              'hg38' not in variant.primary_assembly_loci.keys() or
+                              'hg19' not in variant.primary_assembly_loci.keys())
+                             and liftover_level is not None):
 
-                    # Attempt to liftover between genome builds
-                    # Note: pyliftover uses the UCSC liftOver tool.
-                    # https://pypi.org/project/pyliftover/
-                    genomic_position_info = variant.primary_assembly_loci
+                        # Simple cache
+                        lo_cache = {}
 
-                    for g_p_key in list(genomic_position_info.keys()):
-                        build_to = ''
-                        build_from = ''
+                        # Attempt to liftover between genome builds
+                        # Note: pyliftover uses the UCSC liftOver tool.
+                        # https://pypi.org/project/pyliftover/
+                        genomic_position_info = variant.primary_assembly_loci
 
-                        # Identify the current build and hgvs_genomic description
-                        if 'hg' in g_p_key:
-                            # incoming_vcf = genomic_position_info[g_p_key]['vcf']
-                            # set builds
-                            if g_p_key == 'hg38':
-                                build_to = 'hg19'
-                                build_from = 'hg38'
-                            if g_p_key == 'hg19':
-                                build_to = 'hg38'
-                                build_from = 'hg19'
-                        elif 'grc' in g_p_key:
-                            # incoming_vcf = genomic_position_info[g_p_key]['vcf']
-                            # set builds
-                            if g_p_key == 'grch38':
-                                build_to = 'GRCh37'
-                                build_from = 'GRCh38'
-                            if g_p_key == 'grch37':
-                                build_to = 'GRCh38'
-                                build_from = 'GRCh37'
+                        for g_p_key in list(genomic_position_info.keys()):
+                            build_to = ''
+                            build_from = ''
 
-                        # Genome to Genome liftover if tx not annotated to the build
-                        g_to_g = False
-                        if variant.output_type_flag != 'intergenic':
-                            g_to_g = True
+                            # Identify the current build and hgvs_genomic description
+                            if 'hg' in g_p_key:
+                                # incoming_vcf = genomic_position_info[g_p_key]['vcf']
+                                # set builds
+                                if g_p_key == 'hg38':
+                                    build_to = 'hg19'
+                                    build_from = 'hg38'
+                                if g_p_key == 'hg19':
+                                    build_to = 'hg38'
+                                    build_from = 'hg19'
+                            elif 'grc' in g_p_key:
+                                # incoming_vcf = genomic_position_info[g_p_key]['vcf']
+                                # set builds
+                                if g_p_key == 'grch38':
+                                    build_to = 'GRCh37'
+                                    build_from = 'GRCh38'
+                                if g_p_key == 'grch37':
+                                    build_to = 'GRCh38'
+                                    build_from = 'GRCh37'
 
-                        # Lift-over
-                        if (genomic_position_info[g_p_key]['hgvs_genomic_description'] not in lo_cache.keys()) or (
-                                "NC_012920.1" in genomic_position_info[g_p_key]['hgvs_genomic_description']
-                                and build_from == "hg38" and build_to == "hg19"):
-                            lifted_response = liftover(genomic_position_info[g_p_key]['hgvs_genomic_description'],
-                                                       build_from,
-                                                       build_to, variant.hn, variant.reverse_normalizer,
-                                                       variant.evm,
-                                                       self,
-                                                       specify_tx=False,
-                                                       liftover_level=liftover_level,
-                                                       g_to_g=g_to_g)
+                            # Genome to Genome liftover if tx not annotated to the build
+                            g_to_g = False
+                            if variant.output_type_flag != 'intergenic' and variant.output_type_flag != "other":
+                                g_to_g = True
 
-                            if "NC_012920.1" in genomic_position_info[g_p_key]['hgvs_genomic_description'] or \
-                                    "NC_001807.4:" in genomic_position_info[g_p_key]['hgvs_genomic_description']:
-                                capture_corrected_response = False
-                                for key, val in lifted_response.items():
-                                    if "grch38" in key:
-                                        capture_corrected_response = val
-                                    if val == {} and "grch37" in key:
-                                        if capture_corrected_response is not False:
-                                            lifted_response[key] = capture_corrected_response
-                                for key, val in lifted_response.items():
-                                    if "grch38" in key:
-                                        capture_corrected_response = val
-                                    if val == {} and "grch37" in key:
-                                        if capture_corrected_response is not False:
-                                            lifted_response[key] = capture_corrected_response
+                            # Lift-over
+                            if (genomic_position_info[g_p_key]['hgvs_genomic_description'] not in lo_cache.keys()) or (
+                                    "NC_012920.1" in genomic_position_info[g_p_key]['hgvs_genomic_description']
+                                    and build_from == "hg38" and build_to == "hg19"):
+                                lifted_response = liftover(genomic_position_info[g_p_key]['hgvs_genomic_description'],
+                                                           build_from,
+                                                           build_to, variant.hn, variant.reverse_normalizer,
+                                                           variant.evm,
+                                                           self,
+                                                           specify_tx=False,
+                                                           liftover_level=liftover_level,
+                                                           g_to_g=g_to_g)
 
-                            lo_cache[genomic_position_info[g_p_key]['hgvs_genomic_description']] = lifted_response
-                        else:
-                            lifted_response = lo_cache[genomic_position_info[g_p_key]['hgvs_genomic_description']]
+                                if "NC_012920.1" in genomic_position_info[g_p_key]['hgvs_genomic_description'] or \
+                                        "NC_001807.4:" in genomic_position_info[g_p_key]['hgvs_genomic_description']:
+                                    capture_corrected_response = False
+                                    for key, val in lifted_response.items():
+                                        if "grch38" in key:
+                                            capture_corrected_response = val
+                                        if val == {} and "grch37" in key:
+                                            if capture_corrected_response is not False:
+                                                lifted_response[key] = capture_corrected_response
+                                    for key, val in lifted_response.items():
+                                        if "grch38" in key:
+                                            capture_corrected_response = val
+                                        if val == {} and "grch37" in key:
+                                            if capture_corrected_response is not False:
+                                                lifted_response[key] = capture_corrected_response
 
-                        # Sort the respomse into primary assembly and ALT
-                        primary_assembly_loci = {}
-                        alt_genomic_loci = []
+                                lo_cache[genomic_position_info[g_p_key]['hgvs_genomic_description']] = lifted_response
+                            else:
+                                lifted_response = lo_cache[genomic_position_info[g_p_key]['hgvs_genomic_description']]
 
-                        for build_key, accession_dict in list(lifted_response.items()):
-                            try:
-                                accession_key = list(accession_dict.keys())[0]
-                                if 'NC_' in accession_dict[accession_key]['hgvs_genomic_description']:
-                                    primary_assembly_loci[build_key.lower()] = accession_dict[accession_key]
-                                else:
-                                    alt_genomic_loci.append({build_key.lower(): accession_dict[accession_key]})
+                            # Sort the respomse into primary assembly and ALT
+                            primary_assembly_loci = {}
+                            alt_genomic_loci = []
 
-                            # KeyError if the dicts are empty
-                            except KeyError:
-                                continue
-                            except IndexError:
-                                continue
+                            for build_key, accession_dict in list(lifted_response.items()):
+                                try:
+                                    accession_key = list(accession_dict.keys())[0]
+                                    if 'NC_' in accession_dict[accession_key]['hgvs_genomic_description']:
+                                        primary_assembly_loci[build_key.lower()] = accession_dict[accession_key]
+                                    else:
+                                        alt_genomic_loci.append({build_key.lower(): accession_dict[accession_key]})
 
-                        # Add the dictionaries from lifted response to the output
-                        if primary_assembly_loci != {}:
-                            variant.primary_assembly_loci = primary_assembly_loci
-                        if alt_genomic_loci:
-                            variant.alt_genomic_loci = alt_genomic_loci
+                                # KeyError if the dicts are empty
+                                except KeyError:
+                                    continue
+                                except IndexError:
+                                    continue
+
+                            # Add the dictionaries from lifted response to the output
+                            if primary_assembly_loci != {}:
+                                variant.primary_assembly_loci = primary_assembly_loci
+                            if alt_genomic_loci:
+                                variant.alt_genomic_loci = alt_genomic_loci
 
                 # Add exon numbering information see issue #
                 if variant.coding != "":
