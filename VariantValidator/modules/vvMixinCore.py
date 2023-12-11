@@ -8,19 +8,20 @@ import logging
 import json
 import time
 from vvhgvs.assemblymapper import AssemblyMapper
-from . import hgvs_utils
-from . import utils as fn
-from . import seq_data
-from . import vvMixinConverters
-from .variant import Variant
-from . import format_converters
-from . import use_checking
-from . import mappers
-from . import valoutput
-from . import exon_numbering
-from .liftover import liftover
-from . import complex_descriptions
-from . import gene2transcripts
+from VariantValidator.modules import hgvs_utils
+from VariantValidator.modules import utils as fn
+from VariantValidator.modules import seq_data
+from VariantValidator.modules import vvMixinConverters
+from VariantValidator.modules.variant import Variant
+from VariantValidator.modules import format_converters
+from VariantValidator.modules import use_checking
+from VariantValidator.modules import mappers
+from VariantValidator.modules import valoutput
+from VariantValidator.modules import exon_numbering
+from VariantValidator.modules.liftover import liftover
+from VariantValidator.modules import complex_descriptions
+from VariantValidator.modules import gene2transcripts
+from VariantValidator.modules import expanded_repeats, methyl_syntax
 
 logger = logging.getLogger(__name__)
 
@@ -503,6 +504,21 @@ class Mixin(vvMixinConverters.Mixin):
                             self.batch_list.append(query)
                             continue
 
+                    # Format expanded repeat syntax
+                    """
+                    Waiting for HGVS nomenclature changes
+                    """
+                    # try:
+                    #     toskip = expanded_repeats.convert_tandem(my_variant.quibble, my_variant.primary_assembly, "all")
+                    # except Exception as e:
+                    #     print(e)
+                    # if toskip:
+                    #     continue
+
+                    # Methylation Syntax
+                    methyl_syntax.methyl_syntax(my_variant)
+
+                    # Set some configurations
                     formatted_variant = my_variant.quibble
                     stash_input = my_variant.quibble
                     my_variant.post_format_conversion = stash_input
@@ -673,6 +689,7 @@ class Mixin(vvMixinConverters.Mixin):
                     # Also identifies some variants which span into the downstream sequence
                     # i.e. out of bounds
 
+                    # Fuzzy ends
                     try:
                         complex_descriptions.fuzzy_ends(my_variant)
                     except complex_descriptions.FuzzyPositionError as e:
@@ -1491,6 +1508,26 @@ class Mixin(vvMixinConverters.Mixin):
                         variant_warnings.append(vt)
                 variant.warnings = variant_warnings
 
+                # Reformat as required
+                if variant.reformat_output is not False:
+                    if "|" in variant.reformat_output and "=" in variant.quibble:
+                        attributes = dir(variant)
+                        for attribute in attributes:
+                            if "__" in attribute:
+                                continue
+                            item = (getattr(variant, attribute))
+                            if isinstance(item, str):
+                                if ("p." not in item and "=" in item) and attribute != "reformat_output":
+                                    setattr(variant, attribute, item.replace("=", variant.reformat_output))
+                            if isinstance(item, dict) or isinstance(item, list):
+                                try:
+                                    stringy = json.dumps(item)
+                                    if re.search(r":[gcnr].", stringy) and "=" in stringy:
+                                        stringy = stringy.replace("=", variant.reformat_output)
+                                        setattr(variant, attribute, json.loads(stringy))
+                                except json.JSONDecodeError:
+                                    pass
+
                 # Append to a list for return
                 batch_out.append(variant)
             output = valoutput.ValOutput(batch_out, self)
@@ -1512,8 +1549,13 @@ class Mixin(vvMixinConverters.Mixin):
             gene_symbols = json.loads(query)
             batch_output = True
         except json.decoder.JSONDecodeError:
-            pass
+            if isinstance(query, list):
+                gene_symbols = query
+                batch_output = True
         except TypeError:
+            if isinstance(query, list):
+                gene_symbols = query
+                batch_output = True
             pass
 
         if batch_output is False:
