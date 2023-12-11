@@ -1,7 +1,3 @@
-# Pipe syntax error
-
-# batch_variant = the string containing the variant to be validated
-
 
 def methyl_syntax(my_variant):
     """
@@ -10,37 +6,32 @@ def methyl_syntax(my_variant):
     | is located
     """
 
-    if "|" in my_variant:
-        print(my_variant)
-        if "gom" in my_variant:
-            raise Exception("message")
-        elif "lom" in my_variant:
-            raise Exception("message")
-        elif "met=" in my_variant:
-            raise Exception("message")
-        #elif "gom" or "lom" or "met=" in my_variant and "gom" or "lom" or "met=" not in my_variant.end:
-        #    raise Error("Variant description is not in accepted format")
-        else:
-            return True
+    if "|" in my_variant.quibble:
+        if "gom" in my_variant.quibble or "lom" in my_variant.quibble or "met=" in my_variant.quibble:
+            if "|gom" in my_variant.quibble:
+                my_variant.reformat_output = "|gom"
+            if "|lom" in my_variant.quibble:
+                my_variant.reformat_output = "|lom"
+            if "|met=" in my_variant.quibble:
+                my_variant.reformat_output = "|met="
+            met_var = str(my_variant.quibble.split("|")[0]) + "="
+            my_variant.quibble = met_var
+            return my_variant
 
 
-Test1 = "NC_000011.10::g.1999904_1999946|gom"
-Test2 = "NC_000011.10::g.1999904_1999946|lom"
-Test3 = "NC_000011.10::g.1999904_1999946|met="
-Test4 = "NM_000719.7:c.5550G>A"
-Test5 = "NM_00256.3:c.2373dupG"
-Test6 = "NM_00256.3:c.2373dupG | NM_000719.7:c.5550G>A"
-
-list_of_tests = [Test1,Test2,Test3,Test4,Test5,Test6]
-
-for i in list_of_tests:
-    try:
-        methyl_syntax(i)
-        batch_queries = i.split('|')
-    except:
-        batch_queries = [i]
-
-    print(batch_queries)
-
-#test_split = Test6.split('|')
-#print(test_split)
+# <LICENSE>
+# Copyright (C) 2016-2023 VariantValidator Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# </LICENSE>

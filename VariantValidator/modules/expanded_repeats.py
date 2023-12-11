@@ -1,5 +1,5 @@
 """
-NAME:          modules/tandem_repeats.py
+NAME:          modules/expanded_repeats.py
 AUTHORS:       Rebecca Locke (@rklocke) & Robert Wilson (@RSWilson1)
 DATE:          18/02/22
 INSTITUTION:   University of Manchester/Cambridge University Hospitals
@@ -16,24 +16,9 @@ import logging
 import os
 import VariantValidator
 
-# Initialise vv class
-vval = VariantValidator.Validator()
-
-# Get path the script is run in
-CURRENT_DIR = os.path.abspath(os.getcwd())
-
-# Create and configure logger
-LOG_FORMAT = "%(asctime)s — %(name)s — %(levelname)s — %(lineno)d — %(message)s"
-
-# Set level to debug, format with date and time and re-write file each time
-logging.basicConfig(
-    filename=f'{CURRENT_DIR}/expanded_repeats.log',
-    level=logging.DEBUG,
-    format=LOG_FORMAT,
-    filemode='w')
-
 # Set up logger
-logger = logging.getLogger("main log")
+logger = logging.getLogger(__name__)
+
 
 # Established class for Tandem repeats
 class TandemRepeats:
@@ -94,7 +79,6 @@ class TandemRepeats:
         self.variant_str = variant_str
         self.ref_type = ref_type
 
-
     @classmethod
     def parse_repeat_variant(cls, variant_str, build, select_transcripts):
         """
@@ -130,7 +114,6 @@ class TandemRepeats:
             >>>parse_repeat_variant("NM_024312.4:c.1_10A[10]")
                 "NM_024312.4", "c", "1_10" "A", "10", ""
         """
-        print(f"Variant entered: {variant_str}")
         logger.info(f"Parsing variant: parse_repeat_variant({variant_str})")
         # Strip any whitespace
         variant_str = variant_str.strip()
@@ -225,7 +208,6 @@ class TandemRepeats:
                 "Check Format matches HGVS: "
                 "(https://varnomen.hgvs.org/recommendations/DNA/variant/repeated/)"
             )
-            print("Unable to identify a tandem repeat.")
             return False
             #  This returns False to VV to indicate no tandem repeats present.
 
@@ -241,7 +223,6 @@ class TandemRepeats:
             variant_str,
             ref_type
         )
-
 
     def check_transcript_type(self):
         """
@@ -298,7 +279,6 @@ class TandemRepeats:
                   or gene name e.g. ENST00000357033.8"""
         return self.reference
 
-
     def check_genomic_or_coding(self):
         """Takes reference and works out what prefix type should be used
         Raises:
@@ -345,7 +325,6 @@ class TandemRepeats:
                 self.prefix == "n"
             ), "Please ensure variant type is non-coding if NR transcript is used"
 
-
     def check_positions_given(self):
         """
         Checks the position range given and
@@ -387,7 +366,6 @@ class TandemRepeats:
             full_range = f"{start_range}_{new_end_range}"
         return full_range
 
-
     def get_range_from_single_pos(self):
         """
         Gets full range of the variant if this is needed
@@ -422,7 +400,6 @@ class TandemRepeats:
                 included following a '.' \
                 after the transcript or gene name e.g. ENST00000357033.8"
         return self.reference
-
 
     def reformat_not_multiple_of_three(self):
         """
@@ -520,7 +497,6 @@ class TandemRepeats:
             f"{self.repeat_sequence}[{self.copy_number}]"
         return final_format
 
-
     def simple_split_string(self):
         """
         Splits the string into two parts divided by the colon (:).
@@ -543,95 +519,29 @@ class TandemRepeats:
         return self.begining, self.end
 
 
-# Hard-coded variant for testing while building.
-# Gives LRG_199t1:c.1_2insACACACACACACACACACACACACACAC
-VARIANT1 = "LRG_199t1:c.1_5AC[14]"
-# Gives LRG_199:g.1ACT[20]
-VARIANT2 = "LRG_199:g.1ACT[20]A"
-# Gives LRG_199:g.1AC[20]
-VARIANT3 = "LRG_199:g.1AC[20]"
-# Gives LRG_199t1:c.1_60ACT[20]
-VARIANT4 = "LRG_199t1:c.1_3ACT[20]"
-# Gives LRG_199t1:c.1_2insACACACACACACACACACAC
-VARIANT5 = "LRG_199t1:c.1AC[10]"
-# Gives LRG_199t1:c.1ACT[20]
-VARIANT6 = "LRG_199t1:c.1act[20]"
-# Gives LRG_199t1:c.1_12dup
-VARIANT7 = "LRG_199t1.c:1A[12]"
-# Gives LRG_199:g.13ACT[20]
-VARIANT8 = "LRG_199:g.13ACT[20]"
-# Gives LRG_199:g.13_60ACTG[12]
-VARIANT9 = "LRG_199:g.13_25ACTG[12]"
-# Gives LRG_199t3:c.13_14insACTGACTGACTGACTGACTG
-VARIANT10 = "LRG199t3:c.13_125ACTG[5]"
-# Gives ENSG00000198947.15:g.1ACT[10]
-VARIANT11 = "ENSG00000198947.15:g.1ACT[10]"
-# Gives ENST00000357033.8:c.13_14insACAC
-VARIANT12 = "ENST00000357033.8:c.13AC[2]"
-# Gives LRG_199t1:c.1_60ACT[20]
-VARIANT13 = "LRG_199t1:c.1_2ACT[20]"
-# Gives AssertionError: The number of repeat units included between square
-# brackets must be numeric
-VARIANT14 = "LRG_199t1:c.20A[A]"
-# Gives NM_004006.2:c.13_14insACACACACACACAC
-VARIANT15 = "NM_004006.2:c.13AC[7]"
-# Gives AssertionError: Unable to identify a colon (:) in the variant
-# description NG_004006.2g.1_2act[22]. A colon is required in HGVS variant
-# descriptions to separate the reference accession from the reference type
-# i.e. <accession>:<type>. e.g. :c
-VARIANT16 = "NG_004006.2g.1_2act[22]"
-# Gives NG_004006.2:g.1_66ACT[22]
-VARIANT17 = "NG_004006.2:g.1_2act[22]"
-# Gives NM_024312.4:c.2686_2695dup
-VARIANT18 = "NM_024312.4:c.2686A[10]"
-# Gives NM_024312.4:c.1738_1739insTATATATATATA
-VARIANT19 = "NM_024312.4:c.1738TA[6]"
-# Gives LRG_199t2:c.1_10dup
-VARIANT20 = "LRG199t2:c.1_5C[10]"
-# Gives LRG_199t2:c.1_10dup
-VARIANT21 = "LRG199t2:c.1-5C[10]"
-# Gives NM_024312.1:c.2686_2695dup
-VARIANT22 = "NM_024312.1:c.2686A[10]"
-# Gives Error: Alleles not supported
-VARIANT23 = "LRG_199:g.[123456A>G];[345678G>C]"
-# Gives LRG_199t1:c.15_16insAGAGAGAGAGAGAGAGAGAG
-VARIANT24 = "LRG_199t1:c.15_20AG[10]"
-# Gives AssertionError: Please ensure the transcript or gene version is
-# included following a '.' after the transcript or gene name e.g.
-# ENST00000357033.8
-VARIANT25 = "ENST00000198947:c.1_2AG[10]"
-# Gives AssertionError: Please ensure that the repeated sequence is
-# included between the position and number of repeat units, e.g.
-# g.1ACT[20]
-VARIANT26 = "ENST00000198947.1:c.1_2[10]"
-# Returns ENST00000198947.1:c.1_10dup
-VARIANT27 = "ENST00000198947.1:C.1_2A[10]"
-#Variant with underscore range
-VARIANT28 = "LRG_199t1:c.1_5AC[8]"
-#Variant with hyphen in range
-VARIANT29 = "NM_004006.2:c.13-14AC[7]"
+def convert_tandem(variant_str, build, my_all):
+    expanded_variant = TandemRepeats.parse_repeat_variant(variant_str, build, my_all)
+    if expanded_variant is False:
+        return False
+    else:
+        expanded_variant_string = expanded_variant.reformat()
+        return True
 
 
 
-def main():
-    my_variant = TandemRepeats.parse_repeat_variant(VARIANT29, "GRCh37", "all")
-    print(my_variant.check_transcript_type())
-    my_variant.check_transcript_type()
-    my_variant.reformat_reference()
-    my_variant.check_genomic_or_coding()
-    formatted = my_variant.reformat()
-    print(f"Variant formatted with this module: {formatted}")
-
-    types_to_put_into_vv = ["ins", "dup"]
-    if any(x in formatted for x in types_to_put_into_vv):
-        validate = vval.validate(
-            formatted, my_variant.build, my_variant.select_transcripts
-        ).format_as_dict()
-        reformatted_with_vv = list(validate.keys())[1]
-        print(f"Variant checked with VV: {reformatted_with_vv}")
-
-# This allows the script to be run by itself or imported as a package.
-if __name__ == "__main__":
-    logger.info('--------- Starting Script ---------')
-    main()
-    logger.info('--------- End Script ---------')
+# <LICENSE>
+# Copyright (C) 2016-2023 VariantValidator Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# </LICENSE>

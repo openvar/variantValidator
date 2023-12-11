@@ -1,7 +1,7 @@
 """
-Tandem_Repeats_tests
+expanded_repeats_tests
 Authors: Robert Wilson (@RSWilson1) and Rebecca Locke (@rklocke)
-This code runs tests on the module tandem_repeats.py to check the outputs are as expected.
+This code runs tests on the module expanded_repeats.py to check the outputs are as expected.
 
 It checks known edge-case HGVS compliant variant strings.
 Additional functionality to add:
@@ -10,11 +10,11 @@ Additional functionality to add:
 
 """
 import unittest
-import tandem_repeats
+from VariantValidator.modules import expanded_repeats
 
 
 class TestExpandedRepeats(unittest.TestCase):
-    """Tests for tandem_repeats.py to check the syntax checker returns
+    """Tests for expanded_repeats.py to check the syntax checker returns
     the expected results for each variant case.
     Including known edge-cases that weren't previously handled.
 
@@ -26,14 +26,12 @@ class TestExpandedRepeats(unittest.TestCase):
     Number of tests completed successfully.
     """
 
-
     def test_basic_syntax(self):
         """
         Test for handling basic syntax of variant string.
         """
         variant_str = "LRG_199:g.1ACT[20]"
-        my_variant = tandem_repeats.TandemRepeats.parse_repeat_variant(
-                                    variant_str, "GRCh37", "all")
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(variant_str, "GRCh37", "all")
         my_variant.check_transcript_type()
         my_variant.reformat_reference()
         my_variant.check_genomic_or_coding()
@@ -58,7 +56,7 @@ class TestExpandedRepeats(unittest.TestCase):
         Test for handling basic syntax of ENSG variant string.
         """
         variant_str = "ENSG00000198947.15:g.1ACT[10]"
-        my_variant = tandem_repeats.TandemRepeats.parse_repeat_variant(
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
                                     variant_str, "GRCh37", "all")
         my_variant.check_transcript_type()
         my_variant.reformat_reference()
@@ -81,13 +79,12 @@ class TestExpandedRepeats(unittest.TestCase):
         assert my_variant.after_the_bracket == ""
         # checks nothing is after the bracket
 
-
     def test_basic_syntax_3(self):
         """
         Test for handling basic syntax of ENSG variant string.
         """
         variant_str = "ENST00000357033.8:c.13AC[2]"
-        my_variant = tandem_repeats.TandemRepeats.parse_repeat_variant(
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
                                     variant_str, "GRCh37", "all")
         my_variant.check_transcript_type()
         my_variant.reformat_reference()
@@ -109,13 +106,12 @@ class TestExpandedRepeats(unittest.TestCase):
         assert my_variant.after_the_bracket == ""
         # checks nothing is after the bracket
 
-
     def test_basic_syntax_4(self):
         """
         Test for handling basic syntax of ENSG variant string.
         """
         variant_str = "ENSG00000198947.15:g.1_10A[10]"
-        my_variant = tandem_repeats.TandemRepeats.parse_repeat_variant(
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
                                     variant_str, "GRCh37", "all")
         my_variant.check_transcript_type()
         my_variant.reformat_reference()
@@ -138,13 +134,12 @@ class TestExpandedRepeats(unittest.TestCase):
         assert my_variant.after_the_bracket == ""
         # checks nothing is after the bracket
 
-
     def test_basic_syntax_5(self):
         """
         Test for handling basic syntax of ENSG variant string.
         """
         variant_str = "LRG_199t1:c.13-25ACT[5]"
-        my_variant = tandem_repeats.TandemRepeats.parse_repeat_variant(
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
                                     variant_str, "GRCh37", "all")
         assert my_variant.variant_position == "13_25"
         my_variant.check_transcript_type()
@@ -167,15 +162,14 @@ class TestExpandedRepeats(unittest.TestCase):
         assert my_variant.after_the_bracket == ""
         # checks nothing is after the bracket
 
-
     def test_getting_full_range_from_single_pos(self):
         """
         Test to full range is calculated correctly
         """
         variant_str = "LRG_199t1:c.13ACT[5]"
-        my_variant = tandem_repeats.TandemRepeats.parse_repeat_variant(
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
                                     variant_str, "GRCh37", "all")
-        self.assertEqual(tandem_repeats.TandemRepeats.get_range_from_single_pos(my_variant), "13_27")
+        self.assertEqual(expanded_repeats.TandemRepeats.get_range_from_single_pos(my_variant), "13_27")
 
     def test_LRG_transcript_handling(self):
         """
@@ -184,7 +178,7 @@ class TestExpandedRepeats(unittest.TestCase):
         """
         # Gives LRG_199t1:c.1_60ACT[20]
         variant_str = "LRG_199t1:c.1_2ACT[20]"
-        my_variant = tandem_repeats.TandemRepeats.parse_repeat_variant(
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
                                     variant_str, "GRCh37", "all")
         my_variant.check_transcript_type()
         my_variant.reformat_reference()
@@ -207,7 +201,6 @@ class TestExpandedRepeats(unittest.TestCase):
         assert my_variant.after_the_bracket == ""
         # checks nothing is after the bracket
 
-
     def test_transcript_versions(self):
         """
         Test for handing transcript versions.
@@ -215,7 +208,7 @@ class TestExpandedRepeats(unittest.TestCase):
         AssertionError: Unable to identify a colon (:) in the variant
         """
         variant_str = "NM_004006.2:c.13AC[7]"
-        my_variant = tandem_repeats.TandemRepeats.parse_repeat_variant(
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
                                     variant_str, "GRCh37", "all")
         my_variant.check_transcript_type()
         my_variant.reformat_reference()
@@ -240,31 +233,30 @@ class TestExpandedRepeats(unittest.TestCase):
         # Test throws AssertionError if no colon included in variant
         test_variant = "NG_004006.2g.1_2act[22]"
         with self.assertRaises(AssertionError):
-            tandem_repeats.TandemRepeats.parse_repeat_variant(test_variant, "GRCh37","all")
-
+            expanded_repeats.TandemRepeats.parse_repeat_variant(test_variant, "GRCh37", "all")
 
     def test_throws_exception_2(self):
         # Test throws AssertionError if no repeat sequence is included
         test_variant = "ENST00000198947.1:c.1_2[10]"
         with self.assertRaises(AssertionError):
-            tandem_repeats.TandemRepeats.parse_repeat_variant(test_variant, "GRCh37","all")
+            expanded_repeats.TandemRepeats.parse_repeat_variant(test_variant, "GRCh37","all")
 
     def test_throws_exception_3(self):
         # Test throws AssertionError if allele variant
         test_variant = "LRG_199:g.[123456A>G];[345678G>C]"
         with self.assertRaises(AssertionError):
-            tandem_repeats.TandemRepeats.parse_repeat_variant(test_variant, "GRCh37","all")
+            expanded_repeats.TandemRepeats.parse_repeat_variant(test_variant, "GRCh37", "all")
 
     def test_throws_exception_4(self):
         # Test throws AssertionError as both sides of range not included
         test_variant = "NM_004006.2:c.1_ACT[22]"
         with self.assertRaises(AssertionError):
-            tandem_repeats.TandemRepeats.parse_repeat_variant(test_variant, "GRCh37","all")
+            expanded_repeats.TandemRepeats.parse_repeat_variant(test_variant, "GRCh37", "all")
 
     def test_throws_exception_5(self):
         # Test throws AssertionError if repeat number between brackets not numeric
         test_variant = "LRG_199t1:c.20A[A]"
-        my_variant = tandem_repeats.TandemRepeats.parse_repeat_variant(
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
                             test_variant, "GRCh37", "all")
         my_variant.check_transcript_type()
         my_variant.reformat_reference()
@@ -272,24 +264,21 @@ class TestExpandedRepeats(unittest.TestCase):
         with self.assertRaises(AssertionError):
             my_variant.reformat()
 
-
     def test_empty_string(self):
         """
         Test for handling empty string.
         """
         variant_str = ""
-        my_variant = tandem_repeats.TandemRepeats.parse_repeat_variant(
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
                                     variant_str, "GRCh37", "all")
         assert my_variant == False
 
-
     def test_simple_str_split(self):
         test_variant = "ENSG00000198947:g.1ACT[10]"
-        my_variant = tandem_repeats.TandemRepeats.parse_repeat_variant(test_variant, "GRCh37", "all")
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(test_variant, "GRCh37", "all")
         my_variant.simple_split_string()
         assert my_variant.begining == "ENSG00000198947"
         assert my_variant.end == ":g.1ACT[10]"
-
 
     def test_transcript_versions(self):
         """
@@ -298,7 +287,7 @@ class TestExpandedRepeats(unittest.TestCase):
         AssertionError: Unable to identify a colon (:) in the variant
         """
         variant_str = "NM_004006.2:c.13-14AC[7]"
-        my_variant = tandem_repeats.TandemRepeats.parse_repeat_variant(
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
                                     variant_str, "GRCh37", "all")
         my_variant.check_transcript_type()
         my_variant.reformat_reference()
@@ -327,7 +316,7 @@ if __name__ == "__main__":
 
 
 # <LICENSE>
-# Copyright (C) 2016-2022 VariantValidator Contributors
+# Copyright (C) 2016-2023 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
