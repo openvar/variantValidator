@@ -1,5 +1,7 @@
 import re
+from vvhgvs.assemblymapper import AssemblyMapper
 import vvhgvs.exceptions
+
 
 # Errors
 class FuzzyPositionError(Exception):
@@ -16,6 +18,7 @@ class InvalidRangeError(Exception):
 
 class IncompatibleTypeError(Exception):
     pass
+
 
 def fuzzy_ends(my_variant):
     """
@@ -45,6 +48,12 @@ def uncertain_positions(my_variant, validator):
     print(my_variant.quibble)
 
     print("Try it")
+    # Create evm
+    evm = AssemblyMapper(validator.hdp,
+                         assembly_name=my_variant.primary_assembly,
+                         alt_aln_method=validator.alt_aln_method,
+                         normalize=False,
+                         replace_reference=True)
 
     # Formats like NC_000005.9:g.(90136803_90144453)_(90159675_90261231)dup
     if ")_(" in my_variant.quibble:
@@ -82,9 +91,79 @@ def uncertain_positions(my_variant, validator):
                                     f"accession {accession_and_type.split(':')[0]}")
 
         my_variant.warnings = ["Uncertain positions are not fully supported, however the syntax is valid"]
+
+        # Genomic Variants
         if "NC_" in my_variant.quibble:
             my_variant.hgvs_genomic = my_variant.quibble
-        if "NM_" in my_variant.quibble or "NR_" in my_variant.quibble or "ENST" in my_variant.quibble:
+            print(parsed_v1)
+            print(parsed_v2)
+            start_pos = position_1.split("_")[0]
+            end_pos = position_2.split("_")[1]
+            v3 = f"{accession_and_type}.{start_pos}_{end_pos}{variation}"
+            parsed_v3 = validator.hp.parse(v3)
+            validator.vr.validate(parsed_v3)
+            print(parsed_v3)
+            print(validator.select_transcripts)
+            if (validator.select_transcripts != "select" and ("NM_" in validator.select_transcripts or
+                                                              "ENST" in validator.select_transcripts) and
+                    ("|" not in validator.select_transcripts and "[" not in validator.select_transcripts)):
+                print("bing")
+                pass
+            elif validator.select_transcripts != "select":
+                validator.select_transcripts = "select"
+                my_variant.warnings.extend(["Only a single transcript can be processed, updating to Select"])
+                print("boo")
+                print(my_variant.warnings)
+
+            print(validator.select_transcripts)
+
+            # Get transcripts
+            rel_var = validator.relevant_transcripts(parsed_v3, evm, validator.alt_aln_method,
+                                                     my_variant.reverse_normalizer, validator.select_transcripts)
+            if len(rel_var) != 0:
+                # Filter for Select transcripts only if transcript not stated
+                if validator.select_transcripts == "select":
+                    for variant in rel_var:
+                        annotation = validator.db.get_transcript_annotation(variant.ac)
+                        if '"select": "MANE"' in annotation:
+                            validator.select_transcripts = variant.ac
+                            break
+                        elif '"select": "RefSeq"' in annotation or \
+                                '"select": "Ensembl"' in annotation:
+                            validator.select_transcripts = variant.ac
+                            continue
+
+                # Map uncertain positions to transcript
+                ptv1 = validator.relevant_transcripts(parsed_v1, evm, validator.alt_aln_method,
+                                                      my_variant.reverse_normalizer, validator.select_transcripts)[0]
+                ptv2 = validator.relevant_transcripts(parsed_v2, evm, validator.alt_aln_method,
+                                                      my_variant.reverse_normalizer, validator.select_transcripts)[0]
+                if ptv1.posedit.pos.start.base < ptv2.posedit.pos.start.base:
+                    t_position_1 = str(ptv1.posedit.pos)
+                    t_position_2 = str(ptv2.posedit.pos)
+                else:
+                    t_position_1 = str(ptv2.posedit.pos)
+                    t_position_2 = str(ptv1.posedit.pos)
+                tx_variant = f"{ptv1.ac}:{ptv1.type}.({t_position_1})_({t_position_2}){ptv1.posedit.edit.type}"
+                print(tx_variant)
+                my_variant.hgvs_coding = tx_variant
+                my_variant.hgvs_transcript_variant = tx_variant
+            else:
+                my_variant.warnings.extend(["Selected transcript does not span the entire range "
+                                            "of the genomic variation"])
+
+        # Transcript Variants
+        elif "NM_" in my_variant.quibble or "NR_" in my_variant.quibble or "ENST" in my_variant.quibble:
+            pgv1 = evm.t_to_g(parsed_v1)
+            pgv2 = evm.t_to_g(parsed_v2)
+            if pgv1.posedit.pos.start.base < pgv2.posedit.pos.start.base:
+                g_position_1 = str(pgv1.posedit.pos)
+                g_position_2 = str(pgv2.posedit.pos)
+            else:
+                g_position_1 = str(pgv2.posedit.pos)
+                g_position_2 = str(pgv1.posedit.pos)
+            gen_variant = f"{pgv1.ac}:{pgv1.type}.({g_position_1})_({g_position_2}){pgv1.posedit.edit.type}"
+            my_variant.hgvs_genomic = gen_variant
             my_variant.hgvs_coding = my_variant.quibble
             my_variant.hgvs_transcript_variant = my_variant.quibble
 

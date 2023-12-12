@@ -875,10 +875,14 @@ class TestVVGapWarnings(TestCase):
         print(results)
         assert "Uncertain positions are not fully supported, however the syntax is valid" in \
                results['validation_warning_1']['validation_warnings']
+        assert "Only a single transcript can be processed, updating to Select" in \
+               results['validation_warning_1']['validation_warnings']
         assert results['validation_warning_1']['primary_assembly_loci'] == {
             "grch38": {
                 "hgvs_genomic_description": "NC_000005.9:g.(90136803_90144453)_(90159675_90261231)dup"
             }}
+        assert results['validation_warning_1'][
+                   'hgvs_transcript_variant'] == "NM_032119.3:c.(17019+1_17020-1)_(17856+1_17857-1)dup"
 
     def test_uncertain_2(self):
         variant = 'NM_006138.4:n.(1_20)_(30_36)del'
@@ -895,6 +899,10 @@ class TestVVGapWarnings(TestCase):
         assert "Uncertain positions are not fully supported, however the syntax is valid" in \
                results['validation_warning_1']['validation_warnings']
         assert results['validation_warning_1']['hgvs_transcript_variant'] == "NM_006138.4:c.(1_20)_(30_36)del"
+        assert results['validation_warning_1']['primary_assembly_loci'] == {
+            "grch38": {
+                "hgvs_genomic_description": "NC_000011.10:g.(60061161_60061180)_(60061190_60061196)del"
+            }}
 
 
 # <LICENSE>

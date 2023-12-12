@@ -1112,9 +1112,7 @@ def uncertain_pos(variant, validator):
                     print("YYAYAYAY")
 
                     use_checking.refseq_common_mistakes(variant)
-
-
-
+                except Exception:
                     import traceback
                     traceback.print_exc()
 

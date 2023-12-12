@@ -535,7 +535,7 @@ class Mixin(vvMixinConverters.Mixin):
                     logger.debug("Variant input formatted, proceeding to validate.")
 
                     # Conversions
-                    # Conversions are not currently supported. The HGVS format for conversions
+                    # are not currently supported. The HGVS format for conversions
                     # is rarely seen wrt genomic sequencing data and needs to be re-evaluated
                     if 'con' in my_variant.quibble:
                         my_variant.warnings.append('Conversions are no longer valid HGVS Sequence Variant Descriptions')
