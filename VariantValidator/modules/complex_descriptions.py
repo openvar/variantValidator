@@ -55,6 +55,11 @@ def uncertain_positions(my_variant, validator):
                          normalize=False,
                          replace_reference=True)
 
+    # Check for uncertain positions in the correct place
+    if not re.search("[gcnr].\(", my_variant.quibble):
+        print("Not an uncertain position")
+        return False
+
     # Formats like NC_000005.9:g.(90136803_90144453)_(90159675_90261231)dup
     if ")_(" in my_variant.quibble:
         accession_and_type, positions_and_edit = my_variant.quibble.split(".(")
