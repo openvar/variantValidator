@@ -56,6 +56,7 @@ class RnaDescriptions(object):
         edit = edit.replace("g", "G")
         edit = edit.replace("c", "C")
         edit = edit.replace("a", "A")
+        edit = edit.replace("dTp", "dup")
 
         # vv_hgvs requires c. for processing because r. is not handled correctly, so we swap to c.
         self.dna_variant = reference + ":c." + edit
