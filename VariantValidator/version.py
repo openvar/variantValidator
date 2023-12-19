@@ -1,15 +1,15 @@
-import pkg_resources
+import importlib.metadata
 import re
 import warnings
 
 # Pull in use_scm_version=True enabled version number
 _is_released_version = False
 try:
-    __version__ = pkg_resources.get_distribution("VariantValidator").version
+    __version__ = importlib.metadata.version("VariantValidator")
     if re.match(r"^\d+\.\d+\.\d+$", __version__) is not None:
         _is_released_version = True
-except pkg_resources.DistributionNotFound as e:
-    warnings.warn("can't get __version__ because %s package isn't installed" % __package__, Warning)
+except importlib.metadata.PackageNotFoundError:
+    warnings.warn("can't get __version__ because VariantValidator package isn't installed", Warning)
     __version__ = None
 
 # <LICENSE>

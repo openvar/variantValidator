@@ -8,19 +8,20 @@ import logging
 import json
 import time
 from vvhgvs.assemblymapper import AssemblyMapper
-from . import hgvs_utils
-from . import utils as fn
-from . import seq_data
-from . import vvMixinConverters
-from .variant import Variant
-from . import format_converters
-from . import use_checking
-from . import mappers
-from . import valoutput
-from . import exon_numbering
-from .liftover import liftover
-from . import complex_descriptions
-from . import gene2transcripts
+from VariantValidator.modules import hgvs_utils
+from VariantValidator.modules import utils as fn
+from VariantValidator.modules import seq_data
+from VariantValidator.modules import vvMixinConverters
+from VariantValidator.modules.variant import Variant
+from VariantValidator.modules import format_converters
+from VariantValidator.modules import use_checking
+from VariantValidator.modules import mappers
+from VariantValidator.modules import valoutput
+from VariantValidator.modules import exon_numbering
+from VariantValidator.modules.liftover import liftover
+from VariantValidator.modules import complex_descriptions
+from VariantValidator.modules import gene2transcripts
+from VariantValidator.modules import expanded_repeats, methyl_syntax
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +71,11 @@ class Mixin(vvMixinConverters.Mixin):
             select_transcripts_dict = {}
             select_transcripts_dict_plus_version = {}
             if select_transcripts != 'all' and select_transcripts != 'raw':
-                select_transcripts_list = select_transcripts.split('|')
+                try:
+                    select_transcripts_list = json.loads(select_transcripts)
+                except json.decoder.JSONDecodeError:
+                    select_transcripts_list = [select_transcripts]
+
                 for trans_id in select_transcripts_list:
                     trans_id = trans_id.strip()
 
@@ -86,7 +91,10 @@ class Mixin(vvMixinConverters.Mixin):
                     select_transcripts_dict[trans_id] = ''
 
             # split the batch queries into a list
-            batch_queries = batch_variant.split('|')
+            try:
+                batch_queries = json.loads(batch_variant)
+            except json.decoder.JSONDecodeError:
+                batch_queries = [batch_variant]
 
             # Turn each variant into a dictionary. The dictionary will be compiled during validation
             self.batch_list = []
@@ -275,6 +283,7 @@ class Mixin(vvMixinConverters.Mixin):
                     In this section of the code we are compiling HGVS errors and providing improved warnings/error 
                     messages
                     """
+
                     # 1. Requested warnings from https://github.com/openvar/variantValidator/issues/195
                     if re.search(r'\(.+?\)', my_variant.quibble):  # Pattern looks for (....)
                         gene_symbol_query = re.search(r'\(.+?\)', my_variant.quibble).group(0)
@@ -495,10 +504,24 @@ class Mixin(vvMixinConverters.Mixin):
                             self.batch_list.append(query)
                             continue
 
+                    # Format expanded repeat syntax
+                    """
+                    Waiting for HGVS nomenclature changes
+                    """
+                    # try:
+                    #     toskip = expanded_repeats.convert_tandem(my_variant.quibble, my_variant.primary_assembly, "all")
+                    # except Exception as e:
+                    #     print(e)
+                    # if toskip:
+                    #     continue
+
+                    # Methylation Syntax
+                    methyl_syntax.methyl_syntax(my_variant)
+
+                    # Set some configurations
                     formatted_variant = my_variant.quibble
                     stash_input = my_variant.quibble
                     my_variant.post_format_conversion = stash_input
-
                     logger.debug("Variant input formatted, proceeding to validate.")
 
                     # Conversions
@@ -546,6 +569,12 @@ class Mixin(vvMixinConverters.Mixin):
                         input_parses = self.hp.parse_hgvs_variant(str(formatted_variant))
                         my_variant.hgvs_formatted = input_parses
                     except vvhgvs.exceptions.HGVSError as e:
+
+                        # Check for common mistakes
+                        toskip = use_checking.refseq_common_mistakes(my_variant)
+                        if toskip:
+                            continue
+
                         # Look for T not U!
                         posedit = formatted_variant.split(':')[-1]
                         if 'T' in posedit and "r." in posedit:
@@ -576,8 +605,14 @@ class Mixin(vvMixinConverters.Mixin):
                         if my_variant.hgvs_formatted.posedit.edit.ref is not None:
                             my_variant.hgvs_formatted.posedit.edit.ref = \
                                 my_variant.hgvs_formatted.posedit.edit.ref.upper()
-                    formatted_variant = str(my_variant.hgvs_formatted)
-
+                    try:
+                        formatted_variant = str(my_variant.hgvs_formatted)
+                    except KeyError as e:
+                        if "p" in my_variant.hgvs_formatted.type:
+                            error = "Invalid amino acid %s stated in description %s" % (str(e),
+                                                                                        my_variant.quibble)
+                            my_variant.warnings.append(error)
+                            continue
                     my_variant.set_quibble(str(my_variant.hgvs_formatted))
 
                     # ENST support needs to be re-evaluated, but is very low priority
@@ -654,6 +689,7 @@ class Mixin(vvMixinConverters.Mixin):
                     # Also identifies some variants which span into the downstream sequence
                     # i.e. out of bounds
 
+                    # Fuzzy ends
                     try:
                         complex_descriptions.fuzzy_ends(my_variant)
                     except complex_descriptions.FuzzyPositionError as e:
@@ -1463,6 +1499,14 @@ class Mixin(vvMixinConverters.Mixin):
                     # Suppress "RefSeqGene record not available"
                     elif "RefSeqGene record not available" in vt:
                         continue
+                    # convert SeqRepo errors into a more user friendly form
+                    elif vt.startswith('Failed to fetch') and 'SeqRepo' in vt:
+                        acc = vt.split()[3]
+                        vt = (
+                                f"Failed to find {acc} in our sequence store: This may mean that "+
+                                "the sequence has been mistyped, or it may be missing from our "+
+                                "data, possibly due to being either deprecated or yet to be added.")
+                        variant_warnings.append(vt)
                     elif 'NP_' in vt and 'transcript' in vt:
                         continue
                     elif "Xaa" in vt:
@@ -1471,6 +1515,26 @@ class Mixin(vvMixinConverters.Mixin):
                     else:
                         variant_warnings.append(vt)
                 variant.warnings = variant_warnings
+
+                # Reformat as required
+                if variant.reformat_output is not False:
+                    if "|" in variant.reformat_output and "=" in variant.quibble:
+                        attributes = dir(variant)
+                        for attribute in attributes:
+                            if "__" in attribute:
+                                continue
+                            item = (getattr(variant, attribute))
+                            if isinstance(item, str):
+                                if ("p." not in item and "=" in item) and attribute != "reformat_output":
+                                    setattr(variant, attribute, item.replace("=", variant.reformat_output))
+                            if isinstance(item, dict) or isinstance(item, list):
+                                try:
+                                    stringy = json.dumps(item)
+                                    if re.search(r":[gcnr].", stringy) and "=" in stringy:
+                                        stringy = stringy.replace("=", variant.reformat_output)
+                                        setattr(variant, attribute, json.loads(stringy))
+                                except json.JSONDecodeError:
+                                    pass
 
                 # Append to a list for return
                 batch_out.append(variant)
@@ -1489,12 +1553,24 @@ class Mixin(vvMixinConverters.Mixin):
     def gene2transcripts(self, query, validator=False, bypass_web_searches=False, select_transcripts=None,
                          transcript_set="refseq", genome_build=None, batch_output=False):
 
+        try:
+            gene_symbols = json.loads(query)
+            batch_output = True
+        except json.decoder.JSONDecodeError:
+            if isinstance(query, list):
+                gene_symbols = query
+                batch_output = True
+        except TypeError:
+            if isinstance(query, list):
+                gene_symbols = query
+                batch_output = True
+            pass
+
         if batch_output is False:
             g2d_data = gene2transcripts.gene2transcripts(self, query, validator, bypass_web_searches,
                                                          select_transcripts, transcript_set, genome_build)
         else:
             g2d_data = []
-            gene_symbols = query.split("|")
             for symbol in gene_symbols:
                 data_for_gene = gene2transcripts.gene2transcripts(self, symbol, validator, bypass_web_searches,
                                                                   select_transcripts, transcript_set, genome_build)
@@ -1641,12 +1717,15 @@ class Mixin(vvMixinConverters.Mixin):
                         variant.warnings.append(error)
                         logger.warning(error)
                         return True
+                    else:
+                        return True
                 except Exception as e:
                     error = 'Unable to assign transcript identity records to %s.  Please try again later ' \
                             'and if the problem persists contact admin. error=%s.' % (accession, str(e))
                     variant.warnings.append(error)
                     logger.info(error)
                     return True
+
                 variant.description = entry['description']
                 variant.gene_symbol = entry['hgnc_symbol']
 

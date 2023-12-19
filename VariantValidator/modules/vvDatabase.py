@@ -277,7 +277,7 @@ class Database(vvDBInsert.Mixin):
                         logger.info("Unable to connect to genenames.org with symbol %s", bypass_with_symbol)
                         connection_error = "Cannot connect to genenames.org with symbol %s", bypass_with_symbol
                 raise utils.DatabaseConnectionError(connection_error)
-            except Exception as e:
+            except Exception:
                 warning = "Ensembl transcript %s is not identified in the Ensembl APIs" % accession
                 raise utils.DatabaseConnectionError(warning)
         else:
@@ -286,8 +286,8 @@ class Database(vvDBInsert.Mixin):
             """
             try:
                 record = validator.entrez_efetch(db="nucleotide", id=accession, rettype="gb", retmode="text")
-            except IOError as e:
-                connection_error = "Cannot retrieve data from NCBI Entrez for record %s" % accession
+            except IOError:
+                connection_error = "Cannot currently retrieve data from NCBI Entrez for record %s" % accession
                 if bypass_with_symbol is not False:
                     try:
                         self.update_gene_stable_identifiers(bypass_with_symbol)

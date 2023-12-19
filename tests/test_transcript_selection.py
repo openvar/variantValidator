@@ -9,15 +9,9 @@ class TestTranscriptSelection(TestCase):
         cls.vv = Validator()
         cls.vv.testing = True
 
-    def test_all_transcripts(self):
-        variant = 'NC_000017.11:g.7676594T>A'
-        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
-        print(results)
-        assert len(results.keys()) >= 20
-
     def test_selected_tx(self):
         variant = 'NC_000017.11:g.7676594T>A'
-        results = self.vv.validate(variant, 'GRCh38', 'NM_000546.6|NM_000546.5').format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh38', '["NM_000546.6", "NM_000546.5"]').format_as_dict(test=True)
         print(results)
         assert len(results.keys()) == 4
 

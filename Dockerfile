@@ -1,4 +1,4 @@
-# Declare the base container
+# Declare the base image
 FROM python:3.11
 
 # Create the WorkDir

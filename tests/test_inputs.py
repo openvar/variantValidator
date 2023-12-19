@@ -30919,6 +30919,7 @@ class TestVariantsAuto(TestCase):
         assert 'NP_065184.2:p.(U127R)' in \
                results['NM_020451.2:c.379T>A']['hgvs_predicted_protein_consequence']['slr']
 
+
 # <LICENSE>
 # Copyright (C) 2016-2023 VariantValidator Contributors
 #

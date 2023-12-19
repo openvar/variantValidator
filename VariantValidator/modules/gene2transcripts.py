@@ -28,7 +28,10 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
     # List of transcripts
     sel_tx_lst = False
     if select_transcripts is not None:
-        sel_tx_lst = select_transcripts.split('|')
+        try:
+            sel_tx_lst = json.loads(select_transcripts)
+        except json.decoder.JSONDecodeError:
+            sel_tx_lst = [select_transcripts]
 
     if bypass_web_searches is True:
         pass
