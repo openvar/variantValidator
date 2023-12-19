@@ -2043,10 +2043,7 @@ class Mixin(vvMixinInit.Mixin):
                             # NM_004006.2:c.[2376G>C];[?]
                             continue
                         merge = []
-                        try:
-                            allele = str(self.merge_hgvs_3pr(each_allele, hn, genomic_reference))
-                        except fn.mergeHGVSerror as e:
-                            raise fn.mergeHGVSerror(str(e))
+                        allele = str(self.merge_hgvs_3pr(each_allele, hn, genomic_reference))
                         merge.append(allele)
                         for variant in each_allele:
                             merged_alleles.append([variant])
