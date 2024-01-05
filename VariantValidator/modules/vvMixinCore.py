@@ -205,7 +205,6 @@ class Mixin(vvMixinConverters.Mixin):
                         else:
                             my_variant.warnings.append("Reference sequence type o. should only be used for circular "
                                                        "reference sequences that are not mitochondrial. Instead use m.")
-
                     try:
                         toskip = format_converters.initial_format_conversions(my_variant, self,
                                                                               select_transcripts_dict_plus_version)
@@ -275,17 +274,13 @@ class Mixin(vvMixinConverters.Mixin):
                             logger.warning(str(e))
                             continue
 
-                    if toskip:
-                        print("Out we go")
-                        print(my_variant.warnings)
-                        print(my_variant.hgvs_genomic)
+                    else:
                         if my_variant.warnings is not None and my_variant.hgvs_genomic is not None:
-                            if "NC_" in my_variant.hgvs_genomic and "Uncertain positions" in str(my_variant.warnings):
+                            if "NC_" in my_variant.hgvs_genomic and my_variant.reformat_output == "uncertain_pos":
                                 my_variant.primary_assembly_loci = {my_variant.primary_assembly.lower():
                                                                     {"hgvs_genomic_description":
                                                                      my_variant.hgvs_genomic}}
-                            print(my_variant.primary_assembly_loci)
-
+                    if toskip:
                         continue
 
                     # INITIAL USER INPUT FORMATTING
@@ -462,10 +457,13 @@ class Mixin(vvMixinConverters.Mixin):
 
                             continue
 
-                        elif re.search("ins[GATCN]+\[\d+\]$", my_variant.quibble) or re.search("ins\[[GATCN]+\[\d+\];",
-                                                                                              my_variant.quibble):
-                            if re.search("ins\[[GATCN]+\[\d+\];", my_variant.quibble):
-                                sections = my_variant.quibble.split("ins")[1]
+                        elif re.search("(?:delins|del|ins)[NGATC]\[\d+\]$", my_variant.quibble) or \
+                                re.search("(?:delins|del|ins)\[[NGATC]\[\d+\];", my_variant.quibble):
+
+                            match = re.search("(?:delins|del|ins)", my_variant.quibble)[0]
+
+                            if re.search(f"{match}\[[GATCN]+\[\d+\];", my_variant.quibble):
+                                sections = my_variant.quibble.split(match)[1]
                                 sections = sections[1:-1]
                                 sections_listed = sections.split(";")
                                 sections_edited = []
@@ -484,17 +482,14 @@ class Mixin(vvMixinConverters.Mixin):
 
                             else:
                                 bases, count = my_variant.quibble.split("[")
-                                bases = bases.split("ins")[1]
+                                bases = bases.split(match)[1]
                                 count = int(count.replace("]", ""))
                                 ins_seq_in_full = []
                                 for i in range(count):
                                     ins_seq_in_full.append(bases)
                             ins_seq_in_full = "".join(ins_seq_in_full)
-                            if "del" not in my_variant.quibble:
-                                vt_in_full = my_variant.quibble.split("ins")[0] + "ins" + ins_seq_in_full
-                            else:
-                                vt_in_full = my_variant.quibble.split("delins")[0] + "delins" + ins_seq_in_full
-                            warn = "%s may also be written as %s " % (my_variant.quibble, vt_in_full)
+                            vt_in_full = my_variant.quibble.split(match)[0] + match + ins_seq_in_full
+                            warn = "%s may also be written as %s" % (my_variant.quibble, vt_in_full)
                             my_variant.warnings.append(warn)
 
                             try:
@@ -579,6 +574,9 @@ class Mixin(vvMixinConverters.Mixin):
                         input_parses = self.hp.parse_hgvs_variant(str(formatted_variant))
                         my_variant.hgvs_formatted = input_parses
                     except vvhgvs.exceptions.HGVSError as e:
+                        # Pass over for uncertain positions
+                        if my_variant.reformat_output == "uncertain_pos":
+                            continue
 
                         # Check for common mistakes
                         toskip = use_checking.refseq_common_mistakes(my_variant)
@@ -1372,10 +1370,10 @@ class Mixin(vvMixinConverters.Mixin):
                 variant.hgvs_lrg_transcript_variant = lrg_transcript_variant
                 variant.hgvs_lrg_variant = lrg_variant
                 variant.alt_genomic_loci = alt_genomic_dicts
-                if "Uncertain positions are not fully supported, however the syntax is valid" \
-                        not in str(variant.warnings):
+                if variant.reformat_output != "uncertain_pos":
                     variant.primary_assembly_loci = primary_genomic_dicts
                     variant.hgvs_transcript_variant = tx_variant
+
                 if variant.hgvs_transcript_variant is None:
                     variant.hgvs_transcript_variant = tx_variant
                 variant.reference_sequence_records = ''
@@ -1387,8 +1385,7 @@ class Mixin(vvMixinConverters.Mixin):
                     variant.reference_sequence_records = ref_records
 
                 # Loop out uncertain position variants
-                if "Uncertain positions are not fully supported, however the syntax is valid" \
-                        not in str(variant.warnings):
+                if my_variant.reformat_output != "uncertain_pos":
 
                     # Liftover intergenic positions genome to genome
                     if (variant.output_type_flag == 'intergenic' and liftover_level is not None) or \

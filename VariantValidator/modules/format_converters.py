@@ -1099,27 +1099,34 @@ def uncertain_pos(variant, validator):
         to_check = variant.quibble
         posedit = to_check.split(':')[1]
         if '(' in posedit or ')' in posedit:
-            if 'p.' in posedit or '[' in posedit or ']' in posedit or '(;)' in posedit or '(:)' in posedit:
+            if 'p.' in posedit or '(;)' in posedit or '(:)' in posedit:
                 return False
             elif re.search("ins\(\d+\)$", posedit) or re.search("ins\(\d+_\d+\)$", posedit):
                 return False
             elif ":r.(" in to_check:
                 return False
             else:
+                if ("[" in posedit or "]" in posedit) and not re.search("\[\d+\]", posedit):
+                    return False
                 try:
                     complex_descriptions.uncertain_positions(variant, validator)
                 except complex_descriptions.IncompatibleTypeError:
-                    print("YYAYAYAY")
-
                     use_checking.refseq_common_mistakes(variant)
-                except Exception:
-                    import traceback
-                    traceback.print_exc()
+                    # import traceback
+                    # traceback.print_exc()
+                    return True
+                except complex_descriptions.InvalidRangeError as e:
+                    variant.warnings.append(str(e))
+                    # import traceback
+                    # traceback.print_exc()
+                    return True
+                except Exception as e:
+                    variant.warnings.append(str(e))
+                    # import traceback
+                    # traceback.print_exc()
+                    return True
 
-            # error = 'Uncertain positions are not currently supported'
-            # variant.warnings.append(error)
-            # logger.warning(str(error))
-            return True
+            return False
         else:
             return False
     except Exception:
