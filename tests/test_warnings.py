@@ -987,9 +987,23 @@ class TestVVGapWarnings(TestCase):
                 "hgvs_genomic_description": "NC_000003.12:g.(63912602_63912844)insNNNNNNNNNNNNNNN"
             }}
 
+    def test_alleles_1(self):
+        variant = 'NM_000093.5:c.[14del;17G>A]'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "AlleleSyntaxError: Variants [14del;17G>A] should be merged into NM_000093.5:c.16_17delinsA" in results[
+            'validation_warning_1']["validation_warnings"]
+
+    def test_alleles_2(self):
+        variant = 'NM_000088.4:c.[4del;6C>G]'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "AlleleSyntaxError: Variants [4del;6C>G] should be merged into NM_000088.4:c.5_6delinsG" in results[
+            'validation_warning_1']["validation_warnings"]
+
 
 # <LICENSE>
-# Copyright (C) 2016-2023 VariantValidator Contributors
+# Copyright (C) 2016-2024 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

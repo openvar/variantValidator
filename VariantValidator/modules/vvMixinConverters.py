@@ -11,12 +11,16 @@ from Bio.Seq import Seq
 from . import utils as fn
 import sys
 import traceback
+from vvhgvs.assemblymapper import AssemblyMapper
 
 from vvhgvs.exceptions import HGVSError, HGVSDataNotAvailableError, HGVSUnsupportedOperationError, \
      HGVSInvalidVariantError
 
 logger = logging.getLogger(__name__)
 
+
+class AlleleSyntaxError(Exception):
+    pass
 
 class Mixin(vvMixinInit.Mixin):
     """
@@ -1650,7 +1654,7 @@ class Mixin(vvMixinInit.Mixin):
         revcomp = revcomp[::-1]
         return revcomp
 
-    def merge_hgvs_3pr(self, hgvs_variant_list, hn, genomic_reference=False, final_norm=True):
+    def merge_hgvs_3pr(self, hgvs_variant_list, hn, genomic_reference=False, final_norm=True, hgvs_strict=False):
         """
         Function designed to merge multiple HGVS variants (hgvs objects) into a single delins
         using 3 prime normalization
@@ -1698,7 +1702,7 @@ class Mixin(vvMixinInit.Mixin):
         full_list = []
 
         # Loop through the submitted variants to remove any identity variants, these will be re-created as required
-        # Except if it is the forst variant in which case we need the start position. We cannot assume non-gap
+        # Except if it is the first variant in which case we need the start position. We cannot assume non-gap
         elec = 0
         cp_hgvs_v = []
         for hgvs_v in hgvs_variant_list:
@@ -1763,6 +1767,22 @@ class Mixin(vvMixinInit.Mixin):
                 else:
                     raise fn.mergeHGVSerror("Submitted variants are out of order or their ranges overlap")
 
+        # Strict application of the HGVS merge rule
+        if hgvs_strict is True:
+            merge_within_bases = 1
+            cp_hgvs_variant_list = copy.deepcopy(hgvs_variant_list)
+            for vt in range(len(hgvs_variant_list)-1):
+                v1 = hgvs_variant_list[vt]
+                v2 = hgvs_variant_list[vt+1]
+                vn1 = hn.normalize(v1)
+                vn2 = self.reverse_hn.normalize(v2)
+                if vn2.posedit.pos.start.base - vn1.posedit.pos.end.base > merge_within_bases:
+                    cp_hgvs_variant_list.remove(v1)
+            if len(cp_hgvs_variant_list) == 1:
+                return False
+            else:
+                hgvs_variant_list = cp_hgvs_variant_list
+
         # Generate the alt sequence
         alt_sequence = ''
         for hgvs_v in full_list:
@@ -1789,6 +1809,20 @@ class Mixin(vvMixinInit.Mixin):
                 hgvs_delins = hn.normalize(hgvs_delins)
             except HGVSUnsupportedOperationError as e:
                 logger.debug("Except passed, %s", e)
+
+        if hgvs_strict is True:
+            merge_these = []
+            for var in hgvs_variant_list:
+                try:
+                    var = self.vm.n_to_c(var)
+                except Exception:
+                    pass
+                var = fn.valstr(var).split(".")[2]
+                merge_these.append(var)
+
+            raise AlleleSyntaxError(f"AlleleSyntaxError: Variants [{';'.join(merge_these)}] should be merged into "
+                                    f"{fn.valstr(hgvs_delins)}")
+
         return hgvs_delins
 
 
@@ -1919,14 +1953,15 @@ class Mixin(vvMixinInit.Mixin):
     #     # return
     #     return hgvs_delins
 
-    def hgvs_alleles(self, variant_description, hn, genomic_reference=False):
+    def hgvs_alleles(self, my_variant, genomic_reference=False):
         """
         HGVS allele handling function which takes a single HGVS allele description and
         separates each allele into a list of HGVS variants
         """
         try:
             # Split up the description
-            accession, remainder = variant_description.split(':')
+            accession, remainder = my_variant.quibble.split(':')
+
             # Branch
             if re.search(r'[gcn]\.\d+\[', remainder):
                 # NM_004006.2:c.2376[G>C];[(G>C)]
@@ -1988,12 +2023,14 @@ class Mixin(vvMixinInit.Mixin):
                         my_alleles.append(current_allele)
                     # Now merge the alleles into a single variant
                     merged_alleles = []
+
                     for each_allele in my_alleles:
                         if '?' in str(each_allele):
                             # NM_004006.2:c.[2376G>C];[?]
                             continue
                         merge = []
-                        allele = str(self.merge_hgvs_3pr(each_allele, hn, genomic_reference))
+                        allele = str(self.merge_hgvs_3pr(each_allele, my_variant.hn, genomic_reference,
+                                                         hgvs_strict=True))
                         merge.append(allele)
                         for variant in each_allele:
                             merged_alleles.append([variant])
@@ -2035,18 +2072,21 @@ class Mixin(vvMixinInit.Mixin):
                             vrt = accession + ':' + type + '.' + pe
                             current_allele.append(vrt)
                         my_alleles.append(current_allele)
+
                     # Now merge the alleles into a single variant
                     merged_alleles = []
-
                     for each_allele in my_alleles:
                         if '?' in str(each_allele):
                             # NM_004006.2:c.[2376G>C];[?]
                             continue
                         merge = []
-                        allele = str(self.merge_hgvs_3pr(each_allele, hn, genomic_reference))
+                        allele = str(self.merge_hgvs_3pr(each_allele, my_variant.hn, genomic_reference,
+                                                         hgvs_strict=True))
                         merge.append(allele)
+
                         for variant in each_allele:
                             merged_alleles.append([variant])
+
                     my_alleles = merged_alleles
 
             # Extract alleles into strings
@@ -2382,7 +2422,7 @@ class Mixin(vvMixinInit.Mixin):
             return rts
 
 # <LICENSE>
-# Copyright (C) 2016-2023 VariantValidator Contributors
+# Copyright (C) 2016-2024 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

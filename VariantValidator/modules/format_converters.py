@@ -7,6 +7,7 @@ from VariantValidator.modules import seq_data
 from VariantValidator.modules import utils as fn
 import VariantValidator.modules.rna_formatter
 from VariantValidator.modules import complex_descriptions, use_checking
+from VariantValidator.modules.vvMixinConverters import AlleleSyntaxError
 
 logger = logging.getLogger(__name__)
 
@@ -694,12 +695,19 @@ def allele_parser(variant, validation, validator):
         try:
             # Submit to allele extraction function
             try:
-                alleles = validation.hgvs_alleles(variant.quibble, variant.hn, genomic_reference)
+                alleles = validation.hgvs_alleles(variant, genomic_reference)
             except fn.alleleVariantError as e:
                 variant.warnings.append(str(e))
                 logger.warning(str(e))
                 return True
-            variant.warnings.append('Automap has extracted possible variant descriptions')
+            except AlleleSyntaxError as e:
+                variant.warnings.append(str(e))
+                return True
+
+            variant.warnings.append('The alleleic description is in the correct syntax and all possible variant '
+                                    'descriptions have been extracted')
+            variant.warnings.append('Each variant is validated independently and users must update the original '
+                                    'description accordingly based on these validations')
             logger.info('Automap has extracted possible variant descriptions, resubmitting')
             for allele in alleles:
                 query = Variant(variant.original, quibble=allele, warnings=variant.warnings, write=True,
@@ -1134,7 +1142,7 @@ def uncertain_pos(variant, validator):
 
 
 # <LICENSE>
-# Copyright (C) 2016-2023 VariantValidator Contributors
+# Copyright (C) 2016-2024 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
