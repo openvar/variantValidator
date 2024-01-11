@@ -602,7 +602,15 @@ def intronic_converter(variant, validator, skip_check=False):
     hgvs can now parse the string into an hgvs variant object and manipulate it
     """
     compounder = re.compile(r'\(NM_')
-    if compounder.search(variant.quibble):
+    compounder2 = re.compile(r'\(LRG_\d+t')
+    if compounder.search(variant.quibble) or compounder2.search(variant.quibble):
+        # Convert LRG transcript
+        if compounder2.search(variant.quibble):
+            lrg_transcript = variant.quibble.split("(")[1].split(":")[0].replace(")", "")
+            refseq_transcript = validator.db.get_refseq_transcript_id_from_lrg_transcript_id(lrg_transcript)
+            variant.quibble = variant.quibble.replace(lrg_transcript, refseq_transcript)
+            variant.warnings.append(f"Reference sequence {lrg_transcript} updated to {refseq_transcript}")
+
         # Find pattern e.g. +0000 and assign to a variable
         genomic_ref = variant.quibble.split('(')[0]
         transy = re.search(r"(NM_.+)", variant.quibble)
@@ -708,6 +716,7 @@ def allele_parser(variant, validation, validator):
                                     'descriptions have been extracted')
             variant.warnings.append('Each variant is validated independently and users must update the original '
                                     'description accordingly based on these validations')
+
             logger.info('Automap has extracted possible variant descriptions, resubmitting')
             for allele in alleles:
                 query = Variant(variant.original, quibble=allele, warnings=variant.warnings, write=True,

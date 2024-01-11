@@ -1514,6 +1514,14 @@ class Mixin(vvMixinConverters.Mixin):
                     # Suppress "RefSeqGene record not available"
                     elif "RefSeqGene record not available" in vt:
                         continue
+                    # convert SeqRepo errors into a more user friendly form
+                    elif vt.startswith('Failed to fetch') and 'SeqRepo' in vt:
+                        acc = vt.split()[3]
+                        vt = (
+                                f"Failed to find {acc} in our sequence store: This may mean that "+
+                                "the sequence has been mistyped, or it may be missing from our "+
+                                "data, possibly due to being either deprecated or yet to be added.")
+                        variant_warnings.append(vt)
                     elif 'NP_' in vt and 'transcript' in vt:
                         continue
                     elif "Xaa" in vt:
