@@ -119,6 +119,12 @@ def structure_checks_g(variant, validator):
                                     "the origin of circular reference sequences")
             return True
 
+        elif "insertion length must be 1" in str(e) and "(" in str(variant.input_parses.posedit.pos) and ")" in \
+                str(variant.input_parses.posedit.pos):
+            return True
+        elif "Length implied by coordinates must equal sequence deletion length" in str(e) and \
+             "(" in str(variant.input_parses.posedit.pos) and ")" in str(variant.input_parses.posedit.pos):
+            return True
         else:
             error = str(e)
             variant.warnings.append(error)
@@ -470,16 +476,11 @@ def structure_checks_c(variant, validator):
             error = str(e)
             # This catches errors in introns
             if 'base start position must be <= end position' in error:
-                # correction = variant.input_parses
-                # st = variant.input_parses.posedit.pos.start
-                # ed = variant.input_parses.posedit.pos.end
-                # correction.posedit.pos.start = ed
-                # correction.posedit.pos.end = st
-                # error = error + ': Did you mean ' + str(correction) + '?'
                 error = 'Interval start position ' + str(variant.input_parses.posedit.pos.start) + ' > interval end '\
                         'position ' + str(variant.input_parses.posedit.pos.end)
-            variant.warnings.append(error)
-            logger.warning(error)
+            if "(" not in str(variant.input_parses.posedit.pos):
+                variant.warnings.append(error)
+                logger.warning(error)
             return True
 
         except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
@@ -726,7 +727,7 @@ def structure_checks_n(variant, validator):
     return False
 
 # <LICENSE>
-# Copyright (C) 2016-2023 VariantValidator Contributors
+# Copyright (C) 2016-2024 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
