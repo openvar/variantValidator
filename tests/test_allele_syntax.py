@@ -64,8 +64,9 @@ class TestAlleleSyntax(TestCase):
         variant = 'LRG_199t1:c.[976-20T>A;976-17_976-1dup]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert "Intronic variants can only be validated if a genomic/gene reference sequence is also provided " \
-               "e.g. NC_000017.11(NM_000088.3):c.589-1G>T" in results["validation_warning_1"]["validation_warnings"]
+        assert "AlleleSyntaxError: Intronic variants can only be validated if a genomic/gene reference sequence " \
+               "is also provided e.g. NC_000017.11(NM_000088.3):c.589-1G>T" in \
+               results["validation_warning_1"]["validation_warnings"]
 
     def test_variant9(self):
         variant = 'NC_000023.10(LRG_199t1):c.[976-20T>A;976-17_976-1dup]'
@@ -73,7 +74,8 @@ class TestAlleleSyntax(TestCase):
         print(results)
         assert "Reference sequence LRG_199t1 updated to NM_004006.2" in results[
             "validation_warning_1"]["validation_warnings"]
-        assert "Submitted variants are out of order or their ranges overlap" in results[
+        assert "ExonBoundaryError: Position c.976-17 does not correspond with an exon boundary " \
+               "for transcript NM_004006.2" in results[
             "validation_warning_1"]["validation_warnings"]
 
 
