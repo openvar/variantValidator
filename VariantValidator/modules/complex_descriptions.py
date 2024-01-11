@@ -129,6 +129,7 @@ def uncertain_positions(my_variant, validator):
                                                      my_variant.reverse_normalizer, validator.select_transcripts)
             if len(rel_var) != 0:
                 # Filter for Select transcripts only if transcript not stated
+                my_variant.output_type_flag = "gene"
                 if validator.select_transcripts == "select":
                     for variant in rel_var:
                         annotation = validator.db.get_transcript_annotation(variant.ac)
@@ -160,6 +161,7 @@ def uncertain_positions(my_variant, validator):
                 my_variant.hgvs_coding = tx_variant
                 my_variant.hgvs_transcript_variant = tx_variant
             else:
+                my_variant.output_type_flag = "intergenic"
                 my_variant.warnings.append("Selected transcript does not span the entire range "
                                            "of the genomic variation")
 
@@ -177,6 +179,7 @@ def uncertain_positions(my_variant, validator):
             my_variant.hgvs_genomic = gen_variant
             my_variant.hgvs_coding = my_variant.quibble
             my_variant.hgvs_transcript_variant = my_variant.quibble
+            my_variant.output_type_flag = "gene"
 
     else:
         accession_and_type, position_and_edit = my_variant.quibble.split(".(")
@@ -224,6 +227,7 @@ def uncertain_positions(my_variant, validator):
             # Filter transcripts
             if len(rel_var) != 0:
                 # Filter for Select transcripts only if transcript not stated
+                my_variant.output_type_flag = "gene"
                 if validator.select_transcripts == "select":
                     for variant in rel_var:
                         annotation = validator.db.get_transcript_annotation(variant.ac)
@@ -242,6 +246,7 @@ def uncertain_positions(my_variant, validator):
                 my_variant.hgvs_coding = tx_variant
                 my_variant.hgvs_transcript_variant = tx_variant
             else:
+                my_variant.output_type_flag = "intergenic"
                 my_variant.warnings.append("Selected transcript does not span the entire range "
                                            "of the genomic variation")
 
@@ -251,6 +256,7 @@ def uncertain_positions(my_variant, validator):
             my_variant.hgvs_genomic = gen_variant
             my_variant.hgvs_coding = my_variant.quibble
             my_variant.hgvs_transcript_variant = my_variant.quibble
+            my_variant.output_type_flag = "gene"
     return
 
 # <LICENSE>
