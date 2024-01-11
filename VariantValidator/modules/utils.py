@@ -470,7 +470,8 @@ def translate(ed_seq, cds_start, modified_aa=None):
     """
     if (met == 'ATG') or (met == 'atg') or (met == 'TTG') or (met == 'ttg') or (met == 'CTG') or (met == 'ctg') \
         or (met == 'GTG') or (met == 'gtg') or (met == 'ATT') or (met == 'att') or (met == 'ATC') or (met == 'atc') \
-        or (met == 'ATA') or (met == 'ata'):
+        or (met == 'ATA') or (met == 'ata') or (met == 'ACG') or (met == 'acg'):
+
         # Remove the 5 prime UTR
         coding_sequence = ed_seq[cds_start:].upper()
 
@@ -632,7 +633,7 @@ class ObsoleteSeqError(Exception):
     pass
 
 # <LICENSE>
-# Copyright (C) 2016-2023 VariantValidator Contributors
+# Copyright (C) 2016-2024 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

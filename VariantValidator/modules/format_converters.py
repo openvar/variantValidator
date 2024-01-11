@@ -2,10 +2,12 @@ import re
 import vvhgvs.exceptions
 import copy
 import logging
-from .variant import Variant
-from . import seq_data
-from . import utils as fn
+from VariantValidator.modules.variant import Variant
+from VariantValidator.modules import seq_data
+from VariantValidator.modules import utils as fn
 import VariantValidator.modules.rna_formatter
+from VariantValidator.modules import complex_descriptions, use_checking
+from VariantValidator.modules.vvMixinConverters import AlleleSyntaxError
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +39,7 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
         return True
 
     # Uncertain positions
-    toskip = uncertain_pos(variant)
+    toskip = uncertain_pos(variant, validator)
     if toskip:
         return True
 
@@ -701,16 +703,20 @@ def allele_parser(variant, validation, validator):
         try:
             # Submit to allele extraction function
             try:
-                alleles = validation.hgvs_alleles(variant.quibble, variant.hn, genomic_reference)
+                alleles = validation.hgvs_alleles(variant, genomic_reference)
             except fn.alleleVariantError as e:
                 variant.warnings.append(str(e))
                 logger.warning(str(e))
                 return True
-            except fn.mergeHGVSerror as e:
+            except AlleleSyntaxError as e:
                 variant.warnings.append(str(e))
-                logger.warning(str(e))
                 return True
-            variant.warnings.append('Automap has extracted possible variant descriptions')
+
+            variant.warnings.append('The alleleic description is in the correct syntax and all possible variant '
+                                    'descriptions have been extracted')
+            variant.warnings.append('Each variant is validated independently and users must update the original '
+                                    'description accordingly based on these validations')
+
             logger.info('Automap has extracted possible variant descriptions, resubmitting')
             for allele in alleles:
                 query = Variant(variant.original, quibble=allele, warnings=variant.warnings, write=True,
@@ -1102,7 +1108,7 @@ def rna(variant, validator):
     return False
 
 
-def uncertain_pos(variant):
+def uncertain_pos(variant, validator):
     """
     check for uncertain positions in the variant and return unsupported warning
     """
@@ -1110,16 +1116,34 @@ def uncertain_pos(variant):
         to_check = variant.quibble
         posedit = to_check.split(':')[1]
         if '(' in posedit or ')' in posedit:
-            if 'p.' in posedit or '[' in posedit or ']' in posedit or '(;)' in posedit or '(:)' in posedit:
+            if 'p.' in posedit or '(;)' in posedit or '(:)' in posedit:
                 return False
             elif re.search("ins\(\d+\)$", posedit) or re.search("ins\(\d+_\d+\)$", posedit):
                 return False
             elif ":r.(" in to_check:
                 return False
-            error = 'Uncertain positions are not currently supported'
-            variant.warnings.append(error)
-            logger.warning(str(error))
-            return True
+            else:
+                if ("[" in posedit or "]" in posedit) and not re.search("\[\d+\]", posedit):
+                    return False
+                try:
+                    complex_descriptions.uncertain_positions(variant, validator)
+                except complex_descriptions.IncompatibleTypeError:
+                    use_checking.refseq_common_mistakes(variant)
+                    # import traceback
+                    # traceback.print_exc()
+                    return True
+                except complex_descriptions.InvalidRangeError as e:
+                    variant.warnings.append(str(e))
+                    # import traceback
+                    # traceback.print_exc()
+                    return True
+                except Exception as e:
+                    variant.warnings.append(str(e))
+                    # import traceback
+                    # traceback.print_exc()
+                    return True
+
+            return False
         else:
             return False
     except Exception:
@@ -1127,7 +1151,7 @@ def uncertain_pos(variant):
 
 
 # <LICENSE>
-# Copyright (C) 2016-2023 VariantValidator Contributors
+# Copyright (C) 2016-2024 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
