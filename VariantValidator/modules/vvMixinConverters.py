@@ -10,8 +10,7 @@ from Bio import Entrez, SeqIO
 from Bio.Seq import Seq
 from . import utils as fn
 import sys
-import traceback
-from vvhgvs.assemblymapper import AssemblyMapper
+# import traceback
 
 from vvhgvs.exceptions import HGVSError, HGVSDataNotAvailableError, HGVSUnsupportedOperationError, \
      HGVSInvalidVariantError
@@ -1659,8 +1658,13 @@ class Mixin(vvMixinInit.Mixin):
         Function designed to merge multiple HGVS variants (hgvs objects) into a single delins
         using 3 prime normalization
         """
+
         # Ensure c. is mapped to the
         h_list = []
+
+        # Have we mapped from c to g
+        c_to_g_mapped = {"mapped": False, "ori": None, "transcript": None}
+
         # Sanity check and format the submitted variants
         for hgvs_v in hgvs_variant_list:
             # For testing include parser
@@ -1675,9 +1679,15 @@ class Mixin(vvMixinInit.Mixin):
             except vvhgvs.exceptions.HGVSInvalidVariantError as e:
                 if 'Cannot validate sequence of an intronic variant' in str(e):
                     if genomic_reference is not False:
-                        pass
+                        c_to_g_mapped["mapped"] = True
+                        c_to_g_mapped["ori"] = self.hdp.get_tx_exons(hgvs_v.ac,
+                                                                     genomic_reference,
+                                                                     self.alt_aln_method
+                                                                     )[0][3]
+                        c_to_g_mapped["transcript"] = hgvs_v.ac
                     else:
-                        raise fn.mergeHGVSerror("Intronic variants can only be validated if a genomic/gene reference "
+                        raise fn.mergeHGVSerror("AlleleSyntaxError: Intronic variants can only be validated if a "
+                                                "genomic/gene reference "
                                                 "sequence is also provided e.g. NC_000017.11(NM_000088.3):c.589-1G>T")
                 else:
                     self.vr.validate(hgvs_v)  # Let hgvs errors deal with invalid variants and not hgvs objects
@@ -1687,11 +1697,21 @@ class Mixin(vvMixinInit.Mixin):
                     hgvs_v = self.vm.c_to_n(hgvs_v)
                     h_list.append(hgvs_v)
                 except:
-                    raise fn.mergeHGVSerror("Unable to map from c. position to absolute position")
+                    raise fn.mergeHGVSerror("AlleleSyntaxError: Unable to map from c. position to absolute position")
+
             elif hgvs_v.type == 'g':
                 h_list.append(hgvs_v)
 
         if h_list:
+            if c_to_g_mapped["mapped"] is True:
+                cp_h_list = []
+                for tx_variant in h_list:
+                    tx_variant = self.vm.n_to_c(tx_variant)
+                    hgvs_v = self.vm.t_to_g(tx_variant, genomic_reference)
+                    cp_h_list.append(hgvs_v)
+                if c_to_g_mapped["ori"] == -1:
+                    cp_h_list.reverse()
+                h_list = cp_h_list
             hgvs_variant_list = copy.deepcopy(h_list)
 
         # Define accession and start/end positions
@@ -1740,7 +1760,7 @@ class Mixin(vvMixinInit.Mixin):
                 seqtype = hgvs_v.type
             else:
                 if hgvs_v.ac != accession:
-                    raise fn.mergeHGVSerror("More than one reference sequence submitted")
+                    raise fn.mergeHGVSerror("AlleleSyntaxError: More than one reference sequence submitted")
 
             # Set initial start and end positions
             if merge_start_pos is None:
@@ -1765,7 +1785,8 @@ class Mixin(vvMixinInit.Mixin):
                     # Append to the final list of variants
                     full_list.append(hgvs_v)
                 else:
-                    raise fn.mergeHGVSerror("Submitted variants are out of order or their ranges overlap")
+                    raise fn.mergeHGVSerror("AlleleSyntaxError: Submitted variants are out of order or their ranges "
+                                            "overlap")
 
         # Strict application of the HGVS merge rule
         if hgvs_strict is True:
@@ -1812,6 +1833,16 @@ class Mixin(vvMixinInit.Mixin):
 
         if hgvs_strict is True:
             merge_these = []
+            if c_to_g_mapped["mapped"] is True:
+                cp_hgvs_variant_list = []
+                if c_to_g_mapped["ori"] == -1:
+                    hgvs_variant_list.reverse()
+                for gen_var in hgvs_variant_list:
+                    tx_var = self.vm.g_to_t(gen_var, c_to_g_mapped["transcript"])
+                    cp_hgvs_variant_list.append(tx_var)
+                hgvs_delins = self.vm.g_to_t(hgvs_delins, c_to_g_mapped["transcript"])
+                hgvs_variant_list = copy.deepcopy(cp_hgvs_variant_list)
+
             for var in hgvs_variant_list:
                 try:
                     var = self.vm.n_to_c(var)
@@ -2102,7 +2133,7 @@ class Mixin(vvMixinInit.Mixin):
         except Exception as e:
             exc_type, exc_value, last_traceback = sys.exc_info()
             logger.error(str(exc_type) + " " + str(exc_value))
-            traceback.print_tb(last_traceback, file=sys.stdout)
+            # traceback.print_tb(last_traceback, file=sys.stdout)
             raise fn.alleleVariantError(str(e))
 
     def chr_to_rsg(self, hgvs_genomic, hn):

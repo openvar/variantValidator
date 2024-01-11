@@ -1001,6 +1001,31 @@ class TestVVGapWarnings(TestCase):
         assert "AlleleSyntaxError: Variants [4del;6C>G] should be merged into NM_000088.4:c.5_6delinsG" in results[
             'validation_warning_1']["validation_warnings"]
 
+    def test_alleles_3(self):
+        variant = 'NM_000088.4:c.[589-1del;591T>A]'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "AlleleSyntaxError: Intronic variants can only be validated if a genomic/gene reference sequence" \
+               " is also provided " \
+               "e.g. NC_000017.11(NM_000088.3):c.589-1G>T" in results[
+            'validation_warning_1']["validation_warnings"]
+
+    def test_alleles_4(self):
+        variant = 'NC_000017.11(NM_000088.4):c.[589-1del;591T>A]'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "AlleleSyntaxError: Variants [589-1del;591T>A] should be merged into " \
+               "NM_000088.4:c.590_591delinsA" in results[
+            'validation_warning_1']["validation_warnings"]
+
+    def test_alleles_5(self):
+        variant = 'NC_000009.12(NM_000093.5):c.[277del;277+2T>A]'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "AlleleSyntaxError: Variants [277del;277+2T>A] should be merged into " \
+               "NM_000093.5:c.277+1_277+2delinsA" in results[
+            'validation_warning_1']["validation_warnings"]
+
 
 # <LICENSE>
 # Copyright (C) 2016-2024 VariantValidator Contributors
