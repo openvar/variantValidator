@@ -218,11 +218,19 @@ def vcf2hgvs_stage2(variant, validator):
             except Exception as e:
                 logger.debug("Except passed, %s", e)
 
-    # Descriptions lacking the colon :
+    # Descriptions lacking the colon : or the dot .
     if re.search(r'[gcnmrp]\.', variant.quibble) and not re.search(r':[gcnmrp]\.', variant.quibble):
         error = 'Unable to identify a colon (:) in the variant description %s. A colon is required in HGVS variant ' \
                 'descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. ' \
                 'e.g. :c.' % variant.quibble
+        variant.warnings.append(error)
+        logger.warning(error)
+        skipvar = True
+    elif re.search(r':[gcnmrp]', variant.quibble) and not re.search(r':[gcnmrp]\.', variant.quibble):
+        error = 'Unable to identify a dot (.) in the variant description %s following the reference sequence ' \
+                'type (g,c,n,r, or p). A dot is required in HGVS variant ' \
+                'descriptions to separate the reference type from the variant position i.e. <accession>:<type>. ' \
+                'e.g. :g.' % variant.quibble
         variant.warnings.append(error)
         logger.warning(error)
         skipvar = True
