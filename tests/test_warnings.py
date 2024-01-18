@@ -1026,6 +1026,24 @@ class TestVVGapWarnings(TestCase):
                "NM_000093.5:c.277+1_277+2delinsA" in results[
             'validation_warning_1']["validation_warnings"]
 
+    def missing_dot(self):
+        variant = 'chr11:g,108121787G>A'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "Unable to identify a dot (.) in the variant description chr11:g,108121787G>A following the reference " \
+               "sequence type (g,c,n,r, or p). A dot is required in HGVS variant descriptions to separate the " \
+               "reference type from the variant position i.e. <accession>:<type>. e.g. :g." in results[
+            'validation_warning_1']["validation_warnings"]
+
+    def missing_colon(self):
+        variant = 'chr11g.108121787G>A'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "Unable to identify a colon (:) in the variant description chr11g.108121787G>A. A colon is required in " \
+               "HGVS variant descriptions to separate the reference accession from the reference type i.e. " \
+               "<accession>:<type>. e.g. :c." in results[
+            'validation_warning_1']["validation_warnings"]
+
 
 # <LICENSE>
 # Copyright (C) 2016-2024 VariantValidator Contributors

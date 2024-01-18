@@ -123,7 +123,9 @@ class TestValidator(unittest.TestCase):
         output = self.vv.validate(var, 'GRCh37', 'all').format_as_dict()
         print(output)
         self.assertEqual(output['flag'], 'warning')
-        self.assertIn('lacks the . character between <type> and <position>',
+        self.assertIn('Unable to identify a dot (.) in the variant description NM_015120.4:c34C>T following the '
+                      'reference sequence type (g,c,n,r, or p). A dot is required in HGVS variant descriptions to '
+                      'separate the reference type from the variant position i.e. <accession>:<type>. e.g. :g.',
                       str(output['validation_warning_1']['validation_warnings']))
 
     def test_variant_invalid_3(self):
