@@ -1277,8 +1277,8 @@ class Mixin(vvMixinConverters.Mixin):
                                     re_parse_protein_single_aa = re_parse_protein_single_aa + "p.*="
 
                                 # Capture instances of variation affecting p.1
-                                if re.search("[A-Z][a-z[a-z]1?", predicted_protein_variant_dict['tlr']):
-                                    match = re.search("([A-Z][a-z][a-z]1?)", predicted_protein_variant_dict['tlr'])
+                                if re.search("[A-Z][a-z[a-z]1[?]", predicted_protein_variant_dict['tlr']):
+                                    match = re.search("([A-Z][a-z][a-z]1[?])", predicted_protein_variant_dict['tlr'])
                                     captured_aa = match.group(1).split("1")[0]
                                     captured_aa_sl = fn.three_to_one(captured_aa)
                                     predicted_protein_variant_dict['tlr'] = \
