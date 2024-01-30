@@ -1225,11 +1225,29 @@ class Mixin(vvMixinConverters.Mixin):
                                 if 'LRG' in format_p:
                                     format_lrg = copy.copy(format_p)
                                     format_p = re.sub(r'\(LRG_.+?\)', '', format_p)
-                                    format_lrg = format_lrg.split('(')[1]
-                                    format_lrg = format_lrg.replace(')', '')
+                                    if "(" in format_p:
+                                        format_lrg = format_lrg.split('(')[1]
+                                        format_lrg = format_lrg.replace(')', '')
                                 else:
                                     format_lrg = None
                                     pass
+
+                                if re.search("[A-Z][a-z][a-z]1[A-Z][a-z][a-z]", format_p):
+                                    cp_warnings = []
+                                    for each_warning in variant.warnings:
+                                        if "is HGVS compliant and contains a valid reference " \
+                                           "amino acid description" not in each_warning:
+                                            cp_warnings.append(each_warning)
+                                        else:
+                                            cp_format_p = copy.copy(format_p)
+                                            cp_format_p = cp_format_p.split(":")[0]
+                                            aa_1 = self.sf.fetch_seq(cp_format_p, start_i=0, end_i=1)
+                                            aa_1 = fn.one_to_three(aa_1)
+                                            cp_format_p = f"{cp_format_p}:p.({aa_1}1?)"
+                                            cp_warnings.append(f"Variant {format_p} affects the initiation amino acid"
+                                                               f" so is better described as {cp_format_p}")
+                                            format_p = cp_format_p
+                                            variant.warnings = cp_warnings
 
                                 re_parse_protein = self.hp.parse_hgvs_variant(format_p)
 
@@ -1258,6 +1276,18 @@ class Mixin(vvMixinConverters.Mixin):
                                     re_parse_protein_single_aa = re_parse_protein_single_aa.split("p.")[0]
                                     re_parse_protein_single_aa = re_parse_protein_single_aa + "p.*="
 
+                                # Capture instances of variation affecting p.1
+                                if re.search("[A-Z][a-z[a-z]1[?]", predicted_protein_variant_dict['tlr']):
+                                    match = re.search("([A-Z][a-z][a-z]1[?])", predicted_protein_variant_dict['tlr'])
+                                    captured_aa = match.group(1).split("1")[0]
+                                    captured_aa_sl = fn.three_to_one(captured_aa)
+                                    predicted_protein_variant_dict['tlr'] = \
+                                        predicted_protein_variant_dict['tlr'].split("p.")[0]
+                                    predicted_protein_variant_dict['tlr'] = \
+                                        predicted_protein_variant_dict['tlr'] + "p.(" + captured_aa + "1?)"
+                                    re_parse_protein_single_aa = re_parse_protein_single_aa.split("p.")[0]
+                                    re_parse_protein_single_aa = re_parse_protein_single_aa + "p.(" \
+                                                                                              + captured_aa_sl + "1?)"
                                 predicted_protein_variant_dict["slr"] = str(re_parse_protein_single_aa)
 
                                 # set LRG outputs
