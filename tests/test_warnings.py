@@ -1044,6 +1044,22 @@ class TestVVGapWarnings(TestCase):
                "<accession>:<type>. e.g. :c." in results[
             'validation_warning_1']["validation_warnings"]
 
+    def p1_a(self):
+        variant = 'LRG_199p1:p.(Met1Ala)'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "Variant NP_003997.1:p.(Met1Ala) affects the initiation amino acid so is better " \
+               "described as NP_003997.1:p.(Met1?)" in results[
+                'validation_warning_1']["validation_warnings"]
+
+    def p1_b(self):
+        variant = 'LRG_199p1:p.Met1Ala'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "Variant NP_003997.1:p.Met1Ala affects the initiation amino acid so is better " \
+               "described as NP_003997.1:p.(Met1?)" in results[
+                'validation_warning_1']["validation_warnings"]
+
 
 # <LICENSE>
 # Copyright (C) 2016-2024 VariantValidator Contributors
