@@ -48,11 +48,8 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
                 try:
                     query = validator.db.get_transcripts_from_annotations(store_query)
                     for tx in query:
-                        print("HAHAHAH")
-                        print(query)
-                        print(tx[6])
-                        if tx[6] != "unassigned":
-                            query = tx[6]
+                        if tx[5] != "unassigned":
+                            query = tx[5]
                             break
                 except TypeError:
                     pass
