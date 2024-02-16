@@ -1558,6 +1558,12 @@ class Mixin(vvMixinConverters.Mixin):
                         vt = vt.replace("Xaa", "Ter")
                         variant_warnings.append(vt)
                     elif "automapped to" in vt:
+
+
+                        print("FIX ME")
+
+
+
                         continue
                     else:
                         variant_warnings.append(vt)

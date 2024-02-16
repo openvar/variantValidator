@@ -200,7 +200,7 @@ class Database(vvDBInsert.Mixin):
                 if enst_version in str(ens_json['version']):
                     version = accession
                     description = str(ens_json['display_name'])
-                    genbank_symbol = description.split('-')[0]
+                    genbank_symbol = "-".join(description.split('-')[0:-1])
                     if ens_json['is_canonical'] == 1:
                         select_tx = 'Ensembl'
                     else:
@@ -230,6 +230,9 @@ class Database(vvDBInsert.Mixin):
                         if xref['dbname'] == 'HGNC':
                             hgnc_id = xref['primary_id']
                             gene_name = xref['description']
+
+
+
 
                     # Get MANE status and Ensembl canonical status
                     mane_select = False
@@ -440,6 +443,7 @@ class Database(vvDBInsert.Mixin):
         except Exception as e:
             logger.debug("Except pass, %s", e)
             logger.info("Unable to connect to HGNC with symbol %s", genbank_symbol)
+            hgnc_data = None
         if hgnc_data is not None:
             variant["map"] = hgnc_data["map_loc"]
             variant["note"] = hgnc_data["gene_name"]
