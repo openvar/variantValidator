@@ -621,6 +621,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                                                         my_variant.quibble)
                             my_variant.warnings.append(error)
                             continue
+
                     my_variant.set_quibble(str(my_variant.hgvs_formatted))
 
                     # ENST support needs to be re-evaluated, but is very low priority
@@ -1558,12 +1559,8 @@ class Mixin(vvMixinConverters.Mixin):
                         vt = vt.replace("Xaa", "Ter")
                         variant_warnings.append(vt)
                     elif "automapped to" in vt:
-
-
-                        print("FIX ME")
-
-
-
+                        vt = re.sub(r"(del|dup)[A-Z]+", r"\1", vt)
+                        variant_warnings.append(vt)
                         continue
                     else:
                         variant_warnings.append(vt)

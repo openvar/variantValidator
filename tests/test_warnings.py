@@ -1060,6 +1060,14 @@ class TestVVGapWarnings(TestCase):
                "described as NP_003997.1:p.(Met1?)" in results[
                 'validation_warning_1']["validation_warnings"]
 
+    def uppercase_ref_type(self):
+        variant = 'DPYD:C.1905+1G>A'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert ("Reference type incorrectly stated in the variant description DPYD:C.1905+1G>A Valid types are "
+                "g,c,n,r, or p") in results[
+                'validation_warning_1']["validation_warnings"]
+
 
 # <LICENSE>
 # Copyright (C) 2016-2024 VariantValidator Contributors
