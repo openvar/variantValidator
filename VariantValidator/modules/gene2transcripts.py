@@ -41,8 +41,18 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
 
         # Search by gene IDs
         if "HGNC:" in query:
+            store_query = query
             query = query.upper()
             query = g2t.db.get_stable_gene_id_from_hgnc_id(query)[1]
+            if query == "No data":
+                try:
+                    query = validator.db.get_transcripts_from_annotations(store_query)
+                    for tx in query:
+                        if tx[5] != "unassigned":
+                            query = tx[5]
+                            break
+                except TypeError:
+                    pass
 
         query = query.upper()
         if re.search(r'\d+ORF\d+', query):

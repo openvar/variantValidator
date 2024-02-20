@@ -78,4 +78,18 @@ class TestAlleleSyntax(TestCase):
                "for transcript NM_004006.2" in results[
             "validation_warning_1"]["validation_warnings"]
 
+    def test_variant10(self):
+        variant = 'NM_004006.2:c.[145C>T;147C>G]'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert ("AlleleSyntaxError: Variants [145C>T;147C>G] should be merged into NM_004006.2:c.145_147delinsTGG" in
+                results["validation_warning_1"]["validation_warnings"])
+
+    def test_variant11(self):
+        variant = 'NM_000059.4:c.[1916dup;1929del]'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert ("AlleleSyntaxError: Merging variants [1916dup;1929del] restores the original reading frame, "
+                "so should be described as NM_000059.4:c.1917_1929delinsTGCATTCTTCTGT" in
+                results["validation_warning_1"]["validation_warnings"])
 

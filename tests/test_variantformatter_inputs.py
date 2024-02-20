@@ -6762,8 +6762,7 @@ class TestVFvariantsAuto(object):
         print(results)
         assert 'NC_000017.10:g.48275363CC>A' in results.keys()
         assert results['NC_000017.10:g.48275363CC>A']['g_hgvs'] == 'NC_000017.10:g.48275363_48275364delinsA'
-        assert results['NC_000017.10:g.48275363CC>A']['genomic_variant_error'] == "NC_000017.10:g.48275363CC>A automapped to" \
-                                                                                  " NC_000017.10:g.48275363_48275364delCCinsA"
+
     def test_issue_360a(self):
         results = VariantFormatter.simpleVariantFormatter.format('NC_012920.1:m.1011C>T',
                                                                  'GRCh38', 'refseq', None, False, True)

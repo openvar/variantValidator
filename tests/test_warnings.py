@@ -89,13 +89,8 @@ class TestWarnings(TestCase):
         variant = 'NM_000088.3:C.589G>T'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
-        assert 'characters being in the wrong case' in \
-               results['NM_000088.3:c.589G>T']['validation_warnings'][0]
-
-        variant = 'NM_000088.3:C.589G>T'
-        results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
-        print(results)
-        assert 'characters being in the wrong case' in \
+        assert ('Reference type incorrectly stated in the variant description NM_000088.3:C.589G>T Valid '
+                'types are g,c,n,r, or p') in \
                results['NM_000088.3:c.589G>T']['validation_warnings'][0]
 
         variant = 'nm_000088.3:c.589G>T'
@@ -1059,6 +1054,13 @@ class TestVVGapWarnings(TestCase):
         assert "Variant NP_003997.1:p.Met1Ala affects the initiation amino acid so is better " \
                "described as NP_003997.1:p.(Met1?)" in results[
                 'validation_warning_1']["validation_warnings"]
+
+    def uppercase_ref_type(self):
+        variant = 'DPYD:C.1905+1G>A'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert ("Reference type incorrectly stated in the variant description DPYD:C.1905+1G>A Valid types are "
+                "g,c,n,r, or p") in results['validation_warning_1']["validation_warnings"]
 
 
 # <LICENSE>

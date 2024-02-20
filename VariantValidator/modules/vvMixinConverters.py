@@ -1658,9 +1658,9 @@ class Mixin(vvMixinInit.Mixin):
         Function designed to merge multiple HGVS variants (hgvs objects) into a single delins
         using 3 prime normalization
         """
-
         # Ensure c. is mapped to the
         h_list = []
+        store_ref_type = ""
 
         # Have we mapped from c to g
         c_to_g_mapped = {"mapped": False, "ori": None, "transcript": None}
@@ -1693,6 +1693,7 @@ class Mixin(vvMixinInit.Mixin):
                     self.vr.validate(hgvs_v)  # Let hgvs errors deal with invalid variants and not hgvs objects
 
             if hgvs_v.type == 'c':
+                store_ref_type = "c"
                 try:
                     hgvs_v = self.vm.c_to_n(hgvs_v)
                     h_list.append(hgvs_v)
@@ -1789,18 +1790,70 @@ class Mixin(vvMixinInit.Mixin):
                                             "overlap")
 
         # Strict application of the HGVS merge rule
+        # Flag for fame shifts that restore frame
+        check_frame_restore = False
+        p_reference = None
         if hgvs_strict is True:
+            # Set merge_within_bases length
             merge_within_bases = 1
+
             cp_hgvs_variant_list = copy.deepcopy(hgvs_variant_list)
             for vt in range(len(hgvs_variant_list)-1):
                 v1 = hgvs_variant_list[vt]
                 v2 = hgvs_variant_list[vt+1]
                 vn1 = hn.normalize(v1)
                 vn2 = self.reverse_hn.normalize(v2)
-                if vn2.posedit.pos.start.base - vn1.posedit.pos.end.base > merge_within_bases:
+
+                # Merge variants that affect the same codon
+                if (vn2.posedit.pos.start.base - vn1.posedit.pos.end.base > merge_within_bases) and \
+                   (vn1.posedit.pos.start.base - vn2.posedit.pos.end.base < 3) and (store_ref_type == "c") and \
+                   (vn1.type != "g") and (vn1.posedit.edit.type == "sub" and vn2.posedit.edit.type == "sub"):
+                    tx_info = self.hdp.get_tx_identity_info(vn1.ac)
+                    same_aa_span = False
+
+                    for i in range(int(tx_info[3] + 1), int(tx_info[4]) + 1, 3):
+                        sublist = [i, i + 2]
+                        if int(vn1.posedit.pos.end.base) >= sublist[0] and \
+                                int(vn2.posedit.pos.start.base) <= sublist[1]:
+                            same_aa_span = True
+                            break
+
+                    if same_aa_span is False:
+                        cp_hgvs_variant_list.remove(v1)
+
+                # Merge variants within "merge_within_bases" bases
+                elif vn2.posedit.pos.start.base - vn1.posedit.pos.end.base > merge_within_bases:
                     cp_hgvs_variant_list.remove(v1)
+
+            check_frame_restore = False
             if len(cp_hgvs_variant_list) == 1:
-                return False
+                if store_ref_type == "c" and hgvs_variant_list[0].type != "g":
+                    cp_hgvs_variant_list = copy.deepcopy(hgvs_variant_list)
+                    first_fs = False
+                    last_fs = False
+                    p_reference = self.hdp.get_pro_ac_for_tx_ac(cp_hgvs_variant_list[0].ac)
+
+                    # Find all variants between last and first frame-shifts
+                    element = 0
+                    for n_variant in cp_hgvs_variant_list:
+                        c_variant = self.vm.n_to_c(n_variant)
+                        p_variant = self.vm.c_to_p(c_variant, p_reference)
+                        if p_variant.posedit.edit.type == "fs":
+                            if first_fs is False:
+                                first_fs = element
+                            else:
+                                last_fs = element
+                        element = element + 1
+
+                    # if first_fs and last_fs are not the same, remove all flanking variants
+                    if first_fs is not False and last_fs is not False:
+                        hgvs_variant_list = cp_hgvs_variant_list[first_fs:last_fs + 1]
+                        check_frame_restore = True
+                    else:
+                        return False
+
+                else:
+                    return False
             else:
                 hgvs_variant_list = cp_hgvs_variant_list
 
@@ -1812,6 +1865,7 @@ class Mixin(vvMixinInit.Mixin):
 
         # Fetch the reference sequence and copy it for the basis of the alt sequence
         reference_sequence = self.sf.fetch_seq(accession, merge_start_pos - 1, merge_end_pos)
+
         # Generate an hgvs_delins
         if alt_sequence == '':
             delins = accession + ':' + seqtype + '.' + str(merge_start_pos) + '_' + str(
@@ -1824,6 +1878,7 @@ class Mixin(vvMixinInit.Mixin):
             hgvs_delins = self.vm.n_to_c(hgvs_delins)
         except Exception as e:
             logger.debug("Except passed, %s", e)
+
         # Normalize (allow variants crossing into different exons)
         if final_norm is True:
             try:
@@ -1851,8 +1906,18 @@ class Mixin(vvMixinInit.Mixin):
                 var = fn.valstr(var).split(".")[2]
                 merge_these.append(var)
 
-            raise AlleleSyntaxError(f"AlleleSyntaxError: Variants [{';'.join(merge_these)}] should be merged into "
-                                    f"{fn.valstr(hgvs_delins)}")
+            if check_frame_restore is False:
+                raise AlleleSyntaxError(f"AlleleSyntaxError: Variants [{';'.join(merge_these)}] should be merged into "
+                                        f"{fn.valstr(hgvs_delins)}")
+
+            # Flag for fame shifts that restore frame
+            if check_frame_restore is True:
+                if hgvs_delins.type == "c":
+                    hgvs_delins_p = self.vm.c_to_p(hgvs_delins, p_reference)
+                    if "fs" not in str(hgvs_delins_p.posedit.edit):
+                        raise AlleleSyntaxError(
+                            f"AlleleSyntaxError: Merging variants [{';'.join(merge_these)}] restores the original "
+                            f"reading frame, so should be described as {fn.valstr(hgvs_delins)}")
 
         return hgvs_delins
 
