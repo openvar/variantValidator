@@ -234,6 +234,13 @@ def vcf2hgvs_stage2(variant, validator):
         variant.warnings.append(error)
         logger.warning(error)
         skipvar = True
+    elif re.search(r':[GCNMRPO]\.', variant.quibble):
+        error = 'Reference type incorrectly stated in the variant description %s ' \
+                'Valid types are g,c,n,r, or p' % variant.quibble
+        variant.warnings.append(error)
+        logger.warning(error)
+        match = re.search(r':[GCNMRPO]\.', variant.quibble)[0]
+        variant.quibble = variant.quibble.replace(match, match.lower())
 
     # Ambiguous chr reference
     logger.debug("Completed VCF-HVGS step 2 for %s", variant.quibble)
