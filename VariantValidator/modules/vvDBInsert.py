@@ -162,14 +162,6 @@ class Mixin(vvDBGet.Mixin):
         hgnc_symbol = data[4]
         uta_symbol = data[5]
 
-        print(accession)
-        print(description)
-        print(variant)
-        print(version)
-        print(hgnc_symbol)
-        print(uta_symbol)
-
-
         query = "UPDATE transcript_info SET description=%s, transcriptVariant=%s, currentVersion=%s, hgncSymbol=%s, " \
                 "utaSymbol=%s, updated=NOW() WHERE refSeqID = %s"
         cursor.execute(query, (description, variant, version, hgnc_symbol, uta_symbol, accession))
