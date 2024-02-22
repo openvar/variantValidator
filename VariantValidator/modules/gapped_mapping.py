@@ -801,6 +801,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             'disparity_deletion_in': self.disparity_deletion_in,
             'gapped_transcripts': self.gapped_transcripts
         }
+
         return data, nw_rel_var
 
     def g_to_t_compensation(self, ori, hgvs_coding, rec_var):

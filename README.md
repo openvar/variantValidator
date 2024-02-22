@@ -19,7 +19,7 @@ VariantValidator accurately inter-converts between transcript
 variant descriptions and genomic variant descriptions in HGVS and 
 Variant Call Format (VCF).
 
-VariantValidator interfaces with the hgvs package to parse, format, 
+VariantValidator interfaces with, and substantially builds upon the features of, the hgvs package, used to parse, format, 
 and manipulate biological sequence variants.
  See https://github.com/biocommons/hgvs/ for details of the
 hgvs package
@@ -72,11 +72,11 @@ All contents of VariantValidator are protected by local and international copyri
 
 2. Variations in Content. The University of Leicester and the University of Manchester (The Universities) reserve the right, in their reasonable and good faith discretion, to remove or modify materials accessed by VariantValidator or outputs provided by VariantValidator because such materials contain errors or could be subject to an infringement or other adverse claim by a third party.
 
-3. Remedial Action. Without limiting the above, The Universities may suspend delivery of the Service if it can be reasonably shown that a User’s failure to comply with this Agreement may cause irreparable harm to it.
+3. Remedial Action. Without limiting the above, The Universities may suspend delivery of the Service if it can be reasonably shown that a User’s failure to comply with this Agreement may cause irreparable harm to them.
 
 4. Service Level. The Universities will use reasonable efforts to provide access to the Service on a continuous 24/7 basis (except for regularly scheduled maintenance when Service may be suspended) and free from viruses or other harmful software. The Universities shall not be liable for any failure or delay or interruption in the Service or failure of any equipment or telecommunications resulting from any cause beyond the Universities reasonable control. User is responsible for providing all required information.
 
-4. No Warranty. The Universities make no warranty that Service is error free or that the use thereof will be uninterrupted and User acknowledges and agrees that the existence of such errors shall not constitute a breach of this Agreement. The Universities disclaim all other warranties with respect to Service, either express or implied, including but not limited to any implied warranties relating to quality, fitness for any particular purpose or ability to achieve a particular result. Limitation of Liability. Universities total liability for any claims, losses, damages or expenses whatsoever and howsoever caused (even if caused by Universities negligence and/or breach of contract) shall be limited to the price paid to Universities for the products or services that are the subject of the User’s claim.
+4. No Warranty. The Universities make no warranty that Service is error free or that the use thereof will be uninterrupted and User acknowledges and agrees that the existence of such errors shall not constitute a breach of this Agreement. The Universities disclaim all other warranties with respect to Service, either express or implied, including but not limited to any implied warranties relating to quality, fitness for any particular purpose or ability to achieve a particular result. Limitation of Liability. Universities total liability for any claims, losses, damages or expenses whatsoever and howsoever caused (even if caused by the Universities negligence and/or breach of contract) shall be limited to the price paid to the Universities for the products or services that are the subject of the User’s claim.
 
 ### Changes to our terms of service
 
@@ -90,7 +90,7 @@ VariantValidator is an Open Source project exclusively funded by grant income an
 We will not share any personal data with external organisations. We may use data that you have submitted to build a profile of our users. However, any such profiles will not include any identifiable data _e.g._ user names or email addresses.
 
 ### Why do I need to provide an email address
-We require an email address for several reasons. The primary is to allow us to validate your account, _i.e._ to ensure that the requested account has originated from a genuine email address. Our batch services require an email address so that results data can be returned to you. Therefore, by creating and verifying your account, we can ensure that your data will only ever be returned to you.
+We require an email address for several reasons. The primary reason is to allow us to validate your account, _i.e._ to ensure that the requested account has originated from a genuine email address. Our batch services require an email address so that results data can be returned to you. Therefore, by creating and verifying your account, we can ensure that your data will only ever be returned to you.
 
 We will only contact you directly for one of five reasons:
 
@@ -100,7 +100,7 @@ We will only contact you directly for one of five reasons:
 4. To inform you of major changes to our services that may impact your existing workflows
 5. If our error logs indicate that you might need help in submitting validation requests that will succeed
 
-For any further information, or to ask for help or guidance, please contact us on admin@variantvalidator.org or via our web form.
+For any further information, or to ask for help or guidance, please contact us on admin@variantvalidator.org or via our [web form](https://variantvalidator.org/help/contact/).
 
 ## Code of Conduct
 
@@ -117,13 +117,13 @@ Freeman PJ, Hart RK, Gretton LJ, Brookes AJ, Dalgleish R (2018) VariantValidator
 ## Pre-requisites for local installation
 
 **VariantValidator Python library**
-VariantValidator will work locally on Mac OS X or Linux-compatible computers. It can also work within a [docker container](docs/DOCKER.md).
+VariantValidator will work locally on Mac OS X or Linux-compatible computers. It can also work within a [docker container](docs/DOCKER.md). For installation guidance, see Installation Manuals below.
 
 **VariantValidator REST API**
-VariantValidator REST API will work locally on Mac OS X or Linux-compatible computers. It can also work within a [docker container](https://github.com/openvar/rest_variantValidator/blob/master/docs/DOCKER.md).
+VariantValidator REST API will work locally on Mac OS X or Linux-compatible computers. It can also work within a [docker container](https://github.com/openvar/rest_variantValidator/blob/master/docs/DOCKER.md) For installation guidance, see Installation Manuals below.
 
 **Required software:**
-* MySQL
+* MySQL version 5.7 or above
 * Python 3.6 or above
 * SQLite version 3.8.0 or above
 
