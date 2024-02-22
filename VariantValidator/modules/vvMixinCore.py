@@ -788,6 +788,11 @@ class Mixin(vvMixinConverters.Mixin):
 
                     # Now start mapping from genome to transcripts
                     if my_variant.reftype == ':g.':
+
+                        print("Dicts")
+                        print(select_transcripts_dict)
+                        print(select_transcripts_dict_plus_version)
+
                         try:
                             toskip = mappers.gene_to_transcripts(my_variant, self, select_transcripts_dict)
                         except IndexError:

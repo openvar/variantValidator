@@ -1462,6 +1462,8 @@ class Mixin(vvMixinInit.Mixin):
         # Filter out transcripts that are not the latest versions
         if select_transcripts == "all" or select_transcripts == "None" or select_transcripts is None:
             rts = self.transcript_filter(rts)
+        elif select_transcripts != "all" and select_transcripts != "None" and "mane" not in select_transcripts:
+            rts = self.transcript_filter(rts, select_transcripts)
 
         # First if we have an ins prepare for hgvs "ins" mishandling, which
         # causes failures on any ins->non ins case, start by making a forced
@@ -2474,48 +2476,53 @@ class Mixin(vvMixinInit.Mixin):
         # Return the required data. This is a dictionary containing the rsg description, validation status and gene ID
         return descriptions
 
-    def transcript_filter(self, rts):
+    def transcript_filter(self, rts, select_transcripts=None):
         if self.testing is not True:
-            latest_version = {}
-            for tx_id in rts:
-                if type(tx_id) == str:
-                    # VV method
-                    # Remove dud transcript IDs
-                    if "/" in tx_id or "_NG" in tx_id:
-                        continue
-                    accession, version = tx_id.split(".")
-                    if accession not in latest_version.keys():
-                        latest_version[accession] = version
-                    else:
-                        if int(version) > int(latest_version[accession]):
+            if select_transcripts is None:
+                latest_version = {}
+                for tx_id in rts:
+                    if type(tx_id) == str:
+                        # VV method
+                        # Remove dud transcript IDs
+                        if "/" in tx_id or "_NG" in tx_id:
+                            continue
+                        accession, version = tx_id.split(".")
+                        if accession not in latest_version.keys():
                             latest_version[accession] = version
-                else:
-                    # VF method
-                    accession, version = tx_id[0].split(".")
-                    if accession not in latest_version.keys():
-                        latest_version[accession] = {}
-                        latest_version[accession]["version"] = version
-                        latest_version[accession]["list"] = tx_id[1:]
+                        else:
+                            if int(version) > int(latest_version[accession]):
+                                latest_version[accession] = version
                     else:
-                        if int(version) > int(latest_version[accession]["version"]):
+                        # VF method
+                        accession, version = tx_id[0].split(".")
+                        if accession not in latest_version.keys():
+                            latest_version[accession] = {}
                             latest_version[accession]["version"] = version
                             latest_version[accession]["list"] = tx_id[1:]
+                        else:
+                            if int(version) > int(latest_version[accession]["version"]):
+                                latest_version[accession]["version"] = version
+                                latest_version[accession]["list"] = tx_id[1:]
 
-            # Recreate list with only latest versions
-            rts = []
-            for k, v in latest_version.items():
-                try:
-                    v.keys()
-                except AttributeError:
-                    # VV method
-                    rts.append(k + "." + v)
-                else:
-                    # VF method
-                    accession = str(k + "." + v["version"])
-                    rts.append([accession] + v["list"])
-            return rts
-        else:
-            return rts
+                # Recreate list with only latest versions
+                rts = []
+                for k, v in latest_version.items():
+                    try:
+                        v.keys()
+                    except AttributeError:
+                        # VV method
+                        rts.append(k + "." + v)
+                    else:
+                        # VF method
+                        accession = str(k + "." + v["version"])
+                        rts.append([accession] + v["list"])
+                return rts
+            else:
+                rts = []
+                rtsc = select_transcripts.split("|")
+                for tx in rtsc:
+                    rts.append(tx)
+                return rts
 
 # <LICENSE>
 # Copyright (C) 2016-2024 VariantValidator Contributors
