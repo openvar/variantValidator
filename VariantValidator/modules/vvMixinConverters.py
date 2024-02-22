@@ -2525,7 +2525,14 @@ class Mixin(vvMixinInit.Mixin):
                     rts.append(tx)
                 return rts
         else:
-            return rts
+            if select_transcripts is not None:
+                rts = []
+                rtsc = select_transcripts.split("|")
+                for tx in rtsc:
+                    rts.append(tx)
+                return rts
+            else:
+                return rts
 
 # <LICENSE>
 # Copyright (C) 2016-2024 VariantValidator Contributors
