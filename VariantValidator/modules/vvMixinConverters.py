@@ -1462,7 +1462,8 @@ class Mixin(vvMixinInit.Mixin):
         # Filter out transcripts that are not the latest versions
         if select_transcripts == "all" or select_transcripts == "None" or select_transcripts is None:
             rts = self.transcript_filter(rts)
-        elif select_transcripts != "all" and select_transcripts != "None" and "mane" not in select_transcripts:
+        elif (select_transcripts != "all" and select_transcripts != "None" and select_transcripts != "raw"
+              and "mane" not in select_transcripts):
             rts = self.transcript_filter(rts, select_transcripts)
 
         # First if we have an ins prepare for hgvs "ins" mishandling, which
@@ -2523,6 +2524,8 @@ class Mixin(vvMixinInit.Mixin):
                 for tx in rtsc:
                     rts.append(tx)
                 return rts
+        else:
+            return rts
 
 # <LICENSE>
 # Copyright (C) 2016-2024 VariantValidator Contributors
