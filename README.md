@@ -19,7 +19,7 @@ VariantValidator accurately inter-converts between transcript
 variant descriptions and genomic variant descriptions in HGVS and 
 Variant Call Format (VCF).
 
-VariantValidator interfaces with the hgvs package to parse, format, 
+VariantValidator interfaces with, and substantially builds upon the features of, the hgvs package, used to parse, format, 
 and manipulate biological sequence variants.
  See https://github.com/biocommons/hgvs/ for details of the
 hgvs package
