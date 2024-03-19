@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import requests
 import copy
+import gzip
+import re
 import logging
 from configparser import ConfigParser
 from .modules import vvDatabase
@@ -58,10 +60,26 @@ def update_refseq(dbcnx):
     rsg = requests.get('http://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/RefSeqGene/gene_RefSeqGene')
     rsg_data = rsg.text.strip().split('\n')
 
-    # Download data
-    grch38 = requests.get(
-        'http://ftp.ncbi.nih.gov/refseq/H_sapiens/RefSeqGene/GCF_000001405.28_refseqgene_alignments.gff3')
-    grch38_align_data = grch38.text.strip().split('\n')
+    # Download data for RefSeqGene to GRCh38 alignments, we no longer have access to the smaller
+    # *_refseqgene_alignments.gff3 files so have to use GCF*_GRCh38.*_genomic.gff instead.
+    # We don't know what the latest build will be called exactly so navigate towards it first.
+    base_url = 'https://ftp.ncbi.nlm.nih.gov/genomes/refseq/vertebrate_mammalian/Homo_sapiens/' + \
+            'latest_assembly_versions/'
+    ncbi_web_resp = requests.get(base_url)
+    ncbi_web_resp.raise_for_status()
+    ncbi_web_resp = re.findall(r"href=[\"'][^\"']+[\"']", ncbi_web_resp.text)
+    base_url = base_url +list(filter(lambda x: 'GCF_' in x and 'GRCh' in x, ncbi_web_resp))[0][6:-1]
+    ncbi_web_resp = requests.get(base_url)
+    ncbi_web_resp.raise_for_status()
+    ncbi_web_resp = re.findall(r"href=[\"'][^\"']+[\"']", ncbi_web_resp.text)
+    ncbi_web_resp = list(filter(
+        lambda x: 'GCF_' in x and 'GRCh' in x and '_genomic.gff.gz' in x,
+        ncbi_web_resp))
+    grch38 = requests.get( base_url + ncbi_web_resp[0][6:-1])
+    grch38.raise_for_status()
+    grch38 = gzip.decompress(grch38.content)
+    grch38 = grch38.decode()
+    grch38_align_data = grch38.strip().split('\n')
 
     # Download data for GRCh37 alignments, this is optional at best, and lacking a current good
     # data-source is hard disabled for now
