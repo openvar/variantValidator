@@ -30565,42 +30565,6 @@ class TestVariantsAuto(TestCase):
         assert 'NP_733765.1:p.(Q259delinsPA*)' in \
                results['NM_170665.3:c.775_776insCAGCTT']['hgvs_predicted_protein_consequence']['slr']
 
-    def test_issue_280a(self):
-        variant = 'NC_000012.12:g.121626878del'
-        results = self.vv.validate(variant, 'GRCh38', 'NM_032790.3').format_as_dict(test=True)
-        print(results)
-        assert 'NC_000012.12:g.121626878del' in results['NM_032790.3:c.131_132insCCGC']['primary_assembly_loci']['grch38']['hgvs_genomic_description']
-        assert 'NC_000012.11:g.122064779_122064783delinsCCG' in results['NM_032790.3:c.131_132insCCGC']['primary_assembly_loci']['grch37']['hgvs_genomic_description']
-
-    def test_issue_280b(self):
-        variant = 'NC_000012.12:g.121626879del'
-        results = self.vv.validate(variant, 'GRCh38', 'NM_032790.3').format_as_dict(test=True)
-        print(results)
-        # Note, deleting the A base causes the variant to normalize further back than the original expected position
-        assert 'NC_000012.12:g.121626879del' in results['NM_032790.3:c.132delinsCCGCC']['primary_assembly_loci']['grch38']['hgvs_genomic_description']
-        assert 'NC_000012.11:g.122064779_122064785delinsCCGCC' in results['NM_032790.3:c.132delinsCCGCC']['primary_assembly_loci']['grch37']['hgvs_genomic_description']
-
-    def test_issue_280c(self):
-        variant = 'NC_000012.12:g.121626882del'
-        results = self.vv.validate(variant, 'GRCh38', 'NM_032790.3').format_as_dict(test=True)
-        print(results)
-        assert 'NC_000012.12:g.121626882del' in results['NM_032790.3:c.135del']['primary_assembly_loci']['grch38']['hgvs_genomic_description']
-        assert 'NC_000012.11:g.122064788del' in results['NM_032790.3:c.135del']['primary_assembly_loci']['grch37']['hgvs_genomic_description']
-
-    def test_issue_280d(self):
-        variant = 'NC_000012.12:g.121626862del'
-        results = self.vv.validate(variant, 'GRCh38', 'NM_032790.3').format_as_dict(test=True)
-        print(results)
-        assert 'NC_000012.12:g.121626866del' in results['NM_032790.3:c.123_124insCCCC']['primary_assembly_loci']['grch38']['hgvs_genomic_description']
-        assert 'NC_000012.11:g.122064770_122064771insCCCC' in results['NM_032790.3:c.123_124insCCCC']['primary_assembly_loci']['grch37']['hgvs_genomic_description']
-
-    def test_issue_280e(self):
-        variant = 'NC_000012.12:g.121626861del'
-        results = self.vv.validate(variant, 'GRCh38', 'NM_032790.3').format_as_dict(test=True)
-        print(results)
-        assert 'NC_000012.12:g.121626861del' in results['NM_032790.3:c.119del']['primary_assembly_loci']['grch38']['hgvs_genomic_description']
-        assert 'NC_000012.11:g.122064766del' in results['NM_032790.3:c.119del']['primary_assembly_loci']['grch37']['hgvs_genomic_description']
-
     def test_issue_306(self):
         variant = 'NC_000002.11:g.21232803_21232804inv'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
@@ -30911,6 +30875,44 @@ class TestVariantsAuto(TestCase):
                results['NM_020451.2:c.379T>A']['hgvs_predicted_protein_consequence']['tlr']
         assert 'NP_065184.2:p.(U127R)' in \
                results['NM_020451.2:c.379T>A']['hgvs_predicted_protein_consequence']['slr']
+
+    def test_issue_280a(self):
+        variant = 'NC_000012.12:g.121626878del'
+        results = self.vv.validate(variant, 'GRCh38', 'NM_032790.3').format_as_dict(test=True)
+        print(results)
+        assert 'NC_000012.12:g.121626878del' in results['NM_032790.3:c.131_132insCCGC']['primary_assembly_loci']['grch38']['hgvs_genomic_description']
+        assert 'NC_000012.11:g.122064779_122064783delinsCCG' in results['NM_032790.3:c.131_132insCCGC']['primary_assembly_loci']['grch37']['hgvs_genomic_description']
+
+    def test_issue_280b(self):
+        variant = 'NC_000012.12:g.121626879del'
+        results = self.vv.validate(variant, 'GRCh38', 'NM_032790.3').format_as_dict(test=True)
+        print(results)
+        # Note, deleting the A base causes the variant to normalize further back than the original expected position
+        assert 'NC_000012.12:g.121626879del' in results['NM_032790.3:c.132delinsCCGCC']['primary_assembly_loci']['grch38']['hgvs_genomic_description']
+        assert 'NC_000012.11:g.122064779_122064785delinsCCGCC' in results['NM_032790.3:c.132delinsCCGCC']['primary_assembly_loci']['grch37']['hgvs_genomic_description']
+
+    def test_issue_280c(self):
+        variant = 'NC_000012.12:g.121626882del'
+        results = self.vv.validate(variant, 'GRCh38', 'NM_032790.3').format_as_dict(test=True)
+        print(results)
+        assert 'NC_000012.12:g.121626882del' in results['NM_032790.3:c.135del']['primary_assembly_loci']['grch38']['hgvs_genomic_description']
+        assert 'NC_000012.11:g.122064788del' in results['NM_032790.3:c.135del']['primary_assembly_loci']['grch37']['hgvs_genomic_description']
+
+    def test_issue_280d(self):
+        self.vv.testing = False
+        variant = 'NC_000012.12:g.121626862del'
+        results = self.vv.validate(variant, 'GRCh38', 'NM_032790.3').format_as_dict(test=True)
+        print(results)
+        self.vv.testing = True
+        assert 'NC_000012.12:g.121626866del' in results['NM_032790.3:c.123_124insCCCC']['primary_assembly_loci']['grch38']['hgvs_genomic_description']
+        assert 'NC_000012.11:g.122064770_122064771insCCCC' in results['NM_032790.3:c.123_124insCCCC']['primary_assembly_loci']['grch37']['hgvs_genomic_description']
+
+    def test_issue_280e(self):
+        variant = 'NC_000012.12:g.121626861del'
+        results = self.vv.validate(variant, 'GRCh38', 'NM_032790.3').format_as_dict(test=True)
+        print(results)
+        assert 'NC_000012.12:g.121626861del' in results['NM_032790.3:c.119del']['primary_assembly_loci']['grch38']['hgvs_genomic_description']
+        assert 'NC_000012.11:g.122064766del' in results['NM_032790.3:c.119del']['primary_assembly_loci']['grch37']['hgvs_genomic_description']
 
 
 # <LICENSE>
