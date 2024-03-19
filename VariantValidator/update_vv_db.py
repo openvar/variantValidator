@@ -55,7 +55,7 @@ def update_refseq(dbcnx):
 
     # Download data from RefSeqGene
     # Download data
-    rsg = requests.get('http://ftp.ncbi.nih.gov/refseq/H_sapiens/RefSeqGene/gene_RefSeqGene')
+    rsg = requests.get('http://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/RefSeqGene/gene_RefSeqGene')
     rsg_data = rsg.text.strip().split('\n')
 
     # Download data
