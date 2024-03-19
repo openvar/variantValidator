@@ -59,14 +59,16 @@ def update_refseq(dbcnx):
     rsg_data = rsg.text.strip().split('\n')
 
     # Download data
-    grch37 = requests.get(
-        'http://ftp.ncbi.nih.gov/refseq/H_sapiens/RefSeqGene/GCF_000001405.25_refseqgene_alignments.gff3')
-    grch37_align_data = grch37.text.strip().split('\n')
-
-    # Download data
     grch38 = requests.get(
         'http://ftp.ncbi.nih.gov/refseq/H_sapiens/RefSeqGene/GCF_000001405.28_refseqgene_alignments.gff3')
     grch38_align_data = grch38.text.strip().split('\n')
+
+    # Download data for GRCh37 alignments, this is optional at best, and lacking a current good
+    # data-source is hard disabled for now
+    #grch37 = requests.get(
+    #    'http://ftp.ncbi.nih.gov/refseq/H_sapiens/RefSeqGene/GCF_000001405.25_refseqgene_alignments.gff3')
+    #grch37_align_data = grch37.text.strip().split('\n')
+    grch37_align_data = []
 
     # Open Lists
     # rsg_data = open(os.path.join(ROOT, 'gene_RefSeqGene'), 'r')
