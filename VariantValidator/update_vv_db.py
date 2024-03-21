@@ -149,6 +149,7 @@ def update_refseq(dbcnx):
 
     # Identify lines with missing data e.g. gene symbols
     for line in db:
+        update_success = False
         try:
             line[6]
         except IndexError:
@@ -162,21 +163,40 @@ def update_refseq(dbcnx):
                 update_success = False
                 try:
                     record = validator.entrez_efetch(db="nucleotide", id=line[0], rettype="gb", retmode="text")
-                except IOError:
+                except IOError as e:
                     pass
                 else:
-                    # Line format is e.g. ['NG_030321.1', 'NC_000019.9', 'GRCh37', '7791843', '7802057', '-',
-                    # 'CLEC4G', '339390']
-                    line.append(record.features[2].qualifiers["gene"][0])
-                    line.append(record.features[2].qualifiers["db_xref"][2].split(":")[-1])
-                    update_success = True
+                    gene_found = False
+                    gene_id_found = False
+                    for ft in record.features:
+                        if "gene" in ft.qualifiers.keys():
+                            gene_found = True
+                            try:
+                                # Line format is e.g. ['NG_030321.1', 'NC_000019.9', 'GRCh37', '7791843', '7802057', '-',
+                                # 'CLEC4G', '339390']
+                                line.append(ft.qualifiers["gene"][0])
+                                line.append(ft.qualifiers["db_xref"][2].split(":")[-1])
+                                update_success = True
+                            except IndexError:
+                                for xref in ft.qualifiers["db_xref"]:
+                                    if "HGNC" in xref:
+                                        gene_id_found = True
+                                        line.append(ft.qualifiers["gene"][0])
+                                        line.append(xref.split(":")[-1])
+                                        update_success = True
+                            except KeyError:
+                                logger.info("Can't identify an HGNC ID for gene symbol for %s", line[0])
+                            except Exception:
+                                pass
+                    if gene_found is False:
+                        logger.info("Can't create an update gene symbol for %s", line[0])
+                    if gene_id_found is False:
+                        logger.info("Can't create an update gene ID for %s", line[0])
 
-                if update_success is False:
-                    missing.append(line[0])
+        if update_success is False:
+            missing.append(line[0])
 
-    # Open a text file to be used as a simple database and write the database
-    # rsg_db = open(os.path.join(ROOT, 'rsg_chr_db.txt'), 'w')
-
+    # Create a list of data to write to the database
     to_mysql = []
     for line in db:
         if line[0] in missing:
@@ -209,6 +229,8 @@ def update_refseq(dbcnx):
 
     logger.info('Total NG_ to NC_ alignments = ' + str(total_rsg_to_nc))
     logger.info('Gaps within NG_ to NC_ alignments = ' + str(total_rsg_to_nc_rejected))
+    # print('Total NG_ to NC_ alignments = ' + str(total_rsg_to_nc))
+    # print('Gaps within NG_ to NC_ alignments = ' + str(total_rsg_to_nc_rejected))
 
     return
 
