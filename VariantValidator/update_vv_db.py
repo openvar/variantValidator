@@ -149,6 +149,7 @@ def update_refseq(dbcnx):
 
     # Identify lines with missing data e.g. gene symbols
     for line in db:
+        print(line)
         update_success = False
         try:
             line[6]
@@ -197,6 +198,7 @@ def update_refseq(dbcnx):
             missing.append(line[0])
 
     # Create a list of data to write to the database
+    print("To here")
     to_mysql = []
     for line in db:
         if line[0] in missing:
@@ -220,6 +222,7 @@ def update_refseq(dbcnx):
         to_mysql.append(write)
 
     # Set up code to write to database
+    print("to for")
     for line in to_mysql:
         current_symbol = dbcnx.get_gene_symbol_from_refseq_id(line[0])
         if line[10] != current_symbol:
@@ -229,9 +232,9 @@ def update_refseq(dbcnx):
 
     logger.info('Total NG_ to NC_ alignments = ' + str(total_rsg_to_nc))
     logger.info('Gaps within NG_ to NC_ alignments = ' + str(total_rsg_to_nc_rejected))
-    # print('Total NG_ to NC_ alignments = ' + str(total_rsg_to_nc))
-    # print('Gaps within NG_ to NC_ alignments = ' + str(total_rsg_to_nc_rejected))
-
+    print('Total NG_ to NC_ alignments = ' + str(total_rsg_to_nc))
+    print('Gaps within NG_ to NC_ alignments = ' + str(total_rsg_to_nc_rejected))
+    print("return")
     return
 
 

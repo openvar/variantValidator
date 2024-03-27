@@ -327,6 +327,8 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                 pass
                             except vvhgvs.exceptions.HGVSInvalidVariantError:
                                 pass
+                            except vvhgvs.exceptions.HGVSUsageError:
+                                pass
 
                 except vvhgvs.exceptions.HGVSUnsupportedOperationError:
                     pass
@@ -376,6 +378,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                         saved_hgvs_coding = merged_variant
                         stash_hgvs_not_delins = self.validator.vm.t_to_g(saved_hgvs_coding,
                                                                          hgvs_genomic_variant.ac)
+
                         # The merged variant may have created an ins or a del
                         if stash_hgvs_not_delins.posedit.edit.type == "del":
                             stash_hgvs_not_delins.posedit.edit.alt = ""
@@ -454,6 +457,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 # overlapping transcript lengths
                 self.disparity_deletion_in = ['false', 'false']
                 hgvs_not_delins = ''
+
                 if stored_hgvs_not_delins != '':
                     # Refresh hgvs_not_delins from stored_hgvs_not_delins
                     try:
@@ -475,6 +479,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
 
                     # Create normalized version of tx_hgvs_not_delins
                     rn_tx_hgvs_not_delins = copy.deepcopy(self.tx_hgvs_not_delins)
+
                     # Check for +ve base and adjust
                     if ('+' in str(rn_tx_hgvs_not_delins.posedit.pos.start) or '-' in
                         str(rn_tx_hgvs_not_delins.posedit.pos.start)) and (
@@ -965,6 +970,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                                                gap_len,
                                                                                stash_hgvs_not_delins,
                                                                                stash_genomic]]]
+
         except vvhgvs.exceptions.HGVSError as e:
             logger.debug("Except passed, %s", e)
         # Intronic positions not supported. Will cause a Value Error
@@ -1413,10 +1419,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     else:
                         hgvs_refreshed_variant = chromosome_normalized_hgvs_coding
 
-                    # Warn
-                    # self.auto_info = self.auto_info + hgvs_refreshed_variant.ac + ':c.' + str(
-                    #     hgvs_refreshed_variant.posedit.pos) + ' contains ' + str(self.disparity_deletion_in[
-                    #         1]) + ' transcript base(s) that fail to align to chromosome ' + hgvs_genomic.ac + '\n'
                 else:
                     # Keep the same by re-setting rel_var
                     hgvs_refreshed_variant = hgvs_coding
@@ -1479,7 +1481,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             hgvs_genomic = self.variant.hn.normalize(hgvs_genomic)
         except vvhgvs.exceptions.HGVSError as e:
             # Strange error caused by gap in genomic
-            error = str(e)
 
             if 'base start position must be <= end position' in error and self.disparity_deletion_in[0] == 'chromosome':
                 if hgvs_genomic.posedit.edit.type == 'delins':
@@ -2240,13 +2241,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                         hgvs_refreshed_variant = stash_tx_left
                     else:
                         hgvs_refreshed_variant = chromosome_normalized_hgvs_coding
-                    # Warn
-                    # self.auto_info = self.auto_info + str(hgvs_refreshed_variant.ac) + ':c.' + str(
-                    #     hgvs_refreshed_variant.posedit.pos) + ' contains ' + str(
-                    #     self.disparity_deletion_in[
-                    #         1]) + ' transcript base(s) that fail to align to chromosome ' + str(
-                    #     hgvs_genomic.ac) + '\n'
-
                 else:
                     # Keep the same by re-setting rel_var
                     hgvs_refreshed_variant = hgvs_coding
@@ -2331,6 +2325,21 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     hgvs_alt_genomic.posedit.pos.end.base = start
                     hgvs_alt_genomic = self.variant.hn.normalize(hgvs_alt_genomic)
 
+        # check for flanking substitutions which should be dels due to gap in transtipt
+        try:
+            check_flank_genomic = self.validator.myvm_t_to_g(hgvs_refreshed_variant,
+                                                             hgvs_alt_genomic.ac,
+                                                             self.variant.no_norm_evm,
+                                                             self.variant.hn)
+
+            if ((hgvs_alt_genomic.posedit.edit.type == hgvs_refreshed_variant.posedit.edit.type and
+                    hgvs_alt_genomic.posedit.edit.type == "sub") and
+                    check_flank_genomic.posedit.edit.type == "del"):
+
+                hgvs_alt_genomic = check_flank_genomic
+        except UnboundLocalError:
+            pass
+
         return hgvs_alt_genomic, hgvs_coding
 
     def dup_ins_5prime_shift(self, stored_hgvs_not_delins, saved_hgvs_coding):
@@ -2407,6 +2416,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
         # move tx end base back to next available non-offset base
         rn_tx_hgvs_not_delins.posedit.pos.end.offset = 0
         rn_tx_hgvs_not_delins.posedit.edit.ref = ''
+
         if back:
             # Add the additional base to the ALT
             start = rn_tx_hgvs_not_delins.posedit.pos.end.base - 1
@@ -2429,11 +2439,15 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
 
     def move_tx_start_base_to_previous_nonoffset(self, rn_tx_hgvs_not_delins, saved_hgvs_coding,
                                                  with_base_subtract=False):
+
+        # Store the original variant
+        store_rn_tx_hgvs_not_delins = copy.deepcopy(rn_tx_hgvs_not_delins)
         # move tx start base to previous available non-offset base
         rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
         if with_base_subtract and rn_tx_hgvs_not_delins.posedit.pos.start.base > 1:
             rn_tx_hgvs_not_delins.posedit.pos.start.base = rn_tx_hgvs_not_delins.posedit.pos.start.base - 1
         rn_tx_hgvs_not_delins.posedit.edit.ref = ''
+
         if 'NM_' in str(rn_tx_hgvs_not_delins):
             try:
                 test_tx_var = self.variant.no_norm_evm.n_to_c(rn_tx_hgvs_not_delins)
@@ -2448,12 +2462,21 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
         # re-make genomic and tx
         hgvs_not_delins = self.validator.myevm_t_to_g(test_tx_var, self.variant.no_norm_evm,
                                                       self.variant.primary_assembly, self.variant.hn)
+
         try:
             rn_tx_hgvs_not_delins = self.variant.no_norm_evm.g_to_n(hgvs_not_delins,
                                                                 str(saved_hgvs_coding.ac))
         except vvhgvs.exceptions.HGVSInvalidIntervalError:
             rn_tx_hgvs_not_delins = test_tx_var
-        rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
+
+        if store_rn_tx_hgvs_not_delins.posedit.pos.start.offset != 0 and \
+                rn_tx_hgvs_not_delins.posedit.pos.start.offset == 0 \
+                and store_rn_tx_hgvs_not_delins.posedit.edit.ref == rn_tx_hgvs_not_delins.posedit.edit.ref:
+            offset = store_rn_tx_hgvs_not_delins.posedit.pos.start.offset
+            add_in_these_bases = store_rn_tx_hgvs_not_delins.posedit.edit.ref[0:0+offset]
+            rn_tx_hgvs_not_delins.posedit.edit.alt = rn_tx_hgvs_not_delins.posedit.edit.alt + add_in_these_bases
+        else:
+            rn_tx_hgvs_not_delins.posedit.pos.start.offset = 0
 
         return rn_tx_hgvs_not_delins, hgvs_not_delins
 
@@ -2636,22 +2659,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             # Set warning
             gap_size = str(len(genomic_gap_fill_variant.posedit.edit.ref) - 2)
             self.disparity_deletion_in[1] = [gap_size]
-            # self.auto_info = self.auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(
-            #     stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + gap_size + \
-            #     ' genomic base(s) that fail to align to transcript ' + str(self.tx_hgvs_not_delins.ac)
-
-            # Alignment position
-            # for_location_c = copy.deepcopy(hgvs_refreshed_variant)
-            # if 'NM_' in str(for_location_c):
-            #     for_location_c = self.variant.no_norm_evm.n_to_c(self.tx_hgvs_not_delins)
-            # if '-' in str(for_location_c.posedit.pos.start.offset):
-            #     gps = for_location_c.posedit.pos.start.base - 1
-            #     gpe = for_location_c.posedit.pos.start.base
-            # else:
-            #     gps = for_location_c.posedit.pos.start.base
-            #     gpe = for_location_c.posedit.pos.start.base + 1
-            # gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
-            # self.auto_info = self.auto_info + '%s' % (gap_position)
 
         else:
             if self.tx_hgvs_not_delins.posedit.pos.start.offset == 0 and \
@@ -2663,10 +2670,8 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     c1 = self.validator.vm.n_to_c(self.tx_hgvs_not_delins)
                 except:
                     c1 = self.tx_hgvs_not_delins
-                # g1 = self.validator.nr_vm.t_to_g(c1, hgvs_genomic.ac)
                 g3 = self.validator.nr_vm.t_to_g(c1, hgvs_genomic.ac)
                 g2 = self.validator.vm.t_to_g(c1, hgvs_genomic.ac)
-                # ng2 = self.variant.hn.normalize(g2)
                 g3.posedit.pos.end.base = g3.posedit.pos.start.base + (len(g3.posedit.edit.ref) - 1)
                 try:
                     c2 = self.validator.vm.g_to_t(g3, c1.ac)
@@ -2683,70 +2688,21 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
 
             if '+' in str(self.tx_hgvs_not_delins.posedit.pos.start) and \
                     '+' not in str(self.tx_hgvs_not_delins.posedit.pos.end):
-                # self.auto_info = self.auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(
-                #     stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(
-                #     self.disparity_deletion_in[
-                #         1]) + ' genomic base(s) that fail to align to transcript ' + str(
-                #     self.tx_hgvs_not_delins.ac)
                 hgvs_refreshed_variant = self.c2_pos_edit(hgvs_genomic)
 
-                # Alignment position
-                # for_location_c = copy.deepcopy(hgvs_refreshed_variant)
-                # if 'NM_' in str(for_location_c):
-                #     for_location_c = self.variant.no_norm_evm.n_to_c(self.tx_hgvs_not_delins)
-                # gps = for_location_c.posedit.pos.start.base
-                # gpe = for_location_c.posedit.pos.start.base + 1
-                # gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
-                # # Warn update
-                # self.auto_info = self.auto_info + '%s' % gap_position
             elif '+' in str(self.tx_hgvs_not_delins.posedit.pos.end) and \
                     '+' not in str(self.tx_hgvs_not_delins.posedit.pos.start):
-
                 self.auto_info = self.auto_info
-                # 'Genome position ' + str(
-                #     stored_hgvs_not_delins.ac) + ':g.' + str(
-                #     stored_hgvs_not_delins.posedit.pos.end.base + 1) + ' aligns within a ' + str(
-                #     self.disparity_deletion_in[1]) + '-bp gap in transcript ' + str(
-                #     self.tx_hgvs_not_delins.ac)
                 self.gapped_transcripts = self.gapped_transcripts + ' ' + str(self.tx_hgvs_not_delins.ac)
                 hgvs_refreshed_variant = self.c1_pos_edit(hgvs_genomic)
 
-                # Alignment position
-                # for_location_c = copy.deepcopy(hgvs_refreshed_variant)
-                # if 'NM_' in str(for_location_c):
-                #     for_location_c = self.variant.no_norm_evm.n_to_c(self.tx_hgvs_not_delins)
-                # gps = for_location_c.posedit.pos.end.base
-                # gpe = for_location_c.posedit.pos.end.base + 1
-                # gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
-                # # Warn update
-                # self.auto_info = self.auto_info + '%s' % gap_position
-
             elif '-' in str(self.tx_hgvs_not_delins.posedit.pos.start) and \
                     '-' not in str(self.tx_hgvs_not_delins.posedit.pos.end):
-                # self.auto_info = self.auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(
-                #     stored_hgvs_not_delins.posedit.pos.start.base) + ' is one of ' + str(
-                #     self.disparity_deletion_in[
-                #         1]) + ' genomic base(s) that fail to align to transcript ' + str(
-                #     self.tx_hgvs_not_delins.ac)
                 hgvs_refreshed_variant = self.c2_pos_edit(hgvs_genomic)
 
-                # Alignment position
-                # for_location_c = copy.deepcopy(hgvs_refreshed_variant)
-                # if 'NM_' in str(for_location_c):
-                #     for_location_c = self.variant.no_norm_evm.n_to_c(self.tx_hgvs_not_delins)
-                # gps = for_location_c.posedit.pos.start.base - 1
-                # gpe = for_location_c.posedit.pos.start.base
-                # gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
-                # # Warn update
-                # self.auto_info = self.auto_info + '%s' % gap_position
             elif '-' in str(self.tx_hgvs_not_delins.posedit.pos.end) and \
                     '-' not in str(self.tx_hgvs_not_delins.posedit.pos.start):
                 self.auto_info = self.auto_info #
-                # + 'Genome position ' + str(
-                #     stored_hgvs_not_delins.ac) + ':g.' + str(
-                #     stored_hgvs_not_delins.posedit.pos.end.base + 1) + ' aligns within a ' + str(
-                #     self.disparity_deletion_in[1]) + '-bp gap in transcript ' + str(
-                #     self.tx_hgvs_not_delins.ac)
                 self.gapped_transcripts = self.gapped_transcripts + ' ' + str(self.tx_hgvs_not_delins.ac)
 
                 # Have variation in first copy here!
@@ -2773,22 +2729,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 else:
                     hgvs_refreshed_variant = self.c1_pos_edit(hgvs_genomic)
 
-                # Alignment position
-                # for_location_c = copy.deepcopy(hgvs_refreshed_variant)
-                # if 'NM_' in str(for_location_c):
-                #     for_location_c = self.variant.no_norm_evm.n_to_c(self.tx_hgvs_not_delins)
-                # gps = for_location_c.posedit.pos.end.base - 1
-                # gpe = for_location_c.posedit.pos.end.base
-                # gap_position = ' between positions c.' + str(gps) + '_' + str(gpe) + '\n'
-                # # Warn update
-                # self.auto_info = self.auto_info + '%s' % (gap_position)
             else:
-                # self.auto_info = self.auto_info + str(stored_hgvs_not_delins.ac) + ':g.' + str(
-                #     stored_hgvs_not_delins.posedit.pos) + ' contains ' + str(
-                #     self.disparity_deletion_in[
-                #         1]) + ' genomic base(s) that fail to align to transcript ' + str(
-                #     self.tx_hgvs_not_delins.ac) + '\n'
-
                 # Have variation in second copy here!
                 if running_option == 2:
                     self.tx_hgvs_not_delins.posedit.pos.end.base = self.tx_hgvs_not_delins.posedit.pos.start.base + len(

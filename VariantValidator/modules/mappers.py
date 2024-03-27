@@ -590,7 +590,6 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     # Loop out gap finding code under these circumstances!
     if gap_compensation is True:
         hgvs_genomic, suppress_c_normalization, hgvs_coding = gap_mapper.g_to_t_compensation(ori, hgvs_coding, rec_var)
-
     else:
         suppress_c_normalization = 'false'
 
@@ -784,12 +783,10 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     variant.genomic_r = str(hgvs_refseq)
     variant.genomic_g = str(hgvs_genomic)
     variant.protein = str(hgvs_protein)
-
     return False
 
 
 def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=False):
-
     warnings = ''
     rec_var = ''
     gap_compensation = True

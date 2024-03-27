@@ -30914,6 +30914,15 @@ class TestVariantsAuto(TestCase):
         assert 'NC_000012.12:g.121626861del' in results['NM_032790.3:c.119del']['primary_assembly_loci']['grch38']['hgvs_genomic_description']
         assert 'NC_000012.11:g.122064766del' in results['NM_032790.3:c.119del']['primary_assembly_loci']['grch37']['hgvs_genomic_description']
 
+    def test_a_gap_flank(self):
+        variant = 'NC_000017.10:g.7470289del'
+        results = self.vv.validate(variant, 'GRCh37', 'NM_015670.6').format_as_dict(test=True)
+        print(results)
+        assert 'NC_000017.11:g.7566971G>A' in results['NM_015670.6:c.1308G>A']['primary_assembly_loci'
+        ]['grch38']['hgvs_genomic_description']
+        assert 'NC_000017.10:g.7470291del' in results['NM_015670.6:c.1308G>A']['primary_assembly_loci']['grch37'
+        ]['hgvs_genomic_description']
+
 
 # <LICENSE>
 # Copyright (C) 2016-2024 VariantValidator Contributors
