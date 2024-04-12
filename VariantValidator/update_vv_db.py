@@ -148,8 +148,11 @@ def update_refseq(dbcnx):
     missing = []
 
     # Identify lines with missing data e.g. gene symbols
+    of_these = len(db)
+    counter = 1
     for line in db:
-        print(line)
+        print(counter, "of", of_these)
+        counter += 1
         update_success = False
         try:
             line[6]
@@ -164,7 +167,7 @@ def update_refseq(dbcnx):
                 update_success = False
                 try:
                     record = validator.entrez_efetch(db="nucleotide", id=line[0], rettype="gb", retmode="text")
-                except IOError as e:
+                except Exception:
                     pass
                 else:
                     gene_found = False
@@ -195,10 +198,17 @@ def update_refseq(dbcnx):
                         logger.info("Can't create an update gene ID for %s", line[0])
 
         if update_success is False:
+            print("Failed")
+            print("Gene info found = ", gene_found)
+            print("Gene ID found = ", gene_id_found)
+            print(line)
             missing.append(line[0])
+        else:
+            print("Success")
+            print(line)
 
     # Create a list of data to write to the database
-    print("To here")
+    print("MAKE DATABASE ENTRIES")
     to_mysql = []
     for line in db:
         if line[0] in missing:
@@ -222,19 +232,25 @@ def update_refseq(dbcnx):
         to_mysql.append(write)
 
     # Set up code to write to database
-    print("to for")
+    print("WRITE TO DATABASE")
     for line in to_mysql:
         current_symbol = dbcnx.get_gene_symbol_from_refseq_id(line[0])
         if line[10] != current_symbol:
             if current_symbol != 'none':
                 line[10] = current_symbol
-        dbcnx.update_refseqgene_loci(line)
+        try:
+            dbcnx.update_refseqgene_loci(line)
+        except mysql.connector.errors.DatabaseError:
+            # Badly formatted data due to RefSeqGene record errors so fail on our QC
+            print("Failed to write to database")
+            missing.append(line[0])
+            continue
 
     logger.info('Total NG_ to NC_ alignments = ' + str(total_rsg_to_nc))
     logger.info('Gaps within NG_ to NC_ alignments = ' + str(total_rsg_to_nc_rejected))
     print('Total NG_ to NC_ alignments = ' + str(total_rsg_to_nc))
     print('Gaps within NG_ to NC_ alignments = ' + str(total_rsg_to_nc_rejected))
-    print("return")
+    print('Total of badly formatted records = ' + str(len(missing)))
     return
 
 

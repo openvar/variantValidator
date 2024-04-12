@@ -617,15 +617,35 @@ class Mixin:
                                     # Handle duplications
                                     if pro_inv_info["prot_ins_seq"] == (pro_inv_info["prot_del_seq"]
                                                                           + pro_inv_info["prot_del_seq"]):
+
                                         posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + '_' + to_aa + \
                                                   str(pro_inv_info['edit_end']) + 'dup)'
                                     elif len(ins_thr) > 0:
                                         if 'Ter' in del_thr and ins_thr[-3:] != 'Ter':
                                             posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + '_' + to_aa + \
                                                       str(pro_inv_info['edit_end']) + 'delins' + ins_thr + '?)'
+
+                                        elif len(pro_inv_info["prot_ins_seq"]) > len(pro_inv_info["prot_del_seq"]) \
+                                                and pro_inv_info["prot_ins_seq"] != (pro_inv_info["prot_del_seq"]
+                                                                                     + pro_inv_info["prot_del_seq"]) and \
+                                                pro_inv_info["prot_del_seq"] == "" and (pro_inv_info["edit_start"]
+                                                > pro_inv_info["edit_end"]):
+
+                                            from_aa = self.sf.fetch_seq(associated_protein_accession,
+                                                                      int(pro_inv_info['edit_end']-len(pro_inv_info['prot_ins_seq'])),
+                                                                      int(pro_inv_info['edit_end']-len(pro_inv_info['prot_ins_seq']))+1)
+
+                                            to_aa = self.sf.fetch_seq(associated_protein_accession,
+                                                                      int(pro_inv_info['edit_start']-2),
+                                                                      int(pro_inv_info['edit_start']-1))
+
+                                            posedit = '(' + from_aa + str(pro_inv_info['edit_end']-len(pro_inv_info['prot_ins_seq'])+1) + "_" + \
+                                                      to_aa + str(pro_inv_info['edit_start']-1) + "dup)"
+
                                         else:
                                             posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + '_' + to_aa + \
                                                       str(pro_inv_info['edit_end']) + 'delins' + ins_thr + ')'
+
                                     else:
                                         if 'Ter' in del_thr and ins_thr[-3:] != 'Ter':
                                             posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + '_' + to_aa + \

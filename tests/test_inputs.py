@@ -30923,6 +30923,15 @@ class TestVariantsAuto(TestCase):
         assert 'NC_000017.10:g.7470291del' in results['NM_015670.6:c.1308G>A']['primary_assembly_loci']['grch37'
         ]['hgvs_genomic_description']
 
+    def test_issue_597(self):
+        variant = 'NM_005228.5:c.2309_2310delinsCCAGCGTGGAT'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert 'NP_005219.2:p.(Ala767_Val769dup)' in \
+               results['NM_005228.5:c.2309_2310delinsCCAGCGTGGAT']['hgvs_predicted_protein_consequence']['tlr']
+        assert 'NP_005219.2:p.(A767_V769dup)' in \
+               results['NM_005228.5:c.2309_2310delinsCCAGCGTGGAT']['hgvs_predicted_protein_consequence']['slr']
+
 
 # <LICENSE>
 # Copyright (C) 2016-2024 VariantValidator Contributors
