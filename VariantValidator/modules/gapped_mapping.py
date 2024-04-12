@@ -129,7 +129,7 @@ class GapMapper(object):
 
                     # 5 prime UTR
                     elif start+cds_start <= cds_start:
-                        each_found = "5' UTR (please contact admin and propvide the submitted variant description)"
+                        # each_found = "5' UTR (please contact admin and propvide the submitted variant description)"
                         found_gaps.append(each_found)
 
                     # CDS gap
