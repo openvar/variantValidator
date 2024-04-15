@@ -30932,6 +30932,13 @@ class TestVariantsAuto(TestCase):
         assert 'NP_005219.2:p.(A767_V769dup)' in \
                results['NM_005228.5:c.2309_2310delinsCCAGCGTGGAT']['hgvs_predicted_protein_consequence']['slr']
 
+    def test_issue_dup_to_gen_delins(self):
+        variant = 'NM_178172.2:c.45_48dup'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert 'NC_000008.11:g.143213308delinsGCGGG' in results['NM_178172.2:c.45_48dup']['primary_assembly_loci']['grch38']['hgvs_genomic_description']
+        assert 'NC_000008.10:g.144295187_144295190dup' in results['NM_178172.2:c.45_48dup']['primary_assembly_loci']['grch37']['hgvs_genomic_description']
+
 
 # <LICENSE>
 # Copyright (C) 2016-2024 VariantValidator Contributors

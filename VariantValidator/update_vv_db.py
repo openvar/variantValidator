@@ -240,7 +240,7 @@ def update_refseq(dbcnx):
                 line[10] = current_symbol
         try:
             dbcnx.update_refseqgene_loci(line)
-        except mysql.connector.errors.DatabaseError:
+        except Exception:
             # Badly formatted data due to RefSeqGene record errors so fail on our QC
             print("Failed to write to database")
             missing.append(line[0])
