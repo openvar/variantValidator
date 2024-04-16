@@ -210,6 +210,8 @@ def update_refseq(dbcnx):
                                 gene_id_found = True
                                 line.append(ft.qualifiers["note"][0])
                                 line.append(ft.qualifiers["db_xref"][0].split(":")[-1])
+                                if "GRCh37" in ft.qualifiers["note"][0]:
+                                    line[2] = "GRCh37"
                                 update_success = True
                                 break
                     if gene_id_found is False:
