@@ -151,6 +151,7 @@ def update_refseq(dbcnx):
     of_these = len(db)
     counter = 1
     for line in db:
+        print("\n")
         print(counter, "of", of_these)
         counter += 1
         update_success = False
@@ -177,23 +178,40 @@ def update_refseq(dbcnx):
                             gene_found = True
                             try:
                                 # Line format is e.g. ['NG_030321.1', 'NC_000019.9', 'GRCh37', '7791843', '7802057', '-',
-                                # 'CLEC4G', '339390']
+                                # 'CLEC4G', '339390'] We updated to the HGNC ID
                                 line.append(ft.qualifiers["gene"][0])
                                 line.append(ft.qualifiers["db_xref"][2].split(":")[-1])
                                 update_success = True
                             except IndexError:
-                                for xref in ft.qualifiers["db_xref"]:
-                                    if "HGNC" in xref:
-                                        gene_id_found = True
-                                        line.append(ft.qualifiers["gene"][0])
-                                        line.append(xref.split(":")[-1])
-                                        update_success = True
+                                if "HGNC:" in str(ft.qualifiers["db_xref"]):
+                                    for xref in ft.qualifiers["db_xref"]:
+                                        if "HGNC" in xref:
+                                            gene_id_found = True
+                                            line.append(xref.split(":")[-1])
+                                            update_success = True
+                                else:
+                                    # Will capture control elements like promoters, but captures the Entrez ID not the
+                                    # HGNC ID
+                                    for xref in ft.qualifiers["db_xref"]:
+                                        if "GeneID" in xref:
+                                            gene_id_found = True
+                                            line.append(xref.split(":")[-1])
+                                            update_success = True
+
                             except KeyError:
                                 logger.info("Can't identify an HGNC ID for gene symbol for %s", line[0])
                             except Exception:
                                 pass
+
                     if gene_found is False:
                         logger.info("Can't create an update gene symbol for %s", line[0])
+                        for ft in record.features:
+                            if ft.type == "regulatory" and "GeneID:" in str(ft.qualifiers["db_xref"]):
+                                gene_id_found = True
+                                line.append(ft.qualifiers["note"][0])
+                                line.append(ft.qualifiers["db_xref"][0].split(":")[-1])
+                                update_success = True
+                                break
                     if gene_id_found is False:
                         logger.info("Can't create an update gene ID for %s", line[0])
 
