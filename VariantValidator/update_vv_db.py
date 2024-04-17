@@ -206,14 +206,17 @@ def update_refseq(dbcnx):
                     if gene_found is False:
                         logger.info("Can't create an update gene symbol for %s", line[0])
                         for ft in record.features:
-                            if ft.type == "regulatory" and "GeneID:" in str(ft.qualifiers["db_xref"]):
-                                gene_id_found = True
-                                line.append(record.description)
-                                line.append(ft.qualifiers["db_xref"][0].split(":")[-1])
-                                if "GRCh37" in ft.qualifiers["note"][0]:
-                                    line[2] = "GRCh37"
-                                update_success = True
-                                break
+                            try:
+                                if ft.type == "regulatory" and "GeneID:" in str(ft.qualifiers["db_xref"]):
+                                    gene_id_found = True
+                                    line.append(record.description)
+                                    line.append(ft.qualifiers["db_xref"][0].split(":")[-1])
+                                    if "GRCh37" in ft.qualifiers["note"][0]:
+                                        line[2] = "GRCh37"
+                                    update_success = True
+                                    break
+                            except Exception:
+                                continue
                     if gene_id_found is False:
                         logger.info("Can't create an update gene ID for %s", line[0])
 
