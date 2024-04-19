@@ -209,7 +209,12 @@ def update_refseq(dbcnx):
                             try:
                                 if ft.type == "regulatory" and "GeneID:" in str(ft.qualifiers["db_xref"]):
                                     gene_id_found = True
-                                    line.append(record.description)
+                                    match = re.search(r'\(LOC\d+\)', record.description)
+                                    if match:
+                                        loc_var = re.sub(r'[()]', '', match.group())
+                                        line.append(loc_var)
+                                    else:
+                                        continue
                                     line.append(ft.qualifiers["db_xref"][0].split(":")[-1])
                                     if "GRCh37" in ft.qualifiers["note"][0]:
                                         line[2] = "GRCh37"
