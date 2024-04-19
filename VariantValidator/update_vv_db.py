@@ -257,6 +257,8 @@ def update_refseq(dbcnx):
     # Set up code to write to database
     print("WRITE TO DATABASE")
     for line in to_mysql:
+        print("\nWriting to database:")
+        print(line)
         current_symbol = dbcnx.get_gene_symbol_from_refseq_id(line[0])
         if line[10] != current_symbol:
             if current_symbol != 'none':
@@ -265,8 +267,11 @@ def update_refseq(dbcnx):
             dbcnx.update_refseqgene_loci(line)
         except Exception:
             # Badly formatted data due to RefSeqGene record errors so fail on our QC
+            import traceback
+            traceback.print_exc()
             print("Failed to write to database")
             missing.append(line[0])
+            exit()
             continue
 
     logger.info('Total NG_ to NC_ alignments = ' + str(total_rsg_to_nc))
