@@ -257,15 +257,19 @@ def update_refseq(dbcnx):
     # Set up code to write to database
     print("WRITE TO DATABASE")
     for line in to_mysql:
+        print("\nWriting to database:")
+        print(line)
         current_symbol = dbcnx.get_gene_symbol_from_refseq_id(line[0])
         if line[10] != current_symbol:
             if current_symbol != 'none':
                 line[10] = current_symbol
         try:
             dbcnx.update_refseqgene_loci(line)
-        except Exception:
+        except Exception as e:
             # Badly formatted data due to RefSeqGene record errors so fail on our QC
-            print("Failed to write to database")
+            print("Failed to write to database: ", str(e))
+            # import traceback
+            # traceback.print_exc()
             missing.append(line[0])
             continue
 
