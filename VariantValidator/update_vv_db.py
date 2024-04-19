@@ -265,13 +265,12 @@ def update_refseq(dbcnx):
                 line[10] = current_symbol
         try:
             dbcnx.update_refseqgene_loci(line)
-        except Exception:
+        except Exception as e:
             # Badly formatted data due to RefSeqGene record errors so fail on our QC
-            import traceback
-            traceback.print_exc()
-            print("Failed to write to database")
+            print("Failed to write to database: ", str(e))
+            # import traceback
+            # traceback.print_exc()
             missing.append(line[0])
-            exit()
             continue
 
     logger.info('Total NG_ to NC_ alignments = ' + str(total_rsg_to_nc))
