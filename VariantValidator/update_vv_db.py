@@ -218,6 +218,11 @@ def update_refseq(dbcnx):
                                     line.append(ft.qualifiers["db_xref"][0].split(":")[-1])
                                     if "GRCh37" in ft.qualifiers["note"][0]:
                                         line[2] = "GRCh37"
+                                        chr_num = line[1].split("NC_")[1].split(".")
+                                        chr_num = int(chr_num[0])
+                                        chr_acc = VariantValidator.modules.seq_data.to_accession(str(chr_num), "GRCh37")
+                                        line[1] = chr_acc
+
                                     update_success = True
                                     break
                             except Exception:
