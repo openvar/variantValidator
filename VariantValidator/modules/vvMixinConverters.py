@@ -2528,7 +2528,10 @@ class Mixin(vvMixinInit.Mixin):
                                 latest_version[accession] = version
                     else:
                         # VF method
-                        accession, version = tx_id[0].split(".")
+                        try:
+                            accession, version = tx_id[0].split(".")
+                        except Exception:
+                            continue
                         if accession not in latest_version.keys():
                             latest_version[accession] = {}
                             latest_version[accession]["version"] = version
