@@ -257,6 +257,7 @@ def uncertain_positions(my_variant, validator):
             my_variant.hgvs_coding = my_variant.quibble
             my_variant.hgvs_transcript_variant = my_variant.quibble
             my_variant.output_type_flag = "gene"
+
     return
 
 # <LICENSE>
