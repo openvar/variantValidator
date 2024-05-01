@@ -1315,9 +1315,8 @@ class Mixin(vvMixinConverters.Mixin):
                     predicted_protein_variant_dict["lrg_tlr"] = ''
                     predicted_protein_variant_dict["lrg_slr"] = ''
 
-
                 # Add missing gene info which should be there (May have come from uncertain positions for example)
-                if variant.hgvs_transcript_variant != '' and variant.gene_symbol == '':
+                if variant.hgvs_transcript_variant is not None and variant.gene_symbol == '':
                     variant.gene_symbol = self.db.get_gene_symbol_from_transcript_id(
                         variant.hgvs_transcript_variant.split(":")[0])
 
