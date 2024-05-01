@@ -1319,6 +1319,9 @@ class Mixin(vvMixinConverters.Mixin):
                 if variant.hgvs_transcript_variant is not None and variant.gene_symbol == '':
                     variant.gene_symbol = self.db.get_gene_symbol_from_transcript_id(
                         variant.hgvs_transcript_variant.split(":")[0])
+                elif variant.hgvs_refseqgene_variant is not None and variant.gene_symbol == '':
+                    variant.gene_symbol = self.db.get_gene_symbol_from_refseq_id(
+                        variant.hgvs_refseqgene_variant.split(":")[0])
 
                 # Add stable gene_ids
                 stable_gene_ids = {}
