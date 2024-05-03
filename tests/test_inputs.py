@@ -1015,8 +1015,7 @@ class TestVariantsAuto(TestCase):
         assert results['flag'] == 'intergenic'
         assert 'intergenic_variant_1' in list(results.keys())
         assert results['intergenic_variant_1']['submitted_variant'] == 'NC_000017.10:g.48279242G>T'
-        assert results['intergenic_variant_1']['gene_symbol'] == ''
-        assert results['intergenic_variant_1']['gene_ids'] == {}
+        assert results['intergenic_variant_1']['gene_symbol'] == 'COL1A1'
         assert results['intergenic_variant_1']['hgvs_transcript_variant'] == ''
         assert results['intergenic_variant_1']['genome_context_intronic_sequence'] == ''
         assert results['intergenic_variant_1']['refseqgene_context_intronic_sequence'] == ''
@@ -30939,6 +30938,11 @@ class TestVariantsAuto(TestCase):
         assert 'NC_000008.11:g.143213308delinsGCGGG' in results['NM_178172.2:c.45_48dup']['primary_assembly_loci']['grch38']['hgvs_genomic_description']
         assert 'NC_000008.10:g.144295187_144295190dup' in results['NM_178172.2:c.45_48dup']['primary_assembly_loci']['grch37']['hgvs_genomic_description']
 
+    def test_issue_select_transcripts_from_genomic(self):
+        variant = '["chr17:g.7576851_7576859delinsTA", "chr17:g.7576851_7576859delinsTT"]'
+        select_transcripts = '["NM_000546.6", "NM_001126112.3", "NM_001126113.3", "NM_001126114.3", "NM_001126115.2", "NM_001126116.2", "NM_001126117.2", "NM_001126118.2", "NM_001276695.3", "NM_001276696.3", "NM_001276697.3", "NM_001276698.3", "NM_001276699.3", "NM_000546.5"]'
+        results = self.vv.validate(variant, 'GRCh37', select_transcripts).format_as_dict(test=True)
+        assert len(results) == 30
 
 # <LICENSE>
 # Copyright (C) 2016-2024 VariantValidator Contributors

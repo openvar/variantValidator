@@ -10,7 +10,7 @@ from Bio import Entrez, SeqIO
 from Bio.Seq import Seq
 from . import utils as fn
 import sys
-# import traceback
+import json
 
 from vvhgvs.exceptions import HGVSError, HGVSDataNotAvailableError, HGVSUnsupportedOperationError, \
      HGVSInvalidVariantError
@@ -1114,13 +1114,6 @@ class Mixin(vvMixinInit.Mixin):
                                         norm_stored_c.posedit.edit.type == 'identity':
                                     flank_hgvs_genomic = self.vm.t_to_g(norm_stored_c, genomic_gap_variant.ac)
                                     self.vr.validate(flank_hgvs_genomic)
-
-                                    print("\nFlank HGVS Genomic", flank_hgvs_genomic)
-                                    print("Genomic Gap Variant", genomic_gap_variant)
-                                    print("Stored HGVS C", stored_hgvs_c)
-                                    print("Norm Stored C", norm_stored_c)
-                                    print(len(str(genomic_gap_variant.posedit.edit.ref)))
-                                    print(genomic_gap_variant.posedit.pos.end.base - genomic_gap_variant.posedit.pos.start.base + 1)
 
                                     # Gap in the transcript
                                     if (flank_hgvs_genomic.posedit.edit.type == 'sub' and
@@ -2556,7 +2549,12 @@ class Mixin(vvMixinInit.Mixin):
                 return rts
             else:
                 rts = []
-                rtsc = select_transcripts.split("|")
+                # Format the select_transcripts into a list from json
+                if select_transcripts != 'all' and select_transcripts != 'raw':
+                    try:
+                        rtsc = json.loads(select_transcripts)
+                    except json.decoder.JSONDecodeError:
+                        rtsc = [select_transcripts]
                 for tx in rtsc:
                     rts.append(tx)
                 return rts
