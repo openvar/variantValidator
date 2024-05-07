@@ -1193,6 +1193,9 @@ class Mixin(vvMixinConverters.Mixin):
                         refseqgene_variant = fn.valstr(hgvs_refseqgene_variant)
                     except Exception as e:
                         logger.debug("Except passed, %s", e)
+                    if variant.gene_symbol == "" and refseqgene_variant != "":
+                        gene_symbol = self.db.get_gene_symbol_from_refseq_id(refseqgene_variant.split(":")[0])
+                        variant.gene_symbol = gene_symbol
 
                 # Add predicted protein variant dictionary
                 if predicted_protein_variant != '':
@@ -1311,6 +1314,14 @@ class Mixin(vvMixinConverters.Mixin):
                     predicted_protein_variant_dict["tlr"] = ''
                     predicted_protein_variant_dict["lrg_tlr"] = ''
                     predicted_protein_variant_dict["lrg_slr"] = ''
+
+                # Add missing gene info which should be there (May have come from uncertain positions for example)
+                if variant.hgvs_transcript_variant is not None and variant.gene_symbol == '':
+                    variant.gene_symbol = self.db.get_gene_symbol_from_transcript_id(
+                        variant.hgvs_transcript_variant.split(":")[0])
+                elif variant.hgvs_refseqgene_variant is not None and variant.gene_symbol == '':
+                    variant.gene_symbol = self.db.get_gene_symbol_from_refseq_id(
+                        variant.hgvs_refseqgene_variant.split(":")[0])
 
                 # Add stable gene_ids
                 stable_gene_ids = {}

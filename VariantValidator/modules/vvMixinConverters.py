@@ -10,7 +10,7 @@ from Bio import Entrez, SeqIO
 from Bio.Seq import Seq
 from . import utils as fn
 import sys
-# import traceback
+import json
 
 from vvhgvs.exceptions import HGVSError, HGVSDataNotAvailableError, HGVSUnsupportedOperationError, \
      HGVSInvalidVariantError
@@ -184,7 +184,6 @@ class Mixin(vvMixinInit.Mixin):
 
                 except Exception:
                     hgvs_c = hgvs_c
-
             if str(hgvs_c.ac).startswith('NM_'):
                 try:
                     hgvs_c = no_norm_evm.n_to_c(hgvs_c)
@@ -357,6 +356,7 @@ class Mixin(vvMixinInit.Mixin):
                 error_type_1 = str(e)
                 if 'Length implied by coordinates must equal sequence deletion length' in str(e) or str(
                         e) == 'base start position must be <= end position':
+
                     # Effectively, this code is designed to handle variants that are directly proximal to
                     # gap BOUNDARIES, but in some cases the replace reference function of hgvs mapping has removed
                     # bases due to the deletion length being > the specified range.
@@ -404,8 +404,6 @@ class Mixin(vvMixinInit.Mixin):
                             # not inside the gap
                             logger.info('Variant is on the flank of a genomic gap but not within the gap')
 
-                            # Test on the flank and if so, return
-
                             # Logic, normalize the c. variant and if a substitution (cannot normalize) then direct map
                             # Currently believe that sub.n is the only variant type which fits. ins can normalize
                             # and may also be a dup! Added identity also
@@ -418,10 +416,23 @@ class Mixin(vvMixinInit.Mixin):
                                         norm_stored_c.posedit.edit.type == 'identity':
                                     flank_hgvs_genomic = self.vm.t_to_g(norm_stored_c, genomic_gap_variant.ac)
                                     self.vr.validate(flank_hgvs_genomic)
-                                    return flank_hgvs_genomic
+
+                                    # Gap in the transcript
+                                    if (flank_hgvs_genomic.posedit.edit.type == 'sub' and
+                                            norm_stored_c.posedit.edit.type == 'sub' and
+                                            stored_hgvs_c.posedit.edit.type == 'sub' and
+                                            # sub is a single base change
+                                            (len(genomic_gap_variant.posedit.edit.ref)+1 == (
+                                                    genomic_gap_variant.posedit.pos.end.base -
+                                                    genomic_gap_variant.posedit.pos.start.base + 1))):
+                                        pass
+                                    elif flank_hgvs_genomic.posedit.edit.type == 'sub':
+                                        return flank_hgvs_genomic
+                                    else:
+                                        return flank_hgvs_genomic
 
                             # Will occur if the variant still overlaps the gap / is in the gap
-                            except HGVSInvalidVariantError:
+                            except HGVSInvalidVariantError as e:
                                 pass
 
                             # If test fails, continue old processing
@@ -1091,17 +1102,32 @@ class Mixin(vvMixinInit.Mixin):
                             # not inside the gap
                             logger.info('Variant is on the flank of a genomic gap but not within the gap')
 
-                            # Test definately on the flank and if so, return
                             # Logic, normalize the c. variant and if a substitution (cannot normalize) then direct map
                             # Currently believe that sub.n is the only variant type which fits. ins can normalize
-                            # and may also be a dup!
+                            # and may also be a dup! Added identity also
                             try:
-                                norm_stored_c = hn.normalize(stored_hgvs_c)
+                                try:
+                                    norm_stored_c = hn.normalize(stored_hgvs_c)
+                                except HGVSUnsupportedOperationError:
+                                    norm_stored_c = stored_hgvs_c
                                 if norm_stored_c.posedit.edit.type == 'sub' or \
                                         norm_stored_c.posedit.edit.type == 'identity':
                                     flank_hgvs_genomic = self.vm.t_to_g(norm_stored_c, genomic_gap_variant.ac)
                                     self.vr.validate(flank_hgvs_genomic)
-                                    return flank_hgvs_genomic
+
+                                    # Gap in the transcript
+                                    if (flank_hgvs_genomic.posedit.edit.type == 'sub' and
+                                            norm_stored_c.posedit.edit.type == 'sub' and
+                                            stored_hgvs_c.posedit.edit.type == 'sub' and
+                                            # sub is a single base change
+                                            (len(genomic_gap_variant.posedit.edit.ref)+1 == (
+                                                    genomic_gap_variant.posedit.pos.end.base -
+                                                    genomic_gap_variant.posedit.pos.start.base + 1))):
+                                        pass
+                                    elif flank_hgvs_genomic.posedit.edit.type == 'sub':
+                                        return flank_hgvs_genomic
+                                    else:
+                                        return flank_hgvs_genomic
 
                             # Will occur if the variant still overlaps the gap / is in the gap
                             except HGVSInvalidVariantError:
@@ -2495,7 +2521,10 @@ class Mixin(vvMixinInit.Mixin):
                                 latest_version[accession] = version
                     else:
                         # VF method
-                        accession, version = tx_id[0].split(".")
+                        try:
+                            accession, version = tx_id[0].split(".")
+                        except Exception:
+                            continue
                         if accession not in latest_version.keys():
                             latest_version[accession] = {}
                             latest_version[accession]["version"] = version
@@ -2520,19 +2549,17 @@ class Mixin(vvMixinInit.Mixin):
                 return rts
             else:
                 rts = []
-                rtsc = select_transcripts.split("|")
+                # Format the select_transcripts into a list from json
+                if select_transcripts != 'all' and select_transcripts != 'raw':
+                    try:
+                        rtsc = json.loads(select_transcripts)
+                    except json.decoder.JSONDecodeError:
+                        rtsc = [select_transcripts]
                 for tx in rtsc:
                     rts.append(tx)
                 return rts
         else:
-            if select_transcripts is not None:
-                rts = []
-                rtsc = select_transcripts.split("|")
-                for tx in rtsc:
-                    rts.append(tx)
-                return rts
-            else:
-                return rts
+            return rts
 
 # <LICENSE>
 # Copyright (C) 2016-2024 VariantValidator Contributors

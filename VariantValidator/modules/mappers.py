@@ -590,7 +590,6 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     # Loop out gap finding code under these circumstances!
     if gap_compensation is True:
         hgvs_genomic, suppress_c_normalization, hgvs_coding = gap_mapper.g_to_t_compensation(ori, hgvs_coding, rec_var)
-
     else:
         suppress_c_normalization = 'false'
 
@@ -784,18 +783,14 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     variant.genomic_r = str(hgvs_refseq)
     variant.genomic_g = str(hgvs_genomic)
     variant.protein = str(hgvs_protein)
-
     return False
 
 
 def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=False):
-
     warnings = ''
     rec_var = ''
     gap_compensation = True
 
-    # Multiple genomic variants
-    # multi_gen_vars = []
     try:
         tx_variant.ac
         variant.hgvs_coding = tx_variant
@@ -858,9 +853,32 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=
                     hgvs_alt_genomic, variant.hgvs_coding, ori, alt_chr, rec_var)
                 variant.hgvs_coding = hgvs_coding
 
+                # Check for mismatched sequence in dup variants
+                if hgvs_alt_genomic.posedit.edit.type == hgvs_coding.posedit.edit.type and \
+                        hgvs_alt_genomic.posedit.edit.type != 'delins':
+                    try:
+                        rev_tx = variant.reverse_normalizer.normalize(hgvs_coding)
+                        rev_g = validator.myvm_t_to_g(rev_tx, alt_chr, variant.no_norm_evm, variant.hn)
+                        rev_g = variant.hn.normalize(rev_g)
+                    except vvhgvs.exceptions.HGVSError:
+                        rev_g = hgvs_alt_genomic
+                    if rev_g.posedit.edit.type == "delins":
+                        hgvs_alt_genomic = rev_g
+
                 # Refresh the :g. variant
                 multi_g.append(hgvs_alt_genomic)
+
             else:
+                if hgvs_alt_genomic.posedit.edit.type == variant.hgvs_coding.posedit.edit.type and \
+                        hgvs_alt_genomic.posedit.edit.type != 'delins':
+                    try:
+                        rev_tx = variant.reverse_normalizer.normalize(variant.hgvs_coding)
+                        rev_g = validator.myvm_t_to_g(rev_tx, alt_chr, variant.no_norm_evm, variant.hn)
+                        rev_g = variant.hn.normalize(rev_g)
+                    except vvhgvs.exceptions.HGVSError:
+                        rev_g = hgvs_alt_genomic
+                    if rev_g.posedit.edit.type == "delins":
+                        hgvs_alt_genomic = rev_g
                 multi_g.append(hgvs_alt_genomic)
 
         # In this instance, the gap code has generally found an incomplete-alignment rather than a

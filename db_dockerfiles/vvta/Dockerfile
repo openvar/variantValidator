@@ -14,7 +14,7 @@ RUN apt-get update && \
 RUN echo "shared_buffers = 2GB" > /docker-entrypoint-initdb.d/postgresql.conf
 
 # Step 1: Download the file
-RUN wget https://www528.lamp.le.ac.uk/vvdata/vvta/vvta_2023_05_no_seq.sql.gz -O input_file.sql.gz
+RUN wget https://www528.lamp.le.ac.uk/vvdata/vvta/vvta_2024_01_no_seq.sql.gz -O input_file.sql.gz
 
 # Step 2: Extract the gzipped file
 RUN gzip -dq input_file.sql.gz
@@ -27,5 +27,5 @@ RUN rm input_file.sql
 RUN gzip modified_file.sql
 
 # Step 5: Move the modified and compressed file to the desired location
-RUN mv modified_file.sql.gz /docker-entrypoint-initdb.d/vvta_2023_05_noseq.sql.gz
+RUN mv modified_file.sql.gz /docker-entrypoint-initdb.d/vvta_2024_01_noseq.sql.gz
 

@@ -45,8 +45,8 @@ class Mixin(vvDBGet.Mixin):
         query = "INSERT INTO refSeqGene_loci(refSeqGeneID, refSeqChromosomeID, genomeBuild, startPos, endPos, " \
                 "orientation, totalLength, chrPos, rsgPos, entrezID, hgncSymbol, updated) " \
                 "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())"
-        cursor.execute(query, (rsg_data[0], rsg_data[1], rsg_data[2], rsg_data[3], rsg_data[4], rsg_data[5],
-                                    rsg_data[6], rsg_data[7], rsg_data[8], rsg_data[9], rsg_data[10]))
+        cursor.execute(query, (rsg_data[0], rsg_data[1], rsg_data[2], int(rsg_data[3]), int(rsg_data[4]), rsg_data[5],
+                                    int(rsg_data[6]), rsg_data[7], rsg_data[8], int(rsg_data[9]), rsg_data[10]))
         # Query report
         if cursor.lastrowid:
             success = 'true'

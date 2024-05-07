@@ -103,7 +103,8 @@ We will only contact you directly for one of five reasons:
 For any further information, or to ask for help or guidance, please contact us on admin@variantvalidator.org or via our [web form](https://variantvalidator.org/help/contact/).
 
 ## Code of Conduct
-VariantValidator is a community resource and we represent a diverse range of users. All users and developers must adhere to our [Code of Conduct](https://github.com/openvar/variantValidator/blob/master/CODE_OF_CONDUCT.md). Violations reported to the code owners will be dealt with accordingly
+
+VariantValidator is a community resource and we represent a diverse range of users. All users and developers must adhere to our [Code of Conduct](https://github.com/openvar/variantValidator/blob/master/CODE_OF_CONDUCT.md). Violations will be reported and dealt with accordingly.
 
 ## Cite us
 

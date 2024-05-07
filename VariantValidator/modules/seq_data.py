@@ -3335,6 +3335,7 @@ def gap_black_list(symbol):
     transcript or the genome to maintain a perfect alignment
     """
     gapGene = [
+        "PRIM2",
         "TRPM1",
         "LPP",
         "VPS13D",
