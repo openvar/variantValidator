@@ -9,7 +9,7 @@ class Variant(object):
     """
 
     def __init__(self, original, quibble=None, warnings=None, write=True, primary_assembly=False, order=False,
-                 selected_assembly=False):
+                 selected_assembly=False, reformat_output=False):
         self.original = original
         if quibble is None:
             self.quibble = original
@@ -42,19 +42,22 @@ class Variant(object):
         self.order = order
         self.output_type_flag = 'warning'
         self.gene_symbol = ''
-
         self.timing = {}
-
         self.refsource = None
         self.reftype = None
 
-        # Normalizers
+        # Set reformat options
+        self.reformat_output = reformat_output
+
+        # Normalizers and mappers
         self.hn = None
         self.reverse_normalizer = None
+        self.cross_hn = None  # allows crossing of intron/exon boundaries for c. variants
         self.evm = None
         self.no_norm_evm = None
         self.min_evm = None
         self.lose_vm = None
+        self.no_replace_vm = None
 
         # Required for output
         self.stable_gene_ids = None
@@ -70,6 +73,7 @@ class Variant(object):
         self.reference_sequence_records = None
         self.validated = False
         self.exonic_positions = None
+        self.rna_data = None
 
     def is_ascii(self):
         """
@@ -215,6 +219,7 @@ class Variant(object):
             'annotations': self.annotations,
             'transcript_description': self.description,
             'hgvs_transcript_variant': self.hgvs_transcript_variant,
+            'rna_variant_descriptions': self.rna_data,
             'genome_context_intronic_sequence': self.genome_context_intronic_sequence,
             'refseqgene_context_intronic_sequence': self.refseqgene_context_intronic_sequence,
             'hgvs_refseqgene_variant': self.hgvs_refseqgene_variant,
@@ -239,7 +244,7 @@ class Variant(object):
     def process_warnings(self):
         refined = []
         for warning in self.warnings:
-            warning = re.sub('del[GATC][GATC][GATC][GATC]+', 'del', warning)
+            warning = re.sub('del[GATC][GATC][GATC][GATC]+', 'del', str(warning))
             warning = warning.strip()
             warning = warning.replace("'", "")
             if warning == '':
@@ -249,7 +254,7 @@ class Variant(object):
         return refined
 
 # <LICENSE>
-# Copyright (C) 2016-2022 VariantValidator Contributors
+# Copyright (C) 2016-2024 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

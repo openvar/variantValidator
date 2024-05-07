@@ -1,22 +1,34 @@
-FROM python:3.6
+# Declare the base image
+FROM python:3.11
 
+# Create the WorkDir
 WORKDIR /app
 
+# Copy the current directory contents into the container's /app directory
 COPY . /app
 
+# Create logging directory
+RUN mkdir /usr/local/share/logs
+
 # Update apt-get
-RUN apt-get update
+RUN apt update
 
-# Install git
-RUN apt-get -y install git
+# Install apt managed sofware
+RUN apt -y install git \
+    postgresql-client \
+    sqlite3
 
-# Updrade pip
+# Upgrade pip
 RUN pip install --upgrade pip
 
-RUN pip install -r requirements_dev.txt
-
+# Install the app
 RUN pip install -e .
 
+# Copy the config file into the container home directory
 COPY configuration/docker.ini /root/.variantvalidator
 
-CMD python3 bin/variant_validator.py
+# Set entrypoint
+ENTRYPOINT []
+
+# Set command
+CMD ["tail", "-f", "/dev/null"]
