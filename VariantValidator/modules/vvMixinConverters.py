@@ -10,7 +10,7 @@ from Bio import Entrez, SeqIO
 from Bio.Seq import Seq
 from . import utils as fn
 import sys
-import traceback
+import json
 
 from vvhgvs.exceptions import HGVSError, HGVSDataNotAvailableError, HGVSUnsupportedOperationError, \
      HGVSInvalidVariantError
@@ -18,98 +18,14 @@ from vvhgvs.exceptions import HGVSError, HGVSDataNotAvailableError, HGVSUnsuppor
 logger = logging.getLogger(__name__)
 
 
+class AlleleSyntaxError(Exception):
+    pass
+
 class Mixin(vvMixinInit.Mixin):
     """
     This mixin contains converters that use the validator's configuration information.
     It inherits the Init mixin
     """
-    # def r_to_c(self, variant, evm):
-    #     """
-    #     r_to_c
-    #     parses r. variant strings into hgvs object and maps to the c. equivalent.
-    #     """
-    #     # convert the input string into a hgvs object by parsing
-    #     var_r = self.hp.parse_hgvs_variant(variant)
-    #     # map to the coding sequence
-    #     var_c = evm.r_to_c(var_r)  # coding level variant
-    #     variant = str(var_c)
-    #     c_from_r = {'variant': variant, 'type': ':c.'}
-    #     return c_from_r
-    #
-    # def refseq(self, variant, refseq_ac, evm, primary_assembly):
-    #     """
-    #     Maps transcript variant descriptions onto specified RefSeqGene reference sequences
-    #     Return an hgvs object containing the genomic sequence variant relative to the RefSeqGene
-    #     acession
-    #     refseq_ac = RefSeqGene ac
-    #     """
-    #     vr = vvhgvs.validator.Validator(self.hdp)
-    #     # parse the variant into hgvs object
-    #     var_c = self.hp.parse_hgvs_variant(variant)
-    #     # map to the genomic co-ordinates using the easy variant mapper set to alt_aln_method = alt_aln_method
-    #     var_g = self.myevm_t_to_g(var_c, evm, self.hdp, primary_assembly)
-    #     # Get overlapping transcripts - forcing a splign alignment
-    #     start_i = var_g.posedit.pos.start.base
-    #     end_i = var_g.posedit.pos.end.base
-    #     alt_ac = var_g.ac
-    #     alt_aln_method = 'splign'
-    #     transcripts = self.hdp.get_tx_for_region(alt_ac, alt_aln_method, start_i - 1, end_i)
-    #     # Take the first transcript
-    #     ref_g_dict = {
-    #         'ref_g': '',
-    #         'error': 'false'
-    #     }
-    #     for trans in transcripts:
-    #         tx_ac = trans[0]
-    #         try:
-    #             ref_c = self.vm.g_to_t(var_g, tx_ac, alt_aln_method='splign')
-    #         except:
-    #             continue
-    #         else:
-    #             try:
-    #                 ref_g_dict['ref_g'] = self.vm.t_to_g(ref_c, alt_ac=refseq_ac, alt_aln_method='splign')
-    #             except:
-    #                 e = sys.exc_info()[0]
-    #                 ref_g_dict['error'] = e
-    #             try:
-    #                 vr.validate(ref_g_dict['ref_g'])
-    #             except:
-    #                 e = sys.exc_info()[0]
-    #                 ref_g_dict['error'] = e
-    #             if ref_g_dict['error'] == 'false':
-    #                 return ref_g_dict
-    #             else:
-    #                 continue
-    #     # Return as an error if all fail
-    #     return ref_g_dict
-    #
-    # def g_to_c(self, var_g, tx_ac, evm):
-    #     """
-    #     Parses genomic variant strings into hgvs objects
-    #     Maps genomic hgvs object into a coding hgvs object if the c accession string is provided
-    #     returns a c. variant description string
-    #     """
-    #     # If the :g. pattern is present in the input variant
-    #     if ':g.' in var_g:
-    #         # convert the input string into a hgvs object by parsing
-    #         var_g = self.hp.parse_hgvs_variant(var_g)
-    #         # Map to coding variant
-    #         var_c = str(evm.g_to_c(var_g, tx_ac))
-    #         return var_c
-    #
-    # def g_to_n(self, var_g, tx_ac, evm):
-    #     """
-    #     Parses genomic variant strings into hgvs objects
-    #     Maps genomic hgvs object into a non-coding hgvs object if the n accession string is provided
-    #     returns a n. variant description string
-    #     """
-    #     # If the :g. pattern is present in the input variant
-    #     if ':g.' in var_g:
-    #         # convert the input string into a hgvs object by parsing
-    #         var_g = self.hp.parse_hgvs_variant(var_g)
-    #         # Map to coding variant
-    #         var_n = str(evm.g_to_n(var_g, tx_ac))
-    #         return var_n
 
     def coding(self, variant):
         """
@@ -142,17 +58,6 @@ class Mixin(vvMixinInit.Mixin):
             # convert the input string into a hgvs object
             var_g = self.hp.parse_hgvs_variant(variant)
             return var_g
-
-    # def hgvs_genomic(self, variant):
-    #     """
-    #     Ensures variant strings are g.
-    #     returns parsed hgvs g. object
-    #     """
-    #     # If the :g. pattern is present in the input variant
-    #     if ':g.' in variant:
-    #         # convert the input string into a hgvs object
-    #         var_g = self.hp.parse_hgvs_variant(variant)
-    #         return var_g
 
     def myevm_t_to_g(self, hgvs_c, no_norm_evm, primary_assembly, hn):
         """
@@ -279,7 +184,6 @@ class Mixin(vvMixinInit.Mixin):
 
                 except Exception:
                     hgvs_c = hgvs_c
-
             if str(hgvs_c.ac).startswith('NM_'):
                 try:
                     hgvs_c = no_norm_evm.n_to_c(hgvs_c)
@@ -452,6 +356,7 @@ class Mixin(vvMixinInit.Mixin):
                 error_type_1 = str(e)
                 if 'Length implied by coordinates must equal sequence deletion length' in str(e) or str(
                         e) == 'base start position must be <= end position':
+
                     # Effectively, this code is designed to handle variants that are directly proximal to
                     # gap BOUNDARIES, but in some cases the replace reference function of hgvs mapping has removed
                     # bases due to the deletion length being > the specified range.
@@ -499,8 +404,6 @@ class Mixin(vvMixinInit.Mixin):
                             # not inside the gap
                             logger.info('Variant is on the flank of a genomic gap but not within the gap')
 
-                            # Test on the flank and if so, return
-
                             # Logic, normalize the c. variant and if a substitution (cannot normalize) then direct map
                             # Currently believe that sub.n is the only variant type which fits. ins can normalize
                             # and may also be a dup! Added identity also
@@ -513,10 +416,23 @@ class Mixin(vvMixinInit.Mixin):
                                         norm_stored_c.posedit.edit.type == 'identity':
                                     flank_hgvs_genomic = self.vm.t_to_g(norm_stored_c, genomic_gap_variant.ac)
                                     self.vr.validate(flank_hgvs_genomic)
-                                    return flank_hgvs_genomic
+
+                                    # Gap in the transcript
+                                    if (flank_hgvs_genomic.posedit.edit.type == 'sub' and
+                                            norm_stored_c.posedit.edit.type == 'sub' and
+                                            stored_hgvs_c.posedit.edit.type == 'sub' and
+                                            # sub is a single base change
+                                            (len(genomic_gap_variant.posedit.edit.ref)+1 == (
+                                                    genomic_gap_variant.posedit.pos.end.base -
+                                                    genomic_gap_variant.posedit.pos.start.base + 1))):
+                                        pass
+                                    elif flank_hgvs_genomic.posedit.edit.type == 'sub':
+                                        return flank_hgvs_genomic
+                                    else:
+                                        return flank_hgvs_genomic
 
                             # Will occur if the variant still overlaps the gap / is in the gap
-                            except HGVSInvalidVariantError:
+                            except HGVSInvalidVariantError as e:
                                 pass
 
                             # If test fails, continue old processing
@@ -1186,17 +1102,32 @@ class Mixin(vvMixinInit.Mixin):
                             # not inside the gap
                             logger.info('Variant is on the flank of a genomic gap but not within the gap')
 
-                            # Test definately on the flank and if so, return
                             # Logic, normalize the c. variant and if a substitution (cannot normalize) then direct map
                             # Currently believe that sub.n is the only variant type which fits. ins can normalize
-                            # and may also be a dup!
+                            # and may also be a dup! Added identity also
                             try:
-                                norm_stored_c = hn.normalize(stored_hgvs_c)
+                                try:
+                                    norm_stored_c = hn.normalize(stored_hgvs_c)
+                                except HGVSUnsupportedOperationError:
+                                    norm_stored_c = stored_hgvs_c
                                 if norm_stored_c.posedit.edit.type == 'sub' or \
                                         norm_stored_c.posedit.edit.type == 'identity':
                                     flank_hgvs_genomic = self.vm.t_to_g(norm_stored_c, genomic_gap_variant.ac)
                                     self.vr.validate(flank_hgvs_genomic)
-                                    return flank_hgvs_genomic
+
+                                    # Gap in the transcript
+                                    if (flank_hgvs_genomic.posedit.edit.type == 'sub' and
+                                            norm_stored_c.posedit.edit.type == 'sub' and
+                                            stored_hgvs_c.posedit.edit.type == 'sub' and
+                                            # sub is a single base change
+                                            (len(genomic_gap_variant.posedit.edit.ref)+1 == (
+                                                    genomic_gap_variant.posedit.pos.end.base -
+                                                    genomic_gap_variant.posedit.pos.start.base + 1))):
+                                        pass
+                                    elif flank_hgvs_genomic.posedit.edit.type == 'sub':
+                                        return flank_hgvs_genomic
+                                    else:
+                                        return flank_hgvs_genomic
 
                             # Will occur if the variant still overlaps the gap / is in the gap
                             except HGVSInvalidVariantError:
@@ -1487,16 +1418,6 @@ class Mixin(vvMixinInit.Mixin):
 
         return hgvs_genomic
 
-    # def hgvs_protein(self, variant, hpOld):
-    #     """
-    #     parse p. strings into hgvs p. objects
-    #     """
-    #     # If the :p. pattern is present in the input variant
-    #     if ':p.' in variant:
-    #         # convert the input string into a hgvs object
-    #         var_p = self.hp.parse_hgvs_variant(variant)
-    #         return var_p
-
     def hgvs_r_to_c(self, hgvs_object):
         """
         Convert r. into c.
@@ -1511,95 +1432,15 @@ class Mixin(vvMixinInit.Mixin):
         hgvs_object.type = 'c'
         edit = str(hgvs_object.posedit.edit)
         edit = edit.upper()
+
         # lowercase the supported variant types
         edit = edit.replace('DEL', 'del')
         edit = edit.replace('INS', 'ins')
         edit = edit.replace('INV', 'inv')
         edit = edit.replace('DUP', 'dup')
-        # edit = edit.replace('CON', 'con')
-        # edit = edit.replace('TRA', 'tra')
         edit = edit.replace('U', 'T')
         hgvs_object.posedit.edit = edit
         return hgvs_object
-
-    # def hgvs_c_to_r(self, hgvs_object):
-    #     """
-    #     Convert c. into r.
-    #     """
-    #     hgvs_object.type = 'r'
-    #     edit = str(hgvs_object.posedit.edit)
-    #     edit = edit.lower()
-    #     edit = edit.replace('t', 'u')
-    #     hgvs_object.posedit.edit = edit
-    #     return hgvs_object
-
-    # def tx_identity_info(self, variant):
-    #     """
-    #     Input c. r. n. variant string
-    #     Use uta.py (hdp) to return the identity information for the transcript variant
-    #     see vvhgvs.dataproviders.uta.py for details
-    #     """
-    #     # If the :c. pattern is present in the input variant
-    #     if ':c.' in variant:
-    #         # Remove all text to the right and including pat_c
-    #         tx_ac = variant[:variant.index(':c.') + len(':c.')]
-    #         tx_ac = tx_ac.replace(':c.', '')
-    #         # Interface with the UTA database via get_tx_identity in uta.py
-    #         tx_id_info = self.hdp.get_tx_identity_info(tx_ac)
-    #         # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
-    #         return tx_id_info
-    #
-    #     # If the :n. pattern is present in the input variant
-    #     if ':n.' in variant:
-    #         # Remove all text to the right and including pat_c
-    #         tx_ac = variant[:variant.index(':n.') + len(':n.')]
-    #         tx_ac = tx_ac.replace(':n.', '')
-    #         # Interface with the UTA database via get_tx_identity in uta.py
-    #         tx_id_info = self.hdp.get_tx_identity_info(tx_ac)
-    #         # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
-    #         return tx_id_info
-    #
-    #     # If the :r. pattern is present in the input variant
-    #     if ':r.' in variant:
-    #         # Remove all text to the right and including pat_c
-    #         tx_ac = variant[:variant.index(':r.') + len(':r.')]
-    #         tx_ac = tx_ac.replace(':r.', '')
-    #         # Interface with the UTA database via get_tx_identity in uta.py
-    #         tx_id_info = self.hdp.get_tx_identity_info(tx_ac)
-    #         # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
-    #         return tx_id_info
-
-    # def tx_id_info(self, alt_ac):
-    #     """
-    #     Input c. r. nd accession string
-    #     Use uta.py (hdp) to return the identity information for the transcript variant
-    #     see vvhgvs.dataproviders.uta.py for details
-    #     """
-    #     tx_id_info = self.hdp.get_tx_identity_info(alt_ac)
-    #     # NOTE The hgnc id is the 6th element in this list tx_ac is the 0th element in the list
-    #     return tx_id_info
-
-    # def tx_for_gene(self, hgnc):
-    #     """
-    #     Use uta.py (hdp) to return the transcript information for a specified gene (HGNC SYMBOL)
-    #     see vvhgvs.dataproviders.uta.py for details
-    #     """
-    #     # Interface with the UTA database via get_tx_for_gene in uta.py
-    #     tx_for_gene = self.hdp.get_tx_for_gene(hgnc)
-    #     return tx_for_gene
-
-    # def ng_extract(self, tx_for_gene):
-    #     """
-    #     Extract RefSeqGene Accession from transcript information
-    #     see vvhgvs.dataproviders.uta.py for details
-    #     """
-    #     # For each list in the list of lists tx_for_gene
-    #     for item in tx_for_gene:
-    #         # If the pattern NG_ is found in element 4
-    #         if 'NG_' in item[4]:
-    #             # The gene accession is set to list element 4
-    #             gene_ac = item[4]
-    #             return gene_ac
 
     def tx_exons(self, tx_ac, alt_ac, alt_aln_method):
         """
@@ -1626,7 +1467,7 @@ class Mixin(vvMixinInit.Mixin):
         else:
             return tx_exons
 
-    def relevant_transcripts(self, hgvs_genomic, evm, alt_aln_method, reverse_normalizer):
+    def relevant_transcripts(self, hgvs_genomic, evm, alt_aln_method, reverse_normalizer, select_transcripts):
         """
         Automatically maps genomic positions onto all overlapping transcripts
         """
@@ -1635,6 +1476,7 @@ class Mixin(vvMixinInit.Mixin):
         rts_list = self.hdp.get_tx_for_region(hgvs_genomic.ac, alt_aln_method,
                                               hgvs_genomic.posedit.pos.start.base-1,
                                               hgvs_genomic.posedit.pos.end.base-1)
+
         rts_dict = {}
         for tx_dat in rts_list:
             rts_dict[tx_dat[0]] = True
@@ -1643,7 +1485,14 @@ class Mixin(vvMixinInit.Mixin):
             rts_dict[tx_dat_2] = True
         rts = list(rts_dict.keys())
 
-        # First if we have a ins prepare for hgvs "ins" mishandling, which
+        # Filter out transcripts that are not the latest versions
+        if select_transcripts == "all" or select_transcripts == "None" or select_transcripts is None:
+            rts = self.transcript_filter(rts)
+        elif (select_transcripts != "all" and select_transcripts != "None" and select_transcripts != "raw"
+              and "mane" not in select_transcripts):
+            rts = self.transcript_filter(rts, select_transcripts)
+
+        # First if we have an ins prepare for hgvs "ins" mishandling, which
         # causes failures on any ins->non ins case, start by making a forced
         # "delins", equivilent to the vcf format ins requirements, then use
         # if needed. This is similar to the 'Triple check' code in mappers.py,
@@ -1714,8 +1563,15 @@ class Mixin(vvMixinInit.Mixin):
             except Exception as err:
                 logger.warning('non expected err type', str(err))
                 continue
+            try:
+                reverse_normalizer.normalize(variant)
+            except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
+                if "Unsupported normalization of variants spanning the exon-intron " \
+                   "boundary" in str(e) and variant.posedit.edit.type == "ins":
+                    variant.posedit.pos.end.base = variant.posedit.pos.start.base
+                    variant.posedit.pos.end.offset = 1
 
-            # Corrective Normalisation of intronic descriptions in the antisense oriemtation
+            # Corrective Normalisation of intronic descriptions in the antisense orientation
             if '+' in str(variant) or '-' in str(variant) or '*' in str(variant):
                 tx_ac = variant.ac
                 alt_ac = hgvs_genomic.ac
@@ -1723,7 +1579,7 @@ class Mixin(vvMixinInit.Mixin):
                 # Interface with the UTA database via get_tx_exons in uta.py
                 try:
                     tx_exons = self.hdp.get_tx_exons(tx_ac, alt_ac, alt_aln_method)
-                except vvhgvs.exceptions.HGVSError as e:
+                except vvhgvs.exceptions.HGVSError:
                     continue
                 try:
                     tx_exons[0]['alt_strand']
@@ -1747,7 +1603,10 @@ class Mixin(vvMixinInit.Mixin):
                         # map back to coding
                         variant = evm.g_to_t(rev_hgvs_genomic, tx_ac)
                 except vvhgvs.exceptions.HGVSInvalidIntervalError:
-                    variant = evm.g_to_t(hgvs_genomic, tx_ac)
+                    try:
+                        variant = evm.g_to_t(hgvs_genomic, tx_ac)
+                    except vvhgvs.exceptions.HGVSInvalidIntervalError:
+                        pass
             try:
                 self.hp.parse_hgvs_variant(str(variant))
             except vvhgvs.exceptions.HGVSError:
@@ -1784,37 +1643,6 @@ class Mixin(vvMixinInit.Mixin):
         else:
             return 'false'
 
-    # def hgnc_rest(self, path):
-    #     """
-    #     Search HGNC rest
-    #     """
-    #     data = {
-    #         'record': '',
-    #         'error': 'false'
-    #     }
-    #     # HGNC server
-    #     headers = {
-    #         'Accept': 'application/json',
-    #     }
-    #     uri = 'http://rest.genenames.org'
-    #     target = urlparse(uri + path)
-    #     method = 'GET'
-    #     body = ''
-    #     h = http.Http()
-    #     # collect the response
-    #     response, content = h.request(
-    #         target.geturl(),
-    #         method,
-    #         body,
-    #         headers)
-    #     if response['status'] == '200':
-    #         # assume that content is a json reply
-    #         # parse content with the json module
-    #         data['record'] = json.loads(content)
-    #     else:
-    #         data['error'] = "Unable to contact the HGNC database: Please try again later"
-    #     return data
-
     def entrez_efetch(self, db, id, rettype, retmode):
         """
         Search Entrez databases with efetch and SeqIO
@@ -1832,22 +1660,6 @@ class Mixin(vvMixinInit.Mixin):
         # text = handle.read()
         handle.close()
         return record
-
-    # def entrez_read(self,db, id, retmode):
-    #     """
-    #     search Entrez databases with efetch and read
-    #     """
-    #     # IMPORT Bio modules
-    #     # from Bio import Entrez
-    #     Entrez.email = self.entrezID
-    #     # from Bio import SeqIO
-    #     handle = Entrez.efetch(db=db, id=id, retmode=retmode)
-    #     # Get record
-    #     record = Entrez.read(handle)
-    #     # Place into text
-    #     # text = handle.read()
-    #     handle.close()
-    #     return record
 
     def revcomp(self, bases):
         """
@@ -1870,13 +1682,18 @@ class Mixin(vvMixinInit.Mixin):
         revcomp = revcomp[::-1]
         return revcomp
 
-    def merge_hgvs_3pr(self, hgvs_variant_list, hn, genomic_reference=False, final_norm=True):
+    def merge_hgvs_3pr(self, hgvs_variant_list, hn, genomic_reference=False, final_norm=True, hgvs_strict=False):
         """
         Function designed to merge multiple HGVS variants (hgvs objects) into a single delins
         using 3 prime normalization
         """
         # Ensure c. is mapped to the
         h_list = []
+        store_ref_type = ""
+
+        # Have we mapped from c to g
+        c_to_g_mapped = {"mapped": False, "ori": None, "transcript": None}
+
         # Sanity check and format the submitted variants
         for hgvs_v in hgvs_variant_list:
             # For testing include parser
@@ -1891,23 +1708,40 @@ class Mixin(vvMixinInit.Mixin):
             except vvhgvs.exceptions.HGVSInvalidVariantError as e:
                 if 'Cannot validate sequence of an intronic variant' in str(e):
                     if genomic_reference is not False:
-                        pass
+                        c_to_g_mapped["mapped"] = True
+                        c_to_g_mapped["ori"] = self.hdp.get_tx_exons(hgvs_v.ac,
+                                                                     genomic_reference,
+                                                                     self.alt_aln_method
+                                                                     )[0][3]
+                        c_to_g_mapped["transcript"] = hgvs_v.ac
                     else:
-                        raise fn.mergeHGVSerror("Intronic variants can only be validated if a genomic/gene reference "
+                        raise fn.mergeHGVSerror("AlleleSyntaxError: Intronic variants can only be validated if a "
+                                                "genomic/gene reference "
                                                 "sequence is also provided e.g. NC_000017.11(NM_000088.3):c.589-1G>T")
                 else:
                     self.vr.validate(hgvs_v)  # Let hgvs errors deal with invalid variants and not hgvs objects
 
             if hgvs_v.type == 'c':
+                store_ref_type = "c"
                 try:
                     hgvs_v = self.vm.c_to_n(hgvs_v)
                     h_list.append(hgvs_v)
                 except:
-                    raise fn.mergeHGVSerror("Unable to map from c. position to absolute position")
+                    raise fn.mergeHGVSerror("AlleleSyntaxError: Unable to map from c. position to absolute position")
+
             elif hgvs_v.type == 'g':
                 h_list.append(hgvs_v)
 
         if h_list:
+            if c_to_g_mapped["mapped"] is True:
+                cp_h_list = []
+                for tx_variant in h_list:
+                    tx_variant = self.vm.n_to_c(tx_variant)
+                    hgvs_v = self.vm.t_to_g(tx_variant, genomic_reference)
+                    cp_h_list.append(hgvs_v)
+                if c_to_g_mapped["ori"] == -1:
+                    cp_h_list.reverse()
+                h_list = cp_h_list
             hgvs_variant_list = copy.deepcopy(h_list)
 
         # Define accession and start/end positions
@@ -1918,7 +1752,7 @@ class Mixin(vvMixinInit.Mixin):
         full_list = []
 
         # Loop through the submitted variants to remove any identity variants, these will be re-created as required
-        # Except if it is the forst variant in which case we need the start position. We cannot assume non-gap
+        # Except if it is the first variant in which case we need the start position. We cannot assume non-gap
         elec = 0
         cp_hgvs_v = []
         for hgvs_v in hgvs_variant_list:
@@ -1956,7 +1790,7 @@ class Mixin(vvMixinInit.Mixin):
                 seqtype = hgvs_v.type
             else:
                 if hgvs_v.ac != accession:
-                    raise fn.mergeHGVSerror("More than one reference sequence submitted")
+                    raise fn.mergeHGVSerror("AlleleSyntaxError: More than one reference sequence submitted")
 
             # Set initial start and end positions
             if merge_start_pos is None:
@@ -1981,7 +1815,76 @@ class Mixin(vvMixinInit.Mixin):
                     # Append to the final list of variants
                     full_list.append(hgvs_v)
                 else:
-                    raise fn.mergeHGVSerror("Submitted variants are out of order or their ranges overlap")
+                    raise fn.mergeHGVSerror("AlleleSyntaxError: Submitted variants are out of order or their ranges "
+                                            "overlap")
+
+        # Strict application of the HGVS merge rule
+        # Flag for fame shifts that restore frame
+        check_frame_restore = False
+        p_reference = None
+        if hgvs_strict is True:
+            # Set merge_within_bases length
+            merge_within_bases = 1
+
+            cp_hgvs_variant_list = copy.deepcopy(hgvs_variant_list)
+            for vt in range(len(hgvs_variant_list)-1):
+                v1 = hgvs_variant_list[vt]
+                v2 = hgvs_variant_list[vt+1]
+                vn1 = hn.normalize(v1)
+                vn2 = self.reverse_hn.normalize(v2)
+
+                # Merge variants that affect the same codon
+                if (vn2.posedit.pos.start.base - vn1.posedit.pos.end.base > merge_within_bases) and \
+                   (vn1.posedit.pos.start.base - vn2.posedit.pos.end.base < 3) and (store_ref_type == "c") and \
+                   (vn1.type != "g") and (vn1.posedit.edit.type == "sub" and vn2.posedit.edit.type == "sub"):
+                    tx_info = self.hdp.get_tx_identity_info(vn1.ac)
+                    same_aa_span = False
+
+                    for i in range(int(tx_info[3] + 1), int(tx_info[4]) + 1, 3):
+                        sublist = [i, i + 2]
+                        if int(vn1.posedit.pos.end.base) >= sublist[0] and \
+                                int(vn2.posedit.pos.start.base) <= sublist[1]:
+                            same_aa_span = True
+                            break
+
+                    if same_aa_span is False:
+                        cp_hgvs_variant_list.remove(v1)
+
+                # Merge variants within "merge_within_bases" bases
+                elif vn2.posedit.pos.start.base - vn1.posedit.pos.end.base > merge_within_bases:
+                    cp_hgvs_variant_list.remove(v1)
+
+            check_frame_restore = False
+            if len(cp_hgvs_variant_list) == 1:
+                if store_ref_type == "c" and hgvs_variant_list[0].type != "g":
+                    cp_hgvs_variant_list = copy.deepcopy(hgvs_variant_list)
+                    first_fs = False
+                    last_fs = False
+                    p_reference = self.hdp.get_pro_ac_for_tx_ac(cp_hgvs_variant_list[0].ac)
+
+                    # Find all variants between last and first frame-shifts
+                    element = 0
+                    for n_variant in cp_hgvs_variant_list:
+                        c_variant = self.vm.n_to_c(n_variant)
+                        p_variant = self.vm.c_to_p(c_variant, p_reference)
+                        if p_variant.posedit.edit.type == "fs":
+                            if first_fs is False:
+                                first_fs = element
+                            else:
+                                last_fs = element
+                        element = element + 1
+
+                    # if first_fs and last_fs are not the same, remove all flanking variants
+                    if first_fs is not False and last_fs is not False:
+                        hgvs_variant_list = cp_hgvs_variant_list[first_fs:last_fs + 1]
+                        check_frame_restore = True
+                    else:
+                        return False
+
+                else:
+                    return False
+            else:
+                hgvs_variant_list = cp_hgvs_variant_list
 
         # Generate the alt sequence
         alt_sequence = ''
@@ -1991,6 +1894,7 @@ class Mixin(vvMixinInit.Mixin):
 
         # Fetch the reference sequence and copy it for the basis of the alt sequence
         reference_sequence = self.sf.fetch_seq(accession, merge_start_pos - 1, merge_end_pos)
+
         # Generate an hgvs_delins
         if alt_sequence == '':
             delins = accession + ':' + seqtype + '.' + str(merge_start_pos) + '_' + str(
@@ -2003,12 +1907,47 @@ class Mixin(vvMixinInit.Mixin):
             hgvs_delins = self.vm.n_to_c(hgvs_delins)
         except Exception as e:
             logger.debug("Except passed, %s", e)
+
         # Normalize (allow variants crossing into different exons)
         if final_norm is True:
             try:
                 hgvs_delins = hn.normalize(hgvs_delins)
             except HGVSUnsupportedOperationError as e:
                 logger.debug("Except passed, %s", e)
+
+        if hgvs_strict is True:
+            merge_these = []
+            if c_to_g_mapped["mapped"] is True:
+                cp_hgvs_variant_list = []
+                if c_to_g_mapped["ori"] == -1:
+                    hgvs_variant_list.reverse()
+                for gen_var in hgvs_variant_list:
+                    tx_var = self.vm.g_to_t(gen_var, c_to_g_mapped["transcript"])
+                    cp_hgvs_variant_list.append(tx_var)
+                hgvs_delins = self.vm.g_to_t(hgvs_delins, c_to_g_mapped["transcript"])
+                hgvs_variant_list = copy.deepcopy(cp_hgvs_variant_list)
+
+            for var in hgvs_variant_list:
+                try:
+                    var = self.vm.n_to_c(var)
+                except Exception:
+                    pass
+                var = fn.valstr(var).split(".")[2]
+                merge_these.append(var)
+
+            if check_frame_restore is False:
+                raise AlleleSyntaxError(f"AlleleSyntaxError: Variants [{';'.join(merge_these)}] should be merged into "
+                                        f"{fn.valstr(hgvs_delins)}")
+
+            # Flag for fame shifts that restore frame
+            if check_frame_restore is True:
+                if hgvs_delins.type == "c":
+                    hgvs_delins_p = self.vm.c_to_p(hgvs_delins, p_reference)
+                    if "fs" not in str(hgvs_delins_p.posedit.edit):
+                        raise AlleleSyntaxError(
+                            f"AlleleSyntaxError: Merging variants [{';'.join(merge_these)}] restores the original "
+                            f"reading frame, so should be described as {fn.valstr(hgvs_delins)}")
+
         return hgvs_delins
 
 
@@ -2139,14 +2078,15 @@ class Mixin(vvMixinInit.Mixin):
     #     # return
     #     return hgvs_delins
 
-    def hgvs_alleles(self, variant_description, hn, genomic_reference=False):
+    def hgvs_alleles(self, my_variant, genomic_reference=False):
         """
         HGVS allele handling function which takes a single HGVS allele description and
         separates each allele into a list of HGVS variants
         """
         try:
             # Split up the description
-            accession, remainder = variant_description.split(':')
+            accession, remainder = my_variant.quibble.split(':')
+
             # Branch
             if re.search(r'[gcn]\.\d+\[', remainder):
                 # NM_004006.2:c.2376[G>C];[(G>C)]
@@ -2208,12 +2148,14 @@ class Mixin(vvMixinInit.Mixin):
                         my_alleles.append(current_allele)
                     # Now merge the alleles into a single variant
                     merged_alleles = []
+
                     for each_allele in my_alleles:
                         if '?' in str(each_allele):
                             # NM_004006.2:c.[2376G>C];[?]
                             continue
                         merge = []
-                        allele = str(self.merge_hgvs_3pr(each_allele, hn, genomic_reference))
+                        allele = str(self.merge_hgvs_3pr(each_allele, my_variant.hn, genomic_reference,
+                                                         hgvs_strict=True))
                         merge.append(allele)
                         for variant in each_allele:
                             merged_alleles.append([variant])
@@ -2255,18 +2197,21 @@ class Mixin(vvMixinInit.Mixin):
                             vrt = accession + ':' + type + '.' + pe
                             current_allele.append(vrt)
                         my_alleles.append(current_allele)
+
                     # Now merge the alleles into a single variant
                     merged_alleles = []
-
                     for each_allele in my_alleles:
                         if '?' in str(each_allele):
                             # NM_004006.2:c.[2376G>C];[?]
                             continue
                         merge = []
-                        allele = str(self.merge_hgvs_3pr(each_allele, hn, genomic_reference))
+                        allele = str(self.merge_hgvs_3pr(each_allele, my_variant.hn, genomic_reference,
+                                                         hgvs_strict=True))
                         merge.append(allele)
+
                         for variant in each_allele:
                             merged_alleles.append([variant])
+
                     my_alleles = merged_alleles
 
             # Extract alleles into strings
@@ -2282,7 +2227,7 @@ class Mixin(vvMixinInit.Mixin):
         except Exception as e:
             exc_type, exc_value, last_traceback = sys.exc_info()
             logger.error(str(exc_type) + " " + str(exc_value))
-            traceback.print_tb(last_traceback, file=sys.stdout)
+            # traceback.print_tb(last_traceback, file=sys.stdout)
             raise fn.alleleVariantError(str(e))
 
     def chr_to_rsg(self, hgvs_genomic, hn):
@@ -2438,6 +2383,7 @@ class Mixin(vvMixinInit.Mixin):
             hgvs_refseqgene = hn.normalize(hgvs_refseqgene)
         except Exception as e:
             logger.debug("Except passed, %s", e)
+
         # split the description
         # Accessions
         rsg_ac = hgvs_refseqgene.ac
@@ -2452,6 +2398,7 @@ class Mixin(vvMixinInit.Mixin):
 
         # Recover table from MySql
         all_info = self.db.get_g_to_g_info()
+
         for line in all_info:
             # Logic to identify the correct RefSeqGene
             chr_data = {}
@@ -2556,8 +2503,66 @@ class Mixin(vvMixinInit.Mixin):
         # Return the required data. This is a dictionary containing the rsg description, validation status and gene ID
         return descriptions
 
+    def transcript_filter(self, rts, select_transcripts=None):
+        if self.testing is not True:
+            if select_transcripts is None:
+                latest_version = {}
+                for tx_id in rts:
+                    if type(tx_id) == str:
+                        # VV method
+                        # Remove dud transcript IDs
+                        if "/" in tx_id or "_NG" in tx_id:
+                            continue
+                        accession, version = tx_id.split(".")
+                        if accession not in latest_version.keys():
+                            latest_version[accession] = version
+                        else:
+                            if int(version) > int(latest_version[accession]):
+                                latest_version[accession] = version
+                    else:
+                        # VF method
+                        try:
+                            accession, version = tx_id[0].split(".")
+                        except Exception:
+                            continue
+                        if accession not in latest_version.keys():
+                            latest_version[accession] = {}
+                            latest_version[accession]["version"] = version
+                            latest_version[accession]["list"] = tx_id[1:]
+                        else:
+                            if int(version) > int(latest_version[accession]["version"]):
+                                latest_version[accession]["version"] = version
+                                latest_version[accession]["list"] = tx_id[1:]
+
+                # Recreate list with only latest versions
+                rts = []
+                for k, v in latest_version.items():
+                    try:
+                        v.keys()
+                    except AttributeError:
+                        # VV method
+                        rts.append(k + "." + v)
+                    else:
+                        # VF method
+                        accession = str(k + "." + v["version"])
+                        rts.append([accession] + v["list"])
+                return rts
+            else:
+                rts = []
+                # Format the select_transcripts into a list from json
+                if select_transcripts != 'all' and select_transcripts != 'raw':
+                    try:
+                        rtsc = json.loads(select_transcripts)
+                    except json.decoder.JSONDecodeError:
+                        rtsc = [select_transcripts]
+                for tx in rtsc:
+                    rts.append(tx)
+                return rts
+        else:
+            return rts
+
 # <LICENSE>
-# Copyright (C) 2016-2022 VariantValidator Contributors
+# Copyright (C) 2016-2024 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

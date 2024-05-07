@@ -1,19 +1,22 @@
-from .modules import vvMixinCore as vvMixinCore
 
+def methyl_syntax(my_variant):
+    """
+    :param my_variant:
+    :return: False if no | is detected otherwise raises Exception and provides information as to where the
+    | is located
+    """
 
-class Validator(vvMixinCore.Mixin):
-    """
-    #Mixins are used to split this very large, complex object over multiple files.
-    #There is a logical chain to it, though:
-    # vvMixinInit
-    #     v
-    # vvMixinConverters
-    #     v
-    # vvMixinCore
-    #     v
-    # Validator    <- this object.
-    """
-    pass
+    if "|" in my_variant.quibble:
+        if "gom" in my_variant.quibble or "lom" in my_variant.quibble or "met=" in my_variant.quibble:
+            if "|gom" in my_variant.quibble:
+                my_variant.reformat_output = "|gom"
+            if "|lom" in my_variant.quibble:
+                my_variant.reformat_output = "|lom"
+            if "|met=" in my_variant.quibble:
+                my_variant.reformat_output = "|met="
+            met_var = str(my_variant.quibble.split("|")[0]) + "="
+            my_variant.quibble = met_var
+            return my_variant
 
 
 # <LICENSE>

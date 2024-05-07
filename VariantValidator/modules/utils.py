@@ -1,4 +1,3 @@
-from Bio.Seq import Seq
 import requests
 import functools
 import logging
@@ -112,10 +111,6 @@ def ensembl_tark(id, endpoint, options=False):
     try:
         r = requests.get(url, headers=headers)
     except requests.exceptions.InvalidSchema as e:
-        # import sys
-        # import traceback
-        # exc_type, exc_value, last_traceback = sys.exc_info()
-        # traceback.print_tb(last_traceback)
         my_error = str(e)
         data['error'] = my_error
         return data
@@ -160,6 +155,7 @@ def remove_reference(hgvs_nucleotide):
 
 
 def remove_reference_string(variant_string):
+
     """
     format stringified nucleotide descriptions to not display reference base
     """
@@ -458,23 +454,73 @@ def pro_delins_info(prot_ref_seq, prot_var_seq, in_frame=False):
             return info
 
 
-def translate(ed_seq, cds_start):
+def translate(ed_seq, cds_start, modified_aa=None):
     """
     Translate c. reference sequences, including those that have been modified
     must have the CDS in the specified position
     """
-    # ed_seq = ed_seq.replace('\n', '')
     ed_seq = ed_seq.strip()
     # Ensure the starting codon is in the correct position
     met = ed_seq[cds_start:cds_start + 3]
 
     # Extended translation table see http://biopython.org/DIST/docs/tutorial/Tutorial.html#sec27
-    if (met == 'ATG') or (met == 'atg') or (met == 'TTG') or (met == 'ttg') or (met == 'CTG') or (met == 'ctg'):
+    """
+    >>> mito_table.start_codons
+    ['ATT', 'ATC', 'ATA', 'ATG', 'GTG']
+    """
+    if (met == 'ATG') or (met == 'atg') or (met == 'TTG') or (met == 'ttg') or (met == 'CTG') or (met == 'ctg') \
+        or (met == 'GTG') or (met == 'gtg') or (met == 'ATT') or (met == 'att') or (met == 'ATC') or (met == 'atc') \
+        or (met == 'ATA') or (met == 'ata') or (met == 'ACG') or (met == 'acg'):
+
         # Remove the 5 prime UTR
-        sequence = ed_seq[cds_start:]
-        coding_dna = Seq(str(sequence))
+        coding_sequence = ed_seq[cds_start:].upper()
+
+        # Translation table
+        translation_dict = \
+            {
+                ('TCT', 'TCC', 'TCA', 'TCG', 'AGT', 'AGC'): 'S', ('TTA', 'TTG', 'CTT', 'CTC', 'CTA', 'CTG'): 'L',
+                ('TGT', 'TGC'): 'C', 'TGG': 'W', ('GAA', 'GAG'): 'E', ('GAT', 'GAC'): 'D', ('CCT', 'CCC', 'CCA',
+                                                                                            'CCG'): 'P',
+                ('GTT', 'GTC', 'GTA', 'GTG'): 'V', ('AAT', 'AAC'): 'N', 'ATG': 'M', ('AAA', 'AAG'): 'K', ('TAT',
+                                                                                                          'TAC'): 'Y',
+                ('ATT', 'ATC', 'ATA'): 'I', ('CAA', 'CAG'): 'Q', ('TTT', 'TTC'): 'F', ('CGT', 'CGC', 'CGA', 'CGG',
+                                                                                       'AGA', 'AGG'): 'R',
+                ('ACT', 'ACC', 'ACA', 'ACG'): 'T', ('GCT', 'GCC', 'GCA', 'GCG'): 'A', ('GGT', 'GGC', 'GGA', 'GGG'): 'G',
+                ('CAT', 'CAC'): 'H', ('TAA', 'TAG', 'TGA'): '*'
+
+            }
+
+        translation_dict_sel = \
+            {
+                ('TCT', 'TCC', 'TCA', 'TCG', 'AGT', 'AGC'): 'S', ('TTA', 'TTG', 'CTT', 'CTC', 'CTA', 'CTG'): 'L',
+                ('TGT', 'TGC'): 'C', 'TGG': 'W', ('GAA', 'GAG'): 'E', ('GAT', 'GAC'): 'D', ('CCT', 'CCC', 'CCA',
+                                                                                            'CCG'): 'P',
+                ('GTT', 'GTC', 'GTA', 'GTG'): 'V', ('AAT', 'AAC'): 'N', 'ATG': 'M', ('AAA', 'AAG'): 'K', ('TAT',
+                                                                                                          'TAC'): 'Y',
+                ('ATT', 'ATC', 'ATA'): 'I', ('CAA', 'CAG'): 'Q', ('TTT', 'TTC'): 'F', ('CGT', 'CGC', 'CGA', 'CGG',
+                                                                                       'AGA', 'AGG'): 'R',
+                ('ACT', 'ACC', 'ACA', 'ACG'): 'T', ('GCT', 'GCC', 'GCA', 'GCG'): 'A', ('GGT', 'GGC', 'GGA', 'GGG'): 'G',
+                ('CAT', 'CAC'): 'H', ('TAA', 'TAG'): '*', 'TGA': 'U'
+
+            }
+
+        if modified_aa == "Sec":
+            use_dict = translation_dict_sel
+        else:
+            use_dict = translation_dict
+
         # Translate
-        trans = coding_dna.translate()
+        codon_list = [coding_sequence[i:i+3] for i in range(0, len(coding_sequence), 3)]
+        translation = []
+        for codon in codon_list:
+            for key, val in use_dict.items():
+                if str(codon) in key:
+                    translation.append(val)
+                    break
+                else:
+                    continue
+
+        trans = "".join(translation)
         aain = list(trans)
         aaout = []
         count = 0
@@ -504,7 +550,7 @@ def one_to_three(seq):
         'K': 'Lys', 'L': 'Leu', 'M': 'Met', 'N': 'Asn',
         'P': 'Pro', 'Q': 'Gln', 'R': 'Arg', 'S': 'Ser',
         'T': 'Thr', 'V': 'Val', 'W': 'Trp', 'Y': 'Tyr',
-        '*': 'Ter'}
+        '*': 'Ter', 'U': 'Sec'}
 
     oned = list(seq)
     out = []
@@ -513,8 +559,28 @@ def one_to_three(seq):
         out.append(get_value)
 
     threed_up = ''.join(out)
-
     return threed_up
+
+
+def three_to_one(seq):
+
+    aacode = {
+        'Ala': 'A', 'Cys': 'C', 'Asp': 'D', 'Glu': 'E',
+        'Phe': 'F', 'Gly': 'G', 'His': 'H', 'Ile': 'I',
+        'Lys': 'K', 'Leu': 'L', 'Met': 'M', 'Asn': 'N',
+        'Pro': 'P', 'Gln': 'Q', 'Arg': 'R', 'ser': 'S',
+        'Thr': 'T', 'Val': 'V', 'Trp': 'W', 'Tyr': 'Y',
+        'Ter': '*'}
+
+    threed = [seq[i:i + 3] for i in range(0, len(seq), 3)]
+    out = []
+
+    for aa in threed:
+        get_value = aacode.get(aa)
+        out.append(get_value)
+
+    oned_up = ''.join(out)
+    return oned_up
 
 
 # n. Inversions - This comes from VariantValidator, not validation!!!!
@@ -567,7 +633,7 @@ class ObsoleteSeqError(Exception):
     pass
 
 # <LICENSE>
-# Copyright (C) 2016-2022 VariantValidator Contributors
+# Copyright (C) 2016-2024 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

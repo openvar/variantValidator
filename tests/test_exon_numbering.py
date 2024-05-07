@@ -12,6 +12,7 @@ class TestExonNumbering(unittest.TestCase):
     @classmethod
     def setup_class(cls):
         cls.vv = Validator()
+        cls.vv.testing = True
 
     """
     Class TextExonNumbering automates running the tests, and reports failure if
@@ -424,7 +425,7 @@ if __name__ == "__main__":
 
 
 # <LICENSE>
-# Copyright (C) 2016-2022 VariantValidator Contributors
+# Copyright (C) 2016-2024 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

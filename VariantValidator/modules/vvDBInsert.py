@@ -45,8 +45,8 @@ class Mixin(vvDBGet.Mixin):
         query = "INSERT INTO refSeqGene_loci(refSeqGeneID, refSeqChromosomeID, genomeBuild, startPos, endPos, " \
                 "orientation, totalLength, chrPos, rsgPos, entrezID, hgncSymbol, updated) " \
                 "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())"
-        cursor.execute(query, (rsg_data[0], rsg_data[1], rsg_data[2], rsg_data[3], rsg_data[4], rsg_data[5],
-                                    rsg_data[6], rsg_data[7], rsg_data[8], rsg_data[9], rsg_data[10]))
+        cursor.execute(query, (rsg_data[0], rsg_data[1], rsg_data[2], int(rsg_data[3]), int(rsg_data[4]), rsg_data[5],
+                                    int(rsg_data[6]), rsg_data[7], rsg_data[8], int(rsg_data[9]), rsg_data[10]))
         # Query report
         if cursor.lastrowid:
             success = 'true'
@@ -161,6 +161,7 @@ class Mixin(vvDBGet.Mixin):
         version = data[3]
         hgnc_symbol = data[4]
         uta_symbol = data[5]
+
         query = "UPDATE transcript_info SET description=%s, transcriptVariant=%s, currentVersion=%s, hgncSymbol=%s, " \
                 "utaSymbol=%s, updated=NOW() WHERE refSeqID = %s"
         cursor.execute(query, (description, variant, version, hgnc_symbol, uta_symbol, accession))
@@ -234,7 +235,7 @@ class Mixin(vvDBGet.Mixin):
         return success
 
 # <LICENSE>
-# Copyright (C) 2016-2022 VariantValidator Contributors
+# Copyright (C) 2016-2024 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

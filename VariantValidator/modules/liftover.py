@@ -27,7 +27,8 @@ def mystr(hgvs_nucleotide):
 
 
 def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, validator,
-             specify_tx=False, liftover_level=False, g_to_g=False):
+             specify_tx=False, liftover_level=False, g_to_g=False, gap_map=False, vfo=False,
+             specified_tx_variant=False):
     """
     Step 1, attempt to liftover using a common RefSeq transcript
     Step 2, attempt to liftover using PyLiftover.
@@ -42,9 +43,11 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
     :param specify_tx: Specify a specific transcript = False or str(transcript_ID)
     :param liftover_level: False or 'primary'
     :param g_to_g: True or False
+    :param gap_map: True or VariantFormatter gap_map function passed (Required for VariantFormatter methods only)
+    :param vfo: False or VariantFormatter VFO object passed
+    :param specified_tx_variant: False or specific HGVS transcript object
     :return:
     """
-
     try:
         hgvs_genomic = validator.hp.parse(hgvs_genomic)
     except TypeError as e:
@@ -224,6 +227,24 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                     # In this instance, do not mark added data as True
                     hgvs_tx = validator.vm.g_to_t(hgvs_genomic, val[0])
                     hgvs_alt_genomic = validator.vm.t_to_g(hgvs_tx, key)
+
+                    # Gap compensation edit for the VariantFormatter pathway
+                    if gap_map is not False and build_from not in val:
+                        # Set genome assembly for gap mapping
+                        get_assembly = seq_data.supported_for_mapping(key, "GRCh37")
+                        if get_assembly is True:
+                            map_to_assembly = "GRCh37"
+                        get_assembly = seq_data.supported_for_mapping(key, "GRCh38")
+                        if get_assembly is True:
+                            map_to_assembly = "GRCh38"
+                        try:
+                            am_i_gapped = gap_map(specified_tx_variant, hgvs_alt_genomic, map_to_assembly, vfo)
+                        except AttributeError:
+                            if specified_tx_variant is None:
+                                am_i_gapped = gap_map(hgvs_tx, hgvs_alt_genomic, map_to_assembly, vfo)
+
+                        hgvs_alt_genomic = am_i_gapped["hgvs_genomic"]
+
                     alt_vcf = hgvs_utils.report_hgvs2vcf(hgvs_alt_genomic, build_to, reverse_normalizer, validator.sf)
                     alt_vcf_b = hgvs_utils.report_hgvs2vcf(hgvs_alt_genomic, build_from, reverse_normalizer,
                                                            validator.sf)
@@ -275,6 +296,12 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                             }
                         }
 
+                    # Add gap warnings if found
+                    try:
+                        lifted_response["am_i_gapped"] = am_i_gapped
+                    except UnboundLocalError:
+                        pass
+
                     added_data = True
 
                 except vvhgvs.exceptions.HGVSError:
@@ -308,13 +335,14 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
 
         lifted_ref_bases = from_vcf['ref']
         lifted_alt_bases = from_vcf['alt']
+        if hgvs_genomic.posedit.edit.type == "dup":
+            # put complete original in ref and both copies of dup in alt
+            lifted_ref_bases = lifted_ref_bases + lifted_alt_bases[1:]
+            lifted_alt_bases = lifted_alt_bases + lifted_alt_bases[1:]
 
         # Inverted sequence
         if orientated != '+':
-            my_seq = Seq(lifted_ref_bases)
-            lifted_ref_bases = my_seq.reverse_complement()
-            your_seq = Seq(lifted_alt_bases)
-            lifted_alt_bases = your_seq.reverse_complement()
+            continue
 
         # Find the accession
         accession = seq_data.to_accession(chrom, lo_to)
@@ -368,7 +396,8 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                     pass
 
             # Correct 37 to GRCh38 mito liftover - Applies when lifting from GRCh38/hg38 only!
-            elif build_to == "GRCh38" and ("37" in build_from or "19" in build_from) and hgvs_genomic.ac == "NC_001807.4":
+            elif build_to == "GRCh38" and ("37" in build_from or "19" in build_from) and hgvs_genomic.ac \
+                    == "NC_001807.4":
                 mito_correction = True
 
                 # Flag lifted genome build as hg19
@@ -402,11 +431,14 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                     (pos - 1) + len(lifted_ref_bases)) + 'delins' + lifted_alt_bases
                 not_delins = str(not_delins)
                 hgvs_not_delins = validator.hp.parse_hgvs_variant(not_delins)
+
                 try:
                     hgvs_lifted = hn.normalize(hgvs_not_delins)
                 except vvhgvs.exceptions.HGVSDataNotAvailableError:
                     continue
-            
+                except vvhgvs.exceptions.HGVSInvalidVariantError:
+                    continue
+
                 # Now try map back
                 lo = LiftOver(lo_to, lo_from)
                 # Lift back
@@ -514,7 +546,6 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                                                     }
                                         }
 
-
                                 else:
                                     lifted_response[mito_build.lower()][hgvs_lifted.ac] = {
                                         'hgvs_genomic_description': mystr(hgvs_lifted),
@@ -536,7 +567,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
     return lifted_response
 
 # <LICENSE>
-# Copyright (C) 2016-2022 VariantValidator Contributors
+# Copyright (C) 2016-2024 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

@@ -1,0 +1,80 @@
+[project]
+name = "VariantValidator"
+dynamic = ["version"]
+description = "API for accurate, mapping and formatting of sequence variants using HGVS nomenclature"
+license = {file = "LICENSE.txt"}
+authors = [{name = "VariantValidator Contributors", email = "admin@variantvalidator.org"}]
+readme = "README.md"
+keywords = ["bioinformatics",
+        "computational biology",
+        "genome variants",
+        "genome variation",
+        "genomic variants",
+        "genomic variation",
+        "genomics",
+        "hgvs",
+        "HGVS",
+        "sequencevariants"
+]
+
+requires-python = ">=3.6"
+
+dependencies = ["biocommons.seqrepo>=0.5.1",
+                "httplib2>=0.9.0",
+                "pyliftover>=0.3",
+                "biotools>=0.3.0",
+                "mysql-connector-python",
+                "requests",
+                "biopython",
+                "pytest>=3.6",
+                "pytest-cov",
+                "pytest-xdist",
+                "pysam",
+                "codecov",
+                "numpy",
+                "httplib2>=0.9.0",
+                "configparser>=3.5.0",
+                "requests",
+                "protobuf",
+                "vvhgvs@git+https://github.com/openvar/vv_hgvs@master",
+                "VariantFormatter@git+https://github.com/openvar/variantFormatter@master"
+]
+
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Build Tools",
+    "License :: OSI Approved :: AGPL-3.0",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11"
+]
+
+[project.urls]
+"Homepage" = "https://variantvalidator.org/"
+"Source" = "https://github.com/openvar/variantValidator"
+"Bug Reports" = "https://github.com/openvar/variantValidator/issues"
+"Say Thanks!" = "https://www.buymeacoffee.com/VariantValidatr"
+
+[scripts]
+update_vdb = "bin/update_vdb:main"
+variant_validator = "bin/variant_validator:main"
+vv_configure = "bin/vv_configure:main"
+
+data = [
+    { include = "configuration", glob = "configuration/default.ini" },
+]
+
+[tool.setuptools_scm]
+
+[tool.setuptools.packages.find]
+where = ["."]  # Look for packages in the 'root' directory
+include = ["VariantValidator*"]  # Match package names starting with "VariantValidator"
+exclude = ["batch"]
+
+[build-system]
+requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2", "wheel"]
+build-backend = "setuptools.build_meta"

@@ -2,9 +2,12 @@ import re
 import vvhgvs.exceptions
 import copy
 import logging
-from .variant import Variant
-from . import seq_data
-from . import utils as fn
+from VariantValidator.modules.variant import Variant
+from VariantValidator.modules import seq_data
+from VariantValidator.modules import utils as fn
+import VariantValidator.modules.rna_formatter
+from VariantValidator.modules import complex_descriptions, use_checking
+from VariantValidator.modules.vvMixinConverters import AlleleSyntaxError
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +39,7 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
         return True
 
     # Uncertain positions
-    toskip = uncertain_pos(variant)
+    toskip = uncertain_pos(variant, validator)
     if toskip:
         return True
 
@@ -77,7 +80,12 @@ def vcf2hgvs_stage1(variant, validator):
             variant.quibble = '-'.join(in_list[1:])
         pre_input = variant.quibble
         vcf_elements = pre_input.split('-')
-        variant.quibble = '%s:%s%s>%s' % (vcf_elements[0], vcf_elements[1], vcf_elements[2], vcf_elements[3])
+        try:
+            variant.quibble = '%s:%s%s>%s' % (vcf_elements[0], vcf_elements[1], vcf_elements[2], vcf_elements[3])
+        except IndexError:
+            variant.warnings.append("Insufficient or incorrect  VCF elements provided. "
+                                    "Elements required are chr-pos-ref-alt")
+            return True
     elif re.search(r'[-:]\d+[-:][GATC]+[-:]', variant.quibble):
         variant.quibble = variant.quibble.replace(':', '-')
         # Extract primary_assembly if provided
@@ -210,7 +218,7 @@ def vcf2hgvs_stage2(variant, validator):
             except Exception as e:
                 logger.debug("Except passed, %s", e)
 
-    # Descriptions lacking the colon :
+    # Descriptions lacking the colon : or the dot .
     if re.search(r'[gcnmrp]\.', variant.quibble) and not re.search(r':[gcnmrp]\.', variant.quibble):
         error = 'Unable to identify a colon (:) in the variant description %s. A colon is required in HGVS variant ' \
                 'descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. ' \
@@ -218,6 +226,21 @@ def vcf2hgvs_stage2(variant, validator):
         variant.warnings.append(error)
         logger.warning(error)
         skipvar = True
+    elif re.search(r':[gcnmrp]', variant.quibble) and not re.search(r':[gcnmrp]\.', variant.quibble):
+        error = 'Unable to identify a dot (.) in the variant description %s following the reference sequence ' \
+                'type (g,c,n,r, or p). A dot is required in HGVS variant ' \
+                'descriptions to separate the reference type from the variant position i.e. <accession>:<type>. ' \
+                'e.g. :g.' % variant.quibble
+        variant.warnings.append(error)
+        logger.warning(error)
+        skipvar = True
+    elif re.search(r':[GCNMRPO]\.', variant.quibble):
+        error = 'Reference type incorrectly stated in the variant description %s ' \
+                'Valid types are g,c,n,r, or p' % variant.quibble
+        variant.warnings.append(error)
+        logger.warning(error)
+        match = re.search(r':[GCNMRPO]\.', variant.quibble)[0]
+        variant.quibble = variant.quibble.replace(match, match.lower())
 
     # Ambiguous chr reference
     logger.debug("Completed VCF-HVGS step 2 for %s", variant.quibble)
@@ -232,7 +255,8 @@ def vcf2hgvs_stage3(variant, validator):
     software
     """
     skipvar = False
-    if (re.search(r'\w+:[gcnmrp]\.', variant.quibble) or re.search(r'\w+\(\w+\):[gcnmrp]\.', variant.quibble)) \
+    if (re.search(r'\w+:[gcnmrpGCMNRP]\.', variant.quibble) or re.search(r'\w+\(\w+\):[gcnmrpGCMNRP]\.',
+                                                                         variant.quibble)) \
             and not re.match(r'N[CGTWMRP]_', variant.quibble):
         # Take out lowercase Accession characters
         lower_cased_list = variant.quibble.split(':')
@@ -306,7 +330,7 @@ def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version):
                         if tx[3] not in select_from_these_transcripts:
                             select_from_these_transcripts.append(tx[3])
                 select_from_these_transcripts = '|'.join(select_from_these_transcripts)
-                if validator.select_transcripts != 'all':
+                if validator.select_transcripts != 'all' and validator.select_transcripts != 'raw':
                     variant.write = False
                     for transcript in list(select_transcripts_dict_plus_version.keys()):
                         variant.warnings = ['HGVS variant nomenclature does not allow the use of a gene symbol (' +
@@ -357,7 +381,7 @@ def refseq_catch(variant, validator, select_transcripts_dict_plus_version):
                             if tx[3] not in select_from_these_transcripts:
                                 select_from_these_transcripts.append(tx[3])
                     select_from_these_transcripts = '|'.join(select_from_these_transcripts)
-                    if validator.select_transcripts != 'all':
+                    if validator.select_transcripts != 'all' and validator.select_transcripts != 'raw':
                         variant.write = False
                         for transcript in list(select_transcripts_dict_plus_version.keys()):
                             variant.warnings = ['NG_:c.PositionVariation descriptions should not be used unless a '
@@ -593,7 +617,15 @@ def intronic_converter(variant, validator, skip_check=False):
     hgvs can now parse the string into an hgvs variant object and manipulate it
     """
     compounder = re.compile(r'\(NM_')
-    if compounder.search(variant.quibble):
+    compounder2 = re.compile(r'\(LRG_\d+t')
+    if compounder.search(variant.quibble) or compounder2.search(variant.quibble):
+        # Convert LRG transcript
+        if compounder2.search(variant.quibble):
+            lrg_transcript = variant.quibble.split("(")[1].split(":")[0].replace(")", "")
+            refseq_transcript = validator.db.get_refseq_transcript_id_from_lrg_transcript_id(lrg_transcript)
+            variant.quibble = variant.quibble.replace(lrg_transcript, refseq_transcript)
+            variant.warnings.append(f"Reference sequence {lrg_transcript} updated to {refseq_transcript}")
+
         # Find pattern e.g. +0000 and assign to a variable
         genomic_ref = variant.quibble.split('(')[0]
         transy = re.search(r"(NM_.+)", variant.quibble)
@@ -686,12 +718,20 @@ def allele_parser(variant, validation, validator):
         try:
             # Submit to allele extraction function
             try:
-                alleles = validation.hgvs_alleles(variant.quibble, variant.hn, genomic_reference)
+                alleles = validation.hgvs_alleles(variant, genomic_reference)
             except fn.alleleVariantError as e:
                 variant.warnings.append(str(e))
                 logger.warning(str(e))
                 return True
-            variant.warnings.append('Automap has extracted possible variant descriptions')
+            except AlleleSyntaxError as e:
+                variant.warnings.append(str(e))
+                return True
+
+            variant.warnings.append('The alleleic description is in the correct syntax and all possible variant '
+                                    'descriptions have been extracted')
+            variant.warnings.append('Each variant is validated independently and users must update the original '
+                                    'description accordingly based on these validations')
+
             logger.info('Automap has extracted possible variant descriptions, resubmitting')
             for allele in alleles:
                 query = Variant(variant.original, quibble=allele, warnings=variant.warnings, write=True,
@@ -822,7 +862,7 @@ def mitochondrial(variant, validator):
 
             # Are there any transcripts?
             rel_var = validator.relevant_transcripts(hgvs_mito, variant.evm, validator.alt_aln_method,
-                                                     variant.reverse_normalizer)
+                                                     variant.reverse_normalizer, validator.select_transcripts)
 
             # Add a description of the reference sequence type and continue
             variant.hgvs_genomic = hgvs_mito
@@ -847,6 +887,82 @@ def proteins(variant, validator):
             error = str(e)
         try:
             validator.vr.validate(hgvs_object)
+
+        except AttributeError as e:
+
+            if "AARefAlt' object has no attribute 'ref_n'" in str(e):
+                start_pos = hgvs_object.posedit.pos.start.pos
+                end_pos = hgvs_object.posedit.pos.end.pos
+                posedit = hgvs_object.posedit
+                posedit = str(posedit).split(str(hgvs_object.posedit.edit))[0]
+                posedit = posedit.replace("(", "").replace(")", "")
+
+                if "_" in posedit:
+                    start_edit, end_edit = posedit.split("_")
+                    if "(" in start_edit:
+                        start_edit = start_edit.replace("(", "")
+                    start_aa = str(start_edit).replace(str(start_pos), "")
+                    end_aa = str(end_edit).replace(str(end_pos), "")
+                    start_aa_sl = fn.three_to_one(start_aa)
+                    end_aa_sl = fn.three_to_one(end_aa)
+                    check_start_aa = validator.sf.fetch_seq(hgvs_object.ac,
+                                                            start_i=start_pos - 1,
+                                                            end_i=start_pos)
+                    check_end_aa = validator.sf.fetch_seq(hgvs_object.ac,
+                                                          start_i=end_pos - 1,
+                                                          end_i=end_pos)
+                else:
+                    start_edit = posedit
+                    end_edit = posedit
+                    start_aa = str(start_edit).replace(str(start_pos), "")
+                    end_aa = str(end_edit).replace(str(end_pos), "")
+                    start_aa_sl = fn.three_to_one(start_aa)
+                    end_aa_sl = fn.three_to_one(end_aa)
+                    check_start_aa = validator.sf.fetch_seq(hgvs_object.ac,
+                                                            start_i=start_pos - 1,
+                                                            end_i=start_pos)
+                    check_end_aa = validator.sf.fetch_seq(hgvs_object.ac,
+                                                          start_i=end_pos - 1,
+                                                          end_i=end_pos)
+
+                if start_aa_sl != check_start_aa and end_aa_sl != check_end_aa:
+
+                    e1 = "The amino acid at position %s of %s is %s not %s" % (start_pos,
+                                                                               hgvs_object.ac,
+                                                                               check_start_aa,
+                                                                               start_aa_sl)
+                    e2 = "The amino acid at position %s of %s is %s not %s" % (end_pos,
+                                                                               hgvs_object.ac,
+                                                                               check_end_aa,
+                                                                               end_aa_sl)
+
+                    variant.warnings.extend([e1, e2])
+
+                elif start_aa_sl != check_start_aa:
+                    e1 = "The amino acid at position %s of %s is %s not %s" % (start_pos,
+                                                                               hgvs_object.ac,
+                                                                               check_start_aa,
+                                                                               start_aa_sl)
+                    variant.warnings.extend([e1])
+
+                elif end_aa_sl != check_end_aa:
+                    e1 = "The amino acid at position %s of %s is %s not %s" % (end_pos,
+                                                                               hgvs_object.ac,
+                                                                               check_end_aa,
+                                                                               end_aa_sl)
+                    variant.warnings.extend([e1])
+
+                else:
+                    error = str(
+                        hgvs_object) + ' is HGVS compliant and contains a valid reference amino acid description'
+                    reason = 'Protein level variant descriptions are not fully supported due to redundancy' \
+                             ' in the genetic code'
+                    variant.warnings.extend([reason, error])
+                    variant.protein = str(hgvs_object)
+                    logger.warning(reason + ": " + error)
+                    variant.protein = str(hgvs_object)
+                    return True
+
         except vvhgvs.exceptions.HGVSError as e:
             error = str(e)
         if error:
@@ -864,6 +980,78 @@ def proteins(variant, validator):
 
                 try:
                     validator.vr.validate(hgvs_object)
+                except AttributeError as e:
+
+                    if "AARefAlt' object has no attribute 'ref_n'" in str(e):
+                        start_pos = hgvs_object.posedit.pos.start.pos
+                        end_pos = hgvs_object.posedit.pos.end.pos
+                        posedit = hgvs_object.posedit
+                        posedit = str(posedit).split(str(hgvs_object.posedit.edit))[0]
+                        if "_" in posedit:
+                            start_edit, end_edit = posedit.split("_")
+                            start_aa = str(start_edit).replace(str(start_pos), "")
+                            end_aa = str(end_edit).replace(str(end_pos), "")
+                            start_aa_sl = fn.three_to_one(start_aa)
+                            end_aa_sl = fn.three_to_one(end_aa)
+
+                            check_start_aa = validator.sf.fetch_seq(hgvs_object.ac,
+                                                                    start_i=start_pos - 1,
+                                                                    end_i=start_pos)
+                            check_end_aa = validator.sf.fetch_seq(hgvs_object.ac,
+                                                                  start_i=end_pos - 1,
+                                                                  end_i=end_pos)
+                        else:
+                            start_edit = posedit
+                            end_edit = posedit
+                            start_aa = str(start_edit).replace(str(start_pos), "")
+                            end_aa = str(end_edit).replace(str(end_pos), "")
+                            start_aa_sl = fn.three_to_one(start_aa)
+                            end_aa_sl = fn.three_to_one(end_aa)
+                            check_start_aa = validator.sf.fetch_seq(hgvs_object.ac,
+                                                                    start_i=start_pos - 1,
+                                                                    end_i=start_pos)
+                            check_end_aa = validator.sf.fetch_seq(hgvs_object.ac,
+                                                                  start_i=end_pos - 1,
+                                                                  end_i=end_pos)
+
+                        if start_aa_sl != check_start_aa and end_aa_sl != check_end_aa:
+                            e1 = "The amino acid at position %s of %s is %s not %s" % (start_pos,
+                                                                                       hgvs_object.ac,
+                                                                                       check_start_aa,
+                                                                                       start_aa_sl)
+                            e2 = "The amino acid at position %s of %s is %s not %s" % (end_pos,
+                                                                                       hgvs_object.ac,
+                                                                                       check_end_aa,
+                                                                                       end_aa_sl)
+                            variant.warnings.extend([e1, e2])
+
+                        elif start_aa_sl != check_start_aa:
+                            e1 = "The amino acid at position %s of %s is %s not %s" % (start_pos,
+                                                                                       hgvs_object.ac,
+                                                                                       check_start_aa,
+                                                                                       start_aa_sl)
+                            variant.warnings.extend([e1])
+
+                        elif end_aa_sl != check_end_aa:
+                            e1 = "The amino acid at position %s of %s is %s not %s" % (end_pos,
+                                                                                       hgvs_object.ac,
+                                                                                       check_end_aa,
+                                                                                       end_aa_sl)
+                            variant.warnings.extend([e1])
+
+                        else:
+                            error = str(
+                                hgvs_object) + ' is HGVS compliant and contains a valid reference amino acid description'
+                            reason = 'Protein level variant descriptions are not fully supported due to redundancy' \
+                                     ' in the genetic code'
+                            variant.warnings.extend([reason, error])
+                            variant.protein = str(hgvs_object)
+                            logger.warning(reason + ": " + error)
+                            variant.protein = str(hgvs_object)
+                            return True
+
+                        return True
+
                 except vvhgvs.exceptions.HGVSError as e:
                     error = str(e)
                 else:
@@ -882,13 +1070,26 @@ def rna(variant, validator):
     """
     convert r, into c.
     """
-    if variant.reftype == ':r.':
-        hgvs_input = validator.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
+    if variant.reftype == ':r.' or ":r." in variant.original:
+        if ":r.(" in str(variant.hgvs_formatted):
+            strip_prediction = str(variant.hgvs_formatted).replace("(", "")
+            strip_prediction = strip_prediction[:-1]
+            hgvs_input = validator.hp.parse_hgvs_variant(strip_prediction)
+        else:
+            hgvs_input = variant.hgvs_formatted
+
+        tx_info = validator.hdp.get_tx_identity_info(hgvs_input.ac)
+        if tx_info[3] is None:
+            error = "Invalid variant type for non-coding transcript. Instead use n."
+            variant.warnings.append(error)
+            logger.warning(str(error))
+            return True
         # Change to coding variant
         variant.reftype = ':c.'
         # Change input to reflect!
         try:
             hgvs_c = validator.hgvs_r_to_c(hgvs_input)
+            hgvs_c = validator.hp.parse_hgvs_variant(str(hgvs_c))
         except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
             error = str(e)
             variant.warnings.append(error)
@@ -896,10 +1097,33 @@ def rna(variant, validator):
             return True
         variant.hgvs_formatted = hgvs_c
 
+        # Create variant.rna_data dictionary
+        rnd = VariantValidator.modules.rna_formatter.RnaDescriptions(validator.alt_aln_method,
+                                                                     variant.primary_assembly,
+                                                                     validator)
+        try:
+            rnd.check_syntax(str(variant.original))
+        except VariantValidator.modules.rna_formatter.RnaVariantSyntaxError as e:
+            error = str(e)
+            variant.warnings.append(error)
+            logger.warning(str(error))
+            return True
+        except vvhgvs.exceptions.HGVSParseError:
+            try:
+                rnd.check_syntax(str(variant.quibble))
+            except VariantValidator.modules.rna_formatter.RnaVariantSyntaxError as e:
+                error = str(e)
+                variant.warnings.append(error)
+                logger.warning(str(error))
+                return True
+
+        # Add data to the variant object
+        variant.rna_data = rnd.output_dict()
+
     return False
 
 
-def uncertain_pos(variant):
+def uncertain_pos(variant, validator):
     """
     check for uncertain positions in the variant and return unsupported warning
     """
@@ -907,14 +1131,34 @@ def uncertain_pos(variant):
         to_check = variant.quibble
         posedit = to_check.split(':')[1]
         if '(' in posedit or ')' in posedit:
-            if 'p.' in posedit or '[' in posedit or ']' in posedit or '(;)' in posedit or '(:)' in posedit:
+            if 'p.' in posedit or '(;)' in posedit or '(:)' in posedit:
                 return False
             elif re.search("ins\(\d+\)$", posedit) or re.search("ins\(\d+_\d+\)$", posedit):
                 return False
-            error = 'Uncertain positions are not currently supported'
-            variant.warnings.append(error)
-            logger.warning(str(error))
-            return True
+            elif ":r.(" in to_check:
+                return False
+            else:
+                if ("[" in posedit or "]" in posedit) and not re.search("\[\d+\]", posedit):
+                    return False
+                try:
+                    complex_descriptions.uncertain_positions(variant, validator)
+                except complex_descriptions.IncompatibleTypeError:
+                    use_checking.refseq_common_mistakes(variant)
+                    # import traceback
+                    # traceback.print_exc()
+                    return True
+                except complex_descriptions.InvalidRangeError as e:
+                    variant.warnings.append(str(e))
+                    # import traceback
+                    # traceback.print_exc()
+                    return True
+                except Exception as e:
+                    variant.warnings.append(str(e))
+                    # import traceback
+                    # traceback.print_exc()
+                    return True
+
+            return False
         else:
             return False
     except Exception:
@@ -922,7 +1166,7 @@ def uncertain_pos(variant):
 
 
 # <LICENSE>
-# Copyright (C) 2016-2022 VariantValidator Contributors
+# Copyright (C) 2016-2024 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

@@ -12,12 +12,14 @@ module operates.
 Use exon_numbering_tests.py for automated testing of this module.
 """
 import vvhgvs
+import vvhgvs.exceptions
 import re
 
 
 def finds_exon_number(variant, validator):
     """
     :param variant: (obj): the variant object from VariantValidator
+    :param validator (obj)
     :return: exon_start_end_positions (dict): a dictionary of the
                     exon/intron positions for the start and end of the given
                     variant for each aligned chromosomal or gene reference
@@ -94,7 +96,7 @@ def finds_exon_number(variant, validator):
                     and not re.search('\d-\d', str(start_position))):
                 # This works for positions in exons
                 adj_start_position = to_n.posedit.pos.start.base
-                if adj_start_position >= exon['transcript_start'] and adj_start_position <= exon['transcript_end']:
+                if exon['transcript_start'] <= adj_start_position <= exon['transcript_end']:
                     start_exon = str(exon['exon_number'])
 
             elif re.match("-", str(start_position)):
@@ -140,7 +142,7 @@ def finds_exon_number(variant, validator):
             if '+' not in str(end_position) and not re.search('\d-\d', str(end_position)):
                 # This works for positions in exons
                 adj_end_position = to_n.posedit.pos.end.base
-                if adj_end_position >= exon['transcript_start'] and adj_end_position <= exon['transcript_end']:
+                if exon['transcript_start'] <= adj_end_position <= exon['transcript_end']:
                     end_exon = str(exon['exon_number'])
 
             elif re.match("-", end_position):
@@ -188,13 +190,21 @@ def finds_exon_number(variant, validator):
                 elif adj_nearest_exon_boundary == exon['transcript_end']:
                     end_exon = str(exon['exon_number']) + 'i'
 
-        exon_start_end_positions[transcript] = {"start_exon": start_exon,
-                                                "end_exon": end_exon}
+        try:
+            exon_start_end_positions[transcript] = {"start_exon": start_exon,
+                                                    "end_exon": end_exon}
+
+        # This happens in genes like Shank 2 where there are problems with aligning exons to the genome build,
+        # i.e. if there are exons in the transcript that are not aligned to the genome, it is impossible to calculate
+        # the exon number
+        except UnboundLocalError:
+            exon_start_end_positions[transcript] = {"start_exon": "cannot be calculated",
+                                                    "end_exon": "cannot be calculated"}
 
     return exon_start_end_positions
 
 # <LICENSE>
-# Copyright (C) 2016-2022 VariantValidator Contributors
+# Copyright (C) 2016-2024 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -209,3 +219,4 @@ def finds_exon_number(variant, validator):
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # </LICENSE>
+

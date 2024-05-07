@@ -37,6 +37,17 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
 
     # Set test to see if Norm alters the coords
     g_test = variant.hn.normalize(g_query)
+    try:
+        if "N" in g_test.posedit.edit.ref:
+            variant.warnings.append("UndefinedSequenceError: Submitted variant description cannot be fully validated "
+                                    "because it spans "
+                                    "a region of the reference sequence represented by base 'N' and not bases 'GATC'")
+            logger.warning(error)
+            # return True
+    except AttributeError:
+        pass
+    except TypeError:
+        pass
 
     # Perform test
     if g_query.posedit.pos != g_test.posedit.pos:
@@ -51,10 +62,10 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
     transcripts
     """
     rel_var = validator.relevant_transcripts(variant.hgvs_genomic, variant.evm, validator.alt_aln_method,
-                                             variant.reverse_normalizer)
+                                             variant.reverse_normalizer, validator.select_transcripts)
 
     # Double check rel_vars have not been missed when mapping from a RefSeqGene
-    if len(rel_var) != 0 and 'NG_' in variant.hgvs_genomic.ac:
+    if len(rel_var) != 0 and 'NG_' in variant.hgvs_genomic.ac and validator.select_transcripts != "refseqgene":
         for var in rel_var:
             try:
                 hgvs_coding_variant = validator.hp.parse_hgvs_variant(var)
@@ -67,7 +78,8 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                 try_rel_var = []
             else:
                 try_rel_var = validator.relevant_transcripts(variant.hgvs_genomic, variant.evm,
-                                                             validator.alt_aln_method, variant.reverse_normalizer)
+                                                             validator.alt_aln_method, variant.reverse_normalizer,
+                                                             validator.select_transcripts)
             if len(try_rel_var) > len(rel_var):
                 rel_var = try_rel_var
                 break
@@ -86,7 +98,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                     vcf_dict['alt']
                 hgvs_not_di = validator.hp.parse_hgvs_variant(not_di)
                 rel_var = validator.relevant_transcripts(hgvs_not_di, variant.evm, validator.alt_aln_method,
-                                                         variant.reverse_normalizer)
+                                                         variant.reverse_normalizer, validator.select_transcripts)
         except vvhgvs.exceptions.HGVSDataNotAvailableError:
             pass
 
@@ -115,7 +127,6 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                 query = Variant(variant.original, quibble=genomic_input, warnings=variant.warnings,
                                 primary_assembly=variant.primary_assembly, order=variant.order,
                                 selected_assembly=variant.selected_assembly)
-
                 validator.batch_list.append(query)
                 logger.info('Submitting new variant with format %s', genomic_input)
             else:
@@ -171,14 +182,28 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
         gap_mapper = gapped_mapping.GapMapper(variant, validator)
         data, nw_rel_var = gap_mapper.gapped_g_to_c(rel_var, select_transcripts_dict)
         rel_var = nw_rel_var
+        auto_info_list = []
+        if data["gapped_alignment_warning"] != "":
+            data["auto_info"] = data["auto_info"].replace("NM_", ";NM_")
+            data["auto_info"] = data["auto_info"].replace("NR_", ";NR_")
+            auto_info_list = data["auto_info"].split(";")
 
         # Set the values and append to batch_list
         for c_description in rel_var:
-            query = Variant(variant.original, quibble=str(c_description), warnings=variant.warnings,
+            # Add gap warnings
+            gap_warnings = []
+            if data["gapped_alignment_warning"] != "":
+                for aut_inf in auto_info_list:
+                    if c_description.ac in aut_inf:
+                        gap_warnings.append(data["gapped_alignment_warning"])
+                        gap_warnings.append(aut_inf)
+
+            query = Variant(variant.original, quibble=str(c_description), warnings=variant.warnings + gap_warnings,
                             primary_assembly=variant.primary_assembly, order=variant.order,
-                            selected_assembly=variant.selected_assembly)
+                            selected_assembly=variant.selected_assembly, reformat_output=variant.reformat_output)
             validator.batch_list.append(query)
             logger.info("Submitting new variant with format %s", str(c_description))
+
         # Call next description
         return True
     return False
@@ -198,8 +223,9 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     formatted_variant = str(variant.hgvs_formatted)
 
     # Do we keep it?
-    if validator.select_transcripts != 'all' and "select" not in validator.select_transcripts and \
-            "mane" not in validator.select_transcripts:
+    if (validator.select_transcripts != 'all' and validator.select_transcripts != 'raw') \
+            and "select" not in validator.select_transcripts and \
+            "mane" not in validator.select_transcripts and "refseqgene" not in validator.select_transcripts:
         if tx_ac not in list(select_transcripts_dict_plus_version.keys()):
             # By marking it as Do Not Write and continuing through the validation loop
             variant.write = False
@@ -208,7 +234,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     # Se rec_var to '' so it can be updated later
     rec_var = ''
 
-    # First task is to get the genomic equivalent, and print useful error messages if it can't be found.
+    # First task is to get the genomic equivalent, and pri nt useful error messages if it can't be found.
     try:
         to_g = validator.myevm_t_to_g(obj, variant.no_norm_evm, variant.primary_assembly, variant.hn)
         genomic_ac = to_g.ac
@@ -340,12 +366,14 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     if plus.search(quibble_input):
         # Regular expression catches the start of the interval only based on .00+00 pattern
         inv_start = re.compile(r"\.\d+\+\d")
-        if inv_start.search(quibble_input):
+        inv_end = re.compile(r"_\d+\+\d")
+        if inv_start.search(quibble_input) or inv_end.search(quibble_input):
             cck = True
     if minus.search(quibble_input):
         # Regular expression catches the start of the interval only based on .00-00 pattern
         inv_start = re.compile(r"\.\d+-\d")
-        if inv_start.search(quibble_input):
+        inv_end = re.compile(r"_\d+-\d")
+        if inv_start.search(quibble_input) or inv_end.search(quibble_input):
             cck = True
 
     # COORDINATE CHECKER
@@ -373,6 +401,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                     return True
                 else:
                     logger.debug("Except passed, %s", e)
+
             # genome back to C coordinates
             try:
                 post_var = validator.myevm_g_to_t(variant.evm, pre_var, trans_acc)
@@ -380,14 +409,46 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                 variant.warnings.append(str(error))
                 logger.warning(str(error))
                 return True
-            test = validator.hp.parse_hgvs_variant(quibble_input)
 
+            test = validator.hp.parse_hgvs_variant(quibble_input)
             if post_var.posedit.pos.start.base != test.posedit.pos.start.base or \
                     post_var.posedit.pos.end.base != test.posedit.pos.end.base:
-                caution = 'The entered coordinates do not agree with the intron/exon boundaries for the ' \
-                          'selected transcript'
-                variant.warnings.extend([caution])
-                # raise MappersError(caution)
+
+                # If this is a boundary issue with a valid boundary stated, but incorrect intronic numbering we can
+                # Refer to https://github.com/openvar/variantValidator/issues/518
+                can_we_autocorrect = False
+                if ("-" in str(test.posedit.pos.start) and "+" in str(post_var.posedit.pos.start) and
+                    post_var.posedit.pos.start.base == test.posedit.pos.start.base - 1) or \
+                        ("+" in str(test.posedit.pos.start) and "-" in str(post_var.posedit.pos.start) and
+                         post_var.posedit.pos.start.base == test.posedit.pos.start.base + 1) or \
+                        ("-" in str(test.posedit.pos.end) and "+" in str(post_var.posedit.pos.end) and
+                         post_var.posedit.pos.end.base == test.posedit.pos.end.base - 1) or \
+                        ("+" in str(test.posedit.pos.end) and "-" in str(post_var.posedit.pos.end) and
+                             post_var.posedit.pos.end.base == test.posedit.pos.end.base + 1):
+                    can_we_autocorrect = True
+                    if post_var.posedit.pos.start.base != test.posedit.pos.start.base:
+                        caution = "ExonBoundaryError: Position c.%s has been updated to position to %s ensuring " \
+                                  "correct HGVS numbering for transcript %s" % (str(test.posedit.pos.start),
+                                                                                str(post_var.posedit.pos.start),
+                                                                                test.ac)
+                        variant.warnings.extend([caution])
+                    if post_var.posedit.pos.end.base != test.posedit.pos.end.base:
+                        caution = "ExonBoundaryError: Position c.%s has been updated to position to %s ensuring " \
+                                  "correct HGVS numbering for transcript %s" % (str(test.posedit.pos.end),
+                                                                                str(post_var.posedit.pos.end),
+                                                                                test.ac)
+                        variant.warnings.extend([caution])
+
+                # Pass and raise
+                if can_we_autocorrect is False:
+                    if post_var.posedit.pos.start != test.posedit.pos.start:
+                        caution = "ExonBoundaryError: Position c.%s does not correspond with an exon boundary for " \
+                              "transcript %s" % (test.posedit.pos.start, test.ac)
+                    elif post_var.posedit.pos.end != test.posedit.pos.end:
+                        caution = "ExonBoundaryError: Position c.%s does not correspond with an exon boundary for " \
+                              "transcript %s" % (test.posedit.pos.end, test.ac)
+                    variant.warnings.extend([caution])
+                    raise MappersError(caution)
 
         else:  # del not in formatted_variant
 
@@ -399,14 +460,45 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
 
             # genome back to C coordinates
             post_var = validator.myevm_g_to_t(variant.evm, pre_var, trans_acc)
-
             test = validator.hp.parse_hgvs_variant(quibble_input)
             if post_var.posedit.pos.start.base != test.posedit.pos.start.base or \
                     post_var.posedit.pos.end.base != test.posedit.pos.end.base:
-                caution = 'The entered coordinates do not agree with the intron/exon boundaries for the ' \
-                          'selected transcript'
-                variant.warnings.extend([caution])
-                # raise MappersError(caution)
+
+                # If this is a boundary issue with a valid boundary stated, but incorrect intronic numbering we can
+                # Refer to https://github.com/openvar/variantValidator/issues/518
+                can_we_autocorrect = False
+                if ("-" in str(test.posedit.pos.start) and "+" in str(post_var.posedit.pos.start) and
+                    post_var.posedit.pos.start.base == test.posedit.pos.start.base - 1) or \
+                        ("+" in str(test.posedit.pos.start) and "-" in str(post_var.posedit.pos.start) and
+                         post_var.posedit.pos.start.base == test.posedit.pos.start.base + 1) or \
+                        ("-" in str(test.posedit.pos.end) and "+" in str(post_var.posedit.pos.end) and
+                         post_var.posedit.pos.end.base == test.posedit.pos.end.base - 1) or \
+                        ("+" in str(test.posedit.pos.end) and "-" in str(post_var.posedit.pos.end) and
+                             post_var.posedit.pos.end.base == test.posedit.pos.end.base + 1):
+                    can_we_autocorrect = True
+                    if post_var.posedit.pos.start.base != test.posedit.pos.start.base:
+                        caution = "ExonBoundaryError: Position c.%s has been updated to position to %s ensuring " \
+                                  "correct HGVS numbering for transcript %s" % (str(test.posedit.pos.start),
+                                                                                str(post_var.posedit.pos.start),
+                                                                                test.ac)
+                        variant.warnings.extend([caution])
+                    if post_var.posedit.pos.end.base != test.posedit.pos.end.base:
+                        caution = "ExonBoundaryError: Position c.%s has been updated to position to %s ensuring " \
+                                  "correct HGVS numbering for transcript %s" % (str(test.posedit.pos.end),
+                                                                                str(post_var.posedit.pos.end),
+                                                                                test.ac)
+                        variant.warnings.extend([caution])
+
+                # Pass and raise
+                if can_we_autocorrect is False:
+                    if post_var.posedit.pos.start != test.posedit.pos.start:
+                        caution = "ExonBoundaryError: Position c.%s does not correspond with an exon boundary for " \
+                              "transcript %s" % (test.posedit.pos.start, test.ac)
+                    elif post_var.posedit.pos.end != test.posedit.pos.end:
+                        caution = "ExonBoundaryError: Position c.%s does not correspond with an exon boundary for " \
+                              "transcript %s" % (test.posedit.pos.end, test.ac)
+                    variant.warnings.extend([caution])
+                    raise MappersError(caution)
 
     elif ':g.' not in quibble_input:
         query = validator.hp.parse_hgvs_variant(formatted_variant)
@@ -498,7 +590,6 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     # Loop out gap finding code under these circumstances!
     if gap_compensation is True:
         hgvs_genomic, suppress_c_normalization, hgvs_coding = gap_mapper.g_to_t_compensation(ori, hgvs_coding, rec_var)
-
     else:
         suppress_c_normalization = 'false'
 
@@ -549,18 +640,18 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     try:
         protein_dict = validator.myc_to_p(hgvs_coding, variant.evm, re_to_p=False, hn=variant.hn)
     except NotImplementedError as e:
-        protein_dict= {'hgvs_protein': None, 'error': str(e)}
+        protein_dict = {'hgvs_protein': None, 'error': str(e)}
         variant.warnings.append(str(e))
     except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
-        protein_dict= {'hgvs_protein': None, 'error': str(e)}
+        protein_dict = {'hgvs_protein': None, 'error': str(e)}
         variant.warnings.append(str(e))
 
     # Replace p.= with p.(=)
     # Replace p.? with p.(?)
     try:
-        if protein_dict['hgvs_protein'].posedit is '=':
+        if protein_dict['hgvs_protein'].posedit == '=':
             protein_dict['hgvs_protein'].posedit = '(=)'
-        if protein_dict['hgvs_protein'].posedit is '?':
+        if protein_dict['hgvs_protein'].posedit == '?':
             protein_dict['hgvs_protein'].posedit = '(?)'
     except AttributeError:
         pass
@@ -677,30 +768,29 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                         hgvs_updated.posedit.pos.start.base = '*' + str(start_out)
                         hgvs_updated.posedit.pos.end.base = '*' + str(end_out)
 
-        hgvs_updated = fn.remove_reference(hgvs_updated)
-        hgvs_updated = validator.hp.parse_hgvs_variant(hgvs_updated)
-        updated_transcript_variant = hgvs_updated
-        variant.warnings.append('A more recent version of the selected reference sequence ' + hgvs_coding.ac +
-                                ' is available (' + updated_transcript_variant.ac + ')' + ': ' +
-                                str(updated_transcript_variant) + ' MUST be fully validated prior to use in reports: '
-                                'select_variants=' + fn.valstr(updated_transcript_variant))
+        try:
+            hgvs_updated = fn.remove_reference(hgvs_updated)
+            hgvs_updated = validator.hp.parse_hgvs_variant(hgvs_updated)
+            updated_transcript_variant = hgvs_updated
+            variant.warnings.append('A more recent version of the selected reference sequence ' + hgvs_coding.ac +
+                                    ' is available (' + updated_transcript_variant.ac + ')' + ': ' +
+                                    str(updated_transcript_variant) + ' MUST be fully validated prior to use in reports: '
+                                    'select_variants=' + fn.valstr(updated_transcript_variant))
+        except vvhgvs.exceptions.HGVSParseError:
+            pass
 
     variant.coding = str(hgvs_coding)
     variant.genomic_r = str(hgvs_refseq)
     variant.genomic_g = str(hgvs_genomic)
     variant.protein = str(hgvs_protein)
-
     return False
 
 
 def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=False):
-
     warnings = ''
     rec_var = ''
     gap_compensation = True
 
-    # Multiple genomic variants
-    # multi_gen_vars = []
     try:
         tx_variant.ac
         variant.hgvs_coding = tx_variant
@@ -733,7 +823,7 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=
     for alt_chr in mapping_options:
         if liftover_level is None:
             multi_list.append(variant.genomic_g.split(":")[0])
-        elif liftover_level is 'primary':
+        elif liftover_level == 'primary':
             if ('NC_' in alt_chr[1]) and alt_chr[2] == validator.alt_aln_method:
                 multi_list.append(alt_chr[1])
         else:
@@ -763,9 +853,32 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=
                     hgvs_alt_genomic, variant.hgvs_coding, ori, alt_chr, rec_var)
                 variant.hgvs_coding = hgvs_coding
 
+                # Check for mismatched sequence in dup variants
+                if hgvs_alt_genomic.posedit.edit.type == hgvs_coding.posedit.edit.type and \
+                        hgvs_alt_genomic.posedit.edit.type != 'delins':
+                    try:
+                        rev_tx = variant.reverse_normalizer.normalize(hgvs_coding)
+                        rev_g = validator.myvm_t_to_g(rev_tx, alt_chr, variant.no_norm_evm, variant.hn)
+                        rev_g = variant.hn.normalize(rev_g)
+                    except vvhgvs.exceptions.HGVSError:
+                        rev_g = hgvs_alt_genomic
+                    if rev_g.posedit.edit.type == "delins":
+                        hgvs_alt_genomic = rev_g
+
                 # Refresh the :g. variant
                 multi_g.append(hgvs_alt_genomic)
+
             else:
+                if hgvs_alt_genomic.posedit.edit.type == variant.hgvs_coding.posedit.edit.type and \
+                        hgvs_alt_genomic.posedit.edit.type != 'delins':
+                    try:
+                        rev_tx = variant.reverse_normalizer.normalize(variant.hgvs_coding)
+                        rev_g = validator.myvm_t_to_g(rev_tx, alt_chr, variant.no_norm_evm, variant.hn)
+                        rev_g = variant.hn.normalize(rev_g)
+                    except vvhgvs.exceptions.HGVSError:
+                        rev_g = hgvs_alt_genomic
+                    if rev_g.posedit.edit.type == "delins":
+                        hgvs_alt_genomic = rev_g
                 multi_g.append(hgvs_alt_genomic)
 
         # In this instance, the gap code has generally found an incomplete-alignment rather than a
@@ -779,7 +892,7 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=
     return multi_g
 
 # <LICENSE>
-# Copyright (C) 2016-2022 VariantValidator Contributors
+# Copyright (C) 2016-2024 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

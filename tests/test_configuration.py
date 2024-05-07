@@ -176,22 +176,18 @@ class TestConfigValues(unittest.TestCase):
             self.config.write(fh)
 
     def test_file_structure(self):
-        self.assertEqual(self.config.sections(), ['mysql', 'seqrepo', 'postgres',  'logging', 'Entrez'])
-        self.assertEqual(list(self.config['mysql']), ['host', 'port', 'database', 'user', 'password', 'version'])
-        self.assertEqual(list(self.config['seqrepo']), ['version', 'location'])
-        self.assertEqual(list(self.config['postgres']), ['host', 'port', 'database', 'version', 'user', 'password'])
-        self.assertEqual(list(self.config['logging']), ['log', 'console', 'file'])
-        self.assertEqual(list(self.config['Entrez']), ['email', 'api_key'])
+        self.assertCountEqual(self.config.sections(), ['mysql', 'seqrepo', 'postgres',  'logging', 'Entrez'])
+        self.assertCountEqual(list(self.config['mysql']), ['host', 'port', 'database', 'user', 'password', 'version'])
+        self.assertCountEqual(list(self.config['seqrepo']), ['version', 'location', 'require_threading'])
+        self.assertCountEqual(list(self.config['postgres']), ['host', 'port', 'database', 'version', 'user', 'password'])
+        self.assertCountEqual(list(self.config['logging']), ['log', 'console', 'file'])
+        self.assertCountEqual(list(self.config['Entrez']), ['email', 'api_key'])
 
     def test_file_contents(self):
         self.assertNotEqual(self.config['mysql']['user'], 'USERNAME')
         self.assertNotEqual(self.config['mysql']['password'], 'PASSWORD')
-
-        #self.assertEqual(self.config['seqrepo']['version'], '2018-08-21')
         path = os.path.join(self.config['seqrepo']['location'], self.config['seqrepo']['version'])
         self.assertTrue(os.path.exists(path))
-
-        # self.assertEqual(self.config['postgres']['version'], 'vvta_2021_2')
         self.assertNotEqual(self.config['postgres']['user'], 'USERNAME')
         self.assertNotEqual(self.config['postgres']['password'], 'PASSWORD')
 
@@ -199,7 +195,8 @@ class TestConfigValues(unittest.TestCase):
         self.assertIn(self.config['logging']['console'].upper(), ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'])
         self.assertIn(self.config['logging']['file'].upper(), ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'])
 
-        self.assertRegex(self.config['Entrez']['email'], r'\w+@\w+.\w+')
+        if self.config['Entrez']['email'] != "OPTIONAL":
+            self.assertRegex(self.config['Entrez']['email'], r'\w+@\w+.\w+')
 
     def test_file_parsing(self):
         import VariantValidator
@@ -233,7 +230,7 @@ class TestConfigValues(unittest.TestCase):
         shutil.move(self.original, self.filename)
 
 # <LICENSE>
-# Copyright (C) 2016-2022 VariantValidator Contributors
+# Copyright (C) 2016-2024 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

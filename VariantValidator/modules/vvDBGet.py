@@ -131,6 +131,12 @@ class Mixin(vvDBInit.Mixin):
         query = "SELECT * FROM stableGeneIds WHERE hgnc_id = '%s'" % hgnc_id
         return self.execute(query)
 
+    def get_transcripts_from_annotations(self, statement):
+        query = "SELECT * FROM transcript_info WHERE transcriptVariant LIKE '%{}%'".format(statement)
+
+        print("My query is: ", query)
+        return self.execute_all(query)
+
     def get_db_version(self):
         """
         :return: current version of the Validator database
@@ -179,7 +185,7 @@ class Mixin(vvDBInit.Mixin):
         return report_urls
 
 # <LICENSE>
-# Copyright (C) 2016-2022 VariantValidator Contributors
+# Copyright (C) 2016-2024 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

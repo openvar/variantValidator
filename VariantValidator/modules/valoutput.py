@@ -14,7 +14,6 @@ class ValOutput(object):
 
     def format_as_dict(self, with_meta=True, test=False):
         validation_output = {'flag': 'warning'}
-
         validation_error_counter = 0
         validation_obsolete_counter = 0
         validation_warning_counter = 0
@@ -111,6 +110,8 @@ class ValOutput(object):
             prot = ''
             if variant.hgvs_predicted_protein_consequence is not None:
                 prot = variant.hgvs_predicted_protein_consequence['tlr']
+            if variant.rna_data is not None:
+                prot = variant.rna_data["translation"]
             grch37 = ''
             grch37_vcf = {'chr': '', 'pos': '', 'ref': '', 'alt': '', 'id': ''}
             if variant.primary_assembly_loci and 'grch37' in variant.primary_assembly_loci:
@@ -142,34 +143,66 @@ class ValOutput(object):
             except KeyError:
                 pass
 
-            outputstrings.append([
-                variant.original,
-                '|'.join(variant.process_warnings()),
-                select_tx,
-                variant.hgvs_transcript_variant,
-                variant.genome_context_intronic_sequence,
-                variant.refseqgene_context_intronic_sequence,
-                variant.hgvs_refseqgene_variant,
-                variant.hgvs_lrg_variant,
-                variant.hgvs_lrg_transcript_variant,
-                prot,
-                grch37,
-                grch37_vcf['chr'],
-                grch37_vcf['pos'],
-                grch37_vcf['id'],
-                grch37_vcf['ref'],
-                grch37_vcf['alt'],
-                grch38,
-                grch38_vcf['chr'],
-                grch38_vcf['pos'],
-                grch38_vcf['id'],
-                grch38_vcf['ref'],
-                grch38_vcf['alt'],
-                variant.gene_symbol,
-                gene_id,
-                variant.description,
-                '|'.join(alt_genomic)
-            ])
+            if variant.rna_data is None:
+                outputstrings.append([
+                    variant.original,
+                    '|'.join(variant.process_warnings()),
+                    select_tx,
+                    variant.hgvs_transcript_variant,
+                    variant.genome_context_intronic_sequence,
+                    variant.refseqgene_context_intronic_sequence,
+                    variant.hgvs_refseqgene_variant,
+                    variant.hgvs_lrg_variant,
+                    variant.hgvs_lrg_transcript_variant,
+                    prot,
+                    grch37,
+                    grch37_vcf['chr'],
+                    grch37_vcf['pos'],
+                    grch37_vcf['id'],
+                    grch37_vcf['ref'],
+                    grch37_vcf['alt'],
+                    grch38,
+                    grch38_vcf['chr'],
+                    grch38_vcf['pos'],
+                    grch38_vcf['id'],
+                    grch38_vcf['ref'],
+                    grch38_vcf['alt'],
+                    variant.gene_symbol,
+                    gene_id,
+                    variant.description,
+                    '|'.join(alt_genomic)
+                ])
+
+            else:
+                outputstrings.append([
+                    variant.original,
+                    '|'.join(variant.rna_data["usage_warnings"]),
+                    select_tx,
+                    variant.rna_data["rna_variant"],
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    prot,
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    variant.gene_symbol,
+                    gene_id,
+                    variant.description,
+                    ""
+                ])
+
         return outputstrings
 
     def add_meta(self):
@@ -186,7 +219,7 @@ class ValOutput(object):
         return metadata
 
 # <LICENSE>
-# Copyright (C) 2016-2022 VariantValidator Contributors
+# Copyright (C) 2016-2024 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

@@ -18,3 +18,12 @@ Users
 *.sql
 *.pyc
 temp.py
+
+#ignore databases
+seqrepo/*
+.eggs/*
+tests/*/*.pyc
+/VariantValidator.egg-info/*
+validator_2021-07-21.sql
+VVTA_2021_2_noseq.psql.gz
+
