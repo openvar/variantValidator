@@ -326,7 +326,7 @@ def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version):
                 available_transcripts = validator.hdp.get_tx_for_gene(uta_symbol)
                 select_from_these_transcripts = []
                 for tx in available_transcripts:
-                    if 'NM_' in tx[3] or 'NR_' in tx[3]:
+                    if 'NM_' in tx[3] or 'NR_' in tx[3] or 'ENST' in tx[3]:
                         if tx[3] not in select_from_these_transcripts:
                             select_from_these_transcripts.append(tx[3])
                 select_from_these_transcripts = '|'.join(select_from_these_transcripts)
@@ -377,7 +377,7 @@ def refseq_catch(variant, validator, select_transcripts_dict_plus_version):
                     available_transcripts = validator.hdp.get_tx_for_gene(uta_symbol)
                     select_from_these_transcripts = []
                     for tx in available_transcripts:
-                        if 'NM_' in tx[3] or 'NR_' in tx[3]:
+                        if 'NM_' in tx[3] or 'NR_' in tx[3] or 'ENST' in tx[3]:
                             if tx[3] not in select_from_these_transcripts:
                                 select_from_these_transcripts.append(tx[3])
                     select_from_these_transcripts = '|'.join(select_from_these_transcripts)
@@ -425,7 +425,6 @@ def refseq_catch(variant, validator, select_transcripts_dict_plus_version):
             logger.debug("Except passed, %s", e)
 
     logger.debug("Chromosomal/RefSeqGene reference catching complete")
-
     return skipvar
 
 
@@ -616,7 +615,7 @@ def intronic_converter(variant, validator, skip_check=False):
     (NM_000088.3):c.589-1G>T ---> NM_000088.3:c.589-1G>T
     hgvs can now parse the string into an hgvs variant object and manipulate it
     """
-    compounder = re.compile(r'\(NM_')
+    compounder = re.compile(r'\((NM_|NR_|ENST)')
     compounder2 = re.compile(r'\(LRG_\d+t')
     if compounder.search(variant.quibble) or compounder2.search(variant.quibble):
         # Convert LRG transcript
@@ -628,16 +627,18 @@ def intronic_converter(variant, validator, skip_check=False):
 
         # Find pattern e.g. +0000 and assign to a variable
         genomic_ref = variant.quibble.split('(')[0]
-        transy = re.search(r"(NM_.+)", variant.quibble)
+        transy = re.search(r"((NM_|ENST|NR_).+)", variant.quibble)
         transy = transy.group(1)
         transy = transy.replace(')', '')
+
         # Add the edited variant for next stage error processing e.g. exon boundaries.
         variant.quibble = transy
         if skip_check is True:
             return genomic_ref
         else:
             # Check the specified base is correct
-            hgvs_genomic = validator.nr_vm.c_to_g(validator.hp.parse_hgvs_variant(transy), genomic_ref)
+            hgvs_genomic = validator.nr_vm.c_to_g(validator.hp.parse_hgvs_variant(transy), genomic_ref,
+                                                  alt_aln_method=validator.alt_aln_method)
         try:
             validator.vr.validate(hgvs_genomic)
         except vvhgvs.exceptions.HGVSError as e:
@@ -1102,7 +1103,7 @@ def rna(variant, validator):
                                                                      variant.primary_assembly,
                                                                      validator)
         try:
-            rnd.check_syntax(str(variant.original))
+            rnd.check_syntax(str(variant.original), variant)
         except VariantValidator.modules.rna_formatter.RnaVariantSyntaxError as e:
             error = str(e)
             variant.warnings.append(error)
@@ -1110,7 +1111,7 @@ def rna(variant, validator):
             return True
         except vvhgvs.exceptions.HGVSParseError:
             try:
-                rnd.check_syntax(str(variant.quibble))
+                rnd.check_syntax(str(variant.quibble), variant)
             except VariantValidator.modules.rna_formatter.RnaVariantSyntaxError as e:
                 error = str(e)
                 variant.warnings.append(error)

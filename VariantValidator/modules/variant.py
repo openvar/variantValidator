@@ -21,6 +21,7 @@ class Variant(object):
         self.post_format_conversion = None  # Used for first gapped_mapping function
         self.pre_RNA_conversion = None
         self.input_parses = None  # quibble as hgvs variant object
+        self.transcript_type = None
 
         if warnings is None:
             self.warnings = []

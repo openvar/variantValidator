@@ -671,7 +671,15 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     # Gene orientation wrt genome
     ori = validator.tx_exons(tx_ac=hgvs_coding.ac, alt_ac=hgvs_genomic.ac,
                              alt_aln_method=validator.alt_aln_method)
-    ori = int(ori[0]['alt_strand'])
+
+    try:
+        ori = int(ori[0]['alt_strand'])
+    except TypeError:
+        if 'Exception' in str(ori):
+            error = str(ori)
+            variant.warnings.append(error)
+            logger.warning(error)
+            return True
 
     # Look for normalized variant options that do not match hgvs_coding
     # boundary crossing normalization

@@ -14,15 +14,19 @@ def refseq_common_mistakes(variant):
     Evolving list of common mistakes, see sections below
     """
     # NM_ .g
-    if (variant.quibble.startswith('NM_') or variant.quibble.startswith('NR_')) and variant.reftype == ':g.':
-        suggestion = variant.quibble.replace(':g.', ':c.')
+    if ((variant.quibble.startswith('NM_') or variant.quibble.startswith('NR_') or variant.quibble.startswith('ENST'))
+            and variant.reftype == ':g.'):
+        if variant.quibble.startswith('NR_') or variant.transcript_type == 'n':
+            suggestion = variant.quibble.replace(':g.', ':n.')
+        else:
+            suggestion = variant.quibble.replace(':g.', ':c.')
         error = 'Transcript reference sequence input as genomic (g.) reference sequence. ' \
                 'Did you mean ' + suggestion + '?'
         variant.warnings.append(error)
         logger.warning(error)
         return True
     # NR_ c.
-    if variant.quibble.startswith('NR_') and variant.reftype == ':c.':
+    if variant.transcript_type == "n" and variant.reftype == ':c.':
         suggestion = variant.quibble.replace(':c.', ':n.')
         error = 'Non-coding transcript reference sequence input as coding (c.) reference sequence. ' \
                 'Did you mean ' + suggestion + '?'
@@ -30,7 +34,7 @@ def refseq_common_mistakes(variant):
         logger.warning(error)
         return True
     # NM_ n.
-    if variant.quibble.startswith('NM_') and variant.reftype == ':n.':
+    if variant.transcript_type == "c" and variant.reftype == ':n.':
         suggestion = variant.quibble.replace(':n.', ':c.')
         error = 'Coding transcript reference sequence input as non-coding transcript (n.) reference sequence. ' \
                 'Did you mean ' + suggestion + '?'
@@ -40,7 +44,7 @@ def refseq_common_mistakes(variant):
 
     # NM_ NC_ NG_ NR_ p.
     if (variant.quibble.startswith('NM_') or variant.quibble.startswith('NR_') or variant.quibble.startswith('NC_') or
-            variant.quibble.startswith('NG_')) and variant.reftype == ':p.':
+            variant.quibble.startswith('NG_') or variant.quibble.startswith('ENST')) and variant.reftype == ':p.':
         error = 'Using a nucleotide reference sequence (NM_ NR_ NG_ NC_) to specify protein-level (p.) variation is ' \
                 'not HGVS compliant. Please select an appropriate protein reference sequence (NP_)'
         variant.warnings.append(error)
@@ -427,7 +431,6 @@ def structure_checks_c(variant, validator):
                 variant.warnings.append(error)
                 logger.warning(error)
                 return True
-
         try:
             variant.evm.g_to_t(output, variant.input_parses.ac)
         except vvhgvs.exceptions.HGVSError as e:
@@ -437,8 +440,10 @@ def structure_checks_c(variant, validator):
             return True
 
         # Check that the reference is correct by direct mapping without replacing reference
-        check_ref_g = variant.no_replace_vm.t_to_g(variant.input_parses, output.ac)
-        check_ref_t = variant.no_replace_vm.g_to_t(check_ref_g, variant.input_parses.ac)
+        check_ref_g = variant.no_replace_vm.t_to_g(variant.input_parses, output.ac,
+                                                   alt_aln_method=validator.alt_aln_method)
+        check_ref_t = variant.no_replace_vm.g_to_t(check_ref_g, variant.input_parses.ac,
+                                                   alt_aln_method=validator.alt_aln_method)
 
         # Snapshot current variant error log
         if "*" in str(check_ref_t) and "*" not in str(variant.input_parses):
@@ -610,7 +615,7 @@ def structure_checks_n(variant, validator):
                 try:
                     test_g = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm, variant.primary_assembly,
                                                     variant.hn)
-                    back_to_n = variant.evm.g_to_t(test_g, variant.input_parses.ac)
+                    variant.evm.g_to_t(test_g, variant.input_parses.ac)
                 except vvhgvs.exceptions.HGVSError as e:
                     error = str(e)
                     if 'bounds' in error:
