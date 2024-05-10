@@ -25,7 +25,7 @@ and manipulate biological sequence variants.
 hgvs package
 
 VariantValidator can be accessed via our [web-hosted User Interface](https://variantvalidator.org/) and as a highly functional platform enabling high-throughput and embeddable
-utilisation of functionality via [direct installation](https://variantvalidator.org/) or via our [REST API](https://variantvalidator.org/). 
+utilisation of functionality via [direct installation](https://github.com/openvar/variantValidator/blob/master/docs) or via our [REST API](https://rest.variantvalidator.org/) which can also be [installed locally](https://github.com/openvar/rest_variantValidator/tree/master/docs) 
 
 ## Features
 
