@@ -919,6 +919,52 @@ class TestVVGapWarnings(TestCase):
         assert "Position 90159675_90261231 is > or overlaps 90136803_90144453" in results[
             'validation_warning_1']["validation_warnings"]
 
+    def test_uncertain_fuzzy_1(self):
+        variant = 'NC_000002.12:g.(?_187315204)_(192885646_?)del'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "Fuzzy/unknown variant start and end positions in submitted variant description" in results[
+            'validation_warning_1']["validation_warnings"]
+        assert "Uncertain positions are not fully supported, however the syntax is valid" in results[
+            'validation_warning_1']["validation_warnings"]
+
+    def test_uncertain_fuzzy_1a(self):
+        variant = 'NC_000002.12:g.(?_192885646)_(187315204_?)del'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "Fuzzy/unknown variant start and end positions in submitted variant description" in results[
+            'validation_warning_1']["validation_warnings"]
+        assert "Uncertain positions are not fully supported, however the start position is > the end position" in results[
+            'validation_warning_1']["validation_warnings"]
+
+    def test_uncertain_fuzzy_2(self):
+        variant = 'NC_000002.12:g.(187314204_187315204)_(192885646_?)dup'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "Fuzzy/unknown variant end position in submitted variant description" in results[
+            'validation_warning_1']["validation_warnings"]
+        assert "Uncertain positions are not fully supported, however the syntax is valid" in results[
+            'validation_warning_1']["validation_warnings"]
+
+    def test_uncertain_fuzzy_2a(self):
+        variant = 'NC_000002.12:g.(187315204_187314204)_(192885646_?)dup'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "Fuzzy/unknown variant end position in submitted variant description" in results[
+            'validation_warning_1']["validation_warnings"]
+        assert "Uncertain positions are not fully supported, however the provided positions are out of order" in results[
+            'validation_warning_1']["validation_warnings"]
+
+    def test_uncertain_fuzzy_2b(self):
+        variant = 'NC_000002.12:g.(187314204_187315204)_(187315104_?)dup'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "Fuzzy/unknown variant end position in submitted variant description" in results[
+            'validation_warning_1']["validation_warnings"]
+        assert "Uncertain positions are not fully supported, however the provided positions are out of order" in \
+               results[
+                   'validation_warning_1']["validation_warnings"]
+
     def test_uncertain_6(self):
         variant = 'NC_000005.9:g.(90144453_90136803)_(90159675_90261231)dup'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)

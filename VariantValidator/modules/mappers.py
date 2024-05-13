@@ -504,6 +504,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     elif ':g.' not in quibble_input:
         query = validator.hp.parse_hgvs_variant(formatted_variant)
         test = validator.hp.parse_hgvs_variant(quibble_input)
+
         if query.posedit.pos != test.posedit.pos:
             automap = str(test) + ' automapped to ' + str(query)
             variant.warnings.extend([automap])

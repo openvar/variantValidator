@@ -548,6 +548,7 @@ def vcf2hgvs_stage4(variant, validator):
         except Exception as e:
             logger.debug("Except passed, %s", e)
     logger.debug("Completed VCF-HVGS step 4 for %s", variant.quibble)
+
     return skipvar
 
 
@@ -971,99 +972,91 @@ def proteins(variant, validator):
             logger.warning(error)
             return True
         else:
-            # Get accurate descriptions from the relevant databases
-            # RefSeq databases
-            if validator.alt_aln_method != 'genebuild':
-                # Gene description  - requires GenBank search to get all the required info, i.e. transcript variant ID
-                # Look for the accession in our database
-                # Connect to database and send request
-                # record = validator.entrez_efetch(db="nuccore", id=accession, rettype="gb", retmode="text")
+            try:
+                validator.vr.validate(hgvs_object)
+            except AttributeError as e:
 
-                try:
-                    validator.vr.validate(hgvs_object)
-                except AttributeError as e:
+                if "AARefAlt' object has no attribute 'ref_n'" in str(e):
+                    start_pos = hgvs_object.posedit.pos.start.pos
+                    end_pos = hgvs_object.posedit.pos.end.pos
+                    posedit = hgvs_object.posedit
+                    posedit = str(posedit).split(str(hgvs_object.posedit.edit))[0]
+                    if "_" in posedit:
+                        start_edit, end_edit = posedit.split("_")
+                        start_aa = str(start_edit).replace(str(start_pos), "")
+                        end_aa = str(end_edit).replace(str(end_pos), "")
+                        start_aa_sl = fn.three_to_one(start_aa)
+                        end_aa_sl = fn.three_to_one(end_aa)
 
-                    if "AARefAlt' object has no attribute 'ref_n'" in str(e):
-                        start_pos = hgvs_object.posedit.pos.start.pos
-                        end_pos = hgvs_object.posedit.pos.end.pos
-                        posedit = hgvs_object.posedit
-                        posedit = str(posedit).split(str(hgvs_object.posedit.edit))[0]
-                        if "_" in posedit:
-                            start_edit, end_edit = posedit.split("_")
-                            start_aa = str(start_edit).replace(str(start_pos), "")
-                            end_aa = str(end_edit).replace(str(end_pos), "")
-                            start_aa_sl = fn.three_to_one(start_aa)
-                            end_aa_sl = fn.three_to_one(end_aa)
+                        check_start_aa = validator.sf.fetch_seq(hgvs_object.ac,
+                                                                start_i=start_pos - 1,
+                                                                end_i=start_pos)
+                        check_end_aa = validator.sf.fetch_seq(hgvs_object.ac,
+                                                              start_i=end_pos - 1,
+                                                              end_i=end_pos)
+                    else:
+                        start_edit = posedit
+                        end_edit = posedit
+                        start_aa = str(start_edit).replace(str(start_pos), "")
+                        end_aa = str(end_edit).replace(str(end_pos), "")
+                        start_aa_sl = fn.three_to_one(start_aa)
+                        end_aa_sl = fn.three_to_one(end_aa)
+                        check_start_aa = validator.sf.fetch_seq(hgvs_object.ac,
+                                                                start_i=start_pos - 1,
+                                                                end_i=start_pos)
+                        check_end_aa = validator.sf.fetch_seq(hgvs_object.ac,
+                                                              start_i=end_pos - 1,
+                                                              end_i=end_pos)
 
-                            check_start_aa = validator.sf.fetch_seq(hgvs_object.ac,
-                                                                    start_i=start_pos - 1,
-                                                                    end_i=start_pos)
-                            check_end_aa = validator.sf.fetch_seq(hgvs_object.ac,
-                                                                  start_i=end_pos - 1,
-                                                                  end_i=end_pos)
-                        else:
-                            start_edit = posedit
-                            end_edit = posedit
-                            start_aa = str(start_edit).replace(str(start_pos), "")
-                            end_aa = str(end_edit).replace(str(end_pos), "")
-                            start_aa_sl = fn.three_to_one(start_aa)
-                            end_aa_sl = fn.three_to_one(end_aa)
-                            check_start_aa = validator.sf.fetch_seq(hgvs_object.ac,
-                                                                    start_i=start_pos - 1,
-                                                                    end_i=start_pos)
-                            check_end_aa = validator.sf.fetch_seq(hgvs_object.ac,
-                                                                  start_i=end_pos - 1,
-                                                                  end_i=end_pos)
+                    if start_aa_sl != check_start_aa and end_aa_sl != check_end_aa:
+                        e1 = "The amino acid at position %s of %s is %s not %s" % (start_pos,
+                                                                                   hgvs_object.ac,
+                                                                                   check_start_aa,
+                                                                                   start_aa_sl)
+                        e2 = "The amino acid at position %s of %s is %s not %s" % (end_pos,
+                                                                                   hgvs_object.ac,
+                                                                                   check_end_aa,
+                                                                                   end_aa_sl)
+                        variant.warnings.extend([e1, e2])
 
-                        if start_aa_sl != check_start_aa and end_aa_sl != check_end_aa:
-                            e1 = "The amino acid at position %s of %s is %s not %s" % (start_pos,
-                                                                                       hgvs_object.ac,
-                                                                                       check_start_aa,
-                                                                                       start_aa_sl)
-                            e2 = "The amino acid at position %s of %s is %s not %s" % (end_pos,
-                                                                                       hgvs_object.ac,
-                                                                                       check_end_aa,
-                                                                                       end_aa_sl)
-                            variant.warnings.extend([e1, e2])
+                    elif start_aa_sl != check_start_aa:
+                        e1 = "The amino acid at position %s of %s is %s not %s" % (start_pos,
+                                                                                   hgvs_object.ac,
+                                                                                   check_start_aa,
+                                                                                   start_aa_sl)
+                        variant.warnings.extend([e1])
 
-                        elif start_aa_sl != check_start_aa:
-                            e1 = "The amino acid at position %s of %s is %s not %s" % (start_pos,
-                                                                                       hgvs_object.ac,
-                                                                                       check_start_aa,
-                                                                                       start_aa_sl)
-                            variant.warnings.extend([e1])
+                    elif end_aa_sl != check_end_aa:
+                        e1 = "The amino acid at position %s of %s is %s not %s" % (end_pos,
+                                                                                   hgvs_object.ac,
+                                                                                   check_end_aa,
+                                                                                   end_aa_sl)
+                        variant.warnings.extend([e1])
 
-                        elif end_aa_sl != check_end_aa:
-                            e1 = "The amino acid at position %s of %s is %s not %s" % (end_pos,
-                                                                                       hgvs_object.ac,
-                                                                                       check_end_aa,
-                                                                                       end_aa_sl)
-                            variant.warnings.extend([e1])
-
-                        else:
-                            error = str(
-                                hgvs_object) + ' is HGVS compliant and contains a valid reference amino acid description'
-                            reason = 'Protein level variant descriptions are not fully supported due to redundancy' \
-                                     ' in the genetic code'
-                            variant.warnings.extend([reason, error])
-                            variant.protein = str(hgvs_object)
-                            logger.warning(reason + ": " + error)
-                            variant.protein = str(hgvs_object)
-                            return True
-
+                    else:
+                        error = str(
+                            hgvs_object) + ' is HGVS compliant and contains a valid reference amino acid description'
+                        reason = 'Protein level variant descriptions are not fully supported due to redundancy' \
+                                 ' in the genetic code'
+                        variant.warnings.extend([reason, error])
+                        variant.protein = str(hgvs_object)
+                        logger.warning(reason + ": " + error)
+                        variant.protein = str(hgvs_object)
                         return True
 
-                except vvhgvs.exceptions.HGVSError as e:
-                    error = str(e)
-                else:
-                    error = str(
-                        hgvs_object) + ' is HGVS compliant and contains a valid reference amino acid description'
-                reason = 'Protein level variant descriptions are not fully supported due to redundancy' \
-                         ' in the genetic code'
-                variant.warnings.extend([reason, error])
-                variant.protein = str(hgvs_object)
-                logger.warning(reason + ": " + error)
-                return True
+                    return True
+
+            except vvhgvs.exceptions.HGVSError as e:
+                error = str(e)
+            else:
+                error = str(
+                    hgvs_object) + ' is HGVS compliant and contains a valid reference amino acid description'
+            reason = 'Protein level variant descriptions are not fully supported due to redundancy' \
+                     ' in the genetic code'
+            variant.warnings.extend([reason, error])
+            variant.protein = str(hgvs_object)
+            logger.warning(reason + ": " + error)
+            return True
     return False
 
 

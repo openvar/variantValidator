@@ -95,7 +95,7 @@ def ensembl_tark(id, endpoint, options=False):
     }
 
     # Set base URL
-    base_url = 'http://dev-tark.ensembl.org'
+    base_url = 'https://tark.ensembl.org'
 
 
     headers = {

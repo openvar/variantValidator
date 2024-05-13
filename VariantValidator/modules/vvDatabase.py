@@ -232,14 +232,13 @@ class Database(vvDBInsert.Mixin):
                             gene_name = xref['description']
 
 
-
-
                     # Get MANE status and Ensembl canonical status
                     mane_select = False
                     ensembl_select = False
                     mane_plus_clinical = False
                     if select_tx == "Ensembl":
                         ensembl_select = True
+
                     tark_record = utils.ensembl_tark(id=enst_accession + '.' + enst_version,
                                                      endpoint="/api/transcript/stable_id_with_version/")
                     tark_json = tark_record['record']
@@ -271,6 +270,8 @@ class Database(vvDBInsert.Mixin):
                     warning = "Ensembl transcript %s is not identified in the Ensembl APIs" % accession
                     raise utils.DatabaseConnectionError(warning)
             except TypeError:
+                import traceback
+                traceback.print_exc()
                 connection_error = "Cannot retrieve data from Ensembl REST for record %s" % accession
                 if bypass_with_symbol is not False:
                     try:

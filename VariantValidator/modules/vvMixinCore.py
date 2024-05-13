@@ -744,19 +744,14 @@ class Mixin(vvMixinConverters.Mixin):
                         logger.debug("LRG check for conversion to refseq completed")
 
                     # Additional Incorrectly input variant capture training
-                    if my_variant.refsource == 'RefSeq':
+                    if my_variant.refsource == 'RefSeq' or my_variant.refsource == 'ENS':
                         toskip = use_checking.refseq_common_mistakes(my_variant)
                         if toskip:
                             continue
                         logger.debug("Passed 'common mistakes' catcher")
 
                     # Primary validation of the input
-                    #try:
                     toskip = use_checking.structure_checks(my_variant, self)
-                    # except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
-                    #     print("EHEHEHEEH")
-                    #     my_variant.warnings.append(str(e))
-                    #     continue
                     if toskip:
                         continue
                     logger.debug("Variant structure and contents searches passed")
@@ -834,6 +829,7 @@ class Mixin(vvMixinConverters.Mixin):
             by_order = sorted(self.batch_list, key=lambda x: x.order)
 
             for variant in by_order:
+
                 logger.debug("Formatting variant " + variant.quibble)
                 if not variant.write:
                     continue
@@ -1193,12 +1189,12 @@ class Mixin(vvMixinConverters.Mixin):
                             elif primary_assembly == "GRCh37" or primary_assembly == "hg19":
                                 alt_build = "GRCh38"
                                 # Shows the alternative genome build too
-                            errors.append(str(variant.hgvs_coding) + ' cannot be mapped directly to genome build ' + primary_assembly 
+                            errors.append(str(variant.hgvs_coding) + ' cannot be mapped directly to genome build ' + primary_assembly
                                             + ', did you mean ' + alt_build + '?')
-                            
+
                         variant.warnings.extend(errors)
 
-                        
+
                 # Ensure Variants have had the refs removed.
                 # if not hasattr(posedit, refseqgene_variant):
                 if refseqgene_variant != '':
@@ -1553,7 +1549,7 @@ class Mixin(vvMixinConverters.Mixin):
                         variant.exonic_positions = exs
                     except KeyError:
                         pass
-          
+
                 # Remove duplicate warnings
                 variant_warnings = []
                 accession = variant.hgvs_transcript_variant.split(':')[0]
