@@ -130,6 +130,14 @@ class TestWarnings(TestCase):
             "Insertion length must be 1 e.g. 642+1_642+2insG"
         ]
 
+    def test_issue_338d1(self):
+        variant = 'NC_000017.10:g.48275363insC'
+        results = self.vv.validate(variant, 'GRCh38', 'NM_000088.4', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert results['validation_warning_1']['validation_warnings'] == [
+            "Insertion length must be 1 e.g. 48275363_48275364insC"
+        ]
+
     def test_issue_338e(self):
         variant = 'lrg_1t1:c.589G>T'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)

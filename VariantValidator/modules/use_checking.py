@@ -126,6 +126,19 @@ def structure_checks_g(variant, validator):
         elif "insertion length must be 1" in str(e) and "(" in str(variant.input_parses.posedit.pos) and ")" in \
                 str(variant.input_parses.posedit.pos):
             return True
+        elif "insertion length must be 1" in str(e) and "(" not in str(variant.input_parses.posedit.pos) and ")" not in\
+                str(variant.input_parses.posedit.pos):
+            ins_warning = (f'Insertion length must be 1 e.g. '
+                           f'{str(int(variant.input_parses.posedit.pos.start.base))}'
+                           f'_{str(int(variant.input_parses.posedit.pos.start.base)+1)}'
+                           f'ins{variant.input_parses.posedit.edit.alt}')
+            variant.warnings.append(ins_warning)
+            for warning in variant.warnings:
+                if warning == "insertion length must be 1":
+                    variant.warnings.remove(warning)
+            return True
+
+            return True
         elif "Length implied by coordinates must equal sequence deletion length" in str(e) and \
              "(" in str(variant.input_parses.posedit.pos) and ")" in str(variant.input_parses.posedit.pos):
             return True
