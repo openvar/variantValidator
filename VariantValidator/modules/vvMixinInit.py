@@ -125,6 +125,7 @@ class Mixin:
         self.hp = vvhgvs.parser.Parser()  # Parser
         self.vr = vvhgvs.validator.Validator(self.hdp)  # Validator
         self.vm = vvhgvs.variantmapper.VariantMapper(self.hdp)  # Variant mapper
+        self.primary_assembly = 'GRCh38'  # Primary assembly defaults to GRCh38
 
         # Create a lose vm instance
         self.lose_vm = vvhgvs.variantmapper.VariantMapper(self.hdp,
@@ -138,28 +139,6 @@ class Mixin:
         # Set standard genome builds
         self.genome_builds = ['GRCh37', 'hg19', 'GRCh38']
         self.utaSchema = str(self.hdp.data_version())
-
-        # Create normalizer
-        self.reverse_hn = vvhgvs.normalizer.Normalizer(self.hdp,
-                                                       cross_boundaries=False,
-                                                       shuffle_direction=5,
-                                                       alt_aln_method='splign'
-                                                       )
-
-        self.merge_normalizer = vvhgvs.normalizer.Normalizer(
-            self.hdp,
-            cross_boundaries=False,
-            shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
-            alt_aln_method='splign',
-            validate=False
-        )
-        self.reverse_merge_normalizer = vvhgvs.normalizer.Normalizer(
-            self.hdp,
-            cross_boundaries=False,
-            shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
-            alt_aln_method='splign',
-            validate=False
-        )
 
         # When we are able to access Ensembl data we will need to use these normalizer instances
         # These are currently implemented in VF
@@ -180,34 +159,51 @@ class Mixin:
         self.reverse_splign_normalizer = vvhgvs.normalizer.Normalizer(self.hdp,
                                                                       cross_boundaries=False,
                                                                       shuffle_direction=5,
-                                                                      alt_aln_method='splign'
+                                                                      alt_aln_method='splign' # RefSeq
                                                                       )
 
         self.reverse_genebuild_normalizer = vvhgvs.normalizer.Normalizer(self.hdp,
                                                                          cross_boundaries=False,
                                                                          shuffle_direction=5,
-                                                                         alt_aln_method='genebuild'
+                                                                         alt_aln_method='genebuild' # Ensembl
                                                                          )
 
-        # create no_norm_evm
-        self.no_norm_evm_38 = vvhgvs.assemblymapper.AssemblyMapper(self.hdp,
-                                                                   assembly_name='GRCh38',
-                                                                   alt_aln_method='splign',
-                                                                   normalize=False,
-                                                                   replace_reference=True
-                                                                   )
-
-        self.no_norm_evm_37 = vvhgvs.assemblymapper.AssemblyMapper(self.hdp,
-                                                                   assembly_name='GRCh37',
-                                                                   alt_aln_method='splign',
-                                                                   normalize=False,
-                                                                   replace_reference=True
-                                                                   )
         # Created during validate method
         self.selected_assembly = None
         self.select_transcripts = None
         self.alt_aln_method = None
         self.batch_list = []
+
+    # Create additional normalizers
+    def create_additional_normalizers_and_mappers(self):
+        self.reverse_hn = vvhgvs.normalizer.Normalizer(self.hdp,
+                                                       cross_boundaries=False,
+                                                       shuffle_direction=5,
+                                                       alt_aln_method=self.alt_aln_method
+                                                       )
+
+        self.merge_normalizer = vvhgvs.normalizer.Normalizer(
+           self.hdp,
+           cross_boundaries=False,
+           shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
+           alt_aln_method=self.alt_aln_method,
+           validate=False
+        )
+
+        self.reverse_merge_normalizer = vvhgvs.normalizer.Normalizer(
+           self.hdp,
+           cross_boundaries=False,
+           shuffle_direction=5,
+           alt_aln_method=self.alt_aln_method,
+           validate=False
+        )
+
+        self.no_norm_evm = vvhgvs.assemblymapper.AssemblyMapper(self.hdp,
+                                                                assembly_name=self.primary_assembly,
+                                                                alt_aln_method=self.alt_aln_method,
+                                                                normalize=False,
+                                                                replace_reference=True
+                                                                )
 
     def __del__(self):
         try:

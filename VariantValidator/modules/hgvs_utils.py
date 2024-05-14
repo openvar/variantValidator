@@ -216,16 +216,6 @@ def pvcf_to_hgvs(query, selected_assembly, normalization_direction, reverse_norm
                 except vvhgvs.exceptions.HGVSError as e:
                     # Sort out multiple ALTS from VCF inputs
                     if re.search("([GATCgatc]+)>([GATCgatc]+),([GATCgatc]+)", not_delins):
-                        # header,alts = not_delins.split('>')
-                        # # Split up the alts into a list
-                        # alt_list = alts.split(',')
-                        # # Assemble and re-submit
-                        # for alt in alt_list:
-                        # 	validation['warnings'] = 'Multiple ALT sequences detected: auto-submitting all possible combinations'
-                        # 	validation['write'] = 'false'
-                        # 	refreshed_description = header + '>' + alt
-                        # 	query = {'quibble' : refreshed_description, 'id' : validation['id'], 'warnings' : validation['warnings'], 'description' : '', 'coding' : '', 'coding_g' : '', 'genomic_r' : '', 'genomic_g' : '', 'protein' : '', 'write' : 'true', 'primary_assembly' : primary_assembly, 'order' : ordering}
-                        # 	batch_list.append(query)
                         error = 'Multiple ALTs not supported by this function'
                         raise PseudoVCF2HGVSError(error)
                     else:
@@ -1007,7 +997,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                 if hgvs_genomic.type != "g":
                     normlize_check_mapped = vm.n_to_g(normlize_check_variant, genomic_ac)
                 else:
-                    normlize_check_mapped = vm.g_to_n(normlize_check_variant, tx_ac)
+                    normlize_check_mapped = vm.g_to_n(normlize_check_variant, tx_ac, alt_aln_method)
 
             # Catch out-of-bounds errors
             except vvhgvs.exceptions.HGVSInvalidIntervalError:
@@ -1733,7 +1723,7 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
                 if hgvs_genomic.type != "g":
                     normlize_check_mapped = vm.n_to_g(normlize_check_variant, genomic_ac)
                 else:
-                    normlize_check_mapped = vm.g_to_n(normlize_check_variant, tx_ac)
+                    normlize_check_mapped = vm.g_to_n(normlize_check_variant, tx_ac, alt_aln_method)
             # Catch out-of-bounds errors
             except vvhgvs.exceptions.HGVSInvalidIntervalError:
                 needs_a_push = False
