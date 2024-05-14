@@ -216,16 +216,6 @@ def pvcf_to_hgvs(query, selected_assembly, normalization_direction, reverse_norm
                 except vvhgvs.exceptions.HGVSError as e:
                     # Sort out multiple ALTS from VCF inputs
                     if re.search("([GATCgatc]+)>([GATCgatc]+),([GATCgatc]+)", not_delins):
-                        # header,alts = not_delins.split('>')
-                        # # Split up the alts into a list
-                        # alt_list = alts.split(',')
-                        # # Assemble and re-submit
-                        # for alt in alt_list:
-                        # 	validation['warnings'] = 'Multiple ALT sequences detected: auto-submitting all possible combinations'
-                        # 	validation['write'] = 'false'
-                        # 	refreshed_description = header + '>' + alt
-                        # 	query = {'quibble' : refreshed_description, 'id' : validation['id'], 'warnings' : validation['warnings'], 'description' : '', 'coding' : '', 'coding_g' : '', 'genomic_r' : '', 'genomic_g' : '', 'protein' : '', 'write' : 'true', 'primary_assembly' : primary_assembly, 'order' : ordering}
-                        # 	batch_list.append(query)
                         error = 'Multiple ALTs not supported by this function'
                         raise PseudoVCF2HGVSError(error)
                     else:

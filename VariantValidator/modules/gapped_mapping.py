@@ -28,6 +28,7 @@ class GapMapper(object):
         self.tx_hgvs_not_delins = None
 
     def make_gap_warnings(self, tx_ac, gen_ac, primary_assembly):
+        print("make_gap_warnings")
         # Look at Cigar strings and calculate the gap size and location
         tx_exons = self.validator.hdp.get_tx_exons(tx_ac, gen_ac, alt_aln_method=self.validator.alt_aln_method)
 
@@ -147,12 +148,15 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 replace("\n", "")
             gap_information_dict["auto_info"] = auto_info.replace("\n", "")
 
+        print("gap_information_dict, ", gap_information_dict)
         return gap_information_dict
 
     def gapped_g_to_c(self, rel_var, select_transcripts_dict):
         """
         Gap aware projection from g. to c.
         """
+
+        print("gapped_g_to_c")
 
         # Set variables for problem specific warnings
         gapped_alignment_warning = ''
@@ -166,11 +170,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
         # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
         reverse_normalized_hgvs_genomic = self.variant.reverse_normalizer.normalize(hgvs_genomic_variant)
         self.hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
-
-
-        print("HERE WE GAP")
-        print("genomic_variant", hgvs_genomic_variant)
-        print("reverse_normalized_hgvs_genomic", reverse_normalized_hgvs_genomic)
 
         # VCF
         vcf_dict = hgvs_utils.hgvs2vcf(reverse_normalized_hgvs_genomic, self.variant.primary_assembly,
@@ -527,6 +526,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                         elif len(hgvs_not_delins.posedit.edit.ref) > len(rn_tx_hgvs_not_delins.posedit.edit.ref):
                             gap_length = len(hgvs_not_delins.posedit.edit.ref) - len(
                                 rn_tx_hgvs_not_delins.posedit.edit.ref)
+                            print("Setting disparity_deletion_in to transcript 1")
                             self.disparity_deletion_in = ['transcript', gap_length]
                         else:
                             # store stash_hgvs_not_delins for restorstion after error below
@@ -552,6 +552,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                 else:
                                     gap_length = len(stash_hgvs_not_delins.posedit.edit.ref) - len(
                                         hgvs_stash_t.posedit.edit.ref)
+                                    print("Setting disparity_deletion_in to transcript 2")
                                     self.disparity_deletion_in = ['transcript', gap_length]
                                     try:
                                         self.tx_hgvs_not_delins = self.validator.vm.c_to_n(hgvs_stash_t)
@@ -559,6 +560,20 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                         self.tx_hgvs_not_delins = hgvs_stash_t
                                     hgvs_not_delins = stash_hgvs_not_delins
                             elif hgvs_stash_t.posedit.pos.start.offset != 0 or hgvs_stash_t.posedit.pos.end.offset != 0:
+                                print("Setting disparity_deletion_in to transcript 3")
+                                print("hgvs_stash_t", hgvs_stash_t)
+                                print("stash_hgvs_not_delins", stash_hgvs_not_delins)
+                                print("hgvs_not_delins", hgvs_not_delins)
+                                print("Reverse normalized hgvs_genomic", reverse_normalized_hgvs_genomic)
+
+                                # genomic_range_variant = (f"{hgvs_not_delins.ac}:g."
+                                #                          f"{hgvs_not_delins.posedit.pos.start.base}_"
+                                #                          f"{hgvs_not_delins.posedit.pos.end.base}del{hgvs_not_delins.posedit.edit.ref}ins{hgvs_not_delins.posedit.edit.alt}")
+                                #
+
+
+
+
                                 self.disparity_deletion_in = ['transcript', 'Requires Analysis']
                                 try:
                                     self.tx_hgvs_not_delins = self.validator.vm.c_to_n(hgvs_stash_t)
@@ -574,6 +589,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                     pass
                                 else:
                                     if var_a.posedit.edit.type != var_b.posedit.edit.type:
+                                        print("A")
                                         gap_warnings = self.make_gap_warnings(self.tx_hgvs_not_delins.ac,
                                                                               self.hgvs_genomic_5pr.ac,
                                                                               self.variant.primary_assembly)
@@ -622,6 +638,9 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     # GAP IN THE TRANSCRIPT DISPARITY DETECTED
                     if self.disparity_deletion_in[0] == 'transcript':
 
+                        print("tx_hgvs_not_delins", self.tx_hgvs_not_delins)
+                        print("hgvs_not_delins", hgvs_not_delins)
+
                         # Check for issue https://github.com/openvar/variantValidator/issues/385 where the gap is
                         # being identified but oddly the vm is not compensating, likely due to odd sequence
                         try:
@@ -637,6 +656,8 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                 tx_len_difference = len(self.tx_hgvs_not_delins.posedit.edit.alt) - \
                                                     len(self.tx_hgvs_not_delins.posedit.edit.ref)
 
+                            print("gen_len_difference", gen_len_difference)
+                            print("tx_len_difference", tx_len_difference)
                             # The logic here. Since there is a gap in the transcript,
                             # the actual length should be == gen_len_difference - 1 not == gen_len_difference
                             if tx_len_difference - self.disparity_deletion_in[1] == gen_len_difference:
@@ -654,6 +675,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                         except AttributeError:
                             pass
 
+                        print("B-type")
                         gap_warnings = self.make_gap_warnings(self.tx_hgvs_not_delins.ac,
                                                               self.hgvs_genomic_5pr.ac,
                                                               self.variant.primary_assembly)
@@ -2583,6 +2605,12 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
 
     def transcript_disparity(self, reverse_normalized_hgvs_genomic, stored_hgvs_not_delins, hgvs_genomic,
                              running_option):
+
+        print("transcript_disparity")
+        print("reverse_normalized_hgvs_genomic: ", reverse_normalized_hgvs_genomic)
+        print("hgvs_genomic: ", hgvs_genomic)
+        print("running_option: ", running_option)
+        print("tx", self.tx_hgvs_not_delins)
 
         if ('+' in str(self.tx_hgvs_not_delins.posedit.pos.start) or '-' in str(
                 self.tx_hgvs_not_delins.posedit.pos.start)) and (

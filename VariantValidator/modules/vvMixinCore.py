@@ -590,6 +590,7 @@ class Mixin(vvMixinConverters.Mixin):
                         input_parses = self.hp.parse_hgvs_variant(str(formatted_variant))
                         my_variant.hgvs_formatted = input_parses
                     except vvhgvs.exceptions.HGVSError as e:
+
                         # Pass over for uncertain positions
                         if my_variant.reformat_output == "uncertain_pos":
                             continue

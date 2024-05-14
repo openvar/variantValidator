@@ -43,7 +43,15 @@ class TestWarnings(TestCase):
         variant = 'NC_000017.11(ENST00000357654.9):c.4186-1642_4358-983del10'
         results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
-        assert 'ExonBoundaryError: Position c.4358-983 does not correspond with an exon boundary for transcript ENST00000357654.9' in \
+        assert 'Length implied by coordinates must equal sequence deletion length' in \
+               results['validation_warning_1']['validation_warnings']
+
+    def test_issue_180b1(self):
+        variant = 'NC_000017.11(ENST00000357654.9):c.4176-1642_4368-983del10'
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
+        print(results)
+        assert ('ExonBoundaryError: Position c.4176-1642 does not correspond with an exon boundary for transcript '
+                'ENST00000357654.9') in \
                results['validation_warning_1']['validation_warnings']
 
     def test_issue_180c(self):
@@ -264,13 +272,13 @@ class TestWarnings(TestCase):
         assert 'Reference sequence type o. should only be used for circular reference sequences that are not ' \
                'mitochondrial. Instead use m.' in \
                results['mitochondrial_variant_1']['validation_warnings'][0]
-#
-#     def test_issue_365(self):
-#         variant = 'NM_000277.3:c.1315+5_1315+6insGTGTAACAG'
-#         results = self.vv.validate(variant, 'GRCh38', 'all', liftover_level='primary', transcript_set="ensembl").format_as_dict(test=True)
-#         print(results)
-#         assert results['NM_000277.3:c.1315+5_1315+6insGTGTAACAG']['validation_warnings'] == []
-#
+
+    def test_issue_365(self):
+        variant = 'ENST00000553106.6:c.1315+5_1315+6insGTGTAACAG'
+        results = self.vv.validate(variant, 'GRCh38', 'all', liftover_level='primary', transcript_set="ensembl").format_as_dict(test=True)
+        print(results)
+        assert results['ENST00000553106.6:c.1315+5_1315+6insGTGTAACAG']['validation_warnings'] == []
+
     def test_issue_46(self):
         variant = 'ENSP00000269305.4:p.H175_V178delinsX'
         results = self.vv.validate(variant, 'GRCh38', 'all', liftover_level='primary', transcript_set="ensembl").format_as_dict(test=True)
@@ -332,10 +340,11 @@ class TestWarnings(TestCase):
         results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
 
         print(results)
-        assert results['validation_warning_1'][
+        assert results['ENST00000636147.2:c.790+532_1056+1445del'][
                    'validation_warnings'] == [
             "Removing redundant gene symbol CLN3 from variant description",
-            "start or end or both are beyond the bounds of transcript record"
+            "ExonBoundaryError: Position c.791-802 has been updated to position to 790+532 ensuring correct HGVS "
+            "numbering for transcript ENST00000636147.2"
         ]
 
     def missing_dot(self):
@@ -408,7 +417,12 @@ class TestWarnings(TestCase):
         assert "Using a nucleotide reference sequence (NM_ NR_ NG_ NC_) to specify protein-level (p.) " \
                "variation is not HGVS compliant. Please select an appropriate protein reference sequence (NP_)" in \
                results['validation_warning_1']['validation_warnings']
-#
+
+
+"""
+Series of tests that assess uncertain positions using the Ensembl transcript set
+"""
+
 #     def test_uncertain_1(self):
 #         variant = 'NC_000005.9:g.(90136803_90144453)_(90159675_90261231)dup'
 #         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
@@ -526,7 +540,11 @@ class TestWarnings(TestCase):
 #             "grch38": {
 #                 "hgvs_genomic_description": "NC_000003.12:g.(63912602_63912844)insNNNNNNNNNNNNNNN"
 #             }}
-#
+
+"""
+Series of tests fot the Allele syntax using the Ensembl transcript set
+"""
+
 #     def test_alleles_1(self):
 #         variant = 'NM_000093.5:c.[14del;17G>A]'
 #         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
@@ -567,10 +585,9 @@ class TestWarnings(TestCase):
 #             'validation_warning_1']["validation_warnings"]
 
 
-
-
-#
-#
+"""
+Series of gap warning tests using the Ensembl transcript set using VariantFormatter
+"""
 # class TestVFGapWarnings(TestCase):
 #
 #     def test_vf_series_1(self):
@@ -775,7 +792,11 @@ class TestWarnings(TestCase):
 #             'NC_000004.12:g.139889957_139889968del']['NC_000004.12:g.139889957_139889968del']['hgvs_t_and_p'][
 #             'NM_018717.4']['gap_statement']
 #
-#
+
+"""
+Series of gap warning tests using the Ensembl transcript set using VariantValidator
+"""
+
 # class TestVVGapWarnings(TestCase):
 #
 #     @classmethod

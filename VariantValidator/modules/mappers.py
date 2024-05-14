@@ -180,6 +180,10 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
         variant.write = False
         gap_mapper = gapped_mapping.GapMapper(variant, validator)
         data, nw_rel_var = gap_mapper.gapped_g_to_c(rel_var, select_transcripts_dict)
+
+        print("data", data)
+        print("nw_rel_var", nw_rel_var)
+
         rel_var = nw_rel_var
         auto_info_list = []
         if data["gapped_alignment_warning"] != "":

@@ -145,6 +145,16 @@ class Variant(object):
         except fn.VariantValidatorError:
             return True
 
+        # Upper case characters in the edit type e.g. Ins dUP
+        edit_type_patterns = ['delins', 'dup', 'ins', 'del']  # 'delins' is before 'del'
+        for pattern in edit_type_patterns:
+            matches = re.findall(pattern, self.quibble, re.IGNORECASE)
+            for match in matches:
+                if match.lower() != match:
+                    caution = f'Edit type {match} should be in the lower case, i.e. {match.lower()}'
+                    self.warnings.append(caution)
+                    self.quibble = self.quibble.replace(match, match.lower())
+
         return False
 
     def set_reftype(self):

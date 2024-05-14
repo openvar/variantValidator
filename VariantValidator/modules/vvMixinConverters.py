@@ -399,7 +399,6 @@ class Mixin(vvMixinInit.Mixin):
                             # This will only happen if the variant is flanking the gap but is
                             # not inside the gap
                             logger.info('Variant is on the flank of a genomic gap but not within the gap')
-
                             # Logic, normalize the c. variant and if a substitution (cannot normalize) then direct map
                             # Currently believe that sub.n is the only variant type which fits. ins can normalize
                             # and may also be a dup! Added identity also
@@ -723,7 +722,7 @@ class Mixin(vvMixinInit.Mixin):
 
     def noreplace_myevm_t_to_g(self, hgvs_c, variant):
         """
-        USE WITH MAPPER THAT DOES NOT REPLACE THE REFERENCE GENOMIC BASES AND DOED NOT NORMALIZE
+        USE WITH MAPPER THAT DOES NOT REPLACE THE REFERENCE GENOMIC BASES AND DOES NOT NORMALIZE
 
         Enhanced transcript to genome position mapping function using evm
         Trys to ensure that a genomic position is always returned even if the c. or n. transcript

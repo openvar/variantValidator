@@ -347,7 +347,6 @@ def structure_checks_c(variant, validator):
                     return True
 
     elif re.search(r'\d-', str(variant.input_parses)) or re.search(r'\d\+', str(variant.input_parses)):
-
         # Create a no_replace vm instance
         variant.no_replace_vm = vvhgvs.variantmapper.VariantMapper(validator.hdp,
                                                                    replace_reference=False,
@@ -372,9 +371,23 @@ def structure_checks_c(variant, validator):
                 logger.warning(error)
                 return True
             elif 'insertion length must be 1' in error:
-                variant.warnings.append(error)
-                logger.warning(error)
-                return True
+                    if "-" in str(variant.input_parses.posedit.pos.start.offset):
+                        start_offset = str(variant.input_parses.posedit.pos.start.offset - 1)
+                        end_offset = str(variant.input_parses.posedit.pos.start.offset)
+                    elif ("-" not in str(variant.input_parses.posedit.pos.start.offset) and
+                          variant.input_parses.posedit.pos.start.offset != 0):
+                        start_offset = f"+{str(variant.input_parses.posedit.pos.start.offset)}"
+                        end_offset = f"+{str(variant.input_parses.posedit.pos.start.offset + 1)}"
+                    ins_warning = (f'Insertion length must be 1 e.g. '
+                                   f'{variant.input_parses.posedit.pos.start.base}{start_offset}'
+                                   f'_{str(int(variant.input_parses.posedit.pos.start.base))}{end_offset}'
+                                   f'ins{variant.input_parses.posedit.edit.alt}')
+                    variant.warnings.append(ins_warning)
+                    for warning in variant.warnings:
+                        if warning == "insertion length must be 1":
+                            variant.warnings.remove(warning)
+                    return True
+
             elif 'base start position must be <= end position' in error:
                 correction = copy.deepcopy(variant.input_parses)
                 st = variant.input_parses.posedit.pos.start
@@ -486,6 +499,15 @@ def structure_checks_c(variant, validator):
             if "(" not in str(variant.input_parses.posedit.pos):
                 variant.warnings.append(error)
                 logger.warning(error)
+            if 'insertion length must be 1' in error:
+                ins_warning = (f'Insertion length must be 1 e.g. '
+                               f'{str(int(variant.input_parses.posedit.pos.start.base))}'
+                               f'_{str(int(variant.input_parses.posedit.pos.start.base)+1)}'
+                               f'ins{variant.input_parses.posedit.edit.alt}')
+                variant.warnings.append(ins_warning)
+                for warning in variant.warnings:
+                    if warning == "insertion length must be 1":
+                        variant.warnings.remove(warning)
             return True
 
         except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
@@ -500,6 +522,7 @@ def structure_checks_c(variant, validator):
                 variant.warnings.append(error)
                 logger.warning(error)
                 return True
+
     return False
 
 
