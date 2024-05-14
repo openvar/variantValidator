@@ -326,7 +326,10 @@ def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version):
                 available_transcripts = validator.hdp.get_tx_for_gene(uta_symbol)
                 select_from_these_transcripts = []
                 for tx in available_transcripts:
-                    if 'NM_' in tx[3] or 'NR_' in tx[3] or 'ENST' in tx[3]:
+                    if validator.alt_aln_method == 'splign' and ('NM_' in tx[3] or 'NR_' in tx[3]):
+                        if tx[3] not in select_from_these_transcripts:
+                            select_from_these_transcripts.append(tx[3])
+                    elif validator.alt_aln_method == 'genebuild' and 'ENST' in tx[3]:
                         if tx[3] not in select_from_these_transcripts:
                             select_from_these_transcripts.append(tx[3])
                 select_from_these_transcripts = '|'.join(select_from_these_transcripts)
