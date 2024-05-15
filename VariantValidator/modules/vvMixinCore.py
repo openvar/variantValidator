@@ -207,7 +207,31 @@ class Mixin(vvMixinConverters.Mixin):
 
                         if match:
                             result = match.group()
-                            to_code_or_not_to_code = self.hdp.get_tx_identity_info(result)
+                            try:
+                                to_code_or_not_to_code = self.hdp.get_tx_identity_info(result)
+                            except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
+                                if "No transcript definition for" in str(e):
+                                    my_variant.warnings.append("The transcript " + result + " is not in "
+                                                               "our database. Please check the transcript ID")
+                                    versions_available = []
+                                    for i in range(1, 20):
+                                        accession, version = result.split(".")
+                                        version = int(version) + i
+                                        accession_version = accession + "." + str(version)
+                                        try:
+                                            to_code_or_not_to_code = self.hdp.get_tx_identity_info(accession_version)
+                                        except vvhgvs.exceptions.HGVSDataNotAvailableError:
+                                            continue
+                                        else:
+                                            versions_available.append(accession_version)
+                                    if versions_available:
+                                        my_variant.warnings.append("The following versions of the requested "
+                                                                   "transcript are available in our database: "
+                                                                   + "|".join(versions_available))
+                                        continue
+                                    else:
+                                        continue
+
                             if to_code_or_not_to_code[3] is None:
                                 my_variant.transcript_type = 'n'
                             else:
