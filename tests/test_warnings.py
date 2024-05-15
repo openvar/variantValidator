@@ -726,6 +726,16 @@ class TestWarnings(TestCase):
         assert ("Reference type incorrectly stated in the variant description DPYD:C.1905+1G>A Valid types are "
                 "g,c,n,r, or p") in results['validation_warning_1']["validation_warnings"]
 
+    def test_unsupported_transcript1(self):
+        variant = 'NM_032790.1:c.493_494insC'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert results['validation_warning_1']["validation_warnings"] == [
+            "The transcript NM_032790.1 is not in our database. Please check the transcript ID",
+            "The following versions of the requested transcript are available in our database: "
+            "NM_032790.2|NM_032790.3|NM_032790.4"
+        ]
+
 
 class TestVFGapWarnings(TestCase):
 
