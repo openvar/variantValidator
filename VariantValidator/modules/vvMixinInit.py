@@ -156,6 +156,13 @@ class Mixin:
             alt_aln_method='genebuild'  # Ensembl
             )
 
+        self.genebuild_normalizer_cross = vvhgvs.normalizer.Normalizer(
+            self.hdp,
+            cross_boundaries=True,
+            shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
+            alt_aln_method='genebuild'  # Ensembl
+            )
+
         self.reverse_splign_normalizer = vvhgvs.normalizer.Normalizer(self.hdp,
                                                                       cross_boundaries=False,
                                                                       shuffle_direction=5,

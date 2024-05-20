@@ -54,6 +54,8 @@ class Mixin(vvMixinConverters.Mixin):
             self.alt_aln_method = 'splign'
         elif transcript_set == "ensembl":
             self.alt_aln_method = 'genebuild'
+            # Dangerous to liftover based on Ensembl data?
+            liftover_level = None
         else:
             raise Exception("The transcriptSet variable '%s' is invalid, it must be 'refseq' or 'ensembl'" %
                             transcript_set)
@@ -62,7 +64,6 @@ class Mixin(vvMixinConverters.Mixin):
         primary_assembly = None
         self.selected_assembly = selected_assembly
         self.select_transcripts = select_transcripts
-
 
         # Validation
         ############

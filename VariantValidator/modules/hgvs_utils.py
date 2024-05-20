@@ -239,9 +239,9 @@ def pvcf_to_hgvs(query, selected_assembly, normalization_direction, reverse_norm
     return hgvs_object
 
 
-def hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
+def hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf, extra_flank_bases=0):
     """
-    Simple conversionwhich ensures identity is as 5 prime as possible by adding an extra 5
+    Simple conversion which ensures identity is as 5 prime as possible by adding an extra 5
     prime base. Necessary for most gap handling situations
 
     :param hgvs_genomic:
@@ -373,6 +373,16 @@ def hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
                 pos = str(pos)
                 ref = prev + ref
                 alt = prev + alt
+
+    # Add flank bases if requested
+    if extra_flank_bases > 0:
+        original_pos = pos
+        pos = str(int(pos) - extra_flank_bases)
+        left_flank = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), int(pos) - 1, int(original_pos) - 1)
+        right_flank = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), int(original_pos) + len(ref) - 1,
+                                   int(original_pos) + len(ref) - 1 + extra_flank_bases)
+        ref = left_flank + ref + right_flank
+        alt = left_flank + alt + right_flank
 
     # Dictionary the VCF
     vcf_dict = {'chr': chr, 'pos': pos, 'ref': ref, 'alt': alt, 'normalized_hgvs': reverse_normalized_hgvs_genomic}
