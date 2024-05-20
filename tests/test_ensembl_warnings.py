@@ -144,7 +144,7 @@ class TestWarnings(TestCase):
                results['validation_warning_1']['validation_warnings'][0]
         assert 'An insertion must be provided with the two positions between which the insertion has taken place' in \
                results['validation_warning_1']['validation_warnings'][1]
-        assert 'insertion length must be 1' in \
+        assert 'Insertion length must be 1 e.g. 483_484insAAAAAAAAAA' in \
                results['validation_warning_1']['validation_warnings'][2]
 
     def test_issue_359_e(self):
