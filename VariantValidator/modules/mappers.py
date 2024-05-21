@@ -158,7 +158,13 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                             data['hgvs_refseqgene'] = fn.valstr(data['hgvs_refseqgene'])
                             rsg_data = rsg_data + data['hgvs_refseqgene'] + ' (' + data['gene'] + '), '
 
-                    error = 'No transcripts found that fully overlap the described variation in the genomic sequence'
+                    if validator.select_transcripts not in ['all', 'raw', 'select', 'mane_select', 'mane']:
+                        error = (f'None of the specified transcripts ({validator.select_transcripts}) '
+                                 f'fully overlap the described variation in '
+                                 f'the genomic sequence. Try selecting one of the default options')
+                    else:
+                        error = ('No transcripts found that fully overlap the described variation in the genomic '
+                                 'sequence')
                     # set output type flag
                     variant.output_type_flag = 'intergenic'
                     # set genomic and where available RefSeqGene outputs

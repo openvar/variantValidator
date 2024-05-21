@@ -1420,7 +1420,7 @@ class Mixin(vvMixinConverters.Mixin):
                         annotation_info.keys()
                     except Exception:
                         try:
-                            self.db.update_transcript_info_record(hgvs_tx_variant.ac,
+                            self.db.update_transcript_info_record(hgvs_tx_variant.ac, self,
                                                                   genome_build=self.selected_assembly)
                         except fn.DatabaseConnectionError as e:
                             error = 'Currently unable to update all gene_ids or transcript information records ' \
