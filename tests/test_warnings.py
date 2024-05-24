@@ -490,10 +490,9 @@ class TestWarnings(TestCase):
                results['NM_032119.4:c.(17019+1_17020-1)_(17856+1_17857-1)dup']['validation_warnings']
         assert "Only a single transcript can be processed, updating to Select" in \
                results['NM_032119.4:c.(17019+1_17020-1)_(17856+1_17857-1)dup']['validation_warnings']
-        assert results['NM_032119.4:c.(17019+1_17020-1)_(17856+1_17857-1)dup']['primary_assembly_loci'] == {
-            "grch38": {
-                "hgvs_genomic_description": "NC_000005.9:g.(90136803_90144453)_(90159675_90261231)dup"
-            }}
+        assert results['NM_032119.4:c.(17019+1_17020-1)_(17856+1_17857-1)dup'][
+                   'primary_assembly_loci']["grch38"][
+                   "hgvs_genomic_description"] == "NC_000005.9:g.(90136803_90144453)_(90159675_90261231)dup"
         assert results['NM_032119.4:c.(17019+1_17020-1)_(17856+1_17857-1)dup'][
                    'hgvs_transcript_variant'] == "NM_032119.4:c.(17019+1_17020-1)_(17856+1_17857-1)dup"
 
@@ -512,10 +511,9 @@ class TestWarnings(TestCase):
         assert "Uncertain positions are not fully supported, however the syntax is valid" in \
                results['NM_006138.4:c.(1_20)_(30_36)del']['validation_warnings']
         assert results['NM_006138.4:c.(1_20)_(30_36)del']['hgvs_transcript_variant'] == "NM_006138.4:c.(1_20)_(30_36)del"
-        assert results['NM_006138.4:c.(1_20)_(30_36)del']['primary_assembly_loci'] == {
-            "grch38": {
-                "hgvs_genomic_description": "NC_000011.10:g.(60061161_60061180)_(60061190_60061196)del"
-            }}
+        assert results['NM_006138.4:c.(1_20)_(30_36)del'][
+                   'primary_assembly_loci']["grch38"][
+                   "hgvs_genomic_description"] =="NC_000011.10:g.(60061161_60061180)_(60061190_60061196)del"
 
     def test_uncertain_4(self):
         variant = 'NM_032119.3:c.(17019+1_17020-1)_(17856+1_17857-1)dup'
@@ -525,10 +523,9 @@ class TestWarnings(TestCase):
                results['NM_032119.3:c.(17019+1_17020-1)_(17856+1_17857-1)dup']['validation_warnings']
         assert results['NM_032119.3:c.(17019+1_17020-1)_(17856+1_17857-1)dup'][
                    'hgvs_transcript_variant'] == "NM_032119.3:c.(17019+1_17020-1)_(17856+1_17857-1)dup"
-        assert results['NM_032119.3:c.(17019+1_17020-1)_(17856+1_17857-1)dup']['primary_assembly_loci'] == {
-            "grch38": {
-                "hgvs_genomic_description": "NC_000005.10:g.(90840986_90848636)_(90863858_90965414)dup"
-            }}
+        assert results['NM_032119.3:c.(17019+1_17020-1)_(17856+1_17857-1)dup'][
+                   'primary_assembly_loci']["grch38"][
+                   "hgvs_genomic_description"] == "NC_000005.10:g.(90840986_90848636)_(90863858_90965414)dup"
 
     def test_uncertain_5(self):
         variant = 'NC_000005.9:g.(90159675_90261231)_(90136803_90144453)dup'
@@ -599,10 +596,9 @@ class TestWarnings(TestCase):
             'NM_001377405.1:c.(4_246)insNNNNNNNNNNNNNNN']["validation_warnings"]
         assert results['NM_001377405.1:c.(4_246)insNNNNNNNNNNNNNNN'][
                    'hgvs_transcript_variant'] == "NM_001377405.1:c.(4_246)insNNNNNNNNNNNNNNN"
-        assert results['NM_001377405.1:c.(4_246)insNNNNNNNNNNNNNNN']['primary_assembly_loci'] == {
-            "grch38": {
-                "hgvs_genomic_description": "NC_000003.12:g.(63912602_63912844)insNNNNNNNNNNNNNNN"
-            }}
+        assert results['NM_001377405.1:c.(4_246)insNNNNNNNNNNNNNNN'][
+                   'primary_assembly_loci']["grch38"][
+                   "hgvs_genomic_description"] == "NC_000003.12:g.(63912602_63912844)insNNNNNNNNNNNNNNN"
 
     def test_uncertain_8(self):
         variant = 'NC_000003.12:g.(63912602_63912844)delN[15]'
@@ -613,10 +609,9 @@ class TestWarnings(TestCase):
             'NM_001377405.1:c.(4_246)delNNNNNNNNNNNNNNN']["validation_warnings"]
         assert results['NM_001377405.1:c.(4_246)delNNNNNNNNNNNNNNN'][
                    'hgvs_transcript_variant'] == "NM_001377405.1:c.(4_246)delNNNNNNNNNNNNNNN"
-        assert results['NM_001377405.1:c.(4_246)delNNNNNNNNNNNNNNN']['primary_assembly_loci'] == {
-            "grch38": {
-                "hgvs_genomic_description": "NC_000003.12:g.(63912602_63912844)delNNNNNNNNNNNNNNN"
-            }}
+        assert results['NM_001377405.1:c.(4_246)delNNNNNNNNNNNNNNN'][
+                   'primary_assembly_loci']["grch38"][
+                   "hgvs_genomic_description"] == "NC_000003.12:g.(63912602_63912844)delNNNNNNNNNNNNNNN"
 
     def test_uncertain_9(self):
         variant = 'NM_001377405.1:c.(4_246)delN[15]'
@@ -627,10 +622,9 @@ class TestWarnings(TestCase):
             'NM_001377405.1:c.(4_246)delNNNNNNNNNNNNNNN']["validation_warnings"]
         assert results['NM_001377405.1:c.(4_246)delNNNNNNNNNNNNNNN'][
                    'hgvs_transcript_variant'] == "NM_001377405.1:c.(4_246)delNNNNNNNNNNNNNNN"
-        assert results['NM_001377405.1:c.(4_246)delNNNNNNNNNNNNNNN']['primary_assembly_loci'] == {
-            "grch38": {
-                "hgvs_genomic_description": "NC_000003.12:g.(63912602_63912844)delNNNNNNNNNNNNNNN"
-            }}
+        assert results['NM_001377405.1:c.(4_246)delNNNNNNNNNNNNNNN'][
+                   'primary_assembly_loci']["grch38"][
+                   "hgvs_genomic_description"] == "NC_000003.12:g.(63912602_63912844)delNNNNNNNNNNNNNNN"
 
     def test_uncertain_10(self):
         variant = 'NM_001377405.1:c.(4_246)insN[15]'
@@ -641,10 +635,9 @@ class TestWarnings(TestCase):
             'NM_001377405.1:c.(4_246)insNNNNNNNNNNNNNNN']["validation_warnings"]
         assert results['NM_001377405.1:c.(4_246)insNNNNNNNNNNNNNNN'][
                    'hgvs_transcript_variant'] == "NM_001377405.1:c.(4_246)insNNNNNNNNNNNNNNN"
-        assert results['NM_001377405.1:c.(4_246)insNNNNNNNNNNNNNNN']['primary_assembly_loci'] == {
-            "grch38": {
-                "hgvs_genomic_description": "NC_000003.12:g.(63912602_63912844)insNNNNNNNNNNNNNNN"
-            }}
+        assert results['NM_001377405.1:c.(4_246)insNNNNNNNNNNNNNNN'][
+                   'primary_assembly_loci']["grch38"][
+                   "hgvs_genomic_description"] == "NC_000003.12:g.(63912602_63912844)insNNNNNNNNNNNNNNN"
 
     def test_alleles_1(self):
         variant = 'NM_000093.5:c.[14del;17G>A]'

@@ -321,7 +321,11 @@ class Mixin(vvMixinConverters.Mixin):
                             if "NC_" in my_variant.hgvs_genomic and my_variant.reformat_output == "uncertain_pos":
                                 my_variant.primary_assembly_loci = {my_variant.primary_assembly.lower():
                                                                     {"hgvs_genomic_description":
-                                                                     my_variant.hgvs_genomic}}
+                                                                     my_variant.hgvs_genomic,
+                                                                     "vcf": {"chr": None,
+                                                                             "pos": None,
+                                                                             "ref": None,
+                                                                             "alt": None},}}
                     if toskip:
                         continue
 

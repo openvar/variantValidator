@@ -328,9 +328,13 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
 
                 # Applies to ensemble only
                 if expanded_genomic_for_ensembl is not False:
-                    hgvs_refreshed_variant = self.validator.vm.g_to_t(expanded_genomic_for_ensembl,
+                    try:
+                        hgvs_refreshed_variant = self.validator.vm.g_to_t(expanded_genomic_for_ensembl,
                                                                       saved_hgvs_coding.ac,
                                                                       alt_aln_method=self.validator.alt_aln_method)
+                    except vvhgvs.exceptions.HGVSInvalidIntervalError as e:
+                        if "start or end or both are beyond the bounds of transcript record" in str(e):
+                            continue
                     try:
                         hgvs_refreshed_variant = self.validator.vm.n_to_c(hgvs_refreshed_variant)
                     except vvhgvs.exceptions.HGVSError:
@@ -340,20 +344,26 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     genomic_ref_len = len(expanded_genomic_for_ensembl.posedit.edit.ref)
                     transcript_ref_len = len(hgvs_refreshed_variant.posedit.edit.ref)
                     if genomic_ref_len != transcript_ref_len:
+                        message = None
                         if genomic_ref_len > transcript_ref_len:
                             gap_length = genomic_ref_len - transcript_ref_len
                             message = f"{gap_length} fewer bases"
                         elif genomic_ref_len < transcript_ref_len:
                             gap_length = transcript_ref_len - genomic_ref_len
-                            message = f"{gap_length} more bases"
+                            message = f"{gap_length} extra bases"
+                        else:
+                            message = None
 
-                        gap_warnings = self.make_gap_warnings(hgvs_refreshed_variant.ac,
-                                                              expanded_genomic_for_ensembl.ac,
-                                                              self.variant.primary_assembly,
-                                                              message=message)
-
-                        gapped_alignment_warning = gap_warnings["gapped_alignment_warning"]
-                        self.auto_info = self.auto_info + gap_warnings["auto_info"]
+                        if message is not None:
+                            gap_warnings = self.make_gap_warnings(hgvs_refreshed_variant.ac,
+                                                                  expanded_genomic_for_ensembl.ac,
+                                                                  self.variant.primary_assembly,
+                                                                  message=message)
+                            gapped_alignment_warning = gap_warnings["gapped_alignment_warning"]
+                            if self.auto_info != "":
+                                self.auto_info = self.auto_info  # + ", and " + gap_warnings["auto_info"]
+                            else:
+                                self.auto_info = gap_warnings["auto_info"]
 
                         # Will filter out intronic variants since intronic variants will not normalize
                         try:
@@ -643,7 +653,9 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
 
                                         if gap_warnings["gapped_alignment_warning"] is not None \
                                                 and gap_warnings["auto_info"] is not None:
-                                                gapped_alignment_warning = gap_warnings["gapped_alignment_warning"]
+                                            gapped_alignment_warning = gap_warnings["gapped_alignment_warning"]
+                                            if ("fewer" in gap_warnings["auto_info"] or
+                                                    "extra" in gap_warnings["auto_info"]):
                                                 self.auto_info = self.auto_info + gap_warnings["auto_info"]
 
                             # Restore stash_hgvs_not_delins
@@ -724,7 +736,9 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                         if gap_warnings["gapped_alignment_warning"] is not None \
                                 and gap_warnings["auto_info"] is not None:
                             gapped_alignment_warning = gap_warnings["gapped_alignment_warning"]
-                            self.auto_info = self.auto_info + gap_warnings["auto_info"]
+                            if ("fewer" in gap_warnings["auto_info"] or
+                                    "extra" in gap_warnings["auto_info"]):
+                                self.auto_info = self.auto_info + gap_warnings["auto_info"]
 
                         # ANY VARIANT WHOLLY WITHIN THE GAP
                         hgvs_refreshed_variant = self.transcript_disparity(reverse_normalized_hgvs_genomic,
@@ -741,7 +755,9 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                         if gap_warnings["gapped_alignment_warning"] is not None \
                                 and gap_warnings["auto_info"] is not None:
                             gapped_alignment_warning = gap_warnings["gapped_alignment_warning"]
-                            self.auto_info = self.auto_info + gap_warnings["auto_info"]
+                            if ("fewer" in gap_warnings["auto_info"] or
+                                    "extra" in gap_warnings["auto_info"]):
+                                self.auto_info = self.auto_info + gap_warnings["auto_info"]
                         hgvs_refreshed_variant = self.tx_hgvs_not_delins
 
                     else:
@@ -834,7 +850,9 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                     if gap_warnings["gapped_alignment_warning"] is not None \
                                             and gap_warnings["auto_info"] is not None:
                                         gapped_alignment_warning = gap_warnings["gapped_alignment_warning"]
-                                        self.auto_info = self.auto_info + gap_warnings["auto_info"]
+                                        if ("fewer" in gap_warnings["auto_info"] or
+                                                "extra" in gap_warnings["auto_info"]):
+                                            self.auto_info = self.auto_info + gap_warnings["auto_info"]
                                     hgvs_refreshed_variant = tx_hard_right
 
                                 elif len(stash_hgvs_not_delins_left.posedit.edit.ref) < \
@@ -849,7 +867,9 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                     if gap_warnings["gapped_alignment_warning"] is not None \
                                             and gap_warnings["auto_info"] is not None:
                                         gapped_alignment_warning = gap_warnings["gapped_alignment_warning"]
-                                        self.auto_info = self.auto_info + gap_warnings["auto_info"]
+                                        if ("fewer" in gap_warnings["auto_info"] or
+                                                "extra" in gap_warnings["auto_info"]):
+                                            self.auto_info = self.auto_info + gap_warnings["auto_info"]
                                     hgvs_refreshed_variant = tx_hard_left
 
                                 else:
