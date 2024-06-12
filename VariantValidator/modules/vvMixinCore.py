@@ -321,7 +321,11 @@ class Mixin(vvMixinConverters.Mixin):
                             if "NC_" in my_variant.hgvs_genomic and my_variant.reformat_output == "uncertain_pos":
                                 my_variant.primary_assembly_loci = {my_variant.primary_assembly.lower():
                                                                     {"hgvs_genomic_description":
-                                                                     my_variant.hgvs_genomic}}
+                                                                     my_variant.hgvs_genomic,
+                                                                     "vcf": {"chr": None,
+                                                                             "pos": None,
+                                                                             "ref": None,
+                                                                             "alt": None},}}
                     if toskip:
                         continue
 
@@ -1420,7 +1424,7 @@ class Mixin(vvMixinConverters.Mixin):
                         annotation_info.keys()
                     except Exception:
                         try:
-                            self.db.update_transcript_info_record(hgvs_tx_variant.ac,
+                            self.db.update_transcript_info_record(hgvs_tx_variant.ac, self,
                                                                   genome_build=self.selected_assembly)
                         except fn.DatabaseConnectionError as e:
                             error = 'Currently unable to update all gene_ids or transcript information records ' \
@@ -1584,18 +1588,19 @@ class Mixin(vvMixinConverters.Mixin):
                 term_3 = "%s automapped to" % genomic_variant
                 for vt in variant.warnings:
                     vt = str(vt)
-                    # Do not warn a transcript update if it's not the relevant transcript
-                    if "A more recent version of the selected reference sequence" in vt and term not in vt:
-                        continue
+
                     # Do not warn transcript not part of build if it's not the relevant transcript
-                    elif "is not part of genome build" in vt and term not in vt:
+                    if "is not part of genome build" in vt and term not in vt:
                         continue
                     # Do not warn transcript cannot be mapped to build if it's not the relevant transcript
                     elif "cannot be mapped directly to genome build" in vt and term not in vt:
                         continue
                     #  Do not warn a transcript update is available for the most recent transcript
-                    if term in vt and "A more recent version of the selected reference sequence" in vt:
-                        continue
+                    elif term in vt and "A more recent version of the selected reference sequence" in vt:
+                        vt = vt.split(": ")
+                        vt = vt[0]
+                        variant_warnings.append(vt)
+
                     # Remove spurious updates away form the correct output
                     elif (term_2 in vt and tx_variant != "") or (term_3 in vt and genomic_variant != ""):
                         continue
