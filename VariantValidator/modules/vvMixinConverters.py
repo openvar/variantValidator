@@ -1492,7 +1492,7 @@ class Mixin(vvMixinInit.Mixin):
         if select_transcripts == "all" or select_transcripts == "None" or select_transcripts is None:
             rts = self.transcript_filter(rts)
         elif (select_transcripts != "all" and select_transcripts != "None" and select_transcripts != "raw"
-              and "mane" not in select_transcripts):
+              and "mane" not in select_transcripts and "select" not in select_transcripts):
             rts = self.transcript_filter(rts, select_transcripts)
 
         # First if we have an ins prepare for hgvs "ins" mishandling, which
