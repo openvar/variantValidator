@@ -892,7 +892,7 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=
 
             else:
                 if hgvs_alt_genomic.posedit.edit.type == variant.hgvs_coding.posedit.edit.type and \
-                        hgvs_alt_genomic.posedit.edit.type != 'delins':
+                        "ins" not in hgvs_alt_genomic.posedit.edit.type:
                     try:
                         rev_tx = variant.reverse_normalizer.normalize(variant.hgvs_coding)
                         rev_g = validator.myvm_t_to_g(rev_tx, alt_chr, variant.no_norm_evm, variant.hn)

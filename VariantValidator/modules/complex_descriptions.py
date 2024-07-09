@@ -220,6 +220,9 @@ def uncertain_positions(my_variant, validator):
             my_variant.output_type_flag = "gene"
 
     elif ")_(" not in my_variant.quibble and not "?" in my_variant.quibble:
+        if ")(" in my_variant.quibble:
+            raise InvalidRangeError("Invalid range submitted, missing underscore between stated uncertain positions")
+
         accession_and_type, position_and_edit = my_variant.quibble.split(".(")
         position_1, variation = position_and_edit.split(")")
         v1 = f"{accession_and_type}.{position_1}="

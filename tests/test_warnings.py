@@ -639,6 +639,13 @@ class TestWarnings(TestCase):
                    'primary_assembly_loci']["grch38"][
                    "hgvs_genomic_description"] == "NC_000003.12:g.(63912602_63912844)insNNNNNNNNNNNNNNN"
 
+    def test_uncertain_11(self):
+        variant = 'NM_001256214.2:c.(2727+1_2728-1)(2858+1_2859-1)'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert "Invalid range submitted, missing underscore between stated uncertain positions" in results[
+            'validation_warning_1']["validation_warnings"]
+
     def test_alleles_1(self):
         variant = 'NM_000093.5:c.[14del;17G>A]'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
