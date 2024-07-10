@@ -859,7 +859,6 @@ class Mixin(vvMixinConverters.Mixin):
             by_order = sorted(self.batch_list, key=lambda x: x.order)
 
             for variant in by_order:
-
                 logger.debug("Formatting variant " + variant.quibble)
                 if not variant.write:
                     continue
