@@ -176,6 +176,7 @@ class TestConfigValues(unittest.TestCase):
             self.config.write(fh)
 
     def test_file_structure(self):
+
         self.assertCountEqual(self.config.sections(), ['mysql', 'seqrepo', 'postgres',  'logging', 'Entrez'])
         self.assertCountEqual(list(self.config['mysql']), ['host', 'port', 'database', 'user', 'password', 'version'])
         self.assertCountEqual(list(self.config['seqrepo']), ['version', 'location', 'require_threading'])

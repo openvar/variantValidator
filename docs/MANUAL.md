@@ -19,6 +19,7 @@ if you don't enter anything else. The items in the configuration file are:
 host = 127.0.0.1
 port = 3306
 database = validator
+port = 3306
 user = USERNAME
 password = PASSWORD
 version = VERSION
@@ -142,4 +143,3 @@ LRG_1t1:c.589G>T
 17-50198002-C-A  # Note this variant is in the context of GRCh38
 chr17:50198002C>A  # Note this variant is in the context of GRCh38
 ```
-

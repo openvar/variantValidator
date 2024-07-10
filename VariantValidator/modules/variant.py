@@ -21,6 +21,7 @@ class Variant(object):
         self.post_format_conversion = None  # Used for first gapped_mapping function
         self.pre_RNA_conversion = None
         self.input_parses = None  # quibble as hgvs variant object
+        self.transcript_type = None
 
         if warnings is None:
             self.warnings = []
@@ -143,6 +144,16 @@ class Variant(object):
             self.set_reftype()
         except fn.VariantValidatorError:
             return True
+
+        # Upper case characters in the edit type e.g. Ins dUP
+        edit_type_patterns = ['delins', 'dup', 'ins', 'del']  # 'delins' is before 'del'
+        for pattern in edit_type_patterns:
+            matches = re.findall(pattern, self.quibble, re.IGNORECASE)
+            for match in matches:
+                if match.lower() != match:
+                    caution = f'Edit type {match} should be in the lower case, i.e. {match.lower()}'
+                    self.warnings.append(caution)
+                    self.quibble = self.quibble.replace(match, match.lower())
 
         return False
 

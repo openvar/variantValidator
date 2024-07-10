@@ -101,7 +101,7 @@ class RnaDescriptions(object):
         self.protein_variant = protein_variant
         self.protein_variant_slr = protein_variant_slr
 
-    def check_syntax(self, variant_string):
+    def check_syntax(self, variant_string, variant):
         """
         Checks the syntax of the variant string which is a submitted cRNA description string and performs necessary
         transformations to populate the object
@@ -127,7 +127,7 @@ class RnaDescriptions(object):
         self.replace_and_upper(self.input)
 
         # parse the string into hgvs object
-        if "NR_" in self.input:
+        if "NR_" in self.input or variant.transcript_type == "n":
             raise RnaVariantSyntaxError("Invalid variant type for non-coding transcript. Instead use n.")
         else:
             hgvs_rna = self.parse(self.dna_variant, self.vfo)

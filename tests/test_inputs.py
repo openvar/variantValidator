@@ -30944,6 +30944,18 @@ class TestVariantsAuto(TestCase):
         results = self.vv.validate(variant, 'GRCh37', select_transcripts).format_as_dict(test=True)
         assert len(results) == 30
 
+    def test_issue_627(self):
+        variant = 'chr1:100340225:G:GTCTTTTCTTTCTTTTAGAAAATAGTGACAGTTTTAATCTCTTTGTAGATATTTGCATTTAAGGTATCA'
+        select_transcripts = 'mane'
+        results = self.vv.validate(variant, 'GRCh37', select_transcripts).format_as_dict(test=True)
+        assert 'NC_000001.11:g.99874693_99874694insTGACAGTTTTAATCTCTTTGTAGATATTTGCATTTAAGGTATCATCTTTTCTTTCTTTTAGAAAATAG' in \
+               results['NM_000642.3:c.965_966insTGACAGTTTTAATCTCTTTGTAGATATTTGCATTTAAGGTATCATCTTTTCTTTCTTTTAGAAAATAG'][
+                   'primary_assembly_loci']['grch38']['hgvs_genomic_description']
+        assert 'NC_000001.10:g.100340249_100340250insTGACAGTTTTAATCTCTTTGTAGATATTTGCATTTAAGGTATCATCTTTTCTTTCTTTTAGAAAATAG' in \
+               results['NM_000642.3:c.965_966insTGACAGTTTTAATCTCTTTGTAGATATTTGCATTTAAGGTATCATCTTTTCTTTCTTTTAGAAAATAG'][
+                   'primary_assembly_loci']['grch37']['hgvs_genomic_description']
+
+
 # <LICENSE>
 # Copyright (C) 2016-2024 VariantValidator Contributors
 #

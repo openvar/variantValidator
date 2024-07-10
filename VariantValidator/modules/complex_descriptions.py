@@ -30,17 +30,55 @@ def fuzzy_ends(my_variant):
     :return: False if no fuzzy end detected otherwise raises Exception and provides information as to where the
     fuzzy end is located
     """
-
-    if "?" in str(my_variant.hgvs_formatted.posedit.pos):
-        if "?" in str(my_variant.hgvs_formatted.posedit.pos.end) and "?" not in str(
-                my_variant.hgvs_formatted.posedit.pos.start):
-            raise FuzzyPositionError("Fuzzy/unknown variant end position in submitted variant description")
-        elif "?" in str(my_variant.hgvs_formatted.posedit.pos.start) and "?" not in str(
-                my_variant.hgvs_formatted.posedit.pos.end):
-            raise FuzzyPositionError("Fuzzy/unknown variant start position in submitted variant description")
+    if re.match(r"(NM_|NR_|NC_|NG_|ENST)\d+\.\d+:(g|c)\.\(\?\_\d+\)\_\(\d+\_\?\)(del|dup|inv)$",
+                my_variant.quibble):
+        parts = my_variant.quibble.split(")_(")
+        num1 = parts[0].split("_")[-1]
+        num2 = parts[1].split("_")[0]
+        if int(num1) >= int(num2):
+            my_variant.warnings.append("Uncertain positions are not fully supported, however the start position is > "
+                                       "the end position")
         else:
-            raise FuzzyPositionError("Fuzzy/unknown variant start and end positions "
-                                     "in submitted variant description")
+            my_variant.warnings.append("Uncertain positions are not fully supported, however the syntax is valid")
+        raise FuzzyRangeError("Fuzzy/unknown variant start and end positions "
+                              "in submitted variant description")
+
+
+    elif re.match(r"(NM_|NR_|NC_|NG_|ENST)\d+\.\d+:(g|c)\.\(\d+\_\d+\)\_\(\d+\_\?\)(del|dup|inv)$",
+                  my_variant.quibble):
+        # Split the string at ")_(" and "_"
+        parts = my_variant.quibble.split(")_(")
+        parts[0] = parts[0].split("(")[1]
+        num1, num2 = parts[0].split("_")
+        num3 = parts[1].split("_")[0]
+        # Convert the numbers to integers
+        num1 = int(num1)
+        num2 = int(num2)
+        num3 = int(num3)
+        # Check if the numbers are in order
+        if num1 <= num2 <= num3:
+            my_variant.warnings.append("Uncertain positions are not fully supported, however the syntax is valid")
+        else:
+            my_variant.warnings.append("Uncertain positions are not fully supported, however the provided positions "
+                                       "are out of order")
+        raise FuzzyRangeError("Fuzzy/unknown variant end position in submitted variant description")
+
+    elif re.match(r"(NM_|NR_|NC_|NG_|ENST_)\d+\.\d+:(g|c)\.\(\?\_\d+\)\_\(\d+\_\?\)(del|dup|inv)$",
+                  my_variant.quibble):
+        my_variant.warnings.append("Uncertain positions are not fully supported, however the syntax is valid")
+        raise FuzzyRangeError("Fuzzy/unknown variant end position in submitted variant description")
+
+    else:
+        if "?" in str(my_variant.hgvs_formatted.posedit.pos):
+            if "?" in str(my_variant.hgvs_formatted.posedit.pos.end) and "?" not in str(
+                    my_variant.hgvs_formatted.posedit.pos.start):
+                raise FuzzyPositionError("Fuzzy/unknown variant end position in submitted variant description")
+            elif "?" in str(my_variant.hgvs_formatted.posedit.pos.start) and "?" not in str(
+                    my_variant.hgvs_formatted.posedit.pos.end):
+                raise FuzzyPositionError("Fuzzy/unknown variant start position in submitted variant description")
+            else:
+                raise FuzzyPositionError("Fuzzy/unknown variant start and end positions "
+                                         "in submitted variant description")
 
     return False
 
@@ -58,7 +96,7 @@ def uncertain_positions(my_variant, validator):
         return
 
     # Formats like NC_000005.9:g.(90136803_90144453)_(90159675_90261231)dup
-    if ")_(" in my_variant.quibble:
+    if ")_(" in my_variant.quibble and "?" not in my_variant.quibble:
         accession_and_type, positions_and_edit = my_variant.quibble.split(".(")
         position_1, position_2 = positions_and_edit.split(")_(")
         position_2, variation = position_2.split(")")
@@ -181,7 +219,10 @@ def uncertain_positions(my_variant, validator):
             my_variant.hgvs_transcript_variant = my_variant.quibble
             my_variant.output_type_flag = "gene"
 
-    else:
+    elif ")_(" not in my_variant.quibble and not "?" in my_variant.quibble:
+        if ")(" in my_variant.quibble:
+            raise InvalidRangeError("Invalid range submitted, missing underscore between stated uncertain positions")
+
         accession_and_type, position_and_edit = my_variant.quibble.split(".(")
         position_1, variation = position_and_edit.split(")")
         v1 = f"{accession_and_type}.{position_1}="
@@ -258,6 +299,9 @@ def uncertain_positions(my_variant, validator):
             my_variant.hgvs_transcript_variant = my_variant.quibble
             my_variant.output_type_flag = "gene"
 
+    else:
+        print("FUZZINESS")
+        fuzzy_ends(my_variant)
     return
 
 # <LICENSE>

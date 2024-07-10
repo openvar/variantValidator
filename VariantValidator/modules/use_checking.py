@@ -14,15 +14,19 @@ def refseq_common_mistakes(variant):
     Evolving list of common mistakes, see sections below
     """
     # NM_ .g
-    if (variant.quibble.startswith('NM_') or variant.quibble.startswith('NR_')) and variant.reftype == ':g.':
-        suggestion = variant.quibble.replace(':g.', ':c.')
+    if ((variant.quibble.startswith('NM_') or variant.quibble.startswith('NR_') or variant.quibble.startswith('ENST'))
+            and variant.reftype == ':g.'):
+        if variant.quibble.startswith('NR_') or variant.transcript_type == 'n':
+            suggestion = variant.quibble.replace(':g.', ':n.')
+        else:
+            suggestion = variant.quibble.replace(':g.', ':c.')
         error = 'Transcript reference sequence input as genomic (g.) reference sequence. ' \
                 'Did you mean ' + suggestion + '?'
         variant.warnings.append(error)
         logger.warning(error)
         return True
     # NR_ c.
-    if variant.quibble.startswith('NR_') and variant.reftype == ':c.':
+    if variant.transcript_type == "n" and variant.reftype == ':c.':
         suggestion = variant.quibble.replace(':c.', ':n.')
         error = 'Non-coding transcript reference sequence input as coding (c.) reference sequence. ' \
                 'Did you mean ' + suggestion + '?'
@@ -30,7 +34,7 @@ def refseq_common_mistakes(variant):
         logger.warning(error)
         return True
     # NM_ n.
-    if variant.quibble.startswith('NM_') and variant.reftype == ':n.':
+    if variant.transcript_type == "c" and variant.reftype == ':n.':
         suggestion = variant.quibble.replace(':n.', ':c.')
         error = 'Coding transcript reference sequence input as non-coding transcript (n.) reference sequence. ' \
                 'Did you mean ' + suggestion + '?'
@@ -40,7 +44,7 @@ def refseq_common_mistakes(variant):
 
     # NM_ NC_ NG_ NR_ p.
     if (variant.quibble.startswith('NM_') or variant.quibble.startswith('NR_') or variant.quibble.startswith('NC_') or
-            variant.quibble.startswith('NG_')) and variant.reftype == ':p.':
+            variant.quibble.startswith('NG_') or variant.quibble.startswith('ENST')) and variant.reftype == ':p.':
         error = 'Using a nucleotide reference sequence (NM_ NR_ NG_ NC_) to specify protein-level (p.) variation is ' \
                 'not HGVS compliant. Please select an appropriate protein reference sequence (NP_)'
         variant.warnings.append(error)
@@ -121,6 +125,19 @@ def structure_checks_g(variant, validator):
 
         elif "insertion length must be 1" in str(e) and "(" in str(variant.input_parses.posedit.pos) and ")" in \
                 str(variant.input_parses.posedit.pos):
+            return True
+        elif "insertion length must be 1" in str(e) and "(" not in str(variant.input_parses.posedit.pos) and ")" not in\
+                str(variant.input_parses.posedit.pos):
+            ins_warning = (f'Insertion length must be 1 e.g. '
+                           f'{str(int(variant.input_parses.posedit.pos.start.base))}'
+                           f'_{str(int(variant.input_parses.posedit.pos.start.base)+1)}'
+                           f'ins{variant.input_parses.posedit.edit.alt}')
+            variant.warnings.append(ins_warning)
+            for warning in variant.warnings:
+                if warning == "insertion length must be 1":
+                    variant.warnings.remove(warning)
+            return True
+
             return True
         elif "Length implied by coordinates must equal sequence deletion length" in str(e) and \
              "(" in str(variant.input_parses.posedit.pos) and ")" in str(variant.input_parses.posedit.pos):
@@ -343,7 +360,6 @@ def structure_checks_c(variant, validator):
                     return True
 
     elif re.search(r'\d-', str(variant.input_parses)) or re.search(r'\d\+', str(variant.input_parses)):
-
         # Create a no_replace vm instance
         variant.no_replace_vm = vvhgvs.variantmapper.VariantMapper(validator.hdp,
                                                                    replace_reference=False,
@@ -368,9 +384,23 @@ def structure_checks_c(variant, validator):
                 logger.warning(error)
                 return True
             elif 'insertion length must be 1' in error:
-                variant.warnings.append(error)
-                logger.warning(error)
-                return True
+                    if "-" in str(variant.input_parses.posedit.pos.start.offset):
+                        start_offset = str(variant.input_parses.posedit.pos.start.offset - 1)
+                        end_offset = str(variant.input_parses.posedit.pos.start.offset)
+                    elif ("-" not in str(variant.input_parses.posedit.pos.start.offset) and
+                          variant.input_parses.posedit.pos.start.offset != 0):
+                        start_offset = f"+{str(variant.input_parses.posedit.pos.start.offset)}"
+                        end_offset = f"+{str(variant.input_parses.posedit.pos.start.offset + 1)}"
+                    ins_warning = (f'Insertion length must be 1 e.g. '
+                                   f'{variant.input_parses.posedit.pos.start.base}{start_offset}'
+                                   f'_{str(int(variant.input_parses.posedit.pos.start.base))}{end_offset}'
+                                   f'ins{variant.input_parses.posedit.edit.alt}')
+                    variant.warnings.append(ins_warning)
+                    for warning in variant.warnings:
+                        if warning == "insertion length must be 1":
+                            variant.warnings.remove(warning)
+                    return True
+
             elif 'base start position must be <= end position' in error:
                 correction = copy.deepcopy(variant.input_parses)
                 st = variant.input_parses.posedit.pos.start
@@ -427,7 +457,6 @@ def structure_checks_c(variant, validator):
                 variant.warnings.append(error)
                 logger.warning(error)
                 return True
-
         try:
             variant.evm.g_to_t(output, variant.input_parses.ac)
         except vvhgvs.exceptions.HGVSError as e:
@@ -437,8 +466,10 @@ def structure_checks_c(variant, validator):
             return True
 
         # Check that the reference is correct by direct mapping without replacing reference
-        check_ref_g = variant.no_replace_vm.t_to_g(variant.input_parses, output.ac)
-        check_ref_t = variant.no_replace_vm.g_to_t(check_ref_g, variant.input_parses.ac)
+        check_ref_g = variant.no_replace_vm.t_to_g(variant.input_parses, output.ac,
+                                                   alt_aln_method=validator.alt_aln_method)
+        check_ref_t = variant.no_replace_vm.g_to_t(check_ref_g, variant.input_parses.ac,
+                                                   alt_aln_method=validator.alt_aln_method)
 
         # Snapshot current variant error log
         if "*" in str(check_ref_t) and "*" not in str(variant.input_parses):
@@ -481,6 +512,15 @@ def structure_checks_c(variant, validator):
             if "(" not in str(variant.input_parses.posedit.pos):
                 variant.warnings.append(error)
                 logger.warning(error)
+            if 'insertion length must be 1' in error:
+                ins_warning = (f'Insertion length must be 1 e.g. '
+                               f'{str(int(variant.input_parses.posedit.pos.start.base))}'
+                               f'_{str(int(variant.input_parses.posedit.pos.start.base)+1)}'
+                               f'ins{variant.input_parses.posedit.edit.alt}')
+                variant.warnings.append(ins_warning)
+                for warning in variant.warnings:
+                    if warning == "insertion length must be 1":
+                        variant.warnings.remove(warning)
             return True
 
         except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
@@ -495,6 +535,7 @@ def structure_checks_c(variant, validator):
                 variant.warnings.append(error)
                 logger.warning(error)
                 return True
+
     return False
 
 
@@ -610,7 +651,7 @@ def structure_checks_n(variant, validator):
                 try:
                     test_g = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm, variant.primary_assembly,
                                                     variant.hn)
-                    back_to_n = variant.evm.g_to_t(test_g, variant.input_parses.ac)
+                    variant.evm.g_to_t(test_g, variant.input_parses.ac)
                 except vvhgvs.exceptions.HGVSError as e:
                     error = str(e)
                     if 'bounds' in error:

@@ -216,16 +216,6 @@ def pvcf_to_hgvs(query, selected_assembly, normalization_direction, reverse_norm
                 except vvhgvs.exceptions.HGVSError as e:
                     # Sort out multiple ALTS from VCF inputs
                     if re.search("([GATCgatc]+)>([GATCgatc]+),([GATCgatc]+)", not_delins):
-                        # header,alts = not_delins.split('>')
-                        # # Split up the alts into a list
-                        # alt_list = alts.split(',')
-                        # # Assemble and re-submit
-                        # for alt in alt_list:
-                        # 	validation['warnings'] = 'Multiple ALT sequences detected: auto-submitting all possible combinations'
-                        # 	validation['write'] = 'false'
-                        # 	refreshed_description = header + '>' + alt
-                        # 	query = {'quibble' : refreshed_description, 'id' : validation['id'], 'warnings' : validation['warnings'], 'description' : '', 'coding' : '', 'coding_g' : '', 'genomic_r' : '', 'genomic_g' : '', 'protein' : '', 'write' : 'true', 'primary_assembly' : primary_assembly, 'order' : ordering}
-                        # 	batch_list.append(query)
                         error = 'Multiple ALTs not supported by this function'
                         raise PseudoVCF2HGVSError(error)
                     else:
@@ -249,9 +239,9 @@ def pvcf_to_hgvs(query, selected_assembly, normalization_direction, reverse_norm
     return hgvs_object
 
 
-def hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
+def hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf, extra_flank_bases=0):
     """
-    Simple conversionwhich ensures identity is as 5 prime as possible by adding an extra 5
+    Simple conversion which ensures identity is as 5 prime as possible by adding an extra 5
     prime base. Necessary for most gap handling situations
 
     :param hgvs_genomic:
@@ -383,6 +373,16 @@ def hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
                 pos = str(pos)
                 ref = prev + ref
                 alt = prev + alt
+
+    # Add flank bases if requested
+    if extra_flank_bases > 0:
+        original_pos = pos
+        pos = str(int(pos) - extra_flank_bases)
+        left_flank = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), int(pos) - 1, int(original_pos) - 1)
+        right_flank = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), int(original_pos) + len(ref) - 1,
+                                   int(original_pos) + len(ref) - 1 + extra_flank_bases)
+        ref = left_flank + ref + right_flank
+        alt = left_flank + alt + right_flank
 
     # Dictionary the VCF
     vcf_dict = {'chr': chr, 'pos': pos, 'ref': ref, 'alt': alt, 'normalized_hgvs': reverse_normalized_hgvs_genomic}
@@ -1007,7 +1007,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                 if hgvs_genomic.type != "g":
                     normlize_check_mapped = vm.n_to_g(normlize_check_variant, genomic_ac)
                 else:
-                    normlize_check_mapped = vm.g_to_n(normlize_check_variant, tx_ac)
+                    normlize_check_mapped = vm.g_to_n(normlize_check_variant, tx_ac, alt_aln_method)
 
             # Catch out-of-bounds errors
             except vvhgvs.exceptions.HGVSInvalidIntervalError:
@@ -1733,7 +1733,7 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
                 if hgvs_genomic.type != "g":
                     normlize_check_mapped = vm.n_to_g(normlize_check_variant, genomic_ac)
                 else:
-                    normlize_check_mapped = vm.g_to_n(normlize_check_variant, tx_ac)
+                    normlize_check_mapped = vm.g_to_n(normlize_check_variant, tx_ac, alt_aln_method)
             # Catch out-of-bounds errors
             except vvhgvs.exceptions.HGVSInvalidIntervalError:
                 needs_a_push = False
