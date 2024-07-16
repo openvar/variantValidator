@@ -39,6 +39,13 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
         # Remove whitespace
         query = ''.join(query.split())
 
+        try:
+            query = int(query)
+        except ValueError:
+            pass
+        if isinstance(query, int):
+            query = f"HGNC:{str(query)}"
+
         # Search by gene IDs
         if "HGNC:" in query:
             store_query = query
@@ -305,6 +312,7 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
                 gen_span = False
 
             tx_description = g2t.db.get_transcript_description(tx)
+
             if tx_description == 'none':
                 try:
                     g2t.db.update_transcript_info_record(tx, g2t)

@@ -19,10 +19,10 @@ class TestWarnings(TestCase):
                results['validation_warning_1']['validation_warnings']
 
     def test_issue_169(self):
-        variant = 'NC_000017.11(NC_000017.11(ENST00000357654.9):c.4421-63C>G'
+        variant = 'NC_000017.11(NC_000017.11(ENST00000357654.9):c.4422-63C>G'
         results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
-        assert 'ExonBoundaryError: Position c.4421-63 does not correspond with an exon boundary for transcript ENST00000357654.9' in \
+        assert 'ExonBoundaryError: Position c.4422-63 does not correspond with an exon boundary for transcript ENST00000357654.9' in \
                results['validation_warning_1']['validation_warnings']
 
     def test_issue_176(self):
@@ -417,6 +417,27 @@ class TestWarnings(TestCase):
         assert "Using a nucleotide reference sequence (NM_ NR_ NG_ NC_) to specify protein-level (p.) " \
                "variation is not HGVS compliant. Please select an appropriate protein reference sequence (NP_)" in \
                results['validation_warning_1']['validation_warnings']
+
+    def test_invalid_reference_set_refseq(self):
+        variant = 'ENST00000225964.10:g.2559+54_2560del'
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert "InvalidFieldError: The transcript ENST00000225964.10 is not in the RefSeq data set. Please select Ensembl" in \
+               results['validation_warning_1']['validation_warnings']
+
+    def test_invalid_reference_set_ensembl_NM(self):
+        variant = 'NM_000828.4:c.-3_-2delinsTT'
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
+        print(results)
+        assert "InvalidFieldError: The transcript NM_000828.4 is not in the Ensembl data set. Please select RefSeq" in \
+               results['validation_warning_1']['validation_warnings'][0]
+
+    def test_invalid_reference_set_ensembl_NR(self):
+        variant = 'NR_015120.4'
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
+        print(results)
+        assert "InvalidFieldError: The transcript NR_015120.4 is not in the Ensembl data set. Please select RefSeq" in \
+               results['validation_warning_1']['validation_warnings'][0]
 
 
 """
