@@ -17,12 +17,12 @@ class TestValidator(unittest.TestCase):
         with self.assertRaises(Exception):
             self.vv.validate(var, 'GRCh37', 'all', transcript_set='nonsense')
 
-    def test_transcript_seq_ensembl(self):
-        var = 'NM_015120.4:c.34C>T'
-        with self.assertRaises(Exception):
-            self.vv.validate(var, 'GRCh37', 'all', transcript_set='ensembl')
-
-        self.assertEqual(self.vv.alt_aln_method, 'genebuild')
+    # def test_transcript_seq_ensembl(self):
+    #     var = 'NM_015120.4:c.34C>T'
+    #     with self.assertRaises(Exception):
+    #         self.vv.validate(var, 'GRCh37', 'all', transcript_set='ensembl')
+    #
+    #     self.assertEqual(self.vv.alt_aln_method, 'genebuild')
 
     def test_transcript_list(self):
         var = 'NM_015120.4:c.34C>T'

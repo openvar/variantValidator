@@ -181,12 +181,16 @@ class TestGene2Transcripts(unittest.TestCase):
         results = self.vv.gene2transcripts(symbol)
         print(results)
         assert results["current_symbol"] == "COL1A1"
+        symbol = '2197'
+        results = self.vv.gene2transcripts(symbol)
+        assert results["current_symbol"] == "COL1A1"
 
     def test_multiple_genes(self):
-        symbol = '["HGNC:2197", "COL1A1"]'
+        symbol = '["HGNC:2197", "COL1A1", "2197"]'
         results = self.vv.gene2transcripts(symbol)
         print(results)
-        assert len(results) == 2
+        assert len(results) == 3
+        assert results[2]["current_symbol"] == "COL1A1"
         assert results[1]["current_symbol"] == "COL1A1"
         assert results[0]["current_symbol"] == "COL1A1"
 

@@ -198,7 +198,7 @@ class Database(vvDBInsert.Mixin):
             # Check version
             try:
                 if enst_version in str(ens_json['version']):
-                    version = accession
+                    version = accession.strip()
                     description = str(ens_json['display_name'])
                     genbank_symbol = "-".join(description.split('-')[0:-1])
                     if ens_json['is_canonical'] == 1:
@@ -249,6 +249,10 @@ class Database(vvDBInsert.Mixin):
                             select_tx = 'MANE'
                         else:
                             mane_plus_clinical = True
+
+                    description_parts = description.split('-')
+                    if len(description_parts) == 3:
+                        description = description_parts[1] + '-' + description_parts[2]
 
                     # Compile metadata dictionary
                     variant = {"db_xref": {"ensemblgene": ensemblgene_id,
