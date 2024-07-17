@@ -133,7 +133,7 @@ class Mixin(vvDBInit.Mixin):
     def get_transcripts_from_annotations(self, statement):
         query = "SELECT * FROM transcript_info WHERE transcriptVariant LIKE '%{}%'".format(statement)
 
-        print("My query is: ", query)
+        # print("My query is: ", query)
         return self.execute_all(query)
 
     def get_db_version(self):

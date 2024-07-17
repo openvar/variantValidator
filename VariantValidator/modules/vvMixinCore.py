@@ -204,10 +204,23 @@ class Mixin(vvMixinConverters.Mixin):
 
                     # Are submitted ENST transcripts coding or noncoding?
                     if "ENST" in my_variant.quibble or "NM_" in my_variant.quibble or "NR_" in my_variant.quibble:
+
                         match = re.search("(ENST|NM_|NR_)\d+\.\d+", my_variant.quibble)
 
                         if match:
                             result = match.group()
+
+                            # Check if Ens submitted as RefSeq set and vice versa
+                            if "ENST" in result and transcript_set == "refseq":
+                                my_variant.warnings.append(
+                                    "InvalidFieldError: The transcript " + result + " is not in the RefSeq "
+                                    "data set. Please select Ensembl")
+                                continue
+                            elif ("NM_" in result or "NR_" in result) and transcript_set == "ensembl":
+                                my_variant.warnings.append(
+                                    "InvalidFieldError: The transcript " + result + " is not in the Ensembl "
+                                    "data set. Please select RefSeq")
+                                continue
                             try:
                                 to_code_or_not_to_code = self.hdp.get_tx_identity_info(result)
                             except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
@@ -1666,7 +1679,14 @@ class Mixin(vvMixinConverters.Mixin):
 
         try:
             gene_symbols = json.loads(query)
-            batch_output = True
+            if isinstance(gene_symbols, int):
+                batch_output = False
+            elif isinstance(gene_symbols, str):
+                batch_output = False
+            elif isinstance(gene_symbols, list):
+                batch_output = True
+            else:
+                batch_output = False
         except json.decoder.JSONDecodeError:
             if isinstance(query, list):
                 gene_symbols = query
@@ -1871,9 +1891,8 @@ class Mixin(vvMixinConverters.Mixin):
                 # If the current entry is too old
                 if entry['expiry'] == 'true':
                     try:
-                        entry = self.db.data_add(accession=accession,
-                                                 validator=self,
-                                                 genome_build=variant.selected_assembly)
+                        self.db.update_transcript_info_record(accession, validator=self,
+                                                              genome_build=variant.selected_assembly)
                     except vvhgvs.exceptions.HGVSError:
                         error = 'Transcript %s is not currently supported' % accession
                         variant.warnings.append(error)
@@ -1892,10 +1911,11 @@ class Mixin(vvMixinConverters.Mixin):
                             logger.warning(error)
                             return True
                         elif "Cannot retrieve data from Ensembl REST for record" in str(e):
-                            error = '%s. Please try again later and if the problem persists contact admin.' % str(e)
+                            error = ('%s. Please try an alternate genome build, or try again later and if the problem '
+                                     'persists contact admin.') % str(e)
                             variant.warnings.append(error)
                             logger.warning(error)
-
+                    entry = self.db.in_entries(accession, 'transcript_info')
                     variant.description = entry['description']
                 else:
                     variant.description = entry['description']
@@ -1903,15 +1923,20 @@ class Mixin(vvMixinConverters.Mixin):
             # If the none key is found add the description to the database
             elif 'none' in entry:
                 try:
-                    entry = self.db.data_add(accession=accession, validator=self)
+                    self.db.update_transcript_info_record(accession, validator=self,
+                                                          genome_build=variant.selected_assembly)
                 except Exception as e:
+                    import traceback
+                    traceback.print_exc()
                     logger.info(str(e))
                     error = 'Unable to assign transcript identity records to ' + accession + \
-                            ', potentially an obsolete record or there is an issue retrieving data from NCBI. ' \
-                            'Please try again later and if the problem persists contact admin'
+                            ', potentially an obsolete record or there is an issue retrieving data from Ensembl. ' \
+                            'Please try again later and if the problem' \
+                            'persists contact admin'
                     variant.warnings.append(error)
                     logger.info(error)
                     return True
+                entry = self.db.in_entries(accession, 'transcript_info')
                 variant.description = entry['description']
 
             # If no correct keys are found
