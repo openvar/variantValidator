@@ -305,8 +305,7 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
             # reverse the exon_set to maintain gene and not genome orientation if gene is -1 orientated
             if tx_orientation == -1:
                 exon_set.reverse()
-
-            if ('NG_' in line[4] or 'NC_000' in line[4]) and line[5] != 'blat':
+            if ('NG_' in line[4] or 'NC_0' in line[4]) and line[5] != 'blat':
                 gen_span = True
             else:
                 gen_span = False
