@@ -1610,7 +1610,7 @@ class Mixin(vvMixinConverters.Mixin):
                     #  Do not warn a transcript update is available for the most recent transcript
                     elif term in vt and "A more recent version of the selected reference sequence" in vt:
                         vt = vt.split(": ")
-                        vt = vt[0]
+                        vt = ": ".join([vt[0], vt[1]])
                         variant_warnings.append(vt)
 
                     # Remove spurious updates away form the correct output

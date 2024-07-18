@@ -792,15 +792,15 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         updated_transcript_variant = hgvs_updated
 
         if validator.alt_aln_method == "genebuild":
-            variant.warnings.append('A more recent version of the selected reference sequence ' + hgvs_coding.ac +
+            variant.warnings.append('TranscriptVersionWarning: A more recent version of the selected reference sequence ' + hgvs_coding.ac +
                                     ' is available for genome build ' + variant.primary_assembly +
                                     ' (' + updated_transcript_variant.ac + ')' + ': ' +
                                     str(updated_transcript_variant) + ' MUST be fully validated prior to '
                                                                       'use in reports: '
-                                    'select_variants=' + fn.valstr(updated_transcript_variant) + 
+                                    'select_variants=' + fn.valstr(updated_transcript_variant) +
                                     ', genome_build=' + variant.primary_assembly)
         else:
-            variant.warnings.append('A more recent version of the selected reference sequence ' + hgvs_coding.ac +
+            variant.warnings.append('TranscriptVersionWarning: A more recent version of the selected reference sequence ' + hgvs_coding.ac +
                                     ' is available for genome build ' + variant.primary_assembly +
                                     ' (' + updated_transcript_variant.ac + ')' + ': ' +
                                     str(updated_transcript_variant) + ' MUST be fully validated prior to '

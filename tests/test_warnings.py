@@ -1165,29 +1165,53 @@ class TestVVGapWarnings(TestCase):
         variant = 'NM_000093.3:c.3_4inv'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert ("A more recent version of the selected reference sequence NM_000093.3 is available for genome "
+        assert ("TranscriptVersionWarning: A more recent version of the selected reference sequence NM_000093.3 is available for genome "
                 "build GRCh37 (NM_000093.5)") in \
                results['NM_000093.3:c.3_4inv']['validation_warnings']
 
     def test_aligned_transcript_versions_refseq_38(self):
         variant = 'NM_000093.3:c.3_4inv'
-        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="refseq").format_as_dict(test=True)
         print(results)
-        assert ("A more recent version of the selected reference sequence NM_000093.3 is available for genome "
+        assert ("TranscriptVersionWarning: A more recent version of the selected reference sequence NM_000093.3 is available for genome "
                 "build GRCh38 (NM_000093.5)") in \
                results['NM_000093.3:c.3_4inv']['validation_warnings']
+
+    def test_aligned_transcript_versions_ensembl_38(self):
+        variant = 'ENST00000382483.3:c.1A>T'
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
+        print(results)
+        assert ("TranscriptVersionWarning: A more recent version of the selected reference sequence ENST00000382483.3 is available for genome "
+                "build GRCh38 (ENST00000382483.4)") in \
+               results['ENST00000382483.3:c.1A>T']['validation_warnings']
+
+    def test_aligned_transcript_versions_ensembl_37(self):
+        variant = 'ENST00000382483.3:c.1A>T'
+        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="ensembl").format_as_dict(test=True)
+        print(results)
+        assert ("TranscriptVersionWarning: A more recent version of the selected reference sequence ENST00000382483.3 is available for genome "
+                "build GRCh37 (ENST00000382483.4)") not in \
+               results['ENST00000382483.3:c.1A>T']['validation_warnings']
 
     def test_aligned_transcript_versions_vf(self):
         results = simpleVariantFormatter.format('NC_000009.12:g.134642190_134642191inv',
                                                                  'GRCh38', 'all', "raw", False, False, testing=True)
         print(results)
         assert 'NC_000009.12:g.134642190_134642191inv' in results.keys()
-        assert 'A more recent version of the selected reference sequence NM_000093.4 is available for genome build GRCh38 (NM_000093.5)' in results[
+        assert 'TranscriptVersionWarning: A more recent version of the selected reference sequence NM_000093.4 is available for genome build GRCh38 (NM_000093.5)' in results[
             'NC_000009.12:g.134642190_134642191inv']['NC_000009.12:g.134642190_134642191inv']['hgvs_t_and_p'][
             'NM_000093.4']['transcript_version_warning']
-        assert 'A more recent version of the selected reference sequence NM_000093.3 is available for genome build GRCh38 (NM_000093.5)' in results[
+        assert 'TranscriptVersionWarning: A more recent version of the selected reference sequence NM_000093.3 is available for genome build GRCh38 (NM_000093.5)' in results[
             'NC_000009.12:g.134642190_134642191inv']['NC_000009.12:g.134642190_134642191inv']['hgvs_t_and_p'][
             'NM_000093.3']['transcript_version_warning']
+
+        results = simpleVariantFormatter.format('NC_000008.11:g.10623201T>A',
+                                                                 'GRCh38', 'all', "raw", False, False, testing=True)
+
+        assert 'NC_000008.11:g.10623201T>A' in results.keys()
+        assert 'TranscriptVersionWarning: A more recent version of the selected reference sequence ENST00000382483.3 is available for genome build GRCh38 (ENST00000382483.4)' in results[
+            'NC_000008.11:g.10623201T>A']['NC_000008.11:g.10623201T>A']['hgvs_t_and_p'][
+            'ENST00000382483.3']['transcript_version_warning']
 
 
 # <LICENSE>
