@@ -1122,6 +1122,20 @@ class TestVVGapWarnings(TestCase):
         assert "This is not a valid HGVS variant description, because no reference sequence ID has been provided" in \
                results['NM_001276761.3:c.259T>G']['validation_warnings']
 
+    def test_vv_series_17a(self):
+        variant = '12345'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert ("InvalidVariantError: Accepted formats are HGVS, pseudoVCF. Refer to the examples provided at "
+                "https://variantvalidator.org/service/validate/ for more information.") in \
+               results['validation_warning_1']['validation_warnings']
+        variant = 12345
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert ("InvalidVariantError: Accepted formats are HGVS, pseudoVCF. Refer to the examples provided at "
+                "https://variantvalidator.org/service/validate/ for more information.") in \
+               results['validation_warning_1']['validation_warnings']
+
     def test_vv_series_18(self):
         variant = 'NR_033955.2:r.164c>a'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
