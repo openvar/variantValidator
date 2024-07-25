@@ -100,6 +100,8 @@ class Mixin(vvMixinConverters.Mixin):
             # Turn each variant into a dictionary. The dictionary will be compiled during validation
             self.batch_list = []
             for queries in batch_queries:
+                if isinstance(batch_queries, int):
+                    batch_queries = str(batch_queries)
                 queries = queries.strip()
                 query = Variant(queries)
                 self.batch_list.append(query)
@@ -1601,6 +1603,7 @@ class Mixin(vvMixinConverters.Mixin):
                 for vt in variant.warnings:
                     vt = str(vt)
 
+
                     # Do not warn transcript not part of build if it's not the relevant transcript
                     if "is not part of genome build" in vt and term not in vt:
                         continue
@@ -1610,8 +1613,13 @@ class Mixin(vvMixinConverters.Mixin):
                     #  Do not warn a transcript update is available for the most recent transcript
                     elif term in vt and "A more recent version of the selected reference sequence" in vt:
                         vt = vt.split(": ")
-                        vt = vt[0]
+                        vt = ": ".join([vt[0], vt[1]])
                         variant_warnings.append(vt)
+
+                    elif "expected a letter" in vt:
+                        variant_warnings.append("InvalidVariantError: Accepted formats are HGVS, pseudoVCF. "
+                                                "Refer to the examples provided at https://variantvalidator."
+                                                "org/service/validate/ for more information.")
 
                     # Remove spurious updates away form the correct output
                     elif (term_2 in vt and tx_variant != "") or (term_3 in vt and genomic_variant != ""):
@@ -1926,8 +1934,8 @@ class Mixin(vvMixinConverters.Mixin):
                     self.db.update_transcript_info_record(accession, validator=self,
                                                           genome_build=variant.selected_assembly)
                 except Exception as e:
-                    import traceback
-                    traceback.print_exc()
+                    # import traceback
+                    # traceback.print_exc()
                     logger.info(str(e))
                     error = 'Unable to assign transcript identity records to ' + accession + \
                             ', potentially an obsolete record or there is an issue retrieving data from Ensembl. ' \

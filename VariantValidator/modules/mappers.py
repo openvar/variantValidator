@@ -747,6 +747,8 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     version_tracking = '0'
     update = ''
     for accession in tx_for_gene:
+        if genomic_ac not in accession[4]:
+            continue
         try:
             if re.match(ac_root, accession[3]):
                 query_version = accession[3].split('.')[1]
@@ -790,15 +792,19 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         updated_transcript_variant = hgvs_updated
 
         if validator.alt_aln_method == "genebuild":
-            variant.warnings.append('A more recent version of the selected reference sequence ' + hgvs_coding.ac +
-                                    ' is available (' + updated_transcript_variant.ac + ')' + ': ' +
-                                    str(updated_transcript_variant) + ' MUST be fully validated prior to use in reports: '
-                                    'select_variants=' + fn.valstr(updated_transcript_variant) + 
+            variant.warnings.append('TranscriptVersionWarning: A more recent version of the selected reference sequence ' + hgvs_coding.ac +
+                                    ' is available for genome build ' + variant.primary_assembly +
+                                    ' (' + updated_transcript_variant.ac + ')' + ': ' +
+                                    str(updated_transcript_variant) + ' MUST be fully validated prior to '
+                                                                      'use in reports: '
+                                    'select_variants=' + fn.valstr(updated_transcript_variant) +
                                     ', genome_build=' + variant.primary_assembly)
         else:
-            variant.warnings.append('A more recent version of the selected reference sequence ' + hgvs_coding.ac +
-                                    ' is available (' + updated_transcript_variant.ac + ')' + ': ' +
-                                    str(updated_transcript_variant) + ' MUST be fully validated prior to use in reports: '
+            variant.warnings.append('TranscriptVersionWarning: A more recent version of the selected reference sequence ' + hgvs_coding.ac +
+                                    ' is available for genome build ' + variant.primary_assembly +
+                                    ' (' + updated_transcript_variant.ac + ')' + ': ' +
+                                    str(updated_transcript_variant) + ' MUST be fully validated prior to '
+                                                                      'use in reports: '
                                     'select_variants=' + fn.valstr(updated_transcript_variant))
 
     variant.coding = str(hgvs_coding)

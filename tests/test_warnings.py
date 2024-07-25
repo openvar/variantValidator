@@ -1122,6 +1122,20 @@ class TestVVGapWarnings(TestCase):
         assert "This is not a valid HGVS variant description, because no reference sequence ID has been provided" in \
                results['NM_001276761.3:c.259T>G']['validation_warnings']
 
+    def test_vv_series_17a(self):
+        variant = '12345'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert ("InvalidVariantError: Accepted formats are HGVS, pseudoVCF. Refer to the examples provided at "
+                "https://variantvalidator.org/service/validate/ for more information.") in \
+               results['validation_warning_1']['validation_warnings']
+        variant = 12345
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert ("InvalidVariantError: Accepted formats are HGVS, pseudoVCF. Refer to the examples provided at "
+                "https://variantvalidator.org/service/validate/ for more information.") in \
+               results['validation_warning_1']['validation_warnings']
+
     def test_vv_series_18(self):
         variant = 'NR_033955.2:r.164c>a'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
@@ -1160,6 +1174,58 @@ class TestVVGapWarnings(TestCase):
         assert "ExonBoundaryError: Position c.2559+54 has been updated to position to 2560-35 ensuring correct HGVS " \
                "numbering for transcript NM_000088.4" in \
                results['NM_000088.4:c.2560-34_2561del']['validation_warnings']
+
+    def test_aligned_transcript_versions_refseq_37(self):
+        variant = 'NM_000093.3:c.3_4inv'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert ("TranscriptVersionWarning: A more recent version of the selected reference sequence NM_000093.3 is available for genome "
+                "build GRCh37 (NM_000093.5)") in \
+               results['NM_000093.3:c.3_4inv']['validation_warnings']
+
+    def test_aligned_transcript_versions_refseq_38(self):
+        variant = 'NM_000093.3:c.3_4inv'
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert ("TranscriptVersionWarning: A more recent version of the selected reference sequence NM_000093.3 is available for genome "
+                "build GRCh38 (NM_000093.5)") in \
+               results['NM_000093.3:c.3_4inv']['validation_warnings']
+
+    def test_aligned_transcript_versions_ensembl_38(self):
+        variant = 'ENST00000382483.3:c.1A>T'
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
+        print(results)
+        assert ("TranscriptVersionWarning: A more recent version of the selected reference sequence ENST00000382483.3 is available for genome "
+                "build GRCh38 (ENST00000382483.4)") in \
+               results['ENST00000382483.3:c.1A>T']['validation_warnings']
+
+    def test_aligned_transcript_versions_ensembl_37(self):
+        variant = 'ENST00000382483.3:c.1A>T'
+        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="ensembl").format_as_dict(test=True)
+        print(results)
+        assert ("TranscriptVersionWarning: A more recent version of the selected reference sequence ENST00000382483.3 is available for genome "
+                "build GRCh37 (ENST00000382483.4)") not in \
+               results['ENST00000382483.3:c.1A>T']['validation_warnings']
+
+    def test_aligned_transcript_versions_vf(self):
+        results = simpleVariantFormatter.format('NC_000009.12:g.134642190_134642191inv',
+                                                                 'GRCh38', 'all', "raw", False, False, testing=True)
+        print(results)
+        assert 'NC_000009.12:g.134642190_134642191inv' in results.keys()
+        assert 'TranscriptVersionWarning: A more recent version of the selected reference sequence NM_000093.4 is available for genome build GRCh38 (NM_000093.5)' in results[
+            'NC_000009.12:g.134642190_134642191inv']['NC_000009.12:g.134642190_134642191inv']['hgvs_t_and_p'][
+            'NM_000093.4']['transcript_version_warning']
+        assert 'TranscriptVersionWarning: A more recent version of the selected reference sequence NM_000093.3 is available for genome build GRCh38 (NM_000093.5)' in results[
+            'NC_000009.12:g.134642190_134642191inv']['NC_000009.12:g.134642190_134642191inv']['hgvs_t_and_p'][
+            'NM_000093.3']['transcript_version_warning']
+
+        results = simpleVariantFormatter.format('NC_000008.11:g.10623201T>A',
+                                                                 'GRCh38', 'all', "raw", False, False, testing=True)
+
+        assert 'NC_000008.11:g.10623201T>A' in results.keys()
+        assert 'TranscriptVersionWarning: A more recent version of the selected reference sequence ENST00000382483.3 is available for genome build GRCh38 (ENST00000382483.4)' in results[
+            'NC_000008.11:g.10623201T>A']['NC_000008.11:g.10623201T>A']['hgvs_t_and_p'][
+            'ENST00000382483.3']['transcript_version_warning']
 
 
 # <LICENSE>
