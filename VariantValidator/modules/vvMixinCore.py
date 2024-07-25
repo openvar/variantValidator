@@ -1934,8 +1934,8 @@ class Mixin(vvMixinConverters.Mixin):
                     self.db.update_transcript_info_record(accession, validator=self,
                                                           genome_build=variant.selected_assembly)
                 except Exception as e:
-                    import traceback
-                    traceback.print_exc()
+                    # import traceback
+                    # traceback.print_exc()
                     logger.info(str(e))
                     error = 'Unable to assign transcript identity records to ' + accession + \
                             ', potentially an obsolete record or there is an issue retrieving data from Ensembl. ' \
