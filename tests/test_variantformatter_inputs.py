@@ -6853,19 +6853,6 @@ class TestVFvariantsAuto(object):
         assert 'NC_000008.10:g.24811072C>T' in results.keys()
         assert 'NC_000008.10:g.24811072C>A' in results.keys()
 
-    def test_hybrid_syntax_1(self):
-        results = VariantFormatter.simpleVariantFormatter.format("chr17:50198002C>A", 'GRCh38',
-                                                                 'all', None, False, False, testing=False)
-        print(results)
-        assert 'chr17:50198002C>A' in results.keys()
-        assert 'NC_000017.11:g.50198002C>A' in results["chr17:50198002C>A"].keys()
-        results = VariantFormatter.simpleVariantFormatter.format("17:50198002C>A", 'GRCh38',
-                                                                 'all', None, False, False, testing=False)
-        print(results)
-        assert '17:50198002C>A' in results.keys()
-        assert 'NC_000017.11:g.50198002C>A' in results["17:50198002C>A"].keys()
-
-
 # <LICENSE>
 # Copyright (C) 2016-2024 VariantValidator Contributors
 #

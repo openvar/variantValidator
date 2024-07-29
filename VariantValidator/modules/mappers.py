@@ -654,7 +654,11 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
         protein_dict = {'hgvs_protein': None, 'error': str(e)}
         variant.warnings.append(str(e))
-
+    except IndexError:
+        protein_dict = {'hgvs_protein': None, 'error': f"TranscriptTypeError: Cannot identify an in-frame Termination "
+                                                       f"codon in the reference "
+                                                       f"mRNA sequence. {hgvs_coding.ac} may not be a valid "
+                                                       f"coding sequence"}
     # Replace p.= with p.(=)
     # Replace p.? with p.(?)
     try:

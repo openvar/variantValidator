@@ -1,8 +1,7 @@
 import unittest
-from VariantValidator.version import __version__ as variant_version, _is_released_version
-from unittest.mock import patch, MagicMock
+from VariantValidator.version import _is_released_version
+from unittest.mock import patch
 import importlib.metadata
-import re
 import warnings
 
 
