@@ -46,6 +46,7 @@ class Variant(object):
         self.timing = {}
         self.refsource = None
         self.reftype = None
+        self.expanded_repeat = None
 
         # Set reformat options
         self.reformat_output = reformat_output
