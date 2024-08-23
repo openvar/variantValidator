@@ -738,7 +738,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                     # Fuzzy ends
                     try:
-                        complex_descriptions.fuzzy_ends(my_variant)
+                        complex_descriptions.fuzzy_ends(my_variant, self)
                     except complex_descriptions.FuzzyPositionError as e:
                         my_variant.warnings.append(str(e))
                         logger.warning(str(e))
@@ -1482,7 +1482,7 @@ class Mixin(vvMixinConverters.Mixin):
                     variant.reference_sequence_records = ref_records
 
                 # Loop out uncertain position variants
-                if my_variant.reformat_output != "uncertain_pos":
+                if variant.reformat_output != "uncertain_pos":
 
                     # Liftover intergenic positions genome to genome
                     if (variant.output_type_flag == 'intergenic' and liftover_level is not None) or \
@@ -1533,6 +1533,7 @@ class Mixin(vvMixinConverters.Mixin):
                             if (genomic_position_info[g_p_key]['hgvs_genomic_description'] not in lo_cache.keys()) or (
                                     "NC_012920.1" in genomic_position_info[g_p_key]['hgvs_genomic_description']
                                     and build_from == "hg38" and build_to == "hg19"):
+
                                 lifted_response = liftover(genomic_position_info[g_p_key]['hgvs_genomic_description'],
                                                            build_from,
                                                            build_to, variant.hn, variant.reverse_normalizer,

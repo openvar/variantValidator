@@ -1,5 +1,6 @@
 import re
 from vvhgvs.assemblymapper import AssemblyMapper
+from VariantValidator.modules import utils as vv_utils
 import vvhgvs.exceptions
 
 
@@ -24,17 +25,40 @@ class HgvsParseError(Exception):
     pass
 
 
-def fuzzy_ends(my_variant):
+def fuzzy_ends(my_variant, validator):
     """
     :param my_variant:
     :return: False if no fuzzy end detected otherwise raises Exception and provides information as to where the
     fuzzy end is located
     """
-    if re.match(r"(NM_|NR_|NC_|NG_|ENST)\d+\.\d+:(g|c)\.\(\?\_\d+\)\_\(\d+\_\?\)(del|dup|inv)$",
-                my_variant.quibble):
+    if re.match(r"(NM_|NR_|NC_|NG_|ENST)\d+\.\d+:(g|c)\.\(\?\_\d+(\+|-)?\d*\)\_\(\d+(\+|-)?\d*_\?\)"
+                r"(del|dup|inv)$", my_variant.quibble):
+
         parts = my_variant.quibble.split(")_(")
         num1 = parts[0].split("_")[-1]
         num2 = parts[1].split("_")[0]
+
+        intronic_positions = []
+        try:
+            num1 = int(num1)
+        except ValueError:
+            num1 = int(re.split(r'(\+|-)', num1)[0])
+            intronic_positions.append(num1)
+        try:
+            num2 = int(num2)
+        except ValueError:
+            num2 = int(re.split(r'(\+|-)', num2)[0])
+            intronic_positions.append(num2)
+
+        if re.search(r":[cnr]\.", my_variant.quibble):
+            exon_boundaries = vv_utils.get_exon_boundary_list(my_variant, validator)
+            for pos in intronic_positions:
+                if str(pos) not in exon_boundaries:
+                    raise FuzzyPositionError(f"ExonBoundaryError: Position {pos} does not correspond to an exon "
+                                             f"boundary for transcript {my_variant.quibble.split(':')[0]} aligned"
+                                             f" to {my_variant.primary_assembly} genomic reference "
+                                             f"sequence {exon_boundaries[1]}")
+
         if int(num1) >= int(num2):
             my_variant.warnings.append("Uncertain positions are not fully supported, however the start position is > "
                                        "the end position")
@@ -43,18 +67,42 @@ def fuzzy_ends(my_variant):
         raise FuzzyRangeError("Fuzzy/unknown variant start and end positions "
                               "in submitted variant description")
 
+    elif re.match(r"(NM_|NR_|NC_|NG_|ENST)\d+\.\d+:(g|c)\.\(\d+(\+|-)?\d*_\d+(\+|-)?\d*\)\_\(\d+(\+|-)?\d*_\?\)"
+                  r"(del|dup|inv)$", my_variant.quibble):
 
-    elif re.match(r"(NM_|NR_|NC_|NG_|ENST)\d+\.\d+:(g|c)\.\(\d+\_\d+\)\_\(\d+\_\?\)(del|dup|inv)$",
-                  my_variant.quibble):
         # Split the string at ")_(" and "_"
         parts = my_variant.quibble.split(")_(")
         parts[0] = parts[0].split("(")[1]
         num1, num2 = parts[0].split("_")
         num3 = parts[1].split("_")[0]
+
         # Convert the numbers to integers
-        num1 = int(num1)
-        num2 = int(num2)
-        num3 = int(num3)
+        intronic_positions = []
+        try:
+            num1 = int(num1)
+        except ValueError:
+            num1 = int(re.split(r'(\+|-)', num1)[0])
+            intronic_positions.append(num1)
+        try:
+            num2 = int(num2)
+        except ValueError:
+            num2 = int(re.split(r'(\+|-)', num2)[0])
+            intronic_positions.append(num2)
+        try:
+            num3 = int(num3)
+        except ValueError:
+            num3 = int(re.split(r'(\+|-)', num3)[0])
+            intronic_positions.append(num3)
+
+        if re.search(r":[cnr]\.", my_variant.quibble):
+            exon_boundaries = vv_utils.get_exon_boundary_list(my_variant, validator)
+            for pos in intronic_positions:
+                if str(pos) not in exon_boundaries:
+                    raise FuzzyPositionError(f"ExonBoundaryError: Position {pos} does not correspond to an exon "
+                                             f"boundary for transcript {my_variant.quibble.split(':')[0]} aligned"
+                                             f" to {my_variant.primary_assembly} genomic reference "
+                                             f"sequence {exon_boundaries[1]}")
+
         # Check if the numbers are in order
         if num1 <= num2 <= num3:
             my_variant.warnings.append("Uncertain positions are not fully supported, however the syntax is valid")
@@ -63,9 +111,51 @@ def fuzzy_ends(my_variant):
                                        "are out of order")
         raise FuzzyRangeError("Fuzzy/unknown variant end position in submitted variant description")
 
-    elif re.match(r"(NM_|NR_|NC_|NG_|ENST_)\d+\.\d+:(g|c)\.\(\?\_\d+\)\_\(\d+\_\?\)(del|dup|inv)$",
-                  my_variant.quibble):
-        my_variant.warnings.append("Uncertain positions are not fully supported, however the syntax is valid")
+    elif re.match(
+            r"(NM_|NR_|NC_|NG_|ENST)\d+\.\d+:(g|c)\.\(\?\_\d+(\+|-)?\d*\)\_\(\d+(\+|-)?\d*_\d+(\+|-)?\d*\)"
+            r"(del|dup|inv)$", my_variant.quibble):
+
+        # Split the string at ")_(" and "_"
+        parts = my_variant.quibble.split(")_(")
+        # Extract the first part of the string after "(_?" and split at "_"
+        num1 = parts[0].split("_")[-1]
+        # Extract the second part and split at "_"
+        num2, num3 = parts[1].split(")_")[0].split("_")
+        num3 = num3.split(")")[0]
+
+        # Convert the numbers to integers
+        intronic_positions = []
+        try:
+            num1 = int(num1)
+        except ValueError:
+            num1 = int(re.split(r'(\+|-)', num1)[0])
+            intronic_positions.append(num1)
+        try:
+            num2 = int(num2)
+        except ValueError:
+            num2 = int(re.split(r'(\+|-)', num2)[0])
+            intronic_positions.append(num2)
+        try:
+            num3 = int(num3)
+        except ValueError:
+            num3 = int(re.split(r'(\+|-)', num3)[0])
+            intronic_positions.append(num3)
+
+        if re.search(r":[cnr]\.", my_variant.quibble):
+            exon_boundaries = vv_utils.get_exon_boundary_list(my_variant, validator)
+            for pos in intronic_positions:
+                if str(pos) not in exon_boundaries:
+                    raise FuzzyPositionError(f"ExonBoundaryError: Position {pos} does not correspond to an exon "
+                                             f"boundary for transcript {my_variant.quibble.split(':')[0]} aligned"
+                                             f" to {my_variant.primary_assembly} genomic reference "
+                                             f"sequence {exon_boundaries[1]}")
+
+        # Check if the numbers are in order
+        if num1 <= num2 <= num3:
+            my_variant.warnings.append("Uncertain positions are not fully supported, however the syntax is valid")
+        else:
+            my_variant.warnings.append("Uncertain positions are not fully supported, however the provided positions "
+                                       "are out of order")
         raise FuzzyRangeError("Fuzzy/unknown variant end position in submitted variant description")
 
     else:
@@ -300,8 +390,7 @@ def uncertain_positions(my_variant, validator):
             my_variant.output_type_flag = "gene"
 
     else:
-        print("FUZZINESS")
-        fuzzy_ends(my_variant)
+        fuzzy_ends(my_variant, validator)
     return
 
 # <LICENSE>

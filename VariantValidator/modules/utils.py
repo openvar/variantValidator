@@ -3,6 +3,7 @@ import functools
 import logging
 import re
 import copy
+from VariantValidator.modules import seq_data
 
 logger = logging.getLogger(__name__)
 
@@ -612,6 +613,61 @@ def hgvs_dup2indel(hgvs_seq):
     return string
 
 
+def get_exon_boundary_list(variant, validator):
+    """
+    Function to get the exon boundaries of a transcript
+    """
+    # Get the transcript
+    transcript = variant.quibble.split(':')[0]
+    if transcript.startswith('NM_' or 'NR_' or 'ENST'):
+        # Get alignment options and identify the relevant primary assembly chrom
+        mapping_options = validator.hdp.get_tx_mapping_options(transcript)
+        chromosome_reference = None
+        for option in mapping_options:
+            is_in_assembly = seq_data.to_chr_num_refseq(option[1], variant.primary_assembly)
+            if is_in_assembly is not None:
+                chromosome_reference = option[1]
+                break
+
+        # Set the offsets for CDS
+        transcript_info = validator.hdp.get_tx_identity_info(transcript)
+        try:
+            cds_offset = int(transcript_info[3]) + 1
+        except ValueError:
+            cds_offset = 0
+        except TypeError:
+            cds_offset = 0
+        try:
+            cds_end = int(transcript_info[4])
+        except ValueError:
+            cds_end = 0
+        except TypeError:
+            cds_end = 0
+
+        # Get the exon boundaries of the transcript
+        exons = validator.hdp.get_tx_exons(transcript, chromosome_reference, validator.alt_aln_method)
+
+        # Extract the exon boundaries
+        exon_boundaries = []
+        exon_boundaries.append(transcript)
+        exon_boundaries.append(chromosome_reference)
+
+        for exon in exons:
+            # Set the exon boundaries
+            if exon[5] > cds_end:
+                exon_boundaries.append(f"*{str(exon[5]+1 - cds_end)}")
+            else:
+                exon_boundaries.append(str(exon[5]+1 - (cds_offset-1)))
+            if exon[6] > cds_end:
+                exon_boundaries.append(f"*{str(exon[6] - cds_end)}")
+            else:
+                exon_boundaries.append(str(exon[6] - (cds_offset-1)))
+
+        return exon_boundaries
+    else:
+        raise ExonMappingError(f"{transcript} is not a valid transcript reference sequence ID")
+
+
 # Custom Exceptions
 class VariantValidatorError(Exception):
     pass
@@ -630,6 +686,10 @@ class DatabaseConnectionError(Exception):
 
 
 class ObsoleteSeqError(Exception):
+    pass
+
+
+class ExonMappingError(Exception):
     pass
 
 # <LICENSE>
