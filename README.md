@@ -31,6 +31,7 @@ utilisation of functionality via [direct installation](https://github.com/openva
 <img src="https://github.com/openvar/VVweb/blob/master/static/img/Our_Community.png?raw=true" align="left"/>
 Image by Rosaria
 
+
 The success of the VariantValidator is driven through engagement with ***you*** our community of users. We follow an agile development model providing platforms that are used in clinical, education and research practice. Our users test new releases, identify issues and consider improvements which would assist their professional practice. If you spot a bug or have a feature request, contact us via our dedicated [support page](https://variantvalidator.org/help/contact/) or via [git issues](https://github.com/openvar/variantValidator/issues), and we will involve you directly in the planning and acceptance of new resources or bug fixing methodology to ensure your exact needs are met. This helps us to make sure VariuantValidator keeps pace with the fast-moving discipline of genomic medicine.
 
 ## Features
