@@ -718,6 +718,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
     """
 
     # c. must be in n. format
+    print("Make it now")
     try:
         hgvs_genomic = vm.c_to_n(hgvs_genomic)  # Need in n. context
     except TypeError:
@@ -1148,6 +1149,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                         v1 = hgvs_genomic
                         v2 = map_back
                         if v2.posedit.edit.type == "identity":
+                            print("NAP1")
                             needs_a_push = True  # Return new vcf only
                             break
                         if "g" not in hgvs_genomic.type:
@@ -1157,6 +1159,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                             v1 = hn.normalize(v1)
                             v2 = hn.normalize(v2)
                         except vvhgvs.exceptions.HGVSInvalidVariantError:
+                            print("NAP2")
                             needs_a_push = True  # Return new vcf only
                             break
                         else:
@@ -1170,9 +1173,11 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                                 else:
                                     merged_variant = pre_merged_variant
                             except utils.mergeHGVSerror as e:
+                                print("NAP3")
                                 needs_a_push = True  # Return new vcf only
                                 break
                             except vvhgvs.exceptions.HGVSParseError:
+                                print("NAP4")
                                 needs_a_push = True  # Return new vcf only
                                 break
 
@@ -1199,6 +1204,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                                 except AttributeError:
                                     pass
 
+                            print("NAP5")
                             needs_a_push = True  # Keep the new vcf
                             break
                     else:
@@ -1263,6 +1269,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
 
                     # Is the gap variant the same as the incoming variant?
                     if normalized_hgvs_genomic == map_back:
+                        print("Nap6")
                         needs_a_push = True
                         push_ref = end_seq_check_variant.posedit.edit.ref
                         push_alt = end_seq_check_variant.posedit.edit.alt
@@ -1309,6 +1316,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                         v2 = map_back
 
                         if v2.posedit.edit.type == "identity":
+                            print("NAP7")
                             needs_a_push = True  # Return new vcf only
                             break
                         if "g" not in hgvs_genomic.type:
@@ -1338,9 +1346,13 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                             v1 = hn.normalize(v1)
                             v2 = hn.normalize(v2)
                         except vvhgvs.exceptions.HGVSInvalidVariantError:
+                            print("NAP8")
                             needs_a_push = True  # Return new vcf only
                             break
                         else:
+                            print("The Vs")
+                            print(v1)
+                            print(v2)
                             try:
                                 if v1.posedit.pos.start.base < v2.posedit.pos.start.base:
                                     pre_merged_variant = mrg([v1, v2], reverse_normalizer, final_norm=False)
@@ -1351,9 +1363,13 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                                 else:
                                     merged_variant = pre_merged_variant
                             except utils.mergeHGVSerror:
+                                print("NAP9")
+                                import traceback
+                                traceback.print_exc()
                                 needs_a_push = True  # Return new vcf only
                                 break
                             except vvhgvs.exceptions.HGVSParseError:
+                                print("NAP10")
                                 needs_a_push = True  # Return new vcf only
                                 break
 
@@ -1385,6 +1401,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                                 except AttributeError:
                                     pass
 
+                            print("NAP11")
                             needs_a_push = True  # Keep the new vcf
                             break
                     else:

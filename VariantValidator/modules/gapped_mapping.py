@@ -385,6 +385,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     """
                     Directly search for gaps using vcf hard_pushing left
                     """
+                    print("What were gonna do is go West")
                     try:
                         vcf__dict = hgvs_utils.hard_left_hgvs2vcf(saved_hgvs_coding,
                                                                   self.variant.primary_assembly,
@@ -422,6 +423,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     """
                     Directly search for gaps using vcf hard_pushing right
                     """
+                    print("What were gonna do is go East")
                     try:
                         vcf__dict = hgvs_utils.hard_right_hgvs2vcf(saved_hgvs_coding,
                                                                    self.variant.primary_assembly,
@@ -436,12 +438,15 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                                    self.validator.merge_hgvs_3pr,
                                                                    genomic_ac=hgvs_genomic_variant.ac,)
 
+                        print("VCF_DICT IS ", vcf__dict)
                         if vcf__dict['needs_a_push'] is True:
+                            print("IN WE GO")
                             needs_a_push = True
                             merged_variant = vcf__dict['merged_variant']
                             if merged_variant is not False:
                                 try:
                                     merged_variant = self.validator.vm.n_to_c(merged_variant)
+                                    print("Merged variant is: ", merged_variant)
                                 except TypeError:
                                     pass
                                 except vvhgvs.exceptions.HGVSInvalidVariantError:
@@ -694,6 +699,10 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                             self.tx_hgvs_not_delins = \
                                 self.validator.hp.parse_hgvs_variant(tx_hgvs_not_delins_delins_from_dup)
 
+
+                    print("Var ", var)
+                    print("Disp ", self.disparity_deletion_in)
+
                     # GAP IN THE TRANSCRIPT DISPARITY DETECTED
                     if self.disparity_deletion_in[0] == 'transcript':
 
@@ -916,6 +925,9 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             'gapped_transcripts': self.gapped_transcripts
         }
 
+        print("Data: ", data)
+        print("Nw_rel_var", nw_rel_var)
+
         return data, nw_rel_var
 
     def g_to_t_compensation(self, ori, hgvs_coding, rec_var):
@@ -926,6 +938,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
 
         logger.debug('g_to_t gap code 1 active')
         rn_hgvs_genomic = self.variant.reverse_normalizer.normalize(hgvs_genomic)
+        print("\nAdd 1 ", rn_hgvs_genomic)
         self.hgvs_genomic_possibilities.append([rn_hgvs_genomic, ['false', 'false']])
 
         try:
@@ -952,6 +965,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             logger.debug("Except passed, %s", e)
         try:
             stash_ac = hgvs_stash.ac
+            print("Make stash_dict")
             stash_dict = hgvs_utils.hard_right_hgvs2vcf(hgvs_stash,
                                                         self.variant.primary_assembly,
                                                         self.variant.hn,
@@ -965,6 +979,8 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                         self.validator.merge_hgvs_3pr,
                                                         genomic_ac=hgvs_genomic.ac)
 
+
+            print("Stash Dict ", stash_dict )
             stash_pos = int(stash_dict['pos'])
             stash_ref = stash_dict['ref']
             stash_alt = stash_dict['alt']
@@ -1054,7 +1070,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 elif stash_dict['identifying_g_variant'] is not False:
                     stash_hgvs_not_delins = stash_dict['identifying_g_variant']
                     stash_genomic = stash_dict['identifying_g_variant']
-                    normalized_stash_genomic = stash_dict['identifying_g_variant']
 
                 # Look for gap info
                 normalized_stash_genomic = self.variant.hn.normalize(stash_genomic)
@@ -1075,6 +1090,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     gap_len = len_gen - len_tx
 
                 # Set the options to a single option based on the results of pushing
+                print("In This 1 ", normalized_stash_genomic)
                 self.hgvs_genomic_possibilities = [[normalized_stash_genomic, [gap_in,
                                                                                gap_len,
                                                                                stash_hgvs_not_delins,
@@ -1197,7 +1213,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 elif stash_dict['identifying_g_variant'] is not False:
                     stash_hgvs_not_delins = stash_dict['identifying_g_variant']
                     stash_genomic = stash_dict['identifying_g_variant']
-                    normalized_stash_genomic = stash_dict['identifying_g_variant']
 
                 # Look for gap info
                 normalized_stash_genomic = self.variant.hn.normalize(stash_genomic)
@@ -1218,6 +1233,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     gap_len = len_gen - len_tx
 
                 # Set the options to a single option based on the results of pushing
+                print("In this 2")
                 self.hgvs_genomic_possibilities = [[normalized_stash_genomic, [gap_in,
                                                                                gap_len,
                                                                                stash_hgvs_not_delins,
@@ -1250,6 +1266,9 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 hard_possibility.append(hard_set_check)
 
         # Copy a version of hgvs_genomic_possibilities
+        print("Coding ", hgvs_coding)
+        print("Possibs ", self.hgvs_genomic_possibilities)
+
         for a_possibility in self.hgvs_genomic_possibilities:
             possibility = a_possibility[0]
             disparity_info = a_possibility[1]
@@ -1902,7 +1921,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 elif stash_dict['identifying_g_variant'] is not False:
                     stash_hgvs_not_delins = stash_dict['identifying_g_variant']
                     stash_genomic = stash_dict['identifying_g_variant']
-                    normalized_stash_genomic = stash_dict['identifying_g_variant']
 
                 # Look for gap info
                 normalized_stash_genomic = self.variant.hn.normalize(stash_genomic)
@@ -2044,7 +2062,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 elif stash_dict['identifying_g_variant'] is not False:
                     stash_hgvs_not_delins = stash_dict['identifying_g_variant']
                     stash_genomic = stash_dict['identifying_g_variant']
-                    normalized_stash_genomic = stash_dict['identifying_g_variant']
 
                 # Look for gap info
                 normalized_stash_genomic = self.variant.hn.normalize(stash_genomic)
