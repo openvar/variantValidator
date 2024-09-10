@@ -1771,10 +1771,8 @@ class Mixin(vvMixinInit.Mixin):
 
         # Loop through the submitted variants and gather the required info
         hgvs_variant_list = cp_hgvs_v
-        print("HGVS VARIANT LIST", hgvs_variant_list)
         prior_variant = None
         for hgvs_v in hgvs_variant_list:
-            print("HGVS V 1", hgvs_v)
             store_hgvs_v = hgvs_v
             # No intronic positions
             try:
@@ -1791,7 +1789,6 @@ class Mixin(vvMixinInit.Mixin):
             except vvhgvs.exceptions.HGVSUnsupportedOperationError:
                 pass
 
-            print("HGVS V 2", hgvs_v)
             # Set the accession and ensure that multiple reference sequences have not been queried
             if accession is None:
                 accession = hgvs_v.ac
@@ -1806,14 +1803,10 @@ class Mixin(vvMixinInit.Mixin):
                 merge_end_pos = hgvs_v.posedit.pos.end.base
                 # Append to the final list of variants
                 full_list.append(hgvs_v)
-                print("ADD TO PRIOR ,", hgvs_v)
-                prior_variant = hgvs_v
                 continue
             # Ensure variants are in the correct order and not overlapping
             else:
-                print("MERGE END POS", merge_end_pos)
                 if hgvs_v.posedit.pos.start.base > merge_end_pos:
-                    print("WE GO HERE")
                     if hgvs_v.posedit.pos.start.base > merge_end_pos + 1:
                         # Create a fake variant to handle the missing sequence
                         ins_seq = self.sf.fetch_seq(hgvs_v.ac, merge_end_pos, hgvs_v.posedit.pos.start.base - 1)
@@ -1825,58 +1818,10 @@ class Mixin(vvMixinInit.Mixin):
                     merge_end_pos = hgvs_v.posedit.pos.end.base
                     # Append to the final list of variants
                     full_list.append(hgvs_v)
-
-                # Keep this just in case we need it
-
-                # elif hgvs_v.posedit.pos.start.base < merge_end_pos and hgvs_strict is False:
-                #     print("Now we handle a merge")
-                #     print("PRIOR VARIANT", prior_variant)
-                #     print("HGVS V", hgvs_v)
-                #
-                #     # Set of expanding options as we encounter them
-                #     if (hgvs_v.posedit.pos.start.base == prior_variant.posedit.pos.start.base and
-                #             hgvs_v.posedit.pos.end.base > prior_variant.posedit.pos.end.base):
-                #         # Merge the variants
-                #         outer_ref = hgvs_v.posedit.edit.ref
-                #         inner_ref = prior_variant.posedit.edit.ref
-                #         if hgvs_v.posedit.edit.type == "dup":
-                #             outer_alt = outer_ref + outer_ref
-                #         elif hgvs_v.posedit.edit.type == "del":
-                #             outer_alt = ""
-                #         if prior_variant.posedit.edit.type == "dup":
-                #             inner_alt = inner_ref + inner_ref
-                #         elif prior_variant.posedit.edit.type == "del":
-                #             inner_alt = ""
-                #
-                #         # Merge inner del with outer dup
-                #         if hgvs_v.posedit.edit.type == "dup" and prior_variant.posedit.edit.type == "del":
-                #             print(outer_ref)
-                #             print(inner_ref)
-                #             print(outer_alt)
-                #             print(inner_alt)
-                #             # Use re.sub to replace the first string at the beginning of the second string
-                #             refresh_alt = re.sub(f'^{re.escape(inner_ref)}', inner_alt, outer_alt)
-                #             print(refresh_alt)
-                #             refresh_hgvs_v = (hgvs_v.ac + ':' + hgvs_v.type + '.' + str(hgvs_v.posedit.pos.start.base)
-                #             + '_' + str(hgvs_v.posedit.pos.end.base) + 'del' + hgvs_v.posedit.edit.ref + 'ins' +
-                #                               refresh_alt)
-                #             refresh_variant = self.hp.parse(refresh_hgvs_v)
-                #             refresh_variant = hn.normalize(refresh_variant)
-                #             print("Refresh, ", hn.normalize(refresh_variant))
-                #             return refresh_variant
-                #         else:
-                #             raise fn.mergeHGVSerror(
-                #                 "AlleleSyntaxError: Submitted variants are out of order or their ranges "
-                #                 "overlap")
-
                 else:
                     raise fn.mergeHGVSerror("AlleleSyntaxError: Submitted variants are out of order or their ranges "
                                             "overlap")
-            print("ADD TO PRIOR ,", hgvs_v)
-            prior_variant = hgvs_v
 
-
-        print("Full List", full_list)
         # Strict application of the HGVS merge rule
         # Flag for fame shifts that restore frame
         check_frame_restore = False
@@ -2007,7 +1952,6 @@ class Mixin(vvMixinInit.Mixin):
                             f"AlleleSyntaxError: Merging variants [{';'.join(merge_these)}] restores the original "
                             f"reading frame, so should be described as {fn.valstr(hgvs_delins)}")
 
-        print("HGVS DELINS", hgvs_delins)
         return hgvs_delins
 
 

@@ -157,6 +157,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
         """
         Gap aware projection from g. to c.
         """
+
         # RefSeq or Ensembl?
         expanded_genomic_for_ensembl = False
         if self.validator.alt_aln_method == 'genebuild':
@@ -326,7 +327,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             symbol = self.validator.db.get_gene_symbol_from_transcript_id(saved_hgvs_coding.ac)
             if seq_data.gap_black_list(symbol) is True:
 
-                # Applies to ensemble only
+                # Applies to ensembl only
                 if expanded_genomic_for_ensembl is not False:
                     try:
                         hgvs_refreshed_variant = self.validator.vm.g_to_t(expanded_genomic_for_ensembl,
@@ -385,7 +386,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     """
                     Directly search for gaps using vcf hard_pushing left
                     """
-                    print("What were gonna do is go West")
                     try:
                         vcf__dict = hgvs_utils.hard_left_hgvs2vcf(saved_hgvs_coding,
                                                                   self.variant.primary_assembly,
@@ -423,7 +423,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     """
                     Directly search for gaps using vcf hard_pushing right
                     """
-                    print("What were gonna do is go East")
                     try:
                         vcf__dict = hgvs_utils.hard_right_hgvs2vcf(saved_hgvs_coding,
                                                                    self.variant.primary_assembly,
@@ -438,15 +437,12 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                                    self.validator.merge_hgvs_3pr,
                                                                    genomic_ac=hgvs_genomic_variant.ac,)
 
-                        print("VCF_DICT IS ", vcf__dict)
                         if vcf__dict['needs_a_push'] is True:
-                            print("IN WE GO")
                             needs_a_push = True
                             merged_variant = vcf__dict['merged_variant']
                             if merged_variant is not False:
                                 try:
                                     merged_variant = self.validator.vm.n_to_c(merged_variant)
-                                    print("Merged variant is: ", merged_variant)
                                 except TypeError:
                                     pass
                                 except vvhgvs.exceptions.HGVSInvalidVariantError:
@@ -699,10 +695,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                             self.tx_hgvs_not_delins = \
                                 self.validator.hp.parse_hgvs_variant(tx_hgvs_not_delins_delins_from_dup)
 
-
-                    print("Var ", var)
-                    print("Disp ", self.disparity_deletion_in)
-
                     # GAP IN THE TRANSCRIPT DISPARITY DETECTED
                     if self.disparity_deletion_in[0] == 'transcript':
 
@@ -925,9 +917,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             'gapped_transcripts': self.gapped_transcripts
         }
 
-        print("Data: ", data)
-        print("Nw_rel_var", nw_rel_var)
-
         return data, nw_rel_var
 
     def g_to_t_compensation(self, ori, hgvs_coding, rec_var):
@@ -938,7 +927,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
 
         logger.debug('g_to_t gap code 1 active')
         rn_hgvs_genomic = self.variant.reverse_normalizer.normalize(hgvs_genomic)
-        print("\nAdd 1 ", rn_hgvs_genomic)
         self.hgvs_genomic_possibilities.append([rn_hgvs_genomic, ['false', 'false']])
 
         try:
@@ -965,7 +953,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             logger.debug("Except passed, %s", e)
         try:
             stash_ac = hgvs_stash.ac
-            print("Make stash_dict")
             stash_dict = hgvs_utils.hard_right_hgvs2vcf(hgvs_stash,
                                                         self.variant.primary_assembly,
                                                         self.variant.hn,
@@ -979,8 +966,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                         self.validator.merge_hgvs_3pr,
                                                         genomic_ac=hgvs_genomic.ac)
 
-
-            print("Stash Dict ", stash_dict )
             stash_pos = int(stash_dict['pos'])
             stash_ref = stash_dict['ref']
             stash_alt = stash_dict['alt']
@@ -1090,7 +1075,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     gap_len = len_gen - len_tx
 
                 # Set the options to a single option based on the results of pushing
-                print("In This 1 ", normalized_stash_genomic)
                 self.hgvs_genomic_possibilities = [[normalized_stash_genomic, [gap_in,
                                                                                gap_len,
                                                                                stash_hgvs_not_delins,
@@ -1233,7 +1217,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     gap_len = len_gen - len_tx
 
                 # Set the options to a single option based on the results of pushing
-                print("In this 2")
                 self.hgvs_genomic_possibilities = [[normalized_stash_genomic, [gap_in,
                                                                                gap_len,
                                                                                stash_hgvs_not_delins,
@@ -1266,9 +1249,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 hard_possibility.append(hard_set_check)
 
         # Copy a version of hgvs_genomic_possibilities
-        print("Coding ", hgvs_coding)
-        print("Possibs ", self.hgvs_genomic_possibilities)
-
         for a_possibility in self.hgvs_genomic_possibilities:
             possibility = a_possibility[0]
             disparity_info = a_possibility[1]
@@ -1641,7 +1621,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
 
     def g_to_t_gapped_mapping_stage2(self, ori, hgvs_coding, hgvs_genomic):
         logger.debug('g_to_t gap code 2 active')
-
         hgvs_genomic_variant = hgvs_genomic
         reverse_normalized_hgvs_genomic = self.variant.reverse_normalizer.normalize(hgvs_genomic_variant)
         self.hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
@@ -1829,6 +1808,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                         self.validator.vm,
                                                         self.validator.merge_hgvs_3pr,
                                                         genomic_ac=hgvs_alt_genomic.ac)
+
             stash_pos = int(stash_dict['pos'])
             stash_ref = stash_dict['ref']
             stash_alt = stash_dict['alt']
@@ -1971,6 +1951,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                        self.validator.vm,
                                                        self.validator.merge_hgvs_3pr,
                                                        genomic_ac=hgvs_alt_genomic.ac)
+
             stash_pos = int(stash_dict['pos'])
             stash_ref = stash_dict['ref']
             stash_alt = stash_dict['alt']
@@ -2656,6 +2637,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             c1 = self.validator.vm.n_to_c(self.tx_hgvs_not_delins)
         except:
             c1 = self.tx_hgvs_not_delins
+
         c2 = copy.deepcopy(c1)
         c2.posedit.pos.start = c1.posedit.pos.end
         c2.posedit.pos.end.base = c1.posedit.pos.end.base + 1
@@ -2670,6 +2652,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             g1 = self.validator.vm.t_to_g(c2, hgvs_genomic.ac, alt_aln_method=self.validator.alt_aln_method)
             g2 = self.validator.vm.t_to_g(c1, hgvs_genomic.ac, alt_aln_method=self.validator.alt_aln_method)
             g1.posedit.edit.alt = g1.posedit.edit.ref
+
         reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
         alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
         g3 = copy.deepcopy(g1)
@@ -2816,7 +2799,16 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 except:
                     c1 = self.tx_hgvs_not_delins
                 g3 = self.validator.nr_vm.t_to_g(c1, hgvs_genomic.ac, alt_aln_method=self.validator.alt_aln_method)
-                g2 = self.validator.vm.t_to_g(c1, hgvs_genomic.ac, alt_aln_method=self.validator.alt_aln_method)
+
+                # Check to see if gap is already handled
+                hgvs_genomic_norm = self.variant.hn.normalize(hgvs_genomic)
+                if (((g3.posedit.pos.end.base - g3.posedit.pos.start.base) >
+                        (hgvs_genomic_norm.posedit.pos.end.base - hgvs_genomic_norm.posedit.pos.start.base)) and
+                hgvs_genomic_norm.posedit.edit.type == 'del' and
+                    g3.posedit.pos.end.base == hgvs_genomic_norm.posedit.pos.end.base):
+                    hgvs_refreshed_variant = self.tx_hgvs_not_delins
+                    return hgvs_refreshed_variant
+
                 g3.posedit.pos.end.base = g3.posedit.pos.start.base + (len(g3.posedit.edit.ref) - 1)
                 try:
                     c2 = self.validator.vm.g_to_t(g3, c1.ac, alt_aln_method=self.validator.alt_aln_method)
