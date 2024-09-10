@@ -1198,7 +1198,6 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                                         merged_variant = vm.g_to_n(merged_variant, tx_ac)
                                 except AttributeError:
                                     pass
-
                             needs_a_push = True  # Keep the new vcf
                             break
                     else:
@@ -1351,10 +1350,24 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                                 else:
                                     merged_variant = pre_merged_variant
                             except utils.mergeHGVSerror:
-                                needs_a_push = True  # Return new vcf only
-                                break
+                                try:
+                                    if v1.posedit.pos.start.base < v2.posedit.pos.start.base:
+                                        pre_merged_variant = mrg([v1, v2], hn, final_norm=False)
+                                    else:
+                                        pre_merged_variant = mrg([v2, v1], hn, final_norm=False)
+                                    if "g" in pre_merged_variant.type:
+                                        merged_variant = vm.g_to_n(pre_merged_variant, tx_ac)
+                                    else:
+                                        merged_variant = pre_merged_variant
+                                except utils.mergeHGVSerror:
+                                    needs_a_push = False  # Return new vcf only
+                                    break
+                                except vvhgvs.exceptions.HGVSParseError:
+                                    needs_a_push = False  # Return new vcf only
+                                    break
+
                             except vvhgvs.exceptions.HGVSParseError:
-                                needs_a_push = True  # Return new vcf only
+                                needs_a_push = False  # Return new vcf only
                                 break
 
                             # Ensure merged variant is not in a "non-intron" if mapped back to n.
@@ -1757,7 +1770,6 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
 
                 # Add the identifying variant
                 identifying_variant = normlize_check_variant
-
                 if push == 0:  # Already crossing the gap so return original vcf
                     end_seq_check_variant = copy.deepcopy(normlize_check_variant)
                     # end_seq_check_variant.posedit.edit.alt = end_seq_check_variant.posedit.edit.ref
@@ -1801,7 +1813,6 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
                     if end_seq_check_mapped.posedit.pos.end.offset != 0:
                         end_offset = True
                 if start_offset is True or end_offset is True:
-
                     # To identify the gap, we need to span it before mapping back
                     if end_offset is True:
                         end_seq_check_mapped.posedit.pos.end.base = end_seq_check_mapped.posedit.pos.start.base + 1
@@ -1876,10 +1887,7 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
                         # We merge the "gap" variant and the variant itself
                         v1 = hgvs_genomic
                         v2 = map_back
-                        # if v2.posedit.edit.type == "identity":
-                        #     needs_a_push = True  # Return new vcf only
-                        #     push_pos_by = push_pos_by + 1
-                        #     break
+
                         if "g" not in hgvs_genomic.type:
                             v1 = vm.n_to_g(hgvs_genomic, genomic_ac)
                             v2 = vm.n_to_g(map_back, genomic_ac)
@@ -1945,7 +1953,6 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
 
                 # Or we have identified the gap again at the expected position
                 if len(end_seq_check_mapped.posedit.edit.ref) != len(end_seq_check_variant.posedit.edit.ref):
-
                     """
                     At this stage, we have done the following, illustrated by a  gap in transcript
 
@@ -2044,6 +2051,14 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
                                      reverse_normalized_hgvs_genomic.posedit.pos.start.base - 1)
                                     and
                                     (map_back_rn.posedit.pos.start.base <=
+                                     reverse_normalized_hgvs_genomic.posedit.pos.end.base + 1)
+                            )
+                            or
+                            (
+                                    (map_back.posedit.pos.start.base <=
+                                     reverse_normalized_hgvs_genomic.posedit.pos.start.base - 1)
+                                    and
+                                    (map_back.posedit.pos.end.base >=
                                      reverse_normalized_hgvs_genomic.posedit.pos.end.base + 1)
                             )):
 
