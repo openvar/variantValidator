@@ -31032,7 +31032,6 @@ class TestVariantsAuto(TestCase):
                results['NM_030582.3:c.3364_3365del'][
                    'primary_assembly_loci']['grch37']['hgvs_genomic_description']
 
-
 # <LICENSE>
 # Copyright (C) 2016-2024 VariantValidator Contributors
 #
