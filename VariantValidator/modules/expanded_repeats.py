@@ -84,6 +84,7 @@ class TandemRepeats:
         self.offset_position = 0
         self.intronic_or_utr = False
         self.evm = False
+        self.no_norm_evm = False
         self.genomic_conversion = None
         self.original_prefix = None
         self.original_position = None
@@ -314,16 +315,27 @@ class TandemRepeats:
         try:
             offset_position = int(self.variant_position)
         except ValueError:
+            if not self.no_norm_evm:
+                # if we normalise at the wrong points we get the wrong ref seq back
+                self.no_norm_evm = AssemblyMapper(
+                        validator.hdp,
+                        assembly_name=self.build,
+                        alt_aln_method=validator.alt_aln_method,
+                        normalize=False,
+                        replace_reference=True
+                        )
             if re.search(r"[0-9]+[+-][0-9]+", self.variant_position):
                 self.intronic_or_utr = copy.copy(self.reference)
-                # Make a range vbariant if needed
+                # Handle a range variant input, given current function's purpose we
+                # just dump range and re-build from the first base
+
                 if "_" in self.variant_position:
                     seq_check = validator.hp.parse(f"{self.reference}:{self.prefix}."
                                                    f"{self.variant_position}"
                                                    f"{self.repeat_sequence * int(self.copy_number)}=")
 
                     self.original_position = copy.copy(self.variant_position)
-                    intronic_genomic_variant = self.evm.t_to_g(seq_check)
+                    intronic_genomic_variant = self.no_norm_evm.t_to_g(seq_check)
                     self.genomic_conversion = intronic_genomic_variant
 
                     # Check the exon boundaries
