@@ -83,6 +83,7 @@ class TandemRepeats:
         self.ref_type = ref_type
         self.cds_start = None # only valid for C type tx
         self.offset_position = 0
+        self.g_strand = 1 # only valid for intronic +/-1
         self.intronic_or_utr = False
         self.evm = False
         self.no_norm_evm = False
@@ -349,16 +350,39 @@ class TandemRepeats:
                                                 f"expected {self.repeat_sequence * int(self.copy_number)} but the "
                                                 f"reference is "
                                                 f"{seq_check.posedit.edit.ref} at the specified position")
-                    self.variant_position = self.variant_position.split("_")[0]
+                    start, _sep, end =  self.variant_position.partition('_')
+                    self.g_strand = validator.hdp.get_tx_exons(self.reference, intronic_genomic_variant.ac,
+                                                               validator.alt_aln_method)[0][3]
+                    self.original_position = copy.copy(self.variant_position)
+                    if  self.g_strand == -1:
+                        self.variant_position = end
+                    else:
+                        self.variant_position = start
+                else:
+                    # Create a variant for mapping to the genome containing the whole repeat, we used
+                    # to use only the first base of the repeat but this breaks on -1 mapping transcripts
+                    # with multi-base repeats
+                    map_var = f"{self.reference}:{self.prefix}."
+                    length = len(self.repeat_sequence)
+                    if length == 1:
+                        map_var = map_var +f"{self.variant_position}{self.repeat_sequence}="
+                    elif '+' in self.variant_position:
+                        tx_pos,_sep,intron_offset = self.variant_position.partition('+')
+                        intron_offset = int(intron_offset)
+                        map_var = map_var +f"{tx_pos}+{intron_offset}_{tx_pos}+{str(intron_offset+length-1)}"+\
+                                f"{self.repeat_sequence}="
+                    elif '-' in self.variant_position:
+                        tx_pos,_sep,intron_offset = self.variant_position.partition('-')
+                        intron_offset = int(intron_offset)
+                        map_var = map_var +f"{tx_pos}-{intron_offset}_{tx_pos}-{str(intron_offset-length+1)}"+\
+                                f"{self.repeat_sequence}="
+                    intronic_variant = validator.hp.parse(map_var)
+                    intronic_genomic_variant = self.no_norm_evm.t_to_g(intronic_variant)
+                    self.g_strand = validator.hdp.get_tx_exons(intronic_variant.ac, intronic_genomic_variant.ac,
+                                                               validator.alt_aln_method)[0][3]
+                    self.original_position = copy.copy(self.variant_position)
+                    self.variant_position = intronic_genomic_variant.posedit.pos.start.base
 
-
-                # Create a variant for mapping to genomic
-                intronic_variant = validator.hp.parse(f"{self.reference}:{self.prefix}."
-                                                      f"{self.variant_position}{self.repeat_sequence[0]}=")
-
-                intronic_genomic_variant = self.evm.t_to_g(intronic_variant)
-                self.original_position = copy.copy(self.variant_position)
-                self.variant_position = intronic_genomic_variant.posedit.pos.start.base
                 self.reference = intronic_genomic_variant.ac
                 self.original_prefix = copy.copy(self.prefix)
                 self.prefix = "g"
@@ -367,17 +391,14 @@ class TandemRepeats:
                 # Check exon boundaries
                 self.check_exon_boundaries(validator)
 
-                orientation = validator.hdp.get_tx_exons(intronic_variant.ac, intronic_genomic_variant.ac,
-                                                     validator.alt_aln_method)[0][3]
-
                 if self.repeat_sequence[0] == intronic_genomic_variant.posedit.edit.ref:
                     offset_position = intronic_genomic_variant.posedit.pos.start.base - 1
-                    if orientation == -1:
+                    if self.g_strand == -1:
                         self.reverse_complement(self.repeat_sequence)
                         self.is_reverse_complement = True
                 else:
                     offset_position = intronic_genomic_variant.posedit.pos.start.base - 1
-                    if orientation == -1:
+                    if self.g_strand == -1:
                         self.reverse_complement(self.repeat_sequence)
                         self.is_reverse_complement = True
 
