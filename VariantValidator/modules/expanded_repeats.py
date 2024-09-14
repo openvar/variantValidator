@@ -441,7 +441,7 @@ class TandemRepeats:
         if requested_sequence != self.repeat_sequence:
             raise RepeatSyntaxError(f"RepeatSyntaxError: The provided repeat sequence {self.repeat_sequence } does not "
                                     f"match the reference sequence {requested_sequence} at the given position "
-                                    f"{offset_position}_{offset_position + len(self.repeat_sequence)-1} of "
+                                    f"{offset_position+1}_{offset_position + len(self.repeat_sequence)} of "
                                     f"reference sequence {self.reference}")
 
         else:
