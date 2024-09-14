@@ -81,6 +81,7 @@ class TandemRepeats:
         self.select_transcripts = select_transcripts
         self.variant_str = variant_str
         self.ref_type = ref_type
+        self.cds_start = None # only valid for C type tx
         self.offset_position = 0
         self.intronic_or_utr = False
         self.evm = False
@@ -339,7 +340,7 @@ class TandemRepeats:
                     self.genomic_conversion = intronic_genomic_variant
 
                     # Check the exon boundaries
-                    self.check_exon_boundaries()
+                    self.check_exon_boundaries(validator)
                     seq_check = self.evm.g_to_t(intronic_genomic_variant, self.intronic_or_utr)
 
                     if seq_check.posedit.edit.ref != self.repeat_sequence * int(self.copy_number):
@@ -364,7 +365,7 @@ class TandemRepeats:
                 self.genomic_conversion = intronic_genomic_variant
 
                 # Check exon boundaries
-                self.check_exon_boundaries()
+                self.check_exon_boundaries(validator)
 
                 orientation = validator.hdp.get_tx_exons(intronic_variant.ac, intronic_genomic_variant.ac,
                                                      validator.alt_aln_method)[0][3]
@@ -388,6 +389,8 @@ class TandemRepeats:
 
         if self.prefix == "c":
             transcript_info = validator.hdp.get_tx_identity_info(self.reference)
+            if self.cds_start is None:
+                self.cds_start = int(transcript_info[3])
             if "-" in self.variant_position:
                 offset_position = int(transcript_info[3]) + offset_position
             else:
@@ -578,17 +581,67 @@ class TandemRepeats:
                                         for base in list(reverse_seq)])
         return
 
-    def check_exon_boundaries(self):
+    def check_exon_boundaries(self,validator):
         """
         Check the boundaries of intronic variants are correctly stated
         """
         logger.info(
             f"Checking intronic variant boundaries: check_exon_boundaries({self.variant_position})"
         )
-        re_map = self.evm.g_to_t(self.genomic_conversion, self.intronic_or_utr)
-        if str(re_map.posedit.pos.start) != str(self.original_position).split("_")[0]:
-            raise RepeatSyntaxError(f"ExonBoundaryError: Position {self.original_position} does not correspond with "
-                                    f"an exon boundary for transcript {self.intronic_or_utr}")
+        # Return without error if no boundaries used
+        if not '+' in self.original_position and not (
+            '-' in self.original_position and # only bother to check with regex if relevant
+            re.search('[0-9]-',self.original_position)):
+            return
+        # We should have a separate slot for the genomic target, for RNA based variants
+        # with locations in introns. At the moment self.reference is overloaded
+        # self.prefix is also abused intronic data should not change the input prefix to g!
+        tx_ref, _sep, remain = self.variant_str.partition(':')
+        if "LRG" in tx_ref and "t" in tx_ref:
+            tx_ref = validator.db.get_refseq_transcript_id_from_lrg_transcript_id(tx_ref)
+
+        exon_data = validator.hdp.get_tx_exons(tx_ref,
+                                               self.genomic_conversion.ac,
+                                               validator.alt_aln_method)
+        transcript_exon_pos = []
+        if remain.startswith('c.') and self.cds_start is None:
+            transcript_info = validator.hdp.get_tx_identity_info(tx_ref)
+            self.cds_start = int(transcript_info[3])
+        elif self.cds_start is None:
+            self.cds_start = 0
+
+        for exon in exon_data:
+            transcript_exon_pos.append(exon['tx_end_i'])
+        start, _sep, end = self.original_position.partition('_')
+        def check_exon_pos(exon_pos):
+            bad_exon = False
+            if exon_pos.startswith('-') and ('+' in exon_pos or '-' in start[1:]):
+                pos, _sep, offset = start[1:].partition('-')
+                if not self.cds_start - int(pos) -1 in transcript_exon_pos:
+                    bad_exon = True
+            elif '-' in exon_pos:
+                pos, _sep, offset = exon_pos.partition('-')
+                if not int(pos) + self.cds_start -1 in transcript_exon_pos:
+                    bad_exon = True
+            elif '+' in exon_pos:
+                pos, _sep, offset = exon_pos.partition('+')
+                if pos.startswith('-'):
+                    pos = self.cds_start - int(pos)
+                else:
+                    pos = self.cds_start + int(pos)
+                if not pos in transcript_exon_pos:
+                    bad_exon = True
+            if bad_exon:
+                raise RepeatSyntaxError(
+                    f"ExonBoundaryError: Position {self.original_position} " +
+                    "does not correspond with an exon boundary for transcript "
+                    + self.intronic_or_utr)
+            return True
+        check_exon_pos(start)
+        # skip "end" if we don't have a range
+        if not end:
+            return
+        check_exon_pos(end)
         return
 
 def convert_tandem(variant, validator, build, my_all):
