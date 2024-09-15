@@ -36,14 +36,12 @@ class TestExpandedRepeats(unittest.TestCase):
         """
         variant_str = "NG_012232.1:g.4T[20]"
         my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(variant_str,  "GRCh37", "all", vv)
-        my_variant.check_transcript_type()
         my_variant.reformat_reference()
         my_variant.check_genomic_or_coding()
         formatted = my_variant.reformat(vv)
         assert formatted == "NG_012232.1:g.3_6T[20]"
         assert my_variant.variant_str == "NG_012232.1:g.4T[20]"
-        assert my_variant.ref_type == "RefSeq"
-        # checks correct transcript type
+        # checks correct transcript ref
         assert my_variant.reference == "NG_012232.1"
         # checks correct position
         assert my_variant.variant_position == "3_6"
@@ -62,15 +60,12 @@ class TestExpandedRepeats(unittest.TestCase):
         variant_str = "ENST00000263121.12:c.1082TCT[2]"
         my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
                                     variant_str,  "GRCh37", "all", vv)
-        my_variant.check_transcript_type()
         my_variant.reformat_reference()
         my_variant.check_genomic_or_coding()
         formatted = my_variant.reformat(vv)
         assert formatted == "ENST00000263121.12:c.1082_1087TCT[2]"
         assert my_variant.variant_str == "ENST00000263121.12:c.1082TCT[2]"
         assert my_variant.prefix == "c"
-        assert my_variant.ref_type == "Ensembl"
-        # checks correct transcript type
         assert my_variant.reference == "ENST00000263121.12"
         # checks correct ref name
         assert my_variant.variant_position == "1082_1087"
@@ -89,15 +84,12 @@ class TestExpandedRepeats(unittest.TestCase):
         variant_str = "NM_000492.4:c.1210-34TG[11]"
         my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(variant_str, "GRCh38", "all", vv)
         assert my_variant.variant_position == "1210-34"
-        my_variant.check_transcript_type()
         my_variant.reformat_reference()
         my_variant.check_genomic_or_coding()
         formatted = my_variant.reformat(vv)
         assert formatted == "NM_000492.4:c.1210-34_1210-13TG[11]"
         assert my_variant.variant_str == "NM_000492.4:c.1210-34TG[11]"
         assert my_variant.prefix == "c"
-        assert my_variant.ref_type == "RefSeq"
-        # checks correct transcript type
         assert my_variant.reference == "NM_000492.4"
         # checks correct ref name
         assert my_variant.variant_position == "1210-34_1210-13"
@@ -717,15 +709,13 @@ class TestExpandedRepeatGenomic(TestCase):
         variant_str = 'NC_000023.10:g.33362721A[20]'
         my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
             variant_str,  "GRCh37", "all", vv)
-        #my_variant.check_transcript_type()
         my_variant.reformat_reference()
         my_variant.check_genomic_or_coding()
         formatted = my_variant.reformat(vv)
         assert formatted == "NC_000023.10:g.33362721_33362724A[20]"
         assert my_variant.variant_str == "NC_000023.10:g.33362721A[20]"
-        # check, in order ref_type, ref ID, variant_pos, seq, copy number
+        # check, in order ref ID, variant_pos, seq, copy number
         # and post-var content (should be none)
-        #assert my_variant.ref_type == "RefSeq"
         assert my_variant.reference == "NC_000023.10"
         assert my_variant.variant_position == "33362721_33362724"
         assert my_variant.repeat_sequence == "A"
@@ -955,14 +945,12 @@ class TestExpandedRepeatRefSeqGenomic(TestCase):
         variant_str = "NG_012232.1:g.4T[20]"
         my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
             variant_str,  "GRCh37", "all", vv)
-        my_variant.check_transcript_type()
         my_variant.reformat_reference()
         my_variant.check_genomic_or_coding()
         formatted = my_variant.reformat(vv)
         assert formatted == "NG_012232.1:g.3_6T[20]"
         assert my_variant.variant_str == "NG_012232.1:g.4T[20]"
-        assert my_variant.ref_type == "RefSeq"
-        # checks correct transcript type
+        # checks correct transcript ref
         assert my_variant.reference == "NG_012232.1"
         # checks correct position
         assert my_variant.variant_position == "3_6"
@@ -1128,14 +1116,12 @@ class TestExpandedRepeaLocusReferenceGenomic(TestCase):
         variant_str = "LRG_199:g.4T[20]"
         my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
             variant_str,  "GRCh37", "all", vv)
-        my_variant.check_transcript_type()
         my_variant.reformat_reference()
         my_variant.check_genomic_or_coding()
         formatted = my_variant.reformat(vv)
         assert formatted == "NG_012232.1:g.3_6T[20]"
         assert my_variant.variant_str == "LRG_199:g.4T[20]"
-        assert my_variant.ref_type == "RefSeq"
-        # checks correct transcript type
+        # checks correct transcript ref
         assert my_variant.reference == "NG_012232.1"
         # checks correct position
         assert my_variant.variant_position == "3_6"
@@ -1156,14 +1142,12 @@ class TestExpandedRepeaLocusReferenceGenomic(TestCase):
         variant_str = "LRG_199t1:c.-120T[7]"
         my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
             variant_str,  "GRCh37", "all", vv)
-        my_variant.check_transcript_type()
         my_variant.reformat_reference()
         my_variant.check_genomic_or_coding()
         formatted = my_variant.reformat(vv)
         assert formatted == "NM_004006.2:c.-120_-114T[7]"
         assert my_variant.variant_str == "LRG_199t1:c.-120T[7]"
-        assert my_variant.ref_type == "RefSeq"
-        # checks correct transcript type
+        # checks correct transcript ref
         assert my_variant.reference == "NM_004006.2"
         # checks correct position
         assert my_variant.variant_position == "-120_-114"

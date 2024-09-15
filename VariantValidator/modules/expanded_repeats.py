@@ -196,40 +196,6 @@ class TandemRepeats:
             ref_type,
         )
 
-    def check_transcript_type(self):
-        """
-        Find transcript type and run relevant function for processing,
-        that transcript type.
-        N.B. Future development could instead store
-        the transcript and replace it with refseq.
-
-        Parameters
-        ----------
-        self.reference:str
-            The reference from parse_variant_repeat
-            i.e. Everything before the first colon.
-        Returns
-        -------
-        None, prints variant type.
-
-        Raises:
-            Exception: (Error for unknown transcript type.)
-        """
-        logger.info(
-            f"Checking transcript type: check_transcript_type({self.reference})"
-        )
-        if bool(re.match(r"^ENS", self.reference)):
-            logger.info("Variant type: Ensembl variant")
-            self.ref_type = "Ensembl"
-        elif bool(re.match(r"NM", self.reference) or re.match(r"NR", self.reference) or
-                  re.match(r"NG", self.reference)):
-            logger.info("Variant type: RefSeq variant")
-            self.ref_type = "RefSeq"
-        else:
-            raise RepeatSyntaxError(
-                "RepeatSyntaxError: Unknown Reference Sequence type present. " \
-                "Supported types are Ensembl transcripts, RefSeq transcripts and RefSeq Genes")
-
     def reformat_reference(self):
         """Reformats the reference sequence name"""
         logger.info(f"Reformatting reference: reformat_reference({self.reference})")
