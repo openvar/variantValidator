@@ -282,9 +282,8 @@ class TandemRepeats:
             f"check_positions_given({self.repeat_sequence}, "\
             f"{self.variant_position},{self.copy_number})"
         )
-
-        reference_repeat_sequence = validator.sf.fetch_seq(self.reference, int(self.variant_position.split("_")[0])-1,
-                                                              int(self.variant_position.split("_")[1]))
+        start,end = self.variant_position.split("_")
+        reference_repeat_sequence = validator.sf.fetch_seq(self.reference, int(start)-1, int(end))
 
         # Check if the length of reference_repeat_sequence is a multiple of the length of query_str
         if len(reference_repeat_sequence) % len(self.repeat_sequence) != 0:
@@ -314,8 +313,9 @@ class TandemRepeats:
         )
 
         # Get the full reference sequence range of the variant
+        # the offset_position here is the start position in 0 based coordinates
         try:
-            offset_position = int(self.variant_position)
+            offset_position = int(self.variant_position) - 1
         except ValueError:
             if not self.no_norm_evm:
                 # if we normalise at the wrong points we get the wrong ref seq back
@@ -409,15 +409,14 @@ class TandemRepeats:
             # Intronic va
 
         if self.prefix == "c":
-            transcript_info = validator.hdp.get_tx_identity_info(self.reference)
             if self.cds_start is None:
+                transcript_info = validator.hdp.get_tx_identity_info(self.reference)
                 self.cds_start = int(transcript_info[3])
             if "-" in self.variant_position:
-                offset_position = int(transcript_info[3]) + offset_position
+                offset_position = self.cds_start + offset_position + 1
             else:
-                offset_position = int(transcript_info[3]) + offset_position - 1
-
-            self.offset_position = int(transcript_info[3])
+                offset_position = self.cds_start + offset_position
+            self.offset_position = self.cds_start
         else:
             self.offset_position = 0
 
@@ -436,8 +435,9 @@ class TandemRepeats:
         return full_range
 
     def check_reference_sequence(self, validator, offset_position):
-        requested_sequence = validator.sf.fetch_seq(self.reference, offset_position,
-                                                    offset_position + len(self.repeat_sequence))
+        start = offset_position
+        end = offset_position + len(self.repeat_sequence)
+        requested_sequence = validator.sf.fetch_seq(self.reference, start, end)
         if requested_sequence != self.repeat_sequence:
             raise RepeatSyntaxError(f"RepeatSyntaxError: The provided repeat sequence {self.repeat_sequence } does not "
                                     f"match the reference sequence {requested_sequence} at the given position "
