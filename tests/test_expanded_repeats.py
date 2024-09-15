@@ -931,6 +931,182 @@ class TestExpandedRepeatGenomicToTranscript(TestCase):
             "NM_000088.3 is available for genome build GRCh37 (NM_000088.4)",
         ]
 
+class TestExpandedRepeatRefSeqGenomic(TestCase):
+    """
+    Tests for RefSeqGene(RSG) reference targeting expanded repeats
+    Same as basic genomic mapping tests + a few known RSG transcripts
+    to verify that alignments are found correctly.
+    Large parts of the underlying code paths are shared, all with
+    transcript mappings beyond a certain point, so more extensive RSG<->tx
+    mapping tests are left out for now, until we have problematic user
+    input to add.
+    """
+    @classmethod
+    def setUpClass(cls):
+        cls.vv = Validator()
+        cls.vv.testing = True
+
+    def test_basic_syntax_RSG(self):
+        """
+        Test for handling basic syntax of variant string, with RSG_ genomic
+        reference type variant input directly via TandemRepeats code
+        Should pass if all basic syntax checks passed.
+        """
+        variant_str = "NG_012232.1:g.4T[20]"
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
+            variant_str,  "GRCh37", "all", vv)
+        my_variant.check_transcript_type()
+        my_variant.reformat_reference()
+        my_variant.check_genomic_or_coding()
+        formatted = my_variant.reformat(vv)
+        assert formatted == "NG_012232.1:g.3_6T[20]"
+        assert my_variant.variant_str == "NG_012232.1:g.4T[20]"
+        assert my_variant.ref_type == "RefSeq"
+        # checks correct transcript type
+        assert my_variant.reference == "NG_012232.1"
+        # checks correct position
+        assert my_variant.variant_position == "3_6"
+        # checks repeat seq
+        assert my_variant.repeat_sequence == "T"
+        # checks correct suffix
+        assert my_variant.copy_number == "20"
+        # checks number of repeats is str and correct
+        assert my_variant.after_the_bracket == ""
+        # checks nothing is after the bracket
+
+    def test_RSG_genomic_range(self):
+        """
+        Test that a working input range produces an equal and valid output
+        """
+        variant = 'NG_012232.1:g.3_6T[20]'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert results["intergenic_variant_1"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000023.10:g.33362724_33362725insAAAAAAAAAAAAAAAA"
+        assert results["intergenic_variant_1"]['hgvs_refseqgene_variant']\
+            == 'NG_012232.1:g.6_7insTTTTTTTTTTTTTTTT'
+        assert results["intergenic_variant_1"]["validation_warnings"] == [
+            "ExpandedRepeatWarning: NG_012232.1:g.3_6T[20] should only be used as an annotation for"
+            " the core HGVS descriptions provided",
+            'NG_012232.1:g.6_7insTTTTTTTTTTTTTTTT automapped to genome position '
+            'NC_000023.10:g.33362724_33362725insAAAAAAAAAAAAAAAA',
+            'No transcripts found that fully overlap the described variation in the genomic sequence'
+        ]
+
+    def test_RSG_genomic_single_position_to_span(self):
+        """
+        Test mapping of single location starting tandem repeat to span via full VV front end
+        """
+        variant = "NG_012232.1:g.4T[20]"
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert results["intergenic_variant_1"]["primary_assembly_loci"]["grch37"][
+                "hgvs_genomic_description"] == "NC_000023.10:g.33362724_33362725insAAAAAAAAAAAAAAAA"
+        assert results['intergenic_variant_1']["validation_warnings"] == [
+            'ExpandedRepeatWarning: NG_012232.1:g.4T[20] updated to NG_012232.1:g.3_6T[20]',
+            'ExpandedRepeatWarning: NG_012232.1:g.3_6T[20] should only be used as an annotation '
+            'for the core HGVS descriptions provided',
+            'NG_012232.1:g.6_7insTTTTTTTTTTTTTTTT automapped to genome position '
+            'NC_000023.10:g.33362724_33362725insAAAAAAAAAAAAAAAA',
+            'No transcripts found that fully overlap the described variation in the genomic sequence'
+            ]
+
+    def test_incorrect_RSG_genomic_range(self):
+        """
+        Test that an invalid range gives an appropriate error response
+        """
+        variant = 'NG_012232.1:g.3_6C[20]'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert results["validation_warning_1"]["validation_warnings"] == [
+            'RepeatSyntaxError: The provided repeat sequence C does not match the reference '
+            'sequence T at the given position 3_3 of reference sequence NG_012232.1'
+        ]
+
+    def test_RSG_mapping_transcript_range(self):
+        """
+        Test that a working input range for a RSG mapping transcript
+        produces an equal and valid RSG output in the VV results
+        """
+        variant = 'NM_004006.2:c.-120_-114T[7]'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert results["NM_004006.2:c.-120_-114="]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == 'NC_000023.10:g.33229543_33229549='
+        assert results["NM_004006.2:c.-120_-114="]['hgvs_refseqgene_variant']\
+            == 'NG_012232.1:g.133178_133184='
+        assert results["NM_004006.2:c.-120_-114="]["validation_warnings"] ==  [
+            'ExpandedRepeatWarning: NM_004006.2:c.-120_-114T[7] should only be used as an '
+            'annotation for the core HGVS descriptions provided',
+            'TranscriptVersionWarning: A more recent version of the selected reference sequence '
+            'NM_004006.2 is available for genome build GRCh37 (NM_004006.3)'
+            ]
+
+    def test_RSG_mapping_transcript_single_pos(self):
+        """
+        Test that a working input range for a RSG mapping transcript
+        produces an equal and valid RSG output in the VV results
+        """
+        variant = 'NM_004006.2:c.-120T[7]'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert results["NM_004006.2:c.-120_-114="]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == 'NC_000023.10:g.33229543_33229549='
+        assert results["NM_004006.2:c.-120_-114="]['hgvs_refseqgene_variant']\
+            == 'NG_012232.1:g.133178_133184='
+        assert results["NM_004006.2:c.-120_-114="]["validation_warnings"] ==  [
+            'ExpandedRepeatWarning: NM_004006.2:c.-120T[7] updated to NM_004006.2:c.-120_-114T[7]',
+            'ExpandedRepeatWarning: NM_004006.2:c.-120_-114T[7] should only be used as an '
+            'annotation for the core HGVS descriptions provided',
+            'TranscriptVersionWarning: A more recent version of the selected reference sequence '
+            'NM_004006.2 is available for genome build GRCh37 (NM_004006.3)'
+            ]
+
+    def test_RSG_mapping_transcript_intron_single_pos(self):
+        """
+        Test that a working input range for an intron inside a RSG mapping transcript
+        produces an equal and valid RSG output in the VV results
+        """
+        variant = 'NM_022167.4:c.135+1G[2]'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert results["NM_022167.4:c.135_135+1="]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000017.10:g.48423636_48423637="
+        assert results["NM_022167.4:c.135_135+1="]['genome_context_intronic_sequence']\
+            == 'NC_000017.10(NM_022167.4):c.135_135+1='
+        assert results["NM_022167.4:c.135_135+1="]['refseqgene_context_intronic_sequence']\
+            == 'NG_012175.1(NM_022167.4):c.135_135+1='
+        assert results["NM_022167.4:c.135_135+1="]['hgvs_refseqgene_variant']\
+            == 'NG_012175.1:g.5244_5245='
+        assert results["NM_022167.4:c.135_135+1="]["validation_warnings"] == [
+            "ExpandedRepeatWarning: NM_022167.4:c.135+1G[2] updated to NM_022167.4:c.135_135+1G[2]",
+            "ExpandedRepeatWarning: NM_022167.4:c.135_135+1G[2] should only be used as an "
+            "annotation for the core HGVS descriptions provided",
+            'NM_022167.4:c.135_135+1delinsGG automapped to NM_022167.4:c.135_135+1='
+        ]
+
+    def test_RSG_mapping_transcript_intron_range(self):
+        """
+        Test that a working input range for an intron inside a RSG mapping transcript
+        produces an equal and valid RSG output in the VV results
+        """
+        variant = 'NM_022167.4:c.135_135+1G[2]'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert results["NM_022167.4:c.135_135+1="]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000017.10:g.48423636_48423637="
+        assert results["NM_022167.4:c.135_135+1="]['genome_context_intronic_sequence']\
+            == 'NC_000017.10(NM_022167.4):c.135_135+1='
+        assert results["NM_022167.4:c.135_135+1="]['refseqgene_context_intronic_sequence']\
+            == 'NG_012175.1(NM_022167.4):c.135_135+1='
+        assert results["NM_022167.4:c.135_135+1="]['hgvs_refseqgene_variant']\
+            == 'NG_012175.1:g.5244_5245='
+        assert results["NM_022167.4:c.135_135+1="]["validation_warnings"] == [
+            "ExpandedRepeatWarning: NM_022167.4:c.135_135+1G[2] should only be used as an "
+            "annotation for the core HGVS descriptions provided",
+            'NM_022167.4:c.135_135+1delinsGG automapped to NM_022167.4:c.135_135+1='
+        ]
+
 
 if __name__ == "__main__":
     unittest.main()
