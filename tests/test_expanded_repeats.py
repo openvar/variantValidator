@@ -12,14 +12,14 @@ Additional functionality to add:
 import unittest
 from unittest import TestCase
 from VariantValidator.modules import expanded_repeats
-from VariantValidator import Validator  
+from VariantValidator import Validator
 vv = Validator()
 vv.alt_aln_method = "splign"
 
 
 class TestExpandedRepeats(unittest.TestCase):
-    """Tests for expanded_repeats.py to check the syntax checker returns
-    the expected results for each variant case.
+    """Tests for the internal expanded_repeats.py module, to directly check
+    that the syntax checker returns the expected results for each variant case.
     Including known edge-cases that weren't previously handled.
 
     Attributes
@@ -30,7 +30,7 @@ class TestExpandedRepeats(unittest.TestCase):
     Number of tests completed successfully.
     """
 
-    def test_basic_syntax(self):
+    def test_basic_syntax_RSG(self):
         """
         Test for handling basic syntax of variant string.
         """
@@ -55,7 +55,7 @@ class TestExpandedRepeats(unittest.TestCase):
         assert my_variant.after_the_bracket == ""
         # checks nothing is after the bracket
 
-    def test_basic_syntax_3(self):
+    def test_basic_syntax_ENSG(self):
         """
         Test for handling basic syntax of ENSG variant string.
         """
@@ -82,12 +82,12 @@ class TestExpandedRepeats(unittest.TestCase):
         assert my_variant.after_the_bracket == ""
         # checks nothing is after the bracket
 
-    def test_basic_syntax_5(self):
+    def test_basic_syntax_NM(self):
         """
-        Test for handling basic syntax of ENSG variant string.
+        Test for handling basic syntax with a NM_ 'c' type variant string.
         """
         variant_str = "NM_000492.4:c.1210-34TG[11]"
-        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(variant_str, "GRCh37", "all", vv)
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(variant_str, "GRCh38", "all", vv)
         assert my_variant.variant_position == "1210-34"
         my_variant.check_transcript_type()
         my_variant.reformat_reference()
@@ -137,10 +137,10 @@ class TestExpandedRepeats(unittest.TestCase):
         assert my_variant.end == ":g.1ACT[10]"
 
 
-class TestVariantsExpanded(TestCase):
+class TestCVariantsExpanded(TestCase):
 
     @classmethod
-    def setup_class(cls):
+    def setUpClass(cls):
         cls.vv = Validator()
         cls.vv.testing = True
 
@@ -227,7 +227,7 @@ class TestVariantsExpanded(TestCase):
         assert results["validation_warning_1"][
             "validation_warnings"] == [
             "RepeatSyntaxError: The provided repeat sequence AGA does not match the reference sequence GAA "
-            "at the given position 1289_1291 of reference sequence NM_003073.5"
+            "at the given position 1290_1292 of reference sequence NM_003073.5"
         ]
 
     def test_5_utr_single_pos(self):
@@ -258,6 +258,7 @@ class TestVariantsExpanded(TestCase):
             "TranscriptVersionWarning: A more recent version of the selected reference sequence NM_002024.5 is "
             "available for genome build GRCh37 (NM_002024.6)"
         ]
+
     def test_5_utr_single_pos_incorrect(self):
         variant = 'NM_002024.5:c.-128CGG[10]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
@@ -265,20 +266,25 @@ class TestVariantsExpanded(TestCase):
         assert results["validation_warning_1"][
             "validation_warnings"] == [
             "RepeatSyntaxError: The provided repeat sequence CGG does not match the reference sequence GGC at "
-            "the given position 101_103 of reference sequence NM_002024.5"
+            "the given position 102_104 of reference sequence NM_002024.5"
         ]
 
     def test_gap_crossing(self):
-        variant = 'LRG_763t1:c.54_110GCA[21]'
+        """Test that when the reference genome has a del in it WRT the transcript that
+        the transcript version is expanded to match the repeat across this region anyway,
+        and that the genome gets the correct coordinates. The same result should be
+        found for transcripts described via LRG IDs, even without the gap being in the LRG
+        due to the reference centric nature of our current tooling but will now tested
+        later in the LRG section of the tests."""
+        variant = 'NM_002111.8:c.54_110GCA[21]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_002111.8:c.54_116="][
-            "primary_assembly_loci"]["grch37"]["hgvs_genomic_description"] == "NC_000004.11:g.3076657_3076662dup"
-        assert results["NM_002111.8:c.54_116="][
-            "validation_warnings"] ==  [
-            "ExpandedRepeatWarning: LRG_763t1:c.54_110GCA[21] updated to NM_002111.8:c.54_116GCA[21]",
-            "ExpandedRepeatWarning: NM_002111.8:c.54_116GCA[21] should only be used as an annotation for "
-            "the core HGVS descriptions provided"
+        assert results["NM_002111.8:c.54_116="]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000004.11:g.3076657_3076662dup"
+        assert results["NM_002111.8:c.54_116="]["validation_warnings"] ==  [
+            "ExpandedRepeatWarning: NM_002111.8:c.54_110GCA[21] updated to NM_002111.8:c.54_116GCA[21]",
+            "ExpandedRepeatWarning: NM_002111.8:c.54_116GCA[21] should only be used as an "
+            "annotation for the core HGVS descriptions provided"
         ]
 
     def test_antisense_intron_range(self):
@@ -335,8 +341,9 @@ class TestVariantsExpanded(TestCase):
         assert results["validation_warning_1"][
                    "validation_warnings"] == [
             "RepeatSyntaxError: The provided repeat sequence T does not match the reference sequence A"
-            " at the given position 48275380_48275380 of reference sequence NC_000017.10"
+            " at the given position 48275381_48275381 of reference sequence NC_000017.10"
         ]
+
 
 if __name__ == "__main__":
     unittest.main()
