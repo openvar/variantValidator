@@ -83,7 +83,6 @@ class TandemRepeats:
         self.variant_str = variant_str
         self.cds_start = None # only valid for C type tx
         self.g_strand = 1 # only valid for intronic +/-1
-        self.intronic_or_utr = False
         self.evm = False
         self.no_norm_evm = False
         self.genomic_conversion = None
@@ -291,7 +290,6 @@ class TandemRepeats:
                         replace_reference=True
                         )
             if re.search(r"[0-9]+[+-][0-9]+", self.variant_position):
-                self.intronic_or_utr = copy.copy(self.reference)
                 # Handle a range variant input, given current function's purpose we
                 # just dump range and re-build from the first base
 
@@ -306,7 +304,7 @@ class TandemRepeats:
 
                     # Check the exon boundaries
                     self.check_exon_boundaries(validator)
-                    seq_check = self.evm.g_to_t(intronic_genomic_variant, self.intronic_or_utr)
+                    seq_check = self.evm.g_to_t(intronic_genomic_variant, self.reference)
 
                     if seq_check.posedit.edit.ref != self.repeat_sequence * int(self.copy_number):
                         raise RepeatSyntaxError(f"RepeatSyntaxError: The repeat sequence does not match the reference "
@@ -363,11 +361,11 @@ class TandemRepeats:
                     if self.g_strand == -1:
                         self.reverse_complement(self.repeat_sequence)
                         self.is_reverse_complement = True
-
             else:
-                self.intronic_or_utr = "utr"
-
-            # Intronic va
+                raise RepeatSyntaxError(
+                    f"RepeatSyntaxError: The provided start coordinate {self.variant_position}"
+                    "does not appear to be a simple transcript coordinate, or an intronic "
+                    "location ")
 
         if self.prefix == "c" and not self.intronic_g_reference:
             if self.cds_start is None:
@@ -459,12 +457,14 @@ class TandemRepeats:
             raise RepeatSyntaxError("RepeatSyntaxError: The number of repeat units included between square brackets "
                                     "must be numeric")
 
-        if not re.search("[actgu]+", self.repeat_sequence, re.IGNORECASE):
-            raise RepeatSyntaxError("RepeatSyntaxError: Please ensure the repeated sequence includes only Aa, Cc, Tt, "
-                                    "Gg, or Uu")
-
         # Update the repeated sequence to be upper case
         self.repeat_sequence = self.repeat_sequence.upper()
+        # test for non matching chars
+        if re.search("[^ACTGU]", self.repeat_sequence):
+            raise RepeatSyntaxError(
+                "RepeatSyntaxError: Please ensure the repeated sequence"
+                "includes only Aa, Cc, Tt, Gg, or Uu")
+
         if self.after_the_bracket != "":
             raise RepeatSyntaxError(
                 f"No information should be included after "
@@ -497,9 +497,9 @@ class TandemRepeats:
         self.check_positions_given(validator)
         self.variant_position = self.convert_n_to_c_coordinates()
 
-        # Map back to transcript if intronic or UTR
-        if self.intronic_or_utr is not None and self.genomic_conversion is not None:
-            transcript_variant = self.evm.g_to_t(self.genomic_conversion, self.intronic_or_utr)
+        # Map back to transcript if intronic
+        if self.genomic_conversion is not None:
+            transcript_variant = self.evm.g_to_t(self.genomic_conversion, self.reference)
             self.reference = transcript_variant.ac
             self.variant_position = str(transcript_variant.posedit.pos)
             if self.is_reverse_complement is True:
@@ -616,7 +616,7 @@ class TandemRepeats:
                 raise RepeatSyntaxError(
                     f"ExonBoundaryError: Position {self.original_position} " +
                     "does not correspond with an exon boundary for transcript "
-                    + self.intronic_or_utr)
+                    + self.reference)
             return True
         check_exon_pos(start)
         # skip "end" if we don't have a range
