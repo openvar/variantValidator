@@ -72,6 +72,7 @@ class TandemRepeats:
         None. But a class instance of variant is created.
         """
         self.reference = reference
+        self.intronic_g_reference = False
         self.prefix = prefix
         self.variant_position = variant_position
         self.repeat_sequence = repeat_sequence
@@ -80,15 +81,12 @@ class TandemRepeats:
         self.build = build
         self.select_transcripts = select_transcripts
         self.variant_str = variant_str
-        self.ref_type = ref_type
         self.cds_start = None # only valid for C type tx
-        self.offset_position = 0
         self.g_strand = 1 # only valid for intronic +/-1
         self.intronic_or_utr = False
         self.evm = False
         self.no_norm_evm = False
         self.genomic_conversion = None
-        self.original_prefix = None
         self.original_position = None
         self.is_reverse_complement = False
 
@@ -279,9 +277,9 @@ class TandemRepeats:
         )
 
         # Get the full reference sequence range of the variant
-        # the offset_position here is the start position in 0 based coordinates
+        # the within_ref_pos here is the start position in 0 based coordinates
         try:
-            offset_position = int(self.variant_position) - 1
+            within_ref_pos = int(self.variant_position) - 1
         except ValueError:
             if not self.no_norm_evm:
                 # if we normalise at the wrong points we get the wrong ref seq back
@@ -349,46 +347,39 @@ class TandemRepeats:
                     self.original_position = copy.copy(self.variant_position)
                     self.variant_position = intronic_genomic_variant.posedit.pos.start.base
 
-                self.reference = intronic_genomic_variant.ac
-                self.original_prefix = copy.copy(self.prefix)
-                self.prefix = "g"
+                self.intronic_g_reference = intronic_genomic_variant.ac
                 self.genomic_conversion = intronic_genomic_variant
 
                 # Check exon boundaries
                 self.check_exon_boundaries(validator)
 
                 if self.repeat_sequence[0] == intronic_genomic_variant.posedit.edit.ref:
-                    offset_position = intronic_genomic_variant.posedit.pos.start.base - 1
+                    within_ref_pos = intronic_genomic_variant.posedit.pos.start.base - 1
                     if self.g_strand == -1:
                         self.reverse_complement(self.repeat_sequence)
                         self.is_reverse_complement = True
                 else:
-                    offset_position = intronic_genomic_variant.posedit.pos.start.base - 1
+                    within_ref_pos = intronic_genomic_variant.posedit.pos.start.base - 1
                     if self.g_strand == -1:
                         self.reverse_complement(self.repeat_sequence)
                         self.is_reverse_complement = True
 
             else:
                 self.intronic_or_utr = "utr"
-                offset_position = 0
 
             # Intronic va
 
-        if self.prefix == "c":
+        if self.prefix == "c" and not self.intronic_g_reference:
             if self.cds_start is None:
                 transcript_info = validator.hdp.get_tx_identity_info(self.reference)
                 self.cds_start = int(transcript_info[3])
-            if "-" in self.variant_position:
-                offset_position = self.cds_start + offset_position + 1
+            if  "-" in self.variant_position:
+                within_ref_pos = self.cds_start + within_ref_pos + 1
             else:
-                offset_position = self.cds_start + offset_position
-            self.offset_position = self.cds_start
-        else:
-            self.offset_position = 0
+                within_ref_pos = self.cds_start + within_ref_pos
 
-
-        self.check_reference_sequence(validator, offset_position)
-        ref_start_position, ref_end_position = self.get_reference_range(validator, offset_position)
+        self.check_reference_sequence(validator, within_ref_pos)
+        ref_start_position, ref_end_position = self.get_reference_range(validator, within_ref_pos)
         ref_start_position = ref_start_position + 1
         full_range = f"{ref_start_position}_{ref_end_position}"
 
@@ -400,26 +391,33 @@ class TandemRepeats:
             self.genomic_conversion.posedit.pos.end.base = ref_end_position
         return full_range
 
-    def check_reference_sequence(self, validator, offset_position):
-        start = offset_position
-        end = offset_position + len(self.repeat_sequence)
-        requested_sequence = validator.sf.fetch_seq(self.reference, start, end)
+    def check_reference_sequence(self, validator, within_ref_pos):
+        start = within_ref_pos
+        end = within_ref_pos + len(self.repeat_sequence)
+        ref = self.reference
+        if self.intronic_g_reference:
+            ref = self.intronic_g_reference
+        requested_sequence = validator.sf.fetch_seq(ref, start, end)
         if requested_sequence != self.repeat_sequence:
             raise RepeatSyntaxError(f"RepeatSyntaxError: The provided repeat sequence {self.repeat_sequence } does not "
                                     f"match the reference sequence {requested_sequence} at the given position "
-                                    f"{offset_position+1}_{offset_position + len(self.repeat_sequence)} of "
-                                    f"reference sequence {self.reference}")
+                                    f"{within_ref_pos+1}_{within_ref_pos + len(self.repeat_sequence)} of "
+                                    f"reference sequence {ref}")
 
         else:
             return
 
-    def get_reference_range(self, validator, offset_position):
+    def get_reference_range(self, validator, within_ref_pos):
         """
         Get the full range of the variant
         """
+        # get sequence ref
+        ref = self.reference
+        if self.intronic_g_reference:
+            ref = self.intronic_g_reference
         logger.info(
             f"Getting the full range of the variant: "
-            f"get_reference_range({self.reference}, {self.variant_position})"
+            f"get_reference_range({ref}, {self.variant_position})"
         )
 
         # Get the full range of the reference repeat sequence
@@ -428,10 +426,10 @@ class TandemRepeats:
         current_position = None
         while start_position is None:
             if current_position is None:
-                current_position = offset_position
+                current_position = within_ref_pos
             last_position = copy.copy(current_position)
             current_position -= len(self.repeat_sequence)
-            requested_sequence = validator.sf.fetch_seq(self.reference, current_position,
+            requested_sequence = validator.sf.fetch_seq(ref, current_position,
                                                         current_position + len(self.repeat_sequence))
             if requested_sequence != self.repeat_sequence:
                 start_position = last_position
@@ -439,10 +437,10 @@ class TandemRepeats:
         current_position = None
         while end_position is None:
             if current_position is None:
-                current_position = offset_position
+                current_position = within_ref_pos
             last_position = copy.copy(current_position)
             current_position += len(self.repeat_sequence)
-            requested_sequence = validator.sf.fetch_seq(self.reference, current_position,
+            requested_sequence = validator.sf.fetch_seq(ref, current_position,
                                                         current_position + len(self.repeat_sequence))
             if requested_sequence != self.repeat_sequence:
                 end_position = last_position + len(self.repeat_sequence)
@@ -497,17 +495,15 @@ class TandemRepeats:
             self.variant_position = self.get_range_from_single_pos(validator)
 
         self.check_positions_given(validator)
-        self.variant_position = self.remove_offset()
+        self.variant_position = self.convert_n_to_c_coordinates()
 
         # Map back to transcript if intronic or UTR
         if self.intronic_or_utr is not None and self.genomic_conversion is not None:
             transcript_variant = self.evm.g_to_t(self.genomic_conversion, self.intronic_or_utr)
             self.reference = transcript_variant.ac
             self.variant_position = str(transcript_variant.posedit.pos)
-            self.prefix = self.original_prefix
             if self.is_reverse_complement is True:
                 self.reverse_complement(self.repeat_sequence)
-
 
         final_format = f"{self.reference}:{self.prefix}." \
                        f"{self.variant_position}{self.repeat_sequence}" \
@@ -536,25 +532,29 @@ class TandemRepeats:
         self.end = ":" + self.variant_str.split(":")[1]
         return self.begining, self.end
 
-    def remove_offset(self):
+    def convert_n_to_c_coordinates(self):
         """
-        Removes the offset from the variant position
+        Applies CDS based c type offset to a n type variant position
+        used for c transcripts only!
         """
         logger.info(
-            f"Removing offset: remove_offset({self.variant_position})"
+            "Applying c type offset to n type coordinates: " +
+            f"convert_n_to_c_coordinates({self.variant_position})"
         )
-        start, end = self.variant_position.split("_")
-        start = int(start) - self.offset_position
-        end = int(end) - self.offset_position
+        if not self.prefix == 'c' or not self.cds_start:
+            return self.variant_position
+        start, _sep, end = self.variant_position.partition("_")
+        start = self._add_offset_to_n(start)
+        end = self._add_offset_to_n(end)
+        return f"{start}_{end}"
 
-        if "-" in str(start):
-            start = start - 1
-        if "-" in str(end):
-            end = end - 1
-
-        self.variant_position = f"{start}_{end}"
-        self.offset_position = 0
-        return self.variant_position
+    def _add_offset_to_n(self,coridinate):
+        "Add c type offset to a single n type hgvs coordinate"
+        # CDS is 0 based, as such for CDS start 0 would be first base pre CDS
+        coridinate = int(coridinate) - self.cds_start
+        if coridinate <= 0:
+            coridinate = coridinate - 1
+        return coridinate
 
     def reverse_complement(self, dna_seq):
         """
@@ -580,19 +580,13 @@ class TandemRepeats:
             '-' in self.original_position and # only bother to check with regex if relevant
             re.search('[0-9]-',self.original_position)):
             return
-        # We should have a separate slot for the genomic target, for RNA based variants
-        # with locations in introns. At the moment self.reference is overloaded
-        # self.prefix is also abused intronic data should not change the input prefix to g!
-        tx_ref, _sep, remain = self.variant_str.partition(':')
-        if "LRG" in tx_ref and "t" in tx_ref:
-            tx_ref = validator.db.get_refseq_transcript_id_from_lrg_transcript_id(tx_ref)
 
-        exon_data = validator.hdp.get_tx_exons(tx_ref,
+        exon_data = validator.hdp.get_tx_exons(self.reference,
                                                self.genomic_conversion.ac,
                                                validator.alt_aln_method)
         transcript_exon_pos = []
-        if remain.startswith('c.') and self.cds_start is None:
-            transcript_info = validator.hdp.get_tx_identity_info(tx_ref)
+        if  self.prefix == 'c' and self.cds_start is None:
+            transcript_info = validator.hdp.get_tx_identity_info(self.reference)
             self.cds_start = int(transcript_info[3])
         elif self.cds_start is None:
             self.cds_start = 0
@@ -638,7 +632,8 @@ def convert_tandem(variant, validator, build, my_all):
         return False
     else:
         expanded_variant_string = expanded_variant.reformat(validator)
-        variant.expanded_repeat = {"variant": expanded_variant_string, "position": expanded_variant.variant_position,
+        variant.expanded_repeat = {"variant": expanded_variant_string,
+                                   "position": expanded_variant.variant_position,
                                    "copy_number": expanded_variant.copy_number,
                                    "repeat_sequence": expanded_variant.repeat_sequence,
                                    "reference": expanded_variant.reference,
