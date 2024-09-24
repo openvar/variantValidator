@@ -157,7 +157,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
         """
         Gap aware projection from g. to c.
         """
-
         # RefSeq or Ensembl?
         expanded_genomic_for_ensembl = False
         if self.validator.alt_aln_method == 'genebuild':
@@ -247,12 +246,19 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
         assert stored_hgvs_not_delins != ''
         stash_hgvs_not_delins = self.validator.hp.parse_hgvs_variant(stash_ac + ':' +
             self.hgvs_genomic_5pr.type + '.' + str(stash_pos) + '_' + stash_end + 'del' + stash_ref + 'ins' + stash_alt)
+        pre_loop_stash_hgvs_not_delins = copy.copy(stash_hgvs_not_delins)
+
 
         # make an empty rel_var
         nw_rel_var = []
 
         # loop through rel_var and amend where required
         for var in rel_var:
+            stash_hgvs_not_delins = pre_loop_stash_hgvs_not_delins
+
+            # Blank the self.tx_hgvs_not_delins
+            self.tx_hgvs_not_delins = None
+
             # Store the current hgvs:c. description
             try:
                 saved_hgvs_coding = self.validator.hp.parse_hgvs_variant(var)
@@ -745,7 +751,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                         hgvs_refreshed_variant = self.transcript_disparity(reverse_normalized_hgvs_genomic,
                                                                            stored_hgvs_not_delins,
                                                                            self.variant.hgvs_genomic, 1)
-
                     # GAP IN THE CHROMOSOME
                     elif self.disparity_deletion_in[0] == 'chromosome':
                         # Set warning variables
@@ -2644,6 +2649,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
         c2.posedit.pos.end.offset = 0
         c2.posedit.edit.ref = ''
         c2.posedit.edit.alt = ''
+
         if self.orientation != -1:
             g1 = self.validator.vm.t_to_g(c1, hgvs_genomic.ac, alt_aln_method=self.validator.alt_aln_method)
             g2 = self.validator.vm.t_to_g(c2, hgvs_genomic.ac, alt_aln_method=self.validator.alt_aln_method)
@@ -2655,6 +2661,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
 
         reference = g1.posedit.edit.ref + g2.posedit.edit.ref[1:]
         alternate = g1.posedit.edit.alt + g2.posedit.edit.alt[1:]
+
         g3 = copy.deepcopy(g1)
         g3.posedit.pos.end.base = g2.posedit.pos.end.base
         g3.posedit.edit.ref = reference
@@ -2789,6 +2796,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             self.disparity_deletion_in[1] = [gap_size]
 
         else:
+
             if self.tx_hgvs_not_delins.posedit.pos.start.offset == 0 and \
                     self.tx_hgvs_not_delins.posedit.pos.end.offset == 0:
                 # In this instance, we have identified a transcript gap but the n. version of
@@ -2829,6 +2837,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
 
             elif '+' in str(self.tx_hgvs_not_delins.posedit.pos.end) and \
                     '+' not in str(self.tx_hgvs_not_delins.posedit.pos.start):
+                hgvs_genomic_norm = self.variant.hn.normalize(hgvs_genomic)
                 self.auto_info = self.auto_info
                 self.gapped_transcripts = self.gapped_transcripts + ' ' + str(self.tx_hgvs_not_delins.ac)
                 hgvs_refreshed_variant = self.c1_pos_edit(hgvs_genomic)
