@@ -124,14 +124,6 @@ class TestExpandedRepeats(unittest.TestCase):
                                     variant_str, "GRCh37", "all", vv)
         assert my_variant == False
 
-    def test_simple_str_split(self):
-        test_variant = "ENSG00000198947:g.1ACT[10]"
-        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(test_variant,
-                                                                         "GRCh37", "all", vv)
-        my_variant.simple_split_string()
-        assert my_variant.begining == "ENSG00000198947"
-        assert my_variant.end == ":g.1ACT[10]"
-
 
 class TestCVariantsExpanded(TestCase):
 

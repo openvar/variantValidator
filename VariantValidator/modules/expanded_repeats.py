@@ -535,27 +535,6 @@ class TandemRepeats:
 
         return final_format
 
-    def simple_split_string(self):
-        """
-        Splits the string into two parts divided by the colon (:).
-        Useful for segregating the two distict elements of the variant string
-        And for troubleshooting.
-        Parameters
-        ----------
-        self.variant_str:str
-                (Variant string i.e. LRG_199:g.1ACT[20])
-
-        Returns
-        -------
-        self.prefix:str
-            String for the transcript of the variant. I.e. NM_40091.5
-        self.suffix:str
-            String for the remaining variant string for further processing.
-        """
-        self.begining = self.variant_str.split(":")[0]
-        self.end = ":" + self.variant_str.split(":")[1]
-        return self.begining, self.end
-
     def _get_c_tx_info(self,validator):
         """
         Get the transcript info needed for turning n type from start of
