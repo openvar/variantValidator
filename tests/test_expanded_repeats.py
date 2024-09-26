@@ -57,18 +57,22 @@ class TestExpandedRepeats(unittest.TestCase):
         """
         Test for handling basic syntax of ENSG variant string.
         """
-        variant_str = "ENST00000263121.12:c.1082TCT[2]"
+        # changed from previous version of "ENST00000263121.12:c.1082TCT[2]"
+        # (pre-full exon handling) after verifying that coordinates matched by
+        # testing "ENST00000263121.12:c.*62_*67delinsTCTTCT" transformed into
+        # "ENST00000263121.12:c.*62_*67=" with base VV
+        variant_str = "ENST00000263121.12:c.*62_*67TCT[2]"
         my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
                                     variant_str,  "GRCh37", "all", vv)
         my_variant.reformat_reference()
         my_variant.check_genomic_or_coding()
         formatted = my_variant.reformat(vv)
-        assert formatted == "ENST00000263121.12:c.1082_1087TCT[2]"
-        assert my_variant.variant_str == "ENST00000263121.12:c.1082TCT[2]"
+        assert formatted == "ENST00000263121.12:c.*62_*67TCT[2]"
+        assert my_variant.variant_str == "ENST00000263121.12:c.*62_*67TCT[2]"
         assert my_variant.prefix == "c"
         assert my_variant.reference == "ENST00000263121.12"
         # checks correct ref name
-        assert my_variant.variant_position == "1082_1087"
+        assert my_variant.variant_position == "*62_*67"
         # checks correct position
         assert my_variant.repeat_sequence == "TCT"
         # checks repeat seq
@@ -109,7 +113,7 @@ class TestExpandedRepeats(unittest.TestCase):
         my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
                                     variant_str,  "GRCh37", "all", vv)
         # Includes cds offset
-        self.assertEqual(expanded_repeats.TandemRepeats.get_range_from_single_pos(my_variant, vv), "1289_1297")
+        self.assertEqual(expanded_repeats.TandemRepeats.get_range_from_single_or_start_pos(my_variant, vv), "1289_1297")
 
     def test_empty_string(self):
         """
@@ -135,6 +139,12 @@ class TestCVariantsExpanded(TestCase):
     def setUpClass(cls):
         cls.vv = Validator()
         cls.vv.testing = True
+
+    def test_coridnates_over_cds_start(self):
+        variant = 'NM_004006.2:c.-3_1A[4]'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert 'NM_004006.2:c.-3_1=' in results
 
     def test_exon_boundary_single_position(self):
         variant = 'NM_004006.2:c.13-14AC[7]'
@@ -354,6 +364,38 @@ class TestTranscriptVariantsExpandedNvsC(TestCase):
     def setUpClass(cls):
         cls.vv = Validator()
         cls.vv.testing = True
+
+    def test_coridnates_over_cds_start_c(self):
+        # It is important to test the -1 position specifically as previous versions
+        # had some issues with -1 (but not -2, -3 etc.)
+        variant = 'NM_022167.4:c.-1_1GA[1]'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert 'NM_022167.4:c.-1_1=' in results
+
+    def test_coridnates_over_pseudo_cds_start_n(self):
+        variant = 'NR_110010.2:n.15_16GA[1]'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert 'NR_110010.2:n.15_16=' in results
+
+    def test_cordinateds_over_cds_end_c(self):
+        # For this NM_001160367.2 and the following NR_027702.2 test there is a 35bp deletion
+        # that breaks the translation start for the NR version of the transcript. Finding good
+        # transcripts with identical sequences all through to past the CDS where one of the
+        # pair was NR and the other NM and coding proved impractical, so a otherwise clean
+        # start deletion was found.
+        variant = 'NM_001160367.2:c.870_*1AC[1]'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert 'NM_001160367.2:c.870_*1=' in results
+
+    def test_cordinateds_over_pseudo_cds_end_n(self):
+        # As mentioned n coordinates here should be -35 WRT to n equivalent coordinates for above
+        variant = 'NR_027702.2:n.1032_1033AC[1]'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert 'NR_027702.2:n.1032_1033=' in results
 
     def test_exon_boundary_single_position_c(self):
         variant = 'NM_022167.4:c.21-4GC[5]'
