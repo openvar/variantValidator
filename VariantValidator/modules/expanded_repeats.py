@@ -54,7 +54,6 @@ class TandemRepeats:
         build,
         select_transcripts,
         variant_str,
-        ref_type,
     ):
         """
         This initialised an instance of the class with set class vars.
@@ -132,50 +131,47 @@ class TandemRepeats:
         # variant
 
         if '[' in variant_str or ']' in variant_str:
-            reference, suffix = variant_str.split(":")
+            if not ( '[' in variant_str and ']' in variant_str ):
+                raise RepeatSyntaxError(
+                    f"RepeatSyntaxError: This variant {variant_str} contains a square bracket "
+                    "and as such has been detected as a possible tandem repeat, despite this the "
+                    "variant in question is missing a matched bracket pair. Please either remove "
+                    "the stray square bracket, or add a paired end, which should produce an "
+                    "output pair that looks something like [20] or [5].")
+            # This along with some of the later stages will fail for miss-formatted variants,
+            # we rely on the previous VV code to check for variants missing : or a '.' type.
+            # Extra checking will need to be done before using this code if is is being used
+            # stand alone from the rest of VV.
+            reference, _sep, suffix = variant_str.partition(":")
 
-            # Find reference sequence used (g or c)
-            var_type = re.search("^.*?(.*?)\\.", suffix)
-            prefix = var_type.group(1).lower()
-            # Get g or c position(s)
-            # Extract bit between . and [ e.g. 1ACT
-            pos_and_seq = suffix.split(".")[1].split("[")[0]
-            try:
-                assert re.search(
-                "[gatcu]+$", pos_and_seq, re.IGNORECASE), \
-                "Please ensure that the repeated sequence is included between "\
-                "the position and number of repeat units, e.g. g.1ACT[20]"
-            except AssertionError:
+            # Find reference sequence used (g, n, c etc.)
+            prefix, _sep, pos_edit = suffix.partition(".")
+            prefix = prefix.lower()
+            # Get position/span by extracting the bit between '.' and [ e.g. 1ACT
+            pos_and_seq, _sep, post_bracket  = pos_edit.partition("[")
+            rep_seq = re.search("[AaCcTtGgUu]+", pos_and_seq)
+            if not rep_seq:
                 raise RepeatSyntaxError(
                     "RepeatSyntaxError: Ensure that the repeated sequence is included between "
                     "the variant position and the number of repeat units, e.g. g.1_3ACT[20]")
-            else:
-                rep_seq = re.search("[ACTG]+", pos_and_seq, re.IGNORECASE)
-                repeat_sequence = rep_seq.group()
-            variant_position = re.sub(r"[A-Za-z]", "", pos_and_seq)
+            repeat_sequence = rep_seq.group()
+            variant_position = pos_and_seq[:rep_seq.start()]
 
             # Get number of unit repeats
-            repeat_no = re.search("\\[(.*?)\\]", variant_str)
-            copy_number = repeat_no.group(1)
+            copy_number, _sep, after_the_bracket = post_bracket.partition("]")
             # Save anything after bracket so that mixed repeats are supported in future
-            if re.search("\\](.*)", variant_str):
-                after_brac = re.search("\\](.*)", variant_str)
-                after_the_bracket = after_brac.group(1)
-            else:
+            if not after_the_bracket:
                 after_the_bracket = ""
-
-            ref_type = ""
         else:
             logger.info(
-                "Unable to identify a tandem repeat. Ending program."
-                "Check Format matches HGVS: "
+                "Unable to identify a tandem repeat, if a tandem repeat is "
+                "expected then please check that the format matches HGVS: "
                 "(https://varnomen.hgvs.org/recommendations/DNA/variant/repeated/)"
             )
             return False
             #  This returns False to VV to indicate no tandem repeats present.
 
         if "LRG" in reference:
-            ref_type = "LRG"
             if "t" in reference:
                 reference = validator.db.get_refseq_transcript_id_from_lrg_transcript_id(reference)
             else:
@@ -191,13 +187,12 @@ class TandemRepeats:
             build,
             select_transcripts,
             variant_str,
-            ref_type,
         )
 
     def reformat_reference(self):
         """Reformats the reference sequence name"""
         logger.info(f"Reformatting reference: reformat_reference({self.reference})")
-        if re.match(r"^ENS", self.reference) or re.match(r"^N", self.reference):
+        if self.reference.startswith("ENS") or self.reference.startswith("N"):
             assert (
                 "." in self.reference
             ), """Please ensure the transcript or gene version is included
@@ -214,25 +209,25 @@ class TandemRepeats:
             f"Checking prefix is consistent with reference: "\
             f"check_genomic_or_coding({self.reference},{self.prefix})"
         )
-        if re.match(r"^ENST", self.reference):
+        if self.reference.startswith("ENST"):
             assert (
                 self.prefix == "c"
             ), """Please ensure variant type is coding 
                 if an Ensembl transcript is provided"""
-        elif re.match(r"^NM", self.reference):
+        elif self.reference.startswith("NM"):
             assert (
                 self.prefix == "c"
             ), """Please ensure variant type is coding 
                   if a RefSeq transcript is provided"""
-        elif re.match(r"^NC", self.reference):
+        elif self.reference.startswith("NC"):
             assert (
                 self.prefix == "g"
             ), "Please ensure variant type is genomic if RefSeq chromosome is used"
-        elif re.match(r"^NG", self.reference):
+        elif self.reference.startswith("NG"):
             assert (
                 self.prefix == "g"
             ), "Please ensure variant type is genomic if RefSeq gene is used"
-        elif re.match(r"^NR", self.reference):
+        elif self.reference.startswith("NR"):
             assert (
                 self.prefix == "n"
             ), "Please ensure variant type is non-coding if NR transcript is used"
@@ -347,11 +342,11 @@ class TandemRepeats:
                     seq_check = self.evm.g_to_t(intronic_genomic_variant, self.reference)
 
                     if seq_check.posedit.edit.ref != self.repeat_sequence * int(self.copy_number):
-                        raise RepeatSyntaxError(f"RepeatSyntaxError: The repeat sequence does not match the reference "
-                                                f"sequence at the given position {self.variant_position}, "
-                                                f"expected {self.repeat_sequence * int(self.copy_number)} but the "
-                                                f"reference is "
-                                                f"{seq_check.posedit.edit.ref} at the specified position")
+                        raise RepeatSyntaxError(
+                            f"RepeatSyntaxError: The repeat sequence does not match the reference "
+                            f"sequence at the given position {self.variant_position}, "
+                            f"expected {self.repeat_sequence * int(self.copy_number)} but the "
+                            f"reference is {seq_check.posedit.edit.ref} at the specified position")
                     start, _sep, end =  self.variant_position.partition('_')
                     self.g_strand = validator.hdp.get_tx_exons(self.reference, intronic_genomic_variant.ac,
                                                                validator.alt_aln_method)[0][3]
