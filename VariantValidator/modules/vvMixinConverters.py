@@ -1771,7 +1771,9 @@ class Mixin(vvMixinInit.Mixin):
 
         # Loop through the submitted variants and gather the required info
         hgvs_variant_list = cp_hgvs_v
+        prior_variant = None
         for hgvs_v in hgvs_variant_list:
+            store_hgvs_v = hgvs_v
             # No intronic positions
             try:
                 if hgvs_v.posedit.pos.start.offset != 0 and genomic_reference is False:
@@ -1804,7 +1806,6 @@ class Mixin(vvMixinInit.Mixin):
                 continue
             # Ensure variants are in the correct order and not overlapping
             else:
-                # ! hgvs_v.posedit.pos.start.base !>
                 if hgvs_v.posedit.pos.start.base > merge_end_pos:
                     if hgvs_v.posedit.pos.start.base > merge_end_pos + 1:
                         # Create a fake variant to handle the missing sequence

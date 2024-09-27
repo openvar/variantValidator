@@ -439,6 +439,14 @@ class TestWarnings(TestCase):
         assert "InvalidFieldError: The transcript NR_015120.4 is not in the Ensembl data set. Please select RefSeq" in \
                results['validation_warning_1']['validation_warnings'][0]
 
+    def test_ensembl_nmd_type(self):
+        variant = '1:25808717:C:T'
+        results = self.vv.validate(variant, 'GRCh38', 'ENST00000494537.2', transcript_set="ensembl").format_as_dict(test=True)
+        print(results)
+        assert ("TranscriptTypeError: Cannot identify an in-frame Termination codon in the reference mRNA sequence. "
+                "ENST00000494537.2 may not be a valid coding sequence") in \
+               results['validation_warning_1']['validation_warnings'][0]
+
 
 """
 Series of tests that assess uncertain positions using the Ensembl transcript set

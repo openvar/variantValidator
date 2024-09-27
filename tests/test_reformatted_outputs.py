@@ -55,6 +55,20 @@ class TestMethylCases(TestCase):
         assert "|met=" in data_dict["NR_131224.1:n.249+1272_249+1314|met="]["alt_genomic_loci"][1]["hg38"][
             "hgvs_genomic_description"], "Assertion failed: '|met=' not found in hg38 genomic description of the second variant."
 
+    def test_uncertain_positions_batch(self):
+        variant = '["NM_016373.4:c.(1056+1_1057-1)_(1245_?)del","NM_016373.4:c.(1056+1_1057-1)_(1245_?)del","NM_016373.4:c.(516+1_517-1)_(1056+1_1057-1)del","NM_016373.4:c.(516+1_517-1)_(1056+1_1057-1)dup","NM_016373.4:c.(516+1_517-1)_(605+1_606-1)del","NM_016373.4:c.(605+1_606-1)_(791+1_792-1)del","NM_016373.4:c.(?_1-1)_(107+1_108-1)del","NM_016373.4:c.(?_1-1)_(409+1_410-1)del"]'
+        data_dict = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        assert len(data_dict) == 10
+        assert data_dict["validation_warning_4"][
+                   "validation_warnings"][0] == ("ExonBoundaryError: Position 1 does not correspond to an exon boundary"
+                                                 " for transcript NM_016373.4 aligned to GRCh38 genomic reference "
+                                                 "sequence NC_000016.10")
+        assert data_dict[
+            "NM_016373.4:c.(516+1_517-1)_(1056+1_1057-1)del"][
+            "primary_assembly_loci"]["grch38"]["hgvs_genomic_description"] == "NC_000016.10:g.(78164290_78386859)_(78432753_79211607)del"
+
+
+
 # <LICENSE>
 # Copyright (C) 2016-2024 VariantValidator Contributors
 #
