@@ -573,12 +573,44 @@ class Mixin(vvMixinConverters.Mixin):
                     """
                     Waiting for HGVS nomenclature changes
                     """
-                    # try:
-                    #     toskip = expanded_repeats.convert_tandem(my_variant.quibble, my_variant.primary_assembly, "all")
-                    # except Exception as e:
-                    #     print(e)
-                    # if toskip:
-                    #     continue
+                    try:
+                        toskip = expanded_repeats.convert_tandem(my_variant, self, my_variant.primary_assembly,
+                                                                 "all")
+                    except expanded_repeats.RepeatSyntaxError as e:
+                        my_variant.warnings = [str(e)]
+                        continue
+                    except vvhgvs.exceptions.HGVSInvalidVariantError as e:
+                        my_variant.warnings = ["HgvsSyntaxError: " + str(e)]
+                        continue
+                    except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
+                        if "invalid coordinates:" in str(e):
+                            my_variant.warnings = [(f"ExonBoundaryError: Stated position "
+                                                    f"does not correspond with an exon boundary for "
+                                                    f"transcript {my_variant.quibble.split(':')[0]}")]
+                            continue
+                    except Exception as e:
+                        my_variant.warnings = ["ExpandedRepeatError: " + str(e)]
+                        continue
+
+                    if toskip:
+                        if my_variant.quibble != my_variant.expanded_repeat["variant"]:
+                            my_variant.warnings.append(f"ExpandedRepeatWarning: {my_variant.quibble} updated "
+                                                       f"to {my_variant.expanded_repeat['variant']}")
+                        ins_bases = (my_variant.expanded_repeat["repeat_sequence"] *
+                                     int(my_variant.expanded_repeat["copy_number"]))
+                        repeat_to_delins = self.hp.parse(f"{my_variant.expanded_repeat['reference']}:"
+                                                         f"{my_variant.expanded_repeat['prefix']}."
+                                                         f"{my_variant.expanded_repeat['position']}"
+                                                         f"delins{ins_bases}")
+
+                        try:
+                            repeat_to_delins = my_variant.hn.normalize(repeat_to_delins)
+                        except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
+                            pass
+                        my_variant.quibble = fn.valstr(repeat_to_delins)
+                        my_variant.warnings.append(f"ExpandedRepeatWarning: {my_variant.expanded_repeat['variant']} "
+                                                   f"should only be used as an annotation for the core "
+                                                   f"HGVS descriptions provided")
 
                     # Methylation Syntax
                     methyl_syntax.methyl_syntax(my_variant)
@@ -1282,7 +1314,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 if 'LRG' in format_p:
                                     format_lrg = copy.copy(format_p)
                                     format_p = re.sub(r'\(LRG_.+?\)', '', format_p)
-                                    if "(" in format_p:
+                                    if "(" in format_lrg:
                                         format_lrg = format_lrg.split('(')[1]
                                         format_lrg = format_lrg.replace(')', '')
                                 else:
@@ -1935,8 +1967,6 @@ class Mixin(vvMixinConverters.Mixin):
                     self.db.update_transcript_info_record(accession, validator=self,
                                                           genome_build=variant.selected_assembly)
                 except Exception as e:
-                    # import traceback
-                    # traceback.print_exc()
                     logger.info(str(e))
                     error = 'Unable to assign transcript identity records to ' + accession + \
                             ', potentially an obsolete record or there is an issue retrieving data from Ensembl. ' \
