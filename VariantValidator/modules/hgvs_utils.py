@@ -294,12 +294,12 @@ def hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf, extra_flank
         adj_start = start - 2
         start = start - 1
         # Recover sequences
-        hgvs_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), start, end)
-        pre_base = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, start)
-        # Assemble
+        hgvs_del_seq_w_pre_base = sf.fetch_seq(
+                str(reverse_normalized_hgvs_genomic.ac),
+                adj_start, end)
         pos = str(start)
-        ref = pre_base + hgvs_del_seq
-        alt = pre_base
+        ref = hgvs_del_seq_w_pre_base
+        alt = hgvs_del_seq_w_pre_base[0]
 
     # inv
     elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'inv':
@@ -472,23 +472,20 @@ def report_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
         adj_start = start - 2
         start = start - 1
         # Recover sequences
-        hgvs_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), start, end)
-        post_base = None
-        try:
-            pre_base = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, start)
-        except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
-            if "(start out of range (-1)" in str(e):
-                post_base = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), end, end + 1)
-        # Assemble
-        pos = str(start)
-        if post_base is None:
-            ref = pre_base + hgvs_del_seq
-            alt = pre_base
+        if adj_start >= 0:
+            hgvs_del_seq_w_pre_base = sf.fetch_seq(
+                    str(reverse_normalized_hgvs_genomic.ac),
+                    adj_start, end)
+            ref = hgvs_del_seq_w_pre_base
+            alt = hgvs_del_seq_w_pre_base[0]
+            pos = str(start)
         else:
-            ref = hgvs_del_seq + post_base
-            alt = post_base
-            if pos == "0":
-                pos = "1"
+            hgvs_del_seq_w_post_base = sf.fetch_seq(
+                    str(reverse_normalized_hgvs_genomic.ac),
+                    start, end + 1)
+            ref = hgvs_del_seq_w_post_base
+            alt = hgvs_del_seq_w_post_base[-1]
+            pos = "1"
 
     # inv
     elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'inv':
@@ -622,12 +619,13 @@ def pos_lock_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
         adj_start = start - 2
         start = start - 1
         # Recover sequences
-        hgvs_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), start, end)
-        pre_base = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, start)
+        hgvs_del_seq_w_pre_base = sf.fetch_seq(
+                str(reverse_normalized_hgvs_genomic.ac),
+                adj_start, end)
         # Assemble
         pos = str(start)
-        ref = pre_base + hgvs_del_seq
-        alt = pre_base
+        ref = hgvs_del_seq_w_pre_base
+        alt = hgvs_del_seq_w_pre_base[0]
 
     # inv
     elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'inv':
@@ -882,12 +880,11 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
         adj_start = start - 2
         start = start - 1
         # Recover sequences
-        hgvs_del_seq = sf.fetch_seq(str(normalized_hgvs_genomic.ac), start, end)
-        pre_base = sf.fetch_seq(str(normalized_hgvs_genomic.ac), adj_start, start)
+        hgvs_del_seq_w_adj_start = sf.fetch_seq(str(normalized_hgvs_genomic.ac), adj_start, end)
         # Assemble
         pos = str(start)
-        ref = pre_base + hgvs_del_seq
-        alt = pre_base
+        ref = hgvs_del_seq_w_adj_start
+        alt = hgvs_del_seq_w_adj_start[0]
 
     # inv
     elif normalized_hgvs_genomic.posedit.edit.type == 'inv':
@@ -1621,12 +1618,11 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
         adj_start = start - 2
         start = start - 1
         # Recover sequences
-        hgvs_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), start, end)
-        pre_base = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, start)
+        hgvs_del_seq_w_pre_base = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, end)
         # Assemble
         pos = str(start)
-        ref = pre_base + hgvs_del_seq
-        alt = pre_base
+        ref = hgvs_del_seq_w_pre_base
+        alt = hgvs_del_seq_w_pre_base[0]
 
     # inv
     elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'inv':
