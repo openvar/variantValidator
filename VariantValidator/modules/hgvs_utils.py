@@ -989,10 +989,24 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
         staging_loop = 0
 
         # Loop and add bases - up to the range defined below - unless we go into an intron/past the transcript
-        for push in range(50):
-            post = sf.fetch_seq(str(normalized_hgvs_genomic.ac), working_pos - 1, working_pos)
-            push_ref = push_ref + post
-            push_alt = push_alt + post
+        max_push_length = 50
+        try:
+            flank_seq = sf.fetch_seq(str(normalized_hgvs_genomic.ac), working_pos - 1, working_pos + max_push_length)
+        except HGVSDataNotAvailableError as e:
+            if "ValueError: stop out of range" in str(e):
+                flank_seq = False
+                # this means that we went beyond the end of the seq this should be very rare but is possible
+                # fall back to old behaviour here
+            else:
+                raise e
+        for push in range(max_push_length):
+            if flank_seq:
+                push_ref = push_ref + flank_seq[push]
+                push_alt = push_alt + flank_seq[push]
+            else:
+                post = sf.fetch_seq(str(normalized_hgvs_genomic.ac), working_pos - 1, working_pos)
+                push_ref = push_ref + post
+                push_alt = push_alt + post
 
             # Create a not_delins for normalisation checking
             normlize_check_variant = hp.parse_hgvs_variant(hgvs_genomic.ac + ':' + hgvs_genomic.type + '.' +
@@ -1724,13 +1738,17 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
         staging_loop = 0
         if genomic_ac is False:
             genomic_ac = hgvs_genomic.ac
-
         # Loop and add bases - up to the range defined below - unless we go into an intron/past the transcript
-        for push in range(50):
+        max_push_length = 50
+        pos = int(pos)
+        if pos - 1 - max_push_length < 0:
+            max_push_length = pos -1
+
+        flank_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), pos - max_push_length - 1, pos -1)
+        for push in range(max_push_length):
             pre_pos = int(pos) - push_pos_by
-            prev = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), pre_pos - 1, pre_pos)
-            push_ref = prev + push_ref
-            push_alt = prev + push_alt
+            push_ref = flank_seq[-push_pos_by] + push_ref
+            push_alt = flank_seq[-push_pos_by] + push_alt
 
             # Create a not_delins for normalisation checking
             var_end = str(pre_pos + len(push_ref) - 1)
