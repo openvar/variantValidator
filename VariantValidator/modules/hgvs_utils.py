@@ -406,39 +406,64 @@ def report_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
 
     # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
     reverse_normalized_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic_variant)
-    # hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
     ucsc_pa = ''
     grc_pa = ''
-    # Sort the primary assemblies
-    if 'GRC' in primary_assembly:
-        if '37' in primary_assembly:
-            ucsc_pa = 'hg19'
-            grc_pa = primary_assembly
-        if '38' in primary_assembly:
-            ucsc_pa = 'hg38'
-            grc_pa = primary_assembly
-    else:
-        if '19' in primary_assembly:
-            ucsc_pa = primary_assembly
-            grc_pa = 'GRCh37'
-        if '38' in primary_assembly:
-            ucsc_pa = primary_assembly
-            grc_pa = 'GRCh38'
+    ucsc_chr = ''
+    grc_chr = ''
+    chrs = {}
+    # Sort the primary assemblies or go through all valid assemblies
+    if primary_assembly == 'All':
+        # return all valid genome builds on our report output list
+        gen_name_map = {
+            'GRCh37':'grch37',
+            'hg19':'hg19',
+            'GRCh38':'grch38',
+            'hg38':'hg38'}
 
-    # UCSC Chr
-    ucsc_chr = seq_data.to_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, ucsc_pa)
-    if ucsc_chr is not None:
-        pass
+        genomes = ['GRCh37','hg19','GRCh38','hg38']
+        for genome in genomes:
+            if not seq_data.supported_for_mapping(hgvs_genomic_variant.ac, genome):
+                continue
+            if genome.startswith('GRC'):
+                chrom = seq_data.to_chr_num_refseq(
+                        reverse_normalized_hgvs_genomic.ac,
+                        genome)
+            else:
+                chrom = seq_data.to_chr_num_ucsc(
+                        reverse_normalized_hgvs_genomic.ac,
+                        genome)
+            if chrom is None:
+                chrom = hgvs_genomic_variant.ac
+            chrs[gen_name_map[genome]]=chrom
     else:
-        ucsc_chr = reverse_normalized_hgvs_genomic.ac
+        if 'GRC' in primary_assembly:
+            if '37' in primary_assembly:
+                ucsc_pa = 'hg19'
+                grc_pa = primary_assembly
+            if '38' in primary_assembly:
+                ucsc_pa = 'hg38'
+                grc_pa = primary_assembly
+        else:
+            if '19' in primary_assembly:
+                ucsc_pa = primary_assembly
+                grc_pa = 'GRCh37'
+            if '38' in primary_assembly:
+                ucsc_pa = primary_assembly
+                grc_pa = 'GRCh38'
+        # UCSC Chr
+        ucsc_chr = seq_data.to_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, ucsc_pa)
+        if ucsc_chr is not None:
+            pass
+        else:
+            ucsc_chr = reverse_normalized_hgvs_genomic.ac
 
-    # GRC Chr
-    grc_chr = seq_data.to_chr_num_refseq(reverse_normalized_hgvs_genomic.ac, grc_pa)
-    if grc_chr is not None:
-        pass
-    else:
-        grc_chr = reverse_normalized_hgvs_genomic.ac
+        # GRC Chr
+        grc_chr = seq_data.to_chr_num_refseq(reverse_normalized_hgvs_genomic.ac, grc_pa)
+        if grc_chr is not None:
+            pass
+        else:
+            grc_chr = reverse_normalized_hgvs_genomic.ac
 
     # Identity
     if reverse_normalized_hgvs_genomic.posedit.edit.type == 'identity':
@@ -555,7 +580,7 @@ def report_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
 
     # Dictionary the VCF
     vcf_dict = {'pos': str(pos), 'ref': ref, 'alt': alt, 'ucsc_chr': ucsc_chr, 'grc_chr': grc_chr,
-                'normalized_hgvs': reverse_normalized_hgvs_genomic}
+                'normalized_hgvs': reverse_normalized_hgvs_genomic,'chrs_by_genome':chrs}
     return vcf_dict
 
 
