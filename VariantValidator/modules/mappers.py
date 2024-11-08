@@ -85,7 +85,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
     #  Triple check this assumption by querying the gene position database
     if len(rel_var) == 0:
         try:
-            vcf_dict = hgvs_utils.hgvs2vcf(variant.hgvs_genomic, variant.primary_assembly, variant.reverse_normalizer,
+            vcf_dict = hgvs_utils.hgvs2vcf(variant.hgvs_genomic, variant.primary_assembly, None,
                                        validator.sf)
 
             if len(vcf_dict['ref']) < 100000:
