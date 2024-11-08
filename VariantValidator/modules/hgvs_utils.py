@@ -252,7 +252,10 @@ def hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf, extra_flank
     """
     hgvs_genomic_variant = hgvs_genomic
     # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
-    reverse_normalized_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic_variant)
+    if reverse_normalizer is None:
+        reverse_normalized_hgvs_genomic = hgvs_genomic_variant
+    else:
+        reverse_normalized_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic_variant)
     # hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
     # Chr
