@@ -1456,7 +1456,8 @@ class Mixin(vvMixinConverters.Mixin):
                                                            self,
                                                            specify_tx=False,
                                                            liftover_level=liftover_level,
-                                                           g_to_g=g_to_g)
+                                                           g_to_g=g_to_g,
+                                                           genomic_data_w_vcf=genomic_position_info)
 
                                 if "NC_012920.1" in genomic_position_info[g_p_key]['hgvs_genomic_description'] or \
                                         "NC_001807.4:" in genomic_position_info[g_p_key]['hgvs_genomic_description']:
