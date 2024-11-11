@@ -61,6 +61,53 @@ def vcfcp_to_hgvs_obj(vcf_dict, start_hgvs):
             )
 
 
+def hgvs_delins_parts_to_hgvs_obj(ref_ac,ref_type, starts, delete, insert,end=None,offset_pos=False):
+    """
+    Converts a set of inputs, usually partially from a hgvs object but with
+    updates into a new hgvs delins object
+    params:
+     ref_ac: ref accession for output hgvs, required!
+     ref_type: ref type eg. g or c for hgvs object, required!
+     starts: the location where the coordinates for the delins start, required!
+     delete: the reference sequence over the affected span, required!
+     insert: the replacement non ref sequence over the affected span, required!
+
+     end: The end location, optional (avoid recalculating end, may be also used
+          to test predicted end with a later validate)
+     offset_pos: Are the locations simple or do they need to be the more complex
+                 BaseOffsetPosition type? Flag, optional
+    returns: hgvs variant object (not normalised)
+    """
+    pos = int(starts)
+    if end:
+        ends = end
+    else:
+        ends = pos + len(delete) - 1
+    if offset_pos:
+        return vvhgvs.sequencevariant.SequenceVariant(
+                ac=ref_ac,
+                type=ref_type,
+                posedit=vvhgvs.posedit.PosEdit(
+                    vvhgvs.location.Interval(
+                        start=vvhgvs.location.BaseOffsetPosition(base=pos),
+                        end=vvhgvs.location.BaseOffsetPosition(base=ends),
+                        ),
+                    vvhgvs.edit.NARefAlt(ref=delete, alt=insert)
+                    )
+                )
+    return vvhgvs.sequencevariant.SequenceVariant(
+            ac=ref_ac,
+            type=ref_type,
+            posedit=vvhgvs.posedit.PosEdit(
+                vvhgvs.location.Interval(
+                    start=vvhgvs.location.SimplePosition(base=pos),
+                    end=vvhgvs.location.SimplePosition(base=ends),
+                    ),
+                vvhgvs.edit.NARefAlt(ref=delete, alt=insert)
+                )
+            )
+
+
 def hgvs_to_delins_hgvs(hgvs_object, hp, hn, allow_fix=False):
     """
     :param hgvs_object: parsed hgvs string
@@ -110,7 +157,6 @@ def hgvs_to_delins_hgvs(hgvs_object, hp, hn, allow_fix=False):
 
     # Create the object directly via vcfcp_to_hgvs_obj
     return vcfcp_to_hgvs_obj({"pos": v_pos, "ref": v_ref, "alt": v_alt}, hgvs_object)
-
 
 def pvcf_to_hgvs(query, selected_assembly, normalization_direction, reverse_normalizer, validator):
     """
@@ -206,35 +252,29 @@ def pvcf_to_hgvs(query, selected_assembly, normalization_direction, reverse_norm
                     m = r.search(remainder)
                     delete = m.group(2)
                     starts = posedit.split(delete)[0]
-                    re_try = ref_ac + ':' + ref_type + '.' + starts + 'del' + delete[0] + 'ins' + insert
-                    hgvs_re_try = validator.hp.parse_hgvs_variant(re_try)
+                    hgvs_delins_parts_to_hgvs_obj(ref_ac,ref_type, int(starts), delete[0], insert)
                     hgvs_re_try.posedit.edit.ref = delete
                     start_pos = str(hgvs_re_try.posedit.pos.start)
+                    end_pos = None
                     if '-' in start_pos:
                         base, offset = start_pos.split('-')
                         new_offset = 0 - int(offset) + (len(delete))
                         end_pos = int(base)
                         hgvs_re_try.posedit.pos.end.base = int(end_pos)
                         hgvs_re_try.posedit.pos.end.offset = int(new_offset) - 1
-                        not_delins = ref_ac + ':' + ref_type + '.' + start_pos + '_' + str(
-                            hgvs_re_try.posedit.pos.end) + 'del' + delete + 'ins' + insert
                     elif '+' in start_pos:
                         base, offset = start_pos.split('+')
                         end_pos = int(base) + (len(delete) - int(offset) - 1)
                         new_offset = 0 + int(offset) + (len(delete) - 1)
                         hgvs_re_try.posedit.pos.end.base = int(end_pos)
                         hgvs_re_try.posedit.pos.end.offset = int(new_offset)
-                        not_delins = ref_ac + ':' + ref_type + '.' + start_pos + '_' + str(
-                            hgvs_re_try.posedit.pos.end) + 'del' + delete + 'ins' + insert
                     else:
                         end_pos = int(start_pos) + (len(delete) - 1)
-                        not_delins = ref_ac + ':' + ref_type + '.' + start_pos + '_' + str(
-                            end_pos) + 'del' + delete + 'ins' + insert
                 except:
                     not_delins = not_sub
                 # Parse into hgvs object
                 try:
-                    hgvs_not_delins = validator.hp.parse_hgvs_variant(not_delins)
+                    hgvs_delins_parts_to_hgvs_obj(ref_ac,ref_type, start_pos, delete, insert,ends=end_pos)
                 except vvhgvs.exceptions.HGVSError as e:
                     # Sort out multiple ALTS from VCF inputs
                     if re.search("([GATCgatc]+)>([GATCgatc]+),([GATCgatc]+)", not_delins):
@@ -1059,9 +1099,14 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                 push_alt = push_alt + post
 
             # Create a not_delins for normalisation checking
-            normlize_check_variant = hp.parse_hgvs_variant(hgvs_genomic.ac + ':' + hgvs_genomic.type + '.' +
-                                                           str(pos) + '_' + str(working_pos) + 'del' + push_ref
-                                                           + 'ins' + push_alt)
+            normlize_check_variant = hgvs_delins_parts_to_hgvs_obj(
+                    hgvs_genomic.ac,
+                    hgvs_genomic.type,
+                    int(pos),
+                    push_ref,
+                    push_alt,
+                    end=working_pos,
+                    offset_pos=True)
 
             # Check to see of we end up spanning a gap
             try:
@@ -1099,18 +1144,14 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                     # end_seq_check_variant.posedit.edit.alt = end_seq_check_variant.posedit.edit.ref
                 else:
                     # Look to see if the gap has been identified by addition of bases in sequence
-                    end_seq_check_variant = hp.parse_hgvs_variant(hgvs_genomic.ac
-                                                                  + ':'
-                                                                  + hgvs_genomic.type
-                                                                  + '.'
-                                                                  + str(normlize_check_variant.posedit.pos.end.base - 1
-                                                                        - staging_loop)
-                                                                  + "_"
-                                                                  + str(normlize_check_variant.posedit.pos.end.base)
-                                                                  + "del"
-                                                                  + push_ref[-2 - staging_loop:]
-                                                                  + "ins"
-                                                                  + push_ref[-2 - staging_loop])
+                    end_seq_check_variant = hgvs_delins_parts_to_hgvs_obj(
+                            hgvs_genomic.ac,
+                            hgvs_genomic.type,
+                            normlize_check_variant.posedit.pos.end.base - 1 - staging_loop,
+                            push_ref[-2 - staging_loop:],
+                            push_ref[-2 - staging_loop],
+                            end=normlize_check_variant.posedit.pos.end.base,
+                            offset_pos=True)
 
                 # Check to see of we end up spanning a gap at the last 2 bases
                 if hgvs_genomic.type != "g":
@@ -1801,10 +1842,13 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
             push_alt = flank_seq[-push_pos_by] + push_alt
 
             # Create a not_delins for normalisation checking
-            var_end = str(pre_pos + len(push_ref) - 1)
-            normlize_check_variant = hp.parse_hgvs_variant(hgvs_genomic.ac + ':' + hgvs_genomic.type + '.' +
-                                                           str(pre_pos) + '_' + var_end + 'del' + push_ref
-                                                           + 'ins' + push_alt)
+            var_end = pre_pos + len(push_ref) - 1
+            normlize_check_variant = hgvs_delins_parts_to_hgvs_obj(
+                    hgvs_genomic.ac,
+                    hgvs_genomic.type,
+                    pre_pos, push_ref, push_alt,
+                    end=var_end,
+                    offset_pos=True)
             # Check to see of we end up spanning a gap
             try:
                 if hgvs_genomic.type != "g":
@@ -1840,18 +1884,13 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
 
                 else:
                     # Look to see if the gap has been identified by addition of bases in sequence
-                    end_seq_check_variant = hp.parse_hgvs_variant(hgvs_genomic.ac
-                                                                  + ':'
-                                                                  + hgvs_genomic.type
-                                                                  + '.'
-                                                                  + str(normlize_check_variant.posedit.pos.start.base)
-                                                                  + "_"
-                                                                  + str(normlize_check_variant.posedit.pos.start.base
-                                                                        + 1 + staging_loop)
-                                                                  + "del"
-                                                                  + push_ref[0:2 + staging_loop]
-                                                                  + "ins"
-                                                                  + push_ref[0:2 + staging_loop])
+                    end_seq_check_variant = hgvs_delins_parts_to_hgvs_obj(
+                            hgvs_genomic.ac,
+                            hgvs_genomic.type,
+                            normlize_check_variant.posedit.pos.start.base,
+                            push_ref[0:2 + staging_loop], push_ref[0:2 + staging_loop],
+                            end=normlize_check_variant.posedit.pos.start.base + 1 + staging_loop,
+                            offset_pos=True)
 
                 # Check to see of we end up spanning a gap at the last 2 bases
                 if hgvs_genomic.type != "g":
