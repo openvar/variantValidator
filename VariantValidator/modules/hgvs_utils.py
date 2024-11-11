@@ -37,6 +37,30 @@ def vcfcp_to_hgvsstr(vcf_dict, start_hgvs):
     return str_hgvs
 
 
+def vcfcp_to_hgvs_obj(vcf_dict, start_hgvs):
+    """
+    Converts updated vcf components and an original hgvs variant into a hgvs
+    object.
+    params:
+     vcf_dict: VCF dict with updated data
+     start_hgvs: orig hgvs, or other object with .ac and .type variables
+    returns: hgvs variant object (not normalised)
+    """
+    pos = int(vcf_dict['pos'])
+    return vvhgvs.sequencevariant.SequenceVariant(
+            ac=start_hgvs.ac,
+            type=start_hgvs.type,
+            posedit=vvhgvs.posedit.PosEdit(
+                vvhgvs.location.Interval(
+                    start=vvhgvs.location.SimplePosition(base=pos),
+                    end=vvhgvs.location.SimplePosition(base=pos + len(vcf_dict['ref']) - 1),
+                    uncertain=start_hgvs.posedit.pos.uncertain
+                    ),
+                vvhgvs.edit.NARefAlt(ref=vcf_dict['ref'], alt=vcf_dict['alt'])
+                )
+            )
+
+
 def hgvs_to_delins_hgvs(hgvs_object, hp, hn, allow_fix=False):
     """
     :param hgvs_object: parsed hgvs string
@@ -84,10 +108,8 @@ def hgvs_to_delins_hgvs(hgvs_object, hp, hn, allow_fix=False):
         hgvs_object.posedit.edit.alt = ""
         return hgvs_object
 
-    # Create the object via a string from the vcfcp_to_hgvsstr function
-    hgvs_delins_string = vcfcp_to_hgvsstr({"pos": v_pos, "ref": v_ref, "alt": v_alt}, hgvs_object)
-    hgvs_delins_object = hp.parse_hgvs_variant(hgvs_delins_string)
-    return hgvs_delins_object
+    # Create the object directly via vcfcp_to_hgvs_obj
+    return vcfcp_to_hgvs_obj({"pos": v_pos, "ref": v_ref, "alt": v_alt}, hgvs_object)
 
 
 def pvcf_to_hgvs(query, selected_assembly, normalization_direction, reverse_normalizer, validator):
