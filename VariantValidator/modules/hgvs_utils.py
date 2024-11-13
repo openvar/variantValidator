@@ -61,6 +61,24 @@ def vcfcp_to_hgvs_obj(vcf_dict, start_hgvs):
                 )
             )
 
+def hgvs_dup_to_delins(hgvs_dup):
+    """
+    Simple utility shorthand for hgvs_delins_parts_to_hgvs_obj, substitutes for
+    hgvs_dup2indel, but provides hgvs object output when given a hgvs object
+    containing a duplication input, as opposed to hgvs_dup_to_delins's text
+    .output.
+    param:
+     hgvs_dup: A hgvs object containg a duplication (this will not be checked)
+               Required.
+    returns: A hgvs variant object with a delins equivalent to the input.
+    """
+    return hgvs_delins_parts_to_hgvs_obj(
+            hgvs_dup.ac,
+            hgvs_dup.type,
+            hgvs_dup.posedit.pos,
+            hgvs_dup.posedit.edit.ref,
+            hgvs_dup.posedit.edit.ref + hgvs_dup.posedit.edit.ref)
+
 def hgvs_delins_parts_to_hgvs_obj(ref_ac,ref_type, starts, delete, insert,end=None,offset_pos=False):
     """
     Converts a set of inputs, usually partially from a hgvs object but with
