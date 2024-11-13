@@ -13,6 +13,7 @@ from . import utils
 from Bio.Seq import Seq
 import vvhgvs
 import vvhgvs.exceptions
+from vvhgvs.location import BaseOffsetInterval, Interval
 
 
 # Database connections and hgvs objects are now passed from VariantValidator.py
@@ -60,7 +61,6 @@ def vcfcp_to_hgvs_obj(vcf_dict, start_hgvs):
                 )
             )
 
-
 def hgvs_delins_parts_to_hgvs_obj(ref_ac,ref_type, starts, delete, insert,end=None,offset_pos=False):
     """
     Converts a set of inputs, usually partially from a hgvs object but with
@@ -68,16 +68,30 @@ def hgvs_delins_parts_to_hgvs_obj(ref_ac,ref_type, starts, delete, insert,end=No
     params:
      ref_ac: ref accession for output hgvs, required!
      ref_type: ref type eg. g or c for hgvs object, required!
-     starts: the location where the coordinates for the delins start, required!
-     delete: the reference sequence over the affected span, required!
-     insert: the replacement non ref sequence over the affected span, required!
+     starts: The location where the coordinates for the delins start, or an
+             existing span (as a BaseOffsetInterval which is compatible with
+             the hgvs object code), required!
+     delete: The reference sequence over the affected span, required!
+     insert: The replacement non ref sequence over the affected span, required!
 
-     end: The end location, optional (avoid recalculating end, may be also used
-          to test predicted end with a later validate)
+     end: The end location, optional, used to avoid recalculating an already
+          known end, and may be also used to test predicted end, though this
+          requires a later validate. unused if a span is given for "starts".
      offset_pos: Are the locations simple or do they need to be the more complex
-                 BaseOffsetPosition type? Flag, optional
+                 BaseOffsetPosition type? Flag, optional. Unused if span given
+                 for "starts".
     returns: hgvs variant object (not normalised)
     """
+    if type(starts) in [BaseOffsetInterval, Interval]:
+        return vvhgvs.sequencevariant.SequenceVariant(
+                ac=ref_ac,
+                type=ref_type,
+                posedit=vvhgvs.posedit.PosEdit(
+                    starts,
+                    vvhgvs.edit.NARefAlt(ref=delete, alt=insert)
+                    )
+                )
+
     pos = int(starts)
     if end:
         ends = end
