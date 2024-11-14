@@ -392,7 +392,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             out_hgvs_obj = h_variant
             formatted_variant = str(h_variant)
 
-        error = validator.validateHGVS(formatted_variant)
+        error = validator.validateHGVS(out_hgvs_obj)
         if error == 'false':
             valid = True
         elif 'datums is ill-defined' in str(error):
@@ -596,8 +596,8 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
 
     # valid is false if the input contains a \d+\d, \d-\d or :g.
     if not valid:
-        genomic_validation = str(validator.genomic(quibble_input, variant.no_norm_evm, variant.primary_assembly,
-                                                   variant.hn))
+        genomic_validation = validator.genomic(quibble_input, variant.no_norm_evm, variant.primary_assembly,
+                                                   variant.hn)
         if fn.valstr(pre_valid) != fn.valstr(post_valid):
             if variant.reftype != ':g.':
                 if caution == '':

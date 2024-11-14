@@ -1622,9 +1622,12 @@ class Mixin(vvMixinInit.Mixin):
         """
         Take HGVS string, parse into hgvs object and validate
         """
-        hgvs_input = self.hp.parse_hgvs_variant(query)
+        if type(query) is str:
+            hgvs_input = self.hp.parse_hgvs_variant(query)
+        else:
+            hgvs_input = query
 
-        if ':p.' in query:
+        if hgvs_input.type == 'p':
             if not hasattr(hgvs_input.posedit.pos.start, 'offset'):
                 hgvs_input.posedit.pos.start.offset = 0
             if not hasattr(hgvs_input.posedit.pos.end, 'offset'):
