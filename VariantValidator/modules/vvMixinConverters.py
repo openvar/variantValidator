@@ -14,8 +14,8 @@ import json
 
 from vvhgvs.exceptions import HGVSError, HGVSDataNotAvailableError, HGVSUnsupportedOperationError, \
      HGVSInvalidVariantError
-from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj, hgvs_dup_to_delins
-
+from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj, hgvs_dup_to_delins,\
+        hgvs_obj_from_existing_edit
 logger = logging.getLogger(__name__)
 
 class AlleleSyntaxError(Exception):
@@ -2284,9 +2284,13 @@ class Mixin(vvMixinInit.Mixin):
             gene = rsg_data['gene']
             # String the description
             if ori == '+':
-                rsg_description = rsg_ac + ':g.' + str(chr_start_pos - int(rsg_start) + 1) + '_' + str(
-                    chr_end_pos - int(rsg_start) + 1) + str(chr_edit)
-                hgvs_refseqgene = self.hp.parse_hgvs_variant(rsg_description)
+                hgvs_refseqgene = hgvs_obj_from_existing_edit(
+                        rsg_ac,
+                        'g',
+                        chr_start_pos - int(rsg_start) + 1,
+                        chr_edit,
+                        pos=chr_end_pos - int(rsg_start) + 1,
+                        offset_pos=True)
                 try:
                     hgvs_refseqgene = hn.normalize(hgvs_refseqgene)
                 except:
@@ -2311,43 +2315,19 @@ class Mixin(vvMixinInit.Mixin):
             if ori == '-':
                 # Reverse complement of bases may be required. Let normalizer do the lifting for strings of bases
                 # Look for scenarios with RC needed bases and extract the bases from the edit
-                if re.search(r"(del[GATCUgatcu]+)", str(chr_edit)):
-                    bases = re.search(r"(del[GATCUgatcu]+)", str(chr_edit))
-                    bases = bases.group(1)
-                    chr_edit = 'del' + str(chr_edit).replace(bases, '')
-                if re.search(r"(ins[GATCUgatcu]+)", str(chr_edit)):
-                    bases = re.search(r"(ins[GATCUgatcu]+)", str(chr_edit))
-                    bases = bases.group(1)
-                    ins_revcomp = self.revcomp(bases)
-                    chr_edit = str(chr_edit).replace(bases, '') + 'ins' + ins_revcomp
-                if re.search(r"(dup[GATCUgatcu]+)", str(chr_edit)):
-                    bases = re.search(r"(dup[GATCUgatcu]+)", str(chr_edit))
-                    bases = bases.group(1)
-                    chr_edit = 'dup' + str(chr_edit).replace(bases, '')
-                if re.search(r"(inv[GATCUgatcu]+)", str(chr_edit)):
-                    bases = re.search(r"(inv[GATCUgatcu]+)", str(chr_edit))
-                    bases = bases.group(1)
-                    chr_edit = 'inv' + str(chr_edit).replace(bases, '')
-                if '>' in str(chr_edit) or '=' in str(chr_edit):
-                    chr_edit = str(chr_edit)
-                    chr_edit = chr_edit.replace('A>', 't>')
-                    chr_edit = chr_edit.replace('T>', 'a>')
-                    chr_edit = chr_edit.replace('G>', 'c>')
-                    chr_edit = chr_edit.replace('C>', 'g>')
-                    chr_edit = chr_edit.replace('>A', '>t')
-                    chr_edit = chr_edit.replace('>T', '>a')
-                    chr_edit = chr_edit.replace('>G', '>c')
-                    chr_edit = chr_edit.replace('>C', '>g')
-                    chr_edit = chr_edit.replace('C=', 'g=')
-                    chr_edit = chr_edit.replace('G=', 'c=')
-                    chr_edit = chr_edit.replace('A=', 't=')
-                    chr_edit = chr_edit.replace('T=', 'a=')
-                    chr_edit = chr_edit.upper()
+                if chr_edit.type in ['del', 'delins','dup','sub','inv','identity']:
+                    chr_edit.ref = self.revcomp(chr_edit.ref)
 
-                rsg_description = rsg_ac + ':g.' + str(
-                    (int(rsg_end) - int(rsg_start)) - (chr_end_pos - int(rsg_start)) + 1) + '_' + str(
-                    (int(rsg_end) - int(rsg_start)) - (chr_start_pos - int(rsg_start)) + 1) + str(chr_edit)
-                hgvs_refseqgene = self.hp.parse_hgvs_variant(rsg_description)
+                if chr_edit.type in ['ins', 'delins','dup','sub','inv','identity']:
+                    chr_edit.alt = self.revcomp(chr_edit.alt)
+
+                hgvs_refseqgene = hgvs_obj_from_existing_edit(
+                        rsg_ac,
+                        'g',
+                        int((rsg_end) - int(rsg_start)) - (chr_end_pos - int(rsg_start)) + 1,
+                        chr_edit,
+                        end=(int(rsg_end) - int(rsg_start)) - (chr_start_pos - int(rsg_start)) + 1,
+                        offset_pos=True)
                 try:
                     hgvs_refseqgene = hn.normalize(hgvs_refseqgene)
                 except:
@@ -2432,9 +2412,13 @@ class Mixin(vvMixinInit.Mixin):
             gene = chr_data['gene']
             # String the description
             if ori == '+':
-                chr_description = chr_ac + ':g.' + str(chr_start + rsg_start_pos - 1) + '_' + str(
-                    chr_start + rsg_end_pos - 1) + str(rsg_edit)
-                hgvs_genomic = self.hp.parse_hgvs_variant(chr_description)
+                hgvs_genomic = hgvs_obj_from_existing_edit(
+                        chr_ac,
+                        'g',
+                        chr_start + rsg_start_pos - 1,
+                        rsg_edit,
+                        end=chr_start + rsg_end_pos - 1,
+                        offset_pos=True)
                 hgvs_genomic = hn.normalize(hgvs_genomic)
                 try:
                     self.vr.validate(hgvs_genomic)
@@ -2452,44 +2436,21 @@ class Mixin(vvMixinInit.Mixin):
             if ori == '-':
                 # Reverse complement of bases may be required. Let normalizer do the lifting for strings of bases
                 # Look for scenarios with RC needed bases and extract the bases from the edit
-                if re.search(r'(del[GATCUgatcu]+)', str(rsg_edit)):
-                    bases = re.search(r"(del[GATCUgatcu]+)", str(rsg_edit))
-                    bases = bases.group(1)
-                    rsg_edit = 'del' + str(rsg_edit).replace(bases, '')
-                if re.search(r"(ins[GATCUgatcu]+)", str(rsg_edit)):
-                    bases = re.search(r"(ins[GATCUgatcu]+)", str(rsg_edit))
-                    bases = bases.group(1)
-                    ins_revcomp = self.revcomp(bases)
-                    rsg_edit = str(rsg_edit).replace(bases, '') + 'ins' + ins_revcomp
-                if re.search(r"(dup[GATCUgatcu]+)", str(rsg_edit)):
-                    bases = re.search(r"(dup[GATCUgatcu]+)", str(rsg_edit))
-                    bases = bases.group(1)
-                    rsg_edit = 'dup' + str(rsg_edit).replace(bases, '')
-                if re.search(r"(inv[GATCUgatcu]+)", str(rsg_edit)):
-                    bases = re.search(r"(inv[GATCUgatcu]+)", str(rsg_edit))
-                    bases = bases.group(1)
-                    rsg_edit = 'inv' + str(rsg_edit).replace(bases, '')
-                if '>' in str(rsg_edit) or '=' in str(rsg_edit):
-                    rsg_edit = str(rsg_edit)
-                    rsg_edit = rsg_edit.replace('A>', 't>')
-                    rsg_edit = rsg_edit.replace('T>', 'a>')
-                    rsg_edit = rsg_edit.replace('G>', 'c>')
-                    rsg_edit = rsg_edit.replace('C>', 'g>')
-                    rsg_edit = rsg_edit.replace('>A', '>t')
-                    rsg_edit = rsg_edit.replace('>T', '>a')
-                    rsg_edit = rsg_edit.replace('>G', '>c')
-                    rsg_edit = rsg_edit.replace('>C', '>g')
-                    rsg_edit = rsg_edit.replace('C=', 'g=')
-                    rsg_edit = rsg_edit.replace('G=', 'c=')
-                    rsg_edit = rsg_edit.replace('A=', 't=')
-                    rsg_edit = rsg_edit.replace('T=', 'a=')
-                    rsg_edit = rsg_edit.upper()
+                #'identity', 'del', 'delins', 'dup', 'sub', 'ins', 'inv'
+                if rsg_edit.type in ['del', 'delins','dup','sub','inv','identity']:
+                    rsg_edit.ref = self.revcomp(rsg_edit.ref)
 
-                chr_description = chr_ac + ':g.' + str(
-                    int(chr_start) + (int(chr_end) - int(chr_start)) - rsg_end_pos + 1) + '_' + str(
-                    int(chr_start) + (int(chr_end) - int(chr_start)) - rsg_start_pos + 1) + str(rsg_edit)
+                if rsg_edit.type in ['ins', 'delins','dup','sub','inv','identity']:
+                    rsg_edit.alt = self.revcomp(rsg_edit.alt)
 
-                hgvs_genomic = self.hp.parse_hgvs_variant(chr_description)
+                hgvs_genomic = hgvs_obj_from_existing_edit(
+                        chr_ac,
+                        'g',
+                        int(chr_start) + (int(chr_end) - int(chr_start)) - rsg_end_pos + 1,
+                        rsg_edit,
+                        end=int(chr_start) + (int(chr_end) - int(chr_start)) - rsg_start_pos + 1,
+                        offset_pos=True
+                        )
                 hgvs_genomic = hn.normalize(hgvs_genomic)
                 try:
                     self.vr.validate(hgvs_genomic)
