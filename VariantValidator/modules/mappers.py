@@ -150,7 +150,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                     # 'valid': 'true'}
                     for data in refseqgene_data:
                         if data['valid'] == 'true':
-                            data['hgvs_refseqgene'] = validator.hp.parse_hgvs_variant(data['hgvs_refseqgene'])
+                            data['hgvs_refseqgene'] = data['hgvs_refseqgene']
                             data['hgvs_refseqgene'] = fn.valstr(data['hgvs_refseqgene'])
                             rsg_data = rsg_data + data['hgvs_refseqgene'] + ' (' + data['gene'] + '), '
 

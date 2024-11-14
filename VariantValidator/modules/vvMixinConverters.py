@@ -2307,7 +2307,7 @@ class Mixin(vvMixinInit.Mixin):
                     hgvs_refseqgene = hn.normalize(hgvs_refseqgene)
                 except:
                     error = 'Not in SeqRepo'
-                    data = {'hgvs_refseqgene': str(hgvs_refseqgene), 'gene': gene, 'valid': str(error)}
+                    data = {'hgvs_refseqgene': hgvs_refseqgene, 'gene': gene, 'valid': str(error)}
                     descriptions.append(data)
                     continue
                 try:
@@ -2320,9 +2320,9 @@ class Mixin(vvMixinInit.Mixin):
                         hgvs_refseqgene.posedit.edit.ref = new_ref
                         error = 'true'
 
-                    data = {'hgvs_refseqgene': str(hgvs_refseqgene), 'gene': gene, 'valid': str(error)}
+                    data = {'hgvs_refseqgene': hgvs_refseqgene, 'gene': gene, 'valid': str(error)}
                 else:
-                    data = {'hgvs_refseqgene': str(hgvs_refseqgene), 'gene': gene, 'valid': 'true'}
+                    data = {'hgvs_refseqgene': hgvs_refseqgene, 'gene': gene, 'valid': 'true'}
                 descriptions.append(data)
             if ori == '-':
                 # Reverse complement of bases may be required. Let normalizer do the lifting for strings of bases
@@ -2344,7 +2344,7 @@ class Mixin(vvMixinInit.Mixin):
                     hgvs_refseqgene = hn.normalize(hgvs_refseqgene)
                 except:
                     error = 'Not in SeqRepo'
-                    data = {'hgvs_refseqgene': str(hgvs_refseqgene), 'gene': gene, 'valid': str(error)}
+                    data = {'hgvs_refseqgene': hgvs_refseqgene, 'gene': gene, 'valid': str(error)}
                     descriptions.append(data)
                     continue
                 try:
@@ -2357,9 +2357,9 @@ class Mixin(vvMixinInit.Mixin):
                         hgvs_refseqgene.posedit.edit.ref = new_ref
                         error = 'true'
 
-                    data = {'hgvs_refseqgene': str(hgvs_refseqgene), 'gene': gene, 'valid': str(error)}
+                    data = {'hgvs_refseqgene': hgvs_refseqgene, 'gene': gene, 'valid': str(error)}
                 else:
-                    data = {'hgvs_refseqgene': str(hgvs_refseqgene), 'gene': gene, 'valid': 'true'}
+                    data = {'hgvs_refseqgene': hgvs_refseqgene, 'gene': gene, 'valid': 'true'}
                 descriptions.append(data)
 
         # Return the required data. This is a dictionary containing the rsg description, validation status and gene ID
