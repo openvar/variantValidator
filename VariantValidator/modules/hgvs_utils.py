@@ -79,6 +79,62 @@ def hgvs_dup_to_delins(hgvs_dup):
             hgvs_dup.posedit.edit.ref,
             hgvs_dup.posedit.edit.ref + hgvs_dup.posedit.edit.ref)
 
+def hgvs_obj_from_existing_edit(ref_ac,ref_type, starts, edit, end=None, offset_pos=False):
+    """
+    Converts a set of inputs, including a valid edit from an existing hgvs
+    object into a new hgvs object
+    params:
+     ref_ac: ref accession for output hgvs, required!
+     ref_type: ref type eg. g or c for hgvs object, required!
+     starts: The location where the coordinates for the delins start, or an
+             existing span (as a BaseOffsetInterval which is compatible with
+             the hgvs object code), required!
+     edit: A valid hgvs object edit, required!
+
+     end: The end location, optional, used to avoid recalculating an already
+          known end, and may be also used to test predicted end, though this
+          requires a later validate. Unused if a span is given for "starts".
+     offset_pos: Are the locations simple or do they need to be the more complex
+                 BaseOffsetPosition type? Flag, optional. Unused if span given
+                 for "starts".
+    returns: hgvs variant object (not normalised)
+    """
+    if type(starts) in [BaseOffsetInterval, Interval]:
+        return vvhgvs.sequencevariant.SequenceVariant(
+                ac=ref_ac,
+                type=ref_type,
+                posedit=vvhgvs.posedit.PosEdit(starts,edit)
+                )
+
+    pos = int(starts)
+    if end:
+        ends = end
+    else:
+        ends = pos + len(delete) - 1
+    if offset_pos:
+        return vvhgvs.sequencevariant.SequenceVariant(
+                ac=ref_ac,
+                type=ref_type,
+                posedit=vvhgvs.posedit.PosEdit(
+                    vvhgvs.location.Interval(
+                        start=vvhgvs.location.BaseOffsetPosition(base=pos),
+                        end=vvhgvs.location.BaseOffsetPosition(base=ends),
+                        ),
+                    edit
+                    )
+                )
+    return vvhgvs.sequencevariant.SequenceVariant(
+            ac=ref_ac,
+            type=ref_type,
+            posedit=vvhgvs.posedit.PosEdit(
+                vvhgvs.location.Interval(
+                    start=vvhgvs.location.SimplePosition(base=pos),
+                    end=vvhgvs.location.SimplePosition(base=ends),
+                    ),
+                edit
+                )
+            )
+
 def hgvs_delins_parts_to_hgvs_obj(ref_ac,ref_type, starts, delete, insert,end=None,offset_pos=False):
     """
     Converts a set of inputs, usually partially from a hgvs object but with
