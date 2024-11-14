@@ -61,6 +61,17 @@ def vcfcp_to_hgvs_obj(vcf_dict, start_hgvs):
                 )
             )
 
+def unset_hgvs_obj_ref(hgvs):
+    """
+    Remove/unset ref bases from hgvs object
+    """
+    # set ref to empty (without re-parsing from text)
+    if hgvs.posedit.edit.type in ['del','delins']:
+        hgvs.posedit.edit.ref = ''
+    else:
+        hgvs.posedit.edit.ref = None
+    return hgvs
+
 def hgvs_dup_to_delins(hgvs_dup):
     """
     Simple utility shorthand for hgvs_delins_parts_to_hgvs_obj, substitutes for

@@ -9,7 +9,8 @@ from . import seq_data
 from . import utils as fn
 from . import gapped_mapping
 from operator import itemgetter
-
+from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
+        unset_hgvs_obj_ref
 logger = logging.getLogger(__name__)
 
 # Exceptions
@@ -89,10 +90,10 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                                        validator.sf)
 
             if len(vcf_dict['ref']) < 100000:
-                not_di = str(variant.hgvs_genomic.ac) + ':g.' + str(vcf_dict['pos']) + '_' + str(
-                    int(vcf_dict['pos']) + (len(vcf_dict['ref']) - 1)) + 'del' + vcf_dict['ref'] + 'ins' + \
-                    vcf_dict['alt']
-                hgvs_not_di = validator.hp.parse_hgvs_variant(not_di)
+                hgvs_not_di = hgvs_delins_parts_to_hgvs_obj(
+                        variant.hgvs_genomic.ac,
+                        'g',
+                        vcf_dict['pos'],vcf_dict['ref'],vcf_dict['alt'])
                 rel_var = validator.relevant_transcripts(hgvs_not_di, variant.evm, validator.alt_aln_method,
                                                          variant.reverse_normalizer, validator.select_transcripts)
         except vvhgvs.exceptions.HGVSDataNotAvailableError:
@@ -800,9 +801,8 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                         hgvs_updated.posedit.pos.start.base = '*' + str(start_out)
                         hgvs_updated.posedit.pos.end.base = '*' + str(end_out)
 
-        hgvs_updated = fn.remove_reference(hgvs_updated)
-        hgvs_updated = validator.hp.parse_hgvs_variant(hgvs_updated)
-        updated_transcript_variant = hgvs_updated
+        # set ref to empty (without re-parsing from text)
+        updated_transcript_variant = unset_hgvs_obj_ref(hgvs_updated)
 
         if validator.alt_aln_method == "genebuild":
             variant.warnings.append('TranscriptVersionWarning: A more recent version of the selected reference sequence ' + hgvs_coding.ac +
