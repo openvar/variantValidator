@@ -56,11 +56,20 @@ class Mixin(vvMixinInit.Mixin):
     def genomic(self, variant, evm, primary_assembly, hn):
         """
         Mapping transcript to genomic position
-        Ensures variant strings are transcript c. or n.
+        Ensures variants are transcript c. or n.
         returns parsed hgvs g. object
         """
         # If the :c. pattern is present in the input variant
-        if ':c.' in variant or ':n.' in variant:
+        if type(variant) is not str:
+            if variant.type in ['c','n']:
+                try:
+                    var_g = self.myevm_t_to_g(variant, evm, primary_assembly, hn)
+                except vvhgvs.exceptions.HGVSError as e:
+                    return 'error ' + str(e)
+                return var_g
+            elif variant.type == 'g':
+                return variant
+        elif ':c.' in variant or ':n.' in variant:
             hgvs_var = self.hp.parse_hgvs_variant(variant)
             try:
                 var_g = self.myevm_t_to_g(hgvs_var, evm, primary_assembly, hn)  # genomic level variant

@@ -317,7 +317,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
 
     elif ':g.' in quibble_input:
         if plus.search(formatted_variant) or minus.search(formatted_variant):
-            to_g = validator.genomic(formatted_variant, variant.no_norm_evm, variant.primary_assembly, variant.hn)
+            to_g = validator.genomic(out_hgvs_obj, variant.no_norm_evm, variant.primary_assembly, variant.hn)
             if 'error' in str(to_g):
                 if validator.alt_aln_method != 'genebuild':
                     error = "If the following error message does not address the issue and the problem persists " \
@@ -473,7 +473,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                 coding = validator.coding(formatted_variant)
             trans_acc = coding.ac
             # c to Genome coordinates - Map the variant to the genome
-            pre_var = validator.genomic(formatted_variant, variant.no_norm_evm, variant.primary_assembly,
+            pre_var = validator.genomic(out_hgvs_obj, variant.no_norm_evm, variant.primary_assembly,
                                         variant.hn)
 
             # genome back to C coordinates
@@ -544,7 +544,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
 
     # valid is false if the input contains a \d+\d, \d-\d or :g.
     if not valid:
-        genomic_validation = validator.genomic(quibble_input, variant.no_norm_evm, variant.primary_assembly,
+        genomic_validation = validator.genomic(quibble_input_hgvs_obj, variant.no_norm_evm, variant.primary_assembly,
                                                    variant.hn)
         if fn.valstr(pre_valid) != fn.valstr(post_valid):
             if variant.reftype != ':g.':
