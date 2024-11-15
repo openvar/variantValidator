@@ -8,6 +8,7 @@ import sys
 import logging
 import json
 import time
+import traceback
 from vvhgvs.assemblymapper import AssemblyMapper
 from VariantValidator.modules import hgvs_utils
 from VariantValidator.modules import utils as fn
@@ -1597,6 +1598,7 @@ class Mixin(vvMixinConverters.Mixin):
             # Debug mode
             exc_type, exc_value, last_traceback = sys.exc_info()
             logger.critical(str(exc_type) + " " + str(exc_value))
+            traceback.print_tb(last_traceback)
             raise fn.VariantValidatorError('Validation error')
 
     def gene2transcripts(self, query, validator=False, bypass_web_searches=False, select_transcripts=None,
@@ -1699,7 +1701,7 @@ class Mixin(vvMixinConverters.Mixin):
         Should only be called during the validator process
         """
         logger.debug("Looking for transcript info")
-        hgvs_vt = self.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
+        hgvs_vt = variant.hgvs_formatted
         try:
             self.hdp.get_tx_identity_info(str(hgvs_vt.ac))
         except vvhgvs.exceptions.HGVSError as e:
@@ -1715,7 +1717,7 @@ class Mixin(vvMixinConverters.Mixin):
         if self.alt_aln_method != 'genebuild':
             # Gene description  - requires GenBank search to get all the required info, i.e. transcript variant ID
             # accession number
-            hgvs_object = self.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
+            hgvs_object = variant.hgvs_formatted
             accession = hgvs_object.ac
             # Look for the accession in our database
             # Connect to database and send request
@@ -1796,7 +1798,7 @@ class Mixin(vvMixinConverters.Mixin):
         # Ensembl databases
         else:
             # accession number
-            hgvs_object = self.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
+            hgvs_object = variant.hgvs_formatted
             accession = hgvs_object.ac
             # Look for the accession in our database
             # Connect to database and send request
