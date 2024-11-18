@@ -15,6 +15,7 @@ import json
 
 from vvhgvs.exceptions import HGVSError, HGVSDataNotAvailableError, HGVSUnsupportedOperationError, \
      HGVSInvalidVariantError
+from vvhgvs.enums import Datum # needed to handle r->n mapping without re-parsing posedit
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj, hgvs_dup_to_delins,\
         hgvs_obj_from_existing_edit
 logger = logging.getLogger(__name__)
@@ -49,10 +50,16 @@ class Mixin(vvMixinInit.Mixin):
         returns parsed hgvs c. or n. object
         """
         # If the :c. pattern is present in the input variant
-        if ':c.' in variant or ':n.' in variant:
+        # and we got a string input variant
+        if type(variant) is str and ':c.' in variant or ':n.' in variant:
             # convert the input string into a hgvs object
             var_c = self.hp.parse_hgvs_variant(variant)
             return var_c
+        # otherwise if we got a c/n return c version of given variant
+        elif variant.type == 'n':
+            return self.hp.c_to_n(variant)
+        elif variant.type == 'c':
+            return variant
 
     def genomic(self, variant, evm, primary_assembly, hn):
         """
@@ -1440,16 +1447,22 @@ class Mixin(vvMixinInit.Mixin):
             else:
                 hgvs_object.ac = transcript_ac
         hgvs_object.type = 'c'
-        edit = str(hgvs_object.posedit.edit)
-        edit = edit.upper()
-
-        # lowercase the supported variant types
-        edit = edit.replace('DEL', 'del')
-        edit = edit.replace('INS', 'ins')
-        edit = edit.replace('INV', 'inv')
-        edit = edit.replace('DUP', 'dup')
-        edit = edit.replace('U', 'T')
+        edit = hgvs_object.posedit.edit
+        ## uppercase and switch U to T
+        if edit.ref:
+            edit.ref = edit.ref.upper().replace('U', 'T')
+        if edit.alt:
+            edit.alt = edit.alt.upper().replace('U', 'T')
         hgvs_object.posedit.edit = edit
+        # map from N to C based coordinates
+        if '*' in str(hgvs_object.posedit.pos.start):
+            hgvs_object.posedit.pos.start.datum = Datum.CDS_END
+        else:
+            hgvs_object.posedit.pos.start.datum = Datum.CDS_START
+        if '*' in str(hgvs_object.posedit.pos.end):
+            hgvs_object.posedit.pos.end.datum = Datum.CDS_END
+        else:
+            hgvs_object.posedit.pos.end.datum = Datum.CDS_START
         return hgvs_object
 
     def tx_exons(self, tx_ac, alt_ac, alt_aln_method):
