@@ -14,6 +14,8 @@ from Bio.Seq import Seq
 import vvhgvs
 import vvhgvs.exceptions
 from vvhgvs.location import BaseOffsetInterval, Interval
+# used to set coordinate origin point i.e. seq start vs CDS start/end
+from vvhgvs.enums import Datum
 
 
 # Database connections and hgvs objects are now passed from VariantValidator.py
@@ -79,6 +81,124 @@ def hgvs_dup_to_delins(hgvs_dup):
             hgvs_dup.posedit.edit.ref,
             hgvs_dup.posedit.edit.ref + hgvs_dup.posedit.edit.ref)
 
+def _derive_hgvs_obj_coordinate_origin(starts,ref_type=None,end=None):
+    """
+    retrun a pair of coordinate_origin types in the from of Datum.SEQ_START
+    Datum.CDS_START or Datum.CDS_END, when given input coordinates/type
+    also can return a start stop pair truncated ('*' removed) for int
+    conversion
+    param:
+     starts: Start location must be int or str, required.
+     ref_type: Type of ref given, if not 'c' return is simplified, optional.
+     stop location: Like start, but not required, if missing Datum pair are
+                    identical.
+    returns: A pair of Datum enum results for the given input and a coordinate
+             pair as a list, trimmed if needed for int conversion.
+    """
+    if ref_type != 'c':
+        return Datum.SEQ_START, Datum.SEQ_START, [starts,end]
+    loc_start = starts
+    loc_end = end
+    coordinate_origin = Datum.CDS_START
+    if type(starts) is str and starts[0] == '*':
+        loc_start = starts[1::]
+        coordinate_origin = Datum.CDS_END
+    end_coordinate_origin = coordinate_origin
+    if end:
+        end_coordinate_origin = Datum.CDS_START
+        if type(end) is str and end[0] == '*':
+            loc_end = end[1::]
+            end_coordinate_origin = Datum.CDS_END
+    return coordinate_origin,end_coordinate_origin,[loc_start,loc_end]
+
+def _hgvs_offset_pos_from_str_in(starts,length,ref_type=None,end=None):
+    """
+    Handle offset positions a bit better.
+    This does not fully handle complex stop position issues, and thus will
+    always return end as as intronic + if input start is intronic +.
+    We also assume that if we are given an end specifically but not a span
+    then we got non offset coordinates (these do need to be stored as a
+    BaseOffsetPosition for validation purposes)
+    """
+    sep = ''
+    # set up the start point for the coordinates if c type input is given
+    # also strip '*' if present
+    coordinate_origin, end_coordinate_origin, loc = \
+            _derive_hgvs_obj_coordinate_origin(
+                    starts,ref_type=ref_type,end=end)
+    loc_start = loc[0]
+    loc_end = loc[1]
+    assert type(loc_start) is int or '_' not in loc_start
+    # set end pos if given
+    end_pos = None
+    if end and type(end) is str:
+        if '-' in loc_end[1:]:
+            prefix, sep, offset = loc_end[1:].partition('-')
+            prefix = loc_end[0] + prefix
+            end_pos = vvhgvs.location.BaseOffsetPosition(
+                    base=int(prefix),
+                    offset=-int(offset),
+                    datum=end_coordinate_origin)
+        elif '+' in loc_end:
+            prefix, sep, offset = loc_end.partition('+')
+            end_pos = vvhgvs.location.BaseOffsetPosition(
+                    base=int(prefix),
+                    offset=int(offset),
+                    datum=end_coordinate_origin)
+        else:
+            end_pos = vvhgvs.location.BaseOffsetPosition(
+                    base = int(loc_end),
+                    datum=end_coordinate_origin)
+    elif end:
+        end_pos = vvhgvs.location.BaseOffsetPosition(
+                base = int(end),
+                datum=end_coordinate_origin)
+    # set start deriving end if needed
+    if type(starts) is str and '-' in starts[1:]:
+        prefix, sep, offset = loc_start[1:].partition('-')
+        prefix = loc_start[0] + prefix
+        end_offset = int(offset) - (length -1)
+        start_pos = vvhgvs.location.BaseOffsetPosition(
+                base=int(prefix),
+                offset=-int(offset),
+                datum=coordinate_origin)
+        if end_pos:# already set
+            pass
+        elif end_offset < 0:
+            prefix = int(prefix) - end_offset
+            end_pos = vvhgvs.location.BaseOffsetPosition(
+                    base=int(prefix),
+                    offset=0,
+                    datum=end_coordinate_origin)
+        else:
+            end_pos = vvhgvs.location.BaseOffsetPosition(
+                    base=int(prefix),
+                    offset=-end_offset,
+                    datum=end_coordinate_origin)
+    elif type(starts) is str and '+' in starts:
+        # no simple way to know whether stop exceeds end of exon
+        pos = starts
+        prefix, sep,offset = loc_start.partition('+')
+        start_pos = vvhgvs.location.BaseOffsetPosition(
+                base=int(prefix),
+                offset=int(offset),
+                datum=coordinate_origin)
+        if not end_pos:
+            end_pos = vvhgvs.location.BaseOffsetPosition(
+                    base=int(prefix),
+                    offset=int(offset) + length -1,
+                    datum=end_coordinate_origin)
+    else: # we got int input for start, or similar so do simple position
+        start_pos = vvhgvs.location.BaseOffsetPosition(
+                base=int(starts),
+                datum=coordinate_origin)
+        if not end_pos:
+            end_pos = vvhgvs.location.BaseOffsetPosition(
+                    base=int(starts)+ length -1,
+                    datum=end_coordinate_origin)
+
+    return start_pos, end_pos
+
 def hgvs_obj_from_existing_edit(ref_ac,ref_type, starts, edit, end=None, offset_pos=False):
     """
     Converts a set of inputs, including a valid edit from an existing hgvs
@@ -105,35 +225,41 @@ def hgvs_obj_from_existing_edit(ref_ac,ref_type, starts, edit, end=None, offset_
                 type=ref_type,
                 posedit=vvhgvs.posedit.PosEdit(starts,edit)
                 )
-
-    pos = int(starts)
-    if end:
-        ends = end
-    else:
-        ends = pos + len(delete) - 1
-    if offset_pos:
+    if offset_pos or ref_type in ['c', 'n']:
+        # if we got a null ref and no ref end presume ins i.e. bases either side
+        # of insertion variation give 2bp len to substitute for now
+        if edit.ref is None:
+            length = 2
+        else:
+            length = len(edit.ref)
+        start_pos, end_pos = _hgvs_offset_pos_from_str_in(
+                starts,length,ref_type=ref_type,end=end)
         return vvhgvs.sequencevariant.SequenceVariant(
                 ac=ref_ac,
                 type=ref_type,
                 posedit=vvhgvs.posedit.PosEdit(
                     vvhgvs.location.BaseOffsetInterval(
-                        start=vvhgvs.location.BaseOffsetPosition(base=pos),
-                        end=vvhgvs.location.BaseOffsetPosition(base=ends),
-                        ),
+                        start=start_pos,
+                        end=end_pos),
                     edit
                     )
                 )
+    if end:
+        ends = int(end)
+    else:
+        ends = int(starts) + len(edit.ref), -1
     return vvhgvs.sequencevariant.SequenceVariant(
             ac=ref_ac,
             type=ref_type,
             posedit=vvhgvs.posedit.PosEdit(
                 vvhgvs.location.Interval(
-                    start=vvhgvs.location.SimplePosition(base=pos),
+                    start=vvhgvs.location.SimplePosition(base=int(starts)),
                     end=vvhgvs.location.SimplePosition(base=ends),
                     ),
                 edit
                 )
             )
+
 
 def hgvs_delins_parts_to_hgvs_obj(ref_ac,ref_type, starts, delete, insert,end=None,offset_pos=False):
     """
@@ -166,23 +292,21 @@ def hgvs_delins_parts_to_hgvs_obj(ref_ac,ref_type, starts, delete, insert,end=No
                     )
                 )
 
-    pos = int(starts)
-    if end:
-        ends = end
-    else:
-        ends = pos + len(delete) - 1
-    if offset_pos:
+    if offset_pos or ref_type in ['c', 'n']:
+        start_pos, end_pos = _hgvs_offset_pos_from_str_in(starts,len(delete),ref_type=ref_type,end=end)
         return vvhgvs.sequencevariant.SequenceVariant(
                 ac=ref_ac,
                 type=ref_type,
                 posedit=vvhgvs.posedit.PosEdit(
-                    vvhgvs.location.BaseOffsetInterval(
-                        start=vvhgvs.location.BaseOffsetPosition(base=pos),
-                        end=vvhgvs.location.BaseOffsetPosition(base=ends),
-                        ),
+                    vvhgvs.location.BaseOffsetInterval(start=start_pos,end=end_pos),
                     vvhgvs.edit.NARefAlt(ref=delete, alt=insert)
                     )
                 )
+    pos = int(starts)
+    if end:
+        ends = int(end)
+    else:
+        ends = pos + len(delete) - 1
     return vvhgvs.sequencevariant.SequenceVariant(
             ac=ref_ac,
             type=ref_type,
