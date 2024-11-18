@@ -570,12 +570,10 @@ def indel_catching(variant, validator):
             if 'dup' in variant.quibble:
                 dup_in_quibble = True
                 variant.quibble = variant.quibble.replace('dup', 'del')
-            try:
-                hgvs_quibble = validator.hp.parse_hgvs_variant(variant.quibble)
-            except vvhgvs.exceptions.HGVSError:
+            if '(' in variant.quibble:
                 # Tackle compound variant descriptions NG or NC (NM_) i.e. correctly input NG/NC_(NM_):c.
                 intronic_converter(variant, validator)
-                hgvs_quibble = validator.hp.parse_hgvs_variant(variant.quibble)
+            hgvs_quibble = validator.hp.parse_hgvs_variant(variant.quibble)
             try:
                 validator.vr.validate(hgvs_quibble)
             except vvhgvs.exceptions.HGVSError as e:
@@ -674,7 +672,7 @@ def intronic_converter(variant, validator, skip_check=False, uncertain=False):
                 else:
                     raise
             else:
-                validator.vr.validate(hgvs_genomic)
+                raise e
 
         # Check re-mapping of intronic variants
         if hgvs_transy.posedit.pos.start.offset != 0 or hgvs_transy.posedit.pos.end.offset != 0:
@@ -933,10 +931,7 @@ def proteins(variant, validator):
         error = None
         hgvs_object = None
         # Try to validate the variant
-        try:
-            hgvs_object = validator.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
-        except vvhgvs.exceptions.HGVSError as e:
-            error = str(e)
+        hgvs_object = variant.hgvs_formatted
         try:
             validator.vr.validate(hgvs_object)
 
@@ -1133,7 +1128,6 @@ def rna(variant, validator):
         # Change input to reflect!
         try:
             hgvs_c = validator.hgvs_r_to_c(hgvs_input)
-            hgvs_c = validator.hp.parse_hgvs_variant(str(hgvs_c))
         except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
             error = str(e)
             variant.warnings.append(error)
