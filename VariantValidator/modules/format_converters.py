@@ -8,6 +8,7 @@ from VariantValidator.modules import utils as fn
 import VariantValidator.modules.rna_formatter
 from VariantValidator.modules import complex_descriptions, use_checking
 from VariantValidator.modules.vvMixinConverters import AlleleSyntaxError
+from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj
 
 logger = logging.getLogger(__name__)
 
@@ -448,7 +449,7 @@ def vcf2hgvs_stage4(variant, validator):
             # If the length of either side of the substitution delimer (>) is >1
             matches = not_sub_find.search(not_sub)
             if len(matches.group(1)) > 1 or len(matches.group(2)) > 1 or \
-                    ('>' in variant.quibble and ',' in variant.quibble):
+                    ('>' in not_sub and ',' in not_sub):
                 # Search for and remove range
                 interval_range = re.compile(r"([0-9]+)_([0-9]+)")
                 if interval_range.search(not_sub):
@@ -460,85 +461,78 @@ def vcf2hgvs_stage4(variant, validator):
                     end_string = start + '>' + delete
                     not_sub = beginning_string + ':' + middle_string + end_string
                 # Split description
-                split_colon = not_sub.split(':')
-                ref_ac = split_colon[0]
-                remainder1 = split_colon[1]
-                split_dot = remainder1.split('.')
-                ref_type = split_dot[0]
-                remainder = split_dot[1]
-                posedit = remainder
-                split_greater = remainder.split('>')
-                insert = split_greater[1]
-                remainder = split_greater[0]
-                # Split remainder using matches
+                ref_ac, _sep, remainder1 = not_sub.partition(':')
+                ref_type, _sep, posedit = remainder1.partition('.')
+                pos_ref, _sep, insert = posedit.partition('>')
+                # If we have a list on inserts rather than 1 we need to resubmit
+                # and abort! No need to continue with known over-loaded input
+                if ',' in insert:
+                    header = ref_ac + ':' + ref_type + '.' + pos_ref + '>'
+                    alt_list = insert.split(',')
+                    # Assemble and re-submit
+                    for alt in alt_list:
+                        variant.warnings = ['Multiple ALT sequences detected: '
+                                            'auto-submitting all possible combinations']
+                        variant.write = False
+                        refreshed_description = header + alt
+                        query = Variant(variant.original, quibble=refreshed_description,
+                                        warnings=variant.warnings, primary_assembly=variant.primary_assembly,
+                                        order=variant.order)
+                        validator.batch_list.append(query)
+                        logger.info('Multiple ALT sequences detected. Auto-submitting all possible combinations.')
+                        logger.info("Submitting new variant with format %s", refreshed_description)
+                    skipvar = True
+                    return skipvar
+
+                # Split ref from position using matches
                 r = re.compile(r"([0-9]+)([GATCgatc]+)")
-                try:
-                    m = r.search(remainder)
-                    delete = m.group(2)
-                    starts = posedit.split(delete)[0]
-                    re_try = ref_ac + ':' + ref_type + '.' + starts + 'del' + delete[0] + 'ins' + insert
-                    hgvs_re_try = validator.hp.parse_hgvs_variant(re_try)
-                    hgvs_re_try.posedit.edit.ref = delete
-                    start_pos = str(hgvs_re_try.posedit.pos.start)
-                    if '-' in start_pos:
-                        base, offset = start_pos.split('-')
-                        new_offset = 0 - int(offset) + (len(delete))
-                        end_pos = int(base)
-                        hgvs_re_try.posedit.pos.end.base = int(end_pos)
-                        hgvs_re_try.posedit.pos.end.offset = int(new_offset) - 1
-                        not_delins = ref_ac + ':' + ref_type + '.' + start_pos + '_' + str(
-                            hgvs_re_try.posedit.pos.end) + 'del' + delete + 'ins' + insert
-                    elif '+' in start_pos:
-                        base, offset = start_pos.split('+')
-                        end_pos = int(base) + (len(delete) - int(offset) - 1)
-                        new_offset = 0 + int(offset) + (len(delete) - 1)
-                        hgvs_re_try.posedit.pos.end.base = int(end_pos)
-                        hgvs_re_try.posedit.pos.end.offset = int(new_offset)
-                        not_delins = ref_ac + ':' + ref_type + '.' + start_pos + '_' + str(
-                            hgvs_re_try.posedit.pos.end) + 'del' + delete + 'ins' + insert
-                    else:
-                        end_pos = int(start_pos) + (len(delete) - 1)
-                        not_delins = ref_ac + ':' + ref_type + '.' + start_pos + '_' + str(
-                            end_pos) + 'del' + delete + 'ins' + insert
-                except Exception as e:
-                    logger.debug("Except passed, %s", e)
-                    not_delins = not_sub
-                # Parse into hgvs object
-                hgvs_not_delins = None
-                try:
-                    hgvs_not_delins = validator.hp.parse_hgvs_variant(not_delins)
-                except vvhgvs.exceptions.HGVSError as e:
-                    # Sort out multiple ALTS from VCF inputs
-                    if '>' in not_delins and ',' in not_delins:
-                        header, alts = not_delins.split('>')
-                        # Split up the alts into a list
-                        alt_list = alts.split(',')
-                        # Assemble and re-submit
-                        for alt in alt_list:
-                            variant.warnings = ['Multiple ALT sequences detected: '
-                                                'auto-submitting all possible combinations']
-                            variant.write = False
-                            refreshed_description = header + '>' + alt
-                            query = Variant(variant.original, quibble=refreshed_description,
-                                            warnings=variant.warnings, primary_assembly=variant.primary_assembly,
-                                            order=variant.order)
+                m = r.search(pos_ref)
+                delete = m.group(2)
+                starts = posedit.split(delete)[0]
+                hgvs_re_try = hgvs_delins_parts_to_hgvs_obj(
+                        ref_ac,
+                        ref_type,
+                        starts,delete[0],insert,
+                        offset_pos=True)
+                hgvs_re_try.posedit.edit.ref = delete
+                start_pos = str(hgvs_re_try.posedit.pos.start)
+                if '-' in start_pos:
+                    base, offset = start_pos.split('-')
+                    new_offset = 0 - int(offset) + (len(delete))
+                    hgvs_re_try.posedit.pos.end.base = int(base)
+                    hgvs_re_try.posedit.pos.end.offset = int(new_offset) - 1
+                    hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
+                            ref_ac,
+                            ref_type,
+                            hgvs_re_try.posedit.pos,delete,insert,
+                            offset_pos=True)
+                elif '+' in start_pos:
+                    base, offset = start_pos.split('+')
+                    end_pos = int(base) + (len(delete) - int(offset) - 1)
+                    new_offset = 0 + int(offset) + (len(delete) - 1)
+                    hgvs_re_try.posedit.pos.end.base = int(end_pos)
+                    hgvs_re_try.posedit.pos.end.offset = int(new_offset)
+                    hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
+                            ref_ac,
+                            ref_type,
+                            hgvs_re_try.posedit.pos,delete,insert,
+                            offset_pos=True)
+                else:
+                    end_pos = int(start_pos) + (len(delete) - 1)
+                    hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
+                            ref_ac,
+                            ref_type,
+                            start_pos,delete,insert,
+                            end=end_pos,
+                            offset_pos=True)
 
-                            validator.batch_list.append(query)
-                            logger.info('Multiple ALT sequences detected. Auto-submitting all possible combinations.')
-                            logger.info("Submitting new variant with format %s", refreshed_description)
-                        skipvar = True
-                    else:
-                        error = str(e)
-                        variant.warnings.append(error)
-                        logger.warning(str(e))
-                        skipvar = True
-
+                # attempt to normalise output
                 try:
                     not_delins = str(variant.hn.normalize(hgvs_not_delins))
                 except vvhgvs.exceptions.HGVSError as e:
                     error = str(e)
                     if 'Normalization of intronic variants is not supported' in error:
-                        not_delins = not_delins
+                        not_delins = str(hgvs_not_delins)
                     else:
                         variant.warnings.append(error)
                         logger.warning(str(e))
