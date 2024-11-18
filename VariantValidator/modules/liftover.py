@@ -14,6 +14,7 @@ from . import hgvs_utils
 from pyliftover import LiftOver
 from Bio.Seq import Seq
 import copy
+from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj
 
 # Pre compile variables
 vvhgvs.global_config.formatting.max_ref_length = 1000000
@@ -48,10 +49,8 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
     :param specified_tx_variant: False or specific HGVS transcript object
     :return:
     """
-    try:
+    if type(hgvs_genomic) is str:
         hgvs_genomic = validator.hp.parse(hgvs_genomic)
-    except TypeError as e:
-        logger.debug("Except passed, %s", e)
 
     # Create return dictionary
     lifted_response = {}
@@ -409,10 +408,14 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                 liftback_list = [(chrom, pos, "+", "GRCh37"), lifted]
 
                 # Create the necessary hg19 mito hgvs
-                m19_not_delins = accession + ':g.' + str(lifted[1]) + '_' + str(
-                    (int(lifted[1]) - 1) + len(lifted_ref_bases)) + 'delins' + lifted_alt_bases
-                m19_not_delins = str(m19_not_delins)
-                m19_hgvs_not_delins = validator.hp.parse_hgvs_variant(m19_not_delins)
+                m19_hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
+                        accession,
+                        'g',
+                        int(lifted[1]),
+                        '',
+                        lifted_alt_bases,
+                        end=int(lifted[1])+len(lifted_ref_bases)- 1)
+
                 try:
                     m19_hgvs_lifted = hn.normalize(m19_hgvs_not_delins)
                 except vvhgvs.exceptions.HGVSError:
@@ -439,10 +442,13 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                 liftback_list = [lifted, (chrom, pos, "+", "hg19")]
 
                 # Create the necessary hg19 mito hgvs
-                m38_not_delins = accession + ':g.' + str(lifted[1]) + '_' + str(
-                    (int(lifted[1]) - 1) + len(lifted_ref_bases)) + 'delins' + lifted_alt_bases
-                m38_not_delins = str(m38_not_delins)
-                m38_hgvs_not_delins = validator.hp.parse_hgvs_variant(m38_not_delins)
+                m38_hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
+                        accession,
+                        'g',
+                        int(lifted[1]),
+                        '',
+                        lifted_alt_bases,
+                        end=int(lifted[1])+len(lifted_ref_bases)- 1)
                 try:
                     hgvs_lifted = hn.normalize(m38_hgvs_not_delins)
                 except vvhgvs.exceptions.HGVSError:
@@ -450,10 +456,13 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
 
             else:
                 mito_correction = False
-                not_delins = accession + ':g.' + str(pos) + '_' + str(
-                    (pos - 1) + len(lifted_ref_bases)) + 'delins' + lifted_alt_bases
-                not_delins = str(not_delins)
-                hgvs_not_delins = validator.hp.parse_hgvs_variant(not_delins)
+                hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
+                        accession,
+                        'g',
+                        pos,
+                        '',
+                        lifted_alt_bases,
+                        end=pos+len(lifted_ref_bases)- 1)
 
                 try:
                     hgvs_lifted = hn.normalize(hgvs_not_delins)
