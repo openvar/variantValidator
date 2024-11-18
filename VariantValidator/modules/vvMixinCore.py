@@ -1033,13 +1033,8 @@ class Mixin(vvMixinConverters.Mixin):
                 # Add missing gene info which should be there (May have come from uncertain positions for example)
                 if variant.hgvs_transcript_variant and variant.gene_symbol == '':
                     # the last hold out for this is uncertain positions
-                    if type(variant.hgvs_transcript_variant) is str:
-                        print(variant.hgvs_transcript_variant)
-                        variant.gene_symbol = self.db.get_gene_symbol_from_transcript_id(
-                                variant.hgvs_transcript_variant.split(':')[0])
-                    else:
-                        variant.gene_symbol = self.db.get_gene_symbol_from_transcript_id(
-                                variant.hgvs_transcript_variant.ac)
+                    variant.gene_symbol = self.db.get_gene_symbol_from_transcript_id(
+                        variant.hgvs_transcript_variant.ac)
                 elif variant.hgvs_refseqgene_variant and variant.gene_symbol == '':
                     variant.gene_symbol = self.db.get_gene_symbol_from_refseq_id(
                         variant.hgvs_refseqgene_variant.ac)
@@ -1152,11 +1147,7 @@ class Mixin(vvMixinConverters.Mixin):
                         'hgvs_lrg_variant':'',
                         'selected_assembly':self.selected_assembly}
                 if variant.hgvs_transcript_variant:
-                    # still have holdout str for unc pos
-                    if type(variant.hgvs_transcript_variant) is str:
-                        pre_out['hgvs_transcript_variant'] = variant.hgvs_transcript_variant
-                    else:
-                        pre_out['hgvs_transcript_variant'] = variant.hgvs_transcript_variant.ac
+                    pre_out['hgvs_transcript_variant'] = variant.hgvs_transcript_variant.ac
                 if variant.hgvs_refseqgene_variant:
                     pre_out['hgvs_refseqgene_variant'] = variant.hgvs_refseqgene_variant.ac
                 if variant.hgvs_lrg_variant:# is str
@@ -1286,10 +1277,7 @@ class Mixin(vvMixinConverters.Mixin):
                 # Remove duplicate warnings
                 variant_warnings = []
                 accession = ''
-                # account for unc pos, which are still str
-                if type(variant.hgvs_transcript_variant) is str:
-                    accession = variant.hgvs_transcript_variant.split(':')[0]
-                elif variant.hgvs_transcript_variant:
+                if variant.hgvs_transcript_variant:
                     accession = variant.hgvs_transcript_variant.ac
                 term = str(accession)
                 term_2 = "%s automapped to" % str(hgvs_tx_variant)

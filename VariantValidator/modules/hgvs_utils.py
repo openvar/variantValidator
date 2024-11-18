@@ -16,7 +16,7 @@ import vvhgvs.exceptions
 from vvhgvs.location import BaseOffsetInterval, Interval
 # used to set coordinate origin point i.e. seq start vs CDS start/end
 from vvhgvs.enums import Datum
-from vvhgvs.edit import AASub, AARefAlt
+from vvhgvs.edit import AASub, AARefAlt, Dup, NARefAlt
 from vvhgvs.posedit import PosEdit
 
 # Database connections and hgvs objects are now passed from VariantValidator.py
@@ -72,6 +72,9 @@ class VVPosEdit(PosEdit):
                     formatted_str = f"*="
             else: # force coordinates on nucleotide change
                 formatted_str = f"{self.pos.format(conf)}="
+        elif type(self.edit) in [NARefAlt, Dup] and self.edit.ref and 'N' in self.edit.ref or type(self.edit) is NARefAlt and self.edit.alt and 'N' in self.edit.alt:
+            edit = str(self.edit.format()) # ignore instruction to remove ref in N case
+            formatted_str = f"{self.pos.format(conf)}{edit}"
         else:
             formatted_str = f"{self.pos.format(conf)}{edit}"
 
@@ -137,6 +140,8 @@ def unset_hgvs_obj_ref(hgvs):
             pass
         elif edit.alt == edit.ref and len(edit.ref):
             pass # edit.ref = ''
+        elif 'N' in edit.ref:
+            pass
         else:
             edit.ref = ''
     elif edit.ref is not None:
@@ -300,11 +305,11 @@ def hgvs_obj_from_existing_edit(ref_ac,ref_type, starts, edit, end=None, offset_
                  for "starts".
     returns: hgvs variant object (not normalised)
     """
-    if type(starts) in [BaseOffsetInterval, Interval]:
+    if isinstance(starts, Interval):
         return vvhgvs.sequencevariant.SequenceVariant(
                 ac=ref_ac,
                 type=ref_type,
-                posedit=vvhgvs.posedit.PosEdit(starts,edit)
+                posedit=VVPosEdit(starts,edit)
                 )
     if offset_pos or ref_type in ['c', 'n']:
         # if we got a null ref and no ref end presume ins i.e. bases either side
@@ -318,7 +323,7 @@ def hgvs_obj_from_existing_edit(ref_ac,ref_type, starts, edit, end=None, offset_
         return vvhgvs.sequencevariant.SequenceVariant(
                 ac=ref_ac,
                 type=ref_type,
-                posedit=vvhgvs.posedit.PosEdit(
+                posedit=VVPosEdit(
                     vvhgvs.location.BaseOffsetInterval(
                         start=start_pos,
                         end=end_pos),
@@ -332,7 +337,7 @@ def hgvs_obj_from_existing_edit(ref_ac,ref_type, starts, edit, end=None, offset_
     return vvhgvs.sequencevariant.SequenceVariant(
             ac=ref_ac,
             type=ref_type,
-            posedit=vvhgvs.posedit.PosEdit(
+            posedit=VVPosEdit(
                 vvhgvs.location.Interval(
                     start=vvhgvs.location.SimplePosition(base=int(starts)),
                     end=vvhgvs.location.SimplePosition(base=ends),
@@ -367,7 +372,7 @@ def hgvs_delins_parts_to_hgvs_obj(ref_ac,ref_type, starts, delete, insert,end=No
         return vvhgvs.sequencevariant.SequenceVariant(
                 ac=ref_ac,
                 type=ref_type,
-                posedit=vvhgvs.posedit.PosEdit(
+                posedit=VVPosEdit(
                     starts,
                     vvhgvs.edit.NARefAlt(ref=delete, alt=insert)
                     )
@@ -378,7 +383,7 @@ def hgvs_delins_parts_to_hgvs_obj(ref_ac,ref_type, starts, delete, insert,end=No
         return vvhgvs.sequencevariant.SequenceVariant(
                 ac=ref_ac,
                 type=ref_type,
-                posedit=vvhgvs.posedit.PosEdit(
+                posedit=VVPosEdit(
                     vvhgvs.location.BaseOffsetInterval(start=start_pos,end=end_pos),
                     vvhgvs.edit.NARefAlt(ref=delete, alt=insert)
                     )

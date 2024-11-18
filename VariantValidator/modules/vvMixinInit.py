@@ -125,7 +125,7 @@ class Mixin:
 
         # Create HGVS objects
         self.hdp = vvhgvs.dataproviders.uta.connect(pooling=True)
-        self.hp = vvhgvs.parser.Parser()  # Parser
+        self.hp = vvhgvs.parser.Parser(expose_all_rules=True)  # Parser
         self.vr = vvhgvs.validator.Validator(self.hdp)  # Validator
         self.vm = vvhgvs.variantmapper.VariantMapper(self.hdp)  # Variant mapper
         self.primary_assembly = 'GRCh38'  # Primary assembly defaults to GRCh38

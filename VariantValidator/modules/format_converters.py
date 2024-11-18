@@ -41,11 +41,6 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
     if toskip:
         return True
 
-    # Uncertain positions
-    toskip = uncertain_pos(variant, validator)
-    if toskip:
-        return True
-
     # Find not_sub type in input e.g. GGGG>G
     toskip = vcf2hgvs_stage4(variant, validator)
     if toskip:
@@ -66,16 +61,21 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
         logger.warning('Conversions are no longer valid HGVS Sequence Variant Descriptions')
         return True
 
-    toskip = convert_expanded_repeat(variant, validator)
-    if toskip:
-        return True
-
     toskip = use_checking.pre_parsing_global_common_mistakes(variant)
     if toskip:
         return True
 
     # Remove & store Methylation Syntax suffix before hgvs object parsing
     methyl_syntax.methyl_syntax(variant)
+
+    # Uncertain positions (converts to hgvs object so must be post split/fix)
+    toskip = uncertain_pos(variant, validator)
+    if toskip:
+        return True
+
+    toskip = convert_expanded_repeat(variant, validator)
+    if toskip:
+        return True
 
     toskip = indel_catching(variant, validator)
     if toskip:
