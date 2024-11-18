@@ -40,11 +40,6 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
     if toskip:
         return True
 
-    # Uncertain positions
-    toskip = uncertain_pos(variant, validator)
-    if toskip:
-        return True
-
     # Find not_sub type in input e.g. GGGG>G
     toskip = vcf2hgvs_stage4(variant, validator)
     if toskip:
@@ -57,6 +52,11 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
         return True
 
     toskip = use_checking.pre_parsing_global_common_mistakes(variant)
+    if toskip:
+        return True
+
+    # Uncertain positions (converts to hgvs object so must be post split/fix)
+    toskip = uncertain_pos(variant, validator)
     if toskip:
         return True
 
