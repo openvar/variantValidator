@@ -179,7 +179,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                     variant.output_type_flag = 'intergenic'
                     # set genomic and where available RefSeqGene outputs
                     variant.warnings.append(error)
-                    variant.genomic_g = fn.valstr(variant.hgvs_genomic)
+                    variant.genomic_g = unset_hgvs_obj_ref(variant.hgvs_genomic)
                     variant.genomic_r = str(rsg_data.split('(')[0])
                     logger.warning(str(error))
                     return True
@@ -878,7 +878,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                                     'select_variants=' + fn.valstr(updated_transcript_variant))
     variant.coding = str(hgvs_coding)
     variant.genomic_r = str(hgvs_refseq)
-    variant.genomic_g = str(hgvs_genomic)
+    variant.genomic_g = unset_hgvs_obj_ref(hgvs_genomic)
     variant.protein = str(hgvs_protein)
     return False
 
@@ -919,7 +919,7 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=
 
     for alt_chr in mapping_options:
         if liftover_level is None:
-            multi_list.append(variant.genomic_g.split(":")[0])
+            multi_list.append(variant.genomic_g.ac)
         elif liftover_level == 'primary':
             if ('NC_' in alt_chr[1]) and alt_chr[2] == validator.alt_aln_method:
                 multi_list.append(alt_chr[1])

@@ -23,6 +23,8 @@ from VariantValidator.modules.liftover import liftover
 from VariantValidator.modules import complex_descriptions
 from VariantValidator.modules import gene2transcripts
 from VariantValidator.modules import expanded_repeats, methyl_syntax
+from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
+        unset_hgvs_obj_ref
 
 logger = logging.getLogger(__name__)
 
@@ -601,10 +603,14 @@ class Mixin(vvMixinConverters.Mixin):
                                                        f"to {my_variant.expanded_repeat['variant']}")
                         ins_bases = (my_variant.expanded_repeat["repeat_sequence"] *
                                      int(my_variant.expanded_repeat["copy_number"]))
-                        repeat_to_delins = self.hp.parse(f"{my_variant.expanded_repeat['reference']}:"
-                                                         f"{my_variant.expanded_repeat['prefix']}."
-                                                         f"{my_variant.expanded_repeat['position']}"
-                                                         f"delins{ins_bases}")
+                        start_pos, _sep, end_pos = my_variant.expanded_repeat['position'].partition('_')
+                        repeat_to_delins = hgvs_delins_parts_to_hgvs_obj(
+                                my_variant.expanded_repeat['reference'],
+                                my_variant.expanded_repeat['prefix'],
+                                start_pos,
+                                '',
+                                ins_bases,
+                                end=end_pos)
 
                         try:
                             repeat_to_delins = my_variant.hn.normalize(repeat_to_delins)
@@ -915,22 +921,22 @@ class Mixin(vvMixinConverters.Mixin):
 
                 # Genomic sequence variation
                 # Check for gapped delins<No_Alt>
-                if re.search('ins$', variant.genomic_g) and 'del' in variant.genomic_g:
-                    variant.genomic_g = variant.genomic_g.replace('ins', '')
+                if variant.genomic_g and variant.genomic_g.posedit.edit.type == 'delins':
+                    variant.genomic_g = hgvs_delins_parts_to_hgvs_obj(
+                            variant.genomic_g.ac,
+                            variant.genomic_g.type,
+                            variant.genomic_g.posedit.pos,
+                            '','')
 
-                genomic_variant = variant.genomic_g
-                hgvs_genomic_variant = genomic_variant
+                hgvs_genomic_variant = variant.genomic_g
 
                 # genomic accession
                 logger.debug("genomic accession")
-                if genomic_variant != '':
-                    str_genomic_variant = fn.remove_reference_string(genomic_variant)
-                    hgvs_genomic_variant = self.hp.parse_hgvs_variant(str_genomic_variant)
-                    genomic_variant = fn.valstr(hgvs_genomic_variant)
+                if hgvs_genomic_variant:
+                    hgvs_genomic_variant = unset_hgvs_obj_ref(hgvs_genomic_variant)
                     genomic_accession = hgvs_genomic_variant.ac
                 else:
-                    genomic_accession = ''
-
+                    genomic_accession = None
                 # RefSeqGene variation
                 logger.debug("RefSeqGene variation")
                 refseqgene_variant = variant.genomic_r
@@ -1004,7 +1010,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                 # Look for intronic variants
                 logger.debug("Look for intronic variants")
-                if transcript_accession != '' and genomic_accession != '':
+                if transcript_accession != '' and genomic_accession:
                     # Remove del bases
                     str_transcript = fn.valstr(hgvs_transcript_variant)
                     hgvs_transcript_variant = self.hp.parse_hgvs_variant(str_transcript)
@@ -1063,11 +1069,10 @@ class Mixin(vvMixinConverters.Mixin):
 
                 else:
                     # HGVS genomic in the absence of a transcript variant
-                    if genomic_variant != '':
+                    if hgvs_genomic_variant:
                         multi_gen_vars = [hgvs_genomic_variant]
                     else:
                         multi_gen_vars = []
-
                 # Dictionaries of genomic loci
                 alt_genomic_dicts = []
                 primary_genomic_dicts = {}
@@ -1140,9 +1145,8 @@ class Mixin(vvMixinConverters.Mixin):
                         primary_genomic_dicts.pop(key)
                     elif key == "grch37" and "NC_001807.4" in val["hgvs_genomic_description"]:
                         primary_genomic_dicts.pop(key)
-
                 # Warn not directly mapped to specified genome build
-                if genomic_accession != '':
+                if genomic_accession:
                     if primary_assembly.lower() not in list(primary_genomic_dicts.keys()):
                         errors = [str(variant.hgvs_coding) + ' is not part of genome build ' + primary_assembly]
 
@@ -1510,7 +1514,7 @@ class Mixin(vvMixinConverters.Mixin):
                 accession = variant.hgvs_transcript_variant.split(':')[0]
                 term = str(accession)
                 term_2 = "%s automapped to" % tx_variant
-                term_3 = "%s automapped to" % genomic_variant
+                term_3 = "%s automapped to" % str(hgvs_genomic_variant)
                 for vt in variant.warnings:
                     vt = str(vt)
 
@@ -1532,7 +1536,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                 "org/service/validate/ for more information.")
 
                     # Remove spurious updates away form the correct output
-                    elif (term_2 in vt and tx_variant != "") or (term_3 in vt and genomic_variant != ""):
+                    elif (term_2 in vt and tx_variant != "") or (term_3 in vt and hgvs_genomic_variant):
                         continue
                     # Suppress "RefSeqGene record not available"
                     elif "RefSeqGene record not available" in vt:

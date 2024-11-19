@@ -8,7 +8,8 @@ from VariantValidator.modules import utils as fn
 import VariantValidator.modules.rna_formatter
 from VariantValidator.modules import complex_descriptions, use_checking
 from VariantValidator.modules.vvMixinConverters import AlleleSyntaxError
-from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj
+from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
+        unset_hgvs_obj_ref
 
 logger = logging.getLogger(__name__)
 
@@ -917,7 +918,7 @@ def mitochondrial(variant, validator):
             # Add a description of the reference sequence type and continue
             variant.hgvs_genomic = hgvs_mito
             if len(rel_var) == 0:
-                variant.genomic_g = fn.valstr(hgvs_mito)
+                variant.genomic_g = unset_hgvs_obj_ref(hgvs_mito)
                 variant.description = 'Homo sapiens mitochondrion, complete genome'
                 logger.info('Homo sapiens mitochondrion, complete genome')
                 return True
