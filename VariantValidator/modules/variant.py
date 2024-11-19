@@ -35,7 +35,7 @@ class Variant(object):
         self.coding = ''
         self.coding_g = ''
         self.genomic_r = ''
-        self.genomic_g = ''
+        self.genomic_g = None # should no be hgvs obj or nothing
         self.protein = ''
         self.write = write
         self.primary_assembly = primary_assembly
