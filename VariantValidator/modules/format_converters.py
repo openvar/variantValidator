@@ -317,11 +317,11 @@ def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version):
     boundaries etc of the alternative transcript variants may not be equivalent
     """
     skipvar = False
-    if re.search(r'\w+:[cn]\.', variant.quibble):
+    query_a_symbol, _sep, tx_edit = variant.quibble.partition(':')
+    if not (query_a_symbol[:3] in ['NC','NM_','NR_','ENST'] or
+            query_a_symbol.startswith('ENST')
+            ) and re.search(r'\w+:[cn]\.', variant.quibble):
         try:
-            pre_input = variant.quibble.split(':')
-            query_a_symbol = pre_input[0]
-            tx_edit = pre_input[1]
             is_it_a_gene = validator.db.get_hgnc_symbol(query_a_symbol)
             if is_it_a_gene != 'none':
                 uta_symbol = validator.db.get_uta_symbol(is_it_a_gene)
