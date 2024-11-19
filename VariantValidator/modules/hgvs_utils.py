@@ -67,11 +67,19 @@ def unset_hgvs_obj_ref(hgvs):
     """
     Remove/unset ref bases from hgvs object
     """
-    # set ref to empty (without re-parsing from text)
-    if hgvs.posedit.edit.type in ['del','delins']:
-        hgvs.posedit.edit.ref = ''
-    else:
-        hgvs.posedit.edit.ref = None
+    # set ref to empty (without re-parsing from text
+    edit = hgvs.posedit.edit
+    if edit.type in ['inv', 'dup']:
+        edit.ref = ''
+    elif edit.ref is not None and edit.alt is not None:
+        if edit.alt != edit.ref and \
+                len(edit.alt) == 1 and len(edit.ref) == 1:
+            pass
+        else:
+            edit.ref = ''
+    elif edit.ref is not None:
+        edit.ref = ''
+    hgvs.posedit.edit = edit
     return hgvs
 
 def hgvs_dup_to_delins(hgvs_dup):
