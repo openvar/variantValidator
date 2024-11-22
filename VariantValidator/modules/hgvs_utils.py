@@ -467,40 +467,30 @@ def pvcf_to_hgvs(query, selected_assembly, normalization_direction, reverse_norm
                     end_string = start + '>' + delete
                     not_sub = beginning_string + ':' + middle_string + end_string
                 # Split description
-                split_colon = not_sub.split(':')
-                ref_ac = split_colon[0]
-                remainder = split_colon[1]
-                split_dot = remainder.split('.')
-                ref_type = split_dot[0]
-                remainder = split_dot[1]
-                posedit = remainder
-                split_greater = remainder.split('>')
-                insert = split_greater[1]
-                remainder = split_greater[0]
+                ref_ac, _sep, remainder = not_sub.partition(':')
+                ref_type, _sep, posedit = remainder.partition('.')
+                pos_ref, _sep, insert = posedit.partition('>')
                 # Split remainder using matches
                 r = re.compile(r"([0-9]+)([GATCgatc]+)")
                 try:
-                    m = r.search(remainder)
+                    m = r.search(pos_ref)
                     delete = m.group(2)
                     starts = posedit.split(delete)[0]
                     hgvs_re_try = hgvs_delins_parts_to_hgvs_obj(
-                            ref_ac,ref_type, int(starts),
-                            delete[0], insert)
+                            ref_ac,
+                            ref_type,
+                            starts, delete[0], insert)
                     hgvs_re_try.posedit.edit.ref = delete
                     start_pos = str(hgvs_re_try.posedit.pos.start)
                     end_pos = None
                     if '-' in start_pos:
                         base, offset = start_pos.split('-')
                         new_offset = 0 - int(offset) + (len(delete))
-                        end_pos = int(base)
-                        hgvs_re_try.posedit.pos.end.base = int(end_pos)
-                        hgvs_re_try.posedit.pos.end.offset = int(new_offset) - 1
+                        end_pos = base + '-' + str(new_offset)
                     elif '+' in start_pos:
                         base, offset = start_pos.split('+')
-                        end_pos = int(base) + (len(delete) - int(offset) - 1)
                         new_offset = 0 + int(offset) + (len(delete) - 1)
-                        hgvs_re_try.posedit.pos.end.base = int(end_pos)
-                        hgvs_re_try.posedit.pos.end.offset = int(new_offset)
+                        end_pos = base + '+' + str(new_offset)
                     else:
                         end_pos = int(start_pos) + (len(delete) - 1)
                 except:
@@ -523,13 +513,25 @@ def pvcf_to_hgvs(query, selected_assembly, normalization_direction, reverse_norm
                 # HGVS will deal with the errors
                 hgvs_object = hgvs_not_delins
             else:
-                hgvs_object = validator.hp.parse_hgvs_variant(query)
+                # we know that this should be a sub type variant, and so ends with R>A,
+                # where R and A is 1 base of ref or alt respectivly (since the second
+                # match did not trigger).
+                start = position_and_edit[:-4]
+                if '_' in position_and_edit[:-3]:
+                    start, _sep, end = position_and_edit.partition('_')
+                hgvs_object =  hgvs_delins_parts_to_hgvs_obj(
+                        str(accession),
+                        ref_type,
+                        int(start),
+                        position_and_edit[-3],
+                        position_and_edit[-1])
 
         except Exception as e:
             error = str(e)
             raise PseudoVCF2HGVSError(error)
     else:
-        hgvs_object = validator.hp.parse_hgvs_variant(query)
+        # we should not get here! if we can we need to handle it
+        raise PseudoVCF2HGVSError('Unsupported format: VCF specification 4.1 or later!')
 
     # Normalize
     hgvs_object = selected_normalizer.normalize(hgvs_object)
@@ -2446,9 +2448,12 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
                             elif ((map_back.posedit.edit.type == "dup" or map_back.posedit.edit.type == "del") and
                                   hgvs_genomic.posedit.pos.start.base > map_back.posedit.pos.end.base + 1):
                                 v1 = vm.n_to_g(hgvs_genomic, genomic_ac)
-                                v3 = hp.parse_hgvs_variant(f"{v2.ac}:{v2.type}.{v2.posedit.pos.start.base}_"
-                                                           f"{v2.posedit.pos.end.base}"
-                                                           f"{v2.posedit.edit.ref}=")
+                                v3 = hgvs_delins_parts_to_hgvs_obj(
+                                        v2.ac,
+                                        v2.type,
+                                        v2.posedit.pos,
+                                        v2.posedit.edit.ref,
+                                        v2.posedit.edit.ref)
                                 v2 = vm.n_to_g(v3, genomic_ac)
 
                             else:

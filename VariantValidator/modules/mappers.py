@@ -159,14 +159,14 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                 else:
                     # Map to RefSeqGene if available
                     refseqgene_data = validator.chr_to_rsg(variant.hgvs_genomic, variant.hn)
-                    rsg_data = ''
+                    rsg_data = []
                     # Example {'gene': 'NTHL1', 'hgvs_refseqgene': 'NG_008412.1:g.3455_3464delCAAACACACA',
                     # 'valid': 'true'}
                     for data in refseqgene_data:
                         if data['valid'] == 'true':
-                            data['hgvs_refseqgene'] = data['hgvs_refseqgene']
-                            data['hgvs_refseqgene'] = fn.valstr(data['hgvs_refseqgene'])
-                            rsg_data = rsg_data + data['hgvs_refseqgene'] + ' (' + data['gene'] + '), '
+                            rsg_data.append(unset_hgvs_obj_ref(data['hgvs_refseqgene']))
+                    if not len(rsg_data):
+                        rsg_data = ['']
 
                     if validator.select_transcripts not in ['all', 'raw', 'select', 'mane_select', 'mane']:
                         error = (f'None of the specified transcripts ({validator.select_transcripts}) '
@@ -180,7 +180,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                     # set genomic and where available RefSeqGene outputs
                     variant.warnings.append(error)
                     variant.genomic_g = unset_hgvs_obj_ref(variant.hgvs_genomic)
-                    variant.genomic_r = str(rsg_data.split('(')[0])
+                    variant.genomic_r = rsg_data[0]
                     logger.warning(str(error))
                     return True
             else:
@@ -877,7 +877,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                                                                       'use in reports: '
                                     'select_variants=' + fn.valstr(updated_transcript_variant))
     variant.coding = str(hgvs_coding)
-    variant.genomic_r = str(hgvs_refseq)
+    variant.genomic_r = hgvs_refseq
     variant.genomic_g = unset_hgvs_obj_ref(hgvs_genomic)
     variant.protein = str(hgvs_protein)
     return False
