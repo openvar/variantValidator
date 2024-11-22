@@ -197,7 +197,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 self.hgvs_genomic_5pr.ac,
                 self.hgvs_genomic_5pr.type,
                 int(vcf_dict['pos']),vcf_dict['ref'],vcf_dict['alt'])
-        assert stored_hgvs_not_delins != ''
 
         # take a look at the input genomic variant for potential base salvage
         stash_ac = vcf_dict['chr']
@@ -874,8 +873,11 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     # Send to empty nw_rel_var
                     if hgvs_refreshed_variant.posedit.edit.type == "delins" and \
                             hgvs_refreshed_variant.posedit.edit.alt == "":
-                        correct = str(hgvs_refreshed_variant).replace("ins", "")
-                        hgvs_refreshed_variant = self.validator.hp.parse(correct)
+                        hgvs_refreshed_variant = hgvs_obj_from_existing_edit(
+                                hgvs_refreshed_variant.ac,
+                                hgvs_refreshed_variant.type,
+                                hgvs_refreshed_variant.posedit.pos,
+                                '',hgvs_refreshed_variant.posedit.edit.ref)
                     nw_rel_var.append(hgvs_refreshed_variant)
 
                 # Otherwise these variants need to be set
@@ -2897,8 +2899,11 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
 
                 if hgvs_refreshed_variant.posedit.edit.type == 'delins' and \
                         hgvs_refreshed_variant.posedit.edit.alt == "":
-                    hgvs_refreshed_variant = str(hgvs_refreshed_variant).replace("ins", "")
-                    hgvs_refreshed_variant = self.validator.hp.parse(hgvs_refreshed_variant)
+                    hgvs_refreshed_variant = hgvs_obj_from_existing_edit(
+                            hgvs_refreshed_variant.ac,
+                            hgvs_refreshed_variant.type,
+                            hgvs_refreshed_variant.posedit.pos,
+                            hgvs_refreshed_variant.posedit.edit.ref,'')
 
         return hgvs_refreshed_variant
 
