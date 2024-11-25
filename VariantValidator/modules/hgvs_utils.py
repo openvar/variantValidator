@@ -65,16 +65,18 @@ def vcfcp_to_hgvs_obj(vcf_dict, start_hgvs):
 
 def unset_hgvs_obj_ref(hgvs):
     """
-    Remove/unset ref bases from hgvs object
+    Remove/unset ref bases from hgvs object, in the manner needed for output,
+    but without re-parsing from text.
     """
-    # set ref to empty (without re-parsing from text
     edit = hgvs.posedit.edit
     if edit.type in ['inv', 'dup']:
         edit.ref = ''
     elif edit.ref is not None and edit.alt is not None:
-        if edit.alt != edit.ref and \
-                len(edit.alt) == 1 and len(edit.ref) == 1:
+       #if #edit.alt != edit.ref and \
+        if len(edit.alt) == 1 and len(edit.ref) == 1:
             pass
+        elif edit.alt == edit.ref and len(edit.ref):
+            pass # edit.ref = ''
         else:
             edit.ref = ''
     elif edit.ref is not None:
@@ -1319,7 +1321,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
         max_push_length = 50
         try:
             flank_seq = sf.fetch_seq(str(normalized_hgvs_genomic.ac), working_pos - 1, working_pos + max_push_length)
-        except HGVSDataNotAvailableError as e:
+        except  vvhgvs.exceptions.HGVSDataNotAvailableError as e:
             if "ValueError: stop out of range" in str(e):
                 flank_seq = False
                 # this means that we went beyond the end of the seq this should be very rare but is possible
