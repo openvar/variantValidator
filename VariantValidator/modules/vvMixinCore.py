@@ -341,7 +341,7 @@ class Mixin(vvMixinConverters.Mixin):
                             if "NC_" in my_variant.hgvs_genomic and my_variant.reformat_output == "uncertain_pos":
                                 my_variant.primary_assembly_loci = {my_variant.primary_assembly.lower():
                                                                     {"hgvs_genomic_description":
-                                                                     my_variant.hgvs_genomic,
+                                                                     my_variant.hgvs_genomic.format({'max_ref_length': 0}),
                                                                      "vcf": {"chr": None,
                                                                              "pos": None,
                                                                              "ref": None,
@@ -943,7 +943,7 @@ class Mixin(vvMixinConverters.Mixin):
                 # RefSeqGene variation
                 logger.debug("RefSeqGene variation")
                 refseqgene_variant = variant.genomic_r
-                if type(refseqgene_variant) is str and ('RefSeqGene' in refseqgene_variant or refseqgene_variant == ''):
+                if not refseqgene_variant or type(refseqgene_variant) is str and 'RefSeqGene' in refseqgene_variant:
                     variant.warnings.append(refseqgene_variant)
                     lrg_variant = ''
                     refseqgene_variant = ''
@@ -961,19 +961,18 @@ class Mixin(vvMixinConverters.Mixin):
 
                 # Transcript sequence variation
                 logger.debug("Transcript sequence variation")
-                tx_variant = variant.coding
-                hgvs_transcript_variant = tx_variant
+                hgvs_transcript_variant = variant.coding
                 hgvs_tx_variant = None
-                if tx_variant != '':
-                    if '(' in tx_variant and ')' in tx_variant:
+                if variant.coding:
+                    if '(' in str(hgvs_tx_variant) and ')' in str(hgvs_tx_variant):
+                        assert False
                         tx_variant = tx_variant.split('(')[1]
                         tx_variant = tx_variant.replace(')', '')
 
                     # transcript accession
                     logger.debug("transcript accession")
-                    hgvs_tx_variant = self.hp.parse_hgvs_variant(fn.remove_reference_string(tx_variant))
-                    tx_variant = fn.valstr(hgvs_tx_variant)
-                    hgvs_transcript_variant = self.hp.parse_hgvs_variant(fn.remove_reference_string(tx_variant))
+                    hgvs_tx_variant = unset_hgvs_obj_ref(variant.coding)
+                    hgvs_transcript_variant = copy.deepcopy(hgvs_tx_variant)
                     transcript_accession = hgvs_transcript_variant.ac
 
                     # Handle LRG
@@ -1001,20 +1000,20 @@ class Mixin(vvMixinConverters.Mixin):
                 else:
                     transcript_accession = ''
                     lrg_transcript_variant = ''
+                    hgvs_transcript_variant = ''
 
                 # Look for intronic variants
                 logger.debug("Look for intronic variants")
                 if transcript_accession != '' and genomic_accession:
                     # Remove del bases
-                    str_transcript = fn.valstr(hgvs_transcript_variant)
-                    hgvs_transcript_variant = self.hp.parse_hgvs_variant(str_transcript)
+                    hgvs_transcript_variant = unset_hgvs_obj_ref(hgvs_transcript_variant)
                     try:
                         self.vr.validate(hgvs_transcript_variant)
                     except vvhgvs.exceptions.HGVSError as e:
                         error = str(e)
                         if 'intronic variant' in error:
                             genome_context_transcript_variant = genomic_accession + '(' + transcript_accession +\
-                                                                '):c.' + str(hgvs_transcript_variant.posedit)
+                                                                '):c.' + hgvs_transcript_variant.posedit.format({'max_ref_length': 0})
                             if not type(refseqgene_variant) is str:
                                 refseqgene_variant = unset_hgvs_obj_ref(refseqgene_variant)
                                 refseqgene_accession = refseqgene_variant.ac
@@ -1023,12 +1022,10 @@ class Mixin(vvMixinConverters.Mixin):
                                                                              hgvs_transcript_variant.ac)
                                 except vvhgvs.exceptions.HGVSInvalidIntervalError:
                                     hgvs_coding_from_refseqgene = hgvs_transcript_variant
-                                hgvs_coding_from_refseqgene = fn.valstr(hgvs_coding_from_refseqgene)
-                                hgvs_coding_from_refseqgene = self.hp.parse_hgvs_variant(
-                                    fn.remove_reference_string(hgvs_coding_from_refseqgene))
+                                hgvs_coding_from_refseqgene = unset_hgvs_obj_ref(hgvs_coding_from_refseqgene)
                                 refseqgene_context_transcript_variant = refseqgene_accession + '(' + \
-                                    transcript_accession + '):c.' + str(hgvs_coding_from_refseqgene.posedit.pos) + str(
-                                        hgvs_coding_from_refseqgene.posedit.edit)
+                                    transcript_accession + '):c.' + str(hgvs_coding_from_refseqgene.posedit.pos) +\
+                                        hgvs_coding_from_refseqgene.posedit.edit.format({'max_ref_length': 0})
                             else:
                                 refseqgene_context_transcript_variant = ''
                         else:
@@ -1054,10 +1051,10 @@ class Mixin(vvMixinConverters.Mixin):
                 if transcript_accession == '':
                     variant.gene_symbol = ''
 
-                if tx_variant != '':
+                if hgvs_tx_variant:
                     multi_gen_vars = mappers.final_tx_to_multiple_genomic(variant,
                                                                           self,
-                                                                          tx_variant,
+                                                                          hgvs_tx_variant,#.format({'max_ref_length': 0}),
                                                                           liftover_level=liftover_level)
 
                 else:
@@ -1275,9 +1272,15 @@ class Mixin(vvMixinConverters.Mixin):
                     predicted_protein_variant_dict["lrg_slr"] = ''
 
                 # Add missing gene info which should be there (May have come from uncertain positions for example)
-                if variant.hgvs_transcript_variant is not None and variant.gene_symbol == '':
-                    variant.gene_symbol = self.db.get_gene_symbol_from_transcript_id(
-                        variant.hgvs_transcript_variant.split(":")[0])
+                if variant.hgvs_transcript_variant and variant.gene_symbol == '':
+                    # the last hold out for this is uncertain positions
+                    if type(variant.hgvs_transcript_variant) is str:
+                        print(variant.hgvs_transcript_variant)
+                        variant.gene_symbol = self.db.get_gene_symbol_from_transcript_id(
+                                variant.hgvs_transcript_variant.split(':')[0])
+                    else:
+                        variant.gene_symbol = self.db.get_gene_symbol_from_transcript_id(
+                                variant.hgvs_transcript_variant.ac)
                 elif variant.hgvs_refseqgene_variant and variant.gene_symbol == '':
                     variant.gene_symbol = self.db.get_gene_symbol_from_refseq_id(
                         variant.hgvs_refseqgene_variant.ac)
@@ -1375,10 +1378,10 @@ class Mixin(vvMixinConverters.Mixin):
                 variant.alt_genomic_loci = alt_genomic_dicts
                 if variant.reformat_output != "uncertain_pos":
                     variant.primary_assembly_loci = primary_genomic_dicts
-                    variant.hgvs_transcript_variant = tx_variant
-
-                if variant.hgvs_transcript_variant is None:
-                    variant.hgvs_transcript_variant = tx_variant
+                    if hgvs_tx_variant:
+                        variant.hgvs_transcript_variant = hgvs_tx_variant
+                if not variant.hgvs_transcript_variant and hgvs_tx_variant:
+                    variant.hgvs_transcript_variant = hgvs_tx_variant
                 variant.reference_sequence_records = ''
                 variant.validated = True
 
@@ -1389,8 +1392,12 @@ class Mixin(vvMixinConverters.Mixin):
                         'hgvs_refseqgene_variant':'',
                         'hgvs_lrg_variant':'',
                         'selected_assembly':self.selected_assembly}
-                if variant.hgvs_transcript_variant:# is str for now
-                    pre_out['hgvs_transcript_variant'] = variant.hgvs_transcript_variant
+                if variant.hgvs_transcript_variant:
+                    # still have holdout str for unc pos
+                    if type(variant.hgvs_transcript_variant) is str:
+                        pre_out['hgvs_transcript_variant'] = variant.hgvs_transcript_variant
+                    else:
+                        pre_out['hgvs_transcript_variant'] = variant.hgvs_transcript_variant.ac
                 if variant.hgvs_refseqgene_variant:
                     pre_out['hgvs_refseqgene_variant'] = variant.hgvs_refseqgene_variant.ac
                 if variant.hgvs_lrg_variant:# is str
@@ -1519,9 +1526,14 @@ class Mixin(vvMixinConverters.Mixin):
 
                 # Remove duplicate warnings
                 variant_warnings = []
-                accession = variant.hgvs_transcript_variant.split(':')[0]
+                accession = ''
+                # account for unc pos, which are still str
+                if type(variant.hgvs_transcript_variant) is str:
+                    accession = variant.hgvs_transcript_variant.split(':')[0]
+                elif variant.hgvs_transcript_variant:
+                    accession = variant.hgvs_transcript_variant.ac
                 term = str(accession)
-                term_2 = "%s automapped to" % tx_variant
+                term_2 = "%s automapped to" % str(hgvs_tx_variant)
                 term_3 = "%s automapped to" % str(hgvs_genomic_variant)
                 for vt in variant.warnings:
                     vt = str(vt)
@@ -1544,7 +1556,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                 "org/service/validate/ for more information.")
 
                     # Remove spurious updates away form the correct output
-                    elif (term_2 in vt and tx_variant != "") or (term_3 in vt and hgvs_genomic_variant):
+                    elif (term_2 in vt and hgvs_tx_variant) or (term_3 in vt and hgvs_genomic_variant):
                         continue
                     # Suppress "RefSeqGene record not available"
                     elif "RefSeqGene record not available" in vt:
@@ -1595,6 +1607,11 @@ class Mixin(vvMixinConverters.Mixin):
                     variant.original = variant.original.replace("|met|met=", "|met=")
 
                 # Some variant objects must be strings for back-compatibility with old output
+                if variant.hgvs_transcript_variant:
+                    variant.hgvs_transcript_variant = \
+                            variant.hgvs_transcript_variant.format({'max_ref_length': 0})
+                else:
+                    variant.hgvs_transcript_variant = ''
                 if variant.hgvs_refseqgene_variant:
                     variant.hgvs_refseqgene_variant = \
                             variant.hgvs_refseqgene_variant.format({'max_ref_length': 0})

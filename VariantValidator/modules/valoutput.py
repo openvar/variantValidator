@@ -35,7 +35,7 @@ class ValOutput(object):
                         validation_obsolete_counter += 1
                         identification_key = 'obsolete_record_%s' % validation_obsolete_counter
                     else:
-                        identification_key = '%s' % variant.hgvs_transcript_variant
+                        identification_key = str(variant.hgvs_transcript_variant)
 
                 validation_output[identification_key] = variant.output_dict(test=test)
 

@@ -876,7 +876,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                                     str(updated_transcript_variant) + ' MUST be fully validated prior to '
                                                                       'use in reports: '
                                     'select_variants=' + fn.valstr(updated_transcript_variant))
-    variant.coding = str(hgvs_coding)
+    variant.coding = hgvs_coding
     variant.genomic_r = hgvs_refseq
     variant.genomic_g = unset_hgvs_obj_ref(hgvs_genomic)
     variant.protein = str(hgvs_protein)
