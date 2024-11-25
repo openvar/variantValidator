@@ -230,7 +230,7 @@ class Variant(object):
             'gene_ids': self.stable_gene_ids,
             'annotations': self.annotations,
             'transcript_description': self.description,
-            'hgvs_transcript_variant': self.hgvs_transcript_variant,
+            'hgvs_transcript_variant': self.hgvs_transcript_variant.format({'max_ref_length': 0}),
             'rna_variant_descriptions': self.rna_data,
             'genome_context_intronic_sequence': self.genome_context_intronic_sequence,
             'refseqgene_context_intronic_sequence': self.refseqgene_context_intronic_sequence,
