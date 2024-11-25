@@ -21,7 +21,7 @@ from .vvDatabase import Database
 from . import utils
 from VariantValidator.settings import CONFIG_DIR
 from VariantValidator.version import __version__
-
+from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj
 
 class InitialisationError(Exception):
     pass
@@ -242,9 +242,11 @@ class Mixin:
             associated_protein_accession = self.hdp.get_pro_ac_for_tx_ac(hgvs_transcript.ac)
             # This method sometimes fails
             if associated_protein_accession is None:
-                cod = str(hgvs_transcript)
-                cod = cod.replace('inv', 'del')
-                cod = self.hp.parse(cod)  # Changed from parse
+                cod = hgvs_delins_parts_to_hgvs_obj(
+                        hgvs_transcript.ac,
+                        hgvs_transcript.type,
+                        hgvs_transcript.posedit.pos,'',''
+                        )
                 p = evm.c_to_p(cod)
                 associated_protein_accession = p.ac
 
@@ -274,11 +276,13 @@ class Mixin:
                     except IndexError as e:
                         error = str(e)
                         if 'string index out of range' in error and 'dup' in str(hgvs_transcript):
-                            hgvs_ins = self.hp.parse(str(hgvs_transcript))
-                            hgvs_ins = hn.normalize(hgvs_ins)
-                            inst = hgvs_ins.ac + ':c.' + str(hgvs_ins.posedit.pos.start.base - 1) + '_' + \
-                                str(hgvs_ins.posedit.pos.start.base) + 'ins' + hgvs_ins.posedit.edit.ref
-                            hgvs_transcript = self.hp.parse(inst)
+                            hgvs_ins = hn.normalize(hgvs_transcript)
+                            hgvs_transcript = hgvs_delins_parts_to_hgvs_obj(
+                                    hgvs_transcript.ac,
+                                    hgvs_transcript.type,
+                                    hgvs_transcript.posedit.pos.start.base - 1,
+                                    '',
+                                    hgvs_ins.posedit.edit.ref)
                             hgvs_protein = evm.c_to_p(hgvs_transcript)
 
                 if hgvs_protein:
