@@ -234,7 +234,7 @@ class Variant(object):
             'rna_variant_descriptions': self.rna_data,
             'genome_context_intronic_sequence': self.genome_context_intronic_sequence,
             'refseqgene_context_intronic_sequence': self.refseqgene_context_intronic_sequence,
-            'hgvs_refseqgene_variant': self.hgvs_refseqgene_variant,
+            'hgvs_refseqgene_variant': self.hgvs_refseqgene_variant.format({'max_ref_length': 0}),
             'hgvs_predicted_protein_consequence': self.hgvs_predicted_protein_consequence,
             'validation_warnings': self.process_warnings(),
             'hgvs_lrg_transcript_variant': self.hgvs_lrg_transcript_variant,
