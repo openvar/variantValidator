@@ -628,6 +628,37 @@ class Mixin(vvMixinConverters.Mixin):
                     formatted_variant = my_variant.quibble
                     stash_input = my_variant.quibble
                     my_variant.post_format_conversion = stash_input
+                    if type(formatted_variant) is str:
+                        try:
+                            formatted_variant = self.hp.parse_hgvs_variant(formatted_variant)
+                        # now that we are switching to loading hgvs obj before this point this has to move
+                        # Handle <position><edit><position> style variants
+                        # Refer to https://github.com/openvar/variantValidator/issues/161
+                        # Example provided is NC_000017.10:g.41199848_41203626delins41207680_41207915
+                        # Current theory, should apply to delins, ins.
+                        # We may also need to expand to http://varnomen.hgvs.org/recommendations/DNA/variant/insertion/
+                        # complex insertions
+
+                        except vvhgvs.exceptions.HGVSError as e:
+                            # Pass over for uncertain positions
+                            if my_variant.reformat_output == "uncertain_pos":
+                                continue
+
+                            # Check for common mistakes
+                            toskip = use_checking.refseq_common_mistakes(my_variant)
+                            if toskip:
+                                continue
+
+                            # Look for T not U!
+                            posedit = formatted_variant.split(':')[-1]
+                            if 'T' in posedit and "r." in posedit:
+                                e = 'The IUPAC RNA alphabet dictates that RNA variants must use the character u in ' \
+                                    'place of t'
+                            my_variant.warnings.append(str(e))
+                            logger.warning(str(e))
+                            continue
+
+
                     logger.debug("Variant input formatted, proceeding to validate.")
 
                     # Conversions
@@ -640,62 +671,23 @@ class Mixin(vvMixinConverters.Mixin):
 
                     # Change RNA bases to upper case but nothing else
                     if my_variant.reftype == ":r.":
-                        query_r_var = formatted_variant
-                        formatted_variant = formatted_variant.upper()
-                        formatted_variant = formatted_variant.replace(':R.', ':r.')
-
-                        # lowercase the supported variant types
-                        formatted_variant = formatted_variant.replace('DEL', 'del')
-                        formatted_variant = formatted_variant.replace('INS', 'ins')
-                        formatted_variant = formatted_variant.replace('INV', 'inv')
-                        formatted_variant = formatted_variant.replace('DUP', 'dup')
-                        ref, edit_ori = formatted_variant.split(":r.")
-                        edit = copy.copy(edit_ori)
-                        edit = edit.replace("G", "g")
-                        edit = edit.replace("A", "a")
-                        edit = edit.replace("T", "t")
-                        edit = edit.replace("C", "c")
-                        edit = edit.replace("U", "u")
-                        formatted_variant = ref + ":r." + edit
-                        if query_r_var != formatted_variant:
+                        query_r_var = copy.deepcopy(formatted_variant)
+                        edit = formatted_variant.posedit.edit
+                        if edit.ref:
+                            edit.ref = edit.ref.lower()
+                        if not edit.type in ['inv', 'dup'] and edit.alt:
+                            edit.alt = edit.alt.lower()
+                        formatted_variant.posedit.edit = edit
+                        # do we need to limit the supported variant types?
+                        # the case for the reftype needs to already have been checked at this point
+                        if str(query_r_var) != str(formatted_variant):
                             e = "This not a valid HGVS description, due to characters being in the wrong case. " \
                                 "Please check the use of upper- and lowercase characters."
                             my_variant.warnings.append(str(e))
                             logger.warning(str(e))
-                        formatted_variant = formatted_variant.replace(edit, edit_ori)
 
-                    # Handle <position><edit><position> style variants
-                    # Refer to https://github.com/openvar/variantValidator/issues/161
-                    # Example provided is NC_000017.10:g.41199848_41203626delins41207680_41207915
-                    # Current theory, should apply to delins, ins.
-                    # We may also need to expand to http://varnomen.hgvs.org/recommendations/DNA/variant/insertion/
-                    # complex insertions
-                    # Validate syntax of the now HGVS variants
-                    try:
-                        if type(formatted_variant) is str:
-                            input_parses = self.hp.parse_hgvs_variant(formatted_variant)
-                            my_variant.hgvs_formatted = input_parses
-                        else:
-                            my_variant.hgvs_formatted = formatted_variant
-                    except vvhgvs.exceptions.HGVSError as e:
 
-                        # Pass over for uncertain positions
-                        if my_variant.reformat_output == "uncertain_pos":
-                            continue
-
-                        # Check for common mistakes
-                        toskip = use_checking.refseq_common_mistakes(my_variant)
-                        if toskip:
-                            continue
-
-                        # Look for T not U!
-                        posedit = formatted_variant.split(':')[-1]
-                        if 'T' in posedit and "r." in posedit:
-                            e = 'The IUPAC RNA alphabet dictates that RNA variants must use the character u in ' \
-                                'place of t'
-                        my_variant.warnings.append(str(e))
-                        logger.warning(str(e))
-                        continue
+                    my_variant.hgvs_formatted = formatted_variant
 
                     if 'LRG' in my_variant.hgvs_formatted.ac:
                         my_variant.hgvs_formatted.ac.replace('T', 't')
@@ -918,7 +910,7 @@ class Mixin(vvMixinConverters.Mixin):
             by_order = sorted(self.batch_list, key=lambda x: x.order)
 
             for variant in by_order:
-                logger.debug("Formatting variant " + variant.quibble)
+                logger.debug("Formatting variant " + variant.quibble.format({'p_3_letter':False}))
                 if not variant.write:
                     continue
 
