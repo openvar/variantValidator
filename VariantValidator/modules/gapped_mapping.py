@@ -1034,7 +1034,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
 
             # IDENTIFY GAP AND HARD SET
             if stash_dict['needs_a_push'] is True or stash_dict['identifying_g_variant'] is not False:
-
                 # Look for merged variant from hard push
                 if stash_dict['merged_variant'] is not False:
                     merged_variant = stash_dict['merged_variant']
@@ -1206,6 +1205,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 # Look for gap info
                 normalized_stash_genomic = self.variant.hn.normalize(stash_genomic)
                 stash_tx_left = test_stash_tx_left
+
                 if stash_hgvs_not_delins.posedit.edit.type == "ins":
                     len_tx = 2
                 else:
@@ -1222,10 +1222,21 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     gap_len = len_gen - len_tx
 
                 # Set the options to a single option based on the results of pushing
+                # This code refers to https://github.com/openvar/variantValidator/issues/651
+                if stash_dict["pre_merged_variant"] is not False and stash_dict["identifying_g_variant"] is False:
+                    if ("transcript" in gap_in
+                            and len_tx == len_gen
+                            and stash_dict["pre_merged_variant"].type == "g")\
+                            and normalized_stash_genomic.posedit.edit.type == "sub"\
+                            and stash_dict["pre_merged_variant"].posedit.edit.type == "delins"\
+                            and hgvs_coding.posedit.edit.type == "sub":
+                        normalized_stash_genomic = stash_dict["pre_merged_variant"]
+
                 self.hgvs_genomic_possibilities = [[normalized_stash_genomic, [gap_in,
                                                                                gap_len,
                                                                                stash_hgvs_not_delins,
                                                                                stash_genomic]]]
+
         except vvhgvs.exceptions.HGVSError as e:
             logger.debug("Except passed, %s", e)
         # Intronic positions not supported. Will cause a Value Error
@@ -2067,6 +2078,15 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     gap_in = 'transcript'
                     gap_len = len_gen - len_tx
 
+                if stash_dict["pre_merged_variant"] is not False and stash_dict["identifying_g_variant"] is False:
+                    if ("transcript" in gap_in
+                            and len_tx == len_gen
+                            and stash_dict["pre_merged_variant"].type == "g")\
+                            and normalized_stash_genomic.posedit.edit.type == "sub"\
+                            and stash_dict["pre_merged_variant"].posedit.edit.type == "delins"\
+                            and hgvs_coding.posedit.edit.type == "sub":
+                        normalized_stash_genomic = stash_dict["pre_merged_variant"]
+
                 # Set the options to a single option based on the results of pushing
                 self.hgvs_genomic_possibilities = [[normalized_stash_genomic, [gap_in,
                                                                                gap_len,
@@ -2345,11 +2365,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     self.disparity_deletion_in = [disparity_info[0], disparity_info[1]]
                     hgvs_refreshed_variant = hgvs_coding
                     hgvs_alt_genomic = possibility
-                    # self.variant.warnings.append("Caution should be used when reporting the displayed variant "
-                    #                              "descriptions: If you are unsure, please contact admin")
-                    # self.variant.warnings.append('The displayed variants may be artefacts of aligning '
-                    #                              '' + hgvs_coding.ac + ' with genomic reference '
-                    #                                                    '' + disparity_info[3].ac)
                     hard_set_outputs = True
 
                 elif self.disparity_deletion_in[0] == 'transcript':
@@ -2452,7 +2467,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     hgvs_alt_genomic.posedit.pos.end.base = start
                     hgvs_alt_genomic = self.variant.hn.normalize(hgvs_alt_genomic)
 
-        # check for flanking substitutions which should be dels due to gap in transtipt
+        # check for flanking substitutions which should be dels due to gap in transcript
         try:
             check_flank_genomic = self.validator.myvm_t_to_g(hgvs_refreshed_variant,
                                                              hgvs_alt_genomic.ac,
@@ -2837,10 +2852,13 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
 
             elif '+' in str(self.tx_hgvs_not_delins.posedit.pos.end) and \
                     '+' not in str(self.tx_hgvs_not_delins.posedit.pos.start):
-                hgvs_genomic_norm = self.variant.hn.normalize(hgvs_genomic)
+                # hgvs_genomic_norm = self.variant.hn.normalize(hgvs_genomic)
                 self.auto_info = self.auto_info
                 self.gapped_transcripts = self.gapped_transcripts + ' ' + str(self.tx_hgvs_not_delins.ac)
-                hgvs_refreshed_variant = self.c1_pos_edit(hgvs_genomic)
+                try:
+                    hgvs_refreshed_variant = self.c1_pos_edit(hgvs_genomic)
+                except vvhgvs.exceptions.HGVSDataNotAvailableError:
+                    hgvs_refreshed_variant = self.tx_hgvs_not_delins
 
             elif '-' in str(self.tx_hgvs_not_delins.posedit.pos.start) and \
                     '-' not in str(self.tx_hgvs_not_delins.posedit.pos.end):
