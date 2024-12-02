@@ -74,6 +74,7 @@ def structure_checks(variant, validator):
     variant.input_parses = input_parses
     variant.gene_symbol = validator.db.get_gene_symbol_from_transcript_id(variant.input_parses.ac)
 
+
     if variant.gene_symbol == 'none':
         variant.gene_symbol = ''
     if input_parses.type == 'g' or input_parses.type == 'm':
@@ -150,12 +151,24 @@ def structure_checks_g(variant, validator):
 
     # Additional test
     try:
-        variant.hn.normalize(variant.input_parses)
+        np = variant.hn.normalize(variant.input_parses)
     except vvhgvs.exceptions.HGVSError as e:
         error = str(e)
         variant.warnings.append(error)
         logger.warning(error)
         return True
+
+    # Look for variants in runs of N bases
+    try:
+        if "N" in variant.input_parses.posedit.edit.ref:
+            error = (f"UncertainSequenceError: The submitted variant description {variant.input_parses} refers to a "
+                     f"genomic reference region with "
+                     f"an uncertain base composition (N)")
+            variant.warnings.append(error)
+            logger.warning(error)
+            return True
+    except TypeError:
+        pass
 
     return False
 
