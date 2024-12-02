@@ -118,7 +118,6 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
                     g2t.hdp.get_tx_identity_info(refresh_hgnc)
                     tx_found = refresh_hgnc
                     found_res = True
-                    break
                 except vvhgvs.exceptions.HGVSError as e:
                     logger.debug("Except passed, %s", e)
             if not found_res:
@@ -139,8 +138,14 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
             except vvhgvs.exceptions.HGVSError as e:
                 return {'error': str(e),
                         "requested_symbol": query}
+
             hgnc = tx_info[6]
-            hgnc = g2t.db.get_hgnc_symbol(hgnc)
+            hgnc2 = g2t.db.get_hgnc_symbol(hgnc)
+
+            if re.match("LOC", hgnc2) and not re.match("LOC", hgnc):
+                hgnc = hgnc
+            else:
+                hgnc = hgnc2
 
         # First perform a search against the input gene symbol or the symbol inferred from UTA
         symbol_identified = False
