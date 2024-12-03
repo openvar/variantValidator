@@ -716,7 +716,6 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
     :param genomic_ac:
     :return:
     """
-
     # c. must be in n. format
     try:
         hgvs_genomic = vm.c_to_n(hgvs_genomic)  # Need in n. context
@@ -1056,6 +1055,27 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                     end_seq_check_mapped = vm.n_to_g(end_seq_check_variant, genomic_ac)
                 else:
                     end_seq_check_mapped = vm.g_to_n(end_seq_check_variant, tx_ac)
+
+                # Look for flank subs that may be missed when naieve mapping c > c made a delins from a sub
+                # This is a hgvs.py quirl for flanking subs in the antisense oriemntation and refers to
+                #
+                try:
+                    normalized_end_seq_check_mapped = hn.normalize(end_seq_check_mapped)
+                    normalized_end_seq_check_variant = hn.normalize(end_seq_check_variant)
+                    if (normalized_end_seq_check_mapped.type == 'g' and
+                            normalized_end_seq_check_variant.type == 'n' and
+                            normalized_end_seq_check_mapped.posedit.edit.type == 'sub' and
+                            normalized_end_seq_check_variant == normalized_hgvs_genomic):
+
+                        # double check the original mapping
+                        sub_map = vm.g_to_t(normalized_end_seq_check_mapped,  normalized_end_seq_check_variant.ac)
+                        if sub_map.posedit.edit.type == 'sub':
+                            needs_a_push = True
+                            merged_variant = sub_map
+                            identifying_g_variant = end_seq_check_mapped
+                            break
+                except vvhgvs.exceptions.HGVSUnsupportedOperationError:
+                    pass
 
                 # For genomic_variant mapped onto gaps, we end up with an offset
                 start_offset = False

@@ -31043,6 +31043,17 @@ class TestVariantsAuto(TestCase):
                results['NM_017680.6:c.153G>T'][
                    'primary_assembly_loci']['grch37']['hgvs_genomic_description']
 
+    def test_issue_651b(self):
+        variant = 'NC_000009.12:g.92474742delinsATCA'
+        select_transcripts = 'NM_017680.6'
+        results = self.vv.validate(variant, 'GRCh38', select_transcripts).format_as_dict(test=True)
+        assert 'NC_000009.12:g.92474742delinsATCA' in \
+               results['NM_017680.6:c.153G>T'][
+                   'primary_assembly_loci']['grch38']['hgvs_genomic_description']
+        assert 'NC_000009.11:g.95237024delinsATCA' in \
+               results['NM_017680.6:c.153G>T'][
+                   'primary_assembly_loci']['grch37']['hgvs_genomic_description']
+
 # <LICENSE>
 # Copyright (C) 2016-2024 VariantValidator Contributors
 #

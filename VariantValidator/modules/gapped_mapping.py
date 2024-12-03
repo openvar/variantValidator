@@ -157,6 +157,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
         """
         Gap aware projection from g. to c.
         """
+
         # RefSeq or Ensembl?
         expanded_genomic_for_ensembl = False
         if self.validator.alt_aln_method == 'genebuild':
