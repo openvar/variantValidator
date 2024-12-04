@@ -1058,7 +1058,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
 
                 # Look for flank subs that may be missed when naieve mapping c > c made a delins from a sub
                 # This is a hgvs.py quirl for flanking subs in the antisense oriemntation and refers to
-                #
+                # https://github.com/openvar/variantValidator/issues/651
                 try:
                     normalized_end_seq_check_mapped = hn.normalize(end_seq_check_mapped)
                     normalized_end_seq_check_variant = hn.normalize(end_seq_check_variant)

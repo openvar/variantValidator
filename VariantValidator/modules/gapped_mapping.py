@@ -442,7 +442,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                                    self.validator.hp,
                                                                    self.validator.vm,
                                                                    self.validator.merge_hgvs_3pr,
-                                                                   genomic_ac=hgvs_genomic_variant.ac,)
+                                                                   genomic_ac=hgvs_genomic_variant.ac)
 
                         if vcf__dict['needs_a_push'] is True:
                             needs_a_push = True
@@ -688,7 +688,8 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                 hgvs_not_delins = saved_hgvs_coding
                                 self.disparity_deletion_in = ['false', 'false']
                             elif 'Normalization of intronic variants is not supported' in error:
-                                # We know that this cannot be because of an intronic variant, so must be aligned to tx gap
+                                # We know that this cannot be because of an intronic variant, so must be aligned to
+                                # tx gap
                                 self.disparity_deletion_in = ['transcript', 'Requires Analysis']
                         logger.info(error)
 
@@ -704,7 +705,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
 
                     # GAP IN THE TRANSCRIPT DISPARITY DETECTED
                     if self.disparity_deletion_in[0] == 'transcript':
-
                         # Check for issue https://github.com/openvar/variantValidator/issues/385 where the gap is
                         # being identified but oddly the vm is not compensating, likely due to odd sequence
                         try:
@@ -724,7 +724,8 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                             # the actual length should be == gen_len_difference - 1 not == gen_len_difference
                             if tx_len_difference - self.disparity_deletion_in[1] == gen_len_difference:
                                 # So here we know we need to knock off disparity_deletion_in[1] bases
-                                if len(hgvs_not_delins.posedit.edit.alt) == len(self.tx_hgvs_not_delins.posedit.edit.alt):
+                                if len(hgvs_not_delins.posedit.edit.alt) == len(
+                                        self.tx_hgvs_not_delins.posedit.edit.alt):
                                     if self.orientation == 1:
                                         self.tx_hgvs_not_delins.posedit.edit.ref = hgvs_not_delins.posedit.ref
                                     else:
@@ -2815,6 +2816,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
 
             if self.tx_hgvs_not_delins.posedit.pos.start.offset == 0 and \
                     self.tx_hgvs_not_delins.posedit.pos.end.offset == 0:
+
                 # In this instance, we have identified a transcript gap but the n. version of
                 # the transcript variant but do not have a position which actually hits the gap,
                 # so the variant likely spans the gap, and is not picked up by an offset.
@@ -2830,6 +2832,15 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                         (hgvs_genomic_norm.posedit.pos.end.base - hgvs_genomic_norm.posedit.pos.start.base)) and
                 hgvs_genomic_norm.posedit.edit.type == 'del' and
                     g3.posedit.pos.end.base == hgvs_genomic_norm.posedit.pos.end.base):
+                    hgvs_refreshed_variant = self.tx_hgvs_not_delins
+                    return hgvs_refreshed_variant
+
+                elif (((g3.posedit.pos.end.base - g3.posedit.pos.start.base) >
+                        (hgvs_genomic_norm.posedit.pos.end.base - hgvs_genomic_norm.posedit.pos.start.base)) and
+                        hgvs_genomic_norm.posedit.edit.type == 'del' and
+                        g3.posedit.pos.start.base < hgvs_genomic_norm.posedit.pos.start.base and
+                        (g3.posedit.pos.end.base + int(self.disparity_deletion_in[1])) <
+                      hgvs_genomic_norm.posedit.pos.end.base):
                     hgvs_refreshed_variant = self.tx_hgvs_not_delins
                     return hgvs_refreshed_variant
 
