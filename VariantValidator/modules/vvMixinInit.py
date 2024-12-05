@@ -14,10 +14,8 @@ import vvhgvs.posedit
 import vvhgvs.edit
 import vvhgvs.normalizer
 from vvhgvs.location import AAPosition, Interval
-from vvhgvs.edit import AARefAlt, AAExt, AASub, Dup
+from vvhgvs.edit import AARefAlt, AAExt, Dup
 from Bio.Seq import Seq
-
-
 
 import re
 import copy
@@ -243,10 +241,6 @@ class Mixin:
         # Handle non-coding transcript and non transcript descriptions
         if hgvs_transcript.type == 'n':
             # non-coding transcripts
-            hgvs_protein = copy.deepcopy(hgvs_transcript)
-            hgvs_protein.ac = 'Non-coding '
-            hgvs_protein.posedit = ''
-            hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
             return hgvs_transcript_to_hgvs_protein
         elif not hgvs_transcript.type == 'c':
             hgvs_transcript_to_hgvs_protein['error'] = 'Unable to map %s to %s' % (
@@ -305,16 +299,12 @@ class Mixin:
                 or (1 <= hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset
                     == 0)) and '*' not in str(hgvs_transcript.posedit.pos):
                 residue_one = self.sf.fetch_seq(associated_protein_accession, start_i=1 - 1, end_i=1)
-                threed_residue_one = utils.one_to_three(residue_one)
-                r_one_report = '(%s1?)' % threed_residue_one  # was (MET1?)
-                hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
-                                                                      type='p',
-                                                                      posedit=r_one_report
-                                                                      )
-
+                #threed_residue_one = utils.one_to_three(residue_one) # was (MET1?) but this can change
+                hgvs_protein = _fb_unc(associated_protein_accession,residue_one)
             else:
                 try:
                     hgvs_protein = evm.c_to_p(hgvs_transcript)
+                    hgvs_protein = _remake_unc(hgvs_protein)
                 except IndexError as e:
                     error = str(e)
                     if 'string index out of range' in error and 'dup' in str(hgvs_transcript):
@@ -326,14 +316,14 @@ class Mixin:
                                 '',
                                 hgvs_ins.posedit.edit.ref)
                         hgvs_protein = evm.c_to_p(hgvs_transcript)
+                        hgvs_protein = _remake_unc(hgvs_protein)
+
+            if hgvs_protein and hgvs_protein.posedit is None:
+                # set ? to (?) and add empty pos rather than full None posedit for later use
+                hgvs_protein = _tot_unc(hgvs_protein.ac)
 
             if hgvs_protein:
                 hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
-                # Replace Ter<pos>Ter with Ter=
-                if re.search('Ter\d+Ter', str(hgvs_transcript_to_hgvs_protein['hgvs_protein'].posedit)):
-                    posedit = str(hgvs_transcript_to_hgvs_protein['hgvs_protein'].posedit)
-                    posedit = posedit[:-4] + '=)'
-                    hgvs_transcript_to_hgvs_protein['hgvs_protein'].posedit = posedit
                 try:
                     # Sometimes ins create an inline Ter in the alt. Needs to be terminated after the ter
                     if re.search("\*[A-Z]+", hgvs_transcript_to_hgvs_protein['hgvs_protein'].posedit.edit.alt):
@@ -343,6 +333,7 @@ class Mixin:
                 except Exception:
                     pass
             else:
+                # Recursive re-try with forced re-prot map set
                 hgvs_transcript_to_hgvs_protein = self.myc_to_p(hgvs_transcript, evm, re_to_p=True, hn=hn)
             return hgvs_transcript_to_hgvs_protein
 
@@ -378,6 +369,7 @@ class Mixin:
         if hgvs_transcript.posedit.edit.type != 'inv':
             try:
                 shifts = evm.c_to_p(hgvs_transcript)
+                shifts = _remake_unc(shifts)
                 if "identity" in shifts.posedit.edit.type:
                     not_delins = False
                 if 'del' in shifts.posedit.edit.type or 'dup' in shifts.posedit.edit.type:
@@ -391,12 +383,6 @@ class Mixin:
 
         if not_delins:
             hgvs_transcript_to_hgvs_protein['hgvs_protein'] = shifts
-            # Replace Ter<pos>Ter with Ter=
-            if re.search('Ter\d+Ter', str(hgvs_transcript_to_hgvs_protein['hgvs_protein'].posedit)):
-                posedit = str(hgvs_transcript_to_hgvs_protein['hgvs_protein'].posedit)
-                posedit = posedit[:-4] + '=)'
-                hgvs_transcript_to_hgvs_protein['hgvs_protein'].posedit = posedit
-            # Return
             return hgvs_transcript_to_hgvs_protein
         # Use inv delins code?
         # Collect the associated protein
@@ -421,14 +407,10 @@ class Mixin:
                     and '*' not in str(hgvs_transcript.posedit.pos):
 
                 residue_one = self.sf.fetch_seq(associated_protein_accession, start_i=1 - 1, end_i=1)
-                threed_residue_one = utils.one_to_three(residue_one)
-                r_one_report = '(%s1?)' % threed_residue_one  # was (MET1?)
-                hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
-                                                                      type='p', posedit=r_one_report)
+                hgvs_protein = _fb_unc(associated_protein_accession,residue_one)
             else:
                 # Make the variant
-                hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
-                                                                      type='p', posedit='?')
+                hgvs_protein = _tot_unc(associated_protein_accession)
             hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
             return hgvs_transcript_to_hgvs_protein
         # Need to obtain the cds_start
@@ -463,8 +445,7 @@ class Mixin:
         except IndexError:
             hgvs_transcript_to_hgvs_protein['error'] = \
                 'Cannot identify an in-frame Termination codon in the variant mRNA sequence'
-            hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
-                                                                  type='p', posedit='?')
+            hgvs_protein = _tot_unc(associated_protein_accession)
             hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
             return hgvs_transcript_to_hgvs_protein
 
@@ -472,7 +453,7 @@ class Mixin:
             error = 'Unable to generate protein variant description'
             hgvs_transcript_to_hgvs_protein['error'] = error
             return hgvs_transcript_to_hgvs_protein
-        elif prot_var_seq == 'error':
+        if prot_var_seq == 'error':
             # Does the edit affect the start codon?
             if ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and
                  hgvs_transcript.posedit.pos.start.offset == 0) or (
@@ -480,26 +461,20 @@ class Mixin:
                     hgvs_transcript.posedit.pos.end.offset == 0)) \
                     and '*' not in str(hgvs_transcript.posedit.pos):
                 residue_one = self.sf.fetch_seq(associated_protein_accession, start_i=1 - 1, end_i=1)
-                threed_residue_one = utils.one_to_three(residue_one)
-                r_one_report = '(%s1?)' % threed_residue_one  # was (MET1?)
-                hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
-                                                                      type='p', posedit=r_one_report)
-
+                #threed_residue_one = utils.one_to_three(residue_one)
+                hgvs_protein = _fb_unc(associated_protein_accession,residue_one)
                 hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
             else:
                 error = 'Unable to generate protein variant description'
                 hgvs_transcript_to_hgvs_protein['error'] = error
             return hgvs_transcript_to_hgvs_protein
-        elif ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and
+
+        if ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and
             hgvs_transcript.posedit.pos.start.offset == 0) or (1 <=
             hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset == 0))\
                 and '*' not in str(hgvs_transcript.posedit.pos):
-
             residue_one = self.sf.fetch_seq(associated_protein_accession, start_i=1 - 1, end_i=1)
-            threed_residue_one = utils.one_to_three(residue_one)
-            r_one_report = '(%s1?)' % threed_residue_one  # was (MET1?)
-            hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
-                                                                  type='p', posedit=r_one_report)
+            hgvs_protein = _fb_unc(associated_protein_accession,residue_one)
             hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
             return hgvs_transcript_to_hgvs_protein
 
@@ -560,11 +535,15 @@ class Mixin:
             return hgvs_transcript_to_hgvs_protein
 
         # The Nucleotide variant has not affected the protein sequence i.e. synonymous
-        elif pro_inv_info['variant'] != 'true':
+        if pro_inv_info['variant'] != 'true':
 
             # Make the variant
+            posedit = VVPosEdit(
+                    pos = Interval(),# empty interval start means ''
+                    edit = AARefAlt(),# empty ref and alt means '='
+                    uncertain = True)
             hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
-                                                                  type='p', posedit='=')
+                                                                  type='p', posedit = posedit)
             # Where possible, identify the exact positions of the amino acids
             if isinstance(hgvs_transcript.posedit.pos.start.base, int) and isinstance(
                     hgvs_transcript.posedit.pos.end.base, int):
@@ -592,23 +571,18 @@ class Mixin:
                     if aa_start_pos == length + 1 and aa_end_pos == length + 1:
                         aa_seq = "*"
 
-                start_aa = utils.one_to_three(aa_seq[0])
-                end_aa = utils.one_to_three(aa_seq[-1])
+                start_aa = aa_seq[0]
+                end_aa = aa_seq[-1]
 
                 # create edit
-                if aa_start_pos != aa_end_pos:
-                    posedit = '(%s%s_%s%s=)' % (start_aa,
-                                                str(aa_start_pos),
-                                                end_aa,
-                                                str(aa_end_pos)
-                                                )
-
-                    hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(
-                        ac=associated_protein_accession, type='p', posedit=posedit)
-                else:
-                    posedit = '(%s%s=)' % (start_aa, str(aa_start_pos))
-                    hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(
-                        ac=associated_protein_accession, type='p', posedit=posedit)
+                posedit = VVPosEdit(
+                        pos= Interval(
+                            start = AAPosition(base = aa_start_pos, aa = start_aa),
+                            end = AAPosition(base = aa_end_pos, aa = end_aa )),
+                        edit = AARefAlt(),# empty ref and alt means '='
+                        uncertain = True)
+                hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(
+                    ac=associated_protein_accession, type='p', posedit=posedit)
 
             hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
             return hgvs_transcript_to_hgvs_protein
@@ -652,14 +626,17 @@ class Mixin:
                                                pro_inv_info['prot_ins_seq']
 
         # Complete variant description
-        # Recode the single letter del and ins sequences into three letter amino acid codes
-        del_thr = utils.one_to_three(pro_inv_info['prot_del_seq'])
-        ins_thr = utils.one_to_three(pro_inv_info['prot_ins_seq'])
 
         # Write the HGVS position and edit
-        del_len = len(del_thr)
-        from_aa = del_thr[0:3]
-        to_aa = del_thr[del_len - 3:]
+        # start by handling delins->ins transitions from the cds to prot mapping
+        if not pro_inv_info['prot_del_seq']:
+            # must be != exclusive coordinates
+            assert pro_inv_info['edit_start'] != pro_inv_info['edit_end']
+            from_aa = prot_ref_seq[pro_inv_info['edit_start']]
+            to_aa = prot_ref_seq[pro_inv_info['edit_end']]
+        else:
+            from_aa = pro_inv_info['prot_del_seq'][0]
+            to_aa = pro_inv_info['prot_del_seq'][-1]
 
         # Handle a range of amino acids
         if pro_inv_info['edit_start'] != pro_inv_info['edit_end']:
@@ -668,12 +645,21 @@ class Mixin:
             if pro_inv_info["prot_ins_seq"] == (pro_inv_info["prot_del_seq"]
                                                   + pro_inv_info["prot_del_seq"]):
 
-                posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + '_' + to_aa + \
-                          str(pro_inv_info['edit_end']) + 'dup)'
-            elif len(ins_thr) > 0:
-                if 'Ter' in del_thr and ins_thr[-3:] != 'Ter':
-                    posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + '_' + to_aa + \
-                              str(pro_inv_info['edit_end']) + 'delins' + ins_thr + '?)'
+                posedit = VVPosEdit(
+                        pos = Interval(
+                            start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa),
+                            end = AAPosition(base = pro_inv_info['edit_end'], aa = to_aa)),
+                        edit = Dup(ref = pro_inv_info['prot_del_seq']),
+                        uncertain = True)
+
+            elif len(pro_inv_info['prot_ins_seq']) > 0:
+                if '*' in pro_inv_info['prot_del_seq'] and pro_inv_info['prot_ins_seq'][-1] != '*':
+                    posedit = VVPosEdit(
+                            pos = Interval(
+                                start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa),
+                                end = AAPosition(base = pro_inv_info['edit_end'], aa = to_aa )),
+                            edit = AARefAlt(ref = '', alt = pro_inv_info['prot_ins_seq'] + '?'),
+                            uncertain = True)
 
                 elif len(pro_inv_info["prot_ins_seq"]) > len(pro_inv_info["prot_del_seq"]) \
                         and pro_inv_info["prot_ins_seq"] != (pro_inv_info["prot_del_seq"]
@@ -689,25 +675,52 @@ class Mixin:
                                               int(pro_inv_info['edit_start']-2),
                                               int(pro_inv_info['edit_start']-1))
 
-                    posedit = '(' + from_aa + str(pro_inv_info['edit_end']-len(pro_inv_info['prot_ins_seq'])+1) + "_" + \
-                              to_aa + str(pro_inv_info['edit_start']-1) + "dup)"
-
+                    posedit = VVPosEdit(
+                            pos = Interval(
+                                start = AAPosition(
+                                    base = pro_inv_info['edit_end']-len(pro_inv_info['prot_ins_seq'])+1,
+                                    aa = from_aa),
+                                end = AAPosition(
+                                    base = pro_inv_info['edit_start']-1,
+                                    aa = to_aa )),
+                            edit = Dup(ref = pro_inv_info["prot_del_seq"]),
+                            uncertain = True)
                 else:
-                    posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + '_' + to_aa + \
-                              str(pro_inv_info['edit_end']) + 'delins' + ins_thr + ')'
+
+                    posedit = VVPosEdit(
+                            pos = Interval(
+                                start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa),
+                                end = AAPosition(base = pro_inv_info['edit_end'], aa = to_aa )),
+                            edit = AARefAlt(ref = '', alt =  pro_inv_info['prot_ins_seq']),
+                            uncertain = True)
 
             else:
-                if 'Ter' in del_thr and ins_thr[-3:] != 'Ter':
-                    posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + '_' + to_aa + \
-                              str(pro_inv_info['edit_end']) + 'del?)'
+                if '*' in pro_inv_info['prot_del_seq'] and pro_inv_info['prot_ins_seq'][-1] != '*':
+                    posedit = VVPosEdit(
+                            pos = Interval(
+                                start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa),
+                                end = AAPosition(base = pro_inv_info['edit_end'], aa = to_aa )),
+                            edit = AARefAlt(alt =  '?'),
+                            uncertain = True)
                 else:
-                    posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + '_' + to_aa + \
-                              str(pro_inv_info['edit_end']) + 'del)'
+                    posedit = VVPosEdit(
+                            pos = Interval(
+                                start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa),
+                                end = AAPosition(base = pro_inv_info['edit_end'], aa = to_aa )),
+                            edit = AARefAlt( alt =  ''),
+                            uncertain = True)
+
         else:
             # Handle duplications
             if pro_inv_info["prot_ins_seq"] == (pro_inv_info["prot_del_seq"]
                                                   + pro_inv_info["prot_del_seq"]):
-                posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + 'dup)'
+                posedit = VVPosEdit(
+                            pos = Interval(
+                                start = AAPosition(
+                                    base = pro_inv_info['edit_start'],
+                                    aa = from_aa)),
+                            edit = Dup(ref = from_aa),
+                            uncertain = True)
 
             # Handle insertions
             elif len(pro_inv_info["prot_ins_seq"]) > len(pro_inv_info["prot_del_seq"]) \
@@ -718,47 +731,68 @@ class Mixin:
                 to_aa = self.sf.fetch_seq(associated_protein_accession,
                                              int(pro_inv_info['edit_start']),
                                              int(pro_inv_info['edit_start'] + 1))
-                posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + "_" + \
-                    to_aa + str(pro_inv_info['edit_start'] + 1) + "ins" + \
-                          pro_inv_info["prot_ins_seq"][1:] + ")"
-
+                posedit = VVPosEdit(
+                            pos = Interval(#widen to either side of between base ins loc
+                                start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa),
+                                end = AAPosition(base = pro_inv_info['edit_end']+1, aa = to_aa )),
+                            edit = AARefAlt( #ref = pro_inv_info["prot_ins_seq"][0],
+                                            alt =  pro_inv_info["prot_ins_seq"][1:]),#[3:]),
+                            uncertain = True)
             # Handle extended proteins i.e. stop_lost
-            elif del_thr == 'Ter' and (len(ins_thr) > len(del_thr)):
+            elif pro_inv_info["prot_del_seq"] == '*' and (
+                    len(pro_inv_info["prot_ins_seq"]) > len(pro_inv_info["prot_del_seq"])):
                 # Nucleotide variant range aligns to the Termination codon
-                if ins_thr[-3:] == 'Ter':
-                    posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + str(
-                        ins_thr[:3]) + 'ext' + str(ins_thr[-3:]) + str(int((len(ins_thr) / 3))
-                                                                       - 1) + ')'
+                if pro_inv_info['prot_ins_seq'][-1] == '*':
+                    posedit = VVPosEdit(
+                        pos = Interval(
+                            start = AAPosition(
+                                base = pro_inv_info['edit_start'],
+                                aa = from_aa)),
+                        edit = AAExt(
+                            alt = pro_inv_info['prot_ins_seq'][0],
+                            length = int(len(pro_inv_info['prot_ins_seq']) - 1),
+                            aaterm = '*'),
+                        uncertain = True)
+
                 # Nucleotide variant range spans the Termination codon
                 else:
-                    posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + str(
-                        ins_thr[:3]) + 'ext?)'
+                    posedit = VVPosEdit(
+                        pos = Interval(
+                            start = AAPosition(
+                                base = pro_inv_info['edit_start'],
+                                aa = from_aa)),
+                        edit = AAExt(
+                            alt = pro_inv_info['prot_ins_seq'][-1],
+                            length = '?'),
+                        uncertain = True)
 
             # Nucleotide variation has not affected the length of the protein thus
             # substitution or del
             else:
-                if len(ins_thr) == 3:
-                    posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + ins_thr + ')'
-                elif len(ins_thr) == 0:
-                    posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + 'del)'
+                if len(pro_inv_info['prot_ins_seq']) == 1:
+                    posedit = VVPosEdit(
+                        pos = Interval(start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa)),
+                        edit = AARefAlt(alt = pro_inv_info['prot_ins_seq'],ref = from_aa),
+                        uncertain = True)
+                elif len(pro_inv_info['prot_ins_seq']) == 0:
+                    posedit = VVPosEdit(
+                        pos = Interval(start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa)),
+                        edit = AARefAlt(alt = ''),
+                        uncertain = True)
                 else:
-                    posedit = '(' + from_aa + str(pro_inv_info['edit_start']) + 'delins' + \
-                              ins_thr + ')'
+                    posedit = VVPosEdit(
+                        pos = Interval(start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa)),
+                        edit = AARefAlt(alt = pro_inv_info['prot_ins_seq'],ref=from_aa),
+                        uncertain = True)
 
         # Complete the variant
-        hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
-                                                              type='p',
-                                                              posedit=posedit
-                                                              )
-
+        hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(
+                ac = associated_protein_accession,
+                type = 'p',
+                posedit = posedit
+                )
         hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
-        # Replace Ter<pos>Ter with Ter=
-        if re.search('Ter\d+Ter', str(hgvs_transcript_to_hgvs_protein['hgvs_protein'].posedit)):
-            posedit = str(hgvs_transcript_to_hgvs_protein['hgvs_protein'].posedit)
-            posedit = posedit[:-4] + '=)'
-            hgvs_transcript_to_hgvs_protein['hgvs_protein'].posedit = posedit
-
-            # Return
+        # Return
         return hgvs_transcript_to_hgvs_protein
 
 

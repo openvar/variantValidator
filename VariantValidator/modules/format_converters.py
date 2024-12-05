@@ -953,9 +953,8 @@ def proteins(variant, validator):
                     reason = 'Protein level variant descriptions are not fully supported due to redundancy' \
                              ' in the genetic code'
                     variant.warnings.extend([reason, error])
-                    variant.protein = str(hgvs_object)
                     logger.warning(reason + ": " + error)
-                    variant.protein = str(hgvs_object)
+                    variant.protein = hgvs_object
                     return True
 
         except vvhgvs.exceptions.HGVSError as e:
@@ -1032,9 +1031,8 @@ def proteins(variant, validator):
                         reason = 'Protein level variant descriptions are not fully supported due to redundancy' \
                                  ' in the genetic code'
                         variant.warnings.extend([reason, error])
-                        variant.protein = str(hgvs_object)
                         logger.warning(reason + ": " + error)
-                        variant.protein = str(hgvs_object)
+                        variant.protein = hgvs_object
                         return True
 
                     return True
@@ -1047,7 +1045,7 @@ def proteins(variant, validator):
             reason = 'Protein level variant descriptions are not fully supported due to redundancy' \
                      ' in the genetic code'
             variant.warnings.extend([reason, error])
-            variant.protein = str(hgvs_object)
+            variant.protein = hgvs_object
             logger.warning(reason + ": " + error)
             return True
     return False

@@ -669,15 +669,6 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                                                        f"codon in the reference "
                                                        f"mRNA sequence. {hgvs_coding.ac} may not be a valid "
                                                        f"coding sequence"}
-    # Replace p.= with p.(=)
-    # Replace p.? with p.(?)
-    try:
-        if protein_dict['hgvs_protein'].posedit == '=':
-            protein_dict['hgvs_protein'].posedit = '(=)'
-        if protein_dict['hgvs_protein'].posedit == '?':
-            protein_dict['hgvs_protein'].posedit = '(?)'
-    except AttributeError:
-        pass
 
     if protein_dict['error'] == '':
         hgvs_protein = protein_dict['hgvs_protein']
@@ -822,7 +813,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     variant.coding = hgvs_coding
     variant.genomic_r = hgvs_refseq
     variant.genomic_g = unset_hgvs_obj_ref(hgvs_genomic)
-    variant.protein = str(hgvs_protein)
+    variant.protein = hgvs_protein
     return False
 
 
