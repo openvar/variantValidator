@@ -13,7 +13,11 @@ import vvhgvs.location
 import vvhgvs.posedit
 import vvhgvs.edit
 import vvhgvs.normalizer
+from vvhgvs.location import AAPosition, Interval
+from vvhgvs.edit import AARefAlt, AAExt, AASub, Dup
 from Bio.Seq import Seq
+
+
 
 import re
 import copy
@@ -21,7 +25,8 @@ from .vvDatabase import Database
 from . import utils
 from VariantValidator.settings import CONFIG_DIR
 from VariantValidator.version import __version__
-from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj
+from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
+        VVPosEdit
 
 class InitialisationError(Exception):
     pass
@@ -260,6 +265,39 @@ class Mixin:
             p = evm.c_to_p(cod)
             associated_protein_accession = p.ac
 
+        # create fist base changing unknown effect type variant with given starting base
+        def _fb_unc(prot,base):
+            return vvhgvs.sequencevariant.SequenceVariant(
+                    ac=prot,
+                    type='p',
+                    posedit = VVPosEdit(
+                        pos=Interval(start=AAPosition(
+                                base = 1,
+                                aa=base)),
+                        edit = "", # this sets the response to ?
+                        uncertain = True))
+        # same for unknown without set pos
+        def _tot_unc(prot):
+            return  vvhgvs.sequencevariant.SequenceVariant(
+                    ac=prot,
+                    type='p',
+                    posedit = VVPosEdit(
+                        pos=Interval(),# empty interval start means ''
+                        edit = "", # this sets the response to ?
+                        uncertain=True))
+        # recreate obj to set PosEdit to a VVPosEdit, to handle formatting
+        def _remake_unc(prot,nucleotide_not_equal=False):
+            if prot.posedit is None:
+                return prot
+            return vvhgvs.sequencevariant.SequenceVariant(
+                    ac = prot.ac,
+                    type = 'p',
+                    posedit = VVPosEdit(
+                        pos = prot.posedit.pos,
+                        edit = prot.posedit.edit,
+                        uncertain=True,
+                        nucleotide_not_equal=nucleotide_not_equal
+                        ))
 
         # Handle non inversions with simple c_to_p mapping
         if hgvs_transcript.posedit.edit.type not in ['inv', 'dup', 'delins', 'sub', 'identity'] and (re_to_p is False):
