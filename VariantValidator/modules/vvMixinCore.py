@@ -1349,21 +1349,6 @@ class Mixin(vvMixinConverters.Mixin):
                                              ) or re.search('p.?', re_parse_protein_single_aa):
                                     re_parse_protein_single_aa = re_parse_protein_single_aa.replace('p.=',
                                                                                                     'p.(=)')
-                                if re.search("p.\(Ter\d+=\)", predicted_protein_variant_dict['tlr']):
-                                    predicted_protein_variant_dict['tlr'] = \
-                                        predicted_protein_variant_dict['tlr'].split("p.")[0]
-                                    predicted_protein_variant_dict['tlr'] = \
-                                        predicted_protein_variant_dict['tlr'] + "p.(Ter=)"
-                                    re_parse_protein_single_aa = re_parse_protein_single_aa.split("p.")[0]
-                                    re_parse_protein_single_aa = re_parse_protein_single_aa + "p.(*=)"
-
-                                elif re.search("p.Ter\d+=", predicted_protein_variant_dict['tlr']):
-                                    predicted_protein_variant_dict['tlr'] = \
-                                        predicted_protein_variant_dict['tlr'].split("p.")[0]
-                                    predicted_protein_variant_dict['tlr'] = \
-                                        predicted_protein_variant_dict['tlr'] + "p.Ter="
-                                    re_parse_protein_single_aa = re_parse_protein_single_aa.split("p.")[0]
-                                    re_parse_protein_single_aa = re_parse_protein_single_aa + "p.*="
 
                                 # Capture instances of variation affecting p.1
                                 if re.search("[A-Z][a-z[a-z]1[?]", predicted_protein_variant_dict['tlr']):
