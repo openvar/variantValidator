@@ -36,6 +36,16 @@ def refseq_common_mistakes(variant):
         logger.warning(error)
         return True
 
+    # NP_ c.
+    if ("NP_" in variant.quibble or "ENSP" in variant.quibble) and (variant.reftype == ':c.' or
+                                                                    variant.reftype == ':n.' or
+                                                                    variant.reftype == ':g.' or
+                                                                    variant.reftype == ':r.'):
+        error = f'Protein reference sequence input as Nucleotide ({variant.reftype}) variant.'
+        variant.warnings.append(error)
+        logger.warning(error)
+        return True
+
     # NM_ n.
     if variant.transcript_type == "c" and variant.reftype == ':n.':
         suggestion = variant.quibble.replace(':n.', ':c.')
