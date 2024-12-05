@@ -2277,15 +2277,21 @@ def hgvs_ref_alt(hgvs_variant, sf):
     ref_alt_dict = {'ref': ref, 'alt': alt}
     return ref_alt_dict
 
-#
-# def hgvs_to_delins(hgvs_variant_object):
-#     """
-#     Refer to https://github.com/openvar/vv_hgvs/blob/master/examples/creating-a-variant.ipynb
-#     :param hgvs_variant_object:
-#     :return: hgvs_variant_object in raw type = "delins" state
-#     """
-#
-#
+
+def incomplete_alignment_mapping_t_to_g(validator, variant):
+    output = None
+    mapping_options = validator.hdp.get_tx_mapping_options(variant.input_parses.ac)
+    for option in mapping_options:
+        if option[2] == validator.alt_aln_method and "NC_" not in option[1]:
+            in_assembly = seq_data.to_chr_num_refseq(option[1], variant.primary_assembly)
+            if in_assembly is not None:
+                try:
+                    output = validator.vm.t_to_g(variant.input_parses, option[1])
+                    if variant.input_parses.posedit.edit.type == "identity":
+                        output.posedit.edit.alt = output.posedit.edit.ref
+                except vvhgvs.exceptions.HGVSError:
+                    pass
+    return output
 
 # <LICENSE>
 # Copyright (C) 2016-2024 VariantValidator Contributors

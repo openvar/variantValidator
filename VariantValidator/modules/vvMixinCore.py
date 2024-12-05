@@ -1636,7 +1636,6 @@ class Mixin(vvMixinConverters.Mixin):
                 for vt in variant.warnings:
                     vt = str(vt)
 
-
                     # Do not warn transcript not part of build if it's not the relevant transcript
                     if "is not part of genome build" in vt and term not in vt:
                         continue

@@ -637,11 +637,21 @@ def intronic_converter(variant, validator, skip_check=False):
 
         # Add the edited variant for next stage error processing e.g. exon boundaries.
         variant.quibble = transy
+        # Expanding list of exceptions
+        try:
+            hgvs_transy = validator.hp.parse_hgvs_variant(transy)
+        except vvhgvs.exceptions.HGVSError:
+            # Allele syntax caught here
+            if "[" in transy and "]" in transy:
+                return genomic_ref
+            else:
+                raise
+
         if skip_check is True:
             return genomic_ref
         else:
             # Check the specified base is correct
-            hgvs_genomic = validator.nr_vm.c_to_g(validator.hp.parse_hgvs_variant(transy), genomic_ref,
+            hgvs_genomic = validator.nr_vm.c_to_g(hgvs_transy, genomic_ref,
                                                   alt_aln_method=validator.alt_aln_method)
         try:
             validator.vr.validate(hgvs_genomic)
@@ -651,6 +661,19 @@ def intronic_converter(variant, validator, skip_check=False):
                 pass
             else:
                 validator.vr.validate(hgvs_genomic)
+
+        # Check re-mapping of intronic variants
+        if hgvs_transy.posedit.pos.start.offset != 0 or hgvs_transy.posedit.pos.end.offset != 0:
+            try:
+                check_intronic_mapping = validator.nr_vm.g_to_t(hgvs_genomic, hgvs_transy.ac,
+                                                                alt_aln_method=validator.alt_aln_method)
+                if check_intronic_mapping.posedit.pos == hgvs_transy.posedit.pos:
+                    pass
+                else:
+                    variant.warnings.append(f'ExonBoundaryError: {hgvs_transy.posedit.pos} does not match the exon '
+                                            f'boundaries for the alignment of {hgvs_transy.ac} to {hgvs_genomic.ac}')
+            except vvhgvs.exceptions.HGVSError:
+                pass
 
     logger.debug("HVGS typesetting complete")
 
