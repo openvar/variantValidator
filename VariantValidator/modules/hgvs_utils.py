@@ -16,13 +16,53 @@ import vvhgvs.exceptions
 from vvhgvs.location import BaseOffsetInterval, Interval
 # used to set coordinate origin point i.e. seq start vs CDS start/end
 from vvhgvs.enums import Datum
-
+from vvhgvs.edit import AASub, AARefAlt
+from vvhgvs.posedit import PosEdit
 
 # Database connections and hgvs objects are now passed from VariantValidator.py
 
 # Error handling
 class PseudoVCF2HGVSError(Exception):
     pass
+
+class VVPosEdit(PosEdit):
+    "override class for posedit to get VV specific formatting"
+    pass
+    def format(self, conf=None):
+        """Formatting the string of PosEdit with vv edits
+        Handles brackets for predicted variants slightly differently
+        Also accounts for single base =
+        """
+        edit = str(self.edit.format(conf))
+        if self.pos is None:
+            return edit
+        elif self.pos.start is None and self.pos.end is None and self.uncertain:
+            return edit + "?"
+        # do Ter<aa NO>Ter/*<aa NO>* as just Ter=/*=
+        if (type(self.edit) is AASub and self.pos.start.aa == '*' and self.edit.alt == '*') or (
+                type(self.edit) is AARefAlt and self.pos.start.aa == '*' and
+                self.edit.ref == self.pos.start.aa and self.edit.ref==self.edit.alt):
+            three_base_convert = False
+            if conf and "p_3_letter" in conf and conf["p_3_letter"] is not None:
+                three_base_convert = conf["p_3_letter"]
+            force_Ter_star = False
+            if conf and "p_term_asterisk" in conf and conf["p_term_asterisk"] is not None:
+                force_Ter_star = conf["p_term_asterisk"]
+            if three_base_convert and not force_Ter_star:
+                formatted_str = f"Ter="
+            else:
+                formatted_str = f"*="
+        else:
+            formatted_str = f"{self.pos.format(conf)}{edit}"
+
+        if self.uncertain:
+            if self.edit in ["0", ""]:
+                return f"({formatted_str}?)"
+            else:
+                return f"({formatted_str})"
+        return formatted_str
+
+    __str__ = format
 
 
 def vcfcp_to_hgvsstr(vcf_dict, start_hgvs):
@@ -1559,7 +1599,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                              NN  Deletion in g.
                              |
                     g. NNNNNNNN
-                    n. NNNNNNNN                   
+                    n. NNNNNNNN
 
                     So we need to make the g. == again before mapping back, which will make an ins in the n.
                     """
