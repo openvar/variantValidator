@@ -56,6 +56,9 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
     if toskip:
         return True
 
+    toskip = use_checking.pre_parsing_global_common_mistakes(variant)
+    if toskip:
+        return True
     toskip = indel_catching(variant, validator)
     if toskip:
         return True

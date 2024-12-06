@@ -130,12 +130,6 @@ class Variant(object):
         Identifies variant type (p. c. etc)
         Accepts c, g, n, r currently. And now P also 15.07.15
         """
-        # Set regular expressions for if statements
-        pat_gene = re.compile(r'\(.+?\)')  # Pattern looks for (....)
-
-        if pat_gene.search(self.quibble.split(":")[0]):
-            self.quibble = pat_gene.sub('', self.quibble)
-
         try:
             self.set_refsource()
         except fn.VariantValidatorError:
