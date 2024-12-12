@@ -6,7 +6,8 @@ from VariantValidator.modules.variant import Variant
 from VariantValidator.modules import seq_data
 from VariantValidator.modules import utils as fn
 import VariantValidator.modules.rna_formatter
-from VariantValidator.modules import complex_descriptions, use_checking
+from VariantValidator.modules import complex_descriptions, use_checking, \
+        expanded_repeats
 from VariantValidator.modules.vvMixinConverters import AlleleSyntaxError
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
         unset_hgvs_obj_ref
@@ -63,6 +64,10 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
     if 'con' in str(variant.quibble):
         variant.warnings.append('Conversions are no longer valid HGVS Sequence Variant Descriptions')
         logger.warning('Conversions are no longer valid HGVS Sequence Variant Descriptions')
+        return True
+
+    toskip = convert_expanded_repeat(variant, validator)
+    if toskip:
         return True
 
     toskip = indel_catching(variant, validator)
@@ -558,6 +563,55 @@ def vcf2hgvs_stage4(variant, validator):
 
     return skipvar
 
+def convert_expanded_repeat(my_variant,validator):
+    # Format expanded repeat syntax into a usable hgvs variant
+    """
+    Waiting for HGVS nomenclature changes
+    """
+    try:
+        toskip = expanded_repeats.convert_tandem(my_variant, validator, my_variant.primary_assembly,
+                                                 "all")
+    except expanded_repeats.RepeatSyntaxError as e:
+        my_variant.warnings = [str(e)]
+        return True
+    except vvhgvs.exceptions.HGVSInvalidVariantError as e:
+        my_variant.warnings = ["HgvsSyntaxError: " + str(e)]
+        return True
+    except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
+        if "invalid coordinates:" in str(e):
+            my_variant.warnings = [(f"ExonBoundaryError: Stated position "
+                                    f"does not correspond with an exon boundary for "
+                                    f"transcript {my_variant.quibble.split(':')[0]}")]
+            return True
+    except Exception as e:
+        my_variant.warnings = ["ExpandedRepeatError: " + str(e)]
+        return True
+
+    if not toskip:
+        return False
+    if my_variant.quibble != my_variant.expanded_repeat["variant"]:
+        my_variant.warnings.append(f"ExpandedRepeatWarning: {my_variant.quibble} updated "
+                                   f"to {my_variant.expanded_repeat['variant']}")
+    ins_bases = (my_variant.expanded_repeat["repeat_sequence"] *
+                 int(my_variant.expanded_repeat["copy_number"]))
+    start_pos, _sep, end_pos = my_variant.expanded_repeat['position'].partition('_')
+    repeat_to_delins = hgvs_delins_parts_to_hgvs_obj(
+            my_variant.expanded_repeat['reference'],
+            my_variant.expanded_repeat['prefix'],
+            start_pos,
+            '',
+            ins_bases,
+            end=end_pos)
+
+    try:
+        repeat_to_delins = my_variant.hn.normalize(repeat_to_delins)
+    except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
+        pass
+    my_variant.quibble = fn.valstr(repeat_to_delins)
+    my_variant.warnings.append(f"ExpandedRepeatWarning: {my_variant.expanded_repeat['variant']} "
+                               f"should only be used as an annotation for the core "
+                               f"HGVS descriptions provided")
+    return False
 
 def indel_catching(variant, validator):
     """
