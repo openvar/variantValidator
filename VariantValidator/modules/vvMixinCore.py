@@ -413,52 +413,6 @@ class Mixin(vvMixinConverters.Mixin):
                         logger.warning(str(e))
 
 
-                    # Format expanded repeat syntax
-                    """
-                    Waiting for HGVS nomenclature changes
-                    """
-                    try:
-                        toskip = expanded_repeats.convert_tandem(my_variant, self, my_variant.primary_assembly,
-                                                                 "all")
-                    except expanded_repeats.RepeatSyntaxError as e:
-                        my_variant.warnings = [str(e)]
-                        continue
-                    except vvhgvs.exceptions.HGVSInvalidVariantError as e:
-                        my_variant.warnings = ["HgvsSyntaxError: " + str(e)]
-                        continue
-                    except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
-                        if "invalid coordinates:" in str(e):
-                            my_variant.warnings = [(f"ExonBoundaryError: Stated position "
-                                                    f"does not correspond with an exon boundary for "
-                                                    f"transcript {my_variant.quibble.split(':')[0]}")]
-                            continue
-                    except Exception as e:
-                        my_variant.warnings = ["ExpandedRepeatError: " + str(e)]
-                        continue
-
-                    if toskip:
-                        if my_variant.quibble != my_variant.expanded_repeat["variant"]:
-                            my_variant.warnings.append(f"ExpandedRepeatWarning: {my_variant.quibble} updated "
-                                                       f"to {my_variant.expanded_repeat['variant']}")
-                        ins_bases = (my_variant.expanded_repeat["repeat_sequence"] *
-                                     int(my_variant.expanded_repeat["copy_number"]))
-                        start_pos, _sep, end_pos = my_variant.expanded_repeat['position'].partition('_')
-                        repeat_to_delins = hgvs_delins_parts_to_hgvs_obj(
-                                my_variant.expanded_repeat['reference'],
-                                my_variant.expanded_repeat['prefix'],
-                                start_pos,
-                                '',
-                                ins_bases,
-                                end=end_pos)
-
-                        try:
-                            repeat_to_delins = my_variant.hn.normalize(repeat_to_delins)
-                        except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
-                            pass
-                        my_variant.quibble = fn.valstr(repeat_to_delins)
-                        my_variant.warnings.append(f"ExpandedRepeatWarning: {my_variant.expanded_repeat['variant']} "
-                                                   f"should only be used as an annotation for the core "
-                                                   f"HGVS descriptions provided")
 
                     # Methylation Syntax
                     methyl_syntax.methyl_syntax(my_variant)
