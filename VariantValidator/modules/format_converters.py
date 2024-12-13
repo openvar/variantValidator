@@ -6,7 +6,8 @@ from VariantValidator.modules.variant import Variant
 from VariantValidator.modules import seq_data
 from VariantValidator.modules import utils as fn
 import VariantValidator.modules.rna_formatter
-from VariantValidator.modules import complex_descriptions, use_checking, expanded_repeats
+from VariantValidator.modules import complex_descriptions, use_checking, \
+        expanded_repeats, methyl_syntax
 from VariantValidator.modules.vvMixinConverters import AlleleSyntaxError
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
         unset_hgvs_obj_ref
@@ -54,6 +55,9 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
     toskip = use_checking.pre_parsing_global_common_mistakes(variant)
     if toskip:
         return True
+
+    # Remove & store Methylation Syntax suffix before hgvs object parsing
+    methyl_syntax.methyl_syntax(variant)
 
     # Uncertain positions (converts to hgvs object so must be post split/fix)
     toskip = uncertain_pos(variant, validator)
