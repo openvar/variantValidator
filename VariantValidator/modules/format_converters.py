@@ -59,6 +59,15 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
     # Remove & store Methylation Syntax suffix before hgvs object parsing
     methyl_syntax.methyl_syntax(variant)
 
+    # Conversions 
+    # are not currently supported. The HGVS format for conversions
+    # is rarely seen wrt genomic sequencing data and needs to be re-evaluated
+    # so abort before hgvs object conversion to avoid errors & parsing overhead
+    if 'con' in str(variant.quibble):
+        variant.warnings.append('Conversions are no longer valid HGVS Sequence Variant Descriptions')
+        logger.warning('Conversions are no longer valid HGVS Sequence Variant Descriptions')
+        return True
+
     # Uncertain positions (converts to hgvs object so must be post split/fix)
     toskip = uncertain_pos(variant, validator)
     if toskip:
