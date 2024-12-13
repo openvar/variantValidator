@@ -22,7 +22,6 @@ from VariantValidator.modules import exon_numbering
 from VariantValidator.modules.liftover import liftover
 from VariantValidator.modules import complex_descriptions
 from VariantValidator.modules import gene2transcripts
-from VariantValidator.modules import methyl_syntax
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
         unset_hgvs_obj_ref
 
@@ -415,9 +414,6 @@ class Mixin(vvMixinConverters.Mixin):
                         logger.warning(str(e))
 
 
-
-                    # Methylation Syntax
-                    methyl_syntax.methyl_syntax(my_variant)
 
                     # Set some configurations
                     formatted_variant = my_variant.quibble
