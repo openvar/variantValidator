@@ -52,10 +52,16 @@ class VVPosEdit(PosEdit):
                 formatted_str = f"Ter="
             else:
                 formatted_str = f"*="
-        elif type(self.edit) in [NARefAlt, Dup] and self.edit.ref and 'N' in self.edit.ref or type(self.edit) is NARefAlt and self.edit.alt and 'N' in self.edit.alt:
-            edit = str(self.edit.format()) # ignore instruction to remove ref in N case
-            print("N edit")
-            formatted_str = f"{self.pos.format(conf)}{edit}"
+        elif type(self.edit) in [NARefAlt, Dup]:
+            if self.edit.ref and 'N' in self.edit.ref or \
+                    type(self.edit) is NARefAlt and self.edit.alt and 'N' in self.edit.alt:
+                edit = str(self.edit.format()) # ignore instruction to remove ref in N case
+                formatted_str = f"{self.pos.format(conf)}{edit}"
+            elif type(self.edit) == Dup and len(self.edit.ref) == 1:
+                # do not add ref for single base dup (also apply to other single base changes?)
+                formatted_str = f"{self.pos.format(conf)}dup"
+            else:
+                 formatted_str = f"{self.pos.format(conf)}{edit}"
         else:
             formatted_str = f"{self.pos.format(conf)}{edit}"
 
