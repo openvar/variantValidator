@@ -16,6 +16,7 @@ import vvhgvs.exceptions
 from vvhgvs.location import BaseOffsetInterval, Interval
 # used to set coordinate origin point i.e. seq start vs CDS start/end
 from vvhgvs.enums import Datum
+from vvhgvs.location import AAPosition
 from vvhgvs.edit import AASub, AARefAlt, Dup, NARefAlt
 from vvhgvs.posedit import PosEdit
 
@@ -38,32 +39,36 @@ class VVPosEdit(PosEdit):
             return edit
         elif self.pos.start is None and self.pos.end is None and self.uncertain:
             return edit + "?"
-        # do Ter<aa NO>Ter/*<aa NO>* as just Ter=/*=
-        if (type(self.edit) is AASub and self.pos.start.aa == '*' and self.edit.alt == '*') or (
+        # do Ter<aa NO>Ter/*<aa NO>* as just Ter=/*= and other AA specific edits
+        if type(self.pos.start) is AAPosition:
+            if (type(self.edit) is AASub and self.pos.start.aa == '*' and self.edit.alt == '*') or (
                 type(self.edit) is AARefAlt and self.pos.start.aa == '*' and
                 self.edit.ref == self.pos.start.aa and self.edit.ref==self.edit.alt):
-            three_base_convert = False
-            if conf and "p_3_letter" in conf and conf["p_3_letter"] is not None:
-                three_base_convert = conf["p_3_letter"]
-            force_Ter_star = False
-            if conf and "p_term_asterisk" in conf and conf["p_term_asterisk"] is not None:
-                force_Ter_star = conf["p_term_asterisk"]
-            if three_base_convert and not force_Ter_star:
-                formatted_str = f"Ter="
-            else:
-                formatted_str = f"*="
-        elif type(self.edit) in [NARefAlt, Dup]:
-            if self.edit.ref and 'N' in self.edit.ref or \
-                    type(self.edit) is NARefAlt and self.edit.alt and 'N' in self.edit.alt:
-                edit = str(self.edit.format()) # ignore instruction to remove ref in N case
-                formatted_str = f"{self.pos.format(conf)}{edit}"
-            elif type(self.edit) == Dup and len(self.edit.ref) == 1:
-                # do not add ref for single base dup (also apply to other single base changes?)
-                formatted_str = f"{self.pos.format(conf)}dup"
+                three_base_convert = False
+                if conf and "p_3_letter" in conf and conf["p_3_letter"] is not None:
+                    three_base_convert = conf["p_3_letter"]
+                    force_Ter_star = False
+                if conf and "p_term_asterisk" in conf and conf["p_term_asterisk"] is not None:
+                    force_Ter_star = conf["p_term_asterisk"]
+                if three_base_convert and not force_Ter_star:
+                    formatted_str = f"Ter="
+                else:
+                    formatted_str = f"*="
+            elif type(self.edit) is Dup:
+                if self.edit.ref and len(self.edit.ref) == 1:
+                    # do not add ref for single base dup (also apply to other single base changes?)
+                    formatted_str = f"{self.pos.format(conf)}dup"
+                else:
+                    formatted_str = f"{self.pos.format(conf)}{edit}"
             else:
                  formatted_str = f"{self.pos.format(conf)}{edit}"
         else:
-            formatted_str = f"{self.pos.format(conf)}{edit}"
+            if type(self.edit) in [NARefAlt, Dup] and (self.edit.ref and 'N' in self.edit.ref) or \
+                    (type(self.edit) is NARefAlt and self.edit.alt and 'N' in self.edit.alt):
+                edit = str(self.edit.format()) # ignore instruction to remove ref in N case
+                formatted_str = f"{self.pos.format(conf)}{edit}"
+            else:
+                formatted_str = f"{self.pos.format(conf)}{edit}"
 
         if self.uncertain:
             if self.edit in ["0", ""]:
