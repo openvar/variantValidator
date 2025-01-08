@@ -176,14 +176,21 @@ def pre_parsing_global_common_mistakes(my_variant):
 def refseq_common_mistakes(variant):
     """
     Evolving list of common mistakes, see sections below
+    This is used both pre and post hgvs text to object conversion
     """
     # NM_ .g
-    if ((variant.quibble.startswith('NM_') or variant.quibble.startswith('NR_') or variant.quibble.startswith('ENST'))
-            and variant.reftype == ':g.'):
-        if variant.quibble.startswith('NR_') or variant.transcript_type == 'n':
-            suggestion = variant.quibble.replace(':g.', ':n.')
+    if type(variant.quibble) is str:
+        acc4 = variant.quibble[:4]
+        acc3 = variant.quibble[:3]
+    else:
+        acc4 = variant.quibble.ac[:4]
+        acc3 = variant.quibble.ac[:3]
+
+    if (acc3 in ['NM_','NR_'] or acc4 == 'ENST') and variant.reftype == ':g.':
+        if acc3 == 'NR_' or variant.transcript_type == 'n':
+            suggestion = str(variant.quibble).replace(':g.', ':n.')
         else:
-            suggestion = variant.quibble.replace(':g.', ':c.')
+            suggestion = str(variant.quibble).replace(':g.', ':c.')
         error = 'Transcript reference sequence input as genomic (g.) reference sequence. ' \
                 'Did you mean ' + suggestion + '?'
         variant.warnings.append(error)
@@ -192,7 +199,7 @@ def refseq_common_mistakes(variant):
 
     # NR_ c.
     if variant.transcript_type == "n" and variant.reftype == ':c.':
-        suggestion = variant.quibble.replace(':c.', ':n.')
+        suggestion = str(variant.quibble).replace(':c.', ':n.')
         error = 'Non-coding transcript reference sequence input as coding (c.) reference sequence. ' \
                 'Did you mean ' + suggestion + '?'
         variant.warnings.append(error)
@@ -211,7 +218,7 @@ def refseq_common_mistakes(variant):
 
     # NM_ n.
     if variant.transcript_type == "c" and variant.reftype == ':n.':
-        suggestion = variant.quibble.replace(':n.', ':c.')
+        suggestion = str(variant.quibble).replace(':n.', ':c.')
         error = 'Coding transcript reference sequence input as non-coding transcript (n.) reference sequence. ' \
                 'Did you mean ' + suggestion + '?'
         variant.warnings.append(error)
@@ -219,8 +226,7 @@ def refseq_common_mistakes(variant):
         return True
 
     # NM_ NC_ NG_ NR_ p.
-    if (variant.quibble.startswith('NM_') or variant.quibble.startswith('NR_') or variant.quibble.startswith('NC_') or
-            variant.quibble.startswith('NG_') or variant.quibble.startswith('ENST')) and variant.reftype == ':p.':
+    if (acc3 in ['NM_', 'NR_', 'NC_', 'NG_',] or acc4 == 'ENST') and variant.reftype == ':p.':
         error = 'Using a nucleotide reference sequence (NM_ NR_ NG_ NC_) to specify protein-level (p.) variation is ' \
                 'not HGVS compliant. Please select an appropriate protein reference sequence (NP_)'
         variant.warnings.append(error)
@@ -228,7 +234,7 @@ def refseq_common_mistakes(variant):
         return True
 
     # NG_ c or NC_c..
-    if (variant.quibble.startswith('NG_') or variant.quibble.startswith('NC_')) and variant.reftype == ':c.':
+    if acc3 in ['NG_', 'NC_'] and variant.reftype == ':c.':
         suggestion = 'For additional assistance, submit ' + str(variant.quibble) + ' to VariantValidator'
         error = 'NG_:c.PositionVariation descriptions should not be used unless a transcript reference sequence has ' \
                 'also been provided e.g. NG_(NM_):c.PositionVariation'
