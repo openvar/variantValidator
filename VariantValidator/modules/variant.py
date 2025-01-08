@@ -157,6 +157,14 @@ class Variant(object):
         Method will set the reftype based on the quibble
         :return:
         """
+        if type(self.quibble) is not str:
+            reftype = self.quibble.type
+            if reftype in ['g','r','n','c','p','m']:
+                self.reftype = f':{reftype}.'
+                return True
+            raise fn.VariantValidatorError(
+                    "Unable to identity reference type from " +
+                    str(self.quibble))
         pat_est = re.compile(r'\d:\d')
 
         if ':g.' in self.quibble:
@@ -181,14 +189,18 @@ class Variant(object):
         Method will set the refsource based on the quibble
         :return:
         """
-        if self.quibble.startswith('LRG'):
+        if type(self.quibble) is str:
+            ac_testval = self.quibble
+        else:
+            ac_testval = self.quibble.ac
+        if ac_testval.startswith('LRG'):
             self.refsource = 'LRG'
-        elif self.quibble.startswith('ENS'):
+        elif ac_testval.startswith('ENS'):
             self.refsource = 'ENS'
-        elif self.quibble.startswith('N'):
+        elif ac_testval.startswith('N'):
             self.refsource = 'RefSeq'
         else:
-            raise fn.VariantValidatorError("Unable to identify reference source from %s" % self.quibble)
+            raise fn.VariantValidatorError("Unable to identify reference source from %s" % str(self.quibble))
 
     def set_quibble(self, newval):
         """
