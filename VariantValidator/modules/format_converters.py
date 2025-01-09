@@ -85,6 +85,41 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
     intronic_converter(variant, validator)
     return False
 
+def final_hgvs_convert(variant,validator):
+    """
+    For use in the final hgvs str ->hgvs obj conversion.
+    Requires a fully checked out text variant quibble
+    Avoids issues with XX_000XX(XX_000XX): type variants by parsing more
+    directly
+    Returns skipvar i.e true if something went wrong
+    """
+    seq_ac, _sep, type_posedit = variant.quibble.partition(':')
+    var_type, _sep, posedit = type_posedit.partition('.')
+    if var_type == 'c':
+        posedit = validator.hp.parse_c_posedit(posedit)
+    elif var_type == 'g':
+        posedit = validator.hp.parse_g_posedit(posedit)
+    elif var_type == 'm':
+        posedit = validator.hp.parse_m_posedit(posedit)
+    elif var_type == 'n':
+        posedit = validator.hp.parse_n_posedit(posedit)
+    elif var_type == 'p':
+        posedit = validator.hp.parse_p_posedit(posedit)
+    elif var_type == 'r':
+        if 'T' in posedit:
+            e = 'The IUPAC RNA alphabet dictates that RNA variants must use '\
+                    'the character u in place of t'
+            variant.warnings.append(e)
+            return True
+        posedit = validator.hp.parse_r_posedit(posedit)
+
+    variant.quibble = vvhgvs.sequencevariant.SequenceVariant(
+            ac = seq_ac,
+            type = var_type,
+            posedit = posedit
+            )
+    return False
+
 
 def vcf2hgvs_stage1(variant, validator):
     """
@@ -372,11 +407,11 @@ def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version):
                 else:
                     variant.warnings.append('HGVS variant nomenclature does not allow the use of a gene symbol ('
                                             + query_a_symbol + ') in place of a valid reference sequence: Re-submit ' +
-                                            variant.quibble + ' and specify transcripts from the following: ' +
+                                            str(variant.quibble) + ' and specify transcripts from the following: ' +
                                             'select_transcripts=' + select_from_these_transcripts)
                     logger.warning('HGVS variant nomenclature does not allow the use of a gene symbol (' +
                                    query_a_symbol + ') in place of a valid reference sequence: Re-submit ' +
-                                   variant.quibble + ' and specify transcripts from the following: ' +
+                                   str(variant.quibble) + ' and specify transcripts from the following: ' +
                                    'select_transcripts=' + select_from_these_transcripts)
                 skipvar = True
         except Exception as e:
@@ -576,7 +611,7 @@ def convert_expanded_repeat(my_variant,validator):
     Waiting for HGVS nomenclature changes
     """
     try:
-        toskip = expanded_repeats.convert_tandem(my_variant, validator, my_variant.primary_assembly,
+        has_ex_repeat = expanded_repeats.convert_tandem(my_variant, validator, my_variant.primary_assembly,
                                                  "all")
     except expanded_repeats.RepeatSyntaxError as e:
         my_variant.warnings = [str(e)]
@@ -594,8 +629,9 @@ def convert_expanded_repeat(my_variant,validator):
         my_variant.warnings = ["ExpandedRepeatError: " + str(e)]
         return True
 
-    if not toskip:
+    if not has_ex_repeat:
         return False
+
     if my_variant.quibble != my_variant.expanded_repeat["variant"]:
         my_variant.warnings.append(f"ExpandedRepeatWarning: {my_variant.quibble} updated "
                                    f"to {my_variant.expanded_repeat['variant']}")
@@ -681,55 +717,77 @@ def intronic_converter(variant, validator, skip_check=False, uncertain=False):
     Removes the parintheses
     (NM_000088.3):c.589-1G>T ---> NM_000088.3:c.589-1G>T
     hgvs can now parse the string into an hgvs variant object and manipulate it
+    We now can parse in such variants but they still need fixing before mapping
     """
     compounder = re.compile(r'\((NM_|NR_|ENST)')
     compounder2 = re.compile(r'\(LRG_\d+t')
+    if type(variant.quibble) is str:
+        parsed = False
+        acc_section, _sep, remainder = variant.quibble.partition(":")
+    else:
+        parsed = True
+        acc_section = variant.quibble.ac
 
-    if compounder.search(variant.quibble) or compounder2.search(variant.quibble):
+    if compounder.search(acc_section) or compounder2.search(acc_section):
         # Convert LRG transcript
-        if compounder2.search(variant.quibble):
-            lrg_transcript = variant.quibble.split("(")[1].split(":")[0].replace(")", "")
+        if compounder2.search(acc_section):
+            lrg_transcript = acc_section.split("(")[-1].replace(")", "")
             refseq_transcript = validator.db.get_refseq_transcript_id_from_lrg_transcript_id(lrg_transcript)
-            variant.quibble = variant.quibble.replace(lrg_transcript, refseq_transcript)
+            if parsed:
+                variant.quibble.ac = variant.quibble.ac.replace(lrg_transcript, refseq_transcript)
+                acc_section = variant.quibble.ac
+            else:
+                variant.quibble = variant.quibble.replace(lrg_transcript, refseq_transcript)
+                acc_section, _sep, _remain = variant.quibble.partition(":")
             variant.warnings.append(f"Reference sequence {lrg_transcript} updated to {refseq_transcript}")
 
         # Find pattern e.g. +0000 and assign to a variable
         if uncertain is True:
-            references, variation = variant.quibble.split(':')
-            genomic, transcript = references.split('(')
+            genomic, _sep ,transcript = acc_section.partition('(')
             transcript = transcript.replace(')', '')
-            variant.quibble = f"{transcript}:{variation}"
+            if type(variant.quibble) is str:
+                variant.quibble = f"{transcript}:{remainder}"
+            else:
+                variant.quibble.ac = transcript
             return variant
         else:
-            genomic_ref = variant.quibble.split('(')[0]
-        transy = re.search(r"((NM_|ENST|NR_).+)", variant.quibble)
+            genomic_ref = acc_section.split('(')[0]
+        transy = re.search(r"((NM_|ENST|NR_).+)", acc_section)
         transy = transy.group(1)
         transy = transy.replace(')', '')
 
         # Add the edited variant for next stage error processing e.g. exon boundaries.
-        variant.quibble = transy
-        # Expanding list of exceptions
 
-        try:
-            hgvs_transy = validator.hp.parse_hgvs_variant(transy)
-        except vvhgvs.exceptions.HGVSError:
-            # Allele syntax caught here
-            if "[" in transy and "]" in transy:
-                return genomic_ref
-            else:
-                raise
-
+        if parsed:
+            variant.quibble.ac = transy
+            hgvs_transy = variant.quibble
+        else:
+            variant.quibble = variant.quibble.replace(acc_section,transy)
+            try:
+                hgvs_transy = validator.hp.parse_hgvs_variant(variant.quibble)
+            except vvhgvs.exceptions.HGVSError:
+                # Allele syntax caught here
+                if "[" in variant.quibble and "]" in variant.quibble:
+                    return genomic_ref
+                else:
+                    raise
         if skip_check is True:
             return genomic_ref
         else:
             # Check the specified base is correct
-            hgvs_genomic = validator.nr_vm.c_to_g(hgvs_transy, genomic_ref,
-                                                  alt_aln_method=validator.alt_aln_method)
+            if parsed:
+                hgvs_genomic = validator.nr_vm.c_to_g(variant.quibble, genomic_ref,
+                                                      alt_aln_method=validator.alt_aln_method)
+            else:
+                hgvs_genomic = validator.nr_vm.c_to_g(
+                        hgvs_transy,
+                        genomic_ref,
+                        alt_aln_method=validator.alt_aln_method)
         try:
             validator.vr.validate(hgvs_genomic)
         except vvhgvs.exceptions.HGVSError as e:
             if 'Length implied by coordinates must equal sequence deletion length' in str(e) \
-                    and not re.search(r'\d+$', variant.quibble):
+                    and not re.search(r'\d+$', variant.original):
                 pass
             elif "does not agree with reference sequence" in str(e):
                 previous_exception = e
@@ -1180,9 +1238,14 @@ def rna(variant, validator):
     """
     if variant.reftype == ':r.' or ":r." in variant.original:
         if ":r.(" in str(variant.hgvs_formatted):
-            strip_prediction = str(variant.hgvs_formatted).replace("(", "")
-            strip_prediction = strip_prediction[:-1]
-            hgvs_input = validator.hp.parse_hgvs_variant(strip_prediction)
+            if type(variant.hgvs_formatted) is str:
+                strip_prediction = str(variant.hgvs_formatted).replace("(", "")
+                strip_prediction = strip_prediction[:-1]
+                hgvs_input = validator.hp.parse_hgvs_variant(strip_prediction)
+            else:
+                hgvs_input = variant.hgvs_formatted
+                hgvs_input.posedit.pos.uncertain = False
+                #hgvs_input.posedit.uncertain = False
         else:
             hgvs_input = variant.hgvs_formatted
 
