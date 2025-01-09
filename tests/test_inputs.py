@@ -31054,6 +31054,14 @@ class TestVariantsAuto(TestCase):
                results['NM_017680.6:c.153G>T'][
                    'primary_assembly_loci']['grch37']['hgvs_genomic_description']
 
+    def test_issue_intronnic_ref_difference(self):
+        variant = 'NC_000023.11(NM_004006.2):c.720_991dup'
+        select_transcripts = 'NM_004006.2'
+        results = self.vv.validate(variant, 'GRCh38', select_transcripts).format_as_dict(test=True)
+        assert 'NM_004006.2:c.720_991dup' in results.keys()
+
+
+
 # <LICENSE>
 # Copyright (C) 2016-2024 VariantValidator Contributors
 #

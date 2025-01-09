@@ -1,6 +1,6 @@
 import re
 from vvhgvs.assemblymapper import AssemblyMapper
-from VariantValidator.modules import utils as vv_utils
+from VariantValidator.modules import utils as vv_utils, format_converters
 import vvhgvs.exceptions
 
 
@@ -31,8 +31,11 @@ def fuzzy_ends(my_variant, validator):
     :return: False if no fuzzy end detected otherwise raises Exception and provides information as to where the
     fuzzy end is located
     """
-    if re.match(r"(NM_|NR_|NC_|NG_|ENST)\d+\.\d+:(g|c)\.\(\?\_\d+(\+|-)?\d*\)\_\(\d+(\+|-)?\d*_\?\)"
-                r"(del|dup|inv)$", my_variant.quibble):
+    if re.match(r"(NC_|NG_|)", my_variant.quibble):
+        format_converters.intronic_converter(my_variant, validator, uncertain=True)
+
+    if re.match(r"(NM_|NR_|NC_|NG_|ENST)\d+\.\d+:(g|c)\.\(\?\_(\+|-|\*)?\d+(\+|-)?\d*\)\_\((\+|-|\*)?\d+(\+|-)?"
+                r"\d*_\?\)(del|dup|inv)$", my_variant.quibble):
 
         parts = my_variant.quibble.split(")_(")
         num1 = parts[0].split("_")[-1]
@@ -42,13 +45,19 @@ def fuzzy_ends(my_variant, validator):
         try:
             num1 = int(num1)
         except ValueError:
-            num1 = int(re.split(r'(\+|-)', num1)[0])
-            intronic_positions.append(num1)
+            try:
+                num1 = int(re.split(r'(\+|-)', num1)[0])
+                intronic_positions.append(num1)
+            except ValueError:
+                num1 = re.split(r'(\+|-)', num1)[0]
         try:
             num2 = int(num2)
         except ValueError:
-            num2 = int(re.split(r'(\+|-)', num2)[0])
-            intronic_positions.append(num2)
+            try:
+                num2 = int(re.split(r'(\+|-)', num2)[0])
+                intronic_positions.append(num2)
+            except ValueError:
+                num2 = re.split(r"(\+|-)", num2)[0]
 
         if re.search(r":[cnr]\.", my_variant.quibble):
             exon_boundaries = vv_utils.get_exon_boundary_list(my_variant, validator)
@@ -59,6 +68,14 @@ def fuzzy_ends(my_variant, validator):
                                              f" to {my_variant.primary_assembly} genomic reference "
                                              f"sequence {exon_boundaries[1]}")
 
+        # Convert 3 prime UTR to integers
+        if "*" in str(num1):
+            tx_info = validator.hdp.get_tx_identity_info(my_variant.quibble.split(":")[0])
+            num1 = int(num1.replace("*", "")) + int(tx_info[4]) - 1
+        if "*" in str(num2):
+            tx_info = validator.hdp.get_tx_identity_info(my_variant.quibble.split(":")[0])
+            num2 = int(num2.replace("*", "")) + int(tx_info[4]) - 1
+
         if int(num1) >= int(num2):
             my_variant.warnings.append("Uncertain positions are not fully supported, however the start position is > "
                                        "the end position")
@@ -67,8 +84,8 @@ def fuzzy_ends(my_variant, validator):
         raise FuzzyRangeError("Fuzzy/unknown variant start and end positions "
                               "in submitted variant description")
 
-    elif re.match(r"(NM_|NR_|NC_|NG_|ENST)\d+\.\d+:(g|c)\.\(\d+(\+|-)?\d*_\d+(\+|-)?\d*\)\_\(\d+(\+|-)?\d*_\?\)"
-                  r"(del|dup|inv)$", my_variant.quibble):
+    elif re.match(r"(NM_|NR_|NC_|NG_|ENST)\d+\.\d+:(g|c)\.\((\+|-|\*)?\d+(\+|-)?\d*_(\+|-|\*)?\d+(\+|-)?\d*\)"
+                  r"\_\((\+|-|\*)?\d+(\+|-)?\d*_\?\)(del|dup|inv)$", my_variant.quibble):
 
         # Split the string at ")_(" and "_"
         parts = my_variant.quibble.split(")_(")
@@ -81,18 +98,27 @@ def fuzzy_ends(my_variant, validator):
         try:
             num1 = int(num1)
         except ValueError:
-            num1 = int(re.split(r'(\+|-)', num1)[0])
-            intronic_positions.append(num1)
+            try:
+                num1 = int(re.split(r'(\+|-)', num1)[0])
+                intronic_positions.append(num1)
+            except ValueError:
+                num1 = re.split(r'(\+|-)', num1)[0]
         try:
             num2 = int(num2)
         except ValueError:
-            num2 = int(re.split(r'(\+|-)', num2)[0])
-            intronic_positions.append(num2)
+            try:
+                num2 = int(re.split(r'(\+|-)', num2)[0])
+                intronic_positions.append(num2)
+            except ValueError:
+                num2 = re.split(r"(\+|-)", num2)[0]
         try:
             num3 = int(num3)
         except ValueError:
-            num3 = int(re.split(r'(\+|-)', num3)[0])
-            intronic_positions.append(num3)
+            try:
+                num3 = int(re.split(r'(\+|-)', num3)[0])
+                intronic_positions.append(num3)
+            except ValueError:
+                num3 = re.split(r'(\+|-)', num3)[0]
 
         if re.search(r":[cnr]\.", my_variant.quibble):
             exon_boundaries = vv_utils.get_exon_boundary_list(my_variant, validator)
@@ -103,6 +129,17 @@ def fuzzy_ends(my_variant, validator):
                                              f" to {my_variant.primary_assembly} genomic reference "
                                              f"sequence {exon_boundaries[1]}")
 
+        # Convert 3 prime UTR to integers
+        if "*" in str(num1):
+            tx_info = validator.hdp.get_tx_identity_info(my_variant.quibble.split(":")[0])
+            num1 = int(num1.replace("*", "")) + int(tx_info[4]) - 1
+        if "*" in str(num2):
+            tx_info = validator.hdp.get_tx_identity_info(my_variant.quibble.split(":")[0])
+            num2 = int(num2.replace("*", "")) + int(tx_info[4]) - 1
+        if "*" in str(num3):
+            tx_info = validator.hdp.get_tx_identity_info(my_variant.quibble.split(":")[0])
+            num3 = int(num3.replace("*", "")) + int(tx_info[4]) - 1
+
         # Check if the numbers are in order
         if num1 <= num2 <= num3:
             my_variant.warnings.append("Uncertain positions are not fully supported, however the syntax is valid")
@@ -112,8 +149,8 @@ def fuzzy_ends(my_variant, validator):
         raise FuzzyRangeError("Fuzzy/unknown variant end position in submitted variant description")
 
     elif re.match(
-            r"(NM_|NR_|NC_|NG_|ENST)\d+\.\d+:(g|c)\.\(\?\_\d+(\+|-)?\d*\)\_\(\d+(\+|-)?\d*_\d+(\+|-)?\d*\)"
-            r"(del|dup|inv)$", my_variant.quibble):
+            r"(NM_|NR_|NC_|NG_|ENST)\d+\.\d+:(g|c)\.\(\?\_(\+|-|\*)?\d+(\+|-)?\d*\)\_\((\+|-|\*)?\d+(\+|-)?\d*_"
+            r"(\+|-|\*)?\d+(\+|-)?\d*\)(del|dup|inv)$", my_variant.quibble):
 
         # Split the string at ")_(" and "_"
         parts = my_variant.quibble.split(")_(")
@@ -128,18 +165,27 @@ def fuzzy_ends(my_variant, validator):
         try:
             num1 = int(num1)
         except ValueError:
-            num1 = int(re.split(r'(\+|-)', num1)[0])
-            intronic_positions.append(num1)
+            try:
+                num1 = int(re.split(r'(\+|-)', num1)[0])
+                intronic_positions.append(num1)
+            except ValueError:
+                num1 = re.split(r'(\+|-)', num1)[0]
         try:
             num2 = int(num2)
         except ValueError:
-            num2 = int(re.split(r'(\+|-)', num2)[0])
-            intronic_positions.append(num2)
+            try:
+                num2 = int(re.split(r'(\+|-)', num2)[0])
+                intronic_positions.append(num2)
+            except ValueError:
+                num2 = re.split(r"(\+|-)", num2)[0]
         try:
             num3 = int(num3)
         except ValueError:
-            num3 = int(re.split(r'(\+|-)', num3)[0])
-            intronic_positions.append(num3)
+            try:
+                num3 = int(re.split(r'(\+|-)', num3)[0])
+                intronic_positions.append(num3)
+            except ValueError:
+                num3 = re.split(r'(\+|-)', num3)[0]
 
         if re.search(r":[cnr]\.", my_variant.quibble):
             exon_boundaries = vv_utils.get_exon_boundary_list(my_variant, validator)
@@ -149,6 +195,17 @@ def fuzzy_ends(my_variant, validator):
                                              f"boundary for transcript {my_variant.quibble.split(':')[0]} aligned"
                                              f" to {my_variant.primary_assembly} genomic reference "
                                              f"sequence {exon_boundaries[1]}")
+
+        # Convert 3 prime UTR to integers
+        if "*" in str(num1):
+            tx_info = validator.hdp.get_tx_identity_info(my_variant.quibble.split(":")[0])
+            num1 = int(num1.replace("*", "")) + int(tx_info[4]) - 1
+        if "*" in str(num2):
+            tx_info = validator.hdp.get_tx_identity_info(my_variant.quibble.split(":")[0])
+            num2 = int(num2.replace("*", "")) + int(tx_info[4]) - 1
+        if "*" in str(num3):
+            tx_info = validator.hdp.get_tx_identity_info(my_variant.quibble.split(":")[0])
+            num3 = int(num3.replace("*", "")) + int(tx_info[4]) - 1
 
         # Check if the numbers are in order
         if num1 <= num2 <= num3:
@@ -209,7 +266,7 @@ def uncertain_positions(my_variant, validator):
             elif re.search("[+-]", str(parsed_v1.posedit.pos)) or re.search("[+-]", str(parsed_v1.posedit.pos)):
                 pass
             else:
-                raise InvalidRangeError(f"{position_1} is an invlaid range for "
+                raise InvalidRangeError(f"{position_1} is an invalid range for "
                                         f"accession {accession_and_type.split(':')[0]}")
         try:
             parsed_v2 = validator.hp.parse(v2)
@@ -225,7 +282,7 @@ def uncertain_positions(my_variant, validator):
             elif re.search("[+-]", str(parsed_v2.posedit.pos)) or re.search("[+-]", str(parsed_v2.posedit.pos)):
                 pass
             else:
-                raise InvalidRangeError(f"{position_2} is an invlaid range for "
+                raise InvalidRangeError(f"{position_2} is an invalid range for "
                                         f"accession {accession_and_type.split(':')[0]}")
 
         # Check positions are in the correct order
@@ -250,11 +307,13 @@ def uncertain_positions(my_variant, validator):
                 pass
             elif validator.select_transcripts != "select":
                 validator.select_transcripts = "select"
-                my_variant.warnings.append("Only a single transcript can be processed, updating to Select")
+                my_variant.warnings.append("Only a single transcript can be processed, updating to select. Where "
+                                           "no select transcript is identified a suitable transcript will be used")
 
             # Get transcripts
             rel_var = validator.relevant_transcripts(parsed_v3, evm, validator.alt_aln_method,
                                                      my_variant.reverse_normalizer, validator.select_transcripts)
+
             if len(rel_var) != 0:
                 # Filter for Select transcripts only if transcript not stated
                 my_variant.output_type_flag = "gene"
@@ -267,6 +326,14 @@ def uncertain_positions(my_variant, validator):
                         elif '"select": "RefSeq"' in annotation or \
                                 '"select": "Ensembl"' in annotation:
                             validator.select_transcripts = variant.ac
+                            continue
+                        else:
+                            if validator.alt_aln_method == "splign" and "NM_" in variant.ac:
+                                validator.select_transcripts = variant.ac
+                            elif validator.alt_aln_method == "genebuild" and "ENST" in variant.ac:
+                                validator.select_transcripts = variant.ac
+                            else:
+                                pass
                             continue
 
                 # Map uncertain positions to transcript
@@ -331,7 +398,7 @@ def uncertain_positions(my_variant, validator):
             elif re.search("[+-]", str(parsed_v1.posedit.pos)) or re.search("[+-]", str(parsed_v1.posedit.pos)):
                 pass
             else:
-                raise InvalidRangeError(f"{position_1} is an invlaid range for "
+                raise InvalidRangeError(f"{position_1} is an invalid range for "
                                         f"accession {accession_and_type.split(':')[0]}")
 
         # mark as reformat output

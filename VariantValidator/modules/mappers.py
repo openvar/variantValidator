@@ -114,7 +114,20 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
             # Convert to chromosomal position
             refseqgene_data = validator.rsg_to_chr(hgvs_refseqgene, variant.primary_assembly, variant.hn)
             # There should only ever be one description returned
-            refseqgene_data = refseqgene_data[0]
+            try:
+                refseqgene_data = refseqgene_data[0]
+            except IndexError:
+                error = ('No transcripts found that fully overlap the described variation in the genomic '
+                         'sequence')
+                # set output type flag
+                variant.output_type_flag = 'intergenic'
+                # set genomic and where available RefSeqGene outputs
+                variant.warnings.append(error)
+                error = 'Mapping unavailable for RefSeqGene ' + str(variant.hgvs_formatted) + \
+                        ' using alignment method = ' + validator.alt_aln_method
+                variant.warnings.append(error)
+                variant.hgvs_refseqgene_variant = str(variant.hgvs_genomic)
+                return True
 
             # Extract data
             if refseqgene_data['valid'] == 'true':

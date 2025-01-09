@@ -67,6 +67,12 @@ class TestMethylCases(TestCase):
             "NM_016373.4:c.(516+1_517-1)_(1056+1_1057-1)del"][
             "primary_assembly_loci"]["grch38"]["hgvs_genomic_description"] == "NC_000016.10:g.(78164290_78386859)_(78432753_79211607)del"
 
+    def test_uncertain_positions_no_select_transcript(self ):
+        variant = 'NC_000023.10:g.(32218983_32238146)_(32984039_33252615)del'
+        data_dict = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        assert len(data_dict) == 3
+        assert data_dict["NM_000109.4:c.(7+104762_69+54218)_(6267-2965_6414+16051)del"]["submitted_variant"] == \
+                "NC_000023.10:g.(32218983_32238146)_(32984039_33252615)del"
 
 
 # <LICENSE>

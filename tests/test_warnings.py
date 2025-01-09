@@ -488,7 +488,8 @@ class TestWarnings(TestCase):
         print(results)
         assert "Uncertain positions are not fully supported, however the syntax is valid" in \
                results['NM_032119.4:c.(17019+1_17020-1)_(17856+1_17857-1)dup']['validation_warnings']
-        assert "Only a single transcript can be processed, updating to Select" in \
+        assert ("Only a single transcript can be processed, updating to select. Where no select transcript is identified "
+                "a suitable transcript will be used") in \
                results['NM_032119.4:c.(17019+1_17020-1)_(17856+1_17857-1)dup']['validation_warnings']
         assert results['NM_032119.4:c.(17019+1_17020-1)_(17856+1_17857-1)dup'][
                    'primary_assembly_loci']["grch38"][

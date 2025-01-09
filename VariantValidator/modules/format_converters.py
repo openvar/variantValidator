@@ -607,7 +607,7 @@ def indel_catching(variant, validator):
     return False
 
 
-def intronic_converter(variant, validator, skip_check=False):
+def intronic_converter(variant, validator, skip_check=False, uncertain=False):
     """
     Fully HGVS compliant intronic variant descriptions take the format e.g
     NG_007400.1(NM_000088.3):c.589-1G>T. However, hgvs cannot parse and map
@@ -621,6 +621,7 @@ def intronic_converter(variant, validator, skip_check=False):
     """
     compounder = re.compile(r'\((NM_|NR_|ENST)')
     compounder2 = re.compile(r'\(LRG_\d+t')
+
     if compounder.search(variant.quibble) or compounder2.search(variant.quibble):
         # Convert LRG transcript
         if compounder2.search(variant.quibble):
@@ -630,7 +631,14 @@ def intronic_converter(variant, validator, skip_check=False):
             variant.warnings.append(f"Reference sequence {lrg_transcript} updated to {refseq_transcript}")
 
         # Find pattern e.g. +0000 and assign to a variable
-        genomic_ref = variant.quibble.split('(')[0]
+        if uncertain is True:
+            references, variation = variant.quibble.split(':')
+            genomic, transcript = references.split('(')
+            transcript = transcript.replace(')', '')
+            variant.quibble = f"{transcript}:{variation}"
+            return variant
+        else:
+            genomic_ref = variant.quibble.split('(')[0]
         transy = re.search(r"((NM_|ENST|NR_).+)", variant.quibble)
         transy = transy.group(1)
         transy = transy.replace(')', '')
@@ -638,6 +646,7 @@ def intronic_converter(variant, validator, skip_check=False):
         # Add the edited variant for next stage error processing e.g. exon boundaries.
         variant.quibble = transy
         # Expanding list of exceptions
+
         try:
             hgvs_transy = validator.hp.parse_hgvs_variant(transy)
         except vvhgvs.exceptions.HGVSError:
@@ -659,6 +668,17 @@ def intronic_converter(variant, validator, skip_check=False):
             if 'Length implied by coordinates must equal sequence deletion length' in str(e) \
                     and not re.search(r'\d+$', variant.quibble):
                 pass
+            elif "does not agree with reference sequence" in str(e):
+                previous_exception = e
+                try:
+                    variant.hn.normalize(hgvs_transy)
+                except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
+                    if "Unsupported normalization of variants spanning the exon-intron boundary" in str(e):
+                        pass
+                    else:
+                        raise previous_exception
+                else:
+                    raise
             else:
                 validator.vr.validate(hgvs_genomic)
 
