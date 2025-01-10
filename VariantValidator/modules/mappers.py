@@ -523,7 +523,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         query = out_hgvs_obj
         test = quibble_input_hgvs_obj
 
-        if query.posedit.pos != test.posedit.pos:
+        if str(query.posedit.pos) != str(test.posedit.pos):
             automap = str(test) + ' automapped to ' + str(query)
             variant.warnings.extend([automap])
 
