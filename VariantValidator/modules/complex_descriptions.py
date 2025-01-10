@@ -426,9 +426,11 @@ def uncertain_positions(my_variant, validator):
                     edit)
 
                 my_variant.hgvs_coding = tx_variant
+                my_variant.quibble = copy.copy(tx_variant)
                 my_variant.hgvs_transcript_variant = tx_variant
             else:
                 my_variant.output_type_flag = "intergenic"
+                my_variant.quibble = copy.copy(parsed_v3)
                 my_variant.warnings.append("Selected transcript does not span the entire range "
                                            "of the genomic variation")
 
@@ -458,6 +460,7 @@ def uncertain_positions(my_variant, validator):
                     edit
                     )
             my_variant.hgvs_transcript_variant = copy.copy(my_variant.hgvs_coding)
+            my_variant.quibble = copy.copy(my_variant.hgvs_coding)
             my_variant.output_type_flag = "gene"
 
     elif ")_(" not in my_variant.quibble and not "?" in my_variant.quibble:
@@ -546,9 +549,11 @@ def uncertain_positions(my_variant, validator):
                 tx_variant.posedit.pos.uncertain = True
 
                 my_variant.hgvs_coding = tx_variant
+                my_variant.quibble = copy.copy(tx_variant)
                 my_variant.hgvs_transcript_variant = tx_variant
             else:
                 my_variant.output_type_flag = "intergenic"
+                my_variant.quibble = copy.copy(parsed_v1)
                 my_variant.warnings.append("Selected transcript does not span the entire range "
                                            "of the genomic variation")
 
@@ -569,6 +574,7 @@ def uncertain_positions(my_variant, validator):
                     edit)
             my_variant.hgvs_coding.posedit.pos.uncertain = True
             my_variant.hgvs_transcript_variant = my_variant.hgvs_coding
+            my_variant.quibble = copy.copy(my_variant.hgvs_coding)
             my_variant.output_type_flag = "gene"
 
     else:

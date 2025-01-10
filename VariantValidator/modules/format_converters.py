@@ -73,13 +73,30 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
     if toskip:
         return True
 
-    toskip = convert_expanded_repeat(variant, validator)
-    if toskip:
-        return True
+    # Expanded repeat->delins code can not handle Uncertain positions yet
+    # also does hgvs object conversion if it triggers
+    if type(variant.quibble) is str: # not Uncertain
+        toskip = convert_expanded_repeat(variant, validator)
+        if toskip:
+            return True
 
-    toskip = indel_catching(variant, validator)
-    if toskip:
-        return True
+    # Catches del12/ins21 type variants, can usfully trigger on the outupt of the expanded repeat conversions
+    # and can not currently handle uncertain positions
+    if type(variant.quibble) is str: # not Uncertain
+        toskip = indel_catching(variant, validator)
+        if toskip:
+            return True
+
+    # Quibble should now be correctly formatted hgvs & work for object parsing
+    # or else already have been parsed already
+    if type(variant.quibble) is str:
+        try:
+            toskip = final_hgvs_convert(variant, validator)
+        except:
+            # Check for common mistakes
+            toskip = use_checking.refseq_common_mistakes(variant)
+        if toskip:
+            return True
 
     # Tackle compound variant descriptions NG or NC (NM_) i.e. correctly input NG/NC_(NM_):c.
     intronic_converter(variant, validator)
@@ -216,7 +233,7 @@ def vcf2hgvs_stage2(variant, validator):
                 if 'GRCh37' in variant.quibble or 'hg19' in variant.quibble:
                     variant.primary_assembly = 'GRCh37'
                     validator.selected_assembly = 'GRCh37'
-                    variant.quibble.format_quibble()
+                    variant.format_quibble()
                 elif 'GRCh38' in variant.quibble or 'hg38' in variant.quibble:
                     variant.primary_assembly = 'GRCh38'
                     validator.selected_assembly = 'GRCh38'
@@ -650,7 +667,7 @@ def convert_expanded_repeat(my_variant,validator):
         repeat_to_delins = my_variant.hn.normalize(repeat_to_delins)
     except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
         pass
-    my_variant.quibble = fn.valstr(repeat_to_delins)
+    my_variant.quibble = repeat_to_delins #fn.valstr(repeat_to_delins)
     my_variant.warnings.append(f"ExpandedRepeatWarning: {my_variant.expanded_repeat['variant']} "
                                f"should only be used as an annotation for the core "
                                f"HGVS descriptions provided")
@@ -679,10 +696,12 @@ def indel_catching(variant, validator):
                 variant.quibble = variant.quibble.replace('dup', 'del')
             if '(' in variant.quibble:
                 # Tackle compound variant descriptions NG or NC (NM_) i.e. correctly input NG/NC_(NM_):c.
+                final_hgvs_convert(variant, validator)
                 intronic_converter(variant, validator)
-            hgvs_quibble = validator.hp.parse_hgvs_variant(variant.quibble)
+            else:
+                final_hgvs_convert(variant, validator)
             try:
-                validator.vr.validate(hgvs_quibble)
+                validator.vr.validate(variant.quibble)
             except vvhgvs.exceptions.HGVSError as e:
                 if 'Length implied by coordinates must equal ' \
                    'sequence deletion length' in str(e) and dup_in_quibble is True:
@@ -696,7 +715,7 @@ def indel_catching(variant, validator):
 
             # Remove them so that the string SHOULD parse
             if dup_in_quibble is True:
-                variant.quibble = str(hgvs_quibble).replace('del', 'dup')
+                variant.quibble.posedit.edit.alt = variant.quibble.posedit.edit.ref + variant.quibble.posedit.edit.ref
             variant.warnings.append(error)
             variant.warnings.append('Refer to ' + issue_link)
             logger.info(error)
@@ -731,7 +750,7 @@ def intronic_converter(variant, validator, skip_check=False, uncertain=False):
     if compounder.search(acc_section) or compounder2.search(acc_section):
         # Convert LRG transcript
         if compounder2.search(acc_section):
-            lrg_transcript = acc_section.split("(")[-1].replace(")", "")
+            lrg_transcript = acc_section.split("(")[1].replace(")", "")
             refseq_transcript = validator.db.get_refseq_transcript_id_from_lrg_transcript_id(lrg_transcript)
             if parsed:
                 variant.quibble.ac = variant.quibble.ac.replace(lrg_transcript, refseq_transcript)
@@ -775,14 +794,8 @@ def intronic_converter(variant, validator, skip_check=False, uncertain=False):
             return genomic_ref
         else:
             # Check the specified base is correct
-            if parsed:
-                hgvs_genomic = validator.nr_vm.c_to_g(variant.quibble, genomic_ref,
-                                                      alt_aln_method=validator.alt_aln_method)
-            else:
-                hgvs_genomic = validator.nr_vm.c_to_g(
-                        hgvs_transy,
-                        genomic_ref,
-                        alt_aln_method=validator.alt_aln_method)
+            hgvs_genomic = validator.nr_vm.c_to_g(variant.quibble, genomic_ref,
+                                                  alt_aln_method=validator.alt_aln_method)
         try:
             validator.vr.validate(hgvs_genomic)
         except vvhgvs.exceptions.HGVSError as e:
@@ -939,6 +952,7 @@ def lrg_to_refseq(variant, validator):
     LRG and LRG_t reference sequence identifiers need to be replaced with
     equivalent RefSeq identifiers. The lookup data is stored in the
     VariantValidator  MySQL database
+    Currently only used post obj conversion
     """
     caution = ''
     if variant.refsource == 'LRG':
@@ -946,38 +960,41 @@ def lrg_to_refseq(variant, validator):
             reference = variant.hgvs_formatted.ac.replace('LRG', 'LRG_')
             caution = variant.hgvs_formatted.ac + ' updated to ' + reference + ': '
             variant.hgvs_formatted.ac = reference
-            variant.set_quibble(str(variant.hgvs_formatted))
+            variant.set_quibble(variant.hgvs_formatted)
 
-        if re.match(r'^LRG_\d+t\d+:', variant.quibble):
-            lrg_reference, variation = variant.quibble.split(':')
+        if re.match(r'^LRG_\d+t\d+$', variant.quibble.ac):
+            lrg_reference = variant.quibble.ac
             refseqtrans_reference = validator.db.get_refseq_transcript_id_from_lrg_transcript_id(lrg_reference)
             if refseqtrans_reference != 'none':
+                old_var_str = str(variant.hgvs_formatted)
                 variant.hgvs_formatted.ac = refseqtrans_reference
-                variant.set_quibble(str(variant.hgvs_formatted))
-                caution += lrg_reference + ':' + variation + ' automapped to equivalent RefSeq record ' \
-                                                             '' + refseqtrans_reference + ':' + variation
+                variant.set_quibble(variant.hgvs_formatted)
+                caution += old_var_str + ' automapped to equivalent RefSeq record ' \
+                                                             '' + str(variant.hgvs_formatted)
                 variant.warnings.append(caution)
                 logger.info(caution)
 
-        elif re.match(r'^LRG_\d+p\d+:', variant.quibble):
-            lrg_reference, variation = variant.quibble.split(':')
+        elif re.match(r'^LRG_\d+p\d+$', variant.quibble.ac):
+            lrg_reference = variant.quibble.ac
             refseqprot_reference = validator.db.get_refseq_protein_id_from_lrg_protein_id(lrg_reference)
             if refseqprot_reference != 'none':
+                old_var_str = str(variant.hgvs_formatted)
                 variant.hgvs_formatted.ac = refseqprot_reference
-                variant.set_quibble(str(variant.hgvs_formatted))
-                caution += lrg_reference + ':' + variation + ' automapped to equivalent RefSeq record ' \
-                                                             '' + refseqprot_reference + ':' + variation
+                variant.set_quibble(variant.hgvs_formatted)
+                caution +=  old_var_str + ' automapped to equivalent RefSeq record ' \
+                                                             '' + str(variant.hgvs_formatted)
                 variant.warnings.append(caution)
                 logger.info(caution)
 
-        elif re.match(r'^LRG_\d+:', variant.quibble):
-            lrg_reference, variation = variant.quibble.split(':')
+        elif re.match(r'^LRG_\d+$', variant.quibble.ac):
+            lrg_reference = variant.quibble.ac
             refseqgene_reference = validator.db.get_refseq_id_from_lrg_id(lrg_reference)
             if refseqgene_reference != 'none':
+                old_var_str = str(variant.hgvs_formatted)
                 variant.hgvs_formatted.ac = refseqgene_reference
-                variant.set_quibble(str(variant.hgvs_formatted))
-                caution += lrg_reference + ':' + variation + ' automapped to equivalent RefSeq record ' \
-                                                             '' + refseqgene_reference + ':' + variation
+                variant.set_quibble(variant.hgvs_formatted)
+                caution +=  old_var_str + ' automapped to equivalent RefSeq record ' \
+                                                             '' + str(variant.hgvs_formatted)
                 variant.warnings.append(caution)
                 logger.info(caution)
 
