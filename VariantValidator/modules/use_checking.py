@@ -207,10 +207,7 @@ def refseq_common_mistakes(variant):
         return True
 
     # NP_ c.
-    if ("NP_" in variant.quibble or "ENSP" in variant.quibble) and (variant.reftype == ':c.' or
-                                                                    variant.reftype == ':n.' or
-                                                                    variant.reftype == ':g.' or
-                                                                    variant.reftype == ':r.'):
+    if (acc3 == "NP_" or acc4 == "ENSP") and variant.reftype in [':c.', ':n.', ':g.', ':r.']:
         error = f'Protein reference sequence input as Nucleotide ({variant.reftype}) variant.'
         variant.warnings.append(error)
         logger.warning(error)
@@ -252,7 +249,10 @@ def structure_checks(variant, validator):
     Primarily, this code filters out variants that cannot realistically be
     auto corrected and will cause the downstream functions to return errors
     """
-    input_parses = validator.hp.parse_hgvs_variant(variant.quibble)
+    if type(variant.quibble) is not str:
+        input_parses = copy.deepcopy(variant.quibble)
+    else:
+        input_parses = validator.hp.parse_hgvs_variant(variant.quibble)
     variant.input_parses = input_parses
     variant.gene_symbol = validator.db.get_gene_symbol_from_transcript_id(variant.input_parses.ac)
 
@@ -280,8 +280,7 @@ def structure_checks_g(variant, validator):
     """
     Structure checks for when reftype is genomic
     """
-    if not variant.quibble.startswith('NC_') and not variant.quibble.startswith('NG_') \
-            and not variant.quibble.startswith('NT_') and not variant.quibble.startswith('NW_'):
+    if variant.input_parses.ac[:3] not in ['NC_', 'NG_', 'NT_', 'NW_']:
         error = 'Invalid reference sequence identifier (' + variant.input_parses.ac + ')'
         variant.warnings.append(error)
         logger.warning(error)
