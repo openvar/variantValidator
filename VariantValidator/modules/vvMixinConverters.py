@@ -50,13 +50,12 @@ class Mixin(vvMixinInit.Mixin):
         """
         # If the :c. pattern is present in the input variant
         # and we got a string input variant
-        if type(variant) is str and ':c.' in variant or ':n.' in variant:
+        if type(variant) is str and (':c.' in variant or ':n.' in variant):
             # convert the input string into a hgvs object
-            var_c = self.hp.parse_hgvs_variant(variant)
-            return var_c
+            variant = self.hp.parse_hgvs_variant(variant)
         # otherwise if we got a c/n return c version of given variant
-        elif variant.type == 'n':
-            return self.hp.c_to_n(variant)
+        if variant.type == 'n':
+            return self.vm.n_to_c(variant)
         elif variant.type == 'c':
             return variant
 
@@ -2109,6 +2108,32 @@ class Mixin(vvMixinInit.Mixin):
         try:
             # Split up the description
             accession, remainder = my_variant.quibble.split(':')
+            if '(' in accession or ')' in accession:
+                if not ('(' in accession and ')' in accession):
+                    raise fn.alleleVariantError(
+                            'Unsupported format for allele accession'
+                            + ' bad use of brackets ' + accession)
+                accession_1, _sep, accession_2 = accession.partition('(')
+                accession_2, _sep, _remain = accession_2.partition(')')
+                if accession_1[:3] in ['NM_','NR_'] or accession_1[:4] == 'ENST':
+                    accession = accession_1
+                else:
+                    accession = accession_2
+            def _parse_allele_part(accession,var_type,pe):
+                if var_type == 'c':
+                    posedit  =self.hp.parse_c_posedit(pe)
+                elif var_type == 'g':
+                    posedit = self.hp.parse_g_posedit(pe)
+                elif var_type == 'm':
+                    posedit = self.hp.parse_m_posedit(pe)
+                elif var_type == 'n':
+                    posedit = self.hp.parse_n_posedit(pe)
+                elif var_type == 'r':
+                    posedit = self.hp.parse_r_posedit(pe)
+                return vvhgvs.sequencevariant.SequenceVariant(
+                        ac = accession,
+                        type = type,
+                        posedit = posedit)
 
             # Branch
             if re.search(r'[gcn]\.\d+\[', remainder):
@@ -2130,7 +2155,9 @@ class Mixin(vvMixinInit.Mixin):
                     posedit_list = [posedit]
                     current_allele = []
                     for pe in posedit_list:
-                        vrt = accession + ':' + type + '.' + str(pos) + pe
+                        if '?' in pe:
+                            continue
+                        vrt = _parse_allele_part(accession,type,str(pos) + pe)
                         current_allele.append(vrt)
                     my_alleles.append(current_allele)
             else:
@@ -2152,7 +2179,9 @@ class Mixin(vvMixinInit.Mixin):
                         posedit_list = posedits.split(';')
                         current_allele = []
                         for pe in posedit_list:
-                            vrt = accession + ':' + type + '.' + pe
+                            if '?' in pe:
+                                continue
+                            vrt = _parse_allele_part(accession,type, pe)
                             current_allele.append(vrt)
                         my_alleles.append(current_allele)
 
@@ -2166,14 +2195,17 @@ class Mixin(vvMixinInit.Mixin):
                         posedit_list = posedits.split(';')
                         current_allele = []
                         for pe in posedit_list:
-                            vrt = accession + ':' + type + '.' + pe
+                            if '?' in pe:
+                                # e.g. NM_004006.2:c.[2376G>C];[?]
+                                continue
+                            vrt = _parse_allele_part(accession,type, pe)
                             current_allele.append(vrt)
                         my_alleles.append(current_allele)
                     # Now merge the alleles into a single variant
                     merged_alleles = []
 
                     for each_allele in my_alleles:
-                        if '?' in str(each_allele):
+                        if '?' in str(each_allele) or not each_allele:
                             # NM_004006.2:c.[2376G>C];[?]
                             continue
                         merge = []
@@ -2198,7 +2230,9 @@ class Mixin(vvMixinInit.Mixin):
                         posedit_list = posedits.split(';')
                         current_allele = []
                         for pe in posedit_list:
-                            vrt = accession + ':' + type + '.' + pe
+                            if '?' in pe:
+                                continue
+                            vrt = _parse_allele_part(accession,type,pe)
                             current_allele.append(vrt)
                         my_alleles.append(current_allele)
                 else:
@@ -2217,14 +2251,16 @@ class Mixin(vvMixinInit.Mixin):
                         posedit_list = posedits.split(';')
                         current_allele = []
                         for pe in posedit_list:
-                            vrt = accession + ':' + type + '.' + pe
+                            if '?' in pe:
+                                continue
+                            vrt = _parse_allele_part(accession,type, pe)
                             current_allele.append(vrt)
                         my_alleles.append(current_allele)
 
                     # Now merge the alleles into a single variant
                     merged_alleles = []
                     for each_allele in my_alleles:
-                        if '?' in str(each_allele):
+                        if '?' in str(each_allele) or not each_allele:
                             # NM_004006.2:c.[2376G>C];[?]
                             continue
                         merge = []
@@ -2241,7 +2277,7 @@ class Mixin(vvMixinInit.Mixin):
             allele_strings = []
             for alleles_l in my_alleles:
                 for allele in alleles_l:
-                    allele_strings.append(allele)
+                    allele_strings.append(str(allele))
             my_alleles = allele_strings
 
             # return
