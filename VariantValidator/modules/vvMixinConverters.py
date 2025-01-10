@@ -51,13 +51,12 @@ class Mixin(vvMixinInit.Mixin):
         """
         # If the :c. pattern is present in the input variant
         # and we got a string input variant
-        if type(variant) is str and ':c.' in variant or ':n.' in variant:
+        if type(variant) is str and (':c.' in variant or ':n.' in variant):
             # convert the input string into a hgvs object
-            var_c = self.hp.parse_hgvs_variant(variant)
-            return var_c
+            variant = self.hp.parse_hgvs_variant(variant)
         # otherwise if we got a c/n return c version of given variant
-        elif variant.type == 'n':
-            return self.hp.c_to_n(variant)
+        if variant.type == 'n':
+            return self.vm.n_to_c(variant)
         elif variant.type == 'c':
             return variant
 
@@ -2117,7 +2116,57 @@ class Mixin(vvMixinInit.Mixin):
         try:
             # Split up the description
             accession, remainder = my_variant.quibble.split(':')
-
+            if '(' in accession or ')' in accession:
+                if not ('(' in accession and ')' in accession):
+                    raise fn.alleleVariantError(
+                            'Unsupported format for allele accession'
+                            + ' bad use of brackets ' + accession)
+                accession_1, _sep, accession_2 = accession.partition('(')
+                accession_2, _sep, _remain = accession_2.partition(')')
+                if accession_1[:3] in ['NM_','NR_'] or accession_1[:4] == 'ENST':
+                    accession = accession_1
+                else:
+                    accession = accession_2
+            def _parse_allele_part(accession,var_type,pe):
+                try:
+                    if var_type == 'c':
+                        posedit  =self.hp.parse_c_posedit(pe)
+                    elif var_type == 'g':
+                        posedit = self.hp.parse_g_posedit(pe)
+                    elif var_type == 'm':
+                        posedit = self.hp.parse_m_posedit(pe)
+                    elif var_type == 'n':
+                        posedit = self.hp.parse_n_posedit(pe)
+                    elif var_type == 'r':
+                        posedit = self.hp.parse_r_posedit(pe)
+                except vvhgvs.exceptions.HGVSError as e:
+                    raise AlleleSyntaxError(
+                            f"AlleleVariantError: {accession}:{var_type}.{pe} is not a valid HGVS variant description."
+                            " Please submit individually for additional guidance")
+                return vvhgvs.sequencevariant.SequenceVariant(
+                        ac = accession,
+                        type = type,
+                        posedit = posedit)
+            def _check_and_fix_for_ex_repeat(accession,type,pe):
+                if not pe.endswith(']'):
+                    return False
+                if not re.search("[GATC]+\[\d+]$", pe):
+                    return False #error instead?
+                expanded_repeat = expanded_repeats.convert_tandem(
+                        f"{accession}:{type}.{pe}", self,
+                        my_variant.primary_assembly,
+                        "all")
+                ins_bases = (expanded_repeat["repeat_sequence"] *
+                             int(expanded_repeat["copy_number"]))
+                edit = vvhgvs.edit.NARefAlt(
+                        ref=expanded_repeat['reference'],
+                        alt=ins_bases)
+                hgvs_obj_from_existing_edit(
+                        expanded_repeat['reference'],
+                        expanded_repeat['prefix'],
+                        expanded_repeat['position'],
+                        edit)
+                return hgvs_obj_from_existing_edit
             # Branch
             if re.search(r'[gcn]\.\d+\[', remainder):
                 # NM_004006.2:c.2376[G>C];[(G>C)]
@@ -2138,8 +2187,17 @@ class Mixin(vvMixinInit.Mixin):
                     posedit_list = [posedit]
                     current_allele = []
                     for pe in posedit_list:
-                        vrt = accession + ':' + type + '.' + str(pos) + pe
-                        current_allele.append(vrt)
+                        if '?' in pe or pe == '0':
+                            continue
+                        tandem = _check_and_fix_for_ex_repeat(
+                                accession,
+                                type,
+                                str(pos) +pe)
+                        if tandem:
+                            current_allele.append(tandem)
+                        else:
+                            vrt = _parse_allele_part(accession,type,str(pos) + pe)
+                            current_allele.append(vrt)
                     my_alleles.append(current_allele)
             else:
                 type, remainder = remainder.split('.')
@@ -2161,8 +2219,17 @@ class Mixin(vvMixinInit.Mixin):
                         posedit_list = posedits.split(';')
                         current_allele = []
                         for pe in posedit_list:
-                            vrt = accession + ':' + type + '.' + pe
-                            current_allele.append(vrt)
+                            if '?' in pe or pe == '0':
+                                continue
+                            tandem = _check_and_fix_for_ex_repeat(
+                                    accession,
+                                    type,
+                                    pe)
+                            if tandem:
+                                current_allele.append(tandem)
+                            else:
+                                vrt = _parse_allele_part(accession,type,pe)
+                                current_allele.append(vrt)
                         my_alleles.append(current_allele)
 
                     # Then Merges
@@ -2174,14 +2241,25 @@ class Mixin(vvMixinInit.Mixin):
                         posedit_list = posedits.split(';')
                         current_allele = []
                         for pe in posedit_list:
-                            vrt = accession + ':' + type + '.' + pe
-                            current_allele.append(vrt)
+                            if '?' in pe or pe == '0':
+                                # e.g. NM_004006.2:c.[2376G>C];[?]
+                                continue
+                            tandem = _check_and_fix_for_ex_repeat(
+                                    accession,
+                                    type,
+                                    pe)
+                            if tandem:
+                                current_allele.append(tandem)
+                            else:
+                                vrt = _parse_allele_part(accession,type,pe)
+                                current_allele.append(vrt)
+
                         my_alleles.append(current_allele)
                     # Now merge the alleles into a single variant
                     merged_alleles = []
 
                     for each_allele in my_alleles:
-                        if '?' in str(each_allele):
+                        if '?' in str(each_allele) or not each_allele:
                             # NM_004006.2:c.[2376G>C];[?]
                             continue
                         merge = []
@@ -2206,8 +2284,17 @@ class Mixin(vvMixinInit.Mixin):
                         posedit_list = posedits.split(';')
                         current_allele = []
                         for pe in posedit_list:
-                            vrt = accession + ':' + type + '.' + pe
-                            current_allele.append(vrt)
+                            if '?' in pe or pe == '0':
+                                continue
+                            tandem = _check_and_fix_for_ex_repeat(
+                                    accession,
+                                    type,
+                                    pe)
+                            if tandem:
+                                current_allele.append(tandem)
+                            else:
+                                vrt = _parse_allele_part(accession,type, pe)
+                                current_allele.append(vrt)
                         my_alleles.append(current_allele)
                 else:
                     # If statement for uncertainties
@@ -2225,43 +2312,30 @@ class Mixin(vvMixinInit.Mixin):
                         posedit_list = posedits.split(';')
                         current_allele = []
                         for pe in posedit_list:
-                            vrt = accession + ':' + type + '.' + pe
-                            current_allele.append(vrt)
+                            if '?' in pe or pe == '0':
+                                continue
+                            tandem = _check_and_fix_for_ex_repeat(
+                                    accession,
+                                    type,
+                                    pe)
+                            if tandem:
+                                current_allele.append(tandem)
+                            else:
+                                vrt = _parse_allele_part(accession,type, pe)
+                                current_allele.append(vrt)
                         my_alleles.append(current_allele)
 
                     # Now merge the alleles into a single variant
                     merged_alleles = []
 
                     for each_allele in my_alleles:
-                        if '?' in str(each_allele):
+                        if '?' in str(each_allele) or not each_allele:
                             # NM_004006.2:c.[2376G>C];[?]
                             continue
                         if 'c.0' in str(each_allele):
                             # NM_004006.2:c.[2376G>C];[0]
                             continue
 
-                        # Additional conversions
-                        refresh_allele = []
-                        for each_variant in each_allele:
-                            # Expanded repeats
-                            if re.search("[GATC]+\[\d+]$", each_variant):
-                                expanded_repeat = expanded_repeats.convert_tandem(each_variant, self,
-                                                                                  my_variant.primary_assembly,
-                                                                                  "all")
-
-                                ins_bases = (expanded_repeat["repeat_sequence"] *
-                                             int(expanded_repeat["copy_number"]))
-                                repeat_to_delins = self.hp.parse(f"{expanded_repeat['reference']}:"
-                                                                 f"{expanded_repeat['prefix']}."
-                                                                 f"{expanded_repeat['position']}"
-                                                                 f"delins{ins_bases}")
-
-                                refresh_allele.append(repeat_to_delins)
-                            else:
-                                refresh_allele.append(each_variant)
-
-                        # Refresh with expanded repeats if any before merge
-                        each_allele = refresh_allele
                         merge = []
 
                         allele = str(self.merge_hgvs_3pr(each_allele, my_variant.hn, genomic_reference,
