@@ -133,7 +133,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                 # Tag the line so that it is not written out
                 variant.warnings.append(str(variant.hgvs_formatted) + ' automapped to genome position ' +
                                         str(genomic_input))
-                query = Variant(variant.original, quibble=str(genomic_input), warnings=variant.warnings,
+                query = Variant(variant.original, quibble=genomic_input, warnings=variant.warnings,
                                 primary_assembly=variant.primary_assembly, order=variant.order,
                                 selected_assembly=variant.selected_assembly)
                 validator.batch_list.append(query)
@@ -214,7 +214,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                         gap_warnings.append(data["gapped_alignment_warning"])
                         gap_warnings.append(aut_inf)
 
-            query = Variant(variant.original, quibble=str(c_description), warnings=variant.warnings + gap_warnings,
+            query = Variant(variant.original, quibble=c_description, warnings=variant.warnings + gap_warnings,
                             primary_assembly=variant.primary_assembly, order=variant.order,
                             selected_assembly=variant.selected_assembly, reformat_output=variant.reformat_output)
             validator.batch_list.append(query)
