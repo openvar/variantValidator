@@ -2,6 +2,7 @@ from cmath import log
 import vvhgvs
 import vvhgvs.exceptions
 import vvhgvs.normalizer
+from vvhgvs.location import Interval
 import re
 import copy
 import sys
@@ -355,14 +356,14 @@ class Mixin(vvMixinConverters.Mixin):
                     messages
                     """
                     # 1. Requested warnings from https://github.com/openvar/variantValidator/issues/195
-                    if re.search(r'\(.+?\)', my_variant.quibble):  # Pattern looks for (....)
-                        gene_symbol_query = re.search(r'\(.+?\)', my_variant.quibble).group(0)
+                    if re.search(r'\(.+?\)', my_variant.quibble.ac):  # Pattern looks for (....)
+                        gene_symbol_query = re.search(r'\(.+?\)', my_variant.quibble.ac).group(0)
                         gene_symbol_query = gene_symbol_query.replace('(', '')
                         gene_symbol_query = gene_symbol_query.replace(')', '')
                         is_it_a_gene = self.db.get_hgnc_symbol(gene_symbol_query)
                         if is_it_a_gene != 'none':
                             warning = "Removing redundant gene symbol %s from variant description" % is_it_a_gene
-                            my_variant.quibble = my_variant.quibble.replace(f'({gene_symbol_query})','')
+                            my_variant.quibble.ac = my_variant.quibble.ac.replace(f'({gene_symbol_query})','')
                             my_variant.warnings.append(warning)
                             logger.warning(warning)
 
@@ -376,33 +377,31 @@ class Mixin(vvMixinConverters.Mixin):
                             logger.warning(warning)
 
                     # 2. expand options for issue https://github.com/openvar/variantValidator/issues/338
-                    test_for_invalid_case_in_accession = my_variant.original.split(":")[0]
-
                     # Basically, all reference sequences must be upper case, so we make an upper-case query accession
                     # to test the input accession against and try to spot a discrepancy
                     # The exception to the rule is LTG transcripts e.g. LRG_1t1 which we handle immediately below!
-                    query_for_invalid_case_in_accession = test_for_invalid_case_in_accession.upper()
-                    if re.match("LRG", test_for_invalid_case_in_accession, flags=re.IGNORECASE):
-                        if "LRG" not in test_for_invalid_case_in_accession:
+                    upper_case_accession = my_variant.quibble.ac.upper()
+                    original_ac, _sep, _remain = my_variant.original.partition(':')
+                    uc_original_ac = original_ac.upper()
+                    if uc_original_ac[:3] == "LRG":
+                        if "LRG" != original_ac[:3]:
                             e = "This not a valid HGVS description, due to characters being in the wrong case. " \
                                 "Please check the use of upper- and lowercase characters."
                             my_variant.warnings.append(str(e))
                             logger.warning(str(e))
-                        if "T" in test_for_invalid_case_in_accession:
+                        if "T" in original_ac:
                             e = "This not a valid HGVS description, due to characters being in the wrong case. " \
                                 "Please check the use of upper- and lowercase characters."
                             my_variant.warnings.append(str(e))
                             logger.warning(str(e))
-                            my_variant.quibble = my_variant.quibble.replace("T", "t")
+                            my_variant.quibble.ac = my_variant.quibble.ac.replace("T", "t")
 
                     # Reference sequence types other than LRG
-                    elif (test_for_invalid_case_in_accession != query_for_invalid_case_in_accession) \
-                            and "LRG" not in test_for_invalid_case_in_accession:
+                    elif original_ac != uc_original_ac and uc_original_ac[:3] != "LRG":
                         # See issue #357
-                        if re.match("chr", test_for_invalid_case_in_accession, re.IGNORECASE
-                                    ) or re.match("GRCh", test_for_invalid_case_in_accession, re.IGNORECASE
-                                                  ) or re.match("hg", test_for_invalid_case_in_accession, re.IGNORECASE
-                                                                ):
+                        if (uc_original_ac[:3] == 'CHR' or
+                            uc_original_ac[:4] == "GRCH" or
+                            uc_original_ac[:2] == "HG"): # M already handled
                             e = "This is not a valid HGVS variant description, because no reference sequence ID " \
                                 "has been provided"
                         else:
@@ -410,42 +409,18 @@ class Mixin(vvMixinConverters.Mixin):
                                 "Please check the use of upper- and lowercase characters."
                         my_variant.warnings.append(str(e))
                         logger.warning(str(e))
-
+                    elif (uc_original_ac[:3] == 'CHR' or
+                          uc_original_ac[:4] == "GRCH" or
+                          uc_original_ac[:2] == "HG"):
+                        e = "This is not a valid HGVS variant description, because no reference sequence ID " \
+                            "has been provided"
+                        my_variant.warnings.append(e)
+                        logger.warning(e)
 
                     # Set some configurations
                     formatted_variant = my_variant.quibble
                     stash_input = my_variant.quibble
                     my_variant.post_format_conversion = stash_input
-                    if type(formatted_variant) is str:
-                        try:
-                            formatted_variant = self.hp.parse_hgvs_variant(formatted_variant)
-                        # now that we are switching to loading hgvs obj before this point this has to move
-                        # Handle <position><edit><position> style variants
-                        # Refer to https://github.com/openvar/variantValidator/issues/161
-                        # Example provided is NC_000017.10:g.41199848_41203626delins41207680_41207915
-                        # Current theory, should apply to delins, ins.
-                        # We may also need to expand to http://varnomen.hgvs.org/recommendations/DNA/variant/insertion/
-                        # complex insertions
-
-                        except vvhgvs.exceptions.HGVSError as e:
-                            # Pass over for uncertain positions
-                            if my_variant.reformat_output == "uncertain_pos":
-                                continue
-
-                            # Check for common mistakes
-                            toskip = use_checking.refseq_common_mistakes(my_variant)
-                            if toskip:
-                                continue
-
-                            # Look for T not U!
-                            posedit = formatted_variant.split(':')[-1]
-                            if 'T' in posedit and "r." in posedit:
-                                e = 'The IUPAC RNA alphabet dictates that RNA variants must use the character u in ' \
-                                    'place of t'
-                            my_variant.warnings.append(str(e))
-                            logger.warning(str(e))
-                            continue
-
 
                     logger.debug("Variant input formatted, proceeding to validate.")
 
@@ -495,12 +470,13 @@ class Mixin(vvMixinConverters.Mixin):
                         formatted_variant = str(my_variant.hgvs_formatted)
                     except KeyError as e:
                         if "p" in my_variant.hgvs_formatted.type:
-                            error = "Invalid amino acid %s stated in description %s" % (str(e),
-                                                                                        my_variant.quibble)
+                            error = "Invalid amino acid %s stated in description %s" % (
+                                    str(e),
+                                    str(my_variant.quibble.format({'p_3_letter':False})))
                             my_variant.warnings.append(error)
                             continue
 
-                    my_variant.set_quibble(str(my_variant.hgvs_formatted))
+                    my_variant.set_quibble(my_variant.hgvs_formatted)
                     logger.debug("HVGS acceptance test passed")
 
                     # Check whether supported genome build is requested for non g. descriptions
@@ -553,12 +529,8 @@ class Mixin(vvMixinConverters.Mixin):
                     # Also identifies some variants which span into the downstream sequence
                     # i.e. out of bounds
 
-                    # Fuzzy ends
-                    try:
-                        complex_descriptions.fuzzy_ends(my_variant, self)
-                    except complex_descriptions.FuzzyPositionError as e:
-                        my_variant.warnings.append(str(e))
-                        logger.warning(str(e))
+                    # skip if we have fuzzy ends
+                    if type(my_variant.quibble.posedit.pos.start) is Interval:
                         continue
 
                     if '*' in str(my_variant.hgvs_formatted.posedit):
@@ -582,18 +554,19 @@ class Mixin(vvMixinConverters.Mixin):
 
                     elif my_variant.hgvs_formatted.posedit.pos.end.base < \
                             my_variant.hgvs_formatted.posedit.pos.start.base:
-                        if "NC_012920.1" not in my_variant.hgvs_formatted.ac and \
-                                "NC_001807.4" not in my_variant.hgvs_formatted.ac:
-                            error = 'Interval end position ' + str(my_variant.hgvs_formatted.posedit.pos.end.base) + \
-                                    ' < interval start position ' + str(my_variant.hgvs_formatted.posedit.pos.start.base)
+                        if my_variant.hgvs_formatted.ac not in ["NC_012920.1", "NC_001807.4"]:
+                            error = 'Interval end position ' +\
+                                    str(my_variant.hgvs_formatted.posedit.pos.end.base) + \
+                                    ' < interval start position ' + \
+                                    str(my_variant.hgvs_formatted.posedit.pos.start.base)
                             my_variant.warnings.append(error)
                             logger.warning(error)
                             continue
 
-                    # Catch missing version number in refseq
+                    # Catch missing version number in refseq/ens
                     is_version = re.compile(r"\d\.\d")
                     if ((my_variant.refsource == 'RefSeq' or my_variant.refsource == 'ENS') and
-                            not is_version.search(str(my_variant.hgvs_formatted))):
+                            not is_version.search(my_variant.hgvs_formatted.ac)):
                         error = 'RefSeq variant accession numbers MUST include a version number'
                         my_variant.warnings.append(error)
                         continue
@@ -650,7 +623,7 @@ class Mixin(vvMixinConverters.Mixin):
                             my_variant.output_type_flag = 'warning'
                             error = '%s cannot be validated in the context of genome build %s, ' \
                                     'try an alternative genome build' \
-                                    % (my_variant.quibble, my_variant.primary_assembly)
+                                    % (str(my_variant.quibble), my_variant.primary_assembly)
                             my_variant.warnings.append(error)
                             toskip = True
                         if toskip:
@@ -671,7 +644,7 @@ class Mixin(vvMixinConverters.Mixin):
                     # Set the data
                     my_variant.output_type_flag = 'gene'
                     my_variant.primary_assembly = primary_assembly
-                    logger.info("Completed initial validation for %s", my_variant.quibble)
+                    logger.info("Completed initial validation for %s", str(my_variant.quibble))
 
                 # Report errors to User and VV admin
                 except KeyboardInterrupt:
@@ -691,7 +664,7 @@ class Mixin(vvMixinConverters.Mixin):
             by_order = sorted(self.batch_list, key=lambda x: x.order)
 
             for variant in by_order:
-                logger.debug("Formatting variant " + variant.quibble)
+                logger.debug("Formatting variant " + str(variant.quibble.format({'p_3_letter':False})))
                 if not variant.write:
                     continue
 
@@ -1315,7 +1288,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                 # Reformat as required
                 if variant.reformat_output is not False:
-                    if "|" in variant.reformat_output and "=" in variant.quibble:
+                    if "|" in variant.reformat_output and "=" in str(variant.quibble):
                         attributes = dir(variant)
                         for attribute in attributes:
                             if "__" in attribute:
