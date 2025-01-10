@@ -152,6 +152,71 @@ class Mixin(vvMixinConverters.Mixin):
                     ordering = ordering + 1
                     my_variant.order = ordering
 
+                if type(my_variant.quibble) is not str:
+                    # already tidied input mapped to transcripts so no need to re-validate for user input type issues
+                    if not my_variant.hgvs_formatted:
+                        my_variant.hgvs_formatted = my_variant.quibble
+                    if not my_variant.reftype:
+                        my_variant.reftype = f':{my_variant.quibble.type}.'
+                    if my_variant.reftype != ':g.':
+                        toskip = self._get_transcript_info(my_variant)
+                        if toskip:
+                            continue
+                        # Create easy variant mapper (over variant mapper) and splign locked evm
+                        my_variant.evm = AssemblyMapper(self.hdp,
+                                                        assembly_name=primary_assembly,
+                                                        alt_aln_method=self.alt_aln_method,
+                                                        normalize=True,
+                                                        replace_reference=True
+                                                        )
+
+                        # Setup a reverse normalize instance and non-normalize evm
+                        my_variant.no_norm_evm = AssemblyMapper(self.hdp,
+                                                                assembly_name=primary_assembly,
+                                                                alt_aln_method=self.alt_aln_method,
+                                                                normalize=False,
+                                                                replace_reference=True
+                                                                )
+
+                        # Create a specific minimal evm with no normalizer and no replace_reference
+                        my_variant.min_evm = AssemblyMapper(self.hdp,
+                                                            assembly_name=primary_assembly,
+                                                            alt_aln_method=self.alt_aln_method,
+                                                            normalize=False,
+                                                            replace_reference=False
+                                                            )
+
+                    if my_variant.reftype in [':c.', ':n.']:
+                        try:
+                            toskip = mappers.transcripts_to_gene(
+                                    my_variant,
+                                    self,
+                                    select_transcripts_dict_plus_version)
+                        except mappers.MappersError:
+                            my_variant.output_type_flag = 'warning'
+                            continue
+                        except vvhgvs.exceptions.HGVSInvalidVariantError:
+                            my_variant.output_type_flag = 'warning'
+                            continue
+                        # For not already normalised input gene data fetching
+                        # normally happens in structure_checks!
+                        # (do we want to change the normal location too ?)
+                        my_variant.gene_symbol = self.db.get_gene_symbol_from_transcript_id(
+                                my_variant.quibble.ac)
+                        if my_variant.gene_symbol == 'none':
+                            my_variant.gene_symbol = ''
+                        if toskip:
+                            continue
+                    # set output to variant type specific
+                    if my_variant.reftype in [':n.',':t.',':c.'] and my_variant.hgvs_transcript_variant != '':
+                        my_variant.output_type_flag = 'gene'
+                    elif my_variant.reftype == ':g.':
+                        my_variant.output_type_flag = 'intergenic'
+                    elif my_variant.reftype == ':m.':
+                        my_variant.output_type_flag = 'mitochondrial'
+
+                    continue
+
                 # Bug catcher
                 try:
                     # Note, ID is not touched. It is always the input variant description.
