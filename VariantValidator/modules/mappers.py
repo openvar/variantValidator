@@ -120,7 +120,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                 # Tag the line so that it is not written out
                 variant.warnings.append(str(variant.hgvs_formatted) + ' automapped to genome position ' +
                                         str(genomic_input))
-                query = Variant(variant.original, quibble=genomic_input, warnings=variant.warnings,
+                query = Variant(variant.original, quibble=str(genomic_input), warnings=variant.warnings,
                                 primary_assembly=variant.primary_assembly, order=variant.order,
                                 selected_assembly=variant.selected_assembly)
                 validator.batch_list.append(query)
@@ -279,8 +279,6 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         logger.info(str(errors))
         return True
 
-    # Get orientation of the gene wrt genome and a list of exons mapped to the genome
-    ori = validator.tx_exons(tx_ac=tx_ac, alt_ac=genomic_ac, alt_aln_method=validator.alt_aln_method)
 
     plus = re.compile(r"\d\+\d")  # finds digit + digit
     minus = re.compile(r"\d-\d")  # finds digit - digit
@@ -531,18 +529,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         if str(query.posedit.pos) != str(test.posedit.pos):
             automap = str(test) + ' automapped to ' + str(query)
             variant.warnings.extend([automap])
-
-            # Kill current line and append for re-submission
-            # Tag the line so that it is not written out
-            variant.write = False
-            # Set the values and append to batch_list
-            valstr = fn.valstr(query)
-            query = Variant(variant.original, quibble=valstr, warnings=variant.warnings,
-                            primary_assembly=variant.primary_assembly, order=variant.order,
-                            selected_assembly=variant.selected_assembly)
-            validator.batch_list.append(query)
-            logger.info("Submitting new variant with format %s", valstr)
-            return True
+            variant.quibble=out_hgvs_obj
 
     # VALIDATION of intronic variants
     pre_valid = quibble_input_hgvs_obj
@@ -613,6 +600,8 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     # --- GAP MAPPING 1 ---
     # Loop out gap finding code under these circumstances!
     if gap_compensation is True:
+        # Get orientation of the gene wrt genome and a list of exons mapped to the genome
+        ori = validator.tx_exons(tx_ac=tx_ac, alt_ac=genomic_ac, alt_aln_method=validator.alt_aln_method)
         hgvs_genomic, suppress_c_normalization, hgvs_coding = gap_mapper.g_to_t_compensation(ori, hgvs_coding, rec_var)
     else:
         suppress_c_normalization = 'false'
@@ -622,14 +611,13 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
     reverse_normalized_hgvs_genomic = variant.reverse_normalizer.normalize(hgvs_genomic)
 
-    # Get orientation of the gene wrt genome and a list of exons mapped to the genome
-    ori = validator.tx_exons(tx_ac=hgvs_coding.ac, alt_ac=reverse_normalized_hgvs_genomic.ac,
-                             alt_aln_method=validator.alt_aln_method)
-
     # --- GAP MAPPING 2 ---
     # Loop out gap finding code under these circumstances!
     logger.debug("gap_compensation_2 = " + str(gap_compensation))
     if gap_compensation is True:
+        # Get orientation of the gene wrt genome and a list of exons mapped to the genome
+        ori = validator.tx_exons(tx_ac=hgvs_coding.ac, alt_ac=reverse_normalized_hgvs_genomic.ac,
+                                 alt_aln_method=validator.alt_aln_method)
         hgvs_coding = gap_mapper.g_to_t_gapped_mapping_stage2(ori, hgvs_coding, hgvs_genomic)
 
     # OBTAIN THE RefSeqGene coordinates
