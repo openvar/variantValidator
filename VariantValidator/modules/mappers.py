@@ -352,8 +352,8 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         # Normalize the variant
         try:
             h_variant = variant.hn.normalize(obj)
-        except vvhgvs.exceptions.HGVSUnsupportedOperationError:
-            if 'Unsupported normalization of variants spanning the exon-intron boundary' in error:
+        except vvhgvs.exceptions.HGVSUnsupportedOperationError as error:
+            if 'Unsupported normalization of variants spanning the exon-intron boundary' in str(error):
                 formatted_variant = formatted_variant
                 caution = 'This coding sequence variant description spans at least one intron'
                 variant.warnings.extend([caution])
@@ -399,8 +399,11 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         if 'del' in formatted_variant:
             if out_hgvs_obj.type == 'c':
                 coding = out_hgvs_obj
-            else:
-                coding = validator.coding(formatted_variant)
+            elif quibble_input_hgvs_obj.type == 'c':
+                coding = validator.coding(out_hgvs_obj)
+            else:# not actually coding
+                coding =  out_hgvs_obj
+
             trans_acc = coding.ac
             # c to Genome coordinates - Map the variant to the genome
             pre_var = out_hgvs_obj
@@ -470,8 +473,10 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
 
             if out_hgvs_obj.type == 'c':
                 coding = out_hgvs_obj
-            else:
-                coding = validator.coding(formatted_variant)
+            elif quibble_input_hgvs_obj.type == 'c':
+                coding = validator.coding(out_hgvs_obj)
+            else:# not actually coding
+                coding =  out_hgvs_obj
             trans_acc = coding.ac
             # c to Genome coordinates - Map the variant to the genome
             pre_var = validator.genomic(out_hgvs_obj, variant.no_norm_evm, variant.primary_assembly,
