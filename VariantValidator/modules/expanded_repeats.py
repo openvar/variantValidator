@@ -123,6 +123,7 @@ class TandemRepeats:
             >>>parse_repeat_variant("NM_024312.4:c.1_10A[10]")
                 "NM_024312.4", "c", "1_10" "A", "10", ""
         """
+
         logger.info(f"Parsing variant: parse_repeat_variant({variant_str})")
         # Strip any whitespace
         variant_str = variant_str.strip()
@@ -676,19 +677,32 @@ class TandemRepeats:
         check_exon_pos(end)
         return
 
+
 def convert_tandem(variant, validator, build, my_all):
-    expanded_variant = TandemRepeats.parse_repeat_variant(variant.quibble, build, my_all, validator)
+    try:
+        expanded_variant = TandemRepeats.parse_repeat_variant(variant.quibble, build, my_all, validator)
+    except AttributeError:
+        expanded_variant = TandemRepeats.parse_repeat_variant(variant, build, my_all, validator)
 
     if expanded_variant is False:
         return False
     else:
         expanded_variant_string = expanded_variant.reformat(validator)
-        variant.expanded_repeat = {"variant": expanded_variant_string,
-                                   "position": expanded_variant.variant_position,
-                                   "copy_number": expanded_variant.copy_number,
-                                   "repeat_sequence": expanded_variant.repeat_sequence,
-                                   "reference": expanded_variant.reference,
-                                   "prefix": expanded_variant.prefix}
+        try:
+            variant.expanded_repeat = {"variant": expanded_variant_string,
+                                       "position": expanded_variant.variant_position,
+                                       "copy_number": expanded_variant.copy_number,
+                                       "repeat_sequence": expanded_variant.repeat_sequence,
+                                       "reference": expanded_variant.reference,
+                                       "prefix": expanded_variant.prefix}
+        except AttributeError:
+            expanded_repeat = {"variant": expanded_variant_string,
+                               "position": expanded_variant.variant_position,
+                               "copy_number": expanded_variant.copy_number,
+                               "repeat_sequence": expanded_variant.repeat_sequence,
+                               "reference": expanded_variant.reference,
+                               "prefix": expanded_variant.prefix}
+            return expanded_repeat
         return True
 
 

@@ -709,9 +709,10 @@ def allele_parser(variant, validation, validator):
     descriptions should be re-submitted by the user at the gene or genome level
     """
     caution = ''
-    if (re.search(r':[gcnr].\[', variant.quibble) and ';' in variant.quibble) or (
-            re.search(r':[gcrn].\d+\[', variant.quibble) and ';' in variant.quibble) or ('(;)' in variant.quibble):
 
+    if (re.search(r':[gcnr].\[', variant.quibble) and ';' in variant.quibble) or (
+            re.search(r':[gcrn].\d+\[', variant.quibble) and ';' in variant.quibble) or ('(;)'
+                                                                                         in variant.quibble):
         # Edit compound descriptions
         genomic_ref = intronic_converter(variant, validator, skip_check=True)
         if genomic_ref is None:
@@ -768,6 +769,8 @@ def allele_parser(variant, validation, validator):
             try:
                 alleles = validation.hgvs_alleles(variant, genomic_reference)
             except fn.alleleVariantError as e:
+                import traceback
+                traceback.print_exc()
                 variant.warnings.append(str(e))
                 logger.warning(str(e))
                 return True

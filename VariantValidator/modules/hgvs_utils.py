@@ -2257,7 +2257,7 @@ def hgvs_ref_alt(hgvs_variant, sf):
 
     # inv
     elif 'inv' in str(hgvs_variant.posedit):
-        ref = hgvs_variant.posedit
+        ref = hgvs_variant.posedit.edit.ref
         my_seq = Seq(ref)
         alt = str(my_seq.reverse_complement())
 
