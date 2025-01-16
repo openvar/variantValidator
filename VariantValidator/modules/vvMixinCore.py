@@ -168,6 +168,7 @@ class Mixin(vvMixinConverters.Mixin):
                     # Remove whitespace and quotes
                     my_variant.remove_whitespace()
                     my_variant.remove_quotes()
+                    my_variant.remove_typos()
 
                     # Set the primary_assembly
                     if not my_variant.primary_assembly:

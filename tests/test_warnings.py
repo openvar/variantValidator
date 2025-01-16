@@ -1228,6 +1228,13 @@ class TestVVGapWarnings(TestCase):
             'NC_000008.11:g.10623201T>A']['NC_000008.11:g.10623201T>A']['hgvs_t_and_p'][
             'ENST00000382483.3']['transcript_version_warning']
 
+        def test_multiple_colons(self):
+            variant = 'NM_002830.3::c.715G>A'
+            results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="ensembl").format_as_dict(test=True)
+            print(results)
+            assert ("VariantSyntaxError: Multiple colons found in variant description") in \
+                   results['NM_002830.3:c.715G>A']['validation_warnings']
+
 
 # <LICENSE>
 # Copyright (C) 2016-2024 VariantValidator Contributors

@@ -265,6 +265,16 @@ class Variant(object):
                 refined.append(warning)
         return refined
 
+    def remove_typos(self):
+        """
+        Method will remove an expanding list of common typos from the variant description
+        """
+        # double or multiple colons
+        if re.search(":{1,}:[cgpnr]\.", self.quibble):
+            self.warnings.append("VariantSyntaxError: Multiple colons found in variant description")
+            self.quibble = re.sub(":{1,}:", ":", self.quibble)
+
+
 # <LICENSE>
 # Copyright (C) 2016-2024 VariantValidator Contributors
 #
