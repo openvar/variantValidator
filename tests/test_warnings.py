@@ -1228,12 +1228,21 @@ class TestVVGapWarnings(TestCase):
             'NC_000008.11:g.10623201T>A']['NC_000008.11:g.10623201T>A']['hgvs_t_and_p'][
             'ENST00000382483.3']['transcript_version_warning']
 
-        def test_multiple_colons(self):
-            variant = 'NM_002830.3::c.715G>A'
-            results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="ensembl").format_as_dict(test=True)
-            print(results)
-            assert ("VariantSyntaxError: Multiple colons found in variant description") in \
-                   results['NM_002830.3:c.715G>A']['validation_warnings']
+    def test_multiple_colons(self):
+        variant = 'NM_002830.3::c.715G>A'
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert ("VariantSyntaxError: Multiple colons found in variant description") in \
+               results['NM_002830.3:c.715G>A']['validation_warnings']
+
+
+    def test_bad_allele_variant(self):
+        variant = 'chr2:g.[32310435_32310710del;32310711_171827243inv;insG]'
+        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert ("AlleleVariantError: NC_000002.11:g.insG is not a valid HGVS variant description. Please submit individually for additional guidance") in \
+               results['validation_warning_1']['validation_warnings']
+
 
 
 # <LICENSE>

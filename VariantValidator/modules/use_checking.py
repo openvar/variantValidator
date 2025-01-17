@@ -415,14 +415,15 @@ def structure_checks_c(variant, validator):
                           variant.input_parses.posedit.pos.start.offset != 0):
                         start_offset = f"+{str(variant.input_parses.posedit.pos.start.offset)}"
                         end_offset = f"+{str(variant.input_parses.posedit.pos.start.offset + 1)}"
-                    ins_warning = (f'Insertion length must be 1 e.g. '
-                                   f'{variant.input_parses.posedit.pos.start.base}{start_offset}'
-                                   f'_{str(int(variant.input_parses.posedit.pos.start.base))}{end_offset}'
-                                   f'ins{variant.input_parses.posedit.edit.alt}')
-                    variant.warnings.append(ins_warning)
-                    for warning in variant.warnings:
-                        if warning == "insertion length must be 1":
-                            variant.warnings.remove(warning)
+                    if "(" not in str(variant.input_parses.posedit.pos):
+                        ins_warning = (f'Insertion length must be 1 e.g. '
+                                       f'{variant.input_parses.posedit.pos.start.base}{start_offset}'
+                                       f'_{str(int(variant.input_parses.posedit.pos.start.base))}{end_offset}'
+                                       f'ins{variant.input_parses.posedit.edit.alt}')
+                        variant.warnings.append(ins_warning)
+                        for warning in variant.warnings:
+                            if warning == "insertion length must be 1":
+                                variant.warnings.remove(warning)
                     return True
 
             elif 'base start position must be <= end position' in error:
@@ -546,14 +547,15 @@ def structure_checks_c(variant, validator):
                 variant.warnings.append(error)
                 logger.warning(error)
             if 'insertion length must be 1' in error:
-                ins_warning = (f'Insertion length must be 1 e.g. '
-                               f'{str(int(variant.input_parses.posedit.pos.start.base))}'
-                               f'_{str(int(variant.input_parses.posedit.pos.start.base)+1)}'
-                               f'ins{variant.input_parses.posedit.edit.alt}')
-                variant.warnings.append(ins_warning)
-                for warning in variant.warnings:
-                    if warning == "insertion length must be 1":
-                        variant.warnings.remove(warning)
+                if "(" not in str(variant.input_parses.posedit.pos):
+                    ins_warning = (f'Insertion length must be 1 e.g. '
+                                   f'{str(int(variant.input_parses.posedit.pos.start.base))}'
+                                   f'_{str(int(variant.input_parses.posedit.pos.start.base)+1)}'
+                                   f'ins{variant.input_parses.posedit.edit.alt}')
+                    variant.warnings.append(ins_warning)
+                    for warning in variant.warnings:
+                        if warning == "insertion length must be 1":
+                            variant.warnings.remove(warning)
             return True
 
         except vvhgvs.exceptions.HGVSDataNotAvailableError as e:

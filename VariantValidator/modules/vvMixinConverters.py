@@ -1705,6 +1705,7 @@ class Mixin(vvMixinInit.Mixin):
                 hgvs_v = self.hp.parse_hgvs_variant(hgvs_v)
             except Exception as e:
                 logger.debug("Except passed, %s" % e)
+                pass
 
             # Validate
             try:
@@ -1723,7 +1724,10 @@ class Mixin(vvMixinInit.Mixin):
                                                 "genomic/gene reference "
                                                 "sequence is also provided e.g. NC_000017.11(NM_000088.3):c.589-1G>T")
                 else:
-                    self.vr.validate(hgvs_v)  # Let hgvs errors deal with invalid variants and not hgvs objects
+                    self.vr.validate(hgvs_v) # Let hgvs errors deal with invalid variants and not hgvs objects
+            except AssertionError:
+                raise AlleleSyntaxError(f"AlleleVariantError: {hgvs_v} is not a valid HGVS variant description. Please"
+                                        f" submit individually for additional guidance")
 
             if hgvs_v.type == 'c':
                 store_ref_type = "c"
@@ -2237,6 +2241,7 @@ class Mixin(vvMixinInit.Mixin):
                         # Refresh with expanded repeats if any before merge
                         each_allele = refresh_allele
                         merge = []
+
                         allele = str(self.merge_hgvs_3pr(each_allele, my_variant.hn, genomic_reference,
                                                          hgvs_strict=True))
                         merge.append(allele)

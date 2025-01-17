@@ -716,7 +716,10 @@ def allele_parser(variant, validation, validator):
         # Edit compound descriptions
         genomic_ref = intronic_converter(variant, validator, skip_check=True)
         if genomic_ref is None:
-            genomic_reference = False
+            if re.match(r'NC_', variant.quibble):
+                genomic_reference = variant.quibble.split(':')[0]
+            else:
+                genomic_reference = False
         elif 'NC_' in genomic_ref or 'NG_' in genomic_ref:
             genomic_reference = genomic_ref
         else:
@@ -769,8 +772,8 @@ def allele_parser(variant, validation, validator):
             try:
                 alleles = validation.hgvs_alleles(variant, genomic_reference)
             except fn.alleleVariantError as e:
-                import traceback
-                traceback.print_exc()
+                # import traceback
+                # traceback.print_exc()
                 variant.warnings.append(str(e))
                 logger.warning(str(e))
                 return True
