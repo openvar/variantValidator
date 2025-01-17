@@ -1830,6 +1830,7 @@ class Mixin(vvMixinInit.Mixin):
         # Flag for fame shifts that restore frame
         check_frame_restore = False
         p_reference = None
+
         if hgvs_strict is True:
             # Set merge_within_bases length
             merge_within_bases = 1

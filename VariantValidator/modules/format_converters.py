@@ -734,8 +734,10 @@ def allele_parser(variant, validation, validator):
                 caution = string + ' updated to ' + reference
             if not re.match(r'^LRG_\d+', variant.quibble):
                 pass
-            elif re.match(r'^LRG_\d+:g.', variant.quibble) or re.match(r'^LRG_\d+:p.', variant.quibble) \
-                    or re.match(r'^LRG_\d+:c.', variant.quibble) or re.match(r'^LRG_\d+:n.', variant.quibble):
+            elif re.match(r'^LRG_\d+:g.', variant.quibble) or re.match(r'^LRG_\d+:p.',
+                                                                       variant.quibble) \
+                    or re.match(r'^LRG_\d+:c.', variant.quibble) or re.match(r'^LRG_\d+:n.',
+                                                                             variant.quibble):
                 lrg_reference, variation = variant.quibble.split(':')
                 refseqgene_reference = validation.db.get_refseq_id_from_lrg_id(lrg_reference)
                 if refseqgene_reference != 'none':
@@ -749,8 +751,10 @@ def allele_parser(variant, validation, validator):
                                   refseqgene_reference + ':' + variation
                     variant.warnings.append(caution)
                     logger.info(caution)
-            elif re.match(r'^LRG_\d+t\d+:c.', variant.quibble) or re.match(r'^LRG_\d+t\d+:n.', variant.quibble) or \
-                    re.match(r'^LRG_\d+t\d+:p.', variant.quibble) or re.match(r'^LRG_\d+t\d+:g.', variant.quibble):
+            elif re.match(r'^LRG_\d+t\d+:c.', variant.quibble) or re.match(r'^LRG_\d+t\d+:n.',
+                                                                           variant.quibble) or \
+                    re.match(r'^LRG_\d+t\d+:p.', variant.quibble) or re.match(r'^LRG_\d+t\d+:g.',
+                                                                              variant.quibble):
                 lrg_reference, variation = variant.quibble.split(':')
                 refseqtranscript_reference = validation.db.get_refseq_transcript_id_from_lrg_transcript_id(
                     lrg_reference)
