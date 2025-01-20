@@ -3,6 +3,8 @@ import vvhgvs
 import vvhgvs.exceptions
 import vvhgvs.normalizer
 from vvhgvs.location import Interval
+from vvhgvs.sequencevariant import SequenceVariant
+from vvhgvs.posedit import PosEdit
 import re
 import copy
 import sys
@@ -25,7 +27,7 @@ from VariantValidator.modules.liftover import liftover
 from VariantValidator.modules import complex_descriptions
 from VariantValidator.modules import gene2transcripts
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
-        unset_hgvs_obj_ref
+        unset_hgvs_obj_ref, to_vv_hgvs
 
 logger = logging.getLogger(__name__)
 
@@ -595,7 +597,8 @@ class Mixin(vvMixinConverters.Mixin):
                     # i.e. out of bounds
 
                     # skip if we have fuzzy ends
-                    if type(my_variant.quibble.posedit.pos.start) is Interval:
+                    if isinstance(my_variant.quibble.posedit.pos.start, Interval) or \
+                            isinstance(my_variant.quibble.posedit.pos.end, Interval):
                         continue
 
                     if '*' in str(my_variant.hgvs_formatted.posedit):
@@ -1351,25 +1354,45 @@ class Mixin(vvMixinConverters.Mixin):
                         variant_warnings.append(vt)
                 variant.warnings = variant_warnings
 
-                # Reformat as required
+                # Reformat as required to add back variation that would/does get lost on mapping
                 if variant.reformat_output is not False:
                     if "|" in variant.reformat_output and "=" in str(variant.quibble):
+                        def _apply_met_variation(data):
+                            if isinstance(data, dict):
+                                for key in data:
+                                    if isinstance(data[key],dict) or isinstance(data[key],list):
+                                        data[key] = _apply_met_variation(data[key])
+                                    elif isinstance(data[key],SequenceVariant) and not data[key].type == 'p':
+                                        if type(data[key].posedit) is PosEdit:
+                                            data[key] = to_vv_hgvs(data[key])
+                                        data[key] = data[key].posedit.met_variation = variant.reformat_output
+                                    elif isinstance(data[key], str) and data[key].endswith('=') and not data[key].endswith('|met=') and not ':p.' in data[key]:
+                                        data[key] = data[key][:-1] + variant.reformat_output
+                            elif isinstance(data,list):
+                                for index, value in enumerate(data):
+                                    if isinstance(value,dict) or isinstance(value,list):
+                                        data[index] = _apply_met_variation(value)
+                                    elif isinstance(value,SequenceVariant) and not value.type == 'p':
+                                        if type(value.posedit) is PosEdit:
+                                             value = to_vv_hgvs(value)
+                                        data[index] = value.posedit.met_variation = variant.reformat_output
+                                    elif isinstance(value, str) and value.endswith('=') and not value.endswith('|met=') and not ':p.' in value:
+                                        data[index] = value[:-1] + variant.reformat_output
+                            elif isinstance(data,SequenceVariant) and not data.type == 'p':
+                                if type(data.posedit) is PosEdit:
+                                    data = to_vv_hgvs(data)
+                                data.posedit.met_variation = variant.reformat_output
+                            elif isinstance(data, str) and data.endswith('=') and not data.endswith('|met=') and not ':p.' in data:
+                                data = data[:-1] + variant.reformat_output
+                            return data
+
                         attributes = dir(variant)
                         for attribute in attributes:
-                            if "__" in attribute:
+                            if "__" in attribute or attribute == "reformat_output":
                                 continue
                             item = (getattr(variant, attribute))
-                            if isinstance(item, str):
-                                if ("p." not in item and "=" in item) and attribute != "reformat_output":
-                                    setattr(variant, attribute, item.replace("=", variant.reformat_output))
-                            if isinstance(item, dict) or isinstance(item, list):
-                                try:
-                                    stringy = json.dumps(item)
-                                    if re.search(r":[gcnr].", stringy) and "=" in stringy:
-                                        stringy = stringy.replace("=", variant.reformat_output)
-                                        setattr(variant, attribute, json.loads(stringy))
-                                except json.JSONDecodeError:
-                                    pass
+                            item = _apply_met_variation(item)
+                            setattr(variant, attribute, item)
 
                 # Append to a list for return
                 batch_out.append(variant)
