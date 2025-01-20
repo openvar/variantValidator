@@ -28,6 +28,7 @@ class PseudoVCF2HGVSError(Exception):
 
 class VVPosEdit(PosEdit):
     "override class for posedit to get VV specific formatting"
+    met_variation = None
     pass
     def format(self, conf=None):
         """Formatting the string of PosEdit with vv edits
@@ -67,6 +68,11 @@ class VVPosEdit(PosEdit):
                     (type(self.edit) is NARefAlt and self.edit.alt and 'N' in self.edit.alt):
                 edit = str(self.edit.format()) # ignore instruction to remove ref in N case
                 formatted_str = f"{self.pos.format(conf)}{edit}"
+            elif type(self.edit) is NARefAlt and self.met_variation:
+                if self.edit.ref == self.edit.alt:
+                    formatted_str = f"{self.pos.format(conf)}{self.met_variation}"
+                else:# Do we want to do more, this might want to trigger errors in validation?
+                    formatted_str = f"{self.pos.format(conf)}{edit}"
             else:
                 formatted_str = f"{self.pos.format(conf)}{edit}"
 
@@ -277,7 +283,19 @@ def _hgvs_offset_pos_from_str_in(starts,length,ref_type=None,end=None):
 
     return start_pos, end_pos
 
-def hgvs_obj_from_existing_edit(ref_ac,ref_type, starts, edit, end=None, offset_pos=False):
+def to_vv_hgvs(hgvs):
+    "Simple recreate as VV PosEdit vis shim on hgvs_obj_from_existing_edit"
+    hgvs = hgvs_obj_from_existing_edit(
+            hgvs.ac,
+            hgvs.type,
+            hgvs.posedit.pos,
+            hgvs.posedit.edit,
+            unc_posedit=hgvs.posedit.uncertain)
+    return hgvs
+
+def hgvs_obj_from_existing_edit(ref_ac,ref_type, starts, edit,
+                                end=None, offset_pos=False,
+                                unc_posedit=None):
     """
     Converts a set of inputs, including a valid edit from an existing hgvs
     object into a new hgvs object
@@ -301,7 +319,10 @@ def hgvs_obj_from_existing_edit(ref_ac,ref_type, starts, edit, end=None, offset_
         return vvhgvs.sequencevariant.SequenceVariant(
                 ac=ref_ac,
                 type=ref_type,
-                posedit=VVPosEdit(starts,edit)
+                posedit=VVPosEdit(
+                    starts,
+                    edit,
+                    uncertain=unc_posedit)
                 )
     if offset_pos or ref_type in ['c', 'n']:
         # if we got a null ref and no ref end presume ins i.e. bases either side
@@ -317,7 +338,8 @@ def hgvs_obj_from_existing_edit(ref_ac,ref_type, starts, edit, end=None, offset_
                 type=ref_type,
                 posedit=VVPosEdit(
                     vvhgvs.location.Interval(start=start_pos,end=end_pos),
-                    edit
+                    edit,
+                    uncertain=unc_posedit
                     )
                 )
     if end:
@@ -332,7 +354,8 @@ def hgvs_obj_from_existing_edit(ref_ac,ref_type, starts, edit, end=None, offset_
                     start=vvhgvs.location.SimplePosition(base=int(starts)),
                     end=vvhgvs.location.SimplePosition(base=ends),
                     ),
-                edit
+                edit,
+                uncertain=unc_posedit
                 )
             )
 
