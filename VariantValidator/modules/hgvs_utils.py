@@ -28,11 +28,15 @@ class PseudoVCF2HGVSError(Exception):
 
 class VVPosEdit(PosEdit):
     "override class for posedit to get VV specific formatting"
+    met_variation = None
     def __init__(
             self,pos,edit,
             uncertain=False,
-            nucleotide_not_equal = None):
+            nucleotide_not_equal = None,
+            met_variation = None):
         PosEdit.__init__(self,pos=pos,edit=edit,uncertain=uncertain)
+        # used to append methylation variation to the output
+        self.met_variation = met_variation
         # used for formatting prot consequence of nuc input (for Ter/*)
         self.nucleotide_not_equal = nucleotide_not_equal
 
@@ -89,6 +93,10 @@ class VVPosEdit(PosEdit):
                     formatted_str = f"{self.pos.format(conf)}{edit}"
             else:
                  formatted_str = f"{self.pos.format(conf)}{edit}"
+            if type(self.edit) is NARefAlt and self.met_variation:
+                if self.edit.ref == self.edit.alt:
+                    formatted_str = formatted_str[:-1] + self.met_variation
+                #Do we want to do more, if met annotation not valid?
         else:
             formatted_str = f"{self.pos.format(conf)}{edit}"
 
@@ -299,7 +307,19 @@ def _hgvs_offset_pos_from_str_in(starts,length,ref_type=None,end=None):
 
     return start_pos, end_pos
 
-def hgvs_obj_from_existing_edit(ref_ac,ref_type, starts, edit, end=None, offset_pos=False):
+def to_vv_hgvs(hgvs):
+    "Simple recreate as VV PosEdit vis shim on hgvs_obj_from_existing_edit"
+    hgvs = hgvs_obj_from_existing_edit(
+            hgvs.ac,
+            hgvs.type,
+            hgvs.posedit.pos,
+            hgvs.posedit.edit,
+            unc_posedit=hgvs.posedit.uncertain)
+    return hgvs
+
+def hgvs_obj_from_existing_edit(ref_ac,ref_type, starts, edit,
+                                end=None, offset_pos=False,
+                                unc_posedit=None):
     """
     Converts a set of inputs, including a valid edit from an existing hgvs
     object into a new hgvs object
@@ -323,7 +343,10 @@ def hgvs_obj_from_existing_edit(ref_ac,ref_type, starts, edit, end=None, offset_
         return vvhgvs.sequencevariant.SequenceVariant(
                 ac=ref_ac,
                 type=ref_type,
-                posedit=VVPosEdit(starts,edit)
+                posedit=VVPosEdit(
+                    starts,
+                    edit,
+                    uncertain=unc_posedit)
                 )
     if offset_pos or ref_type in ['c', 'n']:
         # if we got a null ref and no ref end presume ins i.e. bases either side
@@ -341,7 +364,8 @@ def hgvs_obj_from_existing_edit(ref_ac,ref_type, starts, edit, end=None, offset_
                     vvhgvs.location.BaseOffsetInterval(
                         start=start_pos,
                         end=end_pos),
-                    edit
+                    edit,
+                    uncertain=unc_posedit
                     )
                 )
     if end:
@@ -356,7 +380,8 @@ def hgvs_obj_from_existing_edit(ref_ac,ref_type, starts, edit, end=None, offset_
                     start=vvhgvs.location.SimplePosition(base=int(starts)),
                     end=vvhgvs.location.SimplePosition(base=ends),
                     ),
-                edit
+                edit,
+                uncertain=unc_posedit
                 )
             )
 
