@@ -209,6 +209,7 @@ class Mixin(vvMixinConverters.Mixin):
                             my_variant.gene_symbol = ''
                         if toskip:
                             continue
+                        my_variant.hgvs_transcript_variant = my_variant.quibble
                     # set output to variant type specific
                     if my_variant.reftype in [':n.',':t.',':c.'] and my_variant.hgvs_transcript_variant != '':
                         my_variant.output_type_flag = 'gene'
@@ -815,6 +816,7 @@ class Mixin(vvMixinConverters.Mixin):
                 else:
                     transcript_accession = ''
                     lrg_transcript_variant = ''
+                    hgvs_transcript_variant = ''
 
                 # Look for intronic variants
                 logger.debug("Look for intronic variants")
@@ -1068,10 +1070,10 @@ class Mixin(vvMixinConverters.Mixin):
                     predicted_protein_variant_dict["lrg_slr"] = ''
 
                 # Add missing gene info which should be there (May have come from uncertain positions for example)
-                if variant.hgvs_transcript_variant is not None and variant.gene_symbol == '':
+                if variant.hgvs_transcript_variant and variant.gene_symbol == '':
                     variant.gene_symbol = self.db.get_gene_symbol_from_transcript_id(
                         variant.hgvs_transcript_variant.ac)
-                elif variant.hgvs_refseqgene_variant is not None and variant.gene_symbol == '':
+                elif variant.hgvs_refseqgene_variant and variant.gene_symbol == '':
                     variant.gene_symbol = self.db.get_gene_symbol_from_refseq_id(
                         variant.hgvs_refseqgene_variant.ac)
 
@@ -1168,18 +1170,31 @@ class Mixin(vvMixinConverters.Mixin):
                 variant.alt_genomic_loci = alt_genomic_dicts
                 if variant.reformat_output != "uncertain_pos":
                     variant.primary_assembly_loci = primary_genomic_dicts
-                    variant.hgvs_transcript_variant = hgvs_tx_variant
+                    if hgvs_tx_variant:
+                        variant.hgvs_transcript_variant = hgvs_tx_variant
 
-                if variant.hgvs_transcript_variant is None:
+                if not variant.hgvs_transcript_variant and hgvs_tx_variant:
                     variant.hgvs_transcript_variant = hgvs_tx_variant
-                    # output uses .format() hgvs or str have this None does not
-                    if variant.hgvs_transcript_variant is None:
-                        variant.hgvs_transcript_variant = ''
                 variant.reference_sequence_records = ''
                 variant.validated = True
 
                 # Add links to reference_sequence_records
-                ref_records = self.db.get_urls(variant.output_dict())
+                pre_out = {
+                        'hgvs_transcript_variant':'',
+                        'hgvs_predicted_protein_consequence':{'slr':''},
+                        'hgvs_refseqgene_variant':'',
+                        'hgvs_lrg_variant':'',
+                        'selected_assembly':self.selected_assembly}
+                if variant.hgvs_transcript_variant:
+                    pre_out['hgvs_transcript_variant'] = variant.hgvs_transcript_variant.ac
+                if variant.hgvs_refseqgene_variant:
+                    pre_out['hgvs_refseqgene_variant'] = variant.hgvs_refseqgene_variant.ac
+                if variant.hgvs_lrg_variant:
+                    pre_out['hgvs_lrg_variant'] = variant.hgvs_lrg_variant #is str
+                if variant.hgvs_predicted_protein_consequence:
+                    pre_out['hgvs_predicted_protein_consequence']['slr'] = \
+                            variant.hgvs_predicted_protein_consequence['slr']
+                ref_records = self.db.get_urls(pre_out)
                 if ref_records != {}:
                     variant.reference_sequence_records = ref_records
 
@@ -1393,7 +1408,15 @@ class Mixin(vvMixinConverters.Mixin):
                             item = (getattr(variant, attribute))
                             item = _apply_met_variation(item)
                             setattr(variant, attribute, item)
-
+                # Some variant objects need to be formatted into string versions for back compatibility with old output
+                if variant.hgvs_transcript_variant:
+                    variant.hgvs_transcript_variant = variant.hgvs_transcript_variant.format({'max_ref_length': 0})
+                else:
+                    variant.hgvs_transcript_variant = ''
+                if variant.hgvs_refseqgene_variant:
+                    variant.hgvs_refseqgene_variant = variant.hgvs_refseqgene_variant.format({'max_ref_length': 0})
+                else:
+                    variant.hgvs_refseqgene_variant = ''
                 # Append to a list for return
                 batch_out.append(variant)
             output = valoutput.ValOutput(batch_out, self)

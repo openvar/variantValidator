@@ -35,7 +35,7 @@ class Variant(object):
         self.coding = ''
         self.coding_g = ''
         self.genomic_r = ''
-        self.genomic_g = None # should no be hgvs obj or nothing
+        self.genomic_g = '' # should be a hgvs obj or nothing
         self.protein = ''
         self.write = write
         self.primary_assembly = primary_assembly
@@ -236,11 +236,11 @@ class Variant(object):
             'gene_ids': self.stable_gene_ids,
             'annotations': self.annotations,
             'transcript_description': self.description,
-            'hgvs_transcript_variant': self.hgvs_transcript_variant.format({'max_ref_length': 0}),
+            'hgvs_transcript_variant': self.hgvs_transcript_variant,
             'rna_variant_descriptions': self.rna_data,
             'genome_context_intronic_sequence': self.genome_context_intronic_sequence,
             'refseqgene_context_intronic_sequence': self.refseqgene_context_intronic_sequence,
-            'hgvs_refseqgene_variant': self.hgvs_refseqgene_variant.format({'max_ref_length': 0}),
+            'hgvs_refseqgene_variant': self.hgvs_refseqgene_variant,
             'hgvs_predicted_protein_consequence': self.hgvs_predicted_protein_consequence,
             'validation_warnings': self.process_warnings(),
             'hgvs_lrg_transcript_variant': self.hgvs_lrg_transcript_variant,
