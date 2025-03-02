@@ -31060,7 +31060,15 @@ class TestVariantsAuto(TestCase):
         results = self.vv.validate(variant, 'GRCh38', select_transcripts).format_as_dict(test=True)
         assert 'NM_004006.2:c.720_991dup' in results.keys()
 
-
+    def test_chr_to_rsg(self):
+        # Test a part of chr_to_rsg that was previously untested and resulted in a crashing bug
+        # during development. This particular variant only triggers the code in question when
+        # ".testing" is not enabled.
+        vval = Validator()
+        result = vval.validate('chr3:g.51361947G>T', 'GRCh38', 'all', 'refseq')
+        results = result.format_as_dict(test=True)
+        assert results.keys()
+        assert results['intergenic_variant_1']['hgvs_refseqgene_variant'] == 'NG_028012.1:g.691707G>T'
 
 # <LICENSE>
 # Copyright (C) 2016-2024 VariantValidator Contributors
