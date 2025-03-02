@@ -31070,6 +31070,17 @@ class TestVariantsAuto(TestCase):
         assert results.keys()
         assert results['intergenic_variant_1']['hgvs_refseqgene_variant'] == 'NG_028012.1:g.691707G>T'
 
+    def test_indel_to_prot_del(self):
+        # Test a otherwise untested complex protein code for simple del output as a result of indel
+        # type RNA input.
+        variant = "NM_001015877.2:c.552_558delinsG"
+        select_transcripts = "NM_001015877.2"
+        results = self.vv.validate(variant, 'GRCh38', select_transcripts).format_as_dict(test=True)
+        assert results["NM_001015877.2:c.552_558delinsG"]["hgvs_predicted_protein_consequence"] == {
+            "slr": "NP_001015877.1:p.(H185_G186del)",
+            "tlr": "NP_001015877.1:p.(His185_Gly186del)"
+        }
+
 # <LICENSE>
 # Copyright (C) 2016-2024 VariantValidator Contributors
 #
