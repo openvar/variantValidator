@@ -9,7 +9,8 @@ from . import seq_data
 from . import utils as fn
 from . import gapped_mapping
 from operator import itemgetter
-
+from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
+        unset_hgvs_obj_ref
 logger = logging.getLogger(__name__)
 
 # Exceptions
@@ -18,7 +19,6 @@ class MappersError(Exception):
 
 
 def gene_to_transcripts(variant, validator, select_transcripts_dict):
-    # g_query = validator.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
     g_query = variant.hgvs_formatted
 
     # Genomic coordinates can be validated immediately
@@ -48,11 +48,13 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
     except TypeError:
         pass
 
-    # Perform test
+    # Store as a specifically genomic version of the variant in question
+    # use updated position if normalized to a different position
     if g_query.posedit.pos != g_test.posedit.pos:
         variant.hgvs_genomic = g_test
     else:
         variant.hgvs_genomic = g_query
+
 
     # Collect rel_var
     # rel_var is a key-worded list of relevant transcripts with associated coding variants
@@ -65,11 +67,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
 
     # Double check rel_vars have not been missed when mapping from a RefSeqGene
     if len(rel_var) != 0 and 'NG_' in variant.hgvs_genomic.ac and validator.select_transcripts != "refseqgene":
-        for var in rel_var:
-            try:
-                hgvs_coding_variant = validator.hp.parse_hgvs_variant(var)
-            except TypeError:
-                hgvs_coding_variant = var
+        for hgvs_coding_variant in rel_var:
             try:
                 variant.hgvs_genomic = validator.myevm_t_to_g(hgvs_coding_variant, variant.no_norm_evm,
                                                               variant.primary_assembly, variant.hn)
@@ -88,14 +86,14 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
     #  Triple check this assumption by querying the gene position database
     if len(rel_var) == 0:
         try:
-            vcf_dict = hgvs_utils.hgvs2vcf(variant.hgvs_genomic, variant.primary_assembly, variant.reverse_normalizer,
+            vcf_dict = hgvs_utils.hgvs2vcf(variant.hgvs_genomic, variant.primary_assembly, None,
                                        validator.sf)
 
             if len(vcf_dict['ref']) < 100000:
-                not_di = str(variant.hgvs_genomic.ac) + ':g.' + str(vcf_dict['pos']) + '_' + str(
-                    int(vcf_dict['pos']) + (len(vcf_dict['ref']) - 1)) + 'del' + vcf_dict['ref'] + 'ins' + \
-                    vcf_dict['alt']
-                hgvs_not_di = validator.hp.parse_hgvs_variant(not_di)
+                hgvs_not_di = hgvs_delins_parts_to_hgvs_obj(
+                        variant.hgvs_genomic.ac,
+                        'g',
+                        vcf_dict['pos'],vcf_dict['ref'],vcf_dict['alt'])
                 rel_var = validator.relevant_transcripts(hgvs_not_di, variant.evm, validator.alt_aln_method,
                                                          variant.reverse_normalizer, validator.select_transcripts)
         except vvhgvs.exceptions.HGVSDataNotAvailableError:
@@ -108,9 +106,8 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
     if len(rel_var) == 0:
 
         # Check for NG_
-        if str(variant.hgvs_formatted).startswith('NG_'):
-            # parse
-            hgvs_refseqgene = validator.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
+        if variant.hgvs_formatted.ac.startswith('NG_'):
+            hgvs_refseqgene =variant.hgvs_formatted
             # Convert to chromosomal position
             refseqgene_data = validator.rsg_to_chr(hgvs_refseqgene, variant.primary_assembly, variant.hn)
             # There should only ever be one description returned
@@ -162,14 +159,14 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                 else:
                     # Map to RefSeqGene if available
                     refseqgene_data = validator.chr_to_rsg(variant.hgvs_genomic, variant.hn)
-                    rsg_data = ''
+                    rsg_data = []
                     # Example {'gene': 'NTHL1', 'hgvs_refseqgene': 'NG_008412.1:g.3455_3464delCAAACACACA',
                     # 'valid': 'true'}
                     for data in refseqgene_data:
                         if data['valid'] == 'true':
-                            data['hgvs_refseqgene'] = validator.hp.parse_hgvs_variant(data['hgvs_refseqgene'])
-                            data['hgvs_refseqgene'] = fn.valstr(data['hgvs_refseqgene'])
-                            rsg_data = rsg_data + data['hgvs_refseqgene'] + ' (' + data['gene'] + '), '
+                            rsg_data.append(unset_hgvs_obj_ref(data['hgvs_refseqgene']))
+                    if not len(rsg_data):
+                        rsg_data = ['']
 
                     if validator.select_transcripts not in ['all', 'raw', 'select', 'mane_select', 'mane']:
                         error = (f'None of the specified transcripts ({validator.select_transcripts}) '
@@ -182,8 +179,8 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                     variant.output_type_flag = 'intergenic'
                     # set genomic and where available RefSeqGene outputs
                     variant.warnings.append(error)
-                    variant.genomic_g = fn.valstr(variant.hgvs_genomic)
-                    variant.genomic_r = str(rsg_data.split('(')[0])
+                    variant.genomic_g = unset_hgvs_obj_ref(variant.hgvs_genomic)
+                    variant.genomic_r = rsg_data[0]
                     logger.warning(str(error))
                     return True
             else:
@@ -217,7 +214,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                         gap_warnings.append(data["gapped_alignment_warning"])
                         gap_warnings.append(aut_inf)
 
-            query = Variant(variant.original, quibble=str(c_description), warnings=variant.warnings + gap_warnings,
+            query = Variant(variant.original, quibble=c_description, warnings=variant.warnings + gap_warnings,
                             primary_assembly=variant.primary_assembly, order=variant.order,
                             selected_assembly=variant.selected_assembly, reformat_output=variant.reformat_output)
             validator.batch_list.append(query)
@@ -235,12 +232,19 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     caution = ''
     error = ''
     # Collect information for genomic level validation
-    obj = validator.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
+    obj = variant.hgvs_formatted
+    if type(obj) is str: #still happens for some error cases
+        variant.hgvs_formatted = validator.hp.parse_hgvs_variant(
+                variant.hgvs_formatted)
+        obj = variant.hgvs_formatted
     tx_ac = obj.ac
 
     quibble_input = str(variant.quibble)
+    quibble_input_hgvs_obj = variant.quibble
+    if isinstance(quibble_input_hgvs_obj, str):
+       quibble_input_hgvs_obj = validator.hp.parse_hgvs_variant(variant.quibble)
     formatted_variant = str(variant.hgvs_formatted)
-
+    out_hgvs_obj = variant.hgvs_formatted
     # Do we keep it?
     if (validator.select_transcripts != 'all' and validator.select_transcripts != 'raw') \
             and "select" not in validator.select_transcripts and \
@@ -253,7 +257,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     # Se rec_var to '' so it can be updated later
     rec_var = ''
 
-    # First task is to get the genomic equivalent, and print useful error messages if it can't be found.
+    # First task is to get the genomic equivalent, and output a useful error messages if it can't be found.
     try:
         to_g = validator.myevm_t_to_g(obj, variant.no_norm_evm, variant.primary_assembly, variant.hn)
         genomic_ac = to_g.ac
@@ -291,8 +295,6 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         logger.info(str(errors))
         return True
 
-    # Get orientation of the gene wrt genome and a list of exons mapped to the genome
-    ori = validator.tx_exons(tx_ac=tx_ac, alt_ac=genomic_ac, alt_aln_method=validator.alt_aln_method)
 
     plus = re.compile(r"\d\+\d")  # finds digit + digit
     minus = re.compile(r"\d-\d")  # finds digit - digit
@@ -321,11 +323,13 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                                                      obj.posedit.pos.start.offset != 0 and
                                                      obj.posedit.pos.end.offset == 0):
                 formatted_variant = str(obj)
+                out_hgvs_obj = obj
             else:
                 # Normalize was I believe to replace ref. Mapping does this anyway
                 # to_g = variant.hn.normalize(to_g)
                 try:
-                    formatted_variant = str(validator.myevm_g_to_t(variant.evm, to_g, tx_ac))
+                    out_hgvs_obj = validator.myevm_g_to_t(variant.evm, to_g, tx_ac)
+                    formatted_variant = str(out_hgvs_obj)
                 except vvhgvs.exceptions.HGVSError as e:
                     if "Alignment is incomplete" in str(e):
                         to_g = hgvs_utils.incomplete_alignment_mapping_t_to_g(validator, variant)
@@ -336,11 +340,12 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                             return True
                         else:
                             variant.hgvc_genomic = to_g
-                            formatted_variant = str(validator.vm.g_to_t(to_g, tx_ac))
+                            out_hgvs_obj = validator.vm.g_to_t(to_g, tx_ac)
+                            formatted_variant = str(out_hgvs_obj)
 
     elif ':g.' in quibble_input:
         if plus.search(formatted_variant) or minus.search(formatted_variant):
-            to_g = validator.genomic(formatted_variant, variant.no_norm_evm, variant.primary_assembly, variant.hn)
+            to_g = validator.genomic(out_hgvs_obj, variant.no_norm_evm, variant.primary_assembly, variant.hn)
             if 'error' in str(to_g):
                 if validator.alt_aln_method != 'genebuild':
                     error = "If the following error message does not address the issue and the problem persists " \
@@ -362,18 +367,20 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                 obj.posedit.pos.end.offset != 0) or (obj.posedit.edit.type == 'ins' and
                                                      obj.posedit.pos.start.offset != 0 and
                                                      obj.posedit.pos.end.offset == 0):
+                out_hgvs_obj = obj
                 formatted_variant = str(obj)
             else:
                 # Normalize was I believe to replace ref. Mapping does this anyway
                 # to_g = hn.normalize(to_g)
-                formatted_variant = str(validator.myevm_g_to_t(variant.evm, to_g, tx_ac))
+                out_hgvs_obj = validator.myevm_g_to_t(variant.evm, to_g, tx_ac)
+                formatted_variant = str(out_hgvs_obj)
 
     else:
         # Normalize the variant
         try:
             h_variant = variant.hn.normalize(obj)
-        except vvhgvs.exceptions.HGVSUnsupportedOperationError:
-            if 'Unsupported normalization of variants spanning the exon-intron boundary' in error:
+        except vvhgvs.exceptions.HGVSUnsupportedOperationError as error:
+            if 'Unsupported normalization of variants spanning the exon-intron boundary' in str(error):
                 formatted_variant = formatted_variant
                 caution = 'This coding sequence variant description spans at least one intron'
                 variant.warnings.extend([caution])
@@ -381,9 +388,10 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
             logger.info(str(e))
         else:
+            out_hgvs_obj = h_variant
             formatted_variant = str(h_variant)
 
-        error = validator.validateHGVS(formatted_variant)
+        error = validator.validateHGVS(out_hgvs_obj)
         if error == 'false':
             valid = True
         elif 'datums is ill-defined' in str(error):
@@ -415,10 +423,16 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     if cck:
         # This should only ever hit coding variants (RNA has been converted to c by now)
         if 'del' in formatted_variant:
-            coding = validator.coding(formatted_variant)
+            if out_hgvs_obj.type == 'c':
+                coding = out_hgvs_obj
+            elif quibble_input_hgvs_obj.type == 'c':
+                coding = validator.coding(out_hgvs_obj)
+            else:# not actually coding
+                coding =  out_hgvs_obj
+
             trans_acc = coding.ac
             # c to Genome coordinates - Map the variant to the genome
-            pre_var = validator.hp.parse_hgvs_variant(formatted_variant)
+            pre_var = out_hgvs_obj
             try:
                 pre_var = validator.myevm_t_to_g(pre_var, variant.no_norm_evm, variant.primary_assembly,
                                                  variant.hn)
@@ -452,7 +466,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                     logger.warning(str(error))
                     return True
 
-            test = validator.hp.parse_hgvs_variant(quibble_input)
+            test = quibble_input_hgvs_obj
             if post_var.posedit.pos.start.base != test.posedit.pos.start.base or \
                     post_var.posedit.pos.end.base != test.posedit.pos.end.base:
 
@@ -494,10 +508,15 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
 
         else:  # del not in formatted_variant
 
-            coding = validator.coding(formatted_variant)
+            if out_hgvs_obj.type == 'c':
+                coding = out_hgvs_obj
+            elif quibble_input_hgvs_obj.type == 'c':
+                coding = validator.coding(out_hgvs_obj)
+            else:# not actually coding
+                coding =  out_hgvs_obj
             trans_acc = coding.ac
             # c to Genome coordinates - Map the variant to the genome
-            pre_var = validator.genomic(formatted_variant, variant.no_norm_evm, variant.primary_assembly,
+            pre_var = validator.genomic(out_hgvs_obj, variant.no_norm_evm, variant.primary_assembly,
                                         variant.hn)
 
             # genome back to C coordinates
@@ -515,7 +534,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                         post_var = validator.vm.g_to_t(pre_var, tx_ac)
                         variant.hgvs_genomic = pre_var
 
-            test = validator.hp.parse_hgvs_variant(quibble_input)
+            test = quibble_input_hgvs_obj
             if post_var.posedit.pos.start.base != test.posedit.pos.start.base or \
                     post_var.posedit.pos.end.base != test.posedit.pos.end.base:
 
@@ -556,33 +575,22 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                     raise MappersError(caution)
 
     elif ':g.' not in quibble_input:
-        query = validator.hp.parse_hgvs_variant(formatted_variant)
-        test = validator.hp.parse_hgvs_variant(quibble_input)
+        query = out_hgvs_obj
+        test = quibble_input_hgvs_obj
 
-        if query.posedit.pos != test.posedit.pos:
+        if str(query.posedit.pos) != str(test.posedit.pos):
             automap = str(test) + ' automapped to ' + str(query)
             variant.warnings.extend([automap])
-
-            # Kill current line and append for re-submission
-            # Tag the line so that it is not written out
-            variant.write = False
-            # Set the values and append to batch_list
-            hgvs_vt = validator.hp.parse_hgvs_variant(str(query))
-            assert str(hgvs_vt) == str(query)
-            query = Variant(variant.original, quibble=fn.valstr(hgvs_vt), warnings=variant.warnings,
-                            primary_assembly=variant.primary_assembly, order=variant.order,
-                            selected_assembly=variant.selected_assembly)
-            validator.batch_list.append(query)
-            logger.info("Submitting new variant with format %s", fn.valstr(hgvs_vt))
+            variant.quibble=out_hgvs_obj
 
     # VALIDATION of intronic variants
-    pre_valid = validator.hp.parse_hgvs_variant(quibble_input)
-    post_valid = validator.hp.parse_hgvs_variant(formatted_variant)
+    pre_valid = quibble_input_hgvs_obj
+    post_valid = out_hgvs_obj
 
     # valid is false if the input contains a \d+\d, \d-\d or :g.
     if not valid:
-        genomic_validation = str(validator.genomic(quibble_input, variant.no_norm_evm, variant.primary_assembly,
-                                                   variant.hn))
+        genomic_validation = validator.genomic(quibble_input_hgvs_obj, variant.no_norm_evm, variant.primary_assembly,
+                                                   variant.hn)
         if fn.valstr(pre_valid) != fn.valstr(post_valid):
             if variant.reftype != ':g.':
                 if caution == '':
@@ -608,8 +616,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     ##############################
 
     # Coding sequence - BASED ON NORMALIZED VARIANT IF EXONIC
-    hgvs_coding = validator.coding(formatted_variant)
-
+    hgvs_coding = out_hgvs_obj
     try:
         hgvs_coding = variant.hn.normalize(hgvs_coding)
     except vvhgvs.exceptions.HGVSError as e:
@@ -650,6 +657,8 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     # --- GAP MAPPING 1 ---
     # Loop out gap finding code under these circumstances!
     if gap_compensation is True:
+        # Get orientation of the gene wrt genome and a list of exons mapped to the genome
+        ori = validator.tx_exons(tx_ac=tx_ac, alt_ac=genomic_ac, alt_aln_method=validator.alt_aln_method)
         hgvs_genomic, suppress_c_normalization, hgvs_coding = gap_mapper.g_to_t_compensation(ori, hgvs_coding, rec_var)
     else:
         suppress_c_normalization = 'false'
@@ -659,14 +668,13 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
     reverse_normalized_hgvs_genomic = variant.reverse_normalizer.normalize(hgvs_genomic)
 
-    # Get orientation of the gene wrt genome and a list of exons mapped to the genome
-    ori = validator.tx_exons(tx_ac=hgvs_coding.ac, alt_ac=reverse_normalized_hgvs_genomic.ac,
-                             alt_aln_method=validator.alt_aln_method)
-
     # --- GAP MAPPING 2 ---
     # Loop out gap finding code under these circumstances!
     logger.debug("gap_compensation_2 = " + str(gap_compensation))
     if gap_compensation is True:
+        # Get orientation of the gene wrt genome and a list of exons mapped to the genome
+        ori = validator.tx_exons(tx_ac=hgvs_coding.ac, alt_ac=reverse_normalized_hgvs_genomic.ac,
+                                 alt_aln_method=validator.alt_aln_method)
         hgvs_coding = gap_mapper.g_to_t_gapped_mapping_stage2(ori, hgvs_coding, hgvs_genomic)
 
     # OBTAIN THE RefSeqGene coordinates
@@ -711,15 +719,6 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                                                        f"codon in the reference "
                                                        f"mRNA sequence. {hgvs_coding.ac} may not be a valid "
                                                        f"coding sequence"}
-    # Replace p.= with p.(=)
-    # Replace p.? with p.(?)
-    try:
-        if protein_dict['hgvs_protein'].posedit == '=':
-            protein_dict['hgvs_protein'].posedit = '(=)'
-        if protein_dict['hgvs_protein'].posedit == '?':
-            protein_dict['hgvs_protein'].posedit = '(?)'
-    except AttributeError:
-        pass
 
     if protein_dict['error'] == '':
         hgvs_protein = protein_dict['hgvs_protein']
@@ -843,9 +842,8 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                         hgvs_updated.posedit.pos.start.base = '*' + str(start_out)
                         hgvs_updated.posedit.pos.end.base = '*' + str(end_out)
 
-        hgvs_updated = fn.remove_reference(hgvs_updated)
-        hgvs_updated = validator.hp.parse_hgvs_variant(hgvs_updated)
-        updated_transcript_variant = hgvs_updated
+        # set ref to empty (without re-parsing from text)
+        updated_transcript_variant = unset_hgvs_obj_ref(hgvs_updated)
 
         if validator.alt_aln_method == "genebuild":
             variant.warnings.append('TranscriptVersionWarning: A more recent version of the selected reference sequence ' + hgvs_coding.ac +
@@ -862,11 +860,10 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                                     str(updated_transcript_variant) + ' MUST be fully validated prior to '
                                                                       'use in reports: '
                                     'select_variants=' + fn.valstr(updated_transcript_variant))
-
-    variant.coding = str(hgvs_coding)
-    variant.genomic_r = str(hgvs_refseq)
-    variant.genomic_g = str(hgvs_genomic)
-    variant.protein = str(hgvs_protein)
+    variant.coding = hgvs_coding
+    variant.genomic_r = hgvs_refseq
+    variant.genomic_g = unset_hgvs_obj_ref(hgvs_genomic)
+    variant.protein = hgvs_protein
     return False
 
 
@@ -906,7 +903,7 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=
 
     for alt_chr in mapping_options:
         if liftover_level is None:
-            multi_list.append(variant.genomic_g.split(":")[0])
+            multi_list.append(variant.genomic_g.ac)
         elif liftover_level == 'primary':
             if ('NC_' in alt_chr[1]) and alt_chr[2] == validator.alt_aln_method:
                 multi_list.append(alt_chr[1])

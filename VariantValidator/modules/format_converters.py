@@ -6,8 +6,11 @@ from VariantValidator.modules.variant import Variant
 from VariantValidator.modules import seq_data
 from VariantValidator.modules import utils as fn
 import VariantValidator.modules.rna_formatter
-from VariantValidator.modules import complex_descriptions, use_checking
+from VariantValidator.modules import complex_descriptions, use_checking, \
+        expanded_repeats, methyl_syntax
 from VariantValidator.modules.vvMixinConverters import AlleleSyntaxError
+from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
+        unset_hgvs_obj_ref
 
 logger = logging.getLogger(__name__)
 
@@ -38,11 +41,6 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
     if toskip:
         return True
 
-    # Uncertain positions
-    toskip = uncertain_pos(variant, validator)
-    if toskip:
-        return True
-
     # Find not_sub type in input e.g. GGGG>G
     toskip = vcf2hgvs_stage4(variant, validator)
     if toskip:
@@ -54,12 +52,89 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
     if toskip:
         return True
 
-    toskip = indel_catching(variant, validator)
+    # Conversions
+    # are not currently supported. The HGVS format for conversions
+    # is rarely seen wrt genomic sequencing data and needs to be re-evaluated
+    # so abort before hgvs object conversion to avoid errors & parsing overhead
+    if 'con' in str(variant.quibble):
+        variant.warnings.append('Conversions are no longer valid HGVS Sequence Variant Descriptions')
+        logger.warning('Conversions are no longer valid HGVS Sequence Variant Descriptions')
+        return True
+
+    toskip = use_checking.pre_parsing_global_common_mistakes(variant)
     if toskip:
         return True
 
+    # Remove & store Methylation Syntax suffix before hgvs object parsing
+    methyl_syntax.methyl_syntax(variant)
+
+    # Uncertain positions (converts to hgvs object so must be post split/fix)
+    toskip = uncertain_pos(variant, validator)
+    if toskip:
+        return True
+
+    # Expanded repeat->delins code can not handle Uncertain positions yet
+    # also does hgvs object conversion if it triggers
+    if type(variant.quibble) is str: # not Uncertain
+        toskip = convert_expanded_repeat(variant, validator)
+        if toskip:
+            return True
+
+    # Catches del12/ins21 type variants, can usfully trigger on the outupt of the expanded repeat conversions
+    # and can not currently handle uncertain positions
+    if type(variant.quibble) is str: # not Uncertain
+        toskip = indel_catching(variant, validator)
+        if toskip:
+            return True
+
+    # Quibble should now be correctly formatted hgvs & work for object parsing
+    # or else already have been parsed already
+    if type(variant.quibble) is str:
+        try:
+            toskip = final_hgvs_convert(variant, validator)
+        except:
+            # Check for common mistakes
+            toskip = use_checking.refseq_common_mistakes(variant)
+        if toskip:
+            return True
+
     # Tackle compound variant descriptions NG or NC (NM_) i.e. correctly input NG/NC_(NM_):c.
     intronic_converter(variant, validator)
+    return False
+
+def final_hgvs_convert(variant,validator):
+    """
+    For use in the final hgvs str ->hgvs obj conversion.
+    Requires a fully checked out text variant quibble
+    Avoids issues with XX_000XX(XX_000XX): type variants by parsing more
+    directly
+    Returns skipvar i.e true if something went wrong
+    """
+    seq_ac, _sep, type_posedit = variant.quibble.partition(':')
+    var_type, _sep, posedit = type_posedit.partition('.')
+    if var_type == 'c':
+        posedit = validator.hp.parse_c_posedit(posedit)
+    elif var_type == 'g':
+        posedit = validator.hp.parse_g_posedit(posedit)
+    elif var_type == 'm':
+        posedit = validator.hp.parse_m_posedit(posedit)
+    elif var_type == 'n':
+        posedit = validator.hp.parse_n_posedit(posedit)
+    elif var_type == 'p':
+        posedit = validator.hp.parse_p_posedit(posedit)
+    elif var_type == 'r':
+        if 'T' in posedit:
+            e = 'The IUPAC RNA alphabet dictates that RNA variants must use '\
+                    'the character u in place of t'
+            variant.warnings.append(e)
+            return True
+        posedit = validator.hp.parse_r_posedit(posedit)
+
+    variant.quibble = vvhgvs.sequencevariant.SequenceVariant(
+            ac = seq_ac,
+            type = var_type,
+            posedit = posedit
+            )
     return False
 
 
@@ -158,7 +233,7 @@ def vcf2hgvs_stage2(variant, validator):
                 if 'GRCh37' in variant.quibble or 'hg19' in variant.quibble:
                     variant.primary_assembly = 'GRCh37'
                     validator.selected_assembly = 'GRCh37'
-                    variant.quibble.format_quibble()
+                    variant.format_quibble()
                 elif 'GRCh38' in variant.quibble or 'hg38' in variant.quibble:
                     variant.primary_assembly = 'GRCh38'
                     validator.selected_assembly = 'GRCh38'
@@ -315,11 +390,11 @@ def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version):
     boundaries etc of the alternative transcript variants may not be equivalent
     """
     skipvar = False
-    if re.search(r'\w+:[cn]\.', variant.quibble):
+    query_a_symbol, _sep, tx_edit = variant.quibble.partition(':')
+    if not (query_a_symbol[:3] in ['NC','NM_','NR_','ENST'] or
+            query_a_symbol.startswith('ENST')
+            ) and re.search(r'\w+:[cn]\.', variant.quibble):
         try:
-            pre_input = variant.quibble.split(':')
-            query_a_symbol = pre_input[0]
-            tx_edit = pre_input[1]
             is_it_a_gene = validator.db.get_hgnc_symbol(query_a_symbol)
             if is_it_a_gene != 'none':
                 uta_symbol = validator.db.get_uta_symbol(is_it_a_gene)
@@ -349,11 +424,11 @@ def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version):
                 else:
                     variant.warnings.append('HGVS variant nomenclature does not allow the use of a gene symbol ('
                                             + query_a_symbol + ') in place of a valid reference sequence: Re-submit ' +
-                                            variant.quibble + ' and specify transcripts from the following: ' +
+                                            str(variant.quibble) + ' and specify transcripts from the following: ' +
                                             'select_transcripts=' + select_from_these_transcripts)
                     logger.warning('HGVS variant nomenclature does not allow the use of a gene symbol (' +
                                    query_a_symbol + ') in place of a valid reference sequence: Re-submit ' +
-                                   variant.quibble + ' and specify transcripts from the following: ' +
+                                   str(variant.quibble) + ' and specify transcripts from the following: ' +
                                    'select_transcripts=' + select_from_these_transcripts)
                 skipvar = True
         except Exception as e:
@@ -448,7 +523,7 @@ def vcf2hgvs_stage4(variant, validator):
             # If the length of either side of the substitution delimer (>) is >1
             matches = not_sub_find.search(not_sub)
             if len(matches.group(1)) > 1 or len(matches.group(2)) > 1 or \
-                    ('>' in variant.quibble and ',' in variant.quibble):
+                    ('>' in not_sub and ',' in not_sub):
                 # Search for and remove range
                 interval_range = re.compile(r"([0-9]+)_([0-9]+)")
                 if interval_range.search(not_sub):
@@ -460,85 +535,78 @@ def vcf2hgvs_stage4(variant, validator):
                     end_string = start + '>' + delete
                     not_sub = beginning_string + ':' + middle_string + end_string
                 # Split description
-                split_colon = not_sub.split(':')
-                ref_ac = split_colon[0]
-                remainder1 = split_colon[1]
-                split_dot = remainder1.split('.')
-                ref_type = split_dot[0]
-                remainder = split_dot[1]
-                posedit = remainder
-                split_greater = remainder.split('>')
-                insert = split_greater[1]
-                remainder = split_greater[0]
-                # Split remainder using matches
+                ref_ac, _sep, remainder1 = not_sub.partition(':')
+                ref_type, _sep, posedit = remainder1.partition('.')
+                pos_ref, _sep, insert = posedit.partition('>')
+                # If we have a list on inserts rather than 1 we need to resubmit
+                # and abort! No need to continue with known over-loaded input
+                if ',' in insert:
+                    header = ref_ac + ':' + ref_type + '.' + pos_ref + '>'
+                    alt_list = insert.split(',')
+                    # Assemble and re-submit
+                    for alt in alt_list:
+                        variant.warnings = ['Multiple ALT sequences detected: '
+                                            'auto-submitting all possible combinations']
+                        variant.write = False
+                        refreshed_description = header + alt
+                        query = Variant(variant.original, quibble=refreshed_description,
+                                        warnings=variant.warnings, primary_assembly=variant.primary_assembly,
+                                        order=variant.order)
+                        validator.batch_list.append(query)
+                        logger.info('Multiple ALT sequences detected. Auto-submitting all possible combinations.')
+                        logger.info("Submitting new variant with format %s", refreshed_description)
+                    skipvar = True
+                    return skipvar
+
+                # Split ref from position using matches
                 r = re.compile(r"([0-9]+)([GATCgatc]+)")
-                try:
-                    m = r.search(remainder)
-                    delete = m.group(2)
-                    starts = posedit.split(delete)[0]
-                    re_try = ref_ac + ':' + ref_type + '.' + starts + 'del' + delete[0] + 'ins' + insert
-                    hgvs_re_try = validator.hp.parse_hgvs_variant(re_try)
-                    hgvs_re_try.posedit.edit.ref = delete
-                    start_pos = str(hgvs_re_try.posedit.pos.start)
-                    if '-' in start_pos:
-                        base, offset = start_pos.split('-')
-                        new_offset = 0 - int(offset) + (len(delete))
-                        end_pos = int(base)
-                        hgvs_re_try.posedit.pos.end.base = int(end_pos)
-                        hgvs_re_try.posedit.pos.end.offset = int(new_offset) - 1
-                        not_delins = ref_ac + ':' + ref_type + '.' + start_pos + '_' + str(
-                            hgvs_re_try.posedit.pos.end) + 'del' + delete + 'ins' + insert
-                    elif '+' in start_pos:
-                        base, offset = start_pos.split('+')
-                        end_pos = int(base) + (len(delete) - int(offset) - 1)
-                        new_offset = 0 + int(offset) + (len(delete) - 1)
-                        hgvs_re_try.posedit.pos.end.base = int(end_pos)
-                        hgvs_re_try.posedit.pos.end.offset = int(new_offset)
-                        not_delins = ref_ac + ':' + ref_type + '.' + start_pos + '_' + str(
-                            hgvs_re_try.posedit.pos.end) + 'del' + delete + 'ins' + insert
-                    else:
-                        end_pos = int(start_pos) + (len(delete) - 1)
-                        not_delins = ref_ac + ':' + ref_type + '.' + start_pos + '_' + str(
-                            end_pos) + 'del' + delete + 'ins' + insert
-                except Exception as e:
-                    logger.debug("Except passed, %s", e)
-                    not_delins = not_sub
-                # Parse into hgvs object
-                hgvs_not_delins = None
-                try:
-                    hgvs_not_delins = validator.hp.parse_hgvs_variant(not_delins)
-                except vvhgvs.exceptions.HGVSError as e:
-                    # Sort out multiple ALTS from VCF inputs
-                    if '>' in not_delins and ',' in not_delins:
-                        header, alts = not_delins.split('>')
-                        # Split up the alts into a list
-                        alt_list = alts.split(',')
-                        # Assemble and re-submit
-                        for alt in alt_list:
-                            variant.warnings = ['Multiple ALT sequences detected: '
-                                                'auto-submitting all possible combinations']
-                            variant.write = False
-                            refreshed_description = header + '>' + alt
-                            query = Variant(variant.original, quibble=refreshed_description,
-                                            warnings=variant.warnings, primary_assembly=variant.primary_assembly,
-                                            order=variant.order)
+                m = r.search(pos_ref)
+                delete = m.group(2)
+                starts = posedit.split(delete)[0]
+                hgvs_re_try = hgvs_delins_parts_to_hgvs_obj(
+                        ref_ac,
+                        ref_type,
+                        starts,delete[0],insert,
+                        offset_pos=True)
+                hgvs_re_try.posedit.edit.ref = delete
+                start_pos = str(hgvs_re_try.posedit.pos.start)
+                if '-' in start_pos:
+                    base, offset = start_pos.split('-')
+                    new_offset = 0 - int(offset) + (len(delete))
+                    hgvs_re_try.posedit.pos.end.base = int(base)
+                    hgvs_re_try.posedit.pos.end.offset = int(new_offset) - 1
+                    hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
+                            ref_ac,
+                            ref_type,
+                            hgvs_re_try.posedit.pos,delete,insert,
+                            offset_pos=True)
+                elif '+' in start_pos:
+                    base, offset = start_pos.split('+')
+                    end_pos = int(base) + (len(delete) - int(offset) - 1)
+                    new_offset = 0 + int(offset) + (len(delete) - 1)
+                    hgvs_re_try.posedit.pos.end.base = int(end_pos)
+                    hgvs_re_try.posedit.pos.end.offset = int(new_offset)
+                    hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
+                            ref_ac,
+                            ref_type,
+                            hgvs_re_try.posedit.pos,delete,insert,
+                            offset_pos=True)
+                else:
+                    end_pos = int(start_pos) + (len(delete) - 1)
+                    hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
+                            ref_ac,
+                            ref_type,
+                            start_pos,delete,insert,
+                            end=end_pos,
+                            offset_pos=True)
 
-                            validator.batch_list.append(query)
-                            logger.info('Multiple ALT sequences detected. Auto-submitting all possible combinations.')
-                            logger.info("Submitting new variant with format %s", refreshed_description)
-                        skipvar = True
-                    else:
-                        error = str(e)
-                        variant.warnings.append(error)
-                        logger.warning(str(e))
-                        skipvar = True
-
+                # attempt to normalise output
                 try:
                     not_delins = str(variant.hn.normalize(hgvs_not_delins))
                 except vvhgvs.exceptions.HGVSError as e:
                     error = str(e)
                     if 'Normalization of intronic variants is not supported' in error:
-                        not_delins = not_delins
+                        not_delins = str(hgvs_not_delins)
                     else:
                         variant.warnings.append(error)
                         logger.warning(str(e))
@@ -554,6 +622,56 @@ def vcf2hgvs_stage4(variant, validator):
 
     return skipvar
 
+def convert_expanded_repeat(my_variant,validator):
+    # Format expanded repeat syntax into a usable hgvs variant
+    """
+    Waiting for HGVS nomenclature changes
+    """
+    try:
+        has_ex_repeat = expanded_repeats.convert_tandem(my_variant, validator, my_variant.primary_assembly,
+                                                 "all")
+    except expanded_repeats.RepeatSyntaxError as e:
+        my_variant.warnings = [str(e)]
+        return True
+    except vvhgvs.exceptions.HGVSInvalidVariantError as e:
+        my_variant.warnings = ["HgvsSyntaxError: " + str(e)]
+        return True
+    except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
+        if "invalid coordinates:" in str(e):
+            my_variant.warnings = [(f"ExonBoundaryError: Stated position "
+                                    f"does not correspond with an exon boundary for "
+                                    f"transcript {my_variant.quibble.split(':')[0]}")]
+            return True
+    except Exception as e:
+        my_variant.warnings = ["ExpandedRepeatError: " + str(e)]
+        return True
+
+    if not has_ex_repeat:
+        return False
+
+    if my_variant.quibble != my_variant.expanded_repeat["variant"]:
+        my_variant.warnings.append(f"ExpandedRepeatWarning: {my_variant.quibble} updated "
+                                   f"to {my_variant.expanded_repeat['variant']}")
+    ins_bases = (my_variant.expanded_repeat["repeat_sequence"] *
+                 int(my_variant.expanded_repeat["copy_number"]))
+    start_pos, _sep, end_pos = my_variant.expanded_repeat['position'].partition('_')
+    repeat_to_delins = hgvs_delins_parts_to_hgvs_obj(
+            my_variant.expanded_repeat['reference'],
+            my_variant.expanded_repeat['prefix'],
+            start_pos,
+            '',
+            ins_bases,
+            end=end_pos)
+
+    try:
+        repeat_to_delins = my_variant.hn.normalize(repeat_to_delins)
+    except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
+        pass
+    my_variant.quibble = repeat_to_delins #fn.valstr(repeat_to_delins)
+    my_variant.warnings.append(f"ExpandedRepeatWarning: {my_variant.expanded_repeat['variant']} "
+                               f"should only be used as an annotation for the core "
+                               f"HGVS descriptions provided")
+    return False
 
 def indel_catching(variant, validator):
     """
@@ -576,14 +694,14 @@ def indel_catching(variant, validator):
             if 'dup' in variant.quibble:
                 dup_in_quibble = True
                 variant.quibble = variant.quibble.replace('dup', 'del')
-            try:
-                hgvs_quibble = validator.hp.parse_hgvs_variant(variant.quibble)
-            except vvhgvs.exceptions.HGVSError:
+            if '(' in variant.quibble:
                 # Tackle compound variant descriptions NG or NC (NM_) i.e. correctly input NG/NC_(NM_):c.
+                final_hgvs_convert(variant, validator)
                 intronic_converter(variant, validator)
-                hgvs_quibble = validator.hp.parse_hgvs_variant(variant.quibble)
+            else:
+                final_hgvs_convert(variant, validator)
             try:
-                validator.vr.validate(hgvs_quibble)
+                validator.vr.validate(variant.quibble)
             except vvhgvs.exceptions.HGVSError as e:
                 if 'Length implied by coordinates must equal ' \
                    'sequence deletion length' in str(e) and dup_in_quibble is True:
@@ -597,7 +715,7 @@ def indel_catching(variant, validator):
 
             # Remove them so that the string SHOULD parse
             if dup_in_quibble is True:
-                variant.quibble = str(hgvs_quibble).replace('del', 'dup')
+                variant.quibble.posedit.edit.alt = variant.quibble.posedit.edit.ref + variant.quibble.posedit.edit.ref
             variant.warnings.append(error)
             variant.warnings.append('Refer to ' + issue_link)
             logger.info(error)
@@ -618,55 +736,71 @@ def intronic_converter(variant, validator, skip_check=False, uncertain=False):
     Removes the parintheses
     (NM_000088.3):c.589-1G>T ---> NM_000088.3:c.589-1G>T
     hgvs can now parse the string into an hgvs variant object and manipulate it
+    We now can parse in such variants but they still need fixing before mapping
     """
     compounder = re.compile(r'\((NM_|NR_|ENST)')
     compounder2 = re.compile(r'\(LRG_\d+t')
+    if type(variant.quibble) is str:
+        parsed = False
+        acc_section, _sep, remainder = variant.quibble.partition(":")
+    else:
+        parsed = True
+        acc_section = variant.quibble.ac
 
-    if compounder.search(variant.quibble) or compounder2.search(variant.quibble):
+    if compounder.search(acc_section) or compounder2.search(acc_section):
         # Convert LRG transcript
-        if compounder2.search(variant.quibble):
-            lrg_transcript = variant.quibble.split("(")[1].split(":")[0].replace(")", "")
+        if compounder2.search(acc_section):
+            lrg_transcript = acc_section.split("(")[1].replace(")", "")
             refseq_transcript = validator.db.get_refseq_transcript_id_from_lrg_transcript_id(lrg_transcript)
-            variant.quibble = variant.quibble.replace(lrg_transcript, refseq_transcript)
+            if parsed:
+                variant.quibble.ac = variant.quibble.ac.replace(lrg_transcript, refseq_transcript)
+                acc_section = variant.quibble.ac
+            else:
+                variant.quibble = variant.quibble.replace(lrg_transcript, refseq_transcript)
+                acc_section, _sep, _remain = variant.quibble.partition(":")
             variant.warnings.append(f"Reference sequence {lrg_transcript} updated to {refseq_transcript}")
 
         # Find pattern e.g. +0000 and assign to a variable
         if uncertain is True:
-            references, variation = variant.quibble.split(':')
-            genomic, transcript = references.split('(')
+            genomic, _sep ,transcript = acc_section.partition('(')
             transcript = transcript.replace(')', '')
-            variant.quibble = f"{transcript}:{variation}"
+            if type(variant.quibble) is str:
+                variant.quibble = f"{transcript}:{remainder}"
+            else:
+                variant.quibble.ac = transcript
             return variant
         else:
-            genomic_ref = variant.quibble.split('(')[0]
-        transy = re.search(r"((NM_|ENST|NR_).+)", variant.quibble)
+            genomic_ref = acc_section.split('(')[0]
+        transy = re.search(r"((NM_|ENST|NR_).+)", acc_section)
         transy = transy.group(1)
         transy = transy.replace(')', '')
 
         # Add the edited variant for next stage error processing e.g. exon boundaries.
-        variant.quibble = transy
-        # Expanding list of exceptions
 
-        try:
-            hgvs_transy = validator.hp.parse_hgvs_variant(transy)
-        except vvhgvs.exceptions.HGVSError:
-            # Allele syntax caught here
-            if "[" in transy and "]" in transy:
-                return genomic_ref
-            else:
-                raise
-
+        if parsed:
+            variant.quibble.ac = transy
+            hgvs_transy = variant.quibble
+        else:
+            variant.quibble = variant.quibble.replace(acc_section,transy)
+            try:
+                hgvs_transy = validator.hp.parse_hgvs_variant(variant.quibble)
+            except vvhgvs.exceptions.HGVSError:
+                # Allele syntax caught here
+                if "[" in variant.quibble and "]" in variant.quibble:
+                    return genomic_ref
+                else:
+                    raise
         if skip_check is True:
             return genomic_ref
         else:
             # Check the specified base is correct
-            hgvs_genomic = validator.nr_vm.c_to_g(hgvs_transy, genomic_ref,
+            hgvs_genomic = validator.nr_vm.c_to_g(variant.quibble, genomic_ref,
                                                   alt_aln_method=validator.alt_aln_method)
         try:
             validator.vr.validate(hgvs_genomic)
         except vvhgvs.exceptions.HGVSError as e:
             if 'Length implied by coordinates must equal sequence deletion length' in str(e) \
-                    and not re.search(r'\d+$', variant.quibble):
+                    and not re.search(r'\d+$', variant.original):
                 pass
             elif "does not agree with reference sequence" in str(e):
                 previous_exception = e
@@ -680,7 +814,7 @@ def intronic_converter(variant, validator, skip_check=False, uncertain=False):
                 else:
                     raise
             else:
-                validator.vr.validate(hgvs_genomic)
+                raise e
 
         # Check re-mapping of intronic variants
         if hgvs_transy.posedit.pos.start.offset != 0 or hgvs_transy.posedit.pos.end.offset != 0:
@@ -818,6 +952,7 @@ def lrg_to_refseq(variant, validator):
     LRG and LRG_t reference sequence identifiers need to be replaced with
     equivalent RefSeq identifiers. The lookup data is stored in the
     VariantValidator  MySQL database
+    Currently only used post obj conversion
     """
     caution = ''
     if variant.refsource == 'LRG':
@@ -825,38 +960,41 @@ def lrg_to_refseq(variant, validator):
             reference = variant.hgvs_formatted.ac.replace('LRG', 'LRG_')
             caution = variant.hgvs_formatted.ac + ' updated to ' + reference + ': '
             variant.hgvs_formatted.ac = reference
-            variant.set_quibble(str(variant.hgvs_formatted))
+            variant.set_quibble(variant.hgvs_formatted)
 
-        if re.match(r'^LRG_\d+t\d+:', variant.quibble):
-            lrg_reference, variation = variant.quibble.split(':')
+        if re.match(r'^LRG_\d+t\d+$', variant.quibble.ac):
+            lrg_reference = variant.quibble.ac
             refseqtrans_reference = validator.db.get_refseq_transcript_id_from_lrg_transcript_id(lrg_reference)
             if refseqtrans_reference != 'none':
+                old_var_str = str(variant.hgvs_formatted)
                 variant.hgvs_formatted.ac = refseqtrans_reference
-                variant.set_quibble(str(variant.hgvs_formatted))
-                caution += lrg_reference + ':' + variation + ' automapped to equivalent RefSeq record ' \
-                                                             '' + refseqtrans_reference + ':' + variation
+                variant.set_quibble(variant.hgvs_formatted)
+                caution += old_var_str + ' automapped to equivalent RefSeq record ' \
+                                                             '' + str(variant.hgvs_formatted)
                 variant.warnings.append(caution)
                 logger.info(caution)
 
-        elif re.match(r'^LRG_\d+p\d+:', variant.quibble):
-            lrg_reference, variation = variant.quibble.split(':')
+        elif re.match(r'^LRG_\d+p\d+$', variant.quibble.ac):
+            lrg_reference = variant.quibble.ac
             refseqprot_reference = validator.db.get_refseq_protein_id_from_lrg_protein_id(lrg_reference)
             if refseqprot_reference != 'none':
+                old_var_str = str(variant.hgvs_formatted)
                 variant.hgvs_formatted.ac = refseqprot_reference
-                variant.set_quibble(str(variant.hgvs_formatted))
-                caution += lrg_reference + ':' + variation + ' automapped to equivalent RefSeq record ' \
-                                                             '' + refseqprot_reference + ':' + variation
+                variant.set_quibble(variant.hgvs_formatted)
+                caution +=  old_var_str + ' automapped to equivalent RefSeq record ' \
+                                                             '' + str(variant.hgvs_formatted)
                 variant.warnings.append(caution)
                 logger.info(caution)
 
-        elif re.match(r'^LRG_\d+:', variant.quibble):
-            lrg_reference, variation = variant.quibble.split(':')
+        elif re.match(r'^LRG_\d+$', variant.quibble.ac):
+            lrg_reference = variant.quibble.ac
             refseqgene_reference = validator.db.get_refseq_id_from_lrg_id(lrg_reference)
             if refseqgene_reference != 'none':
+                old_var_str = str(variant.hgvs_formatted)
                 variant.hgvs_formatted.ac = refseqgene_reference
-                variant.set_quibble(str(variant.hgvs_formatted))
-                caution += lrg_reference + ':' + variation + ' automapped to equivalent RefSeq record ' \
-                                                             '' + refseqgene_reference + ':' + variation
+                variant.set_quibble(variant.hgvs_formatted)
+                caution +=  old_var_str + ' automapped to equivalent RefSeq record ' \
+                                                             '' + str(variant.hgvs_formatted)
                 variant.warnings.append(caution)
                 logger.info(caution)
 
@@ -925,7 +1063,7 @@ def mitochondrial(variant, validator):
             # Add a description of the reference sequence type and continue
             variant.hgvs_genomic = hgvs_mito
             if len(rel_var) == 0:
-                variant.genomic_g = fn.valstr(hgvs_mito)
+                variant.genomic_g = unset_hgvs_obj_ref(hgvs_mito)
                 variant.description = 'Homo sapiens mitochondrion, complete genome'
                 logger.info('Homo sapiens mitochondrion, complete genome')
                 return True
@@ -939,10 +1077,7 @@ def proteins(variant, validator):
         error = None
         hgvs_object = None
         # Try to validate the variant
-        try:
-            hgvs_object = validator.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
-        except vvhgvs.exceptions.HGVSError as e:
-            error = str(e)
+        hgvs_object = variant.hgvs_formatted
         try:
             validator.vr.validate(hgvs_object)
 
@@ -1016,9 +1151,8 @@ def proteins(variant, validator):
                     reason = 'Protein level variant descriptions are not fully supported due to redundancy' \
                              ' in the genetic code'
                     variant.warnings.extend([reason, error])
-                    variant.protein = str(hgvs_object)
                     logger.warning(reason + ": " + error)
-                    variant.protein = str(hgvs_object)
+                    variant.protein = hgvs_object
                     return True
 
         except vvhgvs.exceptions.HGVSError as e:
@@ -1095,9 +1229,8 @@ def proteins(variant, validator):
                         reason = 'Protein level variant descriptions are not fully supported due to redundancy' \
                                  ' in the genetic code'
                         variant.warnings.extend([reason, error])
-                        variant.protein = str(hgvs_object)
                         logger.warning(reason + ": " + error)
-                        variant.protein = str(hgvs_object)
+                        variant.protein = hgvs_object
                         return True
 
                     return True
@@ -1110,7 +1243,7 @@ def proteins(variant, validator):
             reason = 'Protein level variant descriptions are not fully supported due to redundancy' \
                      ' in the genetic code'
             variant.warnings.extend([reason, error])
-            variant.protein = str(hgvs_object)
+            variant.protein = hgvs_object
             logger.warning(reason + ": " + error)
             return True
     return False
@@ -1122,9 +1255,14 @@ def rna(variant, validator):
     """
     if variant.reftype == ':r.' or ":r." in variant.original:
         if ":r.(" in str(variant.hgvs_formatted):
-            strip_prediction = str(variant.hgvs_formatted).replace("(", "")
-            strip_prediction = strip_prediction[:-1]
-            hgvs_input = validator.hp.parse_hgvs_variant(strip_prediction)
+            if type(variant.hgvs_formatted) is str:
+                strip_prediction = str(variant.hgvs_formatted).replace("(", "")
+                strip_prediction = strip_prediction[:-1]
+                hgvs_input = validator.hp.parse_hgvs_variant(strip_prediction)
+            else:
+                hgvs_input = variant.hgvs_formatted
+                hgvs_input.posedit.pos.uncertain = False
+                #hgvs_input.posedit.uncertain = False
         else:
             hgvs_input = variant.hgvs_formatted
 
@@ -1139,7 +1277,6 @@ def rna(variant, validator):
         # Change input to reflect!
         try:
             hgvs_c = validator.hgvs_r_to_c(hgvs_input)
-            hgvs_c = validator.hp.parse_hgvs_variant(str(hgvs_c))
         except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
             error = str(e)
             variant.warnings.append(error)

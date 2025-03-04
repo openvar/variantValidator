@@ -5,6 +5,7 @@ import vvhgvs.exceptions
 from . import utils as fn
 from . import hgvs_utils
 from . import seq_data
+from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj, hgvs_dup_to_delins
 
 logger = logging.getLogger(__name__)
 
@@ -168,18 +169,13 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             vcf_dict = hgvs_utils.hgvs2vcf(reverse_normalized_hgvs_genomic, self.variant.primary_assembly,
                                            self.variant.reverse_normalizer, self.validator.sf,
                                            extra_flank_bases=4)
-            pos = vcf_dict['pos']
-            ref = vcf_dict['ref']
-            alt = vcf_dict['alt']
 
-            # Generate an end position
-            end = str(int(pos) + len(ref) - 1)
-            pos = str(pos)
-            expanded_genomic_for_ensembl = self.validator.hp.parse_hgvs_variant(reverse_normalized_hgvs_genomic.ac
-                                                                                + ':' +
-                                                                   reverse_normalized_hgvs_genomic.type + '.' + pos +
-                                                                   '_' + end +
-                                                                   'del' + ref + 'ins' + alt)
+            expanded_genomic_for_ensembl = hgvs_delins_parts_to_hgvs_obj(
+                    reverse_normalized_hgvs_genomic.ac,
+                    reverse_normalized_hgvs_genomic.type,
+                    int(vcf_dict['pos']),
+                    vcf_dict['ref'],
+                    vcf_dict['alt'])
 
         # Set variables for problem specific warnings
         gapped_alignment_warning = ''
@@ -197,21 +193,16 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
         # VCF
         vcf_dict = hgvs_utils.hgvs2vcf(reverse_normalized_hgvs_genomic, self.variant.primary_assembly,
                                        self.variant.reverse_normalizer, self.validator.sf)
-        pos = vcf_dict['pos']
-        ref = vcf_dict['ref']
-        alt = vcf_dict['alt']
-
-        # Generate an end position
-        end = str(int(pos) + len(ref) - 1)
-        pos = str(pos)
+        stored_hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
+                self.hgvs_genomic_5pr.ac,
+                self.hgvs_genomic_5pr.type,
+                int(vcf_dict['pos']),vcf_dict['ref'],vcf_dict['alt'])
 
         # take a look at the input genomic variant for potential base salvage
         stash_ac = vcf_dict['chr']
-        stash_pos = int(vcf_dict['pos'])
-        stash_ref = vcf_dict['ref']
-        stash_alt = vcf_dict['alt']
-        stash_end = end
-        stash_input = str(self.variant.post_format_conversion)
+        stash_input = self.variant.post_format_conversion
+        if type(stash_input) is str:
+            stash_input = self.validator.hp.parse_hgvs_variant(stash_input)
         # Re-Analyse genomic positions
         if 'NG_' in str(self.variant.hgvs_formatted):
             c = rel_var[0]
@@ -221,34 +212,24 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 c.posedit.edit.alt = c.posedit.edit.alt.upper()
             stash_input = self.validator.myevm_t_to_g(c, self.variant.no_norm_evm,
                                                       self.variant.primary_assembly, self.variant.hn)
-        if 'NC_' in str(stash_input) or 'NT_' in str(stash_input) or 'NW_' in str(stash_input):
-            try:
-                hgvs_stash = self.validator.hp.parse_hgvs_variant(stash_input)
-            except:
-                hgvs_stash = stash_input
+        if stash_input.ac.startswith('NC_') or stash_input.ac.startswith('NT_') or stash_input.ac.startswith('NW_'):
+            hgvs_stash = stash_input
             if hasattr(hgvs_stash.posedit.edit, 'ref') and hgvs_stash.posedit.edit.ref is not None:
                 hgvs_stash.posedit.edit.ref = hgvs_stash.posedit.edit.ref.upper()
             if hasattr(hgvs_stash.posedit.edit, 'alt') and hgvs_stash.posedit.edit.alt is not None:
                 hgvs_stash.posedit.edit.alt = hgvs_stash.posedit.edit.alt.upper()
 
             # MAKE A NO NORM HGVS2VCF
-            stash_dict = hgvs_utils.pos_lock_hgvs2vcf(hgvs_stash, self.variant.primary_assembly,
+            vcf_dict = hgvs_utils.pos_lock_hgvs2vcf(hgvs_stash, self.variant.primary_assembly,
                                                       self.variant.reverse_normalizer, self.validator.sf)
             stash_ac = hgvs_stash.ac
-            stash_pos = int(stash_dict['pos'])
-            stash_ref = stash_dict['ref']
-            stash_alt = stash_dict['alt']
-            # Generate an end position
-            stash_end = str(stash_pos + len(stash_ref) - 1)
 
-        # Store a not real deletion insertion
-        stored_hgvs_not_delins = self.validator.hp.parse_hgvs_variant(self.hgvs_genomic_5pr.ac + ':' +
-            self.hgvs_genomic_5pr.type + '.' + pos + '_' + end + 'del' + ref + 'ins' + alt)
-        assert stored_hgvs_not_delins != ''
-        stash_hgvs_not_delins = self.validator.hp.parse_hgvs_variant(stash_ac + ':' +
-            self.hgvs_genomic_5pr.type + '.' + str(stash_pos) + '_' + stash_end + 'del' + stash_ref + 'ins' + stash_alt)
+        # Store a not real deletion insertion for stashed
+        stash_hgvs_not_delins =  hgvs_delins_parts_to_hgvs_obj(
+                stash_ac,
+                self.hgvs_genomic_5pr.type,
+                int(vcf_dict['pos']),vcf_dict['ref'],vcf_dict['alt'])
         pre_loop_stash_hgvs_not_delins = copy.copy(stash_hgvs_not_delins)
-
 
         # make an empty rel_var
         nw_rel_var = []
@@ -263,7 +244,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             # Store the current hgvs:c. description
             try:
                 saved_hgvs_coding = self.validator.hp.parse_hgvs_variant(var)
-                original_var = self.validator.hp.parse_hgvs_variant(var)
+                original_var = copy.deepcopy(saved_hgvs_coding)
             except TypeError:
                 saved_hgvs_coding = var
                 original_var = var
@@ -491,7 +472,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     self.orientation = int(ori[0]['alt_strand'])
                 except TypeError:
                     continue
-
                 # Set intronic params
                 intronic_variant = 'false'
                 hgvs_seek_var = self.get_hgvs_seek_var(self.variant.hgvs_genomic, saved_hgvs_coding)
@@ -699,9 +679,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                             self.tx_hgvs_not_delins.posedit.edit.alt = ''
                     except Exception as e:
                         if str(e) == "'Dup' object has no attribute 'alt'":
-                            tx_hgvs_not_delins_delins_from_dup = fn.hgvs_dup2indel(self.tx_hgvs_not_delins)
-                            self.tx_hgvs_not_delins = \
-                                self.validator.hp.parse_hgvs_variant(tx_hgvs_not_delins_delins_from_dup)
+                            self.tx_hgvs_not_delins = hgvs_dup_to_delins(self.tx_hgvs_not_delins)
 
                     # GAP IN THE TRANSCRIPT DISPARITY DETECTED
                     if self.disparity_deletion_in[0] == 'transcript':
@@ -791,13 +769,12 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                                                   self.validator.hp,
                                                                                   self.validator.vm,
                                                                                   self.validator.merge_hgvs_3pr)
-                                stash_pos_right = int(stash_dict_right['pos'])
-                                stash_ref_right = stash_dict_right['ref']
-                                stash_alt_right = stash_dict_right['alt']
-                                stash_end_right = str(stash_pos_right + len(stash_ref_right) - 1)
-                                stash_hgvs_not_delins_right = self.validator.hp.parse_hgvs_variant(stash_ac + ':' +
-                                    hgvs_stash.type + '.' + str(stash_pos_right) + '_' + stash_end_right + 'del' +
-                                    stash_ref_right + 'ins' + stash_alt_right)
+                                stash_hgvs_not_delins_right = hgvs_delins_parts_to_hgvs_obj(
+                                        stash_ac,
+                                        hgvs_stash.type,
+                                        int(stash_dict_right['pos']),
+                                        stash_dict_right['ref'],
+                                        stash_dict_right['alt'])
 
                                 stash_dict_left = hgvs_utils.hard_left_hgvs2vcf(hgvs_stash,
                                                                                 self.variant.primary_assembly,
@@ -810,14 +787,12 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                                                 self.validator.hp,
                                                                                 self.validator.vm,
                                                                                 self.validator.merge_hgvs_3pr)
-                                stash_pos_left = int(stash_dict_left['pos'])
-                                stash_ref_left = stash_dict_left['ref']
-                                stash_alt_left = stash_dict_left['alt']
-                                stash_end_left = str(stash_pos_left + len(stash_ref_left) - 1)
-                                stash_hgvs_not_delins_left = self.validator.hp.parse_hgvs_variant(
-                                    stash_ac + ':' + hgvs_stash.type + '.' + str(
-                                        stash_pos_left) + '_' + stash_end_left + 'del' + stash_ref_left + 'ins' +
-                                    stash_alt_left)
+                                stash_hgvs_not_delins_left =  hgvs_delins_parts_to_hgvs_obj(
+                                        stash_ac,
+                                        hgvs_stash.type,
+                                        int(stash_dict_left['pos']),
+                                        stash_dict_left['ref'],
+                                        stash_dict_left['alt'])
                             except vvhgvs.exceptions.HGVSDataNotAvailableError:
                                 continue
 
@@ -898,8 +873,11 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     # Send to empty nw_rel_var
                     if hgvs_refreshed_variant.posedit.edit.type == "delins" and \
                             hgvs_refreshed_variant.posedit.edit.alt == "":
-                        correct = str(hgvs_refreshed_variant).replace("ins", "")
-                        hgvs_refreshed_variant = self.validator.hp.parse(correct)
+                        hgvs_refreshed_variant = hgvs_obj_from_existing_edit(
+                                hgvs_refreshed_variant.ac,
+                                hgvs_refreshed_variant.type,
+                                hgvs_refreshed_variant.posedit.pos,
+                                '',hgvs_refreshed_variant.posedit.edit.ref)
                     nw_rel_var.append(hgvs_refreshed_variant)
 
                 # Otherwise these variants need to be set
@@ -972,16 +950,12 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                         self.validator.vm,
                                                         self.validator.merge_hgvs_3pr,
                                                         genomic_ac=hgvs_genomic.ac)
-
-            stash_pos = int(stash_dict['pos'])
-            stash_ref = stash_dict['ref']
-            stash_alt = stash_dict['alt']
-            # Generate an end position
-            stash_end = str(stash_pos + len(stash_ref) - 1)
             # make a not real deletion insertion
-            stash_hgvs_not_delins = self.validator.hp.parse_hgvs_variant(
-                stash_ac + ':' + hgvs_stash.type + '.' + str(
-                    stash_pos) + '_' + stash_end + 'del' + stash_ref + 'ins' + stash_alt)
+            stash_hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
+                    stash_ac,
+                    hgvs_stash.type,
+                    int(stash_dict['pos']),stash_dict['ref'],stash_dict['alt'],
+                    offset_pos=True)
             try:
                 stash_hgvs_not_delins = self.variant.no_norm_evm.n_to_c(stash_hgvs_not_delins)
             except Exception as e:
@@ -1011,10 +985,12 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 else:
                     self.hgvs_genomic_possibilities.append(['', ['false', 'false']])
             elif test_stash_tx_right.posedit.edit.type == 'identity':
-                reform_ident = str(test_stash_tx_right).split(':')[0]
-                reform_ident = reform_ident + ':c.' + str(test_stash_tx_right.posedit.pos) + 'del' + str(
-                    test_stash_tx_right.posedit.edit.ref)  # + 'ins' + str(test_stash_tx_right.posedit.edit.alt)
-                hgvs_reform_ident = self.validator.hp.parse_hgvs_variant(reform_ident)
+                hgvs_reform_ident = hgvs_delins_parts_to_hgvs_obj(
+                        test_stash_tx_right.ac,
+                        'c',
+                        test_stash_tx_right.posedit.pos,
+                        test_stash_tx_right.posedit.edit.ref,
+                        '')
                 try:
                     self.variant.hn.normalize(hgvs_reform_ident)
                 except vvhgvs.exceptions.HGVSError as e:
@@ -1112,16 +1088,12 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                        self.validator.vm,
                                                        self.validator.merge_hgvs_3pr,
                                                        genomic_ac=hgvs_genomic.ac)
-
-            stash_pos = int(stash_dict['pos'])
-            stash_ref = stash_dict['ref']
-            stash_alt = stash_dict['alt']
-            # Generate an end position
-            stash_end = str(stash_pos + len(stash_ref) - 1)
             # make a not real deletion insertion
-            stash_hgvs_not_delins = self.validator.hp.parse_hgvs_variant(
-                stash_ac + ':' + hgvs_stash.type + '.' + str(
-                    stash_pos) + '_' + stash_end + 'del' + stash_ref + 'ins' + stash_alt)
+            stash_hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
+                    stash_ac,
+                    hgvs_stash.type,
+                    int(stash_dict['pos']),stash_dict['ref'],stash_dict['alt'],
+                    offset_pos=True)
             try:
                 stash_hgvs_not_delins = self.variant.no_norm_evm.n_to_c(stash_hgvs_not_delins)
             except Exception as e:
@@ -1152,10 +1124,12 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 else:
                     self.hgvs_genomic_possibilities.append(['', ['false', 'false']])
             elif test_stash_tx_left.posedit.edit.type == 'identity':
-                reform_ident = str(test_stash_tx_left).split(':')[0]
-                reform_ident = reform_ident + ':c.' + str(test_stash_tx_left.posedit.pos) + 'del' + str(
-                    test_stash_tx_left.posedit.edit.ref)  # + 'ins' + str(test_stash_tx_left.posedit.edit.alt)
-                hgvs_reform_ident = self.validator.hp.parse_hgvs_variant(reform_ident)
+                hgvs_reform_ident = hgvs_delins_parts_to_hgvs_obj(
+                        test_stash_tx_left.ac,
+                        'c',
+                        test_stash_tx_left.posedit.pos,
+                        test_stash_tx_left.posedit.edit.ref,
+                        '')
                 try:
                     self.variant.hn.normalize(hgvs_reform_ident)
                 except vvhgvs.exceptions.HGVSError as e:
@@ -1321,19 +1295,11 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             # Create VCF
             vcf_dict = hgvs_utils.hgvs2vcf(reverse_normalized_hgvs_genomic, self.variant.primary_assembly,
                                            self.variant.reverse_normalizer, self.validator.sf)
-            pos = vcf_dict['pos']
-            ref = vcf_dict['ref']
-            alt = vcf_dict['alt']
-
-            # Generate an end position
-            end = str(int(pos) + len(ref) - 1)
-            pos = str(pos)
-
             # Store a not real deletion insertion to test for gapping
-            stored_hgvs_not_delins = self.validator.hp.parse_hgvs_variant(str(self.hgvs_genomic_5pr.ac) + ':' +
-                                                                          self.hgvs_genomic_5pr.type +
-                                                                          '.' + pos + '_' + end + 'del' + ref +
-                                                                          'ins' + alt)
+            stored_hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
+                    self.hgvs_genomic_5pr.ac,
+                    self.hgvs_genomic_5pr.type,
+                    int(vcf_dict['pos']),vcf_dict['ref'],vcf_dict['alt'])
 
             # Detect intronic variation using normalization
             intronic_variant = 'false'
@@ -1515,9 +1481,8 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                         self.tx_hgvs_not_delins.posedit.edit.alt = ''
                 except Exception as e:
                     if str(e) == "'Dup' object has no attribute 'alt'":
-                        tx_hgvs_not_delins_delins_from_dup = fn.hgvs_dup2indel(self.tx_hgvs_not_delins)
-                        self.tx_hgvs_not_delins = self.validator.hp.parse_hgvs_variant(
-                            tx_hgvs_not_delins_delins_from_dup)
+                        self.tx_hgvs_not_delins = hgvs_dup_to_delins(self.tx_hgvs_not_delins)
+
 
                 # Has a hard set variant been identified from pushes?
                 hard_set_outputs = False
@@ -1648,14 +1613,12 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
         ref = vcf_dict['ref']
         alt = vcf_dict['alt']
 
-        # DO NOT DELETE
-        # Generate an end position
-        end = str(int(pos) + len(ref) - 1)
-        pos = str(pos)
-        stored_hgvs_not_delins = self.validator.hp.parse_hgvs_variant(str(
-            self.hgvs_genomic_5pr.ac) + ':' + self.hgvs_genomic_5pr.type + '.' + pos + '_' + end + 'del' + ref +
-                                                                      'ins' + alt)
+        stored_hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
+                self.hgvs_genomic_5pr.ac,
+                self.hgvs_genomic_5pr.type,
+                int(vcf_dict['pos']),vcf_dict['ref'],vcf_dict['alt'])
         self.orientation = int(ori[0]['alt_strand'])
+
         saved_hgvs_coding = copy.deepcopy(hgvs_coding)
 
         # is it in an exon?
@@ -1723,7 +1686,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             except Exception as e:
                 if str(e) == 'start or end or both are beyond the bounds of transcript record':
                     logger.warning(str(e))
-                    return True
+                    hard_fail == 'true'
             try:
                 self.variant.hn.normalize(self.tx_hgvs_not_delins)
             except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
@@ -1732,7 +1695,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                         'Unsupported normalization of variants spanning the exon-intron boundary' in error:
                     if 'Unsupported normalization of variants spanning the exon-intron boundary' in error:
                         logger.warning(error)
-                        return True
+                        hard_fail = 'true'
                     elif 'Normalization of intronic variants is not supported' in error:
                         # We know that this cannot be because of an intronic variant, so must be aligned to tx gap
                         self.disparity_deletion_in = ['transcript', 'Requires Analysis']
@@ -1750,8 +1713,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     self.tx_hgvs_not_delins.posedit.edit.alt = ''
             except Exception as e:
                 if str(e) == "'Dup' object has no attribute 'alt'":
-                    tx_hgvs_not_delins_delins_from_dup = fn.hgvs_dup2indel(self.tx_hgvs_not_delins)
-                    self.tx_hgvs_not_delins = self.validator.hp.parse_hgvs_variant(tx_hgvs_not_delins_delins_from_dup)
+                    self.tx_hgvs_not_delins = hgvs_dup_to_delins(self.tx_hgvs_not_delins)
 
             # GAP IN THE TRANSCRIPT DISPARITY DETECTED
             if self.disparity_deletion_in[0] == 'transcript':
@@ -1827,15 +1789,12 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                         self.validator.merge_hgvs_3pr,
                                                         genomic_ac=hgvs_alt_genomic.ac)
 
-            stash_pos = int(stash_dict['pos'])
-            stash_ref = stash_dict['ref']
-            stash_alt = stash_dict['alt']
-            # Generate an end position
-            stash_end = str(stash_pos + len(stash_ref) - 1)
             # make a not real deletion insertion
-            stash_hgvs_not_delins = self.validator.hp.parse_hgvs_variant(
-                stash_ac + ':' + hgvs_stash.type + '.' + str(
-                    stash_pos) + '_' + stash_end + 'del' + stash_ref + 'ins' + stash_alt)
+            stash_hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
+                    stash_ac,
+                    hgvs_stash.type,
+                    int(stash_dict['pos']),stash_dict['ref'],stash_dict['alt'],
+                    offset_pos=True)
             try:
                 stash_hgvs_not_delins = self.variant.no_norm_evm.n_to_c(stash_hgvs_not_delins)
             except Exception as e:
@@ -1867,10 +1826,12 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 else:
                     self.hgvs_genomic_possibilities.append(['', ['false', 'false']])
             elif test_stash_tx_right.posedit.edit.type == 'identity':
-                reform_ident = str(test_stash_tx_right).split(':')[0]
-                reform_ident = reform_ident + ':c.' + str(test_stash_tx_right.posedit.pos) + 'del' + str(
-                    test_stash_tx_right.posedit.edit.ref)  # + 'ins' + str(test_stash_tx_right.posedit.edit.alt)
-                hgvs_reform_ident = self.validator.hp.parse_hgvs_variant(reform_ident)
+                hgvs_reform_ident = hgvs_delins_parts_to_hgvs_obj(
+                        test_stash_tx_right.ac,
+                        'c',
+                        test_stash_tx_right.posedit.pos,
+                        test_stash_tx_right.posedit.edit.ref,
+                        '')
                 try:
                     self.variant.hn.normalize(hgvs_reform_ident)
                 except vvhgvs.exceptions.HGVSError as e:
@@ -1970,15 +1931,12 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                        self.validator.merge_hgvs_3pr,
                                                        genomic_ac=hgvs_alt_genomic.ac)
 
-            stash_pos = int(stash_dict['pos'])
-            stash_ref = stash_dict['ref']
-            stash_alt = stash_dict['alt']
-            # Generate an end position
-            stash_end = str(stash_pos + len(stash_ref) - 1)
             # make a not real deletion insertion
-            stash_hgvs_not_delins = self.validator.hp.parse_hgvs_variant(
-                stash_ac + ':' + hgvs_stash.type + '.' + str(
-                    stash_pos) + '_' + stash_end + 'del' + stash_ref + 'ins' + stash_alt)
+            stash_hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
+                    stash_ac,
+                    hgvs_stash.type,
+                    int(stash_dict['pos']),stash_dict['ref'],stash_dict['alt'],
+                    offset_pos=True)
             try:
                 stash_hgvs_not_delins = self.variant.no_norm_evm.n_to_c(stash_hgvs_not_delins)
             except Exception as e:
@@ -2009,10 +1967,12 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 else:
                     self.hgvs_genomic_possibilities.append(['', ['false', 'false']])
             elif test_stash_tx_left.posedit.edit.type == 'identity':
-                reform_ident = str(test_stash_tx_left).split(':')[0]
-                reform_ident = reform_ident + ':c.' + str(test_stash_tx_left.posedit.pos) + 'del' + str(
-                    test_stash_tx_left.posedit.edit.ref)  # + 'ins' + str(test_stash_tx_left.posedit.edit.alt)
-                hgvs_reform_ident = self.validator.hp.parse_hgvs_variant(reform_ident)
+                hgvs_reform_ident = hgvs_delins_parts_to_hgvs_obj(
+                        test_stash_tx_left.ac,
+                        'c',
+                        test_stash_tx_left.posedit.pos,
+                        test_stash_tx_left.posedit.edit.ref,
+                        '')
                 try:
                     self.variant.hn.normalize(hgvs_reform_ident)
                 except vvhgvs.exceptions.HGVSError as e:
@@ -2180,20 +2140,12 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             # Make VCF
             vcf_dict = hgvs_utils.hgvs2vcf(reverse_normalized_hgvs_genomic, self.variant.primary_assembly,
                                            self.variant.reverse_normalizer, self.validator.sf)
-            pos = vcf_dict['pos']
-            ref = vcf_dict['ref']
-            alt = vcf_dict['alt']
-
             # Look for exonic gaps within transcript or chromosome
-
-            # Generate an end position
-            end = str(int(pos) + len(ref) - 1)
-            pos = str(pos)
-
             # Store a not real deletion insertion to test for gapping
-            stored_hgvs_not_delins = self.validator.hp.parse_hgvs_variant(str(
-                self.hgvs_genomic_5pr.ac) + ':' + self.hgvs_genomic_5pr.type + '.' + pos + '_' + end + 'del' +
-                                                                          ref + 'ins' + alt)
+            stored_hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
+                    self.hgvs_genomic_5pr.ac,
+                    self.hgvs_genomic_5pr.type,
+                    int(vcf_dict['pos']),vcf_dict['ref'],vcf_dict['alt'])
             # Save a copy of current hgvs_coding
             saved_hgvs_coding = ''
             try:
@@ -2237,11 +2189,11 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                 intronic_variant = 'true'
 
             if intronic_variant != 'hard_fail':
-                if re.search(r'\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search(r'\d+-',
-                                                                                    str(
-                                                                                        hgvs_seek_var.posedit.pos)) or re.search(
-                    r'\*\d+\+', str(
-                        hgvs_seek_var.posedit.pos)) or re.search(r'\*\d+-', str(hgvs_seek_var.posedit.pos)):
+                if re.search(r'\d+\+', str(hgvs_seek_var.posedit.pos)) or re.search(
+                        r'\d+-', str(hgvs_seek_var.posedit.pos)
+                    ) or re.search(
+                        r'\*\d+\+', str(hgvs_seek_var.posedit.pos)
+                    ) or re.search(r'\*\d+-', str(hgvs_seek_var.posedit.pos)):
                     # Double check to see whether the variant is actually intronic?
                     for exon in ori:
                         genomic_start = int(exon['alt_start_i'])
@@ -2356,9 +2308,8 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                         self.tx_hgvs_not_delins.posedit.edit.alt = ''
                 except Exception as e:
                     if str(e) == "'Dup' object has no attribute 'alt'":
-                        tx_hgvs_not_delins_delins_from_dup = fn.hgvs_dup2indel(self.tx_hgvs_not_delins)
-                        self.tx_hgvs_not_delins = self.validator.hp.parse_hgvs_variant(
-                            tx_hgvs_not_delins_delins_from_dup)
+                        self.tx_hgvs_not_delins = hgvs_dup_to_delins(self.tx_hgvs_not_delins)
+
 
                 # Has a hard set variant been identified from pushes?
                 hard_set_outputs = False
@@ -2704,9 +2655,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     tx_gap_fill_variant.posedit.edit.alt = ''
             except Exception as e:
                 if str(e) == "'Dup' object has no attribute 'alt'":
-                    tx_gap_fill_variant_delins_from_dup = fn.hgvs_dup2indel(tx_gap_fill_variant)
-                    tx_gap_fill_variant = self.validator.hp.parse_hgvs_variant(
-                        tx_gap_fill_variant_delins_from_dup)
+                    tx_gap_fill_variant = hgvs_dup_to_delins(tx_gap_fill_variant)
 
             # Identify which half of the NOT-intron the start position of the variant is in
             if '-' in str(tx_gap_fill_variant.posedit.pos.start):
@@ -2743,12 +2692,8 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     genomic_gap_fill_variant_alt.posedit.edit.alt = 'X'
             except Exception as e:
                 if str(e) == "'Dup' object has no attribute 'alt'":
-                    genomic_gap_fill_variant_delins_from_dup = fn.hgvs_dup2indel(genomic_gap_fill_variant)
-                    genomic_gap_fill_variant = self.validator.hp.parse_hgvs_variant(
-                        genomic_gap_fill_variant_delins_from_dup)
-                    genomic_gap_fill_variant_alt_delins_from_dup = fn.hgvs_dup2indel(genomic_gap_fill_variant_alt)
-                    genomic_gap_fill_variant_alt = self.validator.hp.parse_hgvs_variant(
-                        genomic_gap_fill_variant_alt_delins_from_dup)
+                    genomic_gap_fill_variant = hgvs_dup_to_delins(genomic_gap_fill_variant)
+                    genomic_gap_fill_variant_alt = hgvs_dup_to_delins(genomic_gap_fill_variant_alt)
 
             # Correct insertion alts
             if genomic_gap_fill_variant_alt.posedit.edit.type == 'ins':
@@ -2954,8 +2899,11 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
 
                 if hgvs_refreshed_variant.posedit.edit.type == 'delins' and \
                         hgvs_refreshed_variant.posedit.edit.alt == "":
-                    hgvs_refreshed_variant = str(hgvs_refreshed_variant).replace("ins", "")
-                    hgvs_refreshed_variant = self.validator.hp.parse(hgvs_refreshed_variant)
+                    hgvs_refreshed_variant = hgvs_obj_from_existing_edit(
+                            hgvs_refreshed_variant.ac,
+                            hgvs_refreshed_variant.type,
+                            hgvs_refreshed_variant.posedit.pos,
+                            hgvs_refreshed_variant.posedit.edit.ref,'')
 
         return hgvs_refreshed_variant
 
@@ -3129,40 +3077,32 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                         genomic_from_most_3pr_hgvs_transcript_variant.posedit.edit.alt = ''
                 except Exception as e:
                     if str(e) == "'Dup' object has no attribute 'alt'":
-                        genomic_from_most_3pr_hgvs_transcript_variant_delins_from_dup = fn.hgvs_dup2indel(
-                            genomic_from_most_3pr_hgvs_transcript_variant)
-                        genomic_from_most_3pr_hgvs_transcript_variant = self.validator.hp.parse_hgvs_variant(
-                            genomic_from_most_3pr_hgvs_transcript_variant_delins_from_dup)
+                        genomic_from_most_3pr_hgvs_transcript_variant = hgvs_dup_to_delins(
+                                genomic_from_most_3pr_hgvs_transcript_variant)
 
                 try:
                     if most_3pr_hgvs_transcript_variant.posedit.edit.alt is None:
                         most_3pr_hgvs_transcript_variant.posedit.edit.alt = ''
                 except Exception as e:
                     if str(e) == "'Dup' object has no attribute 'alt'":
-                        most_3pr_hgvs_transcript_variant_delins_from_dup = fn.hgvs_dup2indel(
-                            most_3pr_hgvs_transcript_variant)
-                        most_3pr_hgvs_transcript_variant = self.validator.hp.parse_hgvs_variant(
-                            most_3pr_hgvs_transcript_variant_delins_from_dup)
+                        most_3pr_hgvs_transcript_variant = hgvs_dup_to_delins(
+                                most_3pr_hgvs_transcript_variant)
 
                 try:
                     if genomic_from_most_5pr_hgvs_transcript_variant.posedit.edit.alt is None:
                         genomic_from_most_5pr_hgvs_transcript_variant.posedit.edit.alt = ''
                 except Exception as e:
                     if str(e) == "'Dup' object has no attribute 'alt'":
-                        genomic_from_most_5pr_hgvs_transcript_variant_delins_from_dup = fn.hgvs_dup2indel(
-                            genomic_from_most_5pr_hgvs_transcript_variant)
-                        genomic_from_most_5pr_hgvs_transcript_variant = self.validator.hp.parse_hgvs_variant(
-                            genomic_from_most_5pr_hgvs_transcript_variant_delins_from_dup)
+                        genomic_from_most_5pr_hgvs_transcript_variant = hgvs_dup_to_delins(
+                                genomic_from_most_5pr_hgvs_transcript_variant)
 
                 try:
                     if most_5pr_hgvs_transcript_variant.posedit.edit.alt is None:
                         most_5pr_hgvs_transcript_variant.posedit.edit.alt = ''
                 except Exception as e:
                     if str(e) == "'Dup' object has no attribute 'alt'":
-                        most_5pr_hgvs_transcript_variant_delins_from_dup = fn.hgvs_dup2indel(
-                            most_5pr_hgvs_transcript_variant)
-                        most_5pr_hgvs_transcript_variant = self.validator.hp.parse_hgvs_variant(
-                            most_5pr_hgvs_transcript_variant_delins_from_dup)
+                        most_5pr_hgvs_transcript_variant = hgvs_dup_to_delins(
+                                most_5pr_hgvs_transcript_variant)
 
                 if len(genomic_from_most_3pr_hgvs_transcript_variant.posedit.edit.alt) < len(
                         most_3pr_hgvs_transcript_variant.posedit.edit.alt):

@@ -1,7 +1,46 @@
 import re
+import copy
 from vvhgvs.assemblymapper import AssemblyMapper
 from VariantValidator.modules import utils as vv_utils, format_converters
+from VariantValidator.modules.hgvs_utils import hgvs_obj_from_existing_edit
 import vvhgvs.exceptions
+from vvhgvs.enums import Datum
+from vvhgvs.location import Interval
+# fuzzy but specified ended intervals, take a normal interval for both ends
+# can take a pair of Intervals or BaseOffsetIntervals
+class FEInterval(Interval):
+    uncertain = True
+    pass
+    def validate(self):
+        if self.start:
+            (res, msg) = self.start.validate()
+            if res != ValidationLevel.VALID:
+                return (res, msg)
+        if self.end:
+            (res, msg) = self.end.validate()
+            if res != ValidationLevel.VALID:
+                return (res, msg)
+        # Check start less than or equal to end
+        # for now overlap is allowed so long as some is distinct
+        if not self.start or not self.end:
+            return (ValidationLevel.VALID, None)
+        try:
+            if self.start.start <= self.end.end:
+                return (ValidationLevel.VALID, None)
+            else:
+                return (ValidationLevel.ERROR, "base start position must be <= end position")
+        except HGVSUnsupportedOperationError as err:
+            return (ValidationLevel.WARNING, str(err))
+
+    def format(self, conf=None):
+        if self.start is None:
+            return ""
+        if self.end is None or self.start == self.end:
+            return self.start.format(conf)
+        # always uncertain
+        iv = "(" +self.start.format(conf) + ")_(" + self.end.format(conf) + ")"
+        return iv
+
 
 
 # Errors
@@ -244,16 +283,32 @@ def uncertain_positions(my_variant, validator):
 
     # Formats like NC_000005.9:g.(90136803_90144453)_(90159675_90261231)dup
     if ")_(" in my_variant.quibble and "?" not in my_variant.quibble:
-        accession_and_type, positions_and_edit = my_variant.quibble.split(".(")
-        position_1, position_2 = positions_and_edit.split(")_(")
-        position_2, variation = position_2.split(")")
+        accession, _sep, var_type_and_posedit = my_variant.quibble.partition(':')
+        var_type, _sep ,positions_and_edit = var_type_and_posedit.partition(".(")
+        position_1, _sep, position_2 = positions_and_edit.partition(")_(")
+        position_2, _sep, variation = position_2.partition(")")
+        try:
+            if var_type == 'p':
+                edit = validator.hp.parse_pro_edit(variation)
+            elif var_type in ['c','t','r']:
+                edit = validator.hp.parse_rna_edit(variation)
+            else:
+                edit = validator.hp.parse_dna_edit(variation)
+        except vvhgvs.exceptions.HGVSError as e:
+            raise HgvsParseError(str(e))
         position_1 = position_1.replace(")", "")
         position_2 = position_2.replace("(", "")
-        v1 = f"{accession_and_type}.{position_1}{variation}"
-        v2 = f"{accession_and_type}.{position_2}{variation}"
-        my_variant.reftype = f":{accession_and_type.split(':')[1]}."
+
+        my_variant.reftype = f":{var_type}."
+
         try:
-            parsed_v1 = validator.hp.parse(v1)
+            start, _sep, end = position_1.partition('_')
+            parsed_v1 = hgvs_obj_from_existing_edit(
+                    accession,
+                    var_type,
+                    start,
+                    copy.copy(edit),
+                    end=end)
         except vvhgvs.exceptions.HGVSError as e:
             raise HgvsParseError(str(e))
         try:
@@ -267,9 +322,15 @@ def uncertain_positions(my_variant, validator):
                 pass
             else:
                 raise InvalidRangeError(f"{position_1} is an invalid range for "
-                                        f"accession {accession_and_type.split(':')[0]}")
+                                        f"accession {accession}")
         try:
-            parsed_v2 = validator.hp.parse(v2)
+            start, _sep, end = position_2.partition('_')
+            parsed_v2 = hgvs_obj_from_existing_edit(
+                    accession,
+                    var_type,
+                    start,
+                    copy.copy(edit),
+                    end=end)
         except vvhgvs.exceptions.HGVSError as e:
             raise HgvsParseError(str(e))
         try:
@@ -283,12 +344,12 @@ def uncertain_positions(my_variant, validator):
                 pass
             else:
                 raise InvalidRangeError(f"{position_2} is an invalid range for "
-                                        f"accession {accession_and_type.split(':')[0]}")
+                                        f"accession {accession}")
 
         # Check positions are in the correct order
         if parsed_v1.posedit.pos.end.base >= parsed_v2.posedit.pos.start.base:
             raise InvalidRangeError(f"Position {parsed_v1.posedit.pos} is > or overlaps {parsed_v2.posedit.pos}")
-
+        #TODO check del length works with range given i.e del > min and del < max
         # Mark as a reformat output
         my_variant.warnings.append("Uncertain positions are not fully supported, however the syntax is valid")
         my_variant.reformat_output = "uncertain_pos"
@@ -298,8 +359,12 @@ def uncertain_positions(my_variant, validator):
             my_variant.hgvs_genomic = my_variant.quibble
             start_pos = position_1.split("_")[0]
             end_pos = position_2.split("_")[1]
-            v3 = f"{accession_and_type}.{start_pos}_{end_pos}{variation}"
-            parsed_v3 = validator.hp.parse(v3)
+            parsed_v3 = hgvs_obj_from_existing_edit(
+                    accession,
+                    var_type,
+                    start_pos,
+                    edit,
+                    end=end_pos)
             validator.vr.validate(parsed_v3)
             if (validator.select_transcripts != "select" and ("NM_" in validator.select_transcripts or
                                                               "ENST" in validator.select_transcripts) and
@@ -347,16 +412,25 @@ def uncertain_positions(my_variant, validator):
                 ptv2 = [e for e in ptv2 if validator.select_transcripts in str(e)][0]
 
                 if ptv1.posedit.pos.start.base < ptv2.posedit.pos.start.base:
-                    t_position_1 = str(ptv1.posedit.pos)
-                    t_position_2 = str(ptv2.posedit.pos)
+                    t_position_1 = ptv1.posedit.pos
+                    t_position_2 = ptv2.posedit.pos
                 else:
-                    t_position_1 = str(ptv2.posedit.pos)
-                    t_position_2 = str(ptv1.posedit.pos)
-                tx_variant = f"{ptv1.ac}:{ptv1.type}.({t_position_1})_({t_position_2}){ptv1.posedit.edit.type}"
+                    t_position_1 = ptv2.posedit.pos
+                    t_position_2 = ptv1.posedit.pos
+                tx_variant = hgvs_obj_from_existing_edit(
+                    ptv1.ac,
+                    ptv1.type,
+                    FEInterval(
+                        start=t_position_1,
+                        end=t_position_2),
+                    edit)
+
                 my_variant.hgvs_coding = tx_variant
+                my_variant.quibble = copy.copy(tx_variant)
                 my_variant.hgvs_transcript_variant = tx_variant
             else:
                 my_variant.output_type_flag = "intergenic"
+                my_variant.quibble = copy.copy(parsed_v3)
                 my_variant.warnings.append("Selected transcript does not span the entire range "
                                            "of the genomic variation")
 
@@ -365,27 +439,55 @@ def uncertain_positions(my_variant, validator):
             pgv1 = evm.t_to_g(parsed_v1)
             pgv2 = evm.t_to_g(parsed_v2)
             if pgv1.posedit.pos.start.base < pgv2.posedit.pos.start.base:
-                g_position_1 = str(pgv1.posedit.pos)
-                g_position_2 = str(pgv2.posedit.pos)
+                g_position_1 = pgv1.posedit.pos
+                g_position_2 = pgv2.posedit.pos
             else:
-                g_position_1 = str(pgv2.posedit.pos)
-                g_position_2 = str(pgv1.posedit.pos)
-            gen_variant = f"{pgv1.ac}:{pgv1.type}.({g_position_1})_({g_position_2}){pgv1.posedit.edit.type}"
+                g_position_1 = pgv2.posedit.pos
+                g_position_2 = pgv1.posedit.pos
+            gen_variant = hgvs_obj_from_existing_edit(
+                    pgv1.ac,
+                    pgv1.type,
+                    FEInterval(
+                        start=g_position_1,
+                        end=g_position_2),
+                    edit)
             my_variant.hgvs_genomic = gen_variant
-            my_variant.hgvs_coding = my_variant.quibble
-            my_variant.hgvs_transcript_variant = my_variant.quibble
+            my_variant.hgvs_coding = hgvs_obj_from_existing_edit(
+                    parsed_v1.ac,
+                    parsed_v2.type,
+                    FEInterval(start=parsed_v1.posedit.pos,
+                               end=parsed_v2.posedit.pos),
+                    edit
+                    )
+            my_variant.hgvs_transcript_variant = copy.copy(my_variant.hgvs_coding)
+            my_variant.quibble = copy.copy(my_variant.hgvs_coding)
             my_variant.output_type_flag = "gene"
 
     elif ")_(" not in my_variant.quibble and not "?" in my_variant.quibble:
         if ")(" in my_variant.quibble:
             raise InvalidRangeError("Invalid range submitted, missing underscore between stated uncertain positions")
-
-        accession_and_type, position_and_edit = my_variant.quibble.split(".(")
+        accession, _sep, var_type_and_posedit = my_variant.quibble.partition(':')
+        var_type, _sep ,position_and_edit = var_type_and_posedit.partition(".(")
         position_1, variation = position_and_edit.split(")")
-        v1 = f"{accession_and_type}.{position_1}="
-        my_variant.reftype = f":{accession_and_type.split(':')[1]}."
+        v1 = f"{accession}:{var_type}.{position_1}="
+        my_variant.reftype = f":{var_type}."
         try:
-            parsed_v1 = validator.hp.parse(v1)
+            if var_type == 'p':
+                edit = validator.hp.parse_pro_edit(variation)
+                eq_edit = validator.hp.parse_pro_edit('=')
+            elif var_type in ['c','t','r']:
+                edit = validator.hp.parse_rna_edit(variation)
+                eq_edit = validator.hp.parse_rna_edit('=')
+            else:
+                edit = validator.hp.parse_dna_edit(variation)
+                eq_edit = validator.hp.parse_dna_edit('=')
+            start, _sep, end = position_1.partition('_')
+            parsed_v1 = hgvs_obj_from_existing_edit(
+                    accession,
+                    var_type,
+                    start,
+                    eq_edit,
+                    end=end)
         except vvhgvs.exceptions.HGVSError as e:
             raise HgvsParseError(str(e))
         try:
@@ -399,7 +501,7 @@ def uncertain_positions(my_variant, validator):
                 pass
             else:
                 raise InvalidRangeError(f"{position_1} is an invalid range for "
-                                        f"accession {accession_and_type.split(':')[0]}")
+                                        f"accession {accession}")
 
         # mark as reformat output
         my_variant.warnings.append("Uncertain positions are not fully supported, however the syntax is valid")
@@ -439,21 +541,40 @@ def uncertain_positions(my_variant, validator):
 
                 # Extract correct description
                 ptv1 = [e for e in rel_var if validator.select_transcripts in str(e)]
+                tx_variant = hgvs_obj_from_existing_edit(
+                    ptv1[0].ac,
+                    ptv1[0].type,
+                    ptv1[0].posedit.pos,
+                    edit)
+                tx_variant.posedit.pos.uncertain = True
 
-                tx_variant = f"{ptv1[0].ac}:{ptv1[0].type}.({ptv1[0].posedit.pos}){variation}"
                 my_variant.hgvs_coding = tx_variant
+                my_variant.quibble = copy.copy(tx_variant)
                 my_variant.hgvs_transcript_variant = tx_variant
             else:
                 my_variant.output_type_flag = "intergenic"
+                my_variant.quibble = copy.copy(parsed_v1)
                 my_variant.warnings.append("Selected transcript does not span the entire range "
                                            "of the genomic variation")
 
         elif "NM_" in my_variant.quibble or "NR_" in my_variant.quibble or "ENST" in my_variant.quibble:
             pgv1 = evm.t_to_g(parsed_v1)
-            gen_variant = f"{pgv1.ac}:{pgv1.type}.({pgv1.posedit.pos}){variation}"
+            gen_variant = hgvs_obj_from_existing_edit(
+                    pgv1.ac,
+                    pgv1.type,
+                    pgv1.posedit.pos,
+                    edit)
+            gen_variant.posedit.pos.uncertain = True
+
             my_variant.hgvs_genomic = gen_variant
-            my_variant.hgvs_coding = my_variant.quibble
-            my_variant.hgvs_transcript_variant = my_variant.quibble
+            my_variant.hgvs_coding = hgvs_obj_from_existing_edit(
+                    parsed_v1.ac,
+                    parsed_v1.type,
+                    parsed_v1.posedit.pos,
+                    edit)
+            my_variant.hgvs_coding.posedit.pos.uncertain = True
+            my_variant.hgvs_transcript_variant = my_variant.hgvs_coding
+            my_variant.quibble = copy.copy(my_variant.hgvs_coding)
             my_variant.output_type_flag = "gene"
 
     else:

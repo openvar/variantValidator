@@ -98,12 +98,12 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
                                     validator.alt_aln_method])
 
         # Add refseqgene if available
-        if "NG_" in query.hgvs_refseqgene_variant:
+        if query.hgvs_refseqgene_variant and 'NG_' in query.hgvs_refseqgene_variant.ac:
             tx_for_gene.append([query.gene_symbol,
                                 tx_info[3],
                                 0,
                                 query.hgvs_coding.ac,
-                                query.hgvs_refseqgene_variant.split(":")[0],
+                                query.hgvs_refseqgene_variant.ac,
                                 validator.alt_aln_method])
 
     else:

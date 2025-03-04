@@ -2,6 +2,9 @@ from cmath import log
 import vvhgvs
 import vvhgvs.exceptions
 import vvhgvs.normalizer
+from vvhgvs.location import Interval
+from vvhgvs.sequencevariant import SequenceVariant
+from vvhgvs.posedit import PosEdit
 import re
 import copy
 import sys
@@ -22,7 +25,8 @@ from VariantValidator.modules import exon_numbering
 from VariantValidator.modules.liftover import liftover
 from VariantValidator.modules import complex_descriptions
 from VariantValidator.modules import gene2transcripts
-from VariantValidator.modules import expanded_repeats, methyl_syntax
+from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
+        unset_hgvs_obj_ref, to_vv_hgvs
 
 logger = logging.getLogger(__name__)
 
@@ -149,6 +153,74 @@ class Mixin(vvMixinConverters.Mixin):
                     ordering = ordering + 1
                     my_variant.order = ordering
 
+                if type(my_variant.quibble) is not str:
+                    # already tidied input mapped to transcripts so no need to re-validate for user input type issues
+                    if not my_variant.hgvs_formatted:
+                        my_variant.hgvs_formatted = my_variant.quibble
+                    if not my_variant.reftype:
+                        my_variant.reftype = f':{my_variant.quibble.type}.'
+                    if my_variant.reftype != ':g.':
+                        toskip = self._get_transcript_info(my_variant)
+                        if toskip:
+                            continue
+                        # Create easy variant mapper (over variant mapper) and splign locked evm
+                        my_variant.evm = AssemblyMapper(self.hdp,
+                                                        assembly_name=primary_assembly,
+                                                        alt_aln_method=self.alt_aln_method,
+                                                        normalize=True,
+                                                        replace_reference=True
+                                                        )
+
+                        # Setup a reverse normalize instance and non-normalize evm
+                        my_variant.no_norm_evm = AssemblyMapper(self.hdp,
+                                                                assembly_name=primary_assembly,
+                                                                alt_aln_method=self.alt_aln_method,
+                                                                normalize=False,
+                                                                replace_reference=True
+                                                                )
+
+                        # Create a specific minimal evm with no normalizer and no replace_reference
+                        my_variant.min_evm = AssemblyMapper(self.hdp,
+                                                            assembly_name=primary_assembly,
+                                                            alt_aln_method=self.alt_aln_method,
+                                                            normalize=False,
+                                                            replace_reference=False
+                                                            )
+
+                    if my_variant.reftype in [':c.', ':n.']:
+                        my_variant.gene_symbol = self.db.get_gene_symbol_from_transcript_id(
+                                my_variant.quibble.ac)
+                        try:
+                            toskip = mappers.transcripts_to_gene(
+                                    my_variant,
+                                    self,
+                                    select_transcripts_dict_plus_version)
+                        except mappers.MappersError:
+                            my_variant.output_type_flag = 'warning'
+                            continue
+                        except vvhgvs.exceptions.HGVSInvalidVariantError:
+                            my_variant.output_type_flag = 'warning'
+                            continue
+                        # For not already normalised input gene data fetching
+                        # normally happens in structure_checks!
+                        # (do we want to change the normal location too ?)
+                        my_variant.gene_symbol = self.db.get_gene_symbol_from_transcript_id(
+                                my_variant.quibble.ac)
+                        if my_variant.gene_symbol == 'none':
+                            my_variant.gene_symbol = ''
+                        if toskip:
+                            continue
+                        my_variant.hgvs_transcript_variant = my_variant.quibble
+                    # set output to variant type specific
+                    if my_variant.reftype in [':n.',':t.',':c.'] and my_variant.hgvs_transcript_variant != '':
+                        my_variant.output_type_flag = 'gene'
+                    elif my_variant.reftype == ':g.':
+                        my_variant.output_type_flag = 'intergenic'
+                    elif my_variant.reftype == ':m.':
+                        my_variant.output_type_flag = 'mitochondrial'
+
+                    continue
+
                 # Bug catcher
                 try:
                     # Note, ID is not touched. It is always the input variant description.
@@ -274,7 +346,10 @@ class Mixin(vvMixinConverters.Mixin):
                         try:
                             # Test intronic variants for incorrect boundaries (see issue #169)
                             test_variant = copy.copy(my_variant)
-                            test_variant.hgvs_formatted = str(my_variant.quibble)
+                            test_variant.hgvs_formatted = my_variant.quibble
+                            if type(test_variant.hgvs_formatted) is str:
+                                test_variant.hgvs_formatted = self.hp.parse_hgvs_variant(
+                                        test_variant.hgvs_formatted)
 
                             # Create easy variant mapper (over variant mapper) and splign locked evm
                             test_variant.evm = AssemblyMapper(self.hdp,
@@ -336,10 +411,10 @@ class Mixin(vvMixinConverters.Mixin):
 
                     else:
                         if my_variant.warnings is not None and my_variant.hgvs_genomic is not None:
-                            if "NC_" in my_variant.hgvs_genomic and my_variant.reformat_output == "uncertain_pos":
+                            if "NC_" in str(my_variant.hgvs_genomic) and my_variant.reformat_output == "uncertain_pos":
                                 my_variant.primary_assembly_loci = {my_variant.primary_assembly.lower():
                                                                     {"hgvs_genomic_description":
-                                                                     my_variant.hgvs_genomic,
+                                                                     my_variant.hgvs_genomic.format({'max_ref_length': 0}),
                                                                      "vcf": {"chr": None,
                                                                              "pos": None,
                                                                              "ref": None,
@@ -353,15 +428,17 @@ class Mixin(vvMixinConverters.Mixin):
                     messages
                     """
                     # 1. Requested warnings from https://github.com/openvar/variantValidator/issues/195
-                    if re.search(r'\(.+?\)', my_variant.quibble):  # Pattern looks for (....)
-                        gene_symbol_query = re.search(r'\(.+?\)', my_variant.quibble).group(0)
+                    if re.search(r'\(.+?\)', my_variant.quibble.ac):  # Pattern looks for (....)
+                        gene_symbol_query = re.search(r'\(.+?\)', my_variant.quibble.ac).group(0)
                         gene_symbol_query = gene_symbol_query.replace('(', '')
                         gene_symbol_query = gene_symbol_query.replace(')', '')
                         is_it_a_gene = self.db.get_hgnc_symbol(gene_symbol_query)
                         if is_it_a_gene != 'none':
                             warning = "Removing redundant gene symbol %s from variant description" % is_it_a_gene
+                            my_variant.quibble.ac = my_variant.quibble.ac.replace(f'({gene_symbol_query})','')
                             my_variant.warnings.append(warning)
                             logger.warning(warning)
+
                     if re.search('del[GATC]+', my_variant.original) or re.search('inv[GATC]+', my_variant.original) \
                             or \
                        re.search('dup[GATC]+', my_variant.original) or re.search('ins[GATC]+', my_variant.original):
@@ -371,36 +448,32 @@ class Mixin(vvMixinConverters.Mixin):
                             my_variant.warnings.append(warning)
                             logger.warning(warning)
 
-                    invalid = my_variant.format_quibble()
-
                     # 2. expand options for issue https://github.com/openvar/variantValidator/issues/338
-                    test_for_invalid_case_in_accession = my_variant.original.split(":")[0]
-
                     # Basically, all reference sequences must be upper case, so we make an upper-case query accession
                     # to test the input accession against and try to spot a discrepancy
                     # The exception to the rule is LTG transcripts e.g. LRG_1t1 which we handle immediately below!
-                    query_for_invalid_case_in_accession = test_for_invalid_case_in_accession.upper()
-                    if re.match("LRG", test_for_invalid_case_in_accession, flags=re.IGNORECASE):
-                        if "LRG" not in test_for_invalid_case_in_accession:
+                    upper_case_accession = my_variant.quibble.ac.upper()
+                    original_ac, _sep, _remain = my_variant.original.partition(':')
+                    uc_original_ac = original_ac.upper()
+                    if uc_original_ac[:3] == "LRG":
+                        if "LRG" != original_ac[:3]:
                             e = "This not a valid HGVS description, due to characters being in the wrong case. " \
                                 "Please check the use of upper- and lowercase characters."
                             my_variant.warnings.append(str(e))
                             logger.warning(str(e))
-                        if "T" in test_for_invalid_case_in_accession:
+                        if "T" in original_ac:
                             e = "This not a valid HGVS description, due to characters being in the wrong case. " \
                                 "Please check the use of upper- and lowercase characters."
                             my_variant.warnings.append(str(e))
                             logger.warning(str(e))
-                            my_variant.quibble = my_variant.quibble.replace("T", "t")
+                            my_variant.quibble.ac = my_variant.quibble.ac.replace("T", "t")
 
                     # Reference sequence types other than LRG
-                    elif (test_for_invalid_case_in_accession != query_for_invalid_case_in_accession) \
-                            and "LRG" not in test_for_invalid_case_in_accession:
+                    elif original_ac != uc_original_ac and uc_original_ac[:3] != "LRG":
                         # See issue #357
-                        if re.match("chr", test_for_invalid_case_in_accession, re.IGNORECASE
-                                    ) or re.match("GRCh", test_for_invalid_case_in_accession, re.IGNORECASE
-                                                  ) or re.match("hg", test_for_invalid_case_in_accession, re.IGNORECASE
-                                                                ):
+                        if (uc_original_ac[:3] == 'CHR' or
+                            uc_original_ac[:4] == "GRCH" or
+                            uc_original_ac[:2] == "HG"): # M already handled
                             e = "This is not a valid HGVS variant description, because no reference sequence ID " \
                                 "has been provided"
                         else:
@@ -408,285 +481,42 @@ class Mixin(vvMixinConverters.Mixin):
                                 "Please check the use of upper- and lowercase characters."
                         my_variant.warnings.append(str(e))
                         logger.warning(str(e))
+                    elif (uc_original_ac[:3] == 'CHR' or
+                          uc_original_ac[:4] == "GRCH" or
+                          uc_original_ac[:2] == "HG"):
+                        e = "This is not a valid HGVS variant description, because no reference sequence ID " \
+                            "has been provided"
+                        my_variant.warnings.append(e)
+                        logger.warning(e)
 
-                    if invalid:
-                        if re.search(r'\w+:[gcnmrp],', my_variant.quibble):
-                            error = 'Variant description ' + my_variant.quibble + ' contained the , character between '\
-                                    '<type> and <position> in the expected pattern <accession>:<type>.<position> and ' \
-                                    'has been auto-corrected'
-                            my_variant.quibble = my_variant.quibble.replace(',', '.')
-                            my_variant.warnings.append(error)
-                            logger.warning(error)
-                            pass
-
-                        # Upper case type see issue #338
-                        elif re.search(r":[GCNMR].", str(my_variant.quibble)):
-                            rs_type_upper = re.search(r":[GCNMR].", str(my_variant.quibble))
-                            e = "This not a valid HGVS description, due to characters being in the wrong case. " \
-                                "Please check the use of upper- and lowercase characters."
-                            my_variant.warnings.append(str(e))
-                            logger.warning(str(e))
-                            my_variant.quibble = my_variant.quibble.replace(rs_type_upper.group(0),
-                                                                            rs_type_upper.group(0).lower())
-
-                        elif re.search(r'\w+:[gcnmrp]', my_variant.quibble) and not \
-                                re.search(r'\w+:[gcnmrp]\.', my_variant.quibble):
-                            error = 'Variant description ' + my_variant.quibble + ' lacks the . character between ' \
-                                    '<type> and <position> in the expected pattern <accession>:<type>.<position>'
-                            my_variant.warnings.append(error)
-                            logger.warning(error)
-                            continue
-
-                        else:
-                            error = 'Variant description ' + my_variant.quibble + ' is not in an accepted format'
-                            my_variant.warnings.append(error)
-                            logger.warning(error)
-                            continue
-
-                    else:
-                        # 3. Here we handle syntax errors in ins and delins variants
-                        # https://github.com/openvar/variantValidator/issues/359
-                        if re.search("ins$", my_variant.quibble):
-                            my_variant.warnings.append("The inserted sequence must be provided for insertions or "
-                                                       "deletion-insertions")
-                            try:
-                                if "_" not in my_variant.quibble.split(":")[1] and \
-                                        "del" not in my_variant.quibble.split(":")[1]:
-                                    my_variant.warnings.append("An insertion must be provided with the two positions "
-                                                               "between which the insertion has taken place")
-                            except IndexError:
-                                pass
-                            continue
-
-                        elif re.search("ins\(\d+\)$", my_variant.quibble):
-                            my_variant.warnings.append("The length of the variant is not formatted following the "
-                                                       "HGVS guidelines. Please rewrite e.g. '(10)' to 'N[10]'"
-                                                       "(where N is an unknown nucleotide)")
-                            try:
-                                if "_" not in my_variant.quibble.split(":")[1] and \
-                                        "del" not in my_variant.quibble.split(":")[1]:
-                                    my_variant.warnings.append("An insertion must be provided with the two positions "
-                                                               "between which the insertion has taken place")
-                            except IndexError:
-                                pass
-                            continue
-
-                        elif re.search("ins\d+$", my_variant.quibble):
-                            my_variant.warnings.append("The length of the variant is not formatted following the HGVS "
-                                                       "guidelines. Please rewrite e.g. '10' to 'N[10]'"
-                                                       "(where N is an unknown nucleotide)")
-                            try:
-                                if "_" not in my_variant.quibble.split(":")[1] and \
-                                        "del" not in my_variant.quibble.split(":")[1]:
-                                    my_variant.warnings.append("An insertion must be provided with the two positions "
-                                                               "between which the insertion has taken place")
-                            except IndexError:
-                                pass
-                            continue
-
-                        elif re.search("ins\(\d+_\d+\)$", my_variant.quibble):
-                            my_variant.warnings.append("The length of the variant is not formatted following the HGVS "
-                                                       "guidelines. Please rewrite e.g. '(10_20)' to 'N[(10_20)]'"
-                                                       "(where N is an unknown nucleotide and [(10_20)] is an uncertain"
-                                                       " number of N nucleotides ranging from 10 to 20)")
-                            continue
-
-                        elif re.search("ins\[\(\d+_\d+\)\]$", my_variant.quibble):
-                            counts = re.findall("\d+", my_variant.quibble.split("ins")[1])
-
-                            if int(counts[1]) < int(counts[0]):
-                                wrn = "The length of the variant is not formatted following the HGVS guidelines. " \
-                                      "Please rewrite (%s_%s) to N[(%s_%s)]" % (counts[0], counts[1],
-                                                                                counts[1], counts[0])
-                                my_variant.warnings.append(wrn)
-                            elif int(counts[1]) == int(counts[0]):
-                                wrn = "The length of the variant is not formatted following the HGVS guidelines. " \
-                                      "Please rewrite (%s_%s) to N[(%s)]" % (counts[0], counts[1], counts[1])
-                                my_variant.warnings.append(wrn)
-
-                            try:
-                                if not re.search("\d_\d", my_variant.quibble.split("ins")[0]) and \
-                                        "del" not in my_variant.quibble.split(":")[1]:
-                                    my_variant.warnings.append("An insertion must be provided with the two positions "
-                                                               "between which the insertion has taken place")
-                            except IndexError:
-                                pass
-
-                            if my_variant.warnings == []:
-                                wrn = "The variant description is syntactically correct " \
-                                      "but no further validation is possible because the description contains " \
-                                      "uncertainty"
-                                my_variant.warnings.append(wrn)
-
-                            continue
-
-                        elif re.search("(?:delins|del|ins)[NGATC]\[\d+\]$", my_variant.quibble) or \
-                                re.search("(?:delins|del|ins)\[[NGATC]\[\d+\];", my_variant.quibble):
-
-                            match = re.search("(?:delins|del|ins)", my_variant.quibble)[0]
-
-                            if re.search(f"{match}\[[GATCN]+\[\d+\];", my_variant.quibble):
-                                sections = my_variant.quibble.split(match)[1]
-                                sections = sections[1:-1]
-                                sections_listed = sections.split(";")
-                                sections_edited = []
-                                for stn in sections_listed:
-                                    if '[' in stn and ']' in stn:
-                                        sections_edited.append(stn)
-                                    else:
-                                        sections_edited.append(stn + "[1]")
-
-                                ins_seq_in_full = []
-                                for each_stn in sections_edited:
-                                    bases, count = each_stn.split("[")
-                                    count = int(count.replace("]", ""))
-                                    for i in range(count):
-                                        ins_seq_in_full.append(bases)
-
-                            else:
-                                bases, count = my_variant.quibble.split("[")
-                                bases = bases.split(match)[1]
-                                count = int(count.replace("]", ""))
-                                ins_seq_in_full = []
-                                for i in range(count):
-                                    ins_seq_in_full.append(bases)
-                            ins_seq_in_full = "".join(ins_seq_in_full)
-                            vt_in_full = my_variant.quibble.split(match)[0] + match + ins_seq_in_full
-                            warn = "%s may also be written as %s" % (my_variant.quibble, vt_in_full)
-                            my_variant.warnings.append(warn)
-
-                            try:
-                                if "_" not in my_variant.quibble.split(":")[1] and \
-                                        "del" not in my_variant.quibble.split(":")[1]:
-                                    my_variant.warnings.append("An insertion must be provided with the two positions "
-                                                               "between which the insertion has taken place")
-                            except IndexError:
-                                pass
-
-                            # Mark the variant to not be written and re-submit for validation
-                            my_variant.write = False
-                            query = Variant(my_variant.original, quibble=vt_in_full,
-                                            warnings=my_variant.warnings, primary_assembly=my_variant.primary_assembly,
-                                            order=my_variant.order)
-
-                            self.batch_list.append(query)
-                            continue
-
-                    # Format expanded repeat syntax
-                    """
-                    Waiting for HGVS nomenclature changes
-                    """
-                    try:
-                        toskip = expanded_repeats.convert_tandem(my_variant, self, my_variant.primary_assembly,
-                                                                 "all")
-                    except expanded_repeats.RepeatSyntaxError as e:
-                        my_variant.warnings = [str(e)]
-                        continue
-                    except vvhgvs.exceptions.HGVSInvalidVariantError as e:
-                        my_variant.warnings = ["HgvsSyntaxError: " + str(e)]
-                        continue
-                    except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
-                        if "invalid coordinates:" in str(e):
-                            my_variant.warnings = [(f"ExonBoundaryError: Stated position "
-                                                    f"does not correspond with an exon boundary for "
-                                                    f"transcript {my_variant.quibble.split(':')[0]}")]
-                            continue
-                    except Exception as e:
-                        my_variant.warnings = ["ExpandedRepeatError: " + str(e)]
-                        continue
-
-                    if toskip:
-                        if my_variant.quibble != my_variant.expanded_repeat["variant"]:
-                            my_variant.warnings.append(f"ExpandedRepeatWarning: {my_variant.quibble} updated "
-                                                       f"to {my_variant.expanded_repeat['variant']}")
-                        ins_bases = (my_variant.expanded_repeat["repeat_sequence"] *
-                                     int(my_variant.expanded_repeat["copy_number"]))
-                        repeat_to_delins = self.hp.parse(f"{my_variant.expanded_repeat['reference']}:"
-                                                         f"{my_variant.expanded_repeat['prefix']}."
-                                                         f"{my_variant.expanded_repeat['position']}"
-                                                         f"delins{ins_bases}")
-
-                        try:
-                            repeat_to_delins = my_variant.hn.normalize(repeat_to_delins)
-                        except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
-                            pass
-                        my_variant.quibble = fn.valstr(repeat_to_delins)
-                        my_variant.warnings.append(f"ExpandedRepeatWarning: {my_variant.expanded_repeat['variant']} "
-                                                   f"should only be used as an annotation for the core "
-                                                   f"HGVS descriptions provided")
-
-                    # Methylation Syntax
-                    methyl_syntax.methyl_syntax(my_variant)
 
                     # Set some configurations
                     formatted_variant = my_variant.quibble
                     stash_input = my_variant.quibble
                     my_variant.post_format_conversion = stash_input
+
                     logger.debug("Variant input formatted, proceeding to validate.")
 
-                    # Conversions
-                    # are not currently supported. The HGVS format for conversions
-                    # is rarely seen wrt genomic sequencing data and needs to be re-evaluated
-                    if 'con' in my_variant.quibble:
-                        my_variant.warnings.append('Conversions are no longer valid HGVS Sequence Variant Descriptions')
-                        logger.warning('Conversions are no longer valid HGVS Sequence Variant Descriptions')
-                        continue
 
                     # Change RNA bases to upper case but nothing else
                     if my_variant.reftype == ":r.":
-                        query_r_var = formatted_variant
-                        formatted_variant = formatted_variant.upper()
-                        formatted_variant = formatted_variant.replace(':R.', ':r.')
-
-                        # lowercase the supported variant types
-                        formatted_variant = formatted_variant.replace('DEL', 'del')
-                        formatted_variant = formatted_variant.replace('INS', 'ins')
-                        formatted_variant = formatted_variant.replace('INV', 'inv')
-                        formatted_variant = formatted_variant.replace('DUP', 'dup')
-                        ref, edit_ori = formatted_variant.split(":r.")
-                        edit = copy.copy(edit_ori)
-                        edit = edit.replace("G", "g")
-                        edit = edit.replace("A", "a")
-                        edit = edit.replace("T", "t")
-                        edit = edit.replace("C", "c")
-                        edit = edit.replace("U", "u")
-                        formatted_variant = ref + ":r." + edit
-                        if query_r_var != formatted_variant:
+                        query_r_var = copy.deepcopy(formatted_variant)
+                        edit = formatted_variant.posedit.edit
+                        if edit.ref:
+                            edit.ref = edit.ref.lower()
+                        if not edit.type in ['inv', 'dup'] and edit.alt:
+                            edit.alt = edit.alt.lower()
+                        formatted_variant.posedit.edit = edit
+                        # do we need to limit the supported variant types?
+                        # the case for the reftype needs to already have been checked at this point
+                        if str(query_r_var) != str(formatted_variant):
                             e = "This not a valid HGVS description, due to characters being in the wrong case. " \
                                 "Please check the use of upper- and lowercase characters."
                             my_variant.warnings.append(str(e))
                             logger.warning(str(e))
-                        formatted_variant = formatted_variant.replace(edit, edit_ori)
 
-                    # Handle <position><edit><position> style variants
-                    # Refer to https://github.com/openvar/variantValidator/issues/161
-                    # Example provided is NC_000017.10:g.41199848_41203626delins41207680_41207915
-                    # Current theory, should apply to delins, ins.
-                    # We may also need to expand to http://varnomen.hgvs.org/recommendations/DNA/variant/insertion/
-                    # complex insertions
-                    # Validate syntax of the now HGVS variants
-                    try:
-                        input_parses = self.hp.parse_hgvs_variant(str(formatted_variant))
-                        my_variant.hgvs_formatted = input_parses
-                    except vvhgvs.exceptions.HGVSError as e:
 
-                        # Pass over for uncertain positions
-                        if my_variant.reformat_output == "uncertain_pos":
-                            continue
-
-                        # Check for common mistakes
-                        toskip = use_checking.refseq_common_mistakes(my_variant)
-                        if toskip:
-                            continue
-
-                        # Look for T not U!
-                        posedit = formatted_variant.split(':')[-1]
-                        if 'T' in posedit and "r." in posedit:
-                            e = 'The IUPAC RNA alphabet dictates that RNA variants must use the character u in ' \
-                                'place of t'
-                        my_variant.warnings.append(str(e))
-                        logger.warning(str(e))
-                        continue
+                    my_variant.hgvs_formatted = formatted_variant
 
                     if 'LRG' in my_variant.hgvs_formatted.ac:
                         my_variant.hgvs_formatted.ac.replace('T', 't')
@@ -713,12 +543,13 @@ class Mixin(vvMixinConverters.Mixin):
                         formatted_variant = str(my_variant.hgvs_formatted)
                     except KeyError as e:
                         if "p" in my_variant.hgvs_formatted.type:
-                            error = "Invalid amino acid %s stated in description %s" % (str(e),
-                                                                                        my_variant.quibble)
+                            error = "Invalid amino acid %s stated in description %s" % (
+                                    str(e),
+                                    str(my_variant.quibble.format({'p_3_letter':False})))
                             my_variant.warnings.append(error)
                             continue
 
-                    my_variant.set_quibble(str(my_variant.hgvs_formatted))
+                    my_variant.set_quibble(my_variant.hgvs_formatted)
                     logger.debug("HVGS acceptance test passed")
 
                     # Check whether supported genome build is requested for non g. descriptions
@@ -771,12 +602,9 @@ class Mixin(vvMixinConverters.Mixin):
                     # Also identifies some variants which span into the downstream sequence
                     # i.e. out of bounds
 
-                    # Fuzzy ends
-                    try:
-                        complex_descriptions.fuzzy_ends(my_variant, self)
-                    except complex_descriptions.FuzzyPositionError as e:
-                        my_variant.warnings.append(str(e))
-                        logger.warning(str(e))
+                    # skip if we have fuzzy ends
+                    if isinstance(my_variant.quibble.posedit.pos.start, Interval) or \
+                            isinstance(my_variant.quibble.posedit.pos.end, Interval):
                         continue
 
                     if '*' in str(my_variant.hgvs_formatted.posedit):
@@ -800,18 +628,19 @@ class Mixin(vvMixinConverters.Mixin):
 
                     elif my_variant.hgvs_formatted.posedit.pos.end.base < \
                             my_variant.hgvs_formatted.posedit.pos.start.base:
-                        if "NC_012920.1" not in my_variant.hgvs_formatted.ac and \
-                                "NC_001807.4" not in my_variant.hgvs_formatted.ac:
-                            error = 'Interval end position ' + str(my_variant.hgvs_formatted.posedit.pos.end.base) + \
-                                    ' < interval start position ' + str(my_variant.hgvs_formatted.posedit.pos.start.base)
+                        if my_variant.hgvs_formatted.ac not in ["NC_012920.1", "NC_001807.4"]:
+                            error = 'Interval end position ' +\
+                                    str(my_variant.hgvs_formatted.posedit.pos.end.base) + \
+                                    ' < interval start position ' + \
+                                    str(my_variant.hgvs_formatted.posedit.pos.start.base)
                             my_variant.warnings.append(error)
                             logger.warning(error)
                             continue
 
-                    # Catch missing version number in refseq
+                    # Catch missing version number in refseq/ens
                     is_version = re.compile(r"\d\.\d")
                     if ((my_variant.refsource == 'RefSeq' or my_variant.refsource == 'ENS') and
-                            not is_version.search(str(my_variant.hgvs_formatted))):
+                            not is_version.search(my_variant.hgvs_formatted.ac)):
                         error = 'RefSeq variant accession numbers MUST include a version number'
                         my_variant.warnings.append(error)
                         continue
@@ -868,7 +697,7 @@ class Mixin(vvMixinConverters.Mixin):
                             my_variant.output_type_flag = 'warning'
                             error = '%s cannot be validated in the context of genome build %s, ' \
                                     'try an alternative genome build' \
-                                    % (my_variant.quibble, my_variant.primary_assembly)
+                                    % (str(my_variant.quibble), my_variant.primary_assembly)
                             my_variant.warnings.append(error)
                             toskip = True
                         if toskip:
@@ -889,7 +718,7 @@ class Mixin(vvMixinConverters.Mixin):
                     # Set the data
                     my_variant.output_type_flag = 'gene'
                     my_variant.primary_assembly = primary_assembly
-                    logger.info("Completed initial validation for %s", my_variant.quibble)
+                    logger.info("Completed initial validation for %s", str(my_variant.quibble))
 
                 # Report errors to User and VV admin
                 except KeyboardInterrupt:
@@ -909,50 +738,42 @@ class Mixin(vvMixinConverters.Mixin):
             by_order = sorted(self.batch_list, key=lambda x: x.order)
 
             for variant in by_order:
-                logger.debug("Formatting variant " + variant.quibble)
+                logger.debug("Formatting variant " + variant.quibble.format({'p_3_letter':False}))
                 if not variant.write:
                     continue
 
                 # Genomic sequence variation
                 # Check for gapped delins<No_Alt>
-                if re.search('ins$', variant.genomic_g) and 'del' in variant.genomic_g:
-                    variant.genomic_g = variant.genomic_g.replace('ins', '')
+                if variant.genomic_g and variant.genomic_g.posedit.edit.type == 'delins':
+                    variant.genomic_g = hgvs_delins_parts_to_hgvs_obj(
+                            variant.genomic_g.ac,
+                            variant.genomic_g.type,
+                            variant.genomic_g.posedit.pos,
+                            '','')
 
-                genomic_variant = variant.genomic_g
-                hgvs_genomic_variant = genomic_variant
+                hgvs_genomic_variant = variant.genomic_g
 
                 # genomic accession
                 logger.debug("genomic accession")
-                if genomic_variant != '':
-                    str_genomic_variant = fn.remove_reference_string(genomic_variant)
-                    hgvs_genomic_variant = self.hp.parse_hgvs_variant(str_genomic_variant)
-                    genomic_variant = fn.valstr(hgvs_genomic_variant)
+                if hgvs_genomic_variant:
+                    hgvs_genomic_variant = unset_hgvs_obj_ref(hgvs_genomic_variant)
                     genomic_accession = hgvs_genomic_variant.ac
                 else:
-                    genomic_accession = ''
-
+                    genomic_accession = None
                 # RefSeqGene variation
                 logger.debug("RefSeqGene variation")
                 refseqgene_variant = variant.genomic_r
-                refseqgene_variant = refseqgene_variant.strip()
-                if 'RefSeqGene' in refseqgene_variant or refseqgene_variant == '':
+
+                if not refseqgene_variant or type(refseqgene_variant) is str and 'RefSeqGene' in refseqgene_variant:
                     variant.warnings.append(refseqgene_variant)
-                    refseqgene_variant = ''
                     lrg_variant = ''
-                    if variant.hgvs_refseqgene_variant is not None:
-                        if "NG_" in variant.hgvs_refseqgene_variant:
-                            refseqgene_variant = fn.valstr(self.hp.parse_hgvs_variant(variant.hgvs_refseqgene_variant))
-                        else:
-                            hgvs_refseqgene_variant = 'false'
-                    else:
-                        hgvs_refseqgene_variant = 'false'
+                    refseqgene_variant = ''
                 else:
-                    hgvs_refseqgene_variant = self.hp.parse_hgvs_variant(fn.remove_reference_string(refseqgene_variant))
-                    rsg_ac = self.db.get_lrg_id_from_refseq_gene_id(str(hgvs_refseqgene_variant.ac))
+                    rsg_ac = self.db.get_lrg_id_from_refseq_gene_id(str(refseqgene_variant.ac))
                     if rsg_ac[0] == 'none':
                         lrg_variant = ''
                     else:
-                        hgvs_lrg = copy.deepcopy(hgvs_refseqgene_variant)
+                        hgvs_lrg = copy.deepcopy(refseqgene_variant)
                         hgvs_lrg.ac = rsg_ac[0]
                         lrg_variant = fn.valstr(hgvs_lrg)
                         if rsg_ac[1] != 'public':
@@ -961,19 +782,18 @@ class Mixin(vvMixinConverters.Mixin):
 
                 # Transcript sequence variation
                 logger.debug("Transcript sequence variation")
-                tx_variant = variant.coding
-                hgvs_transcript_variant = tx_variant
+                hgvs_transcript_variant = variant.coding
                 hgvs_tx_variant = None
-                if tx_variant != '':
-                    if '(' in tx_variant and ')' in tx_variant:
+                if variant.coding:
+                    if '(' in str(hgvs_tx_variant) and ')' in str(hgvs_tx_variant):
+                        assert False
                         tx_variant = tx_variant.split('(')[1]
                         tx_variant = tx_variant.replace(')', '')
 
                     # transcript accession
                     logger.debug("transcript accession")
-                    hgvs_tx_variant = self.hp.parse_hgvs_variant(fn.remove_reference_string(tx_variant))
-                    tx_variant = fn.valstr(hgvs_tx_variant)
-                    hgvs_transcript_variant = self.hp.parse_hgvs_variant(fn.remove_reference_string(tx_variant))
+                    hgvs_tx_variant = unset_hgvs_obj_ref(variant.coding)
+                    hgvs_transcript_variant = copy.deepcopy(hgvs_tx_variant)
                     transcript_accession = hgvs_transcript_variant.ac
 
                     # Handle LRG
@@ -987,7 +807,7 @@ class Mixin(vvMixinConverters.Mixin):
                         # display the LRG gene data
 
                         try:
-                            hgvs_lrg_t = self.vm.g_to_t(hgvs_refseqgene_variant, transcript_accession)
+                            hgvs_lrg_t = self.vm.g_to_t(refseqgene_variant, transcript_accession)
                             hgvs_lrg_t.ac = lrg_transcript
                             lrg_transcript_variant = fn.valstr(hgvs_lrg_t)
                         except Exception:
@@ -1001,35 +821,32 @@ class Mixin(vvMixinConverters.Mixin):
                 else:
                     transcript_accession = ''
                     lrg_transcript_variant = ''
+                    hgvs_transcript_variant = ''
 
                 # Look for intronic variants
                 logger.debug("Look for intronic variants")
-                if transcript_accession != '' and genomic_accession != '':
+                if transcript_accession != '' and genomic_accession:
                     # Remove del bases
-                    str_transcript = fn.valstr(hgvs_transcript_variant)
-                    hgvs_transcript_variant = self.hp.parse_hgvs_variant(str_transcript)
+                    hgvs_transcript_variant = unset_hgvs_obj_ref(hgvs_transcript_variant)
                     try:
                         self.vr.validate(hgvs_transcript_variant)
                     except vvhgvs.exceptions.HGVSError as e:
                         error = str(e)
                         if 'intronic variant' in error:
                             genome_context_transcript_variant = genomic_accession + '(' + transcript_accession +\
-                                                                '):c.' + str(hgvs_transcript_variant.posedit)
-                            if refseqgene_variant != '':
-                                hgvs_refseqgene_variant = self.hp.parse_hgvs_variant(
-                                    fn.remove_reference_string(refseqgene_variant))
-                                refseqgene_accession = hgvs_refseqgene_variant.ac
+                                                                '):c.' + hgvs_transcript_variant.posedit.format({'max_ref_length': 0})
+                            if not type(refseqgene_variant) is str:
+                                refseqgene_variant = unset_hgvs_obj_ref(refseqgene_variant)
+                                refseqgene_accession = refseqgene_variant.ac
                                 try:
-                                    hgvs_coding_from_refseqgene = self.vm.g_to_t(hgvs_refseqgene_variant,
+                                    hgvs_coding_from_refseqgene = self.vm.g_to_t(refseqgene_variant,
                                                                              hgvs_transcript_variant.ac)
                                 except vvhgvs.exceptions.HGVSInvalidIntervalError:
                                     hgvs_coding_from_refseqgene = hgvs_transcript_variant
-                                hgvs_coding_from_refseqgene = fn.valstr(hgvs_coding_from_refseqgene)
-                                hgvs_coding_from_refseqgene = self.hp.parse_hgvs_variant(
-                                    fn.remove_reference_string(hgvs_coding_from_refseqgene))
+                                hgvs_coding_from_refseqgene = unset_hgvs_obj_ref(hgvs_coding_from_refseqgene)
                                 refseqgene_context_transcript_variant = refseqgene_accession + '(' + \
-                                    transcript_accession + '):c.' + str(hgvs_coding_from_refseqgene.posedit.pos) + str(
-                                        hgvs_coding_from_refseqgene.posedit.edit)
+                                    transcript_accession + '):c.' + str(hgvs_coding_from_refseqgene.posedit.pos) +\
+                                        hgvs_coding_from_refseqgene.posedit.edit.format({'max_ref_length': 0})
                             else:
                                 refseqgene_context_transcript_variant = ''
                         else:
@@ -1045,29 +862,29 @@ class Mixin(vvMixinConverters.Mixin):
                 # Protein description
                 logger.debug("Protein description")
                 predicted_protein_variant = variant.protein
-                if 'NP_' in predicted_protein_variant:
-                    rs_p, pred_prot_posedit = predicted_protein_variant.split(':')
-                    lrg_p = self.db.get_lrg_protein_id_from_ref_seq_protein_id(rs_p)
+
+                if type(predicted_protein_variant) is not str and 'NP_' in predicted_protein_variant.ac:
+                    lrg_p = self.db.get_lrg_protein_id_from_ref_seq_protein_id(
+                            predicted_protein_variant.ac)
                     if 'LRG' in lrg_p:
-                        predicted_protein_variant = rs_p + '(' + lrg_p + '):' + pred_prot_posedit
+                        predicted_protein_variant.ac= predicted_protein_variant.ac + '(' + lrg_p + ')'
 
                 # Gene
                 if transcript_accession == '':
                     variant.gene_symbol = ''
 
-                if tx_variant != '':
+                if hgvs_tx_variant:
                     multi_gen_vars = mappers.final_tx_to_multiple_genomic(variant,
                                                                           self,
-                                                                          tx_variant,
+                                                                          hgvs_tx_variant,#.format({'max_ref_length': 0}),
                                                                           liftover_level=liftover_level)
 
                 else:
                     # HGVS genomic in the absence of a transcript variant
-                    if genomic_variant != '':
+                    if hgvs_genomic_variant:
                         multi_gen_vars = [hgvs_genomic_variant]
                     else:
                         multi_gen_vars = []
-
                 # Dictionaries of genomic loci
                 alt_genomic_dicts = []
                 primary_genomic_dicts = {}
@@ -1095,161 +912,44 @@ class Mixin(vvMixinConverters.Mixin):
                         continue
                     except vvhgvs.exceptions.HGVSDataNotAvailableError:
                         continue
-
-                    for build in self.genome_builds:
-                        test = seq_data.supported_for_mapping(alt_gen_var.ac, build)
-                        if test:
-                            try:
-                                vcf_dict = hgvs_utils.report_hgvs2vcf(alt_gen_var, build, variant.reverse_normalizer,
-                                                                      self.sf)
-                            except vvhgvs.exceptions.HGVSInvalidVariantError:
-                                continue
-
-                            # Identify primary assembly positions
-                            if 'NC_' in alt_gen_var.ac and par is False:
-                                if 'NC_000' not in alt_gen_var.ac and 'NC_012920.1' not in alt_gen_var.ac and \
-                                        'NC_001807.4' not in alt_gen_var.ac:
-                                    continue
-                                if 'GRC' in build:
-                                    primary_genomic_dicts[build.lower()] = {
-                                        'hgvs_genomic_description': fn.valstr(alt_gen_var),
-                                        'vcf': {'chr': vcf_dict['grc_chr'],
-                                                'pos': vcf_dict['pos'],
-                                                'ref': vcf_dict['ref'],
-                                                'alt': vcf_dict['alt']
-                                                }
-                                    }
-
-                                else:
-                                    primary_genomic_dicts[build.lower()] = {
-                                        'hgvs_genomic_description': fn.valstr(alt_gen_var),
-                                        'vcf': {'chr': vcf_dict['ucsc_chr'],
-                                                'pos': vcf_dict['pos'],
-                                                'ref': vcf_dict['ref'],
-                                                'alt': vcf_dict['alt']
-                                                }
-                                    }
-                                if build == 'GRCh38':
-                                    vcf_dict = hgvs_utils.report_hgvs2vcf(alt_gen_var, 'hg38'
-                                                                          , variant.reverse_normalizer,
-                                                                          self.sf)
-                                    primary_genomic_dicts['hg38'] = {
-                                        'hgvs_genomic_description': fn.valstr(alt_gen_var),
-                                        'vcf': {'chr': vcf_dict['ucsc_chr'],
-                                                'pos': vcf_dict['pos'],
-                                                'ref': vcf_dict['ref'],
-                                                'alt': vcf_dict['alt']
-                                                }
-                                    }
-
-                            elif 'NC_' not in alt_gen_var.ac and par is False:
-                                if 'GRC' in build:
-                                    alt_dict = {build.lower(): {'hgvs_genomic_description': fn.valstr(alt_gen_var),
-                                                                'vcf': {'chr': vcf_dict['grc_chr'],
-                                                                        'pos': vcf_dict['pos'],
-                                                                        'ref': vcf_dict['ref'],
-                                                                        'alt': vcf_dict['alt']
-                                                                        }
-                                                                }
-                                                }
-                                else:
-                                    alt_dict = {build.lower(): {'hgvs_genomic_description': fn.valstr(alt_gen_var),
-                                                                'vcf': {'chr': vcf_dict['ucsc_chr'],
-                                                                        'pos': vcf_dict['pos'],
-                                                                        'ref': vcf_dict['ref'],
-                                                                        'alt': vcf_dict['alt']
-                                                                        }
-                                                                }
-                                                }
-                                # Append
-                                alt_genomic_dicts.append(alt_dict)
-
-                                if build == 'GRCh38':
-                                    vcf_dict = hgvs_utils.report_hgvs2vcf(alt_gen_var, 'hg38',
-                                                                          variant.reverse_normalizer,
-                                                                          self.sf)
-                                    alt_dict = {'hg38': {'hgvs_genomic_description': fn.valstr(alt_gen_var),
-                                                         'vcf': {'chr': vcf_dict['ucsc_chr'],
-                                                                 'pos': vcf_dict['pos'],
-                                                                 'ref': vcf_dict['ref'],
-                                                                 'alt': vcf_dict['alt']
-                                                                 }
-                                                         }
-                                                }
-                                    # Append
-                                    alt_genomic_dicts.append(alt_dict)
-
-                            # Identify primary assembly positions
-                            elif 'NC_000023' in alt_gen_var.ac and par is True:
-                                if 'GRC' in build:
-                                    primary_genomic_dicts[build.lower()] = {
-                                        'hgvs_genomic_description': fn.valstr(alt_gen_var),
-                                        'vcf': {'chr': vcf_dict['grc_chr'],
-                                                'pos': vcf_dict['pos'],
-                                                'ref': vcf_dict['ref'],
-                                                'alt': vcf_dict['alt']
-                                                }
-                                    }
-
-                                else:
-                                    primary_genomic_dicts[build.lower()] = {
-                                        'hgvs_genomic_description': fn.valstr(alt_gen_var),
-                                        'vcf': {'chr': vcf_dict['ucsc_chr'],
-                                                'pos': vcf_dict['pos'],
-                                                'ref': vcf_dict['ref'],
-                                                'alt': vcf_dict['alt']
-                                                }
-                                    }
-                                if build == 'GRCh38':
-                                    vcf_dict = hgvs_utils.report_hgvs2vcf(alt_gen_var, 'hg38',
-                                                                          variant.reverse_normalizer,
-                                                                          self.sf)
-                                    primary_genomic_dicts['hg38'] = {
-                                        'hgvs_genomic_description': fn.valstr(alt_gen_var),
-                                        'vcf': {'chr': vcf_dict['ucsc_chr'],
-                                                'pos': vcf_dict['pos'],
-                                                'ref': vcf_dict['ref'],
-                                                'alt': vcf_dict['alt']
-                                                }
-                                    }
-
-                            else:
-                                if 'GRC' in build:
-                                    alt_dict = {build.lower(): {'hgvs_genomic_description': fn.valstr(alt_gen_var),
-                                                                'vcf': {'chr': vcf_dict['grc_chr'],
-                                                                        'pos': vcf_dict['pos'],
-                                                                        'ref': vcf_dict['ref'],
-                                                                        'alt': vcf_dict['alt']
-                                                                        }
-                                                                }
-                                                }
-                                else:
-                                    alt_dict = {build.lower(): {'hgvs_genomic_description': fn.valstr(alt_gen_var),
-                                                                'vcf': {'chr': vcf_dict['ucsc_chr'],
-                                                                        'pos': vcf_dict['pos'],
-                                                                        'ref': vcf_dict['ref'],
-                                                                        'alt': vcf_dict['alt']
-                                                                        }
-                                                                }
-                                                }
-                                # Append
-                                alt_genomic_dicts.append(alt_dict)
-
-                                if build == 'GRCh38':
-                                    vcf_dict = hgvs_utils.report_hgvs2vcf(alt_gen_var, 'hg38',
-                                                                          variant.reverse_normalizer,
-                                                                          self.sf)
-                                    alt_dict = {'hg38': {'hgvs_genomic_description': fn.valstr(alt_gen_var),
-                                                         'vcf': {'chr': vcf_dict['ucsc_chr'],
-                                                                 'pos': vcf_dict['pos'],
-                                                                 'ref': vcf_dict['ref'],
-                                                                 'alt': vcf_dict['alt']
-                                                                 }
-                                                         }
-                                                }
-                                    # Append
-                                    alt_genomic_dicts.append(alt_dict)
-
+                    try:
+                        vcf_dict = hgvs_utils.report_hgvs2vcf(alt_gen_var, 'All', variant.reverse_normalizer,
+                                                              self.sf)
+                    except vvhgvs.exceptions.HGVSInvalidVariantError:
+                        continue
+                    # Identify primary assembly positions
+                    primary = False
+                    if 'NC_' in alt_gen_var.ac and par is False:
+                        if 'NC_000' not in alt_gen_var.ac and 'NC_012920.1' not in alt_gen_var.ac and \
+                                'NC_001807.4' not in alt_gen_var.ac:
+                            continue
+                        primary =True
+                    elif 'NC_' not in alt_gen_var.ac and par is False:
+                        pass
+                    elif 'NC_000023' in alt_gen_var.ac and par is True:
+                        primary =True
+                    text_hgvs_out = fn.valstr(alt_gen_var)
+                    if primary:
+                        for genome_build in vcf_dict['chrs_by_genome']:
+                            primary_genomic_dicts[genome_build] = {
+                                'hgvs_genomic_description': text_hgvs_out,
+                                'vcf': {'chr': vcf_dict['chrs_by_genome'][genome_build],
+                                        'pos': vcf_dict['pos'],
+                                        'ref': vcf_dict['ref'],
+                                        'alt': vcf_dict['alt']
+                                        }
+                                }
+                    else:
+                        for genome_build in vcf_dict['chrs_by_genome']:
+                            alt_dict = {genome_build: {
+                                'hgvs_genomic_description': text_hgvs_out,
+                                'vcf': {'chr': vcf_dict['chrs_by_genome'][genome_build],
+                                        'pos': vcf_dict['pos'],
+                                        'ref': vcf_dict['ref'],
+                                        'alt': vcf_dict['alt']
+                                        }
+                                }}
+                            alt_genomic_dicts.append(alt_dict)
                 # Clean up mito genome issues
                 cp_lifted_response = copy.deepcopy(primary_genomic_dicts)
                 for key, val in cp_lifted_response.items():
@@ -1257,9 +957,8 @@ class Mixin(vvMixinConverters.Mixin):
                         primary_genomic_dicts.pop(key)
                     elif key == "grch37" and "NC_001807.4" in val["hgvs_genomic_description"]:
                         primary_genomic_dicts.pop(key)
-
                 # Warn not directly mapped to specified genome build
-                if genomic_accession != '':
+                if genomic_accession:
                     if primary_assembly.lower() not in list(primary_genomic_dicts.keys()):
                         errors = [str(variant.hgvs_coding) + ' is not part of genome build ' + primary_assembly]
 
@@ -1282,23 +981,24 @@ class Mixin(vvMixinConverters.Mixin):
 
                 # Ensure Variants have had the refs removed.
                 # if not hasattr(posedit, refseqgene_variant):
-                if refseqgene_variant != '':
+                if not type(refseqgene_variant) is str:
                     try:
-                        refseqgene_variant = fn.valstr(hgvs_refseqgene_variant)
+                        refseqgene_variant =  unset_hgvs_obj_ref(refseqgene_variant)
                     except Exception as e:
                         logger.debug("Except passed, %s", e)
                     if variant.gene_symbol == "" and refseqgene_variant != "":
-                        gene_symbol = self.db.get_gene_symbol_from_refseq_id(refseqgene_variant.split(":")[0])
+                        gene_symbol = self.db.get_gene_symbol_from_refseq_id(refseqgene_variant.ac)
                         variant.gene_symbol = gene_symbol
 
-                # Add predicted protein variant dictionary
+                # Add predicted protein variant dictionary this is the output form so str for final is OK
                 if predicted_protein_variant != '':
                     predicted_protein_variant_dict = {}
                     predicted_protein_variant_dict["slr"] = ''
                     predicted_protein_variant_dict["tlr"] = ''
                     predicted_protein_variant_dict["lrg_tlr"] = ''
                     predicted_protein_variant_dict["lrg_slr"] = ''
-                    if 'Non-coding :n.' not in predicted_protein_variant:
+                    if type(predicted_protein_variant) is not str:
+                        # add protein descriptions if not N type edit
                         add_p_descps = True
                         try:
                             if "N" in str(hgvs_tx_variant.posedit.edit):
@@ -1307,79 +1007,59 @@ class Mixin(vvMixinConverters.Mixin):
                             pass
                         if add_p_descps is True:
                             try:
-                                # Add single letter AA code to protein descriptions
-                                predicted_protein_variant_dict = {"tlr": str(predicted_protein_variant), "slr": ''}
-                                if re.search('p.=', predicted_protein_variant_dict['tlr']) \
-                                        or re.search('p.?', predicted_protein_variant_dict['tlr']):
-                                    # Replace p.= with p.(=)
-                                    predicted_protein_variant_dict['tlr'] = \
-                                        predicted_protein_variant_dict['tlr'].replace(
-                                        'p.=',
-                                        'p.(=)')
-
-                                # Remove LRG
-                                format_p = predicted_protein_variant_dict['tlr']
-
-                                if 'LRG' in format_p:
-                                    format_lrg = copy.copy(format_p)
-                                    format_p = re.sub(r'\(LRG_.+?\)', '', format_p)
+                                # Remove LRG if present and store presence for later
+                                if 'LRG' in predicted_protein_variant.ac:
+                                    format_lrg = predicted_protein_variant.ac
                                     if "(" in format_lrg:
                                         format_lrg = format_lrg.split('(')[1]
                                         format_lrg = format_lrg.replace(')', '')
+                                        predicted_protein_variant.ac  = re.sub(
+                                                r'\(LRG_.+?\)', '', predicted_protein_variant.ac)
                                 else:
                                     format_lrg = None
-                                    pass
+                                # Add single letter AA code to protein descriptions
+                                predicted_protein_variant_dict = {"tlr": str(
+                                    predicted_protein_variant.format({'max_ref_length': 0})
+                                    ), "slr": ''}
 
-                                if re.search("[A-Z][a-z][a-z]1[A-Z][a-z][a-z]", format_p):
+                                if re.search("[A-Z][a-z][a-z]1[A-Z][a-z][a-z]", str(
+                                    predicted_protein_variant.posedit)):
                                     cp_warnings = []
                                     for each_warning in variant.warnings:
                                         if "is HGVS compliant and contains a valid reference " \
                                            "amino acid description" not in each_warning:
                                             cp_warnings.append(each_warning)
                                         else:
-                                            cp_format_p = copy.copy(format_p)
-                                            cp_format_p = cp_format_p.split(":")[0]
-                                            aa_1 = self.sf.fetch_seq(cp_format_p, start_i=0, end_i=1)
+                                            aa_1 = self.sf.fetch_seq(
+                                                    predicted_protein_variant.ac,
+                                                    start_i=0,
+                                                    end_i=1)
                                             aa_1 = fn.one_to_three(aa_1)
-                                            cp_format_p = f"{cp_format_p}:p.({aa_1}1?)"
-                                            cp_warnings.append(f"Variant {format_p} affects the initiation amino acid"
-                                                               f" so is better described as {cp_format_p}")
-                                            format_p = cp_format_p
+                                            cp_format_p = f"{predicted_protein_variant.ac}:p.({aa_1}1?)"
+                                            cp_warnings.append(
+                                                    f"Variant {predicted_protein_variant} affects the initiation amino acid"
+                                                    f" so is better described as {cp_format_p}")
+                                            predicted_protein_variant = vvhgvs.sequencevariant.SequenceVariant(
+                                                    ac=predicted_protein_variant.ac,
+                                                    type='p',
+                                                    posedit="({aa_1}1?)")
                                             variant.warnings = cp_warnings
 
-                                re_parse_protein = self.hp.parse_hgvs_variant(format_p)
-
                                 # Set formatted tlr
-                                predicted_protein_variant_dict['tlr'] = str(copy.copy(re_parse_protein))
-                                re_parse_protein_single_aa = fn.single_letter_protein(re_parse_protein)
-
-                                # Replace p.= with p.(=)
-                                if re.search('p.=', re_parse_protein_single_aa
-                                             ) or re.search('p.?', re_parse_protein_single_aa):
-                                    re_parse_protein_single_aa = re_parse_protein_single_aa.replace('p.=',
-                                                                                                    'p.(=)')
-
-                                # Capture instances of variation affecting p.1
-                                if re.search("[A-Z][a-z[a-z]1[?]", predicted_protein_variant_dict['tlr']):
-                                    match = re.search("([A-Z][a-z][a-z]1[?])", predicted_protein_variant_dict['tlr'])
-                                    captured_aa = match.group(1).split("1")[0]
-                                    captured_aa_sl = fn.three_to_one(captured_aa)
-                                    predicted_protein_variant_dict['tlr'] = \
-                                        predicted_protein_variant_dict['tlr'].split("p.")[0]
-                                    predicted_protein_variant_dict['tlr'] = \
-                                        predicted_protein_variant_dict['tlr'] + "p.(" + captured_aa + "1?)"
-                                    re_parse_protein_single_aa = re_parse_protein_single_aa.split("p.")[0]
-                                    re_parse_protein_single_aa = re_parse_protein_single_aa + "p.(" \
-                                                                                              + captured_aa_sl + "1?)"
-                                predicted_protein_variant_dict["slr"] = str(re_parse_protein_single_aa)
-
+                                predicted_protein_variant_dict['tlr'] = \
+                                        predicted_protein_variant.format({
+                                            'max_ref_length': 0})
+                                predicted_protein_variant_dict['slr']= \
+                                        predicted_protein_variant.format({
+                                            'max_ref_length': 0,
+                                            'p_3_letter':False})
                                 # set LRG outputs
                                 if format_lrg is not None:
                                     predicted_protein_variant_dict["lrg_tlr"] = \
-                                        format_lrg.split(':')[0] + ':' + \
+                                        format_lrg + ':' + \
                                         predicted_protein_variant_dict["tlr"].split(':')[1]
                                     predicted_protein_variant_dict["lrg_slr"] = \
-                                        format_lrg.split(':')[0] + ':' + \
+                                        format_lrg + ':' + \
                                         predicted_protein_variant_dict["slr"].split(':')[1]
                                 else:
                                     predicted_protein_variant_dict["lrg_tlr"] = ''
@@ -1395,12 +1075,13 @@ class Mixin(vvMixinConverters.Mixin):
                     predicted_protein_variant_dict["lrg_slr"] = ''
 
                 # Add missing gene info which should be there (May have come from uncertain positions for example)
-                if variant.hgvs_transcript_variant is not None and variant.gene_symbol == '':
+                if variant.hgvs_transcript_variant and variant.gene_symbol == '':
+                    # the last hold out for this is uncertain positions
                     variant.gene_symbol = self.db.get_gene_symbol_from_transcript_id(
-                        variant.hgvs_transcript_variant.split(":")[0])
-                elif variant.hgvs_refseqgene_variant is not None and variant.gene_symbol == '':
+                        variant.hgvs_transcript_variant.ac)
+                elif variant.hgvs_refseqgene_variant and variant.gene_symbol == '':
                     variant.gene_symbol = self.db.get_gene_symbol_from_refseq_id(
-                        variant.hgvs_refseqgene_variant.split(":")[0])
+                        variant.hgvs_refseqgene_variant.ac)
 
                 # Add stable gene_ids
                 stable_gene_ids = {}
@@ -1495,15 +1176,30 @@ class Mixin(vvMixinConverters.Mixin):
                 variant.alt_genomic_loci = alt_genomic_dicts
                 if variant.reformat_output != "uncertain_pos":
                     variant.primary_assembly_loci = primary_genomic_dicts
-                    variant.hgvs_transcript_variant = tx_variant
-
-                if variant.hgvs_transcript_variant is None:
-                    variant.hgvs_transcript_variant = tx_variant
+                    if hgvs_tx_variant:
+                        variant.hgvs_transcript_variant = hgvs_tx_variant
+                if not variant.hgvs_transcript_variant and hgvs_tx_variant:
+                    variant.hgvs_transcript_variant = hgvs_tx_variant
                 variant.reference_sequence_records = ''
                 variant.validated = True
 
                 # Add links to reference_sequence_records
-                ref_records = self.db.get_urls(variant.output_dict())
+                pre_out = {
+                        'hgvs_transcript_variant':'',
+                        'hgvs_predicted_protein_consequence':{'slr':''},
+                        'hgvs_refseqgene_variant':'',
+                        'hgvs_lrg_variant':'',
+                        'selected_assembly':self.selected_assembly}
+                if variant.hgvs_transcript_variant:
+                    pre_out['hgvs_transcript_variant'] = variant.hgvs_transcript_variant.ac
+                if variant.hgvs_refseqgene_variant:
+                    pre_out['hgvs_refseqgene_variant'] = variant.hgvs_refseqgene_variant.ac
+                if variant.hgvs_lrg_variant:# is str
+                    pre_out['hgvs_lrg_variant'] = variant.hgvs_lrg_variant
+                if variant.hgvs_predicted_protein_consequence:
+                    pre_out['hgvs_predicted_protein_consequence']['slr'] = \
+                            variant.hgvs_predicted_protein_consequence['slr']
+                ref_records = self.db.get_urls(pre_out)
                 if ref_records != {}:
                     variant.reference_sequence_records = ref_records
 
@@ -1567,7 +1263,8 @@ class Mixin(vvMixinConverters.Mixin):
                                                            self,
                                                            specify_tx=False,
                                                            liftover_level=liftover_level,
-                                                           g_to_g=g_to_g)
+                                                           g_to_g=g_to_g,
+                                                           genomic_data_w_vcf=genomic_position_info)
 
                                 if "NC_012920.1" in genomic_position_info[g_p_key]['hgvs_genomic_description'] or \
                                         "NC_001807.4:" in genomic_position_info[g_p_key]['hgvs_genomic_description']:
@@ -1623,10 +1320,12 @@ class Mixin(vvMixinConverters.Mixin):
 
                 # Remove duplicate warnings
                 variant_warnings = []
-                accession = variant.hgvs_transcript_variant.split(':')[0]
+                accession = ''
+                if variant.hgvs_transcript_variant:
+                    accession = variant.hgvs_transcript_variant.ac
                 term = str(accession)
-                term_2 = "%s automapped to" % tx_variant
-                term_3 = "%s automapped to" % genomic_variant
+                term_2 = "%s automapped to" % str(hgvs_tx_variant)
+                term_3 = "%s automapped to" % str(hgvs_genomic_variant)
                 for vt in variant.warnings:
                     vt = str(vt)
 
@@ -1648,7 +1347,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                 "org/service/validate/ for more information.")
 
                     # Remove spurious updates away form the correct output
-                    elif (term_2 in vt and tx_variant != "") or (term_3 in vt and genomic_variant != ""):
+                    elif (term_2 in vt and hgvs_tx_variant) or (term_3 in vt and hgvs_genomic_variant):
                         continue
                     # Suppress "RefSeqGene record not available"
                     elif "RefSeqGene record not available" in vt:
@@ -1674,29 +1373,56 @@ class Mixin(vvMixinConverters.Mixin):
                         variant_warnings.append(vt)
                 variant.warnings = variant_warnings
 
-                # Reformat as required
+                # Reformat as required to add back variation that would/does get lost on mapping
                 if variant.reformat_output is not False:
-                    if "|" in variant.reformat_output and "=" in variant.quibble:
+                    if "|" in variant.reformat_output and "=" in str(variant.quibble):
+                        def _apply_met_variation(data):
+                            if isinstance(data, dict):
+                                for key in data:
+                                    if isinstance(data[key],dict) or isinstance(data[key],list):
+                                        data[key] = _apply_met_variation(data[key])
+                                    elif isinstance(data[key],SequenceVariant) and not data[key].type == 'p':
+                                        if type(data[key].posedit) is PosEdit:
+                                            data[key] = to_vv_hgvs(data[key])
+                                        data[key] = data[key].posedit.met_variation = variant.reformat_output
+                                    elif isinstance(data[key], str) and data[key].endswith('=') and not data[key].endswith('|met=') and not ':p.' in data[key]:
+                                        data[key] = data[key][:-1] + variant.reformat_output
+                            elif isinstance(data,list):
+                                for index, value in enumerate(data):
+                                    if isinstance(value,dict) or isinstance(value,list):
+                                        data[index] = _apply_met_variation(value)
+                                    elif isinstance(value,SequenceVariant) and not value.type == 'p':
+                                        if type(value.posedit) is PosEdit:
+                                             value = to_vv_hgvs(value)
+                                        data[index] = value.posedit.met_variation = variant.reformat_output
+                                    elif isinstance(value, str) and value.endswith('=') and not value.endswith('|met=') and not ':p.' in value:
+                                        data[index] = value[:-1] + variant.reformat_output
+                            elif isinstance(data,SequenceVariant) and not data.type == 'p':
+                                if type(data.posedit) is PosEdit:
+                                    data = to_vv_hgvs(data)
+                                data.posedit.met_variation = variant.reformat_output
+                            elif isinstance(data, str) and data.endswith('=') and not data.endswith('|met=') and not ':p.' in data:
+                                data = data[:-1] + variant.reformat_output
+                            return data
+
                         attributes = dir(variant)
                         for attribute in attributes:
-                            if "__" in attribute:
+                            if "__" in attribute or attribute == "reformat_output":
                                 continue
                             item = (getattr(variant, attribute))
-                            if isinstance(item, str):
-                                if ("p." not in item and "=" in item) and attribute != "reformat_output":
-                                    setattr(variant, attribute, item.replace("=", variant.reformat_output))
-                            if isinstance(item, dict) or isinstance(item, list):
-                                try:
-                                    stringy = json.dumps(item)
-                                    if re.search(r":[gcnr].", stringy) and "=" in stringy:
-                                        stringy = stringy.replace("=", variant.reformat_output)
-                                        setattr(variant, attribute, json.loads(stringy))
-                                except json.JSONDecodeError:
-                                    pass
-
-                # Correct |met=
-                if "|met|met=" in variant.original:
-                    variant.original = variant.original.replace("|met|met=", "|met=")
+                            item = _apply_met_variation(item)
+                            setattr(variant, attribute, item)
+                # Some variant objects must be strings for back-compatibility with old output
+                if variant.hgvs_transcript_variant:
+                    variant.hgvs_transcript_variant = \
+                            variant.hgvs_transcript_variant.format({'max_ref_length': 0})
+                else:
+                    variant.hgvs_transcript_variant = ''
+                if variant.hgvs_refseqgene_variant:
+                    variant.hgvs_refseqgene_variant = \
+                            variant.hgvs_refseqgene_variant.format({'max_ref_length': 0})
+                else:
+                    variant.hgvs_refseqgene_variant = ''
 
                 # Append to a list for return
                 batch_out.append(variant)
@@ -1812,7 +1538,7 @@ class Mixin(vvMixinConverters.Mixin):
         Should only be called during the validator process
         """
         logger.debug("Looking for transcript info")
-        hgvs_vt = self.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
+        hgvs_vt = variant.hgvs_formatted
         try:
             self.hdp.get_tx_identity_info(str(hgvs_vt.ac))
         except vvhgvs.exceptions.HGVSError as e:
@@ -1828,7 +1554,7 @@ class Mixin(vvMixinConverters.Mixin):
         if self.alt_aln_method != 'genebuild':
             # Gene description  - requires GenBank search to get all the required info, i.e. transcript variant ID
             # accession number
-            hgvs_object = self.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
+            hgvs_object = variant.hgvs_formatted
             accession = hgvs_object.ac
             # Look for the accession in our database
             # Connect to database and send request
@@ -1909,7 +1635,7 @@ class Mixin(vvMixinConverters.Mixin):
         # Ensembl databases
         else:
             # accession number
-            hgvs_object = self.hp.parse_hgvs_variant(str(variant.hgvs_formatted))
+            hgvs_object = variant.hgvs_formatted
             accession = hgvs_object.ac
             # Look for the accession in our database
             # Connect to database and send request

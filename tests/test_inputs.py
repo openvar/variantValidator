@@ -6697,13 +6697,13 @@ class TestVariantsAuto(TestCase):
         assert results['NR_037910.1:n.828-9155_828-9154=']['primary_assembly_loci']['hg19']['hgvs_genomic_description'
         ] == 'NC_000005.9:g.35058667_35058668='
         assert results['NR_037910.1:n.828-9155_828-9154=']['primary_assembly_loci']['hg38'] == {
-            'hgvs_genomic_description': 'NC_000005.10:g.35058562_35058563=',
-            'vcf': {'chr': 'chr5', 'pos': '35058562', 'ref': 'AA', 'alt': 'AA'}}
+            'hgvs_genomic_description': 'NC_000005.10:g.35058563A>G',
+            'vcf': {'chr': 'chr5', 'pos': '35058563', 'ref': 'A', 'alt': 'G'}}
         assert results['NR_037910.1:n.828-9155_828-9154=']['primary_assembly_loci']['grch37']['hgvs_genomic_description'
         ] == 'NC_000005.9:g.35058667_35058668='
         assert results['NR_037910.1:n.828-9155_828-9154=']['primary_assembly_loci']['grch38'] == {
-            'hgvs_genomic_description': 'NC_000005.10:g.35058562_35058563=',
-            'vcf': {'chr': '5', 'pos': '35058562', 'ref': 'AA', 'alt': 'AA'}}
+            'hgvs_genomic_description': 'NC_000005.10:g.35058563A>G',
+            'vcf': {'chr': '5', 'pos': '35058563', 'ref': 'A', 'alt': 'G'}}
         assert results['NR_037910.1:n.828-9155_828-9154=']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NR_037910.1'}
 
@@ -6729,13 +6729,13 @@ class TestVariantsAuto(TestCase):
         assert results['NM_001204316.1:c.1009+7383_1009+7384=']['primary_assembly_loci']['hg19']['hgvs_genomic_description'
         ] == 'NC_000005.9:g.35058667_35058668='
         assert results['NM_001204316.1:c.1009+7383_1009+7384=']['primary_assembly_loci']['hg38'] == {
-            'hgvs_genomic_description': 'NC_000005.10:g.35058565_35058566=',
-            'vcf': {'chr': 'chr5', 'pos': '35058565', 'ref': 'AT', 'alt': 'AT'}}
+            'hgvs_genomic_description': 'NC_000005.10:g.35058566T>G',
+            'vcf': {'chr': 'chr5', 'pos': '35058566', 'ref': 'T', 'alt': 'G'}}
         assert results['NM_001204316.1:c.1009+7383_1009+7384=']['primary_assembly_loci']['grch37']['hgvs_genomic_description'
         ] == 'NC_000005.9:g.35058667_35058668='
         assert results['NM_001204316.1:c.1009+7383_1009+7384=']['primary_assembly_loci']['grch38'] == {
-            'hgvs_genomic_description': 'NC_000005.10:g.35058565_35058566=',
-            'vcf': {'chr': '5', 'pos': '35058565', 'ref': 'AT', 'alt': 'AT'}}
+            'hgvs_genomic_description': 'NC_000005.10:g.35058566T>G',
+            'vcf': {'chr': '5', 'pos': '35058566', 'ref': 'T', 'alt': 'G'}}
         assert results['NM_001204316.1:c.1009+7383_1009+7384=']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_001204316.1',
             'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_001191245.1'}
@@ -6762,13 +6762,13 @@ class TestVariantsAuto(TestCase):
         assert results['NM_001204317.1:c.856-9155_856-9154=']['primary_assembly_loci']['hg19']['hgvs_genomic_description'
         ] == 'NC_000005.9:g.35058667_35058668='
         assert results['NM_001204317.1:c.856-9155_856-9154=']['primary_assembly_loci']['hg38'] == {
-            'hgvs_genomic_description': 'NC_000005.10:g.35058562_35058563=',
-            'vcf': {'chr': 'chr5', 'pos': '35058562', 'ref': 'AA', 'alt': 'AA'}}
+            'hgvs_genomic_description': 'NC_000005.10:g.35058563A>G',
+            'vcf': {'chr': 'chr5', 'pos': '35058563', 'ref': 'A', 'alt': 'G'}}
         assert results['NM_001204317.1:c.856-9155_856-9154=']['primary_assembly_loci']['grch37']['hgvs_genomic_description'
         ] == 'NC_000005.9:g.35058667_35058668='
         assert results['NM_001204317.1:c.856-9155_856-9154=']['primary_assembly_loci']['grch38'] == {
-            'hgvs_genomic_description': 'NC_000005.10:g.35058562_35058563=',
-            'vcf': {'chr': '5', 'pos': '35058562', 'ref': 'AA', 'alt': 'AA'}}
+            'hgvs_genomic_description': 'NC_000005.10:g.35058563A>G',
+            'vcf': {'chr': '5', 'pos': '35058563', 'ref': 'A', 'alt': 'G'}}
         assert results['NM_001204317.1:c.856-9155_856-9154=']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_001204317.1',
             'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_001191246.1'}
@@ -6795,13 +6795,13 @@ class TestVariantsAuto(TestCase):
         assert results['NM_001204318.1:c.686-9155_686-9154=']['primary_assembly_loci']['hg19']['hgvs_genomic_description'
         ] == 'NC_000005.9:g.35058667_35058668='
         assert results['NM_001204318.1:c.686-9155_686-9154=']['primary_assembly_loci']['hg38'] == {
-            'hgvs_genomic_description': 'NC_000005.10:g.35058562_35058563=',
-            'vcf': {'chr': 'chr5', 'pos': '35058562', 'ref': 'AA', 'alt': 'AA'}}
+            'hgvs_genomic_description': 'NC_000005.10:g.35058563A>G',
+            'vcf': {'chr': 'chr5', 'pos': '35058563', 'ref': 'A', 'alt': 'G'}}
         assert results['NM_001204318.1:c.686-9155_686-9154=']['primary_assembly_loci']['grch37']['hgvs_genomic_description'
         ] == 'NC_000005.9:g.35058667_35058668='
         assert results['NM_001204318.1:c.686-9155_686-9154=']['primary_assembly_loci']['grch38'] == {
-            'hgvs_genomic_description': 'NC_000005.10:g.35058562_35058563=',
-            'vcf': {'chr': '5', 'pos': '35058562', 'ref': 'AA', 'alt': 'AA'}}
+            'hgvs_genomic_description': 'NC_000005.10:g.35058563A>G',
+            'vcf': {'chr': '5', 'pos': '35058563', 'ref': 'A', 'alt': 'G'}}
         assert results['NM_001204318.1:c.686-9155_686-9154=']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_001204318.1',
             'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_001191247.1'}
@@ -9094,14 +9094,14 @@ class TestVariantsAuto(TestCase):
             'hgvs_genomic_description': 'NC_000005.9:g.35058665_35058666=',
             'vcf': {'chr': 'chr5', 'pos': '35058665', 'ref': 'CA', 'alt': 'CA'}}
         assert results['NM_001204316.1:c.1009+7385_1009+7386=']['primary_assembly_loci']['hg38'] == {
-            'hgvs_genomic_description': 'NC_000005.10:g.35058563_35058564=',
-            'vcf': {'chr': 'chr5', 'pos': '35058563', 'ref': 'AG', 'alt': 'AG'}}
+            'hgvs_genomic_description': 'NC_000005.10:g.35058563_35058564delinsCA',
+            'vcf': {'chr': 'chr5', 'pos': '35058563', 'ref': 'AG', 'alt': 'CA'}}
         assert results['NM_001204316.1:c.1009+7385_1009+7386=']['primary_assembly_loci']['grch37'] == {
             'hgvs_genomic_description': 'NC_000005.9:g.35058665_35058666=',
             'vcf': {'chr': '5', 'pos': '35058665', 'ref': 'CA', 'alt': 'CA'}}
         assert results['NM_001204316.1:c.1009+7385_1009+7386=']['primary_assembly_loci']['grch38'] == {
-            'hgvs_genomic_description': 'NC_000005.10:g.35058563_35058564=',
-            'vcf': {'chr': '5', 'pos': '35058563', 'ref': 'AG', 'alt': 'AG'}}
+            'hgvs_genomic_description': 'NC_000005.10:g.35058563_35058564delinsCA',
+            'vcf': {'chr': '5', 'pos': '35058563', 'ref': 'AG', 'alt': 'CA'}}
         assert results['NM_001204316.1:c.1009+7385_1009+7386=']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_001204316.1',
             'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_001191245.1'}
@@ -31060,7 +31060,26 @@ class TestVariantsAuto(TestCase):
         results = self.vv.validate(variant, 'GRCh38', select_transcripts).format_as_dict(test=True)
         assert 'NM_004006.2:c.720_991dup' in results.keys()
 
+    def test_chr_to_rsg(self):
+        # Test a part of chr_to_rsg that was previously untested and resulted in a crashing bug
+        # during development. This particular variant only triggers the code in question when
+        # ".testing" is not enabled.
+        vval = Validator()
+        result = vval.validate('chr3:g.51361947G>T', 'GRCh38', 'all', 'refseq')
+        results = result.format_as_dict(test=True)
+        assert results.keys()
+        assert results['intergenic_variant_1']['hgvs_refseqgene_variant'] == 'NG_028012.1:g.691707G>T'
 
+    def test_indel_to_prot_del(self):
+        # Test a otherwise untested complex protein code for simple del output as a result of indel
+        # type RNA input.
+        variant = "NM_001015877.2:c.552_558delinsG"
+        select_transcripts = "NM_001015877.2"
+        results = self.vv.validate(variant, 'GRCh38', select_transcripts).format_as_dict(test=True)
+        assert results["NM_001015877.2:c.552_558delinsG"]["hgvs_predicted_protein_consequence"] == {
+            "slr": "NP_001015877.1:p.(H185_G186del)",
+            "tlr": "NP_001015877.1:p.(His185_Gly186del)"
+        }
 
 # <LICENSE>
 # Copyright (C) 2016-2024 VariantValidator Contributors

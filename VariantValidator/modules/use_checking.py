@@ -4,23 +4,193 @@ import vvhgvs.exceptions
 import vvhgvs.variantmapper
 import logging
 from . import utils as fn
+from .variant import Variant
 import copy
 from . import hgvs_utils
 
 logger = logging.getLogger(__name__)
 
+def pre_parsing_global_common_mistakes(my_variant):
+    """
+    A set of common error types that need to be found/handled before parsing variants into objects
+    to compile HGVS errors and provide improved warnings/error messages initially from
+    # INITIAL USER INPUT FORMATTING, which will end up as# INITIAL POST-OBJECT USER INPUT FORMATTING
+    This may in fact want to be merged into the later use checking functions in the long term,
+    or else may grow to handle more if some of these are converted to post-obj parsing instead
+    """
+    invalid = my_variant.format_quibble()
+    if invalid:
+        if re.search(r'\w+:[gcnmrp],', my_variant.quibble):
+            error = 'Variant description ' + my_variant.quibble + ' contained the , character between '\
+                    '<type> and <position> in the expected pattern <accession>:<type>.<position> and ' \
+                    'has been auto-corrected'
+            my_variant.quibble = my_variant.quibble.replace(',', '.')
+            my_variant.warnings.append(error)
+            logger.warning(error)
+
+        # Upper case type see issue #338
+        elif re.search(r":[GCNMR].", str(my_variant.quibble)):
+            rs_type_upper = re.search(r":[GCNMR].", str(my_variant.quibble))
+            e = "This not a valid HGVS description, due to characters being in the wrong case. " \
+                "Please check the use of upper- and lowercase characters."
+            my_variant.warnings.append(str(e))
+            logger.warning(str(e))
+            my_variant.quibble = my_variant.quibble.replace(rs_type_upper.group(0),
+                                                            rs_type_upper.group(0).lower())
+
+        elif re.search(r'\w+:[gcnmrp]', my_variant.quibble) and not \
+                re.search(r'\w+:[gcnmrp]\.', my_variant.quibble):
+            error = 'Variant description ' + my_variant.quibble + ' lacks the . character between ' \
+                    '<type> and <position> in the expected pattern <accession>:<type>.<position>'
+            my_variant.warnings.append(error)
+            logger.warning(error)
+            return True
+
+        else:
+            error = 'Variant description ' + my_variant.quibble + ' is not in an accepted format'
+            my_variant.warnings.append(error)
+            logger.warning(error)
+            return True
+
+    # Here we handle syntax errors in ins and delins variants
+    # https://github.com/openvar/variantValidator/issues/359
+    if re.search("ins$", my_variant.quibble):
+        my_variant.warnings.append("The inserted sequence must be provided for insertions or "
+                                   "deletion-insertions")
+        try:
+            if "_" not in my_variant.quibble.split(":")[1] and \
+                    "del" not in my_variant.quibble.split(":")[1]:
+                my_variant.warnings.append("An insertion must be provided with the two positions "
+                                           "between which the insertion has taken place")
+        except IndexError:
+            pass
+        return True
+    if re.search("ins\(\d+\)$", my_variant.quibble):
+        my_variant.warnings.append("The length of the variant is not formatted following the "
+                                   "HGVS guidelines. Please rewrite e.g. '(10)' to 'N[10]'"
+                                   "(where N is an unknown nucleotide)")
+        try:
+            if "_" not in my_variant.quibble.split(":")[1] and \
+                    "del" not in my_variant.quibble.split(":")[1]:
+                my_variant.warnings.append("An insertion must be provided with the two positions "
+                                           "between which the insertion has taken place")
+        except IndexError:
+            pass
+        return True
+
+    if re.search("ins\d+$", my_variant.quibble):
+        my_variant.warnings.append("The length of the variant is not formatted following the HGVS "
+                                   "guidelines. Please rewrite e.g. '10' to 'N[10]'"
+                                   "(where N is an unknown nucleotide)")
+        try:
+            if "_" not in my_variant.quibble.split(":")[1] and \
+                    "del" not in my_variant.quibble.split(":")[1]:
+                my_variant.warnings.append("An insertion must be provided with the two positions "
+                                           "between which the insertion has taken place")
+        except IndexError:
+            pass
+        return True
+
+    if re.search("ins\(\d+_\d+\)$", my_variant.quibble):
+        my_variant.warnings.append("The length of the variant is not formatted following the HGVS "
+                                   "guidelines. Please rewrite e.g. '(10_20)' to 'N[(10_20)]'"
+                                   "(where N is an unknown nucleotide and [(10_20)] is an uncertain"
+                                   " number of N nucleotides ranging from 10 to 20)")
+        return True
+
+    if re.search("ins\[\(\d+_\d+\)\]$", my_variant.quibble):
+        counts = re.findall("\d+", my_variant.quibble.split("ins")[1])
+
+        if int(counts[1]) < int(counts[0]):
+            wrn = "The length of the variant is not formatted following the HGVS guidelines. " \
+                  "Please rewrite (%s_%s) to N[(%s_%s)]" % (counts[0], counts[1],
+                                                            counts[1], counts[0])
+            my_variant.warnings.append(wrn)
+        elif int(counts[1]) == int(counts[0]):
+            wrn = "The length of the variant is not formatted following the HGVS guidelines. " \
+                  "Please rewrite (%s_%s) to N[(%s)]" % (counts[0], counts[1], counts[1])
+            my_variant.warnings.append(wrn)
+
+        try:
+            if not re.search("\d_\d", my_variant.quibble.split("ins")[0]) and \
+                    "del" not in my_variant.quibble.split(":")[1]:
+                my_variant.warnings.append("An insertion must be provided with the two positions "
+                                           "between which the insertion has taken place")
+        except IndexError:
+            pass
+
+        if my_variant.warnings == []:
+            wrn = "The variant description is syntactically correct " \
+                  "but no further validation is possible because the description contains " \
+                  "uncertainty"
+            my_variant.warnings.append(wrn)
+        return True
+
+    if re.search("(?:delins|del|ins)[NGATC]\[\d+\]$", my_variant.quibble) or \
+            re.search("(?:delins|del|ins)\[[NGATC]\[\d+\];", my_variant.quibble):
+
+        match = re.search("(?:delins|del|ins)", my_variant.quibble)[0]
+
+        if re.search(f"{match}\[[GATCN]+\[\d+\];", my_variant.quibble):
+            sections = my_variant.quibble.split(match)[1]
+            sections = sections[1:-1]
+            sections_listed = sections.split(";")
+            sections_edited = []
+            for stn in sections_listed:
+                if '[' in stn and ']' in stn:
+                    sections_edited.append(stn)
+                else:
+                    sections_edited.append(stn + "[1]")
+
+            ins_seq_in_full = []
+            for each_stn in sections_edited:
+                bases, count = each_stn.split("[")
+                count = int(count.replace("]", ""))
+                for i in range(count):
+                    ins_seq_in_full.append(bases)
+
+        else:
+            bases, count = my_variant.quibble.split("[")
+            bases = bases.split(match)[1]
+            count = int(count.replace("]", ""))
+            ins_seq_in_full = []
+            for i in range(count):
+                ins_seq_in_full.append(bases)
+        ins_seq_in_full = "".join(ins_seq_in_full)
+        vt_in_full = my_variant.quibble.split(match)[0] + match + ins_seq_in_full
+        warn = "%s may also be written as %s" % (my_variant.quibble, vt_in_full)
+        my_variant.warnings.append(warn)
+
+        try:
+            if "_" not in my_variant.quibble.split(":")[1] and \
+                    "del" not in my_variant.quibble.split(":")[1]:
+                my_variant.warnings.append("An insertion must be provided with the two positions "
+                                           "between which the insertion has taken place")
+        except IndexError:
+            pass
+
+        # overwrite the current quibble for now instead of re-submiting for validation
+        my_variant.quibble=vt_in_full
+    return False
 
 def refseq_common_mistakes(variant):
     """
     Evolving list of common mistakes, see sections below
+    This is used both pre and post hgvs text to object conversion
     """
     # NM_ .g
-    if ((variant.quibble.startswith('NM_') or variant.quibble.startswith('NR_') or variant.quibble.startswith('ENST'))
-            and variant.reftype == ':g.'):
-        if variant.quibble.startswith('NR_') or variant.transcript_type == 'n':
-            suggestion = variant.quibble.replace(':g.', ':n.')
+    if type(variant.quibble) is str:
+        acc4 = variant.quibble[:4]
+        acc3 = variant.quibble[:3]
+    else:
+        acc4 = variant.quibble.ac[:4]
+        acc3 = variant.quibble.ac[:3]
+
+    if (acc3 in ['NM_','NR_'] or acc4 == 'ENST') and variant.reftype == ':g.':
+        if acc3 == 'NR_' or variant.transcript_type == 'n':
+            suggestion = str(variant.quibble).replace(':g.', ':n.')
         else:
-            suggestion = variant.quibble.replace(':g.', ':c.')
+            suggestion = str(variant.quibble).replace(':g.', ':c.')
         error = 'Transcript reference sequence input as genomic (g.) reference sequence. ' \
                 'Did you mean ' + suggestion + '?'
         variant.warnings.append(error)
@@ -29,7 +199,7 @@ def refseq_common_mistakes(variant):
 
     # NR_ c.
     if variant.transcript_type == "n" and variant.reftype == ':c.':
-        suggestion = variant.quibble.replace(':c.', ':n.')
+        suggestion = str(variant.quibble).replace(':c.', ':n.')
         error = 'Non-coding transcript reference sequence input as coding (c.) reference sequence. ' \
                 'Did you mean ' + suggestion + '?'
         variant.warnings.append(error)
@@ -37,10 +207,7 @@ def refseq_common_mistakes(variant):
         return True
 
     # NP_ c.
-    if ("NP_" in variant.quibble or "ENSP" in variant.quibble) and (variant.reftype == ':c.' or
-                                                                    variant.reftype == ':n.' or
-                                                                    variant.reftype == ':g.' or
-                                                                    variant.reftype == ':r.'):
+    if (acc3 == "NP_" or acc4 == "ENSP") and variant.reftype in [':c.', ':n.', ':g.', ':r.']:
         error = f'Protein reference sequence input as Nucleotide ({variant.reftype}) variant.'
         variant.warnings.append(error)
         logger.warning(error)
@@ -48,7 +215,7 @@ def refseq_common_mistakes(variant):
 
     # NM_ n.
     if variant.transcript_type == "c" and variant.reftype == ':n.':
-        suggestion = variant.quibble.replace(':n.', ':c.')
+        suggestion = str(variant.quibble).replace(':n.', ':c.')
         error = 'Coding transcript reference sequence input as non-coding transcript (n.) reference sequence. ' \
                 'Did you mean ' + suggestion + '?'
         variant.warnings.append(error)
@@ -56,8 +223,7 @@ def refseq_common_mistakes(variant):
         return True
 
     # NM_ NC_ NG_ NR_ p.
-    if (variant.quibble.startswith('NM_') or variant.quibble.startswith('NR_') or variant.quibble.startswith('NC_') or
-            variant.quibble.startswith('NG_') or variant.quibble.startswith('ENST')) and variant.reftype == ':p.':
+    if (acc3 in ['NM_', 'NR_', 'NC_', 'NG_',] or acc4 == 'ENST') and variant.reftype == ':p.':
         error = 'Using a nucleotide reference sequence (NM_ NR_ NG_ NC_) to specify protein-level (p.) variation is ' \
                 'not HGVS compliant. Please select an appropriate protein reference sequence (NP_)'
         variant.warnings.append(error)
@@ -65,7 +231,7 @@ def refseq_common_mistakes(variant):
         return True
 
     # NG_ c or NC_c..
-    if (variant.quibble.startswith('NG_') or variant.quibble.startswith('NC_')) and variant.reftype == ':c.':
+    if acc3 in ['NG_', 'NC_'] and variant.reftype == ':c.':
         suggestion = 'For additional assistance, submit ' + str(variant.quibble) + ' to VariantValidator'
         error = 'NG_:c.PositionVariation descriptions should not be used unless a transcript reference sequence has ' \
                 'also been provided e.g. NG_(NM_):c.PositionVariation'
@@ -83,7 +249,10 @@ def structure_checks(variant, validator):
     Primarily, this code filters out variants that cannot realistically be
     auto corrected and will cause the downstream functions to return errors
     """
-    input_parses = validator.hp.parse_hgvs_variant(variant.quibble)
+    if type(variant.quibble) is not str:
+        input_parses = copy.deepcopy(variant.quibble)
+    else:
+        input_parses = validator.hp.parse_hgvs_variant(variant.quibble)
     variant.input_parses = input_parses
     variant.gene_symbol = validator.db.get_gene_symbol_from_transcript_id(variant.input_parses.ac)
 
@@ -111,8 +280,7 @@ def structure_checks_g(variant, validator):
     """
     Structure checks for when reftype is genomic
     """
-    if not variant.quibble.startswith('NC_') and not variant.quibble.startswith('NG_') \
-            and not variant.quibble.startswith('NT_') and not variant.quibble.startswith('NW_'):
+    if variant.input_parses.ac[:3] not in ['NC_', 'NG_', 'NT_', 'NW_']:
         error = 'Invalid reference sequence identifier (' + variant.input_parses.ac + ')'
         variant.warnings.append(error)
         logger.warning(error)
