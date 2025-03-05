@@ -14537,7 +14537,7 @@ class TestVariantsAuto(TestCase):
         assert results['flag'] == 'gene_variant'
         assert 'NR_144368.1:n.214-3552C>T' in list(results.keys())
         assert results['NR_144368.1:n.214-3552C>T']['submitted_variant'] == '14-62187287-G-A'
-        assert results['NR_144368.1:n.214-3552C>T']['gene_symbol'] == 'HIF1A-AS1'
+        assert results['NR_144368.1:n.214-3552C>T']['gene_symbol'] == 'HIF1A-AS3'
         assert results['NR_144368.1:n.214-3552C>T']['gene_ids'] == {
             "entrez_gene_id": "105370526",
             "hgnc_id": "HGNC:54284",
@@ -14667,7 +14667,7 @@ class TestVariantsAuto(TestCase):
         assert results['flag'] == 'gene_variant'
         assert 'NR_144368.1:n.214-4497_214-4496delinsTC' in list(results.keys())
         assert results['NR_144368.1:n.214-4497_214-4496delinsTC']['submitted_variant'] == '14-62188231-TT-GA'
-        assert results['NR_144368.1:n.214-4497_214-4496delinsTC']['gene_symbol'] == 'HIF1A-AS1'
+        assert results['NR_144368.1:n.214-4497_214-4496delinsTC']['gene_symbol'] == 'HIF1A-AS3'
         assert results['NR_144368.1:n.214-4497_214-4496delinsTC']['gene_ids'] == {
             "entrez_gene_id": "105370526",
             "hgnc_id": "HGNC:54284",
