@@ -93,3 +93,28 @@ class TestAlleleSyntax(TestCase):
                 "so should be described as NM_000059.4:c.1917_1929delinsTGCATTCTTCTGT" in
                 results["validation_warning_1"]["validation_warnings"])
 
+    def test_variant12(self):
+        variant = 'LRG_199t1:c.[76A>C];[0]'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert ("LRG_199t1:c.[76A>C];[0] automapped to equivalent RefSeq record NM_004006.2:c.[76A>C];[0]" in
+                results["NM_004006.2:c.76A>C"]["validation_warnings"])
+        assert len(results) == 3
+        assert "NM_004006.2:c.76A>C" in results.keys()
+
+# <LICENSE>
+# Copyright (C) 2016-2024 VariantValidator Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# </LICENSE>

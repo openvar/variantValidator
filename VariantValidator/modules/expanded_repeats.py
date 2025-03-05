@@ -14,7 +14,7 @@ import re
 import logging
 import copy
 from vvhgvs.assemblymapper import AssemblyMapper
-
+from .hgvs_utils import hgvs_obj_from_existing_edit, hgvs_delins_parts_to_hgvs_obj
 # Set up logger
 logger = logging.getLogger(__name__)
 
@@ -123,6 +123,7 @@ class TandemRepeats:
             >>>parse_repeat_variant("NM_024312.4:c.1_10A[10]")
                 "NM_024312.4", "c", "1_10" "A", "10", ""
         """
+
         logger.info(f"Parsing variant: parse_repeat_variant({variant_str})")
         # Strip any whitespace
         variant_str = variant_str.strip()
@@ -329,9 +330,14 @@ class TandemRepeats:
                 # just dump range and re-build from the first base
 
                 if "_" in self.variant_position:
-                    seq_check = validator.hp.parse(f"{self.reference}:{self.prefix}."
-                                                   f"{self.variant_position}"
-                                                   f"{self.repeat_sequence * int(self.copy_number)}=")
+                    start_pos, _sep, end_pos = self.variant_position.partition('_')
+                    seq_check = hgvs_delins_parts_to_hgvs_obj(
+                            self.reference,
+                            self.prefix,
+                            start_pos,
+                            f"{self.repeat_sequence * int(self.copy_number)}",
+                            f"{self.repeat_sequence * int(self.copy_number)}",
+                            end=end_pos)
 
                     self.original_position = copy.copy(self.variant_position)
                     intronic_genomic_variant = self.no_norm_evm.t_to_g(seq_check)
@@ -359,21 +365,29 @@ class TandemRepeats:
                     # Create a variant for mapping to the genome containing the whole repeat, we used
                     # to use only the first base of the repeat but this breaks on -1 mapping transcripts
                     # with multi-base repeats
-                    map_var = f"{self.reference}:{self.prefix}."
                     length = len(self.repeat_sequence)
+                    pos = self.variant_position
+                    end = None
                     if length == 1:
-                        map_var = map_var +f"{self.variant_position}{self.repeat_sequence}="
+                        pos = self.variant_position
                     elif '+' in self.variant_position:
                         tx_pos,_sep,intron_offset = self.variant_position.partition('+')
                         intron_offset = int(intron_offset)
-                        map_var = map_var +f"{tx_pos}+{intron_offset}_{tx_pos}+{str(intron_offset+length-1)}"+\
-                                f"{self.repeat_sequence}="
+                        pos = f"{tx_pos}+{intron_offset}"
+                        end = f"{tx_pos}+{str(intron_offset+length-1)}"
                     elif '-' in self.variant_position:
                         tx_pos,_sep,intron_offset = self.variant_position.partition('-')
                         intron_offset = int(intron_offset)
-                        map_var = map_var +f"{tx_pos}-{intron_offset}_{tx_pos}-{str(intron_offset-length+1)}"+\
-                                f"{self.repeat_sequence}="
-                    intronic_variant = validator.hp.parse(map_var)
+                        pos  = f"{tx_pos}-{intron_offset}"
+                        end = f"{tx_pos}-{str(intron_offset-length+1)}"
+                    intronic_variant = hgvs_delins_parts_to_hgvs_obj(
+                            self.reference,
+                            self.prefix,
+                            pos,
+                            self.repeat_sequence,
+                            self.repeat_sequence,
+                            end=end
+                            )
                     intronic_genomic_variant = self.no_norm_evm.t_to_g(intronic_variant)
                     self.g_strand = validator.hdp.get_tx_exons(intronic_variant.ac, intronic_genomic_variant.ac,
                                                                validator.alt_aln_method)[0][3]
@@ -676,19 +690,32 @@ class TandemRepeats:
         check_exon_pos(end)
         return
 
+
 def convert_tandem(variant, validator, build, my_all):
-    expanded_variant = TandemRepeats.parse_repeat_variant(variant.quibble, build, my_all, validator)
+    try:
+        expanded_variant = TandemRepeats.parse_repeat_variant(variant.quibble, build, my_all, validator)
+    except AttributeError:
+        expanded_variant = TandemRepeats.parse_repeat_variant(variant, build, my_all, validator)
 
     if expanded_variant is False:
         return False
     else:
         expanded_variant_string = expanded_variant.reformat(validator)
-        variant.expanded_repeat = {"variant": expanded_variant_string,
-                                   "position": expanded_variant.variant_position,
-                                   "copy_number": expanded_variant.copy_number,
-                                   "repeat_sequence": expanded_variant.repeat_sequence,
-                                   "reference": expanded_variant.reference,
-                                   "prefix": expanded_variant.prefix}
+        try:
+            variant.expanded_repeat = {"variant": expanded_variant_string,
+                                       "position": expanded_variant.variant_position,
+                                       "copy_number": expanded_variant.copy_number,
+                                       "repeat_sequence": expanded_variant.repeat_sequence,
+                                       "reference": expanded_variant.reference,
+                                       "prefix": expanded_variant.prefix}
+        except AttributeError:
+            expanded_repeat = {"variant": expanded_variant_string,
+                               "position": expanded_variant.variant_position,
+                               "copy_number": expanded_variant.copy_number,
+                               "repeat_sequence": expanded_variant.repeat_sequence,
+                               "reference": expanded_variant.reference,
+                               "prefix": expanded_variant.prefix}
+            return expanded_repeat
         return True
 
 

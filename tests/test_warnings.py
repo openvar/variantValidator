@@ -488,7 +488,8 @@ class TestWarnings(TestCase):
         print(results)
         assert "Uncertain positions are not fully supported, however the syntax is valid" in \
                results['NM_032119.4:c.(17019+1_17020-1)_(17856+1_17857-1)dup']['validation_warnings']
-        assert "Only a single transcript can be processed, updating to Select" in \
+        assert ("Only a single transcript can be processed, updating to select. Where no select transcript is identified "
+                "a suitable transcript will be used") in \
                results['NM_032119.4:c.(17019+1_17020-1)_(17856+1_17857-1)dup']['validation_warnings']
         assert results['NM_032119.4:c.(17019+1_17020-1)_(17856+1_17857-1)dup'][
                    'primary_assembly_loci']["grch38"][
@@ -1226,6 +1227,22 @@ class TestVVGapWarnings(TestCase):
         assert 'TranscriptVersionWarning: A more recent version of the selected reference sequence ENST00000382483.3 is available for genome build GRCh38 (ENST00000382483.4)' in results[
             'NC_000008.11:g.10623201T>A']['NC_000008.11:g.10623201T>A']['hgvs_t_and_p'][
             'ENST00000382483.3']['transcript_version_warning']
+
+    def test_multiple_colons(self):
+        variant = 'NM_002830.3::c.715G>A'
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert ("VariantSyntaxError: Multiple colons found in variant description") in \
+               results['NM_002830.3:c.715G>A']['validation_warnings']
+
+
+    def test_bad_allele_variant(self):
+        variant = 'chr2:g.[32310435_32310710del;32310711_171827243inv;insG]'
+        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert ("AlleleVariantError: NC_000002.11:g.insG is not a valid HGVS variant description. Please submit individually for additional guidance") in \
+               results['validation_warning_1']['validation_warnings']
+
 
 
 # <LICENSE>
