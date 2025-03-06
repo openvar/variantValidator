@@ -31081,6 +31081,14 @@ class TestVariantsAuto(TestCase):
             "tlr": "NP_001015877.1:p.(His185_Gly186del)"
         }
 
+    def test_regress_start_end_order(self):
+        # Test a pair of variants that regressed (but get fixed during later development) due to
+        # getting assigned a start coordinate after their end during processing, which crashes VV.
+        variant = 'chr20:g.63316576A>G'
+        results = self.vv.validate(variant, 'GRCh38','all')
+        variant = 'chrX:g.70259255G>A'
+        results = self.vv.validate(variant, 'GRCh38','all')
+
 # <LICENSE>
 # Copyright (C) 2016-2024 VariantValidator Contributors
 #
