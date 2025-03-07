@@ -737,6 +737,38 @@ class TestWarnings(TestCase):
             "NM_032790.2|NM_032790.3|NM_032790.4"
         ]
 
+    def test_numeric_input(self):
+        # Test new more specific warning for numeric input, this could be a truncated VCF derived
+        # format, or a ClinVar Variation ID, or some other miscellaneous numeric flavored typo/
+        # miss-paste, but either way contains nothing not numeric or numeric like punctuation.
+        warning = "InvalidVariantError: VariantValidator operates on variant descriptions, but " +\
+            'this variant "{variant.quibble}" only contains numeric characters (and possibly ' +\
+            "numeric associated punctuation), so can not be analysed. Did you enter this " +\
+            "incorrectly, for example entering the numeric ID of a variant, instead of it`s " +\
+            "description, or else enter just a within-sequence location, without specifying " +\
+            "the actual variation?"
+
+        variant = '1-111425'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        print( warning.replace('{variant.quibble}',variant))
+        assert results['validation_warning_1']["validation_warnings"][0] == \
+                warning.replace('{variant.quibble}',variant)
+
+        variant = '7852'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        assert results['validation_warning_1']["validation_warnings"] == [
+                warning.replace('{variant.quibble}',variant)]
+
+        variant = '12:30'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        assert results['validation_warning_1']["validation_warnings"] == [
+                warning.replace('{variant.quibble}',variant)]
+
+        variant = '1,000'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        assert results['validation_warning_1']["validation_warnings"] == [
+                warning.replace('{variant.quibble}',variant)]
 
 class TestVFGapWarnings(TestCase):
 
