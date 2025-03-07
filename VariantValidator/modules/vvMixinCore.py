@@ -1179,6 +1179,14 @@ class Mixin(vvMixinConverters.Mixin):
                     variant.primary_assembly_loci = primary_genomic_dicts
                     if hgvs_tx_variant:
                         variant.hgvs_transcript_variant = hgvs_tx_variant
+                else:
+                     for mapping in variant.alt_genomic_loci:
+                        for gennome in mapping:
+                            mapping[gennome]["vcf"] = {
+                                    'chr': None,
+                                    'pos': None,
+                                    'ref': None,
+                                    'alt': None}
                 if not variant.hgvs_transcript_variant and hgvs_tx_variant:
                     variant.hgvs_transcript_variant = hgvs_tx_variant
                 variant.reference_sequence_records = ''
