@@ -95,6 +95,14 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
         except:
             # Check for common mistakes
             toskip = use_checking.refseq_common_mistakes(variant)
+            if toskip:
+                return True
+            # try again if corrected
+            try:
+                toskip = final_hgvs_convert(variant, validator)
+            except:
+                return True
+        # fail if un-corrected errors persist
         if toskip:
             return True
 

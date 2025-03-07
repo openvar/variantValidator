@@ -18,6 +18,21 @@ def pre_parsing_global_common_mistakes(my_variant):
     This may in fact want to be merged into the later use checking functions in the long term,
     or else may grow to handle more if some of these are converted to post-obj parsing instead
     """
+    # test that it is not just a number or a numeric ID
+    # since numeric ids may contain a : reverse quibble substitutions if otherwise fully numeric
+    # e.g 1:111111 2:435636 12:30 would be treated as appropriate NC_ otherwise
+    if re.match(r'^[\d\s\.,:;\-\+]+$',my_variant.original.strip()):
+        my_variant.quibble = my_variant.original.strip()
+    if re.match(r'\d', my_variant.quibble) and re.match(r'^[\d\s\.,:;\-\+]+$', my_variant.quibble):
+        warning = "InvalidVariantError: VariantValidator operates on variant descriptions, but " +\
+            f'this variant "{my_variant.quibble}" only contains numeric characters (and ' +\
+            "possibly numeric associated punctuation), so can not be analysed. Did you enter this"+\
+            " incorrectly, for example entering the numeric ID of a variant, instead of it`s " +\
+            "description, or else enter just a within-sequence location, without specifying the " +\
+            "actual variation?"
+        my_variant.warnings.append(warning)
+        return True
+
     invalid = my_variant.format_quibble()
     if invalid:
         if re.search(r'\w+:[gcnmrp],', my_variant.quibble):

@@ -100,12 +100,13 @@ class Mixin(vvMixinConverters.Mixin):
                 batch_queries = json.loads(batch_variant)
             except json.decoder.JSONDecodeError:
                 batch_queries = [batch_variant]
-
+            if isinstance(batch_queries, int):
+                batch_queries = [str(batch_queries)]
             # Turn each variant into a dictionary. The dictionary will be compiled during validation
             self.batch_list = []
             for queries in batch_queries:
-                if isinstance(batch_queries, int):
-                    batch_queries = str(batch_queries)
+                if isinstance(queries, int):
+                    queries = str(queries)
                 queries = queries.strip()
                 query = Variant(queries)
                 self.batch_list.append(query)
