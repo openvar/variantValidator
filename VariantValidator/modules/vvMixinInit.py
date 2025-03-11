@@ -243,8 +243,9 @@ class Mixin:
             # non-coding transcripts
             return hgvs_transcript_to_hgvs_protein
         elif not hgvs_transcript.type == 'c':
-            hgvs_transcript_to_hgvs_protein['error'] = 'Unable to map %s to %s' % (
-                hgvs_transcript.ac, associated_protein_accession)
+            # Collect the associated protein
+            hgvs_transcript_to_hgvs_protein['error'] = 'Unable to map %s to an associated protein' % (
+                hgvs_transcript.ac)
             return hgvs_transcript_to_hgvs_protein
 
         # Collect the associated protein
