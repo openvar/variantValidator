@@ -31156,8 +31156,17 @@ class TestVariantsAuto(TestCase):
         assert results["NM_000344.4:c.(*3+1_*4-1)del"]["alt_genomic_loci"][0]['grch38'][
                 'vcf'] == {"alt": None,"chr": None,"pos": None,"ref": None }
 
+    def test_3prutr_cds_span_dup(self):
+        variant = 'NM_018297.4:c.-21_14dup'
+        results = self.vv.validate(variant, 'GRCh38','all').format_as_dict(test=True)
+        assert "NM_018297.4:c.-21_14dup" in results
+        assert results["NM_018297.4:c.-21_14dup"]["hgvs_predicted_protein_consequence"] == {
+            "slr": "NP_060767.2:p.(L6Afs*111)",
+            "tlr": "NP_060767.2:p.(Leu6AlafsTer111)"
+        }
+
 # <LICENSE>
-# Copyright (C) 2016-2024 VariantValidator Contributors
+# Copyright (C) 2016-2025 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
