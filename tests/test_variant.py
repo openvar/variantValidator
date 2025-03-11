@@ -174,7 +174,9 @@ class TestMethods(TestCase):
     def test_format_quibble_brackets(self):
         self.var.quibble = 'NM_0151(REMOVE)20.4:c.34='
         output = self.var.format_quibble()
-        self.assertEqual(self.var.quibble, 'NM_015120.4:c.34=')
+        #self.assertEqual(self.var.quibble, 'NM_015120.4:c.34=')
+        #due to changes in NC_(NM_) handling we can't do this here any more
+        self.assertEqual(self.var.quibble, 'NM_0151(REMOVE)20.4:c.34=')
         self.assertFalse(output)
 
     def test_format_quibble_source_fail(self):
@@ -188,6 +190,27 @@ class TestMethods(TestCase):
         output = self.var.format_quibble()
         self.assertTrue(output)
         self.assertEqual(self.var.quibble, 'NM_015120.4:w.34=')
+
+    def test_format_quibble_case_fix(self):
+        self.var.quibble = 'NM_015120.4:c.34dup'
+        output = self.var.format_quibble()
+        self.assertFalse(output)
+        self.assertEqual(self.var.quibble, 'NM_015120.4:c.34dup')
+
+        self.var.quibble = 'NM_015120.4:c.34DUp'
+        output = self.var.format_quibble()
+        self.assertFalse(output)
+        self.assertEqual(self.var.quibble, 'NM_015120.4:c.34dup')
+
+        self.var.quibble = 'NM_015120.4:c.34INSC'
+        output = self.var.format_quibble()
+        self.assertFalse(output)
+        self.assertEqual(self.var.quibble, 'NM_015120.4:c.34insC')
+
+        self.var.quibble = 'NM_015120.4:c.34inSC'
+        output = self.var.format_quibble()
+        self.assertFalse(output)
+        self.assertEqual(self.var.quibble, 'NM_015120.4:c.34insC')
 
     def test_set_reftype(self):
         self.var.set_reftype()
@@ -376,7 +399,7 @@ class TestMethods(TestCase):
     #     })
 
 # <LICENSE>
-# Copyright (C) 2016-2024 VariantValidator Contributors
+# Copyright (C) 2016-2025 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

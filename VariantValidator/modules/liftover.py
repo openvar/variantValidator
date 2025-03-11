@@ -14,6 +14,7 @@ from . import hgvs_utils
 from pyliftover import LiftOver
 from Bio.Seq import Seq
 import copy
+from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj
 
 # Pre compile variables
 vvhgvs.global_config.formatting.max_ref_length = 1000000
@@ -28,7 +29,7 @@ def mystr(hgvs_nucleotide):
 
 def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, validator,
              specify_tx=False, liftover_level=False, g_to_g=False, gap_map=False, vfo=False,
-             specified_tx_variant=False):
+             specified_tx_variant=False,genomic_data_w_vcf=False):
     """
     Step 1, attempt to liftover using a common RefSeq transcript
     Step 2, attempt to liftover using PyLiftover.
@@ -48,10 +49,8 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
     :param specified_tx_variant: False or specific HGVS transcript object
     :return:
     """
-    try:
+    if type(hgvs_genomic) is str:
         hgvs_genomic = validator.hp.parse(hgvs_genomic)
-    except TypeError as e:
-        logger.debug("Except passed, %s", e)
 
     # Create return dictionary
     lifted_response = {}
@@ -107,39 +106,56 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
             lo_to = ''
             alt_build_to = ''
 
-    # populate the variant from data
-    vcf = hgvs_utils.report_hgvs2vcf(hgvs_genomic, build_from, reverse_normalizer, validator.sf)
+    # Create to and from dictionaries, either from existing validated output, or
+    # from a genomic hgvs variant
+    if genomic_data_w_vcf:# existing validated output exists
+        lifted_response = {}
+        for genome_build in genomic_data_w_vcf:
+            lifted_response[genome_build] = {}
+            lifted_response[genome_build][hgvs_genomic.ac] = \
+                    genomic_data_w_vcf[genome_build]
+        # Un-fix mitochondrial mapping, add extra grch37 mapping, for
+        # compatibility with raw genomic hgvs mapping.
+        if 'hg19' in lifted_response and 'NC_001807.4' in lifted_response['hg19']:
+            if not 'grch37' in lifted_response:
+                lifted_response['grch37'] = copy.copy(lifted_response['hg19'])
+        from_vcf = copy.copy(genomic_data_w_vcf[build_from.lower()]['vcf'])
+        # add from_set mapping for the chr to match with report_hgvs2vcf output
+        from_vcf[from_set] = from_vcf['chr']
+    else:# use genomic hgvs
+        from_vcf = hgvs_utils.report_hgvs2vcf(hgvs_genomic, lo_from,
+                                              reverse_normalizer, validator.sf)
+        lifted_response[build_from.lower()] = {}
+        lifted_response[build_from.lower()][hgvs_genomic.ac] = {
+                'hgvs_genomic_description': mystr(hgvs_genomic),
+                'vcf': {
+                    'chr': from_vcf[from_set],
+                    'pos': str(from_vcf['pos']),
+                    'ref': from_vcf['ref'],
+                    'alt': from_vcf['alt']
+                    }
+                }
+        lifted_response[alt_build_from.lower()] = {}
+        lifted_response[alt_build_from.lower()][hgvs_genomic.ac] = {
+                'hgvs_genomic_description': mystr(hgvs_genomic),
+                'vcf': {
+                    'chr': from_vcf[alt_from_set],
+                    'pos': str(from_vcf['pos']),
+                    'ref': from_vcf['ref'],
+                    'alt': from_vcf['alt']
+                    }
+                }
 
-    # Create to and from dictionaries
-    lifted_response[build_from.lower()] = {}
-    lifted_response[build_from.lower()][hgvs_genomic.ac] = {
-        'hgvs_genomic_description': mystr(hgvs_genomic),
-        'vcf': {
-           'chr': vcf[from_set],
-           'pos': str(vcf['pos']),
-           'ref': vcf['ref'],
-           'alt': vcf['alt']
-        }
-    }
-    lifted_response[alt_build_from.lower()] = {}
-    lifted_response[alt_build_from.lower()][hgvs_genomic.ac] = {
-        'hgvs_genomic_description': mystr(hgvs_genomic),
-        'vcf': {
-           'chr': vcf[alt_from_set],
-           'pos': str(vcf['pos']),
-           'ref': vcf['ref'],
-           'alt': vcf['alt']
-        }
-    }
-
-    # From dictionary currently blank
+    # Add currently blank output build to lifted_response
     lifted_response[build_to.lower()] = {}
     lifted_response[alt_build_to.lower()] = {}
 
     # Get a list of overlapping RefSeq transcripts
     # Note, due to 0 base positions in UTA (I think) occasionally tx will
-    rts_list = validator.hdp.get_tx_for_region(hgvs_genomic.ac, 'splign', hgvs_genomic.posedit.pos.start.base - 1,
-                                               hgvs_genomic.posedit.pos.end.base)  # - 1)
+    rts_list = validator.hdp.get_tx_for_region(
+            hgvs_genomic.ac, 'splign',
+            hgvs_genomic.posedit.pos.start.base - 1,
+            hgvs_genomic.posedit.pos.end.base)  # - 1)
     rts_dict = {}
     tx_list = False
     if g_to_g is True:
@@ -244,10 +260,12 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                                 am_i_gapped = gap_map(hgvs_tx, hgvs_alt_genomic, map_to_assembly, vfo)
 
                         hgvs_alt_genomic = am_i_gapped["hgvs_genomic"]
-
-                    alt_vcf = hgvs_utils.report_hgvs2vcf(hgvs_alt_genomic, build_to, reverse_normalizer, validator.sf)
-                    alt_vcf_b = hgvs_utils.report_hgvs2vcf(hgvs_alt_genomic, build_from, reverse_normalizer,
-                                                           validator.sf)
+                    if val[1] == build_to or val[2] == alt_build_to:
+                        alt_vcf = hgvs_utils.report_hgvs2vcf(
+                                hgvs_alt_genomic,
+                                build_to,
+                                reverse_normalizer,
+                                validator.sf)
 
                     # Handle mitochondrial liftovers
                     if 'NC_012920.1' in hgvs_alt_genomic.ac or 'NC_001807.4' in hgvs_alt_genomic.ac:
@@ -275,6 +293,12 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                             }
                         }
                     # Overwrite build from info as PAR may require additional info
+                    if val[2] == alt_build_from or val[1] == build_from:
+                        alt_vcf_b = hgvs_utils.report_hgvs2vcf(
+                                hgvs_alt_genomic,
+                                build_from,
+                                reverse_normalizer,
+                                validator.sf)
                     if val[1] == build_from:
                         lifted_response[build_from.lower()][hgvs_alt_genomic.ac] = {
                             'hgvs_genomic_description': mystr(hgvs_alt_genomic),
@@ -316,8 +340,6 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
     # The structure of the following code comes from VV pymod, so need to create a list
     genome_builds = [build_to]
 
-    # Create liftover vcf
-    from_vcf = hgvs_utils.report_hgvs2vcf(hgvs_genomic, lo_from, reverse_normalizer, validator.sf)
     lo = LiftOver(lo_from, lo_to)
 
     # Fix the GRC CHR
@@ -386,10 +408,14 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                 liftback_list = [(chrom, pos, "+", "GRCh37"), lifted]
 
                 # Create the necessary hg19 mito hgvs
-                m19_not_delins = accession + ':g.' + str(lifted[1]) + '_' + str(
-                    (int(lifted[1]) - 1) + len(lifted_ref_bases)) + 'delins' + lifted_alt_bases
-                m19_not_delins = str(m19_not_delins)
-                m19_hgvs_not_delins = validator.hp.parse_hgvs_variant(m19_not_delins)
+                m19_hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
+                        accession,
+                        'g',
+                        int(lifted[1]),
+                        '',
+                        lifted_alt_bases,
+                        end=int(lifted[1])+len(lifted_ref_bases)- 1)
+
                 try:
                     m19_hgvs_lifted = hn.normalize(m19_hgvs_not_delins)
                 except vvhgvs.exceptions.HGVSError:
@@ -416,10 +442,13 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                 liftback_list = [lifted, (chrom, pos, "+", "hg19")]
 
                 # Create the necessary hg19 mito hgvs
-                m38_not_delins = accession + ':g.' + str(lifted[1]) + '_' + str(
-                    (int(lifted[1]) - 1) + len(lifted_ref_bases)) + 'delins' + lifted_alt_bases
-                m38_not_delins = str(m38_not_delins)
-                m38_hgvs_not_delins = validator.hp.parse_hgvs_variant(m38_not_delins)
+                m38_hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
+                        accession,
+                        'g',
+                        int(lifted[1]),
+                        '',
+                        lifted_alt_bases,
+                        end=int(lifted[1])+len(lifted_ref_bases)- 1)
                 try:
                     hgvs_lifted = hn.normalize(m38_hgvs_not_delins)
                 except vvhgvs.exceptions.HGVSError:
@@ -427,10 +456,13 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
 
             else:
                 mito_correction = False
-                not_delins = accession + ':g.' + str(pos) + '_' + str(
-                    (pos - 1) + len(lifted_ref_bases)) + 'delins' + lifted_alt_bases
-                not_delins = str(not_delins)
-                hgvs_not_delins = validator.hp.parse_hgvs_variant(not_delins)
+                hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
+                        accession,
+                        'g',
+                        pos,
+                        '',
+                        lifted_alt_bases,
+                        end=pos+len(lifted_ref_bases)- 1)
 
                 try:
                     hgvs_lifted = hn.normalize(hgvs_not_delins)
@@ -567,7 +599,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
     return lifted_response
 
 # <LICENSE>
-# Copyright (C) 2016-2024 VariantValidator Contributors
+# Copyright (C) 2016-2025 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

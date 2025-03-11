@@ -185,6 +185,13 @@ class TestGene2Transcripts(unittest.TestCase):
         results = self.vv.gene2transcripts(symbol)
         assert results["current_symbol"] == "COL1A1"
 
+    def test_symbol_invalid_hgnc_id(self):
+        symbol = 'HGNC:12029'
+        results = self.vv.gene2transcripts(symbol)
+        print(results)
+        assert results["error"] == "Unable to recognise HGNC ID. Please provide a gene symbol"
+        assert results["requested_symbol"] == symbol
+
     def test_multiple_genes(self):
         symbol = '["HGNC:2197", "COL1A1", "2197"]'
         results = self.vv.gene2transcripts(symbol)
@@ -206,7 +213,7 @@ class TestGene2Transcripts(unittest.TestCase):
 
 
 # <LICENSE>
-# Copyright (C) 2016-2024 VariantValidator Contributors
+# Copyright (C) 2016-2025 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

@@ -13,13 +13,101 @@ from . import utils
 from Bio.Seq import Seq
 import vvhgvs
 import vvhgvs.exceptions
-
+from vvhgvs.location import BaseOffsetInterval, Interval
+# used to set coordinate origin point i.e. seq start vs CDS start/end
+from vvhgvs.enums import Datum
+from vvhgvs.location import AAPosition
+from vvhgvs.edit import AASub, AARefAlt, Dup, NARefAlt
+from vvhgvs.posedit import PosEdit
 
 # Database connections and hgvs objects are now passed from VariantValidator.py
 
 # Error handling
 class PseudoVCF2HGVSError(Exception):
     pass
+
+class VVPosEdit(PosEdit):
+    "override class for posedit to get VV specific formatting"
+    met_variation = None
+    def __init__(
+            self,pos,edit,
+            uncertain=False,
+            nucleotide_not_equal = None,
+            met_variation = None):
+        PosEdit.__init__(self,pos=pos,edit=edit,uncertain=uncertain)
+        # used to append methylation variation to the output
+        self.met_variation = met_variation
+        # used for formatting prot consequence of nuc input (for Ter/*)
+        self.nucleotide_not_equal = nucleotide_not_equal
+
+    def __eq__(self, other):
+        "make VVPosEdit == PosEdit when appropriate"
+        if not isinstance(other, PosEdit):
+            return NotImplemented
+        return self.pos == other.pos and self.edit == other.edit and \
+                self.uncertain == other.uncertain
+
+    def __hash__(self):
+        return hash((self.pos,self.edit,self.uncertain))
+
+    def format(self, conf=None):
+        """Formatting the string of PosEdit with vv edits
+        Handles brackets for predicted variants slightly differently
+        Also accounts for single base =
+        """
+        edit = str(self.edit.format(conf))
+        if self.pos is None:
+            return edit
+        elif self.pos.start is None and self.pos.end is None and self.uncertain:
+            return edit + "?"
+        # do Ter<aa NO>Ter/*<aa NO>* as just Ter=/*= and other AA specific edits
+        if type(self.pos.start) is AAPosition:
+            if (type(self.edit) is AASub and self.pos.start.aa == '*' and self.edit.alt == '*') or (
+                type(self.edit) is AARefAlt and self.pos.start.aa == '*' and
+                self.edit.ref == self.pos.start.aa and self.edit.ref==self.edit.alt):
+                if not self.nucleotide_not_equal:
+                    three_base_convert = False
+                    if conf and "p_3_letter" in conf and conf["p_3_letter"] is not None:
+                        three_base_convert = conf["p_3_letter"]
+                        force_Ter_star = False
+                    if conf and "p_term_asterisk" in conf and conf["p_term_asterisk"] is not None:
+                        force_Ter_star = conf["p_term_asterisk"]
+                    if three_base_convert and not force_Ter_star:
+                        formatted_str = f"Ter="
+                    else:
+                        formatted_str = f"*="
+                else: # force coordinates on nucleotide change
+                    formatted_str = f"{self.pos.format(conf)}="
+            else:
+                formatted_str = f"{self.pos.format(conf)}{edit}"
+        elif type(self.edit) in [NARefAlt, Dup]:
+            if self.edit.ref and 'N' in self.edit.ref or \
+                    type(self.edit) is NARefAlt and self.edit.alt and 'N' in self.edit.alt:
+                edit = str(self.edit.format()) # ignore instruction to remove ref in N case
+                formatted_str = f"{self.pos.format(conf)}{edit}"
+            elif type(self.edit) is Dup:
+                if self.edit.ref and len(self.edit.ref) == 1:
+                    # do not add ref for single base dup (also apply to other single base changes?)
+                    formatted_str = f"{self.pos.format(conf)}dup"
+                else:
+                    formatted_str = f"{self.pos.format(conf)}{edit}"
+            else:
+                 formatted_str = f"{self.pos.format(conf)}{edit}"
+            if type(self.edit) is NARefAlt and self.met_variation:
+                if self.edit.ref == self.edit.alt:
+                    formatted_str = formatted_str[:-1] + self.met_variation
+                #Do we want to do more, if met annotation not valid?
+        else:
+            formatted_str = f"{self.pos.format(conf)}{edit}"
+
+        if self.uncertain:
+            if self.edit in ["0", ""]:
+                return f"({formatted_str}?)"
+            else:
+                return f"({formatted_str})"
+        return formatted_str
+
+    __str__ = format
 
 
 def vcfcp_to_hgvsstr(vcf_dict, start_hgvs):
@@ -35,6 +123,326 @@ def vcfcp_to_hgvsstr(vcf_dict, start_hgvs):
     end = str(pos + len(ref) - 1)
     str_hgvs = "%s:%s.%s_%sdel%sins%s" % (start_hgvs.ac, start_hgvs.type, pos, end, ref, alt)
     return str_hgvs
+
+
+def vcfcp_to_hgvs_obj(vcf_dict, start_hgvs):
+    """
+    Converts updated vcf components and an original hgvs variant into a hgvs
+    object.
+    params:
+     vcf_dict: VCF dict with updated data
+     start_hgvs: orig hgvs, or other object with .ac and .type variables
+    returns: hgvs variant object (not normalised)
+    """
+    pos = int(vcf_dict['pos'])
+    return vvhgvs.sequencevariant.SequenceVariant(
+            ac=start_hgvs.ac,
+            type=start_hgvs.type,
+            posedit=vvhgvs.posedit.PosEdit(
+                vvhgvs.location.Interval(
+                    start=vvhgvs.location.SimplePosition(base=pos),
+                    end=vvhgvs.location.SimplePosition(base=pos + len(vcf_dict['ref']) - 1),
+                    uncertain=start_hgvs.posedit.pos.uncertain
+                    ),
+                vvhgvs.edit.NARefAlt(ref=vcf_dict['ref'], alt=vcf_dict['alt'])
+                )
+            )
+
+def unset_hgvs_obj_ref(hgvs):
+    """
+    Remove/unset ref bases from hgvs object, in the manner needed for output,
+    but without re-parsing from text.
+    """
+    edit = hgvs.posedit.edit
+    if edit.type in ['inv', 'dup']:
+        edit.ref = ''
+    elif edit.ref is not None and edit.alt is not None:
+       #if #edit.alt != edit.ref and \
+        if len(edit.alt) == 1 and len(edit.ref) == 1:
+            pass
+        elif edit.alt == edit.ref and len(edit.ref):
+            pass # edit.ref = ''
+        elif 'N' in edit.ref:
+            pass
+        else:
+            edit.ref = ''
+    elif edit.ref is not None:
+        edit.ref = ''
+    hgvs.posedit.edit = edit
+    return hgvs
+
+def hgvs_dup_to_delins(hgvs_dup):
+    """
+    Simple utility shorthand for hgvs_delins_parts_to_hgvs_obj, substitutes for
+    hgvs_dup2indel, but provides hgvs object output when given a hgvs object
+    containing a duplication input, as opposed to hgvs_dup_to_delins's text
+    .output.
+    param:
+     hgvs_dup: A hgvs object containg a duplication (this will not be checked)
+               Required.
+    returns: A hgvs variant object with a delins equivalent to the input.
+    """
+    return hgvs_delins_parts_to_hgvs_obj(
+            hgvs_dup.ac,
+            hgvs_dup.type,
+            hgvs_dup.posedit.pos,
+            hgvs_dup.posedit.edit.ref,
+            hgvs_dup.posedit.edit.ref + hgvs_dup.posedit.edit.ref)
+
+def _derive_hgvs_obj_coordinate_origin(starts,ref_type=None,end=None):
+    """
+    retrun a pair of coordinate_origin types in the from of Datum.SEQ_START
+    Datum.CDS_START or Datum.CDS_END, when given input coordinates/type
+    also can return a start stop pair truncated ('*' removed) for int
+    conversion
+    param:
+     starts: Start location must be int or str, required.
+     ref_type: Type of ref given, if not 'c' return is simplified, optional.
+     stop location: Like start, but not required, if missing Datum pair are
+                    identical.
+    returns: A pair of Datum enum results for the given input and a coordinate
+             pair as a list, trimmed if needed for int conversion.
+    """
+    if ref_type != 'c':
+        return Datum.SEQ_START, Datum.SEQ_START, [starts,end]
+    loc_start = starts
+    loc_end = end
+    coordinate_origin = Datum.CDS_START
+    if type(starts) is str and starts[0] == '*':
+        loc_start = starts[1::]
+        coordinate_origin = Datum.CDS_END
+    end_coordinate_origin = coordinate_origin
+    if end:
+        end_coordinate_origin = Datum.CDS_START
+        if type(end) is str and end[0] == '*':
+            loc_end = end[1::]
+            end_coordinate_origin = Datum.CDS_END
+    return coordinate_origin,end_coordinate_origin,[loc_start,loc_end]
+
+def _hgvs_offset_pos_from_str_in(starts,length,ref_type=None,end=None):
+    """
+    Handle offset positions a bit better.
+    This does not fully handle complex stop position issues, and thus will
+    always return end as as intronic + if input start is intronic +.
+    We also assume that if we are given an end specifically but not a span
+    then we got non offset coordinates (these do need to be stored as a
+    BaseOffsetPosition for validation purposes)
+    """
+    sep = ''
+    # set up the start point for the coordinates if c type input is given
+    # also strip '*' if present
+    coordinate_origin, end_coordinate_origin, loc = \
+            _derive_hgvs_obj_coordinate_origin(
+                    starts,ref_type=ref_type,end=end)
+    loc_start = loc[0]
+    loc_end = loc[1]
+    assert type(loc_start) is int or '_' not in loc_start
+    # set end pos if given
+    end_pos = None
+    if end and type(end) is str:
+        if '-' in loc_end[1:]:
+            prefix, sep, offset = loc_end[1:].partition('-')
+            prefix = loc_end[0] + prefix
+            end_pos = vvhgvs.location.BaseOffsetPosition(
+                    base=int(prefix),
+                    offset=-int(offset),
+                    datum=end_coordinate_origin)
+        elif '+' in loc_end:
+            prefix, sep, offset = loc_end.partition('+')
+            end_pos = vvhgvs.location.BaseOffsetPosition(
+                    base=int(prefix),
+                    offset=int(offset),
+                    datum=end_coordinate_origin)
+        else:
+            end_pos = vvhgvs.location.BaseOffsetPosition(
+                    base = int(loc_end),
+                    datum=end_coordinate_origin)
+    elif end:
+        end_pos = vvhgvs.location.BaseOffsetPosition(
+                base = int(end),
+                datum=end_coordinate_origin)
+    # set start deriving end if needed
+    if type(starts) is str and '-' in starts[1:]:
+        prefix, sep, offset = loc_start[1:].partition('-')
+        prefix = loc_start[0] + prefix
+        end_offset = int(offset) - (length -1)
+        start_pos = vvhgvs.location.BaseOffsetPosition(
+                base=int(prefix),
+                offset=-int(offset),
+                datum=coordinate_origin)
+        if end_pos:# already set
+            pass
+        elif end_offset < 0:
+            prefix = int(prefix) - end_offset
+            end_pos = vvhgvs.location.BaseOffsetPosition(
+                    base=int(prefix),
+                    offset=0,
+                    datum=end_coordinate_origin)
+        else:
+            end_pos = vvhgvs.location.BaseOffsetPosition(
+                    base=int(prefix),
+                    offset=-end_offset,
+                    datum=end_coordinate_origin)
+    elif type(starts) is str and '+' in starts:
+        # no simple way to know whether stop exceeds end of exon
+        pos = starts
+        prefix, sep,offset = loc_start.partition('+')
+        start_pos = vvhgvs.location.BaseOffsetPosition(
+                base=int(prefix),
+                offset=int(offset),
+                datum=coordinate_origin)
+        if not end_pos:
+            end_pos = vvhgvs.location.BaseOffsetPosition(
+                    base=int(prefix),
+                    offset=int(offset) + length -1,
+                    datum=end_coordinate_origin)
+    else: # we got int input for start, or similar so do simple position
+        start_pos = vvhgvs.location.BaseOffsetPosition(
+                base=int(starts),
+                datum=coordinate_origin)
+        if not end_pos:
+            end_pos = vvhgvs.location.BaseOffsetPosition(
+                    base=int(starts)+ length -1,
+                    datum=end_coordinate_origin)
+
+    return start_pos, end_pos
+
+def to_vv_hgvs(hgvs):
+    "Simple recreate as VV PosEdit vis shim on hgvs_obj_from_existing_edit"
+    hgvs = hgvs_obj_from_existing_edit(
+            hgvs.ac,
+            hgvs.type,
+            hgvs.posedit.pos,
+            hgvs.posedit.edit,
+            unc_posedit=hgvs.posedit.uncertain)
+    return hgvs
+
+def hgvs_obj_from_existing_edit(ref_ac,ref_type, starts, edit,
+                                end=None, offset_pos=False,
+                                unc_posedit=None):
+    """
+    Converts a set of inputs, including a valid edit from an existing hgvs
+    object into a new hgvs object
+    params:
+     ref_ac: ref accession for output hgvs, required!
+     ref_type: ref type eg. g or c for hgvs object, required!
+     starts: The location where the coordinates for the delins start, or an
+             existing span (as a BaseOffsetInterval which is compatible with
+             the hgvs object code), required!
+     edit: A valid hgvs object edit, required!
+
+     end: The end location, optional, used to avoid recalculating an already
+          known end, and may be also used to test predicted end, though this
+          requires a later validate. Unused if a span is given for "starts".
+     offset_pos: Are the locations simple or do they need to be the more complex
+                 BaseOffsetPosition type? Flag, optional. Unused if span given
+                 for "starts".
+    returns: hgvs variant object (not normalised)
+    """
+    if isinstance(starts, Interval):
+        return vvhgvs.sequencevariant.SequenceVariant(
+                ac=ref_ac,
+                type=ref_type,
+                posedit=VVPosEdit(
+                    starts,
+                    edit,
+                    uncertain=unc_posedit)
+                )
+    if offset_pos or ref_type in ['c', 'n']:
+        # if we got a null ref and no ref end presume ins i.e. bases either side
+        # of insertion variation give 2bp len to substitute for now
+        if edit.ref is None:
+            length = 2
+        else:
+            length = len(edit.ref)
+        start_pos, end_pos = _hgvs_offset_pos_from_str_in(
+                starts,length,ref_type=ref_type,end=end)
+        return vvhgvs.sequencevariant.SequenceVariant(
+                ac=ref_ac,
+                type=ref_type,
+                posedit=VVPosEdit(
+                    vvhgvs.location.BaseOffsetInterval(
+                        start=start_pos,
+                        end=end_pos),
+                    edit,
+                    uncertain=unc_posedit
+                    )
+                )
+    if end:
+        ends = int(end)
+    else:
+        ends = int(starts) + len(edit.ref), -1
+    return vvhgvs.sequencevariant.SequenceVariant(
+            ac=ref_ac,
+            type=ref_type,
+            posedit=VVPosEdit(
+                vvhgvs.location.Interval(
+                    start=vvhgvs.location.SimplePosition(base=int(starts)),
+                    end=vvhgvs.location.SimplePosition(base=ends),
+                    ),
+                edit,
+                uncertain=unc_posedit
+                )
+            )
+
+
+def hgvs_delins_parts_to_hgvs_obj(ref_ac,ref_type, starts, delete, insert,end=None,offset_pos=False):
+    """
+    Converts a set of inputs, usually partially from a hgvs object but with
+    updates into a new hgvs delins object
+    params:
+     ref_ac: ref accession for output hgvs, required!
+     ref_type: ref type eg. g or c for hgvs object, required!
+     starts: The location where the coordinates for the delins start, or an
+             existing span (as a BaseOffsetInterval which is compatible with
+             the hgvs object code), required!
+     delete: The reference sequence over the affected span, required!
+     insert: The replacement non ref sequence over the affected span, required!
+
+     end: The end location, optional, used to avoid recalculating an already
+          known end, and may be also used to test predicted end, though this
+          requires a later validate. unused if a span is given for "starts".
+     offset_pos: Are the locations simple or do they need to be the more complex
+                 BaseOffsetPosition type? Flag, optional. Unused if span given
+                 for "starts".
+    returns: hgvs variant object (not normalised)
+    """
+    if type(starts) in [BaseOffsetInterval, Interval]:
+        return vvhgvs.sequencevariant.SequenceVariant(
+                ac=ref_ac,
+                type=ref_type,
+                posedit=VVPosEdit(
+                    starts,
+                    vvhgvs.edit.NARefAlt(ref=delete, alt=insert)
+                    )
+                )
+
+    if offset_pos or ref_type in ['c', 'n']:
+        start_pos, end_pos = _hgvs_offset_pos_from_str_in(starts,len(delete),ref_type=ref_type,end=end)
+        return vvhgvs.sequencevariant.SequenceVariant(
+                ac=ref_ac,
+                type=ref_type,
+                posedit=VVPosEdit(
+                    vvhgvs.location.BaseOffsetInterval(start=start_pos,end=end_pos),
+                    vvhgvs.edit.NARefAlt(ref=delete, alt=insert)
+                    )
+                )
+    pos = int(starts)
+    if end:
+        ends = int(end)
+    else:
+        ends = pos + len(delete) - 1
+    return vvhgvs.sequencevariant.SequenceVariant(
+            ac=ref_ac,
+            type=ref_type,
+            posedit=vvhgvs.posedit.PosEdit(
+                vvhgvs.location.Interval(
+                    start=vvhgvs.location.SimplePosition(base=pos),
+                    end=vvhgvs.location.SimplePosition(base=ends),
+                    ),
+                vvhgvs.edit.NARefAlt(ref=delete, alt=insert)
+                )
+            )
 
 
 def hgvs_to_delins_hgvs(hgvs_object, hp, hn, allow_fix=False):
@@ -84,11 +492,8 @@ def hgvs_to_delins_hgvs(hgvs_object, hp, hn, allow_fix=False):
         hgvs_object.posedit.edit.alt = ""
         return hgvs_object
 
-    # Create the object via a string from the vcfcp_to_hgvsstr function
-    hgvs_delins_string = vcfcp_to_hgvsstr({"pos": v_pos, "ref": v_ref, "alt": v_alt}, hgvs_object)
-    hgvs_delins_object = hp.parse_hgvs_variant(hgvs_delins_string)
-    return hgvs_delins_object
-
+    # Create the object directly via vcfcp_to_hgvs_obj
+    return vcfcp_to_hgvs_obj({"pos": v_pos, "ref": v_ref, "alt": v_alt}, hgvs_object)
 
 def pvcf_to_hgvs(query, selected_assembly, normalization_direction, reverse_normalizer, validator):
     """
@@ -168,51 +573,40 @@ def pvcf_to_hgvs(query, selected_assembly, normalization_direction, reverse_norm
                     end_string = start + '>' + delete
                     not_sub = beginning_string + ':' + middle_string + end_string
                 # Split description
-                split_colon = not_sub.split(':')
-                ref_ac = split_colon[0]
-                remainder = split_colon[1]
-                split_dot = remainder.split('.')
-                ref_type = split_dot[0]
-                remainder = split_dot[1]
-                posedit = remainder
-                split_greater = remainder.split('>')
-                insert = split_greater[1]
-                remainder = split_greater[0]
+                ref_ac, _sep, remainder = not_sub.partition(':')
+                ref_type, _sep, posedit = remainder.partition('.')
+                pos_ref, _sep, insert = posedit.partition('>')
                 # Split remainder using matches
                 r = re.compile(r"([0-9]+)([GATCgatc]+)")
                 try:
-                    m = r.search(remainder)
+                    m = r.search(pos_ref)
                     delete = m.group(2)
                     starts = posedit.split(delete)[0]
-                    re_try = ref_ac + ':' + ref_type + '.' + starts + 'del' + delete[0] + 'ins' + insert
-                    hgvs_re_try = validator.hp.parse_hgvs_variant(re_try)
+                    hgvs_re_try = hgvs_delins_parts_to_hgvs_obj(
+                            ref_ac,
+                            ref_type,
+                            starts, delete[0], insert)
                     hgvs_re_try.posedit.edit.ref = delete
                     start_pos = str(hgvs_re_try.posedit.pos.start)
+                    end_pos = None
                     if '-' in start_pos:
                         base, offset = start_pos.split('-')
                         new_offset = 0 - int(offset) + (len(delete))
-                        end_pos = int(base)
-                        hgvs_re_try.posedit.pos.end.base = int(end_pos)
-                        hgvs_re_try.posedit.pos.end.offset = int(new_offset) - 1
-                        not_delins = ref_ac + ':' + ref_type + '.' + start_pos + '_' + str(
-                            hgvs_re_try.posedit.pos.end) + 'del' + delete + 'ins' + insert
+                        end_pos = base + '-' + str(new_offset)
                     elif '+' in start_pos:
                         base, offset = start_pos.split('+')
-                        end_pos = int(base) + (len(delete) - int(offset) - 1)
                         new_offset = 0 + int(offset) + (len(delete) - 1)
-                        hgvs_re_try.posedit.pos.end.base = int(end_pos)
-                        hgvs_re_try.posedit.pos.end.offset = int(new_offset)
-                        not_delins = ref_ac + ':' + ref_type + '.' + start_pos + '_' + str(
-                            hgvs_re_try.posedit.pos.end) + 'del' + delete + 'ins' + insert
+                        end_pos = base + '+' + str(new_offset)
                     else:
                         end_pos = int(start_pos) + (len(delete) - 1)
-                        not_delins = ref_ac + ':' + ref_type + '.' + start_pos + '_' + str(
-                            end_pos) + 'del' + delete + 'ins' + insert
                 except:
                     not_delins = not_sub
                 # Parse into hgvs object
                 try:
-                    hgvs_not_delins = validator.hp.parse_hgvs_variant(not_delins)
+                    hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
+                            ref_ac, ref_type, start_pos,
+                            delete, insert,
+                            ends=end_pos)
                 except vvhgvs.exceptions.HGVSError as e:
                     # Sort out multiple ALTS from VCF inputs
                     if re.search("([GATCgatc]+)>([GATCgatc]+),([GATCgatc]+)", not_delins):
@@ -225,13 +619,25 @@ def pvcf_to_hgvs(query, selected_assembly, normalization_direction, reverse_norm
                 # HGVS will deal with the errors
                 hgvs_object = hgvs_not_delins
             else:
-                hgvs_object = validator.hp.parse_hgvs_variant(query)
+                # we know that this should be a sub type variant, and so ends with R>A,
+                # where R and A is 1 base of ref or alt respectivly (since the second
+                # match did not trigger).
+                start = position_and_edit[:-4]
+                if '_' in position_and_edit[:-3]:
+                    start, _sep, end = position_and_edit.partition('_')
+                hgvs_object =  hgvs_delins_parts_to_hgvs_obj(
+                        str(accession),
+                        ref_type,
+                        int(start),
+                        position_and_edit[-3],
+                        position_and_edit[-1])
 
         except Exception as e:
             error = str(e)
             raise PseudoVCF2HGVSError(error)
     else:
-        hgvs_object = validator.hp.parse_hgvs_variant(query)
+        # we should not get here! if we can we need to handle it
+        raise PseudoVCF2HGVSError('Unsupported format: VCF specification 4.1 or later!')
 
     # Normalize
     hgvs_object = selected_normalizer.normalize(hgvs_object)
@@ -252,7 +658,10 @@ def hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf, extra_flank
     """
     hgvs_genomic_variant = hgvs_genomic
     # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
-    reverse_normalized_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic_variant)
+    if reverse_normalizer is None:
+        reverse_normalized_hgvs_genomic = hgvs_genomic_variant
+    else:
+        reverse_normalized_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic_variant)
     # hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
     # Chr
@@ -294,12 +703,12 @@ def hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf, extra_flank
         adj_start = start - 2
         start = start - 1
         # Recover sequences
-        hgvs_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), start, end)
-        pre_base = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, start)
-        # Assemble
+        hgvs_del_seq_w_pre_base = sf.fetch_seq(
+                str(reverse_normalized_hgvs_genomic.ac),
+                adj_start, end)
         pos = str(start)
-        ref = pre_base + hgvs_del_seq
-        alt = pre_base
+        ref = hgvs_del_seq_w_pre_base
+        alt = hgvs_del_seq_w_pre_base[0]
 
     # inv
     elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'inv':
@@ -406,39 +815,64 @@ def report_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
 
     # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
     reverse_normalized_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic_variant)
-    # hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
 
     ucsc_pa = ''
     grc_pa = ''
-    # Sort the primary assemblies
-    if 'GRC' in primary_assembly:
-        if '37' in primary_assembly:
-            ucsc_pa = 'hg19'
-            grc_pa = primary_assembly
-        if '38' in primary_assembly:
-            ucsc_pa = 'hg38'
-            grc_pa = primary_assembly
-    else:
-        if '19' in primary_assembly:
-            ucsc_pa = primary_assembly
-            grc_pa = 'GRCh37'
-        if '38' in primary_assembly:
-            ucsc_pa = primary_assembly
-            grc_pa = 'GRCh38'
+    ucsc_chr = ''
+    grc_chr = ''
+    chrs = {}
+    # Sort the primary assemblies or go through all valid assemblies
+    if primary_assembly == 'All':
+        # return all valid genome builds on our report output list
+        gen_name_map = {
+            'GRCh37':'grch37',
+            'hg19':'hg19',
+            'GRCh38':'grch38',
+            'hg38':'hg38'}
 
-    # UCSC Chr
-    ucsc_chr = seq_data.to_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, ucsc_pa)
-    if ucsc_chr is not None:
-        pass
+        genomes = ['GRCh37','hg19','GRCh38','hg38']
+        for genome in genomes:
+            if not seq_data.supported_for_mapping(hgvs_genomic_variant.ac, genome):
+                continue
+            if genome.startswith('GRC'):
+                chrom = seq_data.to_chr_num_refseq(
+                        reverse_normalized_hgvs_genomic.ac,
+                        genome)
+            else:
+                chrom = seq_data.to_chr_num_ucsc(
+                        reverse_normalized_hgvs_genomic.ac,
+                        genome)
+            if chrom is None:
+                chrom = hgvs_genomic_variant.ac
+            chrs[gen_name_map[genome]]=chrom
     else:
-        ucsc_chr = reverse_normalized_hgvs_genomic.ac
+        if 'GRC' in primary_assembly:
+            if '37' in primary_assembly:
+                ucsc_pa = 'hg19'
+                grc_pa = primary_assembly
+            if '38' in primary_assembly:
+                ucsc_pa = 'hg38'
+                grc_pa = primary_assembly
+        else:
+            if '19' in primary_assembly:
+                ucsc_pa = primary_assembly
+                grc_pa = 'GRCh37'
+            if '38' in primary_assembly:
+                ucsc_pa = primary_assembly
+                grc_pa = 'GRCh38'
+        # UCSC Chr
+        ucsc_chr = seq_data.to_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, ucsc_pa)
+        if ucsc_chr is not None:
+            pass
+        else:
+            ucsc_chr = reverse_normalized_hgvs_genomic.ac
 
-    # GRC Chr
-    grc_chr = seq_data.to_chr_num_refseq(reverse_normalized_hgvs_genomic.ac, grc_pa)
-    if grc_chr is not None:
-        pass
-    else:
-        grc_chr = reverse_normalized_hgvs_genomic.ac
+        # GRC Chr
+        grc_chr = seq_data.to_chr_num_refseq(reverse_normalized_hgvs_genomic.ac, grc_pa)
+        if grc_chr is not None:
+            pass
+        else:
+            grc_chr = reverse_normalized_hgvs_genomic.ac
 
     # Identity
     if reverse_normalized_hgvs_genomic.posedit.edit.type == 'identity':
@@ -472,23 +906,20 @@ def report_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
         adj_start = start - 2
         start = start - 1
         # Recover sequences
-        hgvs_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), start, end)
-        post_base = None
-        try:
-            pre_base = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, start)
-        except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
-            if "(start out of range (-1)" in str(e):
-                post_base = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), end, end + 1)
-        # Assemble
-        pos = str(start)
-        if post_base is None:
-            ref = pre_base + hgvs_del_seq
-            alt = pre_base
+        if adj_start >= 0:
+            hgvs_del_seq_w_pre_base = sf.fetch_seq(
+                    str(reverse_normalized_hgvs_genomic.ac),
+                    adj_start, end)
+            ref = hgvs_del_seq_w_pre_base
+            alt = hgvs_del_seq_w_pre_base[0]
+            pos = str(start)
         else:
-            ref = hgvs_del_seq + post_base
-            alt = post_base
-            if pos == "0":
-                pos = "1"
+            hgvs_del_seq_w_post_base = sf.fetch_seq(
+                    str(reverse_normalized_hgvs_genomic.ac),
+                    start, end + 1)
+            ref = hgvs_del_seq_w_post_base
+            alt = hgvs_del_seq_w_post_base[-1]
+            pos = "1"
 
     # inv
     elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'inv':
@@ -558,7 +989,7 @@ def report_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
 
     # Dictionary the VCF
     vcf_dict = {'pos': str(pos), 'ref': ref, 'alt': alt, 'ucsc_chr': ucsc_chr, 'grc_chr': grc_chr,
-                'normalized_hgvs': reverse_normalized_hgvs_genomic}
+                'normalized_hgvs': reverse_normalized_hgvs_genomic,'chrs_by_genome':chrs}
     return vcf_dict
 
 
@@ -622,12 +1053,13 @@ def pos_lock_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
         adj_start = start - 2
         start = start - 1
         # Recover sequences
-        hgvs_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), start, end)
-        pre_base = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, start)
+        hgvs_del_seq_w_pre_base = sf.fetch_seq(
+                str(reverse_normalized_hgvs_genomic.ac),
+                adj_start, end)
         # Assemble
         pos = str(start)
-        ref = pre_base + hgvs_del_seq
-        alt = pre_base
+        ref = hgvs_del_seq_w_pre_base
+        alt = hgvs_del_seq_w_pre_base[0]
 
     # inv
     elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'inv':
@@ -716,7 +1148,6 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
     :param genomic_ac:
     :return:
     """
-
     # c. must be in n. format
     try:
         hgvs_genomic = vm.c_to_n(hgvs_genomic)  # Need in n. context
@@ -882,12 +1313,11 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
         adj_start = start - 2
         start = start - 1
         # Recover sequences
-        hgvs_del_seq = sf.fetch_seq(str(normalized_hgvs_genomic.ac), start, end)
-        pre_base = sf.fetch_seq(str(normalized_hgvs_genomic.ac), adj_start, start)
+        hgvs_del_seq_w_adj_start = sf.fetch_seq(str(normalized_hgvs_genomic.ac), adj_start, end)
         # Assemble
         pos = str(start)
-        ref = pre_base + hgvs_del_seq
-        alt = pre_base
+        ref = hgvs_del_seq_w_adj_start
+        alt = hgvs_del_seq_w_adj_start[0]
 
     # inv
     elif normalized_hgvs_genomic.posedit.edit.type == 'inv':
@@ -992,15 +1422,37 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
         staging_loop = 0
 
         # Loop and add bases - up to the range defined below - unless we go into an intron/past the transcript
-        for push in range(50):
-            post = sf.fetch_seq(str(normalized_hgvs_genomic.ac), working_pos - 1, working_pos)
-            push_ref = push_ref + post
-            push_alt = push_alt + post
+        max_push_length = 50
+        try:
+            flank_seq = sf.fetch_seq(str(normalized_hgvs_genomic.ac), working_pos - 1, working_pos + max_push_length)
+        except  vvhgvs.exceptions.HGVSDataNotAvailableError as e:
+            if "ValueError: stop out of range" in str(e):
+                flank_seq = False
+                # this means that we went beyond the end of the seq this should be very rare but is possible
+                # fall back to old behaviour here
+            else:
+                raise e
+        for push in range(max_push_length):
+            if flank_seq:
+                push_ref = push_ref + flank_seq[push]
+                push_alt = push_alt + flank_seq[push]
+            else:
+                post = sf.fetch_seq(str(normalized_hgvs_genomic.ac), working_pos - 1, working_pos)
+                push_ref = push_ref + post
+                push_alt = push_alt + post
 
             # Create a not_delins for normalisation checking
-            normlize_check_variant = hp.parse_hgvs_variant(hgvs_genomic.ac + ':' + hgvs_genomic.type + '.' +
-                                                           str(pos) + '_' + str(working_pos) + 'del' + push_ref
-                                                           + 'ins' + push_alt)
+            offset_pos = True
+            if hgvs_genomic.type in ['g','m']:
+                offset_pos=False
+            normlize_check_variant = hgvs_delins_parts_to_hgvs_obj(
+                    hgvs_genomic.ac,
+                    hgvs_genomic.type,
+                    int(pos),
+                    push_ref,
+                    push_alt,
+                    end=working_pos,
+                    offset_pos=offset_pos)
 
             # Check to see of we end up spanning a gap
             try:
@@ -1038,24 +1490,41 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                     # end_seq_check_variant.posedit.edit.alt = end_seq_check_variant.posedit.edit.ref
                 else:
                     # Look to see if the gap has been identified by addition of bases in sequence
-                    end_seq_check_variant = hp.parse_hgvs_variant(hgvs_genomic.ac
-                                                                  + ':'
-                                                                  + hgvs_genomic.type
-                                                                  + '.'
-                                                                  + str(normlize_check_variant.posedit.pos.end.base - 1
-                                                                        - staging_loop)
-                                                                  + "_"
-                                                                  + str(normlize_check_variant.posedit.pos.end.base)
-                                                                  + "del"
-                                                                  + push_ref[-2 - staging_loop:]
-                                                                  + "ins"
-                                                                  + push_ref[-2 - staging_loop])
+                    end_seq_check_variant = hgvs_delins_parts_to_hgvs_obj(
+                            hgvs_genomic.ac,
+                            hgvs_genomic.type,
+                            normlize_check_variant.posedit.pos.end.base - 1 - staging_loop,
+                            push_ref[-2 - staging_loop:],
+                            push_ref[-2 - staging_loop],
+                            end=normlize_check_variant.posedit.pos.end.base,
+                            offset_pos=True)
 
                 # Check to see of we end up spanning a gap at the last 2 bases
                 if hgvs_genomic.type != "g":
                     end_seq_check_mapped = vm.n_to_g(end_seq_check_variant, genomic_ac)
                 else:
                     end_seq_check_mapped = vm.g_to_n(end_seq_check_variant, tx_ac)
+
+                # Look for flank subs that may be missed when naieve mapping c > c made a delins from a sub
+                # This is a hgvs.py quirl for flanking subs in the antisense oriemntation and refers to
+                # https://github.com/openvar/variantValidator/issues/651
+                try:
+                    normalized_end_seq_check_mapped = hn.normalize(end_seq_check_mapped)
+                    normalized_end_seq_check_variant = hn.normalize(end_seq_check_variant)
+                    if (normalized_end_seq_check_mapped.type == 'g' and
+                            normalized_end_seq_check_variant.type == 'n' and
+                            normalized_end_seq_check_mapped.posedit.edit.type == 'sub' and
+                            normalized_end_seq_check_variant == normalized_hgvs_genomic):
+
+                        # double check the original mapping
+                        sub_map = vm.g_to_t(normalized_end_seq_check_mapped,  normalized_end_seq_check_variant.ac)
+                        if sub_map.posedit.edit.type == 'sub':
+                            needs_a_push = True
+                            merged_variant = sub_map
+                            identifying_g_variant = end_seq_check_mapped
+                            break
+                except vvhgvs.exceptions.HGVSUnsupportedOperationError:
+                    pass
 
                 # For genomic_variant mapped onto gaps, we end up with an offset
                 start_offset = False
@@ -1218,7 +1687,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                              NN  Deletion in g.
                              |
                     g. NNNNNNNN
-                    n. NNNNNNNN                   
+                    n. NNNNNNNN
 
                     So we need to make the g. == again before mapping back, which will make an ins in the n.
                     """
@@ -1621,12 +2090,11 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
         adj_start = start - 2
         start = start - 1
         # Recover sequences
-        hgvs_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), start, end)
-        pre_base = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, start)
+        hgvs_del_seq_w_pre_base = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, end)
         # Assemble
         pos = str(start)
-        ref = pre_base + hgvs_del_seq
-        alt = pre_base
+        ref = hgvs_del_seq_w_pre_base
+        alt = hgvs_del_seq_w_pre_base[0]
 
     # inv
     elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'inv':
@@ -1728,19 +2196,26 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
         staging_loop = 0
         if genomic_ac is False:
             genomic_ac = hgvs_genomic.ac
-
         # Loop and add bases - up to the range defined below - unless we go into an intron/past the transcript
-        for push in range(50):
+        max_push_length = 50
+        pos = int(pos)
+        if pos - 1 - max_push_length < 0:
+            max_push_length = pos -1
+
+        flank_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), pos - max_push_length - 1, pos -1)
+        for push in range(max_push_length):
             pre_pos = int(pos) - push_pos_by
-            prev = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), pre_pos - 1, pre_pos)
-            push_ref = prev + push_ref
-            push_alt = prev + push_alt
+            push_ref = flank_seq[-push_pos_by] + push_ref
+            push_alt = flank_seq[-push_pos_by] + push_alt
 
             # Create a not_delins for normalisation checking
-            var_end = str(pre_pos + len(push_ref) - 1)
-            normlize_check_variant = hp.parse_hgvs_variant(hgvs_genomic.ac + ':' + hgvs_genomic.type + '.' +
-                                                           str(pre_pos) + '_' + var_end + 'del' + push_ref
-                                                           + 'ins' + push_alt)
+            var_end = pre_pos + len(push_ref) - 1
+            normlize_check_variant = hgvs_delins_parts_to_hgvs_obj(
+                    hgvs_genomic.ac,
+                    hgvs_genomic.type,
+                    pre_pos, push_ref, push_alt,
+                    end=var_end,
+                    offset_pos=True)
             # Check to see of we end up spanning a gap
             try:
                 if hgvs_genomic.type != "g":
@@ -1776,18 +2251,13 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
 
                 else:
                     # Look to see if the gap has been identified by addition of bases in sequence
-                    end_seq_check_variant = hp.parse_hgvs_variant(hgvs_genomic.ac
-                                                                  + ':'
-                                                                  + hgvs_genomic.type
-                                                                  + '.'
-                                                                  + str(normlize_check_variant.posedit.pos.start.base)
-                                                                  + "_"
-                                                                  + str(normlize_check_variant.posedit.pos.start.base
-                                                                        + 1 + staging_loop)
-                                                                  + "del"
-                                                                  + push_ref[0:2 + staging_loop]
-                                                                  + "ins"
-                                                                  + push_ref[0:2 + staging_loop])
+                    end_seq_check_variant = hgvs_delins_parts_to_hgvs_obj(
+                            hgvs_genomic.ac,
+                            hgvs_genomic.type,
+                            normlize_check_variant.posedit.pos.start.base,
+                            push_ref[0:2 + staging_loop], push_ref[0:2 + staging_loop],
+                            end=normlize_check_variant.posedit.pos.start.base + 1 + staging_loop,
+                            offset_pos=True)
 
                 # Check to see of we end up spanning a gap at the last 2 bases
                 if hgvs_genomic.type != "g":
@@ -2084,9 +2554,12 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
                             elif ((map_back.posedit.edit.type == "dup" or map_back.posedit.edit.type == "del") and
                                   hgvs_genomic.posedit.pos.start.base > map_back.posedit.pos.end.base + 1):
                                 v1 = vm.n_to_g(hgvs_genomic, genomic_ac)
-                                v3 = hp.parse_hgvs_variant(f"{v2.ac}:{v2.type}.{v2.posedit.pos.start.base}_"
-                                                           f"{v2.posedit.pos.end.base}"
-                                                           f"{v2.posedit.edit.ref}=")
+                                v3 = hgvs_delins_parts_to_hgvs_obj(
+                                        v2.ac,
+                                        v2.type,
+                                        v2.posedit.pos,
+                                        v2.posedit.edit.ref,
+                                        v2.posedit.edit.ref)
                                 v2 = vm.n_to_g(v3, genomic_ac)
 
                             else:
@@ -2237,7 +2710,7 @@ def hgvs_ref_alt(hgvs_variant, sf):
 
     # inv
     elif 'inv' in str(hgvs_variant.posedit):
-        ref = hgvs_variant.posedit
+        ref = hgvs_variant.posedit.edit.ref
         my_seq = Seq(ref)
         alt = str(my_seq.reverse_complement())
 
@@ -2257,18 +2730,24 @@ def hgvs_ref_alt(hgvs_variant, sf):
     ref_alt_dict = {'ref': ref, 'alt': alt}
     return ref_alt_dict
 
-#
-# def hgvs_to_delins(hgvs_variant_object):
-#     """
-#     Refer to https://github.com/openvar/vv_hgvs/blob/master/examples/creating-a-variant.ipynb
-#     :param hgvs_variant_object:
-#     :return: hgvs_variant_object in raw type = "delins" state
-#     """
-#
-#
+
+def incomplete_alignment_mapping_t_to_g(validator, variant):
+    output = None
+    mapping_options = validator.hdp.get_tx_mapping_options(variant.input_parses.ac)
+    for option in mapping_options:
+        if option[2] == validator.alt_aln_method and "NC_" not in option[1]:
+            in_assembly = seq_data.to_chr_num_refseq(option[1], variant.primary_assembly)
+            if in_assembly is not None:
+                try:
+                    output = validator.vm.t_to_g(variant.input_parses, option[1])
+                    if variant.input_parses.posedit.edit.type == "identity":
+                        output.posedit.edit.alt = output.posedit.edit.ref
+                except vvhgvs.exceptions.HGVSError:
+                    pass
+    return output
 
 # <LICENSE>
-# Copyright (C) 2016-2024 VariantValidator Contributors
+# Copyright (C) 2016-2025 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

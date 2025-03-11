@@ -110,11 +110,11 @@ class RnaDescriptions(object):
         """
         # Check the content of the object
         if ":r." not in str(variant_string):
-            raise RnaVariantSyntaxError("The variant type for an RNA description must be r.")
+            raise RnaVariantSyntaxError("VariantSyntaxError: The variant type for an RNA description must be r.")
         if re.search("[GATCU]", variant_string):
-            raise RnaVariantSyntaxError("RNA sequence must be lower-case")
+            raise RnaVariantSyntaxError("VariantSyntaxError: RNA sequence must be lower-case")
         if re.search("t", variant_string.split("r.")[1]):
-            raise RnaVariantSyntaxError("RNA sequence contains Uracil (u) not Thymine (T)")
+            raise RnaVariantSyntaxError("VariantSyntaxError: RNA sequence contains Uracil (u) not Thymine (T)")
         if re.search(":r.\(", variant_string):
             self.is_a_prediction = copy.copy(variant_string)
             variant_string = variant_string.replace(":r.(", ":r.")
@@ -128,12 +128,18 @@ class RnaDescriptions(object):
 
         # parse the string into hgvs object
         if "NR_" in self.input or variant.transcript_type == "n":
-            raise RnaVariantSyntaxError("Invalid variant type for non-coding transcript. Instead use n.")
+            raise RnaVariantSyntaxError("VariantSyntaxError: Invalid variant type for non-coding transcript. "
+                                        "Instead use n.")
         else:
             hgvs_rna = self.parse(self.dna_variant, self.vfo)
 
         # normalize
-        hgvs_rna = self.cross_normalizer.normalize(hgvs_rna)
+        try:
+            hgvs_rna = self.cross_normalizer.normalize(hgvs_rna)
+        except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
+            if "Normalization of intronic variants is not supported" in str(e):
+                raise RnaVariantSyntaxError("VariantSyntaxError: Intronic descriptions are only valid in the context "
+                                            "of a c. description")
         self.dna_variant = str(hgvs_rna)
 
         # translate
@@ -155,7 +161,7 @@ class RnaDescriptions(object):
         return variant_dict
 
 # <LICENSE>
-# Copyright (C) 2016-2024 VariantValidator Contributors
+# Copyright (C) 2016-2025 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

@@ -488,7 +488,8 @@ class TestWarnings(TestCase):
         print(results)
         assert "Uncertain positions are not fully supported, however the syntax is valid" in \
                results['NM_032119.4:c.(17019+1_17020-1)_(17856+1_17857-1)dup']['validation_warnings']
-        assert "Only a single transcript can be processed, updating to Select" in \
+        assert ("Only a single transcript can be processed, updating to select. Where no select transcript is identified "
+                "a suitable transcript will be used") in \
                results['NM_032119.4:c.(17019+1_17020-1)_(17856+1_17857-1)dup']['validation_warnings']
         assert results['NM_032119.4:c.(17019+1_17020-1)_(17856+1_17857-1)dup'][
                    'primary_assembly_loci']["grch38"][
@@ -736,6 +737,38 @@ class TestWarnings(TestCase):
             "NM_032790.2|NM_032790.3|NM_032790.4"
         ]
 
+    def test_numeric_input(self):
+        # Test new more specific warning for numeric input, this could be a truncated VCF derived
+        # format, or a ClinVar Variation ID, or some other miscellaneous numeric flavored typo/
+        # miss-paste, but either way contains nothing not numeric or numeric like punctuation.
+        warning = "InvalidVariantError: VariantValidator operates on variant descriptions, but " +\
+            'this variant "{variant.quibble}" only contains numeric characters (and possibly ' +\
+            "numeric associated punctuation), so can not be analysed. Did you enter this " +\
+            "incorrectly, for example entering the numeric ID of a variant, instead of it`s " +\
+            "description, or else enter just a within-sequence location, without specifying " +\
+            "the actual variation?"
+
+        variant = '1-111425'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        print( warning.replace('{variant.quibble}',variant))
+        assert results['validation_warning_1']["validation_warnings"][0] == \
+                warning.replace('{variant.quibble}',variant)
+
+        variant = '7852'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        assert results['validation_warning_1']["validation_warnings"] == [
+                warning.replace('{variant.quibble}',variant)]
+
+        variant = '12:30'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        assert results['validation_warning_1']["validation_warnings"] == [
+                warning.replace('{variant.quibble}',variant)]
+
+        variant = '1,000'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        assert results['validation_warning_1']["validation_warnings"] == [
+                warning.replace('{variant.quibble}',variant)]
 
 class TestVFGapWarnings(TestCase):
 
@@ -1227,9 +1260,25 @@ class TestVVGapWarnings(TestCase):
             'NC_000008.11:g.10623201T>A']['NC_000008.11:g.10623201T>A']['hgvs_t_and_p'][
             'ENST00000382483.3']['transcript_version_warning']
 
+    def test_multiple_colons(self):
+        variant = 'NM_002830.3::c.715G>A'
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert ("VariantSyntaxError: Multiple colons found in variant description") in \
+               results['NM_002830.3:c.715G>A']['validation_warnings']
+
+
+    def test_bad_allele_variant(self):
+        variant = 'chr2:g.[32310435_32310710del;32310711_171827243inv;insG]'
+        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert ("AlleleVariantError: NC_000002.11:g.insG is not a valid HGVS variant description. Please submit individually for additional guidance") in \
+               results['validation_warning_1']['validation_warnings']
+
+
 
 # <LICENSE>
-# Copyright (C) 2016-2024 VariantValidator Contributors
+# Copyright (C) 2016-2025 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

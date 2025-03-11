@@ -6,6 +6,7 @@ import logging
 from . import utils as fn
 from . import seq_data
 
+
 # Pre compile variables
 vvhgvs.global_config.formatting.max_ref_length = 1000000
 
@@ -53,11 +54,15 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
             query = g2t.db.get_stable_gene_id_from_hgnc_id(query)[1]
             if query == "No data":
                 try:
-                    query = validator.db.get_transcripts_from_annotations(store_query)
-                    for tx in query:
-                        if tx[5] != "unassigned":
-                            query = tx[5]
-                            break
+                    query = g2t.db.get_transcripts_from_annotations(store_query)
+                    if "none" not in query[0]:
+                        for tx in query:
+                            if tx[5] != "unassigned":
+                                query = tx[5]
+                                break
+                    else:
+                        return {'error': 'Unable to recognise HGNC ID. Please provide a gene symbol',
+                                "requested_symbol": store_query}
                 except TypeError:
                     pass
 
@@ -93,12 +98,12 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
                                     validator.alt_aln_method])
 
         # Add refseqgene if available
-        if "NG_" in query.hgvs_refseqgene_variant:
+        if query.hgvs_refseqgene_variant and 'NG_' in query.hgvs_refseqgene_variant.ac:
             tx_for_gene.append([query.gene_symbol,
                                 tx_info[3],
                                 0,
                                 query.hgvs_coding.ac,
-                                query.hgvs_refseqgene_variant.split(":")[0],
+                                query.hgvs_refseqgene_variant.ac,
                                 validator.alt_aln_method])
 
     else:
@@ -118,7 +123,6 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
                     g2t.hdp.get_tx_identity_info(refresh_hgnc)
                     tx_found = refresh_hgnc
                     found_res = True
-                    break
                 except vvhgvs.exceptions.HGVSError as e:
                     logger.debug("Except passed, %s", e)
             if not found_res:
@@ -139,8 +143,14 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
             except vvhgvs.exceptions.HGVSError as e:
                 return {'error': str(e),
                         "requested_symbol": query}
+
             hgnc = tx_info[6]
-            hgnc = g2t.db.get_hgnc_symbol(hgnc)
+            hgnc2 = g2t.db.get_hgnc_symbol(hgnc)
+
+            if re.match("LOC", hgnc2) and not re.match("LOC", hgnc):
+                hgnc = hgnc
+            else:
+                hgnc = hgnc2
 
         # First perform a search against the input gene symbol or the symbol inferred from UTA
         symbol_identified = False
@@ -165,10 +175,21 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
                     hgnc_id = vvta_record[0][0]
                     previous_sym = hgnc
                     symbol_identified = True
-                if len(vvta_record) > 1:
+                elif len(vvta_record) > 1:
                     return {'error': '%s is a previous symbol for %s genes. '
-                                     'Refer to https://www.genenames.org/' % (current_sym, str(len(vvta_record))),
+                                     'Refer to https://www.genenames.org/' % (hgnc, str(len(vvta_record))),
                             "requested_symbol": query}
+                else:
+                    # Is it an updated symbol?
+                    old_symbol = g2t.db.get_uta_symbol(hgnc)
+                    if old_symbol is not None:
+                        vvta_record = g2t.hdp.get_gene_info(old_symbol)
+                        if vvta_record is not None:
+                            current_sym = hgnc
+                            gene_name = vvta_record[3]
+                            hgnc_id = vvta_record[0]
+                            previous_sym = old_symbol
+                            symbol_identified = True
 
         if symbol_identified is False:
             return {'error': 'Unable to recognise gene symbol %s' % hgnc,
@@ -441,7 +462,7 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
     return g2d_data
 
 # <LICENSE>
-# Copyright (C) 2016-2024 VariantValidator Contributors
+# Copyright (C) 2016-2025 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
