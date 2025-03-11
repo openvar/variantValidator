@@ -31138,23 +31138,23 @@ class TestVariantsAuto(TestCase):
         # Test a pair of variants that regressed (but get fixed during later development) due to
         # getting assigned a start coordinate after their end during processing, which crashes VV.
         variant = 'chr20:g.63316576A>G'
-        results = self.vv.validate(variant, 'GRCh38', 'all')
+        results = self.vv.validate(variant, 'GRCh38','all')
         variant = 'chrX:g.70259255G>A'
-        results = self.vv.validate(variant, 'GRCh38', 'all')
+        results = self.vv.validate(variant, 'GRCh38','all')
 
     def test_unc_pos_exon_crash(self):
         # Test for uncertain position variant that caused a crash in exon mapping due to (* start
         variant = 'NM_000344.4:c.(*3+1_*4-1)del'
-        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh38','all').format_as_dict(test=True)
         assert "NM_000344.4:c.(*3+1_*4-1)del" in results
         assert results["NM_000344.4:c.(*3+1_*4-1)del"]["primary_assembly_loci"]["grch38"][
-                   "hgvs_genomic_description"] == "NC_000005.10:g.(70951995_70952438)del"
+                "hgvs_genomic_description"] ==  "NC_000005.10:g.(70951995_70952438)del"
         assert results["NM_000344.4:c.(*3+1_*4-1)del"]["primary_assembly_loci"]["grch38"][
-                   "vcf"] == {"alt": None, "chr": None, "pos": None, "ref": None}
+                "vcf"] == {"alt": None,"chr": None,"pos": None,"ref": None }
         assert results["NM_000344.4:c.(*3+1_*4-1)del"]["alt_genomic_loci"][0]['grch38'][
-                   "hgvs_genomic_description"] == "NT_187651.1:g.(500428_500871)del"
+                "hgvs_genomic_description"] == "NT_187651.1:g.(500428_500871)del"
         assert results["NM_000344.4:c.(*3+1_*4-1)del"]["alt_genomic_loci"][0]['grch38'][
-                   'vcf'] == {"alt": None, "chr": None, "pos": None, "ref": None}
+                'vcf'] == {"alt": None,"chr": None,"pos": None,"ref": None }
 
 # <LICENSE>
 # Copyright (C) 2016-2024 VariantValidator Contributors

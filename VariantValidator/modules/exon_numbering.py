@@ -63,6 +63,10 @@ def finds_exon_number(variant, validator):
         start_position = coordinates
         end_position = coordinates
 
+    # remove bracket from uncertain start
+    if start_position.startswith('('):
+        start_position = start_position[1:]
+
     # Create empty output dictionary
     exon_start_end_positions = {}
 

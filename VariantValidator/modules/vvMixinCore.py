@@ -100,12 +100,13 @@ class Mixin(vvMixinConverters.Mixin):
                 batch_queries = json.loads(batch_variant)
             except json.decoder.JSONDecodeError:
                 batch_queries = [batch_variant]
-
+            if isinstance(batch_queries, int):
+                batch_queries = [str(batch_queries)]
             # Turn each variant into a dictionary. The dictionary will be compiled during validation
             self.batch_list = []
             for queries in batch_queries:
-                if isinstance(batch_queries, int):
-                    batch_queries = str(batch_queries)
+                if isinstance(queries, int):
+                    queries = str(queries)
                 queries = queries.strip()
                 query = Variant(queries)
                 self.batch_list.append(query)
@@ -1178,6 +1179,14 @@ class Mixin(vvMixinConverters.Mixin):
                     variant.primary_assembly_loci = primary_genomic_dicts
                     if hgvs_tx_variant:
                         variant.hgvs_transcript_variant = hgvs_tx_variant
+                else:
+                     for mapping in variant.alt_genomic_loci:
+                        for gennome in mapping:
+                            mapping[gennome]["vcf"] = {
+                                    'chr': None,
+                                    'pos': None,
+                                    'ref': None,
+                                    'alt': None}
                 if not variant.hgvs_transcript_variant and hgvs_tx_variant:
                     variant.hgvs_transcript_variant = hgvs_tx_variant
                 variant.reference_sequence_records = ''
