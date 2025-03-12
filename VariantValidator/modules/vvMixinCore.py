@@ -341,8 +341,8 @@ class Mixin(vvMixinConverters.Mixin):
                                                                               select_transcripts_dict_plus_version)
 
                     except vvhgvs.exceptions.HGVSError as e:
-                        import traceback
-                        traceback.print_exc()
+                        # import traceback
+                        # traceback.print_exc()
                         checkref = str(e)
                         try:
                             # Test intronic variants for incorrect boundaries (see issue #169)
@@ -1081,8 +1081,12 @@ class Mixin(vvMixinConverters.Mixin):
                     variant.gene_symbol = self.db.get_gene_symbol_from_transcript_id(
                         variant.hgvs_transcript_variant.ac)
                 elif variant.hgvs_refseqgene_variant and variant.gene_symbol == '':
-                    variant.gene_symbol = self.db.get_gene_symbol_from_refseq_id(
-                        variant.hgvs_refseqgene_variant.ac)
+                    try:
+                        variant.gene_symbol = self.db.get_gene_symbol_from_refseq_id(
+                            variant.hgvs_refseqgene_variant.ac)
+                    except AttributeError:
+                        variant.gene_symbol = self.db.get_gene_symbol_from_refseq_id(
+                            variant.hgvs_refseqgene_variant.split(":")[0])
 
                 # Add stable gene_ids
                 stable_gene_ids = {}
