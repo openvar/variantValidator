@@ -281,6 +281,15 @@ def uncertain_positions(my_variant, validator):
     if not re.search("[gcnr].\(", my_variant.quibble):
         return
 
+    # Check for LRGs
+    hgvs_accession, variation = my_variant.quibble.split(":")
+    if "LRG" in hgvs_accession:
+        if "t" in hgvs_accession:
+            hgvs_accession = validator.db.get_refseq_transcript_id_from_lrg_transcript_id(hgvs_accession)
+        else:
+            hgvs_accession = validator.db.get_refseq_id_from_lrg_id(hgvs_accession)
+        my_variant.quibble = f"{hgvs_accession}:{variation}"
+
     # Formats like NC_000005.9:g.(90136803_90144453)_(90159675_90261231)dup
     if ")_(" in my_variant.quibble and "?" not in my_variant.quibble:
         accession, _sep, var_type_and_posedit = my_variant.quibble.partition(':')
@@ -311,6 +320,7 @@ def uncertain_positions(my_variant, validator):
                     end=end)
         except vvhgvs.exceptions.HGVSError as e:
             raise HgvsParseError(str(e))
+
         try:
             validator.vr.validate(parsed_v1)
         except vvhgvs.exceptions.HGVSError as e:

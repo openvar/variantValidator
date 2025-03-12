@@ -813,6 +813,13 @@ def intronic_converter(variant, validator, skip_check=False, uncertain=False):
             elif "does not agree with reference sequence" in str(e):
                 previous_exception = e
                 try:
+                    check_g = validator.vm.t_to_g(hgvs_transy, hgvs_genomic.ac,
+                                                  alt_aln_method=validator.alt_aln_method)
+                    validator.vm.g_to_t(check_g, hgvs_transy.ac, alt_aln_method=validator.alt_aln_method)
+                except vvhgvs.exceptions.HGVSError as e:
+                    if "start or end or both are beyond the bounds of transcript record" in str(e):
+                        raise
+                try:
                     variant.hn.normalize(hgvs_transy)
                 except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
                     if "Unsupported normalization of variants spanning the exon-intron boundary" in str(e):
@@ -834,8 +841,8 @@ def intronic_converter(variant, validator, skip_check=False, uncertain=False):
                 else:
                     variant.warnings.append(f'ExonBoundaryError: {hgvs_transy.posedit.pos} does not match the exon '
                                             f'boundaries for the alignment of {hgvs_transy.ac} to {hgvs_genomic.ac}')
-            except vvhgvs.exceptions.HGVSError:
-                pass
+            except vvhgvs.exceptions.HGVSError as e:
+               pass
 
     logger.debug("HVGS typesetting complete")
 

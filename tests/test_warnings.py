@@ -166,6 +166,13 @@ class TestWarnings(TestCase):
         assert 'because no reference sequence ID has been provided' in \
                results['NM_000088.3:c.589G>T']['validation_warnings'][0]
 
+    def test_issue_673a(self):
+        variant = 'NC_000001.10(NM_001128425.1):c.35+11000000C>T'
+        results = self.vv.validate(variant, 'GRCh38', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'start or end or both are beyond the bounds of transcript record' in \
+               results['validation_warning_1']['validation_warnings']
+
     def test_issue_359(self):
         variant = 'NM_001371623.1:c.483ins'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
@@ -533,6 +540,13 @@ class TestWarnings(TestCase):
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
         assert "Position 90159675_90261231 is > or overlaps 90136803_90144453" in results[
+            'validation_warning_1']["validation_warnings"]
+
+    def test_uncertain_6(self):
+        variant = 'LRG_199t1:c.(6278_6293-1)_(7542+49_757000005)dup'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "Variant coordinate is out of the bound of CDS region (CDS length : 11058)" in results[
             'validation_warning_1']["validation_warnings"]
 
     def test_uncertain_fuzzy_1(self):
