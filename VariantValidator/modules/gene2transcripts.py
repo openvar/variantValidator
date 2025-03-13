@@ -129,14 +129,14 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
                 return {'error': 'No transcript definition for (tx_ac=' + hgnc + ')',
                         "requested_symbol": query}
 
-            # update record and correct symbol
-            try:
-                g2t.db.update_transcript_info_record(tx_found, g2t)
-            except fn.DatabaseConnectionError as e:
-                error = 'Currently unable to update gene_ids or transcript information records because ' \
-                        'VariantValidator %s' % str(e)
-                # my_variant.warnings.append(error)
-                logger.warning(error)
+            # # update record and correct symbol
+            # try:
+            #     g2t.db.update_transcript_info_record(tx_found, g2t)
+            # except fn.DatabaseConnectionError as e:
+            #     error = 'Currently unable to update gene_ids or transcript information records because ' \
+            #             'VariantValidator %s' % str(e)
+            #     # my_variant.warnings.append(error)
+            #     logger.warning(error)
 
             try:
                 tx_info = g2t.hdp.get_tx_identity_info(tx_found)
