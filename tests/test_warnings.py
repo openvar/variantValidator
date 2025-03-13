@@ -170,8 +170,19 @@ class TestWarnings(TestCase):
         variant = 'NC_000001.10(NM_001128425.1):c.35+11000000C>T'
         results = self.vv.validate(variant, 'GRCh38', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
-        assert 'start or end or both are beyond the bounds of transcript record' in \
+        assert 'OutOfBoundsError: start or end or both are beyond the bounds of transcript record' in \
                results['validation_warning_1']['validation_warnings']
+        assert  ("ExonBoundaryError: Position c.35+1 does not correspond with an exon boundary for transcript NM_001128425.1" in
+                 results['validation_warning_1']['validation_warnings'])
+
+    def test_issue_673b(self):
+        variant = 'NM_001128425.1:c.35+11000000C>T'
+        results = self.vv.validate(variant, 'GRCh38', 'all', liftover_level='primary').format_as_dict(test=True)
+        print(results)
+        assert 'OutOfBoundsError: start or end or both are beyond the bounds of transcript record' in \
+               results['validation_warning_1']['validation_warnings']
+        assert  ("ExonBoundaryError: 35+1 does not match the exon boundaries for the alignment of NM_001128425.1 to NC_000001.11" in
+                 results['validation_warning_1']['validation_warnings'])
 
     def test_issue_359(self):
         variant = 'NM_001371623.1:c.483ins'

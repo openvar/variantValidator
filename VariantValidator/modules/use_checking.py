@@ -4,7 +4,7 @@ import vvhgvs.exceptions
 import vvhgvs.variantmapper
 import logging
 from . import utils as fn
-from .variant import Variant
+from . import format_converters
 import copy
 from . import hgvs_utils
 
@@ -281,6 +281,16 @@ def structure_checks(variant, validator):
     elif input_parses.type == 'c':
         check = structure_checks_c(variant, validator)
         if check:
+            # Also check intron boundaries to provide additional warnings
+            if "beyond the bounds" in str(variant.warnings) and (variant.input_parses.posedit.pos.start.offset != 0 or
+                                                                 variant.input_parses.posedit.pos.end.offset != 0):
+                if variant.input_parses.posedit.pos.start.offset != 0:
+                    variant.input_parses.posedit.pos.start.offset = 1
+                if variant.input_parses.posedit.pos.end.offset != 0:
+                    variant.input_parses.posedit.pos.end.offset =1
+                hgvs_genomic_vt = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm,
+                                                         variant.primary_assembly, variant.hn)
+                format_converters.remap_intronic(variant.input_parses, hgvs_genomic_vt, variant, validator)
             return True
 
     elif input_parses.type == 'n':
