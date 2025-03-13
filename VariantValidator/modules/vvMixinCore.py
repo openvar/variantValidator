@@ -1342,6 +1342,11 @@ class Mixin(vvMixinConverters.Mixin):
                 for vt in variant.warnings:
                     vt = str(vt)
 
+                    # Update out of bounds error
+                    if vt == "start or end or both are beyond the bounds of transcript record":
+                        variant_warnings.append(f"OutOfBoundsError: {vt}")
+                        continue
+
                     # Do not warn transcript not part of build if it's not the relevant transcript
                     if "is not part of genome build" in vt and term not in vt:
                         continue
@@ -1425,6 +1430,7 @@ class Mixin(vvMixinConverters.Mixin):
                             item = (getattr(variant, attribute))
                             item = _apply_met_variation(item)
                             setattr(variant, attribute, item)
+
                 # Some variant objects must be strings for back-compatibility with old output
                 if variant.hgvs_transcript_variant:
                     variant.hgvs_transcript_variant = \
