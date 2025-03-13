@@ -818,6 +818,12 @@ def intronic_converter(variant, validator, skip_check=False, uncertain=False):
                     validator.vm.g_to_t(check_g, hgvs_transy.ac, alt_aln_method=validator.alt_aln_method)
                 except vvhgvs.exceptions.HGVSError as e:
                     if "start or end or both are beyond the bounds of transcript record" in str(e):
+                        if hgvs_transy.posedit.pos.start.offset != 0:
+                            hgvs_transy.posedit.pos.start.offset = 1
+                        if hgvs_transy.posedit.pos.end.offset != 0:
+                            hgvs_transy.posedit.pos.end.offset = 1
+                        remap_intronic(hgvs_transy, hgvs_genomic, variant, validator)
+                        variant.warnings.append(e)
                         raise
                 try:
                     variant.hn.normalize(hgvs_transy)
@@ -832,6 +838,13 @@ def intronic_converter(variant, validator, skip_check=False, uncertain=False):
                 raise e
 
         # Check re-mapping of intronic variants
+        remap_intronic(hgvs_genomic, hgvs_transy, variant, validator)
+
+    logger.debug("HVGS typesetting complete")
+
+def remap_intronic(hgvs_transy, hgvs_genomic, variant, validator):
+    # Check re-mapping of intronic variants
+    try:
         if hgvs_transy.posedit.pos.start.offset != 0 or hgvs_transy.posedit.pos.end.offset != 0:
             try:
                 check_intronic_mapping = validator.nr_vm.g_to_t(hgvs_genomic, hgvs_transy.ac,
@@ -842,10 +855,9 @@ def intronic_converter(variant, validator, skip_check=False, uncertain=False):
                     variant.warnings.append(f'ExonBoundaryError: {hgvs_transy.posedit.pos} does not match the exon '
                                             f'boundaries for the alignment of {hgvs_transy.ac} to {hgvs_genomic.ac}')
             except vvhgvs.exceptions.HGVSError as e:
-               pass
-
-    logger.debug("HVGS typesetting complete")
-
+                pass
+    except AttributeError:
+        pass
 
 def allele_parser(variant, validation, validator):
     """
