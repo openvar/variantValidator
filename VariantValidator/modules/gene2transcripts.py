@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, select_transcripts=None,
-                     transcript_set=None, genome_build=None):
+                     transcript_set=None, genome_build=None, bypass_genomic_spans=False):
     """
     Generates a list of transcript (UTA supported) and transcript names from a gene symbol or RefSeq transcript ID
     :param g2t: variant object
@@ -24,6 +24,7 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
     :param select_transcripts: bool False or string of transcript IDs "|" delimited
     :param transcript_set: String that defines all, refseq or ensembl
     :param genome_build: String GRCh37 or GRCh38
+    :param bypass_genomic_spans: bool
     :return: dictionary of transcript information
     """
     # List of transcripts
@@ -128,15 +129,6 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
             if not found_res:
                 return {'error': 'No transcript definition for (tx_ac=' + hgnc + ')',
                         "requested_symbol": query}
-
-            # # update record and correct symbol
-            # try:
-            #     g2t.db.update_transcript_info_record(tx_found, g2t)
-            # except fn.DatabaseConnectionError as e:
-            #     error = 'Currently unable to update gene_ids or transcript information records because ' \
-            #             'VariantValidator %s' % str(e)
-            #     # my_variant.warnings.append(error)
-            #     logger.warning(error)
 
             try:
                 tx_info = g2t.hdp.get_tx_identity_info(tx_found)
@@ -266,6 +258,12 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
             tx_seq = g2t.sf.fetch_seq(tx)
             tx_len = len(tx_seq)
 
+
+
+            # Exon Set
+
+
+
             # Collect genomic span for the transcript against known genomic/gene reference sequences
             gen_start_pos = None
             gen_end_pos = None
@@ -326,7 +324,9 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
             # reverse the exon_set to maintain gene and not genome orientation if gene is -1 orientated
             if tx_orientation == -1:
                 exon_set.reverse()
-            if ('NG_' in line[4] or 'NC_0' in line[4]) and line[5] != 'blat':
+            if bypass_genomic_spans is True:
+                gen_span = False
+            elif ('NG_' in line[4] or 'NC_0' in line[4]) and line[5] != 'blat':
                 gen_span = True
             else:
                 gen_span = False
