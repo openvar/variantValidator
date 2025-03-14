@@ -1458,7 +1458,7 @@ class Mixin(vvMixinConverters.Mixin):
             raise fn.VariantValidatorError('Validation error')
 
     def gene2transcripts(self, query, validator=False, bypass_web_searches=False, select_transcripts=None,
-                         transcript_set="refseq", genome_build=None, batch_output=False):
+                         transcript_set="refseq", genome_build=None, batch_output=False, bypass_genomic_spans=False):
 
         try:
             gene_symbols = json.loads(query)
@@ -1482,12 +1482,14 @@ class Mixin(vvMixinConverters.Mixin):
 
         if batch_output is False:
             g2d_data = gene2transcripts.gene2transcripts(self, query, validator, bypass_web_searches,
-                                                         select_transcripts, transcript_set, genome_build)
+                                                         select_transcripts, transcript_set, genome_build,
+                                                         bypass_genomic_spans)
         else:
             g2d_data = []
             for symbol in gene_symbols:
                 data_for_gene = gene2transcripts.gene2transcripts(self, symbol, validator, bypass_web_searches,
-                                                                  select_transcripts, transcript_set, genome_build)
+                                                                  select_transcripts, transcript_set, genome_build,
+                                                                  bypass_genomic_spans)
                 g2d_data.append(data_for_gene)
 
         # return
