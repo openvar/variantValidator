@@ -1,4 +1,5 @@
 import requests
+import json
 
 def lovd_syntax_check(variant_description):
     base_url = "https://api.lovd.nl/v2/checkHGVS"
@@ -8,9 +9,23 @@ def lovd_syntax_check(variant_description):
         response.raise_for_status()
         json_data = response.json()
         json_data["url"] = url
+        json_data = remove_double_quotes(json_data)
         return json_data
     except requests.RequestException as e:
         return {"lovd_api_error": str(e)}
+
+def remove_double_quotes(obj):
+    if isinstance(obj, str):
+        return obj.replace('"', '')  # Remove double quotes from strings
+    elif isinstance(obj, dict):
+        return {k: remove_double_quotes(v) for k, v in obj.items()}  # Process dict recursively
+    elif isinstance(obj, list):
+        return [remove_double_quotes(i) for i in obj]  # Process lists recursively
+    elif isinstance(obj, tuple):
+        return tuple(remove_double_quotes(i) for i in obj)  # Process tuples recursively
+    elif isinstance(obj, set):
+        return {remove_double_quotes(i) for i in obj}  # Process sets recursively
+    return obj  # Return unchanged if not a str, dict, list, tuple, or set
 
 # <LICENSE>
 # Copyright (C) 2016-2025 VariantValidator Contributors
