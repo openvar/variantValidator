@@ -25,7 +25,14 @@ and manipulate biological sequence variants.
 hgvs package
 
 VariantValidator can be accessed via our [web-hosted User Interface](https://variantvalidator.org/) and as a highly functional platform enabling high-throughput and embeddable
-utilisation of functionality via [direct installation](https://variantvalidator.org/) or via our [REST API](https://variantvalidator.org/). 
+utilisation of functionality via [direct installation](https://github.com/openvar/variantValidator/blob/master/docs) or via our [REST API](https://rest.variantvalidator.org/) which can also be [installed locally](https://github.com/openvar/rest_variantValidator/tree/master/docs) 
+
+## Community Driven
+<img src="https://github.com/openvar/VVweb/blob/master/static/img/Our_Community.png?raw=true" align="left"/>
+
+[Image by Rosaria](https://www.instagram.com/2drosaria/?hl=en-gb)
+
+The success of the VariantValidator is driven through engagement with ***you*** our community of users. We follow an agile development model providing platforms that are used in clinical, education and research practice. Our users test new releases, identify issues and consider improvements which would assist their professional practice. If you spot a bug or have a feature request, contact us via our dedicated [support page](https://variantvalidator.org/help/contact/) or via [git issues](https://github.com/openvar/variantValidator/issues), and we will involve you directly in the planning and acceptance of new resources or bug fixing methodology to ensure your exact needs are met. This helps us to make sure VariuantValidator keeps pace with the fast-moving discipline of genomic medicine.
 
 ## Features
 
@@ -108,7 +115,13 @@ VariantValidator is a community resource and we represent a diverse range of use
 
 ## Cite us
 
-Freeman PJ, Hart RK, Gretton LJ, Brookes AJ, Dalgleish R (2018) VariantValidator: Accurate validation, mapping, and formatting of sequence variation descriptions. Hum Mutat. 39(1) 61-68.
+***To accurately cite us, please use both of the follwoing***
+
+1. Freeman, P.J., Wagstaff, J.F., Fokkema, I.F.A.C. et al. Standardizing variant naming in literature with VariantValidator to increase diagnostic rates. Nat Genet (2024).
+
+[https://doi.org/10.1038/s41588-024-01938-w](https://doi.org/10.1038/s41588-024-01938-w)
+
+2. Freeman PJ, Hart RK, Gretton LJ, Brookes AJ, Dalgleish R (2018) VariantValidator: Accurate validation, mapping, and formatting of sequence variation descriptions. Hum Mutat. 39(1) 61-68.
 
 [PubMed: 28967166](https://www.ncbi.nlm.nih.gov/pubmed/28967166)
 
