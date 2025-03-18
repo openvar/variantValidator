@@ -137,11 +137,17 @@ def final_hgvs_convert(variant,validator):
         posedit = validator.hp.parse_p_posedit(posedit)
     elif var_type == 'r':
         if 'T' in posedit:
-            e = 'The IUPAC RNA alphabet dictates that RNA variants must use '\
+            e = 'The IUPAC RNA alphabet dictates that RNA variants must use '+\
                     'the character u in place of t'
             variant.warnings.append(e)
             return True
         posedit = validator.hp.parse_r_posedit(posedit)
+    else:
+        e = "VariantSyntaxError: The detected variant sequence type of "+\
+                f"{var_type} ' was not one of the allowed HGVS type "+\
+                "characters of c, g, m, n, p, or r"
+        variant.warnings.append(e)
+        return True
 
     variant.quibble = vvhgvs.sequencevariant.SequenceVariant(
             ac = seq_ac,
