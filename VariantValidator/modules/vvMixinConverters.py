@@ -1448,9 +1448,17 @@ class Mixin(vvMixinInit.Mixin):
         hgvs_object.type = 'c'
         edit = hgvs_object.posedit.edit
         ## uppercase and switch U to T
-        if edit.ref:
+        try:
+            edit.ref
+        except AttributeError:
+            pass
+        else:
             edit.ref = edit.ref.upper().replace('U', 'T')
-        if edit.alt:
+        try:
+            edit.alt
+        except AttributeError:
+            pass
+        else:
             edit.alt = edit.alt.upper().replace('U', 'T')
         hgvs_object.posedit.edit = edit
         # map from N to C based coordinates
@@ -2445,8 +2453,11 @@ class Mixin(vvMixinInit.Mixin):
                 if chr_edit.type in ['del', 'delins','dup','sub','inv','identity']:
                     chr_edit.ref = self.revcomp(chr_edit.ref)
 
-                if chr_edit.type in ['ins', 'delins','dup','sub','inv','identity']:
+                if chr_edit.type in ['ins', 'delins','sub','inv','identity']:
                     chr_edit.alt = self.revcomp(chr_edit.alt)
+
+                if chr_edit.type in ['dup']:
+                    chr_edit.alt = self.revcomp(chr_edit.ref + chr_edit.ref)
 
                 hgvs_refseqgene = hgvs_obj_from_existing_edit(
                         rsg_ac,
