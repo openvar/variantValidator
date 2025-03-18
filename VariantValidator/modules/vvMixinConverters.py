@@ -2452,11 +2452,16 @@ class Mixin(vvMixinInit.Mixin):
                 if chr_edit.type in ['del', 'delins','dup','sub','inv','identity']:
                     chr_edit.ref = self.revcomp(chr_edit.ref)
 
-                if chr_edit.type in ['ins', 'delins','sub','inv','identity']:
+                if chr_edit.type in ['ins', 'delins','sub','identity']:
                     chr_edit.alt = self.revcomp(chr_edit.alt)
 
+
+                # These do not have alt attributes
                 if chr_edit.type in ['dup']:
-                    chr_edit.alt = self.revcomp(f"{chr_edit.ref}{chr_edit.ref}")
+                    pass
+
+                if chr_edit.type in ['inv']:
+                    pass
 
                 hgvs_refseqgene = hgvs_obj_from_existing_edit(
                         rsg_ac,
