@@ -52,6 +52,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
     # use updated position if normalized to a different position
     if g_query.posedit.pos != g_test.posedit.pos:
         variant.hgvs_genomic = g_test
+        variant.hgvs_formatted = g_test
     else:
         variant.hgvs_genomic = g_query
 
@@ -123,7 +124,8 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                 error = 'Mapping unavailable for RefSeqGene ' + str(variant.hgvs_formatted) + \
                         ' using alignment method = ' + validator.alt_aln_method
                 variant.warnings.append(error)
-                variant.hgvs_refseqgene_variant = str(variant.hgvs_genomic)
+                variant.genomic_r = variant.hgvs_formatted
+                variant.refseqgene_variant = variant.hgvs_formatted
                 return True
 
             # Extract data

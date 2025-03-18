@@ -208,18 +208,21 @@ class TestConfigValues(unittest.TestCase):
         self.assertEqual(self.config['mysql']['password'], vv.dbConfig['password'])
         self.assertEqual(self.config['mysql']['host'], vv.dbConfig['host'])
         self.assertEqual(self.config['mysql']['database'], vv.dbConfig['database'])
+        if 'unix_socket' in vv.dbConfig:
+            self.assertEqual(self.config['mysql']['unix_socket'], vv.dbConfig['unix_socket'])
 
         self.assertEqual(vv.seqrepoPath,
                          os.path.join(self.config['seqrepo']['location'], self.config['seqrepo']['version']))
-
-        self.assertEqual(vv.utaPath, "postgresql://%s:%s@%s:%s/%s/%s" % (
+        host_or_socketfile = self.config['postgres']['host'].replace('/','%2F')
+        uta_path = "postgresql://%s:%s@%s:%s/%s/%s" % (
             self.config["postgres"]["user"],
             self.config["postgres"]["password"],
-            self.config['postgres']['host'],
+            host_or_socketfile,
             self.config['postgres']['port'],
             self.config['postgres']['database'],
             self.config['postgres']['version']
-        ))
+        )
+        self.assertEqual(vv.utaPath, uta_path)
 
         self.assertEqual(vv.entrez_email, self.config['Entrez']['email'])
         if self.config['Entrez']['api_key'] == 'YOUR_API_KEY':

@@ -31165,6 +31165,29 @@ class TestVariantsAuto(TestCase):
             "tlr": "NP_060767.2:p.(Leu6AlafsTer111)"
         }
 
+    def test_rsg_not_in_transcript(self):
+        # test that RSG inputs outside of transcripts don't fail, the use some otherwise
+        # untested RSG specific code paths, including ensuring intergenic RSG keep their
+        # normalisation (G del in a GG leads to 500->501)
+        variant = 'NG_029236.1:g.500del'
+        results = self.vv.validate(variant, 'GRCh38','all').format_as_dict(test=True)
+        assert results["flag"] == "intergenic"
+        assert "intergenic_variant_1" in results
+        assert results["intergenic_variant_1"]["gene_symbol"] == "RGS6"
+
+        assert results["intergenic_variant_1"]["gene_ids"]["hgnc_id"] == "HGNC:10002"
+        assert results["intergenic_variant_1"]["gene_ids"]["entrez_gene_id"] == "9628"
+        assert results["intergenic_variant_1"]["gene_ids"]["ucsc_id"] == "uc001xmx.5"
+        assert results["intergenic_variant_1"]["hgvs_refseqgene_variant"] == "NG_029236.1:g.501del"
+
+        assert results["intergenic_variant_1"]["reference_sequence_records"] == {
+            "refseqgene": "https://www.ncbi.nlm.nih.gov/nuccore/NG_029236.1" }
+
+        assert results["intergenic_variant_1"]["validation_warnings"] == [
+            "No transcripts found that fully overlap the described variation in the genomic sequence",
+            "Mapping unavailable for RefSeqGene NG_029236.1:g.501delG using alignment method = splign"
+        ]
+
 # <LICENSE>
 # Copyright (C) 2016-2025 VariantValidator Contributors
 #

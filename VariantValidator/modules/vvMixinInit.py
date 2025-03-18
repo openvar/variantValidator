@@ -81,14 +81,17 @@ class Mixin:
 
         os.environ['HGVS_SEQREPO_DIR'] = self.seqrepoPath
 
+        psql_host_or_socketfile = config['postgres']['host'].replace('/','%2F')
+
         os.environ['UTA_DB_URL'] = "postgresql://%s:%s@%s:%s/%s/%s" % (
             config["postgres"]["user"],
             config["postgres"]["password"],
-            config['postgres']['host'],
+            psql_host_or_socketfile,
             config['postgres']['port'],
             config['postgres']['database'],
             config['postgres']['version']
         )
+
         self.utaPath = os.environ.get('UTA_DB_URL')
 
         self.dbConfig = {
@@ -99,6 +102,9 @@ class Mixin:
             'database': config["mysql"]["database"],
             'raise_on_warnings': True
         }
+        mysql_unix_socket = config.get('mysql','unix_socket',fallback=False)
+        if mysql_unix_socket:
+            self.dbConfig["unix_socket"] = mysql_unix_socket
         # Create database access objects
         self.db = Database(self.dbConfig)
         db_version = self.db.get_db_version()
