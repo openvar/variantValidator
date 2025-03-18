@@ -260,10 +260,10 @@ class Variant(object):
         """
         return any('obsolete' in warning for warning in self.warnings)
 
-    def process_warnings(self):
+    def process_warnings(self, string_all = False):
         refined = []
         for warning in self.warnings:
-            if type(warning) is dict:
+            if type(warning) is dict and string_all is False:
                 pass
             else:
                 warning = re.sub('del[GATC][GATC][GATC][GATC]+', 'del', str(warning))

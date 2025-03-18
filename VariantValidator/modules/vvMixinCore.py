@@ -35,20 +35,26 @@ class Mixin(vvMixinConverters.Mixin):
     It's added to the Validator object in the vvObjects file.
     """
 
+    def __init__(self):
+        super().__init__()
+        self.lovd_syntax_check = None
+
     def validate(self,
                  batch_variant,
                  selected_assembly,
                  select_transcripts,
                  transcript_set=None,
-                 liftover_level=False):
+                 liftover_level=False,
+                 lovd_syntax_check=False):
         """
         This is the main validator function.
         :param batch_variant: A string containing the variant to be validated
         :param selected_assembly: The version of the genome assembly to use.
         :param select_transcripts: Can be an array of different transcripts, or 'all'
-        :param liftover_level: True or False - liftover to different gene/genome builds or not
+        :param liftover_level: True or None or primary - liftover to different gene/genome builds or not
         Selecting multiple transcripts will lead to a multiple variant outputs.
         :param transcript_set: 'refseq' or 'ensembl'
+        :param lovd_syntax_check: True or False
         :return:
         """
         logger.debug("Running validate with inputs %s and assembly %s", batch_variant, selected_assembly)
@@ -67,6 +73,9 @@ class Mixin(vvMixinConverters.Mixin):
         primary_assembly = None
         self.selected_assembly = selected_assembly
         self.select_transcripts = select_transcripts
+
+        # Set LOVD syntax checker
+        self.lovd_syntax_check = lovd_syntax_check
 
         # Validation
         ############
@@ -724,7 +733,8 @@ class Mixin(vvMixinConverters.Mixin):
                 except KeyboardInterrupt:
                     raise
                 except Exception:
-                    lovd_response = lovd_api.lovd_syntax_check(my_variant.original.strip())
+                    lovd_response = lovd_api.lovd_syntax_check(my_variant.original.strip(),
+                                                               do_lovd_check=self.lovd_syntax_check)
                     if "lovd_api_error" not in lovd_response.keys():
                         my_variant.output_type_flag = 'warning'
                         my_variant.lovd_syntax_check = lovd_response

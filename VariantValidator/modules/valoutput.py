@@ -58,7 +58,8 @@ class ValOutput(object):
                     validation_warning_counter = validation_warning_counter + 1
                     # Get additional warnings
                     if variant.lovd_syntax_check is None:
-                        variant.lovd_syntax_check = lovd_api.lovd_syntax_check(variant.original.strip())
+                        variant.lovd_syntax_check = lovd_api.lovd_syntax_check(
+                            variant.original.strip(), do_lovd_check=self.validator.lovd_syntax_check)
                     else:
                         pass
                     if "lovd_api_error" not in variant.lovd_syntax_check.keys():
@@ -166,7 +167,7 @@ class ValOutput(object):
             if variant.rna_data is None:
                 outputstrings.append([
                     variant.original,
-                    '|'.join(variant.process_warnings()),
+                    '|'.join(variant.process_warnings(string_all=True)),
                     select_tx,
                     variant.hgvs_transcript_variant,
                     variant.genome_context_intronic_sequence,

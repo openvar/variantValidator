@@ -1,7 +1,8 @@
 import requests
-import json
 
-def lovd_syntax_check(variant_description):
+def lovd_syntax_check(variant_description, do_lovd_check=True):
+    if do_lovd_check is False:
+        return {"lovd_api_error": f"Do LOVD syntax check set to {do_lovd_check}"}
     base_url = "https://api.lovd.nl/v2/checkHGVS"
     url = f"{base_url}/{variant_description}"
     try:
