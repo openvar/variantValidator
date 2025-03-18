@@ -22,6 +22,7 @@ class Variant(object):
         self.pre_RNA_conversion = None
         self.input_parses = None  # quibble as hgvs variant object
         self.transcript_type = None
+        self.lovd_syntax_check = None
 
         if warnings is None:
             self.warnings = []

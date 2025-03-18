@@ -14,7 +14,6 @@ import time
 from vvhgvs.assemblymapper import AssemblyMapper
 from VariantValidator.modules import hgvs_utils
 from VariantValidator.modules import utils as fn
-from VariantValidator.modules import seq_data
 from VariantValidator.modules import vvMixinConverters
 from VariantValidator.modules.variant import Variant
 from VariantValidator.modules import format_converters
@@ -23,8 +22,8 @@ from VariantValidator.modules import mappers
 from VariantValidator.modules import valoutput
 from VariantValidator.modules import exon_numbering
 from VariantValidator.modules.liftover import liftover
-from VariantValidator.modules import complex_descriptions
 from VariantValidator.modules import gene2transcripts
+from VariantValidator.modules import lovd_api
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
         unset_hgvs_obj_ref, to_vv_hgvs
 
@@ -725,12 +724,18 @@ class Mixin(vvMixinConverters.Mixin):
                 except KeyboardInterrupt:
                     raise
                 except Exception:
-                    my_variant.output_type_flag = 'error'
-                    error = 'Validation error'
-                    my_variant.warnings.append(error)
-                    exc_type, exc_value, last_traceback = sys.exc_info()
-                    logger.error(str(exc_type) + " " + str(exc_value))
-                    raise
+                    lovd_response = lovd_api.lovd_syntax_check(my_variant.original.strip())
+                    if "lovd_api_error" not in lovd_response.keys():
+                        my_variant.output_type_flag = 'warning'
+                        my_variant.lovd_syntax_check = lovd_response
+                        continue
+                    else:
+                        my_variant.output_type_flag = 'error'
+                        error = 'Validation error'
+                        my_variant.warnings.append(error)
+                        exc_type, exc_value, last_traceback = sys.exc_info()
+                        logger.error(str(exc_type) + " " + str(exc_value))
+                        raise
 
             # Outside the for loop
             ######################

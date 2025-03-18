@@ -33,6 +33,41 @@ def pre_parsing_global_common_mistakes(my_variant):
         my_variant.warnings.append(warning)
         return True
 
+    # Find concatenated descriptions
+
+    concat_descriptions = ["p\\.", "c\\.", "r\\.", "g\\.", "n\\."]  # Escape dots for regex
+    pattern = f"({'|'.join(concat_descriptions)})"
+
+    # Find all matches
+    matches = re.findall(pattern, my_variant.original.strip())
+
+    # Check if two or more matches are found
+    if len(matches) >= 2:
+        warning = (f"InvalidVariantError: {my_variant.original.strip()} is a concatenation of "
+                   f"{'& '.join(matches)} descriptions, which is not compliant with the HGVS nomenclature standard")
+        my_variant.warnings.append(warning)
+        return True
+
+    # some additional formats we have seen repeatedly
+    matches = re.findall(":\w+:[crnpg]\.", my_variant.original.strip())
+    if len(matches) >= 1:
+        my_variant.warnings.append("VariantSyntaxError: HGVS descriptions contain a single colon between the reference "
+                                   "sequence ID and the reference sequence type in the format "
+                                   "'reference_sequence_ID:type.'")
+        bad_chars = [x[1:-3] for x in matches]
+        warning = (f"VariantSyntaxError: Illegal addition of the invalid characters [{'& '.join(bad_chars)}] between "
+                   f"the two colons")
+        my_variant.warnings.append(warning)
+        return True
+
+    matches = re.findall("[crng]\.[GATCgatc]\d+[GATCgatc]", my_variant.original.strip())
+    if len(matches) >= 1:
+        reformat = [f"{x[0:3]}>{x[-1]}" for x in matches]
+        warning = (f"VariantSyntaxError: The format(s) {'& '.join(matches)} is(are) not compliant with the HGVS "
+                   f"nomenclature standard for nucleotide variant descriptions. Did you mean {'& '.join(reformat)}?")
+        my_variant.warnings.append(warning)
+        return True
+
     invalid = my_variant.format_quibble()
     if invalid:
         if re.search(r'\w+:[gcnmrp],', my_variant.quibble):

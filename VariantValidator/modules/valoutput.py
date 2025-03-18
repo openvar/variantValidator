@@ -1,5 +1,6 @@
 import logging
 import json
+from VariantValidator.modules import lovd_api
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +56,23 @@ class ValOutput(object):
                     identification_key = 'obsolete_record_%s' % validation_obsolete_counter
                 else:
                     validation_warning_counter = validation_warning_counter + 1
+                    # Get additional warnings
+                    if variant.lovd_syntax_check is None:
+                        variant.lovd_syntax_check = lovd_api.lovd_syntax_check(variant.original.strip())
+                    else:
+                        pass
+                    if "lovd_api_error" not in variant.lovd_syntax_check.keys():
+                        for key, val in variant.lovd_syntax_check["data"][0]["warnings"].items():
+                            variant.warnings.append({"LovdSyntaxcheckWarning": {key: val}})
+                        for key, val in variant.lovd_syntax_check["data"][0]["errors"].items():
+                            variant.warnings.append({"LovdSyntaxcheckError": {key: val}})
+                        lovd_syntax_suggestions = {"LovdSyntaxcheckSuggestions": {}}
+                        for key, val in variant.lovd_syntax_check['data'][0]['corrected_values'].items():
+                            lovd_syntax_suggestions["LovdSyntaxcheckSuggestions"][key] = round(val,2)
+                            variant.warnings.append(lovd_syntax_suggestions)
+                        variant.warnings.append(f"LovdSyntaxcheckSource: {variant.lovd_syntax_check['url']}")
                     identification_key = 'validation_warning_%s' % validation_warning_counter
+
                 validation_output[identification_key] = variant.output_dict(test=test)
 
             elif variant.output_type_flag == 'mitochondrial':
