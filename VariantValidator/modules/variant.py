@@ -23,6 +23,8 @@ class Variant(object):
         self.input_parses = None  # quibble as hgvs variant object
         self.transcript_type = None
         self.lovd_syntax_check = None
+        self.lovd_messages = None
+        self.lovd_corrections = None
 
         if warnings is None:
             self.warnings = []
@@ -117,6 +119,7 @@ class Variant(object):
         if self.quibble != prev:
             caution = 'Whitespace removed from variant description %s' % self.quibble
             self.warnings.append(caution)
+        self.original = ''.join(self.original.split())
 
     def remove_quotes(self):
         if self.quibble.startswith('"') or self.quibble.startswith("'"):
@@ -244,6 +247,8 @@ class Variant(object):
             'hgvs_refseqgene_variant': self.hgvs_refseqgene_variant,
             'hgvs_predicted_protein_consequence': self.hgvs_predicted_protein_consequence,
             'validation_warnings': self.process_warnings(),
+            'lovd_messages': self.lovd_messages,
+            'lovd_corrections': self.lovd_corrections,
             'hgvs_lrg_transcript_variant': self.hgvs_lrg_transcript_variant,
             'hgvs_lrg_variant': self.hgvs_lrg_variant,
             'alt_genomic_loci': self.alt_genomic_loci,

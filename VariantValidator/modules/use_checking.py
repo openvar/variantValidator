@@ -21,7 +21,7 @@ def pre_parsing_global_common_mistakes(my_variant):
     # test that it is not just a number or a numeric ID
     # since numeric ids may contain a : reverse quibble substitutions if otherwise fully numeric
     # e.g 1:111111 2:435636 12:30 would be treated as appropriate NC_ otherwise
-    if re.match(r'^[\d\s\.,:;\-\+]+$',my_variant.original.strip()):
+    if re.match(r'^[\d\s\.,:;\-\+]+$', my_variant.original.strip()):
         my_variant.quibble = my_variant.original.strip()
     if re.match(r'\d', my_variant.quibble) and re.match(r'^[\d\s\.,:;\-\+]+$', my_variant.quibble):
         warning = "InvalidVariantError: VariantValidator operates on variant descriptions, but " +\
@@ -50,13 +50,26 @@ def pre_parsing_global_common_mistakes(my_variant):
 
     # some additional formats we have seen repeatedly
     matches = re.findall(":\w+:[crnpg]\.", my_variant.original.strip())
+
     if len(matches) >= 1:
         my_variant.warnings.append("VariantSyntaxError: HGVS descriptions contain a single colon between the reference "
                                    "sequence ID and the reference sequence type in the format "
                                    "'reference_sequence_ID:type.'")
         bad_chars = [x[1:-3] for x in matches]
         warning = (f"VariantSyntaxError: Illegal addition of the invalid characters [{'& '.join(bad_chars)}] between "
-                   f"the two colons")
+                   f"the two colons in {my_variant.original.strip()}")
+        my_variant.warnings.append(warning)
+        return True
+
+    matches = re.findall(":\w+\.\d+:[crnpg]\.", my_variant.original.strip())
+
+    if len(matches) >= 1:
+        my_variant.warnings.append("VariantSyntaxError: HGVS descriptions contain a single colon between the reference "
+                                   "sequence ID and the reference sequence type in the format "
+                                   "'reference_sequence_ID:type.'")
+        bad_chars = [x[1:-3] for x in matches]
+        warning = (f"VariantSyntaxError: Illegal addition of the invalid characters [{'& '.join(bad_chars)}] between "
+                   f"the two colons in {my_variant.original.strip()}")
         my_variant.warnings.append(warning)
         return True
 
