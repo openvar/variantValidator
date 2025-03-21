@@ -697,7 +697,10 @@ class Mixin(vvMixinConverters.Mixin):
             by_order = sorted(self.batch_list, key=lambda x: x.order)
 
             for variant in by_order:
-                logger.debug("Formatting variant " + variant.quibble.format({'p_3_letter':False}))
+                if type(variant.quibble) is str:
+                    logger.debug(f"Formatting variant {variant.quibble}")
+                else:
+                    logger.debug("Formatting variant " + variant.quibble.format({'p_3_letter':False}))
                 if not variant.write:
                     continue
 
