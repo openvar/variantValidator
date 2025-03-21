@@ -100,9 +100,14 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
             # try again if corrected
             try:
                 toskip = final_hgvs_convert(variant, validator)
-            except:
+            except vvhgvs.exceptions.HGVSParseError as err:
+                variant.warnings.append("HgvsSyntaxError: " + str(err))
                 return True
-        # fail if un-corrected errors persist
+            except vvhgvs.exceptions.HGVSError as err:
+                variant.warnings.append(f"HgvsParserError: Unknown error during"
+                                        "reading of variant {variant.quibble}")
+                return True
+        # fail if un-corrected errors persist (warning should already have been generated)
         if toskip:
             return True
 
