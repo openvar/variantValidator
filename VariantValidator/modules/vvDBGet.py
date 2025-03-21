@@ -3,6 +3,7 @@ from .utils import handleCursor
 from . import vvDBInit
 
 logger = logging.getLogger(__name__)
+LRG_TX_LINK = {}
 
 class Mixin(vvDBInit.Mixin):
     """
@@ -83,8 +84,12 @@ class Mixin(vvDBInit.Mixin):
         return self.execute(query)[0]
 
     def get_lrg_transcript_id_from_refseq_transcript_id(self, rst_id):
-        query = "SELECT LRGtranscriptID FROM LRG_transcripts WHERE RefSeqTranscriptID = '%s'" % rst_id
-        return self.execute(query)[0]
+        if not LRG_TX_LINK:
+            query = "SELECT RefSeqTranscriptID,LRGtranscriptID FROM LRG_transcripts"
+            lrg_dat = self.execute_all(query)
+            for dat in lrg_dat:
+                LRG_TX_LINK[dat[0]] = dat[1]
+        return LRG_TX_LINK.get(rst_id,'none')
 
     def get_lrg_id_from_refseq_gene_id(self, rsg_id):
         query = "SELECT lrgID, status FROM LRG_RSG_lookup WHERE RefSeqGeneID = '%s'" % rsg_id

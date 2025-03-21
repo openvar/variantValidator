@@ -254,9 +254,9 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
                 continue
             tx_orientation = tx_exons[0]['alt_strand']
 
-            # Fetch the sequence to get the length
-            tx_seq = g2t.sf.fetch_seq(tx)
-            tx_len = len(tx_seq)
+            # Fetch the sequence details, length is the first item
+            tx_anno = g2t.hdp.get_tx_seq_anno(tx)
+            tx_len = tx_anno[0]
 
 
 
