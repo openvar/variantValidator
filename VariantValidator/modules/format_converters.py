@@ -3,7 +3,7 @@ import vvhgvs.exceptions
 import copy
 import logging
 from VariantValidator.modules.variant import Variant
-from VariantValidator.modules import seq_data
+from VariantValidator.modules import seq_data, initial_formatting
 from VariantValidator.modules import utils as fn
 import VariantValidator.modules.rna_formatter
 from VariantValidator.modules import complex_descriptions, use_checking, \
@@ -630,7 +630,15 @@ def vcf2hgvs_stage4(variant, validator):
 
     return skipvar
 
-def convert_expanded_repeat(my_variant,validator):
+def convert_expanded_repeat(my_variant, validator):
+
+    # Remove gene symbols from reference sequences
+    if "(" in my_variant.quibble and ")" in my_variant.quibble:
+        initial_formatting.remove_gene_symbol_from_ref(my_variant, validator)
+
+    print(my_variant.warnings)
+    print(my_variant.quibble)
+
     # Format expanded repeat syntax into a usable hgvs variant
     """
     Waiting for HGVS nomenclature changes
@@ -651,11 +659,18 @@ def convert_expanded_repeat(my_variant,validator):
                                     f"transcript {my_variant.quibble.split(':')[0]}")]
             return True
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         my_variant.warnings = ["ExpandedRepeatError: " + str(e)]
         return True
 
-    if not has_ex_repeat:
+    try:
+        has_ex_repeat
+    except UnboundLocalError:
         return False
+    else:
+        if not has_ex_repeat:
+            return False
 
     if my_variant.quibble != my_variant.expanded_repeat["variant"]:
         my_variant.warnings.append(f"ExpandedRepeatWarning: {my_variant.quibble} updated "
