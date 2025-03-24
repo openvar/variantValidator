@@ -745,7 +745,7 @@ class Mixin(vvMixinConverters.Mixin):
                         my_variant.warnings.append(error)
                         exc_type, exc_value, last_traceback = sys.exc_info()
                         logger.error(str(exc_type) + " " + str(exc_value))
-                        raise
+                        raise # Note, John, would this be better as a continue. Would stop batch jobs falling over
 
             # Outside the for loop
             ######################

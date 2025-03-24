@@ -1,5 +1,4 @@
 import requests
-import json
 from VariantValidator.bin import lovd_syntax_checker
 
 def run_lovd_checker_cli(variant):
@@ -32,9 +31,6 @@ def lovd_syntax_check(variant_description, do_lovd_check=True):
     try:
         json_data = run_lovd_checker_cli(variant_description)
     except Exception:
-        print(f"Exception raised while running {variant_description}")
-        import traceback
-        traceback.print_exc()
         try:
             json_data = run_lovd_checker_web(variant_description)
         except Exception as e:
