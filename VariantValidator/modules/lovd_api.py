@@ -1,20 +1,15 @@
 import requests
-import subprocess
 import json
+from VariantValidator.bin import lovd_syntax_checker
 
 def run_lovd_checker_cli(variant):
-    try:
-        result = subprocess.run(
-            ["lovd_syntax_checker", variant],  # Calls the script
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        return json.loads(result.stdout.strip())  # Parse the JSON output
-    except subprocess.CalledProcessError:
-        raise
-    except json.JSONDecodeError:
-        raise
+    base_url = "https://api.lovd.nl/v2/checkHGVS"
+    url = f"{base_url}/{variant}"
+    result = lovd_syntax_checker.run_hgvs_checker(variant)[0]
+    result = {"data": [result]}
+    result["url"] = url
+    return result # Parse the JSON output
+
 
 def run_lovd_checker_web(variant_description):
     base_url = "https://api.lovd.nl/v2/checkHGVS"
@@ -29,7 +24,6 @@ def run_lovd_checker_web(variant_description):
     except requests.RequestException:
         raise
 
-
 def lovd_syntax_check(variant_description, do_lovd_check=True):
     if do_lovd_check is False:
         return {"lovd_api_error": f"Do LOVD syntax check set to {do_lovd_check}"}
@@ -37,12 +31,20 @@ def lovd_syntax_check(variant_description, do_lovd_check=True):
     # Try the cli first
     try:
         json_data = run_lovd_checker_cli(variant_description)
+    except Exception:
+        print(f"Exception raised while running {variant_description}")
+        import traceback
+        traceback.print_exc()
+        try:
+            json_data = run_lovd_checker_web(variant_description)
+        except Exception as e:
+            return {"lovd_api_error": f"{e}"}
+        finally:
+            json_data = remove_double_quotes(json_data)
+            return json_data
+    finally:
+        json_data = remove_double_quotes(json_data)
         return json_data
-    except subprocess.CalledProcessError:
-
-
-
-
 
 def remove_double_quotes(obj):
     if isinstance(obj, str):

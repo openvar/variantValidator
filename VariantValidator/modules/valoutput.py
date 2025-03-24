@@ -237,13 +237,19 @@ class ValOutput(object):
         if "lovd_api_error" not in variant.lovd_syntax_check.keys():
             lovd_messages = {}
             lovd_corrections = {}
-            for key, val in variant.lovd_syntax_check["data"][0]["warnings"].items():
-                variant.warnings.append(f"LovdSyntaxcheckWarning: {val}")
-                lovd_messages [key] = val
+            try:
+                for key, val in variant.lovd_syntax_check["data"][0]["warnings"].items():
+                    variant.warnings.append(f"LovdSyntaxcheckWarning: {val}")
+                    lovd_messages [key] = val
+            except AttributeError:
+                pass
 
-            for key, val in variant.lovd_syntax_check["data"][0]["errors"].items():
-                variant.warnings.append(f"LovdSyntaxcheckError: {val}")
-                lovd_messages[key] = val
+            try:
+                for key, val in variant.lovd_syntax_check["data"][0]["errors"].items():
+                    variant.warnings.append(f"LovdSyntaxcheckError: {val}")
+                    lovd_messages[key] = val
+            except AttributeError:
+                pass
 
             for key, val in variant.lovd_syntax_check['data'][0]['corrected_values'].items():
                 lovd_syntax_suggestions = f"LovdSyntaxcheckSuggestions: [{key}, {round(val, 2)}]"

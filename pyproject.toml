@@ -64,7 +64,7 @@ classifiers = [
 update_vdb = "bin/update_vdb:main"
 variant_validator = "bin/variant_validator:main"
 vv_configure = "bin/vv_configure:main"
-lovd_syntax_checker = "php/lovd_syntax_checker.py"
+lovd_syntax_checker = "bin/lovd_syntax_checker.py"
 
 data = [
     { include = "configuration", glob = "configuration/default.ini" },

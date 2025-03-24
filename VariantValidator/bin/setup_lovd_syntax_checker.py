@@ -1,8 +1,20 @@
 import os
 import urllib.request
+import importlib.resources as pkg_resources
 
-# Define the main directory for LOVD HGVS Syntax Checker
-LOVD_DIR = os.path.expanduser("~/.lovd_hgvs_checker")
+# Define installation path dynamically using importlib
+def get_installation_path():
+    """Determine the correct installation path for the script inside VariantValidator."""
+    try:
+        # Get the installed package directory
+        package_path = str(pkg_resources.files("VariantValidator"))  # Works with installed packages
+        return os.path.join(package_path, "php", "lovd_hgvs_checker")
+    except ModuleNotFoundError:
+        print("Error: VariantValidator package is not installed.")
+        exit(1)
+
+# Define installation directories
+LOVD_DIR = get_installation_path()
 WEB_DIR = os.path.join(LOVD_DIR, "web")
 
 # Define file paths
