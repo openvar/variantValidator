@@ -189,8 +189,8 @@ def pre_parsing_global_common_mistakes(my_variant):
             my_variant.warnings.append(wrn)
         return True
 
-    if re.search("(?:delins|del|ins)[NGATC]\[\d+\]$", my_variant.quibble) or \
-            re.search("(?:delins|del|ins)\[[NGATC]\[\d+\];", my_variant.quibble):
+    if re.search("(?:delins|del|ins)[NGATC]+\[\d+\]$", my_variant.quibble) or \
+            re.search("(?:delins|del|ins)\[[NGATC]+\[\d+\];", my_variant.quibble):
 
         match = re.search("(?:delins|del|ins)", my_variant.quibble)[0]
 

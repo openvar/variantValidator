@@ -668,10 +668,8 @@ class Mixin(vvMixinConverters.Mixin):
                 except KeyboardInterrupt:
                     raise
                 except Exception:
-                    print("LOVD Check")
                     lovd_response = lovd_api.lovd_syntax_check(my_variant.original.strip(),
                                                                do_lovd_check=self.lovd_syntax_check)
-                    print("Lovd response", lovd_response)
                     if "lovd_api_error" not in lovd_response.keys():
                         my_variant.output_type_flag = 'warning'
                         my_variant.lovd_syntax_check = lovd_response

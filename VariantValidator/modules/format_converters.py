@@ -636,9 +636,6 @@ def convert_expanded_repeat(my_variant, validator):
     if "(" in my_variant.quibble and ")" in my_variant.quibble:
         initial_formatting.remove_gene_symbol_from_ref(my_variant, validator)
 
-    print(my_variant.warnings)
-    print(my_variant.quibble)
-
     # Format expanded repeat syntax into a usable hgvs variant
     """
     Waiting for HGVS nomenclature changes
@@ -659,8 +656,8 @@ def convert_expanded_repeat(my_variant, validator):
                                     f"transcript {my_variant.quibble.split(':')[0]}")]
             return True
     except Exception as e:
-        import traceback
-        traceback.print_exc()
+        # import traceback
+        # traceback.print_exc()
         my_variant.warnings = ["ExpandedRepeatError: " + str(e)]
         return True
 
