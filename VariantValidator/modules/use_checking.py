@@ -18,6 +18,7 @@ def pre_parsing_global_common_mistakes(my_variant):
     This may in fact want to be merged into the later use checking functions in the long term,
     or else may grow to handle more if some of these are converted to post-obj parsing instead
     """
+
     # test that it is not just a number or a numeric ID
     # since numeric ids may contain a : reverse quibble substitutions if otherwise fully numeric
     # e.g 1:111111 2:435636 12:30 would be treated as appropriate NC_ otherwise

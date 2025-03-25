@@ -12,7 +12,8 @@ def remove_gene_symbol_from_ref(my_variant, validator):
             gene_symbol_query = gene_symbol_query.replace(')', '')
             is_it_a_gene = validator.db.get_hgnc_symbol(gene_symbol_query)
             if is_it_a_gene != 'none':
-                warning = "Removing redundant gene symbol %s from variant description" % is_it_a_gene
+                warning = ("VariantSyntaxError: Removing redundant gene symbol %s from variant "
+                           "description") % is_it_a_gene
                 my_variant.quibble.ac = my_variant.quibble.ac.replace(f'({gene_symbol_query})', '')
                 my_variant.warnings.append(warning)
                 logger.warning(warning)
@@ -23,7 +24,8 @@ def remove_gene_symbol_from_ref(my_variant, validator):
             gene_symbol_query = gene_symbol_query.replace(')', '')
             is_it_a_gene = validator.db.get_hgnc_symbol(gene_symbol_query)
             if is_it_a_gene != 'none':
-                warning = "Removing redundant gene symbol %s from variant description" % is_it_a_gene
+                warning = ("VariantSyntaxError: Removing redundant gene symbol %s from variant "
+                           "description") % is_it_a_gene
                 my_variant.quibble = my_variant.quibble.replace(f'({gene_symbol_query})', '')
                 my_variant.warnings.append(warning)
                 logger.warning(warning)
@@ -42,7 +44,7 @@ def initial_user_formattng(my_variant, validator):
             re.search('dup[GATC]+', my_variant.original) or re.search('ins[GATC]+', my_variant.original):
 
         if not re.search('ins[GATC]+', my_variant.original):
-            warning = "Removing redundant reference bases from variant description"
+            warning = "VariantSyntaxError: Removing redundant reference bases from variant description"
             my_variant.warnings.append(warning)
             logger.warning(warning)
 

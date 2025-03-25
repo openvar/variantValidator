@@ -117,9 +117,9 @@ class Variant(object):
         prev = self.quibble
         self.quibble = ''.join(self.quibble.split())
         if self.quibble != prev:
-            caution = 'Whitespace removed from variant description %s' % self.quibble
+            caution = 'VariantSyntaxError: Whitespace removed from variant description %s' % self.quibble
             self.warnings.append(caution)
-        self.original = ''.join(self.original.split())
+        # self.original = ''.join(self.original.split()) #  Updates the original submission to have no whitespace.
 
     def remove_quotes(self):
         if self.quibble.startswith('"') or self.quibble.startswith("'"):
