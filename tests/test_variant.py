@@ -354,7 +354,9 @@ class TestMethods(TestCase):
             'reference_sequence_records': None,
             'selected_assembly': False,
             'variant_exonic_positions': None,
-            'rna_variant_descriptions': None
+            'rna_variant_descriptions': None,
+            'lovd_corrections': None,
+            'lovd_messages': None
         })
 
     # def test_output_dict_set(self):

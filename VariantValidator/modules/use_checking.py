@@ -18,10 +18,11 @@ def pre_parsing_global_common_mistakes(my_variant):
     This may in fact want to be merged into the later use checking functions in the long term,
     or else may grow to handle more if some of these are converted to post-obj parsing instead
     """
+
     # test that it is not just a number or a numeric ID
     # since numeric ids may contain a : reverse quibble substitutions if otherwise fully numeric
     # e.g 1:111111 2:435636 12:30 would be treated as appropriate NC_ otherwise
-    if re.match(r'^[\d\s\.,:;\-\+]+$',my_variant.original.strip()):
+    if re.match(r'^[\d\s\.,:;\-\+]+$', my_variant.original.strip()):
         my_variant.quibble = my_variant.original.strip()
     if re.match(r'\d', my_variant.quibble) and re.match(r'^[\d\s\.,:;\-\+]+$', my_variant.quibble):
         warning = "InvalidVariantError: VariantValidator operates on variant descriptions, but " +\
@@ -30,6 +31,54 @@ def pre_parsing_global_common_mistakes(my_variant):
             " incorrectly, for example entering the numeric ID of a variant, instead of it`s " +\
             "description, or else enter just a within-sequence location, without specifying the " +\
             "actual variation?"
+        my_variant.warnings.append(warning)
+        return True
+
+    # Find concatenated descriptions
+
+    concat_descriptions = ["p\\.", "c\\.", "r\\.", "g\\.", "n\\."]  # Escape dots for regex
+    pattern = f"({'|'.join(concat_descriptions)})"
+
+    # Find all matches
+    matches = re.findall(pattern, my_variant.original.strip())
+
+    # Check if two or more matches are found
+    if len(matches) >= 2:
+        warning = (f"InvalidVariantError: {my_variant.original.strip()} is a concatenation of "
+                   f"{'& '.join(matches)} descriptions, which is not compliant with the HGVS nomenclature standard")
+        my_variant.warnings.append(warning)
+        return True
+
+    # some additional formats we have seen repeatedly
+    matches = re.findall(":\w+:[crnpg]\.", my_variant.original.strip())
+
+    if len(matches) >= 1:
+        my_variant.warnings.append("VariantSyntaxError: HGVS descriptions contain a single colon between the reference "
+                                   "sequence ID and the reference sequence type in the format "
+                                   "'reference_sequence_ID:type.'")
+        bad_chars = [x[1:-3] for x in matches]
+        warning = (f"VariantSyntaxError: Illegal addition of the invalid characters [{'& '.join(bad_chars)}] between "
+                   f"the two colons in {my_variant.original.strip()}")
+        my_variant.warnings.append(warning)
+        return True
+
+    matches = re.findall(":\w+\.\d+:[crnpg]\.", my_variant.original.strip())
+
+    if len(matches) >= 1:
+        my_variant.warnings.append("VariantSyntaxError: HGVS descriptions contain a single colon between the reference "
+                                   "sequence ID and the reference sequence type in the format "
+                                   "'reference_sequence_ID:type.'")
+        bad_chars = [x[1:-3] for x in matches]
+        warning = (f"VariantSyntaxError: Illegal addition of the invalid characters [{'& '.join(bad_chars)}] between "
+                   f"the two colons in {my_variant.original.strip()}")
+        my_variant.warnings.append(warning)
+        return True
+
+    matches = re.findall("[crng]\.[GATCgatc]\d+[GATCgatc]", my_variant.original.strip())
+    if len(matches) >= 1:
+        reformat = [f"{x[0:3]}>{x[-1]}" for x in matches]
+        warning = (f"VariantSyntaxError: The format(s) {'& '.join(matches)} is(are) not compliant with the HGVS "
+                   f"nomenclature standard for nucleotide variant descriptions. Did you mean {'& '.join(reformat)}?")
         my_variant.warnings.append(warning)
         return True
 
@@ -141,8 +190,8 @@ def pre_parsing_global_common_mistakes(my_variant):
             my_variant.warnings.append(wrn)
         return True
 
-    if re.search("(?:delins|del|ins)[NGATC]\[\d+\]$", my_variant.quibble) or \
-            re.search("(?:delins|del|ins)\[[NGATC]\[\d+\];", my_variant.quibble):
+    if re.search("(?:delins|del|ins)[NGATC]+\[\d+\]$", my_variant.quibble) or \
+            re.search("(?:delins|del|ins)\[[NGATC]+\[\d+\];", my_variant.quibble):
 
         match = re.search("(?:delins|del|ins)", my_variant.quibble)[0]
 

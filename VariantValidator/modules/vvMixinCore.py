@@ -1,4 +1,3 @@
-from cmath import log
 import vvhgvs
 import vvhgvs.exceptions
 import vvhgvs.normalizer
@@ -14,7 +13,6 @@ import time
 from vvhgvs.assemblymapper import AssemblyMapper
 from VariantValidator.modules import hgvs_utils
 from VariantValidator.modules import utils as fn
-from VariantValidator.modules import seq_data
 from VariantValidator.modules import vvMixinConverters
 from VariantValidator.modules.variant import Variant
 from VariantValidator.modules import format_converters
@@ -23,8 +21,9 @@ from VariantValidator.modules import mappers
 from VariantValidator.modules import valoutput
 from VariantValidator.modules import exon_numbering
 from VariantValidator.modules.liftover import liftover
-from VariantValidator.modules import complex_descriptions
 from VariantValidator.modules import gene2transcripts
+from VariantValidator.modules import lovd_api
+from VariantValidator.modules import initial_formatting
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
         unset_hgvs_obj_ref, to_vv_hgvs
 
@@ -36,20 +35,26 @@ class Mixin(vvMixinConverters.Mixin):
     It's added to the Validator object in the vvObjects file.
     """
 
+    def __init__(self):
+        super().__init__()
+        self.lovd_syntax_check = None
+
     def validate(self,
                  batch_variant,
                  selected_assembly,
                  select_transcripts,
                  transcript_set=None,
-                 liftover_level=False):
+                 liftover_level=False,
+                 lovd_syntax_check=False):
         """
         This is the main validator function.
         :param batch_variant: A string containing the variant to be validated
         :param selected_assembly: The version of the genome assembly to use.
         :param select_transcripts: Can be an array of different transcripts, or 'all'
-        :param liftover_level: True or False - liftover to different gene/genome builds or not
+        :param liftover_level: True or None or primary - liftover to different gene/genome builds or not
         Selecting multiple transcripts will lead to a multiple variant outputs.
         :param transcript_set: 'refseq' or 'ensembl'
+        :param lovd_syntax_check: True or False
         :return:
         """
         logger.debug("Running validate with inputs %s and assembly %s", batch_variant, selected_assembly)
@@ -68,6 +73,9 @@ class Mixin(vvMixinConverters.Mixin):
         primary_assembly = None
         self.selected_assembly = selected_assembly
         self.select_transcripts = select_transcripts
+
+        # Set LOVD syntax checker
+        self.lovd_syntax_check = lovd_syntax_check
 
         # Validation
         ############
@@ -424,72 +432,7 @@ class Mixin(vvMixinConverters.Mixin):
                         continue
 
                     # INITIAL USER INPUT FORMATTING
-                    """
-                    In this section of the code we are compiling HGVS errors and providing improved warnings/error 
-                    messages
-                    """
-                    # 1. Requested warnings from https://github.com/openvar/variantValidator/issues/195
-                    if re.search(r'\(.+?\)', my_variant.quibble.ac):  # Pattern looks for (....)
-                        gene_symbol_query = re.search(r'\(.+?\)', my_variant.quibble.ac).group(0)
-                        gene_symbol_query = gene_symbol_query.replace('(', '')
-                        gene_symbol_query = gene_symbol_query.replace(')', '')
-                        is_it_a_gene = self.db.get_hgnc_symbol(gene_symbol_query)
-                        if is_it_a_gene != 'none':
-                            warning = "Removing redundant gene symbol %s from variant description" % is_it_a_gene
-                            my_variant.quibble.ac = my_variant.quibble.ac.replace(f'({gene_symbol_query})','')
-                            my_variant.warnings.append(warning)
-                            logger.warning(warning)
-
-                    if re.search('del[GATC]+', my_variant.original) or re.search('inv[GATC]+', my_variant.original) \
-                            or \
-                       re.search('dup[GATC]+', my_variant.original) or re.search('ins[GATC]+', my_variant.original):
-
-                        if not re.search('ins[GATC]+', my_variant.original):
-                            warning = "Removing redundant reference bases from variant description"
-                            my_variant.warnings.append(warning)
-                            logger.warning(warning)
-
-                    # 2. expand options for issue https://github.com/openvar/variantValidator/issues/338
-                    # Basically, all reference sequences must be upper case, so we make an upper-case query accession
-                    # to test the input accession against and try to spot a discrepancy
-                    # The exception to the rule is LTG transcripts e.g. LRG_1t1 which we handle immediately below!
-                    upper_case_accession = my_variant.quibble.ac.upper()
-                    original_ac, _sep, _remain = my_variant.original.partition(':')
-                    uc_original_ac = original_ac.upper()
-                    if uc_original_ac[:3] == "LRG":
-                        if "LRG" != original_ac[:3]:
-                            e = "This not a valid HGVS description, due to characters being in the wrong case. " \
-                                "Please check the use of upper- and lowercase characters."
-                            my_variant.warnings.append(str(e))
-                            logger.warning(str(e))
-                        if "T" in original_ac:
-                            e = "This not a valid HGVS description, due to characters being in the wrong case. " \
-                                "Please check the use of upper- and lowercase characters."
-                            my_variant.warnings.append(str(e))
-                            logger.warning(str(e))
-                            my_variant.quibble.ac = my_variant.quibble.ac.replace("T", "t")
-
-                    # Reference sequence types other than LRG
-                    elif original_ac != uc_original_ac and uc_original_ac[:3] != "LRG":
-                        # See issue #357
-                        if (uc_original_ac[:3] == 'CHR' or
-                            uc_original_ac[:4] == "GRCH" or
-                            uc_original_ac[:2] == "HG"): # M already handled
-                            e = "This is not a valid HGVS variant description, because no reference sequence ID " \
-                                "has been provided"
-                        else:
-                            e = "This not a valid HGVS description, due to characters being in the wrong case. " \
-                                "Please check the use of upper- and lowercase characters."
-                        my_variant.warnings.append(str(e))
-                        logger.warning(str(e))
-                    elif (uc_original_ac[:3] == 'CHR' or
-                          uc_original_ac[:4] == "GRCH" or
-                          uc_original_ac[:2] == "HG"):
-                        e = "This is not a valid HGVS variant description, because no reference sequence ID " \
-                            "has been provided"
-                        my_variant.warnings.append(e)
-                        logger.warning(e)
-
+                    initial_formatting.initial_user_formattng(my_variant, self)
 
                     # Set some configurations
                     formatted_variant = my_variant.quibble
@@ -725,12 +668,19 @@ class Mixin(vvMixinConverters.Mixin):
                 except KeyboardInterrupt:
                     raise
                 except Exception:
-                    my_variant.output_type_flag = 'error'
-                    error = 'Validation error'
-                    my_variant.warnings.append(error)
-                    exc_type, exc_value, last_traceback = sys.exc_info()
-                    logger.error(str(exc_type) + " " + str(exc_value))
-                    raise
+                    lovd_response = lovd_api.lovd_syntax_check(my_variant.original.strip(),
+                                                               do_lovd_check=self.lovd_syntax_check)
+                    if "lovd_api_error" not in lovd_response.keys():
+                        my_variant.output_type_flag = 'warning'
+                        my_variant.lovd_syntax_check = lovd_response
+                        continue
+                    else:
+                        my_variant.output_type_flag = 'error'
+                        error = 'Validation error'
+                        my_variant.warnings.append(error)
+                        exc_type, exc_value, last_traceback = sys.exc_info()
+                        logger.error(str(exc_type) + " " + str(exc_value))
+                        raise # Note, John, would this be better as a continue. Would stop batch jobs falling over
 
             # Outside the for loop
             ######################
