@@ -1,48 +1,65 @@
 import requests
 from VariantValidator.bin import lovd_syntax_checker
 
+
 def run_lovd_checker_cli(variant):
+    """Runs the LOVD syntax checker via CLI."""
     base_url = "https://api.lovd.nl/v2/checkHGVS"
     url = f"{base_url}/{variant}"
-    result = lovd_syntax_checker.run_hgvs_checker(variant)[0]
-    result = {"data": [result]}
-    result["url"] = url
-    return result # Parse the JSON output
+
+    try:
+        result = lovd_syntax_checker.run_hgvs_checker(variant)[0]
+        result = {"data": [result]}
+        result["url"] = url
+        result["version"] = result["data"][0]["metadata"]["library_version"]
+        return result  # Ensure it returns a dictionary
+    except Exception as e:
+        return {"lovd_api_error": f"CLI check failed: {e}"}
 
 
 def run_lovd_checker_web(variant_description):
+    """Runs the LOVD syntax checker via the web API."""
     base_url = "https://api.lovd.nl/v2/checkHGVS"
     url = f"{base_url}/{variant_description}"
+
     try:
         response = requests.get(url)
         response.raise_for_status()
         json_data = response.json()
         json_data["url"] = url
-        json_data = remove_double_quotes(json_data)
-        return json_data
-    except requests.RequestException:
-        raise
+        json_data["version"] = json_data["versions"]["library_version"]
+        return remove_double_quotes(json_data)
+    except requests.RequestException as e:
+        return {"lovd_api_error": f"Request failed: {e}"}
+    except Exception as e:
+        return {"lovd_api_error": f"Unexpected error: {e}"}
+
 
 def lovd_syntax_check(variant_description, do_lovd_check=True):
-    if do_lovd_check is False:
+    """Performs LOVD syntax check using CLI first, then falls back to web API if necessary."""
+    if not do_lovd_check:
         return {"lovd_api_error": f"Do LOVD syntax check set to {do_lovd_check}"}
 
-    # Try the cli first
+    json_data = None  # Ensure json_data is always defined
+
     try:
         json_data = run_lovd_checker_cli(variant_description)
+        if "lovd_api_error" in json_data:  # Fallback if CLI fails
+            raise ValueError(json_data["lovd_api_error"])
     except Exception:
-        try:
-            json_data = run_lovd_checker_web(variant_description)
-        except Exception as e:
-            return {"lovd_api_error": f"{e}"}
-        finally:
-            json_data = remove_double_quotes(json_data)
-            return json_data
-    finally:
-        json_data = remove_double_quotes(json_data)
-        return json_data
+        json_data = run_lovd_checker_web(variant_description)
+
+    json_data = remove_double_quotes(json_data)
+
+    # Ensure the final return value is always a dictionary
+    if not isinstance(json_data, dict):
+        return {"lovd_api_error": "Unexpected output format"}
+
+    return json_data
+
 
 def remove_double_quotes(obj):
+    """Recursively removes double quotes from all strings in a structure."""
     if isinstance(obj, str):
         return obj.replace('"', '')  # Remove double quotes from strings
     elif isinstance(obj, dict):

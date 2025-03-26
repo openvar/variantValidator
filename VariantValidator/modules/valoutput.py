@@ -258,6 +258,8 @@ class ValOutput(object):
 
             variant.warnings.append(f"LovdSyntaxcheckSource: {variant.lovd_syntax_check['url']}")
             lovd_messages["ISOURCE"] = variant.lovd_syntax_check['url']
+            variant.warnings.append(f"LovdSyntaxcheckLibraryVersion: {variant.lovd_syntax_check['version']}")
+            lovd_messages["LIBRARYVERSION"] = variant.lovd_syntax_check['version']
             variant.lovd_messages = lovd_messages
             variant.lovd_corrections = lovd_corrections
 

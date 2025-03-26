@@ -28,13 +28,43 @@ def run_hgvs_checker(variant):
             text=True,
             check=True
         )
-        return json.loads(result.stdout.strip())  # Parse JSON output
+
+        result_meta = subprocess.run(
+            ["php", "-f", PHP_SCRIPT, "getVersions"],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        json_result = json.loads(result.stdout.strip())
+        json_meta = json.loads(result_meta.stdout.strip())
+        json_result[0]["metadata"] = json_meta[0]
+        return json_result # Parse JSON output
     except subprocess.CalledProcessError as e:
-        return f"Error running HGVS Checker: {e.stderr.strip()}"
+        raise f"Error running HGVS Checker: {e.stderr.strip()}"
     except json.JSONDecodeError:
-        return f"Invalid JSON output: {result.stdout.strip()}"
+        raise f"Invalid JSON output: {result.stdout.strip()}"
+    except Exception:
+        raise
 
 if __name__ == "__main__":
-    test_variant = "NC_000023.11:g.32893361G>A"
+    test_variant = "c.100del"
     output = run_hgvs_checker(test_variant)
     print(output)
+
+
+# <LICENSE>
+# Copyright (C) 2016-2025 VariantValidator Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# </LICENSE>
