@@ -118,9 +118,22 @@ class Mixin(vvDBInit.Mixin):
                 "WHERE hgncSymbol = '%s'" % gene_symbol
         return self.execute_all(query)
 
-    def get_g_to_g_info(self):
+    def get_g_to_g_info(self, rsg_id=None, gen_id=None, start=None, end=None):
+        """
+        Return a set of RSG to genome mapping data.
+        Can be all such mappings or can be limited to either data for a specific
+        RSG or for a specific genomic ref id, and optional location.
+        """
         query = "SELECT refSeqGeneID, refSeqChromosomeID, startPos, endPos, orientation, hgncSymbol, " \
                 "genomeBuild FROM refSeqGene_loci"
+        if rsg_id:
+            query = query + f" WHERE refSeqGeneID='{rsg_id}' "
+        elif gen_id:
+            query = query + f" WHERE refSeqChromosomeID='{gen_id}' "
+            if start:
+                query = query + f"AND startPos <= {str(start)} "
+            if end:
+                query = query + f"AND endPos >= {str(end)} "
         return self.execute_all(query)
 
     def get_all_transcript_id(self):

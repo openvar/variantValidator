@@ -21,6 +21,7 @@ vvhgvs.global_config.formatting.max_ref_length = 1000000
 
 logger = logging.getLogger(__name__)
 
+LO_CACHE = {}
 
 def mystr(hgvs_nucleotide):
     hgvs_nucleotide_refless = hgvs_nucleotide.format({'max_ref_length': 0})
@@ -340,7 +341,11 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
     # The structure of the following code comes from VV pymod, so need to create a list
     genome_builds = [build_to]
 
-    lo = LiftOver(lo_from, lo_to)
+    if lo_from not in LO_CACHE:
+        LO_CACHE[lo_from] = {}
+    if lo_to not in LO_CACHE[lo_from]:
+         LO_CACHE[lo_from][lo_to] = LiftOver(lo_from, lo_to)
+    lo = LO_CACHE[lo_from][lo_to]
 
     # Fix the GRC CHR
     if from_vcf[from_set].startswith('chr'):
@@ -472,7 +477,12 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                     continue
 
                 # Now try map back
-                lo = LiftOver(lo_to, lo_from)
+                if lo_to not in LO_CACHE:
+                    LO_CACHE[lo_to] = {}
+                if lo_from not in LO_CACHE[lo_to]:
+                    LO_CACHE[lo_to][lo_from] = LiftOver(lo_to, lo_from)
+                lo = LO_CACHE[lo_to][lo_from]
+
                 # Lift back
                 liftback_list = lo.convert_coordinate(chrom, pos)
 
