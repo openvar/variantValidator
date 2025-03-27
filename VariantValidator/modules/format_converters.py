@@ -3,7 +3,7 @@ import vvhgvs.exceptions
 import copy
 import logging
 from VariantValidator.modules.variant import Variant
-from VariantValidator.modules import seq_data
+from VariantValidator.modules import seq_data, initial_formatting
 from VariantValidator.modules import utils as fn
 import VariantValidator.modules.rna_formatter
 from VariantValidator.modules import complex_descriptions, use_checking, \
@@ -100,9 +100,14 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
             # try again if corrected
             try:
                 toskip = final_hgvs_convert(variant, validator)
-            except:
+            except vvhgvs.exceptions.HGVSParseError as err:
+                variant.warnings.append("HgvsSyntaxError: " + str(err))
                 return True
-        # fail if un-corrected errors persist
+            except vvhgvs.exceptions.HGVSError as err:
+                variant.warnings.append(f"HgvsParserError: Unknown error during"
+                                        "reading of variant {variant.quibble}")
+                return True
+        # fail if un-corrected errors persist (warning should already have been generated)
         if toskip:
             return True
 
@@ -132,11 +137,17 @@ def final_hgvs_convert(variant,validator):
         posedit = validator.hp.parse_p_posedit(posedit)
     elif var_type == 'r':
         if 'T' in posedit:
-            e = 'The IUPAC RNA alphabet dictates that RNA variants must use '\
+            e = 'The IUPAC RNA alphabet dictates that RNA variants must use '+\
                     'the character u in place of t'
             variant.warnings.append(e)
             return True
         posedit = validator.hp.parse_r_posedit(posedit)
+    else:
+        e = "VariantSyntaxError: The detected variant sequence type of "+\
+                f"{var_type} ' was not one of the allowed HGVS type "+\
+                "characters of c, g, m, n, p, or r"
+        variant.warnings.append(e)
+        return True
 
     variant.quibble = vvhgvs.sequencevariant.SequenceVariant(
             ac = seq_ac,
@@ -630,7 +641,12 @@ def vcf2hgvs_stage4(variant, validator):
 
     return skipvar
 
-def convert_expanded_repeat(my_variant,validator):
+def convert_expanded_repeat(my_variant, validator):
+
+    # Remove gene symbols from reference sequences
+    if "(" in my_variant.quibble and ")" in my_variant.quibble:
+        initial_formatting.remove_gene_symbol_from_ref(my_variant, validator)
+
     # Format expanded repeat syntax into a usable hgvs variant
     """
     Waiting for HGVS nomenclature changes
@@ -651,11 +667,18 @@ def convert_expanded_repeat(my_variant,validator):
                                     f"transcript {my_variant.quibble.split(':')[0]}")]
             return True
     except Exception as e:
+        # import traceback
+        # traceback.print_exc()
         my_variant.warnings = ["ExpandedRepeatError: " + str(e)]
         return True
 
-    if not has_ex_repeat:
+    try:
+        has_ex_repeat
+    except UnboundLocalError:
         return False
+    else:
+        if not has_ex_repeat:
+            return False
 
     if my_variant.quibble != my_variant.expanded_repeat["variant"]:
         my_variant.warnings.append(f"ExpandedRepeatWarning: {my_variant.quibble} updated "

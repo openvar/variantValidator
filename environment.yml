@@ -5,4 +5,6 @@ channels:
 dependencies:
   - python==3.11
   - pip
-
+  - php==8.1.5
+  - git
+  - curl

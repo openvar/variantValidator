@@ -65,9 +65,9 @@ class TestWarnings(TestCase):
         variant = 'ENST00000225964.10(COL1A1):c.590delG'
         results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
-        assert 'Removing redundant gene symbol COL1A1 from variant description' in \
+        assert 'VariantSyntaxError: Removing redundant gene symbol COL1A1 from variant description' in \
                results['ENST00000225964.10:c.590del']['validation_warnings'][0]
-        assert 'Removing redundant reference bases from variant description' in \
+        assert 'VariantSyntaxError: Removing redundant reference bases from variant description' in \
                results['ENST00000225964.10:c.590del']['validation_warnings'][1]
 
     def test_issue_216a(self):
@@ -88,7 +88,7 @@ class TestWarnings(TestCase):
         variant = 'ENST00000396884.8:c.1047dupT'
         results = self.vv.validate(variant, 'hg38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
-        assert 'Removing redundant reference bases from variant description' in \
+        assert 'VariantSyntaxError: Removing redundant reference bases from variant description' in \
                results['ENST00000396884.8:c.1047dup']['validation_warnings'][0]
 
     def test_issue_338(self):
@@ -342,7 +342,7 @@ class TestWarnings(TestCase):
         print(results)
         assert results['ENST00000636147.2:c.790+532_1056+1445del'][
                    'validation_warnings'] == [
-            "Removing redundant gene symbol CLN3 from variant description",
+            "VariantSyntaxError: Removing redundant gene symbol CLN3 from variant description",
             "ExonBoundaryError: Position c.791-802 has been updated to position to 790+532 ensuring correct HGVS "
             "numbering for transcript ENST00000636147.2"
         ]

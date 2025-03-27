@@ -1,5 +1,6 @@
 import logging
 import json
+from VariantValidator.modules import lovd_api
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +56,11 @@ class ValOutput(object):
                     identification_key = 'obsolete_record_%s' % validation_obsolete_counter
                 else:
                     validation_warning_counter = validation_warning_counter + 1
+
+                    # Get additional warnings from lovd syntax check
+                    self.lovd_syntax_check(variant)
                     identification_key = 'validation_warning_%s' % validation_warning_counter
+
                 validation_output[identification_key] = variant.output_dict(test=test)
 
             elif variant.output_type_flag == 'mitochondrial':
@@ -107,6 +112,10 @@ class ValOutput(object):
                               'GRCh38_CHR', 'GRCh38_POS', 'GRCh38_ID', 'GRCh38_REF', 'GRCh38_ALT',
                               'Gene_Symbol', 'HGNC_Gene_ID', 'Transcript_description', 'Alt_genomic_loci'])
         for variant in self.output_list:
+
+            # Get additional warnings from lovd syntax check
+            self.lovd_syntax_check(variant)
+
             prot = ''
             if variant.hgvs_predicted_protein_consequence is not None:
                 prot = variant.hgvs_predicted_protein_consequence['tlr']
@@ -146,7 +155,7 @@ class ValOutput(object):
             if variant.rna_data is None:
                 outputstrings.append([
                     variant.original,
-                    '|'.join(variant.process_warnings()),
+                    '|'.join(variant.process_warnings(string_all=True)),
                     select_tx,
                     variant.hgvs_transcript_variant,
                     variant.genome_context_intronic_sequence,
@@ -217,6 +226,42 @@ class ValOutput(object):
         metadata['vvseqrepo_db'] = self.validator.seqrepoVersion
         metadata['vvdb_version'] = self.validator.vvdbVersion
         return metadata
+
+    def lovd_syntax_check(self, variant):
+        # Get additional warnings
+        if variant.lovd_syntax_check is None:
+            variant.lovd_syntax_check = lovd_api.lovd_syntax_check(
+                variant.original.strip(), do_lovd_check=self.validator.lovd_syntax_check)
+        else:
+            pass
+        if "lovd_api_error" not in variant.lovd_syntax_check.keys():
+            lovd_messages = {}
+            lovd_corrections = {}
+            try:
+                for key, val in variant.lovd_syntax_check["data"][0]["warnings"].items():
+                    variant.warnings.append(f"LovdSyntaxcheckWarning: {val}")
+                    lovd_messages [key] = val
+            except AttributeError:
+                pass
+
+            try:
+                for key, val in variant.lovd_syntax_check["data"][0]["errors"].items():
+                    variant.warnings.append(f"LovdSyntaxcheckError: {val}")
+                    lovd_messages[key] = val
+            except AttributeError:
+                pass
+
+            for key, val in variant.lovd_syntax_check['data'][0]['corrected_values'].items():
+                lovd_syntax_suggestions = f"LovdSyntaxcheckSuggestions: [{key}, {round(val, 2)}]"
+                variant.warnings.append(lovd_syntax_suggestions)
+                lovd_corrections[key] = val
+
+            variant.warnings.append(f"LovdSyntaxcheckSource: {variant.lovd_syntax_check['url']}")
+            lovd_messages["ISOURCE"] = variant.lovd_syntax_check['url']
+            variant.warnings.append(f"LovdSyntaxcheckLibraryVersion: {variant.lovd_syntax_check['version']}")
+            lovd_messages["LIBRARYVERSION"] = variant.lovd_syntax_check['version']
+            variant.lovd_messages = lovd_messages
+            variant.lovd_corrections = lovd_corrections
 
 # <LICENSE>
 # Copyright (C) 2016-2025 VariantValidator Contributors
