@@ -62,6 +62,7 @@ Hint: your new environment vvenv should still be activated from the previous ste
 To install VariantValidator within your virtual environment run:
 ```
 $ pip install .
+$ python -m VariantValidator.bin.setup_lovd_syntax_checker
 ```
 
 ## Setting up validator database (MySQL)
