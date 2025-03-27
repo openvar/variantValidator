@@ -58,9 +58,9 @@ class TestWarnings(TestCase):
         variant = 'NM_000088.3(COL1A1):c.590delG'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert 'Removing redundant gene symbol COL1A1 from variant description' in \
+        assert 'VariantSyntaxError: Removing redundant gene symbol COL1A1 from variant description' in \
                results['NM_000088.3:c.590del']['validation_warnings'][0]
-        assert 'Removing redundant reference bases from variant description' in \
+        assert 'VariantSyntaxError: Removing redundant reference bases from variant description' in \
                results['NM_000088.3:c.590del']['validation_warnings'][1]
 
     def test_issue_216a(self):
@@ -81,7 +81,7 @@ class TestWarnings(TestCase):
         variant = 'NM_006941.3:c.1047dupT'
         results = self.vv.validate(variant, 'hg19', 'all').format_as_dict(test=True)
         print(results)
-        assert 'Removing redundant reference bases from variant description' in \
+        assert 'VariantSyntaxError: Removing redundant reference bases from variant description' in \
                results['NM_006941.3:c.1047dup']['validation_warnings'][0]
 
     def test_issue_338(self):
@@ -458,9 +458,11 @@ class TestWarnings(TestCase):
 
         print(results)
         assert results['NM_000086.2:c.790+532_1056+1445del'][
-                   'validation_warnings'] == ['Removing redundant gene symbol CLN3 from variant description',
-                                              'ExonBoundaryError: Position c.791-802 has been updated to position to '
-                                              '790+532 ensuring correct HGVS numbering for transcript NM_000086.2']
+                   'validation_warnings'] == [
+            "VariantSyntaxError: Removing redundant gene symbol CLN3 from variant description",
+            "ExonBoundaryError: Position c.791-802 has been updated to position to 790+532 "
+            "ensuring correct HGVS numbering for transcript NM_000086.2"
+        ]
 
     def test_invalid_aa(self):
         variant = 'NP_000483.3:p.Z1335P'
@@ -1299,6 +1301,16 @@ class TestVVGapWarnings(TestCase):
         print(results)
         assert ("AlleleVariantError: NC_000002.11:g.insG is not a valid HGVS variant description. Please submit individually for additional guidance") in \
                results['validation_warning_1']['validation_warnings']
+
+    def test_multi_issues(self):
+        variant = 'NM_005159.5 (ACTC1): c.809-58_809-13delinsTG[14]'
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert results['NM_005159.5:c.809-30_809-13del']['validation_warnings'] == [
+            "VariantSyntaxError: Whitespace removed from variant description NM_005159.5(ACTC1):c.809-58_809-13delinsTG[14]",
+            "NM_005159.5(ACTC1):c.809-58_809-13delinsTG[14] may also be written as NM_005159.5(ACTC1):c.809-58_809-13delinsTGTGTGTGTGTGTGTGTGTGTGTGTGTG",
+            "VariantSyntaxError: Removing redundant gene symbol ACTC1 from variant description"
+        ]
 
 
 

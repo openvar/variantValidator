@@ -12,6 +12,7 @@ class TestValOutput(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.vv = VariantValidator.Validator()
+        cls.vv.lovd_syntax_check = False
 
     def test_creation_empty(self):
         obj = ValOutput([], self.vv)
