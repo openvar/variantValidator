@@ -2389,7 +2389,10 @@ class Mixin(vvMixinInit.Mixin):
         rsg_data_set = []
 
         # Recover table from MySql
-        all_info = self.db.get_g_to_g_info()
+        all_info = self.db.get_g_to_g_info(
+                gen_id=chr_ac,
+                start=chr_start_pos,
+                end=chr_end_pos)
         for line in all_info:
             # Logic to identify the correct RefSeqGene
             rsg_data = {}
@@ -2524,7 +2527,7 @@ class Mixin(vvMixinInit.Mixin):
         chr_data_set = []
 
         # Recover table from MySql
-        all_info = self.db.get_g_to_g_info()
+        all_info = self.db.get_g_to_g_info(rsg_id=rsg_ac)
 
         for line in all_info:
             # Logic to identify the correct RefSeqGene
