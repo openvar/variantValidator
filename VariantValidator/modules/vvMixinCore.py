@@ -428,6 +428,12 @@ class Mixin(vvMixinConverters.Mixin):
                                                                              "pos": None,
                                                                              "ref": None,
                                                                              "alt": None},}}
+                    if type(my_variant.quibble) is str:
+                        lovd_response = lovd_api.lovd_syntax_check(my_variant.original.strip(),
+                                                                   do_lovd_check=self.lovd_syntax_check)
+                        if "lovd_api_error" not in lovd_response.keys():
+                            my_variant.output_type_flag = 'warning'
+                            my_variant.lovd_syntax_check = lovd_response
                     if toskip:
                         continue
 
@@ -680,7 +686,7 @@ class Mixin(vvMixinConverters.Mixin):
                         my_variant.warnings.append(error)
                         exc_type, exc_value, last_traceback = sys.exc_info()
                         logger.error(str(exc_type) + " " + str(exc_value))
-                        raise # Note, John, would this be better as a continue. Would stop batch jobs falling over
+                        raise
 
             # Outside the for loop
             ######################
@@ -689,7 +695,10 @@ class Mixin(vvMixinConverters.Mixin):
             by_order = sorted(self.batch_list, key=lambda x: x.order)
 
             for variant in by_order:
-                logger.debug("Formatting variant " + variant.quibble.format({'p_3_letter':False}))
+                if type(variant.quibble) is str:
+                    logger.debug(f"Formatting variant {variant.quibble}")
+                else:
+                    logger.debug("Formatting variant " + variant.quibble.format({'p_3_letter':False}))
                 if not variant.write:
                     continue
 

@@ -100,9 +100,14 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
             # try again if corrected
             try:
                 toskip = final_hgvs_convert(variant, validator)
-            except:
+            except vvhgvs.exceptions.HGVSParseError as err:
+                variant.warnings.append("HgvsSyntaxError: " + str(err))
                 return True
-        # fail if un-corrected errors persist
+            except vvhgvs.exceptions.HGVSError as err:
+                variant.warnings.append(f"HgvsParserError: Unknown error during"
+                                        "reading of variant {variant.quibble}")
+                return True
+        # fail if un-corrected errors persist (warning should already have been generated)
         if toskip:
             return True
 
@@ -132,11 +137,17 @@ def final_hgvs_convert(variant,validator):
         posedit = validator.hp.parse_p_posedit(posedit)
     elif var_type == 'r':
         if 'T' in posedit:
-            e = 'The IUPAC RNA alphabet dictates that RNA variants must use '\
+            e = 'The IUPAC RNA alphabet dictates that RNA variants must use '+\
                     'the character u in place of t'
             variant.warnings.append(e)
             return True
         posedit = validator.hp.parse_r_posedit(posedit)
+    else:
+        e = "VariantSyntaxError: The detected variant sequence type of "+\
+                f"{var_type} ' was not one of the allowed HGVS type "+\
+                "characters of c, g, m, n, p, or r"
+        variant.warnings.append(e)
+        return True
 
     variant.quibble = vvhgvs.sequencevariant.SequenceVariant(
             ac = seq_ac,
