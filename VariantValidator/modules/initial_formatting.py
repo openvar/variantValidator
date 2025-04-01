@@ -37,6 +37,8 @@ def initial_user_formattng(my_variant, validator):
     In this section of the code we are compiling HGVS errors and providing improved warnings/error
     messages
     """
+
+    # Remove gene symbols that are in parentheses
     remove_gene_symbol_from_ref(my_variant, validator)
 
     if re.search('del[GATC]+', my_variant.original) or re.search('inv[GATC]+', my_variant.original) \
@@ -52,7 +54,6 @@ def initial_user_formattng(my_variant, validator):
     # Basically, all reference sequences must be upper case, so we make an upper-case query accession
     # to test the input accession against and try to spot a discrepancy
     # The exception to the rule is LTG transcripts e.g. LRG_1t1 which we handle immediately below!
-    upper_case_accession = my_variant.quibble.ac.upper()
     original_ac, _sep, _remain = my_variant.original.partition(':')
     uc_original_ac = original_ac.upper()
     if uc_original_ac[:3] == "LRG":

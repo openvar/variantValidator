@@ -237,9 +237,18 @@ class Mixin(vvMixinConverters.Mixin):
                     logger.info("Started validation of %s (originally %s)", str(my_variant.quibble),
                                 my_variant.original)
 
+                    # Find brackets and other at the beginning of the descriptions
+                    if my_variant.non_alphanum_start():
+                        my_variant.warnings.append(
+                            "VariantSyntaxError: Variant descriptions must begin with a reference sequence "
+                            "identifier or a chromosome number. Refer to "
+                            "the examples provided at https://variantvalidator.org/service/validate/")
+                        continue
+
                     if not my_variant.is_ascii():
                         chars, positions = my_variant.get_non_ascii()
-                        error = 'Submitted variant description contains an invalid character(s) %s at position(s) %s: '\
+                        error = 'VariantSyntaxError: Submitted ' \
+                                'variant description contains an invalid character(s) %s at position(s) %s: ' \
                                 'Please remove this character and re-submit: A useful search function for ' \
                                 'Unicode characters can be found at https://unicode-search.net/' % (chars, positions)
                         my_variant.warnings.append(error)

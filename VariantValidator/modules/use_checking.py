@@ -33,9 +33,16 @@ def pre_parsing_global_common_mistakes(my_variant):
             "actual variation?"
         my_variant.warnings.append(warning)
         return True
+    elif re.match(r'^[A-Za-z]+$', my_variant.quibble):
+        warning = "InvalidVariantError: VariantValidator operates on variant descriptions, but " + \
+                  f'this variant "{my_variant.quibble}" only contains alphabetical characters ' + \
+                  "so can not be analysed. Did you enter this" + \
+                  " incorrectly, for example entering a gene symbol without specifying the " + \
+                  "actual variation? If so, try our gene2transcript tool"
+        my_variant.warnings.append(warning)
+        return True
 
     # Find concatenated descriptions
-
     concat_descriptions = ["p\\.", "c\\.", "r\\.", "g\\.", "n\\."]  # Escape dots for regex
     pattern = f"({'|'.join(concat_descriptions)})"
 
@@ -109,6 +116,17 @@ def pre_parsing_global_common_mistakes(my_variant):
             my_variant.warnings.append(error)
             logger.warning(error)
             return True
+
+        elif ((re.search(r"\(ENST\d+\.\d+\):", my_variant.quibble) or
+              re.search(r"\(N[MRCG]_\d+\.\d+\):", my_variant.quibble) or
+              re.search(r"\(LRG_\d+t\d+\):", my_variant.quibble)) and not
+              re.match("NC_", my_variant.quibble)):
+              reference_region, variation = my_variant.quibble.split(":")
+              reference = reference_region.split("(")[1].replace(")", "")
+              new_quibble = f"{reference}:{variation}"
+              my_variant.warnings.append(f"VariantSyntaxError: Stripping unnecessary characters "
+                                         f"from {my_variant.quibble} and updating to {new_quibble}")
+              my_variant.quibble = new_quibble
 
         else:
             error = 'Variant description ' + my_variant.quibble + ' is not in an accepted format'

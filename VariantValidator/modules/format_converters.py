@@ -239,7 +239,6 @@ def vcf2hgvs_stage2(variant, validator):
     The LRG ID data ia stored in the VariantValidator MySQL database.
     The reference sequence type is also assigned.
     """
-
     skipvar = False
     if (re.search(r'\w+:', variant.quibble) or re.search(r'\w+\(\w+\):', variant.quibble)) and not \
             (re.search(r'\w+:[gcnmrpoGCNMRPO]\.', variant.quibble) or re.search(r'\w+\(\w+\):[gcnmrpoGCNMRPO]\.',
@@ -338,7 +337,6 @@ def vcf2hgvs_stage2(variant, validator):
 
     # Ambiguous chr reference
     logger.debug("Completed VCF-HVGS step 2 for %s", variant.quibble)
-
     return skipvar
 
 
@@ -352,6 +350,7 @@ def vcf2hgvs_stage3(variant, validator):
     if (re.search(r'\w+:[gcnmrpGCMNRP]\.', variant.quibble) or re.search(r'\w+\(\w+\):[gcnmrpGCMNRP]\.',
                                                                          variant.quibble)) \
             and not re.match(r'N[CGTWMRP]_', variant.quibble):
+
         # Take out lowercase Accession characters
         lower_cased_list = variant.quibble.split(':')
         if re.search('LRG', lower_cased_list[0], re.IGNORECASE):
@@ -430,8 +429,24 @@ def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version):
                 if validator.select_transcripts != 'all' and validator.select_transcripts != 'raw':
                     variant.write = False
                     for transcript in list(select_transcripts_dict_plus_version.keys()):
-                        variant.warnings = ['HGVS variant nomenclature does not allow the use of a gene symbol (' +
-                                            query_a_symbol + ') in place of a valid reference sequence']
+                        if transcript == "mane":
+                            for tx in select_from_these_transcripts.split('|'):
+                                annotation = validator.db.get_transcript_annotation(tx)
+                                if '"mane_select": true' in annotation or '"mane_plus_clinical": true' in annotation:
+                                    transcript = tx
+                                else:
+                                    continue
+                        elif transcript == "mane_select":
+                            for tx in select_from_these_transcripts.split('|'):
+                                annotation = validator.db.get_transcript_annotation(tx)
+                                if '"mane_select": true' in annotation:
+                                    transcript = tx
+                                else:
+                                    continue
+
+                        variant.warnings.append('InvalidReferenceError: HGVS variant nomenclature does not '
+                                                'allow the use of a gene symbol (' +
+                                            query_a_symbol + ') in place of a valid reference sequence')
                         refreshed_description = transcript + ':' + tx_edit
                         query = Variant(variant.original, quibble=refreshed_description,
                                         warnings=variant.warnings, primary_assembly=variant.primary_assembly,
@@ -441,7 +456,8 @@ def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version):
                                     query_a_symbol + ') in place of a valid reference sequence')
                         logger.info("Submitting new variant with format %s", refreshed_description)
                 else:
-                    variant.warnings.append('HGVS variant nomenclature does not allow the use of a gene symbol ('
+                    variant.warnings.append('InvalidReferenceError: HGVS variant nomenclature does not allow '
+                                            'the use of a gene symbol ('
                                             + query_a_symbol + ') in place of a valid reference sequence: Re-submit ' +
                                             str(variant.quibble) + ' and specify transcripts from the following: ' +
                                             'select_transcripts=' + select_from_these_transcripts)

@@ -127,6 +127,17 @@ class Variant(object):
         if self.quibble.endswith('"') or self.quibble.endswith("'"):
             self.quibble = self.quibble[:-1]
 
+    def non_alphanum_start(self):
+        if not re.search('^\w', self.original):
+            self.remove_whitespace()
+            self.remove_quotes()
+            if not re.search('^\w', self.quibble):
+                return True
+            else:
+                return False
+        else:
+            return False
+
     def format_quibble(self):
         """
         Removes whitespace from the ends of the string
@@ -288,6 +299,14 @@ class Variant(object):
         if re.search(":{1,}:[cgpnr]\.", self.quibble):
             self.warnings.append("VariantSyntaxError: Multiple colons found in variant description")
             self.quibble = re.sub(":{1,}:", ":", self.quibble)
+        # Missing Colon
+        if re.search("[gcrnpmo]\.", self.quibble) and not re.search(":[gcrnpmo]\.", self.quibble):
+            error = 'VariantSyntaxError: Unable to identify a colon (:) in the variant description %s. A colon is required in HGVS variant ' \
+            'descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. ' \
+            'e.g. :c.' % self.quibble
+            self.warnings.append(error)
+            self.quibble = re.sub(r'([gcrnpmo])\.', r':\1.', self.quibble)
+
 
 
 # <LICENSE>

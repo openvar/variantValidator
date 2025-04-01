@@ -105,7 +105,7 @@ class TestWarnings(TestCase):
         results = self.vv.validate(variant, 'GRCh38', 'NM_000256.3', liftover_level='primary').format_as_dict(test=True)
         print(results)
         assert results['validation_warning_1']['validation_warnings'] == [
-            "HGVS variant nomenclature does not allow the use of a gene symbol (MYBPC3) in place of a valid reference sequence",
+            "InvalidReferenceError: HGVS variant nomenclature does not allow the use of a gene symbol (MYBPC3) in place of a valid reference sequence",
             "Edit type Ins should be in the lower case, i.e. ins",
             "Insertion length must be 1 e.g. 2373_2374insG"
         ]
@@ -115,7 +115,7 @@ class TestWarnings(TestCase):
         results = self.vv.validate(variant, 'GRCh38', 'NM_000088.4', liftover_level='primary').format_as_dict(test=True)
         print(results)
         assert results['validation_warning_1']['validation_warnings'] == [
-            "HGVS variant nomenclature does not allow the use of a gene symbol (COL1A1) in place of a valid reference sequence",
+            "InvalidReferenceError: HGVS variant nomenclature does not allow the use of a gene symbol (COL1A1) in place of a valid reference sequence",
             "Edit type Ins should be in the lower case, i.e. ins",
             "Insertion length must be 1 e.g. 589-2_589-1insG"
         ]
@@ -125,7 +125,7 @@ class TestWarnings(TestCase):
         results = self.vv.validate(variant, 'GRCh38', 'NM_000088.4', liftover_level='primary').format_as_dict(test=True)
         print(results)
         assert results['validation_warning_1']['validation_warnings'] == [
-            "HGVS variant nomenclature does not allow the use of a gene symbol (COL1A1) in place of a valid reference sequence",
+            "InvalidReferenceError: HGVS variant nomenclature does not allow the use of a gene symbol (COL1A1) in place of a valid reference sequence",
             "Edit type Ins should be in the lower case, i.e. ins",
             "Insertion length must be 1 e.g. 642+1_642+2insG"
         ]
@@ -1310,6 +1310,52 @@ class TestVVGapWarnings(TestCase):
             "VariantSyntaxError: Whitespace removed from variant description NM_005159.5(ACTC1):c.809-58_809-13delinsTG[14]",
             "NM_005159.5(ACTC1):c.809-58_809-13delinsTG[14] may also be written as NM_005159.5(ACTC1):c.809-58_809-13delinsTGTGTGTGTGTGTGTGTGTGTGTGTGTG",
             "VariantSyntaxError: Removing redundant gene symbol ACTC1 from variant description"
+        ]
+
+    def text_invalid_start_character(self):
+        variant = '{NC_000001.11:g.(156113719_156137753)del,1]'
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert results['validation_warning_1']['validation_warnings'] == [
+            "VariantSyntaxError: Variant descriptions must begin with a reference sequence identifier "
+            "or a chromosome number. Refer to the examples provided at https://variantvalidator.org/service/validate/"
+        ]
+
+    def replace_colon_gene_symbol_and_tx(self):
+        variant = 'ZIC2c.1434_1456dup'
+        results = self.vv.validate(variant, 'GRCh38', 'mane', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert results['NM_007129.5:c.1434_1456dup']['validation_warnings'] == [
+            "VariantSyntaxError: Unable to identify a colon (:) in the variant description ZIC2c.1434_1456dup. A colon is required in HGVS variant descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. e.g. :c.",
+            "InvalidReferenceError: HGVS variant nomenclature does not allow the use of a gene symbol (ZIC2) in place of a valid reference sequence",
+            "This not a valid HGVS description, due to characters being in the wrong case. Please check the use of upper- and lowercase characters.",
+            "The current status of LRG_1157 is pending therefore changes may be made to the LRG reference sequence"
+        ]
+        results = self.vv.validate(variant, 'GRCh38', 'mane_select', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert results['NM_007129.5:c.1434_1456dup']['validation_warnings'] == [
+            "VariantSyntaxError: Unable to identify a colon (:) in the variant description ZIC2c.1434_1456dup. A colon is required in HGVS variant descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. e.g. :c.",
+            "InvalidReferenceError: HGVS variant nomenclature does not allow the use of a gene symbol (ZIC2) in place of a valid reference sequence",
+            "This not a valid HGVS description, due to characters being in the wrong case. Please check the use of upper- and lowercase characters.",
+            "The current status of LRG_1157 is pending therefore changes may be made to the LRG reference sequence"
+        ]
+
+    def text_only(self):
+        variant = 'NF1'
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert results['validation_warning_1']['validation_warnings'] == [
+            "InvalidVariantError: VariantValidator operates on variant descriptions, but this variant \"NF1\" only contains alphabetical characters so can not be analysed. Did you enter this incorrectly, for example entering a gene symbol without specifying the actual variation? If so, try our gene2transcript tool"
+        ]
+
+    def ref_in_parentheses(self):
+        variant = 'WT1(ENST00000332351.3):c.1098+1G>A'
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert results['ENST00000332351.3:c.1098+1G>A']['validation_warnings'] == [
+            "VariantSyntaxError: Stripping unnecessary characters from WT1(ENST00000332351.3):c.1098+1G>A and updating to ENST00000332351.3:c.1098+1G>A",
+            "ENST00000332351.3:c.1098+1G>A is not part of genome build GRCh38",
+            "ENST00000332351.3:c.1098+1G>A cannot be mapped directly to genome build GRCh38, did you mean GRCh37?"
         ]
 
 
