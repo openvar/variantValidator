@@ -1377,6 +1377,15 @@ class TestVVGapWarnings(TestCase):
             "RepeatSyntaxError: Please ensure the repeated sequence includes only Aa, Cc, Tt, Gg, Uu or a valid IUPAC nucleotide code from https://genome.ucsc.edu/goldenPath/help/iupac.html"
         ]
 
+    def test_issue_epic_fail(self):
+        variant = 'KMT2C (T4413)'
+        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert results['validation_warning_1']['validation_warnings'] ==  [
+            "VariantSyntaxError: Whitespace removed from variant description KMT2C(T4413)",
+            "InvalidVariantError: Variant description KMT2C(T4413) is not in an accepted format",
+            "InvalidVariantError: Variant description KMT2C(T4413) could not be validated by either VariantValidator or the LOVD syntax checker. PLease refer to the HGVS nomenclature website at https://hgvs-nomenclature.org/stable/. For additional assistance contact us at https://variantvalidator.org/help/contact/"
+        ]
 
 # <LICENSE>
 # Copyright (C) 2016-2025 VariantValidator Contributors
