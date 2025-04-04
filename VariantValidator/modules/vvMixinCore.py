@@ -690,12 +690,14 @@ class Mixin(vvMixinConverters.Mixin):
                         my_variant.lovd_syntax_check = lovd_response
                         continue
                     else:
-                        my_variant.output_type_flag = 'error'
-                        error = 'Validation error'
+                        my_variant.output_type_flag = 'warning'
+                        error = (f"Variant description {my_variant.quibble} could not be validated by either "
+                                 f"VariantValidator or the LOVD syntax checker. PLease refer to the HGVS nomenclature "
+                                 f"website at https://hgvs-nomenclature.org/stable/")
                         my_variant.warnings.append(error)
                         exc_type, exc_value, last_traceback = sys.exc_info()
                         logger.error(str(exc_type) + " " + str(exc_value))
-                        raise
+                        continue
 
             # Outside the for loop
             ######################

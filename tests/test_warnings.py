@@ -768,12 +768,11 @@ class TestWarnings(TestCase):
         # Test new more specific warning for numeric input, this could be a truncated VCF derived
         # format, or a ClinVar Variation ID, or some other miscellaneous numeric flavored typo/
         # miss-paste, but either way contains nothing not numeric or numeric like punctuation.
-        warning = "InvalidVariantError: VariantValidator operates on variant descriptions, but " +\
-            'this variant "{variant.quibble}" only contains numeric characters (and possibly ' +\
-            "numeric associated punctuation), so can not be analysed. Did you enter this " +\
-            "incorrectly, for example entering the numeric ID of a variant, instead of it`s " +\
-            "description, or else enter just a within-sequence location, without specifying " +\
-            "the actual variation?"
+        warning = "InvalidVariantError: VariantValidator operates on variant descriptions, but " + \
+                  'this variant "{variant.quibble}" only contains numeric characters (and ' + \
+                  "possibly numeric associated punctuation), so can not be analysed. Did you enter this" + \
+                  " incorrectly, for example entering a gene ID without specifying the " + \
+                  "actual variation? If so, try our genes to transcripts tool https://variantvalidator.org/service/gene2trans/"
 
         variant = '1-111425'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
@@ -1312,7 +1311,7 @@ class TestVVGapWarnings(TestCase):
             "VariantSyntaxError: Removing redundant gene symbol ACTC1 from variant description"
         ]
 
-    def text_invalid_start_character(self):
+    def test_invalid_start_character(self):
         variant = '{NC_000001.11:g.(156113719_156137753)del,1]'
         results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="refseq").format_as_dict(test=True)
         print(results)
@@ -1321,7 +1320,7 @@ class TestVVGapWarnings(TestCase):
             "or a chromosome number. Refer to the examples provided at https://variantvalidator.org/service/validate/"
         ]
 
-    def replace_colon_gene_symbol_and_tx(self):
+    def test_replace_colon_gene_symbol_and_tx(self):
         variant = 'ZIC2c.1434_1456dup'
         results = self.vv.validate(variant, 'GRCh38', 'mane', transcript_set="refseq").format_as_dict(test=True)
         print(results)
@@ -1340,17 +1339,17 @@ class TestVVGapWarnings(TestCase):
             "The current status of LRG_1157 is pending therefore changes may be made to the LRG reference sequence"
         ]
 
-    def text_only(self):
-        variant = 'NF1'
+    def test_text_only(self):
+        variant = 'PLIN4'
         results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="refseq").format_as_dict(test=True)
         print(results)
         assert results['validation_warning_1']['validation_warnings'] == [
-            "InvalidVariantError: VariantValidator operates on variant descriptions, but this variant \"NF1\" only contains alphabetical characters so can not be analysed. Did you enter this incorrectly, for example entering a gene symbol without specifying the actual variation? If so, try our gene2transcript tool"
+            "InvalidVariantError: VariantValidator operates on variant descriptions, but this variant \"PLIN4\" only contains alphanumeric characters so can not be analysed. Did you enter this incorrectly, for example entering a gene symbol without specifying the actual variation? If so, try our genes to transcripts tool https://variantvalidator.org/service/gene2trans/"
         ]
 
-    def ref_in_parentheses(self):
+    def test_ref_in_parentheses(self):
         variant = 'WT1(ENST00000332351.3):c.1098+1G>A'
-        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="refseq").format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
         assert results['ENST00000332351.3:c.1098+1G>A']['validation_warnings'] == [
             "VariantSyntaxError: Stripping unnecessary characters from WT1(ENST00000332351.3):c.1098+1G>A and updating to ENST00000332351.3:c.1098+1G>A",
@@ -1358,6 +1357,25 @@ class TestVVGapWarnings(TestCase):
             "ENST00000332351.3:c.1098+1G>A cannot be mapped directly to genome build GRCh38, did you mean GRCh37?"
         ]
 
+    def test_issue_698a(self):
+        variant = 'NM_002024.5:c.-128_-69GGC[108]'
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert "ExpandedRepeatWarning: NM_002024.5:c.-128_-102GGC[108] should only be used as an annotation for the core HGVS descriptions provided" in results['NM_002024.5:c.-100_-99insCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGG']['validation_warnings']
+
+    def test_issue_698b(self):
+        variant = 'NM_002024.5:c.-128_-69GGM[108]'
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert "ExpandedRepeatWarning: NM_002024.5:c.-128_-69GGM[108] should only be used as an annotation for the core HGVS descriptions provided" in results['NM_002024.5:c.-126_-69delinsMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGM']['validation_warnings']
+
+    def test_issue_698c(self):
+        variant = 'NM_002024.5:c.-128_-69GGI[108]'
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert results['validation_warning_1']['validation_warnings'] ==  [
+            "RepeatSyntaxError: Please ensure the repeated sequence includes only Aa, Cc, Tt, Gg, Uu or a valid IUPAC nucleotide code from https://genome.ucsc.edu/goldenPath/help/iupac.html"
+        ]
 
 
 # <LICENSE>

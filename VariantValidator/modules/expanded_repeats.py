@@ -87,6 +87,25 @@ class TandemRepeats:
         self.no_norm_evm = False
         self.genomic_conversion = None
         self.original_position = None
+        # Define the wobble bases map with proper regex
+        self._wobble_bases_map = {
+            'A': r'A',       # Adenine
+            'C': r'C',       # Cytosine
+            'G': r'G',       # Guanine
+            'T': r'T',       # Thymine
+            'U': r'U',       # Uracil (in RNA)
+            'R': r'[AG]',    # A or G (puRine)
+            'Y': r'[CT]',    # C or T (pYrimidine)
+            'S': r'[GC]',    # G or C (Strong interaction)
+            'W': r'[AT]',    # A or T (Weak interaction)
+            'K': r'[GT]',    # G or T (Keto)
+            'M': r'[AC]',    # A or C (aMino)
+            'B': r'[CGT]',   # C or G or T (not A)
+            'D': r'[AGT]',   # A or G or T (not C)
+            'H': r'[ACT]',   # A or C or T (not G)
+            'V': r'[ACG]',   # A or C or G (not T)
+            'N': r'[ACGT]',  # Any base (A or C or G or T)
+        }
 
     @classmethod
     def parse_repeat_variant(cls, variant_str, build, select_transcripts, validator):
@@ -150,11 +169,18 @@ class TandemRepeats:
             prefix = prefix.lower()
             # Get position/span by extracting the bit between '.' and [ e.g. 1ACT
             pos_and_seq, _sep, post_bracket  = pos_edit.partition("[")
-            rep_seq = re.search("[AaCcTtGgUu]+", pos_and_seq)
+            rep_seq = re.search("[AaCcTtGgUuMmNnRrYyKkSsWwHhBbVvDd]+", pos_and_seq)
             if not rep_seq:
                 raise RepeatSyntaxError(
                     "RepeatSyntaxError: Ensure that the repeated sequence is included between "
                     "the variant position and the number of repeat units, e.g. g.1_3ACT[20]")
+            for char in pos_and_seq:
+                if char.isalpha():
+                    if char not in "AaCcTtGgUuMmNnRrYyKkSsWwHhBbVvDd":
+                        raise RepeatSyntaxError(
+                            "RepeatSyntaxError: Please ensure the repeated sequence"
+                            " includes only Aa, Cc, Tt, Gg, Uu or a valid IUPAC nucleotide code from "
+                            "https://genome.ucsc.edu/goldenPath/help/iupac.html")
             repeat_sequence = rep_seq.group()
             variant_position = pos_and_seq[:rep_seq.start()]
 
@@ -256,13 +282,19 @@ class TandemRepeats:
         repeated_str = self.repeat_sequence * (len(reference_repeat_sequence)
                                                // len(self.repeat_sequence))
 
-        if repeated_str != reference_repeat_sequence:
+        # Do not replace this regex for a stored version. Critical
+        regex = self.build_regex(repeated_str)
+        match = regex.search(reference_repeat_sequence)
+        try:
+            match.group()
+            return
+        except AttributeError:
+            if repeated_str == "":
+                return
             raise RepeatSyntaxError(
                 f"RepeatSyntaxError: The repeat sequence does not match the reference sequence at "
                 f"the given position {self.variant_position}, expected {repeated_str} but the "
                 f"reference is {reference_repeat_sequence} at the specified position")
-
-        return
 
     def get_range_from_single_or_start_pos(self, validator):
         """
@@ -346,13 +378,27 @@ class TandemRepeats:
                     # Check the exon boundaries
                     self.check_exon_boundaries(validator)
                     seq_check = self.evm.g_to_t(intronic_genomic_variant, self.reference)
+                    regex = self.build_regex(self.repeat_sequence)
 
-                    if seq_check.posedit.edit.ref != self.repeat_sequence * int(self.copy_number):
+                    # Check for occurrences of the repeat sequence using regex
+                    matches = list(regex.finditer(seq_check.posedit.edit.ref))
+                    repeat_count = len(matches)
+                    if matches[0].start() != 0:
+                        # Create a new string by repeating query_str enough times
+                        repeated_str = self.repeat_sequence * (len(seq_check.posedit.edit.ref)
+                                                               // len(self.repeat_sequence))
+
                         raise RepeatSyntaxError(
-                            f"RepeatSyntaxError: The repeat sequence does not match the reference "
-                            f"sequence at the given position {self.variant_position}, "
-                            f"expected {self.repeat_sequence * int(self.copy_number)} but the "
+                            f"RepeatSyntaxError: The repeat sequence does not match the reference sequence at "
+                            f"the given position {self.variant_position}, expected {repeated_str} but the "
                             f"reference is {seq_check.posedit.edit.ref} at the specified position")
+                    elif repeat_count != int(self.copy_number):
+                        raise RepeatSyntaxError(
+                            f"RepeatSyntaxError: The repeat sequence does not match the expected copy number "
+                            f"at position {self.variant_position}. Expected {int(self.copy_number)} occurrences "
+                            f"of '{self.repeat_sequence}', but found {repeat_count} in reference sequence "
+                            f"'{seq_check.posedit.edit.ref}'.")
+
                     start, _sep, end =  self.variant_position.partition('_')
                     self.g_strand = validator.hdp.get_tx_exons(self.reference, intronic_genomic_variant.ac,
                                                                validator.alt_aln_method)[0][3]
@@ -422,6 +468,11 @@ class TandemRepeats:
             self.genomic_conversion.posedit.pos.end.base = ref_end_position
         return full_range
 
+    def build_regex(self, sequence):
+        """Convert an IUPAC-coded sequence into a regex pattern."""
+        regex_pattern = "".join(self._wobble_bases_map.get(base, base) for base in sequence)
+        return re.compile(regex_pattern)
+
     def check_reference_sequence(self, validator, within_ref_pos):
         """
         Check that the current within_ref_pos is a valid start for the given repeat.
@@ -433,15 +484,19 @@ class TandemRepeats:
         if self.intronic_g_reference:
             ref = self.intronic_g_reference
         requested_sequence = validator.sf.fetch_seq(ref, start, end)
-        if requested_sequence != self.repeat_sequence:
+
+        # Critical, do not use cached regex
+        regex = self.build_regex(self.repeat_sequence)
+        match = regex.search(requested_sequence)
+        try:
+            match.group()
+            return
+        except AttributeError:
             raise RepeatSyntaxError(
                 f"RepeatSyntaxError: The provided repeat sequence {self.repeat_sequence } does not "
                 f"match the reference sequence {requested_sequence} at the given position "
                 f"{within_ref_pos+1}_{within_ref_pos + len(self.repeat_sequence)} of "
                 f"reference sequence {ref}")
-
-        else:
-            return
 
     def get_reference_range(self, validator, within_ref_pos):
         """
@@ -470,7 +525,12 @@ class TandemRepeats:
             requested_sequence = validator.sf.fetch_seq(
                 ref, current_position,
                 current_position + len(self.repeat_sequence))
-            if requested_sequence != self.repeat_sequence:
+            regex = self.build_regex(self.repeat_sequence)
+            match = regex.search(requested_sequence)
+            try:
+                match.group()
+                continue
+            except AttributeError:
                 start_position = last_position
 
         current_position = None
@@ -482,9 +542,13 @@ class TandemRepeats:
             requested_sequence = validator.sf.fetch_seq(
                 ref, current_position,
                 current_position + len(self.repeat_sequence))
-            if requested_sequence != self.repeat_sequence:
+            regex = self.build_regex(self.repeat_sequence)
+            match = regex.search(requested_sequence)
+            try:
+                match.group()
+                continue
+            except AttributeError:
                 end_position = last_position + len(self.repeat_sequence)
-
         return start_position, end_position
 
     def reformat(self, validator):
@@ -502,11 +566,12 @@ class TandemRepeats:
 
         # Update the repeated sequence to be upper case
         self.repeat_sequence = self.repeat_sequence.upper()
-        # test for non matching chars
-        if re.search("[^ACTGU]", self.repeat_sequence):
+        # test for non-matching chars
+        if re.search("[^ACTGUMRYKSWHBVDN]", self.repeat_sequence):
             raise RepeatSyntaxError(
                 "RepeatSyntaxError: Please ensure the repeated sequence"
-                "includes only Aa, Cc, Tt, Gg, or Uu")
+                " includes only Aa, Cc, Tt, Gg, Uu or a valid IUPAC nucleotide code from "
+                "https://genome.ucsc.edu/goldenPath/help/iupac.html")
 
         if self.after_the_bracket != "":
             raise RepeatSyntaxError(
@@ -527,7 +592,6 @@ class TandemRepeats:
 
         # Add coordinates from start position (need range for intronic fall-back)
         self.variant_position = self.get_range_from_single_or_start_pos(validator)
-
         self.check_positions_given(validator)
         self.variant_position = self.convert_n_to_c_coordinates()
         # Map back to transcript if intronic
@@ -716,6 +780,7 @@ def convert_tandem(variant, validator, build, my_all):
                                "reference": expanded_variant.reference,
                                "prefix": expanded_variant.prefix}
             return expanded_repeat
+
         return True
 
 
