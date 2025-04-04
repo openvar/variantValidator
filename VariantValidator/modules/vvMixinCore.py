@@ -220,6 +220,7 @@ class Mixin(vvMixinConverters.Mixin):
                         if toskip:
                             continue
                         my_variant.hgvs_transcript_variant = my_variant.quibble
+
                     # set output to variant type specific
                     if my_variant.reftype in [':n.',':t.',':c.'] and my_variant.hgvs_transcript_variant != '':
                         my_variant.output_type_flag = 'gene'
@@ -691,9 +692,11 @@ class Mixin(vvMixinConverters.Mixin):
                         continue
                     else:
                         my_variant.output_type_flag = 'warning'
-                        error = (f"Variant description {my_variant.quibble} could not be validated by either "
+                        error = (f"InvalidVariantError: Variant description {my_variant.quibble} could "
+                                 f"not be validated by either "
                                  f"VariantValidator or the LOVD syntax checker. PLease refer to the HGVS nomenclature "
-                                 f"website at https://hgvs-nomenclature.org/stable/")
+                                 f"website at https://hgvs-nomenclature.org/stable/. For additional assistance "
+                                 f"contact us at https://variantvalidator.org/help/contact/")
                         my_variant.warnings.append(error)
                         exc_type, exc_value, last_traceback = sys.exc_info()
                         logger.error(str(exc_type) + " " + str(exc_value))

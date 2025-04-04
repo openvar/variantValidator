@@ -296,7 +296,10 @@ def vcf2hgvs_stage2(variant, validator):
                         position_and_edit = str(position) + ref + '>' + alt
 
                 # Assign reference sequence type
-                ref_type = validator.db.ref_type_assign(accession)
+                if accession in ["NC_012920.1", "NC_001807.4"]:
+                    ref_type = ":m."
+                else:
+                    ref_type = validator.db.ref_type_assign(accession)
 
                 # Sort LRG formatting
                 if re.match('LRG_', accession):
