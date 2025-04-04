@@ -28,17 +28,16 @@ def pre_parsing_global_common_mistakes(my_variant):
         warning = "InvalidVariantError: VariantValidator operates on variant descriptions, but " +\
             f'this variant "{my_variant.quibble}" only contains numeric characters (and ' +\
             "possibly numeric associated punctuation), so can not be analysed. Did you enter this"+\
-            " incorrectly, for example entering the numeric ID of a variant, instead of it`s " +\
-            "description, or else enter just a within-sequence location, without specifying the " +\
-            "actual variation?"
+            " incorrectly, for example entering a gene ID without specifying the " + \
+            "actual variation? If so, try our genes to transcripts tool https://variantvalidator.org/service/gene2trans/"
         my_variant.warnings.append(warning)
         return True
-    elif re.match(r'^[A-Za-z]+$', my_variant.quibble):
+    elif re.match(r'^[\w+]+$', my_variant.quibble):
         warning = "InvalidVariantError: VariantValidator operates on variant descriptions, but " + \
-                  f'this variant "{my_variant.quibble}" only contains alphabetical characters ' + \
+                  f'this variant "{my_variant.quibble}" only contains alphanumeric characters ' + \
                   "so can not be analysed. Did you enter this" + \
                   " incorrectly, for example entering a gene symbol without specifying the " + \
-                  "actual variation? If so, try our gene2transcript tool"
+                  "actual variation? If so, try our genes to transcripts tool https://variantvalidator.org/service/gene2trans/"
         my_variant.warnings.append(warning)
         return True
 
@@ -727,12 +726,6 @@ def structure_checks_c(variant, validator):
         except vvhgvs.exceptions.HGVSInvalidVariantError as e:
             error = str(e)
             if 'base start position must be <= end position' in error:
-                # correction = copy.deepcopy(variant.input_parses)
-                # st = variant.input_parses.posedit.pos.start
-                # ed = variant.input_parses.posedit.pos.end
-                # correction.posedit.pos.start = ed
-                # correction.posedit.pos.end = st
-                # error = error + ': Did you mean ' + str(correction) + '?'
                 error = 'Interval start position ' + str(variant.input_parses.posedit.pos.start) + ' > interval end' \
                         ' position ' + str(variant.input_parses.posedit.pos.end)
                 variant.warnings.append(error)

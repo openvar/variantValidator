@@ -697,8 +697,9 @@ def convert_expanded_repeat(my_variant, validator):
             return False
 
     if my_variant.quibble != my_variant.expanded_repeat["variant"]:
-        my_variant.warnings.append(f"ExpandedRepeatWarning: {my_variant.quibble} updated "
-                                   f"to {my_variant.expanded_repeat['variant']}")
+        my_variant.warnings.append(f"ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly"
+                                   f" in the submitted description {my_variant.quibble}. The corrected description is "
+                                   f"{my_variant.expanded_repeat['variant']}")
     ins_bases = (my_variant.expanded_repeat["repeat_sequence"] *
                  int(my_variant.expanded_repeat["copy_number"]))
     start_pos, _sep, end_pos = my_variant.expanded_repeat['position'].partition('_')
@@ -712,7 +713,7 @@ def convert_expanded_repeat(my_variant, validator):
 
     try:
         repeat_to_delins = my_variant.hn.normalize(repeat_to_delins)
-    except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
+    except vvhgvs.exceptions.HGVSUnsupportedOperationError:
         pass
     my_variant.quibble = repeat_to_delins #fn.valstr(repeat_to_delins)
     my_variant.warnings.append(f"ExpandedRepeatWarning: {my_variant.expanded_repeat['variant']} "
