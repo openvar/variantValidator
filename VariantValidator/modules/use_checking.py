@@ -10,6 +10,10 @@ from . import hgvs_utils
 
 logger = logging.getLogger(__name__)
 
+class InvalidVariantError(Exception):
+    pass
+
+
 def pre_parsing_global_common_mistakes(my_variant):
     """
     A set of common error types that need to be found/handled before parsing variants into objects
@@ -131,7 +135,7 @@ def pre_parsing_global_common_mistakes(my_variant):
             error = 'InvalidVariantError: Variant description ' + my_variant.quibble + ' is not in an accepted format'
             my_variant.warnings.append(error)
             logger.warning(error)
-            raise
+            raise InvalidVariantError(error)
 
     # Here we handle syntax errors in ins and delins variants
     # https://github.com/openvar/variantValidator/issues/359
