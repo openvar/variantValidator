@@ -266,13 +266,13 @@ class TestCVariantsExpanded(TestCase):
         found for transcripts described via LRG IDs, even without the gap being in the LRG
         due to the reference centric nature of our current tooling but is now tested
         later in the LRG section of the tests."""
-        variant = 'NM_002111.8:c.54_110GCA[21]'
+        variant = 'NM_002111.8:c.54GCA[21]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
         assert results["NM_002111.8:c.54_116="]["primary_assembly_loci"]["grch37"][
             "hgvs_genomic_description"] == "NC_000004.11:g.3076657_3076662dup"
         assert results["NM_002111.8:c.54_116="]["validation_warnings"] ==  [
-            "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NM_002111.8:c.54_110GCA[21]. The corrected description is NM_002111.8:c.54_116GCA[21]",
+            "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NM_002111.8:c.54GCA[21]. The corrected description is NM_002111.8:c.54_116GCA[21]",
             "ExpandedRepeatWarning: NM_002111.8:c.54_116GCA[21] should only be used as an annotation for the core HGVS descriptions provided"
         ]
 
@@ -1142,15 +1142,8 @@ class TestExpandedRepeaLocusReferenceGenomic(TestCase):
         variant = 'LRG_199:g.3_6T[20]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["intergenic_variant_1"]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000023.10:g.33362724_33362725insAAAAAAAAAAAAAAAA"
-        assert results["intergenic_variant_1"]['hgvs_refseqgene_variant']\
-            == 'NG_012232.1:g.6_7insTTTTTTTTTTTTTTTT'
-        assert results["intergenic_variant_1"]["validation_warnings"] ==  [
-            "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description LRG_199:g.3_6T[20]. The corrected description is NG_012232.1:g.3_6T[20]",
-            "ExpandedRepeatWarning: NG_012232.1:g.3_6T[20] should only be used as an annotation for the core HGVS descriptions provided",
-            "NG_012232.1:g.6_7insTTTTTTTTTTTTTTTT automapped to genome position NC_000023.10:g.33362724_33362725insAAAAAAAAAAAAAAAA",
-            "No transcripts found that fully overlap the described variation in the genomic sequence"
+        assert results["validation_warning_1"]["validation_warnings"] ==   [
+            "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description LRG_199:g.3_6T[20]. The corrected format would be NG_012232.1:g.3_6T[int], where int requires you to update the number of repeats"
         ]
 
     def test_LRG_genomic_single_position_to_span(self):
@@ -1189,14 +1182,8 @@ class TestExpandedRepeaLocusReferenceGenomic(TestCase):
         variant = 'LRG_199t1:c.-120_-114T[7]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_004006.2:c.-120_-114="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == 'NC_000023.10:g.33229543_33229549='
-        assert results["NM_004006.2:c.-120_-114="]['hgvs_refseqgene_variant']\
-            == 'NG_012232.1:g.133178_133184='
-        assert results["NM_004006.2:c.-120_-114="]["validation_warnings"] ==  [
-            "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description LRG_199t1:c.-120_-114T[7]. The corrected description is NM_004006.2:c.-120_-114T[7]",
-            "ExpandedRepeatWarning: NM_004006.2:c.-120_-114T[7] should only be used as an annotation for the core HGVS descriptions provided",
-            "TranscriptVersionWarning: A more recent version of the selected reference sequence NM_004006.2 is available for genome build GRCh37 (NM_004006.3)"
+        assert results["validation_warning_1"]["validation_warnings"] ==  [
+            "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description LRG_199t1:c.-120_-114T[7]. The corrected format would be NM_004006.2:c.-120_-114T[int], where int requires you to update the number of repeats"
         ]
 
     def test_LRG_mapping_transcript_single_pos(self):
@@ -1252,33 +1239,18 @@ class TestExpandedRepeaLocusReferenceGenomic(TestCase):
         variant = 'LRG_199t1:c.31+9_31+11A[3]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_004006.2:c.31+9_31+11="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000023.10:g.33229388_33229390="
-        assert results["NM_004006.2:c.31+9_31+11="]['genome_context_intronic_sequence']\
-            == 'NC_000023.10(NM_004006.2):c.31+9_31+11='
-        assert results["NM_004006.2:c.31+9_31+11="]['refseqgene_context_intronic_sequence']\
-            == 'NG_012232.1(NM_004006.2):c.31+9_31+11='
-        assert results["NM_004006.2:c.31+9_31+11="]['hgvs_lrg_transcript_variant']\
-            == 'LRG_199t1:c.31+9_31+11='
-        assert results["NM_004006.2:c.31+9_31+11="]['hgvs_refseqgene_variant']\
-            == 'NG_012232.1:g.133337_133339='
-        assert results["NM_004006.2:c.31+9_31+11="]['hgvs_lrg_variant']\
-            == 'LRG_199:g.133337_133339='
-        assert results["NM_004006.2:c.31+9_31+11="]["validation_warnings"] == [
-            "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description LRG_199t1:c.31+9_31+11A[3]. The corrected description is NM_004006.2:c.31+9_31+11A[3]",
-            "ExpandedRepeatWarning: NM_004006.2:c.31+9_31+11A[3] should only be used as an annotation for the core HGVS descriptions provided",
-            "NM_004006.2:c.31+9_31+11delinsAAA automapped to NM_004006.2:c.31+9_31+11=",
-            "TranscriptVersionWarning: A more recent version of the selected reference sequence NM_004006.2 is available for genome build GRCh37 (NM_004006.3)"
+        assert results["validation_warning_1"]["validation_warnings"] == [
+            "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description LRG_199t1:c.31+9_31+11A[3]. The corrected format would be NM_004006.2:c.31+9_31+11A[int], where int requires you to update the number of repeats"
         ]
 
     def test_gap_crossing(self):
-        variant = 'LRG_763t1:c.54_110GCA[21]'
+        variant = 'LRG_763t1:c.54GCA[21]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
         assert results["NM_002111.8:c.54_116="]["primary_assembly_loci"]["grch37"][
             "hgvs_genomic_description"] == "NC_000004.11:g.3076657_3076662dup"
         assert results["NM_002111.8:c.54_116="]["validation_warnings"] ==   [
-            "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description LRG_763t1:c.54_110GCA[21]. The corrected description is NM_002111.8:c.54_116GCA[21]",
+            "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description LRG_763t1:c.54GCA[21]. The corrected description is NM_002111.8:c.54_116GCA[21]",
             "ExpandedRepeatWarning: NM_002111.8:c.54_116GCA[21] should only be used as an annotation for the core HGVS descriptions provided"
         ]
 

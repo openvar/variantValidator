@@ -694,7 +694,7 @@ class Mixin(vvMixinConverters.Mixin):
                         my_variant.output_type_flag = 'warning'
                         error = (f"InvalidVariantError: Variant description {my_variant.quibble} could "
                                  f"not be validated by either "
-                                 f"VariantValidator or the LOVD syntax checker. PLease refer to the HGVS nomenclature "
+                                 f"VariantValidator or the LOVD syntax checker. Please refer to the HGVS nomenclature "
                                  f"website at https://hgvs-nomenclature.org/stable/. For additional assistance "
                                  f"contact us at https://variantvalidator.org/help/contact/")
                         my_variant.warnings.append(error)

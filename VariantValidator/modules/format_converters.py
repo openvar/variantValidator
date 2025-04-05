@@ -700,9 +700,16 @@ def convert_expanded_repeat(my_variant, validator):
             return False
 
     if my_variant.quibble != my_variant.expanded_repeat["variant"]:
-        my_variant.warnings.append(f"ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly"
-                                   f" in the submitted description {my_variant.quibble}. The corrected description is "
-                                   f"{my_variant.expanded_repeat['variant']}")
+        if re.search("\d+_", my_variant.quibble):
+            my_variant.warnings.append(f"ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly"
+                                       f" in the submitted description {my_variant.quibble}. The corrected format"
+                                       f" would be {my_variant.expanded_repeat['variant'].split('[')[0]}"
+                                       f"[int], where int requires you to update the number of repeats")
+            return True
+        else:
+            my_variant.warnings.append(f"ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly"
+                                       f" in the submitted description {my_variant.quibble}. The corrected description is "
+                                       f"{my_variant.expanded_repeat['variant']}")
     ins_bases = (my_variant.expanded_repeat["repeat_sequence"] *
                  int(my_variant.expanded_repeat["copy_number"]))
     start_pos, _sep, end_pos = my_variant.expanded_repeat['position'].partition('_')

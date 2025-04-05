@@ -1361,7 +1361,10 @@ class TestVVGapWarnings(TestCase):
         variant = 'NM_002024.5:c.-128_-69GGC[108]'
         results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="refseq").format_as_dict(test=True)
         print(results)
-        assert "ExpandedRepeatWarning: NM_002024.5:c.-128_-102GGC[108] should only be used as an annotation for the core HGVS descriptions provided" in results['NM_002024.5:c.-100_-99insCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGGCGG']['validation_warnings']
+        assert (("ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted "
+                "description NM_002024.5:c.-128_-69GGC[108]. The corrected format would be "
+                "NM_002024.5:c.-128_-102GGC[int], where int requires you to update the number of repeats")
+                in results['validation_warning_1']['validation_warnings'])
 
     def test_issue_698b(self):
         variant = 'NM_002024.5:c.-128_-69GGM[108]'
@@ -1384,7 +1387,7 @@ class TestVVGapWarnings(TestCase):
         assert results['validation_warning_1']['validation_warnings'] ==  [
             "VariantSyntaxError: Whitespace removed from variant description KMT2C(T4413)",
             "InvalidVariantError: Variant description KMT2C(T4413) is not in an accepted format",
-            "InvalidVariantError: Variant description KMT2C(T4413) could not be validated by either VariantValidator or the LOVD syntax checker. PLease refer to the HGVS nomenclature website at https://hgvs-nomenclature.org/stable/. For additional assistance contact us at https://variantvalidator.org/help/contact/"
+            "InvalidVariantError: Variant description KMT2C(T4413) could not be validated by either VariantValidator or the LOVD syntax checker. Please refer to the HGVS nomenclature website at https://hgvs-nomenclature.org/stable/. For additional assistance contact us at https://variantvalidator.org/help/contact/"
         ]
 
 # <LICENSE>
