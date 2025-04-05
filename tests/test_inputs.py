@@ -31188,6 +31188,12 @@ class TestVariantsAuto(TestCase):
             "Mapping unavailable for RefSeqGene NG_029236.1:g.501delG using alignment method = splign"
         ]
 
+
+    def test_MT_for_mito_VCF(self):
+        variant = 'MT-9176-T-C'
+        results = self.vv.validate(variant, 'GRCh38','all').format_as_dict(test=True)
+        assert "mitochondrial_variant_1" in results.keys()
+
 # <LICENSE>
 # Copyright (C) 2016-2025 VariantValidator Contributors
 #

@@ -6837,7 +6837,7 @@ class TestVFvariantsAuto(object):
         assert 'NM_006158.3:c.1407delinsAC' in results['NC_000008.10:g.24811072C>T'][
             'NC_000008.10:g.24811072C>T']['hgvs_t_and_p']['NM_006158.3']['t_hgvs']
 
-    def test_issue_370(self):
+    def test_issue_370a(self):
         results = VariantFormatter.simpleVariantFormatter.format('NC_000008.10:g.24811072C>T',
                                                                  'GRCh37', 'refseq', None, False, True, testing=True)
         print(results)
@@ -6852,6 +6852,7 @@ class TestVFvariantsAuto(object):
         print(results)
         assert 'NC_000008.10:g.24811072C>T' in results.keys()
         assert 'NC_000008.10:g.24811072C>A' in results.keys()
+
 
 # <LICENSE>
 # Copyright (C) 2016-2025 VariantValidator Contributors

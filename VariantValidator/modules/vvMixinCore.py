@@ -220,6 +220,7 @@ class Mixin(vvMixinConverters.Mixin):
                         if toskip:
                             continue
                         my_variant.hgvs_transcript_variant = my_variant.quibble
+
                     # set output to variant type specific
                     if my_variant.reftype in [':n.',':t.',':c.'] and my_variant.hgvs_transcript_variant != '':
                         my_variant.output_type_flag = 'gene'
@@ -237,9 +238,18 @@ class Mixin(vvMixinConverters.Mixin):
                     logger.info("Started validation of %s (originally %s)", str(my_variant.quibble),
                                 my_variant.original)
 
+                    # Find brackets and other at the beginning of the descriptions
+                    if my_variant.non_alphanum_start():
+                        my_variant.warnings.append(
+                            "VariantSyntaxError: Variant descriptions must begin with a reference sequence "
+                            "identifier or a chromosome number. Refer to "
+                            "the examples provided at https://variantvalidator.org/service/validate/")
+                        continue
+
                     if not my_variant.is_ascii():
                         chars, positions = my_variant.get_non_ascii()
-                        error = 'Submitted variant description contains an invalid character(s) %s at position(s) %s: '\
+                        error = 'VariantSyntaxError: Submitted ' \
+                                'variant description contains an invalid character(s) %s at position(s) %s: ' \
                                 'Please remove this character and re-submit: A useful search function for ' \
                                 'Unicode characters can be found at https://unicode-search.net/' % (chars, positions)
                         my_variant.warnings.append(error)
@@ -681,12 +691,16 @@ class Mixin(vvMixinConverters.Mixin):
                         my_variant.lovd_syntax_check = lovd_response
                         continue
                     else:
-                        my_variant.output_type_flag = 'error'
-                        error = 'Validation error'
+                        my_variant.output_type_flag = 'warning'
+                        error = (f"InvalidVariantError: Variant description {my_variant.quibble} could "
+                                 f"not be validated by either "
+                                 f"VariantValidator or the LOVD syntax checker. Please refer to the HGVS nomenclature "
+                                 f"website at https://hgvs-nomenclature.org/stable/. For additional assistance "
+                                 f"contact us at https://variantvalidator.org/help/contact/")
                         my_variant.warnings.append(error)
                         exc_type, exc_value, last_traceback = sys.exc_info()
                         logger.error(str(exc_type) + " " + str(exc_value))
-                        raise
+                        continue
 
             # Outside the for loop
             ######################

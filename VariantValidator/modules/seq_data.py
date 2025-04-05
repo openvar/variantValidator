@@ -56,6 +56,8 @@ def to_accession(chr_num, primary_assembly):
         "Y": "NC_000024.9",
         "M": "NC_012920.1",
         "m": "NC_012920.1",
+        "MT": "NC_012920.1",
+        "mt": "NC_012920.1",
 
         # UCSC alts
         "11_GL000202_RANDOM": "NT_113921.2",
@@ -692,6 +694,8 @@ def to_accession(chr_num, primary_assembly):
         "Y": "NC_000024.10",
         "M": "NC_012920.1",
         "m": "NC_012920.1",
+        "MT": "NC_012920.1",
+        "mt": "NC_012920.1",
 
         # UCSC Alts
         "10_GL383545V1_ALT": "NW_003315934.1",

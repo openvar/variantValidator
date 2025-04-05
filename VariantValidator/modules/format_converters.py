@@ -239,7 +239,6 @@ def vcf2hgvs_stage2(variant, validator):
     The LRG ID data ia stored in the VariantValidator MySQL database.
     The reference sequence type is also assigned.
     """
-
     skipvar = False
     if (re.search(r'\w+:', variant.quibble) or re.search(r'\w+\(\w+\):', variant.quibble)) and not \
             (re.search(r'\w+:[gcnmrpoGCNMRPO]\.', variant.quibble) or re.search(r'\w+\(\w+\):[gcnmrpoGCNMRPO]\.',
@@ -297,7 +296,10 @@ def vcf2hgvs_stage2(variant, validator):
                         position_and_edit = str(position) + ref + '>' + alt
 
                 # Assign reference sequence type
-                ref_type = validator.db.ref_type_assign(accession)
+                if accession in ["NC_012920.1", "NC_001807.4"]:
+                    ref_type = ":m."
+                else:
+                    ref_type = validator.db.ref_type_assign(accession)
 
                 # Sort LRG formatting
                 if re.match('LRG_', accession):
@@ -338,7 +340,6 @@ def vcf2hgvs_stage2(variant, validator):
 
     # Ambiguous chr reference
     logger.debug("Completed VCF-HVGS step 2 for %s", variant.quibble)
-
     return skipvar
 
 
@@ -352,6 +353,7 @@ def vcf2hgvs_stage3(variant, validator):
     if (re.search(r'\w+:[gcnmrpGCMNRP]\.', variant.quibble) or re.search(r'\w+\(\w+\):[gcnmrpGCMNRP]\.',
                                                                          variant.quibble)) \
             and not re.match(r'N[CGTWMRP]_', variant.quibble):
+
         # Take out lowercase Accession characters
         lower_cased_list = variant.quibble.split(':')
         if re.search('LRG', lower_cased_list[0], re.IGNORECASE):
@@ -430,8 +432,24 @@ def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version):
                 if validator.select_transcripts != 'all' and validator.select_transcripts != 'raw':
                     variant.write = False
                     for transcript in list(select_transcripts_dict_plus_version.keys()):
-                        variant.warnings = ['HGVS variant nomenclature does not allow the use of a gene symbol (' +
-                                            query_a_symbol + ') in place of a valid reference sequence']
+                        if transcript == "mane":
+                            for tx in select_from_these_transcripts.split('|'):
+                                annotation = validator.db.get_transcript_annotation(tx)
+                                if '"mane_select": true' in annotation or '"mane_plus_clinical": true' in annotation:
+                                    transcript = tx
+                                else:
+                                    continue
+                        elif transcript == "mane_select":
+                            for tx in select_from_these_transcripts.split('|'):
+                                annotation = validator.db.get_transcript_annotation(tx)
+                                if '"mane_select": true' in annotation:
+                                    transcript = tx
+                                else:
+                                    continue
+
+                        variant.warnings.append('InvalidReferenceError: HGVS variant nomenclature does not '
+                                                'allow the use of a gene symbol (' +
+                                            query_a_symbol + ') in place of a valid reference sequence')
                         refreshed_description = transcript + ':' + tx_edit
                         query = Variant(variant.original, quibble=refreshed_description,
                                         warnings=variant.warnings, primary_assembly=variant.primary_assembly,
@@ -441,7 +459,8 @@ def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version):
                                     query_a_symbol + ') in place of a valid reference sequence')
                         logger.info("Submitting new variant with format %s", refreshed_description)
                 else:
-                    variant.warnings.append('HGVS variant nomenclature does not allow the use of a gene symbol ('
+                    variant.warnings.append('InvalidReferenceError: HGVS variant nomenclature does not allow '
+                                            'the use of a gene symbol ('
                                             + query_a_symbol + ') in place of a valid reference sequence: Re-submit ' +
                                             str(variant.quibble) + ' and specify transcripts from the following: ' +
                                             'select_transcripts=' + select_from_these_transcripts)
@@ -681,8 +700,16 @@ def convert_expanded_repeat(my_variant, validator):
             return False
 
     if my_variant.quibble != my_variant.expanded_repeat["variant"]:
-        my_variant.warnings.append(f"ExpandedRepeatWarning: {my_variant.quibble} updated "
-                                   f"to {my_variant.expanded_repeat['variant']}")
+        if re.search("\d+_", my_variant.quibble):
+            my_variant.warnings.append(f"ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly"
+                                       f" in the submitted description {my_variant.quibble}. The corrected format"
+                                       f" would be {my_variant.expanded_repeat['variant'].split('[')[0]}"
+                                       f"[int], where int requires you to update the number of repeats")
+            return True
+        else:
+            my_variant.warnings.append(f"ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly"
+                                       f" in the submitted description {my_variant.quibble}. The corrected description is "
+                                       f"{my_variant.expanded_repeat['variant']}")
     ins_bases = (my_variant.expanded_repeat["repeat_sequence"] *
                  int(my_variant.expanded_repeat["copy_number"]))
     start_pos, _sep, end_pos = my_variant.expanded_repeat['position'].partition('_')
@@ -696,7 +723,7 @@ def convert_expanded_repeat(my_variant, validator):
 
     try:
         repeat_to_delins = my_variant.hn.normalize(repeat_to_delins)
-    except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
+    except vvhgvs.exceptions.HGVSUnsupportedOperationError:
         pass
     my_variant.quibble = repeat_to_delins #fn.valstr(repeat_to_delins)
     my_variant.warnings.append(f"ExpandedRepeatWarning: {my_variant.expanded_repeat['variant']} "

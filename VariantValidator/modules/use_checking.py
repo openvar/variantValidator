@@ -10,6 +10,10 @@ from . import hgvs_utils
 
 logger = logging.getLogger(__name__)
 
+class InvalidVariantError(Exception):
+    pass
+
+
 def pre_parsing_global_common_mistakes(my_variant):
     """
     A set of common error types that need to be found/handled before parsing variants into objects
@@ -28,14 +32,20 @@ def pre_parsing_global_common_mistakes(my_variant):
         warning = "InvalidVariantError: VariantValidator operates on variant descriptions, but " +\
             f'this variant "{my_variant.quibble}" only contains numeric characters (and ' +\
             "possibly numeric associated punctuation), so can not be analysed. Did you enter this"+\
-            " incorrectly, for example entering the numeric ID of a variant, instead of it`s " +\
-            "description, or else enter just a within-sequence location, without specifying the " +\
-            "actual variation?"
+            " incorrectly, for example entering a gene ID without specifying the " + \
+            "actual variation? If so, try our genes to transcripts tool https://variantvalidator.org/service/gene2trans/"
+        my_variant.warnings.append(warning)
+        return True
+    elif re.match(r'^[\w+]+$', my_variant.quibble):
+        warning = "InvalidVariantError: VariantValidator operates on variant descriptions, but " + \
+                  f'this variant "{my_variant.quibble}" only contains alphanumeric characters ' + \
+                  "so can not be analysed. Did you enter this" + \
+                  " incorrectly, for example entering a gene symbol without specifying the " + \
+                  "actual variation? If so, try our genes to transcripts tool https://variantvalidator.org/service/gene2trans/"
         my_variant.warnings.append(warning)
         return True
 
     # Find concatenated descriptions
-
     concat_descriptions = ["p\\.", "c\\.", "r\\.", "g\\.", "n\\."]  # Escape dots for regex
     pattern = f"({'|'.join(concat_descriptions)})"
 
@@ -110,11 +120,22 @@ def pre_parsing_global_common_mistakes(my_variant):
             logger.warning(error)
             return True
 
+        elif ((re.search(r"\(ENST\d+\.\d+\):", my_variant.quibble) or
+              re.search(r"\(N[MRCG]_\d+\.\d+\):", my_variant.quibble) or
+              re.search(r"\(LRG_\d+t\d+\):", my_variant.quibble)) and not
+              re.match("NC_", my_variant.quibble)):
+              reference_region, variation = my_variant.quibble.split(":")
+              reference = reference_region.split("(")[1].replace(")", "")
+              new_quibble = f"{reference}:{variation}"
+              my_variant.warnings.append(f"VariantSyntaxError: Stripping unnecessary characters "
+                                         f"from {my_variant.quibble} and updating to {new_quibble}")
+              my_variant.quibble = new_quibble
+
         else:
-            error = 'Variant description ' + my_variant.quibble + ' is not in an accepted format'
+            error = 'InvalidVariantError: Variant description ' + my_variant.quibble + ' is not in an accepted format'
             my_variant.warnings.append(error)
             logger.warning(error)
-            return True
+            raise InvalidVariantError(error)
 
     # Here we handle syntax errors in ins and delins variants
     # https://github.com/openvar/variantValidator/issues/359
@@ -709,12 +730,6 @@ def structure_checks_c(variant, validator):
         except vvhgvs.exceptions.HGVSInvalidVariantError as e:
             error = str(e)
             if 'base start position must be <= end position' in error:
-                # correction = copy.deepcopy(variant.input_parses)
-                # st = variant.input_parses.posedit.pos.start
-                # ed = variant.input_parses.posedit.pos.end
-                # correction.posedit.pos.start = ed
-                # correction.posedit.pos.end = st
-                # error = error + ': Did you mean ' + str(correction) + '?'
                 error = 'Interval start position ' + str(variant.input_parses.posedit.pos.start) + ' > interval end' \
                         ' position ' + str(variant.input_parses.posedit.pos.end)
                 variant.warnings.append(error)
