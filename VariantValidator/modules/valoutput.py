@@ -251,10 +251,13 @@ class ValOutput(object):
             except AttributeError:
                 pass
 
-            for key, val in variant.lovd_syntax_check['data'][0]['corrected_values'].items():
-                lovd_syntax_suggestions = f"LovdSyntaxcheckSuggestions: [{key}, {round(val, 2)}]"
-                variant.warnings.append(lovd_syntax_suggestions)
-                lovd_corrections[key] = val
+            try:
+                for key, val in variant.lovd_syntax_check['data'][0]['corrected_values'].items():
+                    lovd_syntax_suggestions = f"LovdSyntaxcheckSuggestions: [{key}, {round(val, 2)}]"
+                    variant.warnings.append(lovd_syntax_suggestions)
+                    lovd_corrections[key] = val
+            except AttributeError:
+                pass
 
             variant.warnings.append(f"LovdSyntaxcheckSource: {variant.lovd_syntax_check['url']}")
             lovd_messages["ISOURCE"] = variant.lovd_syntax_check['url']

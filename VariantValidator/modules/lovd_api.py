@@ -49,6 +49,8 @@ def lovd_syntax_check(variant_description, do_lovd_check=True):
     except Exception:
         json_data = run_lovd_checker_web(variant_description)
 
+    print("json_data", json_data)
+
     json_data = remove_double_quotes(json_data)
 
     # Ensure the final return value is always a dictionary
