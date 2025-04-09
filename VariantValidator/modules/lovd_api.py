@@ -46,7 +46,7 @@ def lovd_syntax_check(variant_description, do_lovd_check=True):
         json_data = run_lovd_checker_cli(variant_description)
         if "lovd_api_error" in json_data:  # Fallback if CLI fails
             raise ValueError(json_data["lovd_api_error"])
-    except Exception:
+    except Exception as e:
         json_data = run_lovd_checker_web(variant_description)
 
     json_data = remove_double_quotes(json_data)
