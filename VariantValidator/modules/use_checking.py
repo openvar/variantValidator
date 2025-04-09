@@ -132,7 +132,7 @@ def pre_parsing_global_common_mistakes(my_variant):
               my_variant.quibble = new_quibble
 
         else:
-            error = 'InvalidVariantError: Variant description ' + my_variant.quibble + ' is not in an accepted format'
+            error = 'InvalidVariantError: Variant description ' + my_variant.original + ' is not in an accepted format'
             my_variant.warnings.append(error)
             logger.warning(error)
             raise InvalidVariantError(error)
