@@ -257,7 +257,7 @@ class ValOutput(object):
                     variant.warnings.append(lovd_syntax_suggestions)
                     lovd_corrections[key] = val
             except AttributeError:
-                error = (f"InvalidVariantError: Variant description {variant.quibble} could "
+                error = (f"InvalidVariantError: Variant description {variant.original} could "
                          f"not be validated by either "
                          f"VariantValidator or the LOVD syntax checker. Please refer to the HGVS nomenclature "
                          f"website at https://hgvs-nomenclature.org/stable/. For additional assistance "

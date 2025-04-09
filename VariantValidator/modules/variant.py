@@ -117,7 +117,7 @@ class Variant(object):
         prev = self.quibble
         self.quibble = ''.join(self.quibble.split())
         if self.quibble != prev:
-            caution = 'VariantSyntaxError: Whitespace removed from variant description %s' % self.quibble
+            caution = 'VariantSyntaxError: Whitespace removed from variant description %s' % self.original
             self.warnings.append(caution)
         # self.original = ''.join(self.original.split()) #  Updates the original submission to have no whitespace.
 
