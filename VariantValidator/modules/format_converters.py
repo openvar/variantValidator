@@ -830,8 +830,6 @@ def intronic_converter(variant, validator, skip_check=False, uncertain=False):
     hgvs can now parse the string into an hgvs variant object and manipulate it
     We now can parse in such variants but they still need fixing before mapping
     """
-    compounder = re.compile(r'\((NM_|NR_|ENST)')
-    compounder2 = re.compile(r'\(LRG_\d+t')
     if type(variant.quibble) is str:
         parsed = False
         acc_section, _sep, remainder = variant.quibble.partition(":")
@@ -839,10 +837,13 @@ def intronic_converter(variant, validator, skip_check=False, uncertain=False):
         parsed = True
         acc_section = variant.quibble.ac
 
-    if compounder.search(acc_section) or compounder2.search(acc_section):
+    pos_genomic, _sep, pos_transcript = acc_section.partition('(')
+    if pos_transcript and (pos_transcript[:3] in ['NM_', 'NR_',] or pos_transcript.startswith('ENST') or (
+        pos_transcript.startswith('LRG_') and pos_transcript[4:5].isdigit() and 't' in pos_transcript
+        )):
         # Convert LRG transcript
-        if compounder2.search(acc_section):
-            lrg_transcript = acc_section.split("(")[1].replace(")", "")
+        if pos_transcript.startswith('LRG_'):
+            lrg_transcript = pos_transcript.replace(")", "")
             refseq_transcript = validator.db.get_refseq_transcript_id_from_lrg_transcript_id(lrg_transcript)
             if parsed:
                 variant.quibble.ac = variant.quibble.ac.replace(lrg_transcript, refseq_transcript)
@@ -954,15 +955,16 @@ def allele_parser(variant, validation, validator):
     descriptions should be re-submitted by the user at the gene or genome level
     """
     caution = ''
-
-    if (re.search(r':[gcnr].\[', variant.quibble) and ';' in variant.quibble) or (
-            re.search(r':[gcrn].\d+\[', variant.quibble) and ';' in variant.quibble) or ('(;)'
-                                                                                         in variant.quibble):
+    ac_part, _sep, var = variant.quibble.partition(':')
+    is_digit, _sep, end = var.partition('[')
+    if (var[:3] in ['g.[','c.[','n.[',':r.['] and ';' in var) or (
+            is_digit[:2] in ['g.','c.','n.',':r.'] and ';' in end and is_digit[2:].isdigit()
+            ) or ('(;)' in var):
         # Edit compound descriptions
         genomic_ref = intronic_converter(variant, validator, skip_check=True)
         if genomic_ref is None:
-            if re.match(r'NC_', variant.quibble):
-                genomic_reference = variant.quibble.split(':')[0]
+            if 'NC_' in ac_part:
+                genomic_reference = ac_part
             else:
                 genomic_reference = False
         elif 'NC_' in genomic_ref or 'NG_' in genomic_ref:
@@ -971,7 +973,7 @@ def allele_parser(variant, validation, validator):
             genomic_reference = False
 
         # handle LRG inputs
-        if re.match(r'^LRG', variant.quibble):
+        if variant.quibble.startswith('LRG'):
             if re.match(r'^LRG\d+', variant.quibble):
                 string, remainder = variant.quibble.split(':')
                 reference = string.replace('LRG', 'LRG_')
@@ -1067,7 +1069,7 @@ def lrg_to_refseq(variant, validator):
     """
     caution = ''
     if variant.refsource == 'LRG':
-        if re.match(r'^LRG\d+', variant.hgvs_formatted.ac):
+        if variant.hgvs_formatted.ac.startswith('LRG') and variant.hgvs_formatted.ac[3:4].isdigit():
             reference = variant.hgvs_formatted.ac.replace('LRG', 'LRG_')
             caution = variant.hgvs_formatted.ac + ' updated to ' + reference + ': '
             variant.hgvs_formatted.ac = reference
