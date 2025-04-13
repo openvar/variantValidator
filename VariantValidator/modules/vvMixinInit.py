@@ -832,7 +832,7 @@ class Mixin:
                 elif len(pro_inv_info['prot_ins_seq']) == 0:
                     posedit = VVPosEdit(
                         pos = Interval(start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa)),
-                        edit = AARefAlt(alt = ''),
+                        edit = AARefAlt(ref = pro_inv_info['prot_del_seq']),
                         uncertain = True,
                         nucleotide_not_equal=nucleotide_not_equal)
                 else:
