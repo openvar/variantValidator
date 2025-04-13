@@ -164,41 +164,47 @@ def vcf2hgvs_stage1(variant, validator):
     VCF variants into HGVS - hence the need for conversion step 2
     """
     skipvar = False
-
-    if re.search(r'[-:]\d+[-:][GATC]+[-:][GATC]+', variant.quibble):
-        variant.quibble = variant.quibble.replace(':', '-')
-        # Extract primary_assembly if provided
-        if re.match(r'GRCh3\d+-', variant.quibble) or re.match(r'hg\d+-', variant.quibble):
-            in_list = variant.quibble.split('-')
-            validator.selected_assembly = in_list[0]
-            variant.quibble = '-'.join(in_list[1:])
-        pre_input = variant.quibble
-        vcf_elements = pre_input.split('-')
-        try:
-            variant.quibble = '%s:%s%s>%s' % (vcf_elements[0], vcf_elements[1], vcf_elements[2], vcf_elements[3])
-        except IndexError:
+    vcf_data = re.split(r'[-:]',variant.quibble)
+    if len(vcf_data) < 4:
+        logger.debug("Completed VCF-HVGS step 1 for %s", variant.quibble)
+        return False
+    poss_genome = vcf_data[0].lower()
+    if ('grch3' in poss_genome or 'hg' in poss_genome) and poss_genome[-1].isdigit():
+        vcf_data = vcf_data[1:]
+        variant.quibble = '-'.join(vcf_data)
+        # TODO test assembly given against settings
+        if len(vcf_data) < 4:
             variant.warnings.append("Insufficient or incorrect  VCF elements provided. "
                                     "Elements required are chr-pos-ref-alt")
             return True
-    elif re.search(r'[-:]\d+[-:][GATC]+[-:]', variant.quibble):
-        variant.quibble = variant.quibble.replace(':', '-')
-        # Extract primary_assembly if provided
-        if re.match(r'GRCh3\d+-', variant.quibble) or re.match(r'hg\d+-', variant.quibble):
-            in_list = variant.quibble.split('-')
-            validator.selected_assembly = in_list[0]
-            variant.quibble = '-'.join(in_list[1:])
-        pre_input = variant.quibble
-        vcf_elements = pre_input.split('-')
+    # no coordinate found
+    if not vcf_data[1].isdigit():
+        logger.debug("Completed VCF-HVGS step 1 for %s", variant.quibble)
+        return False
+    # ref is present and not . or DNA, or alt is present and not DNA or a list of DNA possibilities
+    # for now we leave ',' in, this is used to do vcf type multi-alt variants. We correct this as a
+    # later step since we may get psudo-hgvs input with the same pattern too.
+    if vcf_data[2] == '.':
+        vcf_data[2] = ''
+    if  vcf_data[3] == '.':
+        vcf_data[3] = ''
+
+    if re.search(r'[^CGAT]',vcf_data[2]) or re.search(r'[^CGAT,]',vcf_data[3]):
+        logger.debug("Completed VCF-HVGS step 1 for %s", variant.quibble)
+        return False
+    if vcf_data[2] and vcf_data[3]:
+        variant.quibble = f'{vcf_data[0]}:{vcf_data[1]}{vcf_data[2]}>{vcf_data[3]}'
+    elif vcf_data[2]:
         variant.warnings = ['Not stating ALT bases is ambiguous because VCF specification 4.0 would treat ' +
-                            pre_input + ' as a deletion whereas VCF specification 4.1 onwards would treat ' +
-                            pre_input + ' as ALT = REF']
+                            variant.quibble + ' as a deletion whereas VCF specification 4.1 onwards would treat ' +
+                            variant.quibble + ' as ALT = REF']
         variant.warnings.append('VariantValidator has output both alternatives')
         logger.info('Not stating ALT bases is ambiguous because VCF specification 4.0 would treat %s as a deletion '
                     'whereas VCF specification 4.1 onwards would treat %s as ALT = REF. Validator will output '
-                    'both alternatives.', pre_input, pre_input)
+                    'both alternatives.', variant.quibble, variant.quibble)
         variant.write = False
-        input_a = '%s:%s%s>%s' % (vcf_elements[0], vcf_elements[1], vcf_elements[2], 'del')
-        input_b = '%s:%s%s>%s' % (vcf_elements[0], vcf_elements[1], vcf_elements[2], vcf_elements[2])
+        input_a = '%s:%s%s>%s' % (vcf_data[0], vcf_data[1], vcf_data[2], 'del')
+        input_b = '%s:%s%s>%s' % (vcf_data[0], vcf_data[1], vcf_data[2], vcf_data[2])
         query_a = Variant(variant.original, quibble=input_a, warnings=variant.warnings,
                           primary_assembly=variant.primary_assembly, order=variant.order)
         query_b = Variant(variant.original, quibble=input_b, warnings=variant.warnings,
@@ -208,23 +214,10 @@ def vcf2hgvs_stage1(variant, validator):
         logger.info("Submitting new variant with format %s", input_a)
         logger.info("Submitting new variant with format %s", input_b)
         skipvar = True
-    elif re.search(r'[-:]\d+[-:][-:][GATC]+', variant.quibble) or \
-            re.search(r'[-:]\d+[-:][.][-:][GATC]+', variant.quibble):
-        variant.quibble = variant.quibble.replace(':', '-')
-        if re.search('-.-', variant.quibble):
-            variant.quibble = variant.quibble.replace('-.-', '-ins-')
-        if re.search('--', variant.quibble):
-            variant.quibble = variant.quibble.replace('--', '-ins-')
-        # Extract primary_assembly if provided
-        if re.match(r'GRCh3\d+-', variant.quibble) or re.match(r'hg\d+-', variant.quibble):
-            in_list = variant.quibble.split('-')
-            variant.quibble = '-'.join(in_list[1:])
-        pre_input = variant.quibble
-        vcf_elements = pre_input.split('-')
-        variant.quibble = '%s:%s%s>%s' % (vcf_elements[0], vcf_elements[1], vcf_elements[2], vcf_elements[3])
+    elif vcf_data[3]:
+        variant.quibble = f'{vcf_data[0]}:{vcf_data[1]}ins{vcf_data[3]}'
 
     logger.debug("Completed VCF-HVGS step 1 for %s", variant.quibble)
-
     return skipvar
 
 
