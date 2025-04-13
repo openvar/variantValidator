@@ -466,18 +466,68 @@ def refseq_catch(variant, validator, select_transcripts_dict_plus_version):
     descriptions
     """
     skipvar = False
-    if re.search(r'\w+:[cn]', variant.quibble):
+    query_a_seq, _sep, tx_edit = variant.quibble.partition(':')
+
+
+    if tx_edit[:2] in ['c.','n.']:
+        # remove, handle, and sometimes fix, some complex broken input types, e.g.
+        # 'NC_000017.11(NC_000017.11(ENST00000357654.9)' warn and abort otherwise.
+        # Since genes like ENST(GEN_ID):c. may be found tolerate junk, but
+        # implicitly insist on GenomicReferenceID(TranscriptReferenceID) *not*
+        # GenomicReferenceID(GeneID)(TranscriptReferenceID)
+        curr_query_a_ref_seq = ''
+        query_a_tx_seq = ''
+        tx_seq_found = False
+        while '(' in query_a_seq and not tx_seq_found:
+            query_a_seq_test, _sep, query_a_tx_seq = query_a_seq.partition('(')
+            if query_a_seq_test[:3] in ['NM_', 'NR_','LRG'] or 'ENST' == query_a_seq_test[:4]:
+                # presume we have a gene symbol as the next component if we have one and abort
+                # without complaining
+                tx_seq_found = True
+            elif query_a_seq_test[:3] in ['NG_','NC_','NW_','NT_']:
+                query_a_seq_test = query_a_seq_test.replace(')','')
+                if not curr_query_a_ref_seq or query_a_seq_test == curr_query_a_ref_seq:
+                    if curr_query_a_ref_seq:
+                        variant.quibble = query_a_seq + ':' + tx_edit
+                    curr_query_a_ref_seq = query_a_seq_test
+                    query_a_seq = query_a_tx_seq
+                    if query_a_tx_seq[:3] in ['NM_', 'NR_','LRG'] or 'ENST' == query_a_tx_seq[:4]:
+                        tx_seq_found = True
+                else:
+                    variant.warnings.append(
+                        'HgvsSyntaxError: '
+                        'Multiple genomic reference sequences have been '
+                        'provided in the same transcript variant description'
+                        + variant.quibble + ' should at most have one genomic'
+                        ' reference, starting with NG_, NC_, NW_, or NT_, '
+                        'paired with the relevant transcript, in the form '
+                        'GenomicReferenceID(TranscriptReferenceID). Please '
+                        're-submit with your favored genomic reference or '
+                        'submit each pair separately.' )
+                    return True # skipvar
+            elif query_a_tx_seq[:3] in ['NM_', 'NR_','LRG'] or 'ENST' == query_a_tx_seq[:4]:
+                tx_seq_found = True
+                query_a_seq = query_a_tx_seq
+            else:
+                variant.warnings.append(
+                    'InvalidReferenceError: '
+                    'A transcript type variant description ( ' + variant.quibble+ ' ) '
+                    ' has been submitted with the reference specified in a manner '
+                    'recognised as GenomicReferenceID(TranscriptReferenceID), but the '
+                    'apparent Transcript Reference ID was not recognised as an expected'
+                    ' type, i.e. either a RefSeq transcript, which should start with NM_'
+                    ', or NR_ or an ENSEMBL transcript which should start with  ENST. ')
+                return True
         try:
-            if variant.quibble.startswith('NG_'):
-                ref_seq_gene_id = variant.quibble.split(':')[0]
-                tx_edit = variant.quibble.split(':')[1]
+            if query_a_seq.startswith('NG_') and not tx_seq_found:
+                ref_seq_gene_id = query_a_seq
                 gene_symbol = validator.db.get_gene_symbol_from_refseq_id(ref_seq_gene_id)
                 if gene_symbol != 'none':
                     uta_symbol = validator.db.get_uta_symbol(gene_symbol)
                     available_transcripts = validator.hdp.get_tx_for_gene(uta_symbol)
                     select_from_these_transcripts = []
                     for tx in available_transcripts:
-                        if 'NM_' in tx[3] or 'NR_' in tx[3] or 'ENST' in tx[3]:
+                        if tx[3][:3] in ['NM_', 'NR_', ] or 'ENST' == tx[3][:4]:
                             if tx[3] not in select_from_these_transcripts:
                                 select_from_these_transcripts.append(tx[3])
                     select_from_these_transcripts = '|'.join(select_from_these_transcripts)
@@ -513,7 +563,7 @@ def refseq_catch(variant, validator, select_transcripts_dict_plus_version):
                     logger.warning(
                         'A transcript reference sequence has not been provided e.g. NG_(NM_):c.PositionVariation')
                 skipvar = True
-            elif variant.quibble.startswith('NC_'):
+            elif query_a_seq[:3] in ['NC_','NW_','NT_'] and not tx_seq_found:
                 variant.warnings.append('A transcript reference sequence has not been provided e.g. '
                                         'NC_(NM_):c.PositionVariation. Unable to predict available transcripts '
                                         'because chromosomal position is not specified')
