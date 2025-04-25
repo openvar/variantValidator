@@ -711,27 +711,37 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     try:
         protein_dict = validator.myc_to_p(hgvs_coding, variant.evm, re_to_p=False, hn=variant.hn)
     except NotImplementedError as e:
+        print(e)
+        assert False
         protein_dict = {'hgvs_protein': None, 'error': str(e)}
         variant.warnings.append(str(e))
     except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
+        print(e)
+        assert False
         protein_dict = {'hgvs_protein': None, 'error': str(e)}
         variant.warnings.append(str(e))
-    except IndexError:
-        protein_dict = {'hgvs_protein': None, 'error': f"TranscriptTypeError: Cannot identify an in-frame Termination "
-                                                       f"codon in the reference "
-                                                       f"mRNA sequence. {hgvs_coding.ac} may not be a valid "
-                                                       f"coding sequence"}
 
     if protein_dict['error'] == '':
         hgvs_protein = protein_dict['hgvs_protein']
     else:
         error = protein_dict['error']
-        variant.warnings.append(str(error))
-        if error == 'Cannot identify an in-frame Termination codon in the variant mRNA sequence':
-            hgvs_protein = protein_dict['hgvs_protein']
-        else:
+        if not error.startswith('ProteinTranslationError:' ):
+            variant.warnings.append(str(error))
             logger.warning(error)
             return True
+        elif 'Termination' in error and 'reference' in error:
+            error = "TranscriptTypeError: Cannot identify an in-frame Termination codon in the " +\
+                    f"reference mRNA sequence. {hgvs_coding.ac} may not be a valid coding sequence"
+            variant.warnings.append(str(error))
+            logger.warning(error)
+            return True
+        elif 'reference' in error:
+            variant.warnings.append(str(error))
+            logger.warning(error)
+            return True
+        else: # for now any non-reference error should not halt variant validation
+            variant.warnings.append(str(error))
+            hgvs_protein = protein_dict['hgvs_protein']
 
     # Gene orientation wrt genome
     ori = validator.tx_exons(tx_ac=hgvs_coding.ac, alt_ac=hgvs_genomic.ac,

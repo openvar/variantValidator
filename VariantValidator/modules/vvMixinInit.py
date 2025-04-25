@@ -455,19 +455,47 @@ class Mixin:
             modified_aa = None
 
         # Translate the reference and variant proteins
-        prot_ref_seq = utils.translate(ref_seq, cds_start, modified_aa)
+        try:
+            prot_ref_seq = utils.translate(ref_seq, cds_start, modified_aa)
+        except IndexError:
+            hgvs_transcript_to_hgvs_protein['error'] = \
+                'ProteinTranslationError: Cannot generate a protein without an identifiable in-' +\
+                'frame Termination codon in the reference mRNA sequence, this transcript may be ' +\
+                'subject to nonstop decay'
+            hgvs_transcript_to_hgvs_protein['hgvs_protein'] = _tot_unc(associated_protein_accession)
+            return hgvs_transcript_to_hgvs_protein
+        except KeyError:
+            hgvs_transcript_to_hgvs_protein['error'] = \
+                'ProteinTranslationError: Unable to build protein sequence due to a non-CATG ' +\
+                'base included in the reference mRNA sequence, only standard unambiguous bases '+\
+                'are accepted input for protein generation.'
+            hgvs_transcript_to_hgvs_protein['hgvs_protein'] = _tot_unc(associated_protein_accession)
+            return hgvs_transcript_to_hgvs_protein
+
+
         try:
             prot_var_seq = utils.translate(var_seq, cds_start, modified_aa)
         except IndexError:
             hgvs_transcript_to_hgvs_protein['error'] = \
-                'Cannot identify an in-frame Termination codon in the variant mRNA sequence'
+                'ProteinTranslationError: Cannot generate a protein without an identifiable in-' +\
+                'frame Termination codon in the variant mRNA sequence, this transcript may be ' +\
+                'subject to nonstop decay'
             hgvs_protein = _tot_unc(associated_protein_accession)
             hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
             return hgvs_transcript_to_hgvs_protein
-
+        except KeyError:
+            hgvs_transcript_to_hgvs_protein['error'] = \
+                'ProteinTranslationError: Unable to build protein sequence due to a non-CATG ' +\
+                'base included in the variant mRNA sequence, only standard unambiguous bases are'+\
+                ' accepted input for protein generation.'
+            hgvs_transcript_to_hgvs_protein['hgvs_protein'] = _tot_unc(associated_protein_accession)
+            return hgvs_transcript_to_hgvs_protein
+        no_start_err = 'ProteinTranslationError: Unable to generate protein variant description '+\
+                'due to the sequence missing an accepted start codon.'
         if prot_ref_seq == 'error':
-            error = 'Unable to generate protein variant description'
-            hgvs_transcript_to_hgvs_protein['error'] = error
+            hgvs_transcript_to_hgvs_protein['error'] = no_start_err.replace(
+                    'the sequence','the reference sequence')
+            hgvs_transcript_to_hgvs_protein['hgvs_protein'] = _tot_unc(associated_protein_accession)
             return hgvs_transcript_to_hgvs_protein
         if prot_var_seq == 'error':
             # Does the edit affect the start codon?
@@ -481,8 +509,7 @@ class Mixin:
                 hgvs_protein = _fb_unc(associated_protein_accession,residue_one)
                 hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
             else:
-                error = 'Unable to generate protein variant description'
-                hgvs_transcript_to_hgvs_protein['error'] = error
+                hgvs_transcript_to_hgvs_protein['error'] = no_start_err
             return hgvs_transcript_to_hgvs_protein
 
         if ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and
