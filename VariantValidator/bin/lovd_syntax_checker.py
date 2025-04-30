@@ -50,6 +50,9 @@ if __name__ == "__main__":
     test_variant = "c.100del"
     output = run_hgvs_checker(test_variant)
     print(output)
+    test_variant = "Dmd\\"
+    output = run_hgvs_checker(test_variant)
+    print(output)
 
 
 # <LICENSE>

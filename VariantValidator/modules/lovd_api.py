@@ -1,5 +1,8 @@
 import requests
+import logging
 from VariantValidator.bin import lovd_syntax_checker
+
+logger = logging.getLogger(__name__)
 
 
 def run_lovd_checker_cli(variant):
@@ -14,6 +17,7 @@ def run_lovd_checker_cli(variant):
         result["version"] = result["data"][0]["metadata"]["library_version"]
         return result  # Ensure it returns a dictionary
     except Exception as e:
+        logger.error(f"Error running LOVD checker CLI: {e}")
         return {"lovd_api_error": f"CLI check failed: {e}"}
 
 
@@ -47,6 +51,7 @@ def lovd_syntax_check(variant_description, do_lovd_check=True):
         if "lovd_api_error" in json_data:  # Fallback if CLI fails
             raise ValueError(json_data["lovd_api_error"])
     except Exception as e:
+        logger.error(f"Error running LOVD checker CLI: {e}")
         json_data = run_lovd_checker_web(variant_description)
 
     json_data = remove_double_quotes(json_data)

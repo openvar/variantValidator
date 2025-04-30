@@ -1431,7 +1431,8 @@ class Mixin(vvMixinConverters.Mixin):
             raise fn.VariantValidatorError('Validation error')
 
     def gene2transcripts(self, query, validator=False, bypass_web_searches=False, select_transcripts=None,
-                         transcript_set="refseq", genome_build=None, batch_output=False, bypass_genomic_spans=False):
+                         transcript_set="refseq", genome_build=None, batch_output=False, bypass_genomic_spans=False,
+                         lovd_syntax_check=False):
 
         try:
             gene_symbols = json.loads(query)
@@ -1454,15 +1455,21 @@ class Mixin(vvMixinConverters.Mixin):
             pass
 
         if batch_output is False:
-            g2d_data = gene2transcripts.gene2transcripts(self, query, validator, bypass_web_searches,
+            try:
+                g2d_data = gene2transcripts.gene2transcripts(self, query, validator, bypass_web_searches,
                                                          select_transcripts, transcript_set, genome_build,
-                                                         bypass_genomic_spans)
+                                                         bypass_genomic_spans, lovd_syntax_check)
+            except Exception:
+                g2d_data = gene2transcripts.lovd_syntax_check_g2t(query, lovd_syntax_check)
         else:
             g2d_data = []
             for symbol in gene_symbols:
-                data_for_gene = gene2transcripts.gene2transcripts(self, symbol, validator, bypass_web_searches,
+                try:
+                    data_for_gene = gene2transcripts.gene2transcripts(self, symbol, validator, bypass_web_searches,
                                                                   select_transcripts, transcript_set, genome_build,
-                                                                  bypass_genomic_spans)
+                                                                  bypass_genomic_spans, lovd_syntax_check)
+                except Exception:
+                    data_for_gene = gene2transcripts.lovd_syntax_check_g2t(symbol, lovd_syntax_check)
                 g2d_data.append(data_for_gene)
 
         # return
