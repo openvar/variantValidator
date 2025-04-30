@@ -11,15 +11,15 @@ class Mixin(vvDBInit.Mixin):
     """
 
     @handleCursor
-    def execute(self, query):
+    def execute(self, *query_args):
         # Connect and create cursor
         conn = self.get_conn()
         cursor = self.get_cursor(conn)
 
-        cursor.execute(query)
+        cursor.execute(*query_args)
         row = cursor.fetchone()
         if row is None:
-            logger.debug("No data returned from query " + str(query))
+            logger.debug("No data returned from query " + str(query_args))
             row = ['none', 'No data']
 
         # Close conn
@@ -28,15 +28,15 @@ class Mixin(vvDBInit.Mixin):
         return row
 
     @handleCursor
-    def execute_all(self, query):
+    def execute_all(self, *query_args):
         # Connect and create cursor
         conn = self.get_conn()
         cursor = self.get_cursor(conn)
 
-        cursor.execute(query)
+        cursor.execute(*query_args)
         rows = cursor.fetchall()
         if not rows:
-            logger.debug("No data returned from query " + str(query))
+            logger.debug("No data returned from query " + str(query_args))
             rows = ['none', 'No data']
 
         # Close conn
@@ -46,42 +46,42 @@ class Mixin(vvDBInit.Mixin):
 
     # from dbfetchone
     def get_uta(self, gene_symbol):
-        query = "SELECT utaSymbol FROM transcript_info WHERE hgncSymbol = '%s'" % gene_symbol
-        return self.execute(query)
+        query = "SELECT utaSymbol FROM transcript_info WHERE hgncSymbol = %s"
+        return self.execute(query,(gene_symbol,))
 
     def get_hgnc(self, gene_symbol):
-        query = "SELECT hgncSymbol FROM transcript_info WHERE utaSymbol = '%s'" % gene_symbol
-        return self.execute(query)
+        query = "SELECT hgncSymbol FROM transcript_info WHERE utaSymbol = %s"
+        return self.execute(query,(gene_symbol,))
 
     def get_transcript_description(self, transcript_id):
-        query = "SELECT description FROM transcript_info WHERE refSeqID = '%s'" % transcript_id
-        return str(self.execute(query)[0])
+        query = "SELECT description FROM transcript_info WHERE refSeqID = %s"
+        return str(self.execute(query,(transcript_id,))[0])
 
     def get_transcript_annotation(self, transcript_id):
-        query = "SELECT transcriptVariant FROM transcript_info WHERE refSeqID = '%s'" % transcript_id
-        return str(self.execute(query)[0])
+        query = "SELECT transcriptVariant FROM transcript_info WHERE refSeqID = %s"
+        return str(self.execute(query,(transcript_id,))[0])
 
     def get_gene_symbol_from_transcript_id(self, transcript_id):
-        query = "SELECT hgncSymbol FROM transcript_info WHERE refSeqID = '%s'" % transcript_id
-        return str(self.execute(query)[0])
+        query = "SELECT hgncSymbol FROM transcript_info WHERE refSeqID = %s"
+        return str(self.execute(query,(transcript_id,))[0])
 
     def get_refseq_data_by_refseq_id(self, refseq_id, genome_build):
         query = "SELECT refSeqGeneID, refSeqChromosomeID, genomeBuild, startPos, endPos, orientation, totalLength, " \
-                "chrPos, rsgPos, entrezID, hgncSymbol FROM refSeqGene_loci WHERE refSeqGeneID = '%s' " \
-                "AND genomeBuild = '%s'" % (refseq_id, genome_build)
-        return self.execute(query)
+                "chrPos, rsgPos, entrezID, hgncSymbol FROM refSeqGene_loci WHERE refSeqGeneID = %s " \
+                "AND genomeBuild = %s"
+        return self.execute(query,(refseq_id, genome_build))
 
     def get_gene_symbol_from_refseq_id(self, refseq_id):
-        query = "SELECT hgncSymbol FROM refSeqGene_loci WHERE refSeqGeneID = '%s'" % refseq_id
-        return self.execute(query)[0]
+        query = "SELECT hgncSymbol FROM refSeqGene_loci WHERE refSeqGeneID = %s"
+        return self.execute(query,(refseq_id,))[0]
 
     def get_refseq_id_from_lrg_id(self, lrg_id):
-        query = "SELECT RefSeqGeneID FROM LRG_RSG_lookup WHERE lrgID = '%s'" % lrg_id
-        return self.execute(query)[0]
+        query = "SELECT RefSeqGeneID FROM LRG_RSG_lookup WHERE lrgID = %s"
+        return self.execute(query,(lrg_id,))[0]
 
     def get_refseq_transcript_id_from_lrg_transcript_id(self, lrg_tx_id):
-        query = "SELECT RefSeqTranscriptID FROM LRG_transcripts WHERE LRGtranscriptID = '%s'" % lrg_tx_id
-        return self.execute(query)[0]
+        query = "SELECT RefSeqTranscriptID FROM LRG_transcripts WHERE LRGtranscriptID = %s"
+        return self.execute(query,(lrg_tx_id,))[0]
 
     def get_lrg_transcript_id_from_refseq_transcript_id(self, rst_id):
         if not LRG_TX_LINK:
@@ -92,31 +92,31 @@ class Mixin(vvDBInit.Mixin):
         return LRG_TX_LINK.get(rst_id,'none')
 
     def get_lrg_id_from_refseq_gene_id(self, rsg_id):
-        query = "SELECT lrgID, status FROM LRG_RSG_lookup WHERE RefSeqGeneID = '%s'" % rsg_id
-        return self.execute(query)
+        query = "SELECT lrgID, status FROM LRG_RSG_lookup WHERE RefSeqGeneID = %s"
+        return self.execute(query,(rsg_id,))
 
     def get_refseqgene_info(self, refseqgene_id, primary_assembly):
         query = "SELECT refSeqGeneID, refSeqChromosomeID, genomeBuild, startPos, endPos FROM refSeqGene_loci " \
-                "WHERE refSeqGeneID = '%s' AND genomeBuild = '%s'" % (refseqgene_id, primary_assembly)
-        return self.execute(query)
+                "WHERE refSeqGeneID = %s AND genomeBuild = %s"
+        return self.execute(query,(refseqgene_id, primary_assembly))
 
     def get_refseq_protein_id_from_lrg_protein_id(self, lrg_p):
-        query = "SELECT RefSeqProteinID FROM LRG_proteins WHERE LRGproteinID = '%s'" % lrg_p
-        return self.execute(query)[0]
+        query = "SELECT RefSeqProteinID FROM LRG_proteins WHERE LRGproteinID = %s"
+        return self.execute(query,(lrg_p,))[0]
 
     def get_lrg_protein_id_from_ref_seq_protein_id(self, rs_p):
-        query = "SELECT LRGproteinID FROM LRG_proteins WHERE  RefSeqProteinID = '%s'" % rs_p
-        return self.execute(query)[0]
+        query = "SELECT LRGproteinID FROM LRG_proteins WHERE  RefSeqProteinID = %s"
+        return self.execute(query,(rs_p,))[0]
 
     def get_lrg_data_from_lrg_id(self, lrg_id):
-        query = "SELECT * FROM LRG_RSG_lookup WHERE lrgID = '%s'" % lrg_id
-        return self.execute(query)
+        query = "SELECT * FROM LRG_RSG_lookup WHERE lrgID = %s"
+        return self.execute(query,(lrg_id,))
 
     def get_transcript_info_for_gene(self, gene_symbol):
         query = "SELECT refSeqID, description, transcriptVariant, currentVersion, hgncSymbol, utaSymbol, " \
                 "updated, IF(updated < NOW() - INTERVAL 3 MONTH , 'true', 'false') FROM transcript_info " \
-                "WHERE hgncSymbol = '%s'" % gene_symbol
-        return self.execute_all(query)
+                "WHERE hgncSymbol = %s"
+        return self.execute_all(query,(gene_symbol,))
 
     def get_g_to_g_info(self, rsg_id=None, gen_id=None, start=None, end=None):
         """
@@ -127,32 +127,37 @@ class Mixin(vvDBInit.Mixin):
         query = "SELECT refSeqGeneID, refSeqChromosomeID, startPos, endPos, orientation, hgncSymbol, " \
                 "genomeBuild FROM refSeqGene_loci"
         if rsg_id:
-            query = query + f" WHERE refSeqGeneID='{rsg_id}' "
+            query = query + f" WHERE refSeqGeneID= %s "
+            query_vals = (rsg_id,)
         elif gen_id:
-            query = query + f" WHERE refSeqChromosomeID='{gen_id}' "
+            query = query + f" WHERE refSeqChromosomeID= %s "
+            query_vals = (gen_id,)
             if start:
-                query = query + f"AND startPos <= {str(start)} "
+                query = query + f"AND startPos <= %s "
+                query_vals = query_vals + (str(start),)
             if end:
-                query = query + f"AND endPos >= {str(end)} "
-        return self.execute_all(query)
+                query = query + f"AND endPos >= %s "
+                query_vals = query_vals + (str(end),)
+        return self.execute_all(query,query_vals)
 
     def get_all_transcript_id(self):
         query = "SELECT refSeqID FROM transcript_info"
         return self.execute_all(query)
 
     def get_stable_gene_id_info(self, hgnc_symbol):
-        query = "SELECT * FROM stableGeneIds WHERE hgnc_symbol = '%s'" % hgnc_symbol
-        return self.execute(query)
+        query = "SELECT * FROM stableGeneIds WHERE hgnc_symbol = %s"
+        return self.execute(query,(hgnc_symbol,))
 
     def get_stable_gene_id_from_hgnc_id(self, hgnc_id):
-        query = "SELECT * FROM stableGeneIds WHERE hgnc_id = '%s'" % hgnc_id
-        return self.execute(query)
+        query = "SELECT * FROM stableGeneIds WHERE hgnc_id = %s"
+        return self.execute(query,(hgnc_id,))
 
     def get_transcripts_from_annotations(self, statement):
-        query = "SELECT * FROM transcript_info WHERE transcriptVariant LIKE '%{}%'".format(statement)
+        testval = "%" + statement + "%"
+        query = "SELECT * FROM transcript_info WHERE transcriptVariant LIKE %s"
 
         # print("My query is: ", query)
-        return self.execute_all(query)
+        return self.execute_all(query,(testval,))
 
     def get_db_version(self):
         """
