@@ -222,9 +222,16 @@ class TestGene2Transcripts(unittest.TestCase):
         output4 = self.vv.gene2transcripts('acad2', select_transcripts=None, transcript_set="refseq",
                                           lovd_syntax_check=True)
         assert output1["lovd_messages"] is not None
+        assert "error" in output1.keys()
+
         assert output2["lovd_messages"] is not None
+        assert "error" not in output2.keys()
+
         assert output3["lovd_messages"] is not None
+        assert "error" in output3.keys()
+
         assert output4["lovd_messages"] is not None
+        assert "error" not in output4.keys()
 
 
 # <LICENSE>

@@ -194,7 +194,22 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
                     except Exception:
                         if lovd_syntax_check is True:
                             lovd_messages, lovd_corrections = lovd_syntax_check_g2t(submitted, lovd_syntax_check)
-                            return {'error': 'Invalid characters identified. Please provide a valid submission',
+                            if len(lovd_corrections) == 1 and list(lovd_corrections.values())[0] == 1:
+                                corrected_symbol = list(lovd_corrections.keys())[0]
+                                vvta_record = g2t.hdp.get_gene_info(corrected_symbol)
+                                if vvta_record is not None:
+                                    current_sym = corrected_symbol
+                                    gene_name = vvta_record[3]
+                                    hgnc_id = vvta_record[0]
+                                    previous_sym = ""
+                                    symbol_identified = True
+                                else:
+                                    return {'error': 'Unable to recognise gene symbol %s' % hgnc,
+                                            "requested_symbol": submitted,
+                                            "lovd_messages": lovd_messages,
+                                            "lovd_corrections": lovd_corrections}
+                            else:
+                                return {'error': 'Invalid characters identified. Please provide a valid submission',
                                     "requested_symbol": submitted,
                                     "lovd_messages": lovd_messages,
                                     "lovd_corrections": lovd_corrections}
@@ -213,10 +228,24 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
         if symbol_identified is False:
             if lovd_syntax_check is True:
                 lovd_messages, lovd_corrections = lovd_syntax_check_g2t(submitted, lovd_syntax_check)
-                return {'error': 'Unable to recognise gene symbol %s' % hgnc,
-                        "requested_symbol": submitted,
-                        "lovd_messages": lovd_messages,
-                        "lovd_corrections": lovd_corrections}
+                if len(lovd_corrections) == 1 and list(lovd_corrections.values())[0] == 1:
+                    corrected_symbol = list(lovd_corrections.keys())[0]
+                    vvta_record = g2t.hdp.get_gene_info(corrected_symbol)
+                    if vvta_record is not None:
+                        current_sym = corrected_symbol
+                        gene_name = vvta_record[3]
+                        hgnc_id = vvta_record[0]
+                        previous_sym = ""
+                    else:
+                        return {'error': 'Unable to recognise gene symbol %s' % hgnc,
+                                "requested_symbol": submitted,
+                                "lovd_messages": lovd_messages,
+                                "lovd_corrections": lovd_corrections}
+                else:
+                    return {'error': 'Unable to recognise gene symbol %s' % hgnc,
+                            "requested_symbol": submitted,
+                            "lovd_messages": lovd_messages,
+                            "lovd_corrections": lovd_corrections}
             else:
                 return {'error': 'Unable to recognise gene symbol %s' % hgnc,
                         "requested_symbol": submitted}
@@ -487,7 +516,7 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
                     'hgnc': hgnc_id,
                     'transcripts': genes_and_tx
                     }
-    g2d_data["requested_symbol"] = query
+    g2d_data["requested_symbol"] = submitted
 
     return g2d_data
 

@@ -1,9 +1,5 @@
 # VariantValidator
-[![Build Status](http://130.88.97.241:8080/buildStatus/icon?job=VariantValidator+CI%2Fmaster&build=3)](http://130.88.97.241:8080/job/VariantValidator%20CI/job/master/3/console)
 [![codecov](https://codecov.io/gh/openvar/variantValidator/graph/badge.svg?token=QWTxw5kiY4)](https://codecov.io/gh/openvar/variantValidator)
-
-## Gitter
-[![Join the chat at https://gitter.im/variantValidatorDiscuss/community](https://badges.gitter.im/variantValidatorDiscuss/community.svg)](https://gitter.im/variantValidatorDiscuss/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## About
 

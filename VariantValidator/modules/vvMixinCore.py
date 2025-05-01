@@ -1455,21 +1455,15 @@ class Mixin(vvMixinConverters.Mixin):
             pass
 
         if batch_output is False:
-            try:
-                g2d_data = gene2transcripts.gene2transcripts(self, query, validator, bypass_web_searches,
-                                                         select_transcripts, transcript_set, genome_build,
-                                                         bypass_genomic_spans, lovd_syntax_check)
-            except Exception:
-                g2d_data = gene2transcripts.lovd_syntax_check_g2t(query, lovd_syntax_check)
+            g2d_data = gene2transcripts.gene2transcripts(self, query, validator, bypass_web_searches,
+                                                     select_transcripts, transcript_set, genome_build,
+                                                     bypass_genomic_spans, lovd_syntax_check)
         else:
             g2d_data = []
             for symbol in gene_symbols:
-                try:
-                    data_for_gene = gene2transcripts.gene2transcripts(self, symbol, validator, bypass_web_searches,
-                                                                  select_transcripts, transcript_set, genome_build,
-                                                                  bypass_genomic_spans, lovd_syntax_check)
-                except Exception:
-                    data_for_gene = gene2transcripts.lovd_syntax_check_g2t(symbol, lovd_syntax_check)
+                data_for_gene = gene2transcripts.gene2transcripts(self, symbol, validator, bypass_web_searches,
+                                                              select_transcripts, transcript_set, genome_build,
+                                                              bypass_genomic_spans, lovd_syntax_check)
                 g2d_data.append(data_for_gene)
 
         # return
