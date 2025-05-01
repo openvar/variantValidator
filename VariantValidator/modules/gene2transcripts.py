@@ -73,12 +73,12 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
                         # Try LOVD syntax checker
                         if lovd_syntax_check is True:
                             lovd_messages, lovd_corrections = lovd_syntax_check_g2t(submitted, lovd_syntax_check)
-                            return {'error': 'Unable to recognise HGNC ID. Please provide a gene symbol',
+                            return {'error': f"Unable to recognise {submitted}. Please provide a gene symbol",
                                     "requested_symbol": submitted,
                                     "lovd_messages": lovd_messages,
                                     "lovd_corrections": lovd_corrections}
                         else:
-                            return {'error': 'Unable to recognise HGNC ID. Please provide a gene symbol',
+                            return {'error': f"Unable to recognise {submitted}. Please provide a gene symbol",
                                     "requested_symbol": submitted}
                 except TypeError:
                     pass
