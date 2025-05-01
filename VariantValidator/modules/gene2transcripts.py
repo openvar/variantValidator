@@ -85,6 +85,7 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
 
         query = query.upper()
         if re.search(r'\d+ORF\d+', query):
+            lovd_messages, lovd_corrections = lovd_syntax_check_g2t(submitted, lovd_syntax_check)
             query = query.replace('ORF', 'orf')
 
         # Quick check for LRG
