@@ -7,6 +7,36 @@ from VariantValidator.modules import seq_data
 
 logger = logging.getLogger(__name__)
 
+# Translation table derived from Extended translation table in
+# http://biopython.org/DIST/docs/tutorial/Tutorial.html#sec27
+PROT_TRANSLATION_DICT = {
+        'TCT':'S', 'TCC':'S', 'TCA':'S', 'TCG':'S', 'AGT':'S', 'AGC':'S',
+        'TTA':'L', 'TTG':'L', 'CTT':'L', 'CTC':'L', 'CTA':'L', 'CTG':'L',
+        'TGT':'C', 'TGC':'C',
+        'TGG': 'W',
+        'GAA':'E', 'GAG':'E',
+        'GAT':'D', 'GAC':'D',
+        'CCT':'P', 'CCC':'P', 'CCA':'P', 'CCG':'P',
+        'GTT':'V', 'GTC':'V', 'GTA':'V', 'GTG':'V',
+        'AAT':'N', 'AAC':'N',
+        'ATG':'M',
+        'AAA':'K', 'AAG':'K',
+        'TAT':'Y', 'TAC':'Y',
+        'ATT':'I', 'ATC':'I', 'ATA':'I',
+        'CAA':'Q', 'CAG':'Q',
+        'TTT':'F', 'TTC':'F',
+        'CGT':'R', 'CGC':'R', 'CGA':'R', 'CGG':'R', 'AGA':'R', 'AGG':'R',
+        'ACT':'T', 'ACC':'T', 'ACA':'T', 'ACG':'T',
+        'GCT':'A', 'GCC':'A', 'GCA':'A', 'GCG':'A',
+        'GGT':'G', 'GGC':'G', 'GGA':'G', 'GGG':'G',
+        'CAT':'H', 'CAC':'H',
+        'TAA':'*', 'TAG':'*', 'TGA':'*'
+        }
+
+PROT_TRANSLATION_DICT_SEL = copy.copy(PROT_TRANSLATION_DICT)
+PROT_TRANSLATION_DICT_SEL['TGA'] = 'U'
+
+
 
 def handleCursor(func):
     """
@@ -455,7 +485,7 @@ def pro_delins_info(prot_ref_seq, prot_var_seq, in_frame=False):
             return info
 
 
-def translate(ed_seq, cds_start, modified_aa=None):
+def translate(ed_seq, cds_start, modified_aa=None, tolerate_no_stop_cds = False):
     """
     Translate c. reference sequences, including those that have been modified
     must have the CDS in the specified position
@@ -463,82 +493,41 @@ def translate(ed_seq, cds_start, modified_aa=None):
     ed_seq = ed_seq.strip()
     # Ensure the starting codon is in the correct position
     met = ed_seq[cds_start:cds_start + 3]
-
-    # Extended translation table see http://biopython.org/DIST/docs/tutorial/Tutorial.html#sec27
+    met = met.upper() #this should be redundant with all inputs upper case
     """
     >>> mito_table.start_codons
     ['ATT', 'ATC', 'ATA', 'ATG', 'GTG']
     """
-    if (met == 'ATG') or (met == 'atg') or (met == 'TTG') or (met == 'ttg') or (met == 'CTG') or (met == 'ctg') \
-        or (met == 'GTG') or (met == 'gtg') or (met == 'ATT') or (met == 'att') or (met == 'ATC') or (met == 'atc') \
-        or (met == 'ATA') or (met == 'ata') or (met == 'ACG') or (met == 'acg'):
-
-        # Remove the 5 prime UTR
-        coding_sequence = ed_seq[cds_start:].upper()
-
-        # Translation table
-        translation_dict = \
-            {
-                ('TCT', 'TCC', 'TCA', 'TCG', 'AGT', 'AGC'): 'S', ('TTA', 'TTG', 'CTT', 'CTC', 'CTA', 'CTG'): 'L',
-                ('TGT', 'TGC'): 'C', 'TGG': 'W', ('GAA', 'GAG'): 'E', ('GAT', 'GAC'): 'D', ('CCT', 'CCC', 'CCA',
-                                                                                            'CCG'): 'P',
-                ('GTT', 'GTC', 'GTA', 'GTG'): 'V', ('AAT', 'AAC'): 'N', 'ATG': 'M', ('AAA', 'AAG'): 'K', ('TAT',
-                                                                                                          'TAC'): 'Y',
-                ('ATT', 'ATC', 'ATA'): 'I', ('CAA', 'CAG'): 'Q', ('TTT', 'TTC'): 'F', ('CGT', 'CGC', 'CGA', 'CGG',
-                                                                                       'AGA', 'AGG'): 'R',
-                ('ACT', 'ACC', 'ACA', 'ACG'): 'T', ('GCT', 'GCC', 'GCA', 'GCG'): 'A', ('GGT', 'GGC', 'GGA', 'GGG'): 'G',
-                ('CAT', 'CAC'): 'H', ('TAA', 'TAG', 'TGA'): '*'
-
-            }
-
-        translation_dict_sel = \
-            {
-                ('TCT', 'TCC', 'TCA', 'TCG', 'AGT', 'AGC'): 'S', ('TTA', 'TTG', 'CTT', 'CTC', 'CTA', 'CTG'): 'L',
-                ('TGT', 'TGC'): 'C', 'TGG': 'W', ('GAA', 'GAG'): 'E', ('GAT', 'GAC'): 'D', ('CCT', 'CCC', 'CCA',
-                                                                                            'CCG'): 'P',
-                ('GTT', 'GTC', 'GTA', 'GTG'): 'V', ('AAT', 'AAC'): 'N', 'ATG': 'M', ('AAA', 'AAG'): 'K', ('TAT',
-                                                                                                          'TAC'): 'Y',
-                ('ATT', 'ATC', 'ATA'): 'I', ('CAA', 'CAG'): 'Q', ('TTT', 'TTC'): 'F', ('CGT', 'CGC', 'CGA', 'CGG',
-                                                                                       'AGA', 'AGG'): 'R',
-                ('ACT', 'ACC', 'ACA', 'ACG'): 'T', ('GCT', 'GCC', 'GCA', 'GCG'): 'A', ('GGT', 'GGC', 'GGA', 'GGG'): 'G',
-                ('CAT', 'CAC'): 'H', ('TAA', 'TAG'): '*', 'TGA': 'U'
-
-            }
-
-        if modified_aa == "Sec":
-            use_dict = translation_dict_sel
-        else:
-            use_dict = translation_dict
-
-        # Translate
-        codon_list = [coding_sequence[i:i+3] for i in range(0, len(coding_sequence), 3)]
-        translation = []
-        for codon in codon_list:
-            for key, val in use_dict.items():
-                if str(codon) in key:
-                    translation.append(val)
-                    break
-                else:
-                    continue
-
-        trans = "".join(translation)
-        aain = list(trans)
-        aaout = []
-        count = 0
-        while aain:
-            if aain[count] != '*':
-                aaout.append(aain[count])
-                count = count + 1
-            else:
-                aaout.append(aain[count])
-                break
-        translation = ''.join(aaout)
-        # Apply a width of 60 characters to the string output
-        # translation = textwrap.fill(translation, width=60)
-        return translation
-    else:
+    if met not in ['ATG', 'TTG', 'CTG', 'GTG', 'ATT', 'ATC', 'ATA', 'ACG']:
         translation = 'error'
         return translation
+
+    # Remove the 5 prime UTR
+    coding_sequence = ed_seq[cds_start:].upper()
+    if modified_aa == "Sec":
+        use_dict = PROT_TRANSLATION_DICT_SEL
+        stops = ['TAA', 'TAG']
+    else:
+        use_dict = PROT_TRANSLATION_DICT
+        stops = ['TAA', 'TAG', 'TGA']
+
+    # Translate
+    if len(coding_sequence) % 3:
+        last_codon_end = int(len(coding_sequence)/3) * 3
+    else:
+        last_codon_end = len(coding_sequence)
+    codon_list = [coding_sequence[i:i+3] for i in range(0, last_codon_end, 3)]
+    translation = []
+    for codon in codon_list:
+        translation.append(use_dict[codon])
+        if codon in stops:
+            break
+    if translation[-1] != '*':
+        if not tolerate_no_stop_cds:
+            raise IndexError('No stop CDS')
+        translation.append('X')
+
+    return "".join(translation)
 
 
 def one_to_three(seq):
