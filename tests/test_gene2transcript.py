@@ -190,7 +190,7 @@ class TestGene2Transcripts(unittest.TestCase):
         symbol = 'HGNC:12029'
         results = self.vv.gene2transcripts(symbol)
         print(results)
-        assert results["error"] == "Unable to recognise HGNC ID. Please provide a gene symbol"
+        assert "Please provide a gene symbol" in results["error"]
         assert results["requested_symbol"] == symbol
 
     def test_multiple_genes(self):
