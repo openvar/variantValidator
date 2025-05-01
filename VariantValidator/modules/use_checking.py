@@ -26,11 +26,12 @@ def pre_parsing_global_common_mistakes(my_variant):
     # test that it is not just a number or a numeric ID
     # since numeric ids may contain a : reverse quibble substitutions if otherwise fully numeric
     # e.g 1:111111 2:435636 12:30 would be treated as appropriate NC_ otherwise
+
     if re.match(r'^[\d\s\.,:;\-\+]+$', my_variant.original.strip()):
         my_variant.quibble = my_variant.original.strip()
     if re.match(r'\d', my_variant.quibble) and re.match(r'^[\d\s\.,:;\-\+]+$', my_variant.quibble):
         warning = "InvalidVariantError: VariantValidator operates on variant descriptions, but " +\
-            f'this variant "{my_variant.quibble}" only contains numeric characters (and ' +\
+            f'this variant "{my_variant.original}" only contains numeric characters (and ' +\
             "possibly numeric associated punctuation), so can not be analysed. Did you enter this"+\
             " incorrectly, for example entering a gene ID without specifying the " + \
             "actual variation? If so, try our genes to transcripts tool https://variantvalidator.org/service/gene2trans/"
@@ -38,7 +39,7 @@ def pre_parsing_global_common_mistakes(my_variant):
         return True
     elif re.match(r'^[\w+]+$', my_variant.quibble):
         warning = "InvalidVariantError: VariantValidator operates on variant descriptions, but " + \
-                  f'this variant "{my_variant.quibble}" only contains alphanumeric characters ' + \
+                  f'this variant "{my_variant.original}" only contains alphanumeric characters ' + \
                   "so can not be analysed. Did you enter this" + \
                   " incorrectly, for example entering a gene symbol without specifying the " + \
                   "actual variation? If so, try our genes to transcripts tool https://variantvalidator.org/service/gene2trans/"

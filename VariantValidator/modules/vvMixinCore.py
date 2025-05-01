@@ -439,7 +439,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                                              "ref": None,
                                                                              "alt": None},}}
                     if type(my_variant.quibble) is str:
-                        lovd_response = lovd_api.lovd_syntax_check(my_variant.original.strip(),
+                        lovd_response = lovd_api.lovd_syntax_check(my_variant.original,
                                                                    do_lovd_check=self.lovd_syntax_check)
                         if "lovd_api_error" not in lovd_response.keys():
                             my_variant.output_type_flag = 'warning'
