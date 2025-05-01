@@ -16,7 +16,8 @@ class TestGene2Transcripts(unittest.TestCase):
         output = self.vv.gene2transcripts('')
         print(output)
         self.assertEqual(list(output), ['error', 'requested_symbol'])
-        self.assertEqual(output['error'], 'Please enter HGNC gene name or transcript identifier (NM_, NR_, or ENST)')
+        self.assertEqual(output['error'], 'Please enter HGNC gene name or '
+                                          'transcript identifier (NM_, NR_, or ENST)')
 
     def test_nonsense(self):
         output = self.vv.gene2transcripts('nonsense')
@@ -63,8 +64,8 @@ class TestGene2Transcripts(unittest.TestCase):
     def test_NM(self):
         output = self.vv.gene2transcripts('NM_024865.3')
         print(output)
-        self.assertEqual(list(output), ['current_symbol', 'previous_symbol', 'current_name',
-                                        'hgnc', 'transcripts', 'requested_symbol'])
+        self.assertEqual(list(output), ['current_symbol', 'previous_symbol', 'current_name', 'lovd_corrections',
+                                        'lovd_messages', 'hgnc', 'transcripts', 'requested_symbol'])
         self.assertEqual(output['current_symbol'], 'NANOG')
         self.assertTrue(len(output['transcripts']) > 2)
         for transcript in output['transcripts']:
@@ -77,8 +78,8 @@ class TestGene2Transcripts(unittest.TestCase):
     def test_NM_noversion(self):
         output = self.vv.gene2transcripts('NM_024865')
         print(output)
-        self.assertEqual(list(output), ['current_symbol', 'previous_symbol', 'current_name',
-                                        'hgnc', 'transcripts', 'requested_symbol'])
+        self.assertEqual(list(output), ['current_symbol', 'previous_symbol', 'current_name', 'lovd_corrections',
+                                        'lovd_messages', 'hgnc', 'transcripts', 'requested_symbol'])
         self.assertEqual(output['current_symbol'], 'NANOG')
         self.assertTrue(len(output['transcripts']) > 2)
         for transcript in output['transcripts']:
@@ -91,8 +92,8 @@ class TestGene2Transcripts(unittest.TestCase):
     def test_sym(self):
         output = self.vv.gene2transcripts('NANOG')
         print(output)
-        self.assertEqual(list(output), ['current_symbol', 'previous_symbol', 'current_name',
-                                        'hgnc', 'transcripts', 'requested_symbol'])
+        self.assertEqual(list(output), ['current_symbol', 'previous_symbol', 'current_name', 'lovd_corrections',
+                                        'lovd_messages', 'hgnc', 'transcripts', 'requested_symbol'])
         self.assertEqual(output['current_symbol'], 'NANOG')
         self.assertTrue(len(output['transcripts']) > 2)
         for transcript in output['transcripts']:
@@ -105,8 +106,8 @@ class TestGene2Transcripts(unittest.TestCase):
     def test_old_sym(self):
         output = self.vv.gene2transcripts('OTF3')
         print(output)
-        self.assertEqual(list(output), ['current_symbol', 'previous_symbol', 'current_name',
-                                        'hgnc', 'transcripts', 'requested_symbol'])
+        self.assertEqual(list(output), ['current_symbol', 'previous_symbol', 'current_name', 'lovd_corrections',
+                                        'lovd_messages', 'hgnc', 'transcripts', 'requested_symbol'])
         self.assertEqual(output['current_symbol'], 'POU5F1')
         self.assertTrue(len(output['transcripts']) > 7)
         for transcript in output['transcripts']:
@@ -189,7 +190,7 @@ class TestGene2Transcripts(unittest.TestCase):
         symbol = 'HGNC:12029'
         results = self.vv.gene2transcripts(symbol)
         print(results)
-        assert results["error"] == "Unable to recognise HGNC ID. Please provide a gene symbol"
+        assert "Please provide a gene symbol" in results["error"]
         assert results["requested_symbol"] == symbol
 
     def test_multiple_genes(self):
@@ -210,6 +211,27 @@ class TestGene2Transcripts(unittest.TestCase):
         print(output)
         tx_list = [i["reference"] for i in output["transcripts"]]
         assert "NM_" not in "".join(tx_list)
+
+    def test_lovd_syntax_handling(self):
+        output1 = self.vv.gene2transcripts('HGNC:1234567', select_transcripts=None, transcript_set="refseq",
+                                          lovd_syntax_check=True)
+        output2 = self.vv.gene2transcripts('dmd\\', select_transcripts=None, transcript_set="refseq",
+                                          lovd_syntax_check=True)
+        output3 = self.vv.gene2transcripts('CamelCase', select_transcripts=None, transcript_set="refseq",
+                                          lovd_syntax_check=True)
+        output4 = self.vv.gene2transcripts('acad2', select_transcripts=None, transcript_set="refseq",
+                                          lovd_syntax_check=True)
+        assert output1["lovd_messages"] is not None
+        assert "error" in output1.keys()
+
+        assert output2["lovd_messages"] is not None
+        assert "error" not in output2.keys()
+
+        assert output3["lovd_messages"] is not None
+        assert "error" in output3.keys()
+
+        assert output4["lovd_messages"] is not None
+        assert "error" not in output4.keys()
 
 
 # <LICENSE>

@@ -240,7 +240,7 @@ class ValOutput(object):
             try:
                 for key, val in variant.lovd_syntax_check["data"][0]["warnings"].items():
                     variant.warnings.append(f"LovdSyntaxcheckWarning: {val}")
-                    lovd_messages [key] = val
+                    lovd_messages[key] = val
             except AttributeError:
                 pass
 

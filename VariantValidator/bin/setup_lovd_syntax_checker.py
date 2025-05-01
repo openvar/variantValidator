@@ -1,50 +1,64 @@
 import os
 import urllib.request
+import subprocess
 import importlib.resources as pkg_resources
 
 # Define installation path dynamically using importlib
 def get_installation_path():
-    """Determine the correct installation path for the script inside VariantValidator."""
     try:
-        # Get the installed package directory
-        package_path = str(pkg_resources.files("VariantValidator"))  # Works with installed packages
+        package_path = str(pkg_resources.files("VariantValidator"))
         return os.path.join(package_path, "php", "lovd_hgvs_checker")
     except ModuleNotFoundError:
         print("Error: VariantValidator package is not installed.")
         exit(1)
 
-# Define installation directories
+# Define directories
 LOVD_DIR = get_installation_path()
 WEB_DIR = os.path.join(LOVD_DIR, "web")
+CACHE_DIR = os.path.join(LOVD_DIR, "cache")  # <-- NEW
 
 # Define file paths
 PHP_SCRIPT = os.path.join(LOVD_DIR, "HGVS.php")
 AJAX_SCRIPT = os.path.join(WEB_DIR, "ajax.php")
 INDEX_SCRIPT = os.path.join(WEB_DIR, "index.php")
+UPDATE_SCRIPT = os.path.join(CACHE_DIR, "update.php")  # <-- NEW
 
 # Define URLs
 HGVS_CHECKER_URL = "https://raw.githubusercontent.com/LOVDnl/HGVS-syntax-checker/main/HGVS.php"
 AJAX_URL = "https://raw.githubusercontent.com/LOVDnl/HGVS-syntax-checker/main/web/ajax.php"
 INDEX_URL = "https://raw.githubusercontent.com/LOVDnl/HGVS-syntax-checker/main/web/index.php"
+UPDATE_URL = "https://raw.githubusercontent.com/LOVDnl/HGVS-syntax-checker/main/cache/update.php"  # <-- NEW
 
 def download_file(url, dest):
-    """Download a file from a URL and save it to the specified destination."""
     try:
         print(f"Downloading {url} -> {dest}...")
         urllib.request.urlretrieve(url, dest)
-        os.chmod(dest, 0o755)  # Make the file executable if needed
+        os.chmod(dest, 0o755)
         print(f"Downloaded: {dest}")
     except Exception as e:
         print(f"Failed to download {url}: {e}")
 
 def setup_lovd():
-    """Setup LOVD HGVS Syntax Checker by downloading required files."""
     os.makedirs(LOVD_DIR, exist_ok=True)
     os.makedirs(WEB_DIR, exist_ok=True)
+    os.makedirs(CACHE_DIR, exist_ok=True)
 
     download_file(HGVS_CHECKER_URL, PHP_SCRIPT)
     download_file(AJAX_URL, AJAX_SCRIPT)
     download_file(INDEX_URL, INDEX_SCRIPT)
+    download_file(UPDATE_URL, UPDATE_SCRIPT)
+
+    try:
+        os.chmod(CACHE_DIR, 0o777)  # Make directory writable
+    except Exception as e:
+        print(f"Warning: could not change permissions on {CACHE_DIR}: {e}")
+
+    print("Running PHP cache updater...")
+    try:
+        subprocess.run(["php", "-f", UPDATE_SCRIPT], check=True)
+        print("Cache updated successfully.")
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to run PHP cache update: {e}")
 
     print("Setup complete! HGVS Syntax Checker is ready to use.")
 

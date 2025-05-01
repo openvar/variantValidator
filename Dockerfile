@@ -23,10 +23,12 @@ RUN pip install --upgrade pip
 
 # Install the app
 RUN pip install -e .
-RUN python -m VariantValidator.bin.setup_lovd_syntax_checker
 
 # Copy the config file into the container home directory
 COPY configuration/docker.ini /root/.variantvalidator
+
+# Setup the LOVD Syntax checker
+RUN python -m VariantValidator.bin.setup_lovd_syntax_checker
 
 # Set entrypoint
 ENTRYPOINT []
