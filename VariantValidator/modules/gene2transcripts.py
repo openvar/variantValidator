@@ -69,24 +69,25 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
                             if tx[5] != "unassigned":
                                 query = tx[5]
                                 break
-                    else:
-                        # Try LOVD syntax checker
-                        if lovd_syntax_check is True:
-                            lovd_messages, lovd_corrections = lovd_syntax_check_g2t(submitted, lovd_syntax_check)
-                            return {'error': f"Unable to recognise {submitted}. Please provide a gene symbol",
-                                    "requested_symbol": submitted,
-                                    "lovd_messages": lovd_messages,
-                                    "lovd_corrections": lovd_corrections}
+                    elif lovd_syntax_check is True: # Try LOVD syntax checker
+                        error = f"Unable to recognise {submitted}. Please provide a gene symbol"
+                        lovd_messages, lovd_corrections = lovd_syntax_check_g2t(submitted, lovd_syntax_check)
+                        if lovd_messages:
+                            return {
+                                'error': error,
+                                "requested_symbol": submitted,
+                                "lovd_messages": lovd_messages,
+                                "lovd_corrections": lovd_corrections}
                         else:
-                            return {'error': f"Unable to recognise {submitted}. Please provide a gene symbol",
-                                    "requested_symbol": submitted}
+                            return {'error': error, "requested_symbol": submitted }
+                    else:
+                        return {'error': f"Unable to recognise {submitted}. Please provide a gene symbol",
+                                "requested_symbol": submitted}
                 except TypeError:
                     pass
 
         query = query.upper()
         if re.search(r'\d+ORF\d+', query):
-            if lovd_syntax_check is True:
-                lovd_messages, lovd_corrections = lovd_syntax_check_g2t(submitted, lovd_syntax_check)
             query = query.replace('ORF', 'orf')
 
         # Quick check for LRG
@@ -526,31 +527,28 @@ def lovd_syntax_check_g2t(query, lovd_syntax_check):
     # Get additional warnings
     check_with_lovd = lovd_api.lovd_syntax_check(query, do_lovd_check=lovd_syntax_check)
 
-    if "lovd_api_error" not in check_with_lovd.keys():
-        lovd_messages = {}
-        lovd_corrections = {}
-        try:
-            for key, val in check_with_lovd["data"][0]["warnings"].items():
-                lovd_messages[key] = val
-        except AttributeError:
-            pass
+    if "lovd_api_error" in check_with_lovd:
+        return {}, {}
 
-        try:
-            for key, val in check_with_lovd["data"][0]["errors"].items():
-                lovd_messages[key] = val
-        except AttributeError:
-            pass
+    lovd_messages = {}
+    lovd_corrections = {}
+    data = check_with_lovd["data"][0]
+    if data["warnings"]:
+        for key, val in data["warnings"].items():
+            lovd_messages[key] = val
 
-        try:
-            for key, val in check_with_lovd['data'][0]['corrected_values'].items():
-                lovd_corrections[key] = val
-        except AttributeError:
-            pass
+    if data["errors"]:
+        for key, val in data["errors"].items():
+            lovd_messages[key] = val
 
-        lovd_messages["ISOURCE"] = check_with_lovd['url']
-        lovd_messages["LIBRARYVERSION"] = check_with_lovd['version']
+    if data['corrected_values']:
+        for key, val in data['corrected_values'].items():
+            lovd_corrections[key] = val
 
-        return lovd_messages, lovd_corrections
+    lovd_messages["ISOURCE"] = check_with_lovd['url']
+    lovd_messages["LIBRARYVERSION"] = check_with_lovd['version']
+
+    return lovd_messages, lovd_corrections
 
 # <LICENSE>
 # Copyright (C) 2016-2025 VariantValidator Contributors

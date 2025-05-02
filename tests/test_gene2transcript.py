@@ -233,6 +233,23 @@ class TestGene2Transcripts(unittest.TestCase):
         assert output4["lovd_messages"] is not None
         assert "error" not in output4.keys()
 
+    def test_orf_genes(self):
+        output = self.vv.gene2transcripts('C3orf52')
+        print(output)
+        assert 'current_symbol' in output
+        assert output['current_symbol'] == 'C3orf52'
+        assert 'hgnc' in output
+        assert output['hgnc'] == 'HGNC:26255'
+        assert 'transcripts' in output
+        output = self.vv.gene2transcripts('C3ORF52')
+        print(output)
+        assert 'current_symbol' in output
+        assert output['current_symbol'] == 'C3orf52'
+        assert 'hgnc' in output
+        assert output['hgnc'] == 'HGNC:26255'
+        assert 'transcripts' in output
+
+
 
 # <LICENSE>
 # Copyright (C) 2016-2025 VariantValidator Contributors
