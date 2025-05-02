@@ -1,16 +1,19 @@
 from VariantFormatter import simpleVariantFormatter
 import VariantValidator
-vfo = VariantValidator.Validator()
 
 
 class TestVFvariantsTranscriptSelection(object):
     @classmethod
     def setup_class(cls):
-        vfo.testing = False
+        cls.vfo = VariantValidator.Validator()
+        cls.vfo.testing = False
 
     def test_transcript_selection_raw(self):
-        results = simpleVariantFormatter.format('NC_000005.10:g.140114829del',
-                                                                 'GRCh38', 'refseq', "raw", False, True, testing=False)
+        results = simpleVariantFormatter.format(
+                'NC_000005.10:g.140114829del',
+                'GRCh38', 'refseq', "raw",
+                False, True, testing=False,
+                validator=self.vfo)
         print(results)
         assert 'NC_000005.10:g.140114829del' in results.keys()
         assert 'NM_005859.3' in results['NC_000005.10:g.140114829del'][
@@ -21,8 +24,11 @@ class TestVFvariantsTranscriptSelection(object):
             'NC_000005.10:g.140114829del']['hgvs_t_and_p'].keys()
 
     def test_transcript_selection_all(self):
-        results = simpleVariantFormatter.format('NC_000005.10:g.140114829del',
-                                                                 'GRCh38', 'refseq', "all", False, True, testing=False)
+        results = simpleVariantFormatter.format(
+                'NC_000005.10:g.140114829del',
+                'GRCh38', 'refseq', "all",
+                False, True, testing=False,
+                validator=self.vfo)
         print(results)
         assert 'NC_000005.10:g.140114829del' in results.keys()
         assert 'NM_005859.3' not in results['NC_000005.10:g.140114829del'][
@@ -33,8 +39,11 @@ class TestVFvariantsTranscriptSelection(object):
             'NC_000005.10:g.140114829del']['hgvs_t_and_p'].keys()
 
     def test_transcript_selection_mane_select(self):
-        results = simpleVariantFormatter.format('NC_000005.10:g.140114829del',
-                                                                 'GRCh38', 'refseq', "mane_select", False, True, testing=False)
+        results = simpleVariantFormatter.format(
+                'NC_000005.10:g.140114829del',
+                'GRCh38', 'refseq', "mane_select",
+                False, True, testing=False,
+                validator=self.vfo)
         print(results)
         assert 'NC_000005.10:g.140114829del' in results.keys()
         assert 'NM_005859.3' not in results['NC_000005.10:g.140114829del'][
@@ -45,8 +54,11 @@ class TestVFvariantsTranscriptSelection(object):
             'NC_000005.10:g.140114829del']['hgvs_t_and_p'].keys()
 
     def test_transcript_selection_select(self):
-        results = simpleVariantFormatter.format('NC_000005.10:g.140114829del',
-                                                                 'GRCh38', 'refseq', "select", False, True, testing=False)
+        results = simpleVariantFormatter.format(
+                'NC_000005.10:g.140114829del',
+                'GRCh38', 'refseq', "select",
+                False, True, testing=False,
+                validator=self.vfo)
         print(results)
         assert 'NC_000005.10:g.140114829del' in results.keys()
         assert 'NM_005859.3' not in results['NC_000005.10:g.140114829del'][
@@ -57,8 +69,11 @@ class TestVFvariantsTranscriptSelection(object):
             'NC_000005.10:g.140114829del']['hgvs_t_and_p'].keys()
 
     def test_transcript_selection_nm(self):
-        results = simpleVariantFormatter.format('NC_000005.10:g.140114829del',
-                                                                 'GRCh38', 'refseq', "NM_005859.4", False, True, testing=False)
+        results = simpleVariantFormatter.format(
+                'NC_000005.10:g.140114829del',
+                'GRCh38', 'refseq', "NM_005859.4",
+                False, True, testing=False,
+                validator=self.vfo)
         print(results)
         assert 'NC_000005.10:g.140114829del' in results.keys()
         assert 'NM_005859.3' not in results['NC_000005.10:g.140114829del'][
@@ -69,8 +84,11 @@ class TestVFvariantsTranscriptSelection(object):
             'NC_000005.10:g.140114829del']['hgvs_t_and_p'].keys()
 
     def test_transcript_selection_mane(self):
-        results = simpleVariantFormatter.format('NC_000007.14:g.140924703T>C',
-                                                                 'GRCh38', 'refseq', "mane", False, True, testing=False)
+        results = simpleVariantFormatter.format(
+                'NC_000007.14:g.140924703T>C',
+                'GRCh38', 'refseq', "mane",
+                False, True, testing=False,
+                validator=self.vfo)
         print(results)
         assert 'NC_000007.14:g.140924703T>C' in results.keys()
         assert 'NM_004333.6' in results['NC_000007.14:g.140924703T>C'][

@@ -439,7 +439,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                                              "ref": None,
                                                                              "alt": None},}}
                     if type(my_variant.quibble) is str:
-                        lovd_response = lovd_api.lovd_syntax_check(my_variant.original.strip(),
+                        lovd_response = lovd_api.lovd_syntax_check(my_variant.original,
                                                                    do_lovd_check=self.lovd_syntax_check)
                         if "lovd_api_error" not in lovd_response.keys():
                             my_variant.output_type_flag = 'warning'
@@ -1431,7 +1431,8 @@ class Mixin(vvMixinConverters.Mixin):
             raise fn.VariantValidatorError('Validation error')
 
     def gene2transcripts(self, query, validator=False, bypass_web_searches=False, select_transcripts=None,
-                         transcript_set="refseq", genome_build=None, batch_output=False, bypass_genomic_spans=False):
+                         transcript_set="refseq", genome_build=None, batch_output=False, bypass_genomic_spans=False,
+                         lovd_syntax_check=False):
 
         try:
             gene_symbols = json.loads(query)
@@ -1455,14 +1456,14 @@ class Mixin(vvMixinConverters.Mixin):
 
         if batch_output is False:
             g2d_data = gene2transcripts.gene2transcripts(self, query, validator, bypass_web_searches,
-                                                         select_transcripts, transcript_set, genome_build,
-                                                         bypass_genomic_spans)
+                                                     select_transcripts, transcript_set, genome_build,
+                                                     bypass_genomic_spans, lovd_syntax_check)
         else:
             g2d_data = []
             for symbol in gene_symbols:
                 data_for_gene = gene2transcripts.gene2transcripts(self, symbol, validator, bypass_web_searches,
-                                                                  select_transcripts, transcript_set, genome_build,
-                                                                  bypass_genomic_spans)
+                                                              select_transcripts, transcript_set, genome_build,
+                                                              bypass_genomic_spans, lovd_syntax_check)
                 g2d_data.append(data_for_gene)
 
         # return

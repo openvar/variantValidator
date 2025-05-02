@@ -28,10 +28,6 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
     if toskip:
         return True
 
-    toskip = vcf2hgvs_stage3(variant, validator)
-    if toskip:
-        return True
-
     toskip = gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version)
     if toskip:
         return True
@@ -164,41 +160,47 @@ def vcf2hgvs_stage1(variant, validator):
     VCF variants into HGVS - hence the need for conversion step 2
     """
     skipvar = False
-
-    if re.search(r'[-:]\d+[-:][GATC]+[-:][GATC]+', variant.quibble):
-        variant.quibble = variant.quibble.replace(':', '-')
-        # Extract primary_assembly if provided
-        if re.match(r'GRCh3\d+-', variant.quibble) or re.match(r'hg\d+-', variant.quibble):
-            in_list = variant.quibble.split('-')
-            validator.selected_assembly = in_list[0]
-            variant.quibble = '-'.join(in_list[1:])
-        pre_input = variant.quibble
-        vcf_elements = pre_input.split('-')
-        try:
-            variant.quibble = '%s:%s%s>%s' % (vcf_elements[0], vcf_elements[1], vcf_elements[2], vcf_elements[3])
-        except IndexError:
+    vcf_data = re.split(r'[-:]',variant.quibble)
+    if len(vcf_data) < 4:
+        logger.debug("Completed VCF-HVGS step 1 for %s", variant.quibble)
+        return False
+    poss_genome = vcf_data[0].lower()
+    if ('grch3' in poss_genome or 'hg' in poss_genome) and poss_genome[-1].isdigit():
+        vcf_data = vcf_data[1:]
+        variant.quibble = '-'.join(vcf_data)
+        # TODO test assembly given against settings
+        if len(vcf_data) < 4:
             variant.warnings.append("Insufficient or incorrect  VCF elements provided. "
                                     "Elements required are chr-pos-ref-alt")
             return True
-    elif re.search(r'[-:]\d+[-:][GATC]+[-:]', variant.quibble):
-        variant.quibble = variant.quibble.replace(':', '-')
-        # Extract primary_assembly if provided
-        if re.match(r'GRCh3\d+-', variant.quibble) or re.match(r'hg\d+-', variant.quibble):
-            in_list = variant.quibble.split('-')
-            validator.selected_assembly = in_list[0]
-            variant.quibble = '-'.join(in_list[1:])
-        pre_input = variant.quibble
-        vcf_elements = pre_input.split('-')
+    # no coordinate found
+    if not vcf_data[1].isdigit():
+        logger.debug("Completed VCF-HVGS step 1 for %s", variant.quibble)
+        return False
+    # ref is present and not . or DNA, or alt is present and not DNA or a list of DNA possibilities
+    # for now we leave ',' in, this is used to do vcf type multi-alt variants. We correct this as a
+    # later step since we may get psudo-hgvs input with the same pattern too.
+    if vcf_data[2] == '.':
+        vcf_data[2] = ''
+    if  vcf_data[3] == '.':
+        vcf_data[3] = ''
+
+    if re.search(r'[^CGAT]',vcf_data[2]) or re.search(r'[^CGAT,]',vcf_data[3]):
+        logger.debug("Completed VCF-HVGS step 1 for %s", variant.quibble)
+        return False
+    if vcf_data[2] and vcf_data[3]:
+        variant.quibble = f'{vcf_data[0]}:{vcf_data[1]}{vcf_data[2]}>{vcf_data[3]}'
+    elif vcf_data[2]:
         variant.warnings = ['Not stating ALT bases is ambiguous because VCF specification 4.0 would treat ' +
-                            pre_input + ' as a deletion whereas VCF specification 4.1 onwards would treat ' +
-                            pre_input + ' as ALT = REF']
+                            variant.quibble + ' as a deletion whereas VCF specification 4.1 onwards would treat ' +
+                            variant.quibble + ' as ALT = REF']
         variant.warnings.append('VariantValidator has output both alternatives')
         logger.info('Not stating ALT bases is ambiguous because VCF specification 4.0 would treat %s as a deletion '
                     'whereas VCF specification 4.1 onwards would treat %s as ALT = REF. Validator will output '
-                    'both alternatives.', pre_input, pre_input)
+                    'both alternatives.', variant.quibble, variant.quibble)
         variant.write = False
-        input_a = '%s:%s%s>%s' % (vcf_elements[0], vcf_elements[1], vcf_elements[2], 'del')
-        input_b = '%s:%s%s>%s' % (vcf_elements[0], vcf_elements[1], vcf_elements[2], vcf_elements[2])
+        input_a = '%s:%s%s>%s' % (vcf_data[0], vcf_data[1], vcf_data[2], 'del')
+        input_b = '%s:%s%s>%s' % (vcf_data[0], vcf_data[1], vcf_data[2], vcf_data[2])
         query_a = Variant(variant.original, quibble=input_a, warnings=variant.warnings,
                           primary_assembly=variant.primary_assembly, order=variant.order)
         query_b = Variant(variant.original, quibble=input_b, warnings=variant.warnings,
@@ -208,23 +210,10 @@ def vcf2hgvs_stage1(variant, validator):
         logger.info("Submitting new variant with format %s", input_a)
         logger.info("Submitting new variant with format %s", input_b)
         skipvar = True
-    elif re.search(r'[-:]\d+[-:][-:][GATC]+', variant.quibble) or \
-            re.search(r'[-:]\d+[-:][.][-:][GATC]+', variant.quibble):
-        variant.quibble = variant.quibble.replace(':', '-')
-        if re.search('-.-', variant.quibble):
-            variant.quibble = variant.quibble.replace('-.-', '-ins-')
-        if re.search('--', variant.quibble):
-            variant.quibble = variant.quibble.replace('--', '-ins-')
-        # Extract primary_assembly if provided
-        if re.match(r'GRCh3\d+-', variant.quibble) or re.match(r'hg\d+-', variant.quibble):
-            in_list = variant.quibble.split('-')
-            variant.quibble = '-'.join(in_list[1:])
-        pre_input = variant.quibble
-        vcf_elements = pre_input.split('-')
-        variant.quibble = '%s:%s%s>%s' % (vcf_elements[0], vcf_elements[1], vcf_elements[2], vcf_elements[3])
+    elif vcf_data[3]:
+        variant.quibble = f'{vcf_data[0]}:{vcf_data[1]}ins{vcf_data[3]}'
 
     logger.debug("Completed VCF-HVGS step 1 for %s", variant.quibble)
-
     return skipvar
 
 
@@ -238,91 +227,28 @@ def vcf2hgvs_stage2(variant, validator):
     LRGs and LRG_ts also need to be assigned the correct reference sequence identifier.
     The LRG ID data ia stored in the VariantValidator MySQL database.
     The reference sequence type is also assigned.
+    Now updated to also handle <Chr16>(hg38):g.2099572TC>T, or NM_(GRCh3*) (or
+    worse NC_(GRCh3*), type variant descriptions.
     """
     skipvar = False
-    if (re.search(r'\w+:', variant.quibble) or re.search(r'\w+\(\w+\):', variant.quibble)) and not \
-            (re.search(r'\w+:[gcnmrpoGCNMRPO]\.', variant.quibble) or re.search(r'\w+\(\w+\):[gcnmrpoGCNMRPO]\.',
-                                                                              variant.quibble)):
-        if re.search(r'\w+:[gcnmrpo]', variant.quibble) and not re.search(r'\w+:[gcnmrpo]\.', variant.quibble):
-            # Missing dot
-            pass
+    seq_id_part, _sep, type_posedit = variant.quibble.partition(':')
+    var_type, _sep, posedit = type_posedit.partition('.')
+    # We used to target variant descriptions without types here, and then move on to user input like
+    # <Chr16>:g. in the next stage, but we need to start by fixing the reference identifier first
+    # either way.
+    # first abort on un-handleable types i.e no ':' and bad 'type' with no '.'
+    if not type_posedit:
+        if re.search(r'[gcnmrp]\.', variant.quibble):
+            error = 'Unable to identify a colon (:) in the variant description %s. A colon is required in HGVS variant ' \
+                    'descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. ' \
+                    'e.g. :c.' % variant.quibble
+            variant.warnings.append(error)
+            logger.warning(error)
+            skipvar = True
+            return skipvar
         else:
-            try:
-                if 'GRCh37' in variant.quibble or 'hg19' in variant.quibble:
-                    variant.primary_assembly = 'GRCh37'
-                    validator.selected_assembly = 'GRCh37'
-                    variant.format_quibble()
-                elif 'GRCh38' in variant.quibble or 'hg38' in variant.quibble:
-                    variant.primary_assembly = 'GRCh38'
-                    validator.selected_assembly = 'GRCh38'
-                    variant.format_quibble()
-                # Remove all content in brackets
-                input_list = variant.quibble.split(':')
-                pos_ref_alt = str(input_list[1])
-                position_and_edit = input_list[1]
-                if not re.match(r'N[CGTWMRP]_', variant.quibble) and not re.match(r'LRG_', variant.quibble):
-                    chr_num = str(input_list[0])
-                    chr_num = chr_num.upper().strip()
-                    if re.match('CHR', chr_num):
-                        chr_num = chr_num.replace('CHR', '')
-                    # Use selected assembly
-                    accession = seq_data.to_accession(chr_num, validator.selected_assembly)
-                    if accession is None:
-                        variant.warnings.append(chr_num + ' is not part of genome build ' + validator.selected_assembly)
-                        logger.warning(chr_num + ' is not part of genome build ' + validator.selected_assembly)
-                        skipvar = True
-                else:
-                    accession = input_list[0]
-                if '>' in variant.quibble:
-                    if 'del' in variant.quibble:
-                        pos = re.match(r'\d+', pos_ref_alt)
-                        position = pos.group(0)
-                        old_ref, old_alt = pos_ref_alt.split('>')
-                        old_ref = old_ref.replace(position, '')
-                        position = int(position) - 1
-                        required_base = validator.sf.fetch_seq(accession, start_i=position - 1, end_i=position)
-                        ref = required_base + old_ref
-                        alt = required_base
-                        position_and_edit = str(position) + ref + '>' + alt
-                    elif 'ins' in variant.quibble:
-                        pos = re.match(r'\d+', pos_ref_alt)
-                        position = pos.group(0)
-                        old_ref, old_alt = pos_ref_alt.split('>')
-                        # old_ref = old_ref.replace(position, '')
-                        position = int(position) - 1
-                        required_base = validator.sf.fetch_seq(accession, start_i=position - 1, end_i=position)
-                        ref = required_base
-                        alt = required_base + old_alt
-                        position_and_edit = str(position) + ref + '>' + alt
-
-                # Assign reference sequence type
-                if accession in ["NC_012920.1", "NC_001807.4"]:
-                    ref_type = ":m."
-                else:
-                    ref_type = validator.db.ref_type_assign(accession)
-
-                # Sort LRG formatting
-                if re.match('LRG_', accession):
-                    if ref_type == ':g.':
-                        accession = validator.db.get_refseq_id_from_lrg_id(accession)
-                    else:
-                        accession = validator.db.get_refseq_transcript_id_from_lrg_transcript_id(accession)
-                else:
-                    accession = accession
-                variant.quibble = str(accession) + ref_type + str(position_and_edit)
-
-            except Exception as e:
-                logger.debug("Except passed, %s", e)
-
-    # Descriptions lacking the colon : or the dot .
-    if re.search(r'[gcnmrp]\.', variant.quibble) and not re.search(r':[gcnmrp]\.', variant.quibble):
-        error = 'Unable to identify a colon (:) in the variant description %s. A colon is required in HGVS variant ' \
-                'descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. ' \
-                'e.g. :c.' % variant.quibble
-        variant.warnings.append(error)
-        logger.warning(error)
-        skipvar = True
-    elif re.search(r':[gcnmrp]', variant.quibble) and not re.search(r':[gcnmrp]\.', variant.quibble):
+            return False # do we want to full abort on this yet?
+    if type_posedit and not posedit and type_posedit[:1].lower() in ['g','c','n','m','r','p']:
         error = 'Unable to identify a dot (.) in the variant description %s following the reference sequence ' \
                 'type (g,c,n,r, or p). A dot is required in HGVS variant ' \
                 'descriptions to separate the reference type from the variant position i.e. <accession>:<type>. ' \
@@ -330,73 +256,127 @@ def vcf2hgvs_stage2(variant, validator):
         variant.warnings.append(error)
         logger.warning(error)
         skipvar = True
-    elif re.search(r':[GCNMRPO]\.', variant.quibble):
+
+    if posedit and var_type in ['G','C','N','M','R','P','O']:
         error = 'Reference type incorrectly stated in the variant description %s ' \
                 'Valid types are g,c,n,r, or p' % variant.quibble
         variant.warnings.append(error)
         logger.warning(error)
-        match = re.search(r':[GCNMRPO]\.', variant.quibble)[0]
-        variant.quibble = variant.quibble.replace(match, match.lower())
+        var_type = var_type.lower()
 
-    # Ambiguous chr reference
-    logger.debug("Completed VCF-HVGS step 2 for %s", variant.quibble)
-    return skipvar
-
-
-def vcf2hgvs_stage3(variant, validator):
-    """
-    VCF2HGVS conversion step 3 is similar to step 2 but handles
-    formats like Chr16:g.2099572TC>T which are provided by Alamut and other
-    software
-    """
-    skipvar = False
-    if (re.search(r'\w+:[gcnmrpGCMNRP]\.', variant.quibble) or re.search(r'\w+\(\w+\):[gcnmrpGCMNRP]\.',
-                                                                         variant.quibble)) \
-            and not re.match(r'N[CGTWMRP]_', variant.quibble):
-
-        # Take out lowercase Accession characters
-        lower_cased_list = variant.quibble.split(':')
-        if re.search('LRG', lower_cased_list[0], re.IGNORECASE):
-            lower_case_accession = lower_cased_list[0]
-            lower_case_accession = lower_case_accession.replace('l', 'L')
-            lower_case_accession = lower_case_accession.replace('r', 'R')
-            lower_case_accession = lower_case_accession.replace('g', 'G')
+    # now check for and remove GRC/hg genome builds
+    specifed_ref = False
+    upper_seq_id_part = seq_id_part.upper()
+    if 'GRCHh37' in upper_seq_id_part or 'HG19' in upper_seq_id_part:
+        specifed_ref = 'GRCh37'
+    elif 'GRCH38' in upper_seq_id_part or 'HG38' in upper_seq_id_part:
+        specifed_ref = 'GRCh38'
+    if specifed_ref:
+        if validator.selected_assembly and validator.selected_assembly != specifed_ref:
+            variant.warnings.append(
+                    specifed_ref + ' from ' + seq_id_part +
+                    ' does not match the selected genome build of '
+                    + validator.selected_assembly)
+            return True # return skipvar
+        if variant.primary_assembly and variant.primary_assembly != specifed_ref:
+            variant.warnings.append(
+                    specifed_ref + ' from ' + seq_id_part +
+                    ' does not match the selected genome build of '
+                    + validator.selected_assembly)
+            return True # return skipvar
+        if not validator.selected_assembly:
+            variant.selected_assembly = specifed_ref
+        if not variant.primary_assembly:
+            variant.primary_assembly = specifed_ref
+        specifed_ref = r'\(*' + specifed_ref + r'\)*'
+        replace = re.compile(specifed_ref, re.IGNORECASE)
+        seq_id_part = replace.sub('', seq_id_part)
+        upper_seq_id_part = seq_id_part.upper()
+    # now fix case, all non LRG Ref name characters should be upper case
+    # LRG_ has t as a special case but gene symbols are fine in upper case too
+    if 'LRG' in upper_seq_id_part:
+        if 'l' in seq_id_part or 'r' in seq_id_part or 'g' in seq_id_part:
+            seq_id_part = seq_id_part.replace('l', 'L')
+            seq_id_part = seq_id_part.replace('r', 'R')
+            seq_id_part = seq_id_part.replace('g', 'G')
+    else:
+        seq_id_part = upper_seq_id_part
+    # finally detect any non N._ or ENST type variants, if they are chr types replace the chr
+    # we used to detect gene symbols in vcf2hgvs_stage3 but this is immediately followed by
+    # the gene symbol catching step, and so is redundant
+    if seq_id_part[:3] in ['NC_','NG_','NT_','NW_','NM_','NR_','NP_'] or seq_id_part[:4] in ['ENST','LRG_']:
+        accession = seq_id_part
+    elif seq_id_part.startswith('LRG_'):
+        # For now preserve LRG_ in non vcf type inputs, this may want changing later but that means
+        # test updates too.
+        if var_type:
+            accession = seq_id_part
+        elif 't' in seq_id_part:#var_type == 'g':
+            accession = validator.db.get_refseq_transcript_id_from_lrg_transcript_id(seq_id_part)
         else:
-            lower_case_accession = lower_cased_list[0]
-            lower_case_accession = lower_case_accession.upper()
-        variant.quibble = ''.join(lower_cased_list[1:])
-        variant.quibble = lower_case_accession + ':' + variant.quibble
-        if 'LRG_' not in variant.quibble and 'ENS' not in variant.quibble and not re.match('N[MRPC]_', variant.quibble):
-            try:
-                if re.search('GRCh37', variant.quibble, re.IGNORECASE) or \
-                        re.search('hg19', variant.quibble, re.IGNORECASE):
-                    variant.primary_assembly = 'GRCh37'
-                    validator.selected_assembly = 'GRCh37'
-                    variant.format_quibble()
-                if re.search('GRCh38', variant.quibble, re.IGNORECASE) or \
-                        re.search('hg38', variant.quibble, re.IGNORECASE):
-                    variant.primary_assembly = 'GRCh38'
-                    validator.selected_assembly = 'GRCh38'
-                    variant.format_quibble()
-                input_list = variant.quibble.split(':')
-                query_a_symbol = input_list[0]
-                is_it_a_gene = validator.db.get_hgnc_symbol(query_a_symbol)
-                if is_it_a_gene == 'none':
-                    position_and_edit = input_list[1]
-                    chr_num = str(input_list[0])
-                    chr_num = chr_num.upper().strip()
-                    if re.match('CHR', chr_num):
-                        chr_num = chr_num.replace('CHR', '')  # Use selected assembly
-                    accession = seq_data.to_accession(chr_num, validator.selected_assembly)
-                    if accession is None:
-                        variant.warnings.append(chr_num + ' is not part of genome build ' + validator.selected_assembly)
-                        logger.warning(chr_num + ' is not part of genome build ' + validator.selected_assembly)
-                        skipvar = True
-                    variant.quibble = str(accession) + ':' + str(position_and_edit)
-            except Exception as e:
-                logger.debug("Except passed, %s", e)
+            accession = validator.db.get_refseq_id_from_lrg_id(seq_id_part)
+    else:
+        chr_in = False
+        if seq_id_part.startswith('CHR'):
+            seq_id_part = seq_id_part[3:]
+            chr_in = True
+        accession = seq_data.to_accession(seq_id_part, variant.primary_assembly)
+        # we limit full erroring out to variants without specified type as they are presumed to be VCF type
+        # and so not valid as gene symbols, but just skip otherwise this preserves the old behaviour.
+        # Also hard fail if the var started with chr but none was found, may also want to hard fail for
+        # non c/t types or at least for g
+        if accession is None and (chr_in or not posedit):
+            variant.warnings.append(seq_id_part + ' is not part of genome build ' + validator.selected_assembly)
+            logger.warning(seq_id_part + ' is not part of genome build ' + validator.selected_assembly)
+            skipvar = True
+            return skipvar
+        elif accession is None: # non vcf type failure
+            accession = seq_id_part
+        # we did use 'is_it_a_gene = validator.db.get_hgnc_symbol(query_a_symbol)' and 'if is_it_a_gene == "none":'
+        # in stage 3, but should now force a failure in gene symbol catch step instead.
 
-    logger.debug("Completed VCF-HGVS step 3 for %s", variant.quibble)
+    # finally fix posedit if we have a VCF style input (i.e. no '.' split type)
+    if not posedit:
+        posedit = var_type
+        if '>' in posedit:
+            if 'del' in posedit:
+                pos = re.match(r'\d+', posedit)
+                position = pos.group(0)
+                old_ref, old_alt = posedit.split('>')
+                old_ref = old_ref.replace(position, '')
+                position = int(position) - 1
+                required_base = validator.sf.fetch_seq(accession, start_i=position - 1, end_i=position)
+                ref = required_base + old_ref
+                alt = required_base
+                posedit= str(position) + ref + '>' + alt
+            elif 'ins' in posedit:
+                pos = re.match(r'\d+', posedit)
+                position = pos.group(0)
+                old_ref, old_alt = posedit.split('>')
+                # old_ref = old_ref.replace(position, '')
+                position = int(position) - 1
+                required_base = validator.sf.fetch_seq(accession, start_i=position - 1, end_i=position)
+                ref = required_base
+                alt = required_base + old_alt
+                posedit = str(position) + ref + '>' + alt
+
+        # Assign reference sequence type if it is missing
+        if accession in ["NC_012920.1", "NC_001807.4"]:
+            var_type = "m"
+        else:
+            var_type = validator.db.ref_type_assign(accession)
+            var_type = var_type[1]
+    # this among other things will force gene type variants to at least specify c/n etc.
+    if not posedit:
+        error = 'Unable to identify a dot (.) in the variant description %s following the reference sequence ' \
+                'type (g,c,n,r, or p). A dot is required in HGVS variant ' \
+                'descriptions to separate the reference type from the variant position i.e. <accession>:<type>. ' \
+                'e.g. :g.' % variant.quibble
+        variant.warnings.append(error)
+        logger.warning(error)
+        skipvar = True
+    variant.quibble = accession + ':' + var_type + '.' + posedit
+    logger.debug("Completed VCF-HVGS step 2 for %s", variant.quibble)
     return skipvar
 
 
@@ -412,12 +392,16 @@ def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version):
     """
     skipvar = False
     query_a_symbol, _sep, tx_edit = variant.quibble.partition(':')
-    if not (query_a_symbol[:3] in ['NC','NM_','NR_','ENST'] or
-            query_a_symbol.startswith('ENST')
-            ) and re.search(r'\w+:[cn]\.', variant.quibble):
+    if not (query_a_symbol[:3] in ['NC_','NW_','NM_','NR_','NG_','LRG'] or
+            query_a_symbol[:4].startswith('ENST')
+            ) and tx_edit[:2] in ['c.','n.']:
         try:
             is_it_a_gene = validator.db.get_hgnc_symbol(query_a_symbol)
-            if is_it_a_gene != 'none':
+            if is_it_a_gene == 'none':
+                variant.warnings.append(chr_num + ' is not part of genome build ' + validator.selected_assembly)
+                logger.warning(chr_num + ' is not part of genome build ' + validator.selected_assembly)
+                skipvar = True
+            else:
                 uta_symbol = validator.db.get_uta_symbol(is_it_a_gene)
                 available_transcripts = validator.hdp.get_tx_for_gene(uta_symbol)
                 select_from_these_transcripts = []
@@ -482,18 +466,68 @@ def refseq_catch(variant, validator, select_transcripts_dict_plus_version):
     descriptions
     """
     skipvar = False
-    if re.search(r'\w+:[cn]', variant.quibble):
+    query_a_seq, _sep, tx_edit = variant.quibble.partition(':')
+
+
+    if tx_edit[:2] in ['c.','n.']:
+        # remove, handle, and sometimes fix, some complex broken input types, e.g.
+        # 'NC_000017.11(NC_000017.11(ENST00000357654.9)' warn and abort otherwise.
+        # Since genes like ENST(GEN_ID):c. may be found tolerate junk, but
+        # implicitly insist on GenomicReferenceID(TranscriptReferenceID) *not*
+        # GenomicReferenceID(GeneID)(TranscriptReferenceID)
+        curr_query_a_ref_seq = ''
+        query_a_tx_seq = ''
+        tx_seq_found = False
+        while '(' in query_a_seq and not tx_seq_found:
+            query_a_seq_test, _sep, query_a_tx_seq = query_a_seq.partition('(')
+            if query_a_seq_test[:3] in ['NM_', 'NR_','LRG'] or 'ENST' == query_a_seq_test[:4]:
+                # presume we have a gene symbol as the next component if we have one and abort
+                # without complaining
+                tx_seq_found = True
+            elif query_a_seq_test[:3] in ['NG_','NC_','NW_','NT_']:
+                query_a_seq_test = query_a_seq_test.replace(')','')
+                if not curr_query_a_ref_seq or query_a_seq_test == curr_query_a_ref_seq:
+                    if curr_query_a_ref_seq:
+                        variant.quibble = query_a_seq + ':' + tx_edit
+                    curr_query_a_ref_seq = query_a_seq_test
+                    query_a_seq = query_a_tx_seq
+                    if query_a_tx_seq[:3] in ['NM_', 'NR_','LRG'] or 'ENST' == query_a_tx_seq[:4]:
+                        tx_seq_found = True
+                else:
+                    variant.warnings.append(
+                        'HgvsSyntaxError: '
+                        'Multiple genomic reference sequences have been '
+                        'provided in the same transcript variant description'
+                        + variant.quibble + ' should at most have one genomic'
+                        ' reference, starting with NG_, NC_, NW_, or NT_, '
+                        'paired with the relevant transcript, in the form '
+                        'GenomicReferenceID(TranscriptReferenceID). Please '
+                        're-submit with your favored genomic reference or '
+                        'submit each pair separately.' )
+                    return True # skipvar
+            elif query_a_tx_seq[:3] in ['NM_', 'NR_','LRG'] or 'ENST' == query_a_tx_seq[:4]:
+                tx_seq_found = True
+                query_a_seq = query_a_tx_seq
+            else:
+                variant.warnings.append(
+                    'InvalidReferenceError: '
+                    'A transcript type variant description ( ' + variant.quibble+ ' ) '
+                    ' has been submitted with the reference specified in a manner '
+                    'recognised as GenomicReferenceID(TranscriptReferenceID), but the '
+                    'apparent Transcript Reference ID was not recognised as an expected'
+                    ' type, i.e. either a RefSeq transcript, which should start with NM_'
+                    ', or NR_ or an ENSEMBL transcript which should start with  ENST. ')
+                return True
         try:
-            if variant.quibble.startswith('NG_'):
-                ref_seq_gene_id = variant.quibble.split(':')[0]
-                tx_edit = variant.quibble.split(':')[1]
+            if query_a_seq.startswith('NG_') and not tx_seq_found:
+                ref_seq_gene_id = query_a_seq
                 gene_symbol = validator.db.get_gene_symbol_from_refseq_id(ref_seq_gene_id)
                 if gene_symbol != 'none':
                     uta_symbol = validator.db.get_uta_symbol(gene_symbol)
                     available_transcripts = validator.hdp.get_tx_for_gene(uta_symbol)
                     select_from_these_transcripts = []
                     for tx in available_transcripts:
-                        if 'NM_' in tx[3] or 'NR_' in tx[3] or 'ENST' in tx[3]:
+                        if tx[3][:3] in ['NM_', 'NR_', ] or 'ENST' == tx[3][:4]:
                             if tx[3] not in select_from_these_transcripts:
                                 select_from_these_transcripts.append(tx[3])
                     select_from_these_transcripts = '|'.join(select_from_these_transcripts)
@@ -529,7 +563,7 @@ def refseq_catch(variant, validator, select_transcripts_dict_plus_version):
                     logger.warning(
                         'A transcript reference sequence has not been provided e.g. NG_(NM_):c.PositionVariation')
                 skipvar = True
-            elif variant.quibble.startswith('NC_'):
+            elif query_a_seq[:3] in ['NC_','NW_','NT_'] and not tx_seq_found:
                 variant.warnings.append('A transcript reference sequence has not been provided e.g. '
                                         'NC_(NM_):c.PositionVariation. Unable to predict available transcripts '
                                         'because chromosomal position is not specified')
@@ -796,8 +830,6 @@ def intronic_converter(variant, validator, skip_check=False, uncertain=False):
     hgvs can now parse the string into an hgvs variant object and manipulate it
     We now can parse in such variants but they still need fixing before mapping
     """
-    compounder = re.compile(r'\((NM_|NR_|ENST)')
-    compounder2 = re.compile(r'\(LRG_\d+t')
     if type(variant.quibble) is str:
         parsed = False
         acc_section, _sep, remainder = variant.quibble.partition(":")
@@ -805,10 +837,13 @@ def intronic_converter(variant, validator, skip_check=False, uncertain=False):
         parsed = True
         acc_section = variant.quibble.ac
 
-    if compounder.search(acc_section) or compounder2.search(acc_section):
+    pos_genomic, _sep, pos_transcript = acc_section.partition('(')
+    if pos_transcript and (pos_transcript[:3] in ['NM_', 'NR_',] or pos_transcript.startswith('ENST') or (
+        pos_transcript.startswith('LRG_') and pos_transcript[4:5].isdigit() and 't' in pos_transcript
+        )):
         # Convert LRG transcript
-        if compounder2.search(acc_section):
-            lrg_transcript = acc_section.split("(")[1].replace(")", "")
+        if pos_transcript.startswith('LRG_'):
+            lrg_transcript = pos_transcript.replace(")", "")
             refseq_transcript = validator.db.get_refseq_transcript_id_from_lrg_transcript_id(lrg_transcript)
             if parsed:
                 variant.quibble.ac = variant.quibble.ac.replace(lrg_transcript, refseq_transcript)
@@ -920,15 +955,16 @@ def allele_parser(variant, validation, validator):
     descriptions should be re-submitted by the user at the gene or genome level
     """
     caution = ''
-
-    if (re.search(r':[gcnr].\[', variant.quibble) and ';' in variant.quibble) or (
-            re.search(r':[gcrn].\d+\[', variant.quibble) and ';' in variant.quibble) or ('(;)'
-                                                                                         in variant.quibble):
+    ac_part, _sep, var = variant.quibble.partition(':')
+    is_digit, _sep, end = var.partition('[')
+    if (var[:3] in ['g.[','c.[','n.[',':r.['] and ';' in var) or (
+            is_digit[:2] in ['g.','c.','n.',':r.'] and ';' in end and is_digit[2:].isdigit()
+            ) or ('(;)' in var):
         # Edit compound descriptions
         genomic_ref = intronic_converter(variant, validator, skip_check=True)
         if genomic_ref is None:
-            if re.match(r'NC_', variant.quibble):
-                genomic_reference = variant.quibble.split(':')[0]
+            if 'NC_' in ac_part:
+                genomic_reference = ac_part
             else:
                 genomic_reference = False
         elif 'NC_' in genomic_ref or 'NG_' in genomic_ref:
@@ -937,7 +973,7 @@ def allele_parser(variant, validation, validator):
             genomic_reference = False
 
         # handle LRG inputs
-        if re.match(r'^LRG', variant.quibble):
+        if variant.quibble.startswith('LRG'):
             if re.match(r'^LRG\d+', variant.quibble):
                 string, remainder = variant.quibble.split(':')
                 reference = string.replace('LRG', 'LRG_')
@@ -1033,7 +1069,7 @@ def lrg_to_refseq(variant, validator):
     """
     caution = ''
     if variant.refsource == 'LRG':
-        if re.match(r'^LRG\d+', variant.hgvs_formatted.ac):
+        if variant.hgvs_formatted.ac.startswith('LRG') and variant.hgvs_formatted.ac[3:4].isdigit():
             reference = variant.hgvs_formatted.ac.replace('LRG', 'LRG_')
             caution = variant.hgvs_formatted.ac + ' updated to ' + reference + ': '
             variant.hgvs_formatted.ac = reference

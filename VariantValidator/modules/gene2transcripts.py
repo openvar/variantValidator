@@ -1,10 +1,11 @@
 import re
+import copy
 import json
 import vvhgvs.exceptions
 import vvhgvs.sequencevariant
 import logging
 from . import utils as fn
-from . import seq_data
+from . import seq_data, lovd_api
 
 
 # Pre compile variables
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, select_transcripts=None,
-                     transcript_set=None, genome_build=None, bypass_genomic_spans=False):
+                     transcript_set=None, genome_build=None, bypass_genomic_spans=False, lovd_syntax_check=False):
     """
     Generates a list of transcript (UTA supported) and transcript names from a gene symbol or RefSeq transcript ID
     :param g2t: variant object
@@ -27,6 +28,13 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
     :param bypass_genomic_spans: bool
     :return: dictionary of transcript information
     """
+    # Set LOVD data
+    lovd_corrections = None
+    lovd_messages = None
+
+    # submitted
+    submitted = copy.copy(query)
+
     # List of transcripts
     sel_tx_lst = False
     if select_transcripts is not None:
@@ -61,9 +69,20 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
                             if tx[5] != "unassigned":
                                 query = tx[5]
                                 break
+                    elif lovd_syntax_check is True: # Try LOVD syntax checker
+                        error = f"Unable to recognise {submitted}. Please provide a gene symbol"
+                        lovd_messages, lovd_corrections = lovd_syntax_check_g2t(submitted, lovd_syntax_check)
+                        if lovd_messages:
+                            return {
+                                'error': error,
+                                "requested_symbol": submitted,
+                                "lovd_messages": lovd_messages,
+                                "lovd_corrections": lovd_corrections}
+                        else:
+                            return {'error': error, "requested_symbol": submitted }
                     else:
-                        return {'error': 'Unable to recognise HGNC ID. Please provide a gene symbol',
-                                "requested_symbol": store_query}
+                        return {'error': f"Unable to recognise {submitted}. Please provide a gene symbol",
+                                "requested_symbol": submitted}
                 except TypeError:
                     pass
 
@@ -81,7 +100,7 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
         # Quick check for blank form
         if query == '':
             return {'error': 'Please enter HGNC gene name or transcript identifier (NM_, NR_, or ENST)'
-                    , "requested_symbol": query}
+                    , "requested_symbol": submitted}
 
     # Gather transcript information lists
     if bypass_web_searches is True:
@@ -128,13 +147,13 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
                     logger.debug("Except passed, %s", e)
             if not found_res:
                 return {'error': 'No transcript definition for (tx_ac=' + hgnc + ')',
-                        "requested_symbol": query}
+                        "requested_symbol": submitted}
 
             try:
                 tx_info = g2t.hdp.get_tx_identity_info(tx_found)
             except vvhgvs.exceptions.HGVSError as e:
                 return {'error': str(e),
-                        "requested_symbol": query}
+                        "requested_symbol": submitted}
 
             hgnc = tx_info[6]
             hgnc2 = g2t.db.get_hgnc_symbol(hgnc)
@@ -170,10 +189,36 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
                 elif len(vvta_record) > 1:
                     return {'error': '%s is a previous symbol for %s genes. '
                                      'Refer to https://www.genenames.org/' % (hgnc, str(len(vvta_record))),
-                            "requested_symbol": query}
+                            "requested_symbol": submitted}
                 else:
                     # Is it an updated symbol?
-                    old_symbol = g2t.db.get_uta_symbol(hgnc)
+                    try:
+                        old_symbol = g2t.db.get_uta_symbol(hgnc)
+                    except Exception:
+                        if lovd_syntax_check is True:
+                            lovd_messages, lovd_corrections = lovd_syntax_check_g2t(submitted, lovd_syntax_check)
+                            if len(lovd_corrections) == 1 and list(lovd_corrections.values())[0] == 1:
+                                corrected_symbol = list(lovd_corrections.keys())[0]
+                                vvta_record = g2t.hdp.get_gene_info(corrected_symbol)
+                                if vvta_record is not None:
+                                    current_sym = corrected_symbol
+                                    gene_name = vvta_record[3]
+                                    hgnc_id = vvta_record[0]
+                                    previous_sym = ""
+                                    symbol_identified = True
+                                else:
+                                    return {'error': 'Unable to recognise gene symbol %s' % hgnc,
+                                            "requested_symbol": submitted,
+                                            "lovd_messages": lovd_messages,
+                                            "lovd_corrections": lovd_corrections}
+                            else:
+                                return {'error': 'Invalid characters identified. Please provide a valid submission',
+                                    "requested_symbol": submitted,
+                                    "lovd_messages": lovd_messages,
+                                    "lovd_corrections": lovd_corrections}
+                        else:
+                            return {'error': 'Invalid characters identified. Please provide a valid submission',
+                                    "requested_symbol": submitted}
                     if old_symbol is not None:
                         vvta_record = g2t.hdp.get_gene_info(old_symbol)
                         if vvta_record is not None:
@@ -184,8 +229,29 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
                             symbol_identified = True
 
         if symbol_identified is False:
-            return {'error': 'Unable to recognise gene symbol %s' % hgnc,
-                    "requested_symbol": query}
+            if lovd_syntax_check is True:
+                lovd_messages, lovd_corrections = lovd_syntax_check_g2t(submitted, lovd_syntax_check)
+                if len(lovd_corrections) == 1 and list(lovd_corrections.values())[0] == 1:
+                    corrected_symbol = list(lovd_corrections.keys())[0]
+                    vvta_record = g2t.hdp.get_gene_info(corrected_symbol)
+                    if vvta_record is not None:
+                        current_sym = corrected_symbol
+                        gene_name = vvta_record[3]
+                        hgnc_id = vvta_record[0]
+                        previous_sym = ""
+                    else:
+                        return {'error': 'Unable to recognise gene symbol %s' % hgnc,
+                                "requested_symbol": submitted,
+                                "lovd_messages": lovd_messages,
+                                "lovd_corrections": lovd_corrections}
+                else:
+                    return {'error': 'Unable to recognise gene symbol %s' % hgnc,
+                            "requested_symbol": submitted,
+                            "lovd_messages": lovd_messages,
+                            "lovd_corrections": lovd_corrections}
+            else:
+                return {'error': 'Unable to recognise gene symbol %s' % hgnc,
+                        "requested_symbol": submitted}
 
         # Get transcripts
         tx_for_gene = g2t.hdp.get_tx_for_gene(current_sym)
@@ -193,7 +259,7 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
             tx_for_gene = g2t.hdp.get_tx_for_gene(previous_sym)
         if len(tx_for_gene) == 0:
             return {'error': 'Unable to retrieve data from the VVTA, please contact admin',
-                    "requested_symbol": query}
+                    "requested_symbol": submitted}
 
     # Loop through each transcript and get the relevant transcript description
     genes_and_tx = []
@@ -258,12 +324,7 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
             tx_anno = g2t.hdp.get_tx_seq_anno(tx)
             tx_len = tx_anno[0]
 
-
-
             # Exon Set
-
-
-
             # Collect genomic span for the transcript against known genomic/gene reference sequences
             gen_start_pos = None
             gen_end_pos = None
@@ -453,13 +514,41 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
         g2d_data = {'current_symbol': current_sym,
                     'previous_symbol': previous_sym,
                     'current_name': gene_name,
-                    # 'previous_name': previous_name,
+                    'lovd_corrections': lovd_corrections,
+                    'lovd_messages': lovd_messages,
                     'hgnc': hgnc_id,
                     'transcripts': genes_and_tx
                     }
-    g2d_data["requested_symbol"] = query
+    g2d_data["requested_symbol"] = submitted
 
     return g2d_data
+
+def lovd_syntax_check_g2t(query, lovd_syntax_check):
+    # Get additional warnings
+    check_with_lovd = lovd_api.lovd_syntax_check(query, do_lovd_check=lovd_syntax_check)
+
+    if "lovd_api_error" in check_with_lovd:
+        return {}, {}
+
+    lovd_messages = {}
+    lovd_corrections = {}
+    data = check_with_lovd["data"][0]
+    if data["warnings"]:
+        for key, val in data["warnings"].items():
+            lovd_messages[key] = val
+
+    if data["errors"]:
+        for key, val in data["errors"].items():
+            lovd_messages[key] = val
+
+    if data['corrected_values']:
+        for key, val in data['corrected_values'].items():
+            lovd_corrections[key] = val
+
+    lovd_messages["ISOURCE"] = check_with_lovd['url']
+    lovd_messages["LIBRARYVERSION"] = check_with_lovd['version']
+
+    return lovd_messages, lovd_corrections
 
 # <LICENSE>
 # Copyright (C) 2016-2025 VariantValidator Contributors

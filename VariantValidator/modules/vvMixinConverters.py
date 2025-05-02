@@ -2615,62 +2615,62 @@ class Mixin(vvMixinInit.Mixin):
         return descriptions
 
     def transcript_filter(self, rts, select_transcripts=None):
-        if self.testing is not True:
-            if select_transcripts is None:
-                latest_version = {}
-                for tx_id in rts:
-                    if type(tx_id) == str:
-                        # VV method
-                        # Remove dud transcript IDs
-                        if "/" in tx_id or "_NG" in tx_id:
-                            continue
-                        accession, version = tx_id.split(".")
-                        if accession not in latest_version.keys():
-                            latest_version[accession] = version
-                        else:
-                            if int(version) > int(latest_version[accession]):
-                                latest_version[accession] = version
+        if self.testing is True or select_transcripts == 'raw':
+            # do nothing if we are not intended to filter
+            return rts
+        if select_transcripts in [None,'all']:
+            # get latest in the default and 'all' state
+            latest_version = {}
+            for tx_id in rts:
+                if type(tx_id) == str:
+                    # VV method
+                    # Remove dud transcript IDs
+                    if "/" in tx_id or "_NG" in tx_id:
+                        continue
+                    accession, version = tx_id.split(".")
+                    if accession not in latest_version.keys():
+                        latest_version[accession] = version
                     else:
-                        # VF method
-                        try:
-                            accession, version = tx_id[0].split(".")
-                        except Exception:
-                            continue
-                        if accession not in latest_version.keys():
-                            latest_version[accession] = {}
+                        if int(version) > int(latest_version[accession]):
+                            latest_version[accession] = version
+                else:
+                    # VF method
+                    try:
+                        accession, _sep, version = tx_id[0].partition(".")
+                    except Exception:
+                        continue
+                    if accession not in latest_version.keys():
+                        latest_version[accession] = {}
+                        latest_version[accession]["version"] = version
+                        latest_version[accession]["list"] = tx_id[1:]
+                    else:
+                        if int(version) > int(latest_version[accession]["version"]):
                             latest_version[accession]["version"] = version
                             latest_version[accession]["list"] = tx_id[1:]
-                        else:
-                            if int(version) > int(latest_version[accession]["version"]):
-                                latest_version[accession]["version"] = version
-                                latest_version[accession]["list"] = tx_id[1:]
 
-                # Recreate list with only latest versions
-                rts = []
-                for k, v in latest_version.items():
-                    try:
-                        v.keys()
-                    except AttributeError:
-                        # VV method
-                        rts.append(k + "." + v)
-                    else:
-                        # VF method
-                        accession = str(k + "." + v["version"])
-                        rts.append([accession] + v["list"])
-                return rts
-            else:
-                rts = []
-                # Format the select_transcripts into a list from json
-                if select_transcripts != 'all' and select_transcripts != 'raw':
-                    try:
-                        rtsc = json.loads(select_transcripts)
-                    except json.decoder.JSONDecodeError:
-                        rtsc = [select_transcripts]
-                for tx in rtsc:
-                    rts.append(tx)
-                return rts
-        else:
+            # Recreate list with only latest versions
+            rts = []
+            for k, v in latest_version.items():
+                try:
+                    v.keys()
+                except AttributeError:
+                    # VV method
+                    rts.append(k + "." + v)
+                else:
+                    # VF method
+                    accession = str(k + "." + v["version"])
+                    rts.append([accession] + v["list"])
+                    print([accession] + v["list"])
             return rts
+        # If we got select_transcripts as a json of tx convert it into a list
+        rts = []
+        try:
+            rtsc = json.loads(select_transcripts)
+        except json.decoder.JSONDecodeError:
+            rtsc = [select_transcripts]
+        for tx in rtsc:
+            rts.append(tx)
+        return rts
 
 # <LICENSE>
 # Copyright (C) 2016-2025 VariantValidator Contributors

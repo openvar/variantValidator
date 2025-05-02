@@ -33,8 +33,8 @@ class Database(vvDBInsert.Mixin):
         # Expiry set to 12 months because we will from 2021 be rolling out 3-monthly database dumps of the validator db
         query = "SELECT refSeqID, description, transcriptVariant, currentVersion, hgncSymbol, utaSymbol, updated, " \
                 "IF(updated < NOW() - INTERVAL 12 MONTH , 'true', 'false') FROM transcript_info WHERE " \
-                "refSeqID = '%s'" % entry
-        cursor.execute(query)
+                "refSeqID = %s"
+        cursor.execute(query,(entry,))
         row = cursor.fetchone()
         if row is None:
             row = ['none', 'No data']

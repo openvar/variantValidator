@@ -452,6 +452,8 @@ def hgvs_to_delins_hgvs(hgvs_object, hp, hn, allow_fix=False):
     :param hn: hgvs_normalizer (check function for hn vs reverse hn rules)
     :return: hgvs_object in delins format, see if statements for the details
     """
+    if hgvs_object.posedit.edit.type == "delins":
+        return hgvs_object
     # Duplications (alt = ref + ref)
     if hgvs_object.posedit.edit.type == "dup":
         v_pos = hgvs_object.posedit.pos.start.base
@@ -1129,9 +1131,152 @@ def pos_lock_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
     vcf_dict = {'chr': chr, 'pos': pos, 'ref': ref, 'alt': alt, 'normalized_hgvs': reverse_normalized_hgvs_genomic}
     return vcf_dict
 
+def pre_push_vcf_tx_g_map_fix(norm_hgvs_transcript, un_norm_hgvs, genomic_ac,var_mapper,normaliser,seq_fetcher,mapped_hgvs):
+    """
+    Pre-fix transcript inputs for the left/right pushing vcf functions, to make
+    sure they map correctly. Requires n type pre-normalised/reverse normalised,
+    input.
+    :pram hgvs_transcript: transcript type variant to check for mapping
+    :pram un_norm_hgvs: un-normalised version of the transcript type variant
+                        needed to check for del status (???->delins is needed
+                        for some, non del, post normalisation, descriptions)
+    :pram genomic_ac: genomic ac for mapping to be checked
+    :pram mapped_hgvs: mapped_hgvs a genomic mapping derived from
+                       hgvs_transcript, to allow shared mapping step when
+                       rev-norm == norm
+    :pram var_mapper: mapper for n->g mapping unused if pre-mapped
+    :pram normaliser: hgvs variant normaliser
+    :pram seq_fetcher: seq fetcher from hgvs (currently a SeqRepo wrapper)
+    :pram mapped_hgvs: mapped variant (if present we do not use the mapper)
+    """
+
+
+    # Variants in/on a genomic gap that cause issues need sorting by making them span so coordinates do not reverse
+    if mapped_hgvs:
+        hgvs_genomic_g = mapped_hgvs
+    else:
+        hgvs_genomic_g = var_mapper.n_to_g(norm_hgvs_transcript, genomic_ac)
+
+    try:
+        normaliser.normalize(hgvs_genomic_g)
+    except vvhgvs.exceptions.HGVSInvalidVariantError as e:
+        if "base start position must be <= end position" in str(e):
+            hgvs_genomic_g_identity = copy.deepcopy(hgvs_genomic_g)
+            # First, get ins and del into delins
+            if hgvs_genomic_g_identity.posedit.edit.type == "dup":
+                # Duplications have no "alt" in the object structure so convert to delins
+                stb = hgvs_genomic_g_identity.posedit.pos.end.base
+                edb = hgvs_genomic_g_identity.posedit.pos.start.base
+                hgvs_genomic_g_identity.posedit.pos.start.base = stb
+                hgvs_genomic_g_identity.posedit.pos.end.base = edb
+                hgvs_genomic_g_identity.posedit.edit.ref = seq_fetcher.fetch_seq(hgvs_genomic_g_identity.ac, stb - 1, edb)
+                hgvs_genomic_g_identity = hgvs_to_delins_hgvs(hgvs_genomic_g_identity, None, normaliser)
+            else:
+                adjust_s = hgvs_genomic_g_identity.posedit.pos.end.base
+                adjust_e = hgvs_genomic_g_identity.posedit.pos.start.base
+                hgvs_genomic_g_identity.posedit.pos.start.base = adjust_s
+                hgvs_genomic_g_identity.posedit.pos.end.base = adjust_e
+
+            hgvs_genomic_g_identity.posedit.edit.ref = ''
+            hgvs_genomic_g_identity.posedit.edit.alt = ''
+            hgvs_genomic_g_identity = normaliser.normalize(hgvs_genomic_g_identity)
+
+            hgvs_genomic_n_gap = var_mapper.g_to_n(hgvs_genomic_g_identity, norm_hgvs_transcript.ac)
+
+            hgvs_genomic_n_identity = copy.deepcopy(hgvs_genomic_n_gap)
+            hgvs_genomic_n_identity.posedit.edit.ref = ""
+            hgvs_genomic_n_identity.posedit.edit.alt = ""
+            hgvs_genomic_n_identity = normaliser.normalize(hgvs_genomic_n_identity)
+            """
+            At this stage we have the gap position at g. in hgvs_genomic_g_identity
+            # The impact in hgvs_genomic_n_gap
+            # And the range the variant needs to span to cover the gap in hgvs_genomic_n_identity
+            """
+            # First, get ins and del into delins this has to also check the un-normalised version to avoid
+            # problems on right push
+            if un_norm_hgvs.posedit.edit.type == "del" or norm_hgvs_transcript.posedit.edit.type == "del":
+                norm_hgvs_transcript = hgvs_to_delins_hgvs(norm_hgvs_transcript, None, normaliser)
+            elif norm_hgvs_transcript.posedit.edit.type == "ins":
+                norm_hgvs_transcript = hgvs_to_delins_hgvs(norm_hgvs_transcript, None, normaliser)
+            elif norm_hgvs_transcript.posedit.edit.type == "dup":
+                norm_hgvs_transcript = hgvs_to_delins_hgvs(norm_hgvs_transcript, None, normaliser)
+
+            # Now create the variant
+            if hgvs_genomic_n_identity.posedit.pos.start.base < \
+                    norm_hgvs_transcript.posedit.pos.start.base:
+                v1 = copy.deepcopy(hgvs_genomic_n_identity)
+                v1.posedit.pos.end.base = norm_hgvs_transcript.posedit.pos.start.base - 1
+                v1.posedit.edit.ref = ""
+                v1.posedit.edit.alt = ""
+                v1 = normaliser.normalize(v1)
+                if (hgvs_genomic_n_identity.posedit.pos.end.base
+                        > norm_hgvs_transcript.posedit.pos.end.base):
+                    v3 = copy.deepcopy(hgvs_genomic_n_identity)
+                    v3.posedit.pos.start.base = norm_hgvs_transcript.posedit.pos.end.base + 1
+                    v3.posedit.edit.ref = ""
+                    v3.posedit.edit.alt = ""
+                    v3 = normaliser.normalize(v3)
+                else:
+                    v3 = False
+
+                # Assemble
+                hgvs_genomic_n_assembled = copy.deepcopy(hgvs_genomic_n_identity)
+                if v3 is not False:
+                    hgvs_genomic_n_assembled.posedit.pos.end.base = v3.posedit.pos.end.base
+
+                    ass_ref = (v1.posedit.edit.ref +
+                               norm_hgvs_transcript.posedit.edit.ref +
+                               v3.posedit.edit.ref)
+                    ass_alt = (v1.posedit.edit.alt +
+                               norm_hgvs_transcript.posedit.edit.alt +
+                               v3.posedit.edit.alt)
+                else:
+                    hgvs_genomic_n_assembled.posedit.pos.end.base = \
+                        norm_hgvs_transcript.posedit.pos.end.base
+                    ass_ref = (v1.posedit.edit.ref +
+                               norm_hgvs_transcript.posedit.edit.ref)
+                    ass_alt = (v1.posedit.edit.alt +
+                               norm_hgvs_transcript.posedit.edit.alt)
+                hgvs_genomic_n_assembled.posedit.edit.ref = ass_ref
+                hgvs_genomic_n_assembled.posedit.edit.alt = ass_alt
+                norm_hgvs_transcript = copy.deepcopy(hgvs_genomic_n_assembled)
+            else:
+                v3 = copy.deepcopy(hgvs_genomic_n_identity)
+                v3.posedit.pos.end.base = norm_hgvs_transcript.posedit.pos.start.base - 1
+                v3.posedit.edit.ref = ""
+                v3.posedit.edit.alt = ""
+                if (hgvs_genomic_n_identity.posedit.pos.end.base
+                        > norm_hgvs_transcript.posedit.pos.end.base):
+                    v3 = copy.deepcopy(hgvs_genomic_n_identity)
+                    v3.posedit.pos.start.base = norm_hgvs_transcript.posedit.pos.end.base + 1
+                    v3.posedit.edit.ref = ""
+                    v3.posedit.edit.alt = ""
+                    v3 = normaliser.normalize(v3)
+                else:
+                    v3 = False
+
+                # Assemble
+                hgvs_genomic_n_assembled = copy.deepcopy(hgvs_genomic_n_identity)
+                if v3 is not False:
+                    hgvs_genomic_n_assembled.posedit.pos.end.base = v3.posedit.pos.end.base
+                    ass_ref = (norm_hgvs_transcript.posedit.edit.ref +
+                               v3.posedit.edit.ref)
+                    ass_alt = (norm_hgvs_transcript.posedit.edit.alt +
+                               v3.posedit.edit.alt)
+                else:
+                    hgvs_genomic_n_assembled.posedit.pos.end.base = \
+                        norm_hgvs_transcript.posedit.pos.end.base
+                    ass_ref = norm_hgvs_transcript.posedit.edit.ref
+                    ass_alt = norm_hgvs_transcript.posedit.edit.alt
+                hgvs_genomic_n_assembled.posedit.edit.ref = ass_ref
+                hgvs_genomic_n_assembled.posedit.edit.alt = ass_alt
+                norm_hgvs_transcript = copy.deepcopy(hgvs_genomic_n_assembled)
+    return norm_hgvs_transcript
+
+
 
 def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, sf, tx_ac, hdp, alt_aln_method, hp, vm,
-                        mrg, genomic_ac=False):
+                        mrg, genomic_ac=False, mapped_g=False, pre_norm=False):
     """
     Designed specifically for gap handling.
     hard right pushes as 3 prime as possible and adds additional bases
@@ -1140,144 +1285,42 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
     :param hn:
     :param reverse_normalizer:
     :param sf:
-    :param tx_ac:
+    :param tx_ac: Transcipt ac when genomic var is input
     :param hdp:
     :param alt_aln_method:
     :param hp:
     :param vm:
-    :param genomic_ac:
+    :param genomic_ac: Genomic ac when transcirpt var is input *Must* be false for genomic var
     :return:
     """
-    # c. must be in n. format
-    try:
-        hgvs_genomic = vm.c_to_n(hgvs_genomic)  # Need in n. context
-    except TypeError:
-        pass
-    except vvhgvs.exceptions.HGVSInvalidVariantError:
-        pass
-
-    hgvs_genomic_variant = hgvs_genomic
-    # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
-    normalized_hgvs_genomic = hn.normalize(hgvs_genomic_variant)
-
-    # Variants in/on a genomic gap that cause issues need sorting by making them span so coordinates do not reverse
-    if hgvs_genomic.type != "g":
-        hgvs_genomic_g = vm.n_to_g(normalized_hgvs_genomic, genomic_ac)
-        try:
-            hn.normalize(hgvs_genomic_g)
-        except vvhgvs.exceptions.HGVSInvalidVariantError as e:
-            if "base start position must be <= end position" in str(e):
-                hgvs_genomic_g_identity = copy.deepcopy(hgvs_genomic_g)
-                # First, get ins and del into delins
-                if hgvs_genomic_g_identity.posedit.edit.type == "dup":
-                    # Duplications have no "alt" in the object structure so convert to delins
-                    stb = hgvs_genomic_g_identity.posedit.pos.end.base
-                    edb = hgvs_genomic_g_identity.posedit.pos.start.base
-                    hgvs_genomic_g_identity.posedit.pos.start.base = stb
-                    hgvs_genomic_g_identity.posedit.pos.end.base = edb
-                    hgvs_genomic_g_identity.posedit.edit.ref = sf.fetch_seq(hgvs_genomic_g_identity.ac, stb - 1, edb)
-                    hgvs_genomic_g_identity = hgvs_to_delins_hgvs(hgvs_genomic_g_identity, hp, hn)
-                else:
-                    adjust_s = hgvs_genomic_g_identity.posedit.pos.end.base
-                    adjust_e = hgvs_genomic_g_identity.posedit.pos.start.base
-                    hgvs_genomic_g_identity.posedit.pos.start.base = adjust_s
-                    hgvs_genomic_g_identity.posedit.pos.end.base = adjust_e
-                hgvs_genomic_g_identity.posedit.edit.ref = ''
-                hgvs_genomic_g_identity.posedit.edit.alt = ''
-                hgvs_genomic_g_identity = hn.normalize(hgvs_genomic_g_identity)
-                hgvs_genomic_n_gap = vm.g_to_n(hgvs_genomic_g_identity, hgvs_genomic.ac)
-                hgvs_genomic_n_identity = copy.deepcopy(hgvs_genomic_n_gap)
-                hgvs_genomic_n_identity.posedit.edit.ref = ""
-                hgvs_genomic_n_identity.posedit.edit.alt = ""
-                hgvs_genomic_n_identity = hn.normalize(hgvs_genomic_n_identity)
-
-                """
-                At this stage we have the gap position at g. in hgvs_genomic_g_identity
-                # The impact in hgvs_genomic_n_gap
-                # And the range the variant needs to span to cover the gap in hgvs_genomic_n_identity
-                """
-                # First, get ins and del into delins
-                if hgvs_genomic.posedit.edit.type == "del":
-                    normalized_hgvs_genomic = hgvs_to_delins_hgvs(normalized_hgvs_genomic, hp, hn)
-                elif normalized_hgvs_genomic.posedit.edit.type == "ins":
-                    normalized_hgvs_genomic = hgvs_to_delins_hgvs(normalized_hgvs_genomic, hp, hn)
-                elif normalized_hgvs_genomic.posedit.edit.type == "dup":
-                    normalized_hgvs_genomic = hgvs_to_delins_hgvs(normalized_hgvs_genomic, hp, hn)
-
-                # Now create the variant
-                if hgvs_genomic_n_identity.posedit.pos.start.base < \
-                        normalized_hgvs_genomic.posedit.pos.start.base:
-                    v1 = copy.deepcopy(hgvs_genomic_n_identity)
-                    v1.posedit.pos.end.base = normalized_hgvs_genomic.posedit.pos.start.base - 1
-                    v1.posedit.edit.ref = ""
-                    v1.posedit.edit.alt = ""
-                    v1 = hn.normalize(v1)
-                    if (hgvs_genomic_n_identity.posedit.pos.end.base
-                            > normalized_hgvs_genomic.posedit.pos.end.base):
-                        v3 = copy.deepcopy(hgvs_genomic_n_identity)
-                        v3.posedit.pos.start.base = normalized_hgvs_genomic.posedit.pos.end.base + 1
-                        v3.posedit.edit.ref = ""
-                        v3.posedit.edit.alt = ""
-                        v3 = hn.normalize(v3)
-                    else:
-                        v3 = False
-
-                    # Assemble
-                    hgvs_genomic_n_assembled = copy.deepcopy(hgvs_genomic_n_identity)
-                    if v3 is not False:
-                        hgvs_genomic_n_assembled.posedit.pos.end.base = v3.posedit.pos.end.base
-                        ass_ref = (v1.posedit.edit.ref + \
-                                   normalized_hgvs_genomic.posedit.edit.ref + \
-                                   v3.posedit.edit.ref)
-                        ass_alt = (v1.posedit.edit.alt + \
-                                   normalized_hgvs_genomic.posedit.edit.alt + \
-                                   v3.posedit.edit.alt)
-                    else:
-                        hgvs_genomic_n_assembled.posedit.pos.end.base = \
-                            normalized_hgvs_genomic.posedit.pos.end.base
-                        ass_ref = (v1.posedit.edit.ref + \
-                                   normalized_hgvs_genomic.posedit.edit.ref)
-                        ass_alt = (v1.posedit.edit.alt + \
-                                   normalized_hgvs_genomic.posedit.edit.alt)
-                    hgvs_genomic_n_assembled.posedit.edit.ref = ass_ref
-                    hgvs_genomic_n_assembled.posedit.edit.alt = ass_alt
-                    normalized_hgvs_genomic = copy.deepcopy(hgvs_genomic_n_assembled)
-                else:
-                    v3 = copy.deepcopy(hgvs_genomic_n_identity)
-                    v3.posedit.pos.end.base = normalized_hgvs_genomic.posedit.pos.start.base - 1
-                    v3.posedit.edit.ref = ""
-                    v3.posedit.edit.alt = ""
-                    if (hgvs_genomic_n_identity.posedit.pos.end.base
-                            > normalized_hgvs_genomic.posedit.pos.end.base):
-                        v3 = copy.deepcopy(hgvs_genomic_n_identity)
-                        v3.posedit.pos.start.base = normalized_hgvs_genomic.posedit.pos.end.base + 1
-                        v3.posedit.edit.ref = ""
-                        v3.posedit.edit.alt = ""
-                        v3 = hn.normalize(v3)
-                    else:
-                        v3 = False
-
-                    # Assemble
-                    hgvs_genomic_n_assembled = copy.deepcopy(hgvs_genomic_n_identity)
-                    if v3 is not False:
-                        hgvs_genomic_n_assembled.posedit.pos.end.base = v3.posedit.pos.end.base
-                        ass_ref = (normalized_hgvs_genomic.posedit.edit.ref +
-                                   v3.posedit.edit.ref)
-                        ass_alt = (normalized_hgvs_genomic.posedit.edit.alt +
-                                   v3.posedit.edit.alt)
-                    else:
-                        hgvs_genomic_n_assembled.posedit.pos.end.base = \
-                            normalized_hgvs_genomic.posedit.pos.end.base
-                        ass_ref = normalized_hgvs_genomic.posedit.edit.ref
-                        ass_alt = normalized_hgvs_genomic.posedit.edit.alt
-                    hgvs_genomic_n_assembled.posedit.edit.ref = ass_ref
-                    hgvs_genomic_n_assembled.posedit.edit.alt = ass_alt
-                    normalized_hgvs_genomic = copy.deepcopy(hgvs_genomic_n_assembled)
+    if hgvs_genomic.type == 'g':
+        # Reverse normalize input prior to convert: NOTE will replace ref
+        if pre_norm:
+            normalized_hgvs_genomic = pre_norm
+        else:
+            normalized_hgvs_genomic = hn.normalize(hgvs_genomic)
+    else:
+        # c. must be in n. format
+        if hgvs_genomic.type == 'c':
+            hgvs_genomic = vm.c_to_n(hgvs_genomic)
+        if pre_norm:
+            normalized_hgvs_genomic = pre_norm
+        else:
+            normalized_hgvs_genomic = hn.normalize(hgvs_genomic)
+        normalized_hgvs_genomic = pre_push_vcf_tx_g_map_fix(
+                normalized_hgvs_genomic,
+                hgvs_genomic,
+                genomic_ac,
+                vm,
+                hn,# normaliser
+                sf,# seq_fetcher
+                mapped_g)
 
     # Chr
-    chr = seq_data.to_chr_num_ucsc(normalized_hgvs_genomic.ac, primary_assembly)
-    if chr is not None:
-        pass
+    if hgvs_genomic.type == 'g':
+        chr = seq_data.to_chr_num_ucsc(normalized_hgvs_genomic.ac, primary_assembly)
+        if chr is None:
+           chr = normalized_hgvs_genomic.ac
     else:
         chr = normalized_hgvs_genomic.ac
 
@@ -1390,7 +1433,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
     pre_merged_variant = False
     identifying_variant = False
     identifying_g_variant = False
-
+    needs_a_push = False
     if chr != '' and pos != '' and ref != '' and alt != '':
 
         # Set exon boundary
@@ -1415,7 +1458,6 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
         push_ref = ref
         push_alt = alt
         working_pos = int(pos) + len(ref)
-        needs_a_push = False
         if genomic_ac is False:
             genomic_ac = hgvs_genomic.ac
         # Clear staging_loop
@@ -1905,9 +1947,8 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
     vcf_dict['needs_a_push'] = needs_a_push
     return vcf_dict
 
-
 def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, sf, tx_ac, hdp, alt_aln_method,
-                       hp, vm, mrg, genomic_ac=False):
+                       hp, vm, mrg, genomic_ac=False, mapped_g=False, pre_norm=False ):
     """
     Designed specifically for gap handling.
     hard left pushes as 5 prime as possible and adds additional bases
@@ -1922,139 +1963,37 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
     :param hp:
     :param vm:
     :param genomic_ac:
+    :param mapped_g: genomic mapping, used if a transcript type is input
     :return:
     """
-    # c. must be in n. format
-    try:
-        hgvs_genomic = vm.c_to_n(hgvs_genomic)  # Need in n. context
-    except TypeError:
-        pass
-    except vvhgvs.exceptions.HGVSInvalidVariantError:
-        pass
-
-    hgvs_genomic_variant = hgvs_genomic
-
-    # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
-    reverse_normalized_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic_variant)
-
-    # Variants in/on a genomic gap that cause issues need sorting by making them span so coordinates do not reverse
-    if hgvs_genomic.type != "g":
-        hgvs_genomic_g = vm.n_to_g(reverse_normalized_hgvs_genomic, genomic_ac)
-        try:
-            hn.normalize(hgvs_genomic_g)
-        except vvhgvs.exceptions.HGVSInvalidVariantError as e:
-            if "base start position must be <= end position" in str(e):
-                hgvs_genomic_g_identity = copy.deepcopy(hgvs_genomic_g)
-                # First, get ins and del into delins
-                if hgvs_genomic_g_identity.posedit.edit.type == "dup":
-                    # Duplications have no "alt" in the object structure so convert to delins
-                    stb = hgvs_genomic_g_identity.posedit.pos.end.base
-                    edb = hgvs_genomic_g_identity.posedit.pos.start.base
-                    hgvs_genomic_g_identity.posedit.pos.start.base = stb
-                    hgvs_genomic_g_identity.posedit.pos.end.base = edb
-                    hgvs_genomic_g_identity.posedit.edit.ref = sf.fetch_seq(hgvs_genomic_g_identity.ac, stb - 1, edb)
-                    hgvs_genomic_g_identity = hgvs_to_delins_hgvs(hgvs_genomic_g_identity, hp, hn)
-                else:
-                    adjust_s = hgvs_genomic_g_identity.posedit.pos.end.base
-                    adjust_e = hgvs_genomic_g_identity.posedit.pos.start.base
-                    hgvs_genomic_g_identity.posedit.pos.start.base = adjust_s
-                    hgvs_genomic_g_identity.posedit.pos.end.base = adjust_e
-                hgvs_genomic_g_identity.posedit.edit.ref = ''
-                hgvs_genomic_g_identity.posedit.edit.alt = ''
-                hgvs_genomic_g_identity = hn.normalize(hgvs_genomic_g_identity)
-                hgvs_genomic_n_gap = vm.g_to_n(hgvs_genomic_g_identity, hgvs_genomic.ac)
-                hgvs_genomic_n_identity = copy.deepcopy(hgvs_genomic_n_gap)
-                hgvs_genomic_n_identity.posedit.edit.ref = ""
-                hgvs_genomic_n_identity.posedit.edit.alt = ""
-                hgvs_genomic_n_identity = hn.normalize(hgvs_genomic_n_identity)
-
-                """
-                At this stage we have the gap position at g. in hgvs_genomic_g_identity
-                # The impact in hgvs_genomic_n_gap
-                # And the range the variant needs to span to cover the gap in hgvs_genomic_n_identity
-                """
-                # First, get ins and del into delins
-                if reverse_normalized_hgvs_genomic.posedit.edit.type == "del":
-                    reverse_normalized_hgvs_genomic = hgvs_to_delins_hgvs(reverse_normalized_hgvs_genomic, hp, hn)
-                elif reverse_normalized_hgvs_genomic.posedit.edit.type == "ins":
-                    reverse_normalized_hgvs_genomic = hgvs_to_delins_hgvs(reverse_normalized_hgvs_genomic, hp, hn)
-                elif reverse_normalized_hgvs_genomic.posedit.edit.type == "dup":
-                    reverse_normalized_hgvs_genomic = hgvs_to_delins_hgvs(reverse_normalized_hgvs_genomic, hp, hn)
-
-                # Now create the variant
-                if hgvs_genomic_n_identity.posedit.pos.start.base < \
-                        reverse_normalized_hgvs_genomic.posedit.pos.start.base:
-                    v1 = copy.deepcopy(hgvs_genomic_n_identity)
-                    v1.posedit.pos.end.base = reverse_normalized_hgvs_genomic.posedit.pos.start.base - 1
-                    v1.posedit.edit.ref = ""
-                    v1.posedit.edit.alt = ""
-                    v1 = hn.normalize(v1)
-                    if (hgvs_genomic_n_identity.posedit.pos.end.base
-                            > reverse_normalized_hgvs_genomic.posedit.pos.end.base):
-                        v3 = copy.deepcopy(hgvs_genomic_n_identity)
-                        v3.posedit.pos.start.base = reverse_normalized_hgvs_genomic.posedit.pos.end.base + 1
-                        v3.posedit.edit.ref = ""
-                        v3.posedit.edit.alt = ""
-                        v3 = hn.normalize(v3)
-                    else:
-                        v3 = False
-
-                    # Assemble
-                    hgvs_genomic_n_assembled = copy.deepcopy(hgvs_genomic_n_identity)
-                    if v3 is not False:
-                        hgvs_genomic_n_assembled.posedit.pos.end.base = v3.posedit.pos.end.base
-                        ass_ref = (v1.posedit.edit.ref +
-                                   reverse_normalized_hgvs_genomic.posedit.edit.ref +
-                                   v3.posedit.edit.ref)
-                        ass_alt = (v1.posedit.edit.alt +
-                                   reverse_normalized_hgvs_genomic.posedit.edit.alt +
-                                   v3.posedit.edit.alt)
-                    else:
-                        hgvs_genomic_n_assembled.posedit.pos.end.base = \
-                            reverse_normalized_hgvs_genomic.posedit.pos.end.base
-                        ass_ref = (v1.posedit.edit.ref +
-                                   reverse_normalized_hgvs_genomic.posedit.edit.ref)
-                        ass_alt = (v1.posedit.edit.alt +
-                                   reverse_normalized_hgvs_genomic.posedit.edit.alt)
-                    hgvs_genomic_n_assembled.posedit.edit.ref = ass_ref
-                    hgvs_genomic_n_assembled.posedit.edit.alt = ass_alt
-                    reverse_normalized_hgvs_genomic = copy.deepcopy(hgvs_genomic_n_assembled)
-                else:
-                    v3 = copy.deepcopy(hgvs_genomic_n_identity)
-                    v3.posedit.pos.end.base = reverse_normalized_hgvs_genomic.posedit.pos.start.base - 1
-                    v3.posedit.edit.ref = ""
-                    v3.posedit.edit.alt = ""
-                    if (hgvs_genomic_n_identity.posedit.pos.end.base
-                            > reverse_normalized_hgvs_genomic.posedit.pos.end.base):
-                        v3 = copy.deepcopy(hgvs_genomic_n_identity)
-                        v3.posedit.pos.start.base = reverse_normalized_hgvs_genomic.posedit.pos.end.base + 1
-                        v3.posedit.edit.ref = ""
-                        v3.posedit.edit.alt = ""
-                        v3 = hn.normalize(v3)
-                    else:
-                        v3 = False
-
-                    # Assemble
-                    hgvs_genomic_n_assembled = copy.deepcopy(hgvs_genomic_n_identity)
-                    if v3 is not False:
-                        hgvs_genomic_n_assembled.posedit.pos.end.base = v3.posedit.pos.end.base
-                        ass_ref = (reverse_normalized_hgvs_genomic.posedit.edit.ref +
-                                   v3.posedit.edit.ref)
-                        ass_alt = (reverse_normalized_hgvs_genomic.posedit.edit.alt +
-                                   v3.posedit.edit.alt)
-                    else:
-                        hgvs_genomic_n_assembled.posedit.pos.end.base = \
-                            reverse_normalized_hgvs_genomic.posedit.pos.end.base
-                        ass_ref = reverse_normalized_hgvs_genomic.posedit.edit.ref
-                        ass_alt = reverse_normalized_hgvs_genomic.posedit.edit.alt
-                    hgvs_genomic_n_assembled.posedit.edit.ref = ass_ref
-                    hgvs_genomic_n_assembled.posedit.edit.alt = ass_alt
-                    reverse_normalized_hgvs_genomic = copy.deepcopy(hgvs_genomic_n_assembled)
+    if hgvs_genomic.type == 'g':
+        # Reverse normalize input prior to convert: NOTE will replace ref
+        if pre_norm:
+            reverse_normalized_hgvs_genomic = pre_norm
+        else:
+            reverse_normalized_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic)
+    else:
+        # c. must be in n. format
+        if hgvs_genomic.type == 'c':
+            hgvs_genomic = vm.c_to_n(hgvs_genomic)
+        if pre_norm:
+            reverse_normalized_hgvs_genomic = pre_norm
+        else:
+            reverse_normalized_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic)
+        reverse_normalized_hgvs_genomic = pre_push_vcf_tx_g_map_fix(
+                reverse_normalized_hgvs_genomic,
+                hgvs_genomic,
+                genomic_ac,
+                vm,
+                hn,# normaliser
+                sf,# seq_fetcher
+                mapped_g)
 
     # Chr
-    chr = seq_data.to_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, primary_assembly)
-    if chr is not None:
-        pass
+    if hgvs_genomic.type == 'g':
+        chr = seq_data.to_chr_num_ucsc(reverse_normalized_hgvs_genomic.ac, primary_assembly)
+        if chr is None:
+           chr = reverse_normalized_hgvs_genomic.ac
     else:
         chr = reverse_normalized_hgvs_genomic.ac
 
@@ -2167,9 +2106,9 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
     pre_merged_variant = False
     identifying_variant = False
     identifying_g_variant = False
+    needs_a_push = False
 
     if chr != '' and pos != '' and ref != '' and alt != '':
-
         # Set exon boundary
         if genomic_ac is False:
             # Find the boundaries at the genomic level for the current exon

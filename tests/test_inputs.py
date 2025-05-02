@@ -31194,6 +31194,19 @@ class TestVariantsAuto(TestCase):
         results = self.vv.validate(variant, 'GRCh38','all').format_as_dict(test=True)
         assert "mitochondrial_variant_1" in results.keys()
 
+    def test_issue_711(self):
+        #formats like 'chr17(GRCh38):g.50198002C>A' where not being handled correctly
+
+        # Test that it fails for genome mismatch
+        results = self.vv.validate('chr17(GRCh38):g.50198002C>A', 'GRCh37','all').format_as_dict(test=True)
+        assert 'validation_warning_1' in results
+        assert 'genome build' in results['validation_warning_1']['validation_warnings'][0]
+
+        # Test that we get a valid response when they match
+        results = self.vv.validate('chr17(GRCh38):g.50198002C>A', 'GRCh38','all').format_as_dict(test=True)
+        assert "NM_000088.4:c.589G>T" in results
+
+
 # <LICENSE>
 # Copyright (C) 2016-2025 VariantValidator Contributors
 #

@@ -14,40 +14,57 @@ def get_installation_path():
 LOVD_DIR = get_installation_path()
 PHP_SCRIPT = os.path.join(LOVD_DIR, "HGVS.php")
 
+import time
+
+MAX_RETRIES = 10
+RETRY_DELAY = 0.1  # 100 milliseconds
+
 def run_hgvs_checker(variant):
-    """Run the LOVD HGVS Syntax Checker with the given variant using PHP."""
+    """Run the LOVD HGVS Syntax Checker with quick retries on failure."""
     if not os.path.exists(PHP_SCRIPT):
-        raise FileNotFoundError(
-            f"HGVS Syntax Checker is not installed. Expected at: {PHP_SCRIPT}"
-        )
+        raise FileNotFoundError(f"HGVS Syntax Checker is not installed. Expected at: {PHP_SCRIPT}")
 
-    try:
-        result = subprocess.run(
-            ["php", "-f", PHP_SCRIPT, variant],
-            capture_output=True,
-            text=True,
-            check=True
-        )
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            result = subprocess.run(
+                ["php", "-f", PHP_SCRIPT, variant],
+                capture_output=True,
+                text=True,
+                check=True
+            )
 
-        result_meta = subprocess.run(
-            ["php", "-f", PHP_SCRIPT, "getVersions"],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        json_result = json.loads(result.stdout.strip())
-        json_meta = json.loads(result_meta.stdout.strip())
-        json_result[0]["metadata"] = json_meta[0]
-        return json_result # Parse JSON output
-    except subprocess.CalledProcessError as e:
-        raise f"Error running HGVS Checker: {e.stderr.strip()}"
-    except json.JSONDecodeError:
-        raise f"Invalid JSON output: {result.stdout.strip()}"
-    except Exception:
-        raise
+            result_meta = subprocess.run(
+                ["php", "-f", PHP_SCRIPT, "getVersions"],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+
+            json_result = json.loads(result.stdout.strip())
+            json_meta = json.loads(result_meta.stdout.strip())
+            json_result[0]["metadata"] = json_meta[0]
+            return json_result
+
+        except subprocess.CalledProcessError as e:
+            if attempt == MAX_RETRIES:
+                raise RuntimeError(f"HGVS Checker error after {MAX_RETRIES} retries: {e.stderr.strip()}")
+            time.sleep(RETRY_DELAY)
+
+        except json.JSONDecodeError:
+            if attempt == MAX_RETRIES:
+                raise RuntimeError(f"Invalid JSON from HGVS Checker after {MAX_RETRIES} retries: {result.stdout.strip()}")
+            time.sleep(RETRY_DELAY)
+
+        except Exception as e:
+            if attempt == MAX_RETRIES:
+                raise RuntimeError(f"Unexpected error in HGVS Checker after {MAX_RETRIES} retries: {e}")
+            time.sleep(RETRY_DELAY)
 
 if __name__ == "__main__":
     test_variant = "c.100del"
+    output = run_hgvs_checker(test_variant)
+    print(output)
+    test_variant = "Dmd\\"
     output = run_hgvs_checker(test_variant)
     print(output)
 

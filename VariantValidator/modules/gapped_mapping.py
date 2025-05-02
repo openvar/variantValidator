@@ -6,6 +6,7 @@ from . import utils as fn
 from . import hgvs_utils
 from . import seq_data
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj, hgvs_dup_to_delins
+import traceback
 
 logger = logging.getLogger(__name__)
 
@@ -373,8 +374,28 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 if "+" not in str(saved_hgvs_coding.posedit.pos) and "-" not in str(saved_hgvs_coding.posedit.pos):
                     """
                     Directly search for gaps using vcf hard_pushing left
+                    we pre-normalise the input (at least as far as basic hgvs), to test for sharing
+                    the n->g mapping, which can be the most time consuming step in the process
                     """
+                    genomic_mapping = None
+                    non_variant_genomic_ac = False # push left/right require False genomic ac when main variant
+                    # is genomic
                     try:
+                        hgvs_right = copy.copy(saved_hgvs_coding)
+                        if hgvs_right.type == 'c':
+                            hgvs_right = self.validator.vm.c_to_n(hgvs_right)
+                            hgvs_left = copy.copy(hgvs_right)
+                        else:
+                            hgvs_left = copy.copy(saved_hgvs_coding)
+                        hgvs_right = self.variant.hn.normalize(hgvs_right)
+                        hgvs_left = self.variant.reverse_normalizer.normalize(hgvs_left)
+                        if hgvs_right.type == 'n':
+                            non_variant_genomic_ac = hgvs_genomic_variant.ac
+
+                        if hgvs_right == hgvs_left and hgvs_right.type == 'n':
+                            genomic_mapping = self.validator.vm.n_to_g(hgvs_right, hgvs_genomic_variant.ac,alt_aln_method=self.validator.alt_aln_method)
+                        else:
+                            genomic_mapping = False
                         vcf__dict = hgvs_utils.hard_left_hgvs2vcf(saved_hgvs_coding,
                                                                   self.variant.primary_assembly,
                                                                   self.variant.hn,
@@ -386,7 +407,9 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                                   self.validator.hp,
                                                                   self.validator.vm,
                                                                   self.validator.merge_hgvs_3pr,
-                                                                  genomic_ac=hgvs_genomic_variant.ac)
+                                                                  genomic_ac=non_variant_genomic_ac,
+                                                                  mapped_g=copy.copy(genomic_mapping),
+                                                                  pre_norm=hgvs_left)
 
                         if vcf__dict['needs_a_push'] is True:
                             needs_a_push = True
@@ -394,25 +417,12 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                             if merged_variant is not False:
                                 try:
                                     merged_variant = self.validator.vm.n_to_c(merged_variant)
-                                except TypeError:
-                                    pass
-                                except vvhgvs.exceptions.HGVSInvalidVariantError:
-                                    pass
-                                except vvhgvs.exceptions.HGVSUsageError:
+                                except (TypeError,
+                                        vvhgvs.exceptions.HGVSInvalidVariantError,
+                                        vvhgvs.exceptions.HGVSUsageError):
                                     pass
 
-                    except vvhgvs.exceptions.HGVSUnsupportedOperationError:
-                        pass
-                    except vvhgvs.exceptions.HGVSDataNotAvailableError:
-                        pass
-                    except vvhgvs.exceptions.HGVSInvalidVariantError:
-                        pass
-
-                    """
-                    Directly search for gaps using vcf hard_pushing right
-                    """
-                    try:
-                        vcf__dict = hgvs_utils.hard_right_hgvs2vcf(saved_hgvs_coding,
+                        vcf__dict = hgvs_utils.hard_right_hgvs2vcf(hgvs_right,
                                                                    self.variant.primary_assembly,
                                                                    self.variant.hn,
                                                                    self.variant.reverse_normalizer,
@@ -423,7 +433,9 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                                    self.validator.hp,
                                                                    self.validator.vm,
                                                                    self.validator.merge_hgvs_3pr,
-                                                                   genomic_ac=hgvs_genomic_variant.ac)
+                                                                   genomic_ac=non_variant_genomic_ac,
+                                                                   mapped_g=genomic_mapping,
+                                                                   pre_norm=hgvs_right)
 
                         if vcf__dict['needs_a_push'] is True:
                             needs_a_push = True
@@ -431,16 +443,13 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                             if merged_variant is not False:
                                 try:
                                     merged_variant = self.validator.vm.n_to_c(merged_variant)
-                                except TypeError:
-                                    pass
-                                except vvhgvs.exceptions.HGVSInvalidVariantError:
+                                except (TypeError, vvhgvs.exceptions.HGVSInvalidVariantError):
                                     pass
 
-                    except vvhgvs.exceptions.HGVSUnsupportedOperationError:
-                        pass
-                    except vvhgvs.exceptions.HGVSDataNotAvailableError:
-                        pass
-                    except vvhgvs.exceptions.HGVSInvalidVariantError:
+                    except (vvhgvs.exceptions.HGVSUnsupportedOperationError,
+                            vvhgvs.exceptions.HGVSInvalidVariantError,
+                            vvhgvs.exceptions.HGVSUsageError,
+                            vvhgvs.exceptions.HGVSDataNotAvailableError):
                         pass
 
                     # Collect the hard_pushed variant information and adjust the variants accordingly
@@ -756,6 +765,24 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                 # Try the push to see if a gap is identified
                                 hgvs_stash = copy.deepcopy(stash_hgvs_not_delins)
                                 stash_ac = hgvs_stash.ac
+                                genomic_mapping = None
+                                genomic_ac_for_tx = False
+                                hgvs_genomic_variant.ac
+                                hgvs_right = copy.copy(hgvs_stash)
+                                if hgvs_right.type == 'c':
+                                    hgvs_right = self.validator.vm.c_to_n(hgvs_right)
+                                    hgvs_left = copy.copy(hgvs_right)
+                                else:
+                                    hgvs_left = copy.copy(hgvs_stash)
+                                hgvs_right = self.variant.hn.normalize(hgvs_right)
+                                hgvs_left = self.variant.reverse_normalizer.normalize(hgvs_left)
+                                if hgvs_left.type == 'n':
+                                    genomic_ac_for_tx = hgvs_genomic_variant.ac
+                                if hgvs_right == hgvs_left and hgvs_right.type == 'n':
+                                    genomic_mapping = self.validator.vm.n_to_g(
+                                            hgvs_right,
+                                            hgvs_genomic_variant.ac,
+                                            alt_aln_method=self.validator.alt_aln_method)
 
                                 # Make a hard left and hard right not delins g.
                                 stash_dict_right = hgvs_utils.hard_right_hgvs2vcf(hgvs_stash,
@@ -768,7 +795,10 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                                                   self.validator.alt_aln_method,
                                                                                   self.validator.hp,
                                                                                   self.validator.vm,
-                                                                                  self.validator.merge_hgvs_3pr)
+                                                                                  self.validator.merge_hgvs_3pr,
+                                                                                  genomic_ac=genomic_ac_for_tx,
+                                                                                  mapped_g=copy.copy(genomic_mapping),
+                                                                                  pre_norm=hgvs_right)
                                 stash_hgvs_not_delins_right = hgvs_delins_parts_to_hgvs_obj(
                                         stash_ac,
                                         hgvs_stash.type,
@@ -786,7 +816,10 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                                                 self.validator.alt_aln_method,
                                                                                 self.validator.hp,
                                                                                 self.validator.vm,
-                                                                                self.validator.merge_hgvs_3pr)
+                                                                                self.validator.merge_hgvs_3pr,
+                                                                                genomic_ac=genomic_ac_for_tx,
+                                                                                mapped_g=copy.copy(genomic_mapping),
+                                                                                pre_norm=hgvs_left)
                                 stash_hgvs_not_delins_left =  hgvs_delins_parts_to_hgvs_obj(
                                         stash_ac,
                                         hgvs_stash.type,
@@ -932,11 +965,32 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
         hgvs_stash = copy.deepcopy(hgvs_coding)
         stash_tx_right = ''
         stash_tx_left = ''
+        map_fail = False
         try:
-            hgvs_stash = self.variant.no_norm_evm.c_to_n(hgvs_stash)
-        except Exception as e:
-            logger.debug("Except passed, %s", e)
+            if hgvs_stash.type == 'c':
+                hgvs_stash = self.validator.vm.c_to_n(hgvs_stash)
+            hgvs_right = copy.copy(hgvs_stash)
+            hgvs_left = copy.copy(hgvs_stash)
+            if not (
+                    getattr(hgvs_right.posedit.pos.start,'offset',False) or
+                    getattr(hgvs_right.posedit.pos.end,'offset',False)):
+                hgvs_right = self.variant.hn.normalize(hgvs_right)
+                hgvs_left = self.variant.reverse_normalizer.normalize(hgvs_left)
+            if hgvs_right == hgvs_left and hgvs_right.type == 'n':
+                genomic_mapping = self.validator.vm.n_to_g(
+                        hgvs_right,
+                        hgvs_genomic.ac,
+                        alt_aln_method=self.validator.alt_aln_method)
+            else:
+                genomic_mapping = False
+        except (vvhgvs.exceptions.HGVSUnsupportedOperationError,
+                vvhgvs.exceptions.HGVSInvalidVariantError,
+                vvhgvs.exceptions.HGVSUsageError,
+                vvhgvs.exceptions.HGVSDataNotAvailableError):
+            map_fail = True
         try:
+            if map_fail:
+                raise ValueError("Already failed in n->g mapping")
             stash_ac = hgvs_stash.ac
             stash_dict = hgvs_utils.hard_right_hgvs2vcf(hgvs_stash,
                                                         self.variant.primary_assembly,
@@ -949,7 +1003,9 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                         self.validator.hp,
                                                         self.validator.vm,
                                                         self.validator.merge_hgvs_3pr,
-                                                        genomic_ac=hgvs_genomic.ac)
+                                                        genomic_ac=hgvs_genomic.ac,
+                                                        mapped_g=copy.copy(genomic_mapping),
+                                                        pre_norm=hgvs_right)
             # make a not real deletion insertion
             stash_hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
                     stash_ac,
@@ -1017,16 +1073,12 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     merged_variant = stash_dict['merged_variant']
                     try:
                         merged_variant = self.validator.vm.n_to_c(merged_variant)
-                    except TypeError:
-                        pass
-                    except vvhgvs.exceptions.HGVSInvalidVariantError:
+                    except (TypeError, vvhgvs.exceptions.HGVSInvalidVariantError):
                         pass
                     identifying_variant = stash_dict['identifying_variant']
                     try:
                         identifying_variant = self.validator.vm.n_to_c(identifying_variant)
-                    except TypeError:
-                        pass
-                    except vvhgvs.exceptions.HGVSInvalidVariantError:
+                    except (TypeError, vvhgvs.exceptions.HGVSInvalidVariantError):
                         pass
                     stash_genomic = self.validator.myvm_t_to_g(identifying_variant, stash_genomic.ac,
                                                                self.variant.no_norm_evm,
@@ -1061,20 +1113,14 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                                                gap_len,
                                                                                stash_hgvs_not_delins,
                                                                                stash_genomic]]]
-
-        except vvhgvs.exceptions.HGVSError as e:
-            logger.debug("Except passed, %s", e)
         # Intronic positions not supported. Will cause a Value Error
-        except ValueError as e:
+        except (vvhgvs.exceptions.HGVSError, ValueError) as e:
             logger.debug("Except passed, %s", e)
 
         # Then to the left
-        hgvs_stash = copy.deepcopy(hgvs_coding)
         try:
-            hgvs_stash = self.variant.no_norm_evm.c_to_n(hgvs_stash)
-        except Exception as e:
-            logger.debug("Except passed, %s", e)
-        try:
+            if map_fail:
+                raise ValueError("Already failed in n->g mapping")
             stash_ac = hgvs_stash.ac
             stash_dict = hgvs_utils.hard_left_hgvs2vcf(hgvs_stash,
                                                        self.variant.primary_assembly,
@@ -1087,7 +1133,9 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                        self.validator.hp,
                                                        self.validator.vm,
                                                        self.validator.merge_hgvs_3pr,
-                                                       genomic_ac=hgvs_genomic.ac)
+                                                       genomic_ac=hgvs_genomic.ac,
+                                                       mapped_g=copy.copy(genomic_mapping),
+                                                       pre_norm=hgvs_left)
             # make a not real deletion insertion
             stash_hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
                     stash_ac,
@@ -1157,16 +1205,12 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     merged_variant = stash_dict['merged_variant']
                     try:
                         merged_variant = self.validator.vm.n_to_c(merged_variant)
-                    except TypeError:
-                        pass
-                    except vvhgvs.exceptions.HGVSInvalidVariantError:
+                    except (TypeError, vvhgvs.exceptions.HGVSInvalidVariantError):
                         pass
                     identifying_variant = stash_dict['identifying_variant']
                     try:
                         identifying_variant = self.validator.vm.n_to_c(identifying_variant)
-                    except TypeError:
-                        pass
-                    except vvhgvs.exceptions.HGVSInvalidVariantError:
+                    except (TypeError, vvhgvs.exceptions.HGVSInvalidVariantError):
                         pass
                     stash_genomic = self.validator.myvm_t_to_g(identifying_variant, stash_genomic.ac,
                                                                self.variant.no_norm_evm,
@@ -1212,11 +1256,8 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                                                gap_len,
                                                                                stash_hgvs_not_delins,
                                                                                stash_genomic]]]
-
-        except vvhgvs.exceptions.HGVSError as e:
-            logger.debug("Except passed, %s", e)
         # Intronic positions not supported. Will cause a Value Error
-        except ValueError as e:
+        except (vvhgvs.exceptions.HGVSError, ValueError)as e:
             logger.debug("Except passed, %s", e)
 
         # direct mapping from reverse_normalized transcript insertions in the delins format
@@ -1770,11 +1811,33 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
         stash_tx_left = ''
 
         # Capture instances where variant merging hard-sets the outputs
+        map_fail = False
         try:
-            hgvs_stash = self.variant.no_norm_evm.c_to_n(hgvs_stash)
-        except Exception as e:
-            logger.debug("Except passed, %s", e)
+            if hgvs_stash.type == 'c':
+                hgvs_stash = self.validator.vm.c_to_n(hgvs_stash)
+            hgvs_right = copy.copy(hgvs_stash)
+            hgvs_left = copy.copy(hgvs_right)
+            if not (
+                    getattr(hgvs_right.posedit.pos.start,'offset',False) or
+                    getattr(hgvs_right.posedit.pos.end,'offset',False)):
+                hgvs_right = self.variant.hn.normalize(hgvs_right)
+                hgvs_left = self.variant.reverse_normalizer.normalize(hgvs_left)
+            #if hgvs_right.type == 'n':
+            #    non_variant_genomic_ac = hgvs_genomic_variant.ac
+            if hgvs_right == hgvs_left and hgvs_right.type == 'n':
+                genomic_mapping = self.validator.vm.n_to_g(hgvs_right, hgvs_alt_genomic.ac,alt_aln_method=self.validator.alt_aln_method)
+            else:
+                genomic_mapping = False
+        except (vvhgvs.exceptions.HGVSUnsupportedOperationError,
+                vvhgvs.exceptions.HGVSInvalidVariantError,
+                vvhgvs.exceptions.HGVSUsageError,
+                vvhgvs.exceptions.HGVSDataNotAvailableError) as err1:
+            map_fail = True
+            pass
+
         try:
+            if map_fail:
+                raise ValueError("Already failed in n->g mapping")
             stash_ac = hgvs_stash.ac
             stash_dict = hgvs_utils.hard_right_hgvs2vcf(hgvs_stash,
                                                         self.variant.primary_assembly,
@@ -1787,7 +1850,9 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                         self.validator.hp,
                                                         self.validator.vm,
                                                         self.validator.merge_hgvs_3pr,
-                                                        genomic_ac=hgvs_alt_genomic.ac)
+                                                        genomic_ac=hgvs_alt_genomic.ac,
+                                                        mapped_g=copy.copy(genomic_mapping),
+                                                        pre_norm=hgvs_right)
 
             # make a not real deletion insertion
             stash_hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
@@ -1808,15 +1873,11 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             if len(test_stash_tx_right.posedit.edit.ref) == ((stash_genomic.posedit.pos.end.base -
                                                               stash_genomic.posedit.pos.start.base) + 1):
                 stash_tx_right = test_stash_tx_right
-                if hasattr(test_stash_tx_right.posedit.edit,
-                           'alt') and test_stash_tx_right.posedit.edit.alt is not None:
-                    alt = test_stash_tx_right.posedit.edit.alt
-                else:
+                alt = getattr(test_stash_tx_right.posedit.edit, 'alt', False)
+                if not alt:
                     alt = ''
-                if hasattr(stash_genomic.posedit.edit,
-                           'alt') and stash_genomic.posedit.edit.alt is not None:
-                    g_alt = stash_genomic.posedit.edit.alt
-                else:
+                g_alt = getattr(stash_genomic.posedit.edit, 'alt', False)
+                if not g_alt:
                     g_alt = ''
                 if (len(alt) - (
                         test_stash_tx_right.posedit.pos.end.base - test_stash_tx_right.posedit.pos.start.base) + 1) != (
@@ -1858,19 +1919,16 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 # Look for merged variant from hard push
                 if stash_dict['merged_variant'] is not False:
                     merged_variant = stash_dict['merged_variant']
-                    try:
-                        merged_variant = self.validator.vm.n_to_c(merged_variant)
-                    except TypeError:
-                        pass
-                    except vvhgvs.exceptions.HGVSInvalidVariantError:
-                        pass
                     identifying_variant = stash_dict['identifying_variant']
                     try:
+                        merged_variant = self.validator.vm.n_to_c(merged_variant)
+                    except (TypeError, vvhgvs.exceptions.HGVSInvalidVariantError):
+                        pass
+                    try:
                         identifying_variant = self.validator.vm.n_to_c(identifying_variant)
-                    except TypeError:
+                    except (TypeError, vvhgvs.exceptions.HGVSInvalidVariantError):
                         pass
-                    except vvhgvs.exceptions.HGVSInvalidVariantError:
-                        pass
+
                     stash_genomic = self.validator.myvm_t_to_g(identifying_variant, stash_genomic.ac,
                                                                self.variant.no_norm_evm,
                                                                self.variant.hn)
@@ -1905,18 +1963,13 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                                                stash_hgvs_not_delins,
                                                                                stash_genomic]]]
 
-        except vvhgvs.exceptions.HGVSError as e:
-            logger.debug("Except passed, %s", e)
-        except ValueError as e:
+        except (vvhgvs.exceptions.HGVSError, ValueError) as e:
             logger.debug("Except passed, %s", e)
 
         # Then to the left
-        hgvs_stash = copy.deepcopy(hgvs_coding)
         try:
-            hgvs_stash = self.variant.no_norm_evm.c_to_n(hgvs_stash)
-        except Exception as e:
-            logger.debug("Except passed, %s", e)
-        try:
+            if map_fail:
+                raise ValueError("Already failed in n->g mapping")
             stash_ac = hgvs_stash.ac
             stash_dict = hgvs_utils.hard_left_hgvs2vcf(hgvs_stash,
                                                        self.variant.primary_assembly,
@@ -1929,7 +1982,9 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                        self.validator.hp,
                                                        self.validator.vm,
                                                        self.validator.merge_hgvs_3pr,
-                                                       genomic_ac=hgvs_alt_genomic.ac)
+                                                       genomic_ac=hgvs_alt_genomic.ac,
+                                                       mapped_g=copy.copy(genomic_mapping),
+                                                       pre_norm=hgvs_left)
 
             # make a not real deletion insertion
             stash_hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
@@ -1949,15 +2004,11 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             if len(test_stash_tx_left.posedit.edit.ref) == ((stash_genomic.posedit.pos.end.base -
                                                              stash_genomic.posedit.pos.start.base) + 1):
                 stash_tx_left = test_stash_tx_left
-                if hasattr(test_stash_tx_left.posedit.edit,
-                           'alt') and test_stash_tx_left.posedit.edit.alt is not None:
-                    alt = test_stash_tx_left.posedit.edit.alt
-                else:
+                alt = getattr(test_stash_tx_left.posedit.edit, 'alt', False)
+                if not alt:
                     alt = ''
-                if hasattr(stash_genomic.posedit.edit,
-                           'alt') and stash_genomic.posedit.edit.alt is not None:
-                    g_alt = stash_genomic.posedit.edit.alt
-                else:
+                g_alt = getattr(stash_genomic.posedit.edit, 'alt', False)
+                if not g_alt:
                     g_alt = ''
                 if (len(alt) - (
                         test_stash_tx_left.posedit.pos.end.base - test_stash_tx_left.posedit.pos.start.base) + 1) != (
@@ -1999,19 +2050,16 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 # Look for merged variant from hard push
                 if stash_dict['merged_variant'] is not False:
                     merged_variant = stash_dict['merged_variant']
-                    try:
-                        merged_variant = self.validator.vm.n_to_c(merged_variant)
-                    except TypeError:
-                        pass
-                    except vvhgvs.exceptions.HGVSInvalidVariantError:
-                        pass
                     identifying_variant = stash_dict['identifying_variant']
                     try:
+                        merged_variant = self.validator.vm.n_to_c(merged_variant)
+                    except (TypeError, vvhgvs.exceptions.HGVSInvalidVariantError):
+                        pass
+                    try:
                         identifying_variant = self.validator.vm.n_to_c(identifying_variant)
-                    except TypeError:
+                    except (TypeError, vvhgvs.exceptions.HGVSInvalidVariantError):
                         pass
-                    except vvhgvs.exceptions.HGVSInvalidVariantError:
-                        pass
+
                     stash_genomic = self.validator.myvm_t_to_g(identifying_variant, stash_genomic.ac,
                                                                self.variant.no_norm_evm,
                                                                self.variant.hn)
@@ -2055,9 +2103,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                                                                stash_hgvs_not_delins,
                                                                                stash_genomic]]]
 
-        except vvhgvs.exceptions.HGVSError as e:
-            logger.debug("Except passed, %s", e)
-        except ValueError as e:
+        except (vvhgvs.exceptions.HGVSError, ValueError) as e:
             logger.debug("Except passed, %s", e)
 
         # direct mapping from reverse_normalized transcript insertions in the delins format
