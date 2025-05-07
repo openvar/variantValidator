@@ -1,7 +1,12 @@
 import os
 import subprocess
 import json
+import time
+import threading
 import importlib.resources as pkg_resources
+
+# Lock to ensure thread-safe subprocess access
+lovd_cli_lock = threading.Lock()
 
 def get_installation_path():
     """Determine the correct installation path inside the installed VariantValidator package."""
@@ -14,31 +19,30 @@ def get_installation_path():
 LOVD_DIR = get_installation_path()
 PHP_SCRIPT = os.path.join(LOVD_DIR, "HGVS.php")
 
-import time
-
-MAX_RETRIES = 10
-RETRY_DELAY = 0.1  # 100 milliseconds
+MAX_RETRIES = 3
+RETRY_DELAY = 0.2  # 200 milliseconds
 
 def run_hgvs_checker(variant):
-    """Run the LOVD HGVS Syntax Checker with quick retries on failure."""
+    """Run the LOVD HGVS Syntax Checker with quick retries on failure, using thread lock."""
     if not os.path.exists(PHP_SCRIPT):
         raise FileNotFoundError(f"HGVS Syntax Checker is not installed. Expected at: {PHP_SCRIPT}")
 
     for attempt in range(1, MAX_RETRIES + 1):
         try:
-            result = subprocess.run(
-                ["php", "-f", PHP_SCRIPT, variant],
-                capture_output=True,
-                text=True,
-                check=True
-            )
+            with lovd_cli_lock:
+                result = subprocess.run(
+                    ["php", "-f", PHP_SCRIPT, variant],
+                    capture_output=True,
+                    text=True,
+                    check=True
+                )
 
-            result_meta = subprocess.run(
-                ["php", "-f", PHP_SCRIPT, "getVersions"],
-                capture_output=True,
-                text=True,
-                check=True
-            )
+                result_meta = subprocess.run(
+                    ["php", "-f", PHP_SCRIPT, "getVersions"],
+                    capture_output=True,
+                    text=True,
+                    check=True
+                )
 
             json_result = json.loads(result.stdout.strip())
             json_meta = json.loads(result_meta.stdout.strip())
