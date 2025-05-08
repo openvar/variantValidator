@@ -60,6 +60,9 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
         if "HGNC:" in query:
             store_query = query
             query = query.upper()
+            if store_query != query:
+                if lovd_syntax_check is True:  # Try LOVD syntax checker
+                    lovd_messages, lovd_corrections = lovd_syntax_check_g2t(submitted, lovd_syntax_check)
             query = g2t.db.get_stable_gene_id_from_hgnc_id(query)[1]
             if query == "No data":
                 try:
@@ -89,6 +92,10 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
         query = query.upper()
         if re.search(r'\d+ORF\d+', query):
             query = query.replace('ORF', 'orf')
+
+        if query != submitted:
+            if lovd_syntax_check is True:  # Try LOVD syntax checker
+                lovd_messages, lovd_corrections = lovd_syntax_check_g2t(submitted, lovd_syntax_check)
 
         # Quick check for LRG
         elif 'LRG' in query:
