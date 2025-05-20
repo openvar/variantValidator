@@ -1434,6 +1434,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
     identifying_variant = False
     identifying_g_variant = False
     needs_a_push = False
+
     if chr != '' and pos != '' and ref != '' and alt != '':
 
         # Set exon boundary
@@ -1517,8 +1518,13 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
             if len(normlize_check_mapped.posedit.edit.ref) <= 1:
                 staging_loop = staging_loop + 1
 
+            # exon boundary hit. Break before intron
+            if working_pos > exon_end_genomic:
+                needs_a_push = False
+                break
+
             # Check here for the gap (Has it been crossed?) Note: if gap in tx, we have the whole gap spanned
-            if (((len(normlize_check_mapped.posedit.edit.ref) != len(normlize_check_variant.posedit.edit.ref) and
+            elif (((len(normlize_check_mapped.posedit.edit.ref) != len(normlize_check_variant.posedit.edit.ref) and
                   len(normlize_check_mapped.posedit.edit.ref) > 1))
                     or
                     (normlize_check_variant.posedit.edit.type == 'identity')
@@ -1919,10 +1925,6 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                     # Everything missed, assume no push required
                     needs_a_push = False
                     break
-
-            # exon boundary hit. Break before intron
-            elif working_pos == exon_end_genomic:
-                break
 
             # Continue looping
             else:

@@ -711,12 +711,10 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     try:
         protein_dict = validator.myc_to_p(hgvs_coding, variant.evm, re_to_p=False, hn=variant.hn)
     except NotImplementedError as e:
-        print(e)
         assert False
         protein_dict = {'hgvs_protein': None, 'error': str(e)}
         variant.warnings.append(str(e))
     except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
-        print(e)
         assert False
         protein_dict = {'hgvs_protein': None, 'error': str(e)}
         variant.warnings.append(str(e))
