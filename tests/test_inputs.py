@@ -31207,6 +31207,14 @@ class TestVariantsAuto(TestCase):
         assert "NM_000088.4:c.589G>T" in results
 
 
+    def test_issue_733a(self):
+        # Gap gene vith variant on the exon boundary end
+
+        # Test that it fails for genome mismatch
+        results = self.vv.validate('chr11:118650341:C:T', 'GRCh37','NM_004397.6').format_as_dict(test=True)
+        assert 'NM_004397.6:c.369G>A' in results
+
+
 # <LICENSE>
 # Copyright (C) 2016-2025 VariantValidator Contributors
 #

@@ -187,6 +187,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
 
         # Create a pseudo VCF so that normalization can be applied and a delins can be generated
         hgvs_genomic_variant = self.variant.hgvs_genomic
+
         # Reverse normalize hgvs_genomic_variant: NOTE will replace ref
         reverse_normalized_hgvs_genomic = self.variant.reverse_normalizer.normalize(hgvs_genomic_variant)
         self.hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
