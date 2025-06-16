@@ -237,6 +237,23 @@ class ValOutput(object):
         if "lovd_api_error" not in variant.lovd_syntax_check.keys():
             lovd_messages = {}
             lovd_corrections = {}
+
+            try:
+                for key, val in variant.lovd_syntax_check['data'][0]['corrected_values'].items():
+                    lovd_syntax_suggestions = f"LovdSyntaxcheckSuggestions: [{key}, {round(val, 2)}]"
+                    if val == 1:
+                        variant.warnings = []
+                        if key == variant.original:
+                            variant.warnings.append(f"LovdSyntaxcheckValid: {variant.original} is syntactically "
+                                                    f"correct")
+                        else:
+                            variant.warnings.append(f"LovdSyntaxcheckInvalid: {variant.original} is not syntactically "
+                                                    f"correct, see LovdSyntaxcheckSuggestions for details")
+                            variant.warnings.append(lovd_syntax_suggestions)
+                    lovd_corrections[key] = val
+            except AttributeError:
+                pass
+
             try:
                 for key, val in variant.lovd_syntax_check["data"][0]["warnings"].items():
                     variant.warnings.append(f"LovdSyntaxcheckWarning: {val}")
@@ -251,26 +268,16 @@ class ValOutput(object):
             except AttributeError:
                 pass
 
-            try:
-                for key, val in variant.lovd_syntax_check['data'][0]['corrected_values'].items():
-                    lovd_syntax_suggestions = f"LovdSyntaxcheckSuggestions: [{key}, {round(val, 2)}]"
-                    variant.warnings.append(lovd_syntax_suggestions)
-                    lovd_corrections[key] = val
-            except AttributeError:
-                error = (f"InvalidVariantError: Variant description {variant.original} could "
-                         f"not be validated by either "
-                         f"VariantValidator or the LOVD syntax checker. Please refer to the HGVS nomenclature "
-                         f"website at https://hgvs-nomenclature.org/stable/. For additional assistance "
-                         f"contact us at https://variantvalidator.org/help/contact/")
-                variant.warnings.append(error)
-                pass
-
             variant.warnings.append(f"LovdSyntaxcheckSource: {variant.lovd_syntax_check['url']}")
             lovd_messages["ISOURCE"] = variant.lovd_syntax_check['url']
             variant.warnings.append(f"LovdSyntaxcheckLibraryVersion: {variant.lovd_syntax_check['version']}")
             lovd_messages["LIBRARYVERSION"] = variant.lovd_syntax_check['version']
             variant.lovd_messages = lovd_messages
             variant.lovd_corrections = lovd_corrections
+
+
+
+
 
 # <LICENSE>
 # Copyright (C) 2016-2025 VariantValidator Contributors
