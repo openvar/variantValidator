@@ -67,9 +67,11 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                                              variant.reverse_normalizer, validator.select_transcripts)
 
     # Double check rel_vars have not been missed when mapping from a RefSeqGene
+    # Do we also want to do this for ALT/PATCH inputs?
     if len(rel_var) != 0 and 'NG_' in variant.hgvs_genomic.ac and validator.select_transcripts != "refseqgene":
         for hgvs_coding_variant in rel_var:
             try:
+                hgvs_coding_variant.rel_ac = ''
                 variant.hgvs_genomic = validator.myevm_t_to_g(hgvs_coding_variant, variant.no_norm_evm,
                                                               variant.primary_assembly, variant.hn)
             except vvhgvs.exceptions.HGVSError:
@@ -261,8 +263,17 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
 
     # First task is to get the genomic equivalent, and output a useful error messages if it can't be found.
     try:
-        to_g = validator.myevm_t_to_g(obj, variant.no_norm_evm, variant.primary_assembly, variant.hn)
+        reset_g_origin = False
+        if obj.rel_ac.startswith('NG_'):
+            reset_g_origin=True
+        to_g = validator.myevm_t_to_g(
+                obj,
+                variant.no_norm_evm,
+                variant.primary_assembly,
+                variant.hn,
+                reset_g_origin=reset_g_origin)
         genomic_ac = to_g.ac
+
     except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
         errors = []
         if ('~' in str(e) and 'Alignment is incomplete' in str(e)) or "No relevant genomic mapping options" in str(e):

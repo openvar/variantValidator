@@ -826,6 +826,7 @@ def intronic_converter(variant, validator, skip_check=False, uncertain=False):
                 variant.quibble = f"{transcript}:{remainder}"
             else:
                 variant.quibble.ac = transcript
+                variant.quibble.rel_ac = genomic
             return variant
         else:
             genomic_ref = acc_section.split('(')[0]
@@ -837,6 +838,7 @@ def intronic_converter(variant, validator, skip_check=False, uncertain=False):
 
         if parsed:
             variant.quibble.ac = transy
+            variant.quibble.rel_ac = genomic_ref
             hgvs_transy = variant.quibble
         else:
             variant.quibble = variant.quibble.replace(acc_section,transy)
