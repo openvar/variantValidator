@@ -3,8 +3,7 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - python==3.11
+  - python=3.12.11
   - pip
-  - php==8.1.5
   - git
   - curl
