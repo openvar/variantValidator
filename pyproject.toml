@@ -19,26 +19,26 @@ keywords = ["bioinformatics",
 
 requires-python = ">=3.6"
 
-dependencies = ["biocommons.seqrepo>=0.5.1",
-                "httplib2>=0.9.0",
-                "pyliftover>=0.3",
-                "biotools>=0.3.0",
-                "bioutils==0.5.8.post1",
-                "mysql-connector-python",
-                "requests",
-                "biopython",
-                "pytest>=3.6",
-                "pytest-cov",
-                "pytest-xdist",
-                "pysam",
-                "codecov",
-                "numpy",
-                "httplib2>=0.9.0",
-                "configparser>=3.5.0",
-                "requests",
-                "protobuf",
-                "vvhgvs@git+https://github.com/openvar/vv_hgvs@master",
-                "VariantFormatter@git+https://github.com/openvar/variantFormatter@master"
+dependencies = [
+    "biocommons.seqrepo>=0.6.7",
+    "httplib2>=0.22.0",
+    "pyliftover>=0.4.1",
+    "biotools>=0.3.0",
+    "bioutils>=0.5.8.post1",
+    "mysql-connector-python==9.3.0",
+    "requests>=2.32.3",
+    "biopython>=1.85",
+    "pytest>=7.4.4",
+    "pytest-cov==4.1.0",
+    "pytest-xdist>=3.5.0",
+    "codecov>=2.1.13",
+    "numpy>=1.26.4",
+    "configparser>=7.2.0",
+    "protobuf>=4.23.4",
+    "lxml>=4.9.3",
+    "pysam",
+    "vvhgvs@git+https://github.com/openvar/vv_hgvs@master",
+    "VariantFormatter@git+https://github.com/openvar/variantFormatter@master"
 ]
 
 classifiers = [
@@ -51,7 +51,9 @@ classifiers = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11"
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13"
 ]
 
 [project.urls]

@@ -1,5 +1,5 @@
 # Declare the base image
-FROM python:3.11
+FROM python:3.12.11
 
 # Create the WorkDir
 WORKDIR /app
@@ -16,7 +16,8 @@ RUN apt update
 # Install apt managed sofware
 RUN apt -y install git \
     postgresql-client \
-    sqlite3
+    sqlite3 \
+    php
 
 # Upgrade pip
 RUN pip install --upgrade pip

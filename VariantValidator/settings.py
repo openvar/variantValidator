@@ -32,7 +32,7 @@ LOGGING_CONFIG = {
     },
     'loggers': {
         'VariantValidator': {
-            'level': 'ERROR',
+            'level': 'DEBUG',
             'handlers': ['console', 'file'],
             'propagate': 'no',
         }

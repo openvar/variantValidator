@@ -4,14 +4,18 @@ from VariantValidator.bin import lovd_syntax_checker
 
 logger = logging.getLogger(__name__)
 
+class LovdApiFlowException(Exception):
+    pass
 
-def run_lovd_checker_cli(variant):
+
+def run_lovd_checker_cli(variant, is_a_gene=False):
     """Runs the LOVD syntax checker via CLI."""
     base_url = "https://api.lovd.nl/v2/checkHGVS"
     url = f"{base_url}/{variant}"
 
+    logger.info(f"Calling LOVD CLI with: {variant}")
     try:
-        result = lovd_syntax_checker.run_hgvs_checker(variant)[0]
+        result = lovd_syntax_checker.run_hgvs_checker(variant, is_a_gene)[0]
         result = {"data": [result]}
         result["url"] = url
         result["version"] = result["data"][0]["metadata"]["library_version"]
@@ -21,12 +25,16 @@ def run_lovd_checker_cli(variant):
         return {"lovd_api_error": f"CLI check failed: {e}"}
 
 
-def run_lovd_checker_web(variant_description):
+def run_lovd_checker_web(variant_description, is_a_gene=False):
     """Runs the LOVD syntax checker via the web API."""
     base_url = "https://api.lovd.nl/v2/checkHGVS"
     url = f"{base_url}/{variant_description}"
 
+    logger.info(f"Calling LOVD API with: {variant_description}")
+
     try:
+        if is_a_gene is True:
+            raise LovdApiFlowException("Web API is currently not configured to support gene symbols")
         response = requests.get(url)
         response.raise_for_status()
         json_data = response.json()
@@ -35,11 +43,13 @@ def run_lovd_checker_web(variant_description):
         return remove_double_quotes(json_data)
     except requests.RequestException as e:
         return {"lovd_api_error": f"Request failed: {e}"}
+    except LovdApiFlowException as e:
+        return {"lovd_api_error": f"Unsupported value: {e}"}
     except Exception as e:
         return {"lovd_api_error": f"Unexpected error: {e}"}
 
 
-def lovd_syntax_check(variant_description, do_lovd_check=True):
+def lovd_syntax_check(variant_description, do_lovd_check=True, is_a_gene=False):
     """Performs LOVD syntax check using CLI first, then falls back to web API if necessary."""
     if not do_lovd_check:
         return {"lovd_api_error": f"Do LOVD syntax check set to {do_lovd_check}"}
@@ -47,12 +57,12 @@ def lovd_syntax_check(variant_description, do_lovd_check=True):
     json_data = None  # Ensure json_data is always defined
 
     try:
-        json_data = run_lovd_checker_cli(variant_description)
+        json_data = run_lovd_checker_cli(variant_description, is_a_gene=is_a_gene)
         if "lovd_api_error" in json_data:  # Fallback if CLI fails
             raise ValueError(json_data["lovd_api_error"])
     except Exception as e:
         logger.error(f"Error running LOVD checker CLI: {e}")
-        json_data = run_lovd_checker_web(variant_description)
+        json_data = run_lovd_checker_web(variant_description, is_a_gene=is_a_gene)
 
     json_data = remove_double_quotes(json_data)
 

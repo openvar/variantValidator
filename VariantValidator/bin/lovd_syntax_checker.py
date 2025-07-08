@@ -22,7 +22,7 @@ PHP_SCRIPT = os.path.join(LOVD_DIR, "HGVS.php")
 MAX_RETRIES = 3
 RETRY_DELAY = 0.2  # 200 milliseconds
 
-def run_hgvs_checker(variant):
+def run_hgvs_checker(variant, is_a_gene=False):
     """Run the LOVD HGVS Syntax Checker with quick retries on failure, using thread lock."""
     if not os.path.exists(PHP_SCRIPT):
         raise FileNotFoundError(f"HGVS Syntax Checker is not installed. Expected at: {PHP_SCRIPT}")
@@ -30,8 +30,13 @@ def run_hgvs_checker(variant):
     for attempt in range(1, MAX_RETRIES + 1):
         try:
             with lovd_cli_lock:
+                if is_a_gene is True:
+                    command = ["php", "-f", PHP_SCRIPT, f"gene:{variant}"]
+                else:
+                    command = ["php", "-f", PHP_SCRIPT, variant]
+
                 result = subprocess.run(
-                    ["php", "-f", PHP_SCRIPT, variant],
+                    command,
                     capture_output=True,
                     text=True,
                     check=True
