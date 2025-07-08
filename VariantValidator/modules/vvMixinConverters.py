@@ -66,13 +66,17 @@ class Mixin(vvMixinInit.Mixin):
         Ensures variants are transcript c. or n.
         returns parsed hgvs g. object
         """
+        logger.info(f"Map {variant} to genomic position")
+        logger.info(f"Primary assembly: {primary_assembly}")
         # If the :c. pattern is present in the input variant
         if type(variant) is not str:
+            logger.info(f"Variant {variant} is not a string")
             if variant.type in ['c','n']:
                 try:
                     var_g = self.myevm_t_to_g(variant, evm, primary_assembly, hn)
                 except vvhgvs.exceptions.HGVSError as e:
-                    return 'error ' + str(e)
+                    logger.info(f"HGVS error: {e}")
+                logger.info(f"Varinat {variant} mapped to {var_g}")
                 return var_g
             elif variant.type == 'g':
                 return variant

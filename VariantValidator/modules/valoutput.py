@@ -240,7 +240,8 @@ class ValOutput(object):
 
             try:
                 for key, val in variant.lovd_syntax_check['data'][0]['corrected_values'].items():
-                    lovd_syntax_suggestions = f"LovdSyntaxcheckSuggestions: [{key}, {round(val, 2)}]"
+                    lovd_syntax_suggestions = (f"LovdSyntaxcheckSuggestions: [suggestion = {key}, "
+                                               f"probability = {round(val, 2)}]")
                     if val == 1:
                         variant.warnings = []
                         if key == variant.original:

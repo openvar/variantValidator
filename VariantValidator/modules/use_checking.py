@@ -648,6 +648,7 @@ def structure_checks_c(variant, validator):
                     return True
 
     elif re.search(r'\d-', str(variant.input_parses)) or re.search(r'\d\+', str(variant.input_parses)):
+
         # Create a no_replace vm instance
         variant.no_replace_vm = vvhgvs.variantmapper.VariantMapper(validator.hdp,
                                                                    replace_reference=False,

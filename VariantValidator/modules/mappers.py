@@ -533,9 +533,11 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                                         variant.hn)
 
             # genome back to C coordinates
+            logger.info(f"Attempt to map {pre_var} back to c. coordinates")
             try:
                 post_var = validator.myevm_g_to_t(variant.evm, pre_var, trans_acc)
             except vvhgvs.exceptions.HGVSError as e:
+                logger.info(f"Error: {str(e)}. Variant: {pre_var}")
                 if "Alignment is incomplete" in str(e):
                     pre_var = hgvs_utils.incomplete_alignment_mapping_t_to_g(validator, variant)
                     if to_g is None:
@@ -546,6 +548,8 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                     else:
                         post_var = validator.vm.g_to_t(pre_var, tx_ac)
                         variant.hgvs_genomic = pre_var
+            else:
+                logger.info(f"{pre_var} mapped to {post_var}")
 
             test = quibble_input_hgvs_obj
             if post_var.posedit.pos.start.base != test.posedit.pos.start.base or \
