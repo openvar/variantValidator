@@ -90,9 +90,10 @@ class Mixin(vvMixinInit.Mixin):
             var_g = self.hp.parse_hgvs_variant(variant)
             return var_g
 
-    def myevm_t_to_g(self, hgvs_c, no_norm_evm, primary_assembly, hn):
+    def myevm_t_to_g(self, hgvs_c, no_norm_evm, primary_assembly, hn, reset_g_origin=False):
         """
         Enhanced transcript to genome position mapping function using evm
+        If reset_g_origin is false keeps the original mapping source, otherwise re-sets
         Deals with mapping from transcript positions that do not exist in the genomic sequence
         i.e. the stated position aligns to a genomic gap!
         Trys to ensure that a genomic position is always returned even if the c. or n. transcript
@@ -245,10 +246,13 @@ class Mixin(vvMixinInit.Mixin):
         hgvs_genomic = None
 
         try:
+            if reset_g_origin:
+                hgvs_c.rel_ac = ''
             hgvs_genomic = no_norm_evm.t_to_g(hgvs_c)
             hn.normalize(hgvs_genomic)  # Check the validity of the mapping
 
-            # This will fail on multiple refs for NC_
+            # This will fail on multiple refs for NC_ if the origin is not already set!
+            # if the origin is set then this keeps the relative genomic origin, which can include NG_ or alts!
         except vvhgvs.exceptions.HGVSError:
             # Recover all available mapping options from UTA
 

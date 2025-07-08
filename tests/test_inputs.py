@@ -29101,7 +29101,7 @@ class TestVariantsAuto(TestCase):
                                                                    'ucsc_id': 'uc058etp.1', 'omim_id': ['603290']}
         assert results['NR_110766.1:n.833+969C>T']['hgvs_transcript_variant'] == 'NR_110766.1:n.833+969C>T'
         assert results['NR_110766.1:n.833+969C>T'][
-                   'genome_context_intronic_sequence'] == 'NC_000011.9(NR_110766.1):c.833+969C>T'
+                   'genome_context_intronic_sequence'] == 'NW_004070871.1(NR_110766.1):c.833+969C>T'
         assert results['NR_110766.1:n.833+969C>T']['refseqgene_context_intronic_sequence'] == ''
         assert results['NR_110766.1:n.833+969C>T']['hgvs_refseqgene_variant'] == ''
         assert results['NR_110766.1:n.833+969C>T']['hgvs_predicted_protein_consequence'] == {'tlr': '', 'slr': ''}
@@ -29278,7 +29278,7 @@ class TestVariantsAuto(TestCase):
                                                                     'ucsc_id': 'uc058etp.1', 'omim_id': ['603290']}
         assert results['NM_012309.4:c.913-5058G>A']['hgvs_transcript_variant'] == 'NM_012309.4:c.913-5058G>A'
         assert results['NM_012309.4:c.913-5058G>A'][
-                   'genome_context_intronic_sequence'] == 'NC_000011.10(NM_012309.4):c.913-5058G>A'
+                   'genome_context_intronic_sequence'] == 'NW_004070871.1(NM_012309.4):c.913-5058G>A'
         assert results['NM_012309.4:c.913-5058G>A'][
                    'refseqgene_context_intronic_sequence'] == 'NG_042866.1(NM_012309.4):c.913-5058G>A'
         assert results['NM_012309.4:c.913-5058G>A']['hgvs_refseqgene_variant'] == 'NG_042866.1:g.149464G>A'
@@ -31115,13 +31115,44 @@ class TestVariantsAuto(TestCase):
 
     def test_chr_to_rsg(self):
         # Test a part of chr_to_rsg that was previously untested and resulted in a crashing bug
-        # during development. This particular variant only triggers the code in question when
-        # ".testing" is not enabled.
+        # during development. The chr_to_rsg code itself only triggers when the transcripts are
+        # limited to a set not shared between the chr and the RSG
+
+        # Initial test
         vval = Validator()
-        result = vval.validate('chr3:g.51361947G>T', 'GRCh38', 'all', 'refseq')
+        result = vval.validate('chr3:g.51384199T>G', 'GRCh38', 'all', 'refseq')
         results = result.format_as_dict(test=True)
+        print(results)
         assert results.keys()
-        assert results['intergenic_variant_1']['hgvs_refseqgene_variant'] == 'NG_028012.1:g.691707G>T'
+        assert results['intergenic_variant_1']['hgvs_refseqgene_variant'] == 'NG_028012.1:g.713959T>G'
+
+        # Tests for 'does not agree with reference sequence' in either strand
+        result = vval.validate('NC_000001.10:g.169954709_169954768delinsCCC', 'GRCh37', "['NR_000111.1']", 'refseq')
+        results = result.format_as_dict(test=True)
+        print(results)
+        assert results.keys()
+        assert results['intergenic_variant_1']['hgvs_refseqgene_variant'] == 'NG_012883.3:g.94112_94171delinsGGG'
+        result = vval.validate('NC_000005.9:g.36891845_36891904delinsCCC', 'GRCh37', "['NR_000111.1']", 'refseq')
+        results = result.format_as_dict(test=True)
+        print(results)
+        assert results.keys()
+        assert results['intergenic_variant_1']['hgvs_refseqgene_variant'] == 'NG_006987.2:g.19861_19920delinsCCC'
+
+        # Tests for 'dup' or 'inv' in a RSG -ve wrt genome
+        result = vval.validate('NC_000001.10:g.169954709_169954712dup', 'GRCh37', "['NR_000111.1']", 'refseq')
+        results = result.format_as_dict(test=True)
+        print(results)
+        assert results.keys()
+        assert results['intergenic_variant_1']['hgvs_refseqgene_variant'] == 'NG_012883.3:g.94168_94171dup'
+        result = vval.validate('NC_000001.10:g.169954709_169954768inv', 'GRCh37', "['NR_000111.1']", 'refseq')
+        results = result.format_as_dict(test=True)
+        print(results)
+        assert results.keys()
+        assert results['intergenic_variant_1']['hgvs_refseqgene_variant'] == 'NG_012883.3:g.94114_94169inv'
+
+        # Currently still do not have tests for RSGs 'Not in SeqRepo' in either strand but this
+        # should not be able to trigger in production.
+
 
     def test_indel_to_prot_del(self):
         # Test a otherwise untested complex protein code for simple del output as a result of indel
