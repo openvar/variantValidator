@@ -3896,7 +3896,8 @@ def gap_black_list(symbol):
         "GOLGA6L10",
         "C1R",
         "EYS",
-        "FOXO6"
+        "FOXO6",
+        "CASP8AP2"
     ]
     if symbol in gapGene:
         return True

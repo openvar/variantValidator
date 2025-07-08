@@ -532,7 +532,7 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
 
 def lovd_syntax_check_g2t(query, lovd_syntax_check):
     # Get additional warnings
-    check_with_lovd = lovd_api.lovd_syntax_check(query, do_lovd_check=lovd_syntax_check)
+    check_with_lovd = lovd_api.lovd_syntax_check(query, do_lovd_check=lovd_syntax_check, is_a_gene=True)
 
     if "lovd_api_error" in check_with_lovd:
         return {}, {}
