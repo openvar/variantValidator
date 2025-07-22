@@ -6,8 +6,8 @@ cwd = os.path.dirname(os.path.abspath(__file__))
 
 
 # Check Args
-if len(sys.argv) != 3:
-    print('Too few arguments. The command required is: python bin/batch_validator.py genome_build select_transcripts')
+if len(sys.argv) != 4:
+    print('Too few arguments. The command required is: python bin/batch_validator.py genome_build select_transcripts, transcript_set')
     exit()
 
 # Check genome_build
@@ -20,6 +20,12 @@ if genome_build not in genomes:
 
 select_transcripts = sys.argv[2]
 
+transcript_set = sys.argv[3]
+sets = ["refseq", "ensembl"]
+if select_transcripts not in sets:
+    warn = '%s is not a supported transcript set' % select_transcripts
+    print(warn)
+
 # Loop through file and detect fails
 filepath = cwd.replace('bin', 'batch')
 infile = filepath + '/input.txt'
@@ -30,8 +36,12 @@ with open(infile) as fp:
     for variant in variants:
         variant = variant.strip()
         print(variant)
+        if "ENST" in variant:
+            transcript_set = "ensembl"
+        if "N[MR]" in variant:
+            transcript_set = "refseq"
         try:
-            validate = vval.validate(variant, genome_build, select_transcripts)
+            validate = vval.validate(variant, genome_build, select_transcripts, transcript_set)
             validation = validate.format_as_table(with_meta=True)
             if counter == 0:
                 line_counter = 0

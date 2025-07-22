@@ -17,10 +17,14 @@ config.read(settings.CONFIG_DIR)
 if config['logging'].getboolean('log') is True:
     settings.LOGGING_CONFIG['handlers']['console']['level'] = config['logging']['console'].upper()
     settings.LOGGING_CONFIG['handlers']['file']['level'] = config['logging']['file'].upper()
-
     logging.config.dictConfig(settings.LOGGING_CONFIG)
 else:
-    logging.getLogger('VariantValidator').addHandler(handlers.RotatingFileHandler(str(parent) + '/VariantValidator.log',
+    if config['logging']['file_name']:
+        logfile = config['logging']['file_name']
+    else:
+        logfile = '/VariantValidator.log'
+
+    logging.getLogger('VariantValidator').addHandler(handlers.RotatingFileHandler(str(parent) + logfile,
                                                      maxBytes=500000,
                                                      backupCount=2))
 
