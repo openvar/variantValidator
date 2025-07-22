@@ -18,6 +18,8 @@ if config['logging'].getboolean('log') is True:
     settings.LOGGING_CONFIG['handlers']['console']['level'] = config['logging']['console'].upper()
     settings.LOGGING_CONFIG['handlers']['file']['level'] = config['logging']['file'].upper()
     logging.config.dictConfig(settings.LOGGING_CONFIG)
+    if config['logging']['file_name']:
+        settings.LOGGING_CONFIG['handlers']['file']['filename'] = config['logging']['file_name']
 else:
     if config['logging']['file_name']:
         logfile = config['logging']['file_name']
