@@ -6853,6 +6853,115 @@ class TestVFvariantsAuto(object):
         assert 'NC_000008.10:g.24811072C>T' in results.keys()
         assert 'NC_000008.10:g.24811072C>A' in results.keys()
 
+    def test_issue_744a(self):
+        results = VariantFormatter.simpleVariantFormatter.format('NC_000022.11:g.19723410C>G',
+                                                                 'GRCh38', 'refseq', None, False, True, testing=True)
+        print(results)
+        assert 'NC_000022.11:g.19723410C>G' in results.keys()
+        assert results['NC_000022.11:g.19723410C>G'][
+            'NC_000022.11:g.19723410C>G']['hgvs_t_and_p'][
+                   'NM_002688.4']["primary_assembly_loci"] == {
+            "grch37": {
+              "NC_000022.10": {
+                "hgvs_genomic_description": "NC_000022.10:g.19710933C>G",
+                "vcf": {
+                  "alt": "G",
+                  "chr": "22",
+                  "pos": "19710933",
+                  "ref": "C"
+                }
+              }
+            },
+            "grch38": {
+              "NC_000022.11": {
+                "hgvs_genomic_description": "NC_000022.11:g.19723410C>G",
+                "vcf": {
+                  "alt": "G",
+                  "chr": "22",
+                  "pos": "19723410",
+                  "ref": "C"
+                }
+              }
+            },
+            "hg19": {
+              "NC_000022.10": {
+                "hgvs_genomic_description": "NC_000022.10:g.19710933C>G",
+                "vcf": {
+                  "alt": "G",
+                  "chr": "22",
+                  "pos": "19710933",
+                  "ref": "C"
+                }
+              }
+            },
+            "hg38": {
+              "NC_000022.11": {
+                "hgvs_genomic_description": "NC_000022.11:g.19723410C>G",
+                "vcf": {
+                  "alt": "G",
+                  "chr": "chr22",
+                  "pos": "19723410",
+                  "ref": "C"
+                }
+              }
+            }
+          }
+
+    def test_issue_744b(self):
+        results = VariantFormatter.simpleVariantFormatter.format('NC_000022.11:g.19723410C>G',
+                                                                 'GRCh38', 'refseq', "raw", False, True, testing=True)
+        print(results)
+        assert 'NC_000012.12:g.80460829T>A' in results.keys()
+        assert results['NC_000012.12:g.80460829T>A'][
+            'NC_000012.12:g.80460829T>A']['hgvs_t_and_p'][
+                   'NM_001145026.2']["primary_assembly_loci"] == {
+            "grch37": {
+              "NC_000012.11": {
+                "hgvs_genomic_description": "NC_000012.11:g.80860629dup",
+                "vcf": {
+                  "alt": "CA",
+                  "chr": "12",
+                  "pos": "80860624",
+                  "ref": "C"
+                }
+              }
+            },
+            "grch38": {
+              "NC_000012.12": {
+                "hgvs_genomic_description": "NC_000012.12:g.80460829T>A",
+                "vcf": {
+                  "alt": "A",
+                  "chr": "12",
+                  "pos": "80460829",
+                  "ref": "T"
+                }
+              }
+            },
+            "hg19": {
+              "NC_000012.11": {
+                "hgvs_genomic_description": "NC_000012.11:g.80860629dup",
+                "vcf": {
+                  "alt": "CA",
+                  "chr": "chr12",
+                  "pos": "80860624",
+                  "ref": "C"
+                }
+              }
+            },
+            "hg38": {
+              "NC_000012.12": {
+                "hgvs_genomic_description": "NC_000012.12:g.80460829T>A",
+                "vcf": {
+                  "alt": "A",
+                  "chr": "chr12",
+                  "pos": "80460829",
+                  "ref": "T"
+                }
+              }
+            }
+          }
+
+
 
 # <LICENSE>
 # Copyright (C) 2016-2025 VariantValidator Contributors
