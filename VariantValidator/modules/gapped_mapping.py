@@ -397,6 +397,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                             genomic_mapping = self.validator.vm.n_to_g(hgvs_right, hgvs_genomic_variant.ac,alt_aln_method=self.validator.alt_aln_method)
                         else:
                             genomic_mapping = False
+
                         vcf__dict = hgvs_utils.hard_left_hgvs2vcf(saved_hgvs_coding,
                                                                   self.variant.primary_assembly,
                                                                   self.variant.hn,
@@ -450,7 +451,8 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     except (vvhgvs.exceptions.HGVSUnsupportedOperationError,
                             vvhgvs.exceptions.HGVSInvalidVariantError,
                             vvhgvs.exceptions.HGVSUsageError,
-                            vvhgvs.exceptions.HGVSDataNotAvailableError):
+                            vvhgvs.exceptions.HGVSDataNotAvailableError,
+                            ValueError):
                         pass
 
                     # Collect the hard_pushed variant information and adjust the variants accordingly

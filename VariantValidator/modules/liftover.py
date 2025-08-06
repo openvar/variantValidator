@@ -8,11 +8,12 @@ Lift position > Check bases > Lift back and confirm the original position
 # import modules
 import vvhgvs.exceptions
 import vvhgvs.sequencevariant
+from vvhgvs.assemblymapper import AssemblyMapper
 import logging
 from . import seq_data
 from . import hgvs_utils
+from . import utils
 from pyliftover import LiftOver
-from Bio.Seq import Seq
 import copy
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj
 
@@ -30,7 +31,7 @@ def mystr(hgvs_nucleotide):
 
 def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, validator,
              specify_tx=False, liftover_level=False, g_to_g=False, gap_map=False, vfo=False,
-             specified_tx_variant=False,genomic_data_w_vcf=False):
+             specified_tx_variant=False, genomic_data_w_vcf=False, force_pyliftover=False):
     """
     Step 1, attempt to liftover using a common RefSeq transcript
     Step 2, attempt to liftover using PyLiftover.
@@ -174,7 +175,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
             tx_list = list(rts_dict.keys())
 
     # Try to liftover
-    if tx_list is not False:
+    if tx_list is not False and force_pyliftover is False:
         selected = []
         # Liftover via a specific tx if it can be done!
         if specify_tx is not False:
@@ -254,13 +255,49 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                         get_assembly = seq_data.supported_for_mapping(key, "GRCh38")
                         if get_assembly is True:
                             map_to_assembly = "GRCh38"
+
+                        # Reset HGVS Alt Genomic
+                        no_norm_evm = AssemblyMapper(
+                            validator.hdp,
+                            assembly_name=build_to,
+                            alt_aln_method="splign",
+                            normalize=False,
+                            replace_reference=True
+                        )
+                        check_current_alt_genomic = copy.copy(hgvs_alt_genomic)
+                        am_i_gapped = None
+
                         try:
                             am_i_gapped = gap_map(specified_tx_variant, hgvs_alt_genomic, map_to_assembly, vfo)
                         except AttributeError:
-                            if specified_tx_variant is None:
-                                am_i_gapped = gap_map(hgvs_tx, hgvs_alt_genomic, map_to_assembly, vfo)
+                            try:
+                                if specified_tx_variant is None:
+                                    am_i_gapped = gap_map(hgvs_tx, hgvs_alt_genomic, map_to_assembly, vfo)
+                            except Exception:
+                                pass
+                        except Exception:
+                            pass
 
-                        hgvs_alt_genomic = am_i_gapped["hgvs_genomic"]
+                        if am_i_gapped is not None:
+                            hgvs_alt_genomic = am_i_gapped["hgvs_genomic"]
+
+                        else:
+                            try:
+                                hgvs_alt_genomic = validator.myvm_t_to_g(specified_tx_variant, hgvs_alt_genomic.ac,
+                                                                         no_norm_evm, hn)
+                            except AttributeError:
+                                if specified_tx_variant is None:
+                                    hgvs_alt_genomic = validator.myvm_t_to_g(hgvs_tx, hgvs_alt_genomic.ac,
+                                                                             no_norm_evm, hn)
+
+                            if str(check_current_alt_genomic) != str(hgvs_alt_genomic):
+                                am_i_gapped = {"gapped_alignment_warning": f"Variant {utils.valstr(hgvs_alt_genomic)} may "
+                                                                           f"be an artefact of alignment with the selected "
+                                                                           f"transcript due to an alignment gap in the "
+                                                                           f"specified position",
+                                               "gap_statement": "",
+                                               "gap_position": ""}
+
                     if val[1] == build_to or val[2] == alt_build_to:
                         alt_vcf = hgvs_utils.report_hgvs2vcf(
                                 hgvs_alt_genomic,
@@ -323,8 +360,11 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
 
                     # Add gap warnings if found
                     try:
-                        lifted_response["am_i_gapped"] = am_i_gapped
+                        if am_i_gapped is not None:
+                            lifted_response["am_i_gapped"] = am_i_gapped
                     except UnboundLocalError:
+                        pass
+                    except NameError:
                         pass
 
                     added_data = True
