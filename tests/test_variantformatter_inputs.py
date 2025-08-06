@@ -6855,7 +6855,7 @@ class TestVFvariantsAuto(object):
 
     def test_issue_744a(self):
         results = VariantFormatter.simpleVariantFormatter.format('NC_000022.11:g.19723410C>G',
-                                                                 'GRCh38', 'refseq', None, False, True, testing=True)
+                                                                 'GRCh38', 'refseq', "all", False, True, testing=True)
         print(results)
         assert 'NC_000022.11:g.19723410C>G' in results.keys()
         assert results['NC_000022.11:g.19723410C>G'][
@@ -6908,7 +6908,7 @@ class TestVFvariantsAuto(object):
           }
 
     def test_issue_744b(self):
-        results = VariantFormatter.simpleVariantFormatter.format('NC_000022.11:g.19723410C>G',
+        results = VariantFormatter.simpleVariantFormatter.format('NC_000012.12:g.80460829T>A',
                                                                  'GRCh38', 'refseq', "raw", False, True, testing=True)
         print(results)
         assert 'NC_000012.12:g.80460829T>A' in results.keys()
