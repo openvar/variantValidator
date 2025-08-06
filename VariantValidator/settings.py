@@ -1,8 +1,19 @@
 import os
+from configparser import ConfigParser
 
 CONFIG_DIR = os.path.join(os.path.expanduser('~'), '.variantvalidator')
 
-LOG_FILE = os.path.join(os.path.expanduser('~'), '.vv_errorlog')
+# Change settings based on config
+config = ConfigParser()
+config.read(CONFIG_DIR)
+
+try:
+    if config['logging']['file_name']:
+        LOG_FILE = config['logging']['file_name']
+    else:
+        LOG_FILE = os.path.join(os.path.expanduser('~'), '.vv_errorlog')
+except KeyError:
+    LOG_FILE = os.path.join(os.path.expanduser('~'), '.vv_errorlog')
 
 LOGGING_CONFIG = {
     'version': 1,

@@ -243,7 +243,6 @@ class ValOutput(object):
                     lovd_syntax_suggestions = (f"LovdSyntaxcheckSuggestions: [suggestion = {key}, "
                                                f"probability = {round(val, 2)}]")
                     if val == 1:
-                        variant.warnings = []
                         if key == variant.original:
                             variant.warnings.append(f"LovdSyntaxcheckValid: {variant.original} is syntactically "
                                                     f"correct")
@@ -251,6 +250,13 @@ class ValOutput(object):
                             variant.warnings.append(f"LovdSyntaxcheckInvalid: {variant.original} is not syntactically "
                                                     f"correct, see LovdSyntaxcheckSuggestions for details")
                             variant.warnings.append(lovd_syntax_suggestions)
+                    else:
+                        if ("is not syntactically correct, see LovdSyntaxcheckSuggestions "
+                            "for details") not in str(variant.warnings):
+                            variant.warnings.append(f"LovdSyntaxcheckInvalid: {variant.original} is not syntactically "
+                                                f"correct, see LovdSyntaxcheckSuggestions for details")
+                        variant.warnings.append(lovd_syntax_suggestions)
+
                     lovd_corrections[key] = val
             except AttributeError:
                 pass

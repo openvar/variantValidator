@@ -712,13 +712,18 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
 
     # Given the difficulties with mapping to and from RefSeqGenes, we now solely rely on UTA
     if refseqgene_ac != '':
-        hgvs_refseq = validator.vm.t_to_g(hgvs_coding, refseqgene_ac)
-        # Normalize the RefSeqGene Variant to the correct position
         try:
-            hgvs_refseq = variant.hn.normalize(hgvs_refseq)
-        except Exception:
-            # if re.search('insertion length must be 1', error):
+            hgvs_refseq = validator.vm.t_to_g(hgvs_coding, refseqgene_ac)
+        except vvhgvs.exceptions.HGVSError as e:
+            logger.warning(str(e))
             hgvs_refseq = 'RefSeqGene record not available'
+        else:
+            # Normalize the RefSeqGene Variant to the correct position
+            try:
+                hgvs_refseq = variant.hn.normalize(hgvs_refseq)
+            except Exception:
+                # if re.search('insertion length must be 1', error):
+                hgvs_refseq = 'RefSeqGene record not available'
     else:
         hgvs_refseq = 'RefSeqGene record not available'
 
