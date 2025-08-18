@@ -263,6 +263,13 @@ def convert_seq_state_to_expanded_repeat(variant, validator, genomic_reference=N
     raise VariantFormatError("Variant must be an HGVS-formatted string of type 'ins', 'del', 'dup', or '='.")
 
 
+if __name__ == '__main__':
+    import VariantValidator
+    validator = VariantValidator.Validator()
+    result = convert_seq_state_to_expanded_repeat("NM_002111.8:c.54_116=", validator, genomic_reference="NC_000004.11")
+    print(result)
+
+
 # <LICENSE>
 # Copyright (C) 2016-2025 VariantValidator Contributors
 #
