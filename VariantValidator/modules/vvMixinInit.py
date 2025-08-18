@@ -18,7 +18,6 @@ from vvhgvs.edit import AARefAlt, AAExt, Dup
 from Bio.Seq import Seq
 
 import re
-import copy
 from .vvDatabase import Database
 from . import utils
 from VariantValidator.settings import CONFIG_DIR
@@ -197,6 +196,12 @@ class Mixin:
                                                        shuffle_direction=5,
                                                        alt_aln_method=self.alt_aln_method
                                                        )
+
+        self.hn = vvhgvs.normalizer.Normalizer(self.hdp,
+                                               cross_boundaries=False,
+                                               shuffle_direction=3,
+                                               alt_aln_method=self.alt_aln_method
+                                               )
 
         self.merge_normalizer = vvhgvs.normalizer.Normalizer(
            self.hdp,
