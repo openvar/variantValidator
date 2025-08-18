@@ -208,7 +208,6 @@ def vcf2hgvs_stage1(variant, validator):
         validator.batch_list.append(query_a)
         validator.batch_list.append(query_b)
         logger.info("Submitting new variant with format %s", input_a)
-        logger.info("Submitting new variant with format %s", input_b)
         skipvar = True
     elif vcf_data[3]:
         variant.quibble = f'{vcf_data[0]}:{vcf_data[1]}ins{vcf_data[3]}'
@@ -747,18 +746,22 @@ def convert_expanded_repeat(my_variant, validator):
     ins_bases = (my_variant.expanded_repeat["repeat_sequence"] *
                  int(my_variant.expanded_repeat["copy_number"]))
     start_pos, _sep, end_pos = my_variant.expanded_repeat['position'].partition('_')
+
     repeat_to_delins = hgvs_delins_parts_to_hgvs_obj(
             my_variant.expanded_repeat['reference'],
             my_variant.expanded_repeat['prefix'],
             start_pos,
-            '',
+            my_variant.expanded_repeat['reference_sequence_bases'],
             ins_bases,
             end=end_pos)
+
+    logger.info(f"Expanded repeat to delins raw: {repeat_to_delins}")
 
     try:
         repeat_to_delins = my_variant.hn.normalize(repeat_to_delins)
     except vvhgvs.exceptions.HGVSUnsupportedOperationError:
         pass
+    logger.info(f"Expanded repeat to delins normalised: {repeat_to_delins}")
     my_variant.quibble = repeat_to_delins #fn.valstr(repeat_to_delins)
     my_variant.warnings.append(f"ExpandedRepeatWarning: {my_variant.expanded_repeat['variant']} "
                                f"should only be used as an annotation for the core "

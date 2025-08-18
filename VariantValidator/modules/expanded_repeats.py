@@ -87,6 +87,8 @@ class TandemRepeats:
         self.no_norm_evm = False
         self.genomic_conversion = None
         self.original_position = None
+        self.reference_sequence_bases = None
+
         # Define the wobble bases map with proper regex
         self._wobble_bases_map = {
             'A': r'A',       # Adenine
@@ -267,10 +269,11 @@ class TandemRepeats:
         logger.info(
             f"Checking range given: "\
             f"check_positions_given({self.repeat_sequence}, "\
-            f"{self.variant_position},{self.copy_number})"
+            f"{self.variant_position}, {self.copy_number})"
         )
         start,end = self.variant_position.split("_")
         reference_repeat_sequence = validator.sf.fetch_seq(self.reference, int(start)-1, int(end))
+        logger.info(f"Reference repeat sequence: {reference_repeat_sequence}")
 
         # Check if the length of reference_repeat_sequence is a multiple of the length of query_str
         if len(reference_repeat_sequence) % len(self.repeat_sequence) != 0:
@@ -287,6 +290,8 @@ class TandemRepeats:
         match = regex.search(reference_repeat_sequence)
         try:
             match.group()
+            logger.info(f"Regex matched {match.group()}")
+            self.reference_sequence_bases = match.group()
             return
         except AttributeError:
             if repeated_str == "":
@@ -484,6 +489,7 @@ class TandemRepeats:
         if self.intronic_g_reference:
             ref = self.intronic_g_reference
         requested_sequence = validator.sf.fetch_seq(ref, start, end)
+        logger.info(f"Requested sequence: {requested_sequence} from {ref} at {start}-{end}")
 
         # Critical, do not use cached regex
         regex = self.build_regex(self.repeat_sequence)
@@ -765,20 +771,26 @@ def convert_tandem(variant, validator, build, my_all):
         return False
     else:
         expanded_variant_string = expanded_variant.reformat(validator)
+
+
         try:
             variant.expanded_repeat = {"variant": expanded_variant_string,
                                        "position": expanded_variant.variant_position,
                                        "copy_number": expanded_variant.copy_number,
                                        "repeat_sequence": expanded_variant.repeat_sequence,
                                        "reference": expanded_variant.reference,
-                                       "prefix": expanded_variant.prefix}
+                                       "prefix": expanded_variant.prefix,
+                                       "reference_sequence_bases": expanded_variant.reference_sequence_bases}
+            logger.info(f"variant.expanded_repeat: {variant.expanded_repeat}")
         except AttributeError:
             expanded_repeat = {"variant": expanded_variant_string,
                                "position": expanded_variant.variant_position,
                                "copy_number": expanded_variant.copy_number,
                                "repeat_sequence": expanded_variant.repeat_sequence,
                                "reference": expanded_variant.reference,
-                               "prefix": expanded_variant.prefix}
+                               "prefix": expanded_variant.prefix,
+                               "reference_sequence_bases": expanded_variant.reference_sequence_bases}
+            logger.info(f"expanded_repeat: {expanded_repeat}")
             return expanded_repeat
 
         return True

@@ -1426,9 +1426,9 @@ class Mixin(vvMixinConverters.Mixin):
                                 indel_to_expanded_repeat.convert_indel_to_expanded_repeat(str(
                                     variant.hgvs_transcript_variant), self,
                                     genomic_reference=variant.expanded_repeat["variant"].split(":")[0]))
-                        except Exception as e:
-                            variant.warnings.append(
-                                f"Failed to convert HGVS transcript variant to expanded repeat: {e}")
+                        except Exception:
+                            pass
+
 
                     if "NC_" in variant.expanded_repeat["variant"]:
                         variant.primary_assembly_loci[self.primary_assembly.lower()
@@ -1444,9 +1444,8 @@ class Mixin(vvMixinConverters.Mixin):
                                 indel_to_expanded_repeat.convert_indel_to_expanded_repeat(str(
                                     variant.hgvs_transcript_variant), self,
                                     genomic_reference=variant.expanded_repeat["variant"].split(":")[0]))
-                        except Exception as e:
-                            variant.warnings.append(
-                                f"Failed to convert HGVS transcript variant to expanded repeat: {e}")
+                        except Exception:
+                            pass
 
                     elif ("NM_" in variant.expanded_repeat["variant"] or "NR_" in variant.expanded_repeat["variant"]
                           or "ENST" in variant.expanded_repeat["variant"]):
@@ -1483,15 +1482,17 @@ class Mixin(vvMixinConverters.Mixin):
                                 variant.primary_assembly_loci["hg19"]["hgvs_genomic_description"] = (
                                     variant.primary_assembly_loci["grch37"
                                     ]["hgvs_genomic_description"])
-                        except Exception as e:
-                            variant.warnings.append(
-                                f"Failed to convert HGVS genomic variants to expanded repeat: {e}")
+                        except Exception:
+                            pass
 
                     if "NG_" in variant.hgvs_refseqgene_variant:
                         if not "NG_" in variant.expanded_repeat["variant"]:
-                            variant.hgvs_refseqgene_variant = (
+                            try:
+                                variant.hgvs_refseqgene_variant = (
                                 indel_to_expanded_repeat.convert_indel_to_expanded_repeat(
                                     str(variant.hgvs_refseqgene_variant), self))
+                            except Exception:
+                                pass
                         if "LRG_" in variant.hgvs_lrg_variant:
                             variant.hgvs_lrg_variant = (f"{variant.hgvs_lrg_variant.split(':g.')[0]}"
                                                         f":g.{variant.hgvs_refseqgene_variant.split(':g.')[1]}")
