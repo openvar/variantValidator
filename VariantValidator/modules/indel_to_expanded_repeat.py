@@ -76,9 +76,10 @@ def decipher_repeated_unit(sequence):
             return unit
     return sequence  # Default: no recognizable repeat pattern
 
-def decipher_start_of_full_reference_repeated_sequence(reference, repeated_unit, start, validator):
+def decipher_start_of_full_reference_repeated_sequence(reference, repeated_unit, start, validator, window_size=100):
     """
-    Given a position where a repeat starts, walk backwards to find the full beginning of the repeat block.
+    Given a position where a repeat starts, fetch a larger window of sequence
+    and walk backwards in-memory to find the full beginning of the repeat block.
     """
     if not repeated_unit:
         raise RepeatedUnitError("Repeated unit must be a non-empty string.")
@@ -87,23 +88,36 @@ def decipher_start_of_full_reference_repeated_sequence(reference, repeated_unit,
 
     unit_len = len(repeated_unit)
     l_start = start - 1  # convert to 0-based
-    current_chunk = validator.sf.fetch_seq(reference, start_i=l_start, end_i=l_start + unit_len)
+
+    # Determine how far back we can fetch
+    fetch_start = max(0, l_start - window_size)
+    fetch_end = l_start + unit_len
+
+    # Fetch once
+    seq_window = validator.sf.fetch_seq(reference, start_i=fetch_start, end_i=fetch_end)
+
+    # Position of the unit in the fetched window
+    local_pos = l_start - fetch_start
+    current_chunk = seq_window[local_pos:local_pos + unit_len]
 
     if current_chunk != repeated_unit:
         return None  # Repeat does not match expected unit
 
-    while l_start - unit_len >= 0:
-        prev_chunk = validator.sf.fetch_seq(reference, start_i=l_start - unit_len, end_i=l_start)
+    # Walk backwards within the in-memory window
+    while local_pos - unit_len >= 0:
+        prev_chunk = seq_window[local_pos - unit_len:local_pos]
         if prev_chunk != repeated_unit:
             break
-        l_start -= unit_len
+        local_pos -= unit_len
 
-    return l_start + 1  # convert back to 1-based
+    # Convert back to reference coordinate (1-based)
+    return fetch_start + local_pos + 1
 
-def decipher_end_of_full_reference_repeated_sequence(reference, repeated_unit, start, validator):
+
+def decipher_end_of_full_reference_repeated_sequence(reference, repeated_unit, start, validator, window_size=100):
     """
     Walk forward from a given repeat position to find the full extent of the repeated block.
-    Tries two possible offsets to ensure frame alignment.
+    Fetch a larger window once to avoid multiple fetch_seq calls.
     """
     if not repeated_unit:
         raise RepeatedUnitError("Repeated unit must be a non-empty string.")
@@ -111,36 +125,35 @@ def decipher_end_of_full_reference_repeated_sequence(reference, repeated_unit, s
         raise StartPositionError("Start position must be a positive integer.")
 
     unit_len = len(repeated_unit)
-    start_0_try1 = start - 1 - unit_len  # one repeat length before start
-    start_0_try2 = start - 1             # direct match at start
 
-    for start_0 in [start_0_try1, start_0_try2]:
+    # Try two offsets for frame alignment
+    for start_0 in [start - 1 - unit_len, start - 1]:
         if start_0 < 0:
             continue
 
+        # Fetch a single forward window
+        fetch_end = start_0 + window_size
         try:
-            chunk = validator.sf.fetch_seq(reference, start_i=start_0, end_i=start_0 + unit_len)
+            seq_window = validator.sf.fetch_seq(reference, start_i=start_0, end_i=fetch_end)
         except Exception:
             continue
 
-        if chunk != repeated_unit:
+        # Check if the repeated unit matches at this start
+        local_pos = 0
+        if seq_window[local_pos:local_pos + unit_len] != repeated_unit:
             continue
 
-        pos = start_0
-        while True:
-            next_start = pos + unit_len
-            next_end = next_start + unit_len
-            try:
-                next_chunk = validator.sf.fetch_seq(reference, start_i=next_start, end_i=next_end)
-            except Exception:
-                break
+        # Walk forward in-memory
+        while local_pos + unit_len <= len(seq_window) - unit_len:
+            next_chunk = seq_window[local_pos + unit_len:local_pos + 2 * unit_len]
             if next_chunk != repeated_unit:
                 break
-            pos += unit_len
+            local_pos += unit_len
 
-        return pos + unit_len  # return 1-based end position
+        return start_0 + local_pos + unit_len  # convert to 1-based end position
 
     return None
+
 
 def convert_indel_to_expanded_repeat(variant, validator, genomic_reference=None, known_repeat_unit=None):
     """
