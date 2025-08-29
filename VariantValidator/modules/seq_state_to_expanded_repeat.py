@@ -142,7 +142,7 @@ def decipher_end_of_full_reference_repeated_sequence(reference, repeated_unit, s
 
     return None
 
-def convert_seq_state_to_expanded_repeat(variant, validator, genomic_reference=None):
+def convert_seq_state_to_expanded_repeat(variant, validator, genomic_reference=None, known_repeat_unit=None):
     """
     Main interface: convert a HGVS variant string to an expanded repeat representation.
 
@@ -205,7 +205,13 @@ def convert_seq_state_to_expanded_repeat(variant, validator, genomic_reference=N
             variant_type = 'ins'
             start, end = map(int, position.split('_'))
             logger.info(f"Detected {variant_type} at position {start} to {end} with sequence {sequence}")
-            repeated_unit = decipher_repeated_unit(sequence)
+            if known_repeat_unit is None:
+                repeated_unit = decipher_repeated_unit(sequence)
+            else:
+                if known_repeat_unit in sequence:
+                    repeated_unit = known_repeat_unit
+                else:
+                    repeated_unit = validator.revcomp(known_repeat_unit)
             logger.info(f"Repeated unit: {repeated_unit}")
             reference_start = decipher_start_of_full_reference_repeated_sequence(reference, repeated_unit, start,
                                                                                  validator)
@@ -221,7 +227,14 @@ def convert_seq_state_to_expanded_repeat(variant, validator, genomic_reference=N
             seq_state_info = seq_state_info.replace('=', "")
             position, sequence = re.split(r'(?<=\d)(?=[A-Za-z])', seq_state_info)
             start, end = map(int, position.split('_'))
-            repeated_unit = decipher_repeated_unit(sequence)
+            if known_repeat_unit is None:
+                repeated_unit = decipher_repeated_unit(sequence)
+            else:
+                if known_repeat_unit in sequence:
+                    repeated_unit = known_repeat_unit
+                else:
+                    repeated_unit = validator.revcomp(known_repeat_unit)
+            logger.info(f"Repeated unit: {repeated_unit}")
             reference_start = decipher_start_of_full_reference_repeated_sequence(reference, repeated_unit, start, validator)
             reference_end = decipher_end_of_full_reference_repeated_sequence(reference, repeated_unit, start, validator)
 
@@ -238,7 +251,14 @@ def convert_seq_state_to_expanded_repeat(variant, validator, genomic_reference=N
             original_sequence = sequence
             sequence *= 2  # Expand the duplication so it resembles an insertion
             start, end = map(int, position.split('_'))
-            repeated_unit = decipher_repeated_unit(sequence)
+            if known_repeat_unit is None:
+                repeated_unit = decipher_repeated_unit(sequence)
+            else:
+                if known_repeat_unit in sequence:
+                    repeated_unit = known_repeat_unit
+                else:
+                    repeated_unit = validator.revcomp(known_repeat_unit)
+            logger.info(f"Repeated unit: {repeated_unit}")
             reference_start = decipher_start_of_full_reference_repeated_sequence(reference, repeated_unit, start, validator)
             reference_end = decipher_end_of_full_reference_repeated_sequence(reference, repeated_unit, start, validator)
             return reassemble_expanded_repeat_variant(reference, reference_start, reference_end, reference_type,
@@ -250,7 +270,14 @@ def convert_seq_state_to_expanded_repeat(variant, validator, genomic_reference=N
         elif "del" in seq_state_info:
             position, sequence = seq_state_info.split('del')
             start, end = map(int, position.split('_'))
-            repeated_unit = decipher_repeated_unit(sequence)
+            if known_repeat_unit is None:
+                repeated_unit = decipher_repeated_unit(sequence)
+            else:
+                if known_repeat_unit in sequence:
+                    repeated_unit = known_repeat_unit
+                else:
+                    repeated_unit = validator.revcomp(known_repeat_unit)
+            logger.info(f"Repeated unit: {repeated_unit}")
             reference_start = decipher_start_of_full_reference_repeated_sequence(reference, repeated_unit, start, validator)
             reference_end = decipher_end_of_full_reference_repeated_sequence(reference, repeated_unit, start, validator)
             remove_units = len(sequence) // len(repeated_unit)

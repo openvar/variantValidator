@@ -1436,14 +1436,39 @@ class Mixin(vvMixinConverters.Mixin):
                         if self.primary_assembly == "GRCh37":
                             variant.primary_assembly_loci["hg19"
                             ]["hgvs_genomic_description"] = variant.expanded_repeat["variant"]
+                            try:
+                                variant.primary_assembly_loci["grch38"
+                                ]["hgvs_genomic_description"] = (
+                                    seq_state_to_expanded_repeat.convert_seq_state_to_expanded_repeat(
+                                        str(variant.primary_assembly_loci["grch38"
+                                            ]["hgvs_genomic_description"]), self,
+                                        known_repeat_unit=variant.expanded_repeat["repeat_sequence"]))
+                            except Exception:
+                                pass
+                            variant.primary_assembly_loci["hg38"]["hgvs_genomic_description"] = (
+                                variant.primary_assembly_loci["grch38"
+                                ]["hgvs_genomic_description"])
                         else:
                             variant.primary_assembly_loci["hg38"
                             ]["hgvs_genomic_description"] = variant.expanded_repeat["variant"]
+                            try:
+                                variant.primary_assembly_loci["grch37"
+                                ]["hgvs_genomic_description"] = (
+                                    seq_state_to_expanded_repeat.convert_seq_state_to_expanded_repeat(
+                                        str(variant.primary_assembly_loci["grch37"
+                                            ]["hgvs_genomic_description"]), self,
+                                        known_repeat_unit=variant.expanded_repeat["repeat_sequence"]))
+                                variant.primary_assembly_loci["hg19"]["hgvs_genomic_description"] = (
+                                    variant.primary_assembly_loci["grch37"
+                                    ]["hgvs_genomic_description"])
+                            except Exception:
+                                pass
                         try:
                             variant.hgvs_transcript_variant = (
                                 seq_state_to_expanded_repeat.convert_seq_state_to_expanded_repeat(str(
                                     variant.hgvs_transcript_variant), self,
-                                    genomic_reference=variant.expanded_repeat["variant"].split(":")[0]))
+                                    genomic_reference=variant.expanded_repeat["variant"].split(":")[0],
+                                known_repeat_unit=variant.expanded_repeat["repeat_sequence"]))
                         except Exception:
                             pass
 
@@ -1455,7 +1480,8 @@ class Mixin(vvMixinConverters.Mixin):
                             ]["hgvs_genomic_description"] = (
                                 seq_state_to_expanded_repeat.convert_seq_state_to_expanded_repeat(str(
                                     variant.primary_assembly_loci[self.primary_assembly.lower()
-                                    ]["hgvs_genomic_description"]), self))
+                                    ]["hgvs_genomic_description"]), self,
+                                    known_repeat_unit=variant.expanded_repeat["repeat_sequence"]))
                             if self.primary_assembly == "GRCh37":
                                 variant.primary_assembly_loci["hg19"
                                 ]["hgvs_genomic_description"] = (
@@ -1465,7 +1491,8 @@ class Mixin(vvMixinConverters.Mixin):
                                 ]["hgvs_genomic_description"] = (
                                     seq_state_to_expanded_repeat.convert_seq_state_to_expanded_repeat(
                                         str(variant.primary_assembly_loci["grch38"
-                                ]["hgvs_genomic_description"]), self))
+                                ]["hgvs_genomic_description"]), self,
+                                        known_repeat_unit=variant.expanded_repeat["repeat_sequence"]))
                                 variant.primary_assembly_loci["hg38"]["hgvs_genomic_description"] = (
                                     variant.primary_assembly_loci["grch38"
                                     ]["hgvs_genomic_description"])
@@ -1478,7 +1505,8 @@ class Mixin(vvMixinConverters.Mixin):
                                 ]["hgvs_genomic_description"] = (
                                     seq_state_to_expanded_repeat.convert_seq_state_to_expanded_repeat(
                                         str(variant.primary_assembly_loci["grch37"
-                                ]["hgvs_genomic_description"]), self))
+                                ]["hgvs_genomic_description"]), self,
+                                        known_repeat_unit=variant.expanded_repeat["repeat_sequence"]))
                                 variant.primary_assembly_loci["hg19"]["hgvs_genomic_description"] = (
                                     variant.primary_assembly_loci["grch37"
                                     ]["hgvs_genomic_description"])
@@ -1490,7 +1518,8 @@ class Mixin(vvMixinConverters.Mixin):
                             try:
                                 variant.hgvs_refseqgene_variant = (
                                 seq_state_to_expanded_repeat.convert_seq_state_to_expanded_repeat(
-                                    str(variant.hgvs_refseqgene_variant), self))
+                                    str(variant.hgvs_refseqgene_variant), self,
+                                known_repeat_unit=variant.expanded_repeat["repeat_sequence"]))
                             except Exception:
                                 pass
                         if "LRG_" in variant.hgvs_lrg_variant:
