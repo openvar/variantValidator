@@ -97,13 +97,6 @@ def test_map_line_builds_list_correctly():
     assert ml[6] == 'GENE1'
     assert ml[7] == '1234'
 
-from . import configure
-from . import logger
-from .version import __version__
-
-from .validator import Validator
-
-__all__ = ["Validator"]
 
 # <LICENSE>
 # Copyright (C) 2016-2025 VariantValidator Contributors
