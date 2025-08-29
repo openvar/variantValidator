@@ -162,7 +162,10 @@ def convert_indel_to_expanded_repeat(variant, validator, genomic_reference=None,
     Supports: insertions (ins), deletions (del), duplications (dup), identity (=)
     """
     if any(key in variant for key in ['ins', 'del', 'dup', '=']):
-        hgvs_variant = validator.hp.parse(variant)
+        try:
+            hgvs_variant = validator.hp.parse(variant)
+        except TypeError:
+            hgvs_variant = variant
         # Use ENST normalizer or splign depending on variant format
         hn = validator.genebuild_normalizer if "ENST" in variant else validator.splign_normalizer
         alt_aln_method = "genebuild" if "ENST" in variant else "splign"

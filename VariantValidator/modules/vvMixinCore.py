@@ -1423,8 +1423,8 @@ class Mixin(vvMixinConverters.Mixin):
                     if "NG_" in variant.expanded_repeat["variant"] or "LRG_" in variant.expanded_repeat["variant"]:
                         try:
                             variant.hgvs_transcript_variant = (
-                                indel_to_expanded_repeat.convert_indel_to_expanded_repeat(str(
-                                    variant.hgvs_transcript_variant), self,
+                                indel_to_expanded_repeat.convert_indel_to_expanded_repeat(
+                                    variant.hgvs_transcript_variant, self,
                                     genomic_reference=variant.expanded_repeat["variant"].split(":")[0]))
                         except Exception:
                             pass
@@ -1440,8 +1440,8 @@ class Mixin(vvMixinConverters.Mixin):
                                 variant.primary_assembly_loci["grch38"
                                 ]["hgvs_genomic_description"] = (
                                     indel_to_expanded_repeat.convert_indel_to_expanded_repeat(
-                                        str(variant.primary_assembly_loci["grch38"
-                                            ]["hgvs_genomic_description"]), self,
+                                        variant.primary_assembly_loci["grch38"
+                                            ]["hgvs_genomic_description"], self,
                                         known_repeat_unit=variant.expanded_repeat["repeat_sequence"]))
                             except Exception:
                                 pass
@@ -1455,8 +1455,8 @@ class Mixin(vvMixinConverters.Mixin):
                                 variant.primary_assembly_loci["grch37"
                                 ]["hgvs_genomic_description"] = (
                                     indel_to_expanded_repeat.convert_indel_to_expanded_repeat(
-                                        str(variant.primary_assembly_loci["grch37"
-                                            ]["hgvs_genomic_description"]), self,
+                                        variant.primary_assembly_loci["grch37"
+                                            ]["hgvs_genomic_description"], self,
                                         known_repeat_unit=variant.expanded_repeat["repeat_sequence"]))
                                 variant.primary_assembly_loci["hg19"]["hgvs_genomic_description"] = (
                                     variant.primary_assembly_loci["grch37"
@@ -1465,8 +1465,8 @@ class Mixin(vvMixinConverters.Mixin):
                                 pass
                         try:
                             variant.hgvs_transcript_variant = (
-                                indel_to_expanded_repeat.convert_indel_to_expanded_repeat(str(
-                                    variant.hgvs_transcript_variant), self,
+                                indel_to_expanded_repeat.convert_indel_to_expanded_repeat(
+                                    variant.hgvs_transcript_variant, self,
                                     genomic_reference=variant.expanded_repeat["variant"].split(":")[0],
                                 known_repeat_unit=variant.expanded_repeat["repeat_sequence"]))
                         except Exception:
@@ -1478,9 +1478,9 @@ class Mixin(vvMixinConverters.Mixin):
                         try:
                             variant.primary_assembly_loci[self.primary_assembly.lower()
                             ]["hgvs_genomic_description"] = (
-                                indel_to_expanded_repeat.convert_indel_to_expanded_repeat(str(
+                                indel_to_expanded_repeat.convert_indel_to_expanded_repeat(
                                     variant.primary_assembly_loci[self.primary_assembly.lower()
-                                    ]["hgvs_genomic_description"]), self,
+                                    ]["hgvs_genomic_description"], self,
                                     known_repeat_unit=variant.expanded_repeat["repeat_sequence"]))
                             if self.primary_assembly == "GRCh37":
                                 variant.primary_assembly_loci["hg19"
@@ -1490,8 +1490,8 @@ class Mixin(vvMixinConverters.Mixin):
                                 variant.primary_assembly_loci["grch38"
                                 ]["hgvs_genomic_description"] = (
                                     indel_to_expanded_repeat.convert_indel_to_expanded_repeat(
-                                        str(variant.primary_assembly_loci["grch38"
-                                ]["hgvs_genomic_description"]), self,
+                                        variant.primary_assembly_loci["grch38"
+                                ]["hgvs_genomic_description"], self,
                                         known_repeat_unit=variant.expanded_repeat["repeat_sequence"]))
                                 variant.primary_assembly_loci["hg38"]["hgvs_genomic_description"] = (
                                     variant.primary_assembly_loci["grch38"
@@ -1504,8 +1504,8 @@ class Mixin(vvMixinConverters.Mixin):
                                 variant.primary_assembly_loci["grch37"
                                 ]["hgvs_genomic_description"] = (
                                     indel_to_expanded_repeat.convert_indel_to_expanded_repeat(
-                                        str(variant.primary_assembly_loci["grch37"
-                                ]["hgvs_genomic_description"]), self,
+                                        variant.primary_assembly_loci["grch37"
+                                ]["hgvs_genomic_description"], self,
                                         known_repeat_unit=variant.expanded_repeat["repeat_sequence"]))
                                 variant.primary_assembly_loci["hg19"]["hgvs_genomic_description"] = (
                                     variant.primary_assembly_loci["grch37"
@@ -1518,7 +1518,7 @@ class Mixin(vvMixinConverters.Mixin):
                             try:
                                 variant.hgvs_refseqgene_variant = (
                                 indel_to_expanded_repeat.convert_indel_to_expanded_repeat(
-                                    str(variant.hgvs_refseqgene_variant), self,
+                                    variant.hgvs_refseqgene_variant, self,
                                 known_repeat_unit=variant.expanded_repeat["repeat_sequence"]))
                             except Exception:
                                 pass
