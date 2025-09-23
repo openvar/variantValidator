@@ -80,6 +80,8 @@ def decipher_start_of_full_reference_repeated_sequence(reference, repeated_unit,
     """
     Given a position where a repeat starts, fetch a larger window of sequence
     and walk backwards in-memory to find the full beginning of the repeat block.
+    This function currently forces at least one block of a repeat to exist, or
+    it returns None!
     """
     if not repeated_unit:
         raise RepeatedUnitError("Repeated unit must be a non-empty string.")
@@ -118,6 +120,7 @@ def decipher_end_of_full_reference_repeated_sequence(reference, repeated_unit, s
     """
     Walk forward from a given repeat position to find the full extent of the repeated block.
     Fetch a larger window once to avoid multiple fetch_seq calls.
+    Now assumes that the previous section is valid, so that it can start from the end of a block.
     """
     if not repeated_unit:
         raise RepeatedUnitError("Repeated unit must be a non-empty string.")
@@ -152,7 +155,7 @@ def decipher_end_of_full_reference_repeated_sequence(reference, repeated_unit, s
 
         return start_0 + local_pos + unit_len  # convert to 1-based end position
 
-    return None
+    return start
 
 def convert_seq_state_to_expanded_repeat(variant, validator, genomic_reference=None, known_repeat_unit=None):
     """
@@ -160,153 +163,183 @@ def convert_seq_state_to_expanded_repeat(variant, validator, genomic_reference=N
 
     Supports: insertions (ins), deletions (del), duplications (dup), identity (=)
     """
-    if any(key in variant for key in ['ins', 'del', 'dup', '=']):
-        hgvs_variant = validator.hp.parse(variant)
-        # Use ENST normalizer or splign depending on variant format
-        hn = validator.genebuild_normalizer if "ENST" in variant else validator.splign_normalizer
-        alt_aln_method = "genebuild" if "ENST" in variant else "splign"
-        hgvs_variant = hn.normalize(hgvs_variant)
+    # We should only get variant data in as a hgvs object, but null variants may be None or ''
+    # Return the same output as given input in this case
+    if not variant:
+        return variant
+    if not variant.posedit.edit.type in ['ins', 'del', 'dup', 'identity']:
+        raise VariantFormatError("Variant must be a HGVS format object of a equal, or length "
+                                 "change type, (i.e. 'ins', 'del', 'dup', or '=').")
 
-        # Determine reference type and extract sequence info
-        converted_from_intronic = False
-        if ":g." in variant:
-            reference_type = "g."
-            parts = str(hgvs_variant).split(':g.')
-        elif ":c." in variant or ":n." in variant:
-            if ":c." in variant:
-                reference_type = "c."
-                hgvs_n = validator.vm.c_to_n(hgvs_variant)
-            elif ":n." in variant:
-                hgvs_n = hgvs_variant
-                reference_type = "n."
-            logger.info(f"variant is a transcript variant {variant}")
-            parts = str(hgvs_n).split(':n.')
-            logger.info(f"Converted to n. coordinates: {hgvs_n}")
+    # Use ENST normalizer or splign depending on variant format
+    hn = validator.genebuild_normalizer if "ENST" in variant.ac else validator.splign_normalizer
+    alt_aln_method = "genebuild" if "ENST" in variant.ac else "splign"
+    variant = hn.normalize(variant)
 
-            # For intronic variants, we need to ensure need to do some extra processing
-            if ((hgvs_n.posedit.pos.start.offset != 0 or hgvs_n.posedit.pos.end.offset != 0) and
-                    genomic_reference is None):
-                raise VariantFormatError(f"Intronic variants are currently not supported: {variant}")
-            elif ((hgvs_n.posedit.pos.start.offset != 0 or hgvs_n.posedit.pos.end.offset != 0) and
-                    genomic_reference is not None):
-                try:
-                    hgvs_genomic = validator.vm.t_to_g(hgvs_variant, genomic_reference, alt_aln_method=alt_aln_method)
-                except Exception:
-                    raise VariantFormatError(f"Unable to map intronic variant {variant} to "
-                                             f"genomic reference {genomic_reference}. ")
-                else:
-                    converted_from_intronic = hgvs_variant.ac
-                    logger.info(f"Converted to genomic coordinates: {hgvs_genomic}")
-                    if re.search("ins$", str(hgvs_genomic)) and re.search("=$", str(hgvs_variant)):
-                        hgvs_genomic.posedit.edit.alt = hgvs_genomic.posedit.edit.ref
-                    parts = str(hgvs_genomic).split(':g.')
-            logger.info(f"parts: {parts}")
+    # Determine reference type and extract sequence info
+    converted_from_intronic = False
+    working_hgvs = False # this will be a G variant for intronic, if fixed
+    hgvs_genomic = False # store the genomic map for mapping change detection
+    if variant.type == 'g':
+        reference_type = "g."
+        working_hgvs = variant
+    elif variant.type in ["c", "n"]:
+        if variant.type == 'c':
+            reference_type = "c."
+            hgvs_n = validator.vm.c_to_n(variant)
+            working_hgvs = hgvs_n
         else:
-            logger.error(f"Invalid variant format: {variant}")
-            raise VariantFormatError("Variant must contain one of ':g.', ':c.', or ':n.'")
-
-        if len(parts) != 2:
-            logger.error(f"Variant splitting failed. Got parts: {parts}")
-            raise VariantFormatError("Invalid variant format after split.")
-
-        reference, seq_state_info = parts
-
-        # Process insertions
-        if "ins" in seq_state_info:
-            position, sequence = seq_state_info.split('ins')
-            variant_type = 'ins'
-            start, end = map(int, position.split('_'))
-            logger.info(f"Detected {variant_type} at position {start} to {end} with sequence {sequence}")
-            if known_repeat_unit is None:
-                repeated_unit = decipher_repeated_unit(sequence)
+            hgvs_n = variant
+            reference_type = "n."
+            working_hgvs = variant
+        logger.info(f"variant is a transcript variant {str(variant)}")
+        logger.info(f"Converted to n. coordinates: {hgvs_n}")
+        # For intronic variants, we need to ensure need to do some extra processing
+        if ((hgvs_n.posedit.pos.start.offset != 0 or hgvs_n.posedit.pos.end.offset != 0) and
+                genomic_reference is None):
+            raise VariantFormatError(f"Intronic variants are currently not supported: {variant}")
+        elif ((hgvs_n.posedit.pos.start.offset != 0 or hgvs_n.posedit.pos.end.offset != 0) and
+                genomic_reference is not None):
+            try:
+                hgvs_genomic = validator.vm.t_to_g(variant, genomic_reference, alt_aln_method=alt_aln_method)
+            except Exception:
+                raise VariantFormatError(f"Unable to map intronic variant {variant} to "
+                                         f"genomic reference {genomic_reference}. ")
             else:
-                if known_repeat_unit in sequence:
-                    repeated_unit = known_repeat_unit
-                else:
-                    repeated_unit = validator.revcomp(known_repeat_unit)
-            logger.info(f"Repeated unit: {repeated_unit}")
-            reference_start = decipher_start_of_full_reference_repeated_sequence(reference, repeated_unit, start,
-                                                                                 validator)
-            reference_end = decipher_end_of_full_reference_repeated_sequence(reference, repeated_unit, start, validator)
-            logger.info(f"Reference start position: {reference_start} and end position: {reference_end}")
-            return reassemble_expanded_repeat_variant(reference, reference_start, reference_end, reference_type,
-                                                      repeated_unit, sequence, validator,
-                                                      converted_from_intronic=converted_from_intronic,
-                                                      alt_aln_method=alt_aln_method)
+                converted_from_intronic = variant.ac
+                logger.info(f"Converted to genomic coordinates: {hgvs_genomic}")
+                if re.search("ins$", str(hgvs_genomic)) and variant.posedit.edit.type == 'identity':
+                    hgvs_genomic.posedit.edit.alt = hgvs_genomic.posedit.edit.ref
+                working_hgvs = hgvs_genomic
+    else:
+        logger.error(f"Invalid variant format: {variant}")
+        raise VariantFormatError("Variant must contain one of ':g.', ':c.', or ':n.'")
 
-        # Process identity cases (=)
-        elif "=" in seq_state_info:
-            seq_state_info = seq_state_info.replace('=', "")
-            position, sequence = re.split(r'(?<=\d)(?=[A-Za-z])', seq_state_info)
-            start, end = map(int, position.split('_'))
-            if known_repeat_unit is None:
-                repeated_unit = decipher_repeated_unit(sequence)
-            else:
-                if known_repeat_unit in sequence:
-                    repeated_unit = known_repeat_unit
-                else:
-                    repeated_unit = validator.revcomp(known_repeat_unit)
-            logger.info(f"Repeated unit: {repeated_unit}")
-            reference_start = decipher_start_of_full_reference_repeated_sequence(reference, repeated_unit, start, validator)
-            reference_end = decipher_end_of_full_reference_repeated_sequence(reference, repeated_unit, start, validator)
+    # set errors possibly triggered from multiple locations
+    ins_not_repeat_err = "At least one repeat must exist in the genome for "\
+             "HGVS Repeated Sequences"
 
-            logger.info(f"Converted from {converted_from_intronic} to expanded repeat variant: {reference_start}, {reference_end}, {reference_type}, {repeated_unit}")
+    # derive repeat unit if none given (using ref sequence, except for del type)
+    if known_repeat_unit is None:
+        if working_hgvs.posedit.edit.ref:
+            repeated_unit = decipher_repeated_unit(working_hgvs.posedit.edit.ref)
+        else:
+            repeated_unit = decipher_repeated_unit(working_hgvs.posedit.edit.alt)
+    else:
+        sequence = working_hgvs.posedit.edit.ref
+        # ins normalises to dup, so long as at == number of repeats exist in the genomic
+        # flank, so this should be rare
+        if not sequence:
+            sequence = working_hgvs.posedit.edit.alt
+        if known_repeat_unit in sequence:
+            repeated_unit = known_repeat_unit
+        else:
+            repeated_unit = validator.revcomp(known_repeat_unit)
+    logger.info(f"Repeated unit: {repeated_unit}")
 
-            return reassemble_expanded_repeat_variant(reference, reference_start, reference_end, reference_type,
-                                                      repeated_unit, "", validator,
-                                                      converted_from_intronic=converted_from_intronic,
-                                                      alt_aln_method=alt_aln_method)
+    # get ref and type (to avoid repeated lookup)
+    reference = working_hgvs.ac
+    edit_type = working_hgvs.posedit.edit.type
 
-        # Process duplications
-        elif "dup" in seq_state_info:
-            position, sequence = seq_state_info.split('dup')
-            original_sequence = sequence
-            sequence *= 2  # Expand the duplication so it resembles an insertion
-            start, end = map(int, position.split('_'))
-            if known_repeat_unit is None:
-                repeated_unit = decipher_repeated_unit(sequence)
-            else:
-                if known_repeat_unit in sequence:
-                    repeated_unit = known_repeat_unit
-                else:
-                    repeated_unit = validator.revcomp(known_repeat_unit)
-            logger.info(f"Repeated unit: {repeated_unit}")
-            reference_start = decipher_start_of_full_reference_repeated_sequence(reference, repeated_unit, start, validator)
-            reference_end = decipher_end_of_full_reference_repeated_sequence(reference, repeated_unit, start, validator)
-            return reassemble_expanded_repeat_variant(reference, reference_start, reference_end, reference_type,
-                                                      repeated_unit, original_sequence, validator,
-                                                      converted_from_intronic=converted_from_intronic,
-                                                      alt_aln_method=alt_aln_method)
-
-        # Process deletions
-        elif "del" in seq_state_info:
-            position, sequence = seq_state_info.split('del')
-            start, end = map(int, position.split('_'))
-            if known_repeat_unit is None:
-                repeated_unit = decipher_repeated_unit(sequence)
-            else:
-                if known_repeat_unit in sequence:
-                    repeated_unit = known_repeat_unit
-                else:
-                    repeated_unit = validator.revcomp(known_repeat_unit)
-            logger.info(f"Repeated unit: {repeated_unit}")
-            reference_start = decipher_start_of_full_reference_repeated_sequence(reference, repeated_unit, start, validator)
-            reference_end = decipher_end_of_full_reference_repeated_sequence(reference, repeated_unit, start, validator)
-            remove_units = len(sequence) // len(repeated_unit)
-            return reassemble_expanded_repeat_variant(reference, reference_start, reference_end, reference_type,
-                                                      repeated_unit, repeated_unit, validator,
-                                                      remove_units=remove_units,
-                                                      converted_from_intronic=converted_from_intronic,
-                                                      alt_aln_method=alt_aln_method)
-
-    raise VariantFormatError("Variant must be an HGVS-formatted string of type 'ins', 'del', 'dup', or '='.")
+    # test for variants that have been converted into other sequence alterations,
+    # or now contain non-repeat based sequence, rather than even length changes
+    # This is sometimes an expected outcome with != alignments
+    if hgvs_genomic and hgvs_genomic.posedit.edit.ref != variant.posedit.edit.ref:
+        # There could be some corner cases here where the edge sequence makes up
+        # for uneven deletions in the mapping but these should normalise out, so
+        # we return on a simple condition for now
+        if edit_type == 'delins' or \
+            len(hgvs_genomic.posedit.edit.ref) % len(repeated_unit) or \
+            int( len(hgvs_genomic.posedit.edit.ref)/len(repeated_unit)
+            ) * repeated_unit != hgvs_genomic.posedit.edit.ref:
+            err_str ="Variant format no longer valid for repeat after map to "+\
+                f"{hgvs_genomic} (from {variant})"
+            logger.info(err_str)
+            raise VariantFormatError(err_str)
+    elif  working_hgvs and working_hgvs.posedit.edit.ref and \
+            working_hgvs.posedit.edit.ref[:len(repeated_unit)] != repeated_unit:
+        err_str =f"Variant format not valid for repeat {repeated_unit} "\
+                f"(from {variant}) this should only happen for mapped "\
+                "consequences of expanded repeat input over regions of "\
+                "alignment mismatch"
+        logger.info(err_str)
+        raise VariantFormatError(err_str)
 
 
-if __name__ == '__main__':
+    # Process insertions (normalisation should currently turn some of these into dups)
+    # a non normalised ins can happen internally, or at one of the ends, end or start
+    # ins locs just need -1 to the starting base, but the logic of the start finding
+    # requires us to start -1 repeat unit of the end if is at the end
+    if edit_type == "ins":
+        logger.info(f"Detected ins at position {str(working_hgvs.posedit.pos)} "+\
+                "with sequence {working_hgvs.posedit.edit.alt}")
+        reference_start = decipher_start_of_full_reference_repeated_sequence(
+                reference, repeated_unit, working_hgvs.posedit.pos.start.base + 1,validator)
+
+        if reference_start is None:
+            reference_start = decipher_start_of_full_reference_repeated_sequence(
+                reference, repeated_unit,
+                working_hgvs.posedit.pos.start.base - len(repeated_unit) + 1,
+                validator)
+            # if fall back fails then no repeats exist in genome at this loc, error out
+            if reference_start is None:
+                raise VariantFormatError(ins_not_repeat_err)
+        reference_end = decipher_end_of_full_reference_repeated_sequence(
+                reference, repeated_unit, working_hgvs.posedit.pos.end.base,validator)
+        logger.info(f"Reference start position: {reference_start} and end position: {reference_end}")
+        return reassemble_expanded_repeat_variant(reference, reference_start, reference_end, reference_type,
+                                                  repeated_unit, working_hgvs.posedit.edit.alt, validator,
+                                                  converted_from_intronic=converted_from_intronic,
+                                                  alt_aln_method=alt_aln_method)
+
+    # Process identity cases (=)
+    elif edit_type == "identity":
+        reference_start = decipher_start_of_full_reference_repeated_sequence(
+                reference, repeated_unit, working_hgvs.posedit.pos.start.base, validator)
+        reference_end = decipher_end_of_full_reference_repeated_sequence(
+                reference, repeated_unit, working_hgvs.posedit.pos.end.base, validator)
+        logger.info(f"Converted from {converted_from_intronic} to expanded repeat variant: {reference_start}, {reference_end}, {reference_type}, {repeated_unit} via {str(working_hgvs)}")
+
+        return reassemble_expanded_repeat_variant(reference, reference_start, reference_end, reference_type,
+                                                  repeated_unit, "", validator,
+                                                  converted_from_intronic=converted_from_intronic,
+                                                  alt_aln_method=alt_aln_method)
+
+    # Process duplications
+    elif edit_type == "dup":
+        original_sequence = working_hgvs.posedit.edit.ref
+        reference_start = decipher_start_of_full_reference_repeated_sequence(
+                reference, repeated_unit, working_hgvs.posedit.pos.start.base, validator)
+        reference_end = decipher_end_of_full_reference_repeated_sequence(
+                reference, repeated_unit, working_hgvs.posedit.pos.end.base, validator)
+        return reassemble_expanded_repeat_variant(reference, reference_start, reference_end, reference_type,
+                                                  repeated_unit, original_sequence, validator,
+                                                  converted_from_intronic=converted_from_intronic,
+                                                  alt_aln_method=alt_aln_method)
+
+    # Process deletions
+    elif edit_type == "del":
+        reference_start = decipher_start_of_full_reference_repeated_sequence(
+                reference, repeated_unit, working_hgvs.posedit.pos.start.base, validator)
+        reference_end = decipher_end_of_full_reference_repeated_sequence(
+                reference, repeated_unit, working_hgvs.posedit.pos.end.base, validator)
+        remove_units = len(working_hgvs.posedit.edit.ref) // len(repeated_unit)
+        return reassemble_expanded_repeat_variant(reference, reference_start, reference_end, reference_type,
+                                                  repeated_unit, repeated_unit, validator,
+                                                  remove_units=remove_units,
+                                                  converted_from_intronic=converted_from_intronic,
+                                                  alt_aln_method=alt_aln_method)
+
+
+def quick_testfunc():
     import VariantValidator
     validator = VariantValidator.Validator()
-    result = convert_seq_state_to_expanded_repeat("NM_002111.8:c.54_116=", validator, genomic_reference="NC_000004.11")
+    variant = validator.hp.parse("NM_002111.8:c.54_116=")
+    result = convert_seq_state_to_expanded_repeat(variant, validator, genomic_reference="NC_000004.11")
     print(result)
+    return result
+
+if __name__ == '__main__': quick_testfunc()
 
 
 # <LICENSE>

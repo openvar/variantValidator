@@ -24,7 +24,8 @@ from VariantValidator.modules.liftover import liftover
 from VariantValidator.modules import gene2transcripts
 from VariantValidator.modules import lovd_api
 from VariantValidator.modules import initial_formatting
-from VariantValidator.modules import seq_state_to_expanded_repeat
+from VariantValidator.modules.seq_state_to_expanded_repeat import\
+        convert_seq_state_to_expanded_repeat
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
         unset_hgvs_obj_ref, to_vv_hgvs
 
@@ -1401,6 +1402,117 @@ class Mixin(vvMixinConverters.Mixin):
                             item = _apply_met_variation(item)
                             setattr(variant, attribute, item)
 
+                # Add expanded repeat information
+                logger.info(f"expanded repeat is {variant.expanded_repeat}")
+                if variant.expanded_repeat is not None:
+                    starting_tx_posedit = None
+                    if variant.hgvs_transcript_variant:
+                        starting_tx_posedit = variant.hgvs_transcript_variant.posedit.format(
+                                {'max_ref_length': 0})
+                    hgd = "hgvs_genomic_description"
+                    ex_rep_start = variant.expanded_repeat["variant"].ac[:3]
+                    ex_rep_var = copy.copy(variant.expanded_repeat["variant"])
+                    # If the ER came from a gene description, set the HGVS transcript variant
+                    if ex_rep_start in ["NG_", "LRG"]:
+                        try:
+                            variant.hgvs_transcript_variant = (
+                                convert_seq_state_to_expanded_repeat(
+                                    variant.hgvs_transcript_variant, self,
+                                    known_repeat_unit=variant.expanded_repeat["repeat_sequence"],
+                                    genomic_reference=ex_rep_var.ac))
+                        except Exception:
+                            pass
+                    elif ex_rep_start == 'NC_':
+                        variant.primary_assembly_loci[self.primary_assembly.lower()
+                            ][hgd] = ex_rep_var
+                        if self.primary_assembly == "GRCh37":
+                            variant.primary_assembly_loci['grch37'][hgd] = ex_rep_var
+                            variant.primary_assembly_loci["hg19"][hgd] = ex_rep_var
+                            try:
+                                variant.primary_assembly_loci["grch38"][hgd] = \
+                                    convert_seq_state_to_expanded_repeat(
+                                        variant.primary_assembly_loci["grch38"][hgd], self,
+                                        known_repeat_unit=variant.expanded_repeat["repeat_sequence"])
+                            except Exception:
+                                pass
+                            variant.primary_assembly_loci["hg38"][hgd] = \
+                                    variant.primary_assembly_loci["grch38"][hgd]
+                        else:
+                            variant.primary_assembly_loci["grch38"][hgd] = ex_rep_var
+                            variant.primary_assembly_loci["hg38"][hgd] = ex_rep_var
+                            try:
+                                variant.primary_assembly_loci["grch37"][hgd] = \
+                                    convert_seq_state_to_expanded_repeat(
+                                        variant.primary_assembly_loci["grch37"][hgd],
+                                        self, known_repeat_unit=variant.expanded_repeat["repeat_sequence"])
+                                variant.primary_assembly_loci["hg19"][hgd] = \
+                                    variant.primary_assembly_loci["grch37"][hgd]
+                            except Exception:
+                                pass
+                        try:
+                            variant.hgvs_transcript_variant = \
+                                convert_seq_state_to_expanded_repeat(
+                                    variant.hgvs_transcript_variant, self,
+                                    genomic_reference=ex_rep_var.ac,
+                                known_repeat_unit=variant.expanded_repeat["repeat_sequence"])
+                        except Exception:
+                            pass
+
+                    elif ex_rep_start in ["NM_", "NR_"] or ex_rep_var.ac.startswith("ENST"):
+                        variant.hgvs_transcript_variant = copy.copy(ex_rep_var)
+                        try:
+                            prim_a = self.primary_assembly.lower()
+                            variant.primary_assembly_loci[prim_a][hgd] = \
+                                convert_seq_state_to_expanded_repeat(
+                                    variant.primary_assembly_loci[prim_a][hgd], self,
+                                    known_repeat_unit=variant.expanded_repeat["repeat_sequence"])
+                            if self.primary_assembly == "GRCh37":
+                                variant.primary_assembly_loci["hg19"][hgd] = \
+                                    variant.primary_assembly_loci['grch37'][hgd]
+                                variant.primary_assembly_loci["grch38"][hgd] = \
+                                    convert_seq_state_to_expanded_repeat(
+                                        variant.primary_assembly_loci["grch38"][hgd], self,
+                                        known_repeat_unit=variant.expanded_repeat["repeat_sequence"])
+                                variant.primary_assembly_loci["hg38"][hgd] = \
+                                    variant.primary_assembly_loci["grch38"][hgd]
+                            else:
+                                variant.primary_assembly_loci["hg38"][hgd] = \
+                                    variant.primary_assembly_loci[prim_a][hgd]
+                                variant.primary_assembly_loci["grch37"][hgd] = \
+                                    convert_seq_state_to_expanded_repeat(
+                                        variant.primary_assembly_loci["grch37"][hgd], self,
+                                        known_repeat_unit=variant.expanded_repeat["repeat_sequence"])
+                                variant.primary_assembly_loci["hg19"][hgd] = \
+                                    variant.primary_assembly_loci["grch37"][hgd]
+                        except Exception:
+                            pass
+
+                    if variant.hgvs_refseqgene_variant and not ex_rep_start in ["NG_", "LRG"]:
+                        assert variant.hgvs_refseqgene_variant.ac.startswith('NG_')
+                        try:
+                            variant.hgvs_refseqgene_variant = (
+                            convert_seq_state_to_expanded_repeat(
+                                variant.hgvs_refseqgene_variant, self,
+                            known_repeat_unit=variant.expanded_repeat["repeat_sequence"]))
+                            if variant.hgvs_lrg_variant:
+                                variant.hgvs_lrg_variant = (
+                                    f"{variant.hgvs_lrg_variant.split(':g.')[0]}:g." +
+                                    str(variant.hgvs_refseqgene_variant).split(':g.')[1])
+                        except Exception:
+                            pass
+                        # LRG transcript data can be, but may not be, the same as the main mapped tx
+                        # so we need to test for identity before using. LRG is already text and
+                        # won't be reused for VRS. This skips ex_rep conversion in the corner case.
+                        if variant.hgvs_lrg_transcript_variant and \
+                                variant.hgvs_lrg_transcript_variant.split(':c.')[1] ==\
+                                starting_tx_posedit and variant.hgvs_transcript_variant:
+                            if isinstance(variant.hgvs_transcript_variant, str):
+                                posedit = variant.hgvs_transcript_variant.split(':c.')[1]
+                            else:
+                                posedit = str(variant.hgvs_transcript_variant.posedit)
+                            variant.hgvs_lrg_transcript_variant =\
+                                f"{variant.hgvs_lrg_transcript_variant.split(':c.')[0]}:c.{posedit}"
+
                 # Some variant objects must be strings for back-compatibility with old output
                 if variant.hgvs_transcript_variant:
                     variant.hgvs_transcript_variant = \
@@ -1419,123 +1531,6 @@ class Mixin(vvMixinConverters.Mixin):
                 for loc in variant.alt_genomic_loci:
                     for gen in loc.keys():
                         loc[gen][hgd] = loc[gen][hgd].format({'max_ref_length': 0})
-                if variant.expanded_repeat is not None:
-                    variant.expanded_repeat["variant"] = \
-                        variant.expanded_repeat["variant"].format({'max_ref_length': 0})
-
-                # Add expanded repeat information
-                logger.info(f"expanded repeat is {variant.expanded_repeat}")
-                if variant.expanded_repeat is not None:
-
-                    # If the ER came from a gene description, set the HGVS transcript variant
-                    if "NG_" in variant.expanded_repeat["variant"] or "LRG_" in variant.expanded_repeat["variant"]:
-                        try:
-                            variant.hgvs_transcript_variant = (
-                                seq_state_to_expanded_repeat.convert_seq_state_to_expanded_repeat(str(
-                                    variant.hgvs_transcript_variant), self,
-                                    genomic_reference=variant.expanded_repeat["variant"].split(":")[0]))
-                        except Exception:
-                            pass
-
-
-                    if "NC_" in variant.expanded_repeat["variant"]:
-                        variant.primary_assembly_loci[self.primary_assembly.lower()
-                        ]["hgvs_genomic_description"] = variant.expanded_repeat["variant"]
-                        if self.primary_assembly == "GRCh37":
-                            variant.primary_assembly_loci["hg19"
-                            ]["hgvs_genomic_description"] = variant.expanded_repeat["variant"]
-                            try:
-                                variant.primary_assembly_loci["grch38"
-                                ]["hgvs_genomic_description"] = (
-                                    seq_state_to_expanded_repeat.convert_seq_state_to_expanded_repeat(
-                                        str(variant.primary_assembly_loci["grch38"
-                                            ]["hgvs_genomic_description"]), self,
-                                        known_repeat_unit=variant.expanded_repeat["repeat_sequence"]))
-                            except Exception:
-                                pass
-                            variant.primary_assembly_loci["hg38"]["hgvs_genomic_description"] = (
-                                variant.primary_assembly_loci["grch38"
-                                ]["hgvs_genomic_description"])
-                        else:
-                            variant.primary_assembly_loci["hg38"
-                            ]["hgvs_genomic_description"] = variant.expanded_repeat["variant"]
-                            try:
-                                variant.primary_assembly_loci["grch37"
-                                ]["hgvs_genomic_description"] = (
-                                    seq_state_to_expanded_repeat.convert_seq_state_to_expanded_repeat(
-                                        str(variant.primary_assembly_loci["grch37"
-                                            ]["hgvs_genomic_description"]), self,
-                                        known_repeat_unit=variant.expanded_repeat["repeat_sequence"]))
-                                variant.primary_assembly_loci["hg19"]["hgvs_genomic_description"] = (
-                                    variant.primary_assembly_loci["grch37"
-                                    ]["hgvs_genomic_description"])
-                            except Exception:
-                                pass
-                        try:
-                            variant.hgvs_transcript_variant = (
-                                seq_state_to_expanded_repeat.convert_seq_state_to_expanded_repeat(str(
-                                    variant.hgvs_transcript_variant), self,
-                                    genomic_reference=variant.expanded_repeat["variant"].split(":")[0],
-                                known_repeat_unit=variant.expanded_repeat["repeat_sequence"]))
-                        except Exception:
-                            pass
-
-                    elif ("NM_" in variant.expanded_repeat["variant"] or "NR_" in variant.expanded_repeat["variant"]
-                          or "ENST" in variant.expanded_repeat["variant"]):
-                        variant.hgvs_transcript_variant = variant.expanded_repeat["variant"]
-                        try:
-                            variant.primary_assembly_loci[self.primary_assembly.lower()
-                            ]["hgvs_genomic_description"] = (
-                                seq_state_to_expanded_repeat.convert_seq_state_to_expanded_repeat(str(
-                                    variant.primary_assembly_loci[self.primary_assembly.lower()
-                                    ]["hgvs_genomic_description"]), self,
-                                    known_repeat_unit=variant.expanded_repeat["repeat_sequence"]))
-                            if self.primary_assembly == "GRCh37":
-                                variant.primary_assembly_loci["hg19"
-                                ]["hgvs_genomic_description"] = (
-                                    variant.primary_assembly_loci[self.primary_assembly.lower()]
-                                    ["hgvs_genomic_description"])
-                                variant.primary_assembly_loci["grch38"
-                                ]["hgvs_genomic_description"] = (
-                                    seq_state_to_expanded_repeat.convert_seq_state_to_expanded_repeat(
-                                        str(variant.primary_assembly_loci["grch38"
-                                ]["hgvs_genomic_description"]), self,
-                                        known_repeat_unit=variant.expanded_repeat["repeat_sequence"]))
-                                variant.primary_assembly_loci["hg38"]["hgvs_genomic_description"] = (
-                                    variant.primary_assembly_loci["grch38"
-                                    ]["hgvs_genomic_description"])
-                            else:
-                                variant.primary_assembly_loci["hg38"
-                                ]["hgvs_genomic_description"] = (
-                                    variant.primary_assembly_loci[self.primary_assembly.lower()]
-                                    ["hgvs_genomic_description"])
-                                variant.primary_assembly_loci["grch37"
-                                ]["hgvs_genomic_description"] = (
-                                    seq_state_to_expanded_repeat.convert_seq_state_to_expanded_repeat(
-                                        str(variant.primary_assembly_loci["grch37"
-                                ]["hgvs_genomic_description"]), self,
-                                        known_repeat_unit=variant.expanded_repeat["repeat_sequence"]))
-                                variant.primary_assembly_loci["hg19"]["hgvs_genomic_description"] = (
-                                    variant.primary_assembly_loci["grch37"
-                                    ]["hgvs_genomic_description"])
-                        except Exception:
-                            pass
-
-                    if "NG_" in variant.hgvs_refseqgene_variant:
-                        if not "NG_" in variant.expanded_repeat["variant"]:
-                            try:
-                                variant.hgvs_refseqgene_variant = (
-                                seq_state_to_expanded_repeat.convert_seq_state_to_expanded_repeat(
-                                    str(variant.hgvs_refseqgene_variant), self,
-                                known_repeat_unit=variant.expanded_repeat["repeat_sequence"]))
-                            except Exception:
-                                pass
-                        if "LRG_" in variant.hgvs_lrg_variant:
-                            variant.hgvs_lrg_variant = (f"{variant.hgvs_lrg_variant.split(':g.')[0]}"
-                                                        f":g.{variant.hgvs_refseqgene_variant.split(':g.')[1]}")
-                        if "LRG_" in variant.hgvs_lrg_transcript_variant:
-                            variant.hgvs_lrg_transcript_variant = (f"{variant.hgvs_lrg_transcript_variant.split(':c.')[0]}"
-                                                                   f":c.{variant.hgvs_transcript_variant.split(':c.')[1]}")
 
                 # Append to a list for return
                 batch_out.append(variant)
