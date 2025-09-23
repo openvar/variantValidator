@@ -1415,11 +1415,10 @@ class Mixin(vvMixinConverters.Mixin):
                     # If the ER came from a gene description, set the HGVS transcript variant
                     if ex_rep_start in ["NG_", "LRG"]:
                         try:
-                            variant.hgvs_transcript_variant = (
-                                convert_seq_state_to_expanded_repeat(
+                            variant.hgvs_transcript_variant = convert_seq_state_to_expanded_repeat(
                                     variant.hgvs_transcript_variant, self,
                                     known_repeat_unit=variant.expanded_repeat["repeat_sequence"],
-                                    genomic_reference=ex_rep_var.ac))
+                                    genomic_reference=ex_rep_var.ac)
                         except Exception:
                             pass
                     elif ex_rep_start == 'NC_':
@@ -1497,7 +1496,8 @@ class Mixin(vvMixinConverters.Mixin):
                             if variant.hgvs_lrg_variant:
                                 variant.hgvs_lrg_variant = (
                                     f"{variant.hgvs_lrg_variant.split(':g.')[0]}:g." +
-                                    str(variant.hgvs_refseqgene_variant).split(':g.')[1])
+                                    variant.hgvs_refseqgene_variant.posedit.format(
+                                        {'max_ref_length': 0}))
                         except Exception:
                             pass
                         # LRG transcript data can be, but may not be, the same as the main mapped tx
@@ -1506,12 +1506,10 @@ class Mixin(vvMixinConverters.Mixin):
                         if variant.hgvs_lrg_transcript_variant and \
                                 variant.hgvs_lrg_transcript_variant.split(':c.')[1] ==\
                                 starting_tx_posedit and variant.hgvs_transcript_variant:
-                            if isinstance(variant.hgvs_transcript_variant, str):
-                                posedit = variant.hgvs_transcript_variant.split(':c.')[1]
-                            else:
-                                posedit = str(variant.hgvs_transcript_variant.posedit)
-                            variant.hgvs_lrg_transcript_variant =\
-                                f"{variant.hgvs_lrg_transcript_variant.split(':c.')[0]}:c.{posedit}"
+                            variant.hgvs_lrg_transcript_variant = \
+                                f"{variant.hgvs_lrg_transcript_variant.split(':c.')[0]}:c."\
+                                + variant.hgvs_transcript_variant.posedit.format(
+                                    {'max_ref_length': 0})
 
                 # Some variant objects must be strings for back-compatibility with old output
                 if variant.hgvs_transcript_variant:

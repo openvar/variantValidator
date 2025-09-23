@@ -1,7 +1,7 @@
 import logging
 import re
 from VariantValidator.modules import utils
-
+from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj, to_vv_hgvs
 # Custom exceptions for better error granularity
 class RepeatedUnitError(Exception):
     """Raised when the repeated unit is empty or invalid."""
@@ -40,28 +40,34 @@ def reassemble_expanded_repeat_variant(reference, reference_start, reference_end
     reference_repeat_units = (reference_end - reference_start + 1) // unit_len
     total_units = reference_repeat_units + inserted_repeat_units - remove_units
 
-    # Begin constructing the variant with positional metadata
+    # Begin constructing the variant with positional metadata, the vv_hgvs code treats all non dup
+    # types as "delins" (deliberately not "indel" due to it's more official usage)
+    variant = hgvs_delins_parts_to_hgvs_obj(reference,reference_type, reference_start, '', '',end=reference_end)
 
-    if converted_from_intronic is False:
-        variant_identity_format = f"{reference}:{reference_type}{reference_start}_{reference_end}="
-    else:
-        variant_identity_format = f"{reference}:g.{reference_start}_{reference_end}="
-
-    # If the variant is coding (c.), convert to nucleotide (n.) and back to ensure alignment
-    if reference_type == "c." and "NC_" not in reference:
-        reparse = validator.hp.parse(variant_identity_format.replace("c.", "n."))
-        variant_identity_format = utils.valstr(validator.vm.n_to_c(reparse))
-
+    # If the variant is coding normalise to ensure alignment
+    if reference_type in ["c","n"] and "NC_" not in reference:
+        variant = hgvs_delins_parts_to_hgvs_obj(reference,'n', reference_start, '', '',end=reference_end)
+        if reference_type == "c":
+            variant = validator.vm.n_to_c(variant)
+        if reference.startswith('ENS'):
+            variant_n = validator.genebuild_normalizer.normalize(variant)
+        else:
+            variant_n = validator.splign_normalizer.normalize(variant)
+        assert variant_n.posedit.edit.ref == variant.posedit.edit.ref
     elif converted_from_intronic is not False:
-        variant_identity_format = utils.valstr(validator.vm.g_to_t(validator.hp.parse(variant_identity_format), converted_from_intronic,
-                                                                   alt_aln_method=alt_aln_method))
-        orientation = validator.hdp.get_tx_exons(converted_from_intronic, reference, alt_aln_method=alt_aln_method)[0][3]
+        variant.type = 'g'
+        variant = validator.vm.g_to_t(variant, converted_from_intronic,alt_aln_method=alt_aln_method)
+        orientation = validator.hdp.get_tx_exons(
+                converted_from_intronic, reference, alt_aln_method=alt_aln_method)[0][3]
         if orientation != 1:
             # If the transcript is on the reverse strand, we need reverse complement the repeat bases
             repeated_unit = validator.revcomp(repeated_unit)
-
-    # Replace = with actual repeat structure like T[20]
-    return variant_identity_format.replace("=", f"{repeated_unit}[{total_units}]")
+    # Switch from = type use for mapping checks, final version only, the expanded repeat type output will
+    # lose annotation on normalisation (this avoids re-parsing on VRS output production etc)
+    variant = to_vv_hgvs(variant) # restore vv type extras if lost in mapping etc
+    variant.posedit.edit.alt = repeated_unit * total_units
+    variant.posedit.expanded_rep = repeated_unit
+    return variant
 
 def decipher_repeated_unit(sequence):
     """
@@ -181,16 +187,16 @@ def convert_seq_state_to_expanded_repeat(variant, validator, genomic_reference=N
     working_hgvs = False # this will be a G variant for intronic, if fixed
     hgvs_genomic = False # store the genomic map for mapping change detection
     if variant.type == 'g':
-        reference_type = "g."
+        reference_type = variant.type
         working_hgvs = variant
     elif variant.type in ["c", "n"]:
         if variant.type == 'c':
-            reference_type = "c."
+            reference_type = variant.type
             hgvs_n = validator.vm.c_to_n(variant)
             working_hgvs = hgvs_n
         else:
             hgvs_n = variant
-            reference_type = "n."
+            reference_type = variant.type
             working_hgvs = variant
         logger.info(f"variant is a transcript variant {str(variant)}")
         logger.info(f"Converted to n. coordinates: {hgvs_n}")

@@ -14,12 +14,12 @@ class TestExpandedRepeatConversion(unittest.TestCase):
     def test_expanded_repeat_polyA_variant(self):
         variant = self.validator.hp.parse("NC_000023.11:g.33344607_33344608insAAAAAAAAAAAAAAAA")
         result = convert_seq_state_to_expanded_repeat(variant, self.validator)
-        self.assertEqual(result, "NC_000023.11:g.33344604_33344607A[20]")
+        self.assertEqual(str(result), "NC_000023.11:g.33344604_33344607A[20]")
 
     def test_expanded_repeat_polyT_variant(self):
         variant = self.validator.hp.parse("NG_012232.1:g.6_7insTTTTTTTTTTTTTTTT")
         result = convert_seq_state_to_expanded_repeat(variant, self.validator)
-        self.assertEqual(result, "NG_012232.1:g.3_6T[20]")
+        self.assertEqual(str(result), "NG_012232.1:g.3_6T[20]")
 
     def test_invalid_variant_format_raises(self):
         # adjusted for the string-> pre-parsed hgvs object changes
@@ -37,27 +37,27 @@ class TestExpandedRepeatConversion(unittest.TestCase):
     def test_expanded_repeat_polyT_variant_alt(self):
         variant = self.validator.hp.parse("NG_012232.1:g.6_7insTTTTTTTTTTTTTTTT")
         result = convert_seq_state_to_expanded_repeat(variant, self.validator)
-        self.assertEqual(result, "NG_012232.1:g.3_6T[20]")
+        self.assertEqual(str(result), "NG_012232.1:g.3_6T[20]")
 
     def test_expanded_repeat_equal_variant(self):
         variant = self.validator.hp.parse("NM_002111.8:c.54_116=")
         result = convert_seq_state_to_expanded_repeat(variant, self.validator)
-        self.assertEqual(result, "NM_002111.8:c.54_116GCA[21]")
+        self.assertEqual(str(result), "NM_002111.8:c.54_116GCA[21]")
 
     def test_expanded_repeat_duplication_variant(self):
         variant = self.validator.hp.parse("NM_002111.8:c.54_116dup")
         result = convert_seq_state_to_expanded_repeat(variant, self.validator)
-        self.assertEqual(result, "NM_002111.8:c.54_116GCA[42]")
+        self.assertEqual(str(result), "NM_002111.8:c.54_116GCA[42]")
 
     def test_expanded_repeat_deletion_of_one_repeat(self):
         variant = self.validator.hp.parse("NM_002111.8:c.114_116del")
         result = convert_seq_state_to_expanded_repeat(variant, self.validator)
-        self.assertEqual(result, "NM_002111.8:c.54_116GCA[21]")
+        self.assertEqual(str(result), "NM_002111.8:c.54_116GCA[21]")
 
     def test_expanded_repeat_deletion_of_two_repeats(self):
         variant = self.validator.hp.parse("NM_002111.8:c.111_116del")
         result = convert_seq_state_to_expanded_repeat(variant, self.validator)
-        self.assertEqual(result, "NM_002111.8:c.54_116GCA[20]")
+        self.assertEqual(str(result), "NM_002111.8:c.54_116GCA[20]")
 
     def test_decipher_repeated_unit_non_repeat(self):
         """Test decipher_repeated_unit with a non-repeating sequence."""
@@ -90,64 +90,64 @@ class TestExpandedRepeatConversion(unittest.TestCase):
         expected = "NM_004006.2:c.-3_1A[4]"
 
         result = convert_seq_state_to_expanded_repeat(variant, validator=self.validator)
-        self.assertEqual(result, expected)
+        self.assertEqual(str(result), expected)
 
     def test_expanded_repeat_noncoding_negative_positions(self):
         variant = self.validator.hp.parse("NR_110010.2:n.15_16=")
         expected = "NR_110010.2:n.15_16GA[1]"
 
         result = convert_seq_state_to_expanded_repeat(variant, validator=self.validator)
-        self.assertEqual(result, expected)
+        self.assertEqual(str(result), expected)
 
     def test_expanded_repeat_coding_3utr_positions(self):
         variant = self.validator.hp.parse("NM_001160367.2:c.870_*1=")
         expected = "NM_001160367.2:c.870_*1AC[1]"
 
         result = convert_seq_state_to_expanded_repeat(variant, validator=self.validator)
-        self.assertEqual(result, expected)
+        self.assertEqual(str(result), expected)
 
     def test_intronic_coding_sense_strand(self):
         variant = self.validator.hp.parse("NM_000492.4:c.1210-34_1210-13=")
         expected = "NM_000492.4:c.1210-34_1210-13TG[11]"
 
         result = convert_seq_state_to_expanded_repeat(variant, validator=self.validator, genomic_reference="NC_000007.13")
-        self.assertEqual(result, expected)
+        self.assertEqual(str(result), expected)
 
     def test_intronic_coding_antisense_strand(self):
         variant = self.validator.hp.parse("NM_000088.3:c.589-1_590=")
         expected = "NM_000088.3:c.589-1_590G[3]"
 
         result = convert_seq_state_to_expanded_repeat(variant, validator=self.validator, genomic_reference="NC_000017.10")
-        self.assertEqual(result, expected)
+        self.assertEqual(str(result), expected)
 
     # known_repeat_unit non ins, then ins, then revcomp
     def test_known_repeat_unit_nonins(self):
         variant = self.validator.hp.parse("NM_002111.8:c.111_116del")
         result = convert_seq_state_to_expanded_repeat(variant, self.validator,known_repeat_unit='GCA')
-        self.assertEqual(result, "NM_002111.8:c.54_116GCA[20]")
+        self.assertEqual(str(result), "NM_002111.8:c.54_116GCA[20]")
 
     def test_known_repeat_unit_ins(self):
         # normalisation auto expands ins to dup if it can, so test as much as we can here,
         # see also test_pure_ins_variant
         variant = self.validator.hp.parse("NM_002111.8:c.116_117insGCA")
         result = convert_seq_state_to_expanded_repeat(variant, self.validator,known_repeat_unit='GCA')
-        self.assertEqual(result, "NM_002111.8:c.54_116GCA[22]")
+        self.assertEqual(str(result), "NM_002111.8:c.54_116GCA[22]")
         variant = self.validator.hp.parse("NM_002111.8:c.53_54insGCA")
         result = convert_seq_state_to_expanded_repeat(variant, self.validator,known_repeat_unit='GCA')
-        self.assertEqual(result, "NM_002111.8:c.54_116GCA[22]")
+        self.assertEqual(str(result), "NM_002111.8:c.54_116GCA[22]")
         # force to go through latter code as ins because ins > 22 reps, however norms to end of span
         # hence 53_54 is redundant for now, keep in for testing robustness
         variant = self.validator.hp.parse("NM_002111.8:c.53_54insGCAGCAGCAGCAGCAGCAGCAGCAGCAGCAGCAGCAGCAGCAGCAGCAGCAGCAGCAGCAGCAGCAGCAGCA")
         result = convert_seq_state_to_expanded_repeat(variant, self.validator,known_repeat_unit='GCA')
-        self.assertEqual(result, "NM_002111.8:c.54_116GCA[45]")
+        self.assertEqual(str(result), "NM_002111.8:c.54_116GCA[45]")
         variant = self.validator.hp.parse("NM_002111.8:c.116_117insGCAGCAGCAGCAGCAGCAGCAGCAGCAGCAGCAGCAGCAGCAGCAGCAGCAGCAGCAGCAGCAGCAGCAGCA")
         result = convert_seq_state_to_expanded_repeat(variant, self.validator,known_repeat_unit='GCA')
-        self.assertEqual(result, "NM_002111.8:c.54_116GCA[45]")
+        self.assertEqual(str(result), "NM_002111.8:c.54_116GCA[45]")
 
     def test_known_repeat_unit(self):
         variant = self.validator.hp.parse("NM_002111.8:c.111_116del")
         result = convert_seq_state_to_expanded_repeat(variant, self.validator,known_repeat_unit='TGC')
-        self.assertEqual(result, "NM_002111.8:c.54_116GCA[20]")
+        self.assertEqual(str(result), "NM_002111.8:c.54_116GCA[20]")
 
     def test_bad_genomic_mapping(self):
         variant = self.validator.hp.parse("NM_000492.4:c.1210-34_1210-13=")
@@ -202,7 +202,7 @@ class TestExpandedRepeatConversion(unittest.TestCase):
 
     def test_internal_quick_test(self):
         res = quick_testfunc()
-        assert res == 'NM_002111.8:c.54_116GCA[21]'
+        assert str(res) == 'NM_002111.8:c.54_116GCA[21]'
 
     def test_bad_genomic_style_attempt(self):
         # test that bad attempts to map such as those caused by shifted or
