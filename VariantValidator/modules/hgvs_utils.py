@@ -29,16 +29,20 @@ class PseudoVCF2HGVSError(Exception):
 class VVPosEdit(PosEdit):
     "override class for posedit to get VV specific formatting"
     met_variation = None
+    expanded_rep = None
     def __init__(
             self,pos,edit,
             uncertain=False,
             nucleotide_not_equal = None,
-            met_variation = None):
+            met_variation = None,
+            expanded_rep = None):
         PosEdit.__init__(self,pos=pos,edit=edit,uncertain=uncertain)
         # used to append methylation variation to the output
         self.met_variation = met_variation
         # used for formatting prot consequence of nuc input (for Ter/*)
         self.nucleotide_not_equal = nucleotide_not_equal
+        # used for expanded repeat type variant output (do not normalise!)
+        self.expanded_rep = expanded_rep
 
     def __eq__(self, other):
         "make VVPosEdit == PosEdit when appropriate"
@@ -91,8 +95,15 @@ class VVPosEdit(PosEdit):
                     formatted_str = f"{self.pos.format(conf)}dup"
                 else:
                     formatted_str = f"{self.pos.format(conf)}{edit}"
-            else:
-                 formatted_str = f"{self.pos.format(conf)}{edit}"
+            else: # must be NARefAlt, not dup
+                if self.expanded_rep:
+                    # dup can be converted into this but should be stated as NARefAlt, this is
+                    # not robust to mapping and/or normalisation (may norm down to exclude part
+                    # of expanded repeat's range)
+                    rep = int(len(self.edit.alt)/len(self.expanded_rep))
+                    formatted_str = f"{self.pos.format(conf)}{self.expanded_rep}[{rep}]"
+                else:
+                    formatted_str = f"{self.pos.format(conf)}{edit}"
             if type(self.edit) is NARefAlt and self.met_variation:
                 if self.edit.ref == self.edit.alt:
                     formatted_str = formatted_str[:-1] + self.met_variation
@@ -265,24 +276,24 @@ def _hgvs_offset_pos_from_str_in(starts,length,ref_type=None,end=None):
     if type(starts) is str and '-' in starts[1:]:
         prefix, sep, offset = loc_start[1:].partition('-')
         prefix = loc_start[0] + prefix
-        end_offset = int(offset) - (length -1)
         start_pos = vvhgvs.location.BaseOffsetPosition(
                 base=int(prefix),
                 offset=-int(offset),
                 datum=coordinate_origin)
-        if end_pos:# already set
-            pass
-        elif end_offset < 0:
-            prefix = int(prefix) - end_offset
-            end_pos = vvhgvs.location.BaseOffsetPosition(
-                    base=int(prefix),
-                    offset=0,
-                    datum=end_coordinate_origin)
-        else:
-            end_pos = vvhgvs.location.BaseOffsetPosition(
-                    base=int(prefix),
-                    offset=-end_offset,
-                    datum=end_coordinate_origin)
+        if not end_pos:
+            end_offset = int(offset) - (length -1)
+            if end_offset < 0:
+                prefix = int(prefix) - end_offset
+                end_pos = vvhgvs.location.BaseOffsetPosition(
+                        base=int(prefix),
+                        offset=0,
+                        datum=end_coordinate_origin)
+            else :
+                end_offset = int(offset) - (length -1)
+                end_pos = vvhgvs.location.BaseOffsetPosition(
+                        base=int(prefix),
+                        offset=-end_offset,
+                        datum=end_coordinate_origin)
     elif type(starts) is str and '+' in starts:
         # no simple way to know whether stop exceeds end of exon
         pos = starts
@@ -298,11 +309,11 @@ def _hgvs_offset_pos_from_str_in(starts,length,ref_type=None,end=None):
                     datum=end_coordinate_origin)
     else: # we got int input for start, or similar so do simple position
         start_pos = vvhgvs.location.BaseOffsetPosition(
-                base=int(starts),
+                base=int(loc_start),
                 datum=coordinate_origin)
         if not end_pos:
             end_pos = vvhgvs.location.BaseOffsetPosition(
-                    base=int(starts)+ length -1,
+                    base=int(loc_start)+ length -1,
                     datum=end_coordinate_origin)
 
     return start_pos, end_pos
@@ -435,7 +446,7 @@ def hgvs_delins_parts_to_hgvs_obj(ref_ac,ref_type, starts, delete, insert,end=No
     return vvhgvs.sequencevariant.SequenceVariant(
             ac=ref_ac,
             type=ref_type,
-            posedit=vvhgvs.posedit.PosEdit(
+            posedit=VVPosEdit(
                 vvhgvs.location.Interval(
                     start=vvhgvs.location.SimplePosition(base=pos),
                     end=vvhgvs.location.SimplePosition(base=ends),
