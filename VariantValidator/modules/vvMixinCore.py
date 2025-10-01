@@ -1419,6 +1419,9 @@ class Mixin(vvMixinConverters.Mixin):
                 for loc in variant.alt_genomic_loci:
                     for gen in loc.keys():
                         loc[gen][hgd] = loc[gen][hgd].format({'max_ref_length': 0})
+                if variant.expanded_repeat is not None:
+                    variant.expanded_repeat["variant"] = \
+                        variant.expanded_repeat["variant"].format({'max_ref_length': 0})
 
                 # Add expanded repeat information
                 logger.info(f"expanded repeat is {variant.expanded_repeat}")
