@@ -12,6 +12,7 @@ Additional functionality to add:
 import unittest
 from unittest import TestCase
 from VariantValidator.modules import expanded_repeats
+from VariantValidator.modules.expanded_repeats import RepeatSyntaxError
 from VariantValidator import Validator
 vv = Validator()
 vv.alt_aln_method = "splign"
@@ -39,12 +40,12 @@ class TestExpandedRepeats(unittest.TestCase):
         my_variant.reformat_reference()
         my_variant.check_genomic_or_coding()
         formatted = my_variant.reformat(vv)
-        assert formatted == "NG_012232.1:g.3_6T[20]"
+        assert str(formatted) == "NG_012232.1:g.3_6T[20]"
         assert my_variant.variant_str == "NG_012232.1:g.4T[20]"
         # checks correct transcript ref
         assert my_variant.reference == "NG_012232.1"
         # checks correct position
-        assert my_variant.variant_position == "3_6"
+        assert str(my_variant.variant_position) == "3_6"
         # checks repeat seq
         assert my_variant.repeat_sequence == "T"
         # checks correct suffix
@@ -67,12 +68,12 @@ class TestExpandedRepeats(unittest.TestCase):
         my_variant.reformat_reference()
         my_variant.check_genomic_or_coding()
         formatted = my_variant.reformat(vv)
-        assert formatted == "ENST00000263121.12:c.*62_*67TCT[2]"
+        assert str(formatted) == "ENST00000263121.12:c.*62_*67TCT[2]"
         assert my_variant.variant_str == "ENST00000263121.12:c.*62_*67TCT[2]"
         assert my_variant.prefix == "c"
         assert my_variant.reference == "ENST00000263121.12"
         # checks correct ref name
-        assert my_variant.variant_position == "*62_*67"
+        assert str(my_variant.variant_position) == "*62_*67"
         # checks correct position
         assert my_variant.repeat_sequence == "TCT"
         # checks repeat seq
@@ -87,16 +88,16 @@ class TestExpandedRepeats(unittest.TestCase):
         """
         variant_str = "NM_000492.4:c.1210-34TG[11]"
         my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(variant_str, "GRCh38", "all", vv)
-        assert my_variant.variant_position == "1210-34"
+        assert str(my_variant.variant_position) == "1210-34"
         my_variant.reformat_reference()
         my_variant.check_genomic_or_coding()
         formatted = my_variant.reformat(vv)
-        assert formatted == "NM_000492.4:c.1210-34_1210-13TG[11]"
+        assert str(formatted) == "NM_000492.4:c.1210-34_1210-13TG[11]"
         assert my_variant.variant_str == "NM_000492.4:c.1210-34TG[11]"
         assert my_variant.prefix == "c"
         assert my_variant.reference == "NM_000492.4"
         # checks correct ref name
-        assert my_variant.variant_position == "1210-34_1210-13"
+        assert str(my_variant.variant_position) == "1210-34_1210-13"
         # checks correct position
         assert my_variant.repeat_sequence == "TG"
         # checks repeat seq
@@ -113,7 +114,8 @@ class TestExpandedRepeats(unittest.TestCase):
         my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
                                     variant_str,  "GRCh37", "all", vv)
         # Includes cds offset
-        self.assertEqual(expanded_repeats.TandemRepeats.get_range_from_single_or_start_pos(my_variant, vv), "1289_1297")
+        seq_range = expanded_repeats.TandemRepeats.get_range_from_single_or_start_pos(my_variant, vv)
+        self.assertEqual(str(seq_range), "1289_1297")
 
     def test_empty_string(self):
         """
@@ -124,6 +126,145 @@ class TestExpandedRepeats(unittest.TestCase):
                                     variant_str, "GRCh37", "all", vv)
         assert my_variant == False
 
+    def test_convert_tandem_fallback(self):
+        """
+        Test that fallback happens when input variant is a text hgvs variant not VV variant object
+        """
+        variant_str = "NM_003073.5:c.1085AGA[2]"
+        my_variant_data = expanded_repeats.convert_tandem(variant_str, vv, 'GRCh37', 'all')
+        self.assertEqual(str(my_variant_data["position"]), "1085_1093")
+        self.assertEqual(str(my_variant_data["variant"]), "NM_003073.5:c.1085_1093AGA[2]")
+        self.assertEqual(my_variant_data["copy_number"],'2')
+        self.assertEqual(my_variant_data["repeat_sequence"],"AGA")
+        self.assertEqual(my_variant_data["reference"],"NM_003073.5")
+        self.assertEqual(my_variant_data["prefix"],"c")
+        self.assertEqual(my_variant_data["reference_sequence_bases"],"AGAAGAAGA")
+
+    def test_fail_tandem_unmatched_bracket(self):
+        variant_str = "NM_003073.5:c.1085AGA[2"
+        with self.assertRaises(RepeatSyntaxError) as catch:
+            expanded_repeats.convert_tandem(variant_str, vv, 'GRCh37', 'all')
+        self.assertTrue("variant in question is missing a matched bracket pair" in \
+                str(catch.exception))
+
+    def test_fail_tandem_no_repeat(self):
+        variant_str = "NM_003073.5:c.1085[2]"
+        with self.assertRaises(RepeatSyntaxError) as catch:
+            expanded_repeats.convert_tandem(variant_str, vv, 'GRCh37', 'all')
+        self.assertTrue(
+                "Ensure that the repeated sequence is included" in \
+                str(catch.exception))
+
+    def test_fail_tandem_bad_repeat_seq(self):
+        variant_str = "NM_003073.5:c.1085CXXX[2]"
+        with self.assertRaises(RepeatSyntaxError) as catch:
+            expanded_repeats.convert_tandem(variant_str, vv, 'GRCh37', 'all')
+        self.assertTrue(
+            "Please ensure the repeated sequence includes only Aa, Cc, Tt, Gg, Uu" in \
+            str(catch.exception))
+
+    def test_fail_tandem_bad_repeat_length(self):
+        variant_str = "NM_003073.5:c.1085_1092AGA[2]"
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
+                variant_str,  "GRCh37", "all", vv)
+
+        with self.assertRaises(RepeatSyntaxError) as catch:
+            my_variant.check_positions_given(vv)
+        self.assertTrue(
+            "is not a multiple of the length of the provided repeat sequence" in \
+            str(catch.exception))
+
+    def test_fail_tandem_ref_nomatch(self):
+        # need a span to trigger this test
+        # also needs a test for no alt at test time [0] code path
+        variant_str = "NM_000492.4:c.1210-35_1210-12TG[11]"
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
+                variant_str,  "GRCh37", "all", vv)
+        my_variant.get_valid_n_or_g_range_from_input_pos(vv)
+        with self.assertRaises(RepeatSyntaxError) as catch:
+            my_variant.check_positions_given(vv)
+        self.assertTrue(
+            "The repeat sequence does not match the reference sequence " in \
+            str(catch.exception))
+        variant_str = "NM_003073.5:c.1085_1093AGA[0]"
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
+                variant_str,  "GRCh37", "all", vv)
+        my_variant.get_valid_n_or_g_range_from_input_pos(vv)
+        my_variant.check_positions_given(vv)
+
+    def test_fail_reformat_if_extra_after_the_bracket(self):
+        # self.after_the_bracket needs to be true when bad variant passed
+        variant_str = "NG_012232.1:g.4T[20]wrong"
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
+                variant_str,  "GRCh37", "all", vv)
+        with self.assertRaises(RepeatSyntaxError) as catch:
+            formatted = my_variant.reformat(vv)
+        self.assertTrue(
+            "No information should be included after the number of repeat units." in \
+            str(catch.exception))
+
+    def test_fail_reformat_if_bad_repeat_characters(self):
+        variant_str = "NG_012232.1:g.4CC[20]"
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
+                variant_str,  "GRCh37", "all", vv)
+        with self.assertRaises(RepeatSyntaxError) as catch:
+            my_variant.repeat_sequence = 'EE'
+            formatted = my_variant.reformat(vv)
+        self.assertTrue(
+            "Please ensure the repeated sequence includes only Aa, Cc, Tt, Gg, Uu" in \
+            str(catch.exception))
+
+    def test_fail_reformat_if_not_copy_number_is_decimal(self):
+        #switch to is int?
+        variant_str = "NG_012232.1:g.4T[aaa]"
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
+                variant_str,  "GRCh37", "all", vv)
+        with self.assertRaises(RepeatSyntaxError) as catch:
+            formatted = my_variant.reformat(vv)
+        self.assertTrue(
+            "The number of repeat units included between square brackets must be numeric" in \
+            str(catch.exception))
+
+
+    #def test_pass_tandem_ref_nomatch_no_length(self):
+    #    # No length for genomic match, and fail caught, should only happen for broken input
+    #    # which should be caught already, or coordinates beyond the end of the seq.
+    #    # This could not trigger and was removed, we may want to add a ^ / $ to the regex
+    #    # however, and if so would then want to re-add this test.
+    #    variant_str = "NG_012232.1:g.90000000CC[20]"
+    #    my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
+    #            variant_str,  "GRCh37", "all", vv)
+    #    my_variant.check_positions_given(vv)
+
+    def test_check_exon_boundaries_no_bounds_used(self):
+        variant_str = "NM_003073.5:c.1085AGA[2]"
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
+                variant_str, vv, 'GRCh37', 'all')
+        my_variant.check_exon_boundaries(vv)
+
+    def test_exon_c_to_n_safe_on_n(self):
+        # convert_c_to_n_coordinates should be safe to call on n/g input
+        variant_str = "NG_012232.1:g.4T[5]"
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
+                variant_str,  "GRCh37", "all", vv)
+        pos = str(my_variant.variant_position)
+        my_variant.convert_c_to_n_coordinates()
+        assert pos == str(my_variant.variant_position)
+
+    def test_bad_coppy_number_after_genomic_map(self):
+        # test in get_range_from_single_or_start_pos
+        # during remap of BaseOffsetInterval type pos with at least one .offset
+        # i.e. intronic n/c
+        # when number of regex matches within range of genomic span != expected
+        variant_str = "NM_000492.4:c.1210-34_1210-11TG[11]"
+        variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
+            variant_str,'GRCh37', 'all',vv)
+
+        with self.assertRaises(RepeatSyntaxError) as catch:
+            variant.reformat(vv)
+        self.assertTrue(
+            "The repeat sequence does not match the expected copy number at position" in\
+            str(catch.exception))
 
 class TestCVariantsExpanded(TestCase):
 
@@ -136,7 +277,7 @@ class TestCVariantsExpanded(TestCase):
         variant = 'NM_004006.2:c.-3_1A[4]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert 'NM_004006.2:c.-3_1=' in results
+        assert 'NM_004006.2:c.-3_1A[4]' in results
 
     def test_exon_boundary_single_position(self):
         variant = 'NM_004006.2:c.13-14AC[7]'
@@ -144,6 +285,14 @@ class TestCVariantsExpanded(TestCase):
         print(results)
         assert ("ExonBoundaryError: Position 13-14 does not correspond with an exon boundary for transcript "
                 "NM_004006.2") in results["validation_warning_1"]["validation_warnings"]
+
+    def test_exon_boundary_single_position_plus(self):
+        variant = 'NM_004006.2:c.13+14AC[7]'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert ("ExonBoundaryError: Position 13+14 does not correspond with an exon boundary for transcript "
+                "NM_004006.2") in results["validation_warning_1"]["validation_warnings"]
+
 
     def test_exon_boundary_range(self):
         variant = 'NM_004006.2:c.12_13-14AC[7]'
@@ -156,26 +305,24 @@ class TestCVariantsExpanded(TestCase):
         variant = 'NM_000492.4:c.1210-34TG[11]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_000492.4:c.1210-34_1210-13="][
-            "primary_assembly_loci"]["grch37"]["hgvs_genomic_description"] == "NC_000007.13:g.117188661_117188682="
-        assert results["NM_000492.4:c.1210-34_1210-13="][
+        assert results["NM_000492.4:c.1210-34_1210-13TG[11]"][
+            "primary_assembly_loci"]["grch37"]["hgvs_genomic_description"] == "NC_000007.13:g.117188661_117188682TG[11]"
+        assert results["NM_000492.4:c.1210-34_1210-13TG[11]"][
             "validation_warnings"] ==  [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NM_000492.4:c.1210-34TG[11]. The corrected description is NM_000492.4:c.1210-34_1210-13TG[11]",
             "ExpandedRepeatWarning: NM_000492.4:c.1210-34_1210-13TG[11] should only be used as an annotation for the core HGVS descriptions provided",
-            "NM_000492.4:c.1210-34_1210-13delinsTGTGTGTGTGTGTGTGTGTGTG automapped to NM_000492.4:c.1210-34_1210-13="
         ]
 
     def test_intronic_range(self):
         variant = 'NM_000492.4:c.1210-34_1210-13TG[11]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_000492.4:c.1210-34_1210-13="][
-            "primary_assembly_loci"]["grch37"]["hgvs_genomic_description"] == "NC_000007.13:g.117188661_117188682="
-        assert results["NM_000492.4:c.1210-34_1210-13="][
+        assert results["NM_000492.4:c.1210-34_1210-13TG[11]"][
+            "primary_assembly_loci"]["grch37"]["hgvs_genomic_description"] == "NC_000007.13:g.117188661_117188682TG[11]"
+        assert results["NM_000492.4:c.1210-34_1210-13TG[11]"][
             "validation_warnings"] == [
             "ExpandedRepeatWarning: NM_000492.4:c.1210-34_1210-13TG[11] should only be used as an annotation for the "
             "core HGVS descriptions provided",
-            "NM_000492.4:c.1210-34_1210-13delinsTGTGTGTGTGTGTGTGTGTGTG automapped to NM_000492.4:c.1210-34_1210-13="
         ]
 
     def test_incorrect_intronic_range(self):
@@ -192,9 +339,9 @@ class TestCVariantsExpanded(TestCase):
         variant = 'NM_003073.5:c.1085AGA[3]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_003073.5:c.1085_1093="][
-            "primary_assembly_loci"]["grch37"]["hgvs_genomic_description"] == "NC_000022.10:g.24175857_24175865="
-        assert results["NM_003073.5:c.1085_1093="][
+        assert results["NM_003073.5:c.1085_1093AGA[3]"][
+            "primary_assembly_loci"]["grch37"]["hgvs_genomic_description"] == "NC_000022.10:g.24175857_24175865AGA[3]"
+        assert results["NM_003073.5:c.1085_1093AGA[3]"][
             "validation_warnings"] ==  [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NM_003073.5:c.1085AGA[3]. The corrected description is NM_003073.5:c.1085_1093AGA[3]",
             "ExpandedRepeatWarning: NM_003073.5:c.1085_1093AGA[3] should only be used as an annotation for the core HGVS descriptions provided"
@@ -204,9 +351,9 @@ class TestCVariantsExpanded(TestCase):
         variant = 'NM_003073.5:c.1085_1093AGA[3]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_003073.5:c.1085_1093="][
-            "primary_assembly_loci"]["grch37"]["hgvs_genomic_description"] == "NC_000022.10:g.24175857_24175865="
-        assert results["NM_003073.5:c.1085_1093="][
+        assert results["NM_003073.5:c.1085_1093AGA[3]"][
+            "primary_assembly_loci"]["grch37"]["hgvs_genomic_description"] == "NC_000022.10:g.24175857_24175865AGA[3]"
+        assert results["NM_003073.5:c.1085_1093AGA[3]"][
             "validation_warnings"] == [
             "ExpandedRepeatWarning: NM_003073.5:c.1085_1093AGA[3] should only be used as an annotation for the core "
             "HGVS descriptions provided"
@@ -226,9 +373,9 @@ class TestCVariantsExpanded(TestCase):
         variant = 'NM_002024.5:c.-129CGG[10]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_002024.5:c.-129_-100="][
-            "primary_assembly_loci"]["grch37"]["hgvs_genomic_description"] == "NC_000023.10:g.146993569_146993598="
-        assert results["NM_002024.5:c.-129_-100="][
+        assert results["NM_002024.5:c.-129_-100CGG[10]"][
+            "primary_assembly_loci"]["grch37"]["hgvs_genomic_description"] == "NC_000023.10:g.146993569_146993598CGG[10]"
+        assert results["NM_002024.5:c.-129_-100CGG[10]"][
             "validation_warnings"] == [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NM_002024.5:c.-129CGG[10]. The corrected description is NM_002024.5:c.-129_-100CGG[10]",
             "ExpandedRepeatWarning: NM_002024.5:c.-129_-100CGG[10] should only be used as an annotation for the core HGVS descriptions provided",
@@ -239,9 +386,9 @@ class TestCVariantsExpanded(TestCase):
         variant = 'NM_002024.5:c.-129_-100CGG[10]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_002024.5:c.-129_-100="][
-            "primary_assembly_loci"]["grch37"]["hgvs_genomic_description"] == "NC_000023.10:g.146993569_146993598="
-        assert results["NM_002024.5:c.-129_-100="][
+        assert results["NM_002024.5:c.-129_-100CGG[10]"][
+            "primary_assembly_loci"]["grch37"]["hgvs_genomic_description"] == "NC_000023.10:g.146993569_146993598CGG[10]"
+        assert results["NM_002024.5:c.-129_-100CGG[10]"][
             "validation_warnings"] == [
             "ExpandedRepeatWarning: NM_002024.5:c.-129_-100CGG[10] should only be used as an annotation for the core "
             "HGVS descriptions provided",
@@ -269,9 +416,9 @@ class TestCVariantsExpanded(TestCase):
         variant = 'NM_002111.8:c.54GCA[21]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_002111.8:c.54_116="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000004.11:g.3076657_3076662dup"
-        assert results["NM_002111.8:c.54_116="]["validation_warnings"] ==  [
+        assert results["NM_002111.8:c.54_116GCA[21]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000004.11:g.3076606_3076662GCA[21]"
+        assert results["NM_002111.8:c.54_116GCA[21]"]["validation_warnings"] ==  [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NM_002111.8:c.54GCA[21]. The corrected description is NM_002111.8:c.54_116GCA[21]",
             "ExpandedRepeatWarning: NM_002111.8:c.54_116GCA[21] should only be used as an annotation for the core HGVS descriptions provided"
         ]
@@ -280,13 +427,12 @@ class TestCVariantsExpanded(TestCase):
         variant = 'NM_000088.3:c.589-1_590G[3]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_000088.3:c.589-1_590="][
-            "primary_assembly_loci"]["grch37"]["hgvs_genomic_description"] == "NC_000017.10:g.48275362_48275364="
-        assert results["NM_000088.3:c.589-1_590="][
+        assert results["NM_000088.3:c.589-1_590G[3]"][
+            "primary_assembly_loci"]["grch37"]["hgvs_genomic_description"] == "NC_000017.10:g.48275362_48275364C[3]"
+        assert results["NM_000088.3:c.589-1_590G[3]"][
             "validation_warnings"] == [
             "ExpandedRepeatWarning: NM_000088.3:c.589-1_590G[3] should only be used as an annotation for the "
             "core HGVS descriptions provided",
-            "NM_000088.3:c.589-1_590delinsGGG automapped to NM_000088.3:c.589-1_590=",
             "TranscriptVersionWarning: A more recent version of the selected reference sequence NM_000088.3 "
             "is available for genome build GRCh37 (NM_000088.4)"
         ]
@@ -295,13 +441,12 @@ class TestCVariantsExpanded(TestCase):
         variant = 'NM_000088.3:c.589-1G[3]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_000088.3:c.589-1_590="][
-                   "primary_assembly_loci"]["grch37"]["hgvs_genomic_description"] == "NC_000017.10:g.48275362_48275364="
-        assert results["NM_000088.3:c.589-1_590="][
+        assert results["NM_000088.3:c.589-1_590G[3]"][
+                   "primary_assembly_loci"]["grch37"]["hgvs_genomic_description"] == "NC_000017.10:g.48275362_48275364C[3]"
+        assert results["NM_000088.3:c.589-1_590G[3]"][
                    "validation_warnings"] == [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NM_000088.3:c.589-1G[3]. The corrected description is NM_000088.3:c.589-1_590G[3]",
             "ExpandedRepeatWarning: NM_000088.3:c.589-1_590G[3] should only be used as an annotation for the core HGVS descriptions provided",
-            "NM_000088.3:c.589-1_590delinsGGG automapped to NM_000088.3:c.589-1_590=",
             "TranscriptVersionWarning: A more recent version of the selected reference sequence NM_000088.3 is available for genome build GRCh37 (NM_000088.4)"
         ]
 
@@ -309,13 +454,12 @@ class TestCVariantsExpanded(TestCase):
         variant = 'NM_000088.3:c.589-18T[5]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_000088.3:c.589-18_589-14="][
-                   "primary_assembly_loci"]["grch37"]["hgvs_genomic_description"] == "NC_000017.10:g.48275377_48275381="
-        assert results["NM_000088.3:c.589-18_589-14="][
+        assert results["NM_000088.3:c.589-18_589-14T[5]"][
+                   "primary_assembly_loci"]["grch37"]["hgvs_genomic_description"] == "NC_000017.10:g.48275377_48275381A[5]"
+        assert results["NM_000088.3:c.589-18_589-14T[5]"][
                    "validation_warnings"] == [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NM_000088.3:c.589-18T[5]. The corrected description is NM_000088.3:c.589-18_589-14T[5]",
             "ExpandedRepeatWarning: NM_000088.3:c.589-18_589-14T[5] should only be used as an annotation for the core HGVS descriptions provided",
-            "NM_000088.3:c.589-18_589-14delinsTTTTT automapped to NM_000088.3:c.589-18_589-14=",
             "TranscriptVersionWarning: A more recent version of the selected reference sequence NM_000088.3 is available for genome build GRCh37 (NM_000088.4)"
         ]
 
@@ -354,13 +498,13 @@ class TestTranscriptVariantsExpandedNvsC(TestCase):
         variant = 'NM_022167.4:c.-1_1GA[1]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert 'NM_022167.4:c.-1_1=' in results
+        assert 'NM_022167.4:c.-1_1GA[1]' in results
 
     def test_coridnates_over_pseudo_cds_start_n(self):
         variant = 'NR_110010.2:n.15_16GA[1]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert 'NR_110010.2:n.15_16=' in results
+        assert 'NR_110010.2:n.15_16GA[1]' in results
 
     def test_cordinateds_over_cds_end_c(self):
         # For this NM_001160367.2 and the following NR_027702.2 test there is a 35bp deletion
@@ -371,14 +515,14 @@ class TestTranscriptVariantsExpandedNvsC(TestCase):
         variant = 'NM_001160367.2:c.870_*1AC[1]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert 'NM_001160367.2:c.870_*1=' in results
+        assert 'NM_001160367.2:c.870_*1AC[1]' in results
 
     def test_cordinateds_over_pseudo_cds_end_n(self):
         # As mentioned n coordinates here should be -35 WRT to n equivalent coordinates for above
         variant = 'NR_027702.2:n.1032_1033AC[1]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert 'NR_027702.2:n.1032_1033=' in results
+        assert 'NR_027702.2:n.1032_1033AC[1]' in results
 
     def test_exon_boundary_single_position_c(self):
         variant = 'NM_022167.4:c.21-4GC[5]'
@@ -412,52 +556,48 @@ class TestTranscriptVariantsExpandedNvsC(TestCase):
         variant = 'NM_022167.4:c.135+1G[2]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_022167.4:c.135_135+1="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000017.10:g.48423636_48423637="
-        assert results["NM_022167.4:c.135_135+1="][
+        assert results["NM_022167.4:c.135_135+1G[2]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000017.10:g.48423636_48423637G[2]"
+        assert results["NM_022167.4:c.135_135+1G[2]"][
             "validation_warnings"] ==  [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NM_022167.4:c.135+1G[2]. The corrected description is NM_022167.4:c.135_135+1G[2]",
             "ExpandedRepeatWarning: NM_022167.4:c.135_135+1G[2] should only be used as an annotation for the core HGVS descriptions provided",
-            "NM_022167.4:c.135_135+1delinsGG automapped to NM_022167.4:c.135_135+1="
         ]
 
     def test_intronic_single_position_n(self):
         variant = 'NR_110010.2:n.150+1G[2]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NR_110010.2:n.150_150+1="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000017.10:g.48423636_48423637="
-        assert results["NR_110010.2:n.150_150+1="][
+        assert results["NR_110010.2:n.150_150+1G[2]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000017.10:g.48423636_48423637G[2]"
+        assert results["NR_110010.2:n.150_150+1G[2]"][
             "validation_warnings"] == [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NR_110010.2:n.150+1G[2]. The corrected description is NR_110010.2:n.150_150+1G[2]",
             "ExpandedRepeatWarning: NR_110010.2:n.150_150+1G[2] should only be used as an annotation for the core HGVS descriptions provided",
-            "NR_110010.2:n.150_150+1delinsGG automapped to NR_110010.2:n.150_150+1="
         ]
 
     def test_intronic_range_c(self):
         variant = 'NM_022167.4:c.135+6_135+7C[2]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_022167.4:c.135+6_135+7="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000017.10:g.48423642_48423643="
-        assert results["NM_022167.4:c.135+6_135+7="][
+        assert results["NM_022167.4:c.135+6_135+7C[2]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000017.10:g.48423642_48423643C[2]"
+        assert results["NM_022167.4:c.135+6_135+7C[2]"][
             "validation_warnings"] == [
             "ExpandedRepeatWarning: NM_022167.4:c.135+6_135+7C[2] should only be used as an "
             "annotation for the core HGVS descriptions provided",
-            "NM_022167.4:c.135+6_135+7delinsCC automapped to NM_022167.4:c.135+6_135+7="
         ]
 
     def test_intronic_range_n(self):
         variant = 'NR_110010.2:n.150+6_150+7C[2]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NR_110010.2:n.150+6_150+7="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000017.10:g.48423642_48423643="
-        assert results["NR_110010.2:n.150+6_150+7="][
+        assert results["NR_110010.2:n.150+6_150+7C[2]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000017.10:g.48423642_48423643C[2]"
+        assert results["NR_110010.2:n.150+6_150+7C[2]"][
             "validation_warnings"] == [
             "ExpandedRepeatWarning: NR_110010.2:n.150+6_150+7C[2] should only be used as an "
             "annotation for the core HGVS descriptions provided",
-            "NR_110010.2:n.150+6_150+7delinsCC automapped to NR_110010.2:n.150+6_150+7="
         ]
 
     def test_incorrect_intronic_range_c(self):
@@ -482,9 +622,9 @@ class TestTranscriptVariantsExpandedNvsC(TestCase):
         variant = 'NM_022167.4:c.11GC[3]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_022167.4:c.11_16="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000017.10:g.48423512_48423517="
-        assert results["NM_022167.4:c.11_16="]["validation_warnings"] ==  [
+        assert results["NM_022167.4:c.11_16GC[3]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000017.10:g.48423512_48423517GC[3]"
+        assert results["NM_022167.4:c.11_16GC[3]"]["validation_warnings"] ==  [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NM_022167.4:c.11GC[3]. The corrected description is NM_022167.4:c.11_16GC[3]",
             "ExpandedRepeatWarning: NM_022167.4:c.11_16GC[3] should only be used as an annotation for the core HGVS descriptions provided"
         ]
@@ -493,9 +633,9 @@ class TestTranscriptVariantsExpandedNvsC(TestCase):
         variant = 'NR_110010.2:n.26GC[3]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NR_110010.2:n.26_31="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000017.10:g.48423512_48423517="
-        assert results["NR_110010.2:n.26_31="]["validation_warnings"] ==  [
+        assert results["NR_110010.2:n.26_31GC[3]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000017.10:g.48423512_48423517GC[3]"
+        assert results["NR_110010.2:n.26_31GC[3]"]["validation_warnings"] ==  [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NR_110010.2:n.26GC[3]. The corrected description is NR_110010.2:n.26_31GC[3]",
             "ExpandedRepeatWarning: NR_110010.2:n.26_31GC[3] should only be used as an annotation for the core HGVS descriptions provided"
         ]
@@ -504,9 +644,9 @@ class TestTranscriptVariantsExpandedNvsC(TestCase):
         variant = 'NM_022167.4:c.11_16GC[3]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_022167.4:c.11_16="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000017.10:g.48423512_48423517="
-        assert results["NM_022167.4:c.11_16="]["validation_warnings"] ==  [
+        assert results["NM_022167.4:c.11_16GC[3]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000017.10:g.48423512_48423517GC[3]"
+        assert results["NM_022167.4:c.11_16GC[3]"]["validation_warnings"] ==  [
             "ExpandedRepeatWarning: NM_022167.4:c.11_16GC[3] should only be used as an annotation for the core HGVS descriptions provided"
         ]
 
@@ -514,9 +654,9 @@ class TestTranscriptVariantsExpandedNvsC(TestCase):
         variant = 'NR_110010.2:n.26_31GC[3]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NR_110010.2:n.26_31="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000017.10:g.48423512_48423517="
-        assert results["NR_110010.2:n.26_31="]["validation_warnings"] == [
+        assert results["NR_110010.2:n.26_31GC[3]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000017.10:g.48423512_48423517GC[3]"
+        assert results["NR_110010.2:n.26_31GC[3]"]["validation_warnings"] == [
             "ExpandedRepeatWarning: NR_110010.2:n.26_31GC[3] should only be used as an annotation "
             "for the core HGVS descriptions provided",
         ]
@@ -546,9 +686,9 @@ class TestTranscriptVariantsExpandedNvsC(TestCase):
         tr_variant.check_genomic_or_coding()
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_022167.4:c.-13_-11="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000017.10:g.48423489_48423491="
-        assert results["NM_022167.4:c.-13_-11="]["validation_warnings"] ==  [
+        assert results["NM_022167.4:c.-13_-11C[3]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000017.10:g.48423489_48423491C[3]"
+        assert results["NM_022167.4:c.-13_-11C[3]"]["validation_warnings"] ==  [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NM_022167.4:c.-12C[3]. The corrected description is NM_022167.4:c.-13_-11C[3]",
             "ExpandedRepeatWarning: NM_022167.4:c.-13_-11C[3] should only be used as an annotation for the core HGVS descriptions provided"
         ]
@@ -560,9 +700,9 @@ class TestTranscriptVariantsExpandedNvsC(TestCase):
         tr_variant.check_genomic_or_coding()
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NR_110010.2:n.3_5="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000017.10:g.48423489_48423491="
-        assert results["NR_110010.2:n.3_5="]["validation_warnings"] == [
+        assert results["NR_110010.2:n.3_5C[3]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000017.10:g.48423489_48423491C[3]"
+        assert results["NR_110010.2:n.3_5C[3]"]["validation_warnings"] == [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NR_110010.2:n.3C[3]. The corrected description is NR_110010.2:n.3_5C[3]",
             "ExpandedRepeatWarning: NR_110010.2:n.3_5C[3] should only be used as an annotation for the core HGVS descriptions provided"
         ]
@@ -571,9 +711,9 @@ class TestTranscriptVariantsExpandedNvsC(TestCase):
         variant = 'NM_022167.4:c.-13_-11C[3]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_022167.4:c.-13_-11="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000017.10:g.48423489_48423491="
-        assert results["NM_022167.4:c.-13_-11="]["validation_warnings"] == [
+        assert results["NM_022167.4:c.-13_-11C[3]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000017.10:g.48423489_48423491C[3]"
+        assert results["NM_022167.4:c.-13_-11C[3]"]["validation_warnings"] == [
             "ExpandedRepeatWarning: NM_022167.4:c.-13_-11C[3] should only be used as an annotation "
             "for the core HGVS descriptions provided",
         ]
@@ -582,9 +722,9 @@ class TestTranscriptVariantsExpandedNvsC(TestCase):
         variant = 'NR_110010.2:n.3_5C[3]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NR_110010.2:n.3_5="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000017.10:g.48423489_48423491="
-        assert results["NR_110010.2:n.3_5="]["validation_warnings"] == [
+        assert results["NR_110010.2:n.3_5C[3]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000017.10:g.48423489_48423491C[3]"
+        assert results["NR_110010.2:n.3_5C[3]"]["validation_warnings"] == [
             "ExpandedRepeatWarning: NR_110010.2:n.3_5C[3] should only be used as an annotation for "
             "the core HGVS descriptions provided",
         ]
@@ -613,72 +753,66 @@ class TestTranscriptVariantsExpandedNvsC(TestCase):
         variant = 'NM_001350922.2:c.240+14_240+21TGGG[2]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_001350922.2:c.240+14_240+21="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000010.10:g.128358789_128358796="
-        assert results["NM_001350922.2:c.240+14_240+21="]["validation_warnings"] == [
+        assert results["NM_001350922.2:c.240+14_240+21TGGG[2]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000010.10:g.128358789_128358796CCCA[2]"
+        assert results["NM_001350922.2:c.240+14_240+21TGGG[2]"]["validation_warnings"] == [
             "ExpandedRepeatWarning: NM_001350922.2:c.240+14_240+21TGGG[2] should only be used as "
             "an annotation for the core HGVS descriptions provided",
-            "NM_001350922.2:c.240+14_240+21delinsTGGGTGGG automapped to NM_001350922.2:c.240+14_240+21=",
         ]
 
     def test_antisense_intron_range_n(self):
         variant = 'NR_146939.2:n.453+14_453+21TGGG[2]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NR_146939.2:n.453+14_453+21="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000010.10:g.128358789_128358796="
-        assert results["NR_146939.2:n.453+14_453+21="]["validation_warnings"] == [
+        assert results["NR_146939.2:n.453+14_453+21TGGG[2]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000010.10:g.128358789_128358796CCCA[2]"
+        assert results["NR_146939.2:n.453+14_453+21TGGG[2]"]["validation_warnings"] == [
             "ExpandedRepeatWarning: NR_146939.2:n.453+14_453+21TGGG[2] should only be used as an "
             "annotation for the core HGVS descriptions provided",
-            "NR_146939.2:n.453+14_453+21delinsTGGGTGGG automapped to NR_146939.2:n.453+14_453+21=",
         ]
 
     def test_antisense_intron_single_pos_c(self):
         variant = 'NM_001350922.2:c.240+14TGGG[2]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_001350922.2:c.240+14_240+21="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000010.10:g.128358789_128358796="
-        assert results["NM_001350922.2:c.240+14_240+21="]["validation_warnings"] == [
+        assert results["NM_001350922.2:c.240+14_240+21TGGG[2]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000010.10:g.128358789_128358796CCCA[2]"
+        assert results["NM_001350922.2:c.240+14_240+21TGGG[2]"]["validation_warnings"] == [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NM_001350922.2:c.240+14TGGG[2]. The corrected description is NM_001350922.2:c.240+14_240+21TGGG[2]",
             "ExpandedRepeatWarning: NM_001350922.2:c.240+14_240+21TGGG[2] should only be used as an annotation for the core HGVS descriptions provided",
-            "NM_001350922.2:c.240+14_240+21delinsTGGGTGGG automapped to NM_001350922.2:c.240+14_240+21="
         ]
 
     def test_antisense_intron_single_pos_n(self):
         variant = 'NR_146939.2:n.453+14TGGG[2]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NR_146939.2:n.453+14_453+21="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000010.10:g.128358789_128358796="
-        assert results["NR_146939.2:n.453+14_453+21="]["validation_warnings"] == [
+        assert results["NR_146939.2:n.453+14_453+21TGGG[2]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000010.10:g.128358789_128358796CCCA[2]"
+        assert results["NR_146939.2:n.453+14_453+21TGGG[2]"]["validation_warnings"] == [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NR_146939.2:n.453+14TGGG[2]. The corrected description is NR_146939.2:n.453+14_453+21TGGG[2]",
             "ExpandedRepeatWarning: NR_146939.2:n.453+14_453+21TGGG[2] should only be used as an annotation for the core HGVS descriptions provided",
-            "NR_146939.2:n.453+14_453+21delinsTGGGTGGG automapped to NR_146939.2:n.453+14_453+21="
         ]
 
     def test_antisense_intron_single_pos_2_c(self):
         variant = 'NM_001350922.2:c.241-119TC[2]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_001350922.2:c.241-121_241-118="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000010.10:g.128335324_128335327="
-        assert results["NM_001350922.2:c.241-121_241-118="]["validation_warnings"] ==  [
+        assert results["NM_001350922.2:c.241-121_241-118TC[2]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000010.10:g.128335324_128335327GA[2]"
+        assert results["NM_001350922.2:c.241-121_241-118TC[2]"]["validation_warnings"] ==  [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NM_001350922.2:c.241-119TC[2]. The corrected description is NM_001350922.2:c.241-121_241-118TC[2]",
             "ExpandedRepeatWarning: NM_001350922.2:c.241-121_241-118TC[2] should only be used as an annotation for the core HGVS descriptions provided",
-            "NM_001350922.2:c.241-121_241-118delinsTCTC automapped to NM_001350922.2:c.241-121_241-118="
         ]
 
     def test_antisense_intron_single_pos_2_n(self):
         variant = 'NR_146939.2:n.454-119TC[2]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NR_146939.2:n.454-121_454-118="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000010.10:g.128335324_128335327="
-        assert results["NR_146939.2:n.454-121_454-118="]["validation_warnings"] == [
+        assert results["NR_146939.2:n.454-121_454-118TC[2]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000010.10:g.128335324_128335327GA[2]"
+        assert results["NR_146939.2:n.454-121_454-118TC[2]"]["validation_warnings"] == [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NR_146939.2:n.454-119TC[2]. The corrected description is NR_146939.2:n.454-121_454-118TC[2]",
             "ExpandedRepeatWarning: NR_146939.2:n.454-121_454-118TC[2] should only be used as an annotation for the core HGVS descriptions provided",
-            "NR_146939.2:n.454-121_454-118delinsTCTC automapped to NR_146939.2:n.454-121_454-118="
         ]
 
     def test_antisense_intron_single_pos_seq_inverted_c(self):
@@ -722,12 +856,12 @@ class TestExpandedRepeatGenomic(TestCase):
         my_variant.reformat_reference()
         my_variant.check_genomic_or_coding()
         formatted = my_variant.reformat(vv)
-        assert formatted == "NC_000023.10:g.33362721_33362724A[20]"
+        assert str(formatted) == "NC_000023.10:g.33362721_33362724A[20]"
         assert my_variant.variant_str == "NC_000023.10:g.33362721A[20]"
         # check, in order ref ID, variant_pos, seq, copy number
         # and post-var content (should be none)
         assert my_variant.reference == "NC_000023.10"
-        assert my_variant.variant_position == "33362721_33362724"
+        assert str(my_variant.variant_position) == "33362721_33362724"
         assert my_variant.repeat_sequence == "A"
         assert my_variant.copy_number == "20"
         assert my_variant.after_the_bracket == ""
@@ -739,9 +873,9 @@ class TestExpandedRepeatGenomic(TestCase):
         variant = 'NC_000022.10:g.24175857_24175865AGA[3]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_003073.5:c.1085_1093="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000022.10:g.24175857_24175865="
-        assert results["NM_003073.5:c.1085_1093="]["validation_warnings"] == [
+        assert results["NM_003073.5:c.1085_1093AGA[3]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000022.10:g.24175857_24175865AGA[3]"
+        assert results["NM_003073.5:c.1085_1093AGA[3]"]["validation_warnings"] == [
             "ExpandedRepeatWarning: NC_000022.10:g.24175857_24175865AGA[3] should only be used as "
             "an annotation for the core HGVS descriptions provided"
         ]
@@ -754,7 +888,7 @@ class TestExpandedRepeatGenomic(TestCase):
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
         assert results["intergenic_variant_1"]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000023.10:g.33362724_33362725insAAAAAAAAAAAAAAAA"
+            "hgvs_genomic_description"] == "NC_000023.10:g.33362721_33362724A[20]"
         assert "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NC_000023.10:g.33362721A[20]. The corrected description is NC_000023.10:g.33362721_33362724A[20]" in \
                 results['intergenic_variant_1']["validation_warnings"]
 
@@ -787,9 +921,9 @@ class TestExpandedRepeatGenomicToTranscript(TestCase):
         variant = 'NC_000007.13:g.117188661TG[11]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_000492.4:c.1210-34_1210-13="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000007.13:g.117188661_117188682="
-        assert results["NM_000492.4:c.1210-34_1210-13="]["validation_warnings"] == [
+        assert results["NM_000492.4:c.1210-34_1210-13TG[11]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000007.13:g.117188661_117188682TG[11]"
+        assert results["NM_000492.4:c.1210-34_1210-13TG[11]"]["validation_warnings"] == [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NC_000007.13:g.117188661TG[11]. The corrected description is NC_000007.13:g.117188661_117188682TG[11]",
             "ExpandedRepeatWarning: NC_000007.13:g.117188661_117188682TG[11] should only be used as an annotation for the core HGVS descriptions provided"
         ]
@@ -799,9 +933,9 @@ class TestExpandedRepeatGenomicToTranscript(TestCase):
         variant = 'NC_000007.13:g.117188661_117188682TG[11]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_000492.4:c.1210-34_1210-13="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000007.13:g.117188661_117188682="
-        assert results["NM_000492.4:c.1210-34_1210-13="]["validation_warnings"] == [
+        assert results["NM_000492.4:c.1210-34_1210-13TG[11]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000007.13:g.117188661_117188682TG[11]"
+        assert results["NM_000492.4:c.1210-34_1210-13TG[11]"]["validation_warnings"] == [
             "ExpandedRepeatWarning: NC_000007.13:g.117188661_117188682TG[11] should only be used "
             "as an annotation for the core HGVS descriptions provided",
         ]
@@ -811,9 +945,9 @@ class TestExpandedRepeatGenomicToTranscript(TestCase):
         variant = 'NC_000022.10:g.24175857AGA[3]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_003073.5:c.1085_1093="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000022.10:g.24175857_24175865="
-        assert results["NM_003073.5:c.1085_1093="]["validation_warnings"] ==  [
+        assert results["NM_003073.5:c.1085_1093AGA[3]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000022.10:g.24175857_24175865AGA[3]"
+        assert results["NM_003073.5:c.1085_1093AGA[3]"]["validation_warnings"] ==  [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NC_000022.10:g.24175857AGA[3]. The corrected description is NC_000022.10:g.24175857_24175865AGA[3]",
             "ExpandedRepeatWarning: NC_000022.10:g.24175857_24175865AGA[3] should only be used as an annotation for the core HGVS descriptions provided"
         ]
@@ -823,9 +957,9 @@ class TestExpandedRepeatGenomicToTranscript(TestCase):
         variant = 'NC_000022.10:g.24175857_24175865AGA[3]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_003073.5:c.1085_1093="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000022.10:g.24175857_24175865="
-        assert results["NM_003073.5:c.1085_1093="]["validation_warnings"] == [
+        assert results["NM_003073.5:c.1085_1093AGA[3]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000022.10:g.24175857_24175865AGA[3]"
+        assert results["NM_003073.5:c.1085_1093AGA[3]"]["validation_warnings"] == [
             "ExpandedRepeatWarning: NC_000022.10:g.24175857_24175865AGA[3] should only be used as "
             "an annotation for the core HGVS descriptions provided"
         ]
@@ -835,17 +969,17 @@ class TestExpandedRepeatGenomicToTranscript(TestCase):
         variant = 'NC_000023.10:g.146993569CGG[10]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_002024.5:c.-129_-100="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000023.10:g.146993569_146993598="
+        assert results["NM_002024.5:c.-129_-100CGG[10]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000023.10:g.146993569_146993598CGG[10]"
 
     def test_5_utr_range(self):
         """Reverse of test for 'NM_002024.5:c.-129_-100CGG[10]'"""
         variant = 'NC_000023.10:g.146993569_146993598CGG[10]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_002024.5:c.-129_-100="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000023.10:g.146993569_146993598="
-        assert results["NM_002024.5:c.-129_-100="]["validation_warnings"] == [
+        assert results["NM_002024.5:c.-129_-100CGG[10]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000023.10:g.146993569_146993598CGG[10]"
+        assert results["NM_002024.5:c.-129_-100CGG[10]"]["validation_warnings"] == [
             "ExpandedRepeatWarning: NC_000023.10:g.146993569_146993598CGG[10] should only be used "
             "as an annotation for the core HGVS descriptions provided",
             "TranscriptVersionWarning: A more recent version of the selected reference sequence "
@@ -862,24 +996,20 @@ class TestExpandedRepeatGenomicToTranscript(TestCase):
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
         print(results.keys())
-        assert results["NM_002111.8:c.51_63="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000004.11:g.3076657_3076662dup"
-        assert results["NM_002111.8:c.51_63="]["validation_warnings"] ==  [
-            'ExpandedRepeatWarning: NC_000004.11:g.3076606_3076662GCA[21] should only be used as '
-            'an annotation for the core HGVS descriptions provided',
-            'Submitted description does not represent a true variant because it is an artefact of '
-            'aligning NM_002111.8 with NC_000004.11 (genome build GRCh37)',
-            'NM_002111.8 contains 6 extra bases between c.51_58 than NC_000004.11'
-        ]
+        assert results["NM_001388492.1:c.54_110GCA[21]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000004.11:g.3076606_3076662GCA[21]"
+        assert (("ExpandedRepeatWarning: NC_000004.11:g.3076606_3076662GCA[21] should only be used as an annotation "
+                "for the core HGVS descriptions provided") in
+                results["NM_001388492.1:c.54_110GCA[21]"]["validation_warnings"])
 
     def test_antisense_intron_range(self):
         """Reverse of test for 'NM_000088.3:c.589-1_590G[3]'"""
         variant = 'NC_000017.10:g.48275362_48275364C[3]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_000088.3:c.589-1_590="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000017.10:g.48275362_48275364="
-        assert results["NM_000088.3:c.589-1_590="]["validation_warnings"] == [
+        assert results["NM_000088.3:c.589-1_590G[3]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000017.10:g.48275362_48275364C[3]"
+        assert results["NM_000088.3:c.589-1_590G[3]"]["validation_warnings"] == [
             "ExpandedRepeatWarning: NC_000017.10:g.48275362_48275364C[3] should only be used as an"
             " annotation for the core HGVS descriptions provided",
             "TranscriptVersionWarning: A more recent version of the selected reference sequence "
@@ -891,16 +1021,16 @@ class TestExpandedRepeatGenomicToTranscript(TestCase):
         variant = 'NC_000017.10:g.48275362C[3]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_000088.3:c.589-1_590="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000017.10:g.48275362_48275364="
+        assert results["NM_000088.3:c.589-1_590G[3]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000017.10:g.48275362_48275364C[3]"
 
     def test_antisense_intron_single_pos_2(self):
         """Reverse of test for 'NM_000088.3:c.589-18T[5]'"""
         variant = 'NC_000017.10:g.48275377A[5]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_000088.3:c.589-18_589-14="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000017.10:g.48275377_48275381="
+        assert results["NM_000088.3:c.589-18_589-14T[5]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000017.10:g.48275377_48275381A[5]"
 
 class TestExpandedRepeatRefSeqGenomic(TestCase):
     """
@@ -929,12 +1059,12 @@ class TestExpandedRepeatRefSeqGenomic(TestCase):
         my_variant.reformat_reference()
         my_variant.check_genomic_or_coding()
         formatted = my_variant.reformat(vv)
-        assert formatted == "NG_012232.1:g.3_6T[20]"
+        assert str(formatted) == "NG_012232.1:g.3_6T[20]"
         assert my_variant.variant_str == "NG_012232.1:g.4T[20]"
         # checks correct transcript ref
         assert my_variant.reference == "NG_012232.1"
         # checks correct position
-        assert my_variant.variant_position == "3_6"
+        assert str(my_variant.variant_position) == "3_6"
         # checks repeat seq
         assert my_variant.repeat_sequence == "T"
         # checks correct suffix
@@ -998,11 +1128,11 @@ class TestExpandedRepeatRefSeqGenomic(TestCase):
         variant = 'NM_004006.2:c.-120_-114T[7]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_004006.2:c.-120_-114="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == 'NC_000023.10:g.33229543_33229549='
-        assert results["NM_004006.2:c.-120_-114="]['hgvs_refseqgene_variant']\
-            == 'NG_012232.1:g.133178_133184='
-        assert results["NM_004006.2:c.-120_-114="]["validation_warnings"] ==  [
+        assert results["NM_004006.2:c.-120_-114T[7]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == 'NC_000023.10:g.33229543_33229549A[7]'
+        assert results["NM_004006.2:c.-120_-114T[7]"]['hgvs_refseqgene_variant']\
+            == 'NG_012232.1:g.133178_133184T[7]'
+        assert results["NM_004006.2:c.-120_-114T[7]"]["validation_warnings"] ==  [
             'ExpandedRepeatWarning: NM_004006.2:c.-120_-114T[7] should only be used as an '
             'annotation for the core HGVS descriptions provided',
             'TranscriptVersionWarning: A more recent version of the selected reference sequence '
@@ -1017,11 +1147,11 @@ class TestExpandedRepeatRefSeqGenomic(TestCase):
         variant = 'NM_004006.2:c.-120T[7]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_004006.2:c.-120_-114="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == 'NC_000023.10:g.33229543_33229549='
-        assert results["NM_004006.2:c.-120_-114="]['hgvs_refseqgene_variant']\
-            == 'NG_012232.1:g.133178_133184='
-        assert results["NM_004006.2:c.-120_-114="]["validation_warnings"] ==   [
+        assert results["NM_004006.2:c.-120_-114T[7]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == 'NC_000023.10:g.33229543_33229549A[7]'
+        assert results["NM_004006.2:c.-120_-114T[7]"]['hgvs_refseqgene_variant']\
+            == 'NG_012232.1:g.133178_133184T[7]'
+        assert results["NM_004006.2:c.-120_-114T[7]"]["validation_warnings"] ==   [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NM_004006.2:c.-120T[7]. The corrected description is NM_004006.2:c.-120_-114T[7]",
             "ExpandedRepeatWarning: NM_004006.2:c.-120_-114T[7] should only be used as an annotation for the core HGVS descriptions provided",
             "TranscriptVersionWarning: A more recent version of the selected reference sequence NM_004006.2 is available for genome build GRCh37 (NM_004006.3)"
@@ -1035,18 +1165,17 @@ class TestExpandedRepeatRefSeqGenomic(TestCase):
         variant = 'NM_022167.4:c.135+1G[2]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_022167.4:c.135_135+1="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000017.10:g.48423636_48423637="
-        assert results["NM_022167.4:c.135_135+1="]['genome_context_intronic_sequence']\
+        assert results["NM_022167.4:c.135_135+1G[2]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000017.10:g.48423636_48423637G[2]"
+        assert results["NM_022167.4:c.135_135+1G[2]"]['genome_context_intronic_sequence']\
             == 'NC_000017.10(NM_022167.4):c.135_135+1='
-        assert results["NM_022167.4:c.135_135+1="]['refseqgene_context_intronic_sequence']\
+        assert results["NM_022167.4:c.135_135+1G[2]"]['refseqgene_context_intronic_sequence']\
             == 'NG_012175.1(NM_022167.4):c.135_135+1='
-        assert results["NM_022167.4:c.135_135+1="]['hgvs_refseqgene_variant']\
-            == 'NG_012175.1:g.5244_5245='
-        assert results["NM_022167.4:c.135_135+1="]["validation_warnings"] == [
+        assert results["NM_022167.4:c.135_135+1G[2]"]['hgvs_refseqgene_variant']\
+            == 'NG_012175.1:g.5244_5245G[2]'
+        assert results["NM_022167.4:c.135_135+1G[2]"]["validation_warnings"] == [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NM_022167.4:c.135+1G[2]. The corrected description is NM_022167.4:c.135_135+1G[2]",
             "ExpandedRepeatWarning: NM_022167.4:c.135_135+1G[2] should only be used as an annotation for the core HGVS descriptions provided",
-            "NM_022167.4:c.135_135+1delinsGG automapped to NM_022167.4:c.135_135+1="
         ]
 
     def test_RSG_mapping_transcript_intron_range(self):
@@ -1057,18 +1186,17 @@ class TestExpandedRepeatRefSeqGenomic(TestCase):
         variant = 'NM_022167.4:c.135_135+1G[2]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_022167.4:c.135_135+1="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000017.10:g.48423636_48423637="
-        assert results["NM_022167.4:c.135_135+1="]['genome_context_intronic_sequence']\
+        assert results["NM_022167.4:c.135_135+1G[2]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000017.10:g.48423636_48423637G[2]"
+        assert results["NM_022167.4:c.135_135+1G[2]"]['genome_context_intronic_sequence']\
             == 'NC_000017.10(NM_022167.4):c.135_135+1='
-        assert results["NM_022167.4:c.135_135+1="]['refseqgene_context_intronic_sequence']\
+        assert results["NM_022167.4:c.135_135+1G[2]"]['refseqgene_context_intronic_sequence']\
             == 'NG_012175.1(NM_022167.4):c.135_135+1='
-        assert results["NM_022167.4:c.135_135+1="]['hgvs_refseqgene_variant']\
-            == 'NG_012175.1:g.5244_5245='
-        assert results["NM_022167.4:c.135_135+1="]["validation_warnings"] == [
+        assert results["NM_022167.4:c.135_135+1G[2]"]['hgvs_refseqgene_variant']\
+            == 'NG_012175.1:g.5244_5245G[2]'
+        assert results["NM_022167.4:c.135_135+1G[2]"]["validation_warnings"] == [
             "ExpandedRepeatWarning: NM_022167.4:c.135_135+1G[2] should only be used as an "
             "annotation for the core HGVS descriptions provided",
-            'NM_022167.4:c.135_135+1delinsGG automapped to NM_022167.4:c.135_135+1='
         ]
 
 
@@ -1095,12 +1223,12 @@ class TestExpandedRepeaLocusReferenceGenomic(TestCase):
         my_variant.reformat_reference()
         my_variant.check_genomic_or_coding()
         formatted = my_variant.reformat(vv)
-        assert formatted == "NG_012232.1:g.3_6T[20]"
+        assert str(formatted) == "NG_012232.1:g.3_6T[20]"
         assert my_variant.variant_str == "LRG_199:g.4T[20]"
         # checks correct transcript ref
         assert my_variant.reference == "NG_012232.1"
         # checks correct position
-        assert my_variant.variant_position == "3_6"
+        assert str(my_variant.variant_position) == "3_6"
         # checks repeat seq
         assert my_variant.repeat_sequence == "T"
         # checks correct suffix
@@ -1121,12 +1249,12 @@ class TestExpandedRepeaLocusReferenceGenomic(TestCase):
         my_variant.reformat_reference()
         my_variant.check_genomic_or_coding()
         formatted = my_variant.reformat(vv)
-        assert formatted == "NM_004006.2:c.-120_-114T[7]"
+        assert str(formatted) == "NM_004006.2:c.-120_-114T[7]"
         assert my_variant.variant_str == "LRG_199t1:c.-120T[7]"
         # checks correct transcript ref
         assert my_variant.reference == "NM_004006.2"
         # checks correct position
-        assert my_variant.variant_position == "-120_-114"
+        assert str(my_variant.variant_position) == "-120_-114"
         # checks repeat seq
         assert my_variant.repeat_sequence == "T"
         # checks correct suffix
@@ -1194,11 +1322,11 @@ class TestExpandedRepeaLocusReferenceGenomic(TestCase):
         variant = 'LRG_199t1:c.-120T[7]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_004006.2:c.-120_-114="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == 'NC_000023.10:g.33229543_33229549='
-        assert results["NM_004006.2:c.-120_-114="]['hgvs_refseqgene_variant']\
-            == 'NG_012232.1:g.133178_133184='
-        assert results["NM_004006.2:c.-120_-114="]["validation_warnings"] == [
+        assert results["NM_004006.2:c.-120_-114T[7]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == 'NC_000023.10:g.33229543_33229549A[7]'
+        assert results["NM_004006.2:c.-120_-114T[7]"]['hgvs_refseqgene_variant']\
+            == 'NG_012232.1:g.133178_133184T[7]'
+        assert results["NM_004006.2:c.-120_-114T[7]"]["validation_warnings"] == [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description LRG_199t1:c.-120T[7]. The corrected description is NM_004006.2:c.-120_-114T[7]",
             "ExpandedRepeatWarning: NM_004006.2:c.-120_-114T[7] should only be used as an annotation for the core HGVS descriptions provided",
             "TranscriptVersionWarning: A more recent version of the selected reference sequence NM_004006.2 is available for genome build GRCh37 (NM_004006.3)"
@@ -1212,22 +1340,21 @@ class TestExpandedRepeaLocusReferenceGenomic(TestCase):
         variant = 'LRG_199t1:c.31+9A[3]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_004006.2:c.31+9_31+11="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000023.10:g.33229388_33229390="
-        assert results["NM_004006.2:c.31+9_31+11="]['genome_context_intronic_sequence']\
+        assert results["NM_004006.2:c.31+9_31+11A[3]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000023.10:g.33229388_33229390T[3]"
+        assert results["NM_004006.2:c.31+9_31+11A[3]"]['genome_context_intronic_sequence']\
             == 'NC_000023.10(NM_004006.2):c.31+9_31+11='
-        assert results["NM_004006.2:c.31+9_31+11="]['refseqgene_context_intronic_sequence']\
+        assert results["NM_004006.2:c.31+9_31+11A[3]"]['refseqgene_context_intronic_sequence']\
             == 'NG_012232.1(NM_004006.2):c.31+9_31+11='
-        assert results["NM_004006.2:c.31+9_31+11="]['hgvs_lrg_transcript_variant']\
-            == 'LRG_199t1:c.31+9_31+11='
-        assert results["NM_004006.2:c.31+9_31+11="]['hgvs_refseqgene_variant']\
-            == 'NG_012232.1:g.133337_133339='
-        assert results["NM_004006.2:c.31+9_31+11="]['hgvs_lrg_variant']\
-            == 'LRG_199:g.133337_133339='
-        assert results["NM_004006.2:c.31+9_31+11="]["validation_warnings"] ==  [
+        assert results["NM_004006.2:c.31+9_31+11A[3]"]['hgvs_lrg_transcript_variant']\
+            == 'LRG_199t1:c.31+9_31+11A[3]'
+        assert results["NM_004006.2:c.31+9_31+11A[3]"]['hgvs_refseqgene_variant']\
+            == 'NG_012232.1:g.133337_133339A[3]'
+        assert results["NM_004006.2:c.31+9_31+11A[3]"]['hgvs_lrg_variant']\
+            == 'LRG_199:g.133337_133339A[3]'
+        assert results["NM_004006.2:c.31+9_31+11A[3]"]["validation_warnings"] ==  [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description LRG_199t1:c.31+9A[3]. The corrected description is NM_004006.2:c.31+9_31+11A[3]",
             "ExpandedRepeatWarning: NM_004006.2:c.31+9_31+11A[3] should only be used as an annotation for the core HGVS descriptions provided",
-            "NM_004006.2:c.31+9_31+11delinsAAA automapped to NM_004006.2:c.31+9_31+11=",
             "TranscriptVersionWarning: A more recent version of the selected reference sequence NM_004006.2 is available for genome build GRCh37 (NM_004006.3)"
         ]
 
@@ -1247,9 +1374,9 @@ class TestExpandedRepeaLocusReferenceGenomic(TestCase):
         variant = 'LRG_763t1:c.54GCA[21]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert results["NM_002111.8:c.54_116="]["primary_assembly_loci"]["grch37"][
-            "hgvs_genomic_description"] == "NC_000004.11:g.3076657_3076662dup"
-        assert results["NM_002111.8:c.54_116="]["validation_warnings"] ==   [
+        assert results["NM_002111.8:c.54_116GCA[21]"]["primary_assembly_loci"]["grch37"][
+            "hgvs_genomic_description"] == "NC_000004.11:g.3076606_3076662GCA[21]"
+        assert results["NM_002111.8:c.54_116GCA[21]"]["validation_warnings"] ==   [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description LRG_763t1:c.54GCA[21]. The corrected description is NM_002111.8:c.54_116GCA[21]",
             "ExpandedRepeatWarning: NM_002111.8:c.54_116GCA[21] should only be used as an annotation for the core HGVS descriptions provided"
         ]

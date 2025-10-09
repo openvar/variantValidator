@@ -14,14 +14,21 @@ import re
 import logging
 import copy
 from vvhgvs.assemblymapper import AssemblyMapper
-from .hgvs_utils import hgvs_obj_from_existing_edit, hgvs_delins_parts_to_hgvs_obj
+# AlignmentMapper allows us to skip redundant validation & ref filling on c<->n
+# the no normalisation flags for AssemblyMapper only skip the validation & post
+# map replacement but ref will always be subject to initial pre map filling
+import vvhgvs
+from vvhgvs.alignmentmapper import AlignmentMapper
+from vvhgvs.location import BaseOffsetInterval, Interval
+
+from .hgvs_utils import hgvs_delins_parts_to_hgvs_obj, \
+        _hgvs_offset_pos_from_str_in
 # Set up logger
 logger = logging.getLogger(__name__)
 
 
 class RepeatSyntaxError(Exception):
     """Raised when the syntax of the expanded repeat is incorrect"""
-    pass
 
 # Established class for Tandem repeats
 class TandemRepeats:
@@ -80,13 +87,14 @@ class TandemRepeats:
         self.build = build
         self.select_transcripts = select_transcripts
         self.variant_str = variant_str
-        self.cds_start = None # only valid for C type tx
-        self.cds_end = None # only valid for C type tx
+        self._c_to_n_tx_maper = None # only valid for c<->n type mappings
         self.g_strand = 1 # only valid for intronic +/-1
         self.evm = False
         self.no_norm_evm = False
         self.genomic_conversion = None
         self.original_position = None
+        self.reference_sequence_bases = None
+
         # Define the wobble bases map with proper regex
         self._wobble_bases_map = {
             'A': r'A',       # Adenine
@@ -178,11 +186,33 @@ class TandemRepeats:
                 if char.isalpha():
                     if char not in "AaCcTtGgUuMmNnRrYyKkSsWwHhBbVvDd":
                         raise RepeatSyntaxError(
-                            "RepeatSyntaxError: Please ensure the repeated sequence"
-                            " includes only Aa, Cc, Tt, Gg, Uu or a valid IUPAC nucleotide code from "
+                            "RepeatSyntaxError: Please ensure the repeated sequence includes"
+                            " only Aa, Cc, Tt, Gg, Uu or a valid IUPAC nucleotide code from "
                             "https://genome.ucsc.edu/goldenPath/help/iupac.html")
             repeat_sequence = rep_seq.group()
             variant_position = pos_and_seq[:rep_seq.start()]
+            if prefix == 'g':
+                if '_' in variant_position:
+                    start, _sep, end = variant_position.partition('_')
+                    start = int(start)
+                    end = int(end)
+                else:
+                    start = int(variant_position)
+                    end = start
+                variant_position =  Interval(
+                    start=vvhgvs.location.SimplePosition(base=start),
+                    end=vvhgvs.location.SimplePosition(base=end))
+            else:
+                if '_' in variant_position:
+                    start, _sep, end = variant_position.partition('_')
+                    variant_position = _hgvs_offset_pos_from_str_in(
+                            start,None,end=end,ref_type=prefix)
+                elif variant_position:
+                    variant_position = _hgvs_offset_pos_from_str_in(
+                            variant_position,1,ref_type=prefix)
+                variant_position = BaseOffsetInterval(
+                        start=variant_position[0],
+                        end=variant_position[1])
 
             # Get number of unit repeats
             copy_number, _sep, after_the_bracket = post_bracket.partition("]")
@@ -223,7 +253,7 @@ class TandemRepeats:
             assert (
                 "." in self.reference
             ), """Please ensure the transcript or gene version is included
-                  following a '.' after the transcript 
+                  following a '.' after the transcript
                   or gene name e.g. ENST00000357033.8"""
         return self.reference
 
@@ -239,12 +269,12 @@ class TandemRepeats:
         if self.reference.startswith("ENST"):
             assert (
                 self.prefix == "c"
-            ), """Please ensure variant type is coding 
-                if an Ensembl transcript is provided"""
+            ), """Please ensure variant type is coding
+            if an Ensembl transcript is provided"""
         elif self.reference.startswith("NM"):
             assert (
                 self.prefix == "c"
-            ), """Please ensure variant type is coding 
+            ), """Please ensure variant type is coding
                   if a RefSeq transcript is provided"""
         elif self.reference.startswith("NC"):
             assert (
@@ -267,16 +297,22 @@ class TandemRepeats:
         logger.info(
             f"Checking range given: "\
             f"check_positions_given({self.repeat_sequence}, "\
-            f"{self.variant_position},{self.copy_number})"
+            f"{str(self.variant_position)}, {self.copy_number})"
         )
-        start,end = self.variant_position.split("_")
-        reference_repeat_sequence = validator.sf.fetch_seq(self.reference, int(start)-1, int(end))
+        ref = self.reference
+        if self.intronic_g_reference:
+            ref = self.intronic_g_reference
+        reference_repeat_sequence = validator.sf.fetch_seq(
+                ref,
+                self.variant_position.start.base-1,
+                self.variant_position.end.base)
+        logger.info(f"Reference repeat sequence: {reference_repeat_sequence}")
 
         # Check if the length of reference_repeat_sequence is a multiple of the length of query_str
         if len(reference_repeat_sequence) % len(self.repeat_sequence) != 0:
             raise RepeatSyntaxError(
-                f"RepeatSyntaxError: The stated range {self.variant_position} is not a multiple of "
-                f"the length of the provided repeat sequence {self.repeat_sequence}")
+                f"RepeatSyntaxError: The stated range {str(self.variant_position)} is not a "
+                f"multiple of the length of the provided repeat sequence {self.repeat_sequence}")
 
         # Create a new string by repeating query_str enough times
         repeated_str = self.repeat_sequence * (len(reference_repeat_sequence)
@@ -287,14 +323,69 @@ class TandemRepeats:
         match = regex.search(reference_repeat_sequence)
         try:
             match.group()
+            logger.info(f"Regex matched {match.group()}")
+            self.reference_sequence_bases = match.group()
             return
         except AttributeError:
-            if repeated_str == "":
-                return
+            # We previously had a case for an empty repeated_str here, but that should always make
+            # a match.group() on a valid input and regex.search() should fail otherwise
             raise RepeatSyntaxError(
                 f"RepeatSyntaxError: The repeat sequence does not match the reference sequence at "
-                f"the given position {self.variant_position}, expected {repeated_str} but the "
+                f"the given position {str(self.variant_position)}, expected {repeated_str} but the "
                 f"reference is {reference_repeat_sequence} at the specified position")
+
+    def get_valid_n_or_g_range_from_input_pos(self, validator):
+        """
+        Substitute for get_range_from_single_or_start_pos without full re-build.
+
+        Works by converting c->n or c/n->g without rebuilding, leaves other
+        input untouched. Used to keep the original input range, mainly for
+        testing. Mutually exclusive with get_range_from_single_or_start_pos,
+        using both will break c type inputs. This also avoids ALL checks for
+        c/n intronic to g mapping, for the same reasons (testing or deliberate
+        maintenance of the original) so should be combined with extra tests for
+        the sequence state if it is being used for user visible output.
+        """
+        pos = self.variant_position
+        if isinstance(self.variant_position, BaseOffsetInterval) and (
+                pos.start.offset or pos.end.offset):
+            if not self.no_norm_evm:
+                # if we normalise at the wrong points we get the wrong ref seq back
+                # This mapper does call functions to "fill" and "replace" ref but
+                # the first runs without effect on intronic inputs, and the output
+                # genomic ref is used, so leave in the more complex form for now
+                self.no_norm_evm = AssemblyMapper(
+                        validator.hdp,
+                        assembly_name=self.build,
+                        alt_aln_method=validator.alt_aln_method,
+                        normalize=False,
+                        replace_reference=True
+                        )
+            var_n = hgvs_delins_parts_to_hgvs_obj(
+                    self.reference,
+                    self.prefix,
+                    self.variant_position,
+                    '',
+                    f"{self.repeat_sequence * int(self.copy_number)}")
+            self.original_position = copy.deepcopy(self.variant_position)
+            intronic_genomic_variant = self.no_norm_evm.t_to_g(var_n)
+            self.genomic_conversion = intronic_genomic_variant
+            self.intronic_g_reference = intronic_genomic_variant.ac
+            pos = intronic_genomic_variant.posedit.pos
+            # untested ref!
+            self.reference_sequence_bases = self.repeat_sequence * int(
+                (pos.end - pos.start + 1) / len(self.repeat_sequence))
+        elif self.prefix == "c":
+            # don't do c->n mapping on t_to_g targets
+            # if tx is coding and var is not c we get an error
+            self._get_c_tx_info(validator)
+            pos = self.convert_c_to_n_coordinates()
+            # untested ref!
+            self.reference_sequence_bases = self.repeat_sequence * int(
+                (pos.end - pos.start + 1) / len(self.repeat_sequence))
+
+        self.variant_position = pos
+
 
     def get_range_from_single_or_start_pos(self, validator):
         """
@@ -302,7 +393,7 @@ class TandemRepeats:
         Used both when a single start position is supplied
         and to rebuild ranges for validation purposes.
 
-        Currently this is also the only place that c->n mapping happens
+        Currently this is the only place that intronic g locations are derived
 
         Uses: self.variant_position
               validator (a VariantValidator object for data fetch, intronic
@@ -314,40 +405,39 @@ class TandemRepeats:
         Returns: The n based coordinate span of the repeat region, as found
 
         """
-        start_pos, _sep, end_pos = self.variant_position.partition('_')
-        if ('-' in start_pos[1:] or end_pos and '-' in end_pos[1:]) or (
-            '+' in start_pos or '+' in end_pos):
+        # due to the nature of hgvs object pos we always have end but it may == start
+        start_pos = self.variant_position.start
+        end_pos = self.variant_position.end
+        if isinstance(self.variant_position, BaseOffsetInterval) and (
+                start_pos.offset or end_pos.offset):
             logger.info(
                 "Re-fetching the range using adaptions for exon handling " +
-                f"using the range {self.variant_position} with a" +
+                f"using the range {str(self.variant_position)} with a " +
                 f"copy number of {self.copy_number} and repeat of "+
                 self.repeat_sequence
             )
         elif end_pos:
             logger.info(
                 "Re-fetching the range from the start position of a given " +
-                f"range using {start_pos} from {self.variant_position} with a" +
-                f"copy number of {self.copy_number} and repeat of "+
+                f"range using {start_pos} from {str(self.variant_position)} with a" +
+                f" copy number of {self.copy_number} and repeat of "+
                 self.repeat_sequence
             )
-            self.variant_position = start_pos
-        else:
-            logger.info(
-                f"Fetching the range from the start position of {start_pos} " +
-                f" with a copy number of {self.copy_number} and repeat of " +
-                self.repeat_sequence\
-            )
+            self.variant_position.end = copy.copy(end_pos)
 
         # Get the full reference sequence range of the variant
         # the within_ref_pos here is the start position in 0 based coordinates
 
-        try:
+        self.original_position = copy.deepcopy(self.variant_position)
+        if not (isinstance(self.variant_position, BaseOffsetInterval) and (
+                start_pos.offset or end_pos.offset)):
             if not self.prefix == "c":
-                within_ref_pos = int(self.variant_position) - 1
+                within_ref_pos = self.variant_position.start.base - 1
             else:
                 self._get_c_tx_info(validator)
-                within_ref_pos = int(self.convert_c_to_n_coordinates()) - 1
-        except ValueError:
+                pos = self.convert_c_to_n_coordinates()
+                within_ref_pos = pos.start.base - 1
+        else:
             if not self.no_norm_evm:
                 # if we normalise at the wrong points we get the wrong ref seq back
                 self.no_norm_evm = AssemblyMapper(
@@ -357,108 +447,98 @@ class TandemRepeats:
                         normalize=False,
                         replace_reference=True
                         )
-            if re.search(r"[0-9]+[+-][0-9]+", self.variant_position):
-                # Handle a range variant input, given current function's purpose we
-                # just dump range and re-build from the first base
+            # Handle a range variant input, given current function's purpose we
+            # just dump range and re-build from the first base
 
-                if "_" in self.variant_position:
-                    start_pos, _sep, end_pos = self.variant_position.partition('_')
-                    seq_check = hgvs_delins_parts_to_hgvs_obj(
-                            self.reference,
-                            self.prefix,
-                            start_pos,
-                            f"{self.repeat_sequence * int(self.copy_number)}",
-                            f"{self.repeat_sequence * int(self.copy_number)}",
-                            end=end_pos)
+            if self.variant_position.start != self.variant_position.end:
+                seq_check = hgvs_delins_parts_to_hgvs_obj(
+                        self.reference,
+                        self.prefix,
+                        self.variant_position,
+                        "",
+                        f"{self.repeat_sequence * int(self.copy_number)}")
 
-                    self.original_position = copy.copy(self.variant_position)
-                    intronic_genomic_variant = self.no_norm_evm.t_to_g(seq_check)
-                    self.genomic_conversion = intronic_genomic_variant
-
-                    # Check the exon boundaries
-                    self.check_exon_boundaries(validator)
-                    seq_check = self.evm.g_to_t(intronic_genomic_variant, self.reference)
-                    regex = self.build_regex(self.repeat_sequence)
-
-                    # Check for occurrences of the repeat sequence using regex
-                    matches = list(regex.finditer(seq_check.posedit.edit.ref))
-                    repeat_count = len(matches)
-                    if matches[0].start() != 0:
-                        # Create a new string by repeating query_str enough times
-                        repeated_str = self.repeat_sequence * (len(seq_check.posedit.edit.ref)
-                                                               // len(self.repeat_sequence))
-
-                        raise RepeatSyntaxError(
-                            f"RepeatSyntaxError: The repeat sequence does not match the reference sequence at "
-                            f"the given position {self.variant_position}, expected {repeated_str} but the "
-                            f"reference is {seq_check.posedit.edit.ref} at the specified position")
-                    elif repeat_count != int(self.copy_number):
-                        raise RepeatSyntaxError(
-                            f"RepeatSyntaxError: The repeat sequence does not match the expected copy number "
-                            f"at position {self.variant_position}. Expected {int(self.copy_number)} occurrences "
-                            f"of '{self.repeat_sequence}', but found {repeat_count} in reference sequence "
-                            f"'{seq_check.posedit.edit.ref}'.")
-
-                    start, _sep, end =  self.variant_position.partition('_')
-                    self.g_strand = validator.hdp.get_tx_exons(self.reference, intronic_genomic_variant.ac,
-                                                               validator.alt_aln_method)[0][3]
-                    self.original_position = copy.copy(self.variant_position)
-                    if  self.g_strand == -1:
-                        self.variant_position = end
-                    else:
-                        self.variant_position = start
-                else:
-                    # Create a variant for mapping to the genome containing the whole repeat, we used
-                    # to use only the first base of the repeat but this breaks on -1 mapping transcripts
-                    # with multi-base repeats
-                    length = len(self.repeat_sequence)
-                    pos = self.variant_position
-                    end = None
-                    if length == 1:
-                        pos = self.variant_position
-                    elif '+' in self.variant_position:
-                        tx_pos,_sep,intron_offset = self.variant_position.partition('+')
-                        intron_offset = int(intron_offset)
-                        pos = f"{tx_pos}+{intron_offset}"
-                        end = f"{tx_pos}+{str(intron_offset+length-1)}"
-                    elif '-' in self.variant_position:
-                        tx_pos,_sep,intron_offset = self.variant_position.partition('-')
-                        intron_offset = int(intron_offset)
-                        pos  = f"{tx_pos}-{intron_offset}"
-                        end = f"{tx_pos}-{str(intron_offset-length+1)}"
-                    intronic_variant = hgvs_delins_parts_to_hgvs_obj(
-                            self.reference,
-                            self.prefix,
-                            pos,
-                            self.repeat_sequence,
-                            self.repeat_sequence,
-                            end=end
-                            )
-                    intronic_genomic_variant = self.no_norm_evm.t_to_g(intronic_variant)
-                    self.g_strand = validator.hdp.get_tx_exons(intronic_variant.ac, intronic_genomic_variant.ac,
-                                                               validator.alt_aln_method)[0][3]
-                    self.original_position = copy.copy(self.variant_position)
-                    self.variant_position = intronic_genomic_variant.posedit.pos.start.base
-
-                self.intronic_g_reference = intronic_genomic_variant.ac
+                self.original_position = copy.deepcopy(self.variant_position)
+                intronic_genomic_variant = self.no_norm_evm.t_to_g(seq_check)
                 self.genomic_conversion = intronic_genomic_variant
-
-                # Check exon boundaries
+                # get ref length for complex cases (needed for checking)
+                ref_len = len(intronic_genomic_variant.posedit.edit.ref)
+                ref_copies = int(ref_len/len(self.repeat_sequence))
+                # Check the exon boundaries by using normalising mapper
                 self.check_exon_boundaries(validator)
-                within_ref_pos = intronic_genomic_variant.posedit.pos.start.base - 1
-                if self.g_strand == -1:
-                    self.reverse_complement(self.repeat_sequence)
+                seq_check = self.evm.g_to_t(intronic_genomic_variant, self.reference)
+                regex = self.build_regex(self.repeat_sequence)
+
+                # Check for occurrences of the repeat sequence using regex
+                matches = list(regex.finditer(seq_check.posedit.edit.ref))
+                repeat_count = len(matches)
+                if matches[0].start() != 0:
+                    # Create a new string by repeating query_str enough times
+                    repeated_str = self.repeat_sequence * (len(seq_check.posedit.edit.ref)
+                                                           // len(self.repeat_sequence))
+
+                    raise RepeatSyntaxError(
+                        "RepeatSyntaxError: The repeat sequence does not match the reference "
+                        f"sequence at the given position {str(self.variant_position)}, expected"
+                        f" {repeated_str} but the reference is {seq_check.posedit.edit.ref} at "
+                        "the specified position")
+                if repeat_count != ref_copies:
+                    raise RepeatSyntaxError(
+                        "RepeatSyntaxError: The repeat sequence does not match the expected "
+                        f"copy number at position {str(self.variant_position)}. Expected "
+                        f"{int(ref_copies)} occurrences of '{self.repeat_sequence}', but"
+                        f" found {repeat_count} in reference sequence "
+                        f"'{seq_check.posedit.edit.ref}'.")
+
+                self.g_strand = validator.hdp.get_tx_exons(
+                        self.reference, intronic_genomic_variant.ac,
+                        validator.alt_aln_method)[0][3]
+                # this is re-expanded later from the first base, to handle truncated input
+                if  self.g_strand == -1:
+                    self.variant_position.start = copy.copy(self.variant_position.end)
+                else:
+                    self.variant_position.end = copy.copy(self.variant_position.start)
             else:
-                raise RepeatSyntaxError(
-                    f"RepeatSyntaxError: The provided start coordinate {self.variant_position}"
-                    "does not appear to be a simple transcript coordinate, or an intronic "
-                    "location ")
+                # Create a variant for mapping to the genome containing the whole repeat, we
+                # used to use only the first base of the repeat but this breaks on -1 mapping
+                # transcripts with multi-base repeats
+                length = len(self.repeat_sequence)
+                pos = copy.copy(self.variant_position)
+                if length == 1:
+                    pos = self.variant_position
+                elif isinstance(self.variant_position, BaseOffsetInterval) and \
+                        self.variant_position.start.offset:
+                    pos.end.offset = pos.end.offset + length - 1
+
+                intronic_variant = hgvs_delins_parts_to_hgvs_obj(
+                        self.reference,
+                        self.prefix,
+                        pos,
+                        self.repeat_sequence,
+                        self.repeat_sequence,
+                        )
+                intronic_genomic_variant = self.no_norm_evm.t_to_g(intronic_variant)
+                self.g_strand = validator.hdp.get_tx_exons(
+                        intronic_variant.ac, intronic_genomic_variant.ac,
+                        validator.alt_aln_method)[0][3]
+                self.variant_position = intronic_genomic_variant.posedit.pos
+
+            self.intronic_g_reference = intronic_genomic_variant.ac
+            self.genomic_conversion = intronic_genomic_variant
+
+            # Check exon boundaries
+            self.check_exon_boundaries(validator)
+            within_ref_pos = intronic_genomic_variant.posedit.pos.start.base - 1
+            if self.g_strand == -1:
+                self.repeat_sequence = self.reverse_complement(self.repeat_sequence)
         # validate that the existing range matches the repeat given
         # then (re-)expand to full length and store in n type 1 based coordinates
         self.check_reference_sequence(validator, within_ref_pos)
         ref_start_position, ref_end_position = self.get_reference_range(validator, within_ref_pos)
         ref_start_position = ref_start_position + 1
-        full_range = f"{ref_start_position}_{ref_end_position}"
+        full_range = copy.copy(self.variant_position)
+        full_range.start.base = ref_start_position
+        full_range.end.base = ref_end_position
 
         # Map the full genomic range in the description
         if self.genomic_conversion is not None:
@@ -484,6 +564,7 @@ class TandemRepeats:
         if self.intronic_g_reference:
             ref = self.intronic_g_reference
         requested_sequence = validator.sf.fetch_seq(ref, start, end)
+        logger.info(f"Requested sequence: {requested_sequence} from {ref} at {start}-{end}")
 
         # Critical, do not use cached regex
         regex = self.build_regex(self.repeat_sequence)
@@ -510,7 +591,7 @@ class TandemRepeats:
             ref = self.intronic_g_reference
         logger.info(
             f"Getting the full range of the variant: "
-            f"get_reference_range({ref}, {self.variant_position})"
+            f"get_reference_range({ref}, {str(self.variant_position)})"
         )
 
         # Get the full range of the reference repeat sequence
@@ -556,7 +637,7 @@ class TandemRepeats:
         logger.info(
             f"Reformatting variant: reformat({self.repeat_sequence}, "\
             f"{self.after_the_bracket}, "\
-            f"{self.prefix}, {self.variant_position}, {self.copy_number})"
+            f"{self.prefix}, {str(self.variant_position)}, {self.copy_number})"
         )
 
         if not self.copy_number.isdecimal():
@@ -580,7 +661,8 @@ class TandemRepeats:
                 f"Currently '{self.after_the_bracket}'' is included. "
             )
 
-        if re.search(r"[+-]", self.variant_position):
+        if isinstance(self.variant_position, BaseOffsetInterval) and (
+            self.variant_position.start.offset or self.variant_position.end.offset):
 
             # Create easy variant mapper (over variant mapper) and splign locked evm
             self.evm = AssemblyMapper(validator.hdp,
@@ -593,20 +675,30 @@ class TandemRepeats:
         # Add coordinates from start position (need range for intronic fall-back)
         self.variant_position = self.get_range_from_single_or_start_pos(validator)
         self.check_positions_given(validator)
-        self.variant_position = self.convert_n_to_c_coordinates()
         # Map back to transcript if intronic
         if self.genomic_conversion is not None:
             transcript_variant = self.evm.g_to_t(self.genomic_conversion, self.reference)
             self.reference = transcript_variant.ac
-            self.variant_position = str(transcript_variant.posedit.pos)
+            self.variant_position = transcript_variant.posedit.pos
             if self.g_strand == -1:
-                self.reverse_complement(self.repeat_sequence)
+                self.repeat_sequence = self.reverse_complement(self.repeat_sequence)
+                self.reference_sequence_bases =  self.reverse_complement(
+                        self.reference_sequence_bases)
+        else:
+            self._get_c_tx_info(validator)
+            self.variant_position = self.convert_n_to_c_coordinates()
+        # set inside of get_range_from_single_or_start_pos or equivalent
+        ref = self.reference_sequence_bases
 
-        final_format = f"{self.reference}:{self.prefix}." \
-                       f"{self.variant_position}{self.repeat_sequence}" \
-                       f"[{self.copy_number}]"
+        final_hgvs = hgvs_delins_parts_to_hgvs_obj(
+                self.reference,
+                self.prefix,
+                self.variant_position,
+                ref,
+                f"{self.repeat_sequence * int(self.copy_number)}")
+        final_hgvs.posedit.expanded_rep = self.repeat_sequence
 
-        return final_format
+        return final_hgvs
 
     def _get_c_tx_info(self,validator):
         """
@@ -622,11 +714,10 @@ class TandemRepeats:
         """
         if not self.prefix == "c":
             return
-        if self.cds_start is not None:
+        if self._c_to_n_tx_maper is not None:
             return
-        transcript_info = validator.hdp.get_tx_identity_info(self.reference)
-        self.cds_start = int(transcript_info[3])
-        self.cds_end = int(transcript_info[4])
+        self._c_to_n_tx_maper = AlignmentMapper(
+                validator.hdp, self.reference, self.reference, "transcript")
 
 
     def convert_n_to_c_coordinates(self):
@@ -638,52 +729,26 @@ class TandemRepeats:
         """
         logger.info(
             "Applying c type offset to n type coordinates: " +
-            f"convert_n_to_c_coordinates({self.variant_position})"
+            f"convert_n_to_c_coordinates({str(self.variant_position)})"
         )
-        if not self.prefix == 'c' or not self.cds_start:
+        if not self.prefix == 'c':
             return self.variant_position
-        start, _sep, end = self.variant_position.partition("_")
-        start = self._add_offset_to_n(start)
-        end = self._add_offset_to_n(end)
-        return f"{start}_{end}"
+        return self._c_to_n_tx_maper.n_to_c(self.variant_position)
 
-    def _add_offset_to_n(self,coridinate):
-        "Add c type offset to a single n type hgvs coordinate"
-        if int(coridinate) > self.cds_end:
-             coridinate = int(coridinate) - self.cds_end
-             return '*' + str(coridinate)
-        coridinate = int(coridinate) - self.cds_start
-        # for CDS start 0 would be first base pre CDS
-        if coridinate <= 0:
-            coridinate = coridinate - 1
-        return coridinate
-
-    def convert_c_to_n_coordinates(self,):
+    def convert_c_to_n_coordinates(self, pos=None):
         """
         Removes the offset from c type offset variant positions
         _get_c_tx_info must be called before this function is
         used.
         """
+        if pos is None:
+            pos = self.variant_position
         logger.info(
-            f"Removing offset: remove_offset({self.variant_position})"
+            f"Removing offset: remove_offset({str(self.variant_position)})"
         )
-        if not self.prefix == 'c' or not self.cds_start:
-            return self.variant_position
-        start, _sep, end = self.variant_position.partition("_")
-        start = self._de_offset_c(start)
-        if not end:
-            return str(start)
-        end = self._de_offset_c(end)
-        return f"{start}_{end}"
-
-    def _de_offset_c(self,coridinate):
-        "De-offset a single c type hgvs coordinate"
-        if coridinate.startswith('*'):
-            return int(coridinate[1:]) + self.cds_end
-        if coridinate.startswith('-'):
-            return int(coridinate) + self.cds_start + 1
-        else:
-            return int(coridinate) + self.cds_start
+        if not self.prefix == 'c':
+            return pos
+        return self._c_to_n_tx_maper.c_to_n(pos)
 
     def reverse_complement(self, dna_seq):
         """
@@ -692,96 +757,92 @@ class TandemRepeats:
         :return: (str)
         """
         reverse_seq = dna_seq[::-1]
-        self.repeat_sequence = "".join([{"G": "C", "T": "A", "A": "T", "C": "G",
+        return "".join([{"G": "C", "T": "A", "A": "T", "C": "G",
                                          "g": "c", "t": "a", "a": "t", "c": "g"}[base]
                                         for base in list(reverse_seq)])
-        return
 
     def check_exon_boundaries(self,validator):
         """
         Check the boundaries of intronic variants are correctly stated
         """
         logger.info(
-            f"Checking intronic variant boundaries: check_exon_boundaries({self.variant_position})"
+            "Checking intronic variant boundaries: "+
+            f"check_exon_boundaries({str(self.original_position)})"
         )
         # Return without error if no boundaries used
-        if not '+' in self.original_position and not (
-            '-' in self.original_position and # only bother to check with regex if relevant
-            re.search('[0-9]-',self.original_position)):
+        if not isinstance(self.original_position, BaseOffsetInterval) or (
+            isinstance(self.original_position, BaseOffsetInterval) and not (
+                self.original_position.start.offset or
+                self.original_position.end.offset)):
             return
 
         exon_data = validator.hdp.get_tx_exons(self.reference,
                                                self.genomic_conversion.ac,
                                                validator.alt_aln_method)
         transcript_exon_pos = []
-        if  self.prefix == 'c' and self.cds_start is None:
-            transcript_info = validator.hdp.get_tx_identity_info(self.reference)
-            self.cds_start = int(transcript_info[3])
-        elif self.cds_start is None:
-            self.cds_start = 0
+        if  self.prefix == 'c':
+            self._get_c_tx_info(validator)
+            pos = self.convert_c_to_n_coordinates(pos=self.original_position)
+        else:
+            pos = self.original_position
 
         for exon in exon_data:
             transcript_exon_pos.append(exon['tx_end_i'])
-        start, _sep, end = self.original_position.partition('_')
         def check_exon_pos(exon_pos):
+            if not exon_pos.offset:
+                return True
             bad_exon = False
-            if exon_pos.startswith('-') and ('+' in exon_pos or '-' in start[1:]):
-                pos, _sep, offset = start[1:].partition('-')
-                if not self.cds_start - int(pos) -1 in transcript_exon_pos:
-                    bad_exon = True
-            elif '-' in exon_pos:
-                pos, _sep, offset = exon_pos.partition('-')
-                if not int(pos) + self.cds_start -1 in transcript_exon_pos:
-                    bad_exon = True
-            elif '+' in exon_pos:
-                pos, _sep, offset = exon_pos.partition('+')
-                if pos.startswith('-'):
-                    pos = self.cds_start - int(pos)
-                else:
-                    pos = self.cds_start + int(pos)
-                if not pos in transcript_exon_pos:
-                    bad_exon = True
+            if exon_pos.offset < 0 and exon_pos.base -1 not in transcript_exon_pos:
+                bad_exon = True
+            elif exon_pos.offset > 0 and exon_pos.base not in transcript_exon_pos:
+                bad_exon = True
             if bad_exon:
                 raise RepeatSyntaxError(
-                    f"ExonBoundaryError: Position {self.original_position} " +
+                    f"ExonBoundaryError: Position {str(self.original_position)} " +
                     "does not correspond with an exon boundary for transcript "
                     + self.reference)
             return True
-        check_exon_pos(start)
+        check_exon_pos(pos.start)
         # skip "end" if we don't have a range
-        if not end:
+        if pos.end == pos.start:
             return
-        check_exon_pos(end)
-        return
+        check_exon_pos(pos.end)
 
 
 def convert_tandem(variant, validator, build, my_all):
+    "convenience function to encapsulate TandemRepeats->VV integration"
     try:
-        expanded_variant = TandemRepeats.parse_repeat_variant(variant.quibble, build, my_all, validator)
+        expanded_variant = TandemRepeats.parse_repeat_variant(
+                variant.quibble, build, my_all, validator)
     except AttributeError:
-        expanded_variant = TandemRepeats.parse_repeat_variant(variant, build, my_all, validator)
+        expanded_variant = TandemRepeats.parse_repeat_variant(
+                variant, build, my_all, validator)
 
     if expanded_variant is False:
         return False
-    else:
-        expanded_variant_string = expanded_variant.reformat(validator)
-        try:
-            variant.expanded_repeat = {"variant": expanded_variant_string,
-                                       "position": expanded_variant.variant_position,
-                                       "copy_number": expanded_variant.copy_number,
-                                       "repeat_sequence": expanded_variant.repeat_sequence,
-                                       "reference": expanded_variant.reference,
-                                       "prefix": expanded_variant.prefix}
-        except AttributeError:
-            expanded_repeat = {"variant": expanded_variant_string,
-                               "position": expanded_variant.variant_position,
-                               "copy_number": expanded_variant.copy_number,
-                               "repeat_sequence": expanded_variant.repeat_sequence,
-                               "reference": expanded_variant.reference,
-                               "prefix": expanded_variant.prefix}
-            return expanded_repeat
+    expanded_var_hgvs_obj = expanded_variant.reformat(validator)
 
-        return True
+    try:
+        variant.expanded_repeat = {
+                "variant": expanded_var_hgvs_obj,
+                "position": expanded_variant.variant_position,
+                "copy_number": expanded_variant.copy_number,
+                "repeat_sequence": expanded_variant.repeat_sequence,
+                "reference": expanded_variant.reference,
+                "prefix": expanded_variant.prefix,
+                "reference_sequence_bases": expanded_variant.reference_sequence_bases}
+        logger.info(f"variant.expanded_repeat: {variant.expanded_repeat}")
+    except AttributeError:
+        expanded_repeat = {"variant": expanded_var_hgvs_obj,
+                           "position": expanded_variant.variant_position,
+                           "copy_number": expanded_variant.copy_number,
+                           "repeat_sequence": expanded_variant.repeat_sequence,
+                           "reference": expanded_variant.reference,
+                           "prefix": expanded_variant.prefix,
+                           "reference_sequence_bases": expanded_variant.reference_sequence_bases}
+        logger.info(f"expanded_repeat: {expanded_repeat}")
+        return expanded_repeat
+    return True
 
 
 # <LICENSE>

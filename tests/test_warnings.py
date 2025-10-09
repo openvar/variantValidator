@@ -1370,7 +1370,7 @@ class TestVVGapWarnings(TestCase):
         variant = 'NM_002024.5:c.-128_-69GGM[108]'
         results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="refseq").format_as_dict(test=True)
         print(results)
-        assert "ExpandedRepeatWarning: NM_002024.5:c.-128_-69GGM[108] should only be used as an annotation for the core HGVS descriptions provided" in results['NM_002024.5:c.-126_-69delinsMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGMGGM']['validation_warnings']
+        assert "ExpandedRepeatWarning: NM_002024.5:c.-128_-69GGM[108] should only be used as an annotation for the core HGVS descriptions provided" in results['NM_002024.5:c.-128_-69GGM[108]']['validation_warnings']
 
     def test_issue_698c(self):
         variant = 'NM_002024.5:c.-128_-69GGI[108]'

@@ -223,7 +223,8 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
 
             query = Variant(variant.original, quibble=c_description, warnings=variant.warnings + gap_warnings,
                             primary_assembly=variant.primary_assembly, order=variant.order,
-                            selected_assembly=variant.selected_assembly, reformat_output=variant.reformat_output)
+                            selected_assembly=variant.selected_assembly, reformat_output=variant.reformat_output,
+                            expanded_repeat=variant.expanded_repeat)
             validator.batch_list.append(query)
             logger.info("Submitting new variant with format %s", str(c_description))
 
