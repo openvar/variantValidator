@@ -208,7 +208,6 @@ def vcf2hgvs_stage1(variant, validator):
         validator.batch_list.append(query_a)
         validator.batch_list.append(query_b)
         logger.info("Submitting new variant with format %s", input_a)
-        logger.info("Submitting new variant with format %s", input_b)
         skipvar = True
     elif vcf_data[3]:
         variant.quibble = f'{vcf_data[0]}:{vcf_data[1]}ins{vcf_data[3]}'
@@ -733,32 +732,26 @@ def convert_expanded_repeat(my_variant, validator):
         if not has_ex_repeat:
             return False
 
-    if my_variant.quibble != my_variant.expanded_repeat["variant"]:
+    if my_variant.quibble != str(my_variant.expanded_repeat["variant"]):
         if re.search("\d+_", my_variant.quibble):
             my_variant.warnings.append(f"ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly"
                                        f" in the submitted description {my_variant.quibble}. The corrected format"
-                                       f" would be {my_variant.expanded_repeat['variant'].split('[')[0]}"
+                                       f" would be {str(my_variant.expanded_repeat['variant']).split('[')[0]}"
                                        f"[int], where int requires you to update the number of repeats")
             return True
         else:
             my_variant.warnings.append(f"ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly"
                                        f" in the submitted description {my_variant.quibble}. The corrected description is "
-                                       f"{my_variant.expanded_repeat['variant']}")
-    ins_bases = (my_variant.expanded_repeat["repeat_sequence"] *
-                 int(my_variant.expanded_repeat["copy_number"]))
-    start_pos, _sep, end_pos = my_variant.expanded_repeat['position'].partition('_')
-    repeat_to_delins = hgvs_delins_parts_to_hgvs_obj(
-            my_variant.expanded_repeat['reference'],
-            my_variant.expanded_repeat['prefix'],
-            start_pos,
-            '',
-            ins_bases,
-            end=end_pos)
+                                       f"{str(my_variant.expanded_repeat['variant'])}")
+
+    repeat_to_delins = copy.deepcopy(my_variant.expanded_repeat["variant"])
+    repeat_to_delins.posedit.expanded_rep = False
 
     try:
         repeat_to_delins = my_variant.hn.normalize(repeat_to_delins)
     except vvhgvs.exceptions.HGVSUnsupportedOperationError:
         pass
+    logger.info(f"Expanded repeat to delins normalised: {repeat_to_delins}")
     my_variant.quibble = repeat_to_delins #fn.valstr(repeat_to_delins)
     my_variant.warnings.append(f"ExpandedRepeatWarning: {my_variant.expanded_repeat['variant']} "
                                f"should only be used as an annotation for the core "
