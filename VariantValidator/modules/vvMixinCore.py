@@ -252,7 +252,7 @@ class Mixin(vvMixinConverters.Mixin):
                     if not my_variant.is_ascii():
                         chars, positions = my_variant.get_non_ascii()
                         error = 'VariantSyntaxError: Submitted ' \
-                                'variant description contains an invalid character(s) %s at position(s) %s: ' \
+                                'variant description contains invalid character(s) %s at position(s) %s: ' \
                                 'Please remove this character and re-submit: A useful search function for ' \
                                 'Unicode characters can be found at https://unicode-search.net/' % (chars, positions)
                         my_variant.warnings.append(error)
@@ -1547,6 +1547,8 @@ class Mixin(vvMixinConverters.Mixin):
     def gene2transcripts(self, query, validator=False, bypass_web_searches=False, select_transcripts=None,
                          transcript_set="refseq", genome_build=None, batch_output=False, bypass_genomic_spans=False,
                          lovd_syntax_check=False):
+
+        logger.info(f"Incoming gene2transcripts query: {query}")
 
         try:
             gene_symbols = json.loads(query)
