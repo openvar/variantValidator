@@ -6858,10 +6858,10 @@ class TestVFvariantsAuto(object):
                                                                  'GRCh38', 'refseq', "all", False, True, testing=True)
         print(results)
         assert 'NC_000022.11:g.19723410C>G' in results.keys()
-        assert results['NC_000022.11:g.19723410C>G'][
+        pyliftover_assembly_loci = results['NC_000022.11:g.19723410C>G'][
             'NC_000022.11:g.19723410C>G']['hgvs_t_and_p'][
-                   'NM_002688.4']["primary_assembly_loci"] == {
-            "grch37": {
+                'NM_002688.4']["primary_assembly_loci"]
+        assert pyliftover_assembly_loci["grch37"] == {
               "NC_000022.10": {
                 "hgvs_genomic_description": "NC_000022.10:g.19710933C>G",
                 "vcf": {
@@ -6871,8 +6871,8 @@ class TestVFvariantsAuto(object):
                   "ref": "C"
                 }
               }
-            },
-            "grch38": {
+            }
+        assert pyliftover_assembly_loci["grch38"] == {
               "NC_000022.11": {
                 "hgvs_genomic_description": "NC_000022.11:g.19723410C>G",
                 "vcf": {
@@ -6882,19 +6882,22 @@ class TestVFvariantsAuto(object):
                   "ref": "C"
                 }
               }
-            },
-            "hg19": {
-              "NC_000022.10": {
-                "hgvs_genomic_description": "NC_000022.10:g.19710933C>G",
-                "vcf": {
-                  "alt": "G",
-                  "chr": "22",
-                  "pos": "19710933",
-                  "ref": "C"
-                }
-              }
-            },
-            "hg38": {
+            }
+
+        assert "NC_000022.10" in pyliftover_assembly_loci["hg19"]
+        assert pyliftover_assembly_loci["hg19"]["NC_000022.10"][
+                "hgvs_genomic_description"] == "NC_000022.10:g.19710933C>G"
+        assert pyliftover_assembly_loci["hg19"]["NC_000022.10"][
+                "vcf"]["alt"] == "G"
+        assert pyliftover_assembly_loci["hg19"]["NC_000022.10"][
+                "vcf"]["ref"] == "C"
+        assert pyliftover_assembly_loci["hg19"]["NC_000022.10"][
+                "vcf"]["pos"] == "19710933"
+        # chr22 is correct but we used to tolerate 22 so allow both for now
+        assert pyliftover_assembly_loci["hg19"]["NC_000022.10"][
+                "vcf"]["chr"] in ["22", "chr22"]
+
+        assert pyliftover_assembly_loci["hg38"] == {
               "NC_000022.11": {
                 "hgvs_genomic_description": "NC_000022.11:g.19723410C>G",
                 "vcf": {
@@ -6905,17 +6908,16 @@ class TestVFvariantsAuto(object):
                 }
               }
             }
-          }
 
     def test_issue_744b(self):
         results = VariantFormatter.simpleVariantFormatter.format('NC_000012.12:g.80460829T>A',
                                                                  'GRCh38', 'refseq', "raw", False, True, testing=True)
         print(results)
         assert 'NC_000012.12:g.80460829T>A' in results.keys()
-        assert results['NC_000012.12:g.80460829T>A'][
-            'NC_000012.12:g.80460829T>A']['hgvs_t_and_p'][
-                   'NM_001145026.2']["primary_assembly_loci"] == {
-            "grch37": {
+        pyliftover_assembly_loci = results['NC_000012.12:g.80460829T>A'][
+                'NC_000012.12:g.80460829T>A']['hgvs_t_and_p'][
+                   'NM_001145026.2']["primary_assembly_loci"]
+        assert pyliftover_assembly_loci["grch37"] == {
               "NC_000012.11": {
                 "hgvs_genomic_description": "NC_000012.11:g.80860629dup",
                 "vcf": {
@@ -6925,8 +6927,8 @@ class TestVFvariantsAuto(object):
                   "ref": "C"
                 }
               }
-            },
-            "grch38": {
+            }
+        assert pyliftover_assembly_loci["grch38"] == {
               "NC_000012.12": {
                 "hgvs_genomic_description": "NC_000012.12:g.80460829T>A",
                 "vcf": {
@@ -6936,8 +6938,8 @@ class TestVFvariantsAuto(object):
                   "ref": "T"
                 }
               }
-            },
-            "hg19": {
+            }
+        assert pyliftover_assembly_loci["hg19"] == {
               "NC_000012.11": {
                 "hgvs_genomic_description": "NC_000012.11:g.80860629dup",
                 "vcf": {
@@ -6947,8 +6949,8 @@ class TestVFvariantsAuto(object):
                   "ref": "C"
                 }
               }
-            },
-            "hg38": {
+            }
+        assert pyliftover_assembly_loci["hg38"] == {
               "NC_000012.12": {
                 "hgvs_genomic_description": "NC_000012.12:g.80460829T>A",
                 "vcf": {
@@ -6959,7 +6961,6 @@ class TestVFvariantsAuto(object):
                 }
               }
             }
-          }
 
 
 

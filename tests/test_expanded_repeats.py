@@ -12,6 +12,7 @@ Additional functionality to add:
 import unittest
 from unittest import TestCase
 from VariantValidator.modules import expanded_repeats
+from VariantValidator.modules.expanded_repeats import RepeatSyntaxError
 from VariantValidator import Validator
 vv = Validator()
 vv.alt_aln_method = "splign"
@@ -39,12 +40,12 @@ class TestExpandedRepeats(unittest.TestCase):
         my_variant.reformat_reference()
         my_variant.check_genomic_or_coding()
         formatted = my_variant.reformat(vv)
-        assert formatted == "NG_012232.1:g.3_6T[20]"
+        assert str(formatted) == "NG_012232.1:g.3_6T[20]"
         assert my_variant.variant_str == "NG_012232.1:g.4T[20]"
         # checks correct transcript ref
         assert my_variant.reference == "NG_012232.1"
         # checks correct position
-        assert my_variant.variant_position == "3_6"
+        assert str(my_variant.variant_position) == "3_6"
         # checks repeat seq
         assert my_variant.repeat_sequence == "T"
         # checks correct suffix
@@ -67,12 +68,12 @@ class TestExpandedRepeats(unittest.TestCase):
         my_variant.reformat_reference()
         my_variant.check_genomic_or_coding()
         formatted = my_variant.reformat(vv)
-        assert formatted == "ENST00000263121.12:c.*62_*67TCT[2]"
+        assert str(formatted) == "ENST00000263121.12:c.*62_*67TCT[2]"
         assert my_variant.variant_str == "ENST00000263121.12:c.*62_*67TCT[2]"
         assert my_variant.prefix == "c"
         assert my_variant.reference == "ENST00000263121.12"
         # checks correct ref name
-        assert my_variant.variant_position == "*62_*67"
+        assert str(my_variant.variant_position) == "*62_*67"
         # checks correct position
         assert my_variant.repeat_sequence == "TCT"
         # checks repeat seq
@@ -87,16 +88,16 @@ class TestExpandedRepeats(unittest.TestCase):
         """
         variant_str = "NM_000492.4:c.1210-34TG[11]"
         my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(variant_str, "GRCh38", "all", vv)
-        assert my_variant.variant_position == "1210-34"
+        assert str(my_variant.variant_position) == "1210-34"
         my_variant.reformat_reference()
         my_variant.check_genomic_or_coding()
         formatted = my_variant.reformat(vv)
-        assert formatted == "NM_000492.4:c.1210-34_1210-13TG[11]"
+        assert str(formatted) == "NM_000492.4:c.1210-34_1210-13TG[11]"
         assert my_variant.variant_str == "NM_000492.4:c.1210-34TG[11]"
         assert my_variant.prefix == "c"
         assert my_variant.reference == "NM_000492.4"
         # checks correct ref name
-        assert my_variant.variant_position == "1210-34_1210-13"
+        assert str(my_variant.variant_position) == "1210-34_1210-13"
         # checks correct position
         assert my_variant.repeat_sequence == "TG"
         # checks repeat seq
@@ -113,7 +114,8 @@ class TestExpandedRepeats(unittest.TestCase):
         my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
                                     variant_str,  "GRCh37", "all", vv)
         # Includes cds offset
-        self.assertEqual(expanded_repeats.TandemRepeats.get_range_from_single_or_start_pos(my_variant, vv), "1289_1297")
+        seq_range = expanded_repeats.TandemRepeats.get_range_from_single_or_start_pos(my_variant, vv)
+        self.assertEqual(str(seq_range), "1289_1297")
 
     def test_empty_string(self):
         """
@@ -124,6 +126,145 @@ class TestExpandedRepeats(unittest.TestCase):
                                     variant_str, "GRCh37", "all", vv)
         assert my_variant == False
 
+    def test_convert_tandem_fallback(self):
+        """
+        Test that fallback happens when input variant is a text hgvs variant not VV variant object
+        """
+        variant_str = "NM_003073.5:c.1085AGA[2]"
+        my_variant_data = expanded_repeats.convert_tandem(variant_str, vv, 'GRCh37', 'all')
+        self.assertEqual(str(my_variant_data["position"]), "1085_1093")
+        self.assertEqual(str(my_variant_data["variant"]), "NM_003073.5:c.1085_1093AGA[2]")
+        self.assertEqual(my_variant_data["copy_number"],'2')
+        self.assertEqual(my_variant_data["repeat_sequence"],"AGA")
+        self.assertEqual(my_variant_data["reference"],"NM_003073.5")
+        self.assertEqual(my_variant_data["prefix"],"c")
+        self.assertEqual(my_variant_data["reference_sequence_bases"],"AGAAGAAGA")
+
+    def test_fail_tandem_unmatched_bracket(self):
+        variant_str = "NM_003073.5:c.1085AGA[2"
+        with self.assertRaises(RepeatSyntaxError) as catch:
+            expanded_repeats.convert_tandem(variant_str, vv, 'GRCh37', 'all')
+        self.assertTrue("variant in question is missing a matched bracket pair" in \
+                str(catch.exception))
+
+    def test_fail_tandem_no_repeat(self):
+        variant_str = "NM_003073.5:c.1085[2]"
+        with self.assertRaises(RepeatSyntaxError) as catch:
+            expanded_repeats.convert_tandem(variant_str, vv, 'GRCh37', 'all')
+        self.assertTrue(
+                "Ensure that the repeated sequence is included" in \
+                str(catch.exception))
+
+    def test_fail_tandem_bad_repeat_seq(self):
+        variant_str = "NM_003073.5:c.1085CXXX[2]"
+        with self.assertRaises(RepeatSyntaxError) as catch:
+            expanded_repeats.convert_tandem(variant_str, vv, 'GRCh37', 'all')
+        self.assertTrue(
+            "Please ensure the repeated sequence includes only Aa, Cc, Tt, Gg, Uu" in \
+            str(catch.exception))
+
+    def test_fail_tandem_bad_repeat_length(self):
+        variant_str = "NM_003073.5:c.1085_1092AGA[2]"
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
+                variant_str,  "GRCh37", "all", vv)
+
+        with self.assertRaises(RepeatSyntaxError) as catch:
+            my_variant.check_positions_given(vv)
+        self.assertTrue(
+            "is not a multiple of the length of the provided repeat sequence" in \
+            str(catch.exception))
+
+    def test_fail_tandem_ref_nomatch(self):
+        # need a span to trigger this test
+        # also needs a test for no alt at test time [0] code path
+        variant_str = "NM_000492.4:c.1210-35_1210-12TG[11]"
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
+                variant_str,  "GRCh37", "all", vv)
+        my_variant.get_valid_n_or_g_range_from_input_pos(vv)
+        with self.assertRaises(RepeatSyntaxError) as catch:
+            my_variant.check_positions_given(vv)
+        self.assertTrue(
+            "The repeat sequence does not match the reference sequence " in \
+            str(catch.exception))
+        variant_str = "NM_003073.5:c.1085_1093AGA[0]"
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
+                variant_str,  "GRCh37", "all", vv)
+        my_variant.get_valid_n_or_g_range_from_input_pos(vv)
+        my_variant.check_positions_given(vv)
+
+    def test_fail_reformat_if_extra_after_the_bracket(self):
+        # self.after_the_bracket needs to be true when bad variant passed
+        variant_str = "NG_012232.1:g.4T[20]wrong"
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
+                variant_str,  "GRCh37", "all", vv)
+        with self.assertRaises(RepeatSyntaxError) as catch:
+            formatted = my_variant.reformat(vv)
+        self.assertTrue(
+            "No information should be included after the number of repeat units." in \
+            str(catch.exception))
+
+    def test_fail_reformat_if_bad_repeat_characters(self):
+        variant_str = "NG_012232.1:g.4CC[20]"
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
+                variant_str,  "GRCh37", "all", vv)
+        with self.assertRaises(RepeatSyntaxError) as catch:
+            my_variant.repeat_sequence = 'EE'
+            formatted = my_variant.reformat(vv)
+        self.assertTrue(
+            "Please ensure the repeated sequence includes only Aa, Cc, Tt, Gg, Uu" in \
+            str(catch.exception))
+
+    def test_fail_reformat_if_not_copy_number_is_decimal(self):
+        #switch to is int?
+        variant_str = "NG_012232.1:g.4T[aaa]"
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
+                variant_str,  "GRCh37", "all", vv)
+        with self.assertRaises(RepeatSyntaxError) as catch:
+            formatted = my_variant.reformat(vv)
+        self.assertTrue(
+            "The number of repeat units included between square brackets must be numeric" in \
+            str(catch.exception))
+
+
+    #def test_pass_tandem_ref_nomatch_no_length(self):
+    #    # No length for genomic match, and fail caught, should only happen for broken input
+    #    # which should be caught already, or coordinates beyond the end of the seq.
+    #    # This could not trigger and was removed, we may want to add a ^ / $ to the regex
+    #    # however, and if so would then want to re-add this test.
+    #    variant_str = "NG_012232.1:g.90000000CC[20]"
+    #    my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
+    #            variant_str,  "GRCh37", "all", vv)
+    #    my_variant.check_positions_given(vv)
+
+    def test_check_exon_boundaries_no_bounds_used(self):
+        variant_str = "NM_003073.5:c.1085AGA[2]"
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
+                variant_str, vv, 'GRCh37', 'all')
+        my_variant.check_exon_boundaries(vv)
+
+    def test_exon_c_to_n_safe_on_n(self):
+        # convert_c_to_n_coordinates should be safe to call on n/g input
+        variant_str = "NG_012232.1:g.4T[5]"
+        my_variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
+                variant_str,  "GRCh37", "all", vv)
+        pos = str(my_variant.variant_position)
+        my_variant.convert_c_to_n_coordinates()
+        assert pos == str(my_variant.variant_position)
+
+    def test_bad_coppy_number_after_genomic_map(self):
+        # test in get_range_from_single_or_start_pos
+        # during remap of BaseOffsetInterval type pos with at least one .offset
+        # i.e. intronic n/c
+        # when number of regex matches within range of genomic span != expected
+        variant_str = "NM_000492.4:c.1210-34_1210-11TG[11]"
+        variant = expanded_repeats.TandemRepeats.parse_repeat_variant(
+            variant_str,'GRCh37', 'all',vv)
+
+        with self.assertRaises(RepeatSyntaxError) as catch:
+            variant.reformat(vv)
+        self.assertTrue(
+            "The repeat sequence does not match the expected copy number at position" in\
+            str(catch.exception))
 
 class TestCVariantsExpanded(TestCase):
 
@@ -145,6 +286,14 @@ class TestCVariantsExpanded(TestCase):
         assert ("ExonBoundaryError: Position 13-14 does not correspond with an exon boundary for transcript "
                 "NM_004006.2") in results["validation_warning_1"]["validation_warnings"]
 
+    def test_exon_boundary_single_position_plus(self):
+        variant = 'NM_004006.2:c.13+14AC[7]'
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert ("ExonBoundaryError: Position 13+14 does not correspond with an exon boundary for transcript "
+                "NM_004006.2") in results["validation_warning_1"]["validation_warnings"]
+
+
     def test_exon_boundary_range(self):
         variant = 'NM_004006.2:c.12_13-14AC[7]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
@@ -162,7 +311,6 @@ class TestCVariantsExpanded(TestCase):
             "validation_warnings"] ==  [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NM_000492.4:c.1210-34TG[11]. The corrected description is NM_000492.4:c.1210-34_1210-13TG[11]",
             "ExpandedRepeatWarning: NM_000492.4:c.1210-34_1210-13TG[11] should only be used as an annotation for the core HGVS descriptions provided",
-            "NM_000492.4:c.1210-34_1210-13delinsTGTGTGTGTGTGTGTGTGTGTG automapped to NM_000492.4:c.1210-34_1210-13="
         ]
 
     def test_intronic_range(self):
@@ -175,7 +323,6 @@ class TestCVariantsExpanded(TestCase):
             "validation_warnings"] == [
             "ExpandedRepeatWarning: NM_000492.4:c.1210-34_1210-13TG[11] should only be used as an annotation for the "
             "core HGVS descriptions provided",
-            "NM_000492.4:c.1210-34_1210-13delinsTGTGTGTGTGTGTGTGTGTGTG automapped to NM_000492.4:c.1210-34_1210-13="
         ]
 
     def test_incorrect_intronic_range(self):
@@ -286,7 +433,6 @@ class TestCVariantsExpanded(TestCase):
             "validation_warnings"] == [
             "ExpandedRepeatWarning: NM_000088.3:c.589-1_590G[3] should only be used as an annotation for the "
             "core HGVS descriptions provided",
-            "NM_000088.3:c.589-1_590delinsGGG automapped to NM_000088.3:c.589-1_590=",
             "TranscriptVersionWarning: A more recent version of the selected reference sequence NM_000088.3 "
             "is available for genome build GRCh37 (NM_000088.4)"
         ]
@@ -301,7 +447,6 @@ class TestCVariantsExpanded(TestCase):
                    "validation_warnings"] == [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NM_000088.3:c.589-1G[3]. The corrected description is NM_000088.3:c.589-1_590G[3]",
             "ExpandedRepeatWarning: NM_000088.3:c.589-1_590G[3] should only be used as an annotation for the core HGVS descriptions provided",
-            "NM_000088.3:c.589-1_590delinsGGG automapped to NM_000088.3:c.589-1_590=",
             "TranscriptVersionWarning: A more recent version of the selected reference sequence NM_000088.3 is available for genome build GRCh37 (NM_000088.4)"
         ]
 
@@ -315,7 +460,6 @@ class TestCVariantsExpanded(TestCase):
                    "validation_warnings"] == [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NM_000088.3:c.589-18T[5]. The corrected description is NM_000088.3:c.589-18_589-14T[5]",
             "ExpandedRepeatWarning: NM_000088.3:c.589-18_589-14T[5] should only be used as an annotation for the core HGVS descriptions provided",
-            "NM_000088.3:c.589-18_589-14delinsTTTTT automapped to NM_000088.3:c.589-18_589-14=",
             "TranscriptVersionWarning: A more recent version of the selected reference sequence NM_000088.3 is available for genome build GRCh37 (NM_000088.4)"
         ]
 
@@ -418,7 +562,6 @@ class TestTranscriptVariantsExpandedNvsC(TestCase):
             "validation_warnings"] ==  [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NM_022167.4:c.135+1G[2]. The corrected description is NM_022167.4:c.135_135+1G[2]",
             "ExpandedRepeatWarning: NM_022167.4:c.135_135+1G[2] should only be used as an annotation for the core HGVS descriptions provided",
-            "NM_022167.4:c.135_135+1delinsGG automapped to NM_022167.4:c.135_135+1="
         ]
 
     def test_intronic_single_position_n(self):
@@ -431,7 +574,6 @@ class TestTranscriptVariantsExpandedNvsC(TestCase):
             "validation_warnings"] == [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NR_110010.2:n.150+1G[2]. The corrected description is NR_110010.2:n.150_150+1G[2]",
             "ExpandedRepeatWarning: NR_110010.2:n.150_150+1G[2] should only be used as an annotation for the core HGVS descriptions provided",
-            "NR_110010.2:n.150_150+1delinsGG automapped to NR_110010.2:n.150_150+1="
         ]
 
     def test_intronic_range_c(self):
@@ -444,7 +586,6 @@ class TestTranscriptVariantsExpandedNvsC(TestCase):
             "validation_warnings"] == [
             "ExpandedRepeatWarning: NM_022167.4:c.135+6_135+7C[2] should only be used as an "
             "annotation for the core HGVS descriptions provided",
-            "NM_022167.4:c.135+6_135+7delinsCC automapped to NM_022167.4:c.135+6_135+7="
         ]
 
     def test_intronic_range_n(self):
@@ -457,7 +598,6 @@ class TestTranscriptVariantsExpandedNvsC(TestCase):
             "validation_warnings"] == [
             "ExpandedRepeatWarning: NR_110010.2:n.150+6_150+7C[2] should only be used as an "
             "annotation for the core HGVS descriptions provided",
-            "NR_110010.2:n.150+6_150+7delinsCC automapped to NR_110010.2:n.150+6_150+7="
         ]
 
     def test_incorrect_intronic_range_c(self):
@@ -618,7 +758,6 @@ class TestTranscriptVariantsExpandedNvsC(TestCase):
         assert results["NM_001350922.2:c.240+14_240+21TGGG[2]"]["validation_warnings"] == [
             "ExpandedRepeatWarning: NM_001350922.2:c.240+14_240+21TGGG[2] should only be used as "
             "an annotation for the core HGVS descriptions provided",
-            "NM_001350922.2:c.240+14_240+21delinsTGGGTGGG automapped to NM_001350922.2:c.240+14_240+21=",
         ]
 
     def test_antisense_intron_range_n(self):
@@ -630,7 +769,6 @@ class TestTranscriptVariantsExpandedNvsC(TestCase):
         assert results["NR_146939.2:n.453+14_453+21TGGG[2]"]["validation_warnings"] == [
             "ExpandedRepeatWarning: NR_146939.2:n.453+14_453+21TGGG[2] should only be used as an "
             "annotation for the core HGVS descriptions provided",
-            "NR_146939.2:n.453+14_453+21delinsTGGGTGGG automapped to NR_146939.2:n.453+14_453+21=",
         ]
 
     def test_antisense_intron_single_pos_c(self):
@@ -642,7 +780,6 @@ class TestTranscriptVariantsExpandedNvsC(TestCase):
         assert results["NM_001350922.2:c.240+14_240+21TGGG[2]"]["validation_warnings"] == [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NM_001350922.2:c.240+14TGGG[2]. The corrected description is NM_001350922.2:c.240+14_240+21TGGG[2]",
             "ExpandedRepeatWarning: NM_001350922.2:c.240+14_240+21TGGG[2] should only be used as an annotation for the core HGVS descriptions provided",
-            "NM_001350922.2:c.240+14_240+21delinsTGGGTGGG automapped to NM_001350922.2:c.240+14_240+21="
         ]
 
     def test_antisense_intron_single_pos_n(self):
@@ -654,7 +791,6 @@ class TestTranscriptVariantsExpandedNvsC(TestCase):
         assert results["NR_146939.2:n.453+14_453+21TGGG[2]"]["validation_warnings"] == [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NR_146939.2:n.453+14TGGG[2]. The corrected description is NR_146939.2:n.453+14_453+21TGGG[2]",
             "ExpandedRepeatWarning: NR_146939.2:n.453+14_453+21TGGG[2] should only be used as an annotation for the core HGVS descriptions provided",
-            "NR_146939.2:n.453+14_453+21delinsTGGGTGGG automapped to NR_146939.2:n.453+14_453+21="
         ]
 
     def test_antisense_intron_single_pos_2_c(self):
@@ -666,7 +802,6 @@ class TestTranscriptVariantsExpandedNvsC(TestCase):
         assert results["NM_001350922.2:c.241-121_241-118TC[2]"]["validation_warnings"] ==  [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NM_001350922.2:c.241-119TC[2]. The corrected description is NM_001350922.2:c.241-121_241-118TC[2]",
             "ExpandedRepeatWarning: NM_001350922.2:c.241-121_241-118TC[2] should only be used as an annotation for the core HGVS descriptions provided",
-            "NM_001350922.2:c.241-121_241-118delinsTCTC automapped to NM_001350922.2:c.241-121_241-118="
         ]
 
     def test_antisense_intron_single_pos_2_n(self):
@@ -678,7 +813,6 @@ class TestTranscriptVariantsExpandedNvsC(TestCase):
         assert results["NR_146939.2:n.454-121_454-118TC[2]"]["validation_warnings"] == [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NR_146939.2:n.454-119TC[2]. The corrected description is NR_146939.2:n.454-121_454-118TC[2]",
             "ExpandedRepeatWarning: NR_146939.2:n.454-121_454-118TC[2] should only be used as an annotation for the core HGVS descriptions provided",
-            "NR_146939.2:n.454-121_454-118delinsTCTC automapped to NR_146939.2:n.454-121_454-118="
         ]
 
     def test_antisense_intron_single_pos_seq_inverted_c(self):
@@ -722,12 +856,12 @@ class TestExpandedRepeatGenomic(TestCase):
         my_variant.reformat_reference()
         my_variant.check_genomic_or_coding()
         formatted = my_variant.reformat(vv)
-        assert formatted == "NC_000023.10:g.33362721_33362724A[20]"
+        assert str(formatted) == "NC_000023.10:g.33362721_33362724A[20]"
         assert my_variant.variant_str == "NC_000023.10:g.33362721A[20]"
         # check, in order ref ID, variant_pos, seq, copy number
         # and post-var content (should be none)
         assert my_variant.reference == "NC_000023.10"
-        assert my_variant.variant_position == "33362721_33362724"
+        assert str(my_variant.variant_position) == "33362721_33362724"
         assert my_variant.repeat_sequence == "A"
         assert my_variant.copy_number == "20"
         assert my_variant.after_the_bracket == ""
@@ -925,12 +1059,12 @@ class TestExpandedRepeatRefSeqGenomic(TestCase):
         my_variant.reformat_reference()
         my_variant.check_genomic_or_coding()
         formatted = my_variant.reformat(vv)
-        assert formatted == "NG_012232.1:g.3_6T[20]"
+        assert str(formatted) == "NG_012232.1:g.3_6T[20]"
         assert my_variant.variant_str == "NG_012232.1:g.4T[20]"
         # checks correct transcript ref
         assert my_variant.reference == "NG_012232.1"
         # checks correct position
-        assert my_variant.variant_position == "3_6"
+        assert str(my_variant.variant_position) == "3_6"
         # checks repeat seq
         assert my_variant.repeat_sequence == "T"
         # checks correct suffix
@@ -955,7 +1089,7 @@ class TestExpandedRepeatRefSeqGenomic(TestCase):
             " the core HGVS descriptions provided",
             'NG_012232.1:g.6_7insTTTTTTTTTTTTTTTT automapped to genome position '
             'NC_000023.10:g.33362724_33362725insAAAAAAAAAAAAAAAA',
-            'No transcripts found that fully overlap the described variation in the genomic sequence'
+            'No individual transcripts have been identified that fully overlap the described variation in the genomic sequence. Large variants might span one or more genes and are currently only described at the genome (g.) level.'
         ]
 
     def test_RSG_genomic_single_position_to_span(self):
@@ -971,7 +1105,7 @@ class TestExpandedRepeatRefSeqGenomic(TestCase):
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NG_012232.1:g.4T[20]. The corrected description is NG_012232.1:g.3_6T[20]",
             "ExpandedRepeatWarning: NG_012232.1:g.3_6T[20] should only be used as an annotation for the core HGVS descriptions provided",
             "NG_012232.1:g.6_7insTTTTTTTTTTTTTTTT automapped to genome position NC_000023.10:g.33362724_33362725insAAAAAAAAAAAAAAAA",
-            "No transcripts found that fully overlap the described variation in the genomic sequence"
+            'No individual transcripts have been identified that fully overlap the described variation in the genomic sequence. Large variants might span one or more genes and are currently only described at the genome (g.) level.'
         ]
 
     def test_incorrect_RSG_genomic_range(self):
@@ -1042,7 +1176,6 @@ class TestExpandedRepeatRefSeqGenomic(TestCase):
         assert results["NM_022167.4:c.135_135+1G[2]"]["validation_warnings"] == [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NM_022167.4:c.135+1G[2]. The corrected description is NM_022167.4:c.135_135+1G[2]",
             "ExpandedRepeatWarning: NM_022167.4:c.135_135+1G[2] should only be used as an annotation for the core HGVS descriptions provided",
-            "NM_022167.4:c.135_135+1delinsGG automapped to NM_022167.4:c.135_135+1="
         ]
 
     def test_RSG_mapping_transcript_intron_range(self):
@@ -1064,7 +1197,6 @@ class TestExpandedRepeatRefSeqGenomic(TestCase):
         assert results["NM_022167.4:c.135_135+1G[2]"]["validation_warnings"] == [
             "ExpandedRepeatWarning: NM_022167.4:c.135_135+1G[2] should only be used as an "
             "annotation for the core HGVS descriptions provided",
-            'NM_022167.4:c.135_135+1delinsGG automapped to NM_022167.4:c.135_135+1='
         ]
 
 
@@ -1091,12 +1223,12 @@ class TestExpandedRepeaLocusReferenceGenomic(TestCase):
         my_variant.reformat_reference()
         my_variant.check_genomic_or_coding()
         formatted = my_variant.reformat(vv)
-        assert formatted == "NG_012232.1:g.3_6T[20]"
+        assert str(formatted) == "NG_012232.1:g.3_6T[20]"
         assert my_variant.variant_str == "LRG_199:g.4T[20]"
         # checks correct transcript ref
         assert my_variant.reference == "NG_012232.1"
         # checks correct position
-        assert my_variant.variant_position == "3_6"
+        assert str(my_variant.variant_position) == "3_6"
         # checks repeat seq
         assert my_variant.repeat_sequence == "T"
         # checks correct suffix
@@ -1117,12 +1249,12 @@ class TestExpandedRepeaLocusReferenceGenomic(TestCase):
         my_variant.reformat_reference()
         my_variant.check_genomic_or_coding()
         formatted = my_variant.reformat(vv)
-        assert formatted == "NM_004006.2:c.-120_-114T[7]"
+        assert str(formatted) == "NM_004006.2:c.-120_-114T[7]"
         assert my_variant.variant_str == "LRG_199t1:c.-120T[7]"
         # checks correct transcript ref
         assert my_variant.reference == "NM_004006.2"
         # checks correct position
-        assert my_variant.variant_position == "-120_-114"
+        assert str(my_variant.variant_position) == "-120_-114"
         # checks repeat seq
         assert my_variant.repeat_sequence == "T"
         # checks correct suffix
@@ -1155,7 +1287,7 @@ class TestExpandedRepeaLocusReferenceGenomic(TestCase):
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description LRG_199:g.4T[20]. The corrected description is NG_012232.1:g.3_6T[20]",
             "ExpandedRepeatWarning: NG_012232.1:g.3_6T[20] should only be used as an annotation for the core HGVS descriptions provided",
             "NG_012232.1:g.6_7insTTTTTTTTTTTTTTTT automapped to genome position NC_000023.10:g.33362724_33362725insAAAAAAAAAAAAAAAA",
-            "No transcripts found that fully overlap the described variation in the genomic sequence"
+            "No individual transcripts have been identified that fully overlap the described variation in the genomic sequence. Large variants might span one or more genes and are currently only described at the genome (g.) level."
         ]
 
     def test_incorrect_LRG_genomic_range(self):
@@ -1223,7 +1355,6 @@ class TestExpandedRepeaLocusReferenceGenomic(TestCase):
         assert results["NM_004006.2:c.31+9_31+11A[3]"]["validation_warnings"] ==  [
             "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description LRG_199t1:c.31+9A[3]. The corrected description is NM_004006.2:c.31+9_31+11A[3]",
             "ExpandedRepeatWarning: NM_004006.2:c.31+9_31+11A[3] should only be used as an annotation for the core HGVS descriptions provided",
-            "NM_004006.2:c.31+9_31+11delinsAAA automapped to NM_004006.2:c.31+9_31+11=",
             "TranscriptVersionWarning: A more recent version of the selected reference sequence NM_004006.2 is available for genome build GRCh37 (NM_004006.3)"
         ]
 

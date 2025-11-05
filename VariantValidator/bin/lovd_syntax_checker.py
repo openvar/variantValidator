@@ -1,9 +1,24 @@
-import os
 import subprocess
 import json
 import time
 import threading
 import importlib.resources as pkg_resources
+import os
+from configparser import ConfigParser
+
+CONFIG_DIR = os.path.join(os.path.expanduser('~'), '.variantvalidator')
+
+# Change settings based on config
+config = ConfigParser()
+config.read(CONFIG_DIR)
+
+# Set PHP path if specified in config
+PHP_PATH = "php"
+try:
+    if config['php']['php_path']:
+        PHP_PATH = config['php']['php_path']
+except Exception:
+    pass
 
 # Lock to ensure thread-safe subprocess access
 lovd_cli_lock = threading.Lock()
@@ -31,9 +46,9 @@ def run_hgvs_checker(variant, is_a_gene=False):
         try:
             with lovd_cli_lock:
                 if is_a_gene is True:
-                    command = ["php", "-f", PHP_SCRIPT, f"gene:{variant}"]
+                    command = [PHP_PATH, "-f", PHP_SCRIPT, f"gene:{variant}"]
                 else:
-                    command = ["php", "-f", PHP_SCRIPT, variant]
+                    command = [PHP_PATH, "-f", PHP_SCRIPT, variant]
 
                 result = subprocess.run(
                     command,
@@ -43,7 +58,7 @@ def run_hgvs_checker(variant, is_a_gene=False):
                 )
 
                 result_meta = subprocess.run(
-                    ["php", "-f", PHP_SCRIPT, "getVersions"],
+                    [PHP_PATH, "-f", PHP_SCRIPT, "getVersions"],
                     capture_output=True,
                     text=True,
                     check=True

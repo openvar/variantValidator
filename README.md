@@ -1,5 +1,5 @@
 # VariantValidator
-[![codecov](https://codecov.io/gh/openvar/variantValidator/graph/badge.svg?token=QWTxw5kiY4)](https://codecov.io/gh/openvar/variantValidator)
+[![codecov](https://codecov.io/github/openvar/variantValidator/graph/badge.svg?token=QWTxw5kiY4)](https://codecov.io/github/openvar/variantValidator)
 
 ## About
 

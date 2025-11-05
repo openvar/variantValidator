@@ -35,6 +35,8 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
     # submitted
     submitted = copy.copy(query)
 
+    logger.info("gene2transcript query: %s", query)
+
     # List of transcripts
     sel_tx_lst = False
     if select_transcripts is not None:
@@ -48,6 +50,8 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
     else:
         # Remove whitespace
         query = ''.join(query.split())
+
+        logger.info(f"gene2transcript query white space removed: {query}")
 
         try:
             query = int(query)
@@ -121,7 +125,7 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
                                     tx_info[3],
                                     0,
                                     query.hgvs_coding.ac,
-                                    query.primary_assembly_loci[builds]['hgvs_genomic_description'].split(":")[0],
+                                    query.primary_assembly_loci[builds]['hgvs_genomic_description'].ac,
                                     validator.alt_aln_method])
 
         # Add refseqgene if available

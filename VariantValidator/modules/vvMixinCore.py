@@ -24,7 +24,8 @@ from VariantValidator.modules.liftover import liftover
 from VariantValidator.modules import gene2transcripts
 from VariantValidator.modules import lovd_api
 from VariantValidator.modules import initial_formatting
-from VariantValidator.modules import indel_to_expanded_repeat
+from VariantValidator.modules.seq_state_to_expanded_repeat import\
+        convert_seq_state_to_expanded_repeat
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
         unset_hgvs_obj_ref, to_vv_hgvs
 
@@ -251,7 +252,7 @@ class Mixin(vvMixinConverters.Mixin):
                     if not my_variant.is_ascii():
                         chars, positions = my_variant.get_non_ascii()
                         error = 'VariantSyntaxError: Submitted ' \
-                                'variant description contains an invalid character(s) %s at position(s) %s: ' \
+                                'variant description contains invalid character(s) %s at position(s) %s: ' \
                                 'Please remove this character and re-submit: A useful search function for ' \
                                 'Unicode characters can be found at https://unicode-search.net/' % (chars, positions)
                         my_variant.warnings.append(error)
@@ -434,8 +435,7 @@ class Mixin(vvMixinConverters.Mixin):
                         if my_variant.warnings is not None and my_variant.hgvs_genomic is not None:
                             if "NC_" in str(my_variant.hgvs_genomic) and my_variant.reformat_output == "uncertain_pos":
                                 my_variant.primary_assembly_loci = {my_variant.primary_assembly.lower():
-                                                                    {"hgvs_genomic_description":
-                                                                     my_variant.hgvs_genomic.format({'max_ref_length': 0}),
+                                                                    {"hgvs_genomic_description":my_variant.hgvs_genomic,
                                                                      "vcf": {"chr": None,
                                                                              "pos": None,
                                                                              "ref": None,
@@ -808,7 +808,7 @@ class Mixin(vvMixinConverters.Mixin):
                         if 'intronic variant' in error:
                             genome_context_transcript_variant = genomic_accession + '(' + transcript_accession +\
                                                                 '):c.' + hgvs_transcript_variant.posedit.format({'max_ref_length': 0})
-                            if not type(refseqgene_variant) is str:
+                            if refseqgene_variant:
                                 refseqgene_variant = unset_hgvs_obj_ref(refseqgene_variant)
                                 refseqgene_accession = refseqgene_variant.ac
                                 try:
@@ -901,11 +901,10 @@ class Mixin(vvMixinConverters.Mixin):
                         pass
                     elif 'NC_000023' in alt_gen_var.ac and par is True:
                         primary =True
-                    text_hgvs_out = fn.valstr(alt_gen_var)
                     if primary:
                         for genome_build in vcf_dict['chrs_by_genome']:
                             primary_genomic_dicts[genome_build] = {
-                                'hgvs_genomic_description': text_hgvs_out,
+                                'hgvs_genomic_description': alt_gen_var,
                                 'vcf': {'chr': vcf_dict['chrs_by_genome'][genome_build],
                                         'pos': vcf_dict['pos'],
                                         'ref': vcf_dict['ref'],
@@ -915,7 +914,7 @@ class Mixin(vvMixinConverters.Mixin):
                     else:
                         for genome_build in vcf_dict['chrs_by_genome']:
                             alt_dict = {genome_build: {
-                                'hgvs_genomic_description': text_hgvs_out,
+                                'hgvs_genomic_description': alt_gen_var,
                                 'vcf': {'chr': vcf_dict['chrs_by_genome'][genome_build],
                                         'pos': vcf_dict['pos'],
                                         'ref': vcf_dict['ref'],
@@ -923,13 +922,15 @@ class Mixin(vvMixinConverters.Mixin):
                                         }
                                 }}
                             alt_genomic_dicts.append(alt_dict)
+
                 # Clean up mito genome issues
                 cp_lifted_response = copy.deepcopy(primary_genomic_dicts)
                 for key, val in cp_lifted_response.items():
-                    if key == "hg19" and "NC_012920.1" in val["hgvs_genomic_description"]:
+                    if key == "hg19" and "NC_012920.1" == val["hgvs_genomic_description"].ac:
                         primary_genomic_dicts.pop(key)
-                    elif key == "grch37" and "NC_001807.4" in val["hgvs_genomic_description"]:
+                    elif key == "grch37" and "NC_001807.4" == val["hgvs_genomic_description"].ac:
                         primary_genomic_dicts.pop(key)
+
                 # Warn not directly mapped to specified genome build
                 if genomic_accession:
                     if primary_assembly.lower() not in list(primary_genomic_dicts.keys()):
@@ -954,12 +955,12 @@ class Mixin(vvMixinConverters.Mixin):
 
                 # Ensure Variants have had the refs removed.
                 # if not hasattr(posedit, refseqgene_variant):
-                if not type(refseqgene_variant) is str:
+                if refseqgene_variant:
                     try:
                         refseqgene_variant =  unset_hgvs_obj_ref(refseqgene_variant)
                     except Exception as e:
                         logger.debug("Except passed, %s", e)
-                    if variant.gene_symbol == "" and refseqgene_variant != "":
+                    if variant.gene_symbol == "" and refseqgene_variant:
                         gene_symbol = self.db.get_gene_symbol_from_refseq_id(refseqgene_variant.ac)
                         variant.gene_symbol = gene_symbol
 
@@ -1053,12 +1054,8 @@ class Mixin(vvMixinConverters.Mixin):
                     variant.gene_symbol = self.db.get_gene_symbol_from_transcript_id(
                         variant.hgvs_transcript_variant.ac)
                 elif variant.hgvs_refseqgene_variant and variant.gene_symbol == '':
-                    try:
-                        variant.gene_symbol = self.db.get_gene_symbol_from_refseq_id(
-                            variant.hgvs_refseqgene_variant.ac)
-                    except AttributeError:
-                        variant.gene_symbol = self.db.get_gene_symbol_from_refseq_id(
-                            variant.hgvs_refseqgene_variant.split(":")[0])
+                    variant.gene_symbol = self.db.get_gene_symbol_from_refseq_id(
+                        variant.hgvs_refseqgene_variant.ac)
 
                 # Add stable gene_ids
                 stable_gene_ids = {}
@@ -1237,8 +1234,8 @@ class Mixin(vvMixinConverters.Mixin):
                                 g_to_g = True
 
                             # Lift-over
-                            if (genomic_position_info[g_p_key]['hgvs_genomic_description'] not in lo_cache.keys()) or (
-                                    "NC_012920.1" in genomic_position_info[g_p_key]['hgvs_genomic_description']
+                            if (str(genomic_position_info[g_p_key]['hgvs_genomic_description']) not in lo_cache.keys()
+                                ) or ("NC_012920.1" == genomic_position_info[g_p_key]['hgvs_genomic_description'].ac
                                     and build_from == "hg38" and build_to == "hg19"):
 
                                 lifted_response = liftover(genomic_position_info[g_p_key]['hgvs_genomic_description'],
@@ -1250,9 +1247,8 @@ class Mixin(vvMixinConverters.Mixin):
                                                            liftover_level=liftover_level,
                                                            g_to_g=g_to_g,
                                                            genomic_data_w_vcf=genomic_position_info)
-
-                                if "NC_012920.1" in genomic_position_info[g_p_key]['hgvs_genomic_description'] or \
-                                        "NC_001807.4:" in genomic_position_info[g_p_key]['hgvs_genomic_description']:
+                                if "NC_012920.1" == genomic_position_info[g_p_key]['hgvs_genomic_description'].ac or \
+                                        "NC_001807.4" == genomic_position_info[g_p_key]['hgvs_genomic_description'].ac:
                                     capture_corrected_response = False
                                     for key, val in lifted_response.items():
                                         if "grch38" in key:
@@ -1267,9 +1263,11 @@ class Mixin(vvMixinConverters.Mixin):
                                             if capture_corrected_response is not False:
                                                 lifted_response[key] = capture_corrected_response
 
-                                lo_cache[genomic_position_info[g_p_key]['hgvs_genomic_description']] = lifted_response
+                                lo_cache[str(genomic_position_info[g_p_key]['hgvs_genomic_description'])] \
+                                        = lifted_response
                             else:
-                                lifted_response = lo_cache[genomic_position_info[g_p_key]['hgvs_genomic_description']]
+                                lifted_response = \
+                                        lo_cache[str(genomic_position_info[g_p_key]['hgvs_genomic_description'])]
 
                             # Sort the respomse into primary assembly and ALT
                             primary_assembly_loci = {}
@@ -1278,7 +1276,7 @@ class Mixin(vvMixinConverters.Mixin):
                             for build_key, accession_dict in list(lifted_response.items()):
                                 try:
                                     accession_key = list(accession_dict.keys())[0]
-                                    if 'NC_' in accession_dict[accession_key]['hgvs_genomic_description']:
+                                    if accession_dict[accession_key]['hgvs_genomic_description'].ac.startswith('NC_'):
                                         primary_assembly_loci[build_key.lower()] = accession_dict[accession_key]
                                     else:
                                         alt_genomic_loci.append({build_key.lower(): accession_dict[accession_key]})
@@ -1374,7 +1372,7 @@ class Mixin(vvMixinConverters.Mixin):
                                     elif isinstance(data[key],SequenceVariant) and not data[key].type == 'p':
                                         if type(data[key].posedit) is PosEdit:
                                             data[key] = to_vv_hgvs(data[key])
-                                        data[key] = data[key].posedit.met_variation = variant.reformat_output
+                                        data[key].posedit.met_variation = variant.reformat_output
                                     elif isinstance(data[key], str) and data[key].endswith('=') and not data[key].endswith('|met=') and not ':p.' in data[key]:
                                         data[key] = data[key][:-1] + variant.reformat_output
                             elif isinstance(data,list):
@@ -1383,8 +1381,9 @@ class Mixin(vvMixinConverters.Mixin):
                                         data[index] = _apply_met_variation(value)
                                     elif isinstance(value,SequenceVariant) and not value.type == 'p':
                                         if type(value.posedit) is PosEdit:
-                                             value = to_vv_hgvs(value)
-                                        data[index] = value.posedit.met_variation = variant.reformat_output
+                                            value = to_vv_hgvs(value)
+                                        value.posedit.met_variation = variant.reformat_output
+                                        data[index] = value
                                     elif isinstance(value, str) and value.endswith('=') and not value.endswith('|met=') and not ':p.' in value:
                                         data[index] = value[:-1] + variant.reformat_output
                             elif isinstance(data,SequenceVariant) and not data.type == 'p':
@@ -1403,6 +1402,115 @@ class Mixin(vvMixinConverters.Mixin):
                             item = _apply_met_variation(item)
                             setattr(variant, attribute, item)
 
+                # Add expanded repeat information
+                logger.info(f"expanded repeat is {variant.expanded_repeat}")
+                if variant.expanded_repeat is not None:
+                    starting_tx_posedit = None
+                    if variant.hgvs_transcript_variant:
+                        starting_tx_posedit = variant.hgvs_transcript_variant.posedit.format(
+                                {'max_ref_length': 0})
+                    hgd = "hgvs_genomic_description"
+                    ex_rep_start = variant.expanded_repeat["variant"].ac[:3]
+                    ex_rep_var = copy.copy(variant.expanded_repeat["variant"])
+                    # If the ER came from a gene description, set the HGVS transcript variant
+                    if ex_rep_start in ["NG_", "LRG"]:
+                        try:
+                            variant.hgvs_transcript_variant = convert_seq_state_to_expanded_repeat(
+                                    variant.hgvs_transcript_variant, self,
+                                    known_repeat_unit=variant.expanded_repeat["repeat_sequence"],
+                                    genomic_reference=ex_rep_var.ac)
+                        except Exception:
+                            pass
+                    elif ex_rep_start == 'NC_':
+                        variant.primary_assembly_loci[self.primary_assembly.lower()
+                            ][hgd] = ex_rep_var
+                        if self.primary_assembly == "GRCh37":
+                            variant.primary_assembly_loci['grch37'][hgd] = ex_rep_var
+                            variant.primary_assembly_loci["hg19"][hgd] = ex_rep_var
+                            try:
+                                variant.primary_assembly_loci["grch38"][hgd] = \
+                                    convert_seq_state_to_expanded_repeat(
+                                        variant.primary_assembly_loci["grch38"][hgd], self,
+                                        known_repeat_unit=variant.expanded_repeat["repeat_sequence"])
+                            except Exception:
+                                pass
+                            variant.primary_assembly_loci["hg38"][hgd] = \
+                                    variant.primary_assembly_loci["grch38"][hgd]
+                        else:
+                            variant.primary_assembly_loci["grch38"][hgd] = ex_rep_var
+                            variant.primary_assembly_loci["hg38"][hgd] = ex_rep_var
+                            try:
+                                variant.primary_assembly_loci["grch37"][hgd] = \
+                                    convert_seq_state_to_expanded_repeat(
+                                        variant.primary_assembly_loci["grch37"][hgd],
+                                        self, known_repeat_unit=variant.expanded_repeat["repeat_sequence"])
+                                variant.primary_assembly_loci["hg19"][hgd] = \
+                                    variant.primary_assembly_loci["grch37"][hgd]
+                            except Exception:
+                                pass
+                        try:
+                            variant.hgvs_transcript_variant = \
+                                convert_seq_state_to_expanded_repeat(
+                                    variant.hgvs_transcript_variant, self,
+                                    genomic_reference=ex_rep_var.ac,
+                                known_repeat_unit=variant.expanded_repeat["repeat_sequence"])
+                        except Exception:
+                            pass
+
+                    elif ex_rep_start in ["NM_", "NR_"] or ex_rep_var.ac.startswith("ENST"):
+                        variant.hgvs_transcript_variant = copy.copy(ex_rep_var)
+                        try:
+                            prim_a = self.primary_assembly.lower()
+                            variant.primary_assembly_loci[prim_a][hgd] = \
+                                convert_seq_state_to_expanded_repeat(
+                                    variant.primary_assembly_loci[prim_a][hgd], self,
+                                    known_repeat_unit=variant.expanded_repeat["repeat_sequence"])
+                            if self.primary_assembly == "GRCh37":
+                                variant.primary_assembly_loci["hg19"][hgd] = \
+                                    variant.primary_assembly_loci['grch37'][hgd]
+                                variant.primary_assembly_loci["grch38"][hgd] = \
+                                    convert_seq_state_to_expanded_repeat(
+                                        variant.primary_assembly_loci["grch38"][hgd], self,
+                                        known_repeat_unit=variant.expanded_repeat["repeat_sequence"])
+                                variant.primary_assembly_loci["hg38"][hgd] = \
+                                    variant.primary_assembly_loci["grch38"][hgd]
+                            else:
+                                variant.primary_assembly_loci["hg38"][hgd] = \
+                                    variant.primary_assembly_loci[prim_a][hgd]
+                                variant.primary_assembly_loci["grch37"][hgd] = \
+                                    convert_seq_state_to_expanded_repeat(
+                                        variant.primary_assembly_loci["grch37"][hgd], self,
+                                        known_repeat_unit=variant.expanded_repeat["repeat_sequence"])
+                                variant.primary_assembly_loci["hg19"][hgd] = \
+                                    variant.primary_assembly_loci["grch37"][hgd]
+                        except Exception:
+                            pass
+
+                    if variant.hgvs_refseqgene_variant and not ex_rep_start in ["NG_", "LRG"]:
+                        assert variant.hgvs_refseqgene_variant.ac.startswith('NG_')
+                        try:
+                            variant.hgvs_refseqgene_variant = (
+                            convert_seq_state_to_expanded_repeat(
+                                variant.hgvs_refseqgene_variant, self,
+                            known_repeat_unit=variant.expanded_repeat["repeat_sequence"]))
+                            if variant.hgvs_lrg_variant:
+                                variant.hgvs_lrg_variant = (
+                                    f"{variant.hgvs_lrg_variant.split(':g.')[0]}:g." +
+                                    variant.hgvs_refseqgene_variant.posedit.format(
+                                        {'max_ref_length': 0}))
+                        except Exception:
+                            pass
+                        # LRG transcript data can be, but may not be, the same as the main mapped tx
+                        # so we need to test for identity before using. LRG is already text and
+                        # won't be reused for VRS. This skips ex_rep conversion in the corner case.
+                        if variant.hgvs_lrg_transcript_variant and \
+                                variant.hgvs_lrg_transcript_variant.split(':c.')[1] ==\
+                                starting_tx_posedit and variant.hgvs_transcript_variant:
+                            variant.hgvs_lrg_transcript_variant = \
+                                f"{variant.hgvs_lrg_transcript_variant.split(':c.')[0]}:c."\
+                                + variant.hgvs_transcript_variant.posedit.format(
+                                    {'max_ref_length': 0})
+
                 # Some variant objects must be strings for back-compatibility with old output
                 if variant.hgvs_transcript_variant:
                     variant.hgvs_transcript_variant = \
@@ -1414,6 +1522,13 @@ class Mixin(vvMixinConverters.Mixin):
                             variant.hgvs_refseqgene_variant.format({'max_ref_length': 0})
                 else:
                     variant.hgvs_refseqgene_variant = ''
+                hgd = "hgvs_genomic_description"
+                for gen in  variant.primary_assembly_loci.keys():
+                    variant.primary_assembly_loci[gen][hgd] = \
+                        variant.primary_assembly_loci[gen][hgd].format({'max_ref_length': 0})
+                for loc in variant.alt_genomic_loci:
+                    for gen in loc.keys():
+                        loc[gen][hgd] = loc[gen][hgd].format({'max_ref_length': 0})
 
                 # Add expanded repeat information
                 logger.info(f"expanded repeat is {variant.expanded_repeat}")
@@ -1546,6 +1661,8 @@ class Mixin(vvMixinConverters.Mixin):
     def gene2transcripts(self, query, validator=False, bypass_web_searches=False, select_transcripts=None,
                          transcript_set="refseq", genome_build=None, batch_output=False, bypass_genomic_spans=False,
                          lovd_syntax_check=False):
+
+        logger.info(f"Incoming gene2transcripts query: {query}")
 
         try:
             gene_symbols = json.loads(query)

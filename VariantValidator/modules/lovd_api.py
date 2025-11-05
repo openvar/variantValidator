@@ -10,7 +10,10 @@ class LovdApiFlowException(Exception):
 
 def run_lovd_checker_cli(variant, is_a_gene=False):
     """Runs the LOVD syntax checker via CLI."""
-    base_url = "https://api.lovd.nl/v2/checkHGVS"
+    if is_a_gene is False:
+        base_url = "https://api.lovd.nl/v2/checkHGVS"
+    else:
+        base_url = "https://api.lovd.nl/v2/checkGene"
     url = f"{base_url}/{variant}"
 
     logger.info(f"Calling LOVD CLI with: {variant}")
@@ -27,7 +30,10 @@ def run_lovd_checker_cli(variant, is_a_gene=False):
 
 def run_lovd_checker_web(variant_description, is_a_gene=False):
     """Runs the LOVD syntax checker via the web API."""
-    base_url = "https://api.lovd.nl/v2/checkHGVS"
+    if is_a_gene is False:
+        base_url = "https://api.lovd.nl/v2/checkHGVS"
+    else:
+        base_url = "https://api.lovd.nl/v2/checkGene"
     url = f"{base_url}/{variant_description}"
 
     logger.info(f"Calling LOVD API with: {variant_description}")

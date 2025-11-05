@@ -24,11 +24,6 @@ logger = logging.getLogger(__name__)
 
 LO_CACHE = {}
 
-def mystr(hgvs_nucleotide):
-    hgvs_nucleotide_refless = hgvs_nucleotide.format({'max_ref_length': 0})
-    return hgvs_nucleotide_refless
-
-
 def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, validator,
              specify_tx=False, liftover_level=False, g_to_g=False, gap_map=False, vfo=False,
              specified_tx_variant=False, genomic_data_w_vcf=False, force_pyliftover=False):
@@ -129,7 +124,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                                               reverse_normalizer, validator.sf)
         lifted_response[build_from.lower()] = {}
         lifted_response[build_from.lower()][hgvs_genomic.ac] = {
-                'hgvs_genomic_description': mystr(hgvs_genomic),
+                'hgvs_genomic_description': hgvs_genomic,
                 'vcf': {
                     'chr': from_vcf[from_set],
                     'pos': str(from_vcf['pos']),
@@ -139,7 +134,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                 }
         lifted_response[alt_build_from.lower()] = {}
         lifted_response[alt_build_from.lower()][hgvs_genomic.ac] = {
-                'hgvs_genomic_description': mystr(hgvs_genomic),
+                'hgvs_genomic_description': hgvs_genomic,
                 'vcf': {
                     'chr': from_vcf[alt_from_set],
                     'pos': str(from_vcf['pos']),
@@ -249,12 +244,13 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                     # Gap compensation edit for the VariantFormatter pathway
                     if gap_map is not False and build_from not in val:
                         # Set genome assembly for gap mapping
-                        get_assembly = seq_data.supported_for_mapping(key, "GRCh37")
-                        if get_assembly is True:
-                            map_to_assembly = "GRCh37"
                         get_assembly = seq_data.supported_for_mapping(key, "GRCh38")
                         if get_assembly is True:
                             map_to_assembly = "GRCh38"
+                        else:
+                            get_assembly = seq_data.supported_for_mapping(key, "GRCh37")
+                            if get_assembly is True:
+                                map_to_assembly = "GRCh37"
 
                         # Reset HGVS Alt Genomic
                         no_norm_evm = AssemblyMapper(
@@ -312,7 +308,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                     # Add the to build dictionaries
                     if val[1] == build_to:
                         lifted_response[build_to.lower()][hgvs_alt_genomic.ac] = {
-                            'hgvs_genomic_description': mystr(hgvs_alt_genomic),
+                            'hgvs_genomic_description': hgvs_alt_genomic,
                             'vcf': {
                                 'chr': alt_vcf[to_set],
                                 'pos': str(alt_vcf['pos']),
@@ -320,9 +316,10 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                                 'alt': alt_vcf['alt']
                             }
                         }
+                        added_data = True
                     if val[2] == alt_build_to:
                         lifted_response[alt_build_to.lower()][hgvs_alt_genomic.ac] = {
-                            'hgvs_genomic_description': mystr(hgvs_alt_genomic),
+                            'hgvs_genomic_description': hgvs_alt_genomic,
                             'vcf': {
                                 'chr': alt_vcf[alt_to_set],
                                 'pos': str(alt_vcf['pos']),
@@ -330,6 +327,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                                 'alt': alt_vcf['alt']
                             }
                         }
+                        added_data = True
                     # Overwrite build from info as PAR may require additional info
                     if val[2] == alt_build_from or val[1] == build_from:
                         alt_vcf_b = hgvs_utils.report_hgvs2vcf(
@@ -339,7 +337,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                                 validator.sf)
                     if val[1] == build_from:
                         lifted_response[build_from.lower()][hgvs_alt_genomic.ac] = {
-                            'hgvs_genomic_description': mystr(hgvs_alt_genomic),
+                            'hgvs_genomic_description': hgvs_alt_genomic,
                             'vcf': {
                                 'chr': alt_vcf_b[to_set],
                                 'pos': str(alt_vcf_b['pos']),
@@ -349,7 +347,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                         }
                     if val[2] == alt_build_from:
                         lifted_response[alt_build_from.lower()][hgvs_alt_genomic.ac] = {
-                            'hgvs_genomic_description': mystr(hgvs_alt_genomic),
+                            'hgvs_genomic_description': hgvs_alt_genomic,
                             'vcf': {
                                 'chr': alt_vcf_b[alt_to_set],
                                 'pos': str(alt_vcf_b['pos']),
@@ -366,8 +364,6 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                         pass
                     except NameError:
                         pass
-
-                    added_data = True
 
                 except vvhgvs.exceptions.HGVSError:
                     continue
@@ -563,7 +559,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                             if mito_build is False:
                                 if build.startswith('GRC'):
                                     lifted_response[build_to.lower()][hgvs_lifted.ac] = {
-                                        'hgvs_genomic_description': mystr(hgvs_lifted),
+                                        'hgvs_genomic_description': hgvs_lifted,
                                         'vcf': {'chr': vcf_dict['grc_chr'],
                                                 'pos': str(vcf_dict['pos']),
                                                 'ref': vcf_dict['ref'],
@@ -572,7 +568,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                                     }
 
                                     lifted_response[alt_build_to.lower()][hgvs_lifted.ac] = {
-                                        'hgvs_genomic_description': mystr(hgvs_lifted),
+                                        'hgvs_genomic_description': hgvs_lifted,
                                         'vcf': {'chr': vcf_dict['ucsc_chr'],
                                                 'pos': str(vcf_dict['pos']),
                                                 'ref': vcf_dict['ref'],
@@ -582,7 +578,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
 
                                 else:
                                     lifted_response[build_to.lower()][hgvs_lifted.ac] = {
-                                        'hgvs_genomic_description': mystr(hgvs_lifted),
+                                        'hgvs_genomic_description': hgvs_lifted,
                                         'vcf': {'chr': vcf_dict['ucsc_chr'],
                                                 'pos': str(vcf_dict['pos']),
                                                 'ref': vcf_dict['ref'],
@@ -591,7 +587,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                                     }
 
                                     lifted_response[alt_build_to.lower()][hgvs_lifted.ac] = {
-                                        'hgvs_genomic_description': mystr(hgvs_lifted),
+                                        'hgvs_genomic_description': hgvs_lifted,
                                         'vcf': {'chr': vcf_dict['grc_chr'],
                                                 'pos': str(vcf_dict['pos']),
                                                 'ref': vcf_dict['ref'],
@@ -602,7 +598,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                             else:
                                 if mito_build.startswith('GRC'):
                                     lifted_response[mito_build.lower()][hgvs_lifted.ac] = {
-                                        'hgvs_genomic_description': mystr(hgvs_lifted),
+                                        'hgvs_genomic_description': hgvs_lifted,
                                         'vcf': {'chr': vcf_dict['grc_chr'],
                                                 'pos': str(vcf_dict['pos']),
                                                 'ref': vcf_dict['ref'],
@@ -612,7 +608,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
 
                                     if lifted_response["grch38"] == {}:
                                         lifted_response["grch38"][hgvs_lifted.ac] = {
-                                            'hgvs_genomic_description': mystr(hgvs_lifted),
+                                            'hgvs_genomic_description': hgvs_lifted,
                                             'vcf': {'chr': vcf_dict['grc_chr'],
                                                     'pos': str(vcf_dict['pos']),
                                                     'ref': vcf_dict['ref'],
@@ -620,7 +616,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                                                     }
                                         }
                                         lifted_response["hg38"][hgvs_lifted.ac] = {
-                                            'hgvs_genomic_description': mystr(hgvs_lifted),
+                                            'hgvs_genomic_description': hgvs_lifted,
                                             'vcf': {'chr': 'chrM',
                                                     'pos': str(vcf_dict['pos']),
                                                     'ref': vcf_dict['ref'],
@@ -630,7 +626,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
 
                                 else:
                                     lifted_response[mito_build.lower()][hgvs_lifted.ac] = {
-                                        'hgvs_genomic_description': mystr(hgvs_lifted),
+                                        'hgvs_genomic_description': hgvs_lifted,
                                         'vcf': {'chr': vcf_dict['ucsc_chr'],
                                                 'pos': str(vcf_dict['pos']),
                                                 'ref': vcf_dict['ref'],

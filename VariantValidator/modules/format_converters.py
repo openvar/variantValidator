@@ -732,28 +732,20 @@ def convert_expanded_repeat(my_variant, validator):
         if not has_ex_repeat:
             return False
 
-    if my_variant.quibble != my_variant.expanded_repeat["variant"]:
+    if my_variant.quibble != str(my_variant.expanded_repeat["variant"]):
         if re.search("\d+_", my_variant.quibble):
             my_variant.warnings.append(f"ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly"
                                        f" in the submitted description {my_variant.quibble}. The corrected format"
-                                       f" would be {my_variant.expanded_repeat['variant'].split('[')[0]}"
+                                       f" would be {str(my_variant.expanded_repeat['variant']).split('[')[0]}"
                                        f"[int], where int requires you to update the number of repeats")
             return True
         else:
             my_variant.warnings.append(f"ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly"
                                        f" in the submitted description {my_variant.quibble}. The corrected description is "
-                                       f"{my_variant.expanded_repeat['variant']}")
-    ins_bases = (my_variant.expanded_repeat["repeat_sequence"] *
-                 int(my_variant.expanded_repeat["copy_number"]))
-    start_pos, _sep, end_pos = my_variant.expanded_repeat['position'].partition('_')
+                                       f"{str(my_variant.expanded_repeat['variant'])}")
 
-    repeat_to_delins = hgvs_delins_parts_to_hgvs_obj(
-            my_variant.expanded_repeat['reference'],
-            my_variant.expanded_repeat['prefix'],
-            start_pos,
-            my_variant.expanded_repeat['reference_sequence_bases'],
-            ins_bases,
-            end=end_pos)
+    repeat_to_delins = copy.deepcopy(my_variant.expanded_repeat["variant"])
+    repeat_to_delins.posedit.expanded_rep = False
 
     logger.info(f"Expanded repeat to delins raw: {repeat_to_delins}")
 

@@ -106,6 +106,12 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
     """
     If mapping to transcripts has been unsuccessful, provide relevant details
     """
+    # Keep error messages consistent with later by pre-storing
+    no_tx_found_error = (
+        "No individual transcripts have been identified that fully overlap the "
+        "described variation in the genomic sequence. Large variants might span"
+        " one or more genes and are currently only described at the genome (g.)"
+        " level.")
     if len(rel_var) == 0:
 
         # Check for NG_
@@ -117,12 +123,10 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
             try:
                 refseqgene_data = refseqgene_data[0]
             except IndexError:
-                error = ('No transcripts found that fully overlap the described variation in the genomic '
-                         'sequence')
                 # set output type flag
                 variant.output_type_flag = 'intergenic'
                 # set genomic and where available RefSeqGene outputs
-                variant.warnings.append(error)
+                variant.warnings.append(no_tx_found_error)
                 error = 'Mapping unavailable for RefSeqGene ' + str(variant.hgvs_formatted) + \
                         ' using alignment method = ' + validator.alt_aln_method
                 variant.warnings.append(error)
@@ -177,8 +181,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                                  f'fully overlap the described variation in '
                                  f'the genomic sequence. Try selecting one of the default options')
                     else:
-                        error = ('No transcripts found that fully overlap the described variation in the genomic '
-                                 'sequence')
+                        error = no_tx_found_error
                     # set output type flag
                     variant.output_type_flag = 'intergenic'
                     # set genomic and where available RefSeqGene outputs
