@@ -297,10 +297,6 @@ class TandemRepeats:
         logger.info(
             f"Checking range given: "\
             f"check_positions_given({self.repeat_sequence}, "\
-            f"{self.variant_position}, {self.copy_number})"
-        )
-        start,end = self.variant_position.split("_")
-        reference_repeat_sequence = validator.sf.fetch_seq(self.reference, int(start)-1, int(end))
             f"{str(self.variant_position)}, {self.copy_number})"
         )
         ref = self.reference

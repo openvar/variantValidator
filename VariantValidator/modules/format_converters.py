@@ -747,8 +747,6 @@ def convert_expanded_repeat(my_variant, validator):
     repeat_to_delins = copy.deepcopy(my_variant.expanded_repeat["variant"])
     repeat_to_delins.posedit.expanded_rep = False
 
-    logger.info(f"Expanded repeat to delins raw: {repeat_to_delins}")
-
     try:
         repeat_to_delins = my_variant.hn.normalize(repeat_to_delins)
     except vvhgvs.exceptions.HGVSUnsupportedOperationError:
