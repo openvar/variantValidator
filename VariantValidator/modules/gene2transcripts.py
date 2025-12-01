@@ -35,6 +35,8 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
     # submitted
     submitted = copy.copy(query)
 
+    logger.info("gene2transcript query: %s", query)
+
     # List of transcripts
     sel_tx_lst = False
     if select_transcripts is not None:
@@ -48,6 +50,8 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
     else:
         # Remove whitespace
         query = ''.join(query.split())
+
+        logger.info(f"gene2transcript query white space removed: {query}")
 
         try:
             query = int(query)

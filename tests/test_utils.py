@@ -2,6 +2,8 @@ from unittest import TestCase
 from VariantValidator.modules import utils
 import vvhgvs.parser
 import json
+from unittest.mock import patch, MagicMock
+import requests
 
 
 class TestHGNCRest(TestCase):
@@ -416,6 +418,171 @@ class TestHGVSdup2indel(TestCase):
         output = utils.hgvs_dup2indel(hgvsseq)
         self.assertIsInstance(output, str)
         self.assertEqual(output, 'NM_015120.4:c.34_34delGAinsGAGA')
+
+class TestEnsemblRest(TestCase):
+
+    @patch('VariantValidator.modules.utils.requests.get')
+    def test_successful_request_grch38(self, mock_get):
+        # Mock a successful JSON response
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {'id': 'ENST00000380152', 'gene': 'BRCA2'}
+        mock_get.return_value = mock_response
+
+        result = utils.ensembl_rest('ENST00000380152.4', '/lookup/id/', 'GRCh38')
+        self.assertEqual(result['record'], {'id': 'ENST00000380152', 'gene': 'BRCA2'})
+        self.assertEqual(result['error'], 'false')
+
+        # Ensure the request URL is correctly formed without options
+        mock_get.assert_called_once()
+        called_url = mock_get.call_args[0][0]
+        self.assertTrue(called_url.startswith('https://rest.ensembl.org/lookup/id/ENST00000380152'))
+
+    @patch('VariantValidator.modules.utils.requests.get')
+    def test_successful_request_grch37_with_options(self, mock_get):
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {'id': 'ENST00000380152', 'gene': 'BRCA2'}
+        mock_get.return_value = mock_response
+
+        result = utils.ensembl_rest(
+            'ENST00000380152.4',
+            '/lookup/id/',
+            'GRCh37',
+            options='expand=1'
+        )
+        self.assertEqual(result['record'], {'id': 'ENST00000380152', 'gene': 'BRCA2'})
+        self.assertEqual(result['error'], 'false')
+        mock_get.assert_called_once()
+        called_url = mock_get.call_args[0][0]
+        self.assertIn('expand=1', called_url)
+        self.assertTrue(called_url.startswith('https://grch37.rest.ensembl.org/lookup/id/ENST00000380152'))
+
+    @patch('VariantValidator.modules.utils.requests.get')
+    def test_request_error(self, mock_get):
+        # Simulate a failed request
+        mock_response = MagicMock()
+        mock_response.status_code = 500
+        mock_get.return_value = mock_response
+
+        result = utils.ensembl_rest('ENST00000380152.4', '/lookup/id/', 'GRCh38')
+        self.assertTrue(result['error'].startswith('Problem encountered while connecting Ensembl REST'))
+        self.assertEqual(result['record'], '')
+
+class TestEnsemblTark(TestCase):
+
+    @patch('VariantValidator.modules.utils.requests.get')
+    def test_successful_request(self, mock_get):
+        # Mock a successful JSON response
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {'id': 'ENST00000380152', 'gene': 'BRCA2'}
+        mock_get.return_value = mock_response
+
+        result = utils.ensembl_tark('ENST00000380152.4', '/lookup/id/')
+        self.assertEqual(result['record'], {'id': 'ENST00000380152', 'gene': 'BRCA2'})
+        self.assertEqual(result['error'], 'false')
+
+        # Ensure the request URL is correctly formed
+        mock_get.assert_called_once()
+        called_url = mock_get.call_args[0][0]
+        self.assertTrue(called_url.startswith('https://tark.ensembl.org/lookup/id/'))
+        self.assertIn('stable_id_with_version=ENST00000380152.4', called_url)
+
+    @patch('VariantValidator.modules.utils.requests.get')
+    def test_request_error_status(self, mock_get):
+        # Simulate a failed request (non-200)
+        mock_response = MagicMock()
+        mock_response.status_code = 500
+        mock_get.return_value = mock_response
+
+        result = utils.ensembl_tark('ENST00000380152.4', '/lookup/id/')
+        self.assertTrue(result['error'].startswith('Problem encountered while connecting Ensembl REST'))
+        self.assertEqual(result['record'], '')
+
+    @patch('VariantValidator.modules.utils.requests.get')
+    def test_request_invalid_schema(self, mock_get):
+        # Simulate requests raising InvalidSchema
+        mock_get.side_effect = requests.exceptions.InvalidSchema("Invalid schema error")
+
+        result = utils.ensembl_tark('ENST00000380152.4', '/lookup/id/')
+        self.assertEqual(result['error'], "Invalid schema error")
+        self.assertEqual(result['record'], '')
+
+class TestRemoveReferenceString(TestCase):
+
+    def test_deletion(self):
+        input_var = 'NM_000123.4:c.34delG'
+        output = utils.remove_reference_string(input_var)
+        self.assertEqual(output, 'NM_000123.4:c.34del')
+
+    def test_inversion(self):
+        input_var = 'NM_000123.4:c.34invAT'
+        output = utils.remove_reference_string(input_var)
+        self.assertEqual(output, 'NM_000123.4:c.34inv')
+
+    def test_no_change(self):
+        input_var = 'NM_000123.4:c.34C>T'
+        output = utils.remove_reference_string(input_var)
+        self.assertEqual(output, input_var)
+
+    def test_multiple_patterns(self):
+        # Only last matching pattern should be changed
+        input_var = 'NM_000123.4:c.34delAinsT'
+        output = utils.remove_reference_string(input_var)
+        self.assertEqual(output, 'NM_000123.4:c.34delinsT')
+
+class TestUserInput(TestCase):
+
+    def test_g_variant_no_brackets(self):
+        query = "NM_000123.4:g.123A>T"
+        result = utils.user_input(query)
+        self.assertEqual(result, {'variant': query, 'type': ':g.'})
+
+    def test_g_variant_with_brackets(self):
+        query = "NM_000123.4:g.(gene)123A>T"
+        result = utils.user_input(query)
+        self.assertEqual(result, {'variant': "NM_000123.4:g.123A>T", 'type': ':g.'})
+
+    def test_c_variant(self):
+        query = "NM_000123.4:c.34C>T"
+        result = utils.user_input(query)
+        self.assertEqual(result, {'variant': query, 'type': ':c.'})
+
+    def test_r_variant(self):
+        query = "NM_000123.4:r.34C>U"
+        result = utils.user_input(query)
+        self.assertEqual(result, {'variant': query, 'type': ':r.'})
+
+    def test_n_variant(self):
+        query = "NM_000123.4:n.34C>T"
+        result = utils.user_input(query)
+        self.assertEqual(result, {'variant': query, 'type': ':n.'})
+
+    def test_p_variant(self):
+        query = "NP_000123.1:p.Val12Gly"
+        result = utils.user_input(query)
+        self.assertEqual(result, {'variant': query, 'type': ':p.'})
+
+    def test_m_variant(self):
+        query = "NC_000123.1:m.123A>G"
+        result = utils.user_input(query)
+        self.assertEqual(result, {'variant': query, 'type': ':m.'})
+
+    def test_est_variant(self):
+        query = "1:234"
+        result = utils.user_input(query)
+        self.assertEqual(result, {'variant': query, 'type': 'est'})
+
+    def test_invalid_variant(self):
+        query = "unknown_variant"
+        result = utils.user_input(query)
+        self.assertEqual(result, 'invalid')
+
+    def test_whitespace_stripping(self):
+        query = "  NM_000123.4:c.34C>T  "
+        result = utils.user_input(query)
+        self.assertEqual(result, {'variant': "NM_000123.4:c.34C>T", 'type': ':c.'})
 
 # <LICENSE>
 # Copyright (C) 2016-2025 VariantValidator Contributors
