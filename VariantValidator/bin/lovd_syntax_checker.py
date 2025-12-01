@@ -84,14 +84,6 @@ def run_hgvs_checker(variant, is_a_gene=False):
                 raise RuntimeError(f"Unexpected error in HGVS Checker after {MAX_RETRIES} retries: {e}")
             time.sleep(RETRY_DELAY)
 
-if __name__ == "__main__":
-    test_variant = "c.100del"
-    output = run_hgvs_checker(test_variant)
-    print(output)
-    test_variant = "Dmd\\"
-    output = run_hgvs_checker(test_variant)
-    print(output)
-
 
 # <LICENSE>
 # Copyright (C) 2016-2025 VariantValidator Contributors

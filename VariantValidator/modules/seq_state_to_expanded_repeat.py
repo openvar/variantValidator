@@ -345,7 +345,7 @@ def quick_testfunc():
     print(result)
     return result
 
-if __name__ == '__main__': quick_testfunc()
+# if __name__ == '__main__': quick_testfunc()
 
 
 # <LICENSE>
