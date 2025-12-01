@@ -2652,9 +2652,13 @@ class Mixin(vvMixinInit.Mixin):
                         latest_version[accession]["version"] = version
                         latest_version[accession]["list"] = tx_id[1:]
                     else:
-                        if int(version) > int(latest_version[accession]["version"]):
-                            latest_version[accession]["version"] = version
-                            latest_version[accession]["list"] = tx_id[1:]
+                        try:
+                            if int(version) > int(latest_version[accession]["version"]):
+                                latest_version[accession]["version"] = version
+                                latest_version[accession]["list"] = tx_id[1:]
+                        except ValueError:
+                            logger.info(f"Transcript version error detected in {accession}.{version}")
+                            continue
 
             # Recreate list with only latest versions
             rts = []
