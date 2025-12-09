@@ -257,6 +257,13 @@ def pre_parsing_global_common_mistakes(my_variant):
 
         # overwrite the current quibble for now instead of re-submiting for validation
         my_variant.quibble=vt_in_full
+
+    # Ranges in substitutions
+    if ">" in my_variant.quibble and re.search("\d+_", my_variant.quibble):
+        my_variant.warnings.append(f"VariantSyntaxError: Base substitution (>) "
+                                   f"submitted with a reference sequence range in {my_variant.quibble}")
+        return True
+
     return False
 
 def refseq_common_mistakes(variant):

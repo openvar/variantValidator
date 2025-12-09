@@ -359,21 +359,6 @@ class TestExonNumbering(unittest.TestCase):
             }
         }
 
-    def test_10c(self):
-        results = self.vv.validate("NM_001354304.1:c.-96+5_-95-5A>G", 'GRCh38', 'all').format_as_dict(test=True)
-        results = results['NM_001354304.1:c.-96+6_-95-5del']['variant_exonic_positions']
-        print(results)
-        assert results == {
-            "NC_000012.11": {
-                "end_exon": "1i",
-                "start_exon": "1i"
-            },
-            "NC_000012.12": {
-                "end_exon": "1i",
-                "start_exon": "1i"
-            }
-        }
-
     def test_11(self):
         results = self.vv.validate("NM_058197.4:c.*74-1G>T", 'GRCh38', 'all').format_as_dict(test=True)
         results = results['NM_058197.4:c.*74-1G>T']['variant_exonic_positions']
