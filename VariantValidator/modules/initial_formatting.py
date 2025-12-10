@@ -6,12 +6,17 @@ logger = logging.getLogger(__name__)
 def remove_gene_symbol_from_ref(my_variant, validator):
     try:
     # 1. Requested warnings from https://github.com/openvar/variantValidator/issues/195
+
+        print("YAHOO")
+
         if re.search(r'\(.+?\)', my_variant.quibble.ac):  # Pattern looks for (....)
+            print("YAHOO1111111")
             gene_symbol_query = re.search(r'\(.+?\)', my_variant.quibble.ac).group(0)
             gene_symbol_query = gene_symbol_query.replace('(', '')
             gene_symbol_query = gene_symbol_query.replace(')', '')
             is_it_a_gene = validator.db.get_hgnc_symbol(gene_symbol_query)
-            if is_it_a_gene != 'none':
+            if is_it_a_gene != 'none' or "MT-" in gene_symbol_query:
+                print("YAHOO")
                 warning = ("VariantSyntaxError: Removing redundant gene symbol %s from variant "
                            "description") % is_it_a_gene
                 my_variant.quibble.ac = my_variant.quibble.ac.replace(f'({gene_symbol_query})', '')
@@ -37,6 +42,8 @@ def initial_user_formattng(my_variant, validator):
     In this section of the code we are compiling HGVS errors and providing improved warnings/error
     messages
     """
+
+    print("YAHOO0000000")
 
     # Remove gene symbols that are in parentheses
     remove_gene_symbol_from_ref(my_variant, validator)
