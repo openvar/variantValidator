@@ -439,7 +439,7 @@ class TestWarnings(TestCase):
         print(results)
         assert results['validation_warning_1']['validation_warnings'] == [
             "NM_024649.4:c.1779+7A>G auto-mapped to NM_024649.4:c.*4A>G",
-            "NM_024649.4:c.*4A>G: Variant reference (A) does not agree with reference sequence (C)"
+            "ReferenceMismatchError: NM_024649.4:c.*4A>G: Variant reference (A) does not agree with reference sequence (C)"
         ]
 
     def test_issue_455(self):
@@ -1390,7 +1390,7 @@ class TestVVGapWarnings(TestCase):
         variant = 'NM_006846.4:c.2666+5A>G'
         results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="refseq").format_as_dict(test=True)
         print(results)
-        assert "NM_006846.4:c.2666+5A>G mapped to NC_000005.10:g.148123965A>G: Variant reference (A) does not agree with reference sequence (G)" in results['NM_006846.4:c.2666+5=']['validation_warnings']
+        assert "IntronBaseMismatchWarning: NM_006846.4:c.2666+5A>G mapped to NC_000005.10:g.148123965A>G: Variant reference (A) does not agree with reference sequence (G)" in results['NM_006846.4:c.2666+5=']['validation_warnings']
 
     def test_767b(self):
         variant = 'NM_001354304.1:c.-96+5_-95-5A>G'

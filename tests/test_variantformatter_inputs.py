@@ -41,7 +41,7 @@ class TestVFvariantsAuto(object):
         assert 'NC_000012.11:g.122064777A>C' in results.keys()
         assert results['NC_000012.11:g.122064777A>C']['p_vcf'] is None
         assert results['NC_000012.11:g.122064777A>C']['g_hgvs'] is None
-        assert results['NC_000012.11:g.122064777A>C']['genomic_variant_error'] == 'NC_000012.11:g.122064777A>C: Variant reference (A) does not agree with reference sequence (C)'
+        assert results['NC_000012.11:g.122064777A>C']['genomic_variant_error'] == 'ReferenceMismatchError: NC_000012.11:g.122064777A>C: Variant reference (A) does not agree with reference sequence (C)'
         assert results['NC_000012.11:g.122064777A>C']['hgvs_t_and_p'] is None
 
     def test_variant4(self):
@@ -6585,7 +6585,7 @@ class TestVFvariantsAuto(object):
         assert 'NC_000023.11:g.32503194A>N' in results.keys()
         assert results['NC_000023.11:g.32503194A>N']['p_vcf'] is None
         assert results['NC_000023.11:g.32503194A>N']['g_hgvs'] is None
-        assert results['NC_000023.11:g.32503194A>N']['genomic_variant_error'] == 'NC_000023.11:g.32503194A>N: Variant reference (A) does not agree with reference sequence (C)'
+        assert results['NC_000023.11:g.32503194A>N']['genomic_variant_error'] == 'ReferenceMismatchError: NC_000023.11:g.32503194A>N: Variant reference (A) does not agree with reference sequence (C)'
         assert results['NC_000023.11:g.32503194A>N']['hgvs_t_and_p'] is None
 
     def test_variant235(self):
@@ -6656,7 +6656,7 @@ class TestVFvariantsAuto(object):
         assert 'NC_000023.11:g.32849761C>A' in results.keys()
         assert results['NC_000023.11:g.32849761C>A']['p_vcf'] is None
         assert results['NC_000023.11:g.32849761C>A']['g_hgvs'] is None
-        assert results['NC_000023.11:g.32849761C>A']['genomic_variant_error'] == 'NC_000023.11:g.32849761C>A: Variant reference (C) does not agree with reference sequence (T)'
+        assert results['NC_000023.11:g.32849761C>A']['genomic_variant_error'] == 'ReferenceMismatchError: NC_000023.11:g.32849761C>A: Variant reference (C) does not agree with reference sequence (T)'
         assert results['NC_000023.11:g.32849761C>A']['hgvs_t_and_p'] is None
 
     def test_variant238(self):
