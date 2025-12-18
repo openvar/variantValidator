@@ -1,7 +1,5 @@
 import requests
-import unittest
 from unittest import TestCase
-import subprocess
 from unittest.mock import patch, MagicMock
 from VariantValidator.modules import lovd_api
 from VariantValidator.bin import lovd_syntax_checker

@@ -322,7 +322,7 @@ class TestWarnings(TestCase):
         print(results)
         assert results['validation_warning_1']['validation_warnings'] == [
             "ENST00000318312.12:c.1779+7A>G auto-mapped to ENST00000318312.12:c.*4A>G",
-            "ENST00000318312.12:c.*4A>G: Variant reference (A) does not agree with reference sequence (C)"
+            "ReferenceMismatchError: ENST00000318312.12:c.*4A>G: Variant reference (A) does not agree with reference sequence (C)"
         ]
 
     def test_issue_455(self):

@@ -1301,6 +1301,13 @@ class Mixin(vvMixinConverters.Mixin):
                     except KeyError:
                         pass
 
+                """
+                Update / Remove warnings and add error codes
+
+                The following if statements can be used to amend warnings and add missing error codes using String find
+                or RegEx searches in existing warnings
+                """
+
                 # Remove duplicate warnings
                 variant_warnings = []
                 accession = ''
@@ -1309,8 +1316,17 @@ class Mixin(vvMixinConverters.Mixin):
                 term = str(accession)
                 term_2 = "%s automapped to" % str(hgvs_tx_variant)
                 term_3 = "%s automapped to" % str(hgvs_genomic_variant)
+
                 for vt in variant.warnings:
                     vt = str(vt)
+
+                    # Base mismatch errors
+                    if "does not agree with reference sequence" in vt:
+                        if "mapped to" in vt:
+                            variant_warnings.append(f"IntronBaseMismatchWarning: {vt}")
+                        else:
+                            variant_warnings.append(f"ReferenceMismatchError: {vt}")
+                        continue
 
                     # Update out of bounds error
                     if vt == "start or end or both are beyond the bounds of transcript record":
