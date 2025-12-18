@@ -333,6 +333,23 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                 return True
 
         else:
+            # Incorrect genomic reference base
+            try:
+                check_base = validator.nr_vm.t_to_g(obj, to_g.ac)
+            except vvhgvs.exceptions.HGVSError:
+                pass
+            else:
+                try:
+                    validator.vr.validate(check_base)
+                except vvhgvs.exceptions.HGVSError as e:
+                    if "does not agree with reference sequence" in str(e):
+                        a, b = re.findall(r'\(([GATC]+)\)', str(e))[:2]
+                        if (len(a) == len(b) and
+                                obj.posedit.edit.type == check_base.posedit.edit.type):
+                            error = f"{str(obj)} mapped to {str(e)}"
+                            variant.warnings.append(error)
+                            logger.warning(error)
+
             # Insertions at exon boundaries are miss-handled by vm.g_to_t
             if (obj.posedit.edit.type == 'ins' and
                 obj.posedit.pos.start.offset == 0 and
@@ -342,8 +359,6 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                 formatted_variant = str(obj)
                 out_hgvs_obj = obj
             else:
-                # Normalize was I believe to replace ref. Mapping does this anyway
-                # to_g = variant.hn.normalize(to_g)
                 try:
                     out_hgvs_obj = validator.myevm_g_to_t(variant.evm, to_g, tx_ac)
                     formatted_variant = str(out_hgvs_obj)

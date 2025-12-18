@@ -439,7 +439,7 @@ class TestWarnings(TestCase):
         print(results)
         assert results['validation_warning_1']['validation_warnings'] == [
             "NM_024649.4:c.1779+7A>G auto-mapped to NM_024649.4:c.*4A>G",
-            "NM_024649.4:c.*4A>G: Variant reference (A) does not agree with reference sequence (C)"
+            "ReferenceMismatchError: NM_024649.4:c.*4A>G: Variant reference (A) does not agree with reference sequence (C)"
         ]
 
     def test_issue_455(self):
@@ -1385,6 +1385,18 @@ class TestVVGapWarnings(TestCase):
         results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="refseq").format_as_dict(test=True)
         print(results)
         assert "InvalidVariantError: Variant description KMT2C (T4413) could not be validated by either VariantValidator or the LOVD syntax checker. Please refer to the HGVS nomenclature website at https://hgvs-nomenclature.org/stable/. For additional assistance contact us at https://variantvalidator.org/help/contact/" in results['validation_warning_1']['validation_warnings']
+
+    def test_767a(self):
+        variant = 'NM_006846.4:c.2666+5A>G'
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert "IntronBaseMismatchWarning: NM_006846.4:c.2666+5A>G mapped to NC_000005.10:g.148123965A>G: Variant reference (A) does not agree with reference sequence (G)" in results['NM_006846.4:c.2666+5=']['validation_warnings']
+
+    def test_767b(self):
+        variant = 'NM_001354304.1:c.-96+5_-95-5A>G'
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert "VariantSyntaxError: Base substitution (>) submitted with a reference sequence range in NM_001354304.1:c.-96+5_-95-5A>G" in results['validation_warning_1']['validation_warnings']
 
 # <LICENSE>
 # Copyright (C) 2016-2025 VariantValidator Contributors
