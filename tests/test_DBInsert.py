@@ -115,7 +115,7 @@ def test_update_methods(mixin_instance, mock_db_objects, lastrowid):
         assert mixin_instance.update_db_version('v2.0') == 'true'
 
 # <LICENSE>
-# Copyright (C) 2016-2025 VariantValidator Contributors
+# Copyright (C) 2016-2026 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

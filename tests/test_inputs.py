@@ -31245,9 +31245,14 @@ class TestVariantsAuto(TestCase):
         results = self.vv.validate('chr11:118650341:C:T', 'GRCh37','NM_004397.6').format_as_dict(test=True)
         assert 'NM_004397.6:c.369G>A' in results
 
+    def polyadenylation(self):
+        # Test that it fails for genome mismatch
+        results = self.vv.validate('NM_001424184.1:c.438G>A', 'GRCh38', 'all').format_as_dict(test=True)
+        assert 'NM_001424184.1:c.438G>A' in results
+
 
 # <LICENSE>
-# Copyright (C) 2016-2025 VariantValidator Contributors
+# Copyright (C) 2016-2026 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

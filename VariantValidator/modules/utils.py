@@ -485,7 +485,7 @@ def pro_delins_info(prot_ref_seq, prot_var_seq, in_frame=False):
             return info
 
 
-def translate(ed_seq, cds_start, modified_aa=None, tolerate_no_stop_cds = False):
+def translate(ed_seq, cds_start, modified_aa=None, tolerate_no_stop_cds=False, polyadenylate=False):
     """
     Translate c. reference sequences, including those that have been modified
     must have the CDS in the specified position
@@ -494,6 +494,7 @@ def translate(ed_seq, cds_start, modified_aa=None, tolerate_no_stop_cds = False)
     # Ensure the starting codon is in the correct position
     met = ed_seq[cds_start:cds_start + 3]
     met = met.upper() #this should be redundant with all inputs upper case
+
     """
     >>> mito_table.start_codons
     ['ATT', 'ATC', 'ATA', 'ATG', 'GTG']
@@ -510,6 +511,10 @@ def translate(ed_seq, cds_start, modified_aa=None, tolerate_no_stop_cds = False)
     else:
         use_dict = PROT_TRANSLATION_DICT
         stops = ['TAA', 'TAG', 'TGA']
+
+    # Add Polyadenylation stop codon completing bases to relevant transcripts
+    if polyadenylate is True:
+        coding_sequence = f"{coding_sequence}A"
 
     # Translate
     if len(coding_sequence) % 3:
@@ -682,7 +687,7 @@ class ExonMappingError(Exception):
     pass
 
 # <LICENSE>
-# Copyright (C) 2016-2025 VariantValidator Contributors
+# Copyright (C) 2016-2026 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

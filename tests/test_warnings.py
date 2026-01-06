@@ -1399,7 +1399,7 @@ class TestVVGapWarnings(TestCase):
         assert "VariantSyntaxError: Base substitution (>) submitted with a reference sequence range in NM_001354304.1:c.-96+5_-95-5A>G" in results['validation_warning_1']['validation_warnings']
 
 # <LICENSE>
-# Copyright (C) 2016-2025 VariantValidator Contributors
+# Copyright (C) 2016-2026 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

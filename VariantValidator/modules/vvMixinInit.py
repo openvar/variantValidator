@@ -434,6 +434,7 @@ class Mixin:
                 hgvs_protein = _tot_unc(associated_protein_accession)
             hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
             return hgvs_transcript_to_hgvs_protein
+
         # Need to obtain the cds_start
         inf = self.hdp.get_tx_identity_info(hgvs_transcript.ac)
         cds_start = inf[3]
@@ -459,17 +460,28 @@ class Mixin:
         else:
             modified_aa = None
 
+        # Add Polyadenylation stop codon completing bases to relevant transcripts
+        require_poly_a_completion = ["NM_001424184.1"]
+        if hgvs_transcript.ac in require_poly_a_completion:
+            polyadenylate = True
+        else:
+            polyadenylate = False
+
         # Translate the reference and variant proteins
         try:
-            prot_ref_seq = utils.translate(ref_seq, cds_start, modified_aa)
+            prot_ref_seq = utils.translate(ref_seq, cds_start, modified_aa, polyadenylate=polyadenylate)
         except IndexError:
+            import traceback
+            traceback.print_exc()
             hgvs_transcript_to_hgvs_protein['error'] = \
                 'ProteinTranslationError: Cannot generate a protein without an identifiable in-' +\
                 'frame Termination codon in the reference mRNA sequence, this transcript may be ' +\
-                'subject to nonstop decay'
+                'subject to non-sense mediated decay'
             hgvs_transcript_to_hgvs_protein['hgvs_protein'] = _tot_unc(associated_protein_accession)
             return hgvs_transcript_to_hgvs_protein
         except KeyError:
+            import traceback
+            traceback.print_exc()
             hgvs_transcript_to_hgvs_protein['error'] = \
                 'ProteinTranslationError: Unable to build protein sequence due to a non-CATG ' +\
                 'base included in the reference mRNA sequence, only standard unambiguous bases '+\
@@ -479,7 +491,7 @@ class Mixin:
 
 
         try:
-            prot_var_seq = utils.translate(var_seq, cds_start, modified_aa)
+            prot_var_seq = utils.translate(var_seq, cds_start, modified_aa, polyadenylate=polyadenylate)
         except IndexError:
             hgvs_transcript_to_hgvs_protein['error'] = \
                 'ProteinTranslationError: Cannot generate a protein without an identifiable in-' +\
@@ -859,7 +871,7 @@ class Mixin:
 
 
 # <LICENSE>
-# Copyright (C) 2016-2025 VariantValidator Contributors
+# Copyright (C) 2016-2026 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

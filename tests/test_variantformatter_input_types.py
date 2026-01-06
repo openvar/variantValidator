@@ -23,7 +23,7 @@ class TestVFvariantsInputs(object):
         assert 'NC_000017.11:g.50198002C>A' in results["17:50198002C>A"].keys()
 
 # <LICENSE>
-# Copyright (C) 2016-2025 VariantValidator Contributors
+# Copyright (C) 2016-2026 VariantValidator Contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
