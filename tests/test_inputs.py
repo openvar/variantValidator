@@ -31245,10 +31245,15 @@ class TestVariantsAuto(TestCase):
         results = self.vv.validate('chr11:118650341:C:T', 'GRCh37','NM_004397.6').format_as_dict(test=True)
         assert 'NM_004397.6:c.369G>A' in results
 
-    def polyadenylation(self):
+    def polyadenylation_a(self):
         # Test that it fails for genome mismatch
         results = self.vv.validate('NM_001424184.1:c.438G>A', 'GRCh38', 'all').format_as_dict(test=True)
         assert 'NM_001424184.1:c.438G>A' in results
+
+    def polyadenylation_b(self):
+        # Test that it fails for genome mismatch
+        results = self.vv.validate('2:g.46707878_46707879insGCAGCGGGAGCG', 'GRCh37', 'mane_select').format_as_dict(test=True)
+        assert 'NM_001145051.2:c.457_458insGGGAGCGGCAGC' in results
 
 
 # <LICENSE>

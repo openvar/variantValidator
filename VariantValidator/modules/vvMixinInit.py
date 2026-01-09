@@ -15,6 +15,7 @@ import vvhgvs.edit
 import vvhgvs.normalizer
 from vvhgvs.location import AAPosition, Interval
 from vvhgvs.edit import AARefAlt, AAExt, Dup
+from vvhgvs.utils import unusual_transcripts
 from Bio.Seq import Seq
 
 import re
@@ -318,7 +319,6 @@ class Mixin:
                 or (1 <= hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset
                     == 0)) and '*' not in str(hgvs_transcript.posedit.pos):
                 residue_one = self.sf.fetch_seq(associated_protein_accession, start_i=1 - 1, end_i=1)
-                #threed_residue_one = utils.one_to_three(residue_one) # was (MET1?) but this can change
                 hgvs_protein = _fb_unc(associated_protein_accession,residue_one)
             else:
                 try:
@@ -461,8 +461,8 @@ class Mixin:
             modified_aa = None
 
         # Add Polyadenylation stop codon completing bases to relevant transcripts
-        require_poly_a_completion = ["NM_001424184.1"]
-        if hgvs_transcript.ac in require_poly_a_completion:
+        require_A = unusual_transcripts.polyadnylate()
+        if hgvs_transcript.ac in require_A:
             polyadenylate = True
         else:
             polyadenylate = False
