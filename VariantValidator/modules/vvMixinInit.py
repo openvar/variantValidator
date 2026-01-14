@@ -15,7 +15,6 @@ import vvhgvs.edit
 import vvhgvs.normalizer
 from vvhgvs.location import AAPosition, Interval
 from vvhgvs.edit import AARefAlt, AAExt, Dup
-from vvhgvs.utils import unusual_transcripts
 from Bio.Seq import Seq
 
 import re
@@ -460,23 +459,16 @@ class Mixin:
         else:
             modified_aa = None
 
-        # Add Polyadenylation stop codon completing bases to relevant transcripts
-        require_A = unusual_transcripts.polyadnylate()
-        if hgvs_transcript.ac in require_A:
-            polyadenylate = True
-        else:
-            polyadenylate = False
-
         # Translate the reference and variant proteins
         try:
-            prot_ref_seq = utils.translate(ref_seq, cds_start, modified_aa, polyadenylate=polyadenylate)
+            prot_ref_seq = utils.translate(ref_seq, cds_start, modified_aa)
         except IndexError:
             import traceback
             traceback.print_exc()
             hgvs_transcript_to_hgvs_protein['error'] = \
                 'ProteinTranslationError: Cannot generate a protein without an identifiable in-' +\
                 'frame Termination codon in the reference mRNA sequence, this transcript may be ' +\
-                'subject to non-sense mediated decay'
+                'subject to non-stop mediated decay'
             hgvs_transcript_to_hgvs_protein['hgvs_protein'] = _tot_unc(associated_protein_accession)
             return hgvs_transcript_to_hgvs_protein
         except KeyError:
@@ -491,12 +483,12 @@ class Mixin:
 
 
         try:
-            prot_var_seq = utils.translate(var_seq, cds_start, modified_aa, polyadenylate=polyadenylate)
+            prot_var_seq = utils.translate(var_seq, cds_start, modified_aa)
         except IndexError:
             hgvs_transcript_to_hgvs_protein['error'] = \
                 'ProteinTranslationError: Cannot generate a protein without an identifiable in-' +\
                 'frame Termination codon in the variant mRNA sequence, this transcript may be ' +\
-                'subject to nonstop decay'
+                'subject to non-stop decay'
             hgvs_protein = _tot_unc(associated_protein_accession)
             hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
             return hgvs_transcript_to_hgvs_protein
