@@ -485,7 +485,7 @@ def pro_delins_info(prot_ref_seq, prot_var_seq, in_frame=False):
             return info
 
 
-def translate(ed_seq, cds_start, modified_aa=None, tolerate_no_stop_cds=False, polyadenylate=False):
+def translate(ed_seq, cds_start, modified_aa=None, tolerate_no_stop_cds=False):
     """
     Translate c. reference sequences, including those that have been modified
     must have the CDS in the specified position
@@ -512,10 +512,6 @@ def translate(ed_seq, cds_start, modified_aa=None, tolerate_no_stop_cds=False, p
         use_dict = PROT_TRANSLATION_DICT
         stops = ['TAA', 'TAG', 'TGA']
 
-    # Add Polyadenylation stop codon completing bases to relevant transcripts
-    if polyadenylate is True:
-        coding_sequence = f"{coding_sequence}A"
-
     # Translate
     if len(coding_sequence) % 3:
         last_codon_end = int(len(coding_sequence)/3) * 3
@@ -529,7 +525,13 @@ def translate(ed_seq, cds_start, modified_aa=None, tolerate_no_stop_cds=False, p
             break
     if translation[-1] != '*':
         if not tolerate_no_stop_cds:
-            raise IndexError('No stop CDS')
+            # Add Polyadenylation stop codon completing bases to relevant
+            # transcripts
+            spare_end = len(coding_sequence) % 3
+            if spare_end and coding_sequence[-spare_end:] in ['T','TA']:
+                translation.append('*')
+            else:
+                raise IndexError('No stop CDS')
         translation.append('X')
 
     return "".join(translation)

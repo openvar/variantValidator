@@ -1,0 +1,4 @@
+# Ignore all files and subdirectories
+*
+# But make an exception for just this .gitignore file
+!.gitignore
