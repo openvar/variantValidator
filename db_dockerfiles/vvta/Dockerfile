@@ -14,7 +14,7 @@ RUN apt-get update && \
 RUN echo "shared_buffers = 2GB" > /docker-entrypoint-initdb.d/postgresql.conf
 
 # Step 1: Download the file
-RUN wget https://www528.lamp.le.ac.uk/vvdata/vvta/vvta_2025_02_no_seq.sql.gz -O input_file.sql.gz
+RUN wget https://data.variantvalidator.org/vvdata/vvta/vvta_2025_02_no_seq.sql.gz -O input_file.sql.gz
 
 # Step 2: Extract the gzipped file
 RUN gzip -dq input_file.sql.gz

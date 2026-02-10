@@ -140,10 +140,10 @@ Where:
 
 Download and our pre-populated database to MySQL as follows. 
 
-***Essential Step: check [here](https://www528.lamp.le.ac.uk/vvdata/validator/) and make sure you download and install the most up-to-date version***
+***Essential Step: check [here](https://data.variantvalidator.org/vvdata/validator/) and make sure you download and install the most up-to-date version***
 
 ```bash
-$ wget https://www528.lamp.le.ac.uk/vvdata/validator/validator_2022_04.sql.gz
+$ wget https://data.variantvalidator.org/vvdata/validator/validator_2022_04.sql.gz
 $ gunzip validator_2022_04.sql.gz
 $ mysql validator < validator_2022_04.sql -u USER -p
 ```
@@ -156,13 +156,13 @@ If you wish to test your installation using pytest (see below) we recommend that
 
 VariantValidator requires a local SeqRepo database. The seqrepo package has already been installed into the virtual environment, but you'll need to download an actual seqrepo database. This can go anywhere on your system drive.
 
-***Essential Step: check [here](https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/) and make sure you download and install the most up-to-date version where the required file is
+***Essential Step: check [here](https://data.variantvalidator.org/vvdata/vv_seqrepo/) and make sure you download and install the most up-to-date version where the required file is
  e.g. VV_SR_2021_2.tar and the numbers indicate the creation date i.e. 2021_02 = February 2021***
 
 ```
 $ mkdir /path/to/seqrepo
 $ cd /path/to/seqrepo
-$ wget https://www528.lamp.le.ac.uk/vvdata/vv_seqrepo/VV_SR_2022_02.tar
+$ wget https://data.variantvalidator.org/vvdata/vv_seqrepo/VV_SR_2022_02.tar
 $ tar -xvf VV_SR_2022_02.tar
 $ rm VV_SR_2022_02.tar
 ```
@@ -197,10 +197,10 @@ Where:
 
 To fill this database, download the gzipped uta genetics database, and upload it into psql.
 
-***Essential Step: check [here](https://www528.lamp.le.ac.uk/vvdata/vvta/) and make sure you download and install the most up-to-date version***
+***Essential Step: check [here](https://data.variantvalidator.org/vvdata/vvta/) and make sure you download and install the most up-to-date version***
 
 ```
-$ wget --output-document=VVTA_2022_02.noseq.sql.gz https://www528.lamp.le.ac.uk/vvdata/vvta/VVTA_2022_02_noseq.sql.gz
+$ wget --output-document=VVTA_2022_02.noseq.sql.gz https://data.variantvalidator.org/vvdata/vvta/VVTA_2022_02_noseq.sql.gz
 $ gzip -cdq VVTA_2022_02.noseq.psql.gz | psql -U <USER> -v ON_ERROR_STOP=0 -d vvta -Eae
 ```
 
