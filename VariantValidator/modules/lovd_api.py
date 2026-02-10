@@ -22,6 +22,7 @@ def run_lovd_checker_cli(variant, is_a_gene=False):
         result = {"data": [result]}
         result["url"] = url
         result["version"] = result["data"][0]["metadata"]["library_version"]
+        logger.info(f"Called LOVD CLI successfully with: {variant}")
         return result  # Ensure it returns a dictionary
     except Exception as e:
         logger.error(f"Error running LOVD checker CLI: {e}")
@@ -46,6 +47,7 @@ def run_lovd_checker_web(variant_description, is_a_gene=False):
         json_data = response.json()
         json_data["url"] = url
         json_data["version"] = json_data["versions"]["library_version"]
+        logger.info(f"Called LOVD Web API successfully with: {variant_description}")
         return remove_double_quotes(json_data)
     except requests.RequestException as e:
         return {"lovd_api_error": f"Request failed: {e}"}
