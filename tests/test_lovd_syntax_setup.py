@@ -64,15 +64,34 @@ def test_download_file_failure(reload_setup_module):
 
 
 def test_subprocess_failure_warning(reload_setup_module):
-    """Test subprocess.CalledProcessError is caught and warning printed."""
+    """Test subprocess.CalledProcessError is caught, retried, and warning printed."""
 
-    with patch("VariantValidator.bin.setup_lovd_syntax_checker.subprocess.run", side_effect=subprocess.CalledProcessError(1, "php")), \
-         patch("builtins.print") as mock_print, \
-         patch("VariantValidator.bin.setup_lovd_syntax_checker.os.makedirs"), \
-         patch("VariantValidator.bin.setup_lovd_syntax_checker.urllib.request.urlretrieve"), \
-         patch("VariantValidator.bin.setup_lovd_syntax_checker.os.chmod"):
+    with patch(
+        "VariantValidator.bin.setup_lovd_syntax_checker.subprocess.run",
+        side_effect=subprocess.CalledProcessError(1, "php"),
+    ), patch(
+        "builtins.print"
+    ) as mock_print, patch(
+        "VariantValidator.bin.setup_lovd_syntax_checker.os.makedirs"
+    ), patch(
+        "VariantValidator.bin.setup_lovd_syntax_checker.urllib.request.urlretrieve"
+    ), patch(
+        "VariantValidator.bin.setup_lovd_syntax_checker.os.chmod"
+    ):
         reload_setup_module.setup_lovd()
-        mock_print.assert_any_call("Failed to run PHP cache update: Command 'php' returned non-zero exit status 1.")
+
+        # Assert retry message is printed
+        mock_print.assert_any_call(
+            "PHP cache update failed (likely due to PHP memory limits). "
+            "Retrying with increased PHP memory..."
+        )
+
+        # Assert final failure warning is printed
+        mock_print.assert_any_call(
+            "Failed to update the LOVD HGVS cache even after increasing "
+            "PHP memory limit.\n"
+            "Please check your PHP installation."
+        )
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
