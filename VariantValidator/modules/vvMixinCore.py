@@ -24,6 +24,7 @@ from VariantValidator.modules.liftover import liftover
 from VariantValidator.modules import gene2transcripts
 from VariantValidator.modules import lovd_api
 from VariantValidator.modules import initial_formatting
+from VariantValidator.modules import vcf_to_pvcf
 from VariantValidator.modules.seq_state_to_expanded_repeat import\
         convert_seq_state_to_expanded_repeat
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
@@ -115,6 +116,12 @@ class Mixin(vvMixinConverters.Mixin):
             # Turn each variant into a dictionary. The dictionary will be compiled during validation
             self.batch_list = []
             for queries in batch_queries:
+                try:
+                    queries = vcf_to_pvcf.vcf_to_shorthand(queries)
+                    print("Converted to", queries)
+                except vcf_to_pvcf.VcfConversionError as e:
+                    logger.info(f"Cannot convert {queries} into PVCF format {e}")
+                    pass
                 if isinstance(queries, int):
                     queries = str(queries)
                 queries = queries.strip()
