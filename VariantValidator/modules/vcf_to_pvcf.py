@@ -60,7 +60,7 @@ def vcf_to_shorthand(vcf_line):
         )
 
     # Structural variants
-    if alt in ("<DEL>", "<DUP>", "<INV>"):
+    if alt in ("<DEL>", "<DUP>", "<INV>", "DEL", "DUP", "INV"):
         end = None
         cn = None
 

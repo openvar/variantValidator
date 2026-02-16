@@ -165,18 +165,18 @@ def vcf2hgvs_stage1(variant, validator):
         logger.debug("Completed VCF-HVGS step 1 for %s", variant.quibble)
         return False
 
+    print("Converting VCF to HGVS", variant.quibble)
     # VCF CNV descriptions can be directly converted to a HGVS like description
     if (re.search("\d+", vcf_data[2]) and (
             re.search("del", vcf_data[3], re.IGNORECASE) or
-            re.search("inv", vcf_data[3], re.IGNORECASE)) and not
-            re.search(r"[gatcnmo].", str(vcf_data))):
-        cnv_var = f"{vcf_data[0]}:{vcf_data[1]}_{vcf_data[2]}{vcf_data[3].lower()}"
-        variant.warnings.append(f"CNV identified, and mapped to {cnv_var}")
-        query_cnv = Variant(variant.original, quibble=cnv_var, warnings=variant.warnings,
-                          primary_assembly=variant.primary_assembly, order=variant.order)
-        validator.batch_list.append(query_cnv)
-        logger.info("Submitting new variant with format %s", input_a)
-        skipvar = True
+            re.search("inv", vcf_data[3], re.IGNORECASE))):
+
+        if not re.search(r"[gatcnmo]\.", str(vcf_data)):
+            logger.info(f"CNV format identified in {variant.quibble}")
+            cnv_var = f"{vcf_data[0]}:{vcf_data[1]}_{vcf_data[2]}{vcf_data[3].lower()}"
+            logger.info(f"CNV identified, and mapped to {cnv_var}")
+            variant.warnings.append(f"VcfConversionWarning: CNV identified, and mapped to {cnv_var}")
+            variant.quibble = cnv_var
 
     poss_genome = vcf_data[0].lower()
     if ('grch3' in poss_genome or 'hg' in poss_genome) and poss_genome[-1].isdigit():
