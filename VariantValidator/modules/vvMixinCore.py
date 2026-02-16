@@ -267,7 +267,8 @@ class Mixin(vvMixinConverters.Mixin):
                         continue
 
                     # VCF line handling - Note: handling csv brings too many issues, so stick to tabs tsv
-                    if "\t" in my_variant.quibble and not re.search(r"[gcrnmo]\.", my_variant.quibble):
+                    if (("\t" in my_variant.quibble or re.search("\s+", my_variant.quibble))
+                            and not re.search(r"[gcrnmo]\.", my_variant.quibble)):
                         try:
                             my_variant.quibble = vcf_to_pvcf.vcf_to_shorthand(my_variant.quibble)
                             my_variant.warnings.append(f"VcfConversionWarning: VCF line identified and converted "
