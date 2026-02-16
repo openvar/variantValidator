@@ -31255,6 +31255,13 @@ class TestVariantsAuto(TestCase):
         results = self.vv.validate('2:g.46707878_46707879insGCAGCGGGAGCG', 'GRCh37', 'mane_select').format_as_dict(test=True)
         assert 'NM_001145051.2:c.457_458insGGGAGCGGCAGC' in results
 
+    def cnv_del_vcf(self):
+        # Test that it fails for genome mismatch
+        results = self.vv.validate('chr1\t1000000\t.\tN\t<DEL>\t.\tPASS\tSVTYPE=DEL;END=1005000', 'GRCh38', 'all').format_as_dict(test=True)
+        assert 'intergenic_variant_1' in results
+        assert results["intergenic_variant_1"]["primary_assembly_loci"]["grch38"][
+                "hgvs_genomic_description"] ==  "NC_000001.11:g.1000000_1005000del"
+
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

@@ -24,6 +24,7 @@ from VariantValidator.modules.liftover import liftover
 from VariantValidator.modules import gene2transcripts
 from VariantValidator.modules import lovd_api
 from VariantValidator.modules import initial_formatting
+from VariantValidator.modules import vcf_to_pvcf
 from VariantValidator.modules.seq_state_to_expanded_repeat import\
         convert_seq_state_to_expanded_repeat
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
@@ -115,7 +116,13 @@ class Mixin(vvMixinConverters.Mixin):
             # Turn each variant into a dictionary. The dictionary will be compiled during validation
             self.batch_list = []
             for queries in batch_queries:
+                # try:
+                #     queries = vcf_to_pvcf.vcf_to_shorthand(queries)
+                # except vcf_to_pvcf.VcfConversionError as e:
+                #     logger.info(f"Cannot convert {queries} into PVCF format {e}")
+                #     pass
                 if isinstance(queries, int):
+                    queries = str(queries)
                     queries = str(queries)
                 queries = queries.strip()
                 query = Variant(queries)
@@ -258,6 +265,16 @@ class Mixin(vvMixinConverters.Mixin):
                         my_variant.warnings.append(error)
                         logger.warning(error)
                         continue
+
+                    # VCF line handling - Note: handling csv brings too many issues, so stick to tabs tsv
+                    if "\t" in my_variant.quibble and not re.search(r"[gcrnmo]\.", my_variant.quibble):
+                        try:
+                            my_variant.quibble = vcf_to_pvcf.vcf_to_shorthand(my_variant.quibble)
+                            my_variant.warnings.append(f"VcfConversionWarning: VCF line identified and converted "
+                                                       f"to {my_variant.quibble}")
+                        except vcf_to_pvcf.VcfConversionError as e:
+                            logger.info(f"Cannot convert {my_variant.quibble} into PVCF format {e}")
+                            continue
 
                     # Remove whitespace and quotes
                     my_variant.remove_whitespace()
