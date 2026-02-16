@@ -1,3 +1,5 @@
+import re
+
 class VcfConversionError(Exception):
     """Custom exception raised when a VCF line cannot be converted to shorthand."""
     pass
@@ -13,8 +15,8 @@ def split_vcf_line(vcf_line):
     if "\t" in line:
         return line.split("\t")
 
-    if "," in line:
-        return [f.strip() for f in line.split(",")]
+    elif re.search("\s+", line):
+        return re.split(r"\s+", line.strip())
 
     raise VcfConversionError(
         "Unable to detect delimiter. Expected tab ('\\t') or comma-separated values."
