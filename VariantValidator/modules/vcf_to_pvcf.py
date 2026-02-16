@@ -91,7 +91,10 @@ def vcf_to_shorthand(vcf_line):
             )
 
         # Remove angle brackets
-        alt_clean = alt[1:-1]
+        if ">" in alt:
+            alt_clean = alt[1:-1]
+        else:
+            alt_clean = alt
 
         shorthand = f"{chrom}-{pos}-{end}-{alt_clean}"
 

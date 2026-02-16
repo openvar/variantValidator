@@ -6962,6 +6962,17 @@ class TestVFvariantsAuto(object):
               }
             }
 
+    def test_vcf_line_variants_del(self):
+        results = VariantFormatter.simpleVariantFormatter.format('chr1\t1000000\t.\tN\t<DEL>\t.\tPASS\tSVTYPE=DEL;END=1005000',
+                                                                 'GRCh38', 'all', None, False, True, testing=True)
+        print(results)
+        assert 'chr1:1000000_1005000del' in results.keys()
+
+    def test_vcf_line_variants_inv(self):
+        results = VariantFormatter.simpleVariantFormatter.format('chr1\t1000000\t.\tN\t<INV>\t.\tPASS\tSVTYPE=INV;END=1005000',
+                                                                 'GRCh38', 'all', None, False, True, testing=True)
+        print(results)
+        assert 'chr1:1000000_1005000inv' in results.keys()
 
 
 # <LICENSE>
