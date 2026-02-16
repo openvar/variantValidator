@@ -7,7 +7,7 @@ class VcfConversionError(Exception):
 
 def split_vcf_line(vcf_line):
     """
-    Split a VCF line by detecting delimiter (tab or comma).
+    Split a VCF line by detecting delimiter (tab).
     Raises VcfConversionError if no supported delimiter is found.
     """
     line = vcf_line.strip()
@@ -19,7 +19,7 @@ def split_vcf_line(vcf_line):
         return re.split(r"\s+", line.strip())
 
     raise VcfConversionError(
-        "Unable to detect delimiter. Expected tab ('\\t') or comma-separated values."
+        "Unable to detect delimiter. Expected tab ('\\t') values."
     )
 
 
