@@ -165,7 +165,6 @@ def vcf2hgvs_stage1(variant, validator):
         logger.debug("Completed VCF-HVGS step 1 for %s", variant.quibble)
         return False
 
-    print("Converting VCF to HGVS", variant.quibble)
     # VCF CNV descriptions can be directly converted to a HGVS like description
     if (re.search("\d+", vcf_data[2]) and (
             re.search("del", vcf_data[3], re.IGNORECASE) or
