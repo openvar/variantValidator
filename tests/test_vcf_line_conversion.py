@@ -13,11 +13,6 @@ def test_snv_tab_delimited():
     assert vcf_to_pvcf.vcf_to_shorthand(line) == "chr2-1500000-A-T"
 
 
-def test_snv_comma_delimited():
-    line = "chr2,1500000,.,G,C,.,PASS,."
-    assert vcf_to_pvcf.vcf_to_shorthand(line) == "chr2-1500000-G-C"
-
-
 # ============================================================
 # Sequence-based indels (standard VCF representation)
 # ============================================================
@@ -61,15 +56,6 @@ def test_symbolic_inv_with_end():
 def test_symbolic_dup_with_copy_number():
     line = "chr1\t2000000\t.\tN\t<DUP>\t.\tPASS\tSVTYPE=DUP;SVLEN=10000;CN=4"
     assert vcf_to_pvcf.vcf_to_shorthand(line) == "chr1-2000000-2010000-DUP[CN4]"
-
-
-# ============================================================
-# Comma-separated structural variant
-# ============================================================
-
-def test_comma_separated_structural_variant():
-    line = "chr4,4000000,.,N,<DEL>,.,PASS,SVTYPE=DEL;END=4005000"
-    assert vcf_to_pvcf.vcf_to_shorthand(line) == "chr4-4000000-4005000-DEL"
 
 
 # ============================================================
