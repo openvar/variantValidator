@@ -725,25 +725,27 @@ class Mixin(vvMixinConverters.Mixin):
             # Outside the for loop
             ######################
             logger.debug("End of 1st for loop")
+
             # order the rows
             by_order = sorted(self.batch_list, key=lambda x: x.order)
-
             for variant in by_order:
                 if type(variant.quibble) is str:
                     logger.debug(f"Formatting variant {variant.quibble}")
                 else:
-                    logger.debug("Formatting variant " + variant.quibble.format({'p_3_letter':False}))
+                    logger.debug("Formatting variant " + variant.quibble.format({'p_3_letter': False}))
                 if not variant.write:
                     continue
 
                 # Genomic sequence variation
                 # Check for gapped delins<No_Alt>
-                if variant.genomic_g and variant.genomic_g.posedit.edit.type == 'delins':
+                if (variant.genomic_g and variant.genomic_g.posedit.edit.type == 'delins' and
+                        variant.genomic_g.posedit.edit.alt == ""):
+                    logger.info(f"Delins minus an ALT sequence identified {variant.genomic_g}")
                     variant.genomic_g = hgvs_delins_parts_to_hgvs_obj(
-                            variant.genomic_g.ac,
-                            variant.genomic_g.type,
-                            variant.genomic_g.posedit.pos,
-                            '','')
+                        variant.genomic_g.ac,
+                        variant.genomic_g.type,
+                        variant.genomic_g.posedit.pos,
+                        '', '')
 
                 hgvs_genomic_variant = variant.genomic_g
 
@@ -754,6 +756,7 @@ class Mixin(vvMixinConverters.Mixin):
                     genomic_accession = hgvs_genomic_variant.ac
                 else:
                     genomic_accession = None
+
                 # RefSeqGene variation
                 logger.debug("RefSeqGene variation")
                 refseqgene_variant = variant.genomic_r
