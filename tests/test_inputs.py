@@ -31262,6 +31262,15 @@ class TestVariantsAuto(TestCase):
         assert results["intergenic_variant_1"]["primary_assembly_loci"]["grch38"][
                 "hgvs_genomic_description"] ==  "NC_000001.11:g.1000000_1005000del"
 
+    def issue_786_part_B(self):
+        # Test that it fails for genome mismatch
+        results = self.vv.validate('NC_000023.10:g.18908328_18911824delinsGCCTGCAGAG', 'GRCh37', 'all', liftover_level=True).format_as_dict(test=True)
+        assert 'intergenic_variant_1' in results
+        assert results["intergenic_variant_1"]["primary_assembly_loci"]["grch37"][
+                "hgvs_genomic_description"] ==  "NC_000023.10:g.18908328_18911824delinsGCCTGCAGAG"
+        assert results["intergenic_variant_1"]["primary_assembly_loci"]["grch38"][
+                "hgvs_genomic_description"] ==  "NC_000023.11:g.18890210_18893706delinsGCCTGCAGAG"
+
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
