@@ -76,40 +76,67 @@ class Mixin:
         elif self.check_same_thread == "False":
             self.check_same_thread = True
         self.seqrepoPath = os.path.join(config["seqrepo"]["location"], self.seqrepoVersion)
-        self.vvdbVersion = config["mysql"]["version"]
 
         os.environ['HGVS_SEQREPO_DIR'] = self.seqrepoPath
 
-        psql_host_or_socketfile = config['postgres']['host'].replace('/','%2F')
+        # Read backend type and branch accordingly
+        backend_type = config.get('backend', 'type', fallback='sqlite').lower()
 
-        os.environ['UTA_DB_URL'] = "postgresql://%s:%s@%s:%s/%s/%s" % (
-            config["postgres"]["user"],
-            config["postgres"]["password"],
-            psql_host_or_socketfile,
-            config['postgres']['port'],
-            config['postgres']['database'],
-            config['postgres']['version']
-        )
+        if backend_type == 'sqlite':
+            # cdot + SQLite path (no PostgreSQL/MySQL required)
+            cdot_path = config.get('backend', 'cdot_path')
+            sqlite_path = config.get('backend', 'sqlite_path')
 
-        self.utaPath = os.environ.get('UTA_DB_URL')
+            import cdot.hgvs.dataproviders
+            self.hdp = cdot.hgvs.dataproviders.JSONDataProvider(
+                [cdot_path],
+                seqrepo_dir=self.seqrepoPath,
+            )
 
-        self.dbConfig = {
-            'user':     config["mysql"]["user"],
-            'password': config["mysql"]["password"],
-            'host':     config["mysql"]["host"],
-            'port':     int(config["mysql"]["port"]),
-            'database': config["mysql"]["database"],
-            'raise_on_warnings': True
-        }
-        mysql_unix_socket = config.get('mysql','unix_socket',fallback=False)
-        if mysql_unix_socket:
-            self.dbConfig["unix_socket"] = mysql_unix_socket
-        # Create database access objects
-        self.db = Database(self.dbConfig)
-        db_version = self.db.get_db_version()
-        if db_version[0] != config["mysql"]["version"]:
-            raise InitialisationError("Config error: VVDb version in config file is incorrect. VDb version is "
-                                      + db_version[0])
+            from VariantValidator.modules.vvDatabase import SQLiteDatabase
+            self.db = SQLiteDatabase(sqlite_path)
+
+            # Populate version attributes using cdot data version
+            self.vvdbVersion = 'sqlite'
+            self.utaPath = cdot_path
+
+        else:
+            # MySQL + UTA/PostgreSQL path (existing behaviour, unchanged)
+            self.vvdbVersion = config["mysql"]["version"]
+
+            psql_host_or_socketfile = config['postgres']['host'].replace('/','%2F')
+
+            os.environ['UTA_DB_URL'] = "postgresql://%s:%s@%s:%s/%s/%s" % (
+                config["postgres"]["user"],
+                config["postgres"]["password"],
+                psql_host_or_socketfile,
+                config['postgres']['port'],
+                config['postgres']['database'],
+                config['postgres']['version']
+            )
+
+            self.utaPath = os.environ.get('UTA_DB_URL')
+
+            self.dbConfig = {
+                'user':     config["mysql"]["user"],
+                'password': config["mysql"]["password"],
+                'host':     config["mysql"]["host"],
+                'port':     int(config["mysql"]["port"]),
+                'database': config["mysql"]["database"],
+                'raise_on_warnings': True
+            }
+            mysql_unix_socket = config.get('mysql','unix_socket',fallback=False)
+            if mysql_unix_socket:
+                self.dbConfig["unix_socket"] = mysql_unix_socket
+            # Create database access objects
+            self.db = Database(self.dbConfig)
+            db_version = self.db.get_db_version()
+            if db_version[0] != config["mysql"]["version"]:
+                raise InitialisationError("Config error: VVDb version in config file is incorrect. VDb version is "
+                                          + db_version[0])
+
+            # Connect to UTA/VVTA (PostgreSQL)
+            self.hdp = vvhgvs.dataproviders.uta.connect(pooling=True)
 
         # Set up versions
         self.version = __version__
@@ -129,7 +156,6 @@ class Mixin:
         vvhgvs.global_config.formatting.max_ref_length = 1000000
 
         # Create HGVS objects
-        self.hdp = vvhgvs.dataproviders.uta.connect(pooling=True)
         self.hp = vvhgvs.parser.Parser(expose_all_rules=True)  # Parser
         self.vr = vvhgvs.validator.Validator(self.hdp)  # Validator
         self.vm = vvhgvs.variantmapper.VariantMapper(self.hdp)  # Variant mapper
