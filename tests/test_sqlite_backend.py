@@ -492,3 +492,106 @@ def test_update_db_version(sqlite_insert):
     row = conn.execute("SELECT current_version FROM version").fetchone()
     conn.close()
     assert row[0] == "1.2.3"
+
+
+# ── Task 5: SQLiteDatabase ───────────────────────────────────────────────────
+
+def _load_vvdatabase():
+    """Import vvDatabase directly, reusing the stubs set up by _load_vvdbinsert."""
+    import types
+
+    repo_root = os.path.join(os.path.dirname(__file__), "..")
+    modules_dir = os.path.join(repo_root, "VariantValidator", "modules")
+
+    # Ensure parent package stubs exist (idempotent)
+    for pkg_name in ("VariantValidator", "VariantValidator.modules"):
+        if pkg_name not in sys.modules:
+            stub = types.ModuleType(pkg_name)
+            stub.__path__ = [os.path.join(repo_root, *pkg_name.split("."))]
+            stub.__package__ = pkg_name
+            sys.modules[pkg_name] = stub
+
+    def _load_file(name, filename):
+        if name in sys.modules:
+            return sys.modules[name]
+        spec = importlib.util.spec_from_file_location(
+            name,
+            os.path.join(modules_dir, filename),
+            submodule_search_locations=[],
+        )
+        mod = importlib.util.module_from_spec(spec)
+        mod.__package__ = "VariantValidator.modules"
+        sys.modules[name] = mod
+        spec.loader.exec_module(mod)
+        short_name = name.split(".")[-1]
+        parent = sys.modules.get("VariantValidator.modules")
+        if parent is not None:
+            setattr(parent, short_name, mod)
+        return mod
+
+    # Ensure utils stub exists
+    if "VariantValidator.modules.utils" not in sys.modules:
+        import functools
+        utils_stub = types.ModuleType("VariantValidator.modules.utils")
+        utils_stub.__package__ = "VariantValidator.modules"
+
+        def handleCursor(func):
+            @functools.wraps(func)
+            def wrapper(self, *args, **kwargs):
+                return func(self, *args, **kwargs)
+            return wrapper
+
+        utils_stub.handleCursor = handleCursor
+        sys.modules["VariantValidator.modules.utils"] = utils_stub
+        setattr(sys.modules["VariantValidator.modules"], "utils", utils_stub)
+
+    # Stub heavy siblings imported by vvDatabase at module level
+    for stub_name in ("vvhgvs", "vvhgvs.exceptions"):
+        if stub_name not in sys.modules:
+            stub = types.ModuleType(stub_name)
+            if stub_name == "vvhgvs.exceptions":
+                stub.HGVSDataNotAvailableError = Exception
+            sys.modules[stub_name] = stub
+
+    # Load the full dependency chain
+    _load_file("VariantValidator.modules.vvDBInit", "vvDBInit.py")
+    _load_file("VariantValidator.modules.vvDBGet", "vvDBGet.py")
+    _load_file("VariantValidator.modules.vvDBInsert", "vvDBInsert.py")
+    return _load_file("VariantValidator.modules.vvDatabase", "vvDatabase.py")
+
+
+@pytest.fixture(scope="session")
+def vvdatabase_module():
+    return _load_vvdatabase()
+
+
+def test_sqlite_database_instantiates(sqlite_db_path, vvdatabase_module):
+    """SQLiteDatabase must be importable and instantiable."""
+    db = vvdatabase_module.SQLiteDatabase(sqlite_db_path)
+    assert db.db_path == sqlite_db_path
+
+
+def test_sqlite_database_inherits_get_methods(sqlite_db_path, vvdatabase_module):
+    """SQLiteDatabase inherits GET methods from SQLiteDBGet."""
+    db = vvdatabase_module.SQLiteDatabase(sqlite_db_path)
+    result = db.get_uta("BRCA1")
+    assert result[0] == 'none'  # empty DB, but method exists and returns sentinel
+
+
+def test_sqlite_database_inherits_insert_methods(sqlite_db_path, vvdatabase_module):
+    """SQLiteDatabase inherits INSERT methods from SQLiteDBInsert."""
+    db = vvdatabase_module.SQLiteDatabase(sqlite_db_path)
+    db.insert_transcript_info(
+        refseq_id="NM_000059.4",
+        description="BRCA2",
+        transcript_variant="NM_000059",
+        current_version="4",
+        hgnc_symbol="BRCA2",
+        uta_symbol="BRCA2",
+    )
+    conn = db.get_conn()
+    rows = conn.execute(
+        "SELECT refSeqID FROM transcript_info WHERE hgncSymbol = ?", ("BRCA2",)
+    ).fetchall()
+    conn.close()
+    assert len(rows) == 1
