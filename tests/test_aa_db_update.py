@@ -1,4 +1,5 @@
 import pytest
+pytest.importorskip("cdot", reason="cdot not installed — integration test requires 'VariantValidator[sqlite]'")
 from unittest import TestCase
 from VariantValidator.modules.vvDatabase import Database
 from VariantValidator import update_vv_db

@@ -9,6 +9,8 @@ Additional functionality to add:
 - Check correct errors for non-HGVS compliant strings.
 
 """
+import pytest
+pytest.importorskip("cdot", reason="cdot not installed — integration test requires 'VariantValidator[sqlite]'")
 import unittest
 from unittest import TestCase
 from VariantValidator.modules import expanded_repeats

@@ -1,3 +1,5 @@
+import pytest
+pytest.importorskip("cdot", reason="cdot not installed — integration test requires 'VariantValidator[sqlite]'")
 import json
 from unittest import TestCase
 import VariantValidator
