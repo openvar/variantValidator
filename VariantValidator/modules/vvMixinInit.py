@@ -258,13 +258,25 @@ class Mixin:
             self.hdp.get_gene_info = _wrapped_get_gene_info
 
             # get_gene_info_by_alias() returns a list of gene info dicts.
-            _orig_get_gene_info_by_alias = self.hdp.get_gene_info_by_alias
+            # get_gene_info_by_alias() is in UTA but not all cdot versions implement it.
+            # Wrap if present; otherwise add a stub that searches via get_gene_info().
+            _orig_get_gene_info_by_alias = getattr(self.hdp, 'get_gene_info_by_alias', None)
 
-            def _wrapped_get_gene_info_by_alias(alias, _orig=_orig_get_gene_info_by_alias):
-                results = _orig(alias)
-                if not results:
-                    return results
-                return [_GeneInfo(r) if isinstance(r, dict) else r for r in results]
+            if _orig_get_gene_info_by_alias is not None:
+                def _wrapped_get_gene_info_by_alias(alias, _orig=_orig_get_gene_info_by_alias):
+                    results = _orig(alias)
+                    if not results:
+                        return results
+                    return [_GeneInfo(r) if isinstance(r, dict) else r for r in results]
+            else:
+                # cdot does not implement get_gene_info_by_alias; fall back to an
+                # exact-match search via get_gene_info (same symbol, different path).
+                def _wrapped_get_gene_info_by_alias(alias, _hdp=self.hdp):
+                    result = _hdp.get_gene_info(alias)
+                    if result is None:
+                        return []
+                    # Wrap the single result in a list to match the UTA interface.
+                    return [result]  # already wrapped by _wrapped_get_gene_info
 
             self.hdp.get_gene_info_by_alias = _wrapped_get_gene_info_by_alias
 
