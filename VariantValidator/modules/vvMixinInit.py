@@ -140,6 +140,42 @@ class Mixin:
 
             self.hdp.get_tx_identity_info = _wrapped_get_tx_identity_info
 
+            # get_tx_mapping_options() returns a list of dicts in cdot, but VV accesses
+            # each element with integer indices (0=tx_ac, 1=alt_ac, 2=alt_aln_method).
+            # Wrap each element with the same dual-access shim pattern.
+            class _TxMappingOption:
+                _INT_TO_KEY = {
+                    0: 'tx_ac', 1: 'alt_ac', 2: 'alt_aln_method',
+                }
+                __slots__ = ('_d',)
+
+                def __init__(self, d):
+                    self._d = d
+
+                def __getitem__(self, key):
+                    if isinstance(key, int):
+                        return self._d.get(self._INT_TO_KEY[key])
+                    return self._d[key]
+
+                def get(self, key, default=None):
+                    return self._d.get(key, default)
+
+                def __contains__(self, key):
+                    return key in self._d
+
+                def __repr__(self):
+                    return 'TxMappingOption({!r})'.format(self._d)
+
+            _orig_get_tx_mapping_options = self.hdp.get_tx_mapping_options
+
+            def _wrapped_get_tx_mapping_options(tx_ac, _orig=_orig_get_tx_mapping_options):
+                results = _orig(tx_ac)
+                if not results:
+                    return results
+                return [_TxMappingOption(r) if isinstance(r, dict) else r for r in results]
+
+            self.hdp.get_tx_mapping_options = _wrapped_get_tx_mapping_options
+
             # vvhgvs calls get_tx_limits() but cdot's JSONDataProvider only implements
             # get_tx_identity_info().  Patch the instance with a derived implementation.
             def _get_tx_limits(tx_ac, _hdp=self.hdp):
