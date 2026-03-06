@@ -87,7 +87,13 @@ class Mixin:
             cdot_path = config.get('backend', 'cdot_path')
             sqlite_path = config.get('backend', 'sqlite_path')
 
-            import cdot.hgvs.dataproviders
+            try:
+                import cdot.hgvs.dataproviders
+            except ImportError:
+                raise ImportError(
+                    "cdot is required for the sqlite backend. "
+                    "Install it with: pip install 'VariantValidator[sqlite]'"
+                )
             self.hdp = cdot.hgvs.dataproviders.JSONDataProvider(
                 [cdot_path],
                 seqrepo_dir=self.seqrepoPath,
@@ -95,6 +101,7 @@ class Mixin:
 
             from VariantValidator.modules.vvDatabase import SQLiteDatabase
             self.db = SQLiteDatabase(sqlite_path)
+            self.dbConfig = None  # Not used in sqlite backend
 
             # Populate version attributes using cdot data version
             self.vvdbVersion = 'sqlite'

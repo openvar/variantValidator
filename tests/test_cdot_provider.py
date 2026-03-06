@@ -30,8 +30,8 @@ def _make_mock_config(
 
 @patch('cdot.hgvs.dataproviders.JSONDataProvider')
 @patch('VariantValidator.modules.vvDatabase.SQLiteDatabase')
-def test_sqlite_backend_uses_cdot_provider(mock_sqlite_db, mock_json_provider):
-    """When backend_type=sqlite, __init__ must create a JSONDataProvider.
+def test_sqlite_imports_are_available(mock_sqlite_db, mock_json_provider):
+    """Verify that SQLiteDatabase and JSONDataProvider can be imported.
 
     This test patches the heavy objects and verifies the wiring logic.
     We can't instantiate a real Validator here (needs network + files),
