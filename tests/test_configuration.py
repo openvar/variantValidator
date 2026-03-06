@@ -250,6 +250,31 @@ class TestConfigValues(unittest.TestCase):
             ['mysql', 'sqlite']
         )
 
+    def test_sqlite_path_default_is_placeholder(self):
+        """sqlite_path must remain as placeholder in default.ini (signals user must configure it)."""
+        from configparser import ConfigParser
+        import os
+        default_ini = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            'configuration', 'default.ini'
+        )
+        default_config = ConfigParser()
+        default_config.read(default_ini)
+        self.assertEqual(
+            default_config['backend']['sqlite_path'],
+            '/PATH/TO/vvdb.sqlite'
+        )
+
+    def test_backend_type_is_known_value(self):
+        """Backend type must be one of the known values (mysql or sqlite)."""
+        known_types = {'mysql', 'sqlite'}
+        backend_type = self.config['backend']['type'].lower()
+        self.assertIn(
+            backend_type,
+            known_types,
+            f"Unknown backend type '{backend_type}'. Must be one of: {known_types}"
+        )
+
     def tearDown(self):
         shutil.move(self.original, self.filename)
 

@@ -25,6 +25,9 @@ def read_configuration():
         if config.get('backend', 'sqlite_path', fallback='/PATH/TO/vvdb.sqlite') == '/PATH/TO/vvdb.sqlite':
             print("sqlite_path has not been updated from default.")
             exit_with_message()
+    else:
+        print(f"Unknown backend type '{backend_type}'. Must be 'mysql' or 'sqlite'.")
+        exit_with_message()
 
     if config['seqrepo']['location'] == '/PATH/TO/SEQREPO':
         print("Seqrepo directory location has not been updated from default.")
