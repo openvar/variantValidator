@@ -70,10 +70,19 @@ jobs:
           db_path = "vvdb-seed.sqlite"
 
           # Configure VariantValidator to use sqlite backend
-          from VariantValidator.settings import CONFIG
-          CONFIG["sqlite"]["db_path"] = db_path
-          CONFIG["cdot"]["transcript_source"] = cdot_file
-          CONFIG["backend"]["type"] = "sqlite"
+          import configparser
+          from VariantValidator.settings import CONFIG_DIR
+
+          config = configparser.ConfigParser()
+          config.read(CONFIG_DIR)  # Read defaults if they exist
+          if 'backend' not in config:
+              config['backend'] = {}
+          config['backend']['type'] = 'sqlite'
+          config['backend']['cdot_path'] = cdot_file
+          config['backend']['sqlite_path'] = db_path
+          os.makedirs(os.path.dirname(CONFIG_DIR), exist_ok=True)
+          with open(CONFIG_DIR, 'w') as f:
+              config.write(f)
 
           import VariantValidator
           validator = VariantValidator.Validator()

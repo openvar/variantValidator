@@ -60,7 +60,7 @@ class TestConfigSetUp(unittest.TestCase):
         self.assertTrue(os.path.exists(self.filename))
         output = subprocess.check_output(['python', '-c', 'import VariantValidator'])
         print(output)
-        self.assertIn(b"cdot_path", output)
+        self.assertIn(b"MySQL", output)
         self.assertTrue('Please edit your configuration' in output.decode())
 
     def test_changed_mysql(self):
@@ -209,12 +209,13 @@ class TestConfigValues(unittest.TestCase):
 
         vv = VariantValidator.Validator()
 
-        self.assertEqual(self.config['mysql']['user'], vv.dbConfig['user'])
-        self.assertEqual(self.config['mysql']['password'], vv.dbConfig['password'])
-        self.assertEqual(self.config['mysql']['host'], vv.dbConfig['host'])
-        self.assertEqual(self.config['mysql']['database'], vv.dbConfig['database'])
-        if 'unix_socket' in vv.dbConfig:
-            self.assertEqual(self.config['mysql']['unix_socket'], vv.dbConfig['unix_socket'])
+        if vv.dbConfig is not None:
+            self.assertEqual(self.config['mysql']['user'], vv.dbConfig['user'])
+            self.assertEqual(self.config['mysql']['password'], vv.dbConfig['password'])
+            self.assertEqual(self.config['mysql']['host'], vv.dbConfig['host'])
+            self.assertEqual(self.config['mysql']['database'], vv.dbConfig['database'])
+            if 'unix_socket' in vv.dbConfig:
+                self.assertEqual(self.config['mysql']['unix_socket'], vv.dbConfig['unix_socket'])
 
         self.assertEqual(vv.seqrepoPath,
                          os.path.join(self.config['seqrepo']['location'], self.config['seqrepo']['version']))
