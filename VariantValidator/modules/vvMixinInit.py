@@ -118,6 +118,43 @@ class Mixin:
 
             self.hdp.get_tx_limits = _get_tx_limits
 
+            # vvhgvs also calls get_agg_exon_aln() which is absent from cdot.
+            # Build the aggregated CIGAR from get_tx_exons() data:
+            # exons are sorted left-to-right on the genome; introns are {size}N.
+            def _get_agg_exon_aln(tx_ac, alt_ac, alt_aln_method, _hdp=self.hdp):
+                tx_exons = _hdp.get_tx_exons(tx_ac, alt_ac, alt_aln_method)
+                if not tx_exons:
+                    return None
+                info = _hdp.get_tx_identity_info(tx_ac)
+                cds_start_i = info['cds_start_i'] if info else None
+                cds_end_i = info['cds_end_i'] if info else None
+
+                # Sort exons left-to-right along the genome
+                exons_genomic = sorted(tx_exons, key=lambda e: e['alt_start_i'])
+                alt_strand = exons_genomic[0]['alt_strand']
+                mapped_start = exons_genomic[0]['alt_start_i']
+
+                # Build not_quite_cigar: exon_cigar + intron_N + ... (genomic order)
+                cigar_parts = []
+                for i, exon in enumerate(exons_genomic):
+                    if i > 0:
+                        prev = exons_genomic[i - 1]
+                        intron_size = exon['alt_start_i'] - prev['alt_end_i']
+                        if intron_size > 0:
+                            cigar_parts.append("{0}N".format(intron_size))
+                    cigar_parts.append(exon['cigar'])
+                not_quite_cigar = "".join(cigar_parts)
+
+                return {
+                    'alt_strand': alt_strand,
+                    'mapped_start': mapped_start,
+                    'not_quite_cigar': not_quite_cigar,
+                    'cds_start_i': cds_start_i,
+                    'cds_end_i': cds_end_i,
+                }
+
+            self.hdp.get_agg_exon_aln = _get_agg_exon_aln
+
             from VariantValidator.modules.vvDatabase import SQLiteDatabase
             self.db = SQLiteDatabase(sqlite_path)
             self.dbConfig = None  # Not used in sqlite backend
