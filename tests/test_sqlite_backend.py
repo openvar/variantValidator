@@ -56,7 +56,7 @@ def test_sqlite_db_init_creates_tables(sqlite_mixin):
         'transcript_info', 'refSeqGene_loci', 'LRG_RSG_lookup',
         'LRG_transcripts', 'LRG_proteins', 'stableGeneIds', 'version'
     }
-    assert expected.issubset(tables)
+    assert tables == expected, f"Unexpected tables: {tables ^ expected}"
 
 
 def test_sqlite_get_conn_returns_connection(sqlite_mixin):
@@ -67,9 +67,27 @@ def test_sqlite_get_conn_returns_connection(sqlite_mixin):
 
 
 def test_sqlite_thread_safety(sqlite_db_path, vvdbinit_module):
-    """SQLite must be opened with check_same_thread=False for web use."""
+    """Connection opened with check_same_thread=False must be usable from another thread."""
+    import threading
+
     db = vvdbinit_module.SQLiteDBInit(sqlite_db_path)
     conn = db.get_conn()
-    cursor = conn.cursor()
-    cursor.execute("SELECT 1")
+
+    result = []
+    error = []
+
+    def worker():
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT 1")
+            result.append(cursor.fetchone()[0])
+        except Exception as e:
+            error.append(str(e))
+
+    t = threading.Thread(target=worker)
+    t.start()
+    t.join()
+
     conn.close()
+    assert not error, f"Cross-thread connection error: {error}"
+    assert result == [1]

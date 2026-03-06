@@ -10,7 +10,7 @@ except ModuleNotFoundError:
         mysql = None
 
 
-class Mixin:
+class MySQLDBInit:
     """
     A mixin containing the database initialisation routines.
     """
@@ -68,6 +68,9 @@ class Mixin:
             self.get_conn()
             cursor = conn.cursor(buffered=True)
         return cursor
+
+# Keep original name as alias for backwards compatibility
+Mixin = MySQLDBInit
 
 # ---------------------------------------------------------------------------
 # SQLite backend (new)
