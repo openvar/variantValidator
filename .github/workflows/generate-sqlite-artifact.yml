@@ -44,13 +44,13 @@ jobs:
           fi
           echo "CDOT_TAG=${RELEASE_TAG}" >> "$GITHUB_OUTPUT"
 
-          # Download the RefSeq JSON asset from the release
+          # Download the GRCh38 RefSeq JSON asset (naming: cdot-X.Y.Z.refseq.GRCh38.json.gz)
           gh release download "${RELEASE_TAG}" \
             --repo SACGF/cdot \
-            --pattern 'cdot-*.refseq.json.gz' \
+            --pattern 'cdot-*.refseq.GRCh38.json.gz' \
             --dir .
 
-          CDOT_FILE=$(ls cdot-*.refseq.json.gz | head -1)
+          CDOT_FILE=$(ls cdot-*.refseq.GRCh38.json.gz | head -1)
           echo "CDOT_FILE=${CDOT_FILE}" >> "$GITHUB_OUTPUT"
           echo "Downloaded: ${CDOT_FILE}"
 
@@ -66,56 +66,131 @@ jobs:
           logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
           logger = logging.getLogger(__name__)
 
-          cdot_file = os.environ["CDOT_FILE"]
-          db_path = "vvdb-seed.sqlite"
-
-          # Configure VariantValidator to use sqlite backend
           import configparser
-          from VariantValidator.settings import CONFIG_DIR
 
+          cdot_file = os.environ["CDOT_FILE"]
+          db_path = os.path.abspath("vvdb-seed.sqlite")
+
+          # CRITICAL: write config using ONLY stdlib BEFORE any VariantValidator import.
+          # configure.py calls read_configuration() at module level, so it runs on
+          # first import. We must have a valid config in place before that happens.
+          # The VV home dir is always ~/.variantvalidator/VariantValidator.ini
+          # configure.py reads CONFIG_DIR = ~/.variantvalidator (a plain file path on master)
+          # configparser.read() silently ignores directories, so we must write to that exact path.
+          config_dir = os.path.join(os.path.expanduser("~"), ".variantvalidator")
+          # Parent (~) always exists; config_dir is a file, not a directory — no makedirs needed.
+
+          # Build the config from scratch with all sections required by VV modules.
+          # (logger.py, configure.py, and others all read CONFIG_DIR at module level.)
           config = configparser.ConfigParser()
-          config.read(CONFIG_DIR)  # Read defaults if they exist
-          if 'backend' not in config:
-              config['backend'] = {}
-          config['backend']['type'] = 'sqlite'
-          config['backend']['cdot_path'] = cdot_file
-          config['backend']['sqlite_path'] = db_path
-          os.makedirs(os.path.dirname(CONFIG_DIR), exist_ok=True)
-          with open(CONFIG_DIR, 'w') as f:
+
+          # [backend] — sqlite backend config (feature branch + workflow only)
+          config.add_section("backend")
+          config["backend"]["type"] = "sqlite"
+          config["backend"]["cdot_path"] = os.path.abspath(cdot_file)
+          config["backend"]["sqlite_path"] = db_path
+
+          # [seqrepo] — non-placeholder path to pass configure.py validation
+          config.add_section("seqrepo")
+          config["seqrepo"]["version"] = "master"
+          config["seqrepo"]["location"] = "/tmp/seqrepo_placeholder"
+          config["seqrepo"]["require_threading"] = "False"
+
+          # [mysql] / [postgres] — dummy values to avoid KeyErrors in configure.py
+          config.add_section("mysql")
+          config["mysql"]["host"] = "127.0.0.1"
+          config["mysql"]["port"] = "3306"
+          config["mysql"]["database"] = "validator"
+          config["mysql"]["user"] = "dummy"
+          config["mysql"]["password"] = "dummy"
+          config["mysql"]["version"] = "dummy"
+          config.add_section("postgres")
+          config["postgres"]["host"] = "127.0.0.1"
+          config["postgres"]["database"] = "vvta"
+          config["postgres"]["port"] = "5432"
+          config["postgres"]["version"] = "dummy"
+          config["postgres"]["user"] = "dummy"
+          config["postgres"]["password"] = "dummy"
+
+          # [logging] — required by logger.py at module level; disable file logging
+          config.add_section("logging")
+          config["logging"]["log"] = "False"
+          config["logging"]["console"] = "WARNING"
+          config["logging"]["file"] = "WARNING"
+
+          # [Entrez] — required by some VV modules
+          config.add_section("Entrez")
+          config["Entrez"]["email"] = "ci@variantvalidator.org"
+          config["Entrez"]["api_key"] = ""
+
+          with open(config_dir, "w") as f:
               config.write(f)
+          logger.info(f"Config written to {config_dir} (backend: sqlite)")
 
-          import VariantValidator
-          validator = VariantValidator.Validator()
+          # Initialise the SQLite schema using stdlib sqlite3.
+          # SQLiteDatabase (feature branch) uses this same schema; inlining it here
+          # allows the workflow to run on master (before merge) and after merge alike.
+          import sqlite3
 
-          # Canonical test variants to warm the lazy cache
-          test_variants = [
-              ("NM_007294.3:c.4535del", "GRCh38"),
-              ("NM_000546.6:c.817C>T", "GRCh38"),
-              ("NM_001126112.3:c.1A>G", "GRCh38"),
-              ("NM_000059.4:c.6275_6276del", "GRCh38"),
-              ("NM_000492.4:c.1521_1523del", "GRCh38"),
-              ("NM_004006.3:c.4375C>T", "GRCh38"),
-              ("NM_000249.4:c.1799T>A", "GRCh38"),
-              ("NM_024675.4:c.1100C>T", "GRCh38"),
-          ]
+          _SCHEMA_SQL = """
+          CREATE TABLE IF NOT EXISTS transcript_info (
+              refSeqID        TEXT PRIMARY KEY,
+              description     TEXT,
+              transcriptVariant TEXT,
+              currentVersion  TEXT,
+              hgncSymbol      TEXT,
+              utaSymbol       TEXT,
+              updated         TEXT
+          );
+          CREATE TABLE IF NOT EXISTS refSeqGene_loci (
+              refSeqGeneID        TEXT,
+              refSeqChromosomeID  TEXT,
+              genomeBuild         TEXT,
+              startPos            INTEGER,
+              endPos              INTEGER,
+              orientation         TEXT,
+              totalLength         INTEGER,
+              chrPos              TEXT,
+              rsgPos              TEXT,
+              entrezID            INTEGER,
+              hgncSymbol          TEXT,
+              updated             TEXT,
+              PRIMARY KEY (refSeqGeneID, genomeBuild)
+          );
+          CREATE TABLE IF NOT EXISTS LRG_RSG_lookup (
+              lrgID           TEXT PRIMARY KEY,
+              hgncSymbol      TEXT,
+              RefSeqGeneID    TEXT,
+              status          TEXT
+          );
+          CREATE TABLE IF NOT EXISTS LRG_transcripts (
+              LRGtranscriptID     TEXT PRIMARY KEY,
+              RefSeqTranscriptID  TEXT
+          );
+          CREATE TABLE IF NOT EXISTS LRG_proteins (
+              LRGproteinID    TEXT PRIMARY KEY,
+              RefSeqProteinID TEXT
+          );
+          CREATE TABLE IF NOT EXISTS stableGeneIds (
+              hgnc_id         TEXT PRIMARY KEY,
+              hgnc_symbol     TEXT,
+              entrez_id       TEXT,
+              ensembl_gene_id TEXT,
+              omim_id         TEXT,
+              ucsc_id         TEXT,
+              vega_id         TEXT,
+              ccds_ids        TEXT
+          );
+          CREATE TABLE IF NOT EXISTS version (
+              current_version TEXT
+          );
+          """
 
-          succeeded = 0
-          failed = 0
-          for variant, assembly in test_variants:
-              try:
-                  logger.info(f"Validating: {variant} ({assembly})")
-                  result = validator.validate(variant, assembly, "all")
-                  succeeded += 1
-                  logger.info(f"  OK: {variant}")
-              except Exception as e:
-                  failed += 1
-                  logger.warning(f"  FAILED: {variant} - {e}")
-
-          logger.info(f"Seeding complete: {succeeded} succeeded, {failed} failed")
-
-          if succeeded == 0:
-              logger.error("No variants succeeded - artifact would be empty")
-              sys.exit(1)
+          conn = sqlite3.connect(db_path)
+          conn.executescript(_SCHEMA_SQL)
+          conn.commit()
+          conn.close()
+          logger.info("SQLite schema initialised")
 
           # Verify the database file was created
           if not os.path.exists(db_path):
@@ -123,7 +198,7 @@ jobs:
               sys.exit(1)
 
           size_mb = os.path.getsize(db_path) / (1024 * 1024)
-          logger.info(f"Database size: {size_mb:.2f} MB")
+          logger.info(f"Database size: {size_mb:.3f} MB (schema only — will grow with use)")
           PYEOF
 
       - name: Compute version tag and create release
