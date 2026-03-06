@@ -459,6 +459,33 @@ class SQLiteDBGet(_SQLiteDBInit):
                 data['expiry'] = row[7]
         return data
 
+    def update_transcript_info_record(self, accession, validator, bypass_with_symbol=False, **kwargs):
+        """SQLite version: populate transcript_info from cdot data (no NCBI/Ensembl calls required)."""
+        import json
+        try:
+            info = validator.hdp.get_tx_identity_info(accession)
+        except Exception:
+            info = None
+
+        hgnc_symbol = (info.get('hgnc') or 'unassigned') if info else 'unassigned'
+        uta_symbol = hgnc_symbol
+        description = "{gene} transcript {ac}".format(gene=hgnc_symbol, ac=accession)
+        variant_json = json.dumps({"source": "cdot"})
+        version = accession
+
+        query_info = [version, description, variant_json, version, hgnc_symbol, uta_symbol]
+        existing = self.in_entries(accession, 'transcript_info')
+        if 'none' in existing:
+            self.insert(accession, query_info, 'transcript_info')
+        else:
+            self.update(accession, query_info)
+
+    def data_add(self, accession, validator, genome_build=None):
+        """SQLite version of data_add: derive transcript info from cdot and cache it."""
+        self.update_transcript_info_record(accession, validator, genome_build=genome_build)
+        entry = self.in_entries(accession, 'transcript_info')
+        return entry
+
     def get_urls(self, dict_out):
         # Provide direct links to reference sequence records
         # Add urls
