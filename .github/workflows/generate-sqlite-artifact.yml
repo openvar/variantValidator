@@ -1,0 +1,144 @@
+# Generate a pre-seeded VariantValidator SQLite database artifact
+# from the latest cdot RefSeq transcript data.
+# Reference: https://github.com/openvar/variantValidator/issues/789
+name: Generate SQLite Artifact
+
+on:
+  schedule:
+    # Weekly on Sunday at 04:00 UTC
+    - cron: '0 4 * * 0'
+  workflow_dispatch:
+    inputs:
+      cdot_tag:
+        description: 'Specific cdot release tag to use (leave empty for latest)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-sqlite-artifact:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install package with sqlite extras
+        run: pip install -e ".[sqlite]"
+
+      - name: Download latest cdot RefSeq JSON
+        id: download-cdot
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -n "${{ inputs.cdot_tag }}" ]; then
+            RELEASE_TAG="${{ inputs.cdot_tag }}"
+          else
+            RELEASE_TAG=$(gh release view --repo SACGF/cdot --json tagName -q '.tagName')
+          fi
+          echo "CDOT_TAG=${RELEASE_TAG}" >> "$GITHUB_OUTPUT"
+
+          # Download the RefSeq JSON asset from the release
+          gh release download "${RELEASE_TAG}" \
+            --repo SACGF/cdot \
+            --pattern 'cdot-*.refseq.json.gz' \
+            --dir .
+
+          CDOT_FILE=$(ls cdot-*.refseq.json.gz | head -1)
+          echo "CDOT_FILE=${CDOT_FILE}" >> "$GITHUB_OUTPUT"
+          echo "Downloaded: ${CDOT_FILE}"
+
+      - name: Seed SQLite database with variant cache
+        env:
+          CDOT_FILE: ${{ steps.download-cdot.outputs.CDOT_FILE }}
+        run: |
+          python3 << 'PYEOF'
+          import os
+          import sys
+          import logging
+
+          logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+          logger = logging.getLogger(__name__)
+
+          cdot_file = os.environ["CDOT_FILE"]
+          db_path = "vvdb-seed.sqlite"
+
+          # Configure VariantValidator to use sqlite backend
+          from VariantValidator.settings import CONFIG
+          CONFIG["sqlite"]["db_path"] = db_path
+          CONFIG["cdot"]["transcript_source"] = cdot_file
+          CONFIG["backend"]["type"] = "sqlite"
+
+          import VariantValidator
+          validator = VariantValidator.Validator()
+
+          # Canonical test variants to warm the lazy cache
+          test_variants = [
+              ("NM_007294.3:c.4535del", "GRCh38"),
+              ("NM_000546.6:c.817C>T", "GRCh38"),
+              ("NM_001126112.3:c.1A>G", "GRCh38"),
+              ("NM_000059.4:c.6275_6276del", "GRCh38"),
+              ("NM_000492.4:c.1521_1523del", "GRCh38"),
+              ("NM_004006.3:c.4375C>T", "GRCh38"),
+              ("NM_000249.4:c.1799T>A", "GRCh38"),
+              ("NM_024675.4:c.1100C>T", "GRCh38"),
+          ]
+
+          succeeded = 0
+          failed = 0
+          for variant, assembly in test_variants:
+              try:
+                  logger.info(f"Validating: {variant} ({assembly})")
+                  result = validator.validate(variant, assembly, "all")
+                  succeeded += 1
+                  logger.info(f"  OK: {variant}")
+              except Exception as e:
+                  failed += 1
+                  logger.warning(f"  FAILED: {variant} - {e}")
+
+          logger.info(f"Seeding complete: {succeeded} succeeded, {failed} failed")
+
+          if succeeded == 0:
+              logger.error("No variants succeeded - artifact would be empty")
+              sys.exit(1)
+
+          # Verify the database file was created
+          if not os.path.exists(db_path):
+              logger.error(f"Database file not found at {db_path}")
+              sys.exit(1)
+
+          size_mb = os.path.getsize(db_path) / (1024 * 1024)
+          logger.info(f"Database size: {size_mb:.2f} MB")
+          PYEOF
+
+      - name: Compute version tag and create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CDOT_TAG: ${{ steps.download-cdot.outputs.CDOT_TAG }}
+        run: |
+          DATE=$(date -u +%Y%m%d)
+          RELEASE_TAG="sqlite-${DATE}"
+          RELEASE_NAME="sqlite-artifacts-${DATE}"
+          ARTIFACT_NAME="vvdb-cdot-${CDOT_TAG}-${DATE}.sqlite"
+
+          # Rename the seeded database
+          mv vvdb-seed.sqlite "${ARTIFACT_NAME}"
+
+          # Create a GitHub Release and upload the artifact
+          gh release create "${RELEASE_TAG}" \
+            --title "${RELEASE_NAME}" \
+            --notes "Pre-seeded VariantValidator SQLite database built from cdot ${CDOT_TAG} on ${DATE}.
+
+          Contains cached transcript and validation data for common variants.
+
+          Reference: #789" \
+            "${ARTIFACT_NAME}"
+
+          echo "Release created: ${RELEASE_NAME}"
+          echo "Artifact: ${ARTIFACT_NAME}"
