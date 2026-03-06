@@ -226,6 +226,194 @@ class Mixin(vvDBInit.Mixin):
 
         return report_urls
 
+# ---------------------------------------------------------------------------
+# SQLite GET backend
+# ---------------------------------------------------------------------------
+
+from VariantValidator.modules.vvDBInit import SQLiteDBInit as _SQLiteDBInit
+
+
+class SQLiteDBGet(_SQLiteDBInit):
+    """SQLite equivalent of the MySQL Mixin GET queries.
+
+    All ``%s`` placeholders are replaced with ``?``, and MySQL-specific
+    functions are translated to their SQLite equivalents:
+
+    * ``NOW()``                              → ``datetime('now')``
+    * ``IF(updated < NOW() - INTERVAL N MONTH, …)``
+      → ``CASE WHEN (julianday('now') - julianday(updated)) > N*30 THEN … END``
+    """
+
+    # ------------------------------------------------------------------
+    # Low-level helpers (mirror the Mixin.execute / Mixin.execute_all API)
+    # ------------------------------------------------------------------
+
+    def execute(self, query, args=()):
+        conn = self.get_conn()
+        cursor = self.get_cursor(conn)
+        cursor.execute(query, args)
+        row = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        if row is None:
+            logger.debug("No data returned from query %s %s", query, args)
+            return ['none', 'No data']
+        return row
+
+    def execute_all(self, query, args=()):
+        conn = self.get_conn()
+        cursor = self.get_cursor(conn)
+        cursor.execute(query, args)
+        rows = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        if not rows:
+            logger.debug("No data returned from query %s %s", query, args)
+            return ['none', 'No data']
+        return rows
+
+    # ------------------------------------------------------------------
+    # Individual query methods — same signatures as the MySQL Mixin
+    # ------------------------------------------------------------------
+
+    def get_uta(self, gene_symbol):
+        query = "SELECT utaSymbol FROM transcript_info WHERE hgncSymbol = ?"
+        return self.execute(query, (gene_symbol,))
+
+    def get_hgnc(self, gene_symbol):
+        query = "SELECT hgncSymbol FROM transcript_info WHERE utaSymbol = ?"
+        return self.execute(query, (gene_symbol,))
+
+    def get_transcript_description(self, transcript_id):
+        query = "SELECT description FROM transcript_info WHERE refSeqID = ?"
+        return str(self.execute(query, (transcript_id,))[0])
+
+    def get_transcript_annotation(self, transcript_id):
+        query = "SELECT transcriptVariant FROM transcript_info WHERE refSeqID = ?"
+        return str(self.execute(query, (transcript_id,))[0])
+
+    def get_gene_symbol_from_transcript_id(self, transcript_id):
+        query = "SELECT hgncSymbol FROM transcript_info WHERE refSeqID = ?"
+        return str(self.execute(query, (transcript_id,))[0])
+
+    def get_refseq_data_by_refseq_id(self, refseq_id, genome_build):
+        query = (
+            "SELECT refSeqGeneID, refSeqChromosomeID, genomeBuild, startPos, endPos, "
+            "orientation, totalLength, chrPos, rsgPos, entrezID, hgncSymbol "
+            "FROM refSeqGene_loci WHERE refSeqGeneID = ? AND genomeBuild = ?"
+        )
+        return self.execute(query, (refseq_id, genome_build))
+
+    def get_gene_symbol_from_refseq_id(self, refseq_id):
+        query = "SELECT hgncSymbol FROM refSeqGene_loci WHERE refSeqGeneID = ?"
+        return self.execute(query, (refseq_id,))[0]
+
+    def get_refseq_id_from_lrg_id(self, lrg_id):
+        query = "SELECT RefSeqGeneID FROM LRG_RSG_lookup WHERE lrgID = ?"
+        return self.execute(query, (lrg_id,))[0]
+
+    def get_refseq_transcript_id_from_lrg_transcript_id(self, lrg_tx_id):
+        query = "SELECT RefSeqTranscriptID FROM LRG_transcripts WHERE LRGtranscriptID = ?"
+        return self.execute(query, (lrg_tx_id,))[0]
+
+    def get_lrg_transcript_id_from_refseq_transcript_id(self, rst_id):
+        if not LRG_TX_LINK:
+            query = "SELECT RefSeqTranscriptID, LRGtranscriptID FROM LRG_transcripts"
+            lrg_dat = self.execute_all(query)
+            if lrg_dat != ['none', 'No data']:
+                for dat in lrg_dat:
+                    LRG_TX_LINK[dat[0]] = dat[1]
+        return LRG_TX_LINK.get(rst_id, 'none')
+
+    def get_lrg_id_from_refseq_gene_id(self, rsg_id):
+        query = "SELECT lrgID, status FROM LRG_RSG_lookup WHERE RefSeqGeneID = ?"
+        return self.execute(query, (rsg_id,))
+
+    def get_refseqgene_info(self, refseqgene_id, primary_assembly):
+        query = (
+            "SELECT refSeqGeneID, refSeqChromosomeID, genomeBuild, startPos, endPos "
+            "FROM refSeqGene_loci WHERE refSeqGeneID = ? AND genomeBuild = ?"
+        )
+        return self.execute(query, (refseqgene_id, primary_assembly))
+
+    def get_refseq_protein_id_from_lrg_protein_id(self, lrg_p):
+        query = "SELECT RefSeqProteinID FROM LRG_proteins WHERE LRGproteinID = ?"
+        return self.execute(query, (lrg_p,))[0]
+
+    def get_lrg_protein_id_from_ref_seq_protein_id(self, rs_p):
+        query = "SELECT LRGproteinID FROM LRG_proteins WHERE RefSeqProteinID = ?"
+        return self.execute(query, (rs_p,))[0]
+
+    def get_lrg_data_from_lrg_id(self, lrg_id):
+        query = "SELECT * FROM LRG_RSG_lookup WHERE lrgID = ?"
+        return self.execute(query, (lrg_id,))
+
+    def get_transcript_info_for_gene(self, gene_symbol):
+        # MySQL: IF(updated < NOW() - INTERVAL 3 MONTH, 'true', 'false')
+        # SQLite: CASE WHEN (julianday('now') - julianday(updated)) > 90 THEN 'true' ELSE 'false' END
+        query = (
+            "SELECT refSeqID, description, transcriptVariant, currentVersion, hgncSymbol, utaSymbol, "
+            "updated, CASE WHEN (julianday('now') - julianday(updated)) > 90 "
+            "THEN 'true' ELSE 'false' END "
+            "FROM transcript_info WHERE hgncSymbol = ?"
+        )
+        return self.execute_all(query, (gene_symbol,))
+
+    def get_g_to_g_info(self, rsg_id=None, gen_id=None, start=None, end=None):
+        query = (
+            "SELECT refSeqGeneID, refSeqChromosomeID, startPos, endPos, orientation, hgncSymbol, "
+            "genomeBuild FROM refSeqGene_loci"
+        )
+        query_vals = ()
+        if rsg_id:
+            query = query + " WHERE refSeqGeneID = ?"
+            query_vals = (rsg_id,)
+        elif gen_id:
+            query = query + " WHERE refSeqChromosomeID = ?"
+            query_vals = (gen_id,)
+            if start:
+                query = query + " AND startPos <= ?"
+                query_vals = query_vals + (str(start),)
+            if end:
+                query = query + " AND endPos >= ?"
+                query_vals = query_vals + (str(end),)
+        return self.execute_all(query, query_vals)
+
+    def get_all_transcript_id(self):
+        query = "SELECT refSeqID FROM transcript_info"
+        return self.execute_all(query)
+
+    def get_stable_gene_id_info(self, hgnc_symbol):
+        query = "SELECT * FROM stableGeneIds WHERE hgnc_symbol = ?"
+        return self.execute(query, (hgnc_symbol,))
+
+    def get_stable_gene_id_from_hgnc_id(self, hgnc_id):
+        query = "SELECT * FROM stableGeneIds WHERE hgnc_id = ?"
+        return self.execute(query, (hgnc_id,))
+
+    def get_transcripts_from_annotations(self, statement):
+        testval = "%" + statement + "%"
+        query = "SELECT * FROM transcript_info WHERE transcriptVariant LIKE ?"
+        return self.execute_all(query, (testval,))
+
+    def get_db_version(self):
+        query = "SELECT current_version FROM version"
+        return self.execute(query)
+
+    # Convenience wrappers (same as MySQL Mixin)
+
+    def get_uta_symbol(self, gene_symbol):
+        return str(self.get_uta(gene_symbol)[0])
+
+    def get_hgnc_symbol(self, gene_symbol):
+        return str(self.get_hgnc(gene_symbol)[0])
+
+    def query_with_fetchone(self, refseq_id):
+        """Fetch a single transcript_info row by refSeqID."""
+        query = "SELECT * FROM transcript_info WHERE refSeqID = ?"
+        return self.execute(query, (refseq_id,))
+
+
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
 #

@@ -91,3 +91,103 @@ def test_sqlite_thread_safety(sqlite_db_path, vvdbinit_module):
     conn.close()
     assert not error, f"Cross-thread connection error: {error}"
     assert result == [1]
+
+
+# ── Task 3: SQLiteDBGet ──────────────────────────────────────────────────────
+
+def _load_vvdbget():
+    """Import vvDBGet directly, bypassing VariantValidator/__init__.py.
+
+    Relative imports (from . import vvDBInit) require the parent package to
+    be present in sys.modules.  We register lightweight stubs for the package
+    hierarchy and for heavy sibling modules we don't actually need.
+    """
+    import types
+
+    repo_root = os.path.join(os.path.dirname(__file__), "..")
+    modules_dir = os.path.join(repo_root, "VariantValidator", "modules")
+
+    # ── 1. Register stub parent packages so relative imports work ──────────
+    for pkg_name in ("VariantValidator", "VariantValidator.modules"):
+        if pkg_name not in sys.modules:
+            stub = types.ModuleType(pkg_name)
+            stub.__path__ = [os.path.join(repo_root, *pkg_name.split("."))]
+            stub.__package__ = pkg_name
+            sys.modules[pkg_name] = stub
+
+    def _load_file(name, filename):
+        if name in sys.modules:
+            return sys.modules[name]
+        spec = importlib.util.spec_from_file_location(
+            name,
+            os.path.join(modules_dir, filename),
+            submodule_search_locations=[],
+        )
+        mod = importlib.util.module_from_spec(spec)
+        mod.__package__ = "VariantValidator.modules"
+        sys.modules[name] = mod
+        spec.loader.exec_module(mod)
+        # Also expose as attribute on the parent package stub
+        short_name = name.split(".")[-1]
+        parent = sys.modules.get("VariantValidator.modules")
+        if parent is not None:
+            setattr(parent, short_name, mod)
+        return mod
+
+    # ── 2. Load vvDBInit (no heavy deps) ───────────────────────────────────
+    vvdbinit_mod = _load_file("VariantValidator.modules.vvDBInit", "vvDBInit.py")
+
+    # ── 3. Stub utils — only handleCursor is needed (it's a no-op wrapper) ─
+    if "VariantValidator.modules.utils" not in sys.modules:
+        import functools
+        utils_stub = types.ModuleType("VariantValidator.modules.utils")
+        utils_stub.__package__ = "VariantValidator.modules"
+
+        def handleCursor(func):
+            @functools.wraps(func)
+            def wrapper(self, *args, **kwargs):
+                return func(self, *args, **kwargs)
+            return wrapper
+
+        utils_stub.handleCursor = handleCursor
+        sys.modules["VariantValidator.modules.utils"] = utils_stub
+        setattr(sys.modules["VariantValidator.modules"], "utils", utils_stub)
+
+    # ── 4. Load vvDBGet ─────────────────────────────────────────────────────
+    return _load_file("VariantValidator.modules.vvDBGet", "vvDBGet.py")
+
+
+@pytest.fixture(scope="session")
+def vvdbget_module():
+    return _load_vvdbget()
+
+
+@pytest.fixture
+def sqlite_get(sqlite_db_path, vvdbget_module):
+    """SQLiteDBGet with an empty temp database."""
+    return vvdbget_module.SQLiteDBGet(sqlite_db_path)
+
+
+def test_get_uta_returns_none_when_empty(sqlite_get):
+    result = sqlite_get.get_uta("BRCA1")
+    assert result[0] == 'none'
+
+
+def test_get_hgnc_returns_none_when_empty(sqlite_get):
+    result = sqlite_get.get_hgnc("BRCA1")
+    assert result[0] == 'none'
+
+
+def test_query_with_fetchone_returns_none_when_empty(sqlite_get):
+    result = sqlite_get.query_with_fetchone("NM_007294.3")
+    assert result[0] == 'none'
+
+
+def test_execute_all_returns_none_when_empty(sqlite_get):
+    result = sqlite_get.execute_all("SELECT refSeqID FROM transcript_info WHERE hgncSymbol = ?", ("BRCA1",))
+    assert result == ['none', 'No data']
+
+
+def test_get_transcript_info_for_gene_returns_empty_when_missing(sqlite_get):
+    result = sqlite_get.get_transcript_info_for_gene("NOTAREALgene")
+    assert result == ['none', 'No data']
