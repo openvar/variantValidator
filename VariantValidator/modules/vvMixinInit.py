@@ -176,6 +176,98 @@ class Mixin:
 
             self.hdp.get_tx_mapping_options = _wrapped_get_tx_mapping_options
 
+            # get_tx_for_gene() returns dicts in cdot, but VV accesses each element
+            # with integer indices (0=hgnc, 1=cds_start_i, 2=cds_end_i, 3=tx_ac,
+            # 4=alt_ac, 5=alt_aln_method) matching the UTA SQL column order.
+            class _TxForGene:
+                _INT_TO_KEY = {
+                    0: 'hgnc', 1: 'cds_start_i', 2: 'cds_end_i',
+                    3: 'tx_ac', 4: 'alt_ac', 5: 'alt_aln_method',
+                }
+                __slots__ = ('_d',)
+
+                def __init__(self, d):
+                    self._d = d
+
+                def __getitem__(self, key):
+                    if isinstance(key, int):
+                        return self._d.get(self._INT_TO_KEY[key])
+                    return self._d[key]
+
+                def get(self, key, default=None):
+                    return self._d.get(key, default)
+
+                def __contains__(self, key):
+                    return key in self._d
+
+                def __repr__(self):
+                    return 'TxForGene({!r})'.format(self._d)
+
+            _orig_get_tx_for_gene = self.hdp.get_tx_for_gene
+
+            def _wrapped_get_tx_for_gene(gene, _orig=_orig_get_tx_for_gene):
+                results = _orig(gene)
+                if not results:
+                    return results
+                return [_TxForGene(r) if isinstance(r, dict) else r for r in results]
+
+            self.hdp.get_tx_for_gene = _wrapped_get_tx_for_gene
+
+            # get_gene_info() returns a dict in cdot, but VV accesses the result with
+            # integer indices.  UTA gene table column order:
+            # 0=hgnc_id, 1=hgnc, 2=maploc, 3=descr, 4=summary, 5=aliases, 6=added.
+            # cdot omits hgnc_id; index 0 returns None as a safe fallback.
+            class _GeneInfo:
+                _INT_TO_KEY = {
+                    0: None,        # hgnc_id — not provided by cdot
+                    1: 'hgnc',      # current symbol
+                    2: 'maploc',
+                    3: 'descr',     # gene description
+                    4: 'summary',
+                    5: 'aliases',   # alias/previous symbols
+                    6: 'added',
+                }
+                __slots__ = ('_d',)
+
+                def __init__(self, d):
+                    self._d = d
+
+                def __getitem__(self, key):
+                    if isinstance(key, int):
+                        k = self._INT_TO_KEY.get(key)
+                        return None if k is None else self._d.get(k)
+                    return self._d[key]
+
+                def get(self, key, default=None):
+                    return self._d.get(key, default)
+
+                def __contains__(self, key):
+                    return key in self._d
+
+                def __repr__(self):
+                    return 'GeneInfo({!r})'.format(self._d)
+
+            _orig_get_gene_info = self.hdp.get_gene_info
+
+            def _wrapped_get_gene_info(gene, _orig=_orig_get_gene_info):
+                result = _orig(gene)
+                if result is None or not isinstance(result, dict):
+                    return result
+                return _GeneInfo(result)
+
+            self.hdp.get_gene_info = _wrapped_get_gene_info
+
+            # get_gene_info_by_alias() returns a list of gene info dicts.
+            _orig_get_gene_info_by_alias = self.hdp.get_gene_info_by_alias
+
+            def _wrapped_get_gene_info_by_alias(alias, _orig=_orig_get_gene_info_by_alias):
+                results = _orig(alias)
+                if not results:
+                    return results
+                return [_GeneInfo(r) if isinstance(r, dict) else r for r in results]
+
+            self.hdp.get_gene_info_by_alias = _wrapped_get_gene_info_by_alias
+
             # vvhgvs calls get_tx_limits() but cdot's JSONDataProvider only implements
             # get_tx_identity_info().  Patch the instance with a derived implementation.
             def _get_tx_limits(tx_ac, _hdp=self.hdp):
