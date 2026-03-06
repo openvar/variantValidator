@@ -280,6 +280,18 @@ class Mixin:
 
             self.hdp.get_gene_info_by_alias = _wrapped_get_gene_info_by_alias
 
+            # get_tx_seq_anno() is in UTA (returns len, seq_id, descr) but not in cdot.
+            # VV only uses the length (index 0), which we can derive from get_tx_identity_info.
+            def _get_tx_seq_anno(tx_ac, _hdp=self.hdp):
+                info = _hdp.get_tx_identity_info(tx_ac)
+                if info is None:
+                    return None
+                lengths = info.get('lengths') or []
+                total_len = sum(lengths)
+                return (total_len, tx_ac, tx_ac)  # (len, seq_id, descr)
+
+            self.hdp.get_tx_seq_anno = _get_tx_seq_anno
+
             # vvhgvs calls get_tx_limits() but cdot's JSONDataProvider only implements
             # get_tx_identity_info().  Patch the instance with a derived implementation.
             def _get_tx_limits(tx_ac, _hdp=self.hdp):
