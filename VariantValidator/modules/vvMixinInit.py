@@ -292,6 +292,25 @@ class Mixin:
 
             self.hdp.get_tx_seq_anno = _get_tx_seq_anno
 
+            # cdot's JSONDataProvider raises ValueError (not HGVSDataNotAvailableError)
+            # for unsupported contigs (e.g. GRCh37 contig when data is GRCh38-only).
+            # VV's gene2transcripts already catches HGVSDataNotAvailableError to skip
+            # unsupported builds.  Convert ValueError → HGVSDataNotAvailableError so
+            # VV's existing error handling applies.
+            _orig_get_tx_exons = self.hdp.get_tx_exons
+
+            def _wrapped_get_tx_exons(
+                tx_ac, alt_ac, alt_aln_method,
+                _orig=_orig_get_tx_exons,
+            ):
+                try:
+                    return _orig(tx_ac, alt_ac, alt_aln_method)
+                except ValueError as exc:
+                    from vvhgvs.exceptions import HGVSDataNotAvailableError
+                    raise HGVSDataNotAvailableError(str(exc)) from exc
+
+            self.hdp.get_tx_exons = _wrapped_get_tx_exons
+
             # vvhgvs calls get_tx_limits() but cdot's JSONDataProvider only implements
             # get_tx_identity_info().  Patch the instance with a derived implementation.
             def _get_tx_limits(tx_ac, _hdp=self.hdp):
