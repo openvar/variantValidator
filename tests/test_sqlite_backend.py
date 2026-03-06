@@ -178,9 +178,9 @@ def test_get_hgnc_returns_none_when_empty(sqlite_get):
     assert result[0] == 'none'
 
 
-def test_query_with_fetchone_returns_none_when_empty(sqlite_get):
-    result = sqlite_get.query_with_fetchone("NM_007294.3")
-    assert result[0] == 'none'
+def test_execute_returns_none_when_empty(sqlite_get):
+    result = sqlite_get.execute("SELECT refSeqID FROM transcript_info WHERE refSeqID = ?", ("NM_007294.3",))
+    assert result == ['none', 'No data']
 
 
 def test_execute_all_returns_none_when_empty(sqlite_get):

@@ -408,10 +408,54 @@ class SQLiteDBGet(_SQLiteDBInit):
     def get_hgnc_symbol(self, gene_symbol):
         return str(self.get_hgnc(gene_symbol)[0])
 
-    def query_with_fetchone(self, refseq_id):
-        """Fetch a single transcript_info row by refSeqID."""
-        query = "SELECT * FROM transcript_info WHERE refSeqID = ?"
-        return self.execute(query, (refseq_id,))
+    def get_urls(self, dict_out):
+        # Provide direct links to reference sequence records
+        # Add urls
+        report_urls = {}
+
+        # Refseq
+        if 'NM_' in dict_out['hgvs_transcript_variant'] or 'NR_' in dict_out['hgvs_transcript_variant']:
+            report_urls['transcript'] = 'https://www.ncbi.nlm.nih.gov' \
+                                        '/nuccore/%s' % dict_out['hgvs_transcript_variant'].split(':')[0]
+        if 'NP_' in str(dict_out['hgvs_predicted_protein_consequence']['slr']):
+            report_urls['protein'] = 'https://www.ncbi.nlm.nih.gov' \
+                                     '/nuccore/%s' % str(
+                dict_out['hgvs_predicted_protein_consequence']['slr']).split(':')[0]
+        if 'NG_' in dict_out['hgvs_refseqgene_variant']:
+            report_urls['refseqgene'] = 'https://www.ncbi.nlm.nih.gov' \
+                                        '/nuccore/%s' % dict_out['hgvs_refseqgene_variant'].split(':')[0]
+        if 'LRG' in dict_out['hgvs_lrg_variant']:
+            lrg_id = dict_out['hgvs_lrg_variant'].split(':')[0]
+            lrg_data = self.get_lrg_data_from_lrg_id(lrg_id)
+            lrg_status = str(lrg_data[4])
+            if lrg_status == 'public':
+                report_urls['lrg'] = 'http://ftp.ebi.ac.uk/pub' \
+                                     '/databases/lrgex/%s.xml' % dict_out['hgvs_lrg_variant'].split(':')[0]
+            else:
+                report_urls['lrg'] = 'http://ftp.ebi.ac.uk' \
+                                     '/pub/databases/lrgex' \
+                                     '/pending/%s.xml' % dict_out['hgvs_lrg_variant'].split(':')[0]
+
+        # Ensembl
+        # When selected_assembly is GRCh37
+        if 'ENST' in dict_out['hgvs_transcript_variant'] and str(dict_out['selected_assembly']).lower() == 'grch37':
+            report_urls['transcript'] = 'https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?' \
+                                        'db=core;t=%s' % dict_out['hgvs_transcript_variant'].split(':')[0]
+        if 'ENSP' in str(dict_out['hgvs_predicted_protein_consequence']['slr']) and str(dict_out['selected_assembly']).lower() == 'grch37':
+            report_urls['protein'] = 'https://grch37.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?' \
+                                     'db=core;p=%s' % str(
+                                        dict_out['hgvs_predicted_protein_consequence']['slr']).split(':')[0]
+
+        # When selected_assembly is GRCh38
+        if 'ENST' in dict_out['hgvs_transcript_variant'] and str(dict_out['selected_assembly']).lower() == 'grch38':
+            report_urls['transcript'] = 'https://www.ensembl.org/Homo_sapiens/Transcript/Summary?' \
+                                        'db=core;t=%s' % dict_out['hgvs_transcript_variant'].split(':')[0]
+        if 'ENSP' in str(dict_out['hgvs_predicted_protein_consequence']['slr']) and str(dict_out['selected_assembly']).lower() == 'grch38':
+            report_urls['protein'] = 'https://www.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?' \
+                                     'db=core;p=%s' % str(
+                                        dict_out['hgvs_predicted_protein_consequence']['slr']).split(':')[0]
+
+        return report_urls
 
 
 # <LICENSE>
