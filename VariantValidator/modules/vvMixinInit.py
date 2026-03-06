@@ -94,10 +94,9 @@ class Mixin:
                     "cdot is required for the sqlite backend. "
                     "Install it with: pip install 'VariantValidator[sqlite]'"
                 )
-            self.hdp = cdot.hgvs.dataproviders.JSONDataProvider(
-                [cdot_path],
-                seqrepo_dir=self.seqrepoPath,
-            )
+            # JSONDataProvider accepts seqfetcher (a SeqFetcher object), not seqrepo_dir.
+            # Omitting seqfetcher uses the biocommons default (remote REST service).
+            self.hdp = cdot.hgvs.dataproviders.JSONDataProvider([cdot_path])
 
             from VariantValidator.modules.vvDatabase import SQLiteDatabase
             self.db = SQLiteDatabase(sqlite_path)
