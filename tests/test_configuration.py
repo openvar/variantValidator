@@ -177,7 +177,7 @@ class TestConfigValues(unittest.TestCase):
 
     def test_file_structure(self):
 
-        self.assertCountEqual(self.config.sections(), ['mysql', 'seqrepo', 'postgres',  'logging', 'Entrez'])
+        self.assertCountEqual(self.config.sections(), ['mysql', 'seqrepo', 'postgres', 'logging', 'Entrez', 'backend'])
         self.assertCountEqual(list(self.config['mysql']), ['host', 'port', 'database', 'user', 'password', 'version'])
         self.assertCountEqual(list(self.config['seqrepo']), ['version', 'location', 'require_threading'])
         self.assertCountEqual(list(self.config['postgres']), ['host', 'port', 'database', 'version', 'user', 'password'])
@@ -229,6 +229,21 @@ class TestConfigValues(unittest.TestCase):
             self.assertEqual(vv.entrez_api_key, None)
         else:
             self.assertEqual(vv.entrez_api_key, self.config['Entrez']['api_key'])
+
+    def test_file_structure_includes_backend(self):
+        """New backend section must be present in config."""
+        self.assertIn('backend', self.config.sections())
+        self.assertCountEqual(
+            list(self.config['backend']),
+            ['type', 'cdot_path', 'sqlite_path']
+        )
+
+    def test_backend_type_valid(self):
+        """Backend type must be mysql or sqlite."""
+        self.assertIn(
+            self.config['backend']['type'].lower(),
+            ['mysql', 'sqlite']
+        )
 
     def tearDown(self):
         shutil.move(self.original, self.filename)
