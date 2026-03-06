@@ -408,6 +408,57 @@ class SQLiteDBGet(_SQLiteDBInit):
     def get_hgnc_symbol(self, gene_symbol):
         return str(self.get_hgnc(gene_symbol)[0])
 
+    def query_with_fetchone(self, entry):
+        """SQLite equivalent of Database.query_with_fetchone.
+
+        Returns a row tuple:
+          (refSeqID, description, transcriptVariant, currentVersion,
+           hgncSymbol, utaSymbol, updated, expiry_flag)
+        where expiry_flag is 'true' if the record is older than 12 months.
+        """
+        query = (
+            "SELECT refSeqID, description, transcriptVariant, currentVersion, "
+            "hgncSymbol, utaSymbol, updated, "
+            "CASE WHEN (julianday('now') - julianday(updated)) > 365 "
+            "THEN 'true' ELSE 'false' END "
+            "FROM transcript_info WHERE refSeqID = ?"
+        )
+        conn = self.get_conn()
+        cursor = self.get_cursor(conn)
+        cursor.execute(query, (entry,))
+        row = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        if row is None:
+            logger.debug("No data returned from query %s (%s)", query, entry)
+            return ['none', 'No data']
+        return row
+
+    def in_entries(self, entry, table):
+        """Retrieve and decode transcript_info into a dict.
+
+        Mirrors Database.in_entries; delegates to query_with_fetchone.
+        """
+        data = {}
+        if table == 'transcript_info':
+            row = self.query_with_fetchone(entry)
+            if row[0] == 'error':
+                data['error'] = row[0]
+                data['description'] = row[1]
+            elif row[0] == 'none':
+                data['none'] = row[0]
+                data['description'] = row[1]
+            else:
+                data['accession'] = row[0]
+                data['description'] = row[1]
+                data['variant'] = row[2]
+                data['version'] = row[3]
+                data['hgnc_symbol'] = row[4]
+                data['uta_symbol'] = row[5]
+                data['updated'] = row[6]
+                data['expiry'] = row[7]
+        return data
+
     def get_urls(self, dict_out):
         # Provide direct links to reference sequence records
         # Add urls
