@@ -98,6 +98,26 @@ class Mixin:
             # Omitting seqfetcher uses the biocommons default (remote REST service).
             self.hdp = cdot.hgvs.dataproviders.JSONDataProvider([cdot_path])
 
+            # vvhgvs calls get_tx_limits() but cdot's JSONDataProvider only implements
+            # get_tx_identity_info().  Patch the instance with a derived implementation.
+            def _get_tx_limits(tx_ac, _hdp=self.hdp):
+                from vvhgvs.exceptions import HGVSDataNotAvailableError
+                info = _hdp.get_tx_identity_info(tx_ac)
+                if info is None:
+                    raise HGVSDataNotAvailableError(
+                        "No transcript definition for (tx_ac={tx_ac})".format(tx_ac=tx_ac)
+                    )
+                lengths = info.get('lengths', [])
+                return {
+                    'ac': tx_ac,
+                    'cds_start_i': info['cds_start_i'],
+                    'cds_end_i': info['cds_end_i'],
+                    'length': sum(lengths) if lengths else None,
+                    'hgnc': info.get('hgnc'),
+                }
+
+            self.hdp.get_tx_limits = _get_tx_limits
+
             from VariantValidator.modules.vvDatabase import SQLiteDatabase
             self.db = SQLiteDatabase(sqlite_path)
             self.dbConfig = None  # Not used in sqlite backend
