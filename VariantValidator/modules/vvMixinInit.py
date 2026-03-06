@@ -98,6 +98,48 @@ class Mixin:
             # Omitting seqfetcher uses the biocommons default (remote REST service).
             self.hdp = cdot.hgvs.dataproviders.JSONDataProvider([cdot_path])
 
+            # cdot's get_tx_identity_info() returns a plain dict, but VV (and vvhgvs)
+            # accesses the result with both integer indices (UTA tuple convention) and
+            # string keys (dict convention).  Wrap the result in a dual-access shim so
+            # that BOTH access styles work without touching every call site.
+            #
+            # UTA tuple field order (indices 0-6):
+            #   0: tx_ac  1: alt_ac  2: alt_aln_method
+            #   3: cds_start_i  4: cds_end_i  5: lengths  6: hgnc
+            class _TxIdentityInfo:
+                _INT_TO_KEY = {
+                    0: 'tx_ac', 1: 'alt_ac', 2: 'alt_aln_method',
+                    3: 'cds_start_i', 4: 'cds_end_i', 5: 'lengths', 6: 'hgnc',
+                }
+                __slots__ = ('_d',)
+
+                def __init__(self, d):
+                    self._d = d
+
+                def __getitem__(self, key):
+                    if isinstance(key, int):
+                        return self._d.get(self._INT_TO_KEY[key])
+                    return self._d[key]
+
+                def get(self, key, default=None):
+                    return self._d.get(key, default)
+
+                def __contains__(self, key):
+                    return key in self._d
+
+                def __repr__(self):
+                    return 'TxIdentityInfo({!r})'.format(self._d)
+
+            _orig_get_tx_identity_info = self.hdp.get_tx_identity_info
+
+            def _wrapped_get_tx_identity_info(tx_ac, _orig=_orig_get_tx_identity_info):
+                result = _orig(tx_ac)
+                if result is None:
+                    return None
+                return _TxIdentityInfo(result)
+
+            self.hdp.get_tx_identity_info = _wrapped_get_tx_identity_info
+
             # vvhgvs calls get_tx_limits() but cdot's JSONDataProvider only implements
             # get_tx_identity_info().  Patch the instance with a derived implementation.
             def _get_tx_limits(tx_ac, _hdp=self.hdp):
