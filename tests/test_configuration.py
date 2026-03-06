@@ -60,7 +60,7 @@ class TestConfigSetUp(unittest.TestCase):
         self.assertTrue(os.path.exists(self.filename))
         output = subprocess.check_output(['python', '-c', 'import VariantValidator'])
         print(output)
-        self.assertTrue('MySQL' in output.decode())
+        self.assertIn(b"cdot_path", output)
         self.assertTrue('Please edit your configuration' in output.decode())
 
     def test_changed_mysql(self):
@@ -68,6 +68,7 @@ class TestConfigSetUp(unittest.TestCase):
             pytest.skip("VariantValidator already imported")
         self.insert_blank()
         self.open_config()
+        self.config['backend']['type'] = 'mysql'
         self.assertEqual(self.config['mysql']['user'], 'USERNAME')
         self.config['mysql']['user'] = 'myusername'
         self.assertEqual(self.config['mysql']['password'], 'PASSWORD')
@@ -81,6 +82,7 @@ class TestConfigSetUp(unittest.TestCase):
     def test_changed_mysql_msg(self):
         self.insert_blank()
         self.open_config()
+        self.config['backend']['type'] = 'mysql'
         self.assertEqual(self.config['mysql']['user'], 'USERNAME')
         self.config['mysql']['user'] = 'myusername'
         self.assertEqual(self.config['mysql']['password'], 'PASSWORD')
@@ -97,6 +99,7 @@ class TestConfigSetUp(unittest.TestCase):
             pytest.skip("VariantValidator already imported")
         self.insert_blank()
         self.open_config()
+        self.config['backend']['type'] = 'mysql'
         self.config['mysql']['user'] = 'myusername'
         self.config['mysql']['password'] = 'mypass'
 
@@ -113,6 +116,7 @@ class TestConfigSetUp(unittest.TestCase):
     def test_changed_postgres_msg(self):
         self.insert_blank()
         self.open_config()
+        self.config['backend']['type'] = 'mysql'
         self.config['mysql']['user'] = 'myusername'
         self.config['mysql']['password'] = 'mypass'
 
@@ -133,6 +137,7 @@ class TestConfigSetUp(unittest.TestCase):
         """
         self.insert_blank()
         self.open_config()
+        self.config['backend']['type'] = 'mysql'
         self.config['mysql']['user'] = 'myusername'
         self.config['mysql']['password'] = 'mypass'
         self.config['postgres']['user'] = 'me'

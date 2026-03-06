@@ -8,7 +8,7 @@ def read_configuration():
     config = configparser.ConfigParser()
     config.read(CONFIG_DIR)
 
-    backend_type = config.get('backend', 'type', fallback='mysql').lower()
+    backend_type = config.get('backend', 'type', fallback='sqlite').lower()
 
     if backend_type == 'mysql':
         if config['mysql']['user'] == 'USERNAME' or config['mysql']['password'] == 'PASSWORD':
@@ -21,6 +21,9 @@ def read_configuration():
     elif backend_type == 'sqlite':
         if config.get('backend', 'cdot_path', fallback='/PATH/TO/cdot-latest.refseq.json.gz') == '/PATH/TO/cdot-latest.refseq.json.gz':
             print("cdot_path has not been updated from default.")
+            exit_with_message()
+        if config.get('backend', 'sqlite_path', fallback='/PATH/TO/vvdb.sqlite') == '/PATH/TO/vvdb.sqlite':
+            print("sqlite_path has not been updated from default.")
             exit_with_message()
 
     if config['seqrepo']['location'] == '/PATH/TO/SEQREPO':
