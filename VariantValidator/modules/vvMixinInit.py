@@ -297,6 +297,47 @@ class Mixin:
             # VV's gene2transcripts already catches HGVSDataNotAvailableError to skip
             # unsupported builds.  Convert ValueError → HGVSDataNotAvailableError so
             # VV's existing error handling applies.
+            #
+            # cdot also returns each exon as a plain dict, but several VV modules
+            # (gapped_mapping.py, hgvs_utils.py, utils.py) access exon rows with
+            # integer indices matching the UTA tuple layout:
+            #   0: hgnc  1: tx_ac  2: alt_ac  3: alt_aln_method  4: ord
+            #   5: tx_start_i  6: tx_end_i  7: alt_start_i  8: alt_end_i
+            #   9: cigar  10: alt_strand
+            # Wrap each exon dict in a dual-access shim so integer indexing works.
+            class _TxExon:
+                _INT_TO_KEY = {
+                    0: 'hgnc',
+                    1: 'tx_ac',
+                    2: 'alt_ac',
+                    3: 'alt_aln_method',
+                    4: 'ord',
+                    5: 'tx_start_i',
+                    6: 'tx_end_i',
+                    7: 'alt_start_i',
+                    8: 'alt_end_i',
+                    9: 'cigar',
+                    10: 'alt_strand',
+                }
+                __slots__ = ('_d',)
+
+                def __init__(self, d):
+                    self._d = d
+
+                def __getitem__(self, key):
+                    if isinstance(key, int):
+                        return self._d.get(self._INT_TO_KEY[key])
+                    return self._d[key]
+
+                def get(self, key, default=None):
+                    return self._d.get(key, default)
+
+                def __contains__(self, key):
+                    return key in self._d
+
+                def __repr__(self):
+                    return 'TxExon({!r})'.format(self._d)
+
             _orig_get_tx_exons = self.hdp.get_tx_exons
 
             def _wrapped_get_tx_exons(
@@ -304,10 +345,13 @@ class Mixin:
                 _orig=_orig_get_tx_exons,
             ):
                 try:
-                    return _orig(tx_ac, alt_ac, alt_aln_method)
+                    result = _orig(tx_ac, alt_ac, alt_aln_method)
                 except ValueError as exc:
                     from vvhgvs.exceptions import HGVSDataNotAvailableError
                     raise HGVSDataNotAvailableError(str(exc)) from exc
+                if result is None:
+                    return result
+                return [_TxExon(e) if isinstance(e, dict) else e for e in result]
 
             self.hdp.get_tx_exons = _wrapped_get_tx_exons
 
