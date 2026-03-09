@@ -361,7 +361,7 @@ class Mixin(vvMixinConverters.Mixin):
                                     else:
                                         continue
 
-                            if to_code_or_not_to_code[3] is None:
+                            if to_code_or_not_to_code['cds_start_i'] is None:
                                 my_variant.transcript_type = 'n'
                             else:
                                 my_variant.transcript_type = 'c'

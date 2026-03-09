@@ -76,40 +76,387 @@ class Mixin:
         elif self.check_same_thread == "False":
             self.check_same_thread = True
         self.seqrepoPath = os.path.join(config["seqrepo"]["location"], self.seqrepoVersion)
-        self.vvdbVersion = config["mysql"]["version"]
 
         os.environ['HGVS_SEQREPO_DIR'] = self.seqrepoPath
 
-        psql_host_or_socketfile = config['postgres']['host'].replace('/','%2F')
+        # Read backend type and branch accordingly
+        backend_type = config.get('backend', 'type', fallback='sqlite').lower()
 
-        os.environ['UTA_DB_URL'] = "postgresql://%s:%s@%s:%s/%s/%s" % (
-            config["postgres"]["user"],
-            config["postgres"]["password"],
-            psql_host_or_socketfile,
-            config['postgres']['port'],
-            config['postgres']['database'],
-            config['postgres']['version']
-        )
+        if backend_type == 'sqlite':
+            # cdot + SQLite path (no PostgreSQL/MySQL required)
+            cdot_path = config.get('backend', 'cdot_path')
+            sqlite_path = config.get('backend', 'sqlite_path')
 
-        self.utaPath = os.environ.get('UTA_DB_URL')
+            try:
+                import cdot.hgvs.dataproviders
+            except ImportError:
+                raise ImportError(
+                    "cdot is required for the sqlite backend. "
+                    "Install it with: pip install 'VariantValidator[sqlite]'"
+                )
+            # JSONDataProvider accepts seqfetcher (a SeqFetcher object), not seqrepo_dir.
+            # Omitting seqfetcher uses the biocommons default (remote REST service).
+            self.hdp = cdot.hgvs.dataproviders.JSONDataProvider([cdot_path])
 
-        self.dbConfig = {
-            'user':     config["mysql"]["user"],
-            'password': config["mysql"]["password"],
-            'host':     config["mysql"]["host"],
-            'port':     int(config["mysql"]["port"]),
-            'database': config["mysql"]["database"],
-            'raise_on_warnings': True
-        }
-        mysql_unix_socket = config.get('mysql','unix_socket',fallback=False)
-        if mysql_unix_socket:
-            self.dbConfig["unix_socket"] = mysql_unix_socket
-        # Create database access objects
-        self.db = Database(self.dbConfig)
-        db_version = self.db.get_db_version()
-        if db_version[0] != config["mysql"]["version"]:
-            raise InitialisationError("Config error: VVDb version in config file is incorrect. VDb version is "
-                                      + db_version[0])
+            # cdot's get_tx_identity_info() returns a plain dict, but VV (and vvhgvs)
+            # accesses the result with both integer indices (UTA tuple convention) and
+            # string keys (dict convention).  Wrap the result in a dual-access shim so
+            # that BOTH access styles work without touching every call site.
+            #
+            # UTA tuple field order (indices 0-6):
+            #   0: tx_ac  1: alt_ac  2: alt_aln_method
+            #   3: cds_start_i  4: cds_end_i  5: lengths  6: hgnc
+            class _TxIdentityInfo:
+                _INT_TO_KEY = {
+                    0: 'tx_ac', 1: 'alt_ac', 2: 'alt_aln_method',
+                    3: 'cds_start_i', 4: 'cds_end_i', 5: 'lengths', 6: 'hgnc',
+                }
+                __slots__ = ('_d',)
+
+                def __init__(self, d):
+                    self._d = d
+
+                def __getitem__(self, key):
+                    if isinstance(key, int):
+                        return self._d.get(self._INT_TO_KEY[key])
+                    return self._d[key]
+
+                def get(self, key, default=None):
+                    return self._d.get(key, default)
+
+                def __contains__(self, key):
+                    return key in self._d
+
+                def __repr__(self):
+                    return 'TxIdentityInfo({!r})'.format(self._d)
+
+            _orig_get_tx_identity_info = self.hdp.get_tx_identity_info
+
+            def _wrapped_get_tx_identity_info(tx_ac, _orig=_orig_get_tx_identity_info):
+                result = _orig(tx_ac)
+                if result is None:
+                    return None
+                return _TxIdentityInfo(result)
+
+            self.hdp.get_tx_identity_info = _wrapped_get_tx_identity_info
+
+            # get_tx_mapping_options() returns a list of dicts in cdot, but VV accesses
+            # each element with integer indices (0=tx_ac, 1=alt_ac, 2=alt_aln_method).
+            # Wrap each element with the same dual-access shim pattern.
+            class _TxMappingOption:
+                _INT_TO_KEY = {
+                    0: 'tx_ac', 1: 'alt_ac', 2: 'alt_aln_method',
+                }
+                __slots__ = ('_d',)
+
+                def __init__(self, d):
+                    self._d = d
+
+                def __getitem__(self, key):
+                    if isinstance(key, int):
+                        return self._d.get(self._INT_TO_KEY[key])
+                    return self._d[key]
+
+                def get(self, key, default=None):
+                    return self._d.get(key, default)
+
+                def __contains__(self, key):
+                    return key in self._d
+
+                def __repr__(self):
+                    return 'TxMappingOption({!r})'.format(self._d)
+
+            _orig_get_tx_mapping_options = self.hdp.get_tx_mapping_options
+
+            def _wrapped_get_tx_mapping_options(tx_ac, _orig=_orig_get_tx_mapping_options):
+                results = _orig(tx_ac)
+                if not results:
+                    return results
+                return [_TxMappingOption(r) if isinstance(r, dict) else r for r in results]
+
+            self.hdp.get_tx_mapping_options = _wrapped_get_tx_mapping_options
+
+            # get_tx_for_gene() returns dicts in cdot, but VV accesses each element
+            # with integer indices (0=hgnc, 1=cds_start_i, 2=cds_end_i, 3=tx_ac,
+            # 4=alt_ac, 5=alt_aln_method) matching the UTA SQL column order.
+            class _TxForGene:
+                _INT_TO_KEY = {
+                    0: 'hgnc', 1: 'cds_start_i', 2: 'cds_end_i',
+                    3: 'tx_ac', 4: 'alt_ac', 5: 'alt_aln_method',
+                }
+                __slots__ = ('_d',)
+
+                def __init__(self, d):
+                    self._d = d
+
+                def __getitem__(self, key):
+                    if isinstance(key, int):
+                        return self._d.get(self._INT_TO_KEY[key])
+                    return self._d[key]
+
+                def get(self, key, default=None):
+                    return self._d.get(key, default)
+
+                def __contains__(self, key):
+                    return key in self._d
+
+                def __repr__(self):
+                    return 'TxForGene({!r})'.format(self._d)
+
+            _orig_get_tx_for_gene = self.hdp.get_tx_for_gene
+
+            def _wrapped_get_tx_for_gene(gene, _orig=_orig_get_tx_for_gene):
+                results = _orig(gene)
+                if not results:
+                    return results
+                return [_TxForGene(r) if isinstance(r, dict) else r for r in results]
+
+            self.hdp.get_tx_for_gene = _wrapped_get_tx_for_gene
+
+            # get_gene_info() returns a dict in cdot, but VV accesses the result with
+            # integer indices.  UTA gene table column order:
+            # 0=hgnc_id, 1=hgnc, 2=maploc, 3=descr, 4=summary, 5=aliases, 6=added.
+            # cdot omits hgnc_id; index 0 returns None as a safe fallback.
+            class _GeneInfo:
+                _INT_TO_KEY = {
+                    0: None,        # hgnc_id — not provided by cdot
+                    1: 'hgnc',      # current symbol
+                    2: 'maploc',
+                    3: 'descr',     # gene description
+                    4: 'summary',
+                    5: 'aliases',   # alias/previous symbols
+                    6: 'added',
+                }
+                __slots__ = ('_d',)
+
+                def __init__(self, d):
+                    self._d = d
+
+                def __getitem__(self, key):
+                    if isinstance(key, int):
+                        k = self._INT_TO_KEY.get(key)
+                        return None if k is None else self._d.get(k)
+                    return self._d[key]
+
+                def get(self, key, default=None):
+                    return self._d.get(key, default)
+
+                def __contains__(self, key):
+                    return key in self._d
+
+                def __repr__(self):
+                    return 'GeneInfo({!r})'.format(self._d)
+
+            _orig_get_gene_info = self.hdp.get_gene_info
+
+            def _wrapped_get_gene_info(gene, _orig=_orig_get_gene_info):
+                result = _orig(gene)
+                if result is None or not isinstance(result, dict):
+                    return result
+                return _GeneInfo(result)
+
+            self.hdp.get_gene_info = _wrapped_get_gene_info
+
+            # get_gene_info_by_alias() returns a list of gene info dicts.
+            # get_gene_info_by_alias() is in UTA but not all cdot versions implement it.
+            # Wrap if present; otherwise add a stub that searches via get_gene_info().
+            _orig_get_gene_info_by_alias = getattr(self.hdp, 'get_gene_info_by_alias', None)
+
+            if _orig_get_gene_info_by_alias is not None:
+                def _wrapped_get_gene_info_by_alias(alias, _orig=_orig_get_gene_info_by_alias):
+                    results = _orig(alias)
+                    if not results:
+                        return results
+                    return [_GeneInfo(r) if isinstance(r, dict) else r for r in results]
+            else:
+                # cdot does not implement get_gene_info_by_alias; fall back to an
+                # exact-match search via get_gene_info (same symbol, different path).
+                def _wrapped_get_gene_info_by_alias(alias, _hdp=self.hdp):
+                    result = _hdp.get_gene_info(alias)
+                    if result is None:
+                        return []
+                    # Wrap the single result in a list to match the UTA interface.
+                    return [result]  # already wrapped by _wrapped_get_gene_info
+
+            self.hdp.get_gene_info_by_alias = _wrapped_get_gene_info_by_alias
+
+            # get_tx_seq_anno() is in UTA (returns len, seq_id, descr) but not in cdot.
+            # VV only uses the length (index 0), which we can derive from get_tx_identity_info.
+            def _get_tx_seq_anno(tx_ac, _hdp=self.hdp):
+                info = _hdp.get_tx_identity_info(tx_ac)
+                if info is None:
+                    return None
+                lengths = info.get('lengths') or []
+                total_len = sum(lengths)
+                return (total_len, tx_ac, tx_ac)  # (len, seq_id, descr)
+
+            self.hdp.get_tx_seq_anno = _get_tx_seq_anno
+
+            # cdot's JSONDataProvider raises ValueError (not HGVSDataNotAvailableError)
+            # for unsupported contigs (e.g. GRCh37 contig when data is GRCh38-only).
+            # VV's gene2transcripts already catches HGVSDataNotAvailableError to skip
+            # unsupported builds.  Convert ValueError → HGVSDataNotAvailableError so
+            # VV's existing error handling applies.
+            #
+            # cdot also returns each exon as a plain dict, but several VV modules
+            # (gapped_mapping.py, hgvs_utils.py, utils.py) access exon rows with
+            # integer indices matching the UTA tuple layout:
+            #   0: hgnc  1: tx_ac  2: alt_ac  3: alt_aln_method  4: ord
+            #   5: tx_start_i  6: tx_end_i  7: alt_start_i  8: alt_end_i
+            #   9: cigar  10: alt_strand
+            # Wrap each exon dict in a dual-access shim so integer indexing works.
+            class _TxExon:
+                _INT_TO_KEY = {
+                    0: 'hgnc',
+                    1: 'tx_ac',
+                    2: 'alt_ac',
+                    3: 'alt_aln_method',
+                    4: 'ord',
+                    5: 'tx_start_i',
+                    6: 'tx_end_i',
+                    7: 'alt_start_i',
+                    8: 'alt_end_i',
+                    9: 'cigar',
+                    10: 'alt_strand',
+                }
+                __slots__ = ('_d',)
+
+                def __init__(self, d):
+                    self._d = d
+
+                def __getitem__(self, key):
+                    if isinstance(key, int):
+                        return self._d.get(self._INT_TO_KEY[key])
+                    return self._d[key]
+
+                def get(self, key, default=None):
+                    return self._d.get(key, default)
+
+                def __contains__(self, key):
+                    return key in self._d
+
+                def __repr__(self):
+                    return 'TxExon({!r})'.format(self._d)
+
+            _orig_get_tx_exons = self.hdp.get_tx_exons
+
+            def _wrapped_get_tx_exons(
+                tx_ac, alt_ac, alt_aln_method,
+                _orig=_orig_get_tx_exons,
+            ):
+                try:
+                    result = _orig(tx_ac, alt_ac, alt_aln_method)
+                except ValueError as exc:
+                    from vvhgvs.exceptions import HGVSDataNotAvailableError
+                    raise HGVSDataNotAvailableError(str(exc)) from exc
+                if result is None:
+                    return result
+                return [_TxExon(e) if isinstance(e, dict) else e for e in result]
+
+            self.hdp.get_tx_exons = _wrapped_get_tx_exons
+
+            # vvhgvs calls get_tx_limits() but cdot's JSONDataProvider only implements
+            # get_tx_identity_info().  Patch the instance with a derived implementation.
+            def _get_tx_limits(tx_ac, _hdp=self.hdp):
+                from vvhgvs.exceptions import HGVSDataNotAvailableError
+                info = _hdp.get_tx_identity_info(tx_ac)
+                if info is None:
+                    raise HGVSDataNotAvailableError(
+                        "No transcript definition for (tx_ac={tx_ac})".format(tx_ac=tx_ac)
+                    )
+                lengths = info.get('lengths', [])
+                return {
+                    'ac': tx_ac,
+                    'cds_start_i': info['cds_start_i'],
+                    'cds_end_i': info['cds_end_i'],
+                    'length': sum(lengths) if lengths else None,
+                    'hgnc': info.get('hgnc'),
+                }
+
+            self.hdp.get_tx_limits = _get_tx_limits
+
+            # vvhgvs also calls get_agg_exon_aln() which is absent from cdot.
+            # Build the aggregated CIGAR from get_tx_exons() data:
+            # exons are sorted left-to-right on the genome; introns are {size}N.
+            def _get_agg_exon_aln(tx_ac, alt_ac, alt_aln_method, _hdp=self.hdp):
+                tx_exons = _hdp.get_tx_exons(tx_ac, alt_ac, alt_aln_method)
+                if not tx_exons:
+                    return None
+                info = _hdp.get_tx_identity_info(tx_ac)
+                cds_start_i = info['cds_start_i'] if info else None
+                cds_end_i = info['cds_end_i'] if info else None
+
+                # Sort exons left-to-right along the genome
+                exons_genomic = sorted(tx_exons, key=lambda e: e['alt_start_i'])
+                alt_strand = exons_genomic[0]['alt_strand']
+                mapped_start = exons_genomic[0]['alt_start_i']
+
+                # Build not_quite_cigar: exon_cigar + intron_N + ... (genomic order)
+                cigar_parts = []
+                for i, exon in enumerate(exons_genomic):
+                    if i > 0:
+                        prev = exons_genomic[i - 1]
+                        intron_size = exon['alt_start_i'] - prev['alt_end_i']
+                        if intron_size > 0:
+                            cigar_parts.append("{0}N".format(intron_size))
+                    cigar_parts.append(exon['cigar'])
+                not_quite_cigar = "".join(cigar_parts)
+
+                return {
+                    'alt_strand': alt_strand,
+                    'mapped_start': mapped_start,
+                    'not_quite_cigar': not_quite_cigar,
+                    'cds_start_i': cds_start_i,
+                    'cds_end_i': cds_end_i,
+                }
+
+            self.hdp.get_agg_exon_aln = _get_agg_exon_aln
+
+            from VariantValidator.modules.vvDatabase import SQLiteDatabase
+            self.db = SQLiteDatabase(sqlite_path)
+            self.dbConfig = None  # Not used in sqlite backend
+
+            # Populate version attributes using cdot data version
+            self.vvdbVersion = 'sqlite'
+            self.utaPath = cdot_path
+
+        else:
+            # MySQL + UTA/PostgreSQL path (existing behaviour, unchanged)
+            self.vvdbVersion = config["mysql"]["version"]
+
+            psql_host_or_socketfile = config['postgres']['host'].replace('/','%2F')
+
+            os.environ['UTA_DB_URL'] = "postgresql://%s:%s@%s:%s/%s/%s" % (
+                config["postgres"]["user"],
+                config["postgres"]["password"],
+                psql_host_or_socketfile,
+                config['postgres']['port'],
+                config['postgres']['database'],
+                config['postgres']['version']
+            )
+
+            self.utaPath = os.environ.get('UTA_DB_URL')
+
+            self.dbConfig = {
+                'user':     config["mysql"]["user"],
+                'password': config["mysql"]["password"],
+                'host':     config["mysql"]["host"],
+                'port':     int(config["mysql"]["port"]),
+                'database': config["mysql"]["database"],
+                'raise_on_warnings': True
+            }
+            mysql_unix_socket = config.get('mysql','unix_socket',fallback=False)
+            if mysql_unix_socket:
+                self.dbConfig["unix_socket"] = mysql_unix_socket
+            # Create database access objects
+            self.db = Database(self.dbConfig)
+            db_version = self.db.get_db_version()
+            if db_version[0] != config["mysql"]["version"]:
+                raise InitialisationError("Config error: VVDb version in config file is incorrect. VDb version is "
+                                          + db_version[0])
+
+            # Connect to UTA/VVTA (PostgreSQL)
+            self.hdp = vvhgvs.dataproviders.uta.connect(pooling=True)
 
         # Set up versions
         self.version = __version__
@@ -129,7 +476,6 @@ class Mixin:
         vvhgvs.global_config.formatting.max_ref_length = 1000000
 
         # Create HGVS objects
-        self.hdp = vvhgvs.dataproviders.uta.connect(pooling=True)
         self.hp = vvhgvs.parser.Parser(expose_all_rules=True)  # Parser
         self.vr = vvhgvs.validator.Validator(self.hdp)  # Validator
         self.vm = vvhgvs.variantmapper.VariantMapper(self.hdp)  # Variant mapper

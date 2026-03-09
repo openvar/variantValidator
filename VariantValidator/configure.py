@@ -8,12 +8,25 @@ def read_configuration():
     config = configparser.ConfigParser()
     config.read(CONFIG_DIR)
 
-    if config['mysql']['user'] == 'USERNAME' or config['mysql']['password'] == 'PASSWORD':
-        print("MySQL username and password have not been updated from default.")
-        exit_with_message()
+    backend_type = config.get('backend', 'type', fallback='sqlite').lower()
 
-    if config['postgres']['user'] == 'USERNAME' or config['postgres']['password'] == 'PASSWORD':
-        print("PostgreSQL username and password have not been updated from default.")
+    if backend_type == 'mysql':
+        if config['mysql']['user'] == 'USERNAME' or config['mysql']['password'] == 'PASSWORD':
+            print("MySQL username and password have not been updated from default.")
+            exit_with_message()
+
+        if config['postgres']['user'] == 'USERNAME' or config['postgres']['password'] == 'PASSWORD':
+            print("PostgreSQL username and password have not been updated from default.")
+            exit_with_message()
+    elif backend_type == 'sqlite':
+        if config.get('backend', 'cdot_path', fallback='/PATH/TO/cdot-latest.refseq.json.gz') == '/PATH/TO/cdot-latest.refseq.json.gz':
+            print("cdot_path has not been updated from default.")
+            exit_with_message()
+        if config.get('backend', 'sqlite_path', fallback='/PATH/TO/vvdb.sqlite') == '/PATH/TO/vvdb.sqlite':
+            print("sqlite_path has not been updated from default.")
+            exit_with_message()
+    else:
+        print(f"Unknown backend type '{backend_type}'. Must be 'mysql' or 'sqlite'.")
         exit_with_message()
 
     if config['seqrepo']['location'] == '/PATH/TO/SEQREPO':

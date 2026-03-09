@@ -546,6 +546,28 @@ class Database(vvDBInsert.Mixin):
             raise Exception('Unable to recognise accession')
         return ref_type
 
+# ---------------------------------------------------------------------------
+# SQLite backend (new)
+# ---------------------------------------------------------------------------
+
+from VariantValidator.modules.vvDBInsert import SQLiteDBInsert as _SQLiteDBInsert
+
+
+class SQLiteDatabase(_SQLiteDBInsert):
+    """SQLite-backed validator database.
+
+    Thin subclass — all schema, query, and insert logic is inherited through
+    the mixin chain:
+        SQLiteDatabase → SQLiteDBInsert → SQLiteDBGet → SQLiteDBInit
+
+    Usage::
+
+        db = SQLiteDatabase("/path/to/vvdb.sqlite")
+        info = db.get_uta("BRCA1")
+    """
+    pass
+
+
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
 #

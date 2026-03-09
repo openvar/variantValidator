@@ -2,11 +2,15 @@ import random
 try:
     import mariadb
 except ModuleNotFoundError:
-    import mysql.connector
-    from mysql.connector.pooling import MySQLConnectionPool
+    try:
+        import mysql.connector
+        from mysql.connector.pooling import MySQLConnectionPool
+    except ModuleNotFoundError:
+        mariadb = None
+        mysql = None
 
 
-class Mixin:
+class MySQLDBInit:
     """
     A mixin containing the database initialisation routines.
     """
@@ -64,6 +68,96 @@ class Mixin:
             self.get_conn()
             cursor = conn.cursor(buffered=True)
         return cursor
+
+# Keep original name as alias for backwards compatibility
+Mixin = MySQLDBInit
+
+# ---------------------------------------------------------------------------
+# SQLite backend (new)
+# ---------------------------------------------------------------------------
+
+import sqlite3 as _sqlite3
+
+_SCHEMA_SQL = """
+CREATE TABLE IF NOT EXISTS transcript_info (
+    refSeqID        TEXT PRIMARY KEY,
+    description     TEXT,
+    transcriptVariant TEXT,
+    currentVersion  TEXT,
+    hgncSymbol      TEXT,
+    utaSymbol       TEXT,
+    updated         TEXT
+);
+
+CREATE TABLE IF NOT EXISTS refSeqGene_loci (
+    refSeqGeneID        TEXT,
+    refSeqChromosomeID  TEXT,
+    genomeBuild         TEXT,
+    startPos            INTEGER,
+    endPos              INTEGER,
+    orientation         TEXT,
+    totalLength         INTEGER,
+    chrPos              TEXT,
+    rsgPos              TEXT,
+    entrezID            INTEGER,
+    hgncSymbol          TEXT,
+    updated             TEXT,
+    PRIMARY KEY (refSeqGeneID, genomeBuild)
+);
+
+CREATE TABLE IF NOT EXISTS LRG_RSG_lookup (
+    lrgID           TEXT PRIMARY KEY,
+    hgncSymbol      TEXT,
+    RefSeqGeneID    TEXT,
+    status          TEXT
+);
+
+CREATE TABLE IF NOT EXISTS LRG_transcripts (
+    LRGtranscriptID     TEXT PRIMARY KEY,
+    RefSeqTranscriptID  TEXT
+);
+
+CREATE TABLE IF NOT EXISTS LRG_proteins (
+    LRGproteinID    TEXT PRIMARY KEY,
+    RefSeqProteinID TEXT
+);
+
+CREATE TABLE IF NOT EXISTS stableGeneIds (
+    hgnc_id         TEXT PRIMARY KEY,
+    hgnc_symbol     TEXT,
+    entrez_id       TEXT,
+    ensembl_gene_id TEXT,
+    omim_id         TEXT,
+    ucsc_id         TEXT,
+    vega_id         TEXT,
+    ccds_ids        TEXT
+);
+
+CREATE TABLE IF NOT EXISTS version (
+    current_version TEXT
+);
+"""
+
+
+class SQLiteDBInit:
+    """SQLite connection — file-based, no server required."""
+
+    def __init__(self, db_path: str):
+        self.db_path = db_path
+        self._init_schema()
+
+    def _init_schema(self):
+        conn = _sqlite3.connect(self.db_path, check_same_thread=False)
+        conn.executescript(_SCHEMA_SQL)
+        conn.commit()
+        conn.close()
+
+    def get_conn(self):
+        return _sqlite3.connect(self.db_path, check_same_thread=False)
+
+    def get_cursor(self, conn):
+        return conn.cursor()
+
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

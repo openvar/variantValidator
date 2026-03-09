@@ -60,7 +60,7 @@ class TestConfigSetUp(unittest.TestCase):
         self.assertTrue(os.path.exists(self.filename))
         output = subprocess.check_output(['python', '-c', 'import VariantValidator'])
         print(output)
-        self.assertTrue('MySQL' in output.decode())
+        self.assertIn(b"MySQL", output)
         self.assertTrue('Please edit your configuration' in output.decode())
 
     def test_changed_mysql(self):
@@ -68,6 +68,7 @@ class TestConfigSetUp(unittest.TestCase):
             pytest.skip("VariantValidator already imported")
         self.insert_blank()
         self.open_config()
+        self.config['backend']['type'] = 'mysql'
         self.assertEqual(self.config['mysql']['user'], 'USERNAME')
         self.config['mysql']['user'] = 'myusername'
         self.assertEqual(self.config['mysql']['password'], 'PASSWORD')
@@ -81,6 +82,7 @@ class TestConfigSetUp(unittest.TestCase):
     def test_changed_mysql_msg(self):
         self.insert_blank()
         self.open_config()
+        self.config['backend']['type'] = 'mysql'
         self.assertEqual(self.config['mysql']['user'], 'USERNAME')
         self.config['mysql']['user'] = 'myusername'
         self.assertEqual(self.config['mysql']['password'], 'PASSWORD')
@@ -97,6 +99,7 @@ class TestConfigSetUp(unittest.TestCase):
             pytest.skip("VariantValidator already imported")
         self.insert_blank()
         self.open_config()
+        self.config['backend']['type'] = 'mysql'
         self.config['mysql']['user'] = 'myusername'
         self.config['mysql']['password'] = 'mypass'
 
@@ -113,6 +116,7 @@ class TestConfigSetUp(unittest.TestCase):
     def test_changed_postgres_msg(self):
         self.insert_blank()
         self.open_config()
+        self.config['backend']['type'] = 'mysql'
         self.config['mysql']['user'] = 'myusername'
         self.config['mysql']['password'] = 'mypass'
 
@@ -133,6 +137,7 @@ class TestConfigSetUp(unittest.TestCase):
         """
         self.insert_blank()
         self.open_config()
+        self.config['backend']['type'] = 'mysql'
         self.config['mysql']['user'] = 'myusername'
         self.config['mysql']['password'] = 'mypass'
         self.config['postgres']['user'] = 'me'
@@ -177,7 +182,7 @@ class TestConfigValues(unittest.TestCase):
 
     def test_file_structure(self):
 
-        self.assertCountEqual(self.config.sections(), ['mysql', 'seqrepo', 'postgres',  'logging', 'Entrez'])
+        self.assertCountEqual(self.config.sections(), ['mysql', 'seqrepo', 'postgres', 'logging', 'Entrez', 'backend'])
         self.assertCountEqual(list(self.config['mysql']), ['host', 'port', 'database', 'user', 'password', 'version'])
         self.assertCountEqual(list(self.config['seqrepo']), ['version', 'location', 'require_threading'])
         self.assertCountEqual(list(self.config['postgres']), ['host', 'port', 'database', 'version', 'user', 'password'])
@@ -204,12 +209,13 @@ class TestConfigValues(unittest.TestCase):
 
         vv = VariantValidator.Validator()
 
-        self.assertEqual(self.config['mysql']['user'], vv.dbConfig['user'])
-        self.assertEqual(self.config['mysql']['password'], vv.dbConfig['password'])
-        self.assertEqual(self.config['mysql']['host'], vv.dbConfig['host'])
-        self.assertEqual(self.config['mysql']['database'], vv.dbConfig['database'])
-        if 'unix_socket' in vv.dbConfig:
-            self.assertEqual(self.config['mysql']['unix_socket'], vv.dbConfig['unix_socket'])
+        if vv.dbConfig is not None:
+            self.assertEqual(self.config['mysql']['user'], vv.dbConfig['user'])
+            self.assertEqual(self.config['mysql']['password'], vv.dbConfig['password'])
+            self.assertEqual(self.config['mysql']['host'], vv.dbConfig['host'])
+            self.assertEqual(self.config['mysql']['database'], vv.dbConfig['database'])
+            if 'unix_socket' in vv.dbConfig:
+                self.assertEqual(self.config['mysql']['unix_socket'], vv.dbConfig['unix_socket'])
 
         self.assertEqual(vv.seqrepoPath,
                          os.path.join(self.config['seqrepo']['location'], self.config['seqrepo']['version']))
@@ -229,6 +235,46 @@ class TestConfigValues(unittest.TestCase):
             self.assertEqual(vv.entrez_api_key, None)
         else:
             self.assertEqual(vv.entrez_api_key, self.config['Entrez']['api_key'])
+
+    def test_file_structure_includes_backend(self):
+        """New backend section must be present in config."""
+        self.assertIn('backend', self.config.sections())
+        self.assertCountEqual(
+            list(self.config['backend']),
+            ['type', 'cdot_path', 'sqlite_path']
+        )
+
+    def test_backend_type_valid(self):
+        """Backend type must be mysql or sqlite."""
+        self.assertIn(
+            self.config['backend']['type'].lower(),
+            ['mysql', 'sqlite']
+        )
+
+    def test_sqlite_path_default_is_placeholder(self):
+        """sqlite_path must remain as placeholder in default.ini (signals user must configure it)."""
+        from configparser import ConfigParser
+        import os
+        default_ini = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            'configuration', 'default.ini'
+        )
+        default_config = ConfigParser()
+        default_config.read(default_ini)
+        self.assertEqual(
+            default_config['backend']['sqlite_path'],
+            '/PATH/TO/vvdb.sqlite'
+        )
+
+    def test_backend_type_is_known_value(self):
+        """Backend type must be one of the known values (mysql or sqlite)."""
+        known_types = {'mysql', 'sqlite'}
+        backend_type = self.config['backend']['type'].lower()
+        self.assertIn(
+            backend_type,
+            known_types,
+            f"Unknown backend type '{backend_type}'. Must be one of: {known_types}"
+        )
 
     def tearDown(self):
         shutil.move(self.original, self.filename)

@@ -1,4 +1,5 @@
 import pytest
+pytest.importorskip("cdot", reason="cdot not installed — integration test requires 'VariantValidator[sqlite]'")
 from unittest.mock import patch, MagicMock
 import VariantValidator.update_vv_db as uv
 

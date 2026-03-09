@@ -3,6 +3,8 @@ Exon_numbering_tests
 Authors: Katie Williams (@kwi11iams) and Katherine Winfield (@kjwinfield)
 This code runs tests on the module exon_numbering.py to check the outputs are as expected
 """
+import pytest
+pytest.importorskip("cdot", reason="cdot not installed — integration test requires 'VariantValidator[sqlite]'")
 import unittest
 from VariantValidator import Validator
 
