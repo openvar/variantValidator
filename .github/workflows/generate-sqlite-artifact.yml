@@ -32,8 +32,8 @@ jobs:
       - name: Install package with sqlite extras
         run: pip install -e ".[sqlite]"
 
-      - name: Download latest cdot RefSeq JSON
-        id: download-cdot
+      - name: Resolve latest cdot tag
+        id: resolve-cdot
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -43,9 +43,34 @@ jobs:
             RELEASE_TAG=$(gh release view --repo SACGF/cdot --json tagName -q '.tagName')
           fi
           echo "CDOT_TAG=${RELEASE_TAG}" >> "$GITHUB_OUTPUT"
+          echo "Latest cdot tag: ${RELEASE_TAG}"
 
+      - name: Check if artifact already exists for this cdot version
+        id: check-skip
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CDOT_TAG: ${{ steps.resolve-cdot.outputs.CDOT_TAG }}
+        run: |
+          EXISTING=$(gh release list --limit 50 --json tagName,assets \
+            --jq ".[] | select(any(.assets[]; .name | startswith(\"vvdb-cdot-${CDOT_TAG}-\"))) | .tagName" \
+            2>/dev/null | head -1 || true)
+          if [ -n "$EXISTING" ]; then
+            echo "Artifact for cdot ${CDOT_TAG} already released (${EXISTING}) — skipping build."
+            echo "SKIP=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No artifact found for cdot ${CDOT_TAG} — proceeding with build."
+            echo "SKIP=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download latest cdot RefSeq JSON
+        id: download-cdot
+        if: steps.check-skip.outputs.SKIP != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CDOT_TAG: ${{ steps.resolve-cdot.outputs.CDOT_TAG }}
+        run: |
           # Download the GRCh38 RefSeq JSON asset (naming: cdot-X.Y.Z.refseq.GRCh38.json.gz)
-          gh release download "${RELEASE_TAG}" \
+          gh release download "${CDOT_TAG}" \
             --repo SACGF/cdot \
             --pattern 'cdot-*.refseq.GRCh38.json.gz' \
             --dir .
@@ -55,6 +80,7 @@ jobs:
           echo "Downloaded: ${CDOT_FILE}"
 
       - name: Seed SQLite database with variant cache
+        if: steps.check-skip.outputs.SKIP != 'true'
         env:
           CDOT_FILE: ${{ steps.download-cdot.outputs.CDOT_FILE }}
         run: |
@@ -202,9 +228,10 @@ jobs:
           PYEOF
 
       - name: Compute version tag and create release
+        if: steps.check-skip.outputs.SKIP != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CDOT_TAG: ${{ steps.download-cdot.outputs.CDOT_TAG }}
+          CDOT_TAG: ${{ steps.resolve-cdot.outputs.CDOT_TAG }}
         run: |
           DATE=$(date -u +%Y%m%d)
           RELEASE_TAG="sqlite-${DATE}"
