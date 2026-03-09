@@ -1122,24 +1122,50 @@ class Mixin(vvMixinInit.Mixin):
                         if 'Length implied by coordinates must equal sequence deletion length' in str(ea1):
                             # This will only happen if the variant is flanking the gap but is
                             # not inside the gap
-                            logger.info('Variant is on the flank of a genomic gap but not within the gap')
-
                             # Logic, normalize the c. variant and if a substitution (cannot normalize) then direct map
                             # Currently believe that sub.n is the only variant type which fits. ins can normalize
-                            # and may also be a dup! Added identity also
+                            # and may also be a dup! Added identity also to non normalizing
                             try:
                                 try:
                                     norm_stored_c = hn.normalize(stored_hgvs_c)
                                 except HGVSUnsupportedOperationError:
                                     norm_stored_c = stored_hgvs_c
+
                                 if norm_stored_c.posedit.edit.type == 'sub' or \
                                         norm_stored_c.posedit.edit.type == 'identity':
-                                    flank_hgvs_genomic = self.vm.t_to_g(norm_stored_c, genomic_gap_variant.ac,
-                                                                        alt_aln_method)
+
+                                    flank_hgvs_genomic = self.vm.t_to_g(stored_hgvs_c, genomic_gap_variant.ac,
+                                                                            alt_aln_method)
+                                    init_flank_hgvs_genomic = copy.copy(flank_hgvs_genomic)
+
+                                    # Handle genomic opening gap (extra bases in transcript)
+                                    # Refer to test_inputs.py test_1 and test_2
+                                    if (len(flank_hgvs_genomic.posedit.edit.ref)
+                                            < len(stored_hgvs_c.posedit.edit.ref)
+                                            and
+                                        len(stored_hgvs_c.posedit.edit.ref) ==
+                                            len(genomic_gap_variant.posedit.edit.ref)-2
+                                            and
+                                        len(genomic_gap_variant.posedit.edit.ref) ==
+                                            len(genomic_gap_variant.posedit.edit.alt)):
+                                        n_flank_hgvs_genimic = hn.normalize(init_flank_hgvs_genomic)
+                                        if str(n_flank_hgvs_genimic) == str(init_flank_hgvs_genomic):
+                                            return self.vm.t_to_g(norm_stored_c, genomic_gap_variant.ac, alt_aln_method)
+                                        else:
+                                            return hn.normalize(init_flank_hgvs_genomic)
+                                    else:
+                                        flank_hgvs_genomic = self.vm.t_to_g(norm_stored_c, genomic_gap_variant.ac,
+                                                                         alt_aln_method)
                                     self.vr.validate(flank_hgvs_genomic)
 
-                                    # Gap in the transcript
-                                    if (flank_hgvs_genomic.posedit.edit.type == 'sub' and
+                                    # Gap in the transcript e.g. NR2E3 tests
+                                    if (len(init_flank_hgvs_genomic.posedit.edit.ref)
+                                            > len(stored_hgvs_c.posedit.edit.ref)
+                                            and
+                                            len(stored_hgvs_c.posedit.edit.ref) ==
+                                            len(genomic_gap_variant.posedit.edit.ref) - 2):
+                                        return hn.normalize(init_flank_hgvs_genomic)
+                                    elif (flank_hgvs_genomic.posedit.edit.type == 'sub' and
                                             norm_stored_c.posedit.edit.type == 'sub' and
                                             stored_hgvs_c.posedit.edit.type == 'sub' and
                                             # sub is a single base change
@@ -1147,8 +1173,6 @@ class Mixin(vvMixinInit.Mixin):
                                                     genomic_gap_variant.posedit.pos.end.base -
                                                     genomic_gap_variant.posedit.pos.start.base + 1))):
                                         pass
-                                    elif flank_hgvs_genomic.posedit.edit.type == 'sub':
-                                        return flank_hgvs_genomic
                                     else:
                                         return flank_hgvs_genomic
 
@@ -2672,7 +2696,6 @@ class Mixin(vvMixinInit.Mixin):
                     # VF method
                     accession = str(k + "." + v["version"])
                     rts.append([accession] + v["list"])
-                    print([accession] + v["list"])
             return rts
         # If we got select_transcripts as a json of tx convert it into a list
         rts = []

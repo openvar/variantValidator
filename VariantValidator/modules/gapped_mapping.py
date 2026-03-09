@@ -2335,7 +2335,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     if (rtx.posedit.pos.start.offset == 0 and rtx.posedit.pos.end.offset == 0) and (
                             ftx.posedit.pos.start.offset != 0 and ftx.posedit.pos.end.offset != 0):
                         exons = self.validator.hdp.get_tx_exons(ftx.ac, hgvs_not_delins.ac,
-                                                                self.validator.alt_aln_method,
                                                                 alt_aln_method=self.validator.alt_aln_method)
                         exonic = False
                         for ex_test in exons:
