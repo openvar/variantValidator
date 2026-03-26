@@ -164,13 +164,26 @@ def vcf2hgvs_stage1(variant, validator):
     if len(vcf_data) < 4:
         logger.debug("Completed VCF-HVGS step 1 for %s", variant.quibble)
         return False
+
+    # VCF CNV descriptions can be directly converted to a HGVS like description
+    if (re.search("\d+", vcf_data[2]) and (
+            re.search("del", vcf_data[3], re.IGNORECASE) or
+            re.search("inv", vcf_data[3], re.IGNORECASE))):
+
+        if not re.search(r"[gatcnmo]\.", str(vcf_data)):
+            logger.info(f"CNV format identified in {variant.quibble}")
+            cnv_var = f"{vcf_data[0]}:{vcf_data[1]}_{vcf_data[2]}{vcf_data[3].lower()}"
+            logger.info(f"CNV identified, and mapped to {cnv_var}")
+            variant.warnings.append(f"VcfConversionWarning: CNV identified, and mapped to {cnv_var}")
+            variant.quibble = cnv_var
+
     poss_genome = vcf_data[0].lower()
     if ('grch3' in poss_genome or 'hg' in poss_genome) and poss_genome[-1].isdigit():
         vcf_data = vcf_data[1:]
         variant.quibble = '-'.join(vcf_data)
         # TODO test assembly given against settings
         if len(vcf_data) < 4:
-            variant.warnings.append("Insufficient or incorrect  VCF elements provided. "
+            variant.warnings.append("Insufficient or incorrect VCF elements provided. "
                                     "Elements required are chr-pos-ref-alt")
             return True
     # no coordinate found
