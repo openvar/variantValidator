@@ -12,37 +12,75 @@ class Mixin(vvDBInit.Mixin):
 
     @handleCursor
     def execute(self, *query_args):
-        # Connect and create cursor
-        conn = self.get_conn()
-        cursor = self.get_cursor(conn)
+        attempts = 3
 
-        cursor.execute(*query_args)
-        row = cursor.fetchone()
-        if row is None:
-            logger.debug("No data returned from query " + str(query_args))
-            row = ['none', 'No data']
+        for attempt in range(attempts):
+            conn = self.get_conn()
+            cursor = self.get_cursor(conn)
 
-        # Close conn
-        cursor.close()
-        conn.close()
-        return row
+            try:
+                cursor.execute(*query_args)
+                row = cursor.fetchone()
+
+                if row is None:
+                    logger.debug(f"No data returned from query {query_args}")
+                    row = ['none', 'No data']
+
+                return row
+
+            except Exception as e:
+                logger.warning(f"MySQL error (attempt {attempt + 1}/{attempts}): {e}")
+
+                if attempt < attempts - 1:
+                    try:
+                        conn.reconnect(attempts=1, delay=0)
+                    except Exception:
+                        pass
+                else:
+                    raise
+
+            finally:
+                try:
+                    cursor.close()
+                    conn.close()
+                except Exception:
+                    pass
 
     @handleCursor
     def execute_all(self, *query_args):
-        # Connect and create cursor
-        conn = self.get_conn()
-        cursor = self.get_cursor(conn)
+        attempts = 3
 
-        cursor.execute(*query_args)
-        rows = cursor.fetchall()
-        if not rows:
-            logger.debug("No data returned from query " + str(query_args))
-            rows = ['none', 'No data']
+        for attempt in range(attempts):
+            conn = self.get_conn()
+            cursor = self.get_cursor(conn)
 
-        # Close conn
-        cursor.close()
-        conn.close()
-        return rows
+            try:
+                cursor.execute(*query_args)
+                rows = cursor.fetchall()
+
+                if not rows:
+                    logger.debug(f"No data returned from query {query_args}")
+                    rows = [['none', 'No data']]
+
+                return rows
+
+            except Exception as e:
+                logger.warning(f"MySQL error (attempt {attempt + 1}/{attempts}): {e}")
+
+                if attempt < attempts - 1:
+                    try:
+                        conn.reconnect(attempts=1, delay=0)
+                    except Exception:
+                        pass
+                else:
+                    raise
+
+            finally:
+                try:
+                    cursor.close()
+                    conn.close()
+                except Exception:
+                    pass
 
     # from dbfetchone
     def get_uta(self, gene_symbol):

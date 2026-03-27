@@ -10,6 +10,7 @@ class Mixin:
     """
     A mixin containing the database initialisation routines.
     """
+
     def __init__(self, db_config):
         self.pool = None
         self.dbConfig = db_config
@@ -20,35 +21,55 @@ class Mixin:
             self.pool = None
 
     def init_db(self):
+        """
+        Initialise MySQL or MariaDB connection pool.
+        NOTE:
+        - We keep default unicode behaviour for ALL VV modules.
+        - The dbSNP loader overrides cursor behaviour only for itself.
+        """
         try:
-            self.pool = mysql.connector.pooling.MySQLConnectionPool(pool_size=5, **self.dbConfig)
+            # MySQL connection pool (default VV behaviour)
+            self.pool = mysql.connector.pooling.MySQLConnectionPool(
+                pool_size=5,
+                **self.dbConfig
+            )
+
         except NameError:
+            # MariaDB fallback pool
             ran_num = random.random()
-            name_my_pool = 'pool%s' % str(ran_num)
+            name_my_pool = f"pool{ran_num}"
+
             try:
-                self.pool = mariadb.ConnectionPool(pool_size=5,
-                                                   pool_name=name_my_pool,
-                                                   pool_reset_connection=False,
-                                                   host=self.dbConfig['host'],
-                                                   user=self.dbConfig['user'],
-                                                   port=int(self.dbConfig['port']),
-                                                   password=self.dbConfig['password'],
-                                                   database=self.dbConfig['database']
-                                                   )
+                self.pool = mariadb.ConnectionPool(
+                    pool_size=5,
+                    pool_name=name_my_pool,
+                    pool_reset_connection=False,
+                    host=self.dbConfig['host'],
+                    user=self.dbConfig['user'],
+                    port=int(self.dbConfig['port']),
+                    password=self.dbConfig['password'],
+                    database=self.dbConfig['database']
+                )
+
             except mariadb.ProgrammingError:
+                # Second fallback attempt with new pool name
                 ran_num = random.random()
-                name_my_pool = 'pool%s' % str(ran_num)
-                self.pool = mariadb.ConnectionPool(pool_size=5,
-                                                   pool_name=name_my_pool,
-                                                   pool_reset_connection=False,
-                                                   host=self.dbConfig['host'],
-                                                   user=self.dbConfig['user'],
-                                                   port=int(self.dbConfig['port']),
-                                                   password=self.dbConfig['password'],
-                                                   database=self.dbConfig['database']
-                                                   )
+                name_my_pool = f"pool{ran_num}"
+                self.pool = mariadb.ConnectionPool(
+                    pool_size=5,
+                    pool_name=name_my_pool,
+                    pool_reset_connection=False,
+                    host=self.dbConfig['host'],
+                    user=self.dbConfig['user'],
+                    port=int(self.dbConfig['port']),
+                    password=self.dbConfig['password'],
+                    database=self.dbConfig['database']
+                )
 
     def get_conn(self):
+        """
+        Get a connection from the pool.
+        """
         try:
             conn = self.pool.get_connection()
         except Exception:
@@ -57,11 +78,17 @@ class Mixin:
         return conn
 
     def get_cursor(self, conn):
+        """
+        Default VV cursor:
+        - Unicode/UTF-8
+        - Buffered
+        dbSNP loader will override this independently.
+        """
         try:
             cursor = conn.cursor(buffered=True)
         except Exception:
             self.init_db()
-            self.get_conn()
+            conn = self.get_conn()
             cursor = conn.cursor(buffered=True)
         return cursor
 

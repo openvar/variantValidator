@@ -30,6 +30,50 @@ def connect():
     db = vvDatabase.Database(db_config)
     return db
 
+def drop_core_indexes(db):
+    """
+    Drop performance-impacting indexes before large batch updates.
+    Safe to run even if indexes do not exist.
+    """
+
+    index_list = [
+        ("stableGeneIds", "hgnc_id_index"),
+        ("stableGeneIds", "hgnc_symbol_index"),
+        ("refSeqGene_loci", "refSeqGeneID_index"),
+        ("transcript_info", "refSeqID_index"),
+        ("transcript_info", "utaSymbol_index"),
+        ("transcript_info", "hgncSymbol_index"),
+    ]
+
+    for table, index in index_list:
+        try:
+            db.execute(f"ALTER TABLE {table} DROP INDEX {index}")
+            print(f"Dropped index {index} on {table}")
+        except Exception:
+            # Index may not exist yet — safe to ignore
+            print(f"Index {index} not present on {table}, skipping")
+
+def rebuild_core_indexes(db):
+    """
+    Rebuild core indexes after transcript and gene table updates.
+    """
+
+    index_defs = [
+        ("stableGeneIds", "hgnc_id_index (hgnc_id)"),
+        ("stableGeneIds", "hgnc_symbol_index (hgnc_symbol)"),
+        ("refSeqGene_loci", "refSeqGeneID_index (refSeqGeneID)"),
+        ("transcript_info", "refSeqID_index (refSeqID)"),
+        ("transcript_info", "utaSymbol_index (utaSymbol)"),
+        ("transcript_info", "hgncSymbol_index (hgncSymbol)"),
+    ]
+
+    for table, definition in index_defs:
+        try:
+            db.execute(f"ALTER TABLE {table} ADD INDEX {definition}")
+            print(f"Added index {definition} on {table}")
+        except Exception as e:
+            print(f"Failed to add index {definition} on {table}: {e}")
+
 
 def delete():
 
