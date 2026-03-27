@@ -1297,6 +1297,30 @@ class Mixin(vvMixinConverters.Mixin):
                             for build_key, accession_dict in list(lifted_response.items()):
                                 try:
                                     accession_key = list(accession_dict.keys())[0]
+                                    for k, v in accession_dict.items():
+                                        hgvs = v["hgvs_genomic_description"].posedit
+                                        edit = hgvs.edit
+
+                                        # Extract HGVS coordinates and edit type (do NOT mutate)
+                                        start = int(hgvs.pos.start.base)
+                                        end = int(hgvs.pos.end.base)
+                                        variant_type = edit.type  # 'del', 'dup', 'inv'
+
+                                        # Only apply SV-style formatting for large variants
+                                        if (variant_type in ["del", "dup", "inv"]
+                                                and len(edit.ref) >= 50):
+
+                                            # Overwrite/standardise VCF-style fields if still needed
+                                            v["vcf"]["pos"] = str(start)  # VCF left anchor convention
+                                            v["vcf"]["ref"] = str(end)
+                                            v["vcf"]["alt"] = variant_type.upper()
+
+                                        else:
+                                            # Small variants: keep original VCF-style representation
+                                            # (no SV transformation)
+                                            pass
+
+
                                     if accession_dict[accession_key]['hgvs_genomic_description'].ac.startswith('NC_'):
                                         primary_assembly_loci[build_key.lower()] = accession_dict[accession_key]
                                     else:
