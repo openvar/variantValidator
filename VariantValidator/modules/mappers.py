@@ -120,6 +120,22 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
         " one or more genes and are currently only described at the genome (g.)"
         " level.")
 
+    # Now handle the loss of relevant variants caused by select_transcripts.
+    # Settings like mane, mane_select, etc can reset rel_var to empty, and we
+    # need to know this before the rel_var empty detection/handling steps.
+    unrestricted_map_found = False
+    if len(rel_var):
+        unrestricted_map_found = True
+        gap_mapper = gapped_mapping.GapMapper(variant, validator)
+        try:
+            var_dat, nw_rel_var = gap_mapper.gapped_g_to_c(rel_var, select_transcripts_dict)
+        except Exception as e:
+            logger.info(f"nw_rel_var creation failed with exception {str(e)}")
+            raise TranscriptMappingError(f"Encountered an issue when mapping genomic description "
+                                         f"{variant.hgvs_formatted} to available transcripts")
+
+        rel_var = nw_rel_var
+
     if len(rel_var) == 0:
         # Check for NG_
         if variant.hgvs_formatted.ac.startswith('NG_'):
@@ -187,6 +203,11 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                         error = (f'None of the specified transcripts ({validator.select_transcripts}) '
                                  f'fully overlap the described variation in '
                                  f'the genomic sequence. Try selecting one of the default options')
+                    elif validator.select_transcripts not in ['raw'] and unrestricted_map_found:
+                        error = ('Transcripts were found but the current transcript type limitation (of '
+                                 f'{validator.select_transcripts}) removed all transcripts that overlap '
+                                 'the described variation in the genomic sequence. You may want to try '
+                                 'selecting less restrictive setting for this variant.')
                     else:
                         error = no_tx_found_error
                     # set output type flag
@@ -208,29 +229,19 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
     else:
         # Tag the line so that it is not written out
         variant.write = False
-        gap_mapper = gapped_mapping.GapMapper(variant, validator)
-        try:
-            data, nw_rel_var = gap_mapper.gapped_g_to_c(rel_var, select_transcripts_dict)
-        except Exception as e:
-            logger.info(f"nw_rel_var creation failed with exception {str(e)}")
-            raise TranscriptMappingError(f"Encountered an issue when mapping genomic description "
-                                         f"{variant.hgvs_formatted} to available transcripts")
-
-        rel_var = nw_rel_var
         auto_info_list = []
-        if data["gapped_alignment_warning"] != "":
-            data["auto_info"] = data["auto_info"].replace("NM_", ";NM_")
-            data["auto_info"] = data["auto_info"].replace("NR_", ";NR_")
-            auto_info_list = data["auto_info"].split(";")
-
+        if var_dat["gapped_alignment_warning"] != "":
+            var_dat["auto_info"] = var_dat["auto_info"].replace("NM_", ";NM_")
+            var_dat["auto_info"] = var_dat["auto_info"].replace("NR_", ";NR_")
+            auto_info_list = var_dat["auto_info"].split(";")
         # Set the values and append to batch_list
         for c_description in rel_var:
             # Add gap warnings
             gap_warnings = []
-            if data["gapped_alignment_warning"] != "":
+            if var_dat["gapped_alignment_warning"] != "":
                 for aut_inf in auto_info_list:
                     if c_description.ac in aut_inf:
-                        gap_warnings.append(data["gapped_alignment_warning"])
+                        gap_warnings.append(var_dat["gapped_alignment_warning"])
                         gap_warnings.append(aut_inf)
 
             query = Variant(variant.original, quibble=c_description, warnings=variant.warnings + gap_warnings,
