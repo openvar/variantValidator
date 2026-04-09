@@ -724,7 +724,7 @@ class Mixin(vvMixinConverters.Mixin):
 
             # Outside the for loop
             ######################
-            logger.debug("End of 1st for loop")
+            logger.debug("End of 1st for loop - Finalising formatting")
 
             # order the rows
             by_order = sorted(self.batch_list, key=lambda x: x.order)
@@ -734,6 +734,7 @@ class Mixin(vvMixinConverters.Mixin):
                 else:
                     logger.debug("Formatting variant " + variant.quibble.format({'p_3_letter': False}))
                 if not variant.write:
+                    logger.debug("Variant not set to write")
                     continue
 
                 # Genomic sequence variation
