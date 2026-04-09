@@ -1487,13 +1487,17 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
             else:
                 raise e
         for push in range(max_push_length):
-            if flank_seq:
-                push_ref = push_ref + flank_seq[push]
-                push_alt = push_alt + flank_seq[push]
-            else:
-                post = sf.fetch_seq(str(normalized_hgvs_genomic.ac), working_pos - 1, working_pos)
-                push_ref = push_ref + post
-                push_alt = push_alt + post
+            try:
+                if flank_seq:
+                    push_ref = push_ref + flank_seq[push]
+                    push_alt = push_alt + flank_seq[push]
+                else:
+                    post = sf.fetch_seq(str(normalized_hgvs_genomic.ac), working_pos - 1, working_pos)
+                    push_ref = push_ref + post
+                    push_alt = push_alt + post
+            except IndexError:
+                needs_a_push = False
+                break
 
             # Create a not_delins for normalisation checking
             offset_pos = True
