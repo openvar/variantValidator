@@ -17,8 +17,11 @@ logger = logging.getLogger(__name__)
 class MappersError(Exception):
     pass
 
+class TranscriptMappingError(Exception):
+    pass
 
 def gene_to_transcripts(variant, validator, select_transcripts_dict):
+    logger.info(f"Mapping {variant.hgvs_formatted} to transcripts")
     g_query = variant.hgvs_formatted
 
     # Genomic coordinates can be validated immediately
@@ -69,6 +72,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
     # Double check rel_vars have not been missed when mapping from a RefSeqGene
     # Do we also want to do this for ALT/PATCH inputs?
     if len(rel_var) != 0 and 'NG_' in variant.hgvs_genomic.ac and validator.select_transcripts != "refseqgene":
+        logger.info("RefSeqGene variant identified, increasing search depth to include genomic mapped transcripts")
         for hgvs_coding_variant in rel_var:
             try:
                 hgvs_coding_variant.rel_ac = ''
@@ -88,6 +92,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
 
     #  Triple check this assumption by querying the gene position database
     if len(rel_var) == 0:
+        logger.info("0 transcripts found, increasing search depth")
         try:
             vcf_dict = hgvs_utils.hgvs2vcf(variant.hgvs_genomic, variant.primary_assembly, None,
                                        validator.sf)
@@ -102,6 +107,8 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
         except vvhgvs.exceptions.HGVSDataNotAvailableError:
             pass
 
+    logger.debug(f"Mapping complete, {len(rel_var)} transcripts found")
+
     # list return statements
     """
     If mapping to transcripts has been unsuccessful, provide relevant details
@@ -112,8 +119,8 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
         "described variation in the genomic sequence. Large variants might span"
         " one or more genes and are currently only described at the genome (g.)"
         " level.")
-    if len(rel_var) == 0:
 
+    if len(rel_var) == 0:
         # Check for NG_
         if variant.hgvs_formatted.ac.startswith('NG_'):
             hgvs_refseqgene =variant.hgvs_formatted
@@ -202,7 +209,12 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
         # Tag the line so that it is not written out
         variant.write = False
         gap_mapper = gapped_mapping.GapMapper(variant, validator)
-        data, nw_rel_var = gap_mapper.gapped_g_to_c(rel_var, select_transcripts_dict)
+        try:
+            data, nw_rel_var = gap_mapper.gapped_g_to_c(rel_var, select_transcripts_dict)
+        except Exception as e:
+            logger.info(f"nw_rel_var creation failed with exception {str(e)}")
+            raise TranscriptMappingError(f"Encountered an issue when mapping genomic description "
+                                         f"{variant.hgvs_formatted} to available transcripts")
 
         rel_var = nw_rel_var
         auto_info_list = []
@@ -750,8 +762,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     try:
         protein_dict = validator.myc_to_p(hgvs_coding, variant.evm, re_to_p=False, hn=variant.hn)
     except NotImplementedError as e:
-        import traceback
-        traceback.print_exc()
+        logger.info(f"Protein dict creation failed with exception: {str(e)}")
         protein_dict = {'hgvs_protein': None, 'error': str(e)}
         variant.warnings.append(str(e))
     except vvhgvs.exceptions.HGVSDataNotAvailableError as e:

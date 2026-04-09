@@ -114,7 +114,10 @@ class ValOutput(object):
         for variant in self.output_list:
 
             # Get additional warnings from lovd syntax check
-            self.lovd_syntax_check(variant)
+            if variant.output_type_flag == 'warning':
+                self.lovd_syntax_check(variant)
+            if variant.warnings == ['Validation error']:
+                self.lovd_syntax_check(variant)
 
             prot = ''
             if variant.hgvs_predicted_protein_consequence is not None:
