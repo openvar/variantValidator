@@ -30990,13 +30990,26 @@ class TestVariantsAuto(TestCase):
                results['NM_005228.5:c.2309_2310delinsCCAGCGTGGAT']['hgvs_predicted_protein_consequence']['slr']
 
     def test_issue_dup_to_gen_delins(self):
+        # the handling of this issue has changed with the addition of improved gap detection, as NM_178172.2
+        # is a non-gapped transcript in a gap gene.
+        # the underlying variant here is gcgggcgg -> gcgggcgggcgg Where the first base is != GRCh38 (A!=G)
+        # When gap handling triggered we got 45_48dup -> 41_44dup and this caused delins output
+        # test old and new! Also TODO liftover ins should be of initial ins wrt ref, not ref bases (A).
         variant = 'NM_178172.2:c.45_48dup'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert 'NC_000008.11:g.143213308delinsGCGGG' in \
+        assert '143213312_143213315dup' in \
                results['NM_178172.2:c.45_48dup']['primary_assembly_loci']['grch38']['hgvs_genomic_description']
-        assert 'NC_000008.10:g.144295187_144295190dup' in \
+        assert 'NC_000008.10:g.144295182_144295183insTCGG' in \
                results['NM_178172.2:c.45_48dup']['primary_assembly_loci']['grch37']['hgvs_genomic_description']
+        # has actual gap will trigger gap code along with dup->ins conversion
+        variant = 'NM_178172.4:c.41_44dup'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert 'NC_000008.11:g.143213308delinsGCGGG' in \
+               results['NM_178172.4:c.45_48dup']['primary_assembly_loci']['grch38']['hgvs_genomic_description']
+        assert 'NC_000008.10:g.144295187_144295190dup' in \
+               results['NM_178172.4:c.45_48dup']['primary_assembly_loci']['grch37']['hgvs_genomic_description']
 
     def test_issue_select_transcripts_from_genomic(self):
         variant = '["chr17:g.7576851_7576859delinsTA", "chr17:g.7576851_7576859delinsTT"]'
