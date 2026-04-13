@@ -8,6 +8,7 @@ from .variant import Variant
 from . import seq_data
 from . import utils as fn
 from . import gapped_mapping
+from .gapped_mapping import immediate_round_trip_gap_ins_handling
 from operator import itemgetter
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
         unset_hgvs_obj_ref
@@ -725,6 +726,13 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                 tx_ac, genomic_ac,
                 validator.alt_aln_method,
                 hdp=validator.hdp)
+        if hgvs_coding.posedit.edit.type == 'ins':
+            new_hgvs_coding, new_hgvs_genomic = immediate_round_trip_gap_ins_handling(
+                    hgvs_coding, hgvs_genomic,variant)
+            if str(new_hgvs_coding) != str(hgvs_coding):
+                hgvs_coding = new_hgvs_coding
+            if str(new_hgvs_genomic) != str(hgvs_genomic):
+                hgvs_genomic = new_hgvs_genomic
         hgvs_genomic, suppress_c_normalization, hgvs_coding = gap_mapper.g_to_t_compensation(ori, hgvs_coding, rec_var)
     else:
         suppress_c_normalization = 'false'
@@ -743,7 +751,16 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                 hgvs_coding.ac, reverse_normalized_hgvs_genomic.ac,
                 validator.alt_aln_method,
                 hdp=validator.hdp)
-        hgvs_coding = gap_mapper.g_to_t_gapped_mapping_stage2(ori, hgvs_coding, hgvs_genomic)
+
+        if not hgvs_genomic.posedit.edit.type == 'ins':
+            hgvs_coding = gap_mapper.g_to_t_gapped_mapping_stage2(ori, hgvs_coding, hgvs_genomic)
+        else:
+            new_hgvs_coding, new_hgvs_genomic = immediate_round_trip_gap_ins_handling(
+                    hgvs_coding, hgvs_genomic,variant)
+            if str(new_hgvs_coding) != str(hgvs_coding):
+                hgvs_coding = new_hgvs_coding
+            hgvs_genomic = new_hgvs_genomic
+
 
     # OBTAIN THE RefSeqGene coordinates
     # Attempt 1 = UTA

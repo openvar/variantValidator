@@ -1533,7 +1533,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
             if normlize_check_mapped.posedit.pos.start.base > normlize_check_mapped.posedit.pos.end.base:
                 needs_a_push = False
                 break
-            if len(normlize_check_mapped.posedit.edit.ref) <= 1:
+            if not normlize_check_mapped.posedit.edit.ref or len(normlize_check_mapped.posedit.edit.ref) <= 1:
                 staging_loop = staging_loop + 1
 
             # exon boundary hit. Break before intron
@@ -1542,12 +1542,12 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                 break
 
             # Check here for the gap (Has it been crossed?) Note: if gap in tx, we have the whole gap spanned
-            elif (((len(normlize_check_mapped.posedit.edit.ref) != len(normlize_check_variant.posedit.edit.ref) and
-                  len(normlize_check_mapped.posedit.edit.ref) > 1))
-                    or
-                    (normlize_check_variant.posedit.edit.type == 'identity')
-                    and len(normlize_check_mapped.posedit.edit.alt) != len(normlize_check_variant.posedit.edit.ref)):
-
+            elif (normlize_check_mapped.posedit.edit.ref and
+                  ((len(normlize_check_mapped.posedit.edit.ref) != len(normlize_check_variant.posedit.edit.ref) and
+                    len(normlize_check_mapped.posedit.edit.ref) > 1))
+                  or
+                  (normlize_check_variant.posedit.edit.type == 'identity')
+                  and len(normlize_check_mapped.posedit.edit.alt) != len(normlize_check_variant.posedit.edit.ref)):
                 # Add the identifying variant
                 identifying_variant = normlize_check_variant
 
@@ -2194,11 +2194,14 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
             if normlize_check_mapped.posedit.pos.start.base > normlize_check_mapped.posedit.pos.end.base:
                 needs_a_push = False
                 break
-            if len(normlize_check_mapped.posedit.edit.ref) <= 1:
+
+            if not normlize_check_mapped.posedit.edit.ref or len(normlize_check_mapped.posedit.edit.ref) <= 1:
                 staging_loop = staging_loop + 1
 
             # Check here for the gap (Has it been crossed?) Note: if gap in tx, we have the whole gap spanned
-            if (((len(normlize_check_mapped.posedit.edit.ref) != len(normlize_check_variant.posedit.edit.ref) and
+            #
+            if ((normlize_check_mapped.posedit.edit.ref and
+                (len(normlize_check_mapped.posedit.edit.ref) != len(normlize_check_variant.posedit.edit.ref) and
                   len(normlize_check_mapped.posedit.edit.ref) > 1))
                     or
                     (normlize_check_variant.posedit.edit.type == 'identity')
