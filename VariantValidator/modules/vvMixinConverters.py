@@ -17,11 +17,13 @@ import json
 from vvhgvs.exceptions import HGVSError, HGVSDataNotAvailableError, HGVSUnsupportedOperationError, \
      HGVSInvalidVariantError
 from vvhgvs.enums import Datum # needed to handle r->n mapping without re-parsing posedit
+from  VariantValidator.modules.utils import simple_dna_revcomp
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj, hgvs_dup_to_delins,\
         hgvs_obj_from_existing_edit
 from VariantValidator.modules.transcript_map_data import TranscriptMapData
 
 logger = logging.getLogger(__name__)
+
 
 class AlleleSyntaxError(Exception):
     pass
@@ -610,6 +612,10 @@ class Mixin(vvMixinInit.Mixin):
         elif expand_out is False or variant.map_dat.is_gapped_map(
                 hgvs_c.ac,hgvs_c.rel_ac,hdp=self.hdp) is False:
             pass
+        # correct entirely inside gap
+        elif expand_out and hgvs_genomic.posedit.edit.ref is None:
+            if hgvs_genomic.posedit.edit.alt is not None and len(hgvs_genomic.posedit.edit.alt) > 2:
+                hgvs_genomic.posedit.edit.alt = hgvs_genomic.posedit.edit.alt[1:-1]
         # Correct expansion ref + 2
         elif expand_out and (
                 len(hgvs_genomic.posedit.edit.ref) == (len(stored_hgvs_c.posedit.edit.ref) + 2)):  # >= 3:
@@ -766,6 +772,53 @@ class Mixin(vvMixinInit.Mixin):
                         hgvs_genomic = no_norm_evm.t_to_g(hgvs_c)
                     except Exception as e:
                         error = str(e)
+
+        # finally handle bad non gapped handling of dup and inv, due to no alt seq stored by hgvs
+        # only affects non-gapped non-intronic miss-match
+        if  hgvs_c.posedit.edit.type in ['dup','inv'] and not variant.map_dat.is_gapped_map(
+                hgvs_c.ac,hgvs_genomic.ac,hdp=self.hdp) and not(
+                        hgvs_c.posedit.pos.start.offset or hgvs_c.posedit.pos.end.offset):
+            if hgvs_c.posedit.edit.ref:
+                old_gen_ref = str(hgvs_c.posedit.edit.ref)
+            else:
+                # normalise re-fills ref if empty
+                try:
+                    hn.normalize(hgvs_c)
+                    old_gen_ref = str(hgvs_c.posedit.edit.ref)
+                except Exception as e:
+                    if hgvs_c.type == 'c':
+                        fix_n = self.vm.c_to_n(hgvs_c)
+                    else:
+                        fix_n = hgvs_c
+                    old_gen_ref = self.sf.fetch_seq(str(fix_n.ac), fix_n.posedit.pos.start.base - 1,
+                                               fix_n.posedit.pos.end.base)
+            strand = 1
+            for option in mapping_options:
+                if str(option[1]) == hgvs_genomic.ac:
+                    strand = int(option[4])
+
+            if strand == -1:
+                old_gen_ref = simple_dna_revcomp(old_gen_ref)
+            # check vs input var ref and create indel if needed
+            if not old_gen_ref == hgvs_genomic.posedit.edit.ref:
+                if hgvs_c.posedit.edit.type == 'dup':
+                    hgvs_genomic = hgvs_delins_parts_to_hgvs_obj(
+                        hgvs_genomic.ac,
+                        hgvs_genomic.type,
+                        hgvs_genomic.posedit.pos,hgvs_genomic.posedit.edit.ref,old_gen_ref+old_gen_ref,
+                        offset_pos=True)
+                else:
+                    hgvs_genomic = hgvs_delins_parts_to_hgvs_obj(
+                        hgvs_genomic.ac,
+                        hgvs_genomic.type,
+                        hgvs_genomic.posedit.pos,hgvs_genomic.posedit.edit.ref,
+                        simple_dna_revcomp(old_gen_ref),
+                        offset_pos=True)
+                # normalise down (e.g.dup->delins->ins)
+                try:
+                    hn.normalize(hgvs_genomic)
+                except:
+                    pass
 
         return hgvs_genomic
 
@@ -1043,7 +1096,14 @@ class Mixin(vvMixinInit.Mixin):
             hgvs_genomic.posedit.edit.alt = hgvs_genomic.posedit.edit.ref
         if hgvs_genomic.posedit.edit.type == 'ins' and utilise_gap_code is True:
             try:
+                pre_norm_genomic = copy.copy(hgvs_genomic)# can move ins variants (and in doing so break mid base == original bases assumption)
                 hgvs_genomic = hn.normalize(hgvs_genomic)
+                if stored_hgvs_c.posedit.edit.alt and len(stored_hgvs_c.posedit.edit.alt) + 2 == \
+                        len(hgvs_c.posedit.edit.alt) and hgvs_c.posedit.edit.alt == pre_norm_genomic.posedit.edit.alt:
+                    pre_norm_genomic.posedit.edit.alt = pre_norm_genomic.posedit.edit.alt[1:-1]
+                    hgvs_genomic = copy.copy(pre_norm_genomic)
+                    hgvs_genomic = hn.normalize(hgvs_genomic)
+                    hgvs_c.posedit.edit.alt = hgvs_c.posedit.edit.alt[1:-1]
             except vvhgvs.exceptions.HGVSError as e:
                 error = str(e)
                 if error == 'insertion length must be 1':
@@ -1069,14 +1129,6 @@ class Mixin(vvMixinInit.Mixin):
                                            stored_hgvs_n.posedit.pos.end.base)
             stored_hgvs_c.posedit.edit.ref = stored_ref
 
-        if (hgvs_genomic.posedit.edit.ref == '' or hgvs_genomic.posedit.edit.ref is None) and expand_out:
-            if hgvs_genomic.posedit.edit.type == 'ins':
-                stored_ref = self.sf.fetch_seq(str(hgvs_genomic.ac), hgvs_genomic.posedit.pos.start.base - 1,
-                                               hgvs_genomic.posedit.pos.end.base)
-                stored_alt = stored_ref[:1] + hgvs_genomic.posedit.edit.alt + stored_ref[-1:]
-                hgvs_genomic.posedit.edit.ref = stored_ref
-                hgvs_genomic.posedit.edit.alt = stored_alt
-
         # First look for variants mapping to the flanks of gaps
         # either in the gap or on the flank but not fully within the gap
         if expand_out:
@@ -1087,8 +1139,8 @@ class Mixin(vvMixinInit.Mixin):
                 error_type_1 = str(e)
                 if 'Length implied by coordinates must equal sequence deletion length' in str(e) or str(
                         e) == 'base start position must be <= end position':
-                    # Effectively, this code is designed to handle variants that are directly proximal to
-                    # gap BOUNDARIES, but in some cases the replace reference function of hgvs mapping has removed bases
+                    # This code is designed use the fact that no-replace mappings don't adjust length to match the span to
+                    # detect, and if needed handle, variants that are directly proximal to gap BOUNDARIES,
                     # due to the deletion length being > the specified range.
                     genomic_gap_variant = None
                     # Warn of variant location wrt the gap
@@ -1110,8 +1162,23 @@ class Mixin(vvMixinInit.Mixin):
                                 genomic_gap_variant = make_gen_var
                                 error_type_1 = None
                         else:
-                            genomic_gap_variant = self.nr_vm.t_to_g(hgvs_c, hgvs_genomic.ac,
-                                                                    alt_aln_method=alt_aln_method)
+                            if genomic_gap_variant.posedit.edit.ref is None and \
+                                    'Length implied by coordinates must equal' in error_type_1:
+                                # handle gaps correctly for current expectations
+                                # with delGCTinsGGT when tx GCT maps to gen GT output should be:
+                                # delG, not C>G, when normalised out
+                                make_gen_var = copy.copy(nr_genomic)
+                                make_gen_var.posedit.edit.ref = self.sf.fetch_seq(
+                                    nr_genomic.ac,
+                                    nr_genomic.posedit.pos.start.base - 1,
+                                    nr_genomic.posedit.pos.end.base
+                                )
+                                genomic_gap_variant = make_gen_var
+                                error_type_1 = None
+                            else:
+                                genomic_gap_variant = self.nr_vm.t_to_g(
+                                        hgvs_c, hgvs_genomic.ac,
+                                        alt_aln_method=alt_aln_method)
 
                     if error_type_1 == 'base start position must be <= end position':
                         logger.info('Variant is fully within a genomic gap')
@@ -1284,6 +1351,7 @@ class Mixin(vvMixinInit.Mixin):
 
                         try:
                             hgvs_genomic = self.vm.t_to_g(transcript_gap_variant, hgvs_genomic.ac, alt_aln_method)
+                            pre_norm_genomic = copy.copy(hgvs_genomic)
                             hgvs_genomic = hn.normalize(hgvs_genomic)
                         except Exception as e:
                             if str(e) == "base start position must be <= end position":
@@ -1305,6 +1373,7 @@ class Mixin(vvMixinInit.Mixin):
                                 except:
                                     transcript_gap_variant = transcript_gap_n
                                 hgvs_genomic = self.vm.t_to_g(transcript_gap_variant, hgvs_genomic.ac, alt_aln_method)
+                                pre_norm_genomic = copy.copy(hgvs_genomic)
                                 hgvs_genomic = hn.normalize(hgvs_genomic)
 
                         # Bypass the next bit of gap code
@@ -1316,6 +1385,17 @@ class Mixin(vvMixinInit.Mixin):
             expand_out = False
         elif expand_out is False or utilise_gap_code is False:
             pass
+        # correct ref inside gap
+        elif expand_out and hgvs_genomic.posedit.edit.ref is None:
+            # inserted entirely inside a gap in the genomic sequence, un-fatten by added flanking bases
+            # this prevents us from spreading the input variant
+            if hgvs_genomic.posedit.edit.alt is not None and len(hgvs_genomic.posedit.edit.alt) > 2:
+                hgvs_genomic = pre_norm_genomic
+                hgvs_genomic.posedit.edit.alt = hgvs_genomic.posedit.edit.alt[1:-1]
+                try:
+                    hgvs_genomic = hn.normalize(hgvs_genomic)
+                except:
+                    pass
         # Correct expansion ref + 2
         elif expand_out and (
                 len(hgvs_genomic.posedit.edit.ref) == (len(stored_hgvs_c.posedit.edit.ref) + 2)):  # >= 3:

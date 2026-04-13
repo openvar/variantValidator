@@ -36,7 +36,19 @@ PROT_TRANSLATION_DICT = {
 PROT_TRANSLATION_DICT_SEL = copy.copy(PROT_TRANSLATION_DICT)
 PROT_TRANSLATION_DICT_SEL['TGA'] = 'U'
 
+DNA_TRANS_TBL = str.maketrans("ACTG", "TGAC")
 
+def simple_dna_revcomp(dna):
+    """
+    Simplest possible reverse compliment, for use on validated input and
+    DNA (or cDNA) of known origin.
+
+    Multiple online published performance benchmarks put this method at
+    the top of the performance comparison for simple DNA reverse
+    compliment, VS loop based and dict lookup among others.
+    Biopython does(did?) the same internally, but adds extra checks.
+    """
+    return dna.upper().translate(DNA_TRANS_TBL)[::-1]
 
 def handleCursor(func):
     """
