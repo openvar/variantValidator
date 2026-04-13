@@ -1289,6 +1289,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                            build_to, variant.hn, variant.reverse_normalizer,
                                                            variant.evm,
                                                            self,
+                                                           map_dat=variant.map_dat,
                                                            specify_tx=False,
                                                            liftover_level=liftover_level,
                                                            g_to_g=g_to_g,

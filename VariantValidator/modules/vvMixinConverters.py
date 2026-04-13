@@ -2,6 +2,7 @@ import re
 import copy
 import logging
 import vvhgvs
+from vvhgvs.assemblymapper import AssemblyMapper
 import vvhgvs.validator
 from . import vvMixinInit
 from . import seq_data
@@ -18,6 +19,8 @@ from vvhgvs.exceptions import HGVSError, HGVSDataNotAvailableError, HGVSUnsuppor
 from vvhgvs.enums import Datum # needed to handle r->n mapping without re-parsing posedit
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj, hgvs_dup_to_delins,\
         hgvs_obj_from_existing_edit
+from VariantValidator.modules.transcript_map_data import TranscriptMapData
+
 logger = logging.getLogger(__name__)
 
 class AlleleSyntaxError(Exception):
@@ -60,12 +63,13 @@ class Mixin(vvMixinInit.Mixin):
         elif variant.type == 'c':
             return variant
 
-    def genomic(self, variant, evm, primary_assembly, hn):
+    def genomic(self, variant, evm, primary_assembly, vv_variant):
         """
         Mapping transcript to genomic position
         Ensures variants are transcript c. or n.
         returns parsed hgvs g. object
         """
+        hn = vv_variant.hn
         logger.info(f"Map {variant} to genomic position")
         logger.info(f"Primary assembly: {primary_assembly}")
         # If the :c. pattern is present in the input variant
@@ -73,7 +77,7 @@ class Mixin(vvMixinInit.Mixin):
             logger.info(f"Variant {variant} is not a string")
             if variant.type in ['c','n']:
                 try:
-                    var_g = self.myevm_t_to_g(variant, evm, primary_assembly, hn)
+                    var_g = self.myevm_t_to_g(variant, evm, primary_assembly, hn, vv_variant)
                 except vvhgvs.exceptions.HGVSError as e:
                     logger.info(f"HGVS error: {e}")
                 logger.info(f"Variant {variant} mapped to {var_g}")
@@ -83,7 +87,7 @@ class Mixin(vvMixinInit.Mixin):
         elif ':c.' in variant or ':n.' in variant:
             hgvs_var = self.hp.parse_hgvs_variant(variant)
             try:
-                var_g = self.myevm_t_to_g(hgvs_var, evm, primary_assembly, hn)  # genomic level variant
+                var_g = self.myevm_t_to_g(hgvs_var, evm, primary_assembly, hn, vv_variant)  # genomic level variant
             except vvhgvs.exceptions.HGVSError as e:
                 return 'error ' + str(e)
             return var_g
@@ -94,7 +98,7 @@ class Mixin(vvMixinInit.Mixin):
             var_g = self.hp.parse_hgvs_variant(variant)
             return var_g
 
-    def myevm_t_to_g(self, hgvs_c, no_norm_evm, primary_assembly, hn, reset_g_origin=False):
+    def myevm_t_to_g(self, hgvs_c, no_norm_evm, primary_assembly, hn, variant, reset_g_origin=False):
         """
         Enhanced transcript to genome position mapping function using evm
         If reset_g_origin is false keeps the original mapping source, otherwise re-sets
@@ -117,45 +121,30 @@ class Mixin(vvMixinInit.Mixin):
         stored_hgvs_c = copy.deepcopy(hgvs_c)
         expand_out = False
 
-        # Gap gene black list
-        try:
-            gene_symbol = self.db.get_gene_symbol_from_transcript_id(hgvs_c.ac)         
-
-        except Exception:
-            utilise_gap_code = False
-
-        else:
-            # If the gene symbol is not in the list, the value False will be returned
-            utilise_gap_code = seq_data.gap_black_list(gene_symbol)
-
-        # Warn gap code in use
-        logger.debug("gap_compensation_myevm = " + str(utilise_gap_code))
-
-        if utilise_gap_code is True and hgvs_c.posedit.edit.type in [
-                'identity', 'del', 'delins', 'dup', 'sub', 'ins', 'inv']:
+        def gap_pre_tx_corrections(hgvs_cg):
+            if hgvs_cg.posedit.edit.type not in [
+                    'identity', 'del', 'delins', 'dup', 'sub', 'ins', 'inv']:
+                return hgvs_cg
             # if NM_ need the n. position
-            if hgvs_c.type == "c":
-                hgvs_c = no_norm_evm.c_to_n(hgvs_c)
+            if hgvs_cg.type == "c":
+                hgvs_cg = no_norm_evm.c_to_n(hgvs_cg)
 
             # Check for intronic
             try:
-                hn.normalize(hgvs_c)
+                hn.normalize(hgvs_cg)
             except vvhgvs.exceptions.HGVSError as e:
                 error = str(e)
                 if 'intronic variant' not in error and \
                         'Length implied by coordinates must equal sequence deletion length' in error and \
-                        hgvs_c.ac.startswith('NR_'):
-                    hgvs_c.posedit.pos.end.base = hgvs_c.posedit.pos.start.base + len(hgvs_c.posedit.edit.ref) - 1
+                        hgvs_cg.ac.startswith('NR_'):
+                    hgvs_cg.posedit.pos.end.base = hgvs_c.posedit.pos.start.base + len(hgvs_c.posedit.edit.ref) - 1
 
             # Check again before continuing
-            if re.search(r'\d+\+', str(hgvs_c.posedit.pos)) or re.search(r'\d+-', str(hgvs_c.posedit.pos)) or \
-                    re.search(r'\*\d+\+', str(hgvs_c.posedit.pos)) or re.search(r'\*\d+-', str(hgvs_c.posedit.pos)):
-                pass
-
-            else:
+            if not(hgvs_cg.posedit.pos.start.offset or hgvs_cg.posedit.pos.end.offset):
+                pre_spread_hgvs_cg = hgvs_cg
                 try:
                     # For non-intronic sequence
-                    hgvs_t = copy.deepcopy(hgvs_c)
+                    hgvs_t = copy.deepcopy(hgvs_cg)
                     if hgvs_t.posedit.edit.type == 'inv':
                         inv_alt = self.revcomp(hgvs_t.posedit.edit.ref)
                         pre_base, post_base = seld._expand_ref(
@@ -170,7 +159,7 @@ class Mixin(vvMixinInit.Mixin):
                                 pre_base + inv_alt + post_base,
                                 end=hgvs_t.posedit.pos.end.base +1,
                                 offset_pos=True)
-                    elif hgvs_c.posedit.edit.type == 'dup':
+                    elif hgvs_cg.posedit.edit.type == 'dup':
                         pre_base, post_base = self._expand_ref(
                                 str(hgvs_t.ac),
                                 hgvs_t.posedit.pos.start.base - 2,
@@ -182,7 +171,7 @@ class Mixin(vvMixinInit.Mixin):
                                 pre_base + hgvs_t.posedit.edit.ref + post_base,
                                 pre_base + hgvs_t.posedit.edit.ref + hgvs_t.posedit.edit.ref + post_base,
                                 offset_pos=True)
-                    elif hgvs_c.posedit.edit.type == 'ins':
+                    elif hgvs_cg.posedit.edit.type == 'ins':
                         # ins->delins goes from between coordinates, i.e exclusive to inclusive so
                         # adjust coordinates to match (or rather don't) by 1 base
                         ins_ref = self.sf.fetch_seq(str(hgvs_t.ac), hgvs_t.posedit.pos.start.base - 2,
@@ -209,136 +198,164 @@ class Mixin(vvMixinInit.Mixin):
                                 pre_base + hgvs_t.posedit.edit.alt + post_base,
                                 end=hgvs_t.posedit.pos.end.base + 1,
                                 offset_pos=True)
-                    hgvs_c = copy.deepcopy(hgvs_t)
+                    hgvs_cg = copy.deepcopy(hgvs_t)
 
                     # Set expanded out test to true
                     expand_out = True
 
                 except Exception:
-                    hgvs_c = hgvs_c
-
+                    hgvs_cg = hgvs_cg
             # Convert back to c. from n. position.
             try:
-                hgvs_c = no_norm_evm.n_to_c(hgvs_c)
+                hgvs_cg = no_norm_evm.n_to_c(hgvs_cg)
             except vvhgvs.exceptions.HGVSError:
-                hgvs_c = copy.deepcopy(stored_hgvs_c)
+                hgvs_cg = copy.deepcopy(stored_hgvs_c)
 
             # Ensure the altered c. variant has not crossed intro exon boundaries
-            hgvs_check_boundaries = copy.deepcopy(hgvs_c)
+            hgvs_check_boundaries = copy.deepcopy(hgvs_cg)
             try:
                 hn.normalize(hgvs_check_boundaries)
             except vvhgvs.exceptions.HGVSError as e:
                 error = str(e)
                 if 'spanning the exon-intron boundary' in error:
-                    hgvs_c = copy.deepcopy(stored_hgvs_c)
+                    hgvs_cg = copy.deepcopy(stored_hgvs_c)
             # Catch identity at the exon/intron boundary by trying to normalize ref only
             if hgvs_check_boundaries.posedit.edit.type == 'identity':
                 hgvs_reform_ident = hgvs_delins_parts_to_hgvs_obj(
-                        hgvs_c.ac,
+                        hgvs_cg.ac,
                         stored_hgvs_c.type,
-                        hgvs_c.posedit.pos,hgvs_c.posedit.edit.ref,'',
+                        hgvs_cg.posedit.pos,hgvs_cg.posedit.edit.ref,'',
                         offset_pos=True)
                 try:
                     hn.normalize(hgvs_reform_ident)
                 except vvhgvs.exceptions.HGVSError as e:
                     error = str(e)
                     if 'spanning the exon-intron boundary' in error or 'Normalization of intronic variants' in error:
-                        hgvs_c = copy.deepcopy(stored_hgvs_c)
+                        hgvs_cg = copy.deepcopy(stored_hgvs_c)
+            return hgvs_cg
 
         # Capture errors from attempted mappings
         attempted_mapping_error = ''
         hgvs_genomic = None
-
+        mapping_options = variant.map_dat.mapping_options(hgvs_c.ac,hdp=self.hdp)
+        gap_corrected_hgvs_c = False
+        if reset_g_origin or not hgvs_c.rel_ac:
+            hgvs_c.rel_ac = ''
+            new_targets = []
+            for option in mapping_options:
+                opt_ac = str(option[1])
+                if opt_ac.startswith("NC_"):
+                    new_targets.append(opt_ac)
+            if new_targets:
+                for g_ac in new_targets:
+                    if seq_data.supported_for_mapping(g_ac, primary_assembly):
+                        hgvs_c.rel_ac = g_ac
         try:
-            if reset_g_origin:
-                hgvs_c.rel_ac = ''
-            hgvs_genomic = no_norm_evm.t_to_g(hgvs_c)
-            hn.normalize(hgvs_genomic)  # Check the validity of the mapping
+            hn.normalize(hgvs_c)
+        except:
+            pass
 
+        # previous code had a hidden feature of falling back to last attempted genomic map in the case or
+        # failed normalisation, now make this explicit, sticking to the most preferred mapping instead
+        # we don't currently do more (eg we could prefer any non gapped aln over gapped etc)
+        norm_f_hgvs_genomic = None
+        if hgvs_c.rel_ac:
             # This will fail on multiple refs for NC_ if the origin is not already set!
             # if the origin is set then this keeps the relative genomic origin, which can include NG_ or alts!
-        except vvhgvs.exceptions.HGVSError:
-            # Recover all available mapping options from UTA
-
-            mapping_options = self.hdp.get_tx_mapping_options(hgvs_c.ac)
-
-            if not mapping_options:
-                raise HGVSDataNotAvailableError(
+            try:
+                # Gap map detection, if the tx->chr map is not in the list, False will be returned
+                if variant.map_dat.is_gapped_map(hgvs_c.ac,hgvs_c.rel_ac,hdp=self.hdp):
+                    logger.debug("gap_compensation_myevm enabled for %s against %s" % (hgvs_c.ac, hgvs_c.rel_ac))
+                    gap_corrected_hgvs_c = gap_pre_tx_corrections(hgvs_c)
+                    hgvs_genomic = no_norm_evm.t_to_g(gap_corrected_hgvs_c)
+                else:
+                    hgvs_genomic = no_norm_evm.t_to_g(hgvs_c)
+                hn.normalize(hgvs_genomic)  # Check the validity of the mapping
+            except vvhgvs.exceptions.HGVSError:
+                # Take all available mapping options from UTA and check through them
+                norm_f_hgvs_genomic = hgvs_genomic
+                hgvs_genomic = None
+                if not mapping_options:
+                    raise HGVSDataNotAvailableError(
                     "No alignment data between the specified transcript reference sequence and any GRCh37 and GRCh38 "
                     "genomic reference sequences (including alternate chromosome assemblies, patches and RefSeqGenes) "
                     "are available.")
-
-            def search_through_options(hgvs_genomic, seqtype, chr_num_val, alt_aln_method=None, final=False):
-
-                err = ''
-                for option in mapping_options:
-                    if option[2].startswith('blat'):
-                        continue
-                    if option[1].startswith(seqtype):
-                        chr_num = seq_data.supported_for_mapping(str(option[1]), primary_assembly)
-
-                        if final or (chr_num_val and chr_num is False) or (chr_num_val is False and chr_num is False):
-                            try:
-                                
-                                hgvs_genomic = self.vm.t_to_g(hgvs_c, str(option[1]), alt_aln_method)
-                                break
-                            except Exception as e:
-                                err += str(e) + "/" + hgvs_c.ac + "/" + option[1] + '~'
-                                continue
-
-                return hgvs_genomic, err
-
-            hgvs_genomic, new_error = search_through_options(hgvs_genomic, 'NC_', True, alt_aln_method)
-            attempted_mapping_error += new_error
-
-            # If not mapped, raise error
-            try:
-                hn.normalize(hgvs_genomic)
-            except:
-                hgvs_genomic, new_error = search_through_options(hgvs_genomic, 'NC_', False, alt_aln_method)
-                attempted_mapping_error += new_error
-
-                try:
-                    hn.normalize(hgvs_genomic)
-                except:
-                    hgvs_genomic, new_error = search_through_options(hgvs_genomic, 'NT_', True, alt_aln_method)
-                    attempted_mapping_error += new_error
-
-                    try:
-                        hn.normalize(hgvs_genomic)
-                    except:
-                        hgvs_genomic, new_error = search_through_options(hgvs_genomic, 'NT_', False, alt_aln_method)
-                        attempted_mapping_error += new_error
-
+        err = ''
+        for genomic_ac_type in ['NC_','NT_','NW_','NG_']:
+            if hgvs_genomic:
+                break
+            # need to call parent t_to_g on this or we fail due to opt number
+            cur_opts = []
+            for option in mapping_options:
+                opt_ac = str(option[1])
+                if str(option[2]).startswith('blat') or not opt_ac.startswith(genomic_ac_type):
+                    continue
+                cur_opts.append(opt_ac)
+            if not genomic_ac_type == 'NG_': # NG not chromosomal so never check chr num
+                for opt in cur_opts:
+                    if seq_data.supported_for_mapping(opt, primary_assembly):
+                        try:
+                            if variant.map_dat.is_gapped_map(hgvs_c.ac,opt,hdp=self.hdp):
+                                logger.debug("gap_compensation_myevm enabled for %s against %s")
+                                if not gap_corrected_hgvs_c:
+                                    gap_corrected_hgvs_c = gap_pre_tx_corrections(hgvs_c)
+                                hgvs_genomic = super(AssemblyMapper,no_norm_evm).t_to_g(
+                                        gap_corrected_hgvs_c, opt, alt_aln_method=alt_aln_method)
+                            else:
+                                hgvs_genomic = super(AssemblyMapper,no_norm_evm).t_to_g(
+                                        hgvs_c, str(option[1]), alt_aln_method=alt_aln_method)
+                        except Exception as e:
+                            err += str(e) + "/" + hgvs_c.ac + "/" + option[1] + '~'
+                    if hgvs_genomic:
                         try:
                             hn.normalize(hgvs_genomic)
-                        except:
-                            hgvs_genomic, new_error = search_through_options(hgvs_genomic, 'NW_', True, alt_aln_method)
-                            attempted_mapping_error += new_error
+                        except Exception:
+                            if not norm_f_hgvs_genomic:
+                                norm_f_hgvs_genomic = hgvs_genomic
+                            hgvs_genomic = None
+            if hgvs_genomic:
+                break
+            for opt in cur_opts:
+                # don't repeat if it already tested and failed
+                if seq_data.supported_for_mapping(opt, primary_assembly):
+                    continue
+                try:
+                    if variant.map_dat.is_gapped_map(hgvs_c.ac,opt,hdp=self.hdp):
+                        logger.debug("gap_compensation_myevm enabled for %s against %s")
+                        if not gap_corrected_hgvs_c:
+                            gap_corrected_hgvs_c = gap_pre_tx_corrections(hgvs_c)
+                        hgvs_genomic = super(AssemblyMapper,no_norm_evm).t_to_g(
+                            gap_corrected_hgvs_c, opt, alt_aln_method=alt_aln_method)
+                    else:
+                        hgvs_genomic = super(AssemblyMapper,no_norm_evm).t_to_g(
+                                hgvs_c, opt, alt_aln_method=alt_aln_method)
+                except Exception as e:
+                    err += str(e) + "/" + hgvs_c.ac + "/" + option[1] + '~'
+                if hgvs_genomic:
+                    try:
+                        hn.normalize(hgvs_genomic)
+                    except Exception:
+                        if not norm_f_hgvs_genomic:
+                            norm_f_hgvs_genomic = hgvs_genomic
+                        hgvs_genomic = None
 
-                            try:
-                                hn.normalize(hgvs_genomic)
-                            except:
-                                hgvs_genomic, new_error = search_through_options(hgvs_genomic, 'NW_', False, alt_aln_method)
-                                attempted_mapping_error += new_error
-
-                                # Only a RefSeqGene available
-                                try:
-                                    hn.normalize(hgvs_genomic)
-                                except:
-                                    hgvs_genomic, new_error = search_through_options(hgvs_genomic, 'NG_', True, alt_aln_method,
-                                                                                     final=True)
-                                    attempted_mapping_error += new_error
+        attempted_mapping_error = err
+        if ( not hgvs_genomic ) and norm_f_hgvs_genomic:
+            hgvs_genomic = norm_f_hgvs_genomic
 
         # If not mapped, raise error
         if hgvs_genomic is None:
             logger.debug("HGVS data not avaialable error")
             raise HGVSDataNotAvailableError(attempted_mapping_error)
 
+        # we expand out for variants that are not intronic and are gapped
+        expand_out = variant.map_dat.is_gapped_map(hgvs_c.ac,hgvs_genomic.ac,hdp=self.hdp) and not(
+                hgvs_c.posedit.pos.start.offset or hgvs_c.posedit.pos.end.offset)
         if hgvs_c.posedit.edit.type == 'identity' and hgvs_genomic.posedit.edit.type == 'delins' and \
                 hgvs_genomic.posedit.edit.alt == '' and not expand_out:
             hgvs_genomic.posedit.edit.alt = hgvs_genomic.posedit.edit.ref
-        if hgvs_genomic.posedit.edit.type == 'ins' and utilise_gap_code is True:
+        if hgvs_genomic.posedit.edit.type == 'ins' and variant.map_dat.is_gapped_map(
+                hgvs_c.ac,hgvs_genomic.ac,hdp=self.hdp):
             try:
                 hgvs_genomic = hn.normalize(hgvs_genomic)
             except vvhgvs.exceptions.HGVSError as e:
@@ -474,8 +491,8 @@ class Mixin(vvMixinInit.Mixin):
                         # Remove alt
                         try:
                             genomic_gap_variant.posedit.edit.alt = ''
-                        except Exception as e:
-                            logger.debug("Except passed, %s", e)
+                        except Exception as er:
+                            logger.debug("Except passed, %s", er)
 
                         # Should be a delins so will normalize statically and replace the reference bases
                         genomic_gap_variant = hn.normalize(genomic_gap_variant)
@@ -503,8 +520,8 @@ class Mixin(vvMixinInit.Mixin):
                                 transcript_gap_alt_n.posedit.edit.alt = 'X'
                         except Exception as e:
                             if str(e) == "'Dup' object has no attribute 'alt'":
-                                transcript_gap_n_delins_from_dup = hgvs_dup_to_delins(transcript_gap_n)
-                                transcript_gap_alt_n_delins_from_dup = hgvs_dup_to_delins(transcript_gap_alt_n)
+                                transcript_gap_n = hgvs_dup_to_delins(transcript_gap_n)
+                                transcript_gap_alt_n = hgvs_dup_to_delins(transcript_gap_alt_n)
 
                         # Split the reference and replacing alt sequence into a dictionary
                         reference_bases = list(transcript_gap_n.posedit.edit.ref)
@@ -590,7 +607,8 @@ class Mixin(vvMixinInit.Mixin):
         # Remove identity bases
         if hgvs_c == stored_hgvs_c:
             pass
-        elif expand_out is False or utilise_gap_code is False:
+        elif expand_out is False or variant.map_dat.is_gapped_map(
+                hgvs_c.ac,hgvs_c.rel_ac,hdp=self.hdp) is False:
             pass
         # Correct expansion ref + 2
         elif expand_out and (
@@ -774,7 +792,7 @@ class Mixin(vvMixinInit.Mixin):
         # This will fail on multiple refs for NC_
         except vvhgvs.exceptions.HGVSError:
             # Recover all available mapping options from UTA
-            mapping_options = self.hdp.get_tx_mapping_options(hgvs_c.ac)
+            mapping_options = variant.map_dat.mapping_options(hgvs_c.ac,hdp=self.hdp)
 
             if not mapping_options:
                 raise HGVSDataNotAvailableError("no g. mapping options available")
@@ -898,20 +916,12 @@ class Mixin(vvMixinInit.Mixin):
         hgvs_t = evm.g_to_t(hgvs_genomic, alt_ac)
         return hgvs_t
 
-    def myvm_t_to_g(self, hgvs_c, alt_chr, no_norm_evm, hn):
+    def myvm_t_to_g(self, hgvs_c, alt_chr, no_norm_evm, hn, map_dat):
         # store the input
         alt_aln_method = self.alt_aln_method
         stored_hgvs_c = copy.deepcopy(hgvs_c)
         expand_out = False
-
-        # Gap gene black list
-        try:
-            gene_symbol = self.db.get_gene_symbol_from_transcript_id(hgvs_c.ac)
-        except Exception:
-            utilise_gap_code = False
-        else:
-            # If the gene symbol is not in the list, the value False will be returned
-            utilise_gap_code = seq_data.gap_black_list(gene_symbol)
+        utilise_gap_code = map_dat.is_gapped_map(hgvs_c.ac, alt_chr,hdp=self.hdp)
         # Warn gap code in use
         logger.debug("gap_compensation_mvm = " + str(utilise_gap_code))
 
@@ -1503,29 +1513,6 @@ class Mixin(vvMixinInit.Mixin):
             hgvs_object.posedit.pos.end.datum = Datum.CDS_START
         return hgvs_object
 
-    def tx_exons(self, tx_ac, alt_ac, alt_aln_method):
-        """
-        Returns exon information for a given transcript
-        e.g. how the exons align to the genomic reference
-        see vvhgvs.dataproviders.uta.py for details
-        """
-        # Interface with the UTA database via get_tx_exons in uta.py
-        try:
-            tx_exons = self.hdp.get_tx_exons(tx_ac, alt_ac, alt_aln_method)
-        except vvhgvs.exceptions.HGVSError as e:
-            tx_exons = 'hgvs Exception: ' + str(e)
-            return tx_exons
-        try:
-            tx_exons[0]['alt_strand']
-        except TypeError:
-            tx_exons = 'error'
-            return tx_exons
-        # If on the reverse strand, reverse the order of elements
-        if tx_exons[0]['alt_strand'] == -1:
-            tx_exons = tx_exons[::-1]
-            return tx_exons
-        else:
-            return tx_exons
 
     def relevant_transcripts(self, hgvs_genomic, evm, alt_aln_method, reverse_normalizer, select_transcripts):
         """
@@ -1539,10 +1526,14 @@ class Mixin(vvMixinInit.Mixin):
 
         rts_dict = {}
         for tx_dat in rts_list:
-            rts_dict[tx_dat[0]] = True
-        rts_list_2 = evm.relevant_transcripts(hgvs_genomic)
+            rts_dict[tx_dat['tx_ac']] = tx_dat['alt_strand']
+        rts_list_2 = self.hdp.get_tx_for_region(
+                hgvs_genomic.ac, self.alt_aln_method,
+                hgvs_genomic.posedit.pos.start.base,
+                hgvs_genomic.posedit.pos.end.base)
+        #rts_list_2 = evm.relevant_transcripts(hgvs_genomic)
         for tx_dat_2 in rts_list_2:
-            rts_dict[tx_dat_2] = True
+            rts_dict[tx_dat_2['tx_ac']] = tx_dat['alt_strand']
         rts = list(rts_dict.keys())
 
         # Filter out transcripts that are not the latest versions
@@ -1635,29 +1626,8 @@ class Mixin(vvMixinInit.Mixin):
             if '+' in str(variant) or '-' in str(variant) or '*' in str(variant):
                 tx_ac = variant.ac
                 alt_ac = hgvs_genomic.ac
-
-                # Interface with the UTA database via get_tx_exons in uta.py
                 try:
-                    tx_exons = self.hdp.get_tx_exons(tx_ac, alt_ac, alt_aln_method)
-                except vvhgvs.exceptions.HGVSError:
-                    continue
-                try:
-                    tx_exons[0]['alt_strand']
-                except TypeError:
-                    continue
-                # If on the reverse strand, reverse the order of elements
-                if tx_exons[0]['alt_strand'] == -1:
-                    tx_exons = tx_exons[::-1]
-
-                # Gene orientation
-                if tx_exons[0]['alt_strand'] == -1:
-                    antisense = True
-                else:
-                    antisense = False
-
-                # Pass if antisense = 'false'
-                try:
-                    if antisense:
+                    if rts_dict[tx_ac] < 0:
                         # Reverse normalize hgvs_genomic
                         rev_hgvs_genomic = reverse_normalizer.normalize(hgvs_genomic)
                         # map back to coding
@@ -1738,7 +1708,7 @@ class Mixin(vvMixinInit.Mixin):
         revcomp = revcomp[::-1]
         return revcomp
 
-    def merge_hgvs_3pr(self, hgvs_variant_list, hn, genomic_reference=False, final_norm=True, hgvs_strict=False):
+    def merge_hgvs_3pr(self, hgvs_variant_list, hn, genomic_reference=False, final_norm=True, hgvs_strict=False, map_dat=None):
         """
         Function designed to merge multiple HGVS variants (hgvs objects) into a single delins
         using 3 prime normalization
@@ -1751,6 +1721,10 @@ class Mixin(vvMixinInit.Mixin):
         c_to_g_mapped = {"mapped": False, "ori": None, "transcript": None}
 
         # Sanity check and format the submitted variants
+        # First get a cached exon fetch, this is normally == for all variants submitted
+        tx_map_dat = map_dat
+        if not tx_map_dat:
+            tx_map_dat = TranscriptMapData(hdp=self.hdp)
         for hgvs_v in hgvs_variant_list:
             # For testing include parser
             if type(hgvs_v) is str:
@@ -1767,10 +1741,10 @@ class Mixin(vvMixinInit.Mixin):
                 if 'Cannot validate sequence of an intronic variant' in str(e):
                     if genomic_reference is not False:
                         c_to_g_mapped["mapped"] = True
-                        c_to_g_mapped["ori"] = self.hdp.get_tx_exons(hgvs_v.ac,
-                                                                     genomic_reference,
-                                                                     self.alt_aln_method
-                                                                     )[0][3]
+                        c_to_g_mapped["ori"] = tx_map_dat.mapped_exons(
+                                hgvs_v.ac,
+                                genomic_reference,
+                                alt_aln_method=self.alt_aln_method)[0][3]
                         c_to_g_mapped["transcript"] = hgvs_v.ac
                     else:
                         raise fn.mergeHGVSerror("AlleleSyntaxError: Intronic variants can only be validated if a "
