@@ -116,11 +116,6 @@ class Mixin(vvMixinConverters.Mixin):
             # Turn each variant into a dictionary. The dictionary will be compiled during validation
             self.batch_list = []
             for queries in batch_queries:
-                # try:
-                #     queries = vcf_to_pvcf.vcf_to_shorthand(queries)
-                # except vcf_to_pvcf.VcfConversionError as e:
-                #     logger.info(f"Cannot convert {queries} into PVCF format {e}")
-                #     pass
                 if isinstance(queries, int):
                     queries = str(queries)
                     queries = str(queries)
@@ -271,6 +266,9 @@ class Mixin(vvMixinConverters.Mixin):
                             and not re.search(r"[gcrnmo]\.", my_variant.quibble)):
                         try:
                             my_variant.quibble = vcf_to_pvcf.vcf_to_shorthand(my_variant.quibble)
+                            my_variant.original = ",".join(my_variant.original.split("\t"))
+                            my_variant.warnings.append(f"VcfConversionWarning: Submitted Variant field now shown as "
+                                                       f"comma separated fields '{my_variant.original}'")
                             my_variant.warnings.append(f"VcfConversionWarning: VCF line identified and converted "
                                                        f"to {my_variant.quibble}")
                         except vcf_to_pvcf.VcfConversionError as e:
