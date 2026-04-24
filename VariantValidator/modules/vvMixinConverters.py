@@ -76,7 +76,7 @@ class Mixin(vvMixinInit.Mixin):
                     var_g = self.myevm_t_to_g(variant, evm, primary_assembly, hn)
                 except vvhgvs.exceptions.HGVSError as e:
                     logger.info(f"HGVS error: {e}")
-                logger.info(f"Varinat {variant} mapped to {var_g}")
+                logger.info(f"Variant {variant} mapped to {var_g}")
                 return var_g
             elif variant.type == 'g':
                 return variant
@@ -884,7 +884,7 @@ class Mixin(vvMixinInit.Mixin):
                         hgvs_genomic = variant.no_norm_evm.t_to_g(hgvs_c)
                     except Exception as e:
                         error = str(e)
-                        logger.warning('Ins mapping error in myt_to_g ' + error)
+                        logger.info('Ins mapping error in myt_to_g ' + error)
 
         return hgvs_genomic
 
@@ -1462,7 +1462,7 @@ class Mixin(vvMixinInit.Mixin):
                         hgvs_genomic = no_norm_evm.t_to_g(hgvs_c)
                     except Exception as e:
                         error = str(e)
-                        logger.warning('Ins mapping error in myt_to_g ' + error)
+                        logger.info('Ins mapping error in myt_to_g ' + error)
 
         return hgvs_genomic
 
@@ -1621,7 +1621,7 @@ class Mixin(vvMixinInit.Mixin):
                 except vvhgvs.exceptions.HGVSError:
                     continue
             except Exception as err:
-                logger.warning('non expected err type', str(err))
+                logger.info('non expected err type', str(err))
                 continue
             try:
                 reverse_normalizer.normalize(variant)

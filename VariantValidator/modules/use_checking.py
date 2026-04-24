@@ -101,7 +101,7 @@ def pre_parsing_global_common_mistakes(my_variant):
                     'has been auto-corrected'
             my_variant.quibble = my_variant.quibble.replace(',', '.')
             my_variant.warnings.append(error)
-            logger.warning(error)
+            logger.info(error)
 
         # Upper case type see issue #338
         elif re.search(r":[GCNMR].", str(my_variant.quibble)):
@@ -109,7 +109,7 @@ def pre_parsing_global_common_mistakes(my_variant):
             e = "This not a valid HGVS description, due to characters being in the wrong case. " \
                 "Please check the use of upper- and lowercase characters."
             my_variant.warnings.append(str(e))
-            logger.warning(str(e))
+            logger.info(str(e))
             my_variant.quibble = my_variant.quibble.replace(rs_type_upper.group(0),
                                                             rs_type_upper.group(0).lower())
 
@@ -118,7 +118,7 @@ def pre_parsing_global_common_mistakes(my_variant):
             error = 'Variant description ' + my_variant.quibble + ' lacks the . character between ' \
                     '<type> and <position> in the expected pattern <accession>:<type>.<position>'
             my_variant.warnings.append(error)
-            logger.warning(error)
+            logger.info(error)
             return True
 
         elif ((re.search(r"\(ENST\d+\.\d+\):", my_variant.quibble) or
@@ -135,7 +135,7 @@ def pre_parsing_global_common_mistakes(my_variant):
         else:
             error = 'InvalidVariantError: Variant description ' + my_variant.original + ' is not in an accepted format'
             my_variant.warnings.append(error)
-            logger.warning(error)
+            logger.info(error)
             raise InvalidVariantError(error)
 
     # Here we handle syntax errors in ins and delins variants
@@ -287,7 +287,7 @@ def refseq_common_mistakes(variant):
         error = 'Transcript reference sequence input as genomic (g.) reference sequence. ' \
                 'Did you mean ' + suggestion + '?'
         variant.warnings.append(error)
-        logger.warning(error)
+        logger.info(error)
         return True
 
     # NR_ c.
@@ -296,14 +296,14 @@ def refseq_common_mistakes(variant):
         error = 'Non-coding transcript reference sequence input as coding (c.) reference sequence. ' \
                 'Did you mean ' + suggestion + '?'
         variant.warnings.append(error)
-        logger.warning(error)
+        logger.info(error)
         return True
 
     # NP_ c.
     if (acc3 == "NP_" or acc4 == "ENSP") and variant.reftype in [':c.', ':n.', ':g.', ':r.']:
         error = f'Protein reference sequence input as Nucleotide ({variant.reftype}) variant.'
         variant.warnings.append(error)
-        logger.warning(error)
+        logger.info(error)
         return True
 
     # NM_ n.
@@ -312,7 +312,7 @@ def refseq_common_mistakes(variant):
         error = 'Coding transcript reference sequence input as non-coding transcript (n.) reference sequence. ' \
                 'Did you mean ' + suggestion + '?'
         variant.warnings.append(error)
-        logger.warning(error)
+        logger.info(error)
         return True
 
     # NM_ NC_ NG_ NR_ p.
@@ -320,7 +320,7 @@ def refseq_common_mistakes(variant):
         error = 'Using a nucleotide reference sequence (NM_ NR_ NG_ NC_) to specify protein-level (p.) variation is ' \
                 'not HGVS compliant. Please select an appropriate protein reference sequence (NP_)'
         variant.warnings.append(error)
-        logger.warning(error)
+        logger.info(error)
         return True
 
     # NG_ c or NC_c..
@@ -329,7 +329,7 @@ def refseq_common_mistakes(variant):
         error = 'NG_:c.PositionVariation descriptions should not be used unless a transcript reference sequence has ' \
                 'also been provided e.g. NG_(NM_):c.PositionVariation'
         variant.warnings.extend([error, suggestion])
-        logger.warning(error)
+        logger.info(error)
         return True
 
     return False
@@ -386,7 +386,7 @@ def structure_checks_g(variant, validator):
     if variant.input_parses.ac[:3] not in ['NC_', 'NG_', 'NT_', 'NW_']:
         error = 'Invalid reference sequence identifier (' + variant.input_parses.ac + ')'
         variant.warnings.append(error)
-        logger.warning(error)
+        logger.info(error)
         return True
 
     try:
@@ -429,7 +429,7 @@ def structure_checks_g(variant, validator):
         else:
             error = str(e)
             variant.warnings.append(error)
-            logger.warning(error)
+            logger.info(error)
             return True
 
     # Additional test
@@ -438,7 +438,7 @@ def structure_checks_g(variant, validator):
     except vvhgvs.exceptions.HGVSError as e:
         error = str(e)
         variant.warnings.append(error)
-        logger.warning(error)
+        logger.info(error)
         return True
 
     # Look for variants in runs of N bases
@@ -448,7 +448,7 @@ def structure_checks_g(variant, validator):
                      f"genomic reference region with "
                      f"an uncertain base composition (N)")
             variant.warnings.append(error)
-            logger.warning(error)
+            logger.info(error)
             return True
     except TypeError:
         pass
@@ -479,7 +479,7 @@ def structure_checks_c(variant, validator):
                 except vvhgvs.exceptions.HGVSInvalidVariantError as e:
                     error = str(e)
                     variant.warnings.append(error)
-                    logger.warning(error)
+                    logger.info(error)
                     return True
                 actual_ref = to_n.posedit.edit.ref
 
@@ -487,7 +487,7 @@ def structure_checks_c(variant, validator):
                     error = 'Variant reference (' + called_ref + ') does not agree with reference sequence ' \
                                                                  '(' + actual_ref + ')'
                     variant.warnings.append(error)
-                    logger.warning(error)
+                    logger.info(error)
                     return True
                 else:
                     if variant.input_parses.posedit.edit.type == "ins":
@@ -553,7 +553,7 @@ def structure_checks_c(variant, validator):
                         except Exception as e:
                             logger.debug("Except passed, %s", e)
                         variant.warnings.append(error)
-                        logger.warning(error)
+                        logger.info(error)
                         return True
 
         try:
@@ -561,7 +561,7 @@ def structure_checks_c(variant, validator):
         except vvhgvs.exceptions.HGVSError as e:
             error = str(e)
             variant.warnings.append(error)
-            logger.warning(e)
+            logger.info(e)
             return True
 
         if 'n.1-' in str(variant.input_parses):
@@ -573,7 +573,7 @@ def structure_checks_c(variant, validator):
             genomic_position = variant.hn.normalize(genomic_position)
             error = error + fn.valstr(genomic_position)
             variant.warnings.append(error)
-            logger.warning(error)
+            logger.info(error)
             return True
 
         # Re-map input_parses back to c. variant
@@ -633,7 +633,7 @@ def structure_checks_c(variant, validator):
                     except Exception as e:
                         logger.debug("Except passed, %s", e)
                 variant.warnings.append(error)
-                logger.warning(error)
+                logger.info(error)
                 return True
 
             except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
@@ -651,7 +651,7 @@ def structure_checks_c(variant, validator):
                             + variant.input_parses.ac + ' can only be partially aligned to genomic reference ' \
                             'sequences ' + acs
                     variant.warnings.append(error)
-                    logger.warning(error)
+                    logger.info(error)
                     return True
 
     elif re.search(r'\d-', str(variant.input_parses)) or re.search(r'\d\+', str(variant.input_parses)):
@@ -677,7 +677,7 @@ def structure_checks_c(variant, validator):
                     error = 'Using a transcript reference sequence to specify a variant position that lies outside of '\
                             'the reference sequence is not HGVS-compliant. Instead re-submit ' + fn.valstr(report_gen)
                 variant.warnings.append(error)
-                logger.warning(error)
+                logger.info(error)
                 return True
             elif 'insertion length must be 1' in error:
                     if "-" in str(variant.input_parses.posedit.pos.start.offset):
@@ -706,7 +706,7 @@ def structure_checks_c(variant, validator):
                 correction.posedit.pos.end = st
                 error = error + ': Did you mean ' + str(correction) + '?'
                 variant.warnings.append(error)
-                logger.warning(error)
+                logger.info(error)
                 return True
 
         # Create a specific minimal evm with no normalizer and no replace_reference
@@ -734,7 +734,7 @@ def structure_checks_c(variant, validator):
                 error = 'Interval start position ' + str(variant.input_parses.posedit.pos.start) + ' > interval end '\
                         'position ' + str(variant.input_parses.posedit.pos.end)
                 variant.warnings.append(error)
-                logger.warning(error)
+                logger.info(error)
                 return True
         except vvhgvs.exceptions.HGVSInvalidVariantError as e:
             error = str(e)
@@ -742,11 +742,11 @@ def structure_checks_c(variant, validator):
                 error = 'Interval start position ' + str(variant.input_parses.posedit.pos.start) + ' > interval end' \
                         ' position ' + str(variant.input_parses.posedit.pos.end)
                 variant.warnings.append(error)
-                logger.warning(error)
+                logger.info(error)
                 return True
             else:
                 variant.warnings.append(error)
-                logger.warning(error)
+                logger.info(error)
                 return True
 
         try:
@@ -757,12 +757,12 @@ def structure_checks_c(variant, validator):
                 if output is None:
                     error = str(e)
                     variant.warnings.append(error)
-                    logger.warning(error)
+                    logger.info(error)
                     return True
             else:
                 error = str(e)
                 variant.warnings.append(error)
-                logger.warning(error)
+                logger.info(error)
                 return True
 
         # Check that the reference is correct by direct mapping without replacing reference
@@ -785,13 +785,13 @@ def structure_checks_c(variant, validator):
                     "base start position must be <= end position" not in str(e):
                 error = str(e)
                 variant.warnings.append(error)
-                logger.warning(error)
+                logger.info(error)
         try:
             validator.vr.validate(output)
         except vvhgvs.exceptions.HGVSError as e:
             error = str(e)
             variant.warnings.append(error)
-            logger.warning(error)
+            logger.info(error)
 
         # Check for additional warnings
         if len(variant.warnings) > len(snap):
@@ -811,7 +811,7 @@ def structure_checks_c(variant, validator):
                         'position ' + str(variant.input_parses.posedit.pos.end)
             if "(" not in str(variant.input_parses.posedit.pos):
                 variant.warnings.append(error)
-                logger.warning(error)
+                logger.info(error)
             if 'insertion length must be 1' in error:
                 if "(" not in str(variant.input_parses.posedit.pos):
                     ins_warning = (f'Insertion length must be 1 e.g. '
@@ -827,14 +827,14 @@ def structure_checks_c(variant, validator):
         except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
             error = str(e)
             variant.warnings.append(error)
-            logger.warning(error)
+            logger.info(error)
             return True
         except vvhgvs.exceptions.HGVSError as e:
             error = str(e)
             if 'bounds' in error:
                 error += ' (' + variant.input_parses.ac + ')'
                 variant.warnings.append(error)
-                logger.warning(error)
+                logger.info(error)
                 return True
 
     return False
@@ -864,7 +864,7 @@ def structure_checks_n(variant, validator):
                     error = 'Variant reference (' + called_ref + ') does not agree with reference sequence (' + \
                             actual_ref + ')'
                     variant.warnings.append(error)
-                    logger.warning(str(error))
+                    logger.info(str(error))
                     return True
                 else:
                     variant.input_parses.posedit.edit.ref = ''
@@ -895,11 +895,11 @@ def structure_checks_n(variant, validator):
                 except Exception as e:
                     logger.debug("Except passed, %s", e)
                 variant.warnings.append(error)
-                logger.warning(error)
+                logger.info(error)
                 return True
             else:
                 variant.warnings.append(error)
-                logger.warning(error)
+                logger.info(error)
                 return True
 
     if 'n.1-' in str(variant.input_parses):
@@ -910,7 +910,7 @@ def structure_checks_n(variant, validator):
         genomic_position = variant.hn.normalize(genomic_position)
         error = error + fn.valstr(genomic_position)
         variant.warnings.append(error)
-        logger.warning(error)
+        logger.info(error)
         return True
 
     if re.search(r'\d-', str(variant.input_parses)) or re.search(r'\d\+', str(variant.input_parses)):
@@ -930,11 +930,11 @@ def structure_checks_n(variant, validator):
                     error = 'Using a transcript reference sequence to specify a variant position that lies outside of '\
                             'the reference sequence is not HGVS-compliant. Instead re-submit ' + fn.valstr(report_gen)
                 variant.warnings.append(error)
-                logger.warning(error)
+                logger.info(error)
                 return True
             elif 'insertion length must be 1' in error:
                 variant.warnings.append(error)
-                logger.warning(error)
+                logger.info(error)
                 return True
             elif 'base start position must be <= end position' in error:
                 correction = copy.deepcopy(variant.input_parses)
@@ -946,7 +946,7 @@ def structure_checks_n(variant, validator):
                 # error = 'Interval start position ' + str(input_parses.posedit.pos.start) + ' > interval end
                 # position ' + str(input_parses.posedit.pos.end)
                 variant.warnings.append(error)
-                logger.warning(error)
+                logger.info(error)
                 return True
             elif 'Cannot validate sequence of an intronic variant' in error:
                 try:
@@ -963,7 +963,7 @@ def structure_checks_n(variant, validator):
                                 'outside of the reference sequence is not HGVS-compliant. Instead re-submit ' + \
                                 fn.valstr(report_gen)
                         variant.warnings.append(error)
-                        logger.warning(error)
+                        logger.info(error)
                         return True
 
         # Create a specific minimal evm with no normalizer and no replace_reference
@@ -987,7 +987,7 @@ def structure_checks_n(variant, validator):
                     variant.input_parses.posedit.pos.start) + ' > interval end position ' + str(
                     variant.input_parses.posedit.pos.end)
                 variant.warnings.append(error)
-                logger.warning(error)
+                logger.info(error)
                 return True
         except vvhgvs.exceptions.HGVSInvalidVariantError as e:
             error = str(e)
@@ -1002,14 +1002,14 @@ def structure_checks_n(variant, validator):
                     variant.input_parses.posedit.pos.start) + ' > interval end position ' + str(
                     variant.input_parses.posedit.pos.end)
                 variant.warnings.append(error)
-                logger.warning(error)
+                logger.info(error)
                 return True
         try:
             validator.vr.validate(output)
         except vvhgvs.exceptions.HGVSError as e:
             error = str(e)
             variant.warnings.append(error)
-            logger.warning(error)
+            logger.info(error)
             return True
 
     else:
@@ -1048,23 +1048,23 @@ def structure_checks_n(variant, validator):
                 error = 'Interval start position ' + str(
                     variant.input_parses.posedit.pos.start) + ' > interval end position ' + str(
                     variant.input_parses.posedit.pos.end)
-                logger.warning(error)
+                logger.info(error)
                 variant.warnings.append(error)
                 return True
             variant.warnings.append(error)
-            logger.warning(error)
+            logger.info(error)
             return True
         except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
             error = str(e)
             variant.warnings.append(error)
-            logger.warning(error)
+            logger.info(error)
             return True
         except vvhgvs.exceptions.HGVSError as e:
             error = str(e)
             if 'bounds' in error:
                 error = error + ' (' + variant.input_parses.ac + ')'
                 variant.warnings.append(error)
-                logger.warning(error)
+                logger.info(error)
                 return True
     return False
 

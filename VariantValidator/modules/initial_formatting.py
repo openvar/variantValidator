@@ -17,7 +17,7 @@ def remove_gene_symbol_from_ref(my_variant, validator):
                            "description") % is_it_a_gene
                 my_variant.quibble.ac = my_variant.quibble.ac.replace(f'({gene_symbol_query})', '')
                 my_variant.warnings.append(warning)
-                logger.warning(warning)
+                logger.info(warning)
     except AttributeError:
         if re.search(r'\(.+?\)', my_variant.quibble):  # Pattern looks for (....)
             gene_symbol_query = re.search(r'\(.+?\)', my_variant.quibble).group(0)
@@ -29,7 +29,7 @@ def remove_gene_symbol_from_ref(my_variant, validator):
                            "description") % is_it_a_gene
                 my_variant.quibble = my_variant.quibble.replace(f'({gene_symbol_query})', '')
                 my_variant.warnings.append(warning)
-                logger.warning(warning)
+                logger.info(warning)
 
 
 def initial_user_formattng(my_variant, validator):
@@ -49,7 +49,7 @@ def initial_user_formattng(my_variant, validator):
         if not re.search('ins[GATC]+', my_variant.original):
             warning = "VariantSyntaxError: Removing redundant reference bases from variant description"
             my_variant.warnings.append(warning)
-            logger.warning(warning)
+            logger.info(warning)
 
     # 2. expand options for issue https://github.com/openvar/variantValidator/issues/338
     # Basically, all reference sequences must be upper case, so we make an upper-case query accession
@@ -62,12 +62,12 @@ def initial_user_formattng(my_variant, validator):
             e = "This not a valid HGVS description, due to characters being in the wrong case. " \
                 "Please check the use of upper- and lowercase characters."
             my_variant.warnings.append(str(e))
-            logger.warning(str(e))
+            logger.info(str(e))
         if "T" in original_ac:
             e = "This not a valid HGVS description, due to characters being in the wrong case. " \
                 "Please check the use of upper- and lowercase characters."
             my_variant.warnings.append(str(e))
-            logger.warning(str(e))
+            logger.info(str(e))
             my_variant.quibble.ac = my_variant.quibble.ac.replace("T", "t")
 
     # Reference sequence types other than LRG
@@ -82,14 +82,14 @@ def initial_user_formattng(my_variant, validator):
             e = "This not a valid HGVS description, due to characters being in the wrong case. " \
                 "Please check the use of upper- and lowercase characters."
         my_variant.warnings.append(str(e))
-        logger.warning(str(e))
+        logger.info(str(e))
     elif (uc_original_ac[:3] == 'CHR' or
           uc_original_ac[:4] == "GRCH" or
           uc_original_ac[:2] == "HG"):
         e = "This is not a valid HGVS variant description, because no reference sequence ID " \
             "has been provided"
         my_variant.warnings.append(e)
-        logger.warning(e)
+        logger.info(e)
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
