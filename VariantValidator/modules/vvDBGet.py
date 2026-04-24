@@ -29,7 +29,7 @@ class Mixin(vvDBInit.Mixin):
                 return row
 
             except Exception as e:
-                logger.warning(f"MySQL error (attempt {attempt + 1}/{attempts}): {e}")
+                logger.info(f"MySQL error (attempt {attempt + 1}/{attempts}): {e}")
 
                 if attempt < attempts - 1:
                     try:
@@ -65,7 +65,7 @@ class Mixin(vvDBInit.Mixin):
                 return rows
 
             except Exception as e:
-                logger.warning(f"MySQL error (attempt {attempt + 1}/{attempts}): {e}")
+                logger.info(f"MySQL error (attempt {attempt + 1}/{attempts}): {e}")
 
                 if attempt < attempts - 1:
                     try:

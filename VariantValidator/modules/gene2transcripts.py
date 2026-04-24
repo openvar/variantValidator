@@ -412,7 +412,7 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
                     error = 'Currently unable to update gene_ids or transcript information records because ' \
                             'VariantValidator %s' % str(e)
                     # my_variant.warnings.append(error)
-                    logger.warning(error)
+                    logger.info(error)
                 tx_description = g2t.db.get_transcript_description(tx)
 
             # Get annotation

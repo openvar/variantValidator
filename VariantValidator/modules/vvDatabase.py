@@ -274,8 +274,8 @@ class Database(vvDBInsert.Mixin):
                     warning = "Ensembl transcript %s is not identified in the Ensembl APIs" % accession
                     raise utils.DatabaseConnectionError(warning)
             except TypeError:
-                import traceback
-                traceback.print_exc()
+                # import traceback
+                # traceback.print_exc()
                 connection_error = "Cannot retrieve data from Ensembl REST for record %s" % accession
                 if bypass_with_symbol is not False:
                     try:

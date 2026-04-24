@@ -21,7 +21,7 @@ class ValOutput(object):
         validation_intergenic_counter = 0
 
         if len(self.output_list) == 0:
-            logger.warning("No variants available to output")
+            logger.info("No variants available to output")
             validation_output['flag'] = 'empty_result'
 
         for variant in self.output_list:

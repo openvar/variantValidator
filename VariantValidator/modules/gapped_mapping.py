@@ -1729,7 +1729,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                          alt_aln_method=self.validator.alt_aln_method)
             except Exception as e:
                 if str(e) == 'start or end or both are beyond the bounds of transcript record':
-                    logger.warning(str(e))
+                    logger.info(str(e))
                     hard_fail == 'true'
             try:
                 self.variant.hn.normalize(self.tx_hgvs_not_delins)
@@ -1738,7 +1738,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 if 'Normalization of intronic variants is not supported' in error or \
                         'Unsupported normalization of variants spanning the exon-intron boundary' in error:
                     if 'Unsupported normalization of variants spanning the exon-intron boundary' in error:
-                        logger.warning(error)
+                        logger.info(error)
                         hard_fail = 'true'
                     elif 'Normalization of intronic variants is not supported' in error:
                         # We know that this cannot be because of an intronic variant, so must be aligned to tx gap
