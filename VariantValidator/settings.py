@@ -20,11 +20,22 @@ LOGGING_CONFIG = {
     'formatters': {
         'simple': {
             'class': 'logging.Formatter',
-            'format': '%(levelname)s: %(message)s'
+            # Console: clean, readable
+            # Example:
+            # 2026-04-24 17:11:02 INFO     VariantValidator.validate Started validation
+            'format': '%(asctime)s %(levelname)-8s %(name)s %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
         },
         'detailed': {
             'class': 'logging.Formatter',
-            'format': '%(asctime)s %(name)-5s %(funcName)-10s (line %(lineno)d) %(levelname)-8s %(message)s'
+            # File: richer but still human
+            # Example:
+            # 2026-04-24 17:11:02 VariantValidator.validate validate (line 412) INFO Started validation
+            'format': (
+                '%(asctime)s %(name)s %(funcName)s '
+                '(line %(lineno)d) %(levelname)-8s %(message)s'
+            ),
+            'datefmt': '%Y-%m-%d %H:%M:%S',
         }
     },
     'handlers': {

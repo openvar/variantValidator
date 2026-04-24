@@ -727,6 +727,7 @@ class Mixin(vvMixinConverters.Mixin):
             # order the rows
             by_order = sorted(self.batch_list, key=lambda x: x.order)
             for variant in by_order:
+                logger.info(f"Second loop, data output construction for {variant.quibble}")
                 if type(variant.quibble) is str:
                     logger.debug(f"Formatting variant {variant.quibble}")
                 else:
