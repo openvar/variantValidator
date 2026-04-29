@@ -29,7 +29,7 @@ class TestSettings(TestCase):
 
     def test_logging_config_file_handler(self):
         file_handler = LOGGING_CONFIG['handlers'].get('file', {})
-        assert file_handler.get('class') == 'logging.FileHandler'
+        assert file_handler.get('class') == 'logging.handlers.RotatingFileHandler'
         assert file_handler.get('filename') == LOG_FILE
         assert file_handler.get('mode') == 'a'
         assert file_handler.get('formatter') == 'detailed'
@@ -41,7 +41,7 @@ class TestSettings(TestCase):
     def test_logging_config_variantvalidator_logger(self):
         vv_logger = LOGGING_CONFIG['loggers'].get('VariantValidator', {})
         assert vv_logger.get('handlers') == ['console', 'file']
-        assert vv_logger.get('propagate') == 'no'
+        assert vv_logger.get('propagate') is False
 
 
 # <LICENSE>
