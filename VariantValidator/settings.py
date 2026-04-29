@@ -23,10 +23,7 @@ else:
     file_name = None
 
 LOG_FILE = file_name if file_name else DEFAULT_LOG
-
-# Normalise path (handles ~ and relative paths)
 LOG_FILE = os.path.abspath(os.path.expanduser(LOG_FILE))
-
 
 # ----------------------------------------
 # ENSURE LOG DIRECTORY EXISTS
@@ -35,13 +32,21 @@ log_dir = os.path.dirname(LOG_FILE)
 if log_dir:
     os.makedirs(log_dir, exist_ok=True)
 
+# ----------------------------------------
+# GLOBAL LOGGING SWITCH
+# ----------------------------------------
+logging_enabled = config.get('logging', 'log', fallback='true').lower() not in ('false', '0', 'no', 'off')
 
 # ----------------------------------------
-# LOG LEVELS (SAFE)
+# LOG LEVELS
 # ----------------------------------------
 CONSOLE_LEVEL = config.get('logging', 'console', fallback='DEBUG').upper()
 FILE_LEVEL = config.get('logging', 'file', fallback='ERROR').upper()
 
+# If logging disabled → silence everything
+if not logging_enabled:
+    CONSOLE_LEVEL = 'CRITICAL'
+    FILE_LEVEL = 'CRITICAL'
 
 # ----------------------------------------
 # LOGGING CONFIG
