@@ -3,63 +3,90 @@ from configparser import ConfigParser
 
 CONFIG_DIR = os.path.join(os.path.expanduser('~'), '.variantvalidator')
 
-# Change settings based on config
 config = ConfigParser()
 config.read(CONFIG_DIR)
 
-try:
-    if config['logging']['file_name']:
-        LOG_FILE = config['logging']['file_name']
-    else:
-        LOG_FILE = os.path.join(os.path.expanduser('~'), '.vv_errorlog')
-except KeyError:
-    LOG_FILE = os.path.join(os.path.expanduser('~'), '.vv_errorlog')
+# ----------------------------------------
+# DEFAULT LOG FILE
+# ----------------------------------------
+DEFAULT_LOG = os.path.join(
+    os.path.expanduser('~'),
+    '.vv_errorlog'
+)
 
+# ----------------------------------------
+# FILE LOCATION (SAFE)
+# ----------------------------------------
+if config.has_section('logging'):
+    file_name = config.get('logging', 'file_name', fallback=None)
+else:
+    file_name = None
+
+LOG_FILE = file_name if file_name else DEFAULT_LOG
+
+# Normalise path (handles ~ and relative paths)
+LOG_FILE = os.path.abspath(os.path.expanduser(LOG_FILE))
+
+
+# ----------------------------------------
+# ENSURE LOG DIRECTORY EXISTS
+# ----------------------------------------
+log_dir = os.path.dirname(LOG_FILE)
+if log_dir:
+    os.makedirs(log_dir, exist_ok=True)
+
+
+# ----------------------------------------
+# LOG LEVELS (SAFE)
+# ----------------------------------------
+CONSOLE_LEVEL = config.get('logging', 'console', fallback='DEBUG').upper()
+FILE_LEVEL = config.get('logging', 'file', fallback='ERROR').upper()
+
+
+# ----------------------------------------
+# LOGGING CONFIG
+# ----------------------------------------
 LOGGING_CONFIG = {
     'version': 1,
+
     'formatters': {
         'simple': {
-            'class': 'logging.Formatter',
-            # Console: clean, readable
-            # Example:
-            # 2026-04-24 17:11:02 INFO     VariantValidator.validate Started validation
-            'format': '%(asctime)s %(levelname)-8s %(name)s %(message)s',
+            'format': '%(asctime)s | %(levelname)-8s | %(name)s | %(message)s',
             'datefmt': '%Y-%m-%d %H:%M:%S',
         },
         'detailed': {
-            'class': 'logging.Formatter',
-            # File: richer but still human
-            # Example:
-            # 2026-04-24 17:11:02 VariantValidator.validate validate (line 412) INFO Started validation
             'format': (
-                '%(asctime)s %(name)s %(funcName)s '
-                '(line %(lineno)d) %(levelname)-8s %(message)s'
+                '%(asctime)s | %(levelname)-8s | %(name)s | '
+                '%(filename)s:%(lineno)d | %(message)s'
             ),
             'datefmt': '%Y-%m-%d %H:%M:%S',
         }
     },
+
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'level': 'DEBUG',
+            'level': CONSOLE_LEVEL,
             'formatter': 'simple'
         },
         'file': {
             'class': 'logging.FileHandler',
-            'level': 'ERROR',
+            'level': FILE_LEVEL,
             'filename': LOG_FILE,
             'mode': 'a',
             'formatter': 'detailed',
         },
     },
+
     'loggers': {
         'VariantValidator': {
             'level': 'DEBUG',
             'handlers': ['console', 'file'],
-            'propagate': 'no',
+            'propagate': False,
         }
     }
 }
+
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

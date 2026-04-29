@@ -1,41 +1,25 @@
 import logging.config
-from logging import handlers
-from configparser import ConfigParser
-from . import settings
-import os
-from pathlib import Path
+from VariantValidator import settings
 
-# Set document root
-ROOT = os.path.dirname(os.path.abspath(__file__))
-path = Path(ROOT)
-parent = path.parent.absolute()
 
-# Change settings based on config
-config = ConfigParser()
-config.read(settings.CONFIG_DIR)
+# --------------------------------------------------
+# STEP 1: Use RotatingFileHandler
+# --------------------------------------------------
+settings.LOGGING_CONFIG['handlers']['file'] = {
+    'class': 'logging.handlers.RotatingFileHandler',
+    'level': settings.LOGGING_CONFIG['handlers']['file']['level'],
+    'filename': settings.LOGGING_CONFIG['handlers']['file']['filename'],
+    'mode': 'a',
+    'maxBytes': 500000,
+    'backupCount': 2,
+    'formatter': 'detailed',
+}
 
-if config['logging'].getboolean('log') is True:
-    settings.LOGGING_CONFIG['handlers']['console']['level'] = config['logging']['console'].upper()
-    settings.LOGGING_CONFIG['handlers']['file']['level'] = config['logging']['file'].upper()
-    try:
-        if config['logging']['file_name']:
-            settings.LOGGING_CONFIG['handlers']['file']['filename'] = config['logging']['file_name']
-    except KeyError:
-        pass
-    logging.config.dictConfig(settings.LOGGING_CONFIG)
 
-else:
-    try:
-        if config['logging']['file_name']:
-            logfile = config['logging']['file_name']
-        else:
-            logfile = '/VariantValidator.log'
-    except KeyError:
-        logfile = '/VariantValidator.log'
-
-    logging.getLogger('VariantValidator').addHandler(handlers.RotatingFileHandler(str(parent) + logfile,
-                                                     maxBytes=500000,
-                                                     backupCount=2))
+# --------------------------------------------------
+# STEP 2: Apply logging configuration
+# --------------------------------------------------
+logging.config.dictConfig(settings.LOGGING_CONFIG)
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
