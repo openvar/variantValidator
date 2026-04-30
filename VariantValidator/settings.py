@@ -56,7 +56,10 @@ LOGGING_CONFIG = {
 
     'formatters': {
         'simple': {
-            'format': '%(asctime)s | %(levelname)-8s | %(name)s | %(message)s',
+            'format': (
+                '%(asctime)s | %(levelname)-8s | %(name)s | '
+                '%(filename)s:%(lineno)d | %(message)s'
+            ),
             'datefmt': '%Y-%m-%d %H:%M:%S',
         },
         'detailed': {
