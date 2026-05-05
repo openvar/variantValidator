@@ -1621,13 +1621,14 @@ class Mixin(vvMixinConverters.Mixin):
         # Bug catcher
         except KeyboardInterrupt:
             raise
-        except BaseException:
-            # Debug mode
-            exc_type, exc_value, last_traceback = sys.exc_info()
-            logger.error(f"Validation loop variant: {validation_loop_variant}")
-            logger.error(f"Structure loop variant: {validation_loop_variant}")
-            logger.critical(str(exc_type) + " " + str(exc_value))
-            raise fn.VariantValidatorError('Validation error')
+        except BaseException as e:
+            logger.error("Validation loop variant: %s", validation_loop_variant)
+            logger.error("Structure loop variant: %s", structure_loop_variant)
+            logger.critical(
+                "Unhandled validation failure",
+                exc_info=True,
+            )
+            raise fn.VariantValidatorError("Validation error") from e
 
     def gene2transcripts(self, query, validator=False, bypass_web_searches=False, select_transcripts=None,
                          transcript_set="refseq", genome_build=None, batch_output=False, bypass_genomic_spans=False,
