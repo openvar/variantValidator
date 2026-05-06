@@ -1448,8 +1448,12 @@ def uncertain_pos(variant, validator):
             else:
                 if ("[" in posedit or "]" in posedit) and not re.search("\[\d+\]", posedit):
                     return False
+                logger.info(f"Checking for uncertain positions in {variant.original}")
                 try:
                     complex_descriptions.uncertain_positions(variant, validator)
+                except complex_descriptions.UncertainConversionError as e:
+                    variant.warnings.append(f"UncertainConversionError: {e}")
+                    return True
                 except complex_descriptions.IncompatibleTypeError:
                     use_checking.refseq_common_mistakes(variant)
                     # import traceback

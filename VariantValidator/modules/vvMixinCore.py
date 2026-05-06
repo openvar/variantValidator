@@ -391,6 +391,7 @@ class Mixin(vvMixinConverters.Mixin):
                     except vvhgvs.exceptions.HGVSError as e:
                         # import traceback
                         # traceback.print_exc()
+                        logger.info(str(e))
                         checkref = str(e)
                         try:
                             # Test intronic variants for incorrect boundaries (see issue #169)
@@ -474,6 +475,8 @@ class Mixin(vvMixinConverters.Mixin):
                             my_variant.output_type_flag = 'warning'
                             my_variant.lovd_syntax_check = lovd_response
                     if toskip:
+                        if my_variant.primary_assembly_loci is None:
+                            my_variant.primary_assembly_loci = {}
                         continue
 
                     # INITIAL USER INPUT FORMATTING
@@ -1606,7 +1609,8 @@ class Mixin(vvMixinConverters.Mixin):
                 else:
                     variant.hgvs_refseqgene_variant = ''
                 hgd = "hgvs_genomic_description"
-                for gen in  variant.primary_assembly_loci.keys():
+
+                for gen in variant.primary_assembly_loci.keys():
                     variant.primary_assembly_loci[gen][hgd] = \
                         variant.primary_assembly_loci[gen][hgd].format({'max_ref_length': 0})
                 for loc in variant.alt_genomic_loci:

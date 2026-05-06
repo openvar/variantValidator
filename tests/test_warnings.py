@@ -1398,6 +1398,12 @@ class TestVVGapWarnings(TestCase):
         print(results)
         assert "VariantSyntaxError: Base substitution (>) submitted with a reference sequence range in NM_001354304.1:c.-96+5_-95-5A>G" in results['validation_warning_1']['validation_warnings']
 
+    def test_uncertain_out_of_CDS(self):
+        variant = 'NM_033360.3:c.(450+1_451-1)_(574+1_575-1)del'
+        results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert "UncertainConversionError: Validation of NM_033360.3:c.574+1_575-1del - Variant coordinate is out of the bound of CDS region (CDS length : 570)" in results['validation_warning_1']['validation_warnings']
+
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
 #

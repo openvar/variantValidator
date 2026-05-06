@@ -4,8 +4,11 @@ from vvhgvs.assemblymapper import AssemblyMapper
 from VariantValidator.modules import utils as vv_utils, format_converters
 from VariantValidator.modules.hgvs_utils import hgvs_obj_from_existing_edit
 import vvhgvs.exceptions
-from vvhgvs.enums import Datum
 from vvhgvs.location import Interval
+
+class UncertainConversionError(Exception):
+    pass
+
 # fuzzy but specified ended intervals, take a normal interval for both ends
 # can take a pair of Intervals or BaseOffsetIntervals
 class FEInterval(Interval):
@@ -446,8 +449,15 @@ def uncertain_positions(my_variant, validator):
 
         # Transcript Variants
         elif "NM_" in my_variant.quibble or "NR_" in my_variant.quibble or "ENST" in my_variant.quibble:
-            pgv1 = evm.t_to_g(parsed_v1)
-            pgv2 = evm.t_to_g(parsed_v2)
+            try:
+                pgv1 = evm.t_to_g(parsed_v1)
+            except vvhgvs.exceptions.HGVSInvalidVariantError as e:
+                raise UncertainConversionError(f"Validation of {parsed_v1} - {e}")
+            try:
+                pgv2 = evm.t_to_g(parsed_v2)
+            except vvhgvs.exceptions.HGVSInvalidVariantError as e:
+                raise UncertainConversionError(f"Validation of {parsed_v2} - {e}")
+
             if pgv1.posedit.pos.start.base < pgv2.posedit.pos.start.base:
                 g_position_1 = pgv1.posedit.pos
                 g_position_2 = pgv2.posedit.pos
