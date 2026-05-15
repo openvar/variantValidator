@@ -30900,9 +30900,9 @@ class TestVariantsAuto(TestCase):
         variant = 'NM_020451.2:c.481C>T'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
-        assert 'NP_065184.2:p.(Arg161Ter)' in \
+        assert 'NP_065184.2:p.(Arg161Sec)' in \
                results['NM_020451.2:c.481C>T']['hgvs_predicted_protein_consequence']['tlr']
-        assert 'NP_065184.2:p.(R161*)' in \
+        assert 'NP_065184.2:p.(R161U)' in \
                results['NM_020451.2:c.481C>T']['hgvs_predicted_protein_consequence']['slr']
 
     def test_issue_503c(self):
@@ -31300,7 +31300,16 @@ class TestVariantsAuto(TestCase):
         assert "NM_014249.4:c.*557del" in results.keys()
         assert "NM_001281446.1:c.*557del" in results.keys()
 
-
+    def issue_815a(self):
+        results = self.vv.validate('NM_020451.3:c.447dup', 'GRCh38', 'all', liftover_level=True).format_as_dict(test=True)
+        assert "NM_020451.3:c.447dup" in results.keys()
+        assert results["NM_020451.3:c.447dup"][
+            "hgvs_predicted_protein_consequence"] ==  {
+            "lrg_slr": "LRG_857p1:p.D150Ufs*2",
+            "lrg_tlr": "LRG_857p1:p.Asp150SecfsTer2",
+            "slr": "NP_065184.2:p.D150Ufs*2",
+            "tlr": "NP_065184.2:p.Asp150SecfsTer2"
+        } 
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

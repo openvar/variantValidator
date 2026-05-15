@@ -15,15 +15,20 @@ import vvhgvs.edit
 import vvhgvs.normalizer
 from vvhgvs.location import AAPosition, Interval
 from vvhgvs.edit import AARefAlt, AAExt, Dup
+from vvhgvs.posedit import PosEdit
+from vvhgvs.edit import AAFs
 from Bio.Seq import Seq
 
 import re
+import logging
 from .vvDatabase import Database
 from . import utils
 from VariantValidator.settings import CONFIG_DIR
 from VariantValidator.version import __version__
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
         VVPosEdit
+
+logger = logging.getLogger(__name__)
 
 class InitialisationError(Exception):
     pass
@@ -463,8 +468,8 @@ class Mixin:
         try:
             prot_ref_seq = utils.translate(ref_seq, cds_start, modified_aa)
         except IndexError:
-            import traceback
-            traceback.print_exc()
+            # import traceback
+            # traceback.print_exc()
             hgvs_transcript_to_hgvs_protein['error'] = \
                 'ProteinTranslationError: Cannot generate a protein without an identifiable in-' +\
                 'frame Termination codon in the reference mRNA sequence, this transcript may be ' +\
@@ -472,8 +477,8 @@ class Mixin:
             hgvs_transcript_to_hgvs_protein['hgvs_protein'] = _tot_unc(associated_protein_accession)
             return hgvs_transcript_to_hgvs_protein
         except KeyError:
-            import traceback
-            traceback.print_exc()
+            # import traceback
+            # traceback.print_exc()
             hgvs_transcript_to_hgvs_protein['error'] = \
                 'ProteinTranslationError: Unable to build protein sequence due to a non-CATG ' +\
                 'base included in the reference mRNA sequence, only standard unambiguous bases '+\
@@ -482,6 +487,7 @@ class Mixin:
             return hgvs_transcript_to_hgvs_protein
 
 
+        logger.info("Translating reference and variant CDS outcomes")
         try:
             prot_var_seq = utils.translate(var_seq, cds_start, modified_aa)
         except IndexError:
@@ -580,6 +586,8 @@ class Mixin:
                                                  prot_var_seq,
                                                  in_frame)
 
+        logger.info(f"pro_inv_info: {pro_inv_info}")
+
         # Error has occurred
         if pro_inv_info['error'] == 'true':
             error = 'Translation error occurred, please contact admin'
@@ -644,9 +652,21 @@ class Mixin:
         # Adjust extended aas if necessary
         if modified_aa == "Sec":
             if "U" in pro_inv_info['prot_ins_seq'] and "U" not in pro_inv_info['prot_del_seq']:
-                pro_inv_info['prot_ins_seq'] = pro_inv_info['prot_ins_seq'].replace("U", "*")
+                logger.info("Sec identified in pro_inv_info['prot_ins_seq']")
+                logger.info(f"RefSeq\n{prot_ref_seq}")
+                logger.info(f"VarSeq\n{prot_var_seq}")
+
+                # legacy code #################################################################
+                # pro_inv_info['prot_ins_seq'] = pro_inv_info['prot_ins_seq'].replace("U", "*")
+                # pro_inv_info['ter_pos'] = pro_inv_info['edit_start'] + len(
+                #     pro_inv_info['prot_ins_seq'].split("*")[0])
+                ################################################################################
+
                 pro_inv_info['ter_pos'] = pro_inv_info['edit_start'] + len(
-                    pro_inv_info['prot_ins_seq'].split("*")[0])
+                    pro_inv_info['prot_ins_seq'])
+
+        # Set posedit
+        posedit = False
 
         # Early termination i.e. stop gained
         if pro_inv_info['terminate'] == 'true' and \
@@ -654,9 +674,64 @@ class Mixin:
                  hgvs_transcript.posedit.edit.type == 'dup' or
                  hgvs_transcript.posedit.edit.type == 'inv'):
 
+            # Identify missed frameshifts
+            hgvs_n_transcript = self.vm.c_to_n(hgvs_transcript)
+
+            edit = hgvs_n_transcript.posedit.edit
+            pos = hgvs_n_transcript.posedit.pos
+            frameshift = False
+
+            if edit.type == "dup":
+                length = pos.end.base - pos.start.base + 1
+                frameshift = length % 3 != 0
+
+            elif edit.type == "del":
+                ref = edit.ref or ""
+                frameshift = len(ref) % 3 != 0
+
+            elif edit.type == "ins":
+                alt = edit.alt or ""
+                frameshift = len(alt) % 3 != 0
+
+            elif edit.type == "delins":
+                ref = edit.ref or ""
+                alt = edit.alt or ""
+                frameshift = (len(alt) - len(ref)) % 3 != 0
+
+            elif edit.type == "inv":
+                frameshift = False
+
+            if frameshift:
+                logger.info("Identified unhandled frameshift in pro_inv_info['pro_ins_seq']")
+
+                ref = pro_inv_info['prot_del_seq'][0]  # "D"
+                alt = pro_inv_info['prot_ins_seq'][0]  # "U"
+
+                length = pro_inv_info['prot_ins_seq'].find("*")
+                length = length if length >= 0 else None
+
+                posedit = PosEdit(
+                    pos=Interval(
+                        start=AAPosition(
+                            base=pro_inv_info['edit_start'],
+                            aa=ref  # THIS is the fix
+                        ),
+                        end=AAPosition(
+                            base=pro_inv_info['edit_start'],
+                            aa=ref
+                        )
+                    ),
+                    edit=AAFs(
+                        ref=ref,
+                        alt=alt,
+                        length=length
+                    )
+                )
+                logger.info(f"Posedit updated to {posedit}")
+
             # This deals with early terminating delins in-frame prventing the format
             # NP_733765.1:p.(Gln259_Ser1042delinsProAla*) in issue #214 also #282
-            if len(pro_inv_info['prot_del_seq']) + \
+            elif len(pro_inv_info['prot_del_seq']) + \
                     int(pro_inv_info['edit_start'] - 1) == int(pro_inv_info['ter_pos']):
                 end = 'Ter' + str(pro_inv_info['ter_pos'])
                 pro_inv_info['prot_ins_seq'].replace('*', end)
@@ -680,176 +755,179 @@ class Mixin:
                                                pro_inv_info['prot_ins_seq']
 
         # Complete variant description
-
-        # Write the HGVS position and edit
-        # start by handling delins->ins transitions from the cds to prot mapping
-        if not pro_inv_info['prot_del_seq']:
-            # must be != exclusive coordinates
-            assert pro_inv_info['edit_start'] != pro_inv_info['edit_end']
-            from_aa = prot_ref_seq[pro_inv_info['edit_start']]
-            to_aa = prot_ref_seq[pro_inv_info['edit_end']]
+        if posedit:
+            pass
         else:
-            from_aa = pro_inv_info['prot_del_seq'][0]
-            to_aa = pro_inv_info['prot_del_seq'][-1]
+            # Write the HGVS position and edit
+            # start by handling delins->ins transitions from the cds to prot mapping
+            if not pro_inv_info['prot_del_seq']:
+                # must be != exclusive coordinates
+                assert pro_inv_info['edit_start'] != pro_inv_info['edit_end']
+                from_aa = prot_ref_seq[pro_inv_info['edit_start']]
+                to_aa = prot_ref_seq[pro_inv_info['edit_end']]
+            else:
+                from_aa = pro_inv_info['prot_del_seq'][0]
+                to_aa = pro_inv_info['prot_del_seq'][-1]
 
-        # Handle a range of amino acids
-        if pro_inv_info['edit_start'] != pro_inv_info['edit_end']:
+            # Handle a range of amino acids
+            if pro_inv_info['edit_start'] != pro_inv_info['edit_end']:
 
-            # Handle duplications
-            if pro_inv_info["prot_ins_seq"] == (pro_inv_info["prot_del_seq"]
-                                                  + pro_inv_info["prot_del_seq"]):
+                # Handle duplications
+                if pro_inv_info["prot_ins_seq"] == (pro_inv_info["prot_del_seq"]
+                                                      + pro_inv_info["prot_del_seq"]):
 
-                posedit = VVPosEdit(
-                        pos = Interval(
-                            start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa),
-                            end = AAPosition(base = pro_inv_info['edit_end'], aa = to_aa)),
-                        edit = Dup(ref = pro_inv_info['prot_del_seq']),
-                        uncertain = True,
-                        nucleotide_not_equal=nucleotide_not_equal)
-
-            elif len(pro_inv_info['prot_ins_seq']) > 0:
-                if '*' in pro_inv_info['prot_del_seq'] and pro_inv_info['prot_ins_seq'][-1] != '*':
                     posedit = VVPosEdit(
                             pos = Interval(
                                 start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa),
-                                end = AAPosition(base = pro_inv_info['edit_end'], aa = to_aa )),
-                            edit = AARefAlt(ref = '', alt = pro_inv_info['prot_ins_seq'] + '?'),
+                                end = AAPosition(base = pro_inv_info['edit_end'], aa = to_aa)),
+                            edit = Dup(ref = pro_inv_info['prot_del_seq']),
                             uncertain = True,
                             nucleotide_not_equal=nucleotide_not_equal)
 
-                elif len(pro_inv_info["prot_ins_seq"]) > len(pro_inv_info["prot_del_seq"]) \
-                        and pro_inv_info["prot_ins_seq"] != (pro_inv_info["prot_del_seq"]
-                                                             + pro_inv_info["prot_del_seq"]) and \
-                        pro_inv_info["prot_del_seq"] == "" and (pro_inv_info["edit_start"]
-                        > pro_inv_info["edit_end"]):
+                elif len(pro_inv_info['prot_ins_seq']) > 0:
+                    if '*' in pro_inv_info['prot_del_seq'] and pro_inv_info['prot_ins_seq'][-1] != '*':
+                        posedit = VVPosEdit(
+                                pos = Interval(
+                                    start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa),
+                                    end = AAPosition(base = pro_inv_info['edit_end'], aa = to_aa )),
+                                edit = AARefAlt(ref = '', alt = pro_inv_info['prot_ins_seq'] + '?'),
+                                uncertain = True,
+                                nucleotide_not_equal=nucleotide_not_equal)
 
-                    from_aa = self.sf.fetch_seq(associated_protein_accession,
-                                              int(pro_inv_info['edit_end']-len(pro_inv_info['prot_ins_seq'])),
-                                              int(pro_inv_info['edit_end']-len(pro_inv_info['prot_ins_seq']))+1)
+                    elif len(pro_inv_info["prot_ins_seq"]) > len(pro_inv_info["prot_del_seq"]) \
+                            and pro_inv_info["prot_ins_seq"] != (pro_inv_info["prot_del_seq"]
+                                                                 + pro_inv_info["prot_del_seq"]) and \
+                            pro_inv_info["prot_del_seq"] == "" and (pro_inv_info["edit_start"]
+                            > pro_inv_info["edit_end"]):
 
-                    to_aa = self.sf.fetch_seq(associated_protein_accession,
-                                              int(pro_inv_info['edit_start']-2),
-                                              int(pro_inv_info['edit_start']-1))
+                        from_aa = self.sf.fetch_seq(associated_protein_accession,
+                                                  int(pro_inv_info['edit_end']-len(pro_inv_info['prot_ins_seq'])),
+                                                  int(pro_inv_info['edit_end']-len(pro_inv_info['prot_ins_seq']))+1)
 
-                    posedit = VVPosEdit(
-                            pos = Interval(
-                                start = AAPosition(
-                                    base = pro_inv_info['edit_end']-len(pro_inv_info['prot_ins_seq'])+1,
-                                    aa = from_aa),
-                                end = AAPosition(
-                                    base = pro_inv_info['edit_start']-1,
-                                    aa = to_aa )),
-                            edit = Dup(ref = pro_inv_info["prot_del_seq"]),
-                            uncertain = True,
-                            nucleotide_not_equal=nucleotide_not_equal)
+                        to_aa = self.sf.fetch_seq(associated_protein_accession,
+                                                  int(pro_inv_info['edit_start']-2),
+                                                  int(pro_inv_info['edit_start']-1))
+
+                        posedit = VVPosEdit(
+                                pos = Interval(
+                                    start = AAPosition(
+                                        base = pro_inv_info['edit_end']-len(pro_inv_info['prot_ins_seq'])+1,
+                                        aa = from_aa),
+                                    end = AAPosition(
+                                        base = pro_inv_info['edit_start']-1,
+                                        aa = to_aa )),
+                                edit = Dup(ref = pro_inv_info["prot_del_seq"]),
+                                uncertain = True,
+                                nucleotide_not_equal=nucleotide_not_equal)
+                    else:
+
+                        posedit = VVPosEdit(
+                                pos = Interval(
+                                    start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa),
+                                    end = AAPosition(base = pro_inv_info['edit_end'], aa = to_aa )),
+                                edit = AARefAlt(ref = '', alt =  pro_inv_info['prot_ins_seq']),
+                                uncertain = True,
+                                nucleotide_not_equal=nucleotide_not_equal)
+
                 else:
-
-                    posedit = VVPosEdit(
-                            pos = Interval(
-                                start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa),
-                                end = AAPosition(base = pro_inv_info['edit_end'], aa = to_aa )),
-                            edit = AARefAlt(ref = '', alt =  pro_inv_info['prot_ins_seq']),
-                            uncertain = True,
-                            nucleotide_not_equal=nucleotide_not_equal)
+                    if '*' in pro_inv_info['prot_del_seq'] and pro_inv_info['prot_ins_seq'][-1] != '*':
+                        posedit = VVPosEdit(
+                                pos = Interval(
+                                    start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa),
+                                    end = AAPosition(base = pro_inv_info['edit_end'], aa = to_aa )),
+                                edit = AARefAlt(alt =  '?'),
+                                uncertain = True,
+                                nucleotide_not_equal=nucleotide_not_equal)
+                    else:
+                        posedit = VVPosEdit(
+                                pos = Interval(
+                                    start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa),
+                                    end = AAPosition(base = pro_inv_info['edit_end'], aa = to_aa )),
+                                edit = AARefAlt( alt =  None,ref = pro_inv_info['prot_del_seq']),
+                                uncertain = True,
+                                nucleotide_not_equal=nucleotide_not_equal)
 
             else:
-                if '*' in pro_inv_info['prot_del_seq'] and pro_inv_info['prot_ins_seq'][-1] != '*':
+                # Handle duplications
+                if pro_inv_info["prot_ins_seq"] == (pro_inv_info["prot_del_seq"]
+                                                      + pro_inv_info["prot_del_seq"]):
                     posedit = VVPosEdit(
-                            pos = Interval(
-                                start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa),
-                                end = AAPosition(base = pro_inv_info['edit_end'], aa = to_aa )),
-                            edit = AARefAlt(alt =  '?'),
-                            uncertain = True,
-                            nucleotide_not_equal=nucleotide_not_equal)
-                else:
-                    posedit = VVPosEdit(
-                            pos = Interval(
-                                start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa),
-                                end = AAPosition(base = pro_inv_info['edit_end'], aa = to_aa )),
-                            edit = AARefAlt( alt =  None,ref = pro_inv_info['prot_del_seq']),
-                            uncertain = True,
-                            nucleotide_not_equal=nucleotide_not_equal)
+                                pos = Interval(
+                                    start = AAPosition(
+                                        base = pro_inv_info['edit_start'],
+                                        aa = from_aa)),
+                                edit = Dup(ref = from_aa),
+                                uncertain = True,
+                                nucleotide_not_equal=nucleotide_not_equal)
 
-        else:
-            # Handle duplications
-            if pro_inv_info["prot_ins_seq"] == (pro_inv_info["prot_del_seq"]
-                                                  + pro_inv_info["prot_del_seq"]):
-                posedit = VVPosEdit(
+                # Handle insertions
+                elif len(pro_inv_info["prot_ins_seq"]) > len(pro_inv_info["prot_del_seq"]) \
+                    and pro_inv_info["prot_ins_seq"] != (pro_inv_info["prot_del_seq"]
+                                                      + pro_inv_info["prot_del_seq"]) and \
+                        (pro_inv_info["prot_ins_seq"][0] == pro_inv_info["prot_del_seq"][0]):
+
+                    to_aa = self.sf.fetch_seq(associated_protein_accession,
+                                                 int(pro_inv_info['edit_start']),
+                                                 int(pro_inv_info['edit_start'] + 1))
+                    posedit = VVPosEdit(
+                                pos = Interval(#widen to either side of between base ins loc
+                                    start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa),
+                                    end = AAPosition(base = pro_inv_info['edit_end']+1, aa = to_aa )),
+                                edit = AARefAlt( #ref = pro_inv_info["prot_ins_seq"][0],
+                                                alt =  pro_inv_info["prot_ins_seq"][1:]),#[3:]),
+                                uncertain = True,
+                                nucleotide_not_equal=nucleotide_not_equal)
+
+                # Handle extended proteins i.e. stop_lost
+                elif pro_inv_info["prot_del_seq"] == '*' and (
+                        len(pro_inv_info["prot_ins_seq"]) > len(pro_inv_info["prot_del_seq"])):
+                    # Nucleotide variant range aligns to the Termination codon
+                    if pro_inv_info['prot_ins_seq'][-1] == '*':
+                        posedit = VVPosEdit(
                             pos = Interval(
                                 start = AAPosition(
                                     base = pro_inv_info['edit_start'],
                                     aa = from_aa)),
-                            edit = Dup(ref = from_aa),
+                            edit = AAExt(
+                                alt = pro_inv_info['prot_ins_seq'][0],
+                                length = int(len(pro_inv_info['prot_ins_seq']) - 1),
+                                aaterm = '*'),
                             uncertain = True,
                             nucleotide_not_equal=nucleotide_not_equal)
 
-            # Handle insertions
-            elif len(pro_inv_info["prot_ins_seq"]) > len(pro_inv_info["prot_del_seq"]) \
-                and pro_inv_info["prot_ins_seq"] != (pro_inv_info["prot_del_seq"]
-                                                  + pro_inv_info["prot_del_seq"]) and \
-                    (pro_inv_info["prot_ins_seq"][0] == pro_inv_info["prot_del_seq"][0]):
+                    # Nucleotide variant range spans the Termination codon
+                    else:
+                        posedit = VVPosEdit(
+                            pos = Interval(
+                                start = AAPosition(
+                                    base = pro_inv_info['edit_start'],
+                                    aa = from_aa)),
+                            edit = AAExt(
+                                alt = pro_inv_info['prot_ins_seq'][-1],
+                                length = '?'),
+                            uncertain = True)
 
-                to_aa = self.sf.fetch_seq(associated_protein_accession,
-                                             int(pro_inv_info['edit_start']),
-                                             int(pro_inv_info['edit_start'] + 1))
-                posedit = VVPosEdit(
-                            pos = Interval(#widen to either side of between base ins loc
-                                start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa),
-                                end = AAPosition(base = pro_inv_info['edit_end']+1, aa = to_aa )),
-                            edit = AARefAlt( #ref = pro_inv_info["prot_ins_seq"][0],
-                                            alt =  pro_inv_info["prot_ins_seq"][1:]),#[3:]),
+                # Nucleotide variation has not affected the length of the protein thus
+                # substitution or del
+                else:
+                    if len(pro_inv_info['prot_ins_seq']) == 1:
+                        posedit = VVPosEdit(
+                            pos = Interval(start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa)),
+                            edit = AARefAlt(alt = pro_inv_info['prot_ins_seq'],ref = from_aa),
                             uncertain = True,
                             nucleotide_not_equal=nucleotide_not_equal)
-            # Handle extended proteins i.e. stop_lost
-            elif pro_inv_info["prot_del_seq"] == '*' and (
-                    len(pro_inv_info["prot_ins_seq"]) > len(pro_inv_info["prot_del_seq"])):
-                # Nucleotide variant range aligns to the Termination codon
-                if pro_inv_info['prot_ins_seq'][-1] == '*':
-                    posedit = VVPosEdit(
-                        pos = Interval(
-                            start = AAPosition(
-                                base = pro_inv_info['edit_start'],
-                                aa = from_aa)),
-                        edit = AAExt(
-                            alt = pro_inv_info['prot_ins_seq'][0],
-                            length = int(len(pro_inv_info['prot_ins_seq']) - 1),
-                            aaterm = '*'),
-                        uncertain = True,
-                        nucleotide_not_equal=nucleotide_not_equal)
-
-                # Nucleotide variant range spans the Termination codon
-                else:
-                    posedit = VVPosEdit(
-                        pos = Interval(
-                            start = AAPosition(
-                                base = pro_inv_info['edit_start'],
-                                aa = from_aa)),
-                        edit = AAExt(
-                            alt = pro_inv_info['prot_ins_seq'][-1],
-                            length = '?'),
-                        uncertain = True)
-
-            # Nucleotide variation has not affected the length of the protein thus
-            # substitution or del
-            else:
-                if len(pro_inv_info['prot_ins_seq']) == 1:
-                    posedit = VVPosEdit(
-                        pos = Interval(start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa)),
-                        edit = AARefAlt(alt = pro_inv_info['prot_ins_seq'],ref = from_aa),
-                        uncertain = True,
-                        nucleotide_not_equal=nucleotide_not_equal)
-                elif len(pro_inv_info['prot_ins_seq']) == 0:
-                    posedit = VVPosEdit(
-                        pos = Interval(start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa)),
-                        edit = AARefAlt(ref = pro_inv_info['prot_del_seq']),
-                        uncertain = True,
-                        nucleotide_not_equal=nucleotide_not_equal)
-                else:
-                    posedit = VVPosEdit(
-                        pos = Interval(start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa)),
-                        edit = AARefAlt(alt = pro_inv_info['prot_ins_seq'],ref=from_aa),
-                        uncertain = True,
-                        nucleotide_not_equal=nucleotide_not_equal)
+                    elif len(pro_inv_info['prot_ins_seq']) == 0:
+                        posedit = VVPosEdit(
+                            pos = Interval(start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa)),
+                            edit = AARefAlt(ref = pro_inv_info['prot_del_seq']),
+                            uncertain = True,
+                            nucleotide_not_equal=nucleotide_not_equal)
+                    else:
+                        posedit = VVPosEdit(
+                            pos = Interval(start = AAPosition(base = pro_inv_info['edit_start'], aa = from_aa)),
+                            edit = AARefAlt(alt = pro_inv_info['prot_ins_seq'],ref=from_aa),
+                            uncertain = True,
+                            nucleotide_not_equal=nucleotide_not_equal)
 
         # Complete the variant
         hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(
@@ -858,6 +936,7 @@ class Mixin:
                 posedit = posedit
                 )
         hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
+
         # Return
         return hgvs_transcript_to_hgvs_protein
 
