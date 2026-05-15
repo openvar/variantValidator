@@ -31309,7 +31309,30 @@ class TestVariantsAuto(TestCase):
             "lrg_tlr": "LRG_857p1:p.Asp150SecfsTer2",
             "slr": "NP_065184.2:p.D150Ufs*2",
             "tlr": "NP_065184.2:p.Asp150SecfsTer2"
-        } 
+        }
+
+    def issue_815b(self):
+        results = self.vv.validate('NM_020451.3:c.407del', 'GRCh38', 'all', liftover_level=True).format_as_dict(test=True)
+        assert "NM_020451.3:c.407del" in results.keys()
+        assert results["NNM_020451.3:c.407del"][
+            "hgvs_predicted_protein_consequence"] ==   {
+            "lrg_slr": "LRG_857p1:p.(S136*)",
+            "lrg_tlr": "LRG_857p1:p.(Ser136Ter)",
+            "slr": "NP_065184.2:p.(S136*)",
+            "tlr": "NP_065184.2:p.(Ser136Ter)"
+        }
+
+
+    def issue_815c(self):
+        results = self.vv.validate('NM_020451.3:c.532del', 'GRCh38', 'all', liftover_level=True).format_as_dict(test=True)
+        assert "NM_020451.3:c.532del" in results.keys()
+        assert results["NM_020451.3:c.532del"][
+            "hgvs_predicted_protein_consequence"] == {
+            "lrg_slr": "LRG_857p1:p.(L178*)",
+            "lrg_tlr": "LRG_857p1:p.(Leu178Ter)",
+            "slr": "NP_065184.2:p.(L178*)",
+            "tlr": "NP_065184.2:p.(Leu178Ter)"
+        }
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

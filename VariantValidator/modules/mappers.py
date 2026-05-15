@@ -759,15 +759,23 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         hgvs_refseq = 'RefSeqGene record not available'
 
     # Predicted effect on protein
+    logger.info(f"Translating {hgvs_coding} in transcripts_to_gene")
     try:
         protein_dict = validator.myc_to_p(hgvs_coding, variant.evm, re_to_p=False, hn=variant.hn)
     except NotImplementedError as e:
+        # import traceback
+        # traceback.print_exc()
         logger.info(f"Protein dict creation failed with exception: {str(e)}")
         protein_dict = {'hgvs_protein': None, 'error': str(e)}
         variant.warnings.append(str(e))
     except vvhgvs.exceptions.HGVSDataNotAvailableError as e:
+        # import traceback
+        # traceback.print_exc()
+        logger.info(f"Protein dict creation failed with exception: {str(e)}")
         protein_dict = {'hgvs_protein': None, 'error': str(e)}
         variant.warnings.append(str(e))
+    else:
+        logger.info(f"Protein dict creation successful: {protein_dict}")
 
     if protein_dict['error'] == '':
         hgvs_protein = protein_dict['hgvs_protein']
