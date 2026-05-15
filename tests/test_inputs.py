@@ -31308,6 +31308,22 @@ class TestVariantsAuto(TestCase):
         #assert results["NM_020451.3:c.447dup"]["hgvs_predicted_protein_consequence"]['lrg_slr'] == "LRG_857p1:p.D150Ufs*2"
         #assert results["NM_020451.3:c.447dup"]["hgvs_predicted_protein_consequence"]['lrg_tlr'] == "LRG_857p1:p.Asp150SecfsTer2"
 
+    def test_issue_815b(self):
+        results = self.vv.validate('NM_020451.3:c.407del', 'GRCh38', 'all', liftover_level=True).format_as_dict(test=True)
+        assert "NM_020451.3:c.407del" in results.keys()
+        assert results["NM_020451.3:c.407del"]["hgvs_predicted_protein_consequence"]['slr'] == "NP_065184.2:p.(S136*)"
+        assert results["NM_020451.3:c.407del"]["hgvs_predicted_protein_consequence"]['tlr'] == "NP_065184.2:p.(Ser136Ter)"
+        #assert results["NM_020451.3:c.407del"]["hgvs_predicted_protein_consequence"]['lrg_slr'] == "LRG_857p1:p.(S136*)"
+        #assert results["NM_020451.3:c.407del"]["hgvs_predicted_protein_consequence"]['lrg_tlr'] == "LRG_857p1:p.(Ser136Ter)"
+
+    def test_issue_815c(self):
+        results = self.vv.validate('NM_020451.3:c.532del', 'GRCh38', 'all', liftover_level=True).format_as_dict(test=True)
+        assert "NM_020451.3:c.532del" in results.keys()
+        assert results["NM_020451.3:c.532del"]["hgvs_predicted_protein_consequence"]['slr'] == "NP_065184.2:p.(L178*)"
+        assert results["NM_020451.3:c.532del"]["hgvs_predicted_protein_consequence"]['tlr'] == "NP_065184.2:p.(Leu178Ter)"
+        #assert results["NM_020451.3:c.532del"]["hgvs_predicted_protein_consequence"]['lrg_slr'] == "LRG_857p1:p.(L178*)"
+        #assert results["NM_020451.3:c.532del"]["hgvs_predicted_protein_consequence"]['lrg_tlr'] == "LRG_857p1:p.(Leu178Ter)"
+
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
 #

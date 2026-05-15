@@ -250,6 +250,7 @@ class Mixin:
         }
 
     def myc_to_p(self, hgvs_transcript, evm, re_to_p, hn):
+        logger.info(f"Translating {hgvs_transcript} to with myc_to_p")
 
         # Create dictionary to store the information
         hgvs_transcript_to_hgvs_protein = {'error': '', 'hgvs_protein': '', 'ref_residues': ''}
@@ -291,6 +292,7 @@ class Mixin:
                                 aa=base)),
                         edit = "", # this sets the response to ?
                         uncertain = True))
+
         # same for unknown without set pos
         def _tot_unc(prot):
             return  vvhgvs.sequencevariant.SequenceVariant(
@@ -300,6 +302,7 @@ class Mixin:
                         pos=Interval(),# empty interval start means ''
                         edit = "", # this sets the response to ?
                         uncertain=True))
+
         # recreate obj to set PosEdit to a VVPosEdit, to handle formatting
         def _remake_unc(prot,nucleotide_not_equal=False):
             if prot.posedit is None:
@@ -314,8 +317,10 @@ class Mixin:
                         nucleotide_not_equal=nucleotide_not_equal
                         ))
 
-        # Handle non inversions with simple c_to_p mapping
-        if hgvs_transcript.posedit.edit.type not in ['inv', 'dup', 'delins', 'sub', 'identity'] and (re_to_p is False):
+        # Handle unlisted variant types with simple c_to_p mapping
+        if (hgvs_transcript.posedit.edit.type not in ['inv', 'dup', 'delins', 'sub', 'identity', 'del']
+                and (re_to_p is False)):
+            logger.info(f"Passing {hgvs_transcript} into simple c_to_p mapping")
             hgvs_protein = None
             # Does the edit affect the start codon?
             if ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and hgvs_transcript.posedit.pos.start.offset == 0)
@@ -365,6 +370,7 @@ class Mixin:
         # Note, this code was developed for VariantValidator and is not native to the biocommons hgvs
         # Python package
         # Convert positions to n. position
+        logger.info(f"Passing {hgvs_transcript} into VV handled c_to_p mapping")
         hgvs_naughty = self.vm.c_to_n(hgvs_transcript)
 
         # Collect the deleted sequence using fetch_seq
@@ -537,9 +543,12 @@ class Mixin:
 
         # Gather the required information regarding variant interval and sequences
         if hgvs_transcript.posedit.edit.type != 'delins' and \
-                hgvs_transcript.posedit.edit.type != 'dup':
+                hgvs_transcript.posedit.edit.type != 'dup' and \
+                hgvs_transcript.posedit.edit.type != 'del':
+            logger.info(f"passing {hgvs_transcript} translations to pro_inv_info function")
             pro_inv_info = utils.pro_inv_info(prot_ref_seq, prot_var_seq)
         else:
+            logger.info(f"passing {hgvs_transcript} translations to pro_delins_info function")
             # Test whether the length of the deletion, plus the insertion can be divided by 3
             # This is trying to spot the difference between amino acid deletions
             # and early terminations
@@ -550,6 +559,10 @@ class Mixin:
             # Calculate the variant cds length
             minus = False
             plus = False
+
+            # Handle deletions
+            if hgvs_naughty.posedit.edit.type == 'del':
+                hgvs_naughty.posedit.edit.alt = ""
 
             try:
                 if len(hgvs_naughty.posedit.edit.ref) > len(hgvs_naughty.posedit.edit.alt):
@@ -569,7 +582,7 @@ class Mixin:
             # Do we have an in-frame variant i.e. divisible by 3?
             in_frame = False
             if minus is True:
-                loss_gain = (cds_len) - (var_cds_len)
+                loss_gain = cds_len - var_cds_len
                 if loss_gain % 3 == 0:
                     loss_gain = loss_gain / 3
                     loss_gain = 0 - loss_gain
@@ -585,6 +598,8 @@ class Mixin:
                                                  prot_var_seq,
                                                  in_frame)
 
+        logger.info(f"RefSeq: {prot_ref_seq}")
+        logger.info(f"VarSeq: {prot_var_seq}")
         logger.info(f"pro_inv_info: {pro_inv_info}")
 
         # Error has occurred
@@ -652,8 +667,6 @@ class Mixin:
         if modified_aa == "Sec":
             if "U" in pro_inv_info['prot_ins_seq'] and "U" not in pro_inv_info['prot_del_seq']:
                 logger.info("Sec identified in pro_inv_info['prot_ins_seq']")
-                logger.info(f"RefSeq\n{prot_ref_seq}")
-                logger.info(f"VarSeq\n{prot_var_seq}")
 
                 # legacy code #################################################################
                 # pro_inv_info['prot_ins_seq'] = pro_inv_info['prot_ins_seq'].replace("U", "*")
@@ -674,10 +687,12 @@ class Mixin:
                  hgvs_transcript.posedit.edit.type == 'inv'):
 
             # Identify missed frameshifts
-            hgvs_n_transcript = self.vm.c_to_n(hgvs_transcript)
 
-            edit = hgvs_n_transcript.posedit.edit
-            pos = hgvs_n_transcript.posedit.pos
+            # hgvs_n_transcript = self.vm.c_to_n(hgvs_transcript)
+            # edit = hgvs_n_transcript.posedit.edit
+            # pos = hgvs_n_transcript.posedit.pos
+            edit = hgvs_naughty.posedit.edit
+            pos = hgvs_naughty.posedit.pos
             frameshift = False
 
             if edit.type == "dup":
