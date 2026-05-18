@@ -319,10 +319,11 @@ class Mixin:
                         ))
 
         # Handle unlisted variant types with simple c_to_p mapping
-        if (hgvs_transcript.posedit.edit.type not in ['inv', 'dup', 'delins', 'sub', 'identity', 'del']
+        if (hgvs_transcript.posedit.edit.type not in ['inv', 'dup', 'delins', 'sub', 'identity', 'del', 'ins']
                 and (re_to_p is False)):
             logger.info(f"Passing {hgvs_transcript} into simple c_to_p mapping")
             hgvs_protein = None
+
             # Does the edit affect the start codon?
             if ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and hgvs_transcript.posedit.pos.start.offset == 0)
                 or (1 <= hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset
@@ -393,6 +394,8 @@ class Mixin:
             inv_seq = hgvs_transcript.posedit.edit.alt
         elif 'identity' in hgvs_transcript.posedit.edit.type:
             inv_seq = hgvs_transcript.posedit.edit.ref
+        elif 'ins' in hgvs_transcript.posedit.edit.type:
+            inv_seq = f"{del_seq[0]}{hgvs_transcript.posedit.edit.alt}{del_seq[-1]}"
 
         shifts = ''
         # Look for p. delins or del
@@ -511,6 +514,8 @@ class Mixin:
                 ' accepted input for protein generation.'
             hgvs_transcript_to_hgvs_protein['hgvs_protein'] = _tot_unc(associated_protein_accession)
             return hgvs_transcript_to_hgvs_protein
+
+        # Continue processing
         no_start_err = 'ProteinTranslationError: Unable to generate protein variant description '+\
                 'due to the sequence missing an accepted start codon.'
         if prot_ref_seq == 'error':
@@ -545,7 +550,8 @@ class Mixin:
         # Gather the required information regarding variant interval and sequences
         if hgvs_transcript.posedit.edit.type != 'delins' and \
                 hgvs_transcript.posedit.edit.type != 'dup' and \
-                hgvs_transcript.posedit.edit.type != 'del':
+                hgvs_transcript.posedit.edit.type != 'del' and \
+                hgvs_transcript.posedit.edit.type != 'ins':
             logger.info(f"passing {hgvs_transcript} translations to pro_inv_info function")
             pro_inv_info = utils.pro_inv_info(prot_ref_seq, prot_var_seq)
         else:
@@ -564,6 +570,10 @@ class Mixin:
             # Handle deletions
             if hgvs_naughty.posedit.edit.type == 'del':
                 hgvs_naughty.posedit.edit.alt = ""
+            if hgvs_naughty.posedit.edit.type == 'ins':
+                hgvs_naughty.posedit.edit.ref = del_seq
+                hgvs_naughty.posedit.edit.alt = f"{del_seq[0]}{hgvs_naughty.posedit.edit.alt}{del_seq[-1]}"
+
 
             try:
                 if len(hgvs_naughty.posedit.edit.ref) > len(hgvs_naughty.posedit.edit.alt):
@@ -682,19 +692,18 @@ class Mixin:
         posedit = False
 
         # Early termination i.e. stop gained
+        logger.info(f"Identify early termination")
         if pro_inv_info['terminate'] == 'true' and \
                 (hgvs_transcript.posedit.edit.type == 'delins' or
                  hgvs_transcript.posedit.edit.type == 'dup' or
-                 hgvs_transcript.posedit.edit.type == 'inv'):
+                 hgvs_transcript.posedit.edit.type == 'inv' or
+                 hgvs_transcript.posedit.edit.type == 'ins'):
 
             # Identify missed frameshifts
-
-            # hgvs_n_transcript = self.vm.c_to_n(hgvs_transcript)
-            # edit = hgvs_n_transcript.posedit.edit
-            # pos = hgvs_n_transcript.posedit.pos
             edit = hgvs_naughty.posedit.edit
             pos = hgvs_naughty.posedit.pos
             frameshift = False
+            logger.info(f"Early termination identified from edit type {edit.type}")
 
             if edit.type == "dup":
                 length = pos.end.base - pos.start.base + 1
@@ -748,15 +757,18 @@ class Mixin:
             # NP_733765.1:p.(Gln259_Ser1042delinsProAla*) in issue #214 also #282
             elif len(pro_inv_info['prot_del_seq']) + \
                     int(pro_inv_info['edit_start'] - 1) == int(pro_inv_info['ter_pos']):
+                logger.info(f"Identified unhandled frameshift")
                 end = 'Ter' + str(pro_inv_info['ter_pos'])
                 pro_inv_info['prot_ins_seq'].replace('*', end)
                 pro_inv_info['prot_ins_seq'] = pro_inv_info['prot_ins_seq']
                 pro_inv_info['prot_del_seq'] = pro_inv_info['prot_del_seq'][0]
                 pro_inv_info['edit_end'] = pro_inv_info['edit_start']
+
             elif hgvs_transcript.posedit.edit.type == 'dup' and pro_inv_info["prot_del_seq"] \
                     == "" and (int(pro_inv_info["edit_end"]) < int(pro_inv_info["edit_start"])):
 
                 # Handles in-frame dups only
+                logger.info(f"Identified unhandled frameshift from dup")
                 dup_len = (int(hgvs_transcript.posedit.pos.end.base) - int(
                     hgvs_transcript.posedit.pos.start.base) + 1) / 3
                 pro_inv_info['prot_del_seq'] = pro_inv_info['prot_ins_seq']
@@ -768,6 +780,8 @@ class Mixin:
                 pro_inv_info['prot_del_seq'] = start_aa
                 pro_inv_info['prot_ins_seq'] = start_aa + \
                                                pro_inv_info['prot_ins_seq']
+            else:
+                logger.info("No unhandled frameshift in pro_inv_info['pro_ins_seq']")
 
         # Complete variant description
         if posedit:
