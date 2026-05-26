@@ -31348,6 +31348,17 @@ class TestVariantsAuto(TestCase):
                 sec_warn_found = True
         assert sec_warn_found
 
+    def issue_818(self):
+        results = self.vv.validate('NC_000022.10:g.19929250_19929251insCCCCGCC', 'GRCh38', 'mane_select', liftover_level=True).format_as_dict(test=True)
+        assert "NM_006440.5:c.70_76dup" in results.keys()
+        assert results["NM_006440.5:c.70_76dup"][
+            "hgvs_predicted_protein_consequence"] ==  {
+            "lrg_slr": "LRG_417p1:p.V26Gfs*132",
+            "lrg_tlr": "LRG_417p1:p.Val26GlyfsTer132",
+            "slr": "NP_006431.2:p.V26Gfs*132",
+            "tlr": "NP_006431.2:p.Val26GlyfsTer132"
+        }
+
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
 #
