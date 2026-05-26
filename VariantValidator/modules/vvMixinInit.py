@@ -465,6 +465,8 @@ class Mixin:
                                     hgvs_naughty.posedit.pos.start.base,
                                     hgvs_naughty.posedit.pos.end.base)
 
+        logger.info(f"\nReference sequence:\n{ref_seq}\nDeletion sequence:\n{del_seq}\nInserted sequence:\n{inv_seq}\nVar sequence:\n{var_seq}")
+
         # Check for modified amino acids
         prot_seq = self.sf.fetch_seq(associated_protein_accession)
         if "U" in prot_seq:
@@ -472,10 +474,13 @@ class Mixin:
             hgvs_transcript_to_hgvs_protein['error'] = \
                 'ProteinTranslationInfo: Selenocysteine detected in the original protein sequnce'+\
                 ' it may be incorporated instead of terminating at TGA/UGA termination codons'
+            logger.info(f"Modified amino acid {modified_aa} identified, update translation dict")
         else:
             modified_aa = None
+            logger.info("No modified amino acid identified, use standard translation dict")
 
         # Translate the reference and variant proteins
+        logger.info("Translating reference and variant CDS outcomes")
         try:
             prot_ref_seq = utils.translate(ref_seq, cds_start, modified_aa)
         except IndexError:
@@ -497,8 +502,6 @@ class Mixin:
             hgvs_transcript_to_hgvs_protein['hgvs_protein'] = _tot_unc(associated_protein_accession)
             return hgvs_transcript_to_hgvs_protein
 
-
-        logger.info("Translating reference and variant CDS outcomes")
         try:
             prot_var_seq = utils.translate(var_seq, cds_start, modified_aa)
         except IndexError:
