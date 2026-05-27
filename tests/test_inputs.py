@@ -31332,6 +31332,22 @@ class TestVariantsAuto(TestCase):
         #assert results["NM_020451.3:c.406_407insG"]["hgvs_predicted_protein_consequence"]['lrg_slr'] == "LRG_857p1:p.S136Cfs*16"
         #assert results["NM_020451.3:c.406_407insG"]["hgvs_predicted_protein_consequence"]['lrg_tlr'] == "LRG_857p1:p.Ser136CysfsTer16"
 
+    def test_issue_815e(self):
+        # test that variants affected by selenocysteine edits inform users
+        results = self.vv.validate('NM_020451.3:c.406_407insG', 'GRCh38', 'all', liftover_level=True).format_as_dict(test=True)
+        print(results)
+        assert "NM_020451.3:c.406_407insG" in results.keys()
+        assert results["NM_020451.3:c.406_407insG"]["hgvs_predicted_protein_consequence"]['slr'] == "NP_065184.2:p.S136Cfs*16"
+        assert results["NM_020451.3:c.406_407insG"]["hgvs_predicted_protein_consequence"]['tlr'] == "NP_065184.2:p.Ser136CysfsTer16"
+        #assert results["NM_020451.3:c.406_407insG"]["hgvs_predicted_protein_consequence"]['lrg_slr'] == "LRG_857p1:p.S136Cfs*16"
+        #assert results["NM_020451.3:c.406_407insG"]["hgvs_predicted_protein_consequence"]['lrg_tlr'] == "LRG_857p1:p.Ser136CysfsTer16"
+
+        sec_warn_found = False
+        for warn in results["NM_020451.3:c.406_407insG"]["validation_warnings"]:
+            if warn.startswith('ProteinTranslationInfo: Sel'):
+                sec_warn_found = True
+        assert sec_warn_found
+
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
 #

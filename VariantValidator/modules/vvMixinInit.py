@@ -469,6 +469,9 @@ class Mixin:
         prot_seq = self.sf.fetch_seq(associated_protein_accession)
         if "U" in prot_seq:
             modified_aa = "Sec"
+            hgvs_transcript_to_hgvs_protein['error'] = \
+                'ProteinTranslationInfo: Selenocysteine detected in the original protein sequnce'+\
+                ' it may be incorporated instead of terminating at TGA/UGA termination codons'
         else:
             modified_aa = None
 

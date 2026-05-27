@@ -777,8 +777,10 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     else:
         logger.info(f"Protein dict creation successful: {protein_dict}")
 
-    if protein_dict['error'] == '':
+    if protein_dict['error'] == '' or protein_dict['error'].startswith('ProteinTranslationInfo:'):
         hgvs_protein = protein_dict['hgvs_protein']
+        if protein_dict['error']:
+            variant.warnings.append(protein_dict['error'])
     else:
         error = protein_dict['error']
         if not error.startswith('ProteinTranslationError:' ):
@@ -837,8 +839,10 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     try:
         # Predicted effect on protein
         protein_dict = validator.myc_to_p(c_for_p, variant.evm, re_to_p=False, hn=variant.hn)
-        if protein_dict['error'] == '':
+        if protein_dict['error'] == '' or protein_dict['error'].startswith('ProteinTranslationInfo:'):
             hgvs_protein = protein_dict['hgvs_protein']
+            if protein_dict['error']:
+                variant.warnings.append(protein_dict['error'])
         else:
             error = protein_dict['error']
             if error == 'Cannot identify an in-frame Termination codon in the variant mRNA sequence':
@@ -854,8 +858,10 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     if hgvs_coding.posedit.pos.start.offset == 0 and hgvs_coding.posedit.pos.start.offset == 0 and \
             '?' in str(hgvs_protein):
         protein_dict = validator.myc_to_p(hgvs_coding, variant.evm, re_to_p=False, hn=variant.hn)
-        if protein_dict['error'] == '':
+        if protein_dict['error'] == '' or protein_dict['error'].startswith('ProteinTranslationInfo:'):
             hgvs_protein = protein_dict['hgvs_protein']
+            if protein_dict['error']:
+                variant.warnings.append(protein_dict['error'])
         else:
             error = protein_dict['error']
             if error == 'Cannot identify an in-frame Termination codon in the variant mRNA sequence':
