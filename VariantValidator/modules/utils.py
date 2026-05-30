@@ -294,6 +294,7 @@ def pro_inv_info(prot_ref_seq, prot_var_seq):
     """
     Function which predicts the protein effect of c. inversions
     """
+    logger.info("pro_inv_info function called")
     info = {
         'variant': 'true',
         'prot_del_seq': '',
@@ -392,6 +393,7 @@ def pro_inv_info(prot_ref_seq, prot_var_seq):
 
 
 def pro_delins_info(prot_ref_seq, prot_var_seq, in_frame=False):
+    logger.info(f"pro_delins_info function called")
     info = {
             'variant': 'true',
             'prot_del_seq': '',
