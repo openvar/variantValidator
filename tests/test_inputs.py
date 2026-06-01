@@ -30900,9 +30900,9 @@ class TestVariantsAuto(TestCase):
         variant = 'NM_020451.2:c.481C>T'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
-        assert 'NP_065184.2:p.(Arg161Ter)' in \
+        assert 'NP_065184.2:p.(Arg161Sec)' in \
                results['NM_020451.2:c.481C>T']['hgvs_predicted_protein_consequence']['tlr']
-        assert 'NP_065184.2:p.(R161*)' in \
+        assert 'NP_065184.2:p.(R161U)' in \
                results['NM_020451.2:c.481C>T']['hgvs_predicted_protein_consequence']['slr']
 
     def test_issue_503c(self):
@@ -31261,46 +31261,103 @@ class TestVariantsAuto(TestCase):
         results = self.vv.validate('2:g.46707878_46707879insGCAGCGGGAGCG', 'GRCh37', 'mane_select').format_as_dict(test=True)
         assert 'NM_001145051.2:c.457_458insGGGAGCGGCAGC' in results
 
-    def cnv_del_vcf(self):
-        # Test that it fails for genome mismatch
+    def test_cnv_del_vcf(self):
+        # Test that copy number variant VCF input works
         results = self.vv.validate('chr1\t1000000\t.\tN\t<DEL>\t.\tPASS\tSVTYPE=DEL;END=1005000', 'GRCh38', 'all').format_as_dict(test=True)
         assert 'intergenic_variant_1' in results
         assert results["intergenic_variant_1"]["primary_assembly_loci"]["grch38"][
                 "hgvs_genomic_description"] ==  "NC_000001.11:g.1000000_1005000del"
 
-    def issue_786_part_B(self):
-        # Test that it fails for genome mismatch
+    def test_issue_786_part_B(self):
+        # Test that we successfully round trip
         results = self.vv.validate('NC_000023.10:g.18908328_18911824delinsGCCTGCAGAG', 'GRCh37', 'all', liftover_level=True).format_as_dict(test=True)
-        assert 'intergenic_variant_1' in results
+        print(results)
         assert results["intergenic_variant_1"]["primary_assembly_loci"]["grch37"][
                 "hgvs_genomic_description"] ==  "NC_000023.10:g.18908328_18911824delinsGCCTGCAGAG"
         assert results["intergenic_variant_1"]["primary_assembly_loci"]["grch38"][
                 "hgvs_genomic_description"] ==  "NC_000023.11:g.18890210_18893706delinsGCCTGCAGAG"
 
-    def issue_786_part_A1(self):
-        # Test that it fails for genome mismatch
+    def test_issue_786_part_A1(self):
+        # Test that we successfully round trip
         results = self.vv.validate('NC_000015.9:g.72105928del', 'GRCh37', 'mane_select', liftover_level=True).format_as_dict(test=True)
-        assert 'intergenic_variant_1' in results
+        print(results)
         assert results["NM_014249.4:c.947A>C"]["primary_assembly_loci"]["grch37"][
                 "hgvs_genomic_description"] ==  "NC_000015.9:g.72105928del"
         assert results["NM_014249.4:c.947A>C"]["primary_assembly_loci"]["grch38"][
                 "hgvs_genomic_description"] ==  "NC_000015.10:g.71813588A>C"
 
-    def issue_786_part_A2(self):
-        # Test that it fails for genome mismatch
+    def test_issue_786_part_A2(self):
+        # Test that we successfully round trip
         results = self.vv.validate('NC_000015.9:g.72105933dup', 'GRCh37', 'mane_select', liftover_level=True).format_as_dict(test=True)
-        assert 'intergenic_variant_1' in results
-        assert results["NM_014249.4:c.947A>C"]["primary_assembly_loci"]["grch37"][
+        print(results)
+        assert results["NM_014249.4:c.950_951dup"]["primary_assembly_loci"]["grch37"][
                 "hgvs_genomic_description"] ==  "NC_000015.9:g.72105933dup"
-        assert results["NM_014249.4:c.947A>C"]["primary_assembly_loci"]["grch38"][
+        assert results["NM_014249.4:c.950_951dup"]["primary_assembly_loci"]["grch38"][
                 "hgvs_genomic_description"] ==  "NC_000015.10:g.71813591_71813592dup"
 
-    def issue_801(self):
+    def test_issue_801(self):
         results = self.vv.validate('15-71818229-TA-T', 'GRCh38', 'all', liftover_level=True).format_as_dict(test=True)
         assert "NM_014249.4:c.*557del" in results.keys()
         assert "NM_001281446.1:c.*557del" in results.keys()
 
+    def test_issue_815a(self):
+        results = self.vv.validate('NM_020451.3:c.447dup', 'GRCh38', 'all', liftover_level=True).format_as_dict(test=True)
+        assert "NM_020451.3:c.447dup" in results.keys()
+        assert results["NM_020451.3:c.447dup"]["hgvs_predicted_protein_consequence"]['slr'] == "NP_065184.2:p.D150Ufs*2"
+        assert results["NM_020451.3:c.447dup"]["hgvs_predicted_protein_consequence"]['tlr'] == "NP_065184.2:p.Asp150SecfsTer2"
+        #assert results["NM_020451.3:c.447dup"]["hgvs_predicted_protein_consequence"]['lrg_slr'] == "LRG_857p1:p.D150Ufs*2"
+        #assert results["NM_020451.3:c.447dup"]["hgvs_predicted_protein_consequence"]['lrg_tlr'] == "LRG_857p1:p.Asp150SecfsTer2"
 
+    def test_issue_815b(self):
+        results = self.vv.validate('NM_020451.3:c.407del', 'GRCh38', 'all', liftover_level=True).format_as_dict(test=True)
+        assert "NM_020451.3:c.407del" in results.keys()
+        assert results["NM_020451.3:c.407del"]["hgvs_predicted_protein_consequence"]['slr'] == "NP_065184.2:p.(S136*)"
+        assert results["NM_020451.3:c.407del"]["hgvs_predicted_protein_consequence"]['tlr'] == "NP_065184.2:p.(Ser136Ter)"
+        #assert results["NM_020451.3:c.407del"]["hgvs_predicted_protein_consequence"]['lrg_slr'] == "LRG_857p1:p.(S136*)"
+        #assert results["NM_020451.3:c.407del"]["hgvs_predicted_protein_consequence"]['lrg_tlr'] == "LRG_857p1:p.(Ser136Ter)"
+
+    def test_issue_815c(self):
+        results = self.vv.validate('NM_020451.3:c.532del', 'GRCh38', 'all', liftover_level=True).format_as_dict(test=True)
+        assert "NM_020451.3:c.532del" in results.keys()
+        assert results["NM_020451.3:c.532del"]["hgvs_predicted_protein_consequence"]['slr'] == "NP_065184.2:p.(L178*)"
+        assert results["NM_020451.3:c.532del"]["hgvs_predicted_protein_consequence"]['tlr'] == "NP_065184.2:p.(Leu178Ter)"
+        #assert results["NM_020451.3:c.532del"]["hgvs_predicted_protein_consequence"]['lrg_slr'] == "LRG_857p1:p.(L178*)"
+        #assert results["NM_020451.3:c.532del"]["hgvs_predicted_protein_consequence"]['lrg_tlr'] == "LRG_857p1:p.(Leu178Ter)"
+
+    def test_issue_815d(self):
+        results = self.vv.validate('NM_020451.3:c.406_407insG', 'GRCh38', 'all', liftover_level=True).format_as_dict(test=True)
+        assert "NM_020451.3:c.406_407insG" in results.keys()
+        assert results["NM_020451.3:c.406_407insG"]["hgvs_predicted_protein_consequence"]['slr'] == "NP_065184.2:p.S136Cfs*16"
+        assert results["NM_020451.3:c.406_407insG"]["hgvs_predicted_protein_consequence"]['tlr'] == "NP_065184.2:p.Ser136CysfsTer16"
+        #assert results["NM_020451.3:c.406_407insG"]["hgvs_predicted_protein_consequence"]['lrg_slr'] == "LRG_857p1:p.S136Cfs*16"
+        #assert results["NM_020451.3:c.406_407insG"]["hgvs_predicted_protein_consequence"]['lrg_tlr'] == "LRG_857p1:p.Ser136CysfsTer16"
+
+    def test_issue_815e(self):
+        # test that variants affected by selenocysteine edits inform users
+        results = self.vv.validate('NM_020451.3:c.406_407insG', 'GRCh38', 'all', liftover_level=True).format_as_dict(test=True)
+        print(results)
+        assert "NM_020451.3:c.406_407insG" in results.keys()
+        assert results["NM_020451.3:c.406_407insG"]["hgvs_predicted_protein_consequence"]['slr'] == "NP_065184.2:p.S136Cfs*16"
+        assert results["NM_020451.3:c.406_407insG"]["hgvs_predicted_protein_consequence"]['tlr'] == "NP_065184.2:p.Ser136CysfsTer16"
+        #assert results["NM_020451.3:c.406_407insG"]["hgvs_predicted_protein_consequence"]['lrg_slr'] == "LRG_857p1:p.S136Cfs*16"
+        #assert results["NM_020451.3:c.406_407insG"]["hgvs_predicted_protein_consequence"]['lrg_tlr'] == "LRG_857p1:p.Ser136CysfsTer16"
+
+        sec_warn_found = False
+        for warn in results["NM_020451.3:c.406_407insG"]["validation_warnings"]:
+            if warn.startswith('ProteinTranslationInfo: Sel'):
+                sec_warn_found = True
+        assert sec_warn_found
+
+    def issue_818(self):
+        results = self.vv.validate('NC_000022.10:g.19929250_19929251insCCCCGCC', 'GRCh38', 'mane_select', liftover_level=True).format_as_dict(test=True)
+        assert "NM_006440.5:c.70_76dup" in results.keys()
+        assert results["NM_006440.5:c.70_76dup"][
+            "hgvs_predicted_protein_consequence"] ==  {
+            "lrg_slr": "LRG_417p1:p.V26Gfs*132",
+            "lrg_tlr": "LRG_417p1:p.Val26GlyfsTer132",
+            "slr": "NP_006431.2:p.V26Gfs*132",
+            "tlr": "NP_006431.2:p.Val26GlyfsTer132"
+        }
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
