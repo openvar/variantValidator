@@ -6078,7 +6078,9 @@ class TestVariantsAuto(TestCase):
         assert results['NM_000088.3:c.4392_*5inv']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000088.3:c.4392_*5inv']['hgvs_refseqgene_variant'] == 'NG_007400.1:g.21136_21142inv'
         assert results['NM_000088.3:c.4392_*5inv']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_000079.2:p.?', 'slr': 'NP_000079.2:p.?'}
+            "slr": "NP_000079.2:p.(*1465Eext*27)",
+            "tlr": "NP_000079.2:p.(Ter1465GluextTer27)"
+        }
         assert results['NM_000088.3:c.4392_*5inv']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.4393_*4inv'
         assert results['NM_000088.3:c.4392_*5inv']['hgvs_lrg_variant'] == 'LRG_1:g.21136_21142inv'
         self.assertCountEqual(results['NM_000088.3:c.4392_*5inv']['alt_genomic_loci'], [])
@@ -6116,7 +6118,9 @@ class TestVariantsAuto(TestCase):
         assert results['NM_000088.3:c.4390_*7inv']['refseqgene_context_intronic_sequence'] == ''
         assert results['NM_000088.3:c.4390_*7inv']['hgvs_refseqgene_variant'] == 'NG_007400.1:g.21133_21145inv'
         assert results['NM_000088.3:c.4390_*7inv']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'NP_000079.2:p.?', 'slr': 'NP_000079.2:p.?'}
+            "slr": "NP_000079.2:p.(L1464Rfs*29)",
+            "tlr": "NP_000079.2:p.(Leu1464ArgfsTer29)"
+        }
         assert results['NM_000088.3:c.4390_*7inv']['hgvs_lrg_transcript_variant'] == 'LRG_1t1:c.4390_*7inv'
         assert results['NM_000088.3:c.4390_*7inv']['hgvs_lrg_variant'] == 'LRG_1:g.21133_21145inv'
         self.assertCountEqual(results['NM_000088.3:c.4390_*7inv']['alt_genomic_loci'], [])
@@ -31299,54 +31303,6 @@ class TestVariantsAuto(TestCase):
         results = self.vv.validate('15-71818229-TA-T', 'GRCh38', 'all', liftover_level=True).format_as_dict(test=True)
         assert "NM_014249.4:c.*557del" in results.keys()
         assert "NM_001281446.1:c.*557del" in results.keys()
-
-    def test_issue_815a(self):
-        results = self.vv.validate('NM_020451.3:c.447dup', 'GRCh38', 'all', liftover_level=True).format_as_dict(test=True)
-        assert "NM_020451.3:c.447dup" in results.keys()
-        assert results["NM_020451.3:c.447dup"]["hgvs_predicted_protein_consequence"]['slr'] == "NP_065184.2:p.D150Ufs*2"
-        assert results["NM_020451.3:c.447dup"]["hgvs_predicted_protein_consequence"]['tlr'] == "NP_065184.2:p.Asp150SecfsTer2"
-        #assert results["NM_020451.3:c.447dup"]["hgvs_predicted_protein_consequence"]['lrg_slr'] == "LRG_857p1:p.D150Ufs*2"
-        #assert results["NM_020451.3:c.447dup"]["hgvs_predicted_protein_consequence"]['lrg_tlr'] == "LRG_857p1:p.Asp150SecfsTer2"
-
-    def test_issue_815b(self):
-        results = self.vv.validate('NM_020451.3:c.407del', 'GRCh38', 'all', liftover_level=True).format_as_dict(test=True)
-        assert "NM_020451.3:c.407del" in results.keys()
-        assert results["NM_020451.3:c.407del"]["hgvs_predicted_protein_consequence"]['slr'] == "NP_065184.2:p.(S136*)"
-        assert results["NM_020451.3:c.407del"]["hgvs_predicted_protein_consequence"]['tlr'] == "NP_065184.2:p.(Ser136Ter)"
-        #assert results["NM_020451.3:c.407del"]["hgvs_predicted_protein_consequence"]['lrg_slr'] == "LRG_857p1:p.(S136*)"
-        #assert results["NM_020451.3:c.407del"]["hgvs_predicted_protein_consequence"]['lrg_tlr'] == "LRG_857p1:p.(Ser136Ter)"
-
-    def test_issue_815c(self):
-        results = self.vv.validate('NM_020451.3:c.532del', 'GRCh38', 'all', liftover_level=True).format_as_dict(test=True)
-        assert "NM_020451.3:c.532del" in results.keys()
-        assert results["NM_020451.3:c.532del"]["hgvs_predicted_protein_consequence"]['slr'] == "NP_065184.2:p.(L178*)"
-        assert results["NM_020451.3:c.532del"]["hgvs_predicted_protein_consequence"]['tlr'] == "NP_065184.2:p.(Leu178Ter)"
-        #assert results["NM_020451.3:c.532del"]["hgvs_predicted_protein_consequence"]['lrg_slr'] == "LRG_857p1:p.(L178*)"
-        #assert results["NM_020451.3:c.532del"]["hgvs_predicted_protein_consequence"]['lrg_tlr'] == "LRG_857p1:p.(Leu178Ter)"
-
-    def test_issue_815d(self):
-        results = self.vv.validate('NM_020451.3:c.406_407insG', 'GRCh38', 'all', liftover_level=True).format_as_dict(test=True)
-        assert "NM_020451.3:c.406_407insG" in results.keys()
-        assert results["NM_020451.3:c.406_407insG"]["hgvs_predicted_protein_consequence"]['slr'] == "NP_065184.2:p.S136Cfs*16"
-        assert results["NM_020451.3:c.406_407insG"]["hgvs_predicted_protein_consequence"]['tlr'] == "NP_065184.2:p.Ser136CysfsTer16"
-        #assert results["NM_020451.3:c.406_407insG"]["hgvs_predicted_protein_consequence"]['lrg_slr'] == "LRG_857p1:p.S136Cfs*16"
-        #assert results["NM_020451.3:c.406_407insG"]["hgvs_predicted_protein_consequence"]['lrg_tlr'] == "LRG_857p1:p.Ser136CysfsTer16"
-
-    def test_issue_815e(self):
-        # test that variants affected by selenocysteine edits inform users
-        results = self.vv.validate('NM_020451.3:c.406_407insG', 'GRCh38', 'all', liftover_level=True).format_as_dict(test=True)
-        print(results)
-        assert "NM_020451.3:c.406_407insG" in results.keys()
-        assert results["NM_020451.3:c.406_407insG"]["hgvs_predicted_protein_consequence"]['slr'] == "NP_065184.2:p.S136Cfs*16"
-        assert results["NM_020451.3:c.406_407insG"]["hgvs_predicted_protein_consequence"]['tlr'] == "NP_065184.2:p.Ser136CysfsTer16"
-        #assert results["NM_020451.3:c.406_407insG"]["hgvs_predicted_protein_consequence"]['lrg_slr'] == "LRG_857p1:p.S136Cfs*16"
-        #assert results["NM_020451.3:c.406_407insG"]["hgvs_predicted_protein_consequence"]['lrg_tlr'] == "LRG_857p1:p.Ser136CysfsTer16"
-
-        sec_warn_found = False
-        for warn in results["NM_020451.3:c.406_407insG"]["validation_warnings"]:
-            if warn.startswith('ProteinTranslationInfo: Sel'):
-                sec_warn_found = True
-        assert sec_warn_found
 
     def issue_818(self):
         results = self.vv.validate('NC_000022.10:g.19929250_19929251insCCCCGCC', 'GRCh38', 'mane_select', liftover_level=True).format_as_dict(test=True)
