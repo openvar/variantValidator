@@ -113,15 +113,9 @@ VariantValidator is a community resource and we represent a diverse range of use
 
 ***To accurately cite us, please use both of the follwoing***
 
-1. Freeman, P.J., Wagstaff, J.F., Fokkema, I.F.A.C. et al. Standardizing variant naming in literature with VariantValidator to increase diagnostic rates. Nat Genet (2024).
+Freeman PJ, Hart RK, Gretton LJ, Brookes AJ, Dalgleish R. VariantValidator: Accurate validation, mapping and formatting of sequence variation descriptions. Human Mutation. 2018;39:61–68. https://doi.org/10.1002/humu.23348
 
-[https://doi.org/10.1038/s41588-024-01938-w](https://doi.org/10.1038/s41588-024-01938-w)
-
-2. Freeman PJ, Hart RK, Gretton LJ, Brookes AJ, Dalgleish R (2018) VariantValidator: Accurate validation, mapping, and formatting of sequence variation descriptions. Hum Mutat. 39(1) 61-68.
-
-[PubMed: 28967166](https://www.ncbi.nlm.nih.gov/pubmed/28967166)
-
-[DOI: 10.1002/humu.23348](https://doi.org/10.1002/humu.23348)
+Freeman, P.J., Wagstaff, J.F., Fokkema, I.F.A.C. et al. Standardizing variant naming in literature with VariantValidator to increase diagnostic rates. Nat Genet 56, 2284–2286 (2024). https://doi.org/10.1038/s41588-024-01938-w
 
 ## Pre-requisites for local installation
 
