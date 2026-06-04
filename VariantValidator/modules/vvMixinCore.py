@@ -1,5 +1,3 @@
-import traceback
-
 import vvhgvs
 import vvhgvs.exceptions
 import vvhgvs.normalizer
@@ -1914,7 +1912,7 @@ class Mixin(vvMixinConverters.Mixin):
 
     def update_transcript_record(self, tx_id, **kwargs):
         """
-        Siplle function allowing transcript_table to be updated
+        Simple function allowing transcript_table to be updated
         :param tx_id:
         :param genome_build (GRCh37 or GRCh38)
         :return:
