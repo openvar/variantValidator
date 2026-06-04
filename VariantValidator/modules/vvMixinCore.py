@@ -1,6 +1,7 @@
 import vvhgvs
 import vvhgvs.exceptions
 import vvhgvs.normalizer
+from vvhgvs.enums import Datum
 from vvhgvs.location import Interval
 from vvhgvs.sequencevariant import SequenceVariant
 from vvhgvs.posedit import PosEdit
@@ -1038,14 +1039,22 @@ class Mixin(vvMixinConverters.Mixin):
 
                                 # convert UTR variants from p.? to p.(?)
                                 try:
-                                    if (re.match("^-\d+",str(variant.hgvs_coding.posedit.pos.end)) or
-                                            "*" in str(variant.hgvs_coding.posedit.pos.start)):
-                                        logger.info(f"CDS variant {variant.hgvs_coding} identified. "
-                                                    f"Updating from p.? to p.(=)")
+                                    if (
+                                            variant.hgvs_coding.posedit.pos.end.base < 0 or
+                                            variant.hgvs_coding.posedit.pos.start.datum  ==
+                                               Datum.CDS_END
+                                    ):
+                                        logger.info(
+                                            f"UTR variant {variant.hgvs_coding} identified. "
+                                            f"Updating from p.? to p.(=)"
+                                        )
+
                                         predicted_protein_variant = vvhgvs.sequencevariant.SequenceVariant(
                                             ac=predicted_protein_variant.ac,
                                             type='p',
-                                            posedit="(=)")
+                                            posedit="(=)"
+                                        )
+
                                 except Exception:
                                     pass
 
