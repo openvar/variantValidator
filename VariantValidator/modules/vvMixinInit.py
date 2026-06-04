@@ -396,23 +396,34 @@ class Mixin:
         elif 'ins' in hgvs_transcript.posedit.edit.type:
             inv_seq = f"{del_seq[0]}{hgvs_transcript.posedit.edit.alt}{del_seq[-1]}"
 
+        logger.info(f"delSeq: {del_seq} and insSeq: {inv_seq} extracted from {hgvs_transcript}")
         shifts = ''
         # Look for p. delins or del
-        not_delins = True
-        if hgvs_transcript.posedit.edit.type != 'inv':
+        not_delins = False
+        if hgvs_transcript.posedit.edit.type not in ['inv', 'delins']:
             try:
                 shifts = evm.c_to_p(hgvs_transcript)
                 shifts = _remake_unc(shifts,nucleotide_not_equal=nucleotide_not_equal)
-                if "identity" in shifts.posedit.edit.type:
-                    not_delins = False
-                if 'del' in shifts.posedit.edit.type or 'dup' in shifts.posedit.edit.type:
-                    not_delins = False
                 if "fs" in shifts.posedit.edit.type:
+                    not_delins = True
+                if "ext" in shifts.posedit.edit.type:
+                    not_delins = True
+                if shifts.posedit.edit.type in ["ins", "sub"]:
                     not_delins = True
             except Exception:
                 not_delins = False
         else:
-            not_delins = False
+            try:
+                shifts = evm.c_to_p(hgvs_transcript)
+                shifts = _remake_unc(shifts,nucleotide_not_equal=nucleotide_not_equal)
+                if "fs" in shifts.posedit.edit.type:
+                    not_delins = True
+                if "ext" in shifts.posedit.edit.type:
+                    not_delins = True
+                if shifts.posedit.edit.type in ["ins"]:
+                    not_delins = True
+            except Exception:
+                not_delins = False
 
         if not_delins:
             hgvs_transcript_to_hgvs_protein['hgvs_protein'] = shifts
@@ -652,7 +663,6 @@ class Mixin:
         ######################################
         #  Ter codon interruption frame shifts
         ######################################
-
         if (
                 ("del" in str(hgvs_naughty.posedit.edit)
                  or "inv" in str(hgvs_naughty.posedit.edit))

@@ -103,3 +103,26 @@ class TestCDSEndFS(TestCase):
                 sec_warn_found = True
         assert sec_warn_found
 
+    def test_delins_1(self):
+        variant = 'NM_001005242.3:c.2510_*1delinsTTT'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "NM_001005242.3:c.2510_*1delinsTTT" in results.keys()
+        assert results["NM_001005242.3:c.2510_*1delinsTTT"]["hgvs_predicted_protein_consequence"
+               ]["tlr"] == "NP_001005242.2:p.(Asp837ValfsTer2)"
+
+    def test_delins_2(self):
+        variant = 'NM_001005242.3:c.2510_*1delinsTT'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "NM_001005242.3:c.2510_*1delinsTT" in results.keys()
+        assert results["NM_001005242.3:c.2510_*1delinsTT"]["hgvs_predicted_protein_consequence"
+               ]["tlr"] == "NP_001005242.2:p.(Asp837ValfsTer49)"
+
+    def test_delins_3(self):
+        variant = 'NM_001005242.3:c.2510_*1delinsT'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "NM_001005242.3:c.2510_*1delinsT" in results.keys()
+        assert results["NM_001005242.3:c.2510_*1delinsT"]["hgvs_predicted_protein_consequence"
+               ]["tlr"] == "NP_001005242.2:p.(Asp837ValfsTer43)"
