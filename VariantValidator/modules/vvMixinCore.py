@@ -1035,6 +1035,21 @@ class Mixin(vvMixinConverters.Mixin):
                                                 r'\(LRG_.+?\)', '', predicted_protein_variant.ac)
                                 else:
                                     format_lrg = None
+
+                                # convert UTR variants from p.? to p.(?)
+                                try:
+                                    if (re.match("^-\d+",str(variant.hgvs_coding.posedit.pos.end)) or
+                                            "*" in str(variant.hgvs_coding.posedit.pos.start)):
+                                        logger.info(f"CDS variant {variant.hgvs_coding} identified. "
+                                                    f"Updating from p.? to p.(=)")
+                                        predicted_protein_variant = vvhgvs.sequencevariant.SequenceVariant(
+                                            ac=predicted_protein_variant.ac,
+                                            type='p',
+                                            posedit="(=)")
+                                except Exception:
+                                    pass
+
+
                                 # Add single letter AA code to protein descriptions
                                 predicted_protein_variant_dict = {"tlr": str(
                                     predicted_protein_variant.format({'max_ref_length': 0})

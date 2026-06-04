@@ -17,6 +17,14 @@ class TestCDSEndFS(TestCase):
         assert results["NM_001005242.3:c.2510_*1del"]["hgvs_predicted_protein_consequence"
                ]["tlr"] == "NP_001005242.2:p.(Asp837GlyfsTer3)"
 
+    def test_deletion_1a_cds_normalization(self):
+        variant = '12:32792422:CCTCAGT:C'
+        results = self.vv.validate(variant, 'GRCh38', 'mane_select').format_as_dict(test=True)
+        print(results)
+        assert "NM_001005242.3:c.2510_*1del" in results.keys()
+        assert results["NM_001005242.3:c.2510_*1del"]["hgvs_predicted_protein_consequence"
+               ]["tlr"] == "NP_001005242.2:p.(Asp837GlyfsTer3)"
+
     def test_deletion_2(self):
         variant = 'NM_000074.2:c.782_*2del'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
@@ -126,3 +134,9 @@ class TestCDSEndFS(TestCase):
         assert "NM_001005242.3:c.2510_*1delinsT" in results.keys()
         assert results["NM_001005242.3:c.2510_*1delinsT"]["hgvs_predicted_protein_consequence"
                ]["tlr"] == "NP_001005242.2:p.(Asp837ValfsTer43)"
+
+    def test_cds_normalisation(self):
+        variant = 'NM_000280.3:c.1268_*1dup'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "NM_000280.3:c.*19_*21dup" in results.keys()
