@@ -327,7 +327,9 @@ class Mixin:
             # Does the edit affect the start codon?
             if ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and hgvs_transcript.posedit.pos.start.offset == 0)
                 or (1 <= hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset
-                    == 0)) and '*' not in str(hgvs_transcript.posedit.pos):
+                    == 0)) and (hgvs_transcript.posedit.pos.start.datum != Datum.CDS_END and
+                hgvs_transcript.posedit.pos.end.datum != Datum.CDS_END
+            ):
                 residue_one = self.sf.fetch_seq(associated_protein_accession, start_i=1 - 1, end_i=1)
                 hgvs_protein = _fb_unc(associated_protein_accession,residue_one)
             else:
@@ -452,19 +454,20 @@ class Mixin:
 
                 # Fully 5′ UTR (both negative relative to CDS_START)
                 or (
-                hgvs_transcript.posedit.pos.start.datum == Datum.CDS_START and
-                hgvs_transcript.posedit.pos.start.base < 0 and
-                hgvs_transcript.posedit.pos.end.datum == Datum.CDS_START and
-                hgvs_transcript.posedit.pos.end.base < 0
+                hgvs_transcript.posedit.pos.start.base < 0 and hgvs_transcript.posedit.pos.end.base < 0
             )
         ):
 
             logger.info("Translation passed into intronic handling code")
 
-            if ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and
-                hgvs_transcript.posedit.pos.start.offset == 0) or (1 <=
-                hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset == 0))\
-                    and '*' not in str(hgvs_transcript.posedit.pos):
+            if (
+                    (1 <= hgvs_transcript.posedit.pos.start.base <= 3 and hgvs_transcript.posedit.pos.start.offset == 0)
+                    or
+                    (1 <= hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset == 0)
+                    and
+                    (hgvs_transcript.posedit.pos.start.datum == Datum.CDS_END and
+                     hgvs_transcript.posedit.pos.end.datum == Datum.CDS_END)
+            ):
 
                 residue_one = self.sf.fetch_seq(associated_protein_accession, start_i=1 - 1, end_i=1)
                 hgvs_protein = _fb_unc(associated_protein_accession,residue_one)
@@ -494,7 +497,8 @@ class Mixin:
                                     hgvs_naughty.posedit.pos.start.base,
                                     hgvs_naughty.posedit.pos.end.base)
 
-        logger.info(f"Reference sequence:\n{ref_seq}\nDeletion sequence:\n{del_seq}\nInserted sequence:\n{inv_seq}\nVar sequence:\n{var_seq}")
+        logger.info(f"Reference sequence:\n{ref_seq}\nDeletion sequence:\n{del_seq}\n"
+                    f"Inserted sequence:\n{inv_seq}\nVar sequence:\n{var_seq}")
 
         # Check for modified amino acids
         prot_seq = self.sf.fetch_seq(associated_protein_accession)
@@ -563,7 +567,9 @@ class Mixin:
                  hgvs_transcript.posedit.pos.start.offset == 0) or (
                     1 <= hgvs_transcript.posedit.pos.end.base <= 3 and
                     hgvs_transcript.posedit.pos.end.offset == 0)) \
-                    and '*' not in str(hgvs_transcript.posedit.pos):
+                    and (hgvs_transcript.posedit.pos.start.datum != Datum.CDS_END and
+                hgvs_transcript.posedit.pos.end.datum != Datum.CDS_END
+            ):
                 residue_one = self.sf.fetch_seq(associated_protein_accession, start_i=1 - 1, end_i=1)
                 #threed_residue_one = utils.one_to_three(residue_one)
                 hgvs_protein = _fb_unc(associated_protein_accession,residue_one)

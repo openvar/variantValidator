@@ -1039,12 +1039,11 @@ class Mixin(vvMixinConverters.Mixin):
 
                                 # convert UTR variants from p.? to p.(?)
                                 try:
-                                    is_5utr = (variant.hgvs_coding.posedit.pos.end.datum ==
-                                               Datum.CDS_START and variant.hgvs_coding.posedit.pos.end.base < 0)
-                                    is_3utr = (variant.hgvs_coding.posedit.pos.start.datum  ==
-                                               Datum.CDS_END)
-
-                                    if is_5utr or is_3utr:
+                                    if (
+                                            variant.hgvs_coding.posedit.pos.end.base < 0 or
+                                            variant.hgvs_coding.posedit.pos.start.datum  ==
+                                               Datum.CDS_END
+                                    ):
                                         logger.info(
                                             f"UTR variant {variant.hgvs_coding} identified. "
                                             f"Updating from p.? to p.(=)"
