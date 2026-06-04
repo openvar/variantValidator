@@ -13,6 +13,7 @@ import vvhgvs.location
 import vvhgvs.posedit
 import vvhgvs.edit
 import vvhgvs.normalizer
+from vvhgvs.enums import Datum
 from vvhgvs.location import AAPosition, Interval
 from vvhgvs.edit import AARefAlt, AAExt, Dup, AAFs
 from vvhgvs.posedit import PosEdit
@@ -398,17 +399,14 @@ class Mixin:
 
         logger.info(f"delSeq: {del_seq} and insSeq: {inv_seq} extracted from {hgvs_transcript}")
         shifts = ''
+
         # Look for p. delins or del
         not_delins = False
         if hgvs_transcript.posedit.edit.type not in ['inv', 'delins']:
             try:
                 shifts = evm.c_to_p(hgvs_transcript)
                 shifts = _remake_unc(shifts,nucleotide_not_equal=nucleotide_not_equal)
-                if "fs" in shifts.posedit.edit.type:
-                    not_delins = True
-                if "ext" in shifts.posedit.edit.type:
-                    not_delins = True
-                if shifts.posedit.edit.type in ["ins", "sub"]:
+                if shifts.posedit.edit.type in ["ins", "sub", "fs", "ext"]:
                     not_delins = True
             except Exception:
                 not_delins = False
@@ -416,11 +414,7 @@ class Mixin:
             try:
                 shifts = evm.c_to_p(hgvs_transcript)
                 shifts = _remake_unc(shifts,nucleotide_not_equal=nucleotide_not_equal)
-                if "fs" in shifts.posedit.edit.type:
-                    not_delins = True
-                if "ext" in shifts.posedit.edit.type:
-                    not_delins = True
-                if shifts.posedit.edit.type in ["ins"]:
+                if shifts.posedit.edit.type in ["ins", "fs", "ext"]:
                     not_delins = True
             except Exception:
                 not_delins = False
@@ -435,36 +429,33 @@ class Mixin:
 
         logger.info("Test for intronic and UTR trapping")
         if (
-                # Intronic variants (HGVS: position+offset or position-offset)
-                # e.g. 123+2, 456-1 → always trap
-                re.search(r'\d+-\d+', str(hgvs_transcript.posedit.pos))
-                or re.search(r'\d+\+\d+', str(hgvs_transcript.posedit.pos))
+                # Intronic variants: offset != 0  (formerly + or - in string)
+                (hgvs_transcript.posedit.pos.start.offset != 0 or
+                 hgvs_transcript.posedit.pos.end.offset != 0)
 
-                # Structural variants (dup/del/inv/ins/delins)
-                # Allow through if they extend outside clean CDS boundaries:
-                # - end contains "-" → extends toward 5′ direction
-                # - start contains "*" → extends into 3′ direction
+                # Structural variants extending outside CDS:
                 or (
-                (any(x in hgvs_transcript.posedit.edit.type for x in ["dup", "del", "inv", "ins"]) and
-                 "-" in str(hgvs_transcript.posedit.pos.end))
-                or
-                (any(x in hgvs_transcript.posedit.edit.type for x in ["dup", "del", "inv", "ins"]) and
-                 "*" in str(hgvs_transcript.posedit.pos.start))
+                hgvs_transcript.posedit.edit.type in ["dup", "del", "inv", "ins", "delins"] and
+                hgvs_transcript.posedit.pos.end.datum == Datum.CDS_START and
+                hgvs_transcript.posedit.pos.end.base < 0
+            )
+                or (
+                hgvs_transcript.posedit.edit.type in ["dup", "del", "inv", "ins", "delins"] and
+                hgvs_transcript.posedit.pos.start.datum == Datum.CDS_END
             )
 
-                # Fully 3′ UTR variants (DOWNSTREAM)
-                # Trap ONLY if BOTH start and end are "*" positions
+                # Fully 3′ UTR (both positions are CDS_END)
                 or (
-                "*" in str(hgvs_transcript.posedit.pos.start)
-                and "*" in str(hgvs_transcript.posedit.pos.end)
+                hgvs_transcript.posedit.pos.start.datum == Datum.CDS_END and
+                hgvs_transcript.posedit.pos.end.datum == Datum.CDS_END
             )
 
-                # Fully 5′ UTR variants (UPSTREAM)
-                # Only trap if BOTH positions START with "-"
-                # Avoids intronic cases like 123-4
+                # Fully 5′ UTR (both negative relative to CDS_START)
                 or (
-                str(hgvs_transcript.posedit.pos.start).startswith('-')
-                and str(hgvs_transcript.posedit.pos.end).startswith('-')
+                hgvs_transcript.posedit.pos.start.datum == Datum.CDS_START and
+                hgvs_transcript.posedit.pos.start.base < 0 and
+                hgvs_transcript.posedit.pos.end.datum == Datum.CDS_START and
+                hgvs_transcript.posedit.pos.end.base < 0
             )
         ):
 
