@@ -19,6 +19,7 @@ from vvhgvs.enums import Datum
 from vvhgvs.location import AAPosition
 from vvhgvs.edit import AASub, AARefAlt, Dup, NARefAlt
 from vvhgvs.posedit import PosEdit
+from .transcript_map_data import TranscriptMapData
 
 # Database connections and hgvs objects are now passed from VariantValidator.py
 
@@ -1286,7 +1287,7 @@ def pre_push_vcf_tx_g_map_fix(norm_hgvs_transcript, un_norm_hgvs, genomic_ac,var
 
 
 
-def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, sf, tx_ac, hdp, alt_aln_method, hp, vm,
+def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, sf, tx_ac, map_dat, alt_aln_method, hp, vm,
                         mrg, genomic_ac=False, mapped_g=False, pre_norm=False):
     """
     Designed specifically for gap handling.
@@ -1297,7 +1298,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
     :param reverse_normalizer:
     :param sf:
     :param tx_ac: Transcipt ac when genomic var is input
-    :param hdp:
+    :param map_dat: cached fetcher/store for transcript mapping data
     :param alt_aln_method:
     :param hp:
     :param vm:
@@ -1451,7 +1452,8 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
         # Set exon boundary
         if genomic_ac is False:
             # Find the boundaries at the genomic level for the current exon
-            exon_set = hdp.get_tx_exons(tx_ac, hgvs_genomic.ac, alt_aln_method)
+            exon_set = map_dat.mapped_exons(
+                    tx_ac, hgvs_genomic.ac, alt_aln_method=alt_aln_method)
             exon_end_genomic = None
             for exon in exon_set:
                 if int(exon[7]) + 1 <= int(pos) <= int(exon[8]):
@@ -1459,7 +1461,8 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                     break
         else:
             # Trick the system using transcript positions
-            exon_set = hdp.get_tx_exons(hgvs_genomic.ac, genomic_ac, alt_aln_method)
+            exon_set = map_dat.mapped_exons(
+                    hgvs_genomic.ac, genomic_ac, alt_aln_method=alt_aln_method)
             exon_end_genomic = None
             for exon in exon_set:
                 if int(exon[5]) + 1 <= int(pos) <= int(exon[6]):
@@ -1530,7 +1533,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
             if normlize_check_mapped.posedit.pos.start.base > normlize_check_mapped.posedit.pos.end.base:
                 needs_a_push = False
                 break
-            if len(normlize_check_mapped.posedit.edit.ref) <= 1:
+            if not normlize_check_mapped.posedit.edit.ref or len(normlize_check_mapped.posedit.edit.ref) <= 1:
                 staging_loop = staging_loop + 1
 
             # exon boundary hit. Break before intron
@@ -1539,12 +1542,12 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                 break
 
             # Check here for the gap (Has it been crossed?) Note: if gap in tx, we have the whole gap spanned
-            elif (((len(normlize_check_mapped.posedit.edit.ref) != len(normlize_check_variant.posedit.edit.ref) and
-                  len(normlize_check_mapped.posedit.edit.ref) > 1))
-                    or
-                    (normlize_check_variant.posedit.edit.type == 'identity')
-                    and len(normlize_check_mapped.posedit.edit.alt) != len(normlize_check_variant.posedit.edit.ref)):
-
+            elif (normlize_check_mapped.posedit.edit.ref and
+                  ((len(normlize_check_mapped.posedit.edit.ref) != len(normlize_check_variant.posedit.edit.ref) and
+                    len(normlize_check_mapped.posedit.edit.ref) > 1))
+                  or
+                  (normlize_check_variant.posedit.edit.type == 'identity')
+                  and len(normlize_check_mapped.posedit.edit.alt) != len(normlize_check_variant.posedit.edit.ref)):
                 # Add the identifying variant
                 identifying_variant = normlize_check_variant
 
@@ -1694,9 +1697,9 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                         else:
                             try:
                                 if v1.posedit.pos.start.base < v2.posedit.pos.start.base:
-                                    pre_merged_variant = mrg([v1, v2], reverse_normalizer, final_norm=False)
+                                    pre_merged_variant = mrg([v1, v2], reverse_normalizer, final_norm=False, map_dat=map_dat)
                                 else:
-                                    pre_merged_variant = mrg([v2, v1], reverse_normalizer, final_norm=False)
+                                    pre_merged_variant = mrg([v2, v1], reverse_normalizer, final_norm=False, map_dat=map_dat)
                                 if "g" in pre_merged_variant.type:
                                     merged_variant = vm.g_to_n(pre_merged_variant, tx_ac)
                                 else:
@@ -1874,9 +1877,9 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                         else:
                             try:
                                 if v1.posedit.pos.start.base < v2.posedit.pos.start.base:
-                                    pre_merged_variant = mrg([v1, v2], reverse_normalizer, final_norm=False)
+                                    pre_merged_variant = mrg([v1, v2], reverse_normalizer, final_norm=False, map_dat=map_dat)
                                 else:
-                                    pre_merged_variant = mrg([v2, v1], reverse_normalizer, final_norm=False)
+                                    pre_merged_variant = mrg([v2, v1], reverse_normalizer, final_norm=False, map_dat=map_dat)
                                 if "g" in pre_merged_variant.type:
                                     merged_variant = vm.g_to_n(pre_merged_variant, tx_ac)
                                 else:
@@ -1884,9 +1887,9 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                             except utils.mergeHGVSerror:
                                 try:
                                     if v1.posedit.pos.start.base < v2.posedit.pos.start.base:
-                                        pre_merged_variant = mrg([v1, v2], hn, final_norm=False)
+                                        pre_merged_variant = mrg([v1, v2], hn, final_norm=False, map_dat=map_dat)
                                     else:
-                                        pre_merged_variant = mrg([v2, v1], hn, final_norm=False)
+                                        pre_merged_variant = mrg([v2, v1], hn, final_norm=False, map_dat=map_dat)
                                     if "g" in pre_merged_variant.type:
                                         merged_variant = vm.g_to_n(pre_merged_variant, tx_ac)
                                     else:
@@ -1964,7 +1967,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
     vcf_dict['needs_a_push'] = needs_a_push
     return vcf_dict
 
-def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, sf, tx_ac, hdp, alt_aln_method,
+def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, sf, tx_ac, map_dat, alt_aln_method,
                        hp, vm, mrg, genomic_ac=False, mapped_g=False, pre_norm=False ):
     """
     Designed specifically for gap handling.
@@ -1975,7 +1978,7 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
     :param reverse_normalizer:
     :param sf:
     :param tx_ac:
-    :param hdp:
+    :param map_dat: cached fetcher/store for transcript mapping data
     :param alt_aln_method:
     :param hp:
     :param vm:
@@ -2129,7 +2132,8 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
         # Set exon boundary
         if genomic_ac is False:
             # Find the boundaries at the genomic level for the current exon
-            exon_set = hdp.get_tx_exons(tx_ac, hgvs_genomic.ac, alt_aln_method)
+            exon_set = map_dat.mapped_exons(
+                    tx_ac, hgvs_genomic.ac, alt_aln_method=alt_aln_method)
             exon_start_genomic = None
             for exon in exon_set:
                 if int(exon[7]) + 1 <= int(pos) <= int(exon[8]):
@@ -2137,7 +2141,8 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
                     break
         else:
             # Trick the system using transcript positions
-            exon_set = hdp.get_tx_exons(hgvs_genomic.ac, genomic_ac, alt_aln_method)
+            exon_set = map_dat.mapped_exons(
+                    hgvs_genomic.ac, genomic_ac, alt_aln_method=alt_aln_method)
             exon_start_genomic = None
             for exon in exon_set:
                 if int(exon[5]) + 1 <= int(pos) <= int(exon[6]):
@@ -2189,11 +2194,14 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
             if normlize_check_mapped.posedit.pos.start.base > normlize_check_mapped.posedit.pos.end.base:
                 needs_a_push = False
                 break
-            if len(normlize_check_mapped.posedit.edit.ref) <= 1:
+
+            if not normlize_check_mapped.posedit.edit.ref or len(normlize_check_mapped.posedit.edit.ref) <= 1:
                 staging_loop = staging_loop + 1
 
             # Check here for the gap (Has it been crossed?) Note: if gap in tx, we have the whole gap spanned
-            if (((len(normlize_check_mapped.posedit.edit.ref) != len(normlize_check_variant.posedit.edit.ref) and
+            #
+            if ((normlize_check_mapped.posedit.edit.ref and
+                (len(normlize_check_mapped.posedit.edit.ref) != len(normlize_check_variant.posedit.edit.ref) and
                   len(normlize_check_mapped.posedit.edit.ref) > 1))
                     or
                     (normlize_check_variant.posedit.edit.type == 'identity')
@@ -2327,9 +2335,9 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
                         else:
                             try:
                                 if v1.posedit.pos.start.base < v2.posedit.pos.start.base:
-                                    pre_merged_variant = mrg([v1, v2], reverse_normalizer, final_norm=False)
+                                    pre_merged_variant = mrg([v1, v2], reverse_normalizer, final_norm=False, map_dat=map_dat)
                                 else:
-                                    pre_merged_variant = mrg([v2, v1], reverse_normalizer, final_norm=False)
+                                    pre_merged_variant = mrg([v2, v1], reverse_normalizer, final_norm=False, map_dat=map_dat)
                                 if "g" in pre_merged_variant.type:
                                     merged_variant = vm.g_to_n(pre_merged_variant, tx_ac)
                                 else:
@@ -2553,9 +2561,9 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
                         else:
                             try:
                                 if v1.posedit.pos.start.base < v2.posedit.pos.start.base:
-                                    pre_merged_variant = mrg([v1, v2], reverse_normalizer, final_norm=False)
+                                    pre_merged_variant = mrg([v1, v2], reverse_normalizer, final_norm=False, map_dat=map_dat)
                                 else:
-                                    pre_merged_variant = mrg([v2, v1], reverse_normalizer, final_norm=False)
+                                    pre_merged_variant = mrg([v2, v1], reverse_normalizer, final_norm=False, map_dat=map_dat)
                                 if "g" in pre_merged_variant.type:
                                     # identifying_g_variant = pre_merged_variant
                                     merged_variant = vm.g_to_n(pre_merged_variant, tx_ac)
@@ -2689,7 +2697,7 @@ def hgvs_ref_alt(hgvs_variant, sf):
 
 def incomplete_alignment_mapping_t_to_g(validator, variant):
     output = None
-    mapping_options = validator.hdp.get_tx_mapping_options(variant.input_parses.ac)
+    mapping_options = variant.map_dat.mapping_options(variant.input_parses.ac,hdp=validator.hdp)
     for option in mapping_options:
         if option[2] == validator.alt_aln_method and "NC_" not in option[1]:
             in_assembly = seq_data.to_chr_num_refseq(option[1], variant.primary_assembly)

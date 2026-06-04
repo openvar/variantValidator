@@ -1,6 +1,6 @@
 import re
 from . import utils as fn
-
+from .transcript_map_data import TranscriptMapData
 
 class Variant(object):
     """
@@ -63,6 +63,7 @@ class Variant(object):
         self.min_evm = None
         self.lose_vm = None
         self.no_replace_vm = None
+        self.map_dat = TranscriptMapData()
 
         # Required for output
         self.stable_gene_ids = None
@@ -79,6 +80,7 @@ class Variant(object):
         self.validated = False
         self.exonic_positions = None
         self.rna_data = None
+
 
     def is_ascii(self):
         """

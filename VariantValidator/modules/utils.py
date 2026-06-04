@@ -36,7 +36,19 @@ PROT_TRANSLATION_DICT = {
 PROT_TRANSLATION_DICT_SEL = copy.copy(PROT_TRANSLATION_DICT)
 PROT_TRANSLATION_DICT_SEL['TGA'] = 'U'
 
+DNA_TRANS_TBL = str.maketrans("ACTG", "TGAC")
 
+def simple_dna_revcomp(dna):
+    """
+    Simplest possible reverse compliment, for use on validated input and
+    DNA (or cDNA) of known origin.
+
+    Multiple online published performance benchmarks put this method at
+    the top of the performance comparison for simple DNA reverse
+    compliment, VS loop based and dict lookup among others.
+    Biopython does(did?) the same internally, but adds extra checks.
+    """
+    return dna.upper().translate(DNA_TRANS_TBL)[::-1]
 
 def handleCursor(func):
     """
@@ -619,7 +631,7 @@ def get_exon_boundary_list(variant, validator):
     transcript = variant.quibble.split(':')[0]
     if transcript.startswith('NM_' or 'NR_' or 'ENST'):
         # Get alignment options and identify the relevant primary assembly chrom
-        mapping_options = validator.hdp.get_tx_mapping_options(transcript)
+        mapping_options = variant.map_dat.mapping_options(transcript,hdp=validator.hdp)
         chromosome_reference = None
         for option in mapping_options:
             is_in_assembly = seq_data.to_chr_num_refseq(option[1], variant.primary_assembly)
@@ -643,7 +655,10 @@ def get_exon_boundary_list(variant, validator):
             cds_end = 0
 
         # Get the exon boundaries of the transcript
-        exons = validator.hdp.get_tx_exons(transcript, chromosome_reference, validator.alt_aln_method)
+        exons = variant.map_dat.mapped_exons(
+                transcript, chromosome_reference,
+                alt_aln_method=validator.alt_aln_method,
+                hdp=validator.hdp)
 
         # Extract the exon boundaries
         exon_boundaries = []

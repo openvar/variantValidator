@@ -21,6 +21,7 @@ import vvhgvs
 from vvhgvs.alignmentmapper import AlignmentMapper
 from vvhgvs.location import BaseOffsetInterval, Interval
 
+from .transcript_map_data import TranscriptMapData
 from .hgvs_utils import hgvs_delins_parts_to_hgvs_obj, \
         _hgvs_offset_pos_from_str_in
 # Set up logger
@@ -61,6 +62,7 @@ class TandemRepeats:
         build,
         select_transcripts,
         variant_str,
+        map_dat=False
     ):
         """
         This initialised an instance of the class with set class vars.
@@ -91,6 +93,9 @@ class TandemRepeats:
         self.g_strand = 1 # only valid for intronic +/-1
         self.evm = False
         self.no_norm_evm = False
+        self.map_dat = map_dat
+        if not self.map_dat:
+            self.map_dat = TranscriptMapData()
         self.genomic_conversion = None
         self.original_position = None
         self.reference_sequence_bases = None
@@ -490,9 +495,8 @@ class TandemRepeats:
                         f" found {repeat_count} in reference sequence "
                         f"'{seq_check.posedit.edit.ref}'.")
 
-                self.g_strand = validator.hdp.get_tx_exons(
-                        self.reference, intronic_genomic_variant.ac,
-                        validator.alt_aln_method)[0][3]
+                self.g_strand = self.map_dat.map_strand(
+                        self.reference,intronic_genomic_variant.ac,hdp=validator.hdp)
                 # this is re-expanded later from the first base, to handle truncated input
                 if  self.g_strand == -1:
                     self.variant_position.start = copy.copy(self.variant_position.end)
@@ -518,9 +522,8 @@ class TandemRepeats:
                         self.repeat_sequence,
                         )
                 intronic_genomic_variant = self.no_norm_evm.t_to_g(intronic_variant)
-                self.g_strand = validator.hdp.get_tx_exons(
-                        intronic_variant.ac, intronic_genomic_variant.ac,
-                        validator.alt_aln_method)[0][3]
+                self.g_strand = self.map_dat.map_strand(
+                        intronic_variant.ac,intronic_genomic_variant.ac,hdp=validator.hdp)
                 self.variant_position = intronic_genomic_variant.posedit.pos
 
             self.intronic_g_reference = intronic_genomic_variant.ac
@@ -776,9 +779,11 @@ class TandemRepeats:
                 self.original_position.end.offset)):
             return
 
-        exon_data = validator.hdp.get_tx_exons(self.reference,
-                                               self.genomic_conversion.ac,
-                                               validator.alt_aln_method)
+        exon_data = self.map_dat.mapped_exons(
+                self.reference,
+                self.genomic_conversion.ac,
+                hdp=validator.hdp,
+                alt_aln_method=validator.alt_aln_method)
         transcript_exon_pos = []
         if  self.prefix == 'c':
             self._get_c_tx_info(validator)

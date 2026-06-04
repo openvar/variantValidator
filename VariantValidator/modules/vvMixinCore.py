@@ -1289,6 +1289,7 @@ class Mixin(vvMixinConverters.Mixin):
                                                            build_to, variant.hn, variant.reverse_normalizer,
                                                            variant.evm,
                                                            self,
+                                                           map_dat=variant.map_dat,
                                                            specify_tx=False,
                                                            liftover_level=liftover_level,
                                                            g_to_g=g_to_g,
@@ -1322,35 +1323,10 @@ class Mixin(vvMixinConverters.Mixin):
                             for build_key, accession_dict in list(lifted_response.items()):
                                 try:
                                     accession_key = list(accession_dict.keys())[0]
-                                    for k, v in accession_dict.items():
-                                        hgvs = v["hgvs_genomic_description"].posedit
-                                        edit = hgvs.edit
-
-                                        # Extract HGVS coordinates and edit type (do NOT mutate)
-                                        start = int(hgvs.pos.start.base)
-                                        end = int(hgvs.pos.end.base)
-                                        variant_type = edit.type  # 'del', 'dup', 'inv'
-
-                                        # Only apply SV-style formatting for large variants
-                                        if (variant_type in ["del", "dup", "inv"]
-                                                and len(edit.ref) >= 50):
-
-                                            # Overwrite/standardise VCF-style fields if still needed
-                                            v["vcf"]["pos"] = str(start)  # VCF left anchor convention
-                                            v["vcf"]["ref"] = str(end)
-                                            v["vcf"]["alt"] = variant_type.upper()
-
-                                        else:
-                                            # Small variants: keep original VCF-style representation
-                                            # (no SV transformation)
-                                            pass
-
-
                                     if accession_dict[accession_key]['hgvs_genomic_description'].ac.startswith('NC_'):
                                         primary_assembly_loci[build_key.lower()] = accession_dict[accession_key]
                                     else:
                                         alt_genomic_loci.append({build_key.lower(): accession_dict[accession_key]})
-
                                 # KeyError if the dicts are empty
                                 except KeyError:
                                     continue
@@ -1609,12 +1585,39 @@ class Mixin(vvMixinConverters.Mixin):
                 else:
                     variant.hgvs_refseqgene_variant = ''
                 hgd = "hgvs_genomic_description"
+                def _vcf_abrv(hgvs,vcf,max_non_abrv_len=100):
+                    """
+                    Abbreviate long del/dup/ins type vcf
+                    Use start-stop as pos ref N alt as type,
+                    not pos as start ref and alt as (extra long seq"""
+                    try:
+                        # only shorten vcf if ref based and long
+                        # (and not uncertain which should not have vcf data)
+                        if hgvs.posedit.edit.type not in ["del", "dup", "inv"] or \
+                                len(hgvs.posedit.edit.ref) <= max_non_abrv_len or \
+                                hgvs.posedit.uncertain or hgvs.posedit.pos.uncertain:
+                            return vcf
+                    except AttributeError:
+                        # hgvs can still be text, not object, for some ambig pos, and MT, data
+                        return vcf
+                    # Overwrite/standardise VCF-style fields if still needed
+                    vcf["pos"] = f'{str(hgvs.posedit.pos.start.base)}-{str(hgvs.posedit.pos.end.base)}'
+                    vcf["ref"] = 'N'
+                    vcf["alt"] = hgvs.posedit.edit.type.upper()
+                    return vcf
 
                 for gen in variant.primary_assembly_loci.keys():
+                    variant.primary_assembly_loci[gen]['vcf'] = _vcf_abrv(
+                            variant.primary_assembly_loci[gen][hgd],
+                            variant.primary_assembly_loci[gen]['vcf'])
                     variant.primary_assembly_loci[gen][hgd] = \
                         variant.primary_assembly_loci[gen][hgd].format({'max_ref_length': 0})
+
                 for loc in variant.alt_genomic_loci:
                     for gen in loc.keys():
+                        loc[gen]['vcf'] = _vcf_abrv(
+                            loc[gen][hgd],
+                            loc[gen]['vcf'])
                         loc[gen][hgd] = loc[gen][hgd].format({'max_ref_length': 0})
 
                 # Append to a list for return
