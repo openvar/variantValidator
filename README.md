@@ -144,7 +144,8 @@ For installation instructions please see [INSTALLATION.md](https://github.com/op
 ## Operation Manuals
 
 **VariantValidator Python library**
-Please see [MANUAL.md](docs/MANUAL.md). Note that the latest version is not compatible with previous releases.
+Please see [MANUAL.md](docs/MANUAL.md). 
+Note that the latest version is not compatible with previous releases.
 
 **VariantValidator REST API**
 please see [MANUAL.md](https://github.com/openvar/rest_variantValidator/blob/master/docs/MANUAL.md)
@@ -154,7 +155,7 @@ Please refer to [CONTRIBUTING.md](https://github.com/openvar/variantValidator/bl
 
 ## Acknowledgements
 
-**VariantValidator was developed at the University of Leicester. It is now maintained and developed by the University of Manchester and is hosted (with ongoing development contributions) by the University of Leicester**
+**VariantValidator was developed at the University of Leicester (2016-2019). It is now maintained and developed by the University of Manchester and is hosted (with ongoing development contributions) by the University of Leicester**
 
 <img src="https://github.com/i3hsInnovation/resources/blob/master/images/UoM_logo.jpg?raw=true" width="40%" align="left"/>
 <img src="https://github.com/i3hsInnovation/resources/blob/master/images/UoL-Logo-Full-Colour.png?raw=true" width="40%" align="right" />
