@@ -16,6 +16,7 @@ from . import utils
 from pyliftover import LiftOver
 import copy
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj
+from VariantValidator.modules.transcript_map_data import TranscriptMapData
 
 # Pre compile variables
 vvhgvs.global_config.formatting.max_ref_length = 1000000
@@ -26,7 +27,8 @@ LO_CACHE = {}
 
 def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, validator,
              specify_tx=False, liftover_level=False, g_to_g=False, gap_map=False, vfo=False,
-             specified_tx_variant=False, genomic_data_w_vcf=False, force_pyliftover=False):
+             specified_tx_variant=False, genomic_data_w_vcf=False, force_pyliftover=False,
+             map_dat = False):
     """
     Step 1, attempt to liftover using a common RefSeq transcript
     Step 2, attempt to liftover using PyLiftover.
@@ -171,13 +173,15 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
 
     # Try to liftover
     if tx_list is not False and force_pyliftover is False:
+        if not map_dat:
+            map_dat = TranscriptMapData(hdp=validator.hdp)
         selected = []
         # Liftover via a specific tx if it can be done!
         if specify_tx is not False:
             tx_list = [specify_tx]
         for tx in tx_list:
             # identify the first transcript if any
-            options = validator.hdp.get_tx_mapping_options(tx)
+            options = map_dat.mapping_options(tx,hdp=validator.hdp)
             for op in options:
                 sff = None
                 sft = None
@@ -280,11 +284,11 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
                         else:
                             try:
                                 hgvs_alt_genomic = validator.myvm_t_to_g(specified_tx_variant, hgvs_alt_genomic.ac,
-                                                                         no_norm_evm, hn)
+                                                                         no_norm_evm,hn, map_dat)
                             except AttributeError:
                                 if specified_tx_variant is None:
                                     hgvs_alt_genomic = validator.myvm_t_to_g(hgvs_tx, hgvs_alt_genomic.ac,
-                                                                             no_norm_evm, hn)
+                                                                             no_norm_evm,hn,map_dat)
 
                             if str(check_current_alt_genomic) != str(hgvs_alt_genomic):
                                 am_i_gapped = {"gapped_alignment_warning": f"Variant {utils.valstr(hgvs_alt_genomic)} may "

@@ -282,7 +282,7 @@ class TestVariantsEnsembl(TestCase):
         # assert results['ENST00000330597.3:c.*127A>T']['refseqgene_context_intronic_sequence'] == ''
         # assert results['ENST00000330597.3:c.*127A>T']['hgvs_refseqgene_variant'] == 'NG_059281.1:g.5070A>T'
         assert results['ENST00000330597.3:c.*127A>T']['hgvs_predicted_protein_consequence'] == {
-            'tlr': 'ENSP00000327431.3:p.?', 'slr': 'ENSP00000327431.3:p.?'}
+            'tlr': 'ENSP00000327431.3:p.(=)', 'slr': 'ENSP00000327431.3:p.(=)'}
         # assert results['ENST00000330597.3:c.*127A>T']['hgvs_lrg_transcript_variant'] == 'LRG_1232t1:c.20A>T'
         # assert results['ENST00000330597.3:c.*127A>T']['hgvs_lrg_variant'] == 'LRG_1232:g.5070A>T'
         self.assertCountEqual(results['ENST00000330597.3:c.*127A>T']['alt_genomic_loci'], [])

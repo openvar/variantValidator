@@ -13,6 +13,7 @@ import vvhgvs.location
 import vvhgvs.posedit
 import vvhgvs.edit
 import vvhgvs.normalizer
+from vvhgvs.enums import Datum
 from vvhgvs.location import AAPosition, Interval
 from vvhgvs.edit import AARefAlt, AAExt, Dup, AAFs
 from vvhgvs.posedit import PosEdit
@@ -326,7 +327,9 @@ class Mixin:
             # Does the edit affect the start codon?
             if ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and hgvs_transcript.posedit.pos.start.offset == 0)
                 or (1 <= hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset
-                    == 0)) and '*' not in str(hgvs_transcript.posedit.pos):
+                    == 0)) and (hgvs_transcript.posedit.pos.start.datum != Datum.CDS_END and
+                hgvs_transcript.posedit.pos.end.datum != Datum.CDS_END
+            ):
                 residue_one = self.sf.fetch_seq(associated_protein_accession, start_i=1 - 1, end_i=1)
                 hgvs_protein = _fb_unc(associated_protein_accession,residue_one)
             else:
@@ -396,48 +399,75 @@ class Mixin:
         elif 'ins' in hgvs_transcript.posedit.edit.type:
             inv_seq = f"{del_seq[0]}{hgvs_transcript.posedit.edit.alt}{del_seq[-1]}"
 
+        logger.info(f"delSeq: {del_seq} and insSeq: {inv_seq} extracted from {hgvs_transcript}")
         shifts = ''
+
         # Look for p. delins or del
-        not_delins = True
-        if hgvs_transcript.posedit.edit.type != 'inv':
+        not_delins = False
+        if hgvs_transcript.posedit.edit.type not in ['inv', 'delins']:
             try:
                 shifts = evm.c_to_p(hgvs_transcript)
                 shifts = _remake_unc(shifts,nucleotide_not_equal=nucleotide_not_equal)
-                if "identity" in shifts.posedit.edit.type:
-                    not_delins = False
-                if 'del' in shifts.posedit.edit.type or 'dup' in shifts.posedit.edit.type:
-                    not_delins = False
-                if "fs" in shifts.posedit.edit.type:
+                if shifts.posedit.edit.type in ["ins", "sub", "fs", "ext"]:
                     not_delins = True
             except Exception:
                 not_delins = False
         else:
-            not_delins = False
+            try:
+                shifts = evm.c_to_p(hgvs_transcript)
+                shifts = _remake_unc(shifts,nucleotide_not_equal=nucleotide_not_equal)
+                if shifts.posedit.edit.type in ["ins", "fs", "ext"]:
+                    not_delins = True
+            except Exception:
+                not_delins = False
 
         if not_delins:
             hgvs_transcript_to_hgvs_protein['hgvs_protein'] = shifts
             return hgvs_transcript_to_hgvs_protein
+
         # Use inv delins code?
         # Collect the associated protein
         associated_protein_accession = self.hdp.get_pro_ac_for_tx_ac(hgvs_transcript.ac)
 
-        # Intronic inversions are marked as uncertain i.e. p.?
-        if re.search(r'\d+-', str(hgvs_transcript.posedit.pos)) \
-                or re.search(r'\d+\+', str(hgvs_transcript.posedit.pos)) \
-                or re.search(r'\*', str(hgvs_transcript.posedit.pos)) \
-                or (re.search(r'[cn].-', str(hgvs_transcript)
-                              ) and "dup" not in hgvs_transcript.posedit.edit.type) or (
-                ("dup" in hgvs_transcript.posedit.edit.type and
-                 "-" in str(hgvs_transcript.posedit.pos.end))
-                or
-                ("dup" in hgvs_transcript.posedit.edit.type and
-                 "*" in str(hgvs_transcript.posedit.pos.start))
-                ):
+        logger.info("Test for intronic and UTR trapping")
+        if (
+                # Intronic variants: offset != 0  (formerly + or - in string)
+                (hgvs_transcript.posedit.pos.start.offset != 0 or
+                 hgvs_transcript.posedit.pos.end.offset != 0)
 
-            if ((1 <= hgvs_transcript.posedit.pos.start.base <= 3 and
-                hgvs_transcript.posedit.pos.start.offset == 0) or (1 <=
-                hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset == 0))\
-                    and '*' not in str(hgvs_transcript.posedit.pos):
+                # Structural variants extending outside CDS:
+                or (
+                hgvs_transcript.posedit.edit.type in ["dup", "del", "inv", "ins", "delins"] and
+                hgvs_transcript.posedit.pos.end.datum == Datum.CDS_START and
+                hgvs_transcript.posedit.pos.end.base < 0
+            )
+                or (
+                hgvs_transcript.posedit.edit.type in ["dup", "del", "inv", "ins", "delins"] and
+                hgvs_transcript.posedit.pos.start.datum == Datum.CDS_END
+            )
+
+                # Fully 3′ UTR (both positions are CDS_END)
+                or (
+                hgvs_transcript.posedit.pos.start.datum == Datum.CDS_END and
+                hgvs_transcript.posedit.pos.end.datum == Datum.CDS_END
+            )
+
+                # Fully 5′ UTR (both negative relative to CDS_START)
+                or (
+                hgvs_transcript.posedit.pos.start.base < 0 and hgvs_transcript.posedit.pos.end.base < 0
+            )
+        ):
+
+            logger.info("Translation passed into intronic handling code")
+
+            if (
+                    (1 <= hgvs_transcript.posedit.pos.start.base <= 3 and hgvs_transcript.posedit.pos.start.offset == 0)
+                    or
+                    (1 <= hgvs_transcript.posedit.pos.end.base <= 3 and hgvs_transcript.posedit.pos.end.offset == 0)
+                    and
+                    (hgvs_transcript.posedit.pos.start.datum == Datum.CDS_END and
+                     hgvs_transcript.posedit.pos.end.datum == Datum.CDS_END)
+            ):
 
                 residue_one = self.sf.fetch_seq(associated_protein_accession, start_i=1 - 1, end_i=1)
                 hgvs_protein = _fb_unc(associated_protein_accession,residue_one)
@@ -448,6 +478,8 @@ class Mixin:
             return hgvs_transcript_to_hgvs_protein
 
         # Need to obtain the cds_start
+        logger.info(f"Variant is not intronic and is not fully UTR, translate {hgvs_transcript} "
+                    f"converted to {hgvs_naughty}")
         inf = self.hdp.get_tx_identity_info(hgvs_transcript.ac)
         cds_start = inf[3]
         cds_end = inf[4]
@@ -465,7 +497,8 @@ class Mixin:
                                     hgvs_naughty.posedit.pos.start.base,
                                     hgvs_naughty.posedit.pos.end.base)
 
-        logger.info(f"\nReference sequence:\n{ref_seq}\nDeletion sequence:\n{del_seq}\nInserted sequence:\n{inv_seq}\nVar sequence:\n{var_seq}")
+        logger.info(f"Reference sequence:\n{ref_seq}\nDeletion sequence:\n{del_seq}\n"
+                    f"Inserted sequence:\n{inv_seq}\nVar sequence:\n{var_seq}")
 
         # Check for modified amino acids
         prot_seq = self.sf.fetch_seq(associated_protein_accession)
@@ -534,7 +567,9 @@ class Mixin:
                  hgvs_transcript.posedit.pos.start.offset == 0) or (
                     1 <= hgvs_transcript.posedit.pos.end.base <= 3 and
                     hgvs_transcript.posedit.pos.end.offset == 0)) \
-                    and '*' not in str(hgvs_transcript.posedit.pos):
+                    and (hgvs_transcript.posedit.pos.start.datum != Datum.CDS_END and
+                hgvs_transcript.posedit.pos.end.datum != Datum.CDS_END
+            ):
                 residue_one = self.sf.fetch_seq(associated_protein_accession, start_i=1 - 1, end_i=1)
                 #threed_residue_one = utils.one_to_three(residue_one)
                 hgvs_protein = _fb_unc(associated_protein_accession,residue_one)
@@ -595,6 +630,10 @@ class Mixin:
                                              - len(ref_seq))
                     plus = True
 
+            ########################
+            #  Standard Frame Shifts
+            ########################
+
             # Do we have an in-frame variant i.e. divisible by 3?
             in_frame = False
             if minus is True:
@@ -617,6 +656,62 @@ class Mixin:
         logger.info(f"RefSeq: {prot_ref_seq}")
         logger.info(f"VarSeq: {prot_var_seq}")
         logger.info(f"pro_inv_info: {pro_inv_info}")
+
+        ######################################
+        #  Ter codon interruption frame shifts
+        ######################################
+        if (
+                ("del" in str(hgvs_naughty.posedit.edit)
+                 or "inv" in str(hgvs_naughty.posedit.edit))
+            and
+                (hgvs_naughty.posedit.pos.start.base < cds_end <= hgvs_naughty.posedit.pos.end.base)
+            and pro_inv_info["prot_del_seq"][0] != "*"
+        ):
+
+            logger.info(f"Variant {hgvs_transcript} starts upstream of the stop codon, and ends in or "
+                        f"after the stop codon, could be a frame-shift")
+            logger.info(f"pro_inv_info: {pro_inv_info}")
+            if (("*" not in pro_inv_info["prot_ins_seq"] and "*" not in pro_inv_info["prot_del_seq"])
+                    or (pro_inv_info["prot_ins_seq"][-1] == "*" and pro_inv_info["prot_del_seq"][-1] == "*")
+                    or hgvs_transcript.posedit.edit.type == "del"):
+
+                logger.info("Identified unhandled frameshift in pro_inv_info['pro_ins_seq']")
+
+                ref = pro_inv_info['prot_del_seq'][0]  # "D"
+                alt = pro_inv_info['prot_ins_seq'][0]  # "U"
+
+                length = pro_inv_info['prot_ins_seq'].find("*")
+                length = length if length >= 0 else None
+                if length is None and pro_inv_info['terminate'] == "true":
+                    length = pro_inv_info['ter_pos'] - pro_inv_info['edit_start']
+                length = length+1
+                logger.info(f"length: {length}")
+
+                posedit = PosEdit(
+                    pos=Interval(
+                        start=AAPosition(
+                            base=pro_inv_info['edit_start'],
+                            aa=ref # THIS is the fix
+                        ),
+                        end=AAPosition(
+                            base=pro_inv_info['edit_start'],
+                            aa=ref
+                        )
+                    ),
+                    edit=AAFs(
+                        ref=ref,
+                        alt=alt,
+                        length=length,
+                    ),
+                    uncertain=True
+                )
+                logger.info(f"Posedit updated to {posedit}")
+                hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(
+                    ac=associated_protein_accession, type='p', posedit=posedit)
+
+                hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
+                return hgvs_transcript_to_hgvs_protein
+
 
         # Error has occurred
         if pro_inv_info['error'] == 'true':
@@ -753,8 +848,9 @@ class Mixin:
                     edit=AAFs(
                         ref=ref,
                         alt=alt,
-                        length=length
-                    )
+                        length=length,
+                    ),
+                    uncertain=True
                 )
                 logger.info(f"Posedit updated to {posedit}")
                 hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(

@@ -8,6 +8,7 @@ from .variant import Variant
 from . import seq_data
 from . import utils as fn
 from . import gapped_mapping
+from .gapped_mapping import immediate_round_trip_gap_ins_handling
 from operator import itemgetter
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
         unset_hgvs_obj_ref
@@ -23,7 +24,9 @@ class TranscriptMappingError(Exception):
 def gene_to_transcripts(variant, validator, select_transcripts_dict):
     logger.info(f"Mapping {variant.hgvs_formatted} to transcripts")
     g_query = variant.hgvs_formatted
-
+    # set hdp for exon mapping fetch before first use
+    if not variant.map_dat.hdp:
+        variant.map_dat.hdp = validator.hdp
     # Genomic coordinates can be validated immediately
     error = 'false'
     try:
@@ -77,7 +80,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
             try:
                 hgvs_coding_variant.rel_ac = ''
                 variant.hgvs_genomic = validator.myevm_t_to_g(hgvs_coding_variant, variant.no_norm_evm,
-                                                              variant.primary_assembly, variant.hn)
+                                                              variant.primary_assembly, variant.hn,variant)
             except vvhgvs.exceptions.HGVSError:
                 try_rel_var = []
             else:
@@ -119,6 +122,22 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
         "described variation in the genomic sequence. Large variants might span"
         " one or more genes and are currently only described at the genome (g.)"
         " level.")
+
+    # Now handle the loss of relevant variants caused by select_transcripts.
+    # Settings like mane, mane_select, etc can reset rel_var to empty, and we
+    # need to know this before the rel_var empty detection/handling steps.
+    unrestricted_map_found = False
+    if len(rel_var):
+        unrestricted_map_found = True
+        gap_mapper = gapped_mapping.GapMapper(variant, validator)
+        try:
+            var_dat, nw_rel_var = gap_mapper.gapped_g_to_c(rel_var, select_transcripts_dict)
+        except Exception as e:
+            logger.info(f"nw_rel_var creation failed with exception {str(e)}")
+            raise TranscriptMappingError(f"Encountered an issue when mapping genomic description "
+                                         f"{variant.hgvs_formatted} to available transcripts")
+
+        rel_var = nw_rel_var
 
     if len(rel_var) == 0:
         # Check for NG_
@@ -187,6 +206,11 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                         error = (f'None of the specified transcripts ({validator.select_transcripts}) '
                                  f'fully overlap the described variation in '
                                  f'the genomic sequence. Try selecting one of the default options')
+                    elif validator.select_transcripts not in ['raw'] and unrestricted_map_found:
+                        error = ('Transcripts were found but the current transcript type limitation (of '
+                                 f'{validator.select_transcripts}) removed all transcripts that overlap '
+                                 'the described variation in the genomic sequence. You may want to try '
+                                 'selecting less restrictive setting for this variant.')
                     else:
                         error = no_tx_found_error
                     # set output type flag
@@ -208,35 +232,27 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
     else:
         # Tag the line so that it is not written out
         variant.write = False
-        gap_mapper = gapped_mapping.GapMapper(variant, validator)
-        try:
-            data, nw_rel_var = gap_mapper.gapped_g_to_c(rel_var, select_transcripts_dict)
-        except Exception as e:
-            logger.info(f"nw_rel_var creation failed with exception {str(e)}")
-            raise TranscriptMappingError(f"Encountered an issue when mapping genomic description "
-                                         f"{variant.hgvs_formatted} to available transcripts")
-
-        rel_var = nw_rel_var
         auto_info_list = []
-        if data["gapped_alignment_warning"] != "":
-            data["auto_info"] = data["auto_info"].replace("NM_", ";NM_")
-            data["auto_info"] = data["auto_info"].replace("NR_", ";NR_")
-            auto_info_list = data["auto_info"].split(";")
-
+        if var_dat["gapped_alignment_warning"] != "":
+            var_dat["auto_info"] = var_dat["auto_info"].replace("NM_", ";NM_")
+            var_dat["auto_info"] = var_dat["auto_info"].replace("NR_", ";NR_")
+            auto_info_list = var_dat["auto_info"].split(";")
         # Set the values and append to batch_list
         for c_description in rel_var:
             # Add gap warnings
             gap_warnings = []
-            if data["gapped_alignment_warning"] != "":
+            if var_dat["gapped_alignment_warning"] != "":
                 for aut_inf in auto_info_list:
                     if c_description.ac in aut_inf:
-                        gap_warnings.append(data["gapped_alignment_warning"])
+                        gap_warnings.append(var_dat["gapped_alignment_warning"])
                         gap_warnings.append(aut_inf)
 
             query = Variant(variant.original, quibble=c_description, warnings=variant.warnings + gap_warnings,
                             primary_assembly=variant.primary_assembly, order=variant.order,
                             selected_assembly=variant.selected_assembly, reformat_output=variant.reformat_output,
                             expanded_repeat=variant.expanded_repeat)
+            # since we already fetched the exon mappings etc and python uses just a pointer for this set map_dat
+            query.map_dat = variant.map_dat
             validator.batch_list.append(query)
             logger.info("Submitting new variant with format %s", str(c_description))
 
@@ -287,6 +303,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                 variant.no_norm_evm,
                 variant.primary_assembly,
                 variant.hn,
+                variant,
                 reset_g_origin=reset_g_origin)
         genomic_ac = to_g.ac
 
@@ -308,7 +325,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         if 'does not agree with reference sequence' not in str(e):
             errors.append('Required information for ' + tx_ac + ' is missing from the Universal Transcript Archive')
             errors.append('Query gene2transcripts with search term %s for available transcripts' % tx_ac.split('.')[0])
-        
+
         if 'does not agree with reference sequence' in str(e):
             errors.append(str(e))
         
@@ -389,7 +406,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
 
     elif ':g.' in quibble_input:
         if plus.search(formatted_variant) or minus.search(formatted_variant):
-            to_g = validator.genomic(out_hgvs_obj, variant.no_norm_evm, variant.primary_assembly, variant.hn)
+            to_g = validator.genomic(out_hgvs_obj, variant.no_norm_evm, variant.primary_assembly, variant)
             if 'error' in str(to_g):
                 if validator.alt_aln_method != 'genebuild':
                     error = "If the following error message does not address the issue and the problem persists " \
@@ -479,7 +496,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             pre_var = out_hgvs_obj
             try:
                 pre_var = validator.myevm_t_to_g(pre_var, variant.no_norm_evm, variant.primary_assembly,
-                                                 variant.hn)
+                                                 variant.hn,variant)
             except Exception as e:
                 error = str(e)
                 if error == 'expected from_start_i <= from_end_i':
@@ -561,7 +578,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             trans_acc = coding.ac
             # c to Genome coordinates - Map the variant to the genome
             pre_var = validator.genomic(out_hgvs_obj, variant.no_norm_evm, variant.primary_assembly,
-                                        variant.hn)
+                                        variant)
 
             # genome back to C coordinates
             logger.info(f"Attempt to map {pre_var} back to c. coordinates")
@@ -638,7 +655,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     # valid is false if the input contains a \d+\d, \d-\d or :g.
     if not valid:
         genomic_validation = validator.genomic(quibble_input_hgvs_obj, variant.no_norm_evm, variant.primary_assembly,
-                                                   variant.hn)
+                                                   variant)
         if fn.valstr(pre_valid) != fn.valstr(post_valid):
             if variant.reftype != ':g.':
                 if caution == '':
@@ -673,10 +690,8 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     # Gap compensating code status
     gap_compensation = True
 
-    # Gap gene black list
-    if variant.gene_symbol:
-        # If the gene symbol is not in the list, the value False will be returned
-        gap_compensation = seq_data.gap_black_list(variant.gene_symbol)
+    # If the gene symbol is not in the list, the value False will be returned
+    gap_compensation = variant.map_dat.is_gapped_map(hgvs_coding.ac,genomic_ac,hdp=validator.hdp)
 
     # Intron spanning variants
     if 'boundary' in str(error) or 'spanning' in str(error):
@@ -695,7 +710,8 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     if variant.hgvs_genomic is not None:
         hgvs_genomic = variant.hgvs_genomic
     else:
-        hgvs_genomic = validator.myevm_t_to_g(hgvs_coding, variant.no_norm_evm, variant.primary_assembly, variant.hn)
+        hgvs_genomic = validator.myevm_t_to_g(hgvs_coding, variant.no_norm_evm, variant.primary_assembly,
+                                              variant.hn,variant)
 
 
 
@@ -706,7 +722,17 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     # Loop out gap finding code under these circumstances!
     if gap_compensation is True:
         # Get orientation of the gene wrt genome and a list of exons mapped to the genome
-        ori = validator.tx_exons(tx_ac=tx_ac, alt_ac=genomic_ac, alt_aln_method=validator.alt_aln_method)
+        ori = variant.map_dat.tx_exons(
+                tx_ac, genomic_ac,
+                validator.alt_aln_method,
+                hdp=validator.hdp)
+        if hgvs_coding.posedit.edit.type == 'ins':
+            new_hgvs_coding, new_hgvs_genomic = immediate_round_trip_gap_ins_handling(
+                    hgvs_coding, hgvs_genomic,variant)
+            if str(new_hgvs_coding) != str(hgvs_coding):
+                hgvs_coding = new_hgvs_coding
+            if str(new_hgvs_genomic) != str(hgvs_genomic):
+                hgvs_genomic = new_hgvs_genomic
         hgvs_genomic, suppress_c_normalization, hgvs_coding = gap_mapper.g_to_t_compensation(ori, hgvs_coding, rec_var)
     else:
         suppress_c_normalization = 'false'
@@ -721,13 +747,24 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     logger.debug("gap_compensation_2 = " + str(gap_compensation))
     if gap_compensation is True:
         # Get orientation of the gene wrt genome and a list of exons mapped to the genome
-        ori = validator.tx_exons(tx_ac=hgvs_coding.ac, alt_ac=reverse_normalized_hgvs_genomic.ac,
-                                 alt_aln_method=validator.alt_aln_method)
-        hgvs_coding = gap_mapper.g_to_t_gapped_mapping_stage2(ori, hgvs_coding, hgvs_genomic)
+        ori = variant.map_dat.tx_exons(
+                hgvs_coding.ac, reverse_normalized_hgvs_genomic.ac,
+                validator.alt_aln_method,
+                hdp=validator.hdp)
+
+        if not hgvs_genomic.posedit.edit.type == 'ins':
+            hgvs_coding = gap_mapper.g_to_t_gapped_mapping_stage2(ori, hgvs_coding, hgvs_genomic)
+        else:
+            new_hgvs_coding, new_hgvs_genomic = immediate_round_trip_gap_ins_handling(
+                    hgvs_coding, hgvs_genomic,variant)
+            if str(new_hgvs_coding) != str(hgvs_coding):
+                hgvs_coding = new_hgvs_coding
+            hgvs_genomic = new_hgvs_genomic
+
 
     # OBTAIN THE RefSeqGene coordinates
     # Attempt 1 = UTA
-    sequences_for_tx = validator.hdp.get_tx_mapping_options(hgvs_coding.ac)
+    sequences_for_tx = variant.map_dat.mapping_options(hgvs_coding.ac)
     recovered_rsg = []
 
     for sequence in sequences_for_tx:
@@ -802,8 +839,10 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             hgvs_protein = protein_dict['hgvs_protein']
 
     # Gene orientation wrt genome
-    ori = validator.tx_exons(tx_ac=hgvs_coding.ac, alt_ac=hgvs_genomic.ac,
-                             alt_aln_method=validator.alt_aln_method)
+    ori = variant.map_dat.tx_exons(
+            hgvs_coding.ac, hgvs_genomic.ac,
+            validator.alt_aln_method,
+            hdp=validator.hdp)
 
     try:
         ori = int(ori[0]['alt_strand'])
@@ -944,7 +983,6 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
 def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=False):
     warnings = ''
     rec_var = ''
-    gap_compensation = True
 
     try:
         tx_variant.ac
@@ -952,27 +990,22 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=
     except AttributeError:
         variant.hgvs_coding = validator.hp.parse_hgvs_variant(str(tx_variant))
 
-    # Gap gene black list
-    if variant.gene_symbol:
-        # If the gene symbol is not in the list, the value False will be returned
-        gap_compensation = seq_data.gap_black_list(variant.gene_symbol)
-
     # Look for variants spanning introns
+    disable_gap_compensation = False
     try:
         variant.hn.normalize(variant.hgvs_coding)
     except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
         error = str(e)
         if 'boundary' in error or 'spanning' in error:
-            gap_compensation = False
+            disable_gap_compensation = True
+            logger.debug("gap_compensation_3 disabled due to boundary/spanning")
 
     except vvhgvs.exceptions.HGVSError as e:
         logger.debug("Except passed, %s", e)
 
-    # Warn gap code status
-    logger.debug("gap_compensation_3 = " + str(gap_compensation))
     multi_g = []
     multi_list = []
-    mapping_options = validator.hdp.get_tx_mapping_options(variant.hgvs_coding.ac)
+    mapping_options = variant.map_dat.mapping_options(variant.hgvs_coding.ac,hdp=validator.hdp)
     mapping_options = sorted(mapping_options, key=itemgetter(1))
 
     for alt_chr in mapping_options:
@@ -995,14 +1028,20 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=
                 continue
         try:
             # Re set ori
-            ori = validator.tx_exons(tx_ac=variant.hgvs_coding.ac, alt_ac=alt_chr,
-                                     alt_aln_method=validator.alt_aln_method)
+            ori = variant.map_dat.tx_exons(
+                    variant.hgvs_coding.ac, alt_chr,
+                    validator.alt_aln_method,
+                    hdp=validator.hdp)
 
             # Map the variant to the genome
-            hgvs_alt_genomic = validator.myvm_t_to_g(variant.hgvs_coding, alt_chr, variant.no_norm_evm, variant.hn)
+            hgvs_alt_genomic = validator.myvm_t_to_g(variant.hgvs_coding, alt_chr, variant.no_norm_evm,
+                                                     variant.hn, variant.map_dat)
 
             # Loop out gap code under these circumstances!
-            if gap_compensation:
+            if variant.map_dat.is_gapped_map(variant.hgvs_coding.ac,hgvs_alt_genomic.ac,validator):
+                # warn on gap_compensation for
+                logger.debug("gap_compensation_3 done for %s when mapped to %s" %
+                             (variant.hgvs_coding.ac, hgvs_alt_genomic.ac))
                 gap_mapper = gapped_mapping.GapMapper(variant, validator)
                 hgvs_alt_genomic, hgvs_coding = gap_mapper.g_to_t_gap_compensation_version3(
                     hgvs_alt_genomic, variant.hgvs_coding, ori, alt_chr, rec_var)
@@ -1013,7 +1052,8 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=
                         hgvs_alt_genomic.posedit.edit.type != 'delins':
                     try:
                         rev_tx = variant.reverse_normalizer.normalize(hgvs_coding)
-                        rev_g = validator.myvm_t_to_g(rev_tx, alt_chr, variant.no_norm_evm, variant.hn)
+                        rev_g = validator.myvm_t_to_g(rev_tx, alt_chr, variant.no_norm_evm,
+                                                      variant.hn, variant.map_dat)
                         rev_g = variant.hn.normalize(rev_g)
                     except vvhgvs.exceptions.HGVSError:
                         rev_g = hgvs_alt_genomic
@@ -1028,7 +1068,8 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=
                         "ins" not in hgvs_alt_genomic.posedit.edit.type:
                     try:
                         rev_tx = variant.reverse_normalizer.normalize(variant.hgvs_coding)
-                        rev_g = validator.myvm_t_to_g(rev_tx, alt_chr, variant.no_norm_evm, variant.hn)
+                        rev_g = validator.myvm_t_to_g(rev_tx, alt_chr, variant.no_norm_evm,
+                                                      variant.hn, variant.map_dat)
                         rev_g = variant.hn.normalize(rev_g)
                     except vvhgvs.exceptions.HGVSError:
                         rev_g = hgvs_alt_genomic

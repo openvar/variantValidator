@@ -367,7 +367,7 @@ def structure_checks(variant, validator):
                 if variant.input_parses.posedit.pos.end.offset != 0:
                     variant.input_parses.posedit.pos.end.offset =1
                 hgvs_genomic_vt = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm,
-                                                         variant.primary_assembly, variant.hn)
+                                                         variant.primary_assembly, variant.hn, variant)
                 format_converters.remap_intronic(variant.input_parses, hgvs_genomic_vt, variant, validator)
             return True
 
@@ -545,7 +545,7 @@ def structure_checks_c(variant, validator):
                                                                                  prevalidation_level=None)
 
                             report_gen = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm,
-                                                                variant.primary_assembly, variant.hn)
+                                                                variant.primary_assembly, variant.hn, variant)
                             report_gen = variant.hn.normalize(report_gen)
                             error = 'Using a transcript reference sequence to specify a variant position that lies ' \
                                     'outside of the reference sequence is not HGVS-compliant: ' \
@@ -569,7 +569,7 @@ def structure_checks_c(variant, validator):
             error = 'Using a transcript reference sequence to specify a variant position that lies outside of the ' \
                     'reference sequence is not HGVS-compliant. Instead re-submit '
             genomic_position = validator.myevm_t_to_g(input_parses, variant.no_norm_evm, variant.primary_assembly,
-                                                      variant.hn)
+                                                      variant.hn, variant)
             genomic_position = variant.hn.normalize(genomic_position)
             error = error + fn.valstr(genomic_position)
             variant.warnings.append(error)
@@ -584,7 +584,7 @@ def structure_checks_c(variant, validator):
             # Can we go c-g-c
             try:
                 to_genome = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm,
-                                                   variant.primary_assembly, variant.hn)
+                                                   variant.primary_assembly, variant.hn, variant)
                 to_tx = variant.evm.g_to_t(to_genome, variant.input_parses.ac)
             except vvhgvs.exceptions.HGVSInvalidIntervalError as e:
                 error = str(e)
@@ -625,7 +625,7 @@ def structure_checks_c(variant, validator):
                             variant.input_parses.posedit.pos.end.offset = offset
 
                         report_gen = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm,
-                                                            variant.primary_assembly, variant.hn)
+                                                            variant.primary_assembly, variant.hn, variant)
                         report_gen = variant.hn.normalize(report_gen)
                         error = 'Using a transcript reference sequence to specify a variant position that lies ' \
                                 'outside of the reference sequence is not HGVS-compliant. Instead re-submit '\
@@ -669,7 +669,7 @@ def structure_checks_c(variant, validator):
             if 'bounds' in error:
                 try:
                     report_gen = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm,
-                                                        variant.primary_assembly, variant.hn)
+                                                        variant.primary_assembly, variant.hn, variant)
                     report_gen = variant.hn.normalize(report_gen)
                 except vvhgvs.exceptions.HGVSError as e:
                     logger.debug("Except passed, %s", e)
@@ -888,7 +888,7 @@ def structure_checks_n(variant, validator):
                         variant.input_parses.posedit.pos.end.base = boundary
                         variant.input_parses.posedit.pos.end.offset = remainder
                     report_gen = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm,
-                                                        variant.primary_assembly, variant.hn)
+                                                        variant.primary_assembly, variant.hn, variant)
                     report_gen = variant.hn.normalize(report_gen)
                     error = 'Using a transcript reference sequence to specify a variant position that lies outside of' \
                             ' the reference sequence is not HGVS-compliant. Instead re-submit ' + fn.valstr(report_gen)
@@ -906,7 +906,7 @@ def structure_checks_n(variant, validator):
         error = 'Using a transcript reference sequence to specify a variant position that lies outside of the ' \
                 'reference sequence is not HGVS-compliant. Instead re-submit '
         genomic_position = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm, variant.primary_assembly,
-                                                  variant.hn)
+                                                  variant.hn,variant)
         genomic_position = variant.hn.normalize(genomic_position)
         error = error + fn.valstr(genomic_position)
         variant.warnings.append(error)
@@ -922,7 +922,7 @@ def structure_checks_n(variant, validator):
             if 'bounds' in error:
                 try:
                     report_gen = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm,
-                                                        variant.primary_assembly, variant.hn)
+                                                        variant.primary_assembly, variant.hn,variant)
                     report_gen = variant.hn.normalize(report_gen)
                 except vvhgvs.exceptions.HGVSError as e:
                     logger.debug("Except passed, %s", e)
@@ -951,13 +951,13 @@ def structure_checks_n(variant, validator):
             elif 'Cannot validate sequence of an intronic variant' in error:
                 try:
                     test_g = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm, variant.primary_assembly,
-                                                    variant.hn)
+                                                    variant.hn,variant)
                     variant.evm.g_to_t(test_g, variant.input_parses.ac)
                 except vvhgvs.exceptions.HGVSError as e:
                     error = str(e)
                     if 'bounds' in error:
                         report_gen = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm,
-                                                            variant.primary_assembly, variant.hn)
+                                                            variant.primary_assembly, variant.hn,variant)
                         report_gen = variant.hn.normalize(report_gen)
                         error = 'Using a transcript reference sequence to specify a variant position that lies ' \
                                 'outside of the reference sequence is not HGVS-compliant. Instead re-submit ' + \
