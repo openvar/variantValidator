@@ -283,6 +283,9 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
             annotation = g2t.db.get_transcript_annotation(tx[3])
             if tx[3] in sel_tx_lst:
                 kept_tx.append(tx)
+
+            # The syntax if x in y is preferred here as it will prevent cases of ["NM_12345.6", "mane_select"] from
+            # causing issues by defaulting to mane_select (or others in the lists below)
             elif "mane_select" in sel_tx_lst:
                 if '"mane_select": true' in annotation:
                     kept_tx.append(tx)
@@ -293,8 +296,14 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
                 if '"mane_select": true' in annotation or '"refseq_select": true' in annotation \
                         or '"ensembl_select": true' in annotation:
                     kept_tx.append(tx)
-            elif "all" in sel_tx_lst or None in sel_tx_lst:
+            elif "all" in sel_tx_lst or None in sel_tx_lst or "raw" in sel_tx_lst:
                 kept_tx.append(tx)
+
+        if "all" in sel_tx_lst:
+            logger.info("Set filter to all")
+            kept_tx = filter_latest_transcripts(kept_tx)
+
+        logger.info(f"Select Transcripts: {sel_tx_lst} retained transcripts {kept_tx}")
 
         tx_for_gene = kept_tx
 
@@ -412,7 +421,7 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
                     error = 'Currently unable to update gene_ids or transcript information records because ' \
                             'VariantValidator %s' % str(e)
                     # my_variant.warnings.append(error)
-                    logger.info(error)
+                    logger.warning(error)
                 tx_description = g2t.db.get_transcript_description(tx)
 
             # Get annotation
@@ -533,6 +542,61 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
     g2d_data["requested_symbol"] = submitted
 
     return g2d_data
+
+
+def get_accession_parts(accession):
+    """
+    Split transcript accession into base accession and version.
+
+    This function is different from the Validator object transcript_filter as it filters the return of tx_for gene and
+    not tx_for_region which has a different list structure.
+
+    Examples:
+        NM_000088.4 -> ('NM_000088', 4)
+        ENST00000225964.10 -> ('ENST00000225964', 10)
+        ENST00000486572.1/GRCh38 -> ('ENST00000486572', 1)
+    """
+
+    # remove optional genome build suffix
+    accession = accession.split("/")[0]
+
+    # split version
+    base, version = accession.rsplit(".", 1)
+
+    return base, int(version)
+
+
+def filter_latest_transcripts(rows):
+    """
+    Remove 'blat' rows and keep only latest transcript versions.
+    """
+
+    # remove blat rows
+    rows = [row for row in rows if row[5] != "blat"]
+
+    # find highest version per accession
+    latest_versions = {}
+
+    for row in rows:
+        base, version = get_accession_parts(row[3])
+
+        if (
+            base not in latest_versions
+            or version > latest_versions[base]
+        ):
+            latest_versions[base] = version
+
+    # keep only latest versions
+    filtered_rows = []
+
+    for row in rows:
+        base, version = get_accession_parts(row[3])
+
+        if version == latest_versions[base]:
+            filtered_rows.append(row)
+
+    return filtered_rows
+
 
 def lovd_syntax_check_g2t(query, lovd_syntax_check):
     # Get additional warnings

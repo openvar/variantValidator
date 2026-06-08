@@ -169,6 +169,9 @@ class TestGene2Transcripts(unittest.TestCase):
         output_d = self.vv.gene2transcripts('BRCA2', select_transcripts='flibble')
         output_e = self.vv.gene2transcripts('BRAF', select_transcripts='mane_select')
         output_f = self.vv.gene2transcripts('BRAF', select_transcripts='mane')
+        output_g = self.vv.gene2transcripts('BRCA2', select_transcripts='all')
+        output_h = self.vv.gene2transcripts('BRCA2', select_transcripts='raw')
+
         print(output)
         assert len(output['transcripts']) >= 3
         assert len(output_b['transcripts']) == 1
@@ -176,6 +179,8 @@ class TestGene2Transcripts(unittest.TestCase):
         assert len(output_d['transcripts']) == 0
         assert len(output_e['transcripts']) == 1
         assert len(output_f['transcripts']) >= 2
+        assert (len(output_b['transcripts']) < len(output_c['transcripts']) < len(output_g['transcripts'])
+                < len(output_h['transcripts']))
 
     def test_symbol_valid_hgnc_id(self):
         symbol = 'HGNC:2197'
