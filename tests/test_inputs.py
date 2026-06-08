@@ -31304,7 +31304,7 @@ class TestVariantsAuto(TestCase):
         results = self.vv.validate('chr11:118650341:C:T', 'GRCh37','NM_004397.6').format_as_dict(test=True)
         assert 'NM_004397.6:c.369G>A' in results
 
-    def polyadenylation_a(self):
+    def test_polyadenylation_a(self):
         # Test that it fails for genome mismatch
         results = self.vv.validate('NM_001424184.1:c.438G>A', 'GRCh38', 'all').format_as_dict(test=True)
         assert 'NM_001424184.1:c.438G>A' in results
@@ -31353,16 +31353,29 @@ class TestVariantsAuto(TestCase):
         assert "NM_014249.4:c.*557del" in results.keys()
         assert "NM_001281446.1:c.*557del" in results.keys()
 
-    def issue_818(self):
+    def test_issue_818(self):
         results = self.vv.validate('NC_000022.10:g.19929250_19929251insCCCCGCC', 'GRCh38', 'mane_select', liftover_level=True).format_as_dict(test=True)
         assert "NM_006440.5:c.70_76dup" in results.keys()
         assert results["NM_006440.5:c.70_76dup"][
             "hgvs_predicted_protein_consequence"] ==  {
-            "lrg_slr": "LRG_417p1:p.V26Gfs*132",
-            "lrg_tlr": "LRG_417p1:p.Val26GlyfsTer132",
-            "slr": "NP_006431.2:p.V26Gfs*132",
-            "tlr": "NP_006431.2:p.Val26GlyfsTer132"
+            "slr": "NP_006431.2:p.(V26Gfs*132)",
+            "tlr": "NP_006431.2:p.(Val26GlyfsTer132)"
         }
+
+    def test_alt_gapping_bug(self):
+        results = self.vv.validate('chr16:2089739:G:C', 'GRCh38', 'mane_select', liftover_level=True).format_as_dict(test=True)
+        assert "NM_001009944.3:c.12900C>G" in results.keys()
+        assert "NT_187607.1:g.705079dup" not in str(results["NM_001009944.3:c.12900C>G"]["alt_genomic_loci"])
+
+    def test_alt_gapping_bug_b(self):
+        results = self.vv.validate('chr16:2089760:C:G', 'GRCh38', 'mane_select', liftover_level=True).format_as_dict(test=True)
+        assert "NM_001009944.3:c.12879G>C" in results.keys()
+        assert "NT_187607.1:g.705077_705079dup" not in str(results["NM_001009944.3:c.12879G>C"]["alt_genomic_loci"])
+
+    def test_alt_gapping_bug_c(self):
+        results = self.vv.validate('chr16:2090285:C:CT', 'GRCh38', 'mane_select', liftover_level=True).format_as_dict(test=True)
+        assert "NM_001009944.3:c.12443dup" in results.keys()
+        assert "NT_187607.1:g.713119_713120insTT" not in str(results["NM_001009944.3:c.12443dup"]["alt_genomic_loci"])
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

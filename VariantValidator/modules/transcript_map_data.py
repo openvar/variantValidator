@@ -1,4 +1,8 @@
 import copy
+import logging
+
+logger = logging.getLogger(__name__)
+
 """
 A module for holding the TranscriptMapData specific to an individual transcript
 in order to avoid having to repeatedly re-pull from the database.
@@ -22,6 +26,9 @@ class TranscriptMapData():
         self.mapped_strands = {} # made using above map data, for dict fetch
         self.mapping_types = {} # the mapping type for each tx->alt map
         self.exon_data = {} # the set of exon data per mapping
+        self._known_bad_alignments = [
+            ["NM_001009944.3", "NT_187607.1"]
+        ]
 
     def mapping_options(self,tx_ac,hdp=None):
         """
@@ -45,6 +52,14 @@ class TranscriptMapData():
                     "provider (hdp) for use as a data source")
         self.mapping_opts[tx_ac] = cur_hdp.get_tx_mapping_options(
                 tx_ac,gap_warn=True)
+
+        self.mapping_opts[tx_ac] = [
+            option
+            for option in self.mapping_opts[tx_ac]
+            if [option[0], option[1]] not in self._known_bad_alignments
+        ]
+
+        logger.info(f"Mapping options for {tx_ac}: {self.mapping_opts[tx_ac]}")
         return self.mapping_opts[tx_ac]
 
     def map_strand(self,tx_ac,alt_ac,hdp=None):
@@ -157,7 +172,9 @@ class TranscriptMapData():
         # If on the reverse strand, reverse the order of elements
         if tx_exons[0]['alt_strand'] == -1:
             tx_exons = tx_exons[::-1]
+            logger.debug(f"Exon data for {tx_ac}: {tx_exons}")
             return tx_exons
         else:
+            logger.debug(f"Exon data for {tx_ac}: {tx_exons}")
             return tx_exons
 

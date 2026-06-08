@@ -1864,6 +1864,9 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     hgvs_genomic.posedit.pos.end.base = start
                     hgvs_genomic = self.variant.hn.normalize(hgvs_genomic)
 
+        logger.info(f"g_to_t_compensation returning hgvs_genomic {hgvs_genomic }hgvs_coding {hgvs_coding}, "
+                    f"suppress c normalization {suppress_c_normalization}")
+
         return hgvs_genomic, suppress_c_normalization, hgvs_coding
 
     def g_to_t_gapped_mapping_stage2(self, ori, hgvs_coding, hgvs_genomic):
@@ -2002,6 +2005,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
             else:
                 hgvs_coding = copy.deepcopy(hgvs_refreshed_variant)
 
+        logger.info(f"g_to_t_gaped_mapping_stage2 returning hgvs_coding {hgvs_coding}")
         return hgvs_coding
 
     def g_to_t_gap_compensation_version3(self, hgvs_alt_genomic, hgvs_coding, ori, alt_chr, rec_var):
@@ -2009,7 +2013,9 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
         self.orientation = int(ori[0]['alt_strand'])
         hgvs_genomic = copy.deepcopy(hgvs_alt_genomic)
 
-        logger.debug('g_to_t gap code 3 active')
+        logger.debug(f"g_to_t_gap_compensation_version3 triggered with hgvs_alt_genomic {hgvs_alt_genomic},"
+                    f" hgvs_coding {hgvs_coding}, alt_chr {alt_chr}, rec_var {rec_var}, ori {ori}")
+
         rn_hgvs_genomic = self.variant.reverse_normalizer.normalize(hgvs_alt_genomic)
         self.hgvs_genomic_possibilities.append([rn_hgvs_genomic, ['false', 'false']])
         if self.orientation != -1:
@@ -2712,6 +2718,8 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
         except UnboundLocalError:
             pass
 
+        logger.debug(f"g_to_t_gap_compensation_version3 returning hgvs_genomic {hgvs_genomic}, "
+                    f"hgvs_coding {hgvs_coding}")
         return hgvs_alt_genomic, hgvs_coding
 
     def dup_ins_5prime_shift(self, stored_hgvs_not_delins, saved_hgvs_coding):
@@ -2984,8 +2992,11 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 c_tx_hgvs_not_delins = self.validator.vm.n_to_c(self.tx_hgvs_not_delins)
             except Exception:
                 c_tx_hgvs_not_delins = copy.copy(self.tx_hgvs_not_delins)
-            genomic_gap_fill_variant_alt = self.validator.vm.t_to_g(c_tx_hgvs_not_delins, self.hgvs_genomic_5pr.ac,
-                                                                    alt_aln_method=self.validator.alt_aln_method)
+            genomic_gap_fill_variant_alt = self.validator.myvm_t_to_g(c_tx_hgvs_not_delins,
+                                                                      self.hgvs_genomic_5pr.ac,
+                                                                      self.variant.no_norm_evm,
+                                                                      self.variant.hn,
+                                                                      self.variant.map_dat)
 
             # Ensure an ALT exists
             try:

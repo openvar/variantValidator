@@ -1040,12 +1040,12 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=
             # Loop out gap code under these circumstances!
             if variant.map_dat.is_gapped_map(variant.hgvs_coding.ac,hgvs_alt_genomic.ac,validator):
                 # warn on gap_compensation for
-                logger.debug("gap_compensation_3 done for %s when mapped to %s" %
-                             (variant.hgvs_coding.ac, hgvs_alt_genomic.ac))
                 gap_mapper = gapped_mapping.GapMapper(variant, validator)
                 hgvs_alt_genomic, hgvs_coding = gap_mapper.g_to_t_gap_compensation_version3(
                     hgvs_alt_genomic, variant.hgvs_coding, ori, alt_chr, rec_var)
+                logger.info(f"gap_compensation_3 done for {variant.hgvs_coding} mapped to {hgvs_alt_genomic}")
                 variant.hgvs_coding = hgvs_coding
+                logger.info(f"hgvs_coding updated to {hgvs_coding}")
 
                 # Check for mismatched sequence in dup variants
                 if hgvs_alt_genomic.posedit.edit.type == hgvs_coding.posedit.edit.type and \
