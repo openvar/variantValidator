@@ -546,24 +546,28 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
 
 def get_accession_parts(accession):
     """
-    Split transcript accession into base accession and version.
-
-    This function is different from the Validator object transcript_filter as it filters the return of tx_for gene and
-    not tx_for_region which has a different list structure.
+    Split transcript accession into accession, version, and genome build.
 
     Examples:
-        NM_000088.4 -> ('NM_000088', 4)
-        ENST00000225964.10 -> ('ENST00000225964', 10)
-        ENST00000486572.1/GRCh38 -> ('ENST00000486572', 1)
+        NM_000088.4
+            -> ('NM_000088', 4, None)
+
+        ENST00000225964.10
+            -> ('ENST00000225964', 10, None)
+
+        ENST00000486572.1/GRCh38
+            -> ('ENST00000486572', 1, 'GRCh38')
     """
 
-    # remove optional genome build suffix
-    accession = accession.split("/")[0]
+    accession_part, _, genome_build = accession.partition("/")
 
-    # split version
-    base, version = accession.rsplit(".", 1)
+    base, _, version = accession_part.rpartition(".")
 
-    return base, int(version)
+    return (
+        base,
+        int(version),
+        genome_build or None,
+    )
 
 
 def filter_latest_transcripts(rows):
@@ -574,25 +578,29 @@ def filter_latest_transcripts(rows):
     # remove blat rows
     rows = [row for row in rows if row[5] != "blat"]
 
-    # find highest version per accession
+    # find highest version per accession/build
     latest_versions = {}
 
     for row in rows:
-        base, version = get_accession_parts(row[3])
+        base, version, genome_build = get_accession_parts(row[3])
+
+        key = (base, genome_build)
 
         if (
-            base not in latest_versions
-            or version > latest_versions[base]
+            key not in latest_versions
+            or version > latest_versions[key]
         ):
-            latest_versions[base] = version
+            latest_versions[key] = version
 
     # keep only latest versions
     filtered_rows = []
 
     for row in rows:
-        base, version = get_accession_parts(row[3])
+        base, version, genome_build = get_accession_parts(row[3])
 
-        if version == latest_versions[base]:
+        key = (base, genome_build)
+
+        if version == latest_versions[key]:
             filtered_rows.append(row)
 
     return filtered_rows
