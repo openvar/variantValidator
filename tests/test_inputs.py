@@ -1159,7 +1159,7 @@ class TestVariantsAuto(TestCase):
 
     def test_variant21(self):
         variant = 'NM_000518.4:c.316_*100del'
-        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh37', 'all', shorthand_vcf=True).format_as_dict(test=True)
         print(results)
 
         assert results['flag'] == 'gene_variant'
@@ -1178,13 +1178,37 @@ class TestVariantsAuto(TestCase):
         assert results['NM_000518.4:c.316_*100del']['hgvs_lrg_variant'] == ''
         self.assertCountEqual(results['NM_000518.4:c.316_*100del']['alt_genomic_loci'], [])
         assert results['NM_000518.4:c.316_*100del']['primary_assembly_loci']['hg19'] == {
-            'hgvs_genomic_description': 'NC_000011.9:g.5246728_5246956del', 'vcf': {'alt': 'DEL', 'chr': 'chr11', 'pos': '5246728-5246956', 'ref': 'N'}}
-        assert results['NM_000518.4:c.316_*100del']['primary_assembly_loci']['hg38'] == {
-            'hgvs_genomic_description': 'NC_000011.10:g.5225498_5225726del', 'vcf': {'alt': 'DEL', 'chr': 'chr11', 'pos': '5225498-5225726', 'ref': 'N'}}
-        assert results['NM_000518.4:c.316_*100del']['primary_assembly_loci']['grch37'] == {
-            'hgvs_genomic_description': 'NC_000011.9:g.5246728_5246956del', 'vcf': {'alt': 'DEL', 'chr': '11', 'pos': '5246728-5246956', 'ref': 'N'}}
+                "hgvs_genomic_description": "NC_000011.9:g.5246728_5246956del",
+                "vcf": {
+                    "alt": "A",
+                    "chr": "chr11",
+                    "pos": "5246727",
+                    "ref": "AATCCAGATGCTCAAGGCCCTTCATAATATCCCCCAGTTTAGTAGTTGGACTTAGGGAACAAAGGAACCTTTAATAGAAATTGGACAGCAAGAAAGCGAGCTTAGTGATACTTGTGGGCCAGGGCATTAGCCACACCAGCCACCACTTTCTGATAGGCAGCCTGCACTGGTGGGGTGAATTCTTTGCCAAAGTGATGGGCCAGCACACAGACCAGCACGTTGCCCAGGAG"
+                }}
+        assert results['NM_000518.4:c.316_*100del']['primary_assembly_loci']['hg38'] ==  {
+                "hgvs_genomic_description": "NC_000011.10:g.5225498_5225726del",
+                "vcf": {
+                    "alt": "A",
+                    "chr": "chr11",
+                    "pos": "5225497",
+                    "ref": "AATCCAGATGCTCAAGGCCCTTCATAATATCCCCCAGTTTAGTAGTTGGACTTAGGGAACAAAGGAACCTTTAATAGAAATTGGACAGCAAGAAAGCGAGCTTAGTGATACTTGTGGGCCAGGGCATTAGCCACACCAGCCACCACTTTCTGATAGGCAGCCTGCACTGGTGGGGTGAATTCTTTGCCAAAGTGATGGGCCAGCACACAGACCAGCACGTTGCCCAGGAG"
+                }}
+        assert results['NM_000518.4:c.316_*100del']['primary_assembly_loci']['grch37'] ==  {
+                "hgvs_genomic_description": "NC_000011.9:g.5246728_5246956del",
+                "vcf": {
+                    "alt": "A",
+                    "chr": "11",
+                    "pos": "5246727",
+                    "ref": "AATCCAGATGCTCAAGGCCCTTCATAATATCCCCCAGTTTAGTAGTTGGACTTAGGGAACAAAGGAACCTTTAATAGAAATTGGACAGCAAGAAAGCGAGCTTAGTGATACTTGTGGGCCAGGGCATTAGCCACACCAGCCACCACTTTCTGATAGGCAGCCTGCACTGGTGGGGTGAATTCTTTGCCAAAGTGATGGGCCAGCACACAGACCAGCACGTTGCCCAGGAG"
+                }}
         assert results['NM_000518.4:c.316_*100del']['primary_assembly_loci']['grch38'] == {
-            'hgvs_genomic_description': 'NC_000011.10:g.5225498_5225726del', 'vcf': {'alt': 'DEL', 'chr': '11', 'pos': '5225498-5225726', 'ref': 'N'}}
+                "hgvs_genomic_description": "NC_000011.10:g.5225498_5225726del",
+                "vcf": {
+                    "alt": "A",
+                    "chr": "11",
+                    "pos": "5225497",
+                    "ref": "AATCCAGATGCTCAAGGCCCTTCATAATATCCCCCAGTTTAGTAGTTGGACTTAGGGAACAAAGGAACCTTTAATAGAAATTGGACAGCAAGAAAGCGAGCTTAGTGATACTTGTGGGCCAGGGCATTAGCCACACCAGCCACCACTTTCTGATAGGCAGCCTGCACTGGTGGGGTGAATTCTTTGCCAAAGTGATGGGCCAGCACACAGACCAGCACGTTGCCCAGGAG"
+                }}
         assert results['NM_000518.4:c.316_*100del']['reference_sequence_records'] == {
             'transcript': 'https://www.ncbi.nlm.nih.gov/nuccore/NM_000518.4',
             'protein': 'https://www.ncbi.nlm.nih.gov/nuccore/NP_000509.1',
@@ -30368,7 +30392,7 @@ class TestVariantsAuto(TestCase):
 
     def test_variant334(self):
         variant = 'NM_000061.2:c.588_589insCTACATAG'
-        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        results = self.vv.validate(variant, 'GRCh37', 'all', shorthand_vcf=True).format_as_dict(test=True)
         print(results)
 
         assert results['flag'] == 'gene_variant'
