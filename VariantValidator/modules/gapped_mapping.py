@@ -409,11 +409,11 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
 
         # take a look at the input genomic variant for potential base salvage
         stash_ac = vcf_dict['chr']
-        stash_input = self.variant.post_format_conversion
+        stash_input = self.variant.quibble
         if type(stash_input) is str:
             stash_input = self.validator.hp.parse_hgvs_variant(stash_input)
         # Re-Analyse genomic positions
-        if 'NG_' in str(self.variant.hgvs_formatted):
+        if 'NG_' in str(self.variant.quibble):
             c = rel_var[0]
             if hasattr(c.posedit.edit, 'ref') and c.posedit.edit.ref is not None:
                 c.posedit.edit.ref = c.posedit.edit.ref.upper()

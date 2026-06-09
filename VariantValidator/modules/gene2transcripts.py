@@ -124,7 +124,7 @@ def gene2transcripts(g2t,
     # Gather transcript information lists
     if bypass_web_searches is True:
         tx_for_gene = []
-        tx_info = g2t.hdp.get_tx_identity_info(query.hgvs_coding.ac)
+        tx_info = g2t.hdp.get_tx_identity_info(query.quibble.ac)
 
         # Add primary assembly queries
         for builds in query.primary_assembly_loci.keys():
@@ -132,7 +132,7 @@ def gene2transcripts(g2t,
                 tx_for_gene.append([query.gene_symbol,
                                     tx_info[3],
                                     0,
-                                    query.hgvs_coding.ac,
+                                    query.quibble.ac,
                                     query.primary_assembly_loci[builds]['hgvs_genomic_description'].ac,
                                     validator.alt_aln_method])
 
@@ -141,7 +141,7 @@ def gene2transcripts(g2t,
             tx_for_gene.append([query.gene_symbol,
                                 tx_info[3],
                                 0,
-                                query.hgvs_coding.ac,
+                                query.quibble.ac,
                                 query.hgvs_refseqgene_variant.ac,
                                 validator.alt_aln_method])
 

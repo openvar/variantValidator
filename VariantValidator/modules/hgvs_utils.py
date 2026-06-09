@@ -164,10 +164,16 @@ def unset_hgvs_obj_ref(hgvs):
     """
     Remove/unset ref bases from hgvs object, in the manner needed for output,
     but without re-parsing from text.
+
+    Skips known cases where ref should not be unset, including any unc
+    positions, or other N ref.
     """
+    if hgvs.posedit.pos.uncertain:
+        return hgvs
     edit = hgvs.posedit.edit
     if edit.type in ['inv', 'dup']:
-        edit.ref = ''
+        if edit.ref and not 'N' in edit.ref:
+            edit.ref = ''
     elif edit.ref is not None and edit.alt is not None:
        #if #edit.alt != edit.ref and \
         if len(edit.alt) == 1 and len(edit.ref) == 1:
@@ -2695,16 +2701,16 @@ def hgvs_ref_alt(hgvs_variant, sf):
     return ref_alt_dict
 
 
-def incomplete_alignment_mapping_t_to_g(validator, variant):
+def incomplete_alignment_mapping_t_to_g(validator, variant,t_hgvs_var):
     output = None
-    mapping_options = variant.map_dat.mapping_options(variant.input_parses.ac,hdp=validator.hdp)
+    mapping_options = validator.hdp.get_tx_mapping_options(t_hgvs_var.ac,hdp=validator.hdp)
     for option in mapping_options:
         if option[2] == validator.alt_aln_method and "NC_" not in option[1]:
             in_assembly = seq_data.to_chr_num_refseq(option[1], variant.primary_assembly)
             if in_assembly is not None:
                 try:
-                    output = validator.vm.t_to_g(variant.input_parses, option[1])
-                    if variant.input_parses.posedit.edit.type == "identity":
+                    output = validator.vm.t_to_g(t_hgvs_var, option[1])
+                    if t_hgvs_var.posedit.edit.type == "identity":
                         output.posedit.edit.alt = output.posedit.edit.ref
                 except vvhgvs.exceptions.HGVSError:
                     pass

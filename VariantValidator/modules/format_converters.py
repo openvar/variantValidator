@@ -106,7 +106,9 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
         # fail if un-corrected errors persist (warning should already have been generated)
         if toskip:
             return True
-
+    # make sure ref type and source are set if we intend to continue
+    variant.set_reftype()
+    variant.set_refsource()
     # Tackle compound variant descriptions NG or NC (NM_) i.e. correctly input NG/NC_(NM_):c.
     intronic_converter(variant, validator)
     return False
@@ -1077,21 +1079,19 @@ def lrg_to_refseq(variant, validator):
     """
     caution = ''
     if variant.refsource == 'LRG':
-        if variant.hgvs_formatted.ac.startswith('LRG') and variant.hgvs_formatted.ac[3:4].isdigit():
-            reference = variant.hgvs_formatted.ac.replace('LRG', 'LRG_')
-            caution = variant.hgvs_formatted.ac + ' updated to ' + reference + ': '
-            variant.hgvs_formatted.ac = reference
-            variant.set_quibble(variant.hgvs_formatted)
+        if variant.quibble.ac.startswith('LRG') and variant.quibble.ac[3:4].isdigit():
+            reference = variant.quibble.ac.replace('LRG', 'LRG_')
+            caution = variant.quibble.ac + ' updated to ' + reference + ': '
+            variant.quibble.ac = reference
 
         if re.match(r'^LRG_\d+t\d+$', variant.quibble.ac):
             lrg_reference = variant.quibble.ac
             refseqtrans_reference = validator.db.get_refseq_transcript_id_from_lrg_transcript_id(lrg_reference)
             if refseqtrans_reference != 'none':
-                old_var_str = str(variant.hgvs_formatted)
-                variant.hgvs_formatted.ac = refseqtrans_reference
-                variant.set_quibble(variant.hgvs_formatted)
+                old_var_str = str(variant.quibble)
+                variant.quibble.ac = refseqtrans_reference
                 caution += old_var_str + ' automapped to equivalent RefSeq record ' \
-                                                             '' + str(variant.hgvs_formatted)
+                                                             '' + str(variant.quibble)
                 variant.warnings.append(caution)
                 logger.info(caution)
 
@@ -1099,11 +1099,10 @@ def lrg_to_refseq(variant, validator):
             lrg_reference = variant.quibble.ac
             refseqprot_reference = validator.db.get_refseq_protein_id_from_lrg_protein_id(lrg_reference)
             if refseqprot_reference != 'none':
-                old_var_str = str(variant.hgvs_formatted)
-                variant.hgvs_formatted.ac = refseqprot_reference
-                variant.set_quibble(variant.hgvs_formatted)
+                old_var_str = str(variant.quibble)
+                variant.quibble.ac = refseqprot_reference
                 caution +=  old_var_str + ' automapped to equivalent RefSeq record ' \
-                                                             '' + str(variant.hgvs_formatted)
+                                                             '' + str(variant.quibble)
                 variant.warnings.append(caution)
                 logger.info(caution)
 
@@ -1111,11 +1110,10 @@ def lrg_to_refseq(variant, validator):
             lrg_reference = variant.quibble.ac
             refseqgene_reference = validator.db.get_refseq_id_from_lrg_id(lrg_reference)
             if refseqgene_reference != 'none':
-                old_var_str = str(variant.hgvs_formatted)
-                variant.hgvs_formatted.ac = refseqgene_reference
-                variant.set_quibble(variant.hgvs_formatted)
+                old_var_str = str(variant.quibble)
+                variant.quibble.ac = refseqgene_reference
                 caution +=  old_var_str + ' automapped to equivalent RefSeq record ' \
-                                                             '' + str(variant.hgvs_formatted)
+                                                             '' + str(variant.quibble)
                 variant.warnings.append(caution)
                 logger.info(caution)
 
@@ -1124,14 +1122,14 @@ def mitochondrial(variant, validator):
     """Will check if variant is mitochondrial and if so it will reformat the type to 'm' and save a value to the variant
     hgvs_genomic attribute"""
 
-    if variant.reftype == ':m.' or variant.hgvs_formatted.ac == 'NC_012920.1' or \
-            variant.hgvs_formatted.ac == 'NC_001807.4':
+    if variant.reftype == ':m.' or variant.quibble.ac == 'NC_012920.1' or \
+            variant.quibble.ac == 'NC_001807.4':
 
         # set flag
         variant.output_type_flag = 'mitochondrial'
 
         # Ensure the correct reference sequence type is used, if not, warn the user
-        hgvs_mito = copy.deepcopy(variant.hgvs_formatted)
+        hgvs_mito = copy.deepcopy(variant.quibble)
         if hgvs_mito.type == 'g' and (hgvs_mito.ac == 'NC_012920.1' or hgvs_mito.ac == 'NC_001807.4'):
             hgvs_mito.type = 'm'
             if "NC_012920.1" in hgvs_mito.ac and "hg19" in variant.selected_assembly:
@@ -1164,7 +1162,7 @@ def mitochondrial(variant, validator):
 
             # Check for movement during normalization
             try:
-                norm_check = variant.hn.normalize(variant.hgvs_formatted)
+                norm_check = variant.hn.normalize(variant.quibble)
                 if hgvs_mito.posedit.pos != norm_check.posedit.pos:
                     norm_check.type = "m"
                     error = "%s updated to %s" % (fn.valstr(hgvs_mito), fn.valstr(norm_check))
@@ -1184,7 +1182,6 @@ def mitochondrial(variant, validator):
             # Add a description of the reference sequence type and continue
             variant.hgvs_genomic = hgvs_mito
             if len(rel_var) == 0:
-                variant.genomic_g = unset_hgvs_obj_ref(hgvs_mito)
                 variant.description = 'Homo sapiens mitochondrion, complete genome'
                 logger.info('Homo sapiens mitochondrion, complete genome')
                 return True
@@ -1198,7 +1195,7 @@ def proteins(variant, validator):
         error = None
         hgvs_object = None
         # Try to validate the variant
-        hgvs_object = variant.hgvs_formatted
+        hgvs_object = variant.quibble
         try:
             validator.vr.validate(hgvs_object)
 
@@ -1375,17 +1372,17 @@ def rna(variant, validator):
     convert r, into c.
     """
     if variant.reftype == ':r.' or ":r." in variant.original:
-        if ":r.(" in str(variant.hgvs_formatted):
-            if type(variant.hgvs_formatted) is str:
-                strip_prediction = str(variant.hgvs_formatted).replace("(", "")
+        if ":r.(" in str(variant.quibble):
+            if type(variant.quibble) is str:
+                strip_prediction = str(variant.quibble).replace("(", "")
                 strip_prediction = strip_prediction[:-1]
                 hgvs_input = validator.hp.parse_hgvs_variant(strip_prediction)
             else:
-                hgvs_input = variant.hgvs_formatted
+                hgvs_input = variant.quibble
                 hgvs_input.posedit.pos.uncertain = False
                 #hgvs_input.posedit.uncertain = False
         else:
-            hgvs_input = variant.hgvs_formatted
+            hgvs_input = variant.quibble
 
         tx_info = validator.hdp.get_tx_identity_info(hgvs_input.ac)
         if tx_info[3] is None:
@@ -1403,7 +1400,7 @@ def rna(variant, validator):
             variant.warnings.append(error)
             logger.info(str(error))
             return True
-        variant.hgvs_formatted = hgvs_c
+        variant.quibble = hgvs_c
 
         # Create variant.rna_data dictionary
         rnd = VariantValidator.modules.rna_formatter.RnaDescriptions(validator.alt_aln_method,

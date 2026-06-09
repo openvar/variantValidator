@@ -11,22 +11,22 @@ class Variant(object):
     def __init__(self, original, quibble=None, warnings=None, write=True, primary_assembly=False, order=False,
                  selected_assembly=False, reformat_output=False, expanded_repeat=None):
         self.original = original
-        if quibble is None:
+
+        # Managed variant mappings (hgvs)objects that are updated over the course of input processing
+        if quibble is None:# working version of the input variant, hgvs object after initial input processing
             self.quibble = original
         else:
             self.quibble = quibble
-        self.hgvs_formatted = None
-        self.hgvs_genomic = None
-        self.hgvs_coding = None
-        self.post_format_conversion = None  # Used for first gapped_mapping function
-        self.pre_RNA_conversion = None
-        self.input_parses = None  # quibble as hgvs variant object
+        self.hgvs_transcript_variant = None  # specifically main hgvs transcript mapping if available
+        self.hgvs_genomic = None # main hgvs genomic mapping if available
+        self.hgvs_refseqgene_variant = None  # main hgvs RefSeqGene genomic mapping, used to set LRG output data
+
+        # Variant annotations
         self.transcript_type = None
         self.lovd_syntax_check = None
         self.shorthand_vcf = None
         self.lovd_messages = None
         self.lovd_corrections = None
-
         if warnings is None:
             self.warnings = []
         else:
@@ -36,10 +36,6 @@ class Variant(object):
                 self.warnings = [warnings]
         self.description = ''  # hgnc_gene_info variable
         self.annotations = ''
-        self.coding = ''
-        self.coding_g = ''
-        self.genomic_r = ''
-        self.genomic_g = '' # should be a hgvs obj or nothing
         self.protein = ''
         self.write = write
         self.primary_assembly = primary_assembly
@@ -68,10 +64,8 @@ class Variant(object):
 
         # Required for output
         self.stable_gene_ids = None
-        self.hgvs_transcript_variant = None  # variant.coding but edited
         self.genome_context_intronic_sequence = None
         self.refseqgene_context_intronic_sequence = None
-        self.hgvs_refseqgene_variant = None  # genomic_r but edited
         self.hgvs_predicted_protein_consequence = None
         self.hgvs_lrg_transcript_variant = None
         self.hgvs_lrg_variant = None  # Same as hgvs_refseqgene_variant but with LRG accession
