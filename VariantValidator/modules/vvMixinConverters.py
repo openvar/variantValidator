@@ -1096,7 +1096,7 @@ class Mixin(vvMixinInit.Mixin):
             hgvs_genomic.posedit.edit.alt = hgvs_genomic.posedit.edit.ref
         if hgvs_genomic.posedit.edit.type == 'ins' and utilise_gap_code is True:
             try:
-                pre_norm_genomic = copy.copy(hgvs_genomic)# can move ins variants (and in doing so break mid base == original bases assumption)
+                pre_norm_genomic = copy.copy(hgvs_genomic) # can move ins variants (and in doing so break mid base == original bases assumption)
                 hgvs_genomic = hn.normalize(hgvs_genomic)
                 if stored_hgvs_c.posedit.edit.alt and len(stored_hgvs_c.posedit.edit.alt) + 2 == \
                         len(hgvs_c.posedit.edit.alt) and hgvs_c.posedit.edit.alt == pre_norm_genomic.posedit.edit.alt:
@@ -1118,6 +1118,14 @@ class Mixin(vvMixinInit.Mixin):
                     hgvs_genomic.posedit.pos.start.base = end
                     hgvs_genomic.posedit.pos.end.base = start
                     hgvs_genomic = hn.normalize(hgvs_genomic)
+
+            except AttributeError as e:
+                if "'Dup' object has no attribute 'alt'" in str(e):
+                    logger.error(
+                        f"Code triggered previously in very poor alignment so not able to fully test, refer to "
+                        f"test_inputs.py tests test_alt_gapping_bug: "
+                        f"hgvs_genomic: {hgvs_genomic}, stored_hgvs_c: {stored_hgvs_c}")
+                    raise
 
         # Statements required to reformat the stored_hgvs_c into a useable synonym
         if (stored_hgvs_c.posedit.edit.ref == '' or stored_hgvs_c.posedit.edit.ref is None) and expand_out:
@@ -1396,6 +1404,7 @@ class Mixin(vvMixinInit.Mixin):
                     hgvs_genomic = hn.normalize(hgvs_genomic)
                 except:
                     pass
+
         # Correct expansion ref + 2
         elif expand_out and (
                 len(hgvs_genomic.posedit.edit.ref) == (len(stored_hgvs_c.posedit.edit.ref) + 2)):  # >= 3:

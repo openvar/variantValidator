@@ -49,7 +49,8 @@ class Mixin(vvMixinConverters.Mixin):
                  select_transcripts,
                  transcript_set=None,
                  liftover_level=False,
-                 lovd_syntax_check=False):
+                 lovd_syntax_check=False,
+                 shorthand_vcf=False):
         """
         This is the main validator function.
         :param batch_variant: A string containing the variant to be validated
@@ -59,6 +60,7 @@ class Mixin(vvMixinConverters.Mixin):
         Selecting multiple transcripts will lead to a multiple variant outputs.
         :param transcript_set: 'refseq' or 'ensembl'
         :param lovd_syntax_check: True or False
+        :param shorthand_vcf: True or False
         :return:
         """
         logger.debug("Running validate with inputs %s and assembly %s", batch_variant, selected_assembly)
@@ -77,6 +79,9 @@ class Mixin(vvMixinConverters.Mixin):
         primary_assembly = None
         self.selected_assembly = selected_assembly
         self.select_transcripts = select_transcripts
+
+        # Set output VCF format
+        self.shorthand_vcf = shorthand_vcf
 
         # Set LOVD syntax checker
         self.lovd_syntax_check = lovd_syntax_check
@@ -1607,11 +1612,13 @@ class Mixin(vvMixinConverters.Mixin):
                 else:
                     variant.hgvs_refseqgene_variant = ''
                 hgd = "hgvs_genomic_description"
-                def _vcf_abrv(hgvs,vcf,max_non_abrv_len=100):
+                def _vcf_abrv(hgvs,vcf,max_non_abrv_len=500):
                     """
                     Abbreviate long del/dup/ins type vcf
                     Use start-stop as pos ref N alt as type,
                     not pos as start ref and alt as (extra long seq"""
+                    if self.shorthand_vcf is False:
+                        return vcf
                     try:
                         # only shorten vcf if ref based and long
                         # (and not uncertain which should not have vcf data)

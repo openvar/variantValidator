@@ -14,8 +14,15 @@ vvhgvs.global_config.formatting.max_ref_length = 1000000
 logger = logging.getLogger(__name__)
 
 
-def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, select_transcripts=None,
-                     transcript_set=None, genome_build=None, bypass_genomic_spans=False, lovd_syntax_check=False):
+def gene2transcripts(g2t,
+                     query,
+                     validator=False,
+                     bypass_web_searches=False,
+                     select_transcripts=None,
+                     transcript_set="refseq",
+                     genome_build="GRCh38",
+                     bypass_genomic_spans=False,
+                     lovd_syntax_check=False):
     """
     Generates a list of transcript (UTA supported) and transcript names from a gene symbol or RefSeq transcript ID
     :param g2t: variant object
@@ -26,6 +33,7 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
     :param transcript_set: String that defines all, refseq or ensembl
     :param genome_build: String GRCh37 or GRCh38
     :param bypass_genomic_spans: bool
+    :param lovd_syntax_check: bool
     :return: dictionary of transcript information
     """
     # Set LOVD data
@@ -283,6 +291,9 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
             annotation = g2t.db.get_transcript_annotation(tx[3])
             if tx[3] in sel_tx_lst:
                 kept_tx.append(tx)
+
+            # The syntax if x in y is preferred here as it will prevent cases of ["NM_12345.6", "mane_select"] from
+            # causing issues by defaulting to mane_select (or others in the lists below)
             elif "mane_select" in sel_tx_lst:
                 if '"mane_select": true' in annotation:
                     kept_tx.append(tx)
@@ -293,8 +304,19 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
                 if '"mane_select": true' in annotation or '"refseq_select": true' in annotation \
                         or '"ensembl_select": true' in annotation:
                     kept_tx.append(tx)
-            elif "all" in sel_tx_lst or None in sel_tx_lst:
+            elif "all" in sel_tx_lst or None in sel_tx_lst or "raw" in sel_tx_lst:
                 kept_tx.append(tx)
+
+        # Clean structures
+        kept_tx  = clean_transcripts(kept_tx, genome_build=genome_build, transcript_set=transcript_set)
+
+        if "all" in sel_tx_lst:
+            logger.info("Set filter to all")
+            kept_tx = filter_latest_transcripts(
+                kept_tx
+            )
+
+        logger.info(f"Select Transcripts: {sel_tx_lst} retained transcripts {kept_tx}")
 
         tx_for_gene = kept_tx
 
@@ -307,137 +329,140 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
             if re.match("N[MR]_", line[3]):
                 continue
 
-        if (line[3].startswith('NM_') or line[3].startswith('NR_') or line[3].startswith('ENST')) and \
-                '..' not in line[3] and \
-                '_NG_' not in line[3] and \
-                "~" not in line[3]:
+        # Transcript ID
+        tx = line[3]
 
-            # Filter for only requested genome build
-            if genome_build is not None:
-                chr_num = seq_data.to_chr_num_refseq(line[4], genome_build)
-                if chr_num is None:
-                    continue
+        # Protein id
+        prot_id = g2t.hdp.get_pro_ac_for_tx_ac(tx)
 
-            # Transcript ID
-            tx = line[3]
+        # Get additional tx_ information
+        try:
+            tx_exons = g2t.hdp.get_tx_exons(tx, line[4], line[5])
+        except vvhgvs.exceptions.HGVSDataNotAvailableError:
+            continue
+        tx_orientation = tx_exons[0]['alt_strand']
 
-            # Protein id
-            prot_id = g2t.hdp.get_pro_ac_for_tx_ac(tx)
+        # Fetch the sequence details, length is the first item
+        tx_anno = g2t.hdp.get_tx_seq_anno(tx)
+        tx_len = tx_anno[0]
 
-            # Get additional tx_ information
-            try:
-                tx_exons = g2t.hdp.get_tx_exons(tx, line[4], line[5])
-            except vvhgvs.exceptions.HGVSDataNotAvailableError:
-                continue
-            tx_orientation = tx_exons[0]['alt_strand']
-
-            # Fetch the sequence details, length is the first item
-            tx_anno = g2t.hdp.get_tx_seq_anno(tx)
-            tx_len = tx_anno[0]
-
-            # Exon Set
-            # Collect genomic span for the transcript against known genomic/gene reference sequences
-            gen_start_pos = None
-            gen_end_pos = None
-            exon_set = []
-            # get total exons
-            total_exons = len(tx_exons)
-            # Set exon counter for current exon
+        # Exon Set
+        # Collect genomic span for the transcript against known genomic/gene reference sequences
+        gen_start_pos = None
+        gen_end_pos = None
+        exon_set = []
+        # get total exons
+        total_exons = len(tx_exons)
+        # Set exon counter for current exon
+        if tx_orientation == 1:
+            current_exon_number = 0
+        else:
+            current_exon_number = total_exons + 1
+        for tx_pos in tx_exons:
             if tx_orientation == 1:
-                current_exon_number = 0
+                current_exon_number = current_exon_number + 1
             else:
-                current_exon_number = total_exons + 1
-            for tx_pos in tx_exons:
-                if tx_orientation == 1:
-                    current_exon_number = current_exon_number + 1
-                else:
-                    current_exon_number = current_exon_number - 1
-                # Collect the exon_set information
-                """
-                tx_exons have the following attributes::
-                            {
-                                'tes_exon_set_id' : 98390
-                                'aes_exon_set_id' : 298679
-                                'tx_ac'           : 'NM_199425.2'
-                                'alt_ac'          : 'NC_000020.10'
-                                'alt_strand'      : -1
-                                'alt_aln_method'  : 'splign'
-                                'ord'             : 2
-                                'tx_exon_id'      : 936834
-                                'alt_exon_id'     : 2999028
-                                'tx_start_i'      : 786
-                                'tx_end_i'        : 1196
-                                'alt_start_i'     : 25059178
-                                'alt_end_i'       : 25059588
-                                'cigar'           : '410='
-                            }                    
-                """
-                current_exon = {"transcript_start": tx_pos['tx_start_i'] + 1,
-                                "transcript_end": tx_pos['tx_end_i'],
-                                "genomic_start": tx_pos['alt_start_i'] + 1,
-                                "genomic_end": tx_pos['alt_end_i'],
-                                "cigar": tx_pos['cigar'],
-                                "exon_number": current_exon_number
-                                }
-                exon_set.append(current_exon)
-                start_pos = tx_pos['alt_start_i']
-                end_pos = tx_pos['alt_end_i']
-                if gen_start_pos is None:
-                    gen_start_pos = start_pos
-                else:
-                    if int(start_pos) < int(gen_start_pos):
-                        gen_start_pos = int(start_pos)
-                if gen_end_pos is None:
-                    gen_end_pos = end_pos
-                else:
-                    if int(end_pos) > int(gen_end_pos):
-                        gen_end_pos = int(end_pos)
-
-            # reverse the exon_set to maintain gene and not genome orientation if gene is -1 orientated
-            if tx_orientation == -1:
-                exon_set.reverse()
-            if bypass_genomic_spans is True:
-                gen_span = False
-            elif ('NG_' in line[4] or 'NC_0' in line[4]) and line[5] != 'blat':
-                gen_span = True
+                current_exon_number = current_exon_number - 1
+            # Collect the exon_set information
+            """
+            tx_exons have the following attributes::
+                        {
+                            'tes_exon_set_id' : 98390
+                            'aes_exon_set_id' : 298679
+                            'tx_ac'           : 'NM_199425.2'
+                            'alt_ac'          : 'NC_000020.10'
+                            'alt_strand'      : -1
+                            'alt_aln_method'  : 'splign'
+                            'ord'             : 2
+                            'tx_exon_id'      : 936834
+                            'alt_exon_id'     : 2999028
+                            'tx_start_i'      : 786
+                            'tx_end_i'        : 1196
+                            'alt_start_i'     : 25059178
+                            'alt_end_i'       : 25059588
+                            'cigar'           : '410='
+                        }                    
+            """
+            current_exon = {"transcript_start": tx_pos['tx_start_i'] + 1,
+                            "transcript_end": tx_pos['tx_end_i'],
+                            "genomic_start": tx_pos['alt_start_i'] + 1,
+                            "genomic_end": tx_pos['alt_end_i'],
+                            "cigar": tx_pos['cigar'],
+                            "exon_number": current_exon_number
+                            }
+            exon_set.append(current_exon)
+            start_pos = tx_pos['alt_start_i']
+            end_pos = tx_pos['alt_end_i']
+            if gen_start_pos is None:
+                gen_start_pos = start_pos
             else:
-                gen_span = False
+                if int(start_pos) < int(gen_start_pos):
+                    gen_start_pos = int(start_pos)
+            if gen_end_pos is None:
+                gen_end_pos = end_pos
+            else:
+                if int(end_pos) > int(gen_end_pos):
+                    gen_end_pos = int(end_pos)
 
+        # reverse the exon_set to maintain gene and not genome orientation if gene is -1 orientated
+        if tx_orientation == -1:
+            exon_set.reverse()
+        if bypass_genomic_spans is True:
+            gen_span = False
+        elif ('NG_' in line[4] or 'NC_0' in line[4]) and line[5] != 'blat':
+            gen_span = True
+        else:
+            gen_span = False
+
+        tx_description = g2t.db.get_transcript_description(tx)
+
+        if tx_description == 'none':
+            try:
+                g2t.db.update_transcript_info_record(tx, g2t)
+            except fn.DatabaseConnectionError as e:
+                error = 'Currently unable to update gene_ids or transcript information records because ' \
+                        'VariantValidator %s' % str(e)
+                # my_variant.warnings.append(error)
+                logger.warning(error)
             tx_description = g2t.db.get_transcript_description(tx)
 
-            if tx_description == 'none':
-                try:
-                    g2t.db.update_transcript_info_record(tx, g2t)
-                except fn.DatabaseConnectionError as e:
-                    error = 'Currently unable to update gene_ids or transcript information records because ' \
-                            'VariantValidator %s' % str(e)
-                    # my_variant.warnings.append(error)
-                    logger.info(error)
-                tx_description = g2t.db.get_transcript_description(tx)
+        # Get annotation
+        try:
+            tx_annotation = g2t.db.get_transcript_annotation(tx)
+            tx_annotation = json.loads(tx_annotation)
+        # Missing annotation data
+        except json.decoder.JSONDecodeError:
+            continue
 
-            # Get annotation
-            try:
-                tx_annotation = g2t.db.get_transcript_annotation(tx)
-                tx_annotation = json.loads(tx_annotation)
-            # Missing annotation data
-            except json.decoder.JSONDecodeError:
-                continue
-
-            # Check for duplicates
-            if tx not in recovered:
-                recovered.append(tx)
-                if len(line) >= 3 and isinstance(line[1], int):
-                    genes_and_tx.append({'reference': tx,
-                                         'description': tx_description,
-                                         'annotations': tx_annotation,
-                                         'translation': prot_id,
-                                         'length': tx_len,
-                                         'coding_start': line[1] + 1,
-                                         'coding_end': line[2],
-                                         # 'orientation': tx_orientation,
-                                         'genomic_spans': {}
-                                         })
-                else:
+        # Check for duplicates
+        if tx not in recovered:
+            recovered.append(tx)
+            if len(line) >= 3 and isinstance(line[1], int):
+                genes_and_tx.append({'reference': tx,
+                                     'description': tx_description,
+                                     'annotations': tx_annotation,
+                                     'translation': prot_id,
+                                     'length': tx_len,
+                                     'coding_start': line[1] + 1,
+                                     'coding_end': line[2],
+                                     # 'orientation': tx_orientation,
+                                     'genomic_spans': {}
+                                     })
+            else:
+                genes_and_tx.append({'reference': tx,
+                                     'description': tx_description,
+                                     'annotations': tx_annotation,
+                                     'translation': prot_id,
+                                     'length': tx_len,
+                                     'coding_start': None,
+                                     'coding_end': None,
+                                     # 'orientation': tx_orientation,
+                                     'genomic_spans': {}
+                                     })
+            # LRG information
+            lrg_transcript = g2t.db.get_lrg_transcript_id_from_refseq_transcript_id(tx)
+            if lrg_transcript != 'none':
+                if line[1] is None:
                     genes_and_tx.append({'reference': tx,
                                          'description': tx_description,
                                          'annotations': tx_annotation,
@@ -448,21 +473,18 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
                                          # 'orientation': tx_orientation,
                                          'genomic_spans': {}
                                          })
-                # LRG information
-                lrg_transcript = g2t.db.get_lrg_transcript_id_from_refseq_transcript_id(tx)
-                if lrg_transcript != 'none':
-                    if line[1] is None:
-                        genes_and_tx.append({'reference': tx,
-                                             'description': tx_description,
-                                             'annotations': tx_annotation,
-                                             'translation': prot_id,
-                                             'length': tx_len,
-                                             'coding_start': None,
-                                             'coding_end': None,
-                                             # 'orientation': tx_orientation,
-                                             'genomic_spans': {}
-                                             })
-                    elif sel_tx_lst is False:
+                elif sel_tx_lst is False:
+                    genes_and_tx.append({'reference': lrg_transcript,
+                                         'description': tx_description,
+                                         'annotations': tx_annotation,
+                                         'length': tx_len,
+                                         'translation': lrg_transcript.replace('t', 'p'),
+                                         'coding_start': line[1] + 1,
+                                         'coding_end': line[2],
+                                         'genomic_spans': {}
+                                         })
+                else:
+                    if lrg_transcript in sel_tx_lst:
                         genes_and_tx.append({'reference': lrg_transcript,
                                              'description': tx_description,
                                              'annotations': tx_annotation,
@@ -472,51 +494,40 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
                                              'coding_end': line[2],
                                              'genomic_spans': {}
                                              })
+
+        # Add the genomic span information
+        if gen_span is True:
+            for check_tx in genes_and_tx:
+                lrg_transcript = g2t.db.get_lrg_transcript_id_from_refseq_transcript_id(tx)
+                if check_tx['reference'] == tx:
+                    if gen_start_pos < gen_end_pos:
+                        check_tx['genomic_spans'][line[4]] = {'start_position': gen_start_pos + 1,
+                                                              'end_position': gen_end_pos,
+                                                              'orientation': tx_orientation,
+                                                              'exon_structure': exon_set,
+                                                              "total_exons": total_exons}
                     else:
-                        if lrg_transcript in sel_tx_lst:
-                            genes_and_tx.append({'reference': lrg_transcript,
-                                                 'description': tx_description,
-                                                 'annotations': tx_annotation,
-                                                 'length': tx_len,
-                                                 'translation': lrg_transcript.replace('t', 'p'),
-                                                 'coding_start': line[1] + 1,
-                                                 'coding_end': line[2],
-                                                 'genomic_spans': {}
-                                                 })
+                        check_tx['genomic_spans'][line[4]] = {'start_position': gen_end_pos + 1,
+                                                              'end_position': gen_start_pos,
+                                                              'orientation': tx_orientation,
+                                                              'exon_structure': exon_set,
+                                                              "total_exons": total_exons}
+                if lrg_transcript != 'none':
+                    if check_tx['reference'] == lrg_transcript:
+                        if 'NG_' in line[4]:
+                            lrg_id = g2t.db.get_lrg_id_from_refseq_gene_id(line[4])
+                            if lrg_id[0] in lrg_transcript:
+                                check_tx['genomic_spans'][line[4]] = {'start_position': gen_start_pos + 1,
+                                                                      'end_position': gen_end_pos,
+                                                                      'orientation': 1,
+                                                                      'exon_structure': exon_set,
+                                                                      "total_exons": total_exons}
 
-            # Add the genomic span information
-            if gen_span is True:
-                for check_tx in genes_and_tx:
-                    lrg_transcript = g2t.db.get_lrg_transcript_id_from_refseq_transcript_id(tx)
-                    if check_tx['reference'] == tx:
-                        if gen_start_pos < gen_end_pos:
-                            check_tx['genomic_spans'][line[4]] = {'start_position': gen_start_pos + 1,
-                                                                  'end_position': gen_end_pos,
-                                                                  'orientation': tx_orientation,
-                                                                  'exon_structure': exon_set,
-                                                                  "total_exons": total_exons}
-                        else:
-                            check_tx['genomic_spans'][line[4]] = {'start_position': gen_end_pos + 1,
-                                                                  'end_position': gen_start_pos,
-                                                                  'orientation': tx_orientation,
-                                                                  'exon_structure': exon_set,
-                                                                  "total_exons": total_exons}
-                    if lrg_transcript != 'none':
-                        if check_tx['reference'] == lrg_transcript:
-                            if 'NG_' in line[4]:
-                                lrg_id = g2t.db.get_lrg_id_from_refseq_gene_id(line[4])
-                                if lrg_id[0] in lrg_transcript:
-                                    check_tx['genomic_spans'][line[4]] = {'start_position': gen_start_pos + 1,
-                                                                          'end_position': gen_end_pos,
-                                                                          'orientation': 1,
-                                                                          'exon_structure': exon_set,
-                                                                          "total_exons": total_exons}
-
-                                    check_tx['genomic_spans'][lrg_id[0]] = {'start_position': gen_start_pos + 1,
-                                                                            'end_position': gen_end_pos,
-                                                                            'orientation': 1,
-                                                                            'exon_structure': exon_set,
-                                                                            "total_exons": total_exons}
+                                check_tx['genomic_spans'][lrg_id[0]] = {'start_position': gen_start_pos + 1,
+                                                                        'end_position': gen_end_pos,
+                                                                        'orientation': 1,
+                                                                        'exon_structure': exon_set,
+                                                                        "total_exons": total_exons}
 
     # Return data dict
     if bypass_web_searches is True:
@@ -533,6 +544,109 @@ def gene2transcripts(g2t, query, validator=False, bypass_web_searches=False, sel
     g2d_data["requested_symbol"] = submitted
 
     return g2d_data
+
+
+def get_accession_parts(accession):
+    """
+    Split transcript accession into base accession and version.
+
+    Examples:
+        NM_000088.4 -> ('NM_000088', 4)
+        ENST00000225964.10 -> ('ENST00000225964', 10)
+    """
+
+    base, version = accession.rsplit(".", 1)
+
+    return base, int(version)
+
+
+def clean_transcripts(rows, genome_build="GRCh38", transcript_set=None):
+    """
+    Clean transcripts.
+
+    Accepts the hdp.get_tx_for_gene list format
+
+    :param rows: transcript list from hdp.get_tx_for_gene
+    :param genome_build: genome build string GRCh37 or GRCh38
+    :param transcript_set: transcript set string refseq or ensembl
+
+    return: cleaned transcript list
+    """
+
+    # remove blat rows
+    rows = [row for row in rows if row[5] != "blat"]
+
+    # VVTA occasionally contains Ensembl accessions suffixed
+    # with genome builds (e.g. /GRCh37 or /GRCh38).
+    # Exclude these duplicated build-specific records.
+    # It also contains some strange RefSeq characters which
+    # we also need to filter out
+    # May need to be modified when we correctly handle such formats currently filtered
+
+    if transcript_set == "ensembl":
+        rows = [
+            row for row in rows
+            if (
+                    row[3].startswith("ENST") and
+                    "/" not in row[3] and
+                    (
+                            genome_build is None or
+                            seq_data.to_chr_num_refseq(row[4], genome_build) is not None
+                    )
+            )
+        ]
+
+    elif transcript_set == "refseq":
+        rows = [
+            row for row in rows
+            if (
+                    (
+                            row[3].startswith("NM_") or
+                            row[3].startswith("NR_")
+                    ) and
+                    ".." not in row[3] and
+                    "_NG_" not in row[3] and
+                    "~" not in row[3] and
+                    (
+                            genome_build is None or
+                            seq_data.to_chr_num_refseq(row[4], genome_build) is not None
+                    )
+            )
+        ]
+
+    return rows
+
+
+
+
+def filter_latest_transcripts(rows):
+    """
+    Remove 'blat' rows and keep only latest transcript versions.
+    """
+
+    # find highest version per accession
+    latest_versions = {}
+
+    for row in rows:
+        base, version = get_accession_parts(row[3])
+
+        if (
+            base not in latest_versions
+            or version > latest_versions[base]
+        ):
+            latest_versions[base] = version
+
+    # keep only latest versions
+    filtered_rows = []
+
+    for row in rows:
+        base, version = get_accession_parts(row[3])
+
+        if version == latest_versions[base]:
+            filtered_rows.append(row)
+
+    return filtered_rows
+
 
 def lovd_syntax_check_g2t(query, lovd_syntax_check):
     # Get additional warnings

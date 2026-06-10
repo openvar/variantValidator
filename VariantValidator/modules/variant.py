@@ -23,6 +23,7 @@ class Variant(object):
         self.input_parses = None  # quibble as hgvs variant object
         self.transcript_type = None
         self.lovd_syntax_check = None
+        self.shorthand_vcf = None
         self.lovd_messages = None
         self.lovd_corrections = None
 
