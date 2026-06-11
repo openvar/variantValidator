@@ -31401,6 +31401,91 @@ class TestVariantsAuto(TestCase):
         assert "NM_001009944.3:c.12443dup" in results.keys()
         assert "NT_187607.1:g.713119_713120insTT" not in str(results["NM_001009944.3:c.12443dup"]["alt_genomic_loci"])
 
+    def test_user_identified_inv_bug(self):
+        results = self.vv.validate('["NM_000313.3:c.2000_2001inv", "NM_022132.4:c.1144_1147inv"]', 'GRCh37', 'all', liftover_level=True).format_as_dict(test=True)
+        assert "NM_000313.3:c.2000_2001inv" in results.keys()
+        assert "NM_022132.4:c.1144_1147inv" in results.keys()
+        assert "NT_187651.1:g.1134443_1134444insATTTTA" not in str(results["NM_022132.4:c.1144_1147inv"]["alt_genomic_loci"])
+        assert "NW_003315917.2:g.1602953_1602954insATTTTA" not in str(
+            results["NM_022132.4:c.1144_1147inv"]["alt_genomic_loci"])
+        assert results["NM_000313.3:c.2000_2001inv"]["primary_assembly_loci"] ==  {
+            "grch37": {
+                "hgvs_genomic_description": "NC_000003.11:g.93593119_93593120inv",
+                "vcf": {
+                    "alt": "CA",
+                    "chr": "3",
+                    "pos": "93593119",
+                    "ref": "TG"
+                }
+            },
+            "grch38": {
+                "hgvs_genomic_description": "NC_000003.12:g.93874275_93874276inv",
+                "vcf": {
+                    "alt": "CA",
+                    "chr": "3",
+                    "pos": "93874275",
+                    "ref": "TG"
+                }
+            },
+            "hg19": {
+                "hgvs_genomic_description": "NC_000003.11:g.93593119_93593120inv",
+                "vcf": {
+                    "alt": "CA",
+                    "chr": "chr3",
+                    "pos": "93593119",
+                    "ref": "TG"
+                }
+            },
+            "hg38": {
+                "hgvs_genomic_description": "NC_000003.12:g.93874275_93874276inv",
+                "vcf": {
+                    "alt": "CA",
+                    "chr": "chr3",
+                    "pos": "93874275",
+                    "ref": "TG"
+                }
+            }
+        }
+        assert results["NM_022132.4:c.1144_1147inv"]["primary_assembly_loci"] == {
+            "grch37": {
+                "hgvs_genomic_description": "NC_000005.9:g.70939717_70939720inv",
+                "vcf": {
+                    "alt": "TTTT",
+                    "chr": "5",
+                    "pos": "70939717",
+                    "ref": "AAAA"
+                }
+            },
+            "grch38": {
+                "hgvs_genomic_description": "NC_000005.10:g.71643890_71643893inv",
+                "vcf": {
+                    "alt": "TTTT",
+                    "chr": "5",
+                    "pos": "71643890",
+                    "ref": "AAAA"
+                }
+            },
+            "hg19": {
+                "hgvs_genomic_description": "NC_000005.9:g.70939717_70939720inv",
+                "vcf": {
+                    "alt": "TTTT",
+                    "chr": "chr5",
+                    "pos": "70939717",
+                    "ref": "AAAA"
+                }
+            },
+            "hg38": {
+                "hgvs_genomic_description": "NC_000005.10:g.71643890_71643893inv",
+                "vcf": {
+                    "alt": "TTTT",
+                    "chr": "chr5",
+                    "pos": "71643890",
+                    "ref": "AAAA"
+                }
+            }
+        }
+
+
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
 #

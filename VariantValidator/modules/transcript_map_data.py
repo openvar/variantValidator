@@ -27,7 +27,9 @@ class TranscriptMapData():
         self.mapping_types = {} # the mapping type for each tx->alt map
         self.exon_data = {} # the set of exon data per mapping
         self._known_bad_alignments = [
-            ["NM_001009944.3", "NT_187607.1"]
+            ["NM_001009944.3", "NT_187607.1"],
+            ["NM_022132.4", "NT_187651.1"],
+            ["NM_022132.4", "NW_003315917.2"]
         ]
 
     def mapping_options(self,tx_ac,hdp=None):
