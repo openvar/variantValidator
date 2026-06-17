@@ -31485,6 +31485,47 @@ class TestVariantsAuto(TestCase):
             }
         }
 
+    def test_issue_gapping_810(self):
+        results = self.vv.validate('NC_000009.11:g.95237063_95237068dup', 'GRCh37', 'NM_017680.6', liftover_level=True).format_as_dict(test=True)
+        assert "NM_017680.6:c.144_152dup" in results.keys()
+        assert results["NM_017680.6:c.144_152dup"]["primary_assembly_loci"] ==  {
+            "grch37": {
+                "hgvs_genomic_description": "NC_000009.11:g.95237063_95237068dup",
+                "vcf": {
+                    "alt": "CTCATCA",
+                    "chr": "9",
+                    "pos": "95237024",
+                    "ref": "C"
+                }
+            },
+            "grch38": {
+                "hgvs_genomic_description": "NC_000009.12:g.92474781_92474786dup",
+                "vcf": {
+                    "alt": "CTCATCA",
+                    "chr": "9",
+                    "pos": "92474742",
+                    "ref": "C"
+                }
+            },
+            "hg19": {
+                "hgvs_genomic_description": "NC_000009.11:g.95237063_95237068dup",
+                "vcf": {
+                    "alt": "CTCATCA",
+                    "chr": "chr9",
+                    "pos": "95237024",
+                    "ref": "C"
+                }
+            },
+            "hg38": {
+                "hgvs_genomic_description": "NC_000009.12:g.92474781_92474786dup",
+                "vcf": {
+                    "alt": "CTCATCA",
+                    "chr": "chr9",
+                    "pos": "92474742",
+                    "ref": "C"
+                }
+            }
+        }
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
