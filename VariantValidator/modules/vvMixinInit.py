@@ -192,7 +192,6 @@ class Mixin:
         self.selected_assembly = None
         self.select_transcripts = None
         self.alt_aln_method = None
-        self.batch_list = []
 
     # Create additional normalizers
     def create_additional_normalizers_and_mappers(self):

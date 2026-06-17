@@ -8,7 +8,6 @@ from . import seq_data
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj, hgvs_dup_to_delins
 from VariantValidator.modules.variant import TranscriptMapData
 from VariantValidator.modules.utils import simple_dna_revcomp
-import traceback
 
 logger = logging.getLogger(__name__)
 

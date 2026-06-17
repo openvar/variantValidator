@@ -123,15 +123,16 @@ class Mixin(vvMixinConverters.Mixin):
                 batch_queries = [batch_variant]
             if isinstance(batch_queries, int):
                 batch_queries = [str(batch_queries)]
+
             # Turn each variant into a dictionary. The dictionary will be compiled during validation
-            self.batch_list = []
+            batch_list = []
             for queries in batch_queries:
                 if isinstance(queries, int):
                     queries = str(queries)
                     queries = str(queries)
                 queries = queries.strip()
                 query = Variant(queries)
-                self.batch_list.append(query)
+                batch_list.append(query)
                 logger.info("Submitting variant with format %s", queries)
 
             # Create List to carry batch data output
@@ -151,8 +152,8 @@ class Mixin(vvMixinConverters.Mixin):
             flag : mitochondrial
             """
 
-            logger.debug("Batch list length " + str(len(self.batch_list)))
-            for my_variant in self.batch_list:
+            logger.debug("Batch list length " + str(len(batch_list)))
+            for my_variant in batch_list:
 
                 # Create Normalizers
                 my_variant.hn = vvhgvs.normalizer.Normalizer(self.hdp,
@@ -389,8 +390,10 @@ class Mixin(vvMixinConverters.Mixin):
                             my_variant.warnings.append("Reference sequence type o. should only be used for circular "
                                                        "reference sequences that are not mitochondrial. Instead use m.")
                     try:
-                        toskip = format_converters.initial_format_conversions(my_variant, self,
-                                                                              select_transcripts_dict_plus_version)
+                        toskip = format_converters.initial_format_conversions(my_variant,
+                                                                              self,
+                                                                              select_transcripts_dict_plus_version,
+                                                                              batch_list)
 
                     except vvhgvs.exceptions.HGVSError as e:
                         # import traceback
@@ -689,7 +692,7 @@ class Mixin(vvMixinConverters.Mixin):
                     # Now start mapping from genome to transcripts
                     if my_variant.reftype == ':g.':
                         try:
-                            toskip = mappers.gene_to_transcripts(my_variant, self, select_transcripts_dict)
+                            toskip = mappers.gene_to_transcripts(my_variant, self, select_transcripts_dict, batch_list)
                         except IndexError:
                             my_variant.output_type_flag = 'warning'
                             error = '%s cannot be validated in the context of genome build %s, ' \
@@ -737,6 +740,8 @@ class Mixin(vvMixinConverters.Mixin):
                         my_variant.warnings.append(error)
                         exc_type, exc_value, last_traceback = sys.exc_info()
                         logger.error(str(exc_type) + " " + str(exc_value))
+                        import traceback
+                        traceback.print_exc()
                         continue
 
             # Outside the for loop
@@ -744,7 +749,7 @@ class Mixin(vvMixinConverters.Mixin):
             logger.debug("End of 1st for loop - Finalising formatting")
 
             # order the rows
-            by_order = sorted(self.batch_list, key=lambda x: x.order)
+            by_order = sorted(batch_list, key=lambda x: x.order)
             for variant in by_order:
                 ###############################################################
                 # Runtime information and errors at warning and above only!!! #
