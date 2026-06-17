@@ -4,7 +4,6 @@ import vvhgvs
 import vvhgvs.parser
 import vvhgvs.dataproviders.uta
 import vvhgvs.dataproviders.seqfetcher
-import vvhgvs.assemblymapper
 import vvhgvs.variantmapper
 import vvhgvs.sequencevariant
 import vvhgvs.validator
@@ -27,6 +26,7 @@ from VariantValidator.settings import CONFIG_DIR
 from VariantValidator.version import __version__
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
         VVPosEdit
+from vvhgvs.assemblymapper import AssemblyMapper
 
 logger = logging.getLogger(__name__)
 
@@ -228,6 +228,97 @@ class Mixin:
            validate=False
         )
 
+        """
+        Global Mappers
+        """
+
+        # Create easy variant mapper (over variant mapper) and splign locked evm
+        self.splign_grch38_evm = AssemblyMapper(self.hdp,
+                                                assembly_name="GRCh38",
+                                                alt_aln_method="splign",
+                                                normalize=True,
+                                                replace_reference=True
+                                                )
+
+        self.splign_grch37_evm = AssemblyMapper(self.hdp,
+                                                assembly_name="GRCh37",
+                                                alt_aln_method="splign",
+                                                normalize=True,
+                                                replace_reference=True
+                                                )
+
+        self.genebuild_grch38_evm = AssemblyMapper(self.hdp,
+                                                   assembly_name="GRCh38",
+                                                   alt_aln_method="genebuild",
+                                                   normalize=True,
+                                                   replace_reference=True
+                                                   )
+
+        self.genebuild_grch37_evm = AssemblyMapper(self.hdp,
+                                                   assembly_name="GRCh37",
+                                                   alt_aln_method="genebuild",
+                                                   normalize=True,
+                                                   replace_reference=True
+                                                   )
+
+        # Create non-normalizing evms
+        self.splign_grch38_no_norm_evm = AssemblyMapper(self.hdp,
+                                                        assembly_name="GRCh38",
+                                                        alt_aln_method="splign",
+                                                        normalize=False,
+                                                        replace_reference=True
+                                                        )
+
+        self.splign_grch37_no_norm_evm = AssemblyMapper(self.hdp,
+                                                        assembly_name="GRCh37",
+                                                        alt_aln_method="splign",
+                                                        normalize=False,
+                                                        replace_reference=True
+                                                        )
+
+        self.genebuild_grch38_no_norm_evm = AssemblyMapper(self.hdp,
+                                                           assembly_name="GRCh38",
+                                                           alt_aln_method="genebuild",
+                                                           normalize=False,
+                                                           replace_reference=True
+                                                           )
+
+        self.genebuild_grch37_no_norm_evm = AssemblyMapper(self.hdp,
+                                                           assembly_name="GRCh37",
+                                                           alt_aln_method="genebuild",
+                                                           normalize=False,
+                                                           replace_reference=True
+                                                           )
+
+        # Create a specific minimal evm with no normalizer and no replace_reference
+        self.splign_grch38_min_evm = AssemblyMapper(self.hdp,
+                                                    assembly_name="GRCh38",
+                                                    alt_aln_method="splign",
+                                                    normalize=False,
+                                                    replace_reference=False
+                                                    )
+
+        self.splign_grch37_min_evm = AssemblyMapper(self.hdp,
+                                                    assembly_name="GRCh37",
+                                                    alt_aln_method="splign",
+                                                    normalize=False,
+                                                    replace_reference=False
+                                                    )
+
+        self.genebuild_grch38_min_evm = AssemblyMapper(self.hdp,
+                                                       assembly_name="GRCh38",
+                                                       alt_aln_method="genebuild",
+                                                       normalize=False,
+                                                       replace_reference=False
+                                                       )
+
+        self.genebuild_grch37_min_evm = AssemblyMapper(self.hdp,
+                                                       assembly_name="GRCh37",
+                                                       alt_aln_method="genebuild",
+                                                       normalize=False,
+                                                       replace_reference=False
+                                                       )
+
         # Created during validate method
         self.selected_assembly = None
         self.select_transcripts = None
@@ -240,10 +331,8 @@ class Mixin:
         self.merge_normalizer = None
         self.reverse_merge_normalizer = None
 
-
-
     # Create additional normalizers
-    def create_additional_normalizers_and_mappers(self):
+    def get_normalizers(self):
         """
         Keep the internal function for VV to prevent a lot of unnecessary recoding
         but source the mappers and normalizers from the global setup
@@ -275,13 +364,6 @@ class Mixin:
             self.reverse_merge_normalizer = self.genebuild_reverse_merge_normalizer
         else:
             raise InitialisationError("ConfigurationError: Unknown alt_aln_method: " + self.alt_aln_method)
-
-        self.no_norm_evm = vvhgvs.assemblymapper.AssemblyMapper(self.hdp,
-                                                                assembly_name=self.primary_assembly,
-                                                                alt_aln_method=self.alt_aln_method,
-                                                                normalize=False,
-                                                                replace_reference=True
-                                                                )
 
     def __del__(self):
         try:

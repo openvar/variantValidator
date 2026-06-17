@@ -11,7 +11,6 @@ import sys
 import logging
 import json
 import time
-from vvhgvs.assemblymapper import AssemblyMapper
 from VariantValidator.modules import hgvs_utils
 from VariantValidator.modules import utils as fn
 from VariantValidator.modules import vvMixinConverters
@@ -187,29 +186,9 @@ class Mixin(vvMixinConverters.Mixin):
                         toskip = self._get_transcript_info(my_variant)
                         if toskip:
                             continue
-                        # Create easy variant mapper (over variant mapper) and splign locked evm
-                        my_variant.evm = AssemblyMapper(self.hdp,
-                                                        assembly_name=primary_assembly,
-                                                        alt_aln_method=self.alt_aln_method,
-                                                        normalize=True,
-                                                        replace_reference=True
-                                                        )
 
-                        # Setup a reverse normalize instance and non-normalize evm
-                        my_variant.no_norm_evm = AssemblyMapper(self.hdp,
-                                                                assembly_name=primary_assembly,
-                                                                alt_aln_method=self.alt_aln_method,
-                                                                normalize=False,
-                                                                replace_reference=True
-                                                                )
-
-                        # Create a specific minimal evm with no normalizer and no replace_reference
-                        my_variant.min_evm = AssemblyMapper(self.hdp,
-                                                            assembly_name=primary_assembly,
-                                                            alt_aln_method=self.alt_aln_method,
-                                                            normalize=False,
-                                                            replace_reference=False
-                                                            )
+                        # Configure mappers
+                        my_variant.get_mappers(self)
 
                     if my_variant.reftype in [':c.', ':n.']:
                         my_variant.gene_symbol = self.db.get_gene_symbol_from_transcript_id(
@@ -326,7 +305,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                     # Create the additional required normalizers which come from allele merge code and other sources
                     self.primary_assembly = primary_assembly
-                    self.create_additional_normalizers_and_mappers()
+                    self.get_normalizers()
 
                     logger.debug("Completed string formatting")
 
@@ -405,21 +384,8 @@ class Mixin(vvMixinConverters.Mixin):
                                 test_variant.hgvs_formatted = self.hp.parse_hgvs_variant(
                                         test_variant.hgvs_formatted)
 
-                            # Create easy variant mapper (over variant mapper) and splign locked evm
-                            test_variant.evm = AssemblyMapper(self.hdp,
-                                                              assembly_name=primary_assembly,
-                                                              alt_aln_method=self.alt_aln_method,
-                                                              normalize=True,
-                                                              replace_reference=True
-                                                              )
-
-                            # Setup a reverse normalize instance and non-normalize evm
-                            test_variant.no_norm_evm = AssemblyMapper(self.hdp,
-                                                                      assembly_name=primary_assembly,
-                                                                      alt_aln_method=self.alt_aln_method,
-                                                                      normalize=False,
-                                                                      replace_reference=True
-                                                                      )
+                            # Configure mappers
+                            my_variant.get_mappers(self)
 
                             mappers.transcripts_to_gene(test_variant, self, select_transcripts_dict_plus_version)
                         except mappers.MappersError:
@@ -561,30 +527,8 @@ class Mixin(vvMixinConverters.Mixin):
                         # These objects cannot be moved outside of the main function because they gather data from the
                         # user input e.g. alignment method and genome build
                         # They initiate quickly, so no need to move them unnecessarily
+                        my_variant.get_mappers(self)
 
-                        # Create easy variant mapper (over variant mapper) and splign locked evm
-                        my_variant.evm = AssemblyMapper(self.hdp,
-                                                        assembly_name=primary_assembly,
-                                                        alt_aln_method=self.alt_aln_method,
-                                                        normalize=True,
-                                                        replace_reference=True
-                                                        )
-
-                        # Setup a reverse normalize instance and non-normalize evm
-                        my_variant.no_norm_evm = AssemblyMapper(self.hdp,
-                                                                assembly_name=primary_assembly,
-                                                                alt_aln_method=self.alt_aln_method,
-                                                                normalize=False,
-                                                                replace_reference=True
-                                                                )
-
-                        # Create a specific minimal evm with no normalizer and no replace_reference
-                        my_variant.min_evm = AssemblyMapper(self.hdp,
-                                                            assembly_name=primary_assembly,
-                                                            alt_aln_method=self.alt_aln_method,
-                                                            normalize=False,
-                                                            replace_reference=False
-                                                            )
 
                     else:
                         error = 'Mapping of ' + formatted_variant + ' to genome assembly ' + \
