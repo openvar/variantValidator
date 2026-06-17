@@ -2,13 +2,12 @@ import copy
 import re
 import logging
 import vvhgvs.exceptions
-from . import utils as fn
+from sqlparse.utils import offset
+
 from . import hgvs_utils
-from . import seq_data
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj, hgvs_dup_to_delins
 from VariantValidator.modules.variant import TranscriptMapData
 from VariantValidator.modules.utils import simple_dna_revcomp
-import traceback
 
 logger = logging.getLogger(__name__)
 
@@ -746,6 +745,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
 
                 # If exonic, process
                 if intronic_variant != 'true' and intronic_variant != 'hard_fail':
+
                     # Attempt to find gaps in reference sequence by catching disparity in genome length and
                     # overlapping transcript lengths
                     self.disparity_deletion_in = ['false', 'false']
@@ -879,7 +879,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                         if str(e) == 'start or end or both are beyond the bounds of transcript record':
                             hgvs_not_delins = saved_hgvs_coding
                             self.disparity_deletion_in = ['false', 'false']
-                        logger.info(str(e))
                     try:
                         self.variant.hn.normalize(self.tx_hgvs_not_delins)
                     except vvhgvs.exceptions.HGVSUnsupportedOperationError as e:
@@ -893,7 +892,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                                 # We know that this cannot be because of an intronic variant, so must be aligned to
                                 # tx gap
                                 self.disparity_deletion_in = ['transcript', 'Requires Analysis']
-                        logger.info(error)
 
                     # Pre-processing of self.tx_hgvs_not_delins
                     try:
@@ -905,6 +903,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
 
                     # GAP IN THE TRANSCRIPT DISPARITY DETECTED
                     if self.disparity_deletion_in[0] == 'transcript':
+                        logger.info(f"Transcript gap identified as {self.disparity_deletion_in}")
                         # Check for issue https://github.com/openvar/variantValidator/issues/385 where the gap is
                         # being identified but oddly the vm is not compensating, likely due to odd sequence
                         try:
@@ -953,6 +952,34 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                         hgvs_refreshed_variant = self.transcript_disparity(reverse_normalized_hgvs_genomic,
                                                                            stored_hgvs_not_delins,
                                                                            self.variant.hgvs_genomic, 1)
+
+                        # Look for missed duplications into direct complte in-line repeats
+                        try:
+                            if (hasattr(hgvs_refreshed_variant.posedit.pos.start, "offset")
+                             or hasattr(hgvs_refreshed_variant.posedit.pos.end, "offset")):
+                                logger.info("Checks for potential inline missed dups 1")
+                                if(hgvs_refreshed_variant.posedit.pos.start.base ==
+                                        rn_tx_hgvs_not_delins.posedit.pos.start.base
+                                        and
+                                    hgvs_refreshed_variant.posedit.pos.end.base ==
+                                        rn_tx_hgvs_not_delins.posedit.pos.end.base
+                                        and
+                                    hgvs_refreshed_variant.posedit.edit.alt ==
+                                        rn_tx_hgvs_not_delins.posedit.edit.alt):
+                                            logger.info(f"Potential missed in-line tandem repeat dup "
+                                                        f"{rn_tx_hgvs_not_delins}")
+                                            hgvs_refreshed_variant = rn_tx_hgvs_not_delins
+                                            try:
+                                                hgvs_refreshed_variant = (self.validator.vm.
+                                                                          n_to_c(hgvs_refreshed_variant))
+                                            except vvhgvs.exceptions.HGVSError:
+                                                pass
+                                            logger.info(f"direct map to: {hgvs_refreshed_variant}")
+                                            hgvs_refreshed_variant = self.variant.hn.normalize(hgvs_refreshed_variant)
+                                            logger.info(f"normalize to: {hgvs_refreshed_variant}")
+                        except Exception:
+                            pass
+
                     # GAP IN THE CHROMOSOME
                     elif self.disparity_deletion_in[0] == 'chromosome':
                         # Set warning variables
@@ -1160,7 +1187,6 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
         hgvs_genomic = self.validator.myevm_t_to_g(hgvs_coding, self.variant.no_norm_evm, self.variant.primary_assembly,
                                                    self.variant.hn, self.variant)
 
-        logger.debug('g_to_t gap code 1 active')
         rn_hgvs_genomic = self.variant.reverse_normalizer.normalize(hgvs_genomic)
         self.hgvs_genomic_possibilities.append([rn_hgvs_genomic, ['false', 'false']])
 
@@ -1766,6 +1792,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     hgvs_refreshed_variant = self.transcript_disparity(reverse_normalized_hgvs_genomic,
                                                                        stored_hgvs_not_delins, hgvs_genomic, 2)
 
+
                 # GAP IN THE CHROMOSOME
                 elif self.disparity_deletion_in[0] == 'chromosome':
                     suppress_c_normalization = 'true'
@@ -1864,21 +1891,21 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     hgvs_genomic.posedit.pos.end.base = start
                     hgvs_genomic = self.variant.hn.normalize(hgvs_genomic)
 
-        logger.info(f"g_to_t_compensation returning hgvs_genomic {hgvs_genomic }hgvs_coding {hgvs_coding}, "
+        logger.info(f"g_to_t_compensation returning hgvs_genomic {hgvs_genomic } hgvs_coding {hgvs_coding}, "
                     f"suppress c normalization {suppress_c_normalization}")
 
         return hgvs_genomic, suppress_c_normalization, hgvs_coding
 
     def g_to_t_gapped_mapping_stage2(self, ori, hgvs_coding, hgvs_genomic):
-        logger.debug('g_to_t gap code 2 active')
+        logger.info('g_to_t gap code 2 active')
+
+        logger.info(f"incoming variants: {hgvs_coding}, exons {ori} against {hgvs_genomic}")
+
         hgvs_genomic_variant = hgvs_genomic
         reverse_normalized_hgvs_genomic = self.variant.reverse_normalizer.normalize(hgvs_genomic_variant)
         self.hgvs_genomic_5pr = copy.deepcopy(reverse_normalized_hgvs_genomic)
         vcf_dict = hgvs_utils.hgvs2vcf(reverse_normalized_hgvs_genomic, self.variant.primary_assembly,
                                        self.variant.reverse_normalizer, self.validator.sf)
-        pos = vcf_dict['pos']
-        ref = vcf_dict['ref']
-        alt = vcf_dict['alt']
 
         stored_hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
                 self.hgvs_genomic_5pr.ac,
@@ -1988,6 +2015,29 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                 hgvs_refreshed_variant = self.transcript_disparity(reverse_normalized_hgvs_genomic,
                                                                    stored_hgvs_not_delins, hgvs_genomic, 3)
 
+                # Look for missed duplications into direct complete in-line repeats
+                try:
+                    check_refreshed_variant = (self.validator.vm.
+                                              n_to_c(self.tx_hgvs_not_delins))
+                except vvhgvs.exceptions.HGVSError:
+                    check_refreshed_variant = self.tx_hgvs_not_delins
+                logger.info(f"check_refreshed_variant: {check_refreshed_variant}")
+
+                try:
+                    if (hasattr(check_refreshed_variant.posedit.pos.start, "offset")
+                            or hasattr(check_refreshed_variant.posedit.pos.end, "offset")):
+                        logger.info("Checks for potential inline missed dups 2")
+                        if (hgvs_refreshed_variant.posedit.pos.end.base == check_refreshed_variant.posedit.pos.end.base
+                            and (int(check_refreshed_variant.posedit.pos.start.base)) ==
+                                (int(hgvs_refreshed_variant.posedit.pos.start.base)+1)
+                                and hgvs_refreshed_variant.posedit.edit.alt[2:] ==
+                                check_refreshed_variant.posedit.edit.alt):
+                                    logger.info(f"Potential missed in-line tandem repeat dup "
+                                                f"{self.tx_hgvs_not_delins}")
+                                    hgvs_refreshed_variant = check_refreshed_variant
+                except Exception:
+                    pass
+
             # GAP IN THE CHROMOSOME
             elif self.disparity_deletion_in[0] == 'chromosome':
                 hgvs_refreshed_variant = self.tx_hgvs_not_delins
@@ -2009,6 +2059,8 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
         return hgvs_coding
 
     def g_to_t_gap_compensation_version3(self, hgvs_alt_genomic, hgvs_coding, ori, alt_chr, rec_var):
+
+        logger.info("g_to_t_gap_compensation_version3 active")
 
         self.orientation = int(ori[0]['alt_strand'])
         hgvs_genomic = copy.deepcopy(hgvs_alt_genomic)
@@ -2603,6 +2655,7 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
 
                 elif self.disparity_deletion_in[0] == 'transcript':
                     # ANY VARIANT WHOLLY WITHIN THE GAP
+                    logger.info("Variant in tx_gap test 4")
                     hgvs_refreshed_variant = self.transcript_disparity(reverse_normalized_hgvs_genomic,
                                                                        stored_hgvs_not_delins, hgvs_genomic, 4)
 
@@ -3181,6 +3234,10 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
 
         try:
             hgvs_refreshed_variant = self.variant.hn.normalize(hgvs_refreshed_variant)
+
+            logger.info(f"Editing {hgvs_refreshed_variant}")
+
+
             if hgvs_refreshed_variant.posedit.edit.type == 'delins' and \
                     hgvs_refreshed_variant.posedit.edit.ref[-1] == \
                     hgvs_refreshed_variant.posedit.edit.alt[-1]:
