@@ -153,8 +153,9 @@ class Mixin:
         self.genome_builds = ['GRCh37', 'hg19', 'GRCh38']
         self.utaSchema = str(self.hdp.data_version())
 
-        # When we are able to access Ensembl data we will need to use these normalizer instances
-        # These are currently implemented in VF
+        """
+        Global Normalizers
+        """
         self.splign_normalizer = vvhgvs.normalizer.Normalizer(
             self.hdp,
             cross_boundaries=False,
@@ -167,6 +168,13 @@ class Mixin:
             cross_boundaries=False,
             shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
             alt_aln_method='genebuild'  # Ensembl
+            )
+
+        self.splign_normalizer_cross = vvhgvs.normalizer.Normalizer(
+            self.hdp,
+            cross_boundaries=True,
+            shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
+            alt_aln_method='splign'  # Ensembl
             )
 
         self.genebuild_normalizer_cross = vvhgvs.normalizer.Normalizer(
@@ -188,41 +196,85 @@ class Mixin:
                                                                          alt_aln_method='genebuild' # Ensembl
                                                                          )
 
+        self.splign_merge_normalizer = vvhgvs.normalizer.Normalizer(
+           self.hdp,
+           cross_boundaries=False,
+           shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
+           alt_aln_method='splign',
+           validate=False
+        )
+
+        self.splign_reverse_merge_normalizer = vvhgvs.normalizer.Normalizer(
+           self.hdp,
+           cross_boundaries=False,
+           shuffle_direction=5,
+           alt_aln_method='splign',
+           validate=False
+        )
+
+        self.genebuild_merge_normalizer = vvhgvs.normalizer.Normalizer(
+           self.hdp,
+           cross_boundaries=False,
+           shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
+           alt_aln_method='genebuild',
+           validate=False
+        )
+
+        self.genebuild_reverse_merge_normalizer = vvhgvs.normalizer.Normalizer(
+           self.hdp,
+           cross_boundaries=False,
+           shuffle_direction=5,
+           alt_aln_method='genebuild',
+           validate=False
+        )
+
         # Created during validate method
         self.selected_assembly = None
         self.select_transcripts = None
         self.alt_aln_method = None
         self.batch_list = []
 
+        # VV selected tools
+        self.reverse_hn = None
+        self.hn = None
+        self.merge_normalizer = None
+        self.reverse_merge_normalizer = None
+
+
+
     # Create additional normalizers
     def create_additional_normalizers_and_mappers(self):
-        self.reverse_hn = vvhgvs.normalizer.Normalizer(self.hdp,
-                                                       cross_boundaries=False,
-                                                       shuffle_direction=5,
-                                                       alt_aln_method=self.alt_aln_method
-                                                       )
+        """
+        Keep the internal function for VV to prevent a lot of unnecessary recoding
+        but source the mappers and normalizers from the global setup
+        """
+        if self.alt_aln_method == "splign":
+            self.reverse_hn = self.reverse_splign_normalizer
+        elif self.alt_aln_method == "genebuild":
+            self.reverse_hn = self.reverse_genebuild_normalizer
+        else:
+            raise InitialisationError("ConfigurationError: Unknown alt_aln_method: " + self.alt_aln_method)
 
-        self.hn = vvhgvs.normalizer.Normalizer(self.hdp,
-                                               cross_boundaries=False,
-                                               shuffle_direction=3,
-                                               alt_aln_method=self.alt_aln_method
-                                               )
+        if self.alt_aln_method == "splign":
+            self.hn = self.splign_normalizer
+        elif self.alt_aln_method == "genebuild":
+            self.hn = self.genebuild_normalizer
+        else:
+            raise InitialisationError("ConfigurationError: Unknown alt_aln_method: " + self.alt_aln_method)
 
-        self.merge_normalizer = vvhgvs.normalizer.Normalizer(
-           self.hdp,
-           cross_boundaries=False,
-           shuffle_direction=vvhgvs.global_config.normalizer.shuffle_direction,
-           alt_aln_method=self.alt_aln_method,
-           validate=False
-        )
+        if self.alt_aln_method == "splign":
+            self.merge_normalizer = self.splign_merge_normalizer
+        elif self.alt_aln_method == "genebuild":
+            self.merge_normalizer = self.genebuild_merge_normalizer
+        else:
+            raise InitialisationError("ConfigurationError: Unknown alt_aln_method: " + self.alt_aln_method)
 
-        self.reverse_merge_normalizer = vvhgvs.normalizer.Normalizer(
-           self.hdp,
-           cross_boundaries=False,
-           shuffle_direction=5,
-           alt_aln_method=self.alt_aln_method,
-           validate=False
-        )
+        if self.alt_aln_method == "splign":
+            self.reverse_merge_normalizer = self.splign_reverse_merge_normalizer
+        elif self.alt_aln_method == "genebuild":
+            self.reverse_merge_normalizer = self.genebuild_reverse_merge_normalizer
+        else:
+            raise InitialisationError("ConfigurationError: Unknown alt_aln_method: " + self.alt_aln_method)
 
         self.no_norm_evm = vvhgvs.assemblymapper.AssemblyMapper(self.hdp,
                                                                 assembly_name=self.primary_assembly,

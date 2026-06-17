@@ -1664,6 +1664,8 @@ class Mixin(vvMixinConverters.Mixin):
                 "Unhandled validation failure",
                 exc_info=True,
             )
+            # import traceback
+            # traceback.print_exc()
             raise fn.VariantValidatorError("Validation error") from e
 
     def gene2transcripts(self, query, validator=False, bypass_web_searches=False, select_transcripts=None,
