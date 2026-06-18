@@ -133,6 +133,8 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
         try:
             var_dat, nw_rel_var = gap_mapper.gapped_g_to_c(rel_var, select_transcripts_dict)
         except Exception as e:
+            # import traceback
+            # traceback.print_exc()
             logger.info(f"nw_rel_var creation failed with exception {str(e)}")
             raise TranscriptMappingError(f"Encountered an issue when mapping genomic description "
                                          f"{variant.hgvs_formatted} to available transcripts")

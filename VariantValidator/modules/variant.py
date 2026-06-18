@@ -2,6 +2,10 @@ import re
 from . import utils as fn
 from .transcript_map_data import TranscriptMapData
 
+class VariantConfigurationError(Exception):
+    pass
+
+
 class Variant(object):
     """
     This Variant object will contain the original input, the processed variant description and any other data that's
@@ -81,6 +85,35 @@ class Variant(object):
         self.validated = False
         self.exonic_positions = None
         self.rna_data = None
+
+        # Mappers
+        self.evm = None
+        no_norm_evm = None
+        min_evm = None
+
+    def get_mappers(self, validator):
+        if validator is None:
+            raise VariantConfigurationError("VariantConfigurationError: Validator object is None")
+
+        if self.primary_assembly == "GRCh38" and validator.alt_aln_method == "splign":
+            self.evm = validator.splign_grch38_evm
+            self.no_norm_evm = validator.splign_grch38_no_norm_evm
+            self.min_evm = validator.splign_grch38_min_evm
+        elif self.primary_assembly == "GRCh37" and validator.alt_aln_method == "splign":
+            self.evm = validator.splign_grch37_evm
+            self.no_norm_evm = validator.splign_grch37_no_norm_evm
+            self.min_evm = validator.splign_grch37_min_evm
+        elif self.primary_assembly == "GRCh38" and validator.alt_aln_method == "genebuild":
+            self.evm = validator.genebuild_grch38_evm
+            self.no_norm_evm = validator.genebuild_grch38_no_norm_evm
+            self.min_evm = validator.genebuild_grch38_min_evm
+        elif self.primary_assembly == "GRCh37" and validator.alt_aln_method == "genebuild":
+            self.evm = validator.genebuild_grch37_evm
+            self.no_norm_evm = validator.genebuild_grch37_no_norm_evm
+            self.min_evm = validator.genebuild_grch37_min_evm
+        else:
+            raise VariantConfigurationError(f"VariantConfigurationError: Primary assembly {self.primary_assembly} "
+                                            f"is not supported.")
 
 
     def is_ascii(self):
