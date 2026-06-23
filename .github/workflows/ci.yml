@@ -101,7 +101,7 @@ jobs:
           docker build \
             --no-cache \
             -f db_dockerfiles/vvsr/Dockerfile \
-            -t sqlite-seqrepo \
+            -t seqrepo-validator \
             db_dockerfiles/vvsr
 
       - name: Run SeqRepo
@@ -109,7 +109,7 @@ jobs:
           docker run -d \
             --name vv-seqrepo \
             --network ${DOCKER_NETWORK} \
-            sqlite-seqrepo
+            seqrepo-validator
 
       ##################################################################
       # Wait for MySQL
