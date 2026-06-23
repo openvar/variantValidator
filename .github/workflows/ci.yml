@@ -160,9 +160,10 @@ jobs:
       - name: Run VariantValidator
         run: |
           docker run -d \
-            --name variantvalidator \
-            --network ${DOCKER_NETWORK} \
-            variantvalidator
+              --name variantvalidator \
+              --network ${DOCKER_NETWORK} \
+              --volumes-from vv-seqrepo:ro \
+              variantvalidator
 
       ##################################################################
       # Run tests
@@ -175,7 +176,6 @@ jobs:
             -n 4 \
             --cov=VariantValidator \
             --cov=VariantFormatter \
-            --cov-report=term-missing \
             --cov-report=xml \
             tests
 
@@ -183,12 +183,18 @@ jobs:
       # Copy coverage
       ##################################################################
 
+      - name: Locate coverage.xml
+        if: always()
+        run: |
+          docker exec variantvalidator \
+            find / -name coverage.xml 2>/dev/null || true
+
       - name: Copy coverage.xml
         if: always()
         run: |
           docker cp \
-            variantvalidator:/VariantValidator/coverage.xml \
-            coverage.xml
+            variantvalidator:/app/coverage.xml \
+            coverage.xml || true
 
       ##################################################################
       # Upload coverage
