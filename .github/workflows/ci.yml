@@ -1,0 +1,252 @@
+name: VariantValidator CI
+
+on:
+  push:
+
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+
+  test:
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    env:
+      DOCKER_NETWORK: variantvalidator-network
+
+    steps:
+
+      ##################################################################
+      # Free disk space
+      ##################################################################
+
+      - name: Free disk space
+        run: |
+          echo "===== Before cleanup ====="
+          df -h
+
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/hostedtoolcache
+
+          docker system prune -af || true
+
+          echo
+          echo "===== After cleanup ====="
+          df -h
+
+      ##################################################################
+      # Checkout
+      ##################################################################
+
+      - uses: actions/checkout@v4
+
+      ##################################################################
+      # Create Docker network
+      ##################################################################
+
+      - name: Create Docker network
+        run: docker network create ${DOCKER_NETWORK}
+
+      ##################################################################
+      # Build VVTA
+      ##################################################################
+
+      - name: Build VVTA PostgreSQL
+        run: |
+          docker build \
+            --no-cache \
+            -f db_dockerfiles/vvta/Dockerfile \
+            -t postgres-vvta \
+            db_dockerfiles/vvta
+
+      - name: Run VVTA PostgreSQL
+        run: |
+          docker run -d \
+            --name vv-vvta \
+            --network ${DOCKER_NETWORK} \
+            --shm-size=2g \
+            postgres-vvta
+
+      ##################################################################
+      # Build Validator DB
+      ##################################################################
+
+      - name: Build Validator MySQL
+        run: |
+          docker build \
+            --no-cache \
+            -f db_dockerfiles/vdb/Dockerfile \
+            -t mysql-validator \
+            db_dockerfiles/vdb
+
+      - name: Run Validator MySQL
+        run: |
+          docker run -d \
+            --name vv-vdb \
+            --network ${DOCKER_NETWORK} \
+            mysql-validator
+
+      ##################################################################
+      # Build SeqRepo
+      ##################################################################
+
+      - name: Build SeqRepo
+        run: |
+          docker build \
+            --no-cache \
+            -f db_dockerfiles/vvsr/Dockerfile \
+            -t sqlite-seqrepo \
+            db_dockerfiles/vvsr
+
+      - name: Run SeqRepo
+        run: |
+          docker run -d \
+            --name vv-seqrepo \
+            --network ${DOCKER_NETWORK} \
+            sqlite-seqrepo
+
+      ##################################################################
+      # Wait for MySQL
+      ##################################################################
+
+      - name: Wait for MySQL
+        run: |
+          until docker exec vv-vdb \
+            mysqladmin ping \
+            -u vvadmin \
+            -pvar1ant \
+            --silent
+          do
+            sleep 5
+          done
+
+          echo "MySQL ready."
+
+      ##################################################################
+      # Wait for VVTA initialisation
+      ##################################################################
+
+      - name: Wait for VVTA initialisation
+        run: |
+          until docker logs vv-vvta 2>&1 | \
+            grep -q "PostgreSQL init process complete; ready for start up."
+          do
+            sleep 10
+          done
+
+          echo "VVTA ready."
+
+      ##################################################################
+      # Build VariantValidator
+      ##################################################################
+
+      - name: Build VariantValidator
+        run: |
+          docker build \
+            --no-cache \
+            -t variantvalidator \
+            .
+
+      ##################################################################
+      # Run VariantValidator
+      ##################################################################
+
+      - name: Run VariantValidator
+        run: |
+          docker run -d \
+            --name variantvalidator \
+            --network ${DOCKER_NETWORK} \
+            variantvalidator
+
+      ##################################################################
+      # Run tests
+      ##################################################################
+
+      - name: Run pytest
+        run: |
+          docker exec variantvalidator \
+            pytest \
+            -n 4 \
+            --cov=VariantValidator \
+            --cov=VariantFormatter \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            tests
+
+      ##################################################################
+      # Copy coverage
+      ##################################################################
+
+      - name: Copy coverage.xml
+        if: always()
+        run: |
+          docker cp \
+            variantvalidator:/VariantValidator/coverage.xml \
+            coverage.xml
+
+      ##################################################################
+      # Upload coverage
+      ##################################################################
+
+      - name: Upload coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          files: coverage.xml
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      ##################################################################
+      # Diagnostics
+      ##################################################################
+
+      - name: Disk usage
+        if: always()
+        run: |
+          echo "===== Disk ====="
+          df -h
+
+          echo
+          echo "===== Docker ====="
+          docker system df
+
+      ##################################################################
+      # Logs on failure
+      ##################################################################
+
+      - name: Container logs
+        if: failure()
+        run: |
+          echo "===== VariantValidator ====="
+          docker logs variantvalidator || true
+
+          echo
+          echo "===== VVTA ====="
+          docker logs vv-vvta || true
+
+          echo
+          echo "===== MySQL ====="
+          docker logs vv-vdb || true
+
+          echo
+          echo "===== SeqRepo ====="
+          docker logs vv-seqrepo || true
+
+      ##################################################################
+      # Cleanup
+      ##################################################################
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop variantvalidator vv-seqrepo vv-vdb vv-vvta || true
+
+          docker rm variantvalidator vv-seqrepo vv-vdb vv-vvta || true
+
+          docker network rm ${DOCKER_NETWORK} || true
