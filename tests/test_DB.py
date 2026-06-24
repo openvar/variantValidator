@@ -1,0 +1,257 @@
+import pytest
+from unittest.mock import MagicMock, patch
+
+from VariantValidator.modules.vvDatabase import Database
+
+
+@pytest.fixture
+def db():
+    db = Database.__new__(Database)
+    db.pool = None
+    return db
+
+
+def test_in_entries_none(db):
+    db.query_with_fetchone = MagicMock(
+        return_value=["none", "No data"]
+    )
+
+    result = db.in_entries("NM_1", "transcript_info")
+
+    assert result["none"] == "none"
+
+
+def test_in_entries_error(db):
+    db.query_with_fetchone = MagicMock(
+        return_value=["error", "broken"]
+    )
+
+    result = db.in_entries("NM_1", "transcript_info")
+
+    assert result["error"] == "error"
+
+
+def test_in_entries_success(db):
+    db.query_with_fetchone = MagicMock(
+        return_value=[
+            "NM_1",
+            "desc",
+            "var",
+            "1",
+            "GENE",
+            "UTA",
+            "today",
+            "false",
+        ]
+    )
+
+    result = db.in_entries("NM_1", "transcript_info")
+
+    assert result["accession"] == "NM_1"
+    assert result["hgnc_symbol"] == "GENE"
+
+
+@patch("VariantValidator.modules.vvDatabase.time.sleep")
+def test_data_add_retry(mock_sleep, db):
+
+    db.update_transcript_info_record = MagicMock()
+
+    db.in_entries = MagicMock(
+        side_effect=[
+            {"none": "none"},
+            {"none": "none"},
+            {"accession": "NM_1"},
+        ]
+    )
+
+    result = db.data_add(
+        "NM_1",
+        MagicMock()
+    )
+
+    assert result == {"accession": "NM_1"}
+    assert mock_sleep.call_count == 2
+
+
+def test_update_refseqgene_loci_insert(db):
+    db.get_refseq_data_by_refseq_id = MagicMock(
+        return_value=["none"]
+    )
+    db.insert_refseq_gene_data = MagicMock()
+
+    db.update_refseqgene_loci(
+        ["NG_1", "x", "y"]
+    )
+
+    db.insert_refseq_gene_data.assert_called_once()
+
+
+def test_update_refseqgene_loci_update(db):
+    db.get_refseq_data_by_refseq_id = MagicMock(
+        return_value=["exists"]
+    )
+    db.update_refseq_gene_data = MagicMock()
+
+    db.update_refseqgene_loci(
+        ["NG_1", "x", "y"]
+    )
+
+    db.update_refseq_gene_data.assert_called_once()
+
+
+def test_update_lrg_rs_lookup(db):
+    db.get_refseq_id_from_lrg_id = MagicMock(
+        return_value="none"
+    )
+    db.insert_refseq_gene_id_from_lrg_id = MagicMock()
+
+    db.update_lrg_rs_lookup(["LRG_1"])
+
+    db.insert_refseq_gene_id_from_lrg_id.assert_called_once()
+
+
+def test_update_lrgt_rst(db):
+    db.get_refseq_transcript_id_from_lrg_transcript_id = MagicMock(
+        return_value="none"
+    )
+    db.insert_lrg_transcript_data = MagicMock()
+
+    db.update_lrgt_rst(["LRG_1t1"])
+
+    db.insert_lrg_transcript_data.assert_called_once()
+
+
+def test_update_lrg_p_rs_p_lookup(db):
+    db.get_refseq_protein_id_from_lrg_protein_id = MagicMock(
+        return_value="none"
+    )
+    db.insert_lrg_protein_data = MagicMock()
+
+    db.update_lrg_p_rs_p_lookup(
+        "LRG_1p1",
+        "NP_1"
+    )
+
+    db.insert_lrg_protein_data.assert_called_once()
+
+
+def test_ref_type_assign():
+    db = Database.__new__(Database)
+    db.pool = None
+
+    assert db.ref_type_assign("NC_000001.11") == ":g."
+    assert db.ref_type_assign("NG_000001.1") == ":g."
+    assert db.ref_type_assign("NM_000001.1") == ":c."
+    assert db.ref_type_assign("NR_000001.1") == ":n."
+    assert db.ref_type_assign("NP_000001.1") == ":p."
+
+
+def test_ref_type_assign_lrg_transcript_c():
+    db = Database.__new__(Database)
+    db.pool = None
+
+    db.get_refseq_transcript_id_from_lrg_transcript_id = MagicMock(
+        return_value="NM_000001.1"
+    )
+
+    assert db.ref_type_assign("LRG_1t1") == ":c."
+
+
+def test_ref_type_assign_lrg_transcript_n():
+    db = Database.__new__(Database)
+    db.pool = None
+
+    db.get_refseq_transcript_id_from_lrg_transcript_id = MagicMock(
+        return_value="NR_000001.1"
+    )
+
+    assert db.ref_type_assign("LRG_1t1") == ":n."
+
+
+def test_ref_type_assign_lrg_protein():
+    db = Database.__new__(Database)
+    db.pool = None
+
+    assert db.ref_type_assign("LRG_1_p") == ":p."
+
+
+def test_ref_type_assign_unknown():
+    db = Database.__new__(Database)
+    db.pool = None
+
+    with pytest.raises(Exception):
+        db.ref_type_assign("XYZ")
+
+def test_update_lrg_rs_lookup_existing(db):
+    db.get_refseq_id_from_lrg_id = MagicMock(
+        return_value="NG_123"
+    )
+    db.insert_refseq_gene_id_from_lrg_id = MagicMock()
+
+    db.update_lrg_rs_lookup(["LRG_1"])
+
+    db.insert_refseq_gene_id_from_lrg_id.assert_not_called()
+
+
+def test_update_lrgt_rst_existing(db):
+    db.get_refseq_transcript_id_from_lrg_transcript_id = MagicMock(
+        return_value="NM_123"
+    )
+    db.insert_lrg_transcript_data = MagicMock()
+
+    db.update_lrgt_rst(["LRG_1t1"])
+
+    db.insert_lrg_transcript_data.assert_not_called()
+
+
+def test_update_lrg_p_rs_p_lookup_existing(db):
+    db.get_refseq_protein_id_from_lrg_protein_id = MagicMock(
+        return_value="NP_123"
+    )
+    db.insert_lrg_protein_data = MagicMock()
+
+    db.update_lrg_p_rs_p_lookup(
+        "LRG_1p1",
+        "NP_1"
+    )
+
+    db.insert_lrg_protein_data.assert_not_called()
+
+
+def test_ref_type_assign_nt():
+    db = Database.__new__(Database)
+    db.pool = None
+
+    assert db.ref_type_assign("NT_123456.1") == ":g."
+
+
+def test_ref_type_assign_nw():
+    db = Database.__new__(Database)
+    db.pool = None
+
+    assert db.ref_type_assign("NW_123456.1") == ":g."
+
+
+def test_ref_type_assign_lrg_genomic():
+    db = Database.__new__(Database)
+    db.pool = None
+
+    assert db.ref_type_assign("LRG_1") == ":g."
+
+
+# <LICENSE>
+# Copyright (C) 2016-2026 VariantValidator Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# </LICENSE>

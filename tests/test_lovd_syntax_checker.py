@@ -2,8 +2,6 @@ import requests
 from unittest import TestCase
 from unittest.mock import patch, MagicMock
 from VariantValidator.modules import lovd_api
-from VariantValidator.bin import lovd_syntax_checker
-
 
 class TestLOVDApi(TestCase):
 
