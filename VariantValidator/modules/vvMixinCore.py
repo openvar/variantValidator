@@ -923,6 +923,9 @@ class Mixin(vvMixinConverters.Mixin):
                         chrY = True
                 if chrX is True and chrY is True:
                     par = True
+                    variant.warnings.append('ParRegionWarning: Variant is located in a pseudoautosomal region (PAR) of '
+                                            'the X and Y chromosomes, so the Y context description has been moved to '
+                                            'alt_genomic_loci')
 
                 for alt_gen_var in multi_gen_vars:
                     if 'NC_' in alt_gen_var.ac:
