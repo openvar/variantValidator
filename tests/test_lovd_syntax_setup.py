@@ -62,7 +62,6 @@ def test_download_file_failure(reload_setup_module):
         reload_setup_module.download_file("http://example.com/file.php", "/tmp/file.php")
         mock_print.assert_any_call("Failed to download http://example.com/file.php: fail")
 
-
 def test_subprocess_failure_warning(reload_setup_module):
     """Test subprocess.CalledProcessError is caught, retried, and warning printed."""
 
@@ -92,6 +91,68 @@ def test_subprocess_failure_warning(reload_setup_module):
             "PHP memory limit.\n"
             "Please check your PHP installation."
         )
+
+def test_get_installation_path_module_not_found(reload_setup_module):
+    with patch(
+        "VariantValidator.bin.setup_lovd_syntax_checker.pkg_resources.files",
+        side_effect=ModuleNotFoundError(),
+    ), patch(
+        "VariantValidator.bin.setup_lovd_syntax_checker.sys.exit",
+        side_effect=SystemExit,
+    ) as mock_exit, patch(
+        "builtins.print"
+    ) as mock_print:
+
+        with pytest.raises(SystemExit):
+            reload_setup_module.get_installation_path()
+
+        mock_print.assert_called_with(
+            "Error: VariantValidator package is not installed."
+        )
+        mock_exit.assert_called_once_with(1)
+
+
+def test_cache_permission_warning(reload_setup_module):
+    with patch(
+        "VariantValidator.bin.setup_lovd_syntax_checker.os.makedirs"
+    ), patch(
+        "VariantValidator.bin.setup_lovd_syntax_checker.download_file"
+    ), patch(
+        "VariantValidator.bin.setup_lovd_syntax_checker.run_php_cache_update"
+    ), patch(
+        "VariantValidator.bin.setup_lovd_syntax_checker.os.chmod",
+        side_effect=Exception("permission denied"),
+    ), patch(
+        "builtins.print"
+    ) as mock_print:
+
+        reload_setup_module.setup_lovd()
+
+        mock_print.assert_any_call(
+            f"Warning: could not change permissions on "
+            f"{reload_setup_module.CACHE_DIR}: permission denied"
+        )
+
+
+def test_run_php_cache_update_prints_details(reload_setup_module):
+    error = subprocess.CalledProcessError(1, "php")
+
+    with patch(
+        "VariantValidator.bin.setup_lovd_syntax_checker.subprocess.run",
+        side_effect=[error, error],
+    ), patch(
+        "builtins.print"
+    ) as mock_print:
+
+        reload_setup_module.run_php_cache_update()
+
+        mock_print.assert_any_call(
+            "Failed to update the LOVD HGVS cache even after increasing "
+            "PHP memory limit.\n"
+            "Please check your PHP installation."
+        )
+
+        mock_print.assert_any_call(f"Details: {error}")
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
