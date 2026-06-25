@@ -1404,6 +1404,12 @@ class TestVVGapWarnings(TestCase):
         print(results)
         assert "UncertainConversionError: Validation of NM_033360.3:c.574+1_575-1del - Variant coordinate is out of the bound of CDS region (CDS length : 570)" in results['validation_warning_1']['validation_warnings']
 
+    def test_incorrect_transcript_selection_for_nm(self):
+        variant = 'NM_000088.4:c.589G>T'
+        results = self.vv.validate(variant, 'GRCh38', '["NM_000089.4", "NM_000089.3"]', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert "TranscriptSelectionError: Variant NM_000088.4:c.589G>T is not in the list of transcripts selected for validation [\"NM_000089.4\", \"NM_000089.3\"]" in results['validation_warning_1']['validation_warnings']
+
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
 #
