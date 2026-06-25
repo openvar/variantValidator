@@ -145,9 +145,22 @@ class TranscriptMapData():
             if alt_aln_method:
                 aln_method = alt_aln_method
             else:
-                aln_method = self.map_type(tx_ac,alt_ac)
-            self.exon_data[tx_ac][alt_ac] = cur_hdp.get_tx_exons(
-                    tx_ac,alt_ac,aln_method)
+                aln_method = self.map_type(tx_ac, alt_ac)
+            try:
+                self.exon_data[tx_ac][alt_ac] = cur_hdp.get_tx_exons(
+                    tx_ac,
+                    alt_ac,
+                    aln_method
+                )
+            except KeyError as e:
+                logger.exception(
+                    f"KeyError: Failed get_tx_exons "
+                    f"tx_ac={tx_ac} "
+                    f"alt_ac={alt_ac} "
+                    f"aln_method={aln_method} "
+                    f"key_error: {e}"
+                )
+                self.exon_data[tx_ac][alt_ac] = []
         if alt_ac not in self.exon_data[tx_ac]:
             return []
         return self.exon_data[tx_ac][alt_ac]
