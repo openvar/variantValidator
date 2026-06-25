@@ -31298,8 +31298,8 @@ class TestVariantsAuto(TestCase):
             "refseqgene": "https://www.ncbi.nlm.nih.gov/nuccore/NG_029236.1" }
 
         assert results["intergenic_variant_1"]["validation_warnings"] == [
-            "No individual transcripts have been identified that fully overlap the described variation in the genomic sequence. Large variants might span one or more genes and are currently only described at the genome (g.) level.",
-            "Mapping unavailable for RefSeqGene NG_029236.1:g.501delG using alignment method = splign"
+            "TranscriptIdentificationWarning: No individual transcripts have been identified that fully overlap the described variation in the genomic sequence. Large variants might span one or more genes and are currently only described at the genome (g.) level.",
+            "TranscriptIdentificationWarning: Mapping unavailable for RefSeqGene NG_029236.1:g.501delG using alignment method = splign"
         ]
 
 

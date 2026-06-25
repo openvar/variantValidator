@@ -29,7 +29,8 @@ class TestValidator(unittest.TestCase):
 
         output = self.vv.validate(var, 'GRCh37', 'Trans1').format_as_dict()
         print(output)
-        self.assertEqual(output['flag'], 'empty_result')
+        self.assertEqual(output['flag'], 'warning')
+        assert "TranscriptSelectionError" in str(output["validation_warning_1"]["validation_warnings"])
 
     def test_transcript_list_realid(self):
         var = 'NM_015120.4:c.34C>T'
@@ -52,7 +53,8 @@ class TestValidator(unittest.TestCase):
 
         output = self.vv.validate(var, 'GRCh37', 'LRG1').format_as_dict()
         print(output)
-        self.assertEqual(output['flag'], 'empty_result')
+        self.assertEqual(output['flag'], 'warning')
+        assert "TranscriptSelectionError" in str(output["validation_warning_1"]["validation_warnings"])
 
     def test_non_ascii(self):
         var = 'NM_015120.4:c.34C>T\202'

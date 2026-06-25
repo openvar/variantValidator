@@ -750,10 +750,10 @@ class Mixin(vvMixinConverters.Mixin):
                 # Runtime information and errors at warning and above only!!! #
                 ###############################################################
 
-                structure_loop_variant  = (f"Structure loop for variant {variant.original}, "
-                                           f"genome build {selected_assembly}, "
-                                           f"reference set {transcript_set}, "
-                                           f"select transcripts: {select_transcripts}")
+                structure_loop_variant = (f"Structure loop for variant {variant.original}, "
+                                          f"genome build {selected_assembly}, "
+                                          f"reference set {transcript_set}, "
+                                          f"select transcripts: {select_transcripts}")
 
                 logger.warning(structure_loop_variant)
 
