@@ -1,5 +1,6 @@
 import pytest
 from unittest.mock import MagicMock
+from unittest.mock import patch
 
 from VariantValidator.modules.transcript_map_data import TranscriptMapData
 
@@ -246,6 +247,102 @@ def test_mapped_exons_requires_hdp():
             "NM_000001.1",
             "NC_000001.11"
         )
+
+
+@patch("VariantValidator.modules.transcript_map_data.time.sleep")
+def test_mapped_exons_keyerror_retry(mock_sleep, mock_hdp):
+    mock_hdp.get_tx_exons.side_effect = [
+        KeyError("temporary failure"),
+        KeyError("temporary failure"),
+        [
+            {"alt_strand": 1, "exon": 1},
+            {"alt_strand": 1, "exon": 2},
+        ],
+    ]
+
+    tmd = TranscriptMapData(mock_hdp)
+
+    result = tmd.mapped_exons(
+        "NM_000001.1",
+        "NC_000001.11",
+    )
+
+    assert len(result) == 2
+    assert mock_hdp.get_tx_exons.call_count == 3
+    assert mock_sleep.call_count == 2
+
+
+@patch("VariantValidator.modules.transcript_map_data.time.sleep")
+def test_mapped_exons_keyerror_retry_failure(mock_sleep, mock_hdp):
+    mock_hdp.get_tx_exons.side_effect = KeyError("permanent failure")
+
+    tmd = TranscriptMapData(mock_hdp)
+
+    with pytest.raises(KeyError):
+        tmd.mapped_exons(
+            "NM_000001.1",
+            "NC_000001.11",
+        )
+
+    assert mock_hdp.get_tx_exons.call_count == 3
+    assert mock_sleep.call_count == 2
+
+def test_mapping_options_with_explicit_hdp(mock_hdp):
+    tmd = TranscriptMapData()
+
+    result = tmd.mapping_options(
+        "NM_000001.1",
+        hdp=mock_hdp,
+    )
+
+    assert len(result) == 2
+    assert tmd.hdp is mock_hdp
+
+
+def test_mapped_exons_with_explicit_hdp(mock_hdp):
+    tmd = TranscriptMapData()
+
+    result = tmd.mapped_exons(
+        "NM_000001.1",
+        "NC_000001.11",
+        hdp=mock_hdp,
+    )
+
+    assert len(result) == 2
+    assert tmd.hdp is mock_hdp
+
+
+def test_map_type_prefers_non_blat(mock_hdp):
+    mock_hdp.get_tx_mapping_options.return_value = [
+        ["NM_000001.1", "NC_000001.11", "splign", True, 1],
+        ["NM_000001.1", "NC_000001.11", "blat", True, 1],
+    ]
+
+    tmd = TranscriptMapData(mock_hdp)
+
+    assert (
+        tmd.map_type(
+            "NM_000001.1",
+            "NC_000001.11",
+        )
+        == "splign"
+    )
+
+
+def test_is_gapped_map_cache_after_fetch(mock_hdp):
+    tmd = TranscriptMapData(mock_hdp)
+
+    tmd.is_gapped_map(
+        "NM_000001.1",
+        "NC_000001.11",
+    )
+
+    assert (
+        tmd.gap_status["NM_000001.1"]["NC_000001.11"]
+        is True
+    )
+
+
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
 #
