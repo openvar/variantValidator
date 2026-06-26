@@ -21,7 +21,7 @@ class MappersError(Exception):
 class TranscriptMappingError(Exception):
     pass
 
-def gene_to_transcripts(variant, validator, select_transcripts_dict):
+def gene_to_transcripts(variant, validator, select_transcripts_dict, batch_list):
     logger.info(f"Mapping {variant.hgvs_formatted} to transcripts")
     g_query = variant.hgvs_formatted
     # set hdp for exon mapping fetch before first use
@@ -170,7 +170,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                 query = Variant(variant.original, quibble=genomic_input, warnings=variant.warnings,
                                 primary_assembly=variant.primary_assembly, order=variant.order,
                                 selected_assembly=variant.selected_assembly)
-                validator.batch_list.append(query)
+                batch_list.append(query)
                 logger.info('Submitting new variant with format %s', genomic_input)
             else:
                 error = 'TranscriptIdentificationWarning: Mapping unavailable for RefSeqGene ' + str(variant.hgvs_formatted) + \
@@ -253,7 +253,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                             expanded_repeat=variant.expanded_repeat)
             # since we already fetched the exon mappings etc and python uses just a pointer for this set map_dat
             query.map_dat = variant.map_dat
-            validator.batch_list.append(query)
+            batch_list.append(query)
             logger.info("Submitting new variant with format %s", str(c_description))
 
         # Call next description
