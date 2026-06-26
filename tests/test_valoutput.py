@@ -3,6 +3,7 @@ from unittest import TestCase
 import VariantValidator
 from VariantValidator.modules.valoutput import ValOutput
 from VariantValidator.modules.variant import Variant
+from unittest.mock import patch
 
 
 class TestValOutput(TestCase):
@@ -282,6 +283,209 @@ class TestValOutput(TestCase):
         self.assertEqual(res[3], ['var3', 'obsolete', None, '', None, None, None, None, None, '', '', '', '', '', '',
                                   '', '', '', '', '', '', '', '', '', '', ''])
         self.assertEqual(len(res), 4)
+
+    def test_lovd_api_error(self):
+        var = Variant("NM_002225.3:c.157C>T")
+        var.warnings = []
+        var.lovd_syntax_check = {
+            "lovd_api_error": "failed"
+        }
+
+        obj = ValOutput([], self.vv)
+        obj.lovd_syntax_check(var)
+
+        self.assertEqual(var.warnings, [])
+
+
+    def test_lovd_valid(self):
+        var = Variant("NM_002225.3:c.157C>T")
+        var.warnings = []
+        var.lovd_syntax_check = {
+            "data": [{
+                "corrected_values": {
+                    "NM_002225.3:c.157C>T": 1
+                },
+                "warnings": {},
+                "errors": {}
+            }],
+            "url": "https://api.lovd.nl/test",
+            "version": "1.2.1"
+        }
+
+        obj = ValOutput([], self.vv)
+        obj.lovd_syntax_check(var)
+
+        self.assertTrue(any("LovdSyntaxcheckValid" in w for w in var.warnings))
+        self.assertTrue(any("LovdSyntaxcheckSource" in w for w in var.warnings))
+        self.assertTrue(any("LovdSyntaxcheckLibraryVersion" in w for w in var.warnings))
+
+
+    def test_lovd_invalid(self):
+        var = Variant("NM_002225.3:c.157C>A")
+        var.warnings = []
+        var.lovd_syntax_check = {
+            "data": [{
+                "corrected_values": {
+                    "NM_002225.3:c.157C>T": 1
+                },
+                "warnings": {},
+                "errors": {}
+            }],
+            "url": "https://api.lovd.nl/test",
+            "version": "1.2.1"
+        }
+
+        obj = ValOutput([], self.vv)
+        obj.lovd_syntax_check(var)
+
+        self.assertTrue(any("LovdSyntaxcheckInvalid" in w for w in var.warnings))
+        self.assertTrue(any("LovdSyntaxcheckSuggestions" in w for w in var.warnings))
+
+
+    def test_lovd_probability(self):
+        var = Variant("NM_002225.3:c.157C>A")
+        var.warnings = []
+        var.lovd_syntax_check = {
+            "data": [{
+                "corrected_values": {
+                    "NM_002225.3:c.157C>T": 0.87
+                },
+                "warnings": {},
+                "errors": {}
+            }],
+            "url": "https://api.lovd.nl/test",
+            "version": "1.2.1"
+        }
+
+        obj = ValOutput([], self.vv)
+        obj.lovd_syntax_check(var)
+
+        self.assertEqual(
+            sum("LovdSyntaxcheckInvalid" in w for w in var.warnings),
+            1
+        )
+        self.assertTrue(any("LovdSyntaxcheckSuggestions" in w for w in var.warnings))
+
+
+    def test_lovd_warning_and_error(self):
+        var = Variant("NM_002225.3:c.157C>T")
+        var.warnings = []
+        var.lovd_syntax_check = {
+            "data": [{
+                "corrected_values": {},
+                "warnings": {
+                    "W1": "warning text"
+                },
+                "errors": {
+                    "E1": "error text"
+                }
+            }],
+            "url": "https://api.lovd.nl/test",
+            "version": "1.2.1"
+        }
+
+        obj = ValOutput([], self.vv)
+        obj.lovd_syntax_check(var)
+
+        self.assertTrue(any("LovdSyntaxcheckWarning" in w for w in var.warnings))
+        self.assertTrue(any("LovdSyntaxcheckError" in w for w in var.warnings))
+
+    def test_lovd_corrected_values_none(self):
+        var = Variant("NM_002225.3:c.157C>T")
+        var.warnings = []
+        var.lovd_syntax_check = {
+            "data": [{
+                "corrected_values": None,
+                "warnings": {},
+                "errors": {}
+            }],
+            "url": "test_url",
+            "version": "1.2.1"
+        }
+
+        ValOutput([], self.vv).lovd_syntax_check(var)
+
+        self.assertIn("LovdSyntaxcheckSource: test_url", var.warnings)
+        self.assertEqual(var.lovd_corrections, {})
+
+
+    def test_lovd_warnings_none(self):
+        var = Variant("NM_002225.3:c.157C>T")
+        var.warnings = []
+        var.lovd_syntax_check = {
+            "data": [{
+                "corrected_values": {},
+                "warnings": None,
+                "errors": {}
+            }],
+            "url": "test_url",
+            "version": "1.2.1"
+        }
+
+        ValOutput([], self.vv).lovd_syntax_check(var)
+
+        self.assertEqual(var.lovd_messages["ISOURCE"], "test_url")
+
+
+    def test_lovd_errors_none(self):
+        var = Variant("NM_002225.3:c.157C>T")
+        var.warnings = []
+        var.lovd_syntax_check = {
+            "data": [{
+                "corrected_values": {},
+                "warnings": {},
+                "errors": None
+            }],
+            "url": "test_url",
+            "version": "1.2.1"
+        }
+
+        ValOutput([], self.vv).lovd_syntax_check(var)
+
+        self.assertEqual(var.lovd_messages["LIBRARYVERSION"], "1.2.1")
+
+
+    @patch("VariantValidator.modules.valoutput.lovd_api.lovd_syntax_check")
+    def test_lovd_uses_existing_result(self, mock_api):
+        var = Variant("NM_002225.3:c.157C>T")
+        var.warnings = []
+        var.lovd_syntax_check = {
+            "lovd_api_error": "already_present"
+        }
+
+        ValOutput([], self.vv).lovd_syntax_check(var)
+
+        mock_api.assert_not_called()
+
+
+    def test_lovd_duplicate_invalid_message(self):
+        var = Variant("NM_002225.3:c.157C>A")
+        var.warnings = [
+            "LovdSyntaxcheckInvalid: NM_002225.3:c.157C>A is not syntactically correct, "
+            "see LovdSyntaxcheckSuggestions for details"
+        ]
+
+        var.lovd_syntax_check = {
+            "data": [{
+                "corrected_values": {
+                    "NM_002225.3:c.157C>T": 0.5
+                },
+                "warnings": {},
+                "errors": {}
+            }],
+            "url": "test_url",
+            "version": "1.2.1"
+        }
+
+        ValOutput([], self.vv).lovd_syntax_check(var)
+
+        self.assertEqual(
+            sum("LovdSyntaxcheckInvalid" in w for w in var.warnings),
+            1,
+        )
+        self.assertTrue(
+            any("LovdSyntaxcheckSuggestions" in w for w in var.warnings)
+        )
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
