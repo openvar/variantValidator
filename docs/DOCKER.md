@@ -57,6 +57,7 @@ docker run -d \
     --name vv-vvta \
     --network variantvalidator-network \
     --shm-size=2g \
+    -p 54320:5432 \
     postgres-vvta
 ```
 
@@ -72,7 +73,13 @@ docker build \
 docker run -d \
     --name vv-vdb \
     --network variantvalidator-network \
+    -p 33060:3306 \
     mysql-validator
+```
+
+## Create a directory for SeqRepo
+```bash
+sudo mkdir -p /usr/local/share/seqdata
 ```
 
 ## Build and start SeqRepo
@@ -87,7 +94,16 @@ docker build \
 docker run -d \
     --name vv-seqrepo \
     --network variantvalidator-network \
+    -v /usr/local/share/seqdata:/usr/local/share/seqdata \
     seqrepo-validator
+```
+
+## Verify the SeqRepo installation
+
+The directory should contain the extracted SeqRepo data.
+
+```bash
+ls /usr/local/share/seqdata
 ```
 
 ## Wait for the databases to initialise
@@ -95,6 +111,8 @@ docker run -d \
 Wait until the database containers have completed their initialisation before continuing.
 
 ### Wait for MySQL
+
+Run this command until you see the message "MySQL ready."
 
 ```bash
 until docker exec vv-vdb \
@@ -110,6 +128,8 @@ echo "MySQL ready."
 ```
 
 ### Wait for VVTA
+
+Run this command until you see the message "VVTA ready."
 
 ```bash
 until docker logs vv-vvta 2>&1 | \
@@ -136,7 +156,7 @@ conda activate vvenv
 ## Configure VariantValidator
 
 ```bash
-cp configuration/docker.ini ~/.variantvalidator
+cp configuration/docker-local.ini ~/.variantvalidator
 ```
 
 ## Install VariantValidator
