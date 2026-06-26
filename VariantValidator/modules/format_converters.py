@@ -15,10 +15,10 @@ from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
 logger = logging.getLogger(__name__)
 
 
-def initial_format_conversions(variant, validator, select_transcripts_dict_plus_version):
+def initial_format_conversions(variant, validator, select_transcripts_dict_plus_version, batch_list):
 
     # VCF type 1
-    toskip = vcf2hgvs_stage1(variant, validator)
+    toskip = vcf2hgvs_stage1(variant, batch_list)
     if toskip:
         return True
 
@@ -28,7 +28,7 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
     if toskip:
         return True
 
-    toskip = gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version)
+    toskip = gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version, batch_list)
     if toskip:
         return True
 
@@ -38,13 +38,13 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
         return True
 
     # Find not_sub type in input e.g. GGGG>G
-    toskip = vcf2hgvs_stage4(variant, validator)
+    toskip = vcf2hgvs_stage4(variant, batch_list)
     if toskip:
         return True
 
     # Extract variants from HGVS allele descriptions
     # http://varnomen.hgvs.org/recommendations/DNA/variant/alleles/
-    toskip = allele_parser(variant, validator, validator)
+    toskip = allele_parser(variant, validator, validator, batch_list)
     if toskip:
         return True
 
@@ -153,7 +153,7 @@ def final_hgvs_convert(variant,validator):
     return False
 
 
-def vcf2hgvs_stage1(variant, validator):
+def vcf2hgvs_stage1(variant, batch_list):
     """
     VCF2HGVS stage 1. converts chr-pos-ref-alt into chr:posRef>Alt
     The output format is a common mistake caused by inaccurate conversion of
@@ -218,8 +218,8 @@ def vcf2hgvs_stage1(variant, validator):
                           primary_assembly=variant.primary_assembly, order=variant.order)
         query_b = Variant(variant.original, quibble=input_b, warnings=variant.warnings,
                           primary_assembly=variant.primary_assembly, order=variant.order)
-        validator.batch_list.append(query_a)
-        validator.batch_list.append(query_b)
+        batch_list.append(query_a)
+        batch_list.append(query_b)
         logger.info("Submitting new variant with format %s", input_a)
         skipvar = True
     elif vcf_data[3]:
@@ -392,7 +392,7 @@ def vcf2hgvs_stage2(variant, validator):
     return skipvar
 
 
-def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version):
+def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version, batch_list):
     """
     Searches for gene symbols that have been used as reference sequence
     identifiers. Provides a sufficiently repremanding warning, but also provides
@@ -450,7 +450,7 @@ def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version):
                         query = Variant(variant.original, quibble=refreshed_description,
                                         warnings=variant.warnings, primary_assembly=variant.primary_assembly,
                                         order=variant.order)
-                        validator.batch_list.append(query)
+                        batch_list.append(query)
                         logger.info('HGVS variant nomenclature does not allow the use of a gene symbol (' +
                                     query_a_symbol + ') in place of a valid reference sequence')
                         logger.info("Submitting new variant with format %s", refreshed_description)
@@ -557,7 +557,7 @@ def refseq_catch(variant, validator, select_transcripts_dict_plus_version):
                             logger.info('NG_:c.PositionVariation descriptions should not be used unless a transcript '
                                         'reference sequence has also been provided e.g. NG_(NM_):c.PositionVariation. '
                                         'Resubmitting corrected version.')
-                            validator.batch_list.append(query)
+                            batch_list.append(query)
                             logger.info("Submitting new variant with format %s", refreshed_description)
                     else:
                         variant.warnings.append('A transcript reference sequence has not been provided e.g. '
@@ -590,7 +590,7 @@ def refseq_catch(variant, validator, select_transcripts_dict_plus_version):
     return skipvar
 
 
-def vcf2hgvs_stage4(variant, validator):
+def vcf2hgvs_stage4(variant, batch_list):
     """
     VCF2HGVS conversion step 4 has two purposes
     1. VCF is frequently inappropriately converted into HGVS like descriptions
@@ -636,7 +636,7 @@ def vcf2hgvs_stage4(variant, validator):
                         query = Variant(variant.original, quibble=refreshed_description,
                                         warnings=variant.warnings, primary_assembly=variant.primary_assembly,
                                         order=variant.order)
-                        validator.batch_list.append(query)
+                        batch_list.append(query)
                         logger.info('Multiple ALT sequences detected. Auto-submitting all possible combinations.')
                         logger.info("Submitting new variant with format %s", refreshed_description)
                     skipvar = True
@@ -952,7 +952,7 @@ def remap_intronic(hgvs_transy, hgvs_genomic, variant, validator):
     except AttributeError:
         pass
 
-def allele_parser(variant, validation, validator):
+def allele_parser(variant, validation, validator, batch_list):
     """
     HGVS allele string parsing function Occurance #1
     Takes a single HGVS allele description and separates each allele into a
@@ -1049,7 +1049,7 @@ def allele_parser(variant, validation, validator):
             for allele in alleles:
                 query = Variant(variant.original, quibble=allele, warnings=variant.warnings, write=True,
                                 primary_assembly=variant.primary_assembly, order=variant.order)
-                validation.batch_list.append(query)
+                batch_list.append(query)
                 logger.info("Submitting new variant with format %s", allele)
             variant.write = False
             return True
