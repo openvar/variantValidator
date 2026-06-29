@@ -77,12 +77,7 @@ docker run -d \
     mysql-validator
 ```
 
-## Create a directory for SeqRepo
-```bash
-sudo mkdir -p /usr/local/share/seqdata
-```
-
-## Build and start SeqRepo
+## Build the SeqRepo image
 
 ```bash
 docker build \
@@ -90,12 +85,24 @@ docker build \
     -f db_dockerfiles/vvsr/Dockerfile \
     -t seqrepo-validator \
     db_dockerfiles/vvsr
+```
 
-docker run -d \
-    --name vv-seqrepo \
-    --network variantvalidator-network \
-    -v /usr/local/share/seqdata:/usr/local/share/seqdata \
+## Extract the SeqRepo data
+
+Create a temporary container and copy the SeqRepo data to the host.
+
+```bash
+sudo mkdir -p /usr/local/share/seqdata
+
+docker create \
+    --name vv-seqrepo-temp \
     seqrepo-validator
+
+sudo docker cp \
+    vv-seqrepo-temp:/usr/local/share/seqdata/. \
+    /usr/local/share/seqdata
+
+docker rm vv-seqrepo-temp
 ```
 
 ## Verify the SeqRepo installation
