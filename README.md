@@ -3,6 +3,8 @@
 
 VariantValidator uses a combination of unit, integration and regression testing. New features and bug fixes are accompanied by regression tests where practical. The test suite is designed to provide confidence in production behaviour rather than simply maximise statement coverage.
 
+---
+
 ## About
 
 VariantValidator is a set of user-friendly software tools designed
