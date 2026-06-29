@@ -24,9 +24,6 @@ class MockValidator:
         self.hp.parse_p_posedit.return_value = "P"
         self.hp.parse_r_posedit.return_value = "R"
 
-        # Used by vcf2hgvs_stage1()
-        self.batch_list = []
-
 
 @patch("VariantValidator.modules.format_converters.vvhgvs.sequencevariant.SequenceVariant")
 def test_final_hgvs_convert_c(mock_sv):
@@ -109,94 +106,96 @@ def test_final_hgvs_convert_invalid_type():
         for w in variant.warnings
     )
 
+
 def test_vcf_stage1_too_few_fields():
     variant = MockVariant("chr1-123")
-    validator = MockValidator()
+    batch_list = []
 
-    assert vcf2hgvs_stage1(variant, validator) is False
+    assert vcf2hgvs_stage1(variant, batch_list) is False
     assert variant.quibble == "chr1-123"
 
 
 def test_vcf_stage1_non_numeric_position():
     variant = MockVariant("chr1-ABC-A-T")
-    validator = MockValidator()
+    batch_list = []
 
-    assert vcf2hgvs_stage1(variant, validator) is False
+    assert vcf2hgvs_stage1(variant, batch_list) is False
 
 
 def test_vcf_stage1_dot_ref():
     variant = MockVariant("1-100-.-T")
-    validator = MockValidator()
+    batch_list = []
 
-    assert vcf2hgvs_stage1(variant, validator) is False
+    assert vcf2hgvs_stage1(variant, batch_list) is False
     assert variant.quibble == "1:100insT"
 
 
 def test_vcf_stage1_dot_alt():
     variant = MockVariant("1-100-A-.")
-    validator = MockValidator()
+    batch_list = []
 
-    assert vcf2hgvs_stage1(variant, validator) is True
+    assert vcf2hgvs_stage1(variant, batch_list) is True
 
     assert variant.write is False
-    assert len(validator.batch_list) == 2
+    assert len(batch_list) == 2
     assert "VariantValidator has output both alternatives" in variant.warnings[-1]
 
 
 def test_vcf_stage1_simple_substitution():
     variant = MockVariant("1-100-A-T")
-    validator = MockValidator()
+    batch_list = []
 
-    assert vcf2hgvs_stage1(variant, validator) is False
+    assert vcf2hgvs_stage1(variant, batch_list) is False
     assert variant.quibble == "1:100A>T"
 
 
 def test_vcf_stage1_invalid_bases():
     variant = MockVariant("1-100-XYZ-T")
-    validator = MockValidator()
+    batch_list = []
 
-    assert vcf2hgvs_stage1(variant, validator) is False
+    assert vcf2hgvs_stage1(variant, batch_list) is False
     assert variant.quibble == "1-100-XYZ-T"
 
 
 def test_vcf_stage1_assembly_prefix_removed():
     variant = MockVariant("GRCh38-1-100-A-T")
-    validator = MockValidator()
+    batch_list = []
 
-    assert vcf2hgvs_stage1(variant, validator) is False
+    assert vcf2hgvs_stage1(variant, batch_list) is False
     assert variant.quibble == "1:100A>T"
+
 
 def test_vcf_stage1_cnv_del():
     variant = MockVariant("1-100-200-del")
-    validator = MockValidator()
+    batch_list = []
 
-    assert vcf2hgvs_stage1(variant, validator) is False
+    assert vcf2hgvs_stage1(variant, batch_list) is False
     assert variant.quibble == "1:100_200del"
     assert any("CNV identified" in warning for warning in variant.warnings)
 
 
 def test_vcf_stage1_cnv_inv():
     variant = MockVariant("1-100-200-inv")
-    validator = MockValidator()
+    batch_list = []
 
-    assert vcf2hgvs_stage1(variant, validator) is False
+    assert vcf2hgvs_stage1(variant, batch_list) is False
     assert variant.quibble == "1:100_200inv"
     assert any("CNV identified" in warning for warning in variant.warnings)
 
 
 def test_vcf_stage1_multi_alt():
     variant = MockVariant("1-100-A-T,G")
-    validator = MockValidator()
+    batch_list = []
 
-    assert vcf2hgvs_stage1(variant, validator) is False
+    assert vcf2hgvs_stage1(variant, batch_list) is False
     assert variant.quibble == "1:100A>T,G"
 
 
 def test_vcf_stage1_hg19_prefix():
     variant = MockVariant("hg19-1-100-A-T")
-    validator = MockValidator()
+    batch_list = []
 
-    assert vcf2hgvs_stage1(variant, validator) is False
+    assert vcf2hgvs_stage1(variant, batch_list) is False
     assert variant.quibble == "1:100A>T"
 
 
