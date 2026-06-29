@@ -1,6 +1,8 @@
 # VariantValidator
 [![VariantValidator CI](https://github.com/openvar/variantValidator/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/openvar/variantValidator/actions/workflows/ci.yml) [![codecov](https://codecov.io/github/openvar/variantValidator/graph/badge.svg?token=QWTxw5kiY4)](https://codecov.io/github/openvar/variantValidator)
 
+VariantValidator uses a combination of unit, integration and regression testing. New features and bug fixes are accompanied by regression tests where practical. The test suite is designed to provide confidence in production behaviour rather than simply maximise statement coverage.
+
 ## About
 
 VariantValidator is a set of user-friendly software tools designed
@@ -41,7 +43,6 @@ Alternatively, genomic sequence variation can be projected onto a specified sing
 Projection of sequence variations between reference sequences takes account of discrepancies between genomic and transcript reference sequences, thus ensuring an accurate prediction of the effect on encoded proteins for every gene.
 
 For sequence variations falling within the open reading frames of genes, VariantValidator automatically projects sequence variants via the transcript reference sequence onto genome builds GRCh38, GRCh37, hg38 and hg19 (HGVS format and VCF components), including projection onto relevant Alternative genomic reference sequences, the composition of which varies between patched GRC genome builds and static hg genome builds
-
 
 ## License
 
