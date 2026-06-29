@@ -97,6 +97,224 @@ def test_map_line_builds_list_correctly():
     assert ml[6] == 'GENE1'
     assert ml[7] == '1234'
 
+def test_drop_core_indexes_success(fake_db):
+    uv.drop_core_indexes(fake_db)
+
+    assert fake_db.execute.call_count == 6
+
+
+def test_drop_core_indexes_index_missing(fake_db):
+    fake_db.execute.side_effect = Exception("missing")
+
+    # Should not raise
+    uv.drop_core_indexes(fake_db)
+
+    assert fake_db.execute.call_count == 6
+
+
+def test_rebuild_core_indexes_success(fake_db):
+    uv.rebuild_core_indexes(fake_db)
+
+    assert fake_db.execute.call_count == 6
+
+
+def test_rebuild_core_indexes_failure(fake_db):
+    fake_db.execute.side_effect = Exception("boom")
+
+    # Should not raise
+    uv.rebuild_core_indexes(fake_db)
+
+    assert fake_db.execute.call_count == 6
+
+
+def test_count_ng_nc_non_mapping():
+    assert uv.count_ng_nc("hello world") is None
+
+
+def test_count_ng_nc_comment():
+    line = "# NC_000001 NG_000001"
+    assert uv.count_ng_nc(line) == "failed"
+
+
+def test_count_ng_nc_rejected():
+    line = (
+        "NC_000001\tRefSeq\tmatch\t1\t2\t.\t+\t.\t"
+        "ID=x;Target=NG_000001.1 1 2 +"
+    )
+    assert uv.count_ng_nc(line) == "rejected"
+
+
+def test_count_ng_nc_bad_columns():
+    line = (
+        "NC_000001\tRefSeq\tmatch\t1\t2\t.\t+\t."
+        "\tID=x"
+    )
+    assert uv.count_ng_nc(line) == None
+
+
+def test_count_ng_nc_success():
+    line = (
+        "NC_000001\tRefSeq\tmatch\t100\t200\t.\t+\t.\t"
+        "ID=x;Target=NG_000001.1 1 100 +;gap_count=0"
+    )
+
+    result = uv.count_ng_nc(line)
+
+    assert result == {
+        "rsg_id": "NG_000001.1",
+        "chr_id": "NC_000001",
+        "rsg_start": "100",
+        "rsg_end": "200",
+        "ori": "+"
+    }
+
+
+def test_map_line_no_matching_rsg():
+    line = {
+        "rsg_id": "NG_1",
+        "chr_id": "NC_1",
+        "rsg_start": "1",
+        "rsg_end": "2",
+        "ori": "+"
+    }
+
+    result = uv.map_line(line, "GRCh38", [])
+
+    assert result == [
+        "NG_1",
+        "NC_1",
+        "GRCh38",
+        "1",
+        "2",
+        "+"
+    ]
+
+
+@patch("VariantValidator.update_vv_db.connect")
+def test_delete_connect_called(mock_connect, fake_db):
+    mock_connect.return_value = fake_db
+
+    uv.delete()
+
+    mock_connect.assert_called_once()
+
+
+@patch("VariantValidator.update_vv_db.connect")
+def test_update_connect_called(mock_connect):
+    fake_db = MagicMock()
+    mock_connect.return_value = fake_db
+
+    with patch("VariantValidator.update_vv_db.update_refseq") as mock_refseq, \
+         patch("VariantValidator.update_vv_db.update_lrg") as mock_lrg:
+
+        uv.update()
+
+        mock_connect.assert_called_once()
+        mock_refseq.assert_called_once_with(fake_db)
+        mock_lrg.assert_called_once_with(fake_db)
+
+def test_drop_core_indexes_calls_all(fake_db):
+    uv.drop_core_indexes(fake_db)
+
+    assert fake_db.execute.call_count == 6
+
+
+def test_rebuild_core_indexes_calls_all(fake_db):
+    uv.rebuild_core_indexes(fake_db)
+
+    assert fake_db.execute.call_count == 6
+
+
+def test_drop_core_indexes_ignores_errors(fake_db):
+    fake_db.execute.side_effect = Exception("boom")
+
+    # Should not raise
+    uv.drop_core_indexes(fake_db)
+
+    assert fake_db.execute.call_count == 6
+
+
+def test_rebuild_core_indexes_ignores_errors(fake_db):
+    fake_db.execute.side_effect = Exception("boom")
+
+    # Should not raise
+    uv.rebuild_core_indexes(fake_db)
+
+    assert fake_db.execute.call_count == 6
+
+
+def test_count_ng_nc_returns_none():
+    assert uv.count_ng_nc("hello world") is None
+
+
+def test_count_ng_nc_comment():
+    assert uv.count_ng_nc("# NC_000001 NG_000001") == "failed"
+
+
+def test_count_ng_nc_rejected():
+    line = (
+        "NC_000001\tRefSeq\tmatch\t1\t2\t.\t+\t.\t"
+        "ID=x;Target=NG_000001.1 1 2 +"
+    )
+
+    assert uv.count_ng_nc(line) == "rejected"
+
+
+def test_count_ng_nc_bad_columns():
+    line = (
+        "NC_000001\tRefSeq\tmatch\t1\t2\t.\t+\t.\t"
+        "ID=x;Target=NG_000001.1 1 2 +;gap_count=0"
+        "\textra"
+    )
+
+    assert uv.count_ng_nc(line) == "failed"
+
+
+def test_map_line_no_lookup():
+    line = {
+        "rsg_id": "NG_1",
+        "chr_id": "NC_1",
+        "rsg_start": "1",
+        "rsg_end": "2",
+        "ori": "+",
+    }
+
+    result = uv.map_line(
+        line,
+        "GRCh38",
+        [],
+    )
+
+    assert result == [
+        "NG_1",
+        "NC_1",
+        "GRCh38",
+        "1",
+        "2",
+        "+",
+    ]
+
+
+@patch("VariantValidator.update_vv_db.requests.get")
+def test_update_lrg_skips_comments_and_short_lines(mock_requests, fake_db):
+    mock_requests.side_effect = [
+        MagicMock(
+            text="#comment\nshort\nLRG_1 GENE1 RSG1 tx1 NM_1"
+        ),
+        MagicMock(
+            text="#comment\nLRG_1 x active"
+        ),
+        MagicMock(
+            text="#comment\nLRG_1p NP_1"
+        ),
+    ]
+
+    uv.update_lrg(fake_db)
+
+    fake_db.update_lrg_rs_lookup.assert_called_once()
+    fake_db.update_lrgt_rst.assert_called_once()
+    fake_db.update_lrg_p_rs_p_lookup.assert_called_once()
+
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

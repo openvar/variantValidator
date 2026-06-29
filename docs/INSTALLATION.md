@@ -14,6 +14,13 @@ Optional:
 * PostgreSQL version 10.5 or above. 
 
 
+## Quick Start
+The quickest way to get VariantValidator up and running is to use the docker installation. This will install the 
+required databases and run VariantValidator locally using databases wrapped in docker containers, or will run the entire
+software stack in Docker. Refer to [DOCKER.md](DOCKER.md) for instructions.
+
+If you do not have access to Docker, or prefer to install the software stack locally, follow the instructions below.
+
 ## Download the source code
 
 To download the VariantValidator source code simply clone the master branch.
