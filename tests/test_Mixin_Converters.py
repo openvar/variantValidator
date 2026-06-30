@@ -1,6 +1,8 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
+import pytest
 
 from VariantValidator.modules.vvMixinConverters import Mixin
+from vvhgvs.exceptions import HGVSDataNotAvailableError, HGVSError
 
 
 class DummyMixin(Mixin):
@@ -9,11 +11,11 @@ class DummyMixin(Mixin):
 
 def make_mixin():
     mixin = DummyMixin.__new__(DummyMixin)
-
-    mixin.sf = MagicMock()
-    mixin.hp = MagicMock()
     mixin.vm = MagicMock()
-
+    mixin.sf = MagicMock()
+    mixin.hdp = MagicMock()
+    mixin.alt_aln_method = "splign"
+    mixin.hp = MagicMock()
     return mixin
 
 
@@ -447,6 +449,121 @@ def test_myevm_g_to_t():
         "g_variant",
         "NM_1",
     )
+
+def test_noreplace_t_to_g_success():
+    mixin = make_mixin()
+
+    hgvs_c = MagicMock()
+
+    genomic = MagicMock()
+
+    variant = MagicMock()
+    variant.evm.t_to_g.return_value = genomic
+
+    result = mixin.noreplace_myevm_t_to_g(hgvs_c, variant)
+
+    assert result is genomic
+
+    variant.evm.t_to_g.assert_called_once_with(hgvs_c)
+
+
+def test_noreplace_t_to_g_no_mapping_options():
+
+    mixin = make_mixin()
+
+    hgvs_c = MagicMock()
+
+    variant = MagicMock()
+
+    variant.evm.t_to_g.side_effect = HGVSError("boom")
+    variant.map_dat.mapping_options.return_value = []
+
+    with pytest.raises(HGVSDataNotAvailableError):
+        mixin.noreplace_myevm_t_to_g(hgvs_c, variant)
+
+
+@patch("VariantValidator.modules.vvMixinConverters.seq_data.supported_for_mapping")
+def test_noreplace_search_prefers_supported(mock_supported):
+
+    mock_supported.return_value = "1"
+
+    mixin = make_mixin()
+
+    hgvs_c = MagicMock()
+
+    genomic = MagicMock()
+
+    variant = MagicMock()
+
+    variant.evm.t_to_g.side_effect = HGVSError("boom")
+
+    variant.map_dat.mapping_options.return_value = [
+        ("tx", "NC_000001.11", "splign", None, 1),
+    ]
+
+    mixin.vm.t_to_g.return_value = genomic
+
+    variant.hn.normalize.side_effect = [Exception(), None]
+
+    result = mixin.noreplace_myevm_t_to_g(hgvs_c, variant)
+
+    assert result is genomic
+
+
+def test_myevm_g_to_t_returns_mapper_result():
+
+    mixin = make_mixin()
+
+    mapper = MagicMock()
+
+    expected = MagicMock()
+
+    mapper.g_to_t.return_value = expected
+
+    assert mixin.myevm_g_to_t(
+        mapper,
+        "gvar",
+        "NM_1"
+    ) is expected
+
+
+def test_expand_ref_boundary_1001():
+
+    mixin = make_mixin()
+
+    mixin.sf.fetch_seq.side_effect = [
+        "A",
+        "C",
+    ]
+
+    left, right = mixin._expand_ref(
+        "NC_1",
+        1,
+        1002,
+    )
+
+    assert left == "A"
+    assert right == "C"
+
+    assert mixin.sf.fetch_seq.call_count == 2
+
+
+def test_expand_ref_boundary_1000():
+
+    mixin = make_mixin()
+
+    mixin.sf.fetch_seq.return_value = "A" * 1000
+
+    left, right = mixin._expand_ref(
+        "NC_1",
+        1,
+        1001,
+    )
+
+    assert left == "A"
+    assert right == "A"
+
+    mixin.sf.fetch_seq.assert_called_once()
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

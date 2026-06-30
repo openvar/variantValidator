@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import MagicMock, patch
 
 from VariantValidator.modules.vvDBInit import Mixin
+import VariantValidator.modules.vvDBInit as vvDBInit
 
 
 @pytest.fixture
@@ -33,7 +34,7 @@ def test_del_with_no_pool():
     assert obj.pool is None
 
 
-@patch("VariantValidator.modules.vvDBInit.mysql.connector.pooling.MySQLConnectionPool")
+@patch("VariantValidator.modules.vvDBInit.MySQLConnectionPool")
 def test_init_db_mysql_pool(mock_pool, db_config):
     obj = Mixin.__new__(Mixin)
     obj.dbConfig = db_config
@@ -119,6 +120,66 @@ def test_init_called_from_constructor(mock_init, db_config):
 
     assert obj.dbConfig == db_config
     mock_init.assert_called_once()
+
+class FakeProgrammingError(Exception):
+    pass
+
+
+def test_init_db_mariadb_fallback(db_config):
+    obj = Mixin.__new__(Mixin)
+    obj.dbConfig = db_config
+
+    fake_pool = MagicMock()
+
+    with patch.object(vvDBInit, "MySQLConnectionPool", None), \
+         patch.object(vvDBInit, "MariaDBConnectionPool", fake_pool), \
+         patch.object(vvDBInit, "MariaDBProgrammingError", FakeProgrammingError), \
+         patch.object(vvDBInit.random, "random", return_value=0.1):
+
+        obj.init_db()
+
+    fake_pool.assert_called_once()
+
+    assert fake_pool.call_args.kwargs["pool_name"] == "pool0.1"
+
+
+def test_init_db_mariadb_retry(db_config):
+    obj = Mixin.__new__(Mixin)
+    obj.dbConfig = db_config
+
+    fake_pool = MagicMock()
+
+    fake_pool.side_effect = [
+        FakeProgrammingError(),
+        MagicMock(),
+    ]
+
+    with patch.object(vvDBInit, "MySQLConnectionPool", None), \
+         patch.object(vvDBInit, "MariaDBConnectionPool", fake_pool), \
+         patch.object(vvDBInit, "MariaDBProgrammingError", FakeProgrammingError), \
+         patch.object(
+             vvDBInit.random,
+             "random",
+             side_effect=[0.1, 0.2],
+         ):
+
+        obj.init_db()
+
+    assert fake_pool.call_count == 2
+
+    assert fake_pool.call_args_list[0].kwargs["pool_name"] == "pool0.1"
+    assert fake_pool.call_args_list[1].kwargs["pool_name"] == "pool0.2"
+
+
+def test_init_db_no_database_backend(db_config):
+    obj = Mixin.__new__(Mixin)
+    obj.dbConfig = db_config
+
+    with patch.object(vvDBInit, "MySQLConnectionPool", None), \
+         patch.object(vvDBInit, "MariaDBConnectionPool", None):
+
+        with pytest.raises(ModuleNotFoundError):
+            obj.init_db()
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

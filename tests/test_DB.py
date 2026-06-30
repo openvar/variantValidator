@@ -379,6 +379,138 @@ def test_update_gene_stable_identifiers_symbol_not_found(mock_hgnc_rest, db):
 
     assert db.update_gene_stable_identifiers("NOT_A_GENE") is None
 
+def test_query_with_fetchone_no_row():
+    db = Database.__new__(Database)
+
+    conn = MagicMock()
+    cursor = MagicMock()
+
+    cursor.fetchone.return_value = None
+
+    db.get_conn = MagicMock(return_value=conn)
+    db.get_cursor = MagicMock(return_value=cursor)
+
+    result = Database.query_with_fetchone.__wrapped__(db, "NM_000001.1")
+
+    assert result == ["none", "No data"]
+
+    cursor.close.assert_called_once()
+    conn.close.assert_called_once()
+
+
+@patch("VariantValidator.modules.vvDatabase.utils.hgnc_rest")
+def test_update_gene_stable_identifiers_unassigned(mock_hgnc_rest, db):
+    mock_hgnc_rest.assert_not_called()
+
+    assert db.update_gene_stable_identifiers("unassigned") is None
+
+
+def test_update_refseqgene_loci_passes_second_argument(db):
+    db.get_refseq_data_by_refseq_id = MagicMock(return_value=["exists"])
+    db.update_refseq_gene_data = MagicMock()
+
+    data = ["NG_000001.1", "x", "GRCh38"]
+
+    db.update_refseqgene_loci(data)
+
+    db.get_refseq_data_by_refseq_id.assert_called_once_with(
+        "NG_000001.1",
+        "GRCh38",
+    )
+
+
+def test_ref_type_assign_lrg_transcript_non_nm():
+    db = Database.__new__(Database)
+
+    db.get_refseq_transcript_id_from_lrg_transcript_id = MagicMock(
+        return_value="NR_999999.1"
+    )
+
+    assert db.ref_type_assign("LRG_1t1") == ":n."
+
+
+@patch("VariantValidator.modules.vvDatabase.utils.hgnc_rest")
+def test_update_gene_stable_identifiers_missing_optional_fields(
+    mock_hgnc_rest,
+    db,
+):
+    mock_hgnc_rest.return_value = {
+        "record": {
+            "response": {
+                "numFound": 1,
+                "docs": [
+                    {
+                        "hgnc_id": "HGNC:1",
+                        "symbol": "GENE1",
+                    }
+                ],
+            }
+        }
+    }
+
+    db.get_stable_gene_id_from_hgnc_id = MagicMock(
+        return_value=["none", "No data"]
+    )
+
+    db.insert_gene_stable_ids = MagicMock()
+
+    result = db.update_gene_stable_identifiers("GENE1")
+
+    assert result == {
+        "map_loc": None,
+        "gene_name": None,
+        "prev": None,
+    }
+
+    db.insert_gene_stable_ids.assert_called_once()
+
+
+@patch("VariantValidator.modules.vvDatabase.utils.hgnc_rest")
+def test_update_gene_stable_identifiers_existing_record_without_optional_fields(
+    mock_hgnc_rest,
+    db,
+):
+    mock_hgnc_rest.return_value = {
+        "record": {
+            "response": {
+                "numFound": 1,
+                "docs": [
+                    {
+                        "hgnc_id": "HGNC:1",
+                        "symbol": "GENE1",
+                    }
+                ],
+            }
+        }
+    }
+
+    db.get_stable_gene_id_from_hgnc_id = MagicMock(
+        return_value=["HGNC:1", "exists"]
+    )
+
+    db.update_gene_stable_ids = MagicMock()
+
+    db.update_gene_stable_identifiers("GENE1")
+
+    db.update_gene_stable_ids.assert_called_once()
+
+
+def test_data_add_returns_after_first_success(db):
+    db.update_transcript_info_record = MagicMock()
+
+    db.in_entries = MagicMock(
+        return_value={"accession": "NM_000001.1"}
+    )
+
+    result = db.data_add(
+        "NM_000001.1",
+        MagicMock(),
+    )
+
+    assert result["accession"] == "NM_000001.1"
+
+    assert db.in_entries.call_count == 1
+
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
 #

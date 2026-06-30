@@ -231,10 +231,8 @@ class Mixin:
                                                                 )
 
     def __del__(self):
-        try:
-            del self.db
-        except AttributeError:
-            pass
+        if getattr(self, "pool", None):
+            self.pool = None
 
     def my_config(self):
         """
