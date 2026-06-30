@@ -1027,13 +1027,11 @@ class Mixin(vvMixinConverters.Mixin):
                         gene_symbol = self.db.get_gene_symbol_from_refseq_id(refseqgene_variant.ac)
                         variant.gene_symbol = gene_symbol
 
-                # Add predicted protein variant dictionary this is the output form so str for final is OK
+                # Add predicted protein variant dictionary
                 if predicted_protein_variant != '':
                     predicted_protein_variant_dict = {}
-                    predicted_protein_variant_dict["slr"] = ''
-                    predicted_protein_variant_dict["tlr"] = ''
-                    predicted_protein_variant_dict["lrg_tlr"] = ''
-                    predicted_protein_variant_dict["lrg_slr"] = ''
+                    predicted_protein_variant_dict["prot"] = ''
+                    predicted_protein_variant_dict["lrg_prot"] = ''
                     if type(predicted_protein_variant) is not str:
                         # add protein descriptions if not N type edit
                         add_p_descps = True
@@ -1078,9 +1076,8 @@ class Mixin(vvMixinConverters.Mixin):
 
 
                                 # Add single letter AA code to protein descriptions
-                                predicted_protein_variant_dict = {"tlr": str(
-                                    predicted_protein_variant.format({'max_ref_length': 0})
-                                    ), "slr": ''}
+                                predicted_protein_variant_dict = {
+                                        "prot":predicted_protein_variant}
 
                                 if re.search("[A-Z][a-z][a-z]1[A-Z][a-z][a-z]", str(
                                     predicted_protein_variant.posedit)):
@@ -1105,34 +1102,22 @@ class Mixin(vvMixinConverters.Mixin):
                                                     posedit="({aa_1}1?)")
                                             variant.warnings = cp_warnings
 
-                                # Set formatted tlr
-                                predicted_protein_variant_dict['tlr'] = \
-                                        predicted_protein_variant.format({
-                                            'max_ref_length': 0})
-                                predicted_protein_variant_dict['slr']= \
-                                        predicted_protein_variant.format({
-                                            'max_ref_length': 0,
-                                            'p_3_letter':False})
-                                # set LRG outputs
+                                # Set prot for output
+                                predicted_protein_variant_dict['prot'] = predicted_protein_variant
+                                # set LRG output
                                 if format_lrg is not None:
-                                    predicted_protein_variant_dict["lrg_tlr"] = \
-                                        format_lrg + ':' + \
-                                        predicted_protein_variant_dict["tlr"].split(':')[1]
-                                    predicted_protein_variant_dict["lrg_slr"] = \
-                                        format_lrg + ':' + \
-                                        predicted_protein_variant_dict["slr"].split(':')[1]
+                                    predicted_protein_variant_dict["lrg_prot"] = copy.copy(
+                                            predicted_protein_variant)
+                                    predicted_protein_variant_dict["lrg_prot"].ac = format_lrg
                                 else:
-                                    predicted_protein_variant_dict["lrg_tlr"] = ''
-                                    predicted_protein_variant_dict["lrg_slr"] = ''
+                                    predicted_protein_variant_dict["lrg_prot"] = ''
 
                             except vvhgvs.exceptions.HGVSParseError as e:
                                 logger.debug("Except passed, %s", e)
                 else:
                     predicted_protein_variant_dict = {}
-                    predicted_protein_variant_dict["slr"] = ''
-                    predicted_protein_variant_dict["tlr"] = ''
-                    predicted_protein_variant_dict["lrg_tlr"] = ''
-                    predicted_protein_variant_dict["lrg_slr"] = ''
+                    predicted_protein_variant_dict["prot"] = ''
+                    predicted_protein_variant_dict["lrg_prot"] = ''
 
                 # Add missing gene info which should be there (May have come from uncertain positions for example)
                 if variant.hgvs_transcript_variant and variant.gene_symbol == '':
@@ -1227,8 +1212,11 @@ class Mixin(vvMixinConverters.Mixin):
 
                 variant.stable_gene_ids = stable_gene_ids
                 variant.annotations = reference_annotations
+
+                # for now string versions of equivalent variants + rel_acc
                 variant.genome_context_intronic_sequence = genome_context_transcript_variant
                 variant.refseqgene_context_intronic_sequence = refseqgene_context_transcript_variant
+
                 variant.hgvs_refseqgene_variant = refseqgene_variant
                 variant.hgvs_predicted_protein_consequence = predicted_protein_variant_dict
                 variant.hgvs_lrg_transcript_variant = lrg_transcript_variant
@@ -1254,7 +1242,7 @@ class Mixin(vvMixinConverters.Mixin):
                 # Add links to reference_sequence_records
                 pre_out = {
                         'hgvs_transcript_variant':'',
-                        'hgvs_predicted_protein_consequence':{'slr':''},
+                        'hgvs_predicted_protein_consequence':{'prot':''},
                         'hgvs_refseqgene_variant':'',
                         'hgvs_lrg_variant':'',
                         'selected_assembly':self.selected_assembly}
@@ -1264,9 +1252,10 @@ class Mixin(vvMixinConverters.Mixin):
                     pre_out['hgvs_refseqgene_variant'] = variant.hgvs_refseqgene_variant.ac
                 if variant.hgvs_lrg_variant:# is str
                     pre_out['hgvs_lrg_variant'] = variant.hgvs_lrg_variant
-                if variant.hgvs_predicted_protein_consequence:
-                    pre_out['hgvs_predicted_protein_consequence']['slr'] = \
-                            variant.hgvs_predicted_protein_consequence['slr']
+                if variant.hgvs_predicted_protein_consequence and \
+                        variant.hgvs_predicted_protein_consequence['prot']:
+                    pre_out['hgvs_predicted_protein_consequence']['prot'] = \
+                            variant.hgvs_predicted_protein_consequence['prot'].ac
                 ref_records = self.db.get_urls(pre_out)
                 if ref_records != {}:
                     variant.reference_sequence_records = ref_records
@@ -1613,17 +1602,12 @@ class Mixin(vvMixinConverters.Mixin):
                                 f"{variant.hgvs_lrg_transcript_variant.split(':c.')[0]}:c."\
                                 + variant.hgvs_transcript_variant.posedit.format(
                                     {'max_ref_length': 0})
-
-                # Some variant objects must be strings for back-compatibility with old output
-                if variant.hgvs_transcript_variant:
-                    variant.hgvs_transcript_variant = \
-                            variant.hgvs_transcript_variant.format({'max_ref_length': 0})
-                else:
+                # Some variant objects must be set on successful completion for back-compatibility
+                # with old output (we currently assert that the object starts as None in tests but
+                # also assert that it has ''/{} as output, VF needs this for primary_assembly_loci)
+                if not variant.hgvs_transcript_variant:
                     variant.hgvs_transcript_variant = ''
-                if variant.hgvs_refseqgene_variant:
-                    variant.hgvs_refseqgene_variant = \
-                            variant.hgvs_refseqgene_variant.format({'max_ref_length': 0})
-                else:
+                if not variant.hgvs_refseqgene_variant:
                     variant.hgvs_refseqgene_variant = ''
                 hgd = "hgvs_genomic_description"
                 def _vcf_abrv(hgvs,vcf,max_non_abrv_len=500):
@@ -1656,18 +1640,11 @@ class Mixin(vvMixinConverters.Mixin):
                             variant.primary_assembly_loci[gen][hgd],
                             variant.primary_assembly_loci[gen]['vcf'])
 
-                if not variant.primary_assembly_loci:
-                    variant.primary_assembly_loci = {}
-                for gen in  variant.primary_assembly_loci.keys():
-                    variant.primary_assembly_loci[gen][hgd] = \
-                        variant.primary_assembly_loci[gen][hgd].format({'max_ref_length': 0})
-
                 for loc in variant.alt_genomic_loci:
                     for gen in loc.keys():
                         loc[gen]['vcf'] = _vcf_abrv(
                             loc[gen][hgd],
                             loc[gen]['vcf'])
-                        loc[gen][hgd] = loc[gen][hgd].format({'max_ref_length': 0})
 
                 # Append to a list for return
                 batch_out.append(variant)
