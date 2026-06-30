@@ -511,6 +511,125 @@ def test_data_add_returns_after_first_success(db):
 
     assert db.in_entries.call_count == 1
 
+@patch("VariantValidator.modules.vvDatabase.utils.hgnc_rest")
+def test_update_gene_stable_identifiers_missing_hgnc_id(
+    mock_hgnc_rest,
+    db,
+):
+    mock_hgnc_rest.return_value = {
+        "record": {
+            "response": {
+                "numFound": 1,
+                "docs": [
+                    {
+                        "symbol": "GENE1",
+                    }
+                ]
+            }
+        }
+    }
+
+    db.get_stable_gene_id_from_hgnc_id = MagicMock(
+        return_value=["none", "No data"]
+    )
+    db.insert_gene_stable_ids = MagicMock()
+
+    db.update_gene_stable_identifiers("GENE1")
+
+    inserted = db.insert_gene_stable_ids.call_args.args[0]
+
+    assert inserted["hgnc_id"] == ""
+    assert inserted["entrez_id"] == ""
+    assert inserted["ensembl_gene_id"] == ""
+    assert inserted["ucsc_id"] == ""
+    assert inserted["vega_id"] == ""
+
+
+@patch("VariantValidator.modules.vvDatabase.time.sleep")
+def test_data_add_exhausts_retry_limit(
+    mock_sleep,
+    db,
+):
+    db.update_transcript_info_record = MagicMock()
+
+    db.in_entries = MagicMock(
+        return_value={"none": "none"}
+    )
+
+    result = db.data_add(
+        "NM_1",
+        MagicMock(),
+    )
+
+    assert result == {"none": "none"}
+
+    assert db.in_entries.call_count == 10
+    assert mock_sleep.call_count == 9
+
+
+def test_in_entries_unknown_table(db):
+    assert db.in_entries(
+        "NM_1",
+        "not_a_table",
+    ) == {}
+
+
+@patch("VariantValidator.modules.vvDatabase.utils.hgnc_rest")
+def test_update_gene_stable_identifiers_previous_symbol_with_optional_fields(
+    mock_hgnc_rest,
+    db,
+):
+    mock_hgnc_rest.side_effect = [
+        {
+            "record": {
+                "response": {
+                    "numFound": 0
+                }
+            }
+        },
+        {
+            "error": "false",
+            "record": {
+                "response": {
+                    "numFound": 1,
+                    "docs": [
+                        {
+                            "symbol": "GENE2"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "record": {
+                "response": {
+                    "numFound": 1,
+                    "docs": [
+                        {
+                            "hgnc_id": "HGNC:2",
+                            "symbol": "GENE2",
+                            "prev_symbol": ["OLD1"],
+                            "location": "2q37",
+                            "name": "Gene Two",
+                        }
+                    ]
+                }
+            }
+        },
+    ]
+
+    db.get_stable_gene_id_from_hgnc_id = MagicMock(
+        return_value=["none", "No data"]
+    )
+
+    db.insert_gene_stable_ids = MagicMock()
+
+    result = db.update_gene_stable_identifiers("OLD1")
+
+    assert result["prev"] == ["OLD1"]
+    assert result["map_loc"] == "2q37"
+    assert result["gene_name"] == "Gene Two"
+
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
 #
