@@ -681,6 +681,14 @@ class TestWarnings(TestCase):
         assert "AlleleSyntaxError: Variants [14del;17G>A] should be merged into NM_000093.5:c.16_17delinsA" in results[
             'validation_warning_1']["validation_warnings"]
 
+    def test_paranthesis_start(self):
+        variant = '(WT1):c.1098+1G>A'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert ("VariantSyntaxError: Variant descriptions must begin with a reference sequence identifier or a chromosome"
+                " number. Refer to the examples provided at https://variantvalidator.org/service/validate/") in results[
+            'validation_warning_1']["validation_warnings"]
+
     def test_alleles_2(self):
         variant = 'NM_000088.4:c.[4del;6C>G]'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
@@ -1351,7 +1359,8 @@ class TestVVGapWarnings(TestCase):
         variant = 'WT1(ENST00000332351.3):c.1098+1G>A'
         results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
-        assert results['ENST00000332351.3:c.1098+1G>A']['validation_warnings'] == [
+        assert results['ENST00000332351.3:c.1098+1G>A']['validation_warnings'] ==  [
+            "ReferenceSequenceError: WT1(ENST00000332351.3) is an invalid reference sequence identifier",
             "VariantSyntaxError: Stripping unnecessary characters from WT1(ENST00000332351.3):c.1098+1G>A and updating to ENST00000332351.3:c.1098+1G>A",
             "ENST00000332351.3:c.1098+1G>A is not part of genome build GRCh38",
             "ENST00000332351.3:c.1098+1G>A cannot be mapped directly to genome build GRCh38, did you mean GRCh37?"

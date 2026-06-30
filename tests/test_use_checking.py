@@ -329,6 +329,65 @@ def test_refseq_common_mistakes_valid():
     assert refseq_common_mistakes(v) is False
     assert v.warnings == []
 
+def test_refseq_enst_used_as_genomic():
+    v = MockRefVariant("ENST000001.1:g.1A>G", ":g.", "c")
+
+    assert refseq_common_mistakes(v) is True
+    assert any("Did you mean" in w for w in v.warnings)
+
+
+def test_refseq_ensp_used_as_nucleotide():
+    v = MockRefVariant("ENSP000001.1:c.1A>G", ":c.")
+
+    assert refseq_common_mistakes(v) is True
+    assert any("Protein reference sequence" in w for w in v.warnings)
+
+
+def test_refseq_ng_as_protein():
+    v = MockRefVariant("NG_000001.1:p.Arg1Gly", ":p.")
+
+    assert refseq_common_mistakes(v) is True
+    assert any("protein-level" in w.lower() for w in v.warnings)
+
+
+def test_refseq_nc_as_coding():
+    v = MockRefVariant("NC_000001.11:c.123A>G", ":c.")
+
+    assert refseq_common_mistakes(v) is True
+    assert len(v.warnings) == 2
+
+
+def test_refseq_nr_as_genomic():
+    v = MockRefVariant("NR_000001.1:g.10A>G", ":g.", "n")
+
+    assert refseq_common_mistakes(v) is True
+    assert any(":n." in w for w in v.warnings)
+
+
+def test_variant_comma_after_type_autocorrect():
+    variant = InvalidFormatVariant("NM_000001.1:c,123A>G")
+
+    assert pre_parsing_global_common_mistakes(variant) is False
+
+    assert variant.quibble == "NM_000001.1:c.123A>G"
+    assert any("auto" in w.lower() for w in variant.warnings)
+
+
+def test_bracketed_enst_reference():
+    variant = InvalidFormatVariant("(ENST00000357654.9):c.123A>G")
+
+    assert pre_parsing_global_common_mistakes(variant) is False
+
+    assert variant.quibble == "ENST00000357654.9:c.123A>G"
+
+
+def test_bracketed_lrg_reference():
+    variant = InvalidFormatVariant("(LRG_1t1):c.123A>G")
+
+    assert pre_parsing_global_common_mistakes(variant) is False
+
+    assert variant.quibble == "LRG_1t1:c.123A>G"
+
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
