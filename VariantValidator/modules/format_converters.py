@@ -33,7 +33,7 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
         return True
 
     # NG_:c. or NC_:c.
-    toskip = refseq_catch(variant, validator, select_transcripts_dict_plus_version)
+    toskip = refseq_catch(variant, validator, select_transcripts_dict_plus_version, batch_list)
     if toskip:
         return True
 
@@ -471,7 +471,7 @@ def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version, 
     return skipvar
 
 
-def refseq_catch(variant, validator, select_transcripts_dict_plus_version):
+def refseq_catch(variant, validator, select_transcripts_dict_plus_version, batch_list):
     """
     Similar to the GENE_SYMBOL:c. n. types function, but spots RefSeqGene or
     Chromosomal reference sequence identifiers used in the context of c. variant

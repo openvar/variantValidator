@@ -1,9 +1,16 @@
 import pytest
-from VariantValidator.modules.use_checking import InvalidVariantError
-
 from VariantValidator.modules.use_checking import (
+    InvalidVariantError,
     pre_parsing_global_common_mistakes,
 )
+from VariantValidator.modules.use_checking import refseq_common_mistakes
+
+class MockRefVariant:
+    def __init__(self, quibble, reftype, transcript_type="c"):
+        self.quibble = quibble
+        self.reftype = reftype
+        self.transcript_type = transcript_type
+        self.warnings = []
 
 
 class MockVariant:
@@ -273,6 +280,54 @@ def test_repeat_expansion_single_base():
     assert pre_parsing_global_common_mistakes(variant) is False
 
     assert variant.quibble.endswith("delinsGGGGG")
+
+def test_refseq_nm_used_as_genomic():
+    v = MockRefVariant("NM_000001.1:g.1A>G", ":g.", "c")
+
+    assert refseq_common_mistakes(v) is True
+    assert any("Did you mean NM_000001.1:c." in w for w in v.warnings)
+
+
+def test_refseq_nr_used_as_coding():
+    v = MockRefVariant("NR_000001.1:c.1A>G", ":c.", "n")
+
+    assert refseq_common_mistakes(v) is True
+    assert any(":n." in w for w in v.warnings)
+
+
+def test_protein_reference_as_nucleotide():
+    v = MockRefVariant("NP_000001.1:c.1A>G", ":c.")
+
+    assert refseq_common_mistakes(v) is True
+    assert any("Protein reference sequence" in w for w in v.warnings)
+
+
+def test_coding_transcript_as_noncoding():
+    v = MockRefVariant("NM_000001.1:n.1A>G", ":n.", "c")
+
+    assert refseq_common_mistakes(v) is True
+    assert any("Did you mean NM_000001.1:c." in w for w in v.warnings)
+
+
+def test_nucleotide_reference_as_protein():
+    v = MockRefVariant("NM_000001.1:p.Gly1Val", ":p.")
+
+    assert refseq_common_mistakes(v) is True
+    assert any("protein-level" in w.lower() for w in v.warnings)
+
+
+def test_ng_c_description():
+    v = MockRefVariant("NG_000001.1:c.123A>G", ":c.")
+
+    assert refseq_common_mistakes(v) is True
+    assert len(v.warnings) == 2
+
+
+def test_refseq_common_mistakes_valid():
+    v = MockRefVariant("NM_000001.1:c.123A>G", ":c.", "c")
+
+    assert refseq_common_mistakes(v) is False
+    assert v.warnings == []
 
 
 # <LICENSE>
