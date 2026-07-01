@@ -10,8 +10,12 @@ from VariantValidator.modules.complex_descriptions import (
     IncompatibleTypeError,
     HgvsParseError,
     FuzzyPositionError,
+    FuzzyRangeError,
 )
 
+from unittest.mock import PropertyMock
+from vvhgvs.exceptions import HGVSUnsupportedOperationError
+from vvhgvs.enums import ValidationLevel
 
 def make_variant(quibble):
     v = MagicMock()
@@ -328,6 +332,158 @@ def test_uncertain_positions_nc_selects_refseq(mock_obj):
 
     assert validator.select_transcripts == "NM_000001.1"
     assert variant.output_type_flag == "gene"
+
+
+# ---------- FEInterval.validate ----------
+
+def test_feinterval_validate_valid():
+    start = MagicMock()
+    end = MagicMock()
+
+    start.validate.return_value = (ValidationLevel.VALID, None)
+    end.validate.return_value = (ValidationLevel.VALID, None)
+
+    start.start = 10
+    end.end = 20
+
+    iv = FEInterval(start=start, end=end)
+
+    assert iv.validate() == (ValidationLevel.VALID, None)
+
+
+def test_feinterval_validate_invalid_order():
+    start = MagicMock()
+    end = MagicMock()
+
+    start.validate.return_value = (ValidationLevel.VALID, None)
+    end.validate.return_value = (ValidationLevel.VALID, None)
+
+    start.start = 20
+    end.end = 10
+
+    iv = FEInterval(start=start, end=end)
+
+    assert iv.validate() == (
+        ValidationLevel.ERROR,
+        "base start position must be <= end position",
+    )
+
+
+def test_feinterval_validate_warning():
+    start = MagicMock()
+    end = MagicMock()
+
+    start.validate.return_value = (ValidationLevel.VALID, None)
+    end.validate.return_value = (ValidationLevel.VALID, None)
+
+    type(start).start = PropertyMock(
+        side_effect=HGVSUnsupportedOperationError("unsupported")
+    )
+    end.end = 10
+
+    iv = FEInterval(start=start, end=end)
+
+    res, msg = iv.validate()
+
+    assert res == ValidationLevel.WARNING
+    assert "unsupported" in msg
+
+
+# ---------- fuzzy_ends ----------
+
+@patch("VariantValidator.modules.complex_descriptions.vv_utils.get_exon_boundary_list")
+def test_fuzzy_ends_ordered_star_positions(mock_boundaries):
+    variant = make_variant("NM_000001.1:c.(*1_*2)_(*3_?)del")
+    validator = make_validator()
+
+    validator.hdp.get_tx_identity_info.return_value = (
+        None,
+        None,
+        None,
+        None,
+        100,
+    )
+
+    mock_boundaries.return_value = ["101", "102", "103", "NC_000001.11"]
+
+    with pytest.raises(FuzzyRangeError):
+        fuzzy_ends(variant, validator)
+
+    assert any(
+        "syntax is valid" in w
+        for w in variant.warnings
+    )
+
+
+@patch("VariantValidator.modules.complex_descriptions.vv_utils.get_exon_boundary_list")
+def test_fuzzy_ends_out_of_order_star_positions(mock_boundaries):
+    variant = make_variant("NM_000001.1:c.(*5_*4)_(*3_?)del")
+    validator = make_validator()
+
+    validator.hdp.get_tx_identity_info.return_value = (
+        None,
+        None,
+        None,
+        None,
+        100,
+    )
+
+    mock_boundaries.return_value = ["103", "104", "105", "NC_000001.11"]
+
+    with pytest.raises(FuzzyRangeError):
+        fuzzy_ends(variant, validator)
+
+    assert any(
+        "out of order" in w
+        for w in variant.warnings
+    )
+
+
+def test_fuzzy_position_end_only():
+    variant = make_variant("NM_000001.1:c.123A>G")
+
+    pos = MagicMock()
+    pos.__str__.return_value = "123_?"
+
+    pos.start.__str__.return_value = "123"
+    pos.end.__str__.return_value = "?"
+
+    variant.hgvs_formatted.posedit.pos = pos
+
+    with pytest.raises(FuzzyPositionError):
+        fuzzy_ends(variant, make_validator())
+
+
+def test_fuzzy_position_start_only():
+    variant = make_variant("NM_000001.1:c.123A>G")
+
+    pos = MagicMock()
+    pos.__str__.return_value = "?_123"
+
+    pos.start.__str__.return_value = "?"
+    pos.end.__str__.return_value = "123"
+
+    variant.hgvs_formatted.posedit.pos = pos
+
+    with pytest.raises(FuzzyPositionError):
+        fuzzy_ends(variant, make_validator())
+
+
+def test_fuzzy_position_both():
+    variant = make_variant("NM_000001.1:c.123A>G")
+
+    pos = MagicMock()
+    pos.__str__.return_value = "?_?"
+
+    pos.start.__str__.return_value = "?"
+    pos.end.__str__.return_value = "?"
+
+    variant.hgvs_formatted.posedit.pos = pos
+
+    with pytest.raises(FuzzyPositionError):
+        fuzzy_ends(variant, make_validator())
+
+
 
 
 # <LICENSE>

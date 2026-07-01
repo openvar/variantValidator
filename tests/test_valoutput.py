@@ -1,9 +1,10 @@
 import json
 from unittest import TestCase
 import VariantValidator
-from VariantValidator.modules.valoutput import ValOutput
 from VariantValidator.modules.variant import Variant
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
+
+from VariantValidator.modules.valoutput import ValOutput
 
 
 class TestValOutput(TestCase):
@@ -486,6 +487,62 @@ class TestValOutput(TestCase):
         self.assertTrue(
             any("LovdSyntaxcheckSuggestions" in w for w in var.warnings)
         )
+
+
+    def test_format_as_table_rna_branch(self):
+        variant = MagicMock()
+
+        variant.output_type_flag = "gene"
+        variant.original = "NM_000001.1:r.123a>g"
+        variant.warnings = []
+
+        # Cover line 124 first
+        variant.hgvs_predicted_protein_consequence = {"tlr": "p.(=)"}
+
+        # Then overwrite with the RNA translation (covers 126 onwards)
+        variant.rna_data = {
+            "translation": "p.(Arg1=)",
+            "usage_warnings": ["RNA warning"],
+            "rna_variant": "NM_000001.1:r.123a>g",
+        }
+
+        variant.primary_assembly_loci = None
+        variant.alt_genomic_loci = None
+        variant.stable_gene_ids = None
+        variant.annotations = None
+
+        variant.gene_symbol = "GENE"
+        variant.description = "RNA description"
+
+        vo = ValOutput([variant], self.vv)
+
+        table = vo.format_as_table(with_meta=False)
+
+        self.assertEqual(len(table), 2)
+
+        row = table[1]
+
+        self.assertEqual(row[0], "NM_000001.1:r.123a>g")
+        self.assertEqual(row[1], "RNA warning")
+        self.assertEqual(row[3], "NM_000001.1:r.123a>g")
+        self.assertEqual(row[9], "p.(Arg1=)")
+        self.assertEqual(row[22], "GENE")
+        self.assertEqual(row[24], "RNA description")
+
+
+    @patch("VariantValidator.modules.valoutput.lovd_api.lovd_syntax_check")
+    def test_lovd_syntax_check_existing_result(self, mock_lovd):
+        variant = MagicMock()
+        variant.original = "NM_000001.1:c.123A>G"
+        variant.warnings = []
+        variant.lovd_syntax_check = {"lovd_api_error": True}
+
+        vo = ValOutput([], self.vv)
+
+        vo.lovd_syntax_check(variant)
+
+        mock_lovd.assert_not_called()
+
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

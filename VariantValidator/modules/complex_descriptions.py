@@ -5,6 +5,8 @@ from VariantValidator.modules import utils as vv_utils, format_converters
 from VariantValidator.modules.hgvs_utils import hgvs_obj_from_existing_edit
 import vvhgvs.exceptions
 from vvhgvs.location import Interval
+from vvhgvs.enums import ValidationLevel
+from vvhgvs.exceptions import HGVSUnsupportedOperationError
 
 class UncertainConversionError(Exception):
     pass
