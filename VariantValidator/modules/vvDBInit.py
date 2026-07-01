@@ -1,4 +1,8 @@
 import random
+import time
+import logging
+
+logger = logging.getLogger(__name__)
 
 try:
     import mariadb
@@ -80,16 +84,49 @@ class Mixin:
             "Neither mysql.connector nor mariadb is installed."
         )
 
+    import time
+
     def get_conn(self):
         """
-        Get a connection from the pool.
+        Get a live connection from the pool with retry + backoff.
+
+        Handles:
+        - stale pooled connections
+        - MySQL timeouts
+        - transient network issues
         """
-        try:
-            conn = self.pool.get_connection()
-        except Exception:
-            self.init_db()
-            conn = self.pool.get_connection()
-        return conn
+        delays = [0, 0.5, 2, 5]
+
+        last_exception = None
+
+        for delay in delays:
+            if delay:
+                time.sleep(delay)
+
+            try:
+                conn = self.pool.get_connection()
+
+                # Critical: ensure connection is alive
+                try:
+                    conn.ping(reconnect=True, attempts=1, delay=0)
+                except Exception:
+                    # Drop and retry
+                    conn.close()
+                    raise
+
+                return conn
+
+            except Exception as e:
+                last_exception = e
+
+                # Rebuild pool on failure
+                self.init_db()
+
+                logger.exception(
+                    "Database connection failed health check; retrying with fresh connection"
+                )
+
+        raise last_exception
 
     def get_cursor(self, conn):
         """

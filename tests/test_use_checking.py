@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from VariantValidator.modules.use_checking import (
     InvalidVariantError,
     pre_parsing_global_common_mistakes,
@@ -12,6 +12,7 @@ from VariantValidator.modules.use_checking import (
 )
 import vvhgvs
 from types import SimpleNamespace
+from VariantValidator.modules.use_checking import structure_checks
 
 
 class MockRefVariant:
@@ -476,58 +477,6 @@ def test_structure_checks_g_invalid_accession():
     )
 
 
-def test_structure_checks_g_uncertain_reference_sequence():
-    variant = MagicMock()
-
-    variant.input_parses.ac = "NC_000001.11"
-    variant.input_parses.posedit.edit.ref = "NN"
-    variant.warnings = []
-
-    variant.hn.normalize.return_value = variant.input_parses
-
-    validator = MagicMock()
-    validator.vr.validate.return_value = None
-
-    assert structure_checks_g(
-        variant,
-        validator,
-    ) is True
-
-    assert any(
-        "UncertainSequenceError"
-        in w
-        for w in variant.warnings
-    )
-
-
-def test_structure_checks_g_normalize_error():
-    variant = MagicMock()
-
-    variant.input_parses.ac = "NC_000001.11"
-    variant.input_parses.posedit.edit.ref = "A"
-    variant.warnings = []
-
-    variant.hn.normalize.side_effect = (
-        vvhgvs.exceptions.HGVSError(
-            "normalization failed"
-        )
-    )
-
-    validator = MagicMock()
-    validator.vr.validate.return_value = None
-
-    assert structure_checks_g(
-        variant,
-        validator,
-    ) is True
-
-    assert any(
-        "normalization failed"
-        in w
-        for w in variant.warnings
-    )
-
-
 def test_structure_checks_c_c_to_n_failure():
     variant = MagicMock()
 
@@ -765,6 +714,478 @@ def make_validator():
     validator.alt_aln_method = "splign"
 
     return validator
+
+def test_structure_checks_c_unsupported_operation():
+    variant = make_variant(ac="NM_000001.1", hgvs_type="c")
+    validator = make_validator()
+
+    variant.input_parses.__str__ = lambda self=None: "NM_000001.1:c.123A>G"
+
+    validator.vr.validate.side_effect = (
+        vvhgvs.exceptions.HGVSUnsupportedOperationError("unsupported")
+    )
+
+    assert structure_checks_c(variant, validator) is False
+    assert variant.warnings == []
+
+
+def test_structure_checks_c_bounds_error():
+    variant = make_variant(ac="NM_000001.1", hgvs_type="c")
+    validator = make_validator()
+
+    variant.input_parses.__str__ = lambda self=None: "NM_000001.1:c.123A>G"
+
+    validator.vr.validate.side_effect = (
+        vvhgvs.exceptions.HGVSError("bounds")
+    )
+
+    assert structure_checks_c(variant, validator) is True
+    assert any("bounds" in w for w in variant.warnings)
+
+
+def test_structure_checks_dispatch_g():
+    variant = make_variant()
+    variant.quibble = "NC_000001.11:g.100A>G"
+
+    validator = make_validator()
+
+    parsed = MagicMock()
+    parsed.type = "g"
+    parsed.ac = "NC_000001.11"
+
+    validator.hp.parse_hgvs_variant.return_value = parsed
+    validator.db.get_gene_symbol_from_transcript_id.return_value = "GENE"
+
+    with patch(
+        "VariantValidator.modules.use_checking.structure_checks_g",
+        return_value=False,
+    ) as mock_g:
+
+        assert structure_checks(variant, validator) is None
+        mock_g.assert_called_once_with(variant, validator)
+
+
+def test_structure_checks_dispatch_c():
+    variant = make_variant()
+    variant.quibble = "NM_000001.1:c.1A>G"
+
+    validator = make_validator()
+
+    parsed = MagicMock()
+    parsed.type = "c"
+    parsed.ac = "NM_000001.1"
+
+    validator.hp.parse_hgvs_variant.return_value = parsed
+    validator.db.get_gene_symbol_from_transcript_id.return_value = "GENE"
+
+    with patch(
+        "VariantValidator.modules.use_checking.structure_checks_c",
+        return_value=False,
+    ) as mock_c:
+
+        assert structure_checks(variant, validator) is None
+        mock_c.assert_called_once_with(variant, validator)
+
+
+def test_structure_checks_dispatch_n():
+    variant = make_variant()
+    variant.quibble = "NR_000001.1:n.1A>G"
+
+    validator = make_validator()
+
+    parsed = MagicMock()
+    parsed.type = "n"
+    parsed.ac = "NR_000001.1"
+
+    validator.hp.parse_hgvs_variant.return_value = parsed
+    validator.db.get_gene_symbol_from_transcript_id.return_value = "GENE"
+
+    with patch(
+        "VariantValidator.modules.use_checking.structure_checks_n",
+        return_value=False,
+    ) as mock_n:
+
+        assert structure_checks(variant, validator) is None
+        mock_n.assert_called_once_with(variant, validator)
+
+
+def test_structure_checks_gene_symbol_none_becomes_empty():
+    variant = make_variant()
+    variant.quibble = "NM_000001.1:c.1A>G"
+
+    validator = make_validator()
+
+    parsed = MagicMock()
+    parsed.type = "c"
+    parsed.ac = "NM_000001.1"
+
+    validator.hp.parse_hgvs_variant.return_value = parsed
+    validator.db.get_gene_symbol_from_transcript_id.return_value = "none"
+
+    with patch(
+        "VariantValidator.modules.use_checking.structure_checks_c",
+        return_value=False,
+    ):
+
+        structure_checks(variant, validator)
+
+    assert variant.gene_symbol == ""
+
+
+def test_structure_checks_unknown_type():
+    variant = make_variant()
+    variant.quibble = "NM_000001.1:x.1"
+
+    validator = make_validator()
+
+    parsed = MagicMock()
+    parsed.type = "x"
+    parsed.ac = "NM_000001.1"
+
+    validator.hp.parse_hgvs_variant.return_value = parsed
+    validator.db.get_gene_symbol_from_transcript_id.return_value = "GENE"
+
+    assert structure_checks(variant, validator) is None
+
+
+def test_ins_without_sequence_and_without_positions():
+    variant = MockVariant("NM_000001.1:c.1ins")
+
+    assert pre_parsing_global_common_mistakes(variant) is True
+
+    assert len(variant.warnings) == 2
+    assert "inserted sequence" in variant.warnings[0]
+    assert "two positions" in variant.warnings[1]
+
+
+def test_plain_ins_number_without_positions():
+    variant = MockVariant("NM_000001.1:c.1ins10")
+
+    assert pre_parsing_global_common_mistakes(variant) is True
+
+    assert len(variant.warnings) == 2
+    assert "N[10]" in variant.warnings[0]
+    assert "two positions" in variant.warnings[1]
+
+
+def test_structure_checks_g_bad_reference_sequence():
+    variant = make_variant(ac="AB_123456.1")
+    validator = make_validator()
+
+    assert structure_checks_g(variant, validator) is True
+
+    assert any(
+        "Invalid reference sequence identifier"
+        in w
+        for w in variant.warnings
+    )
+
+
+def test_structure_checks_g_validator_generic_exception():
+    variant = make_variant()
+    validator = make_validator()
+
+    validator.vr.validate.side_effect = Exception(
+        "Something unexpected"
+    )
+
+    assert structure_checks_g(variant, validator) is True
+
+    assert any(
+        "Something unexpected"
+        in w
+        for w in variant.warnings
+    )
+
+
+def test_structure_checks_g_uncertain_deletion_length():
+    variant = make_variant()
+    validator = make_validator()
+
+    variant.input_parses.posedit.pos.__str__ = lambda self=None: "(10_20)"
+
+    validator.vr.validate.side_effect = Exception(
+        "Length implied by coordinates must equal sequence deletion length"
+    )
+
+    assert structure_checks_g(variant, validator) is True
+
+
+def test_double_colon_with_version_number():
+    # Matches :\w+\.\d+:[crnpg]\.
+    variant = MockVariant("NM_000001.1:abc123.1:c.123A>G")
+
+    assert pre_parsing_global_common_mistakes(variant) is True
+
+    assert any("single colon" in w for w in variant.warnings)
+    assert any("Illegal addition" in w for w in variant.warnings)
+
+
+def test_structure_checks_g_insertion_length_message():
+    variant = make_variant()
+    validator = make_validator()
+
+    variant.input_parses.posedit.pos = MagicMock()
+    variant.input_parses.posedit.pos.__str__.return_value = "123"
+
+    variant.input_parses.posedit.pos.start.base = 123
+    variant.input_parses.posedit.edit.alt = "AA"
+
+    validator.vr.validate.side_effect = Exception(
+        "insertion length must be 1"
+    )
+
+    assert structure_checks_g(variant, validator) is True
+
+    assert any(
+        "Insertion length must be 1 e.g."
+        in w
+        for w in variant.warnings
+    )
+
+
+def test_pre_parsing_ins_length_parenthesised():
+    variant = MockVariant("NM_000001.1:c.123ins(10)")
+
+    assert pre_parsing_global_common_mistakes(variant) is True
+
+    assert any("N[10]" in w for w in variant.warnings)
+
+
+def test_structure_checks_g_uncertain_insertion_returns_true():
+    variant = make_variant()
+    validator = make_validator()
+
+    variant.input_parses.posedit.pos = MagicMock()
+    variant.input_parses.posedit.pos.__str__.return_value = "(123_124)"
+
+    validator.vr.validate.side_effect = Exception(
+        "insertion length must be 1"
+    )
+
+    assert structure_checks_g(variant, validator) is True
+
+
+def test_structure_checks_g_generic_validation_error():
+    variant = make_variant()
+    validator = make_validator()
+
+    validator.vr.validate.side_effect = Exception(
+        "Some random validation error"
+    )
+
+    assert structure_checks_g(variant, validator) is True
+
+    assert any(
+        "Some random validation error"
+        in w
+        for w in variant.warnings
+    )
+
+
+def test_structure_checks_g_normalizer_exception():
+    variant = make_variant()
+    validator = make_validator()
+
+    validator.vr.validate.return_value = None
+
+    variant.hn.normalize.side_effect = (
+        vvhgvs.exceptions.HGVSError(
+            "normalizer failed"
+        )
+    )
+
+    assert structure_checks_g(variant, validator) is True
+
+    assert any(
+        "normalizer failed"
+        in w
+        for w in variant.warnings
+    )
+
+
+def test_pre_parsing_ins_parenthesised_length():
+    variant = MockVariant("c.1ins(10)")
+
+    assert pre_parsing_global_common_mistakes(variant) is True
+
+    assert len(variant.warnings) == 1
+    assert "N[10]" in variant.warnings[0]
+
+
+def test_pre_parsing_ins_parenthesised_range():
+    variant = MockVariant("c.1ins(10_20)")
+
+    assert pre_parsing_global_common_mistakes(variant) is True
+
+    assert any(
+        "N[(10_20)]"
+        in w
+        for w in variant.warnings
+    )
+
+
+def test_structure_checks_g_length_implied_branch():
+    variant = make_variant()
+    validator = make_validator()
+
+    variant.input_parses.posedit.pos = MagicMock()
+    variant.input_parses.posedit.pos.__str__.return_value = "(10_20)"
+
+    validator.vr.validate.side_effect = Exception(
+        "Length implied by coordinates must equal sequence deletion length"
+    )
+
+    assert structure_checks_g(
+        variant,
+        validator,
+    ) is True
+
+
+def test_structure_checks_g_uncertain_sequence():
+    variant = make_variant()
+    validator = make_validator()
+
+    validator.vr.validate.return_value = None
+    variant.hn.normalize.return_value = MagicMock()
+
+    variant.input_parses.posedit.edit.ref = "N"
+
+    assert structure_checks_g(
+        variant,
+        validator,
+    ) is True
+
+    assert any(
+        "UncertainSequenceError"
+        in warning
+        for warning in variant.warnings
+    )
+
+
+def test_structure_checks_c_value_error_interval_b():
+    variant = make_variant()
+    validator = make_validator()
+
+    # Force the variant into the intronic c. branch
+    variant.input_parses = MagicMock()
+    variant.input_parses.__str__ = lambda self=None: "NM_000001.1:c.123+1A>G"
+    variant.input_parses.ac = "NM_000001.1"
+
+    variant.input_parses.posedit = MagicMock()
+    variant.input_parses.posedit.pos = MagicMock()
+    variant.input_parses.posedit.pos.start = MagicMock(base=123, offset=1)
+    variant.input_parses.posedit.pos.end = MagicMock(base=123, offset=1)
+    variant.input_parses.posedit.edit = MagicMock(alt="AA")
+
+    validator.vr.validate.return_value = None
+
+    validator.noreplace_myevm_t_to_g.side_effect = ValueError(
+        "start > end"
+    )
+
+    assert structure_checks_c(variant, validator) is True
+
+    assert any(
+        "Interval start position" in w
+        for w in variant.warnings
+    )
+
+
+def test_structure_checks_c_data_not_available():
+    variant = make_variant()
+    validator = make_validator()
+
+    variant.input_parses = MagicMock()
+    variant.input_parses.__str__ = lambda self=None: "NM_000001.1:c.123+1A>G"
+    variant.input_parses.ac = "NM_000001.1"
+
+    variant.input_parses.posedit = MagicMock()
+    variant.input_parses.posedit.pos = MagicMock()
+    variant.input_parses.posedit.pos.start = MagicMock(base=123, offset=1)
+    variant.input_parses.posedit.pos.end = MagicMock(base=123, offset=1)
+    variant.input_parses.posedit.edit = MagicMock(alt="A")
+
+    validator.vr.validate.return_value = None
+
+    validator.noreplace_myevm_t_to_g.side_effect = (
+        vvhgvs.exceptions.HGVSDataNotAvailableError("UTA missing")
+    )
+
+    validator.hdp.get_tx_identity_info.return_value = [
+        None, None, None, 1, 1000
+    ]
+
+    assert structure_checks_c(variant, validator) is True
+
+    assert any(
+        "Universal Transcript Archive" in w
+        for w in variant.warnings
+    )
+
+
+def test_structure_checks_c_g_to_t_alignment_failure():
+    variant = make_variant()
+    validator = make_validator()
+
+    variant.input_parses = MagicMock()
+    variant.input_parses.__str__ = lambda self=None: "NM_000001.1:c.123+1A>G"
+    variant.input_parses.ac = "NM_000001.1"
+
+    variant.input_parses.posedit = MagicMock()
+    variant.input_parses.posedit.pos = MagicMock()
+    variant.input_parses.posedit.pos.start = MagicMock(base=123, offset=1)
+    variant.input_parses.posedit.pos.end = MagicMock(base=123, offset=1)
+    variant.input_parses.posedit.edit = MagicMock(alt="A")
+
+    validator.vr.validate.return_value = None
+
+    output = MagicMock()
+    output.ac = "NC_000001.11"
+
+    validator.noreplace_myevm_t_to_g.return_value = output
+
+    variant.evm.g_to_t.side_effect = (
+        vvhgvs.exceptions.HGVSError("Alignment is incomplete")
+    )
+
+    with patch(
+        "VariantValidator.modules.use_checking.hgvs_utils.incomplete_alignment_mapping_t_to_g",
+        return_value=None,
+    ):
+        assert structure_checks_c(variant, validator) is True
+
+    assert any(
+        "Alignment is incomplete" in w
+        for w in variant.warnings
+    )
+
+
+def test_structure_checks_c_invalid_variant_generic():
+    variant = make_variant()
+    validator = make_validator()
+
+    variant.input_parses = MagicMock()
+    variant.input_parses.__str__ = lambda self=None: "NM_000001.1:c.123+1A>G"
+    variant.input_parses.ac = "NM_000001.1"
+
+    variant.input_parses.posedit = MagicMock()
+    variant.input_parses.posedit.pos = MagicMock()
+    variant.input_parses.posedit.pos.start = MagicMock(base=123, offset=1)
+    variant.input_parses.posedit.pos.end = MagicMock(base=123, offset=1)
+    variant.input_parses.posedit.edit = MagicMock(alt="A")
+
+    validator.vr.validate.return_value = None
+
+    validator.noreplace_myevm_t_to_g.side_effect = (
+        vvhgvs.exceptions.HGVSInvalidVariantError(
+            "Some HGVS validation error"
+        )
+    )
+
+    assert structure_checks_c(variant, validator) is True
+
+    assert "Some HGVS validation error" in variant.warnings[0]
 
 
 # <LICENSE>

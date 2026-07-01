@@ -51,6 +51,8 @@ def test_get_conn_success():
     obj = Mixin.__new__(Mixin)
 
     conn = MagicMock()
+    conn.ping.return_value = None   # explicit
+
     pool = MagicMock()
     pool.get_connection.return_value = conn
 
@@ -58,6 +60,7 @@ def test_get_conn_success():
 
     result = obj.get_conn()
 
+    conn.ping.assert_called_once()   # NEW
     assert result is conn
 
 
@@ -65,6 +68,7 @@ def test_get_conn_reconnect():
     obj = Mixin.__new__(Mixin)
 
     conn = MagicMock()
+    conn.ping.return_value = None
 
     pool = MagicMock()
     pool.get_connection.side_effect = [
@@ -75,7 +79,8 @@ def test_get_conn_reconnect():
     obj.pool = pool
     obj.init_db = MagicMock()
 
-    result = obj.get_conn()
+    with patch("VariantValidator.modules.vvDBInit.time.sleep", return_value=None):
+        result = obj.get_conn()
 
     obj.init_db.assert_called_once()
     assert result is conn
@@ -104,8 +109,8 @@ def test_get_cursor_reconnect():
     good_conn = MagicMock()
     good_conn.cursor.return_value = cursor
 
-    obj.init_db = MagicMock()
     obj.get_conn = MagicMock(return_value=good_conn)
+    obj.init_db = MagicMock()
 
     result = obj.get_cursor(bad_conn)
 
@@ -180,6 +185,58 @@ def test_init_db_no_database_backend(db_config):
 
         with pytest.raises(ModuleNotFoundError):
             obj.init_db()
+
+
+def test_get_conn_ping_failure_retries():
+    obj = Mixin.__new__(Mixin)
+
+    good_conn = MagicMock()
+    good_conn.ping.return_value = None
+
+    bad_conn = MagicMock()
+    bad_conn.ping.side_effect = Exception("lost connection")
+
+    pool = MagicMock()
+    pool.get_connection.side_effect = [
+        bad_conn,   # first attempt → stale
+        good_conn,  # retry → good
+    ]
+
+    obj.pool = pool
+    obj.init_db = MagicMock()
+
+    with patch("VariantValidator.modules.vvDBInit.time.sleep", return_value=None):
+        result = obj.get_conn()
+
+    # Ensure retry happened
+    assert pool.get_connection.call_count == 2
+
+    # Ensure bad connection was closed
+    bad_conn.close.assert_called_once()
+
+    # Ensure successful connection returned
+    assert result is good_conn
+
+
+def test_get_conn_retries_exhausted():
+    obj = Mixin.__new__(Mixin)
+
+    bad_conn = MagicMock()
+    bad_conn.ping.side_effect = Exception("dead")
+
+    pool = MagicMock()
+    pool.get_connection.return_value = bad_conn
+
+    obj.pool = pool
+    obj.init_db = MagicMock()
+
+    with pytest.raises(Exception):
+        with patch("VariantValidator.modules.vvDBInit.time.sleep", return_value=None):
+            result = obj.get_conn()
+
+    # Multiple attempts should have been made
+    assert pool.get_connection.call_count == 4
+    assert bad_conn.close.call_count == 4
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

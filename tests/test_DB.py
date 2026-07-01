@@ -1,8 +1,13 @@
 import pytest
 from unittest.mock import MagicMock, patch
-
+import json
 from VariantValidator.modules.vvDatabase import Database
+from VariantValidator.modules import utils
 
+
+def make_db():
+    db = Database.__new__(Database)
+    return db
 
 @pytest.fixture
 def db():
@@ -629,6 +634,855 @@ def test_update_gene_stable_identifiers_previous_symbol_with_optional_fields(
     assert result["prev"] == ["OLD1"]
     assert result["map_loc"] == "2q37"
     assert result["gene_name"] == "Gene Two"
+
+
+@patch("VariantValidator.modules.vvDatabase.utils.hgnc_rest")
+def test_update_transcript_info_record_refseq_insert(
+    mock_hgnc_rest,
+    db,
+):
+    validator = MagicMock()
+
+    record = MagicMock()
+    record.id = "NM_000001.1"
+    record.description = (
+        "GENE1 transcript variant 1 mRNA"
+    )
+
+    source_feature = MagicMock()
+    source_feature.qualifiers = {
+        "mol_type": ["mRNA"]
+    }
+
+    gene_feature = MagicMock()
+    gene_feature.qualifiers = {
+        "gene": ["GENE1"],
+        "db_xref": [
+            "GeneID:1234",
+            "HGNC:5:HGNC5",
+        ],
+    }
+
+    ccds_feature = MagicMock()
+    ccds_feature.qualifiers = {
+        "db_xref": [
+            "CCDS:CCDS1234"
+        ]
+    }
+
+    record.features = [
+        source_feature,
+        gene_feature,
+        ccds_feature,
+    ]
+
+    record.annotations = {
+        "keywords": [
+            "MANE Select"
+        ]
+    }
+
+    validator.entrez_efetch.return_value = record
+
+    mock_hgnc_rest.return_value = {
+        "record": {
+            "response": {
+                "numFound": 1,
+            }
+        }
+    }
+
+    db.update_gene_stable_identifiers = MagicMock(
+        return_value={
+            "map_loc": "1q21",
+            "gene_name": "Gene One",
+            "prev": None,
+        }
+    )
+
+    db.in_entries = MagicMock(
+        return_value={
+            "none": "none"
+        }
+    )
+
+    db.insert = MagicMock()
+    db.update = MagicMock()
+
+    db.update_transcript_info_record(
+        "NM_000001.1",
+        validator,
+        test=True,
+    )
+
+    db.insert.assert_called_once()
+    db.update.assert_not_called()
+
+    version, query_info, table = db.insert.call_args.args
+
+    assert version == "NM_000001.1"
+    assert table == "transcript_info"
+
+    variant = json.loads(query_info[2])
+
+    assert variant["mane_select"] is True
+    assert variant["refseq_select"] is True
+    assert variant["db_xref"]["CCDS"] == "CCDS1234"
+    assert variant["db_xref"]["ncbigene"] == "1234"
+    assert variant["db_xref"]["hgnc"] is None
+
+
+@patch("VariantValidator.modules.vvDatabase.utils.hgnc_rest")
+def test_update_transcript_info_record_refseq_update(
+    mock_hgnc_rest,
+    db,
+):
+    validator = MagicMock()
+
+    record = MagicMock()
+    record.id = "NM_000001.1"
+    record.description = (
+        "GENE1 transcript variant 1 mRNA"
+    )
+
+    source_feature = MagicMock()
+    source_feature.qualifiers = {
+        "mol_type": ["mRNA"]
+    }
+
+    gene_feature = MagicMock()
+    gene_feature.qualifiers = {
+        "gene": ["GENE1"],
+        "db_xref": [
+            "GeneID:1234",
+            "HGNC:5:HGNC5",
+        ],
+    }
+
+    ccds_feature = MagicMock()
+    ccds_feature.qualifiers = {
+        "db_xref": [
+            "CCDS:CCDS1234"
+        ]
+    }
+
+    record.features = [
+        source_feature,
+        gene_feature,
+        ccds_feature,
+    ]
+
+    record.annotations = {
+        "keywords": [
+            "MANE Select"
+        ]
+    }
+
+    validator.entrez_efetch.return_value = record
+
+    mock_hgnc_rest.return_value = {
+        "record": {
+            "response": {
+                "numFound": 1,
+            }
+        }
+    }
+
+    db.update_gene_stable_identifiers = MagicMock(
+        return_value={
+            "map_loc": "1q21",
+            "gene_name": "Gene One",
+            "prev": None,
+        }
+    )
+
+    # Existing database record
+    db.in_entries = MagicMock(
+        return_value={
+            "accession": "NM_000001.1"
+        }
+    )
+
+    db.insert = MagicMock()
+    db.update = MagicMock()
+
+    db.update_transcript_info_record(
+        "NM_000001.1",
+        validator,
+        test=True,
+    )
+
+    db.insert.assert_not_called()
+    db.update.assert_called_once()
+
+    version, query_info = db.update.call_args.args
+
+    assert version == "NM_000001.1"
+
+    variant = json.loads(query_info[2])
+
+    assert variant["mane_select"] is True
+    assert variant["refseq_select"] is True
+    assert variant["db_xref"]["CCDS"] == "CCDS1234"
+    assert variant["db_xref"]["ncbigene"] == "1234"
+
+
+@patch("VariantValidator.modules.vvDatabase.utils.hgnc_rest")
+def test_update_transcript_info_record_refseq_no_transcript_variant(
+    mock_hgnc_rest,
+    db,
+):
+    validator = MagicMock()
+
+    record = MagicMock()
+    record.id = "NM_000001.1"
+    record.description = "GENE1 mRNA"
+
+    source_feature = MagicMock()
+    source_feature.qualifiers = {
+        "mol_type": ["mRNA"]
+    }
+
+    gene_feature = MagicMock()
+    gene_feature.qualifiers = {
+        "gene": ["GENE1"],
+        "db_xref": [
+            "GeneID:1234",
+            "HGNC:5:HGNC5",
+        ],
+    }
+
+    ccds_feature = MagicMock()
+    ccds_feature.qualifiers = {
+        "db_xref": [
+            "CCDS:CCDS1234"
+        ]
+    }
+
+    record.features = [
+        source_feature,
+        gene_feature,
+        ccds_feature,
+    ]
+
+    record.annotations = {
+        "keywords": [
+            "NotASelectKeyword"
+        ]
+    }
+
+    validator.entrez_efetch.return_value = record
+
+    mock_hgnc_rest.return_value = {
+        "record": {
+            "response": {
+                "numFound": 1,
+            }
+        }
+    }
+
+    db.update_gene_stable_identifiers = MagicMock(
+        return_value={
+            "map_loc": "1q21",
+            "gene_name": "Gene One",
+            "prev": None,
+        }
+    )
+
+    db.in_entries = MagicMock(
+        return_value={"none": "none"}
+    )
+
+    db.insert = MagicMock()
+
+    db.update_transcript_info_record(
+        "NM_000001.1",
+        validator,
+        test=True,
+    )
+
+    variant = json.loads(
+        db.insert.call_args.args[1][2]
+    )
+
+    assert variant["variant"] == "0"
+    assert variant["mane_select"] is False
+    assert variant["refseq_select"] is False
+
+
+@patch("VariantValidator.modules.vvDatabase.utils.hgnc_rest")
+def test_update_transcript_info_record_refseq_refseq_select(
+    mock_hgnc_rest,
+    db,
+):
+    validator = MagicMock()
+
+    record = MagicMock()
+    record.id = "NM_000001.1"
+    record.description = "GENE1 transcript variant 1 mRNA"
+
+    source_feature = MagicMock()
+    source_feature.qualifiers = {
+        "mol_type": ["mRNA"]
+    }
+
+    gene_feature = MagicMock()
+    gene_feature.qualifiers = {
+        "gene": ["GENE1"],
+        "db_xref": [
+            "GeneID:1234",
+            "HGNC:5:HGNC5",
+        ],
+    }
+
+    ccds_feature = MagicMock()
+    ccds_feature.qualifiers = {
+        "db_xref": [
+            "CCDS:CCDS1234"
+        ]
+    }
+
+    record.features = [
+        source_feature,
+        gene_feature,
+        ccds_feature,
+    ]
+
+    record.annotations = {
+        "keywords": [
+            "RefSeq Select"
+        ]
+    }
+
+    validator.entrez_efetch.return_value = record
+
+    mock_hgnc_rest.return_value = {
+        "record": {
+            "response": {
+                "numFound": 1,
+            }
+        }
+    }
+
+    db.update_gene_stable_identifiers = MagicMock(
+        return_value={
+            "map_loc": "1q21",
+            "gene_name": "Gene One",
+            "prev": None,
+        }
+    )
+
+    db.in_entries = MagicMock(
+        return_value={"none": "none"}
+    )
+
+    db.insert = MagicMock()
+
+    db.update_transcript_info_record(
+        "NM_000001.1",
+        validator,
+        test=True,
+    )
+
+    variant = json.loads(
+        db.insert.call_args.args[1][2]
+    )
+
+    assert variant["refseq_select"] is True
+    assert variant["mane_select"] is False
+    assert variant["mane_plus_clinical"] is False
+
+
+@patch("VariantValidator.modules.vvDatabase.utils.hgnc_rest")
+def test_update_transcript_info_record_refseq_mane_plus_clinical(
+    mock_hgnc_rest,
+    db,
+):
+    validator = MagicMock()
+
+    record = MagicMock()
+    record.id = "NM_000001.1"
+    record.description = "GENE1 transcript variant 1 mRNA"
+
+    source_feature = MagicMock()
+    source_feature.qualifiers = {
+        "mol_type": ["mRNA"]
+    }
+
+    gene_feature = MagicMock()
+    gene_feature.qualifiers = {
+        "gene": ["GENE1"],
+        "db_xref": [
+            "GeneID:1234",
+            "HGNC:5:HGNC5",
+        ],
+    }
+
+    ccds_feature = MagicMock()
+    ccds_feature.qualifiers = {
+        "db_xref": [
+            "CCDS:CCDS1234"
+        ]
+    }
+
+    record.features = [
+        source_feature,
+        gene_feature,
+        ccds_feature,
+    ]
+
+    record.annotations = {
+        "keywords": [
+            "MANE Plus Clinical"
+        ]
+    }
+
+    validator.entrez_efetch.return_value = record
+
+    mock_hgnc_rest.return_value = {
+        "record": {
+            "response": {
+                "numFound": 1,
+            }
+        }
+    }
+
+    db.update_gene_stable_identifiers = MagicMock(
+        return_value={
+            "map_loc": "1q21",
+            "gene_name": "Gene One",
+            "prev": None,
+        }
+    )
+
+    db.in_entries = MagicMock(
+        return_value={"none": "none"}
+    )
+
+    db.insert = MagicMock()
+
+    db.update_transcript_info_record(
+        "NM_000001.1",
+        validator,
+        test=True,
+    )
+
+    variant = json.loads(
+        db.insert.call_args.args[1][2]
+    )
+
+    assert variant["mane_plus_clinical"] is True
+    assert variant["mane_select"] is False
+    assert variant["refseq_select"] is False
+
+
+@patch("VariantValidator.modules.vvDatabase.utils.ensembl_tark")
+@patch("VariantValidator.modules.vvDatabase.utils.ensembl_rest")
+def test_update_transcript_info_record_enst_insert(
+    mock_ensembl_rest,
+    mock_ensembl_tark,
+):
+    db = make_db()
+
+    validator = MagicMock()
+
+    # Prevent UTA lookup
+    validator.hdp.get_tx_identity_info.return_value = (
+        None, None, None, None, None, None, "GENE"
+    )
+
+    # lookup/id
+    lookup = {
+        "record": {
+            "version": 1,
+            "display_name": "GENE-001",
+            "is_canonical": 1,
+            "Parent": "ENSG000001",
+            "seq_region_name": "1",
+            "start": 100,
+            "end": 200,
+        }
+    }
+
+    # xrefs/id transcript -> CCDS
+    ccds = [
+        {
+            "display_id": "CCDS123"
+        }
+    ]
+
+    # xrefs/id gene
+    gene = {
+        "record": [
+            {
+                "dbname": "HGNC",
+                "primary_id": "HGNC:5",
+                "description": "Gene name",
+            }
+        ]
+    }
+
+    mock_ensembl_rest.side_effect = [
+        lookup,
+        ccds,
+        gene,
+    ]
+
+    mock_ensembl_tark.return_value = {
+        "record": {
+            "results": [
+                {
+                    "mane_transcript_type": "MANE SELECT"
+                }
+            ]
+        }
+    }
+
+    db.update_gene_stable_identifiers = MagicMock(
+        return_value={
+            "map_loc": "1q",
+            "gene_name": "Gene name",
+            "prev": ["OLD1"],
+        }
+    )
+
+    db.in_entries = MagicMock(
+        return_value={
+            "none": "none"
+        }
+    )
+
+    db.insert = MagicMock()
+    db.update = MagicMock()
+
+    db.update_transcript_info_record(
+        "ENST000001.1",
+        validator,
+        genome_build="GRCh38",
+        test=True,
+    )
+
+    db.insert.assert_called_once()
+    db.update.assert_not_called()
+    db.update_gene_stable_identifiers.assert_called_once_with("GENE")
+
+
+@patch("VariantValidator.modules.vvDatabase.utils.ensembl_rest")
+def test_update_transcript_info_record_enst_requires_genome_build(
+    mock_ensembl_rest,
+    db,
+):
+    validator = MagicMock()
+
+    with pytest.raises(utils.DatabaseConnectionError):
+        db.update_transcript_info_record(
+            "ENST000001.1",
+            validator,
+            test=True,
+        )
+
+    mock_ensembl_rest.assert_not_called()
+
+
+@patch("VariantValidator.modules.vvDatabase.utils.ensembl_rest")
+def test_update_transcript_info_record_enst_version_mismatch(
+    mock_ensembl_rest,
+    db,
+):
+    validator = MagicMock()
+
+    mock_ensembl_rest.return_value = {
+        "record": {
+            "version": 99,
+        }
+    }
+
+    with pytest.raises(utils.DatabaseConnectionError):
+        db.update_transcript_info_record(
+            "ENST000001.1",
+            validator,
+            genome_build="GRCh38",
+            test=True,
+        )
+
+
+@patch("VariantValidator.modules.vvDatabase.utils.ensembl_rest")
+def test_update_transcript_info_record_enst_typeerror_with_symbol(
+    mock_ensembl_rest,
+    db,
+):
+    validator = MagicMock()
+
+    mock_ensembl_rest.return_value = {
+        "record": None
+    }
+
+    db.update_gene_stable_identifiers = MagicMock()
+
+    with pytest.raises(utils.DatabaseConnectionError):
+        db.update_transcript_info_record(
+            "ENST000001.1",
+            validator,
+            genome_build="GRCh38",
+            bypass_with_symbol="GENE1",
+            test=True,
+        )
+
+    db.update_gene_stable_identifiers.assert_called_once_with(
+        "GENE1"
+    )
+
+
+def test_update_transcript_info_record_refseq_ioerror(
+    db,
+):
+    validator = MagicMock()
+
+    validator.entrez_efetch.side_effect = IOError()
+
+    with pytest.raises(utils.DatabaseConnectionError):
+        db.update_transcript_info_record(
+            "NM_000001.1",
+            validator,
+            test=True,
+        )
+
+
+def test_update_transcript_info_record_refseq_ioerror_with_symbol(
+    db,
+):
+    validator = MagicMock()
+
+    validator.entrez_efetch.side_effect = IOError()
+
+    db.update_gene_stable_identifiers = MagicMock()
+
+    with pytest.raises(utils.DatabaseConnectionError):
+        db.update_transcript_info_record(
+            "NM_000001.1",
+            validator,
+            bypass_with_symbol="GENE1",
+            test=True,
+        )
+
+    db.update_gene_stable_identifiers.assert_called_once_with(
+        "GENE1"
+    )
+
+
+@patch("VariantValidator.modules.vvDatabase.utils.hgnc_rest")
+def test_update_transcript_info_record_refseq_missing_gene(
+    mock_hgnc_rest,
+    db,
+):
+    validator = MagicMock()
+
+    record = MagicMock()
+    record.id = "NM_000001.1"
+    record.description = "Example"
+
+    source = MagicMock()
+    source.qualifiers = {}
+
+    gene = MagicMock()
+    gene.qualifiers = {}
+
+    record.features = [source, gene]
+    record.annotations = {"keywords": []}
+
+    validator.entrez_efetch.return_value = record
+
+    with pytest.raises(utils.DatabaseConnectionError):
+        db.update_transcript_info_record(
+            "NM_000001.1",
+            validator,
+            test=True,
+        )
+
+
+@patch("VariantValidator.modules.vvDatabase.utils.ensembl_tark")
+@patch("VariantValidator.modules.vvDatabase.utils.ensembl_rest")
+def test_update_transcript_info_record_enst_noncanonical(
+    mock_ensembl_rest,
+    mock_ensembl_tark,
+):
+    db = make_db()
+
+    validator = MagicMock()
+    validator.hdp.get_tx_identity_info.return_value = (
+        None, None, None, None, None, None, "GENE"
+    )
+
+    lookup = {
+        "record": {
+            "version": 1,
+            "display_name": "GENE-001",
+            "is_canonical": 0,
+            "Parent": "ENSG1",
+            "seq_region_name": "1",
+            "start": 10,
+            "end": 20,
+        }
+    }
+
+    ccds = []
+    gene = {"record": []}
+
+    mock_ensembl_rest.side_effect = [
+        lookup,
+        ccds,
+        gene,
+    ]
+
+    mock_ensembl_tark.return_value = {
+        "record": {"results": [{}]}
+    }
+
+    db.update_gene_stable_identifiers = MagicMock(return_value=None)
+    db.in_entries = MagicMock(return_value={"none": "none"})
+    db.insert = MagicMock()
+
+    db.update_transcript_info_record(
+        "ENST000001.1",
+        validator,
+        genome_build="GRCh38",
+        test=True,
+    )
+
+    variant = json.loads(db.insert.call_args.args[1][2])
+
+    assert variant["ensembl_select"] is False
+    assert variant["mane_select"] is False
+    assert variant["mane_plus_clinical"] is False
+
+
+@patch("VariantValidator.modules.vvDatabase.utils.ensembl_tark")
+@patch("VariantValidator.modules.vvDatabase.utils.ensembl_rest")
+def test_update_transcript_info_record_enst_without_hgnc(
+    mock_ensembl_rest,
+    mock_ensembl_tark,
+):
+    db = make_db()
+
+    validator = MagicMock()
+    validator.hdp.get_tx_identity_info.return_value = (
+        None, None, None, None, None, None, "GENE"
+    )
+
+    lookup = {
+        "record": {
+            "version": 1,
+            "display_name": "GENE-001",
+            "is_canonical": 1,
+            "Parent": "ENSG1",
+            "seq_region_name": "1",
+            "start": 10,
+            "end": 20,
+        }
+    }
+
+    ccds = []
+
+    gene = {
+        "record": [
+            {
+                "dbname": "OtherDB",
+                "primary_id": "123",
+            }
+        ]
+    }
+
+    mock_ensembl_rest.side_effect = [
+        lookup,
+        ccds,
+        gene,
+    ]
+
+    mock_ensembl_tark.return_value = {
+        "record": {"results": [{}]}
+    }
+
+    db.update_gene_stable_identifiers = MagicMock(return_value=None)
+    db.in_entries = MagicMock(return_value={"none": "none"})
+    db.insert = MagicMock()
+
+    db.update_transcript_info_record(
+        "ENST000001.1",
+        validator,
+        genome_build="GRCh38",
+        test=True,
+    )
+
+    variant = json.loads(db.insert.call_args.args[1][2])
+
+    assert variant["db_xref"]["hgnc"] is None
+
+@patch("VariantValidator.modules.vvDatabase.json.dumps", side_effect=lambda x: x)
+def test_update_transcript_info_record_hgnc_data_added(mock_json):
+    db = make_db()
+
+    db.update_gene_stable_identifiers = MagicMock(return_value={
+        "map_loc": "1q21",
+        "gene_name": "GENE NAME",
+        "prev": ["OLD1"],
+    })
+
+    db.in_entries = MagicMock(return_value={"none": "none"})
+    db.insert = MagicMock()
+
+    variant = {
+        "db_xref": {"HGNC": "HGNC:5", "CCDS": "CCDS1"},
+        "gene_synonym": "OLD",
+    }
+
+    # Simulate just the branch under test
+    del variant["gene_synonym"]
+    variant["previous_symbol"] = None
+
+    hgnc_data = db.update_gene_stable_identifiers("GENE")
+    variant["map"] = hgnc_data["map_loc"]
+    variant["note"] = hgnc_data["gene_name"]
+    variant["previous_symbol"] = hgnc_data["prev"]
+
+    variant["db_xref"]["hgnc"] = variant["db_xref"].pop("HGNC")
+    variant.pop("previous_symbol")
+
+    assert variant["map"] == "1q21"
+    assert variant["note"] == "GENE NAME"
+    assert variant["db_xref"]["hgnc"] == "HGNC:5"
+
+
+def test_missing_hgnc_key():
+    variant = {"db_xref": {}}
+
+    try:
+        variant["db_xref"]["hgnc"] = variant["db_xref"].pop("HGNC")
+    except KeyError:
+        variant["db_xref"]["hgnc"] = None
+
+    assert variant["db_xref"]["hgnc"] is None
+
+
+def test_missing_ccds_key():
+    variant = {"db_xref": {}}
+
+    try:
+        variant["db_xref"]["CCDS"]
+    except KeyError:
+        variant["db_xref"]["CCDS"] = None
+
+    assert variant["db_xref"]["CCDS"] is None
+
+
+def test_previous_symbol_already_missing():
+    variant = {}
+
+    try:
+        variant.pop("previous_symbol")
+    except KeyError:
+        pass
+
+    assert variant == {}
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
