@@ -1,6 +1,7 @@
 import logging
 import json
 from VariantValidator.modules import lovd_api
+from VariantValidator.modules.vrs_utils import HGVS_to_VRS
 
 logger = logging.getLogger(__name__)
 
@@ -312,8 +313,31 @@ class ValOutput(object):
             variant.lovd_corrections = lovd_corrections
 
 
-
-
+    def format_as_vrs(self):
+        """
+        Format output into a set of VRS style outputs, does normalisation due
+        to HGVS->VRS differences.
+        """
+        vrs_convert = HGVS_to_VRS()
+        vrs_output = {}
+        error_count = 0
+        for variant in self.output_list:
+            if not variant.lose_vm:
+                variant.lose_vm = self.validator.lose_vm
+            out = vrs_convert.variant_validator_output_set_to_vrs(variant)
+            key = ''
+            if 'vrs_transcript_variant' in out:
+                key = out['vrs_transcript_variant']['id']
+            elif 'vrs_intronic_genomic_variant' in out:
+                key = out['vrs_intronic_genomic_variant']['id']
+            elif 'vrs_intergenic_genomic_variant' in out:
+                key = out['vrs_intergenic_genomic_variant']['id']
+            else:
+                error_count = error_count + 1
+                key = 'error_' + str(error_count)
+                # error state no output
+            vrs_output[key] = out
+        return vrs_output
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
