@@ -19,7 +19,6 @@ from vvhgvs.enums import Datum
 from vvhgvs.location import AAPosition
 from vvhgvs.edit import AASub, AARefAlt, Dup, NARefAlt
 from vvhgvs.posedit import PosEdit
-from .transcript_map_data import TranscriptMapData
 
 # Database connections and hgvs objects are now passed from VariantValidator.py
 
@@ -620,7 +619,7 @@ def pvcf_to_hgvs(query, selected_assembly, normalization_direction, reverse_norm
                     hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
                             ref_ac, ref_type, start_pos,
                             delete, insert,
-                            ends=end_pos)
+                            end=end_pos)
                 except vvhgvs.exceptions.HGVSError as e:
                     # Sort out multiple ALTS from VCF inputs
                     if re.search("([GATCgatc]+)>([GATCgatc]+),([GATCgatc]+)", not_delins):

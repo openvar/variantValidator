@@ -14,6 +14,8 @@ from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
 
 logger = logging.getLogger(__name__)
 
+class GeneSymbolFormatError(Exception):
+    pass
 
 def initial_format_conversions(variant, validator, select_transcripts_dict_plus_version, batch_list):
 
@@ -33,7 +35,7 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
         return True
 
     # NG_:c. or NC_:c.
-    toskip = refseq_catch(variant, validator, select_transcripts_dict_plus_version)
+    toskip = refseq_catch(variant, validator, select_transcripts_dict_plus_version, batch_list)
     if toskip:
         return True
 
@@ -404,14 +406,18 @@ def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version, 
     """
     skipvar = False
     query_a_symbol, _sep, tx_edit = variant.quibble.partition(':')
+    logger.info(f"Extracted query_a_symbol: {query_a_symbol}")
     if not (query_a_symbol[:3] in ['NC_','NW_','NM_','NR_','NG_','LRG'] or
             query_a_symbol[:4].startswith('ENST')
             ) and tx_edit[:2] in ['c.','n.']:
         try:
+            if "(" in query_a_symbol and ")" in query_a_symbol:
+                variant.warnings.append(f"ReferenceSequenceError: {query_a_symbol} is an invalid reference sequence identifier")
+                raise GeneSymbolFormatError(f"{query_a_symbol} contains parentheses, which is not allowed in gene symbols.")
             is_it_a_gene = validator.db.get_hgnc_symbol(query_a_symbol)
             if is_it_a_gene == 'none':
-                variant.warnings.append(chr_num + ' is not part of genome build ' + validator.selected_assembly)
-                logger.info(chr_num + ' is not part of genome build ' + validator.selected_assembly)
+                variant.warnings.append(f"{query_a_symbol} identified as the reference sequence for {variant.quibble} and is not a valid, and is also not a valid gene symbol")
+                logger.info(f"{query_a_symbol} identified as the reference sequence for {variant.quibble} and is not a valid, and is also not a valid gene symbol")
                 skipvar = True
             else:
                 uta_symbol = validator.db.get_uta_symbol(is_it_a_gene)
@@ -471,7 +477,7 @@ def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version, 
     return skipvar
 
 
-def refseq_catch(variant, validator, select_transcripts_dict_plus_version):
+def refseq_catch(variant, validator, select_transcripts_dict_plus_version, batch_list):
     """
     Similar to the GENE_SYMBOL:c. n. types function, but spots RefSeqGene or
     Chromosomal reference sequence identifiers used in the context of c. variant
@@ -488,7 +494,6 @@ def refseq_catch(variant, validator, select_transcripts_dict_plus_version):
         # implicitly insist on GenomicReferenceID(TranscriptReferenceID) *not*
         # GenomicReferenceID(GeneID)(TranscriptReferenceID)
         curr_query_a_ref_seq = ''
-        query_a_tx_seq = ''
         tx_seq_found = False
         while '(' in query_a_seq and not tx_seq_found:
             query_a_seq_test, _sep, query_a_tx_seq = query_a_seq.partition('(')
@@ -582,6 +587,18 @@ def refseq_catch(variant, validator, select_transcripts_dict_plus_version):
                 logger.info(
                     'A transcript reference sequence has not been provided e.g. NC_(NM_):c.PositionVariation. '
                     'Unable to predict available transcripts because chromosomal position is not specified')
+                skipvar = True
+            elif curr_query_a_ref_seq and not tx_seq_found:
+                genomic_prefix = curr_query_a_ref_seq.split('_', 1)[0]
+
+                variant.warnings.append(
+                    f'A transcript reference sequence has not been provided e.g. '
+                    f'{genomic_prefix}_(NM_):c.PositionVariation'
+                )
+                logger.info(
+                    f'A transcript reference sequence has not been provided e.g. '
+                    f'{genomic_prefix}_(NM_):c.PositionVariation'
+                )
                 skipvar = True
         except Exception as e:
             logger.debug("Except passed, %s", e)
@@ -1460,6 +1477,16 @@ def uncertain_pos(variant, validator):
                     # traceback.print_exc()
                     return True
                 except complex_descriptions.InvalidRangeError as e:
+                    variant.warnings.append(str(e))
+                    # import traceback
+                    # traceback.print_exc()
+                    return True
+                except complex_descriptions.FuzzyPositionError as e:
+                    variant.warnings.append(str(e))
+                    # import traceback
+                    # traceback.print_exc()
+                    return True
+                except complex_descriptions.FuzzyRangeError as e:
                     variant.warnings.append(str(e))
                     # import traceback
                     # traceback.print_exc()

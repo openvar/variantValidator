@@ -681,6 +681,14 @@ class TestWarnings(TestCase):
         assert "AlleleSyntaxError: Variants [14del;17G>A] should be merged into NM_000093.5:c.16_17delinsA" in results[
             'validation_warning_1']["validation_warnings"]
 
+    def test_paranthesis_start(self):
+        variant = '(WT1):c.1098+1G>A'
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert ("VariantSyntaxError: Variant descriptions must begin with a reference sequence identifier or a chromosome"
+                " number. Refer to the examples provided at https://variantvalidator.org/service/validate/") in results[
+            'validation_warning_1']["validation_warnings"]
+
     def test_alleles_2(self):
         variant = 'NM_000088.4:c.[4del;6C>G]'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
@@ -1351,7 +1359,8 @@ class TestVVGapWarnings(TestCase):
         variant = 'WT1(ENST00000332351.3):c.1098+1G>A'
         results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
-        assert results['ENST00000332351.3:c.1098+1G>A']['validation_warnings'] == [
+        assert results['ENST00000332351.3:c.1098+1G>A']['validation_warnings'] ==  [
+            "ReferenceSequenceError: WT1(ENST00000332351.3) is an invalid reference sequence identifier",
             "VariantSyntaxError: Stripping unnecessary characters from WT1(ENST00000332351.3):c.1098+1G>A and updating to ENST00000332351.3:c.1098+1G>A",
             "ENST00000332351.3:c.1098+1G>A is not part of genome build GRCh38",
             "ENST00000332351.3:c.1098+1G>A cannot be mapped directly to genome build GRCh38, did you mean GRCh37?"
@@ -1409,6 +1418,38 @@ class TestVVGapWarnings(TestCase):
         results = self.vv.validate(variant, 'GRCh38', '["NM_000089.4", "NM_000089.3"]', transcript_set="refseq").format_as_dict(test=True)
         print(results)
         assert "TranscriptSelectionError: Variant NM_000088.4:c.589G>T is not in the list of transcripts selected for validation [\"NM_000089.4\", \"NM_000089.3\"]" in results['validation_warning_1']['validation_warnings']
+
+    def test_protein_variant_affecting_M1(self):
+        variant = 'NP_000079.2:p.(Met1Cys)'
+        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert "Variant NP_000079.2:p.(Met1Cys) affects the initiation amino acid so is better described as NP_000079.2:p.(Met1?)" in results['validation_warning_1']['validation_warnings']
+
+    def test_start_greater_than_end(self):
+        variant = 'NM_000546.6:c.101_100insT'
+        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert "Interval end position 100 < interval start position 101" in results['validation_warning_1']['validation_warnings']
+
+    def test_old_transcript_version_a(self):
+        variant = 'NM_000088.2:c.589G>T'
+        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert results['NM_000088.2:c.589G>T']['validation_warnings'] ==  [
+            "TranscriptVersionWarning: A more recent version of the selected reference sequence NM_000088.2 is available for genome build GRCh37 (NM_000088.4)",
+            "NM_000088.2:c.589G>T is not part of genome build GRCh37",
+            "NM_000088.2:c.589G>T cannot be mapped directly to genome build GRCh37",
+            "See alternative genomic loci or alternative genome builds for aligned genomic positions"
+        ]
+
+    def test_old_transcript_version_b(self):
+        variant = 'NM_000088.1:c.589G>T'
+        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert results['validation_warning_1']['validation_warnings'] ==  [
+            "The transcript NM_000088.1 is not in our database. Please check the transcript ID",
+            "The following versions of the requested transcript are available in our database: NM_000088.2|NM_000088.3|NM_000088.4"
+        ]
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

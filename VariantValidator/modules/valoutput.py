@@ -286,9 +286,6 @@ class ValOutput(object):
             variant.lovd_corrections = lovd_corrections
 
 
-
-
-
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
 #
