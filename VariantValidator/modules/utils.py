@@ -91,6 +91,8 @@ def ensembl_rest(id, endpoint, genome, options=False):
     :param options: set of options for additional data, see https://rest.ensembl.org/
     :return: json of the requested data
     """
+    import time
+
     data = {
         'record': '',
         'error': 'false'
@@ -113,14 +115,43 @@ def ensembl_rest(id, endpoint, genome, options=False):
     else:
         url = '%s%s%s?%s;content-type=application/json' % (base_url, endpoint, id, options)
 
-    # Request info
-    r = requests.get(url, headers=headers)
+    max_retries = 3
+    retry_status = {429, 500, 502, 503, 504}
 
-    if r.status_code == 200:
-        data['record'] = r.json()
-    else:
-        my_error = "Problem encountered while connecting Ensembl REST: URL=%s: Status=%s" % (url, str(r.status_code))
-        data['error'] = my_error
+    for attempt in range(max_retries):
+        try:
+            r = requests.get(url, headers=headers, timeout=60)
+
+            if r.status_code == 200:
+                data['record'] = r.json()
+                return data
+
+            if r.status_code not in retry_status:
+                data['error'] = (
+                    "Problem encountered while connecting Ensembl REST: "
+                    "URL=%s: Status=%s" % (url, r.status_code)
+                )
+                return data
+
+        except (
+            requests.exceptions.Timeout,
+            requests.exceptions.ConnectionError,
+            requests.exceptions.SSLError,
+        ) as e:
+            if attempt == max_retries - 1:
+                data['error'] = (
+                    "Problem encountered while connecting Ensembl REST: "
+                    "URL=%s: %s" % (url, str(e))
+                )
+                return data
+
+        if attempt < max_retries - 1:
+            time.sleep(0.5 * (2 ** attempt))
+
+    data['error'] = (
+        "Problem encountered while connecting Ensembl REST: "
+        "URL=%s: Status=%s" % (url, r.status_code)
+    )
     return data
 
 
