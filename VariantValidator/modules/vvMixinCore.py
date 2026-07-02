@@ -4,7 +4,6 @@ import vvhgvs.normalizer
 from vvhgvs.enums import Datum
 from vvhgvs.location import Interval
 from vvhgvs.sequencevariant import SequenceVariant
-from vvhgvs.posedit import PosEdit
 import re
 import copy
 import sys
@@ -30,6 +29,9 @@ from VariantValidator.modules.seq_state_to_expanded_repeat import\
         convert_seq_state_to_expanded_repeat
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
         unset_hgvs_obj_ref, to_vv_hgvs
+from vvhgvs.location import AAPosition
+from vvhgvs.posedit import PosEdit
+from vvhgvs.edit import AASub
 
 logger = logging.getLogger(__name__)
 
@@ -430,23 +432,37 @@ class Mixin(vvMixinConverters.Mixin):
                             continue
 
                         except vvhgvs.exceptions.HGVSParseError as e:
-                            if re.search("ins\d+$", my_variant.quibble):
-                                my_variant.warnings.append("The length of the variant is not formatted following the "
-                                                           "HGVS guidelines. Please rewrite e.g. '10' to 'N[10]'"
-                                                           "(where N is an unknown nucleotide)")
-                                try:
-                                    if "_" not in my_variant.quibble.split(":")[1] and \
-                                            "del" not in my_variant.quibble.split(":")[1]:
-                                        my_variant.warnings.append("An insertion must be provided with the two "
-                                                                   "positions between which the insertion has taken "
-                                                                   "place")
-                                except IndexError:
-                                    pass
-                                continue
-                            else:
-                                my_variant.warnings.append(str(e))
-                                logger.info(str(e))
-                                continue
+
+                            # This code path appears to be obsolete.
+                            #
+                            # Malformed insertions such as "...ins10" are now detected earlier in
+                            # use_checking.py. Functional tests covering these variants produce the
+                            # expected warnings before this HGVSParseError handler is reached, and
+                            # coverage plus temporary logging indicate this branch is currently
+                            # unreachable.
+                            #
+                            # Retained here temporarily for reference until it is confirmed that no
+                            # callers can bypass use_checking.py.
+
+                            # if re.search("ins\d+$", my_variant.quibble):
+                            #     logger.info(f"pattern 'ins\d+$' isentified in {my_variant.quibble}")
+                            #     my_variant.warnings.append("The length of the variant is not formatted following the "
+                            #                                "HGVS guidelines. Please rewrite e.g. '10' to 'N[10]'"
+                            #                                "(where N is an unknown nucleotide)")
+                            #     try:
+                            #         if "_" not in my_variant.quibble.split(":")[1] and \
+                            #                 "del" not in my_variant.quibble.split(":")[1]:
+                            #             my_variant.warnings.append("An insertion must be provided with the two "
+                            #                                        "positions between which the insertion has taken "
+                            #                                        "place")
+                            #     except IndexError:
+                            #         pass
+                            #     continue
+                            # else:
+
+                            my_variant.warnings.append(str(e))
+                            logger.info(str(e))
+                            continue
 
                         # Other issues to collect, for example, the specified position in NC_ does not agree with g.
                         # See issue #176
@@ -457,6 +473,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 continue
 
                         if 'base start position must be <= end position' in str(e):
+                            logger.info(f"{e}")
                             toskip = None
                         else:
                             my_variant.warnings.append(str(e))
@@ -1079,6 +1096,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                                 if re.search("[A-Z][a-z][a-z]1[A-Z][a-z][a-z]", str(
                                     predicted_protein_variant.posedit)):
+                                    logger.info(f"{predicted_protein_variant} maps to the initialisation amino acid.")
                                     cp_warnings = []
                                     for each_warning in variant.warnings:
                                         if "is HGVS compliant and contains a valid reference " \
@@ -1094,20 +1112,41 @@ class Mixin(vvMixinConverters.Mixin):
                                             cp_warnings.append(
                                                     f"Variant {predicted_protein_variant} affects the initiation amino acid"
                                                     f" so is better described as {cp_format_p}")
+
                                             predicted_protein_variant = vvhgvs.sequencevariant.SequenceVariant(
-                                                    ac=predicted_protein_variant.ac,
-                                                    type='p',
-                                                    posedit="({aa_1}1?)")
+                                                ac=predicted_protein_variant.ac,
+                                                type="p",
+                                                posedit=PosEdit(
+                                                    pos=AAPosition(
+                                                        base=1,
+                                                        aa=fn.three_to_one(aa_1),  # "Met" -> "M"
+                                                    ),
+                                                    edit=AASub(
+                                                        alt="?"
+                                                    ),
+                                                    uncertain=True,
+                                                ),
+                                            )
                                             variant.warnings = cp_warnings
 
+                                        logger.info(f"Warnings updated to {variant.warnings}")
+
                                 # Set formatted tlr
-                                predicted_protein_variant_dict['tlr'] = \
-                                        predicted_protein_variant.format({
-                                            'max_ref_length': 0})
-                                predicted_protein_variant_dict['slr']= \
-                                        predicted_protein_variant.format({
-                                            'max_ref_length': 0,
-                                            'p_3_letter':False})
+                                try:
+                                    predicted_protein_variant_dict['tlr'] = \
+                                            predicted_protein_variant.format({
+                                                'max_ref_length': 0})
+                                    predicted_protein_variant_dict['slr']= \
+                                            predicted_protein_variant.format({
+                                                'max_ref_length': 0,
+                                                'p_3_letter':False})
+                                except Exception as e:
+                                    print("AWOOOOOOOOOGA")
+                                    print(predicted_protein_variant)
+                                    import traceback
+                                    traceback.print_exc()
+
+
                                 # set LRG outputs
                                 if format_lrg is not None:
                                     predicted_protein_variant_dict["lrg_tlr"] = \
@@ -1776,7 +1815,7 @@ class Mixin(vvMixinConverters.Mixin):
         Collect transcript information from a non-genomic variant.
         Should only be called during the validator process
         """
-        logger.debug("Looking for transcript info")
+        logger.info("Entered _get_transcript_info")
         hgvs_vt = variant.hgvs_formatted
         try:
             self.hdp.get_tx_identity_info(str(hgvs_vt.ac))

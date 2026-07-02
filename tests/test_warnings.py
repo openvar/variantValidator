@@ -1419,6 +1419,18 @@ class TestVVGapWarnings(TestCase):
         print(results)
         assert "TranscriptSelectionError: Variant NM_000088.4:c.589G>T is not in the list of transcripts selected for validation [\"NM_000089.4\", \"NM_000089.3\"]" in results['validation_warning_1']['validation_warnings']
 
+    def test_protein_variant_affecting_M1(self):
+        variant = 'NP_000079.2:p.(Met1Cys)'
+        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert "Variant NP_000079.2:p.(Met1Cys) affects the initiation amino acid so is better described as NP_000079.2:p.(Met1?)" in results['validation_warning_1']['validation_warnings']
+
+    def test_start_greater_than_end(self):
+        variant = 'NM_000546.6:c.101_100insT'
+        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert "Interval end position 100 < interval start position 101" in results['validation_warning_1']['validation_warnings']
+
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
 #

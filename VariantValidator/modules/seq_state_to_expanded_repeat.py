@@ -1,6 +1,5 @@
 import logging
 import re
-from VariantValidator.modules import utils
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj, to_vv_hgvs
 # Custom exceptions for better error granularity
 class RepeatedUnitError(Exception):

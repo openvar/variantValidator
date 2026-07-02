@@ -19,7 +19,6 @@ from vvhgvs.enums import Datum
 from vvhgvs.location import AAPosition
 from vvhgvs.edit import AASub, AARefAlt, Dup, NARefAlt
 from vvhgvs.posedit import PosEdit
-from .transcript_map_data import TranscriptMapData
 
 # Database connections and hgvs objects are now passed from VariantValidator.py
 
