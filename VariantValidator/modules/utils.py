@@ -118,9 +118,11 @@ def ensembl_rest(id, endpoint, genome, options=False):
     max_retries = 3
     retry_status = {429, 500, 502, 503, 504}
 
+    last_status = None
     for attempt in range(max_retries):
         try:
             r = requests.get(url, headers=headers, timeout=60)
+            last_status = r.status_code
 
             if r.status_code == 200:
                 data['record'] = r.json()
@@ -149,8 +151,11 @@ def ensembl_rest(id, endpoint, genome, options=False):
             time.sleep(0.5 * (2 ** attempt))
 
     data['error'] = (
-        "Problem encountered while connecting Ensembl REST: "
-        "URL=%s: Status=%s" % (url, r.status_code)
+            "Problem encountered while connecting Ensembl REST: "
+            "URL=%s: Status=%s" % (
+                url,
+                last_status if last_status is not None else "Unknown"
+            )
     )
     return data
 
