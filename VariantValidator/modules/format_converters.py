@@ -1481,6 +1481,16 @@ def uncertain_pos(variant, validator):
                     # import traceback
                     # traceback.print_exc()
                     return True
+                except complex_descriptions.FuzzyPositionError as e:
+                    variant.warnings.append(str(e))
+                    # import traceback
+                    # traceback.print_exc()
+                    return True
+                except complex_descriptions.FuzzyRangeError as e:
+                    variant.warnings.append(str(e))
+                    # import traceback
+                    # traceback.print_exc()
+                    return True
                 except Exception as e:
                     variant.warnings.append(str(e))
                     # import traceback

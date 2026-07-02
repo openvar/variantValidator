@@ -17,6 +17,161 @@ from unittest.mock import PropertyMock
 from vvhgvs.exceptions import HGVSUnsupportedOperationError
 from vvhgvs.enums import ValidationLevel
 
+from unittest import TestCase
+
+from VariantValidator import Validator
+
+from VariantValidator.modules.format_converters import uncertain_pos
+from VariantValidator.modules import complex_descriptions
+
+# Functional tests
+class TestComplexDescriptionsFunctional(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.vv = Validator()
+
+    def validate(self, variant, assembly="GRCh38", transcripts="all"):
+        return self.vv.validate(
+            variant,
+            assembly,
+            transcripts,
+        ).format_as_dict(test=True)
+
+    def test_uncertain_intronic_positions(self):
+        results = self.validate(
+            "NM_000546.6:c.(375+1_376-1)_(672+1_673-1)del"
+        )
+
+        assert results["NM_000546.6:c.(375+1_376-1)_(672+1_673-1)del"]["validation_warnings"] == [
+            "Uncertain positions are not fully supported, however the syntax is valid"
+        ]
+
+    def test_uncertain_three_prime_utr_delins(self):
+        results = self.validate(
+            "NM_000546.6:c.(*1_*10)delinsA"
+        )
+
+        assert results["NM_000546.6:c.(*1_*10)delinsA"]["validation_warnings"] == [
+            "Uncertain positions are not fully supported, however the syntax is valid"
+        ]
+
+
+    def test_uncertain_three_position_range(self):
+        results = self.validate(
+            "NM_000546.6:c.(100_200_300)delinsA"
+        )
+
+        assert results["validation_warning_1"]["validation_warnings"] == [
+            "100_200_300 is an invalid range for accession NM_000546.6"
+        ]
+
+
+    def test_uncertain_out_of_order_range(self):
+        results = self.validate(
+            "NM_000546.6:c.(200_100)delinsA"
+        )
+
+        warnings = str(results)
+
+        assert "base start position must be <= end position" in warnings.lower()
+
+
+    def test_uncertain_single_intronic_position(self):
+        results = self.validate(
+            "NM_000546.6:c.(375+1)del"
+        )
+
+        assert results["NM_000546.6:c.375+1del"]["validation_warnings"] ==  [
+            "Uncertain positions are not fully supported, however the syntax is valid"
+        ]
+
+
+    def test_uncertain_negative_intronic_position(self):
+        results = self.validate(
+            "NM_000546.6:c.(376-2_377-1)del"
+        )
+
+        assert results["validation_warning_1"]["validation_warnings"] ==  [
+            "Uncertain positions are not fully supported, however the syntax is valid",
+            "ExonBoundaryError: Position c.377-1 does not correspond with an exon boundary for transcript NM_000546.6"
+        ]
+
+
+    def test_lrg_transcript_uncertain_range(self):
+        results = self.validate(
+            "LRG_199t1:c.(100_200)del"
+        )
+
+        assert results[ "validation_warning_1"]["validation_warnings"] == [
+            "Uncertain positions are not fully supported, however the syntax is valid",
+            "This coding sequence variant description spans at least one intron"
+        ]
+
+
+    def test_lrg_genomic_uncertain_range(self):
+        results = self.validate(
+            "LRG_199:g.(100_200)del"
+        )
+
+        assert results["intergenic_variant_1"]["validation_warnings"] == [
+            "Uncertain positions are not fully supported, however the syntax is valid",
+            "NG_012232.1:g.(100_200)del automapped to genome position NC_000023.11:g.33344410_33344510del",
+            "TranscriptIdentificationWarning: No individual transcripts have been identified that fully overlap the described variation in the genomic sequence. Large variants might span one or more genes and are currently only described at the genome (g.) level."
+        ]
+
+    def test_uncertain_intronic_position_not_at_exon_boundary(self):
+        """Exercise the FuzzyPositionError exon-boundary branch."""
+        results = self.validate(
+            "NM_000546.6:c.(374+1_375+1)del"
+        )
+
+        validation = results["flag"]
+        self.assertEqual(validation, "warning")
+
+        warnings = " ".join(results["validation_warning_1"]["validation_warnings"])
+        self.assertIn("ExonBoundaryError", warnings)
+
+
+    def test_uncertain_non_numeric_position(self):
+        """
+        Exercise the second ValueError path where the coordinate cannot be
+        converted to an integer after removing +/- offsets.
+        """
+        results = self.validate(
+            "NM_000546.6:c.(?_100)del"
+        )
+
+        validation = results["flag"]
+        self.assertEqual(validation, "warning")
+
+        warnings = " ".join(results["validation_warning_1"]["validation_warnings"])
+        self.assertTrue(
+            "Fuzzy" in warnings or
+            "unknown" in warnings or
+            "Unsupported" in warnings
+        )
+
+
+    def test_uncertain_three_position_out_of_order(self):
+        """
+        Exercise the fuzzy-end ordering branch:
+            if num1 <= num2 <= num3
+            else:
+                out of order
+        """
+        results = self.validate(
+            "NM_000546.6:c.(200_100)delinsA"
+        )
+
+        validation = results["flag"]
+        self.assertEqual(validation, "warning")
+
+        warnings = " ".join(results["validation_warning_1"]["validation_warnings"])
+        self.assertIn("base start position must be <= end position", warnings)
+
+
+# Unit tests
 def make_variant(quibble):
     v = MagicMock()
     v.quibble = quibble

@@ -1682,12 +1682,14 @@ class Mixin(vvMixinConverters.Mixin):
                     vcf["alt"] = hgvs.posedit.edit.type.upper()
                     return vcf
 
-                for gen in variant.primary_assembly_loci.keys():
-                    variant.primary_assembly_loci[gen]['vcf'] = _vcf_abrv(
-                            variant.primary_assembly_loci[gen][hgd],
-                            variant.primary_assembly_loci[gen]['vcf'])
-                    variant.primary_assembly_loci[gen][hgd] = \
-                        variant.primary_assembly_loci[gen][hgd].format({'max_ref_length': 0})
+
+                if variant.primary_assembly_loci is not None:
+                    for gen in variant.primary_assembly_loci.keys():
+                        variant.primary_assembly_loci[gen]['vcf'] = _vcf_abrv(
+                                variant.primary_assembly_loci[gen][hgd],
+                                variant.primary_assembly_loci[gen]['vcf'])
+                        variant.primary_assembly_loci[gen][hgd] = \
+                            variant.primary_assembly_loci[gen][hgd].format({'max_ref_length': 0})
 
                 for loc in variant.alt_genomic_loci:
                     for gen in loc.keys():

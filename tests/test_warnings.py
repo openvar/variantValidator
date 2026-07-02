@@ -1431,6 +1431,26 @@ class TestVVGapWarnings(TestCase):
         print(results)
         assert "Interval end position 100 < interval start position 101" in results['validation_warning_1']['validation_warnings']
 
+    def test_old_transcript_version_a(self):
+        variant = 'NM_000088.2:c.589G>T'
+        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert results['NM_000088.2:c.589G>T']['validation_warnings'] ==  [
+            "TranscriptVersionWarning: A more recent version of the selected reference sequence NM_000088.2 is available for genome build GRCh37 (NM_000088.4)",
+            "NM_000088.2:c.589G>T is not part of genome build GRCh37",
+            "NM_000088.2:c.589G>T cannot be mapped directly to genome build GRCh37",
+            "See alternative genomic loci or alternative genome builds for aligned genomic positions"
+        ]
+
+    def test_old_transcript_version_b(self):
+        variant = 'NM_000088.1:c.589G>T'
+        results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert results['validation_warning_1']['validation_warnings'] ==  [
+            "The transcript NM_000088.1 is not in our database. Please check the transcript ID",
+            "The following versions of the requested transcript are available in our database: NM_000088.2|NM_000088.3|NM_000088.4"
+        ]
+
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
 #
