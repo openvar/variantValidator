@@ -619,7 +619,7 @@ def pvcf_to_hgvs(query, selected_assembly, normalization_direction, reverse_norm
                     hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
                             ref_ac, ref_type, start_pos,
                             delete, insert,
-                            ends=end_pos)
+                            end=end_pos)
                 except vvhgvs.exceptions.HGVSError as e:
                     # Sort out multiple ALTS from VCF inputs
                     if re.search("([GATCgatc]+)>([GATCgatc]+),([GATCgatc]+)", not_delins):

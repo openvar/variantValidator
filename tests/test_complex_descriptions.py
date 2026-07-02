@@ -170,6 +170,96 @@ class TestComplexDescriptionsFunctional(TestCase):
         warnings = " ".join(results["validation_warning_1"]["validation_warnings"])
         self.assertIn("base start position must be <= end position", warnings)
 
+    def test_uncertain_5utr_single_position(self):
+        result = self.validate("NM_000546.6:c.(-5)del")
+
+        key = "NM_000546.6:c.-5del"
+
+        self.assertEqual(result["flag"], "gene_variant")
+        self.assertIn(key, result)
+
+        data = result[key]
+
+        self.assertEqual(
+            data["hgvs_transcript_variant"],
+            "NM_000546.6:c.-5del",
+        )
+
+        self.assertEqual(
+            data["hgvs_predicted_protein_consequence"]["tlr"],
+            "NP_000537.3:p.(=)",
+        )
+
+        self.assertIn(
+            "Uncertain positions are not fully supported, however the syntax is valid",
+            data["validation_warnings"],
+        )
+
+    def test_uncertain_5utr_range(self):
+        result = self.validate("NM_000546.6:c.(-5_-3)del")
+
+        key = "NM_000546.6:c.(-5_-3)del"
+
+        self.assertEqual(result["flag"], "gene_variant")
+        self.assertIn(key, result)
+
+        data = result[key]
+
+        warnings = data["validation_warnings"]
+
+        self.assertIn(
+            "Uncertain positions are not fully supported, however the syntax is valid",
+            warnings,
+        )
+
+        self.assertTrue(
+            any(
+                "automapped to NM_000546.6:c.(-4_-2)del" in w
+                for w in warnings
+            )
+        )
+
+        self.assertEqual(
+            data["hgvs_predicted_protein_consequence"]["tlr"],
+            "NP_000537.3:p.(=)",
+        )
+
+    def test_uncertain_5utr_to_coding_range(self):
+        result = self.validate("NM_000546.6:c.(-5_10)del")
+
+        key = "NM_000546.6:c.(-5_10)del"
+
+        self.assertEqual(result["flag"], "gene_variant")
+        self.assertIn(key, result)
+
+        data = result[key]
+
+        warnings = data["validation_warnings"]
+
+        self.assertIn(
+            "Uncertain positions are not fully supported, however the syntax is valid",
+            warnings,
+        )
+
+        self.assertTrue(
+            any(
+                "automapped to NM_000546.6:c.(-4_11)del" in w
+                for w in warnings
+            )
+        )
+
+        self.assertTrue(
+            any(
+                "ProteinTranslationError" in w
+                for w in warnings
+            )
+        )
+
+        self.assertEqual(
+            data["hgvs_predicted_protein_consequence"]["tlr"],
+            "",
+        )
+
 
 # Unit tests
 def make_variant(quibble):
