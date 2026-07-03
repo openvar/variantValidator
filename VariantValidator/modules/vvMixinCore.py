@@ -30,6 +30,7 @@ from VariantValidator.modules.seq_state_to_expanded_repeat import\
         convert_seq_state_to_expanded_repeat
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
         unset_hgvs_obj_ref, to_vv_hgvs
+from VariantValidator.modules.complex_descriptions import FEInterval
 
 logger = logging.getLogger(__name__)
 
@@ -180,10 +181,10 @@ class Mixin(vvMixinConverters.Mixin):
 
                 if type(my_variant.quibble) is not str:
                     # already tidied input mapped to transcripts so no need to re-validate for user input type issues
-                    if not my_variant.hgvs_formatted:
-                        my_variant.hgvs_formatted = my_variant.quibble
                     if not my_variant.reftype:
                         my_variant.reftype = f':{my_variant.quibble.type}.'
+                    if not my_variant.refsource:
+                        my_variant.set_refsource()
                     if my_variant.reftype != ':g.':
                         toskip = self._get_transcript_info(my_variant)
                         if toskip:
@@ -216,6 +217,8 @@ class Mixin(vvMixinConverters.Mixin):
                         my_variant.gene_symbol = self.db.get_gene_symbol_from_transcript_id(
                                 my_variant.quibble.ac)
                         try:
+                            # creates mapping from quibble, also sets
+                            # hgvs_transcript_variant with info from genome mapping
                             toskip = mappers.transcripts_to_gene(
                                     my_variant,
                                     self,
@@ -235,7 +238,6 @@ class Mixin(vvMixinConverters.Mixin):
                             my_variant.gene_symbol = ''
                         if toskip:
                             continue
-                        my_variant.hgvs_transcript_variant = my_variant.quibble
 
                     # set output to variant type specific
                     if my_variant.reftype in [':n.',':t.',':c.'] and my_variant.hgvs_transcript_variant != '':
@@ -403,10 +405,9 @@ class Mixin(vvMixinConverters.Mixin):
                         try:
                             # Test intronic variants for incorrect boundaries (see issue #169)
                             test_variant = copy.copy(my_variant)
-                            test_variant.hgvs_formatted = my_variant.quibble
-                            if type(test_variant.hgvs_formatted) is str:
-                                test_variant.hgvs_formatted = self.hp.parse_hgvs_variant(
-                                        test_variant.hgvs_formatted)
+                            if type(test_variant.quibble) is str:
+                                test_variant.quibble = self.hp.parse_hgvs_variant(
+                                        test_variant.quibble)
 
                             # Create easy variant mapper (over variant mapper) and splign locked evm
                             test_variant.evm = AssemblyMapper(self.hdp,
@@ -491,8 +492,6 @@ class Mixin(vvMixinConverters.Mixin):
 
                     # Set some configurations
                     formatted_variant = my_variant.quibble
-                    stash_input = my_variant.quibble
-                    my_variant.post_format_conversion = stash_input
 
                     logger.debug("Variant input formatted, proceeding to validate.")
 
@@ -515,41 +514,39 @@ class Mixin(vvMixinConverters.Mixin):
                             logger.info(str(e))
 
 
-                    my_variant.hgvs_formatted = formatted_variant
+                    my_variant.quibble = formatted_variant
 
-                    if 'LRG' in my_variant.hgvs_formatted.ac:
-                        my_variant.hgvs_formatted.ac.replace('T', 't')
+                    if 'LRG' in my_variant.quibble.ac:
+                        my_variant.quibble.ac.replace('T', 't')
                     else:
-                        my_variant.hgvs_formatted.ac = my_variant.hgvs_formatted.ac.upper()
+                        my_variant.quibble.ac = my_variant.quibble.ac.upper()
 
-                    if my_variant.hgvs_formatted.type == "p" and my_variant.hgvs_formatted.posedit is None \
-                            and ":p.?" in str(my_variant.hgvs_formatted):
+                    if my_variant.quibble.type == "p" and my_variant.quibble.posedit is None \
+                            and ":p.?" in str(my_variant.quibble):
 
                         # Protein variants needed early!
                         toskip = format_converters.proteins(my_variant, self)
                         if toskip:
                             continue
 
-                    if hasattr(my_variant.hgvs_formatted.posedit.edit, 'alt'):
-                        if my_variant.hgvs_formatted.posedit.edit.alt is not None:
-                            my_variant.hgvs_formatted.posedit.edit.alt = \
-                                my_variant.hgvs_formatted.posedit.edit.alt.upper()
-                    if hasattr(my_variant.hgvs_formatted.posedit.edit, 'ref'):
-                        if my_variant.hgvs_formatted.posedit.edit.ref is not None:
-                            my_variant.hgvs_formatted.posedit.edit.ref = \
-                                my_variant.hgvs_formatted.posedit.edit.ref.upper()
-
+                    if hasattr(my_variant.quibble.posedit.edit, 'alt'):
+                        if my_variant.quibble.posedit.edit.alt is not None:
+                            my_variant.quibble.posedit.edit.alt = \
+                                my_variant.quibble.posedit.edit.alt.upper()
+                    if hasattr(my_variant.quibble.posedit.edit, 'ref'):
+                        if my_variant.quibble.posedit.edit.ref is not None:
+                            my_variant.quibble.posedit.edit.ref = \
+                                my_variant.quibble.posedit.edit.ref.upper()
                     try:
-                        formatted_variant = str(my_variant.hgvs_formatted)
+                        formatted_variant = str(my_variant.quibble)
                     except KeyError as e:
-                        if "p" in my_variant.hgvs_formatted.type:
+                        if "p" in my_variant.quibble.type:
                             error = "Invalid amino acid %s stated in description %s" % (
                                     str(e),
                                     str(my_variant.quibble.format({'p_3_letter':False})))
                             my_variant.warnings.append(error)
                             continue
 
-                    my_variant.set_quibble(my_variant.hgvs_formatted)
                     logger.debug("HVGS acceptance test passed")
 
                     # Check whether supported genome build is requested for non g. descriptions
@@ -603,12 +600,12 @@ class Mixin(vvMixinConverters.Mixin):
                     # i.e. out of bounds
 
                     # skip if we have fuzzy ends
-                    if isinstance(my_variant.quibble.posedit.pos.start, Interval) or \
-                            isinstance(my_variant.quibble.posedit.pos.end, Interval):
+                    if isinstance(my_variant.quibble.posedit.pos, FEInterval) or \
+                            my_variant.quibble.posedit.pos.uncertain:
                         continue
 
-                    if '*' in str(my_variant.hgvs_formatted.posedit):
-                        input_parses_copy = copy.deepcopy(my_variant.hgvs_formatted)
+                    if '*' in str(my_variant.quibble.posedit):
+                        input_parses_copy = copy.deepcopy(my_variant.quibble)
                         input_parses_copy.type = "c"
                         # Map to n. position
                         # Create easy variant mapper (over variant mapper) and splign locked evm
@@ -626,13 +623,13 @@ class Mixin(vvMixinConverters.Mixin):
                                 logger.info(error)
                                 continue
 
-                    elif my_variant.hgvs_formatted.posedit.pos.end.base < \
-                            my_variant.hgvs_formatted.posedit.pos.start.base:
-                        if my_variant.hgvs_formatted.ac not in ["NC_012920.1", "NC_001807.4"]:
+                    elif my_variant.quibble.posedit.pos.end.base < \
+                            my_variant.quibble.posedit.pos.start.base:
+                        if my_variant.quibble.ac not in ["NC_012920.1", "NC_001807.4"]:
                             error = 'Interval end position ' +\
-                                    str(my_variant.hgvs_formatted.posedit.pos.end.base) + \
+                                    str(my_variant.quibble.posedit.pos.end.base) + \
                                     ' < interval start position ' + \
-                                    str(my_variant.hgvs_formatted.posedit.pos.start.base)
+                                    str(my_variant.quibble.posedit.pos.start.base)
                             my_variant.warnings.append(error)
                             logger.info(error)
                             continue
@@ -640,7 +637,7 @@ class Mixin(vvMixinConverters.Mixin):
                     # Catch missing version number in refseq/ens
                     is_version = re.compile(r"\d\.\d")
                     if ((my_variant.refsource == 'RefSeq' or my_variant.refsource == 'ENS') and
-                            not is_version.search(my_variant.hgvs_formatted.ac)):
+                            not is_version.search(my_variant.quibble.ac)):
                         error = 'RefSeq variant accession numbers MUST include a version number'
                         my_variant.warnings.append(error)
                         continue
@@ -676,8 +673,7 @@ class Mixin(vvMixinConverters.Mixin):
                         continue
 
                     # RNA variants
-                    trapped_input = str(my_variant.hgvs_formatted)
-                    my_variant.pre_RNA_conversion = trapped_input
+                    trapped_input = str(my_variant.quibble)
                     toskip = format_converters.rna(my_variant, self)
                     if toskip:
                         continue
@@ -772,16 +768,16 @@ class Mixin(vvMixinConverters.Mixin):
 
                 # Genomic sequence variation
                 # Check for gapped delins<No_Alt>
-                if (variant.genomic_g and variant.genomic_g.posedit.edit.type == 'delins' and
-                        variant.genomic_g.posedit.edit.alt == ""):
-                    logger.info(f"Delins minus an ALT sequence identified {variant.genomic_g}")
-                    variant.genomic_g = hgvs_delins_parts_to_hgvs_obj(
-                        variant.genomic_g.ac,
-                        variant.genomic_g.type,
-                        variant.genomic_g.posedit.pos,
+                if (variant.hgvs_genomic and variant.hgvs_genomic.posedit.edit.type == 'delins' and
+                        variant.hgvs_genomic.posedit.edit.alt == ""):
+                    logger.info(f"Delins minus an ALT sequence identified {variant.hgvs_genomic}")
+                    variant.hgvs_genomic = hgvs_delins_parts_to_hgvs_obj(
+                        variant.hgvs_genomic.ac,
+                        variant.hgvs_genomic.type,
+                        variant.hgvs_genomic.posedit.pos,
                         '', '')
 
-                hgvs_genomic_variant = variant.genomic_g
+                hgvs_genomic_variant = variant.hgvs_genomic
 
                 # genomic accession
                 logger.debug("genomic accession")
@@ -793,10 +789,11 @@ class Mixin(vvMixinConverters.Mixin):
 
                 # RefSeqGene variation
                 logger.debug("RefSeqGene variation")
-                refseqgene_variant = variant.genomic_r
+                refseqgene_variant = variant.hgvs_refseqgene_variant
 
                 if not refseqgene_variant or type(refseqgene_variant) is str and 'RefSeqGene' in refseqgene_variant:
-                    variant.warnings.append(refseqgene_variant)
+                    if type(refseqgene_variant) is str and 'RefSeqGene' in refseqgene_variant:
+                        variant.warnings.append(refseqgene_variant)
                     lrg_variant = ''
                     refseqgene_variant = ''
                 else:
@@ -814,13 +811,14 @@ class Mixin(vvMixinConverters.Mixin):
                 # Transcript sequence variation
                 logger.debug("Transcript sequence variation")
                 hgvs_tx_variant = None
-                if variant.coding:
-                    if '(' in str(hgvs_tx_variant) and ')' in str(hgvs_tx_variant):
-                        assert False
+                # ambiguous pos variants with spans instead of start and/or stop locations can't be mapped,
+                # yet (unlike simpler ones), so we null the mapping variables for them
+                if variant.hgvs_transcript_variant and not isinstance(
+                        variant.hgvs_transcript_variant.posedit.pos,FEInterval):
 
                     # transcript accession
                     logger.debug("transcript accession")
-                    hgvs_tx_variant = unset_hgvs_obj_ref(variant.coding)
+                    hgvs_tx_variant = unset_hgvs_obj_ref(variant.hgvs_transcript_variant)
                     hgvs_transcript_variant = copy.deepcopy(hgvs_tx_variant)
                     transcript_accession = hgvs_transcript_variant.ac
 
@@ -937,6 +935,10 @@ class Mixin(vvMixinConverters.Mixin):
                         if 'NC_000' not in alt_gen_var.ac and 'NC_012920.1' not in alt_gen_var.ac and \
                                 'NC_001807.4' not in alt_gen_var.ac:
                             continue
+                    # skip if we have fuzzy ends in a currently non mappable form
+                    if isinstance(alt_gen_var.posedit.pos.start, Interval) or \
+                            isinstance(alt_gen_var.posedit.pos.end, Interval):
+                        continue
                     try:
                         alt_gen_var = variant.hn.normalize(alt_gen_var)
                     except vvhgvs.exceptions.HGVSInvalidVariantError:
@@ -991,11 +993,14 @@ class Mixin(vvMixinConverters.Mixin):
 
                 # Warn not directly mapped to specified genome build
                 if genomic_accession:
-                    if primary_assembly.lower() not in list(primary_genomic_dicts.keys()):
-                        errors = [str(variant.hgvs_coding) + ' is not part of genome build ' + primary_assembly]
+                    if genomic_accession.startswith("NG_"):
+                        # Skip for NG_ which fail to find genomic mapping (done via transcript) without extra errors
+                        pass
+                    elif primary_assembly.lower() not in list(primary_genomic_dicts.keys()):
+                        errors = [str(variant.quibble) + ' is not part of genome build ' + primary_assembly]
 
                         if self.alt_aln_method == "splign":
-                            errors.append(str(variant.hgvs_coding) + ' cannot be mapped directly to genome build ' + primary_assembly)
+                            errors.append(str(variant.quibble) + ' cannot be mapped directly to genome build ' + primary_assembly)
                             errors.append('See alternative genomic loci or alternative genome builds for aligned genomic positions')
 
                         elif self.alt_aln_method == "genebuild":
@@ -1005,7 +1010,7 @@ class Mixin(vvMixinConverters.Mixin):
                             elif primary_assembly == "GRCh37" or primary_assembly == "hg19":
                                 alt_build = "GRCh38"
                                 # Shows the alternative genome build too
-                            errors.append(str(variant.hgvs_coding) + ' cannot be mapped directly to genome build ' + primary_assembly
+                            errors.append(str(variant.quibble) + ' cannot be mapped directly to genome build ' + primary_assembly
                                             + ', did you mean ' + alt_build + '?')
 
                         variant.warnings.extend(errors)
@@ -1022,13 +1027,11 @@ class Mixin(vvMixinConverters.Mixin):
                         gene_symbol = self.db.get_gene_symbol_from_refseq_id(refseqgene_variant.ac)
                         variant.gene_symbol = gene_symbol
 
-                # Add predicted protein variant dictionary this is the output form so str for final is OK
+                # Add predicted protein variant dictionary
                 if predicted_protein_variant != '':
                     predicted_protein_variant_dict = {}
-                    predicted_protein_variant_dict["slr"] = ''
-                    predicted_protein_variant_dict["tlr"] = ''
-                    predicted_protein_variant_dict["lrg_tlr"] = ''
-                    predicted_protein_variant_dict["lrg_slr"] = ''
+                    predicted_protein_variant_dict["prot"] = ''
+                    predicted_protein_variant_dict["lrg_prot"] = ''
                     if type(predicted_protein_variant) is not str:
                         # add protein descriptions if not N type edit
                         add_p_descps = True
@@ -1053,12 +1056,12 @@ class Mixin(vvMixinConverters.Mixin):
                                 # convert UTR variants from p.? to p.(?)
                                 try:
                                     if (
-                                            variant.hgvs_coding.posedit.pos.end.base < 0 or
-                                            variant.hgvs_coding.posedit.pos.start.datum  ==
+                                            variant.hgvs_transcript_variant.posedit.pos.end.base < 0 or
+                                            variant.hgvs_transcript_variant.posedit.pos.start.datum  ==
                                                Datum.CDS_END
                                     ):
                                         logger.info(
-                                            f"UTR variant {variant.hgvs_coding} identified. "
+                                            f"UTR variant {variant.hgvs_transcript_variant} identified. "
                                             f"Updating from p.? to p.(=)"
                                         )
 
@@ -1073,9 +1076,8 @@ class Mixin(vvMixinConverters.Mixin):
 
 
                                 # Add single letter AA code to protein descriptions
-                                predicted_protein_variant_dict = {"tlr": str(
-                                    predicted_protein_variant.format({'max_ref_length': 0})
-                                    ), "slr": ''}
+                                predicted_protein_variant_dict = {
+                                        "prot":predicted_protein_variant}
 
                                 if re.search("[A-Z][a-z][a-z]1[A-Z][a-z][a-z]", str(
                                     predicted_protein_variant.posedit)):
@@ -1100,34 +1102,22 @@ class Mixin(vvMixinConverters.Mixin):
                                                     posedit="({aa_1}1?)")
                                             variant.warnings = cp_warnings
 
-                                # Set formatted tlr
-                                predicted_protein_variant_dict['tlr'] = \
-                                        predicted_protein_variant.format({
-                                            'max_ref_length': 0})
-                                predicted_protein_variant_dict['slr']= \
-                                        predicted_protein_variant.format({
-                                            'max_ref_length': 0,
-                                            'p_3_letter':False})
-                                # set LRG outputs
+                                # Set prot for output
+                                predicted_protein_variant_dict['prot'] = predicted_protein_variant
+                                # set LRG output
                                 if format_lrg is not None:
-                                    predicted_protein_variant_dict["lrg_tlr"] = \
-                                        format_lrg + ':' + \
-                                        predicted_protein_variant_dict["tlr"].split(':')[1]
-                                    predicted_protein_variant_dict["lrg_slr"] = \
-                                        format_lrg + ':' + \
-                                        predicted_protein_variant_dict["slr"].split(':')[1]
+                                    predicted_protein_variant_dict["lrg_prot"] = copy.copy(
+                                            predicted_protein_variant)
+                                    predicted_protein_variant_dict["lrg_prot"].ac = format_lrg
                                 else:
-                                    predicted_protein_variant_dict["lrg_tlr"] = ''
-                                    predicted_protein_variant_dict["lrg_slr"] = ''
+                                    predicted_protein_variant_dict["lrg_prot"] = ''
 
                             except vvhgvs.exceptions.HGVSParseError as e:
                                 logger.debug("Except passed, %s", e)
                 else:
                     predicted_protein_variant_dict = {}
-                    predicted_protein_variant_dict["slr"] = ''
-                    predicted_protein_variant_dict["tlr"] = ''
-                    predicted_protein_variant_dict["lrg_tlr"] = ''
-                    predicted_protein_variant_dict["lrg_slr"] = ''
+                    predicted_protein_variant_dict["prot"] = ''
+                    predicted_protein_variant_dict["lrg_prot"] = ''
 
                 # Add missing gene info which should be there (May have come from uncertain positions for example)
                 if variant.hgvs_transcript_variant and variant.gene_symbol == '':
@@ -1222,8 +1212,11 @@ class Mixin(vvMixinConverters.Mixin):
 
                 variant.stable_gene_ids = stable_gene_ids
                 variant.annotations = reference_annotations
+
+                # for now string versions of equivalent variants + rel_acc
                 variant.genome_context_intronic_sequence = genome_context_transcript_variant
                 variant.refseqgene_context_intronic_sequence = refseqgene_context_transcript_variant
+
                 variant.hgvs_refseqgene_variant = refseqgene_variant
                 variant.hgvs_predicted_protein_consequence = predicted_protein_variant_dict
                 variant.hgvs_lrg_transcript_variant = lrg_transcript_variant
@@ -1249,7 +1242,7 @@ class Mixin(vvMixinConverters.Mixin):
                 # Add links to reference_sequence_records
                 pre_out = {
                         'hgvs_transcript_variant':'',
-                        'hgvs_predicted_protein_consequence':{'slr':''},
+                        'hgvs_predicted_protein_consequence':{'prot':''},
                         'hgvs_refseqgene_variant':'',
                         'hgvs_lrg_variant':'',
                         'selected_assembly':self.selected_assembly}
@@ -1259,9 +1252,10 @@ class Mixin(vvMixinConverters.Mixin):
                     pre_out['hgvs_refseqgene_variant'] = variant.hgvs_refseqgene_variant.ac
                 if variant.hgvs_lrg_variant:# is str
                     pre_out['hgvs_lrg_variant'] = variant.hgvs_lrg_variant
-                if variant.hgvs_predicted_protein_consequence:
-                    pre_out['hgvs_predicted_protein_consequence']['slr'] = \
-                            variant.hgvs_predicted_protein_consequence['slr']
+                if variant.hgvs_predicted_protein_consequence and \
+                        variant.hgvs_predicted_protein_consequence['prot']:
+                    pre_out['hgvs_predicted_protein_consequence']['prot'] = \
+                            variant.hgvs_predicted_protein_consequence['prot'].ac
                 ref_records = self.db.get_urls(pre_out)
                 if ref_records != {}:
                     variant.reference_sequence_records = ref_records
@@ -1375,7 +1369,8 @@ class Mixin(vvMixinConverters.Mixin):
                                 variant.alt_genomic_loci = alt_genomic_loci
 
                 # Add exon numbering information see issue #
-                if variant.coding != "":
+                if variant.hgvs_transcript_variant and not isinstance(
+                        variant.hgvs_transcript_variant.posedit.pos,FEInterval):
                     try:
                         exs = exon_numbering.finds_exon_number(variant, self)
                         variant.exonic_positions = exs
@@ -1607,17 +1602,12 @@ class Mixin(vvMixinConverters.Mixin):
                                 f"{variant.hgvs_lrg_transcript_variant.split(':c.')[0]}:c."\
                                 + variant.hgvs_transcript_variant.posedit.format(
                                     {'max_ref_length': 0})
-
-                # Some variant objects must be strings for back-compatibility with old output
-                if variant.hgvs_transcript_variant:
-                    variant.hgvs_transcript_variant = \
-                            variant.hgvs_transcript_variant.format({'max_ref_length': 0})
-                else:
+                # Some variant objects must be set on successful completion for back-compatibility
+                # with old output (we currently assert that the object starts as None in tests but
+                # also assert that it has ''/{} as output, VF needs this for primary_assembly_loci)
+                if not variant.hgvs_transcript_variant:
                     variant.hgvs_transcript_variant = ''
-                if variant.hgvs_refseqgene_variant:
-                    variant.hgvs_refseqgene_variant = \
-                            variant.hgvs_refseqgene_variant.format({'max_ref_length': 0})
-                else:
+                if not variant.hgvs_refseqgene_variant:
                     variant.hgvs_refseqgene_variant = ''
                 hgd = "hgvs_genomic_description"
                 def _vcf_abrv(hgvs,vcf,max_non_abrv_len=500):
@@ -1643,19 +1633,18 @@ class Mixin(vvMixinConverters.Mixin):
                     vcf["alt"] = hgvs.posedit.edit.type.upper()
                     return vcf
 
+                if not variant.primary_assembly_loci:
+                    variant.primary_assembly_loci = {}
                 for gen in variant.primary_assembly_loci.keys():
                     variant.primary_assembly_loci[gen]['vcf'] = _vcf_abrv(
                             variant.primary_assembly_loci[gen][hgd],
                             variant.primary_assembly_loci[gen]['vcf'])
-                    variant.primary_assembly_loci[gen][hgd] = \
-                        variant.primary_assembly_loci[gen][hgd].format({'max_ref_length': 0})
 
                 for loc in variant.alt_genomic_loci:
                     for gen in loc.keys():
                         loc[gen]['vcf'] = _vcf_abrv(
                             loc[gen][hgd],
                             loc[gen]['vcf'])
-                        loc[gen][hgd] = loc[gen][hgd].format({'max_ref_length': 0})
 
                 # Append to a list for return
                 batch_out.append(variant)
@@ -1777,7 +1766,7 @@ class Mixin(vvMixinConverters.Mixin):
         Should only be called during the validator process
         """
         logger.debug("Looking for transcript info")
-        hgvs_vt = variant.hgvs_formatted
+        hgvs_vt = variant.quibble
         try:
             self.hdp.get_tx_identity_info(str(hgvs_vt.ac))
         except vvhgvs.exceptions.HGVSError as e:
@@ -1793,7 +1782,7 @@ class Mixin(vvMixinConverters.Mixin):
         if self.alt_aln_method != 'genebuild':
             # Gene description  - requires GenBank search to get all the required info, i.e. transcript variant ID
             # accession number
-            hgvs_object = variant.hgvs_formatted
+            hgvs_object = variant.quibble
             accession = hgvs_object.ac
             # Look for the accession in our database
             # Connect to database and send request
@@ -1874,7 +1863,7 @@ class Mixin(vvMixinConverters.Mixin):
         # Ensembl databases
         else:
             # accession number
-            hgvs_object = variant.hgvs_formatted
+            hgvs_object = variant.quibble
             accession = hgvs_object.ac
             # Look for the accession in our database
             # Connect to database and send request

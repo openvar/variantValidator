@@ -2,8 +2,10 @@ import re
 import copy
 from vvhgvs.assemblymapper import AssemblyMapper
 from VariantValidator.modules import utils as vv_utils, format_converters
-from VariantValidator.modules.hgvs_utils import hgvs_obj_from_existing_edit
+from VariantValidator.modules.hgvs_utils import hgvs_obj_from_existing_edit,\
+        _hgvs_offset_pos_from_str_in
 import vvhgvs.exceptions
+from vvhgvs.enums import Datum, ValidationLevel
 from vvhgvs.location import Interval
 
 class UncertainConversionError(Exception):
@@ -12,8 +14,10 @@ class UncertainConversionError(Exception):
 # fuzzy but specified ended intervals, take a normal interval for both ends
 # can take a pair of Intervals or BaseOffsetIntervals
 class FEInterval(Interval):
-    uncertain = True
-    pass
+    def __init__(self,start = None,end = None):
+        self.uncertain = True
+        self.start = start
+        self.end = end
     def validate(self):
         if self.start:
             (res, msg) = self.start.validate()
@@ -258,12 +262,12 @@ def fuzzy_ends(my_variant, validator):
         raise FuzzyRangeError("Fuzzy/unknown variant end position in submitted variant description")
 
     else:
-        if "?" in str(my_variant.hgvs_formatted.posedit.pos):
-            if "?" in str(my_variant.hgvs_formatted.posedit.pos.end) and "?" not in str(
-                    my_variant.hgvs_formatted.posedit.pos.start):
+        if "?" in str(my_variant.quibble.posedit.pos):
+            if "?" in str(my_variant.quibble.posedit.pos.end) and "?" not in str(
+                    my_variant.quibble.posedit.pos.start):
                 raise FuzzyPositionError("Fuzzy/unknown variant end position in submitted variant description")
-            elif "?" in str(my_variant.hgvs_formatted.posedit.pos.start) and "?" not in str(
-                    my_variant.hgvs_formatted.posedit.pos.end):
+            elif "?" in str(my_variant.quibble.posedit.pos.start) and "?" not in str(
+                    my_variant.quibble.posedit.pos.end):
                 raise FuzzyPositionError("Fuzzy/unknown variant start position in submitted variant description")
             else:
                 raise FuzzyPositionError("Fuzzy/unknown variant start and end positions "
@@ -369,9 +373,28 @@ def uncertain_positions(my_variant, validator):
 
         # Genomic Variants
         if "NC_" in my_variant.quibble:
-            my_variant.hgvs_genomic = my_variant.quibble
-            start_pos = position_1.split("_")[0]
-            end_pos = position_2.split("_")[1]
+            start_pos, _sep, start_end = position_1.partition("_")
+            o_start_pos, start_end = _hgvs_offset_pos_from_str_in(
+                    start_pos,
+                    None,
+                    ref_type=var_type,
+                    end=start_end)
+            start = Interval(start=o_start_pos,end=start_end)
+            end_start, _sep, end_pos = position_2.partition("_")
+            end_start, o_end_pos = _hgvs_offset_pos_from_str_in(
+                    end_start,
+                    None,
+                    ref_type=var_type,
+                    end=end_pos)
+            end = Interval(start=end_start,end=o_end_pos)
+            full_obj = hgvs_obj_from_existing_edit(
+                    accession,
+                    var_type,
+                    FEInterval(
+                        start=start,
+                        end=end),
+                    edit)
+            my_variant.hgvs_genomic = full_obj
             parsed_v3 = hgvs_obj_from_existing_edit(
                     accession,
                     var_type,
@@ -438,7 +461,6 @@ def uncertain_positions(my_variant, validator):
                         end=t_position_2),
                     edit)
 
-                my_variant.hgvs_coding = tx_variant
                 my_variant.quibble = copy.copy(tx_variant)
                 my_variant.hgvs_transcript_variant = tx_variant
             else:
@@ -472,15 +494,15 @@ def uncertain_positions(my_variant, validator):
                         end=g_position_2),
                     edit)
             my_variant.hgvs_genomic = gen_variant
-            my_variant.hgvs_coding = hgvs_obj_from_existing_edit(
+            hgvs_coding = hgvs_obj_from_existing_edit(
                     parsed_v1.ac,
                     parsed_v2.type,
                     FEInterval(start=parsed_v1.posedit.pos,
                                end=parsed_v2.posedit.pos),
                     edit
                     )
-            my_variant.hgvs_transcript_variant = copy.copy(my_variant.hgvs_coding)
-            my_variant.quibble = copy.copy(my_variant.hgvs_coding)
+            my_variant.hgvs_transcript_variant = copy.copy(hgvs_coding)
+            my_variant.quibble = copy.copy(hgvs_coding)
             my_variant.output_type_flag = "gene"
 
     elif ")_(" not in my_variant.quibble and not "?" in my_variant.quibble:
@@ -489,7 +511,6 @@ def uncertain_positions(my_variant, validator):
         accession, _sep, var_type_and_posedit = my_variant.quibble.partition(':')
         var_type, _sep ,position_and_edit = var_type_and_posedit.partition(".(")
         position_1, variation = position_and_edit.split(")")
-        v1 = f"{accession}:{var_type}.{position_1}="
         my_variant.reftype = f":{var_type}."
         try:
             if var_type == 'p':
@@ -517,7 +538,7 @@ def uncertain_positions(my_variant, validator):
                 raise IncompatibleTypeError(str(e))
             elif "base start position must be <= end position" in str(e):
                 raise InvalidRangeError(f"{str(e)} in position {str(parsed_v1.posedit.pos)}")
-            elif re.search("[+-]", str(parsed_v1.posedit.pos)) or re.search("[+-]", str(parsed_v1.posedit.pos)):
+            elif "+" in str(parsed_v1.posedit.pos) or "-" in str(parsed_v1.posedit.pos):
                 pass
             else:
                 raise InvalidRangeError(f"{position_1} is an invalid range for "
@@ -529,8 +550,23 @@ def uncertain_positions(my_variant, validator):
 
         # Genomic Variants
         if "NC_" in my_variant.quibble:
-            my_variant.hgvs_genomic = my_variant.quibble
-
+            start_pos, _sep, start_end = position_1.partition("_")
+            start_pos, end_pos = _hgvs_offset_pos_from_str_in(
+                    start_pos,
+                    None,
+                    end=start_end,
+                    ref_type=var_type)
+            pos = Interval(start=start_pos,end=end_pos)
+            try:
+                full_obj = hgvs_obj_from_existing_edit(
+                        accession,
+                        var_type,
+                        pos,
+                        edit)
+            except Exception as e:
+                raise e
+            full_obj.posedit.pos.uncertain = True
+            my_variant.hgvs_genomic = full_obj
             # Make select_transcriopts "select" unless specified
             if (validator.select_transcripts != "select" and ("NM_" in validator.select_transcripts or
                                                               "ENST" in validator.select_transcripts) and
@@ -567,8 +603,6 @@ def uncertain_positions(my_variant, validator):
                     ptv1[0].posedit.pos,
                     edit)
                 tx_variant.posedit.pos.uncertain = True
-
-                my_variant.hgvs_coding = tx_variant
                 my_variant.quibble = copy.copy(tx_variant)
                 my_variant.hgvs_transcript_variant = tx_variant
             else:
@@ -587,14 +621,14 @@ def uncertain_positions(my_variant, validator):
             gen_variant.posedit.pos.uncertain = True
 
             my_variant.hgvs_genomic = gen_variant
-            my_variant.hgvs_coding = hgvs_obj_from_existing_edit(
+            hgvs_coding = hgvs_obj_from_existing_edit(
                     parsed_v1.ac,
                     parsed_v1.type,
                     parsed_v1.posedit.pos,
                     edit)
-            my_variant.hgvs_coding.posedit.pos.uncertain = True
-            my_variant.hgvs_transcript_variant = my_variant.hgvs_coding
-            my_variant.quibble = copy.copy(my_variant.hgvs_coding)
+            hgvs_coding.posedit.pos.uncertain = True
+            my_variant.hgvs_transcript_variant = hgvs_coding
+            my_variant.quibble = copy.copy(hgvs_coding)
             my_variant.output_type_flag = "gene"
 
     else:

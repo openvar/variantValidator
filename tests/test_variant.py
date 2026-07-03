@@ -64,18 +64,9 @@ class TestCreation(TestCase):
     def test_all_defaults(self):
         var = Variant('NM_015120.4:c.34=')
 
-        self.assertEqual(var.hgvs_formatted, None)
         self.assertEqual(var.hgvs_genomic, None)
-        self.assertEqual(var.hgvs_coding, None)
-        self.assertEqual(var.post_format_conversion, None)
-        self.assertEqual(var.pre_RNA_conversion, None)
-        self.assertEqual(var.input_parses, None)
 
         self.assertEqual(var.description, '')
-        self.assertEqual(var.coding, '')
-        self.assertEqual(var.coding_g, '')
-        self.assertEqual(var.genomic_r, '')
-        self.assertEqual(var.genomic_g, '')
         self.assertEqual(var.protein, '')
         self.assertEqual(var.output_type_flag, 'warning')
         self.assertEqual(var.gene_symbol, '')

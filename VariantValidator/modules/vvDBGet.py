@@ -223,10 +223,10 @@ class Mixin(vvDBInit.Mixin):
         if 'NM_' in dict_out['hgvs_transcript_variant'] or 'NR_' in dict_out['hgvs_transcript_variant']:
             report_urls['transcript'] = 'https://www.ncbi.nlm.nih.gov' \
                                         '/nuccore/%s' % dict_out['hgvs_transcript_variant'].split(':')[0]
-        if 'NP_' in str(dict_out['hgvs_predicted_protein_consequence']['slr']):
+        if 'NP_' in str(dict_out['hgvs_predicted_protein_consequence']['prot']):
             report_urls['protein'] = 'https://www.ncbi.nlm.nih.gov' \
                                      '/nuccore/%s' % str(
-                dict_out['hgvs_predicted_protein_consequence']['slr']).split(':')[0]
+                dict_out['hgvs_predicted_protein_consequence']['prot']).split(':')[0]
         if 'NG_' in dict_out['hgvs_refseqgene_variant']:
             report_urls['refseqgene'] = 'https://www.ncbi.nlm.nih.gov' \
                                         '/nuccore/%s' % dict_out['hgvs_refseqgene_variant'].split(':')[0]
@@ -247,19 +247,19 @@ class Mixin(vvDBInit.Mixin):
         if 'ENST' in dict_out['hgvs_transcript_variant'] and str(dict_out['selected_assembly']).lower() == 'grch37':
             report_urls['transcript'] = 'https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?' \
                                         'db=core;t=%s' % dict_out['hgvs_transcript_variant'].split(':')[0]
-        if 'ENSP' in str(dict_out['hgvs_predicted_protein_consequence']['slr']) and str(dict_out['selected_assembly']).lower() == 'grch37':
+        if 'ENSP' in str(dict_out['hgvs_predicted_protein_consequence']['prot']) and str(dict_out['selected_assembly']).lower() == 'grch37':
             report_urls['protein'] = 'https://grch37.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?' \
                                      'db=core;p=%s' % str(
-                                        dict_out['hgvs_predicted_protein_consequence']['slr']).split(':')[0]
+                                        dict_out['hgvs_predicted_protein_consequence']['prot']).split(':')[0]
         
         # When selected_assembly is GRCh38
         if 'ENST' in dict_out['hgvs_transcript_variant'] and str(dict_out['selected_assembly']).lower() == 'grch38':
             report_urls['transcript'] = 'https://www.ensembl.org/Homo_sapiens/Transcript/Summary?' \
                                         'db=core;t=%s' % dict_out['hgvs_transcript_variant'].split(':')[0]
-        if 'ENSP' in str(dict_out['hgvs_predicted_protein_consequence']['slr']) and str(dict_out['selected_assembly']).lower() == 'grch38':
+        if 'ENSP' in str(dict_out['hgvs_predicted_protein_consequence']['prot']) and str(dict_out['selected_assembly']).lower() == 'grch38':
             report_urls['protein'] = 'https://www.ensembl.org/Homo_sapiens/Transcript/ProteinSummary?' \
                                      'db=core;p=%s' % str(
-                                        dict_out['hgvs_predicted_protein_consequence']['slr']).split(':')[0]                        
+                                        dict_out['hgvs_predicted_protein_consequence']['prot']).split(':')[0]
         # "http://www.ensembl.org/id/" ? What about historic versions?????
 
         return report_urls

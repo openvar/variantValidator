@@ -37,7 +37,7 @@ def finds_exon_number(variant, validator):
     info_dict = {}
     for i in range(len(response_dictionary["transcripts"])):
 
-        if response_dictionary["transcripts"][i]["reference"] == variant.hgvs_coding.ac:
+        if response_dictionary["transcripts"][i]["reference"] == variant.quibble.ac:
 
             # Create record
             info_dict[(response_dictionary["transcripts"][i]["reference"])] = {}
@@ -53,7 +53,7 @@ def finds_exon_number(variant, validator):
 
     # Step 2 - Get the necessary variant information
     # Find the variant position from the variant nomenclature
-    coordinates = str(variant.hgvs_coding.posedit.pos)
+    coordinates = str(variant.quibble.posedit.pos)
 
     # Identify start and end of variant from input coordinates
     if '_' in coordinates:
@@ -72,9 +72,9 @@ def finds_exon_number(variant, validator):
 
     # Create c_to_n varint
     try:
-        to_n = validator.vm.c_to_n(variant.hgvs_coding)
+        to_n = validator.vm.c_to_n(variant.quibble)
     except vvhgvs.exceptions.HGVSInvalidVariantError:
-        to_n = variant.hgvs_coding
+        to_n = variant.quibble
 
     """
     This for loop identifies the exon/intron number for the transcript
@@ -85,8 +85,8 @@ def finds_exon_number(variant, validator):
         keys: start_exon and end_exon
         values: start and position of variant in the reference sequence
     """
-    exon_structure_dict = info_dict[variant.hgvs_coding.ac]["exon_structure_dict"]
-    coding_start = info_dict[variant.hgvs_coding.ac]['coding_start']
+    exon_structure_dict = info_dict[variant.quibble.ac]["exon_structure_dict"]
+    coding_start = info_dict[variant.quibble.ac]['coding_start']
     if coding_start is None:
         coding_start = 1
 

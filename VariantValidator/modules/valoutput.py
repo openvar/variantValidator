@@ -1,6 +1,7 @@
 import logging
 import json
 from VariantValidator.modules import lovd_api
+from VariantValidator.modules.vrs_utils import HGVS_to_VRS
 
 logger = logging.getLogger(__name__)
 
@@ -35,8 +36,11 @@ class ValOutput(object):
                     if variant.is_obsolete() and variant.hgvs_transcript_variant == '':
                         validation_obsolete_counter += 1
                         identification_key = 'obsolete_record_%s' % validation_obsolete_counter
+                    elif variant.hgvs_transcript_variant:
+                        identification_key = variant.hgvs_transcript_variant.format({
+                            'max_ref_length': 0})
                     else:
-                        identification_key = str(variant.hgvs_transcript_variant)
+                        identification_key = 'None'
 
                 validation_output[identification_key] = variant.output_dict(test=test)
 
@@ -121,19 +125,22 @@ class ValOutput(object):
 
             prot = ''
             if variant.hgvs_predicted_protein_consequence is not None:
-                prot = variant.hgvs_predicted_protein_consequence['tlr']
+                prot = variant.hgvs_predicted_protein_consequence['prot'].format({
+                    'max_ref_length': 0})
             if variant.rna_data is not None:
                 prot = variant.rna_data["translation"]
             grch37 = ''
             grch37_vcf = {'chr': '', 'pos': '', 'ref': '', 'alt': '', 'id': ''}
             if variant.primary_assembly_loci and 'grch37' in variant.primary_assembly_loci:
-                grch37 = variant.primary_assembly_loci['grch37']['hgvs_genomic_description']
+                grch37 = variant.primary_assembly_loci['grch37']['hgvs_genomic_description'].format({
+                    'max_ref_length': 0})
                 grch37_vcf = variant.primary_assembly_loci['grch37']['vcf']
                 grch37_vcf['id'] = '.'
             grch38 = ''
             grch38_vcf = {'chr': '', 'pos': '', 'ref': '', 'alt': '', 'id': ''}
             if variant.primary_assembly_loci and 'grch38' in variant.primary_assembly_loci:
-                grch38 = variant.primary_assembly_loci['grch38']['hgvs_genomic_description']
+                grch38 = variant.primary_assembly_loci['grch38']['hgvs_genomic_description'].format({
+                    'max_ref_length': 0})
                 grch38_vcf = variant.primary_assembly_loci['grch38']['vcf']
                 grch38_vcf['id'] = '.'
             alt_genomic = []
@@ -141,7 +148,7 @@ class ValOutput(object):
                 for alt in variant.alt_genomic_loci:
                     for k, v in alt.items():
                         if k == 'grch37' or k == 'grch38':
-                            alt_genomic.append(v['hgvs_genomic_description'])
+                            alt_genomic.append(v['hgvs_genomic_description'].format({'max_ref_length': 0}))
             gene_id = ''
             if variant.stable_gene_ids:
                 if 'hgnc_id' in variant.stable_gene_ids:
@@ -156,16 +163,36 @@ class ValOutput(object):
                 pass
 
             if variant.rna_data is None:
+                if variant.hgvs_transcript_variant is not None:
+                    hgvs_transcript = variant.hgvs_transcript_variant.format({'max_ref_length': 0})
+                else:
+                    hgvs_transcript = None
+
+                if variant.hgvs_refseqgene_variant:
+                    hgvs_refseqgene = variant.hgvs_refseqgene_variant.format({'max_ref_length': 0})
+                else:
+                    hgvs_refseqgene = None
+
+                if variant.hgvs_lrg_variant:
+                    hgvs_lrg = variant.hgvs_lrg_variant.format({'max_ref_length': 0})
+                else:
+                    hgvs_lrg = None
+
+                if variant.hgvs_lrg_transcript_variant:
+                    hgvs_lrg_transcript = variant.hgvs_lrg_transcript_variant.format({'max_ref_length': 0})
+                else:
+                    hgvs_lrg_transcript = None
+
                 outputstrings.append([
                     variant.original,
                     '|'.join(variant.process_warnings(string_all=True)),
                     select_tx,
-                    variant.hgvs_transcript_variant,
+                    hgvs_transcript,
                     variant.genome_context_intronic_sequence,
                     variant.refseqgene_context_intronic_sequence,
-                    variant.hgvs_refseqgene_variant,
-                    variant.hgvs_lrg_variant,
-                    variant.hgvs_lrg_transcript_variant,
+                    hgvs_refseqgene,
+                    hgvs_lrg,
+                    hgvs_lrg_transcript,
                     prot,
                     grch37,
                     grch37_vcf['chr'],
@@ -286,8 +313,31 @@ class ValOutput(object):
             variant.lovd_corrections = lovd_corrections
 
 
-
-
+    def format_as_vrs(self):
+        """
+        Format output into a set of VRS style outputs, does normalisation due
+        to HGVS->VRS differences.
+        """
+        vrs_convert = HGVS_to_VRS()
+        vrs_output = {}
+        error_count = 0
+        for variant in self.output_list:
+            if not variant.lose_vm:
+                variant.lose_vm = self.validator.lose_vm
+            out = vrs_convert.variant_validator_output_set_to_vrs(variant)
+            key = ''
+            if 'vrs_transcript_variant' in out:
+                key = out['vrs_transcript_variant']['id']
+            elif 'vrs_intronic_genomic_variant' in out:
+                key = out['vrs_intronic_genomic_variant']['id']
+            elif 'vrs_intergenic_genomic_variant' in out:
+                key = out['vrs_intergenic_genomic_variant']['id']
+            else:
+                error_count = error_count + 1
+                key = 'error_' + str(error_count)
+                # error state no output
+            vrs_output[key] = out
+        return vrs_output
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

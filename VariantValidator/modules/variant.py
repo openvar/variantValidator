@@ -11,22 +11,22 @@ class Variant(object):
     def __init__(self, original, quibble=None, warnings=None, write=True, primary_assembly=False, order=False,
                  selected_assembly=False, reformat_output=False, expanded_repeat=None):
         self.original = original
-        if quibble is None:
+
+        # Managed variant mappings (hgvs)objects that are updated over the course of input processing
+        if quibble is None:# working version of the input variant, hgvs object after initial input processing
             self.quibble = original
         else:
             self.quibble = quibble
-        self.hgvs_formatted = None
-        self.hgvs_genomic = None
-        self.hgvs_coding = None
-        self.post_format_conversion = None  # Used for first gapped_mapping function
-        self.pre_RNA_conversion = None
-        self.input_parses = None  # quibble as hgvs variant object
+        self.hgvs_transcript_variant = None  # specifically main hgvs transcript mapping if available
+        self.hgvs_genomic = None # main hgvs genomic mapping if available
+        self.hgvs_refseqgene_variant = None  # main hgvs RefSeqGene genomic mapping, used to set LRG output data
+
+        # Variant annotations
         self.transcript_type = None
         self.lovd_syntax_check = None
         self.shorthand_vcf = None
         self.lovd_messages = None
         self.lovd_corrections = None
-
         if warnings is None:
             self.warnings = []
         else:
@@ -36,10 +36,6 @@ class Variant(object):
                 self.warnings = [warnings]
         self.description = ''  # hgnc_gene_info variable
         self.annotations = ''
-        self.coding = ''
-        self.coding_g = ''
-        self.genomic_r = ''
-        self.genomic_g = '' # should be a hgvs obj or nothing
         self.protein = ''
         self.write = write
         self.primary_assembly = primary_assembly
@@ -68,10 +64,8 @@ class Variant(object):
 
         # Required for output
         self.stable_gene_ids = None
-        self.hgvs_transcript_variant = None  # variant.coding but edited
         self.genome_context_intronic_sequence = None
         self.refseqgene_context_intronic_sequence = None
-        self.hgvs_refseqgene_variant = None  # genomic_r but edited
         self.hgvs_predicted_protein_consequence = None
         self.hgvs_lrg_transcript_variant = None
         self.hgvs_lrg_variant = None  # Same as hgvs_refseqgene_variant but with LRG accession
@@ -242,8 +236,7 @@ class Variant(object):
             except KeyError:
                 pass
             try:
-                del self.hgvs_predicted_protein_consequence['lrg_tlr']
-                del self.hgvs_predicted_protein_consequence['lrg_slr']
+                del self.hgvs_predicted_protein_consequence['lrg_prot']
             except KeyError:
                 pass
 
@@ -254,22 +247,69 @@ class Variant(object):
             'gene_ids': self.stable_gene_ids,
             'annotations': self.annotations,
             'transcript_description': self.description,
-            'hgvs_transcript_variant': self.hgvs_transcript_variant,
+            'hgvs_transcript_variant': None if self.hgvs_transcript_variant is None else \
+                    self.hgvs_transcript_variant.format({'max_ref_length': 0}),
             'rna_variant_descriptions': self.rna_data,
             'genome_context_intronic_sequence': self.genome_context_intronic_sequence,
             'refseqgene_context_intronic_sequence': self.refseqgene_context_intronic_sequence,
-            'hgvs_refseqgene_variant': self.hgvs_refseqgene_variant,
-            'hgvs_predicted_protein_consequence': self.hgvs_predicted_protein_consequence,
+            'hgvs_refseqgene_variant': None if self.hgvs_refseqgene_variant is None else \
+                    self.hgvs_refseqgene_variant.format({'max_ref_length': 0}),
             'validation_warnings': self.process_warnings(),
             'lovd_messages': self.lovd_messages,
             'lovd_corrections': self.lovd_corrections,
-            'hgvs_lrg_transcript_variant': self.hgvs_lrg_transcript_variant,
-            'hgvs_lrg_variant': self.hgvs_lrg_variant,
-            'alt_genomic_loci': self.alt_genomic_loci,
-            'primary_assembly_loci': self.primary_assembly_loci,
+            'hgvs_lrg_transcript_variant': None if self.hgvs_lrg_transcript_variant is None else \
+                    self.hgvs_lrg_transcript_variant.format({'max_ref_length': 0}),
+            'hgvs_lrg_variant': None if self.hgvs_lrg_variant is None else \
+                    self.hgvs_lrg_variant.format({'max_ref_length': 0}),
             'variant_exonic_positions': self.exonic_positions,
             'reference_sequence_records': self.reference_sequence_records
         }
+
+        primary_loci = None
+        if self.primary_assembly_loci is not None:
+            primary_loci = {}
+            for gen, dat in self.primary_assembly_loci.items():
+                primary_loci[gen] = {}
+                primary_loci[gen]['vcf'] = dat['vcf']
+                primary_loci[gen]['hgvs_genomic_description'] = \
+                    dat['hgvs_genomic_description'].format({
+                        'max_ref_length': 0})
+        dict_out['primary_assembly_loci'] = primary_loci
+
+        alt_loci = None
+        if self.alt_genomic_loci is not None:
+            alt_loci = []
+            for loc in self.alt_genomic_loci:
+                rep_loc = {}
+                for gen, dat in loc.items():
+                    rep_loc[gen] = {}
+                    rep_loc[gen]['vcf'] = dat['vcf']
+                    rep_loc[gen]['hgvs_genomic_description'] = \
+                        dat['hgvs_genomic_description'].format({
+                            'max_ref_length': 0})
+                alt_loci.append(rep_loc)
+        dict_out['alt_genomic_loci'] = alt_loci
+
+        protein_dict = None
+        if self.hgvs_predicted_protein_consequence is not None:
+            if not test:
+                protein_dict = {'tlr':'','slr':'','lrg_tlr':'','lrg_slr':''}
+            else:
+                protein_dict = {'tlr':'','slr':''}
+            if 'prot' in self.hgvs_predicted_protein_consequence:
+                protein_dict['tlr'] = self.hgvs_predicted_protein_consequence['prot'].format({
+                    'max_ref_length': 0})
+                protein_dict['slr'] = self.hgvs_predicted_protein_consequence['prot'].format({
+                    'max_ref_length': 0,
+                    'p_3_letter':False})
+            if 'lrg_prot' in self.hgvs_predicted_protein_consequence:
+                protein_dict['lrg_tlr'] =  self.hgvs_predicted_protein_consequence['lrg_prot'].format({
+                    'max_ref_length': 0})
+                protein_dict['lrg_slr'] =self.hgvs_predicted_protein_consequence['lrg_prot'].format({
+                    'max_ref_length': 0,
+                    'p_3_letter':False})
+        dict_out['hgvs_predicted_protein_consequence'] = protein_dict
+
         return dict_out
 
     def is_obsolete(self):
