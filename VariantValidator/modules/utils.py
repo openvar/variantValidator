@@ -79,6 +79,7 @@ def hgnc_rest(path):
     else:
         my_error = "Problem encountered while connecting genenames.org: URL=%s: Status=%s" % (url, str(r.status_code))
         data['error'] = my_error
+        logger.warning(data['error'])
     return data
 
 
@@ -133,6 +134,7 @@ def ensembl_rest(id, endpoint, genome, options=False):
                     "Problem encountered while connecting Ensembl REST: "
                     "URL=%s: Status=%s" % (url, r.status_code)
                 )
+                logger.warning(data['error'])
                 return data
 
         except (
@@ -145,6 +147,7 @@ def ensembl_rest(id, endpoint, genome, options=False):
                     "Problem encountered while connecting Ensembl REST: "
                     "URL=%s: %s" % (url, str(e))
                 )
+                logger.warning(data['error'])
                 return data
 
         if attempt < max_retries - 1:
@@ -157,6 +160,7 @@ def ensembl_rest(id, endpoint, genome, options=False):
                 last_status if last_status is not None else "Unknown"
             )
     )
+    logger.warning(data['error'])
     return data
 
 
@@ -181,10 +185,16 @@ def ensembl_tark(id, endpoint, options=False):
         'Accept': 'application/json',
     }
 
-    if options is False:
-        url = '%s%s?stable_id_with_version=%s&content-type=application/json' % (base_url, endpoint, id)
+    if options:
+        url = (
+                "%s%s?stable_id_with_version=%s&%s&content-type=application/json"
+                % (base_url, endpoint, id, options)
+        )
     else:
-        url = '%s%s?stable_id_with_version=%s&content-type=application/json' % (base_url, endpoint, id)
+        url = (
+                "%s%s?stable_id_with_version=%s&content-type=application/json"
+                % (base_url, endpoint, id)
+        )
 
     # Request info
     try:
@@ -199,6 +209,7 @@ def ensembl_tark(id, endpoint, options=False):
     else:
         my_error = "Problem encountered while connecting Ensembl REST: URL=%s: Status=%s" % (url, str(r.status_code))
         data['error'] = my_error
+        logger.warning(data['error'])
     return data
 
 
