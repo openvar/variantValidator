@@ -4,6 +4,93 @@ import pytest
 from VariantValidator.modules.vvMixinConverters import Mixin
 from vvhgvs.exceptions import HGVSDataNotAvailableError, HGVSError
 
+from unittest import TestCase
+import json
+
+from VariantValidator.validator import Validator
+
+
+class TestVVMixinConvertersFunctional(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.vv = Validator()
+
+    def validate(self, variant, assembly="GRCh38", transcripts="all"):
+        return self.vv.validate(
+            variant,
+            assembly,
+            transcripts,
+        ).format_as_dict(test=True)
+
+    def test_allele_standard(self):
+        result = self.validate("NM_000088.3:c.[600C>A];[620A>T]")
+
+        self.assertEqual(result["flag"], "gene_variant")
+        self.assertIn("NM_000088.3:c.600C>A", result)
+        self.assertIn("NM_000088.3:c.620A>T", result)
+
+    def test_allele_phased_unphased(self):
+        result = self.validate("NM_000088.3:c.[600C>A];[620A>T](;)630G>A")
+
+        self.assertEqual(result["flag"], "gene_variant")
+        self.assertIn("NM_000088.3:c.600C>A", result)
+        self.assertIn("NM_000088.3:c.620A>T", result)
+        self.assertIn("NM_000088.3:c.630G>A", result)
+
+    def test_allele_semicolon_parser(self):
+        result = self.validate("NM_000088.3:c.600C>A(;)620A>T")
+
+        self.assertEqual(result["flag"], "gene_variant")
+        self.assertIn("NM_000088.3:c.600C>A", result)
+        self.assertIn("NM_000088.3:c.620A>T", result)
+
+    def test_allele_repeat_single_base_intronic(self):
+        result = self.validate("NM_000088.3:c.[600C>A;589-1G[3]]")
+
+        assert result["validation_warning_1"]["validation_warnings"] == ['AlleleSyntaxError: Submitted variants are out of order or their ranges overlap']
+
+    def test_allele_uncertain_parenthesised(self):
+        result = self.validate("NM_000088.3:c.600[C>A];[(C>A)]")
+
+        self.assertEqual(result["flag"], "gene_variant")
+        self.assertIn("NM_000088.3:c.600C>A", result)
+        self.assertEqual(len([k for k in result if k.startswith("NM_")]), 1)
+
+    def test_allele_unknown(self):
+        result = self.validate("NM_000088.3:c.[600C>A];[?]")
+
+        self.assertEqual(result["flag"], "gene_variant")
+        self.assertIn("NM_000088.3:c.600C>A", result)
+        self.assertEqual(len([k for k in result if k.startswith("NM_")]), 1)
+
+    def test_allele_null(self):
+        result = self.validate("NM_000088.3:c.[600C>A];[0]")
+
+        self.assertEqual(result["flag"], "gene_variant")
+        self.assertIn("NM_000088.3:c.600C>A", result)
+        self.assertEqual(len([k for k in result if k.startswith("NM_")]), 1)
+
+    def test_allele_multiple_variants(self):
+        result = self.validate("NM_000088.3:c.[600C>A;620A>T];[630G>A]")
+
+        self.assertEqual(result["flag"], "gene_variant")
+        self.assertIn("NM_000088.3:c.600C>A", result)
+        self.assertIn("NM_000088.3:c.620A>T", result)
+        self.assertIn("NM_000088.3:c.630G>A", result)
+
+    def test_allele_repeat_only(self):
+        result = self.validate("NM_000088.3:c.[589-1G[3]]")
+
+        result["validation_warning_1"]["validation_warnings"] == ['RepeatSyntaxError: Ensure that the repeated sequence is included between the variant position and the number of repeat units, e.g. g.1_3ACT[20]']
+
+    def test_allele_repeat_single_base_intronic_ordered(self):
+        result = self.validate("NM_000088.3:c.[589-1G[3];600C>A]")
+
+        self.assertEqual(result["flag"], "gene_variant")
+        self.assertIn("NM_000088.3:c.589-1_590=", result)
+        self.assertIn("NM_000088.3:c.600C>A", result)
+
 
 class DummyMixin(Mixin):
     pass

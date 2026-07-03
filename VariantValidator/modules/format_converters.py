@@ -46,6 +46,7 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
 
     # Extract variants from HGVS allele descriptions
     # http://varnomen.hgvs.org/recommendations/DNA/variant/alleles/
+    logger.info("Try find allele syntax in %s", variant.quibble)
     toskip = allele_parser(variant, validator, validator, batch_list)
     if toskip:
         return True
@@ -73,6 +74,7 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
 
     # Expanded repeat->delins code can not handle Uncertain positions yet
     # also does hgvs object conversion if it triggers
+    logger.info("Try find Expanded Repeat syntax in %s", variant.quibble)
     if type(variant.quibble) is str: # not Uncertain
         toskip = convert_expanded_repeat(variant, validator)
         if toskip:
@@ -733,6 +735,7 @@ def convert_expanded_repeat(my_variant, validator):
     """
     Waiting for HGVS nomenclature changes
     """
+    logger.info(f"Checking my variant: {my_variant.quibble} for expanded repats in format_converters")
     try:
         has_ex_repeat = expanded_repeats.convert_tandem(my_variant, validator, my_variant.primary_assembly,
                                                  "all")
@@ -1043,6 +1046,8 @@ def allele_parser(variant, validation, validator, batch_list):
                     logger.info(caution)
             else:
                 pass
+
+        logger.info("Try allele extraction")
         try:
             # Submit to allele extraction function
             try:
@@ -1055,6 +1060,8 @@ def allele_parser(variant, validation, validator, batch_list):
                 return True
             except AlleleSyntaxError as e:
                 variant.warnings.append(str(e))
+                # import traceback
+                # traceback.print_exc()
                 return True
 
             variant.warnings.append('The alleleic description is in the correct syntax and all possible variant '
