@@ -149,7 +149,7 @@ class Mixin(vvMixinInit.Mixin):
                     hgvs_t = copy.deepcopy(hgvs_cg)
                     if hgvs_t.posedit.edit.type == 'inv':
                         inv_alt = self.revcomp(hgvs_t.posedit.edit.ref)
-                        pre_base, post_base = seld._expand_ref(
+                        pre_base, post_base = self._expand_ref(
                                 str(hgvs_t.ac),
                                 hgvs_t.posedit.pos.start.base - 2,
                                 hgvs_t.posedit.pos.end.base + 1)
@@ -2241,13 +2241,13 @@ class Mixin(vvMixinInit.Mixin):
                         posedit = self.hp.parse_n_posedit(pe)
                     elif var_type == 'r':
                         posedit = self.hp.parse_r_posedit(pe)
-                except vvhgvs.exceptions.HGVSError as e:
+                except vvhgvs.exceptions.HGVSError:
                     raise AlleleSyntaxError(
                             f"AlleleVariantError: {accession}:{var_type}.{pe} is not a valid HGVS variant description."
                             " Please submit individually for additional guidance")
                 return vvhgvs.sequencevariant.SequenceVariant(
                         ac = accession,
-                        type = type,
+                        type = var_type,
                         posedit = posedit)
             def _check_and_fix_for_ex_repeat(accession,type,pe):
                 if not pe.endswith(']'):
