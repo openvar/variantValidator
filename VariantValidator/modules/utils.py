@@ -4,6 +4,7 @@ import logging
 import re
 import copy
 from VariantValidator.modules import seq_data
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -62,23 +63,68 @@ def handleCursor(func):
 
 
 def hgnc_rest(path):
+    """
+    Fires requests to the HGNC REST API.
+    """
+
     data = {
         'record': '',
         'error': 'false'
     }
-    # HGNC server
+
     headers = {
         'Accept': 'application/json',
     }
+
     domain = 'http://rest.genenames.org'
     url = domain + path
-    r = requests.get(url, headers=headers)
 
-    if r.status_code == 200:
-        data['record'] = r.json()
-    else:
-        my_error = "Problem encountered while connecting genenames.org: URL=%s: Status=%s" % (url, str(r.status_code))
-        data['error'] = my_error
+    max_retries = 3
+    retry_status = {429, 500, 502, 503, 504}
+
+    last_status = None
+
+    for attempt in range(max_retries):
+        try:
+            r = requests.get(url, headers=headers, timeout=60)
+            last_status = r.status_code
+
+            if r.status_code == 200:
+                data['record'] = r.json()
+                return data
+
+            if r.status_code not in retry_status:
+                data['error'] = (
+                    "Problem encountered while connecting genenames.org: "
+                    "URL=%s: Status=%s" % (url, r.status_code)
+                )
+                logger.warning(data['error'])
+                return data
+
+        except (
+            requests.exceptions.Timeout,
+            requests.exceptions.ConnectionError,
+            requests.exceptions.SSLError,
+        ) as e:
+            if attempt == max_retries - 1:
+                data['error'] = (
+                    "Problem encountered while connecting genenames.org: "
+                    "URL=%s: %s" % (url, str(e))
+                )
+                logger.warning(data['error'])
+                return data
+
+        if attempt < max_retries - 1:
+            time.sleep(0.5 * (2 ** attempt))
+
+    data['error'] = (
+        "Problem encountered while connecting genenames.org: "
+        "URL=%s: Status=%s" % (
+            url,
+            last_status if last_status is not None else "Unknown"
+        )
+    )
+    logger.warning(data['error'])
     return data
 
 
@@ -88,9 +134,10 @@ def ensembl_rest(id, endpoint, genome, options=False):
     :param id: Usually a transcript ID (base accession minus the version)
     :param endpoint: See https://rest.ensembl.org/
     :param genome: Genome build, grch37 or grch38
-    :param options: set of options for additional data, see https://rest.ensembl.org/
+    :param options: set of options for additional data
     :return: json of the requested data
     """
+
     data = {
         'record': '',
         'error': 'false'
@@ -98,71 +145,160 @@ def ensembl_rest(id, endpoint, genome, options=False):
 
     id = id.split('.')[0]
 
-    # Set base URL
     if genome == 'GRCh37':
         base_url = 'https://grch37.rest.ensembl.org'
-    if genome == 'GRCh38':
+    elif genome == 'GRCh38':
         base_url = 'https://rest.ensembl.org'
+    else:
+        data['error'] = "Unknown genome build '%s'" % genome
+        logger.warning(data['error'])
+        return data
 
     headers = {
         'Accept': 'application/json',
     }
 
-    if options is False:
-        url = '%s%s%s?content-type=application/json' % (base_url, endpoint, id)
+    if options:
+        url = '%s%s%s?%s;content-type=application/json' % (
+            base_url,
+            endpoint,
+            id,
+            options
+        )
     else:
-        url = '%s%s%s?%s;content-type=application/json' % (base_url, endpoint, id, options)
+        url = '%s%s%s?content-type=application/json' % (
+            base_url,
+            endpoint,
+            id
+        )
 
-    # Request info
-    r = requests.get(url, headers=headers)
+    max_retries = 3
+    retry_status = {429, 500, 502, 503, 504}
 
-    if r.status_code == 200:
-        data['record'] = r.json()
-    else:
-        my_error = "Problem encountered while connecting Ensembl REST: URL=%s: Status=%s" % (url, str(r.status_code))
-        data['error'] = my_error
+    last_status = None
+
+    for attempt in range(max_retries):
+        try:
+            r = requests.get(url, headers=headers, timeout=60)
+            last_status = r.status_code
+
+            if r.status_code == 200:
+                data['record'] = r.json()
+                return data
+
+            if r.status_code not in retry_status:
+                data['error'] = (
+                    "Problem encountered while connecting Ensembl REST: "
+                    "URL=%s: Status=%s" % (url, r.status_code)
+                )
+                logger.warning(data['error'])
+                return data
+
+        except (
+            requests.exceptions.Timeout,
+            requests.exceptions.ConnectionError,
+            requests.exceptions.SSLError,
+        ) as e:
+            if attempt == max_retries - 1:
+                data['error'] = (
+                    "Problem encountered while connecting Ensembl REST: "
+                    "URL=%s: %s" % (url, str(e))
+                )
+                logger.warning(data['error'])
+                return data
+
+        if attempt < max_retries - 1:
+            time.sleep(0.5 * (2 ** attempt))
+
+    data['error'] = (
+        "Problem encountered while connecting Ensembl REST: "
+        "URL=%s: Status=%s" % (
+            url,
+            last_status if last_status is not None else "Unknown"
+        )
+    )
+    logger.warning(data['error'])
     return data
 
 
 def ensembl_tark(id, endpoint, options=False):
     """
-    fires requests to the Ensembl APIs
-    :param id: Usually a transcript ID
-    :param endpoint: See http://dev-tark.ensembl.org/
-    :param options: set of options for additional data, see http://dev-tark.ensembl.org/
-    :return: json of the requested data
+    fires requests to the Ensembl TARK API
     """
+
     data = {
         'record': '',
         'error': 'false'
     }
 
-    # Set base URL
     base_url = 'https://tark.ensembl.org'
-
 
     headers = {
         'Accept': 'application/json',
     }
 
-    if options is False:
-        url = '%s%s?stable_id_with_version=%s&content-type=application/json' % (base_url, endpoint, id)
+    if options:
+        url = (
+            "%s%s?stable_id_with_version=%s&%s&content-type=application/json"
+            % (base_url, endpoint, id, options)
+        )
     else:
-        url = '%s%s?stable_id_with_version=%s&content-type=application/json' % (base_url, endpoint, id)
+        url = (
+            "%s%s?stable_id_with_version=%s&content-type=application/json"
+            % (base_url, endpoint, id)
+        )
 
-    # Request info
-    try:
-        r = requests.get(url, headers=headers)
-    except requests.exceptions.InvalidSchema as e:
-        my_error = str(e)
-        data['error'] = my_error
-        return data
+    max_retries = 3
+    retry_status = {429, 500, 502, 503, 504}
 
-    if r.status_code == 200:
-        data['record'] = r.json()
-    else:
-        my_error = "Problem encountered while connecting Ensembl REST: URL=%s: Status=%s" % (url, str(r.status_code))
-        data['error'] = my_error
+    last_status = None
+
+    for attempt in range(max_retries):
+        try:
+            r = requests.get(url, headers=headers, timeout=60)
+            last_status = r.status_code
+
+            if r.status_code == 200:
+                data['record'] = r.json()
+                return data
+
+            if r.status_code not in retry_status:
+                data['error'] = (
+                    "Problem encountered while connecting Ensembl REST: "
+                    "URL=%s: Status=%s" % (url, r.status_code)
+                )
+                logger.warning(data['error'])
+                return data
+
+        except (
+            requests.exceptions.InvalidSchema,
+            requests.exceptions.Timeout,
+            requests.exceptions.ConnectionError,
+            requests.exceptions.SSLError,
+        ) as e:
+            if isinstance(e, requests.exceptions.InvalidSchema):
+                data['error'] = str(e)
+                return data
+
+            if attempt == max_retries - 1:
+                data['error'] = (
+                    "Problem encountered while connecting Ensembl REST: "
+                    "URL=%s: %s" % (url, str(e))
+                )
+                logger.warning(data['error'])
+                return data
+
+        if attempt < max_retries - 1:
+            time.sleep(0.5 * (2 ** attempt))
+
+    data['error'] = (
+        "Problem encountered while connecting Ensembl REST: "
+        "URL=%s: Status=%s" % (
+            url,
+            last_status if last_status is not None else "Unknown"
+        )
+    )
+    logger.warning(data['error'])
     return data
 
 

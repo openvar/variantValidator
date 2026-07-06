@@ -31485,6 +31485,10 @@ class TestVariantsAuto(TestCase):
             }
         }
 
+    def test_refseq_catch_workflow(self):
+        results = self.vv.validate('NG_007400.1(NM_000088.3):c.589G>T', 'GRCh38', 'all', liftover_level=True).format_as_dict(test=True)
+        assert "NM_000088.3:c.589G>T" in results.keys()
+
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

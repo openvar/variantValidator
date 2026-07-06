@@ -6,8 +6,8 @@ import re
 import logging
 from configparser import ConfigParser
 from .modules import vvDatabase
-from . import configure
 import VariantValidator
+from VariantValidator import settings
 validator = VariantValidator.Validator()
 
 logger = logging.getLogger(__name__)
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 def connect():
     config = ConfigParser()
-    config.read(configure.CONFIG_DIR)
+    config.read(settings.get_config_dir())
 
     db_config = {
         'user': config["mysql"]["user"],
@@ -198,20 +198,38 @@ def update_refseq(dbcnx):
         print("\n")
         print(counter, "of", of_these)
         counter += 1
+
         update_success = False
+        gene_found = False
+        gene_id_found = False
+
         try:
             line[6]
+            # map_line() has already supplied the gene symbol and gene ID
+            update_success = True
+            gene_found = True
+            gene_id_found = True
+
         except IndexError:
             try:
                 identifier = copy.deepcopy(line[0])
                 identifier = identifier.split('.')[0]
                 line.append(rsg_to_symbol[identifier]['symbol'])
                 line.append(rsg_to_symbol[identifier]['gene_id'])
+
+                update_success = True
+                gene_found = True
+                gene_id_found = True
+
             except KeyError:
                 logger.info("Can't identify gene symbol for %s", line[0])
-                update_success = False
                 try:
-                    record = validator.entrez_efetch(db="nucleotide", id=line[0], rettype="gb", retmode="text")
+                    record = validator.entrez_efetch(
+                        db="nucleotide",
+                        id=line[0],
+                        rettype="gb",
+                        retmode="text",
+                    )
                 except Exception:
                     pass
                 else:

@@ -198,6 +198,485 @@ def test_vcf_stage1_hg19_prefix():
     assert vcf2hgvs_stage1(variant, batch_list) is False
     assert variant.quibble == "1:100A>T"
 
+@patch("VariantValidator.modules.format_converters.Variant")
+def test_refseq_catch_ng_creates_transcript_variants(mock_variant):
+    from VariantValidator.modules.format_converters import refseq_catch
+
+    validator = MagicMock()
+
+    validator.db.get_gene_symbol_from_refseq_id.return_value = "GENE1"
+    validator.db.get_uta_symbol.return_value = "GENE1"
+
+    validator.hdp.get_tx_for_gene.return_value = [
+        (None, None, None, "NM_000001.1"),
+        (None, None, None, "NM_000002.1"),
+        (None, None, None, "ENST00000311111.2"),
+    ]
+
+    validator.select_transcripts = "mane"
+
+    variant = MockVariant("NG_000001.1:c.123A>G")
+
+    batch_list = []
+
+    select_transcripts = {
+        "NM_000001.1": None,
+        "ENST00000311111.2": None,
+    }
+
+    assert (
+        refseq_catch(
+            variant,
+            validator,
+            select_transcripts,
+            batch_list,
+        )
+        is True
+    )
+
+    assert variant.write is False
+    assert len(batch_list) == 2
+
+    assert mock_variant.call_count == 2
+
+    first = mock_variant.call_args_list[0].kwargs
+
+    assert first["primary_assembly"] == variant.primary_assembly
+    assert first["order"] == variant.order
+    assert first["warnings"] == variant.warnings
+    assert first["quibble"] == "NG_000001.1(NM_000001.1):c.123A>G"
+
+    second = mock_variant.call_args_list[1].kwargs
+
+    assert second["quibble"] == "NG_000001.1(ENST00000311111.2):c.123A>G"
+
+
+@patch("VariantValidator.modules.format_converters.Variant")
+def test_gene_symbol_catch_creates_variants(mock_variant):
+    from VariantValidator.modules.format_converters import gene_symbol_catch
+
+    validator = MagicMock()
+
+    validator.alt_aln_method = "splign"
+    validator.select_transcripts = "select"
+
+    validator.db.get_hgnc_symbol.return_value = "BRCA1"
+    validator.db.get_uta_symbol.return_value = "BRCA1"
+
+    validator.hdp.get_tx_for_gene.return_value = [
+        (None, None, None, "NM_000001.1"),
+        (None, None, None, "NM_000002.1"),
+        (None, None, None, "ENST00000311111.2"),
+    ]
+
+    variant = MockVariant("BRCA1:c.123A>G")
+    batch_list = []
+
+    select_transcripts = {
+        "NM_000001.1": None,
+        "NM_000002.1": None,
+    }
+
+    assert gene_symbol_catch(
+        variant,
+        validator,
+        select_transcripts,
+        batch_list,
+    ) is True
+
+    # Original variant should no longer be written
+    assert variant.write is False
+
+    # One replacement per requested transcript
+    assert mock_variant.call_count == 2
+    assert len(batch_list) == 2
+
+    # First replacement
+    kwargs = mock_variant.call_args_list[0].kwargs
+    assert kwargs["quibble"] == "NM_000001.1:c.123A>G"
+    assert kwargs["primary_assembly"] == variant.primary_assembly
+    assert kwargs["order"] == variant.order
+    assert kwargs["warnings"] == variant.warnings
+
+    # Second replacement
+    kwargs = mock_variant.call_args_list[1].kwargs
+    assert kwargs["quibble"] == "NM_000002.1:c.123A>G"
+    assert kwargs["primary_assembly"] == variant.primary_assembly
+    assert kwargs["order"] == variant.order
+
+    # Warning propagated
+    assert any(
+        "does not allow the use of a gene symbol" in w
+        for w in variant.warnings
+    )
+
+
+def test_gene_symbol_catch_invalid_gene():
+    from VariantValidator.modules.format_converters import gene_symbol_catch
+
+    validator = MagicMock()
+    validator.db.get_hgnc_symbol.return_value = "none"
+
+    variant = MockVariant("NOTAGENE:c.123A>G")
+    batch_list = []
+
+    assert gene_symbol_catch(
+        variant,
+        validator,
+        {},
+        batch_list,
+    ) is True
+
+    assert variant.write is True
+    assert batch_list == []
+    assert any("NOTAGENE" in w for w in variant.warnings)
+
+
+def test_gene_symbol_catch_select_all():
+    from VariantValidator.modules.format_converters import gene_symbol_catch
+
+    validator = MagicMock()
+
+    validator.alt_aln_method = "splign"
+    validator.select_transcripts = "all"
+
+    validator.db.get_hgnc_symbol.return_value = "BRCA1"
+    validator.db.get_uta_symbol.return_value = "BRCA1"
+
+    validator.hdp.get_tx_for_gene.return_value = [
+        (None, None, None, "NM_000001.1"),
+        (None, None, None, "NM_000002.1"),
+    ]
+
+    variant = MockVariant("BRCA1:c.123A>G")
+    batch_list = []
+
+    assert gene_symbol_catch(
+        variant,
+        validator,
+        {},
+        batch_list,
+    ) is True
+
+    assert variant.write is True
+    assert batch_list == []
+    assert any("select_transcripts=" in w for w in variant.warnings)
+
+
+@patch("VariantValidator.modules.format_converters.Variant")
+def test_gene_symbol_catch_genebuild_uses_enst(mock_variant):
+    from VariantValidator.modules.format_converters import gene_symbol_catch
+
+    validator = MagicMock()
+
+    validator.alt_aln_method = "genebuild"
+    validator.select_transcripts = "select"
+
+    validator.db.get_hgnc_symbol.return_value = "BRCA1"
+    validator.db.get_uta_symbol.return_value = "BRCA1"
+
+    validator.hdp.get_tx_for_gene.return_value = [
+        (None, None, None, "NM_000001.1"),
+        (None, None, None, "ENST00000311111.2"),
+    ]
+
+    variant = MockVariant("BRCA1:c.123A>G")
+    batch_list = []
+
+    gene_symbol_catch(
+        variant,
+        validator,
+        {"ENST00000311111.2": None},
+        batch_list,
+    )
+
+    kwargs = mock_variant.call_args.kwargs
+
+    assert kwargs["quibble"] == "ENST00000311111.2:c.123A>G"
+
+
+def test_gene_symbol_catch_non_transcript_variant():
+    from VariantValidator.modules.format_converters import gene_symbol_catch
+
+    validator = MagicMock()
+
+    variant = MockVariant("BRCA1:g.123A>G")
+    batch_list = []
+
+    assert gene_symbol_catch(
+        variant,
+        validator,
+        {},
+        batch_list,
+    ) is False
+
+    validator.db.get_hgnc_symbol.assert_not_called()
+    assert batch_list == []
+
+def test_gene_symbol_catch_parenthesised_gene():
+    from VariantValidator.modules.format_converters import gene_symbol_catch
+
+    validator = MagicMock()
+
+    variant = MockVariant("BRCA1(ENST00000357654):c.123A>G")
+    batch_list = []
+
+    assert gene_symbol_catch(
+        variant,
+        validator,
+        {},
+        batch_list,
+    ) is False
+
+    validator.db.get_hgnc_symbol.assert_not_called()
+
+
+def test_refseq_catch_nc_without_transcript():
+    from VariantValidator.modules.format_converters import refseq_catch
+
+    validator = MagicMock()
+
+    variant = MockVariant("NC_000001.11:c.123A>G")
+    batch_list = []
+
+    assert refseq_catch(
+        variant,
+        validator,
+        {},
+        batch_list,
+    ) is True
+
+    assert any(
+        "Unable to predict available transcripts"
+        in w
+        for w in variant.warnings
+    )
+
+
+def test_refseq_catch_ng_unknown_gene():
+    from VariantValidator.modules.format_converters import refseq_catch
+
+    validator = MagicMock()
+
+    validator.db.get_gene_symbol_from_refseq_id.return_value = "none"
+
+    variant = MockVariant("NG_000001.1:c.123A>G")
+    batch_list = []
+
+    assert refseq_catch(
+        variant,
+        validator,
+        {},
+        batch_list,
+    ) is True
+
+    assert any(
+        "NG_(NM_)"
+        in w
+        for w in variant.warnings
+    )
+
+
+def test_refseq_catch_invalid_nested_reference():
+    from VariantValidator.modules.format_converters import refseq_catch
+
+    validator = MagicMock()
+
+    variant = MockVariant(
+        "NG_000001.1(ABC123):c.123A>G"
+    )
+
+    batch_list = []
+
+    assert refseq_catch(
+        variant,
+        validator,
+        {},
+        batch_list,
+    ) is True
+
+    assert any(
+        "NG_(NM_):c.PositionVariation"
+        in w
+        for w in variant.warnings
+    )
+
+
+def test_refseq_catch_multiple_genomic_refs():
+    from VariantValidator.modules.format_converters import refseq_catch
+
+    validator = MagicMock()
+
+    variant = MockVariant(
+        "NG_000001.1(NC_000001.11(NM_000001.1):c.123A>G"
+    )
+
+    batch_list = []
+
+    assert refseq_catch(
+        variant,
+        validator,
+        {},
+        batch_list,
+    ) is True
+
+    assert any(
+        "Multiple genomic reference sequences"
+        in w
+        for w in variant.warnings
+    )
+
+
+def test_gene_symbol_catch_empty_transcript_list():
+    from VariantValidator.modules.format_converters import gene_symbol_catch
+
+    validator = MagicMock()
+
+    validator.alt_aln_method = "splign"
+    validator.select_transcripts = "all"
+
+    validator.db.get_hgnc_symbol.return_value = "BRCA1"
+    validator.db.get_uta_symbol.return_value = "BRCA1"
+
+    validator.hdp.get_tx_for_gene.return_value = []
+
+    variant = MockVariant("BRCA1:c.123A>G")
+
+    assert gene_symbol_catch(
+        variant,
+        validator,
+        {},
+        [],
+    ) is True
+
+    assert any(
+        "select_transcripts="
+        in w
+        for w in variant.warnings
+    )
+
+def test_gene_symbol_catch_raw_select_transcripts():
+    from VariantValidator.modules.format_converters import gene_symbol_catch
+
+    validator = MagicMock()
+    validator.alt_aln_method = "splign"
+    validator.select_transcripts = "raw"
+
+    validator.db.get_hgnc_symbol.return_value = "BRCA1"
+    validator.db.get_uta_symbol.return_value = "BRCA1"
+    validator.hdp.get_tx_for_gene.return_value = [
+        (None, None, None, "NM_000001.1"),
+    ]
+
+    variant = MockVariant("BRCA1:c.123A>G")
+
+    assert gene_symbol_catch(variant, validator, {}, []) is True
+    assert variant.write is True
+
+
+@patch("VariantValidator.modules.format_converters.Variant")
+def test_gene_symbol_catch_duplicate_transcripts(mock_variant):
+    from VariantValidator.modules.format_converters import gene_symbol_catch
+
+    validator = MagicMock()
+    validator.alt_aln_method = "splign"
+    validator.select_transcripts = "select"
+
+    validator.db.get_hgnc_symbol.return_value = "BRCA1"
+    validator.db.get_uta_symbol.return_value = "BRCA1"
+
+    validator.hdp.get_tx_for_gene.return_value = [
+        (None, None, None, "NM_000001.1"),
+        (None, None, None, "NM_000001.1"),
+    ]
+
+    variant = MockVariant("BRCA1:c.123A>G")
+    batch = []
+
+    gene_symbol_catch(
+        variant,
+        validator,
+        {"NM_000001.1": None},
+        batch,
+    )
+
+    assert len(batch) == 1
+
+
+def test_refseq_catch_raw_mode():
+    from VariantValidator.modules.format_converters import refseq_catch
+
+    validator = MagicMock()
+
+    validator.select_transcripts = "raw"
+
+    validator.db.get_gene_symbol_from_refseq_id.return_value = "GENE"
+    validator.db.get_uta_symbol.return_value = "GENE"
+
+    validator.hdp.get_tx_for_gene.return_value = [
+        (None, None, None, "NM_000001.1"),
+    ]
+
+    variant = MockVariant("NG_000001.1:c.123A>G")
+
+    assert refseq_catch(
+        variant,
+        validator,
+        {},
+        [],
+    ) is True
+
+    assert variant.write is True
+
+
+def test_refseq_catch_nested_valid_reference():
+    from VariantValidator.modules.format_converters import refseq_catch
+
+    validator = MagicMock()
+
+    variant = MockVariant(
+        "NG_000001.1(NM_000001.1):c.123A>G"
+    )
+
+    assert refseq_catch(
+        variant,
+        validator,
+        {},
+        [],
+    ) is False
+
+
+def test_gene_symbol_catch_non_coding_type():
+    from VariantValidator.modules.format_converters import gene_symbol_catch
+
+    validator = MagicMock()
+
+    variant = MockVariant("BRCA1:p.Gly12Val")
+
+    assert gene_symbol_catch(
+        variant,
+        validator,
+        {},
+        [],
+    ) is False
+
+    validator.db.get_hgnc_symbol.assert_not_called()
+
+
+def test_refseq_catch_non_coding_type():
+    from VariantValidator.modules.format_converters import refseq_catch
+
+    validator = MagicMock()
+
+    variant = MockVariant("NG_000001.1:g.123A>T")
+
+    assert refseq_catch(
+        variant,
+        validator,
+        {},
+        [],
+    ) is False
+
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

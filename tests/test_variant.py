@@ -1,4 +1,5 @@
 from unittest import TestCase
+import pytest
 from VariantValidator.modules.variant import Variant
 from VariantValidator.modules.utils import VariantValidatorError
 TestCase.maxDiff = None
@@ -359,46 +360,156 @@ class TestMethods(TestCase):
             'lovd_messages': None
         })
 
-    # def test_output_dict_set(self):
-    #     self.var.gene_symbol = 'Symbol'
-    #     self.var.annotations = 'annotated'
-    #     self.var.description = 'Desc'
-    #     self.var.stable_gene_ids = 'My_id'
-    #     self.var.hgvs_transcript_variant = 'hgvsvar'
-    #     self.var.genome_context_intronic_sequence = 'gintronic'
-    #     self.var.refseqgene_context_intronic_sequence = 'rintronic'
-    #     self.var.hgvs_refseqgene_variant = 'refseq'
-    #     self.var.hgvs_predicted_protein_consequence = 'prot'
-    #     self.var.warnings = ['warning']
-    #     self.var.hgvs_lrg_transcript_variant = 'lrgT'
-    #     self.var.hgvs_lrg_variant = 'lrg'
-    #     self.var.alt_genomic_loci = 'alt'
-    #     self.var.primary_assembly_loci = 'primary'
-    #     self.var.reference_sequence_records = 'records'
-    #     self.var.selected_assembly = 'assembly'
-    #     self.rna_variant_descriptions = None
-    #     output = self.var.output_dict()
-    #     self.assertIsInstance(output, dict)
-    #     self.assertEqual(output, {
-    #         'submitted_variant': 'NM_015120.4:c.34=',
-    #         'gene_symbol': 'Symbol',
-    #         'annotations': 'annotated',
-    #         'gene_ids': 'My_id',
-    #         'transcript_description': 'Desc',
-    #         'hgvs_transcript_variant': 'hgvsvar',
-    #         'genome_context_intronic_sequence': 'gintronic',
-    #         'refseqgene_context_intronic_sequence': 'rintronic',
-    #         'hgvs_refseqgene_variant': 'refseq',
-    #         'hgvs_predicted_protein_consequence': 'prot',
-    #         'validation_warnings': ['warning'],
-    #         'hgvs_lrg_transcript_variant': 'lrgT',
-    #         'hgvs_lrg_variant': 'lrg',
-    #         'selected_assembly': 'assembly',
-    #         'alt_genomic_loci': 'alt',
-    #         'primary_assembly_loci': 'primary',
-    #         'reference_sequence_records': 'records',
-    #         'rna_variant_descriptions': None
-    #     })
+    def test_remove_quotes_double(self):
+        var = Variant('"NM_015120.4:c.34="')
+        var.remove_quotes()
+        assert var.quibble == "NM_015120.4:c.34="
+
+    def test_remove_quotes_single(self):
+        var = Variant("'NM_015120.4:c.34='")
+        var.remove_quotes()
+        assert var.quibble == "NM_015120.4:c.34="
+
+    def test_non_alphanum_start_false(self):
+        var = Variant("NM_015120.4:c.34=")
+        assert var.non_alphanum_start() is False
+
+    def test_non_alphanum_start_true(self):
+        var = Variant("!NM_015120.4:c.34=")
+        assert var.non_alphanum_start() is True
+
+    def test_non_alphanum_start_fixed_by_quotes(self):
+        var = Variant('"NM_015120.4:c.34="')
+        assert var.non_alphanum_start() is False
+        assert var.quibble == "NM_015120.4:c.34="
+
+    def test_set_reftype_hgvs_object(self):
+        class MockHGVS:
+            type = "g"
+
+        var = Variant("dummy")
+        var.quibble = MockHGVS()
+
+        assert var.set_reftype() is True
+        assert var.reftype == ":g."
+
+    def test_set_reftype_hgvs_object_invalid(self):
+        class MockHGVS:
+            type = "banana"
+
+        var = Variant("dummy")
+        var.quibble = MockHGVS()
+
+        with pytest.raises(VariantValidatorError):
+            var.set_reftype()
+
+    def test_set_refsource_hgvs_object_refseq(self):
+        class MockHGVS:
+            ac = "NM_000001.1"
+
+        var = Variant("dummy")
+        var.quibble = MockHGVS()
+
+        var.set_refsource()
+
+        assert var.refsource == "RefSeq"
+
+    def test_set_refsource_hgvs_object_lrg(self):
+        class MockHGVS:
+            ac = "LRG_1"
+
+        var = Variant("dummy")
+        var.quibble = MockHGVS()
+
+        var.set_refsource()
+
+        assert var.refsource == "LRG"
+
+    def test_set_refsource_hgvs_object_ens(self):
+        class MockHGVS:
+            ac = "ENST000001"
+
+        var = Variant("dummy")
+        var.quibble = MockHGVS()
+
+        var.set_refsource()
+
+        assert var.refsource == "ENS"
+
+    def test_remove_typos_multiple_colons(self):
+        var = Variant("NM_015120.4::c.34=")
+
+        var.remove_typos()
+
+        assert var.quibble == "NM_015120.4:c.34="
+        assert any("Multiple colons" in w for w in var.warnings)
+
+    def test_remove_typos_missing_colon(self):
+        var = Variant("NM_015120.4c.34=")
+
+        var.remove_typos()
+
+        assert var.quibble == "NM_015120.4:c.34="
+        assert any("Unable to identify a colon" in w for w in var.warnings)
+
+    def test_process_warnings_string_all(self):
+        var = Variant("NM_015120.4:c.34=")
+
+        var.warnings = [
+            {"message": "ignore"},
+            " warning "
+        ]
+
+        output = var.process_warnings(string_all=True)
+
+        assert len(output) == 2
+
+    def test_output_dict_set(self):
+        self.var.gene_symbol = 'Symbol'
+        self.var.annotations = 'annotated'
+        self.var.description = 'Desc'
+        self.var.stable_gene_ids = 'My_id'
+        self.var.hgvs_transcript_variant = 'hgvsvar'
+        self.var.genome_context_intronic_sequence = 'gintronic'
+        self.var.refseqgene_context_intronic_sequence = 'rintronic'
+        self.var.hgvs_refseqgene_variant = 'refseq'
+        self.var.hgvs_predicted_protein_consequence = 'prot'
+        self.var.warnings = ['warning']
+        self.var.hgvs_lrg_transcript_variant = 'lrgT'
+        self.var.hgvs_lrg_variant = 'lrg'
+        self.var.alt_genomic_loci = 'alt'
+        self.var.primary_assembly_loci = 'primary'
+        self.var.reference_sequence_records = 'records'
+        self.var.selected_assembly = 'assembly'
+        self.var.exonic_positions = 'exons'
+        self.var.rna_data = 'rna'
+
+        output = self.var.output_dict()
+
+        self.assertIsInstance(output, dict)
+        self.assertEqual(output, {
+            'selected_assembly': 'assembly',
+            'submitted_variant': 'NM_015120.4:c.34=',
+            'gene_symbol': 'Symbol',
+            'gene_ids': 'My_id',
+            'annotations': 'annotated',
+            'transcript_description': 'Desc',
+            'hgvs_transcript_variant': 'hgvsvar',
+            'rna_variant_descriptions': 'rna',
+            'genome_context_intronic_sequence': 'gintronic',
+            'refseqgene_context_intronic_sequence': 'rintronic',
+            'hgvs_refseqgene_variant': 'refseq',
+            'hgvs_predicted_protein_consequence': 'prot',
+            'validation_warnings': ['warning'],
+            'lovd_messages': None,
+            'lovd_corrections': None,
+            'hgvs_lrg_transcript_variant': 'lrgT',
+            'hgvs_lrg_variant': 'lrg',
+            'alt_genomic_loci': 'alt',
+            'primary_assembly_loci': 'primary',
+            'variant_exonic_positions': 'exons',
+            'reference_sequence_records': 'records',
+        })
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

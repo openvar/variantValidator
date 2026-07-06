@@ -243,12 +243,13 @@ class Database(vvDBInsert.Mixin):
                                                      endpoint="/api/transcript/stable_id_with_version/")
                     tark_json = tark_record['record']
 
-                    if 'mane_transcript_type' in tark_json['results'][0].keys():
-                        if tark_json['results'][0]['mane_transcript_type'] == "MANE SELECT":
-                            mane_select = True
-                            select_tx = 'MANE'
-                        else:
-                            mane_plus_clinical = True
+                    mane_type = tark_json['results'][0].get('mane_transcript_type')
+
+                    if mane_type == "MANE SELECT":
+                        mane_select = True
+                        select_tx = 'MANE'
+                    elif mane_type is not None:
+                        mane_plus_clinical = True
 
                     description_parts = description.split('-')
                     if len(description_parts) == 3:

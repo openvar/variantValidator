@@ -151,7 +151,7 @@ echo "VVTA ready."
 ## Create the Conda environment
 
 ```bash
-conda env create -f environment.yaml
+conda env create -f environment.yml
 ```
 
 ## Activate the environment
