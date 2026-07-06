@@ -3,16 +3,28 @@ Exon_numbering_tests
 Authors: Katie Williams (@kwi11iams) and Katherine Winfield (@kjwinfield)
 This code runs tests on the module exon_numbering.py to check the outputs are as expected
 """
-import unittest
 from VariantValidator import Validator
-
+import time
+import unittest
 
 class TestExonNumbering(unittest.TestCase):
 
     @classmethod
     def setup_class(cls):
-        cls.vv = Validator()
-        cls.vv.testing = True
+        last_exc = None
+
+        # This file keeps hitting race conditions. Added retries to counter
+        for attempt in range(3):
+            try:
+                cls.vv = Validator()
+                cls.vv.testing = True
+                return
+            except Exception as e:
+                last_exc = e
+                print(f"Validator initialisation failed (attempt {attempt + 1}/3): {e}")
+                time.sleep(2)
+
+        raise last_exc
 
     """
     Class TextExonNumbering automates running the tests, and reports failure if

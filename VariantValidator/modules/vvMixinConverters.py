@@ -2216,22 +2216,34 @@ class Mixin(vvMixinInit.Mixin):
         HGVS allele handling function which takes a single HGVS allele description and
         separates each allele into a list of HGVS variants
         """
-        logger.info('HGVS allele handling function')
+        logger.info(f'HGVS allele handling function with variant {my_variant.quibble} and genomnic reference set to '
+                    f'{genomic_reference}')
 
         try:
             # Split up the description
             accession, remainder = my_variant.quibble.split(':')
-            if '(' in accession or ')' in accession:
-                if not ('(' in accession and ')' in accession):
-                    raise fn.alleleVariantError(
-                            'Unsupported format for allele accession'
-                            + ' bad use of brackets ' + accession)
-                accession_1, _sep, accession_2 = accession.partition('(')
-                accession_2, _sep, _remain = accession_2.partition(')')
-                if accession_1[:3] in ['NM_','NR_'] or accession_1[:4] == 'ENST':
-                    accession = accession_1
-                else:
-                    accession = accession_2
+            logger.info(f"Accession: {accession} and remainder: {remainder}")
+
+            # Code now likely redundant as genomic reference is set to a value for variants like
+            # ["NC_000017.11(NM_000088.3):c.[600C>A;589-1G[3]]"]
+
+            if ("(" in accession or ")" in accession) and not genomic_reference:
+                raise fn.alleleVariantError(
+                    f"AlleleVariantError: Unexpected compound accession '{accession}' passed to hgvs_alleles()"
+                )
+
+            # if '(' in accession or ')' in accession:
+            #     logger.info(f"compound accession {accession} identified")
+            #     if not ('(' in accession and ')' in accession):
+            #         raise fn.alleleVariantError(
+            #                 'Unsupported format for allele accession'
+            #                 + ' bad use of brackets ' + accession)
+            #     accession_1, _sep, accession_2 = accession.partition('(')
+            #     accession_2, _sep, _remain = accession_2.partition(')')
+            #     if accession_1[:3] in ['NM_','NR_'] or accession_1[:4] == 'ENST':
+            #         accession = accession_1
+            #     else:
+            #         accession = accession_2
 
             def _parse_allele_part(accession,var_type,pe):
                 try:
@@ -2244,7 +2256,8 @@ class Mixin(vvMixinInit.Mixin):
                     elif var_type == 'n':
                         posedit = self.hp.parse_n_posedit(pe)
                     elif var_type == 'r':
-                        posedit = self.hp.parse_r_posedit(pe)
+                        logger.info(f"RNA variant {my_variant.quibble} identified with accession {accession}")
+                        raise fn.alleleVariantError(f"UnsupportedFormatError: RNA allele syntax variants are not currently supported. Please submit individually for additional guidance")
                 except vvhgvs.exceptions.HGVSError:
                     raise AlleleSyntaxError(
                             f"AlleleVariantError: {accession}:{var_type}.{pe} is not a valid HGVS variant description."
@@ -2312,6 +2325,7 @@ class Mixin(vvMixinInit.Mixin):
                         f"Looking up genomic reference for transcript {repeat_to_delins.ac}"
                     )
 
+
                     mapping = self.hdp.get_tx_mapping_options(repeat_to_delins.ac)
 
                     for option in mapping:
@@ -2329,6 +2343,9 @@ class Mixin(vvMixinInit.Mixin):
                                 f"Using genomic reference {genomic_reference}"
                             )
                             break
+
+                else:
+                    logger.info(f"Created return using genomic reference {genomic_reference}")
 
                 return repeat_to_delins, genomic_reference
 

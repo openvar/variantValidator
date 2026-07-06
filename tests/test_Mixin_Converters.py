@@ -1,11 +1,11 @@
 from unittest.mock import MagicMock, patch
 import pytest
+import json
 
 from VariantValidator.modules.vvMixinConverters import Mixin
 from vvhgvs.exceptions import HGVSDataNotAvailableError, HGVSError
 
 from unittest import TestCase
-import json
 
 from VariantValidator.validator import Validator
 
@@ -50,6 +50,18 @@ class TestVVMixinConvertersFunctional(TestCase):
 
         assert result["validation_warning_1"]["validation_warnings"] == ['AlleleSyntaxError: Submitted variants are out of order or their ranges overlap']
 
+    def test_allele_repeat_single_base_intronic_nc_nm_format(self):
+        result = self.validate('["NC_000017.11(NM_000088.3):r.[589G>T;600C>A]"]')
+
+        assert result["validation_warning_1"]["validation_warnings"] == [
+            "UnsupportedFormatError: RNA allele syntax variants are not currently supported. Please submit individually for additional guidance"
+        ]
+
+    def test_allele_repeat_rna(self):
+        result = self.validate('["NC_000017.11(NM_000088.3):c.[600C>A;589-1G[3]]"]')
+
+        assert result["validation_warning_1"]["validation_warnings"] == ['AlleleSyntaxError: Submitted variants are out of order or their ranges overlap']
+
     def test_allele_uncertain_parenthesised(self):
         result = self.validate("NM_000088.3:c.600[C>A];[(C>A)]")
 
@@ -90,6 +102,52 @@ class TestVVMixinConvertersFunctional(TestCase):
         self.assertEqual(result["flag"], "gene_variant")
         self.assertIn("NM_000088.3:c.589-1_590=", result)
         self.assertIn("NM_000088.3:c.600C>A", result)
+
+    def test_noncoding_allele(self):
+        variant = "NR_110010.2:n.[138del;150_150+1G[2]]"
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert "NR_110010.2:n.150_150+1delinsG" in results.keys()
+        assert "NR_110010.2:n.138del" in results.keys()
+
+
+    def test_noncoding_allele_compound_accession(self):
+        variant = "NC_000017.10(NR_110010.2):n.[138del;150_150+1G[2]]"
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        print(results)
+        assert "NR_110010.2:n.150_150+1delinsG" in results.keys()
+        assert "NR_110010.2:n.138del" in results.keys()
+
+    def test_mito_allele(self):
+        variant = "NC_012920.1:m.[4del;7dup]"
+        results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
+        print(results)
+        assert "mitochondrial_variant_1" in results.keys()
+        assert "mitochondrial_variant_2" in results.keys()
+
+
+    def test_lrg_transcript_allele(self):
+        result = self.validate("LRG_1t1:c.[600C>A];[620A>T]")
+
+        self.assertEqual(result["flag"], "gene_variant")
+        self.assertIn("NM_000088.3:c.600C>A", result)
+        self.assertIn("NM_000088.3:c.620A>T", result)
+
+
+    def test_lrg_transcript_repeat(self):
+        result = self.validate("LRG_1t1:c.[589-1G[3];600C>A]")
+
+        self.assertEqual(result["flag"], "gene_variant")
+        self.assertIn("NM_000088.3:c.589-1_590=", result)
+        self.assertIn("NM_000088.3:c.600C>A", result)
+
+    def test_lrg_gene_allele(self):
+        result = self.validate("LRG1:g.[50198003C>A];[50198023A>T]")
+
+        assert result["validation_warning_1"]["validation_warnings"] == [
+            "LRG1 updated to LRG_1: LRG_1:g.[50198003C>A];[50198023A>T] automapped to equivalent RefSeq recordNG_007400.1:g.[50198003C>A];[50198023A>T]",
+            "ReferenceMismatchError: NG_007400.1:g.50198003C>A: Variant reference (C) does not agree with reference sequence ()"
+        ]
 
 
 class DummyMixin(Mixin):

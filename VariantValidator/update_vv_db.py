@@ -6,8 +6,8 @@ import re
 import logging
 from configparser import ConfigParser
 from .modules import vvDatabase
-from . import configure
 import VariantValidator
+from VariantValidator import settings
 validator = VariantValidator.Validator()
 
 logger = logging.getLogger(__name__)
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 def connect():
     config = ConfigParser()
-    config.read(configure.CONFIG_DIR)
+    config.read(settings.get_config_dir())
 
     db_config = {
         'user': config["mysql"]["user"],

@@ -985,17 +985,28 @@ def allele_parser(variant, validation, validator, batch_list):
     caution = ''
     ac_part, _sep, var = variant.quibble.partition(':')
     is_digit, _sep, end = var.partition('[')
-    if (var[:3] in ['g.[','c.[','n.[',':r.['] and ';' in var) or (
-            is_digit[:2] in ['g.','c.','n.',':r.'] and ';' in end and is_digit[2:].isdigit()
-            ) or ('(;)' in var):
+    if (var[:3] in ['g.[', 'c.[', 'n.[', 'm.[', 'r.['] and ';' in var) or (
+            is_digit[:2] in ['g.', 'c.', 'n.', 'm.', 'r.'] and ';' in end and is_digit[2:].isdigit()
+        ) or ('(;)' in var):
         # Edit compound descriptions
         genomic_ref = intronic_converter(variant, validator, skip_check=True)
+        # Determine whether a genomic reference has already been supplied.
+        #
+        # Path 1:
+        # intronic_converter() could not derive a genomic reference, so use the
+        # submitted accession if it is already a genomic RefSeq accession
+        # (NC_, NG_, NT_ or NW_).
+        #
+        # Path 2:
+        # intronic_converter() successfully derived a genomic reference from the
+        # submitted transcript/gene accession. Use it if it is a supported genomic
+        # RefSeq accession.
         if genomic_ref is None:
-            if 'NC_' in ac_part:
+            if re.match(r'^(NC|NG|NT|NW)_', ac_part):
                 genomic_reference = ac_part
             else:
                 genomic_reference = False
-        elif 'NC_' in genomic_ref or 'NG_' in genomic_ref:
+        elif re.match(r'^(NC|NG|NT|NW)_', genomic_ref):
             genomic_reference = genomic_ref
         else:
             genomic_reference = False
