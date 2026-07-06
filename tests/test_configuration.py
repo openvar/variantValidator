@@ -5,7 +5,7 @@ import subprocess
 import sys
 import pytest
 from configparser import ConfigParser
-
+import tempfile
 
 class TestConfigSetUp(unittest.TestCase):
     """
@@ -14,15 +14,39 @@ class TestConfigSetUp(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.filename = os.path.join(os.path.expanduser('~'), '.variantvalidator')
+        cls.filename = os.path.join(
+            tempfile.gettempdir(),
+            f".variantvalidator_{cls.__name__}"
+        )
+
+        os.environ["VARIANTVALIDATOR_TEST_CONFIG"] = cls.filename
+
+        if os.path.exists(cls.filename):
+            os.remove(cls.filename)
+
+    @classmethod
+    def tearDownClass(cls):
+        os.environ.pop("VARIANTVALIDATOR_TEST_CONFIG", None)
+
+        for f in (cls.filename, cls.filename + "_ori"):
+            if os.path.exists(f):
+                os.remove(f)
 
     def setUp(self):
-        new_filename = self.filename + '_ori'
-        shutil.move(self.filename, new_filename)
-        print('Moved file')
+        if os.path.exists(self.filename):
+            shutil.move(self.filename, self.filename + "_ori")
+        print("Moved file")
+
+    def tearDown(self):
+        backup = self.filename + "_ori"
+        if os.path.exists(backup):
+            shutil.move(backup, self.filename)
 
     def insert_blank(self):
-        subprocess.check_output(['python', '-c', 'import VariantValidator'])
+        subprocess.check_output(
+            ['python', '-c', 'import VariantValidator'],
+            env=os.environ.copy()
+        )
 
     def open_config(self):
         self.config = ConfigParser()
@@ -41,10 +65,13 @@ class TestConfigSetUp(unittest.TestCase):
 
     def test_no_config_file_msg(self):
         self.assertFalse(os.path.exists(self.filename))
-        output = subprocess.check_output(['python', '-c', 'import VariantValidator'])
+        output = subprocess.check_output(
+            ['python', '-c', 'import VariantValidator'],
+            env=os.environ.copy()
+        )
         print(output)
-        self.assertTrue('Welcome to VariantValidator' in output.decode())
-        self.assertTrue('Please edit this file' in output.decode())
+        self.assertIn('Welcome to VariantValidator', output.decode())
+        self.assertIn('Please edit this file', output.decode())
 
     def test_unchanged_file(self):
         if 'VariantValidator' in list(sys.modules.keys()):
@@ -58,101 +85,130 @@ class TestConfigSetUp(unittest.TestCase):
     def test_unchanged_file_msg(self):
         self.insert_blank()
         self.assertTrue(os.path.exists(self.filename))
-        output = subprocess.check_output(['python', '-c', 'import VariantValidator'])
+        output = subprocess.check_output(
+            ['python', '-c', 'import VariantValidator'],
+            env=os.environ.copy()
+        )
         print(output)
-        self.assertTrue('MySQL' in output.decode())
-        self.assertTrue('Please edit your configuration' in output.decode())
+        self.assertIn('MySQL', output.decode())
+        self.assertIn('Please edit your configuration', output.decode())
 
     def test_changed_mysql(self):
         if 'VariantValidator' in list(sys.modules.keys()):
             pytest.skip("VariantValidator already imported")
+
         self.insert_blank()
         self.open_config()
+
         self.assertEqual(self.config['mysql']['user'], 'USERNAME')
         self.config['mysql']['user'] = 'myusername'
+
         self.assertEqual(self.config['mysql']['password'], 'PASSWORD')
         self.config['mysql']['password'] = 'mypass'
+
         self.write_config()
 
         self.assertTrue(os.path.exists(self.filename))
+
         with self.assertRaises(SystemExit):
             import VariantValidator
 
     def test_changed_mysql_msg(self):
         self.insert_blank()
         self.open_config()
+
         self.assertEqual(self.config['mysql']['user'], 'USERNAME')
         self.config['mysql']['user'] = 'myusername'
+
         self.assertEqual(self.config['mysql']['password'], 'PASSWORD')
         self.config['mysql']['password'] = 'mypass'
+
         self.write_config()
 
-        output = subprocess.check_output(['python', '-c', 'import VariantValidator'])
+        output = subprocess.check_output(
+            ['python', '-c', 'import VariantValidator'],
+            env=os.environ.copy()
+        )
+
         print(output)
-        self.assertTrue('PostgreSQL' in output.decode())
-        self.assertTrue('Please edit your configuration' in output.decode())
+
+        self.assertIn('PostgreSQL', output.decode())
+        self.assertIn('Please edit your configuration', output.decode())
 
     def test_changed_postgres(self):
         if 'VariantValidator' in list(sys.modules.keys()):
             pytest.skip("VariantValidator already imported")
+
         self.insert_blank()
         self.open_config()
+
         self.config['mysql']['user'] = 'myusername'
         self.config['mysql']['password'] = 'mypass'
 
         self.assertEqual(self.config['postgres']['user'], 'USERNAME')
         self.assertEqual(self.config['postgres']['password'], 'PASSWORD')
+
         self.config['postgres']['user'] = 'me'
         self.config['postgres']['password'] = 'pass'
+
         self.write_config()
 
         self.assertTrue(os.path.exists(self.filename))
+
         with self.assertRaises(SystemExit):
             import VariantValidator
 
     def test_changed_postgres_msg(self):
         self.insert_blank()
         self.open_config()
+
         self.config['mysql']['user'] = 'myusername'
         self.config['mysql']['password'] = 'mypass'
 
         self.assertEqual(self.config['postgres']['user'], 'USERNAME')
         self.assertEqual(self.config['postgres']['password'], 'PASSWORD')
+
         self.config['postgres']['user'] = 'me'
         self.config['postgres']['password'] = 'pass'
+
         self.write_config()
 
-        output = subprocess.check_output(['python', '-c', 'import VariantValidator'])
-        self.assertTrue('Seqrepo' in output.decode())
-        self.assertTrue('Please edit your configuration' in output.decode())
+        output = subprocess.check_output(
+            ['python', '-c', 'import VariantValidator'],
+            env=os.environ.copy()
+        )
+
+        self.assertIn('Seqrepo', output.decode())
+        self.assertIn('Please edit your configuration', output.decode())
 
     def test_zz_changed_seqrepo(self):
         """
         Test is named as such so it runs last - as it will successfully import VariantValidator
-        :return:
         """
         self.insert_blank()
         self.open_config()
+
         self.config['mysql']['user'] = 'myusername'
         self.config['mysql']['password'] = 'mypass'
+
         self.config['postgres']['user'] = 'me'
         self.config['postgres']['password'] = 'pass'
 
-        self.assertEqual(self.config['seqrepo']['location'], '/PATH/TO/SEQREPO')
+        self.assertEqual(
+            self.config['seqrepo']['location'],
+            '/PATH/TO/SEQREPO'
+        )
+
         self.config['seqrepo']['location'] = 'here'
+
         self.write_config()
 
         self.assertTrue(os.path.exists(self.filename))
+
         try:
             import VariantValidator
         except SystemExit:
-            self.fail('SystemExit raised on Import')
-
-    def tearDown(self):
-        original = os.path.join(os.path.expanduser('~'), '.variantvalidator')
-        new_filename = original + '_ori'
-        shutil.move(new_filename, original)
-        print('Moved file back')
+            self.fail("SystemExit raised on Import")
 
 
 class TestConfigValues(unittest.TestCase):
@@ -162,45 +218,112 @@ class TestConfigValues(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.filename = os.path.join(os.path.expanduser('~'), '.variantvalidator')
+        cls.real_filename = os.path.join(
+            os.path.expanduser('~'),
+            '.variantvalidator'
+        )
+
+        cls.filename = os.path.join(
+            tempfile.gettempdir(),
+            f".variantvalidator_{cls.__name__}"
+        )
+
+        # Copy the user's working config to an isolated temporary location
+        shutil.copy(cls.real_filename, cls.filename)
+
+        os.environ["VARIANTVALIDATOR_TEST_CONFIG"] = cls.filename
+
+    @classmethod
+    def tearDownClass(cls):
+        os.environ.pop("VARIANTVALIDATOR_TEST_CONFIG", None)
+
+        for f in (cls.filename, cls.filename + "_ori"):
+            if os.path.exists(f):
+                os.remove(f)
 
     def setUp(self):
-        self.original = self.filename + '_ori'
+        self.original = self.filename + "_ori"
         shutil.copy(self.filename, self.original)
-        config = ConfigParser()
-        config.read(self.filename)
-        self.config = config
+
+        self.config = ConfigParser()
+        self.config.read(self.filename)
 
     def write_config(self):
-        with open(self.filename, 'w') as fh:
+        with open(self.filename, "w") as fh:
             self.config.write(fh)
 
     def test_file_structure(self):
 
         try:
-            self.assertCountEqual(self.config.sections(), ['mysql', 'seqrepo', 'postgres',  'logging', 'Entrez'])
+            self.assertCountEqual(
+                self.config.sections(),
+                ['mysql', 'seqrepo', 'postgres', 'logging', 'Entrez']
+            )
         except AssertionError:
-            self.assertCountEqual(self.config.sections(), ['mysql', 'seqrepo', 'postgres', 'logging', 'Entrez', 'auth'])
-        self.assertCountEqual(list(self.config['mysql']), ['host', 'port', 'database', 'user', 'password', 'version'])
-        self.assertCountEqual(list(self.config['seqrepo']), ['version', 'location', 'require_threading'])
-        self.assertCountEqual(list(self.config['postgres']), ['host', 'port', 'database', 'version', 'user', 'password'])
-        self.assertCountEqual(list(self.config['logging']), ['log', 'console', 'file'])
-        self.assertCountEqual(list(self.config['Entrez']), ['email', 'api_key'])
+            self.assertCountEqual(
+                self.config.sections(),
+                ['mysql', 'seqrepo', 'postgres', 'logging', 'Entrez', 'auth']
+            )
+
+        self.assertCountEqual(
+            list(self.config['mysql']),
+            ['host', 'port', 'database', 'user', 'password', 'version']
+        )
+
+        self.assertCountEqual(
+            list(self.config['seqrepo']),
+            ['version', 'location', 'require_threading']
+        )
+
+        self.assertCountEqual(
+            list(self.config['postgres']),
+            ['host', 'port', 'database', 'version', 'user', 'password']
+        )
+
+        self.assertCountEqual(
+            list(self.config['logging']),
+            ['log', 'console', 'file']
+        )
+
+        self.assertCountEqual(
+            list(self.config['Entrez']),
+            ['email', 'api_key']
+        )
 
     def test_file_contents(self):
         self.assertNotEqual(self.config['mysql']['user'], 'USERNAME')
         self.assertNotEqual(self.config['mysql']['password'], 'PASSWORD')
-        path = os.path.join(self.config['seqrepo']['location'], self.config['seqrepo']['version'])
+
+        path = os.path.join(
+            self.config['seqrepo']['location'],
+            self.config['seqrepo']['version']
+        )
+
         self.assertTrue(os.path.exists(path))
+
         self.assertNotEqual(self.config['postgres']['user'], 'USERNAME')
         self.assertNotEqual(self.config['postgres']['password'], 'PASSWORD')
 
-        self.assertIsInstance(self.config['logging'].getboolean('log'), bool)
-        self.assertIn(self.config['logging']['console'].upper(), ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'])
-        self.assertIn(self.config['logging']['file'].upper(), ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'])
+        self.assertIsInstance(
+            self.config['logging'].getboolean('log'),
+            bool
+        )
+
+        self.assertIn(
+            self.config['logging']['console'].upper(),
+            ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG']
+        )
+
+        self.assertIn(
+            self.config['logging']['file'].upper(),
+            ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG']
+        )
 
         if self.config['Entrez']['email'] != "OPTIONAL":
-            self.assertRegex(self.config['Entrez']['email'], r'\w+@\w+.\w+')
+            self.assertRegex(
+                self.config['Entrez']['email'],
+                r'\w+@\w+\.\w+'
+            )
 
     def test_file_parsing(self):
         import VariantValidator
@@ -211,12 +334,23 @@ class TestConfigValues(unittest.TestCase):
         self.assertEqual(self.config['mysql']['password'], vv.dbConfig['password'])
         self.assertEqual(self.config['mysql']['host'], vv.dbConfig['host'])
         self.assertEqual(self.config['mysql']['database'], vv.dbConfig['database'])
-        if 'unix_socket' in vv.dbConfig:
-            self.assertEqual(self.config['mysql']['unix_socket'], vv.dbConfig['unix_socket'])
 
-        self.assertEqual(vv.seqrepoPath,
-                         os.path.join(self.config['seqrepo']['location'], self.config['seqrepo']['version']))
-        host_or_socketfile = self.config['postgres']['host'].replace('/','%2F')
+        if 'unix_socket' in vv.dbConfig:
+            self.assertEqual(
+                self.config['mysql']['unix_socket'],
+                vv.dbConfig['unix_socket']
+            )
+
+        self.assertEqual(
+            vv.seqrepoPath,
+            os.path.join(
+                self.config['seqrepo']['location'],
+                self.config['seqrepo']['version']
+            )
+        )
+
+        host_or_socketfile = self.config['postgres']['host'].replace('/', '%2F')
+
         uta_path = "postgresql://%s:%s@%s:%s/%s/%s" % (
             self.config["postgres"]["user"],
             self.config["postgres"]["password"],
@@ -225,13 +359,21 @@ class TestConfigValues(unittest.TestCase):
             self.config['postgres']['database'],
             self.config['postgres']['version']
         )
+
         self.assertEqual(vv.utaPath, uta_path)
 
-        self.assertEqual(vv.entrez_email, self.config['Entrez']['email'])
+        self.assertEqual(
+            vv.entrez_email,
+            self.config['Entrez']['email']
+        )
+
         if self.config['Entrez']['api_key'] == 'YOUR_API_KEY':
             self.assertEqual(vv.entrez_api_key, None)
         else:
-            self.assertEqual(vv.entrez_api_key, self.config['Entrez']['api_key'])
+            self.assertEqual(
+                vv.entrez_api_key,
+                self.config['Entrez']['api_key']
+            )
 
     def tearDown(self):
         shutil.move(self.original, self.filename)

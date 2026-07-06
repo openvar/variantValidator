@@ -1,12 +1,12 @@
 import os
 import shutil
 import configparser
-from .settings import CONFIG_DIR
+from VariantValidator import settings
 
 
 def read_configuration():
     config = configparser.ConfigParser()
-    config.read(CONFIG_DIR)
+    config.read(settings.get_config_dir())
 
     if config['mysql']['user'] == 'USERNAME' or config['mysql']['password'] == 'PASSWORD':
         print("MySQL username and password have not been updated from default.")
@@ -22,20 +22,20 @@ def read_configuration():
 
 
 def exit_with_message():
-    print("Please edit your configuration file %s" % CONFIG_DIR)
+    print("Please edit your configuration file %s" % settings.get_config_dir())
     print()
     raise SystemExit
 
 
-if os.path.exists(CONFIG_DIR):
+if os.path.exists(settings.get_config_dir()):
     read_configuration()
 else:
     print("*-----------------------------*")
     print("| Welcome to VariantValidator |")
     print("*-----------------------------*")
     shutil.copyfile(os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'configuration',
-                                 'default.ini'), CONFIG_DIR)
-    print("A configuration file has been copied into your home directory (%s)." % CONFIG_DIR)
+                                 'default.ini'), settings.get_config_dir())
+    print("A configuration file has been copied into your home directory (%s)." % settings.get_config_dir())
     print("Please edit this file with your database connection settings prior to continuing.")
     print("Items that must be changed are highlighted in capitals.")
     print()

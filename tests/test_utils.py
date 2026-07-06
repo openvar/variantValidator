@@ -584,6 +584,404 @@ class TestUserInput(TestCase):
         result = utils.user_input(query)
         self.assertEqual(result, {'variant': "NM_000123.4:c.34C>T", 'type': ':c.'})
 
+class TestEnsemblRestRetries(TestCase):
+
+    @patch("VariantValidator.modules.utils.time.sleep")
+    @patch("VariantValidator.modules.utils.requests.get")
+    def test_retry_then_success(self, mock_get, mock_sleep):
+        response_503 = MagicMock()
+        response_503.status_code = 503
+
+        response_200 = MagicMock()
+        response_200.status_code = 200
+        response_200.json.return_value = {"ok": True}
+
+        mock_get.side_effect = [response_503, response_200]
+
+        result = utils.ensembl_rest(
+            "ENST00000380152.4",
+            "/lookup/id/",
+            "GRCh38"
+        )
+
+        self.assertEqual(result["record"], {"ok": True})
+        self.assertEqual(result["error"], "false")
+        self.assertEqual(mock_get.call_count, 2)
+        mock_sleep.assert_called_once()
+
+    @patch("VariantValidator.modules.utils.time.sleep")
+    @patch("VariantValidator.modules.utils.requests.get")
+    def test_retry_status_exhausted(self, mock_get, mock_sleep):
+        response = MagicMock()
+        response.status_code = 503
+        mock_get.return_value = response
+
+        result = utils.ensembl_rest(
+            "ENST00000380152.4",
+            "/lookup/id/",
+            "GRCh38"
+        )
+
+        self.assertEqual(result["record"], "")
+        self.assertIn("Status=503", result["error"])
+        self.assertEqual(mock_get.call_count, 3)
+        self.assertEqual(mock_sleep.call_count, 2)
+
+    @patch("VariantValidator.modules.utils.time.sleep")
+    @patch("VariantValidator.modules.utils.requests.get")
+    def test_connection_error_then_success(self, mock_get, mock_sleep):
+        response = MagicMock()
+        response.status_code = 200
+        response.json.return_value = {"ok": True}
+
+        mock_get.side_effect = [
+            requests.exceptions.ConnectionError(),
+            response,
+        ]
+
+        result = utils.ensembl_rest(
+            "ENST00000380152.4",
+            "/lookup/id/",
+            "GRCh38"
+        )
+
+        self.assertEqual(result["record"], {"ok": True})
+        self.assertEqual(mock_get.call_count, 2)
+        mock_sleep.assert_called_once()
+
+    @patch("VariantValidator.modules.utils.time.sleep")
+    @patch("VariantValidator.modules.utils.requests.get")
+    def test_timeout_exhausted(self, mock_get, mock_sleep):
+        mock_get.side_effect = requests.exceptions.Timeout("timeout")
+
+        result = utils.ensembl_rest(
+            "ENST00000380152.4",
+            "/lookup/id/",
+            "GRCh38"
+        )
+
+        self.assertEqual(result["record"], "")
+        self.assertIn("timeout", result["error"])
+        self.assertEqual(mock_get.call_count, 3)
+        self.assertEqual(mock_sleep.call_count, 2)
+
+
+class TestEnsemblTarkRetries(TestCase):
+
+    @patch("VariantValidator.modules.utils.time.sleep")
+    @patch("VariantValidator.modules.utils.requests.get")
+    def test_retry_then_success(self, mock_get, mock_sleep):
+        response_503 = MagicMock()
+        response_503.status_code = 503
+
+        response_200 = MagicMock()
+        response_200.status_code = 200
+        response_200.json.return_value = {"ok": True}
+
+        mock_get.side_effect = [response_503, response_200]
+
+        result = utils.ensembl_tark(
+            "ENST00000380152.4",
+            "/api/transcript/stable_id_with_version/"
+        )
+
+        self.assertEqual(result["record"], {"ok": True})
+        self.assertEqual(result["error"], "false")
+        self.assertEqual(mock_get.call_count, 2)
+        mock_sleep.assert_called_once()
+
+    @patch("VariantValidator.modules.utils.requests.get")
+    def test_options_added_to_url(self, mock_get):
+        response = MagicMock()
+        response.status_code = 200
+        response.json.return_value = {}
+
+        mock_get.return_value = response
+
+        utils.ensembl_tark(
+            "ENST00000636147.2",
+            "/api/transcript/stable_id_with_version/",
+            options="expand=transcript_release_set"
+        )
+
+        called_url = mock_get.call_args[0][0]
+
+        self.assertIn(
+            "expand=transcript_release_set",
+            called_url
+        )
+
+
+class TestHGNCRestRetries(TestCase):
+
+    @patch("VariantValidator.modules.utils.time.sleep")
+    @patch("VariantValidator.modules.utils.requests.get")
+    def test_retry_then_success(self, mock_get, mock_sleep):
+        response_503 = MagicMock()
+        response_503.status_code = 503
+
+        response_200 = MagicMock()
+        response_200.status_code = 200
+        response_200.json.return_value = {"response": {}}
+
+        mock_get.side_effect = [response_503, response_200]
+
+        result = utils.hgnc_rest("/fetch/symbol/NANOG")
+
+        self.assertEqual(result["record"], {"response": {}})
+        self.assertEqual(result["error"], "false")
+        self.assertEqual(mock_get.call_count, 2)
+        mock_sleep.assert_called_once()
+
+    @patch("VariantValidator.modules.utils.time.sleep")
+    @patch("VariantValidator.modules.utils.requests.get")
+    def test_retry_status_exhausted(self, mock_get, mock_sleep):
+        response = MagicMock()
+        response.status_code = 503
+
+        mock_get.return_value = response
+
+        result = utils.hgnc_rest("/fetch/symbol/NANOG")
+
+        self.assertEqual(result["record"], "")
+        self.assertIn("Status=503", result["error"])
+        self.assertEqual(mock_get.call_count, 3)
+        self.assertEqual(mock_sleep.call_count, 2)
+
+from unittest import TestCase
+from unittest.mock import Mock, patch
+import requests
+
+from VariantValidator.modules import utils
+
+
+class TestUtilsRetryLogic(TestCase):
+
+    @patch("VariantValidator.modules.utils.requests.get")
+    def test_hgnc_rest_success(self, mock_get):
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {"ok": True}
+
+        data = utils.hgnc_rest("/fetch/symbol/BRAF")
+
+        self.assertEqual(data["record"], {"ok": True})
+        self.assertEqual(data["error"], "false")
+
+    @patch("VariantValidator.modules.utils.requests.get")
+    def test_hgnc_rest_non_retryable_error(self, mock_get):
+        mock_get.return_value.status_code = 404
+
+        data = utils.hgnc_rest("/fetch/symbol/BRAF")
+
+        self.assertIn("Status=404", data["error"])
+
+    @patch("VariantValidator.modules.utils.time.sleep")
+    @patch("VariantValidator.modules.utils.requests.get")
+    def test_hgnc_rest_retry_then_success(self, mock_get, mock_sleep):
+        r1 = Mock(status_code=500)
+        r2 = Mock(status_code=503)
+        r3 = Mock(status_code=200)
+        r3.json.return_value = {"worked": True}
+
+        mock_get.side_effect = [r1, r2, r3]
+
+        data = utils.hgnc_rest("/fetch/symbol/BRAF")
+
+        self.assertEqual(data["record"], {"worked": True})
+        self.assertEqual(mock_get.call_count, 3)
+        self.assertEqual(mock_sleep.call_count, 2)
+
+    @patch("VariantValidator.modules.utils.time.sleep")
+    @patch("VariantValidator.modules.utils.requests.get")
+    def test_hgnc_rest_retry_exhausted(self, mock_get, mock_sleep):
+        mock_get.side_effect = [
+            Mock(status_code=500),
+            Mock(status_code=503),
+            Mock(status_code=504),
+        ]
+
+        data = utils.hgnc_rest("/fetch/symbol/BRAF")
+
+        self.assertIn("Status=504", data["error"])
+        self.assertEqual(mock_get.call_count, 3)
+
+    @patch("VariantValidator.modules.utils.time.sleep")
+    @patch("VariantValidator.modules.utils.requests.get")
+    def test_hgnc_rest_timeout(self, mock_get, mock_sleep):
+        mock_get.side_effect = requests.exceptions.Timeout("timeout")
+
+        data = utils.hgnc_rest("/fetch/symbol/BRAF")
+
+        self.assertIn("timeout", data["error"])
+        self.assertEqual(mock_get.call_count, 3)
+
+    @patch("VariantValidator.modules.utils.time.sleep")
+    @patch("VariantValidator.modules.utils.requests.get")
+    def test_hgnc_rest_connection_error(self, mock_get, mock_sleep):
+        mock_get.side_effect = requests.exceptions.ConnectionError("connection")
+
+        data = utils.hgnc_rest("/fetch/symbol/BRAF")
+
+        self.assertIn("connection", data["error"])
+
+    @patch("VariantValidator.modules.utils.time.sleep")
+    @patch("VariantValidator.modules.utils.requests.get")
+    def test_hgnc_rest_ssl_error(self, mock_get, mock_sleep):
+        mock_get.side_effect = requests.exceptions.SSLError("ssl")
+
+        data = utils.hgnc_rest("/fetch/symbol/BRAF")
+
+        self.assertIn("ssl", data["error"])
+
+    @patch("VariantValidator.modules.utils.requests.get")
+    def test_ensembl_rest_grch38_success(self, mock_get):
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {"id": "ENST"}
+
+        data = utils.ensembl_rest(
+            "ENST00000367770.8",
+            "/lookup/id/",
+            "GRCh38",
+        )
+
+        self.assertEqual(data["record"]["id"], "ENST")
+        self.assertIn("https://rest.ensembl.org", mock_get.call_args[0][0])
+
+    @patch("VariantValidator.modules.utils.requests.get")
+    def test_ensembl_rest_grch37_success(self, mock_get):
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {}
+
+        utils.ensembl_rest(
+            "ENST00000367770.8",
+            "/lookup/id/",
+            "GRCh37",
+        )
+
+        self.assertIn("grch37.rest.ensembl.org", mock_get.call_args[0][0])
+
+    def test_ensembl_rest_unknown_genome(self):
+        data = utils.ensembl_rest(
+            "ENST00000367770.8",
+            "/lookup/id/",
+            "GRCh39",
+        )
+
+        self.assertIn("Unknown genome build", data["error"])
+
+    @patch("VariantValidator.modules.utils.requests.get")
+    def test_ensembl_rest_options(self, mock_get):
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {}
+
+        utils.ensembl_rest(
+            "ENST00000367770.8",
+            "/lookup/id/",
+            "GRCh38",
+            options="expand=1",
+        )
+
+        self.assertIn("expand=1", mock_get.call_args[0][0])
+
+    @patch("VariantValidator.modules.utils.time.sleep")
+    @patch("VariantValidator.modules.utils.requests.get")
+    def test_ensembl_rest_retry_then_success(self, mock_get, mock_sleep):
+        r1 = Mock(status_code=500)
+        r2 = Mock(status_code=500)
+        r3 = Mock(status_code=200)
+        r3.json.return_value = {"ok": True}
+
+        mock_get.side_effect = [r1, r2, r3]
+
+        data = utils.ensembl_rest(
+            "ENST00000367770.8",
+            "/lookup/id/",
+            "GRCh38",
+        )
+
+        self.assertEqual(data["record"], {"ok": True})
+        self.assertEqual(mock_get.call_count, 3)
+
+    @patch("VariantValidator.modules.utils.time.sleep")
+    @patch("VariantValidator.modules.utils.requests.get")
+    def test_ensembl_rest_retry_exhausted(self, mock_get, mock_sleep):
+        mock_get.side_effect = [
+            Mock(status_code=500),
+            Mock(status_code=502),
+            Mock(status_code=503),
+        ]
+
+        data = utils.ensembl_rest(
+            "ENST00000367770.8",
+            "/lookup/id/",
+            "GRCh38",
+        )
+
+        self.assertIn("Status=503", data["error"])
+
+    @patch("VariantValidator.modules.utils.time.sleep")
+    @patch("VariantValidator.modules.utils.requests.get")
+    def test_ensembl_rest_timeout(self, mock_get, mock_sleep):
+        mock_get.side_effect = requests.exceptions.Timeout("timeout")
+
+        data = utils.ensembl_rest(
+            "ENST00000367770.8",
+            "/lookup/id/",
+            "GRCh38",
+        )
+
+        self.assertIn("timeout", data["error"])
+
+    @patch("VariantValidator.modules.utils.requests.get")
+    def test_ensembl_tark_success(self, mock_get):
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {"count": 1}
+
+        data = utils.ensembl_tark(
+            "ENST00000636147.2",
+            "/api/transcript/stable_id_with_version/",
+        )
+
+        self.assertEqual(data["record"]["count"], 1)
+
+    @patch("VariantValidator.modules.utils.requests.get")
+    def test_ensembl_tark_options(self, mock_get):
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {}
+
+        utils.ensembl_tark(
+            "ENST00000636147.2",
+            "/api/transcript/stable_id_with_version/",
+            options="expand=transcript_release_set",
+        )
+
+        self.assertIn(
+            "expand=transcript_release_set",
+            mock_get.call_args[0][0],
+        )
+
+    @patch("VariantValidator.modules.utils.requests.get")
+    def test_ensembl_tark_http_error(self, mock_get):
+        mock_get.return_value.status_code = 500
+
+        data = utils.ensembl_tark(
+            "ENST00000636147.2",
+            "/api/transcript/stable_id_with_version/",
+        )
+
+        self.assertIn("Status=500", data["error"])
+
+    @patch("VariantValidator.modules.utils.requests.get")
+    def test_ensembl_tark_invalid_schema(self, mock_get):
+        mock_get.side_effect = requests.exceptions.InvalidSchema("bad schema")
+
+        data = utils.ensembl_tark(
+            "ENST00000636147.2",
+            "/api/transcript/stable_id_with_version/",
+        )
+
+        self.assertEqual(data["error"], "bad schema")
+
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
 #

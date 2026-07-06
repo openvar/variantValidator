@@ -1,7 +1,9 @@
 import os
 from unittest import TestCase
-from VariantValidator.settings import CONFIG_DIR, LOG_FILE, LOGGING_CONFIG
+from VariantValidator import settings
+from VariantValidator.settings import LOG_FILE, LOGGING_CONFIG
 
+CONFIG_DIR = settings.get_config_dir()
 
 class TestSettings(TestCase):
     def test_config_dir_exists(self):

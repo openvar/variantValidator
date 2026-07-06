@@ -149,7 +149,7 @@ class Mixin(vvMixinInit.Mixin):
                     hgvs_t = copy.deepcopy(hgvs_cg)
                     if hgvs_t.posedit.edit.type == 'inv':
                         inv_alt = self.revcomp(hgvs_t.posedit.edit.ref)
-                        pre_base, post_base = seld._expand_ref(
+                        pre_base, post_base = self._expand_ref(
                                 str(hgvs_t.ac),
                                 hgvs_t.posedit.pos.start.base - 2,
                                 hgvs_t.posedit.pos.end.base + 1)
@@ -1739,17 +1739,18 @@ class Mixin(vvMixinInit.Mixin):
         else:
             hgvs_input = query
 
-        if hgvs_input.type == 'p':
-            if not hasattr(hgvs_input.posedit.pos.start, 'offset'):
-                hgvs_input.posedit.pos.start.offset = 0
-            if not hasattr(hgvs_input.posedit.pos.end, 'offset'):
-                hgvs_input.posedit.pos.end.offset = 0
-            if not hasattr(hgvs_input.posedit.pos.start, 'datum'):
-                hgvs_input.posedit.pos.start.datum = 0
-            if not hasattr(hgvs_input.posedit.pos.end, 'datum'):
-                hgvs_input.posedit.pos.end.datum = 0
-            if not hasattr(hgvs_input.posedit.edit, 'ref_n'):
-                hgvs_input.posedit.edit.ref_n = hgvs_input.posedit.pos.end.base - hgvs_input.posedit.pos.start.base + 1
+
+        # if hgvs_input.type == 'p':  # Suspect this is dead code. Makes no sense for p. descriptions
+        #     if not hasattr(hgvs_input.posedit.pos.start, 'offset'):
+        #         hgvs_input.posedit.pos.start.offset = 0
+        #     if not hasattr(hgvs_input.posedit.pos.end, 'offset'):
+        #         hgvs_input.posedit.pos.end.offset = 0
+        #     if not hasattr(hgvs_input.posedit.pos.start, 'datum'):
+        #         hgvs_input.posedit.pos.start.datum = 0
+        #     if not hasattr(hgvs_input.posedit.pos.end, 'datum'):
+        #         hgvs_input.posedit.pos.end.datum = 0
+        #     if not hasattr(hgvs_input.posedit.edit, 'ref_n'):
+        #         hgvs_input.posedit.edit.ref_n = hgvs_input.posedit.pos.end.base - hgvs_input.posedit.pos.start.base + 1
 
         try:
             self.vr.validate(hgvs_input)
@@ -2215,20 +2216,35 @@ class Mixin(vvMixinInit.Mixin):
         HGVS allele handling function which takes a single HGVS allele description and
         separates each allele into a list of HGVS variants
         """
+        logger.info(f'HGVS allele handling function with variant {my_variant.quibble} and genomnic reference set to '
+                    f'{genomic_reference}')
+
         try:
             # Split up the description
             accession, remainder = my_variant.quibble.split(':')
-            if '(' in accession or ')' in accession:
-                if not ('(' in accession and ')' in accession):
-                    raise fn.alleleVariantError(
-                            'Unsupported format for allele accession'
-                            + ' bad use of brackets ' + accession)
-                accession_1, _sep, accession_2 = accession.partition('(')
-                accession_2, _sep, _remain = accession_2.partition(')')
-                if accession_1[:3] in ['NM_','NR_'] or accession_1[:4] == 'ENST':
-                    accession = accession_1
-                else:
-                    accession = accession_2
+            logger.info(f"Accession: {accession} and remainder: {remainder}")
+
+            # Code now likely redundant as genomic reference is set to a value for variants like
+            # ["NC_000017.11(NM_000088.3):c.[600C>A;589-1G[3]]"]
+
+            if ("(" in accession or ")" in accession) and not genomic_reference:
+                raise fn.alleleVariantError(
+                    f"AlleleVariantError: Unexpected compound accession '{accession}' passed to hgvs_alleles()"
+                )
+
+            # if '(' in accession or ')' in accession:
+            #     logger.info(f"compound accession {accession} identified")
+            #     if not ('(' in accession and ')' in accession):
+            #         raise fn.alleleVariantError(
+            #                 'Unsupported format for allele accession'
+            #                 + ' bad use of brackets ' + accession)
+            #     accession_1, _sep, accession_2 = accession.partition('(')
+            #     accession_2, _sep, _remain = accession_2.partition(')')
+            #     if accession_1[:3] in ['NM_','NR_'] or accession_1[:4] == 'ENST':
+            #         accession = accession_1
+            #     else:
+            #         accession = accession_2
+
             def _parse_allele_part(accession,var_type,pe):
                 try:
                     if var_type == 'c':
@@ -2240,35 +2256,99 @@ class Mixin(vvMixinInit.Mixin):
                     elif var_type == 'n':
                         posedit = self.hp.parse_n_posedit(pe)
                     elif var_type == 'r':
-                        posedit = self.hp.parse_r_posedit(pe)
-                except vvhgvs.exceptions.HGVSError as e:
+                        logger.info(f"RNA variant {my_variant.quibble} identified with accession {accession}")
+                        raise fn.alleleVariantError(f"UnsupportedFormatError: RNA allele syntax variants are not currently supported. Please submit individually for additional guidance")
+                except vvhgvs.exceptions.HGVSError:
                     raise AlleleSyntaxError(
                             f"AlleleVariantError: {accession}:{var_type}.{pe} is not a valid HGVS variant description."
                             " Please submit individually for additional guidance")
                 return vvhgvs.sequencevariant.SequenceVariant(
                         ac = accession,
-                        type = type,
+                        type = var_type,
                         posedit = posedit)
-            def _check_and_fix_for_ex_repeat(accession,type,pe):
-                if not pe.endswith(']'):
-                    return False
-                if not re.search("[GATC]+\[\d+]$", pe):
-                    return False #error instead?
+
+            def _check_and_fix_for_ex_repeat(accession, var_type, pe, genomic_reference):
+                """
+                Detect expanded repeat syntax within an allele and convert it to a
+                normalised HGVS sequence variant suitable for downstream processing.
+
+                Returns
+                -------
+                tuple
+                    (repeat_variant_or_None, genomic_reference)
+                """
+
+                # Not an expanded repeat
+                if not pe.endswith("]"):
+                    return None, genomic_reference
+
+                if not re.search(r"[GATC]+\[\d+\]$", pe):
+                    return None, genomic_reference
+
+                logger.info(f"checking allele {pe} for expanded_repeats")
+
                 expanded_repeat = expanded_repeats.convert_tandem(
-                        f"{accession}:{type}.{pe}", self,
-                        my_variant.primary_assembly,
-                        "all")
-                ins_bases = (expanded_repeat["repeat_sequence"] *
-                             int(expanded_repeat["copy_number"]))
-                edit = vvhgvs.edit.NARefAlt(
-                        ref=expanded_repeat['reference'],
-                        alt=ins_bases)
-                hgvs_obj_from_existing_edit(
-                        expanded_repeat['reference'],
-                        expanded_repeat['prefix'],
-                        expanded_repeat['position'],
-                        edit)
-                return hgvs_obj_from_existing_edit
+                    f"{accession}:{var_type}.{pe}",
+                    self,
+                    my_variant.primary_assembly,
+                    "all",
+                )
+
+                if not expanded_repeat:
+                    return None, genomic_reference
+
+                # Convert expanded repeat annotation to a sequence-state variant
+                repeat_to_delins = copy.deepcopy(expanded_repeat["variant"])
+                repeat_to_delins.posedit.expanded_rep = False
+
+                try:
+                    repeat_to_delins = self.hn.normalize(repeat_to_delins)
+                except vvhgvs.exceptions.HGVSUnsupportedOperationError:
+                    pass
+
+                logger.info(
+                    f"Expanded repeat in allele normalised to {repeat_to_delins}"
+                )
+
+                # Intronic transcript variants require a genomic reference for
+                # merge_hgvs_3pr().  If one has not already been supplied,
+                # determine the appropriate genomic accession.
+                if (
+                        genomic_reference is False
+                        and (repeat_to_delins.type == "c" or repeat_to_delins.type == "n")
+                        and (
+                        repeat_to_delins.posedit.pos.start.offset != 0
+                        or repeat_to_delins.posedit.pos.end.offset != 0
+                )
+                ):
+                    logger.info(
+                        f"Looking up genomic reference for transcript {repeat_to_delins.ac}"
+                    )
+
+
+                    mapping = self.hdp.get_tx_mapping_options(repeat_to_delins.ac)
+
+                    for option in mapping:
+                        genomic_ac = option[1]
+
+                        if (
+                                seq_data.to_chr_num_refseq(
+                                    genomic_ac,
+                                    my_variant.primary_assembly,
+                                )
+                                is not None
+                        ):
+                            genomic_reference = genomic_ac
+                            logger.info(
+                                f"Using genomic reference {genomic_reference}"
+                            )
+                            break
+
+                else:
+                    logger.info(f"Created return using genomic reference {genomic_reference}")
+
+                return repeat_to_delins, genomic_reference
+
             # Branch
             if re.search(r'[gcn]\.\d+\[', remainder):
                 # NM_004006.2:c.2376[G>C];[(G>C)]
@@ -2291,10 +2371,10 @@ class Mixin(vvMixinInit.Mixin):
                     for pe in posedit_list:
                         if '?' in pe or pe == '0':
                             continue
-                        tandem = _check_and_fix_for_ex_repeat(
+                        tandem, genomic_reference = _check_and_fix_for_ex_repeat(
                                 accession,
                                 type,
-                                str(pos) +pe)
+                                str(pos) +pe, genomic_reference)
                         if tandem:
                             current_allele.append(tandem)
                         else:
@@ -2323,10 +2403,10 @@ class Mixin(vvMixinInit.Mixin):
                         for pe in posedit_list:
                             if '?' in pe or pe == '0':
                                 continue
-                            tandem = _check_and_fix_for_ex_repeat(
+                            tandem, genomic_reference = _check_and_fix_for_ex_repeat(
                                     accession,
                                     type,
-                                    pe)
+                                    pe, genomic_reference)
                             if tandem:
                                 current_allele.append(tandem)
                             else:
@@ -2346,10 +2426,10 @@ class Mixin(vvMixinInit.Mixin):
                             if '?' in pe or pe == '0':
                                 # e.g. NM_004006.2:c.[2376G>C];[?]
                                 continue
-                            tandem = _check_and_fix_for_ex_repeat(
+                            tandem, genomic_reference = _check_and_fix_for_ex_repeat(
                                     accession,
                                     type,
-                                    pe)
+                                    pe, genomic_reference)
                             if tandem:
                                 current_allele.append(tandem)
                             else:
@@ -2388,10 +2468,10 @@ class Mixin(vvMixinInit.Mixin):
                         for pe in posedit_list:
                             if '?' in pe or pe == '0':
                                 continue
-                            tandem = _check_and_fix_for_ex_repeat(
+                            tandem, genomic_reference = _check_and_fix_for_ex_repeat(
                                     accession,
                                     type,
-                                    pe)
+                                    pe, genomic_reference)
                             if tandem:
                                 current_allele.append(tandem)
                             else:
@@ -2416,10 +2496,10 @@ class Mixin(vvMixinInit.Mixin):
                         for pe in posedit_list:
                             if '?' in pe or pe == '0':
                                 continue
-                            tandem = _check_and_fix_for_ex_repeat(
+                            tandem, genomic_reference = _check_and_fix_for_ex_repeat(
                                     accession,
                                     type,
-                                    pe)
+                                    pe, genomic_reference)
                             if tandem:
                                 current_allele.append(tandem)
                             else:

@@ -315,6 +315,112 @@ def test_update_lrg_skips_comments_and_short_lines(mock_requests, fake_db):
     fake_db.update_lrgt_rst.assert_called_once()
     fake_db.update_lrg_p_rs_p_lookup.assert_called_once()
 
+@patch("VariantValidator.update_vv_db.requests.get")
+def test_update_refseq_latest_assembly_http_error(mock_get, fake_db):
+    """HTTP failure when retrieving the latest assembly listing."""
+
+    rsg = MagicMock()
+    rsg.text = ""
+
+    latest = MagicMock()
+    latest.raise_for_status.side_effect = RuntimeError("HTTP error")
+
+    mock_get.side_effect = [rsg, latest]
+
+    with pytest.raises(RuntimeError):
+        uv.update_refseq(fake_db)
+
+
+@patch("VariantValidator.update_vv_db.requests.get")
+def test_update_refseq_missing_gcf_directory(mock_get, fake_db):
+    """No GCF assembly directory is present."""
+
+    rsg = MagicMock()
+    rsg.text = ""
+
+    latest = MagicMock()
+    latest.raise_for_status.return_value = None
+    latest.text = "<html></html>"
+
+    mock_get.side_effect = [rsg, latest]
+
+    with pytest.raises(IndexError):
+        uv.update_refseq(fake_db)
+
+
+@patch("VariantValidator.update_vv_db.requests.get")
+def test_update_refseq_missing_genomic_gff(mock_get, fake_db):
+    """Assembly directory exists but contains no genomic gff."""
+
+    rsg = MagicMock()
+    rsg.text = ""
+
+    latest = MagicMock()
+    latest.raise_for_status.return_value = None
+    latest.text = '<a href="GCF_test/">'
+
+    assembly = MagicMock()
+    assembly.raise_for_status.return_value = None
+    assembly.text = "<html></html>"
+
+    mock_get.side_effect = [
+        rsg,
+        latest,
+        assembly,
+    ]
+
+    with pytest.raises(IndexError):
+        uv.update_refseq(fake_db)
+
+@patch("VariantValidator.update_vv_db.gzip.decompress")
+@patch("VariantValidator.update_vv_db.requests.get")
+def test_update_refseq_single_valid_mapping(mock_get, mock_decompress, fake_db):
+    """Run update_refseq() with one genuine NG->NC mapping."""
+
+    fake_db.get_gene_symbol_from_refseq_id.return_value = "none"
+
+    mock_get.side_effect = [
+        # gene_RefSeqGene
+        MagicMock(
+            text="0\t1234\tGENE1\tNG_000001.1"
+        ),
+
+        # latest_assembly_versions
+        MagicMock(
+            text='href="GCF_000001405.40_GRCh38.p14/"',
+            raise_for_status=MagicMock(),
+        ),
+
+        # assembly directory
+        MagicMock(
+            text='href="GCF_000001405.40_GRCh38.p14_genomic.gff.gz"',
+            raise_for_status=MagicMock(),
+        ),
+
+        # downloaded file
+        MagicMock(
+            content=b"dummy",
+            raise_for_status=MagicMock(),
+        ),
+    ]
+
+    mock_decompress.return_value = (
+        b"NC_000001.11\tRefSeq\tmatch\t100\t200\t.\t+\t."
+        b"\tID=x;Target=NG_000001.1 1 100 +;gap_count=0"
+    )
+
+    uv.update_refseq(fake_db)
+
+    fake_db.update_refseqgene_loci.assert_called_once()
+
+    written = fake_db.update_refseqgene_loci.call_args.args[0]
+
+    assert written[0] == "NG_000001.1"
+    assert written[1] == "NC_000001.11"
+    assert written[2] == "GRCh38"
+    assert written[9] == "1234"
+    assert written[10] == "GENE1"
+
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

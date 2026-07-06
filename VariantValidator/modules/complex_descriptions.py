@@ -5,6 +5,10 @@ from VariantValidator.modules import utils as vv_utils, format_converters
 from VariantValidator.modules.hgvs_utils import hgvs_obj_from_existing_edit
 import vvhgvs.exceptions
 from vvhgvs.location import Interval
+from vvhgvs.enums import ValidationLevel
+from vvhgvs.exceptions import HGVSUnsupportedOperationError
+import logging
+logger = logging.getLogger(__name__)
 
 class UncertainConversionError(Exception):
     pass
@@ -18,14 +22,17 @@ class FEInterval(Interval):
         if self.start:
             (res, msg) = self.start.validate()
             if res != ValidationLevel.VALID:
+                logger.info("Validation failed for start interval {}: {}".format(self.start, msg))
                 return (res, msg)
         if self.end:
             (res, msg) = self.end.validate()
             if res != ValidationLevel.VALID:
+                logger.info("Validation failed for end interval {}: {}".format(self.start, msg))
                 return (res, msg)
         # Check start less than or equal to end
         # for now overlap is allowed so long as some is distinct
         if not self.start or not self.end:
+            logger.info("No start or end interval specified")
             return (ValidationLevel.VALID, None)
         try:
             if self.start.start <= self.end.end:
@@ -33,6 +40,7 @@ class FEInterval(Interval):
             else:
                 return (ValidationLevel.ERROR, "base start position must be <= end position")
         except HGVSUnsupportedOperationError as err:
+            logger.info("HGVSUnsupportedOperationError {}".format(err))
             return (ValidationLevel.WARNING, str(err))
 
     def format(self, conf=None):
@@ -82,6 +90,8 @@ def fuzzy_ends(my_variant, validator):
         parts = my_variant.quibble.split(")_(")
         num1 = parts[0].split("_")[-1]
         num2 = parts[1].split("_")[0]
+
+        logger.info(f"fuzzy end detected {num1} {num2}")
 
         intronic_positions = []
         try:
@@ -258,16 +268,27 @@ def fuzzy_ends(my_variant, validator):
         raise FuzzyRangeError("Fuzzy/unknown variant end position in submitted variant description")
 
     else:
-        if "?" in str(my_variant.hgvs_formatted.posedit.pos):
-            if "?" in str(my_variant.hgvs_formatted.posedit.pos.end) and "?" not in str(
-                    my_variant.hgvs_formatted.posedit.pos.start):
+        logger.info(f"{my_variant.quibble} has a fuzzy position but is not a range")
+        try:
+            if "?" in str(my_variant.hgvs_formatted.posedit.pos):
+                if "?" in str(my_variant.hgvs_formatted.posedit.pos.end) and "?" not in str(
+                        my_variant.hgvs_formatted.posedit.pos.start):
+                    logger.info("Fuzzy/unknown variant end position in submitted variant description")
+                    raise FuzzyPositionError("Fuzzy/unknown variant end position in submitted variant description")
+                elif "?" in str(my_variant.hgvs_formatted.posedit.pos.start) and "?" not in str(
+                        my_variant.hgvs_formatted.posedit.pos.end):
+                    logger.info("Fuzzy/unknown variant start position in submitted variant description")
+                    raise FuzzyPositionError("Fuzzy/unknown variant start position in submitted variant description")
+                else:
+                    logger.info("Fuzzy/unknown variant start and end positions "
+                                             "in submitted variant description")
+                    raise FuzzyPositionError("Fuzzy/unknown variant start and end positions "
+                                             "in submitted variant description")
+        except AttributeError as e:
+            logger.info(f"{my_variant.quibble}: {e}")
+            if "?" in my_variant.quibble:
+                logger.info("Fuzzy/unknown variant end position in submitted variant description")
                 raise FuzzyPositionError("Fuzzy/unknown variant end position in submitted variant description")
-            elif "?" in str(my_variant.hgvs_formatted.posedit.pos.start) and "?" not in str(
-                    my_variant.hgvs_formatted.posedit.pos.end):
-                raise FuzzyPositionError("Fuzzy/unknown variant start position in submitted variant description")
-            else:
-                raise FuzzyPositionError("Fuzzy/unknown variant start and end positions "
-                                         "in submitted variant description")
 
     return False
 
@@ -283,6 +304,8 @@ def uncertain_positions(my_variant, validator):
     # Check for uncertain positions in the correct place
     if not re.search("[gcnr].\(", my_variant.quibble):
         return
+
+    logger.info(f"Found potential uncertain positions in {my_variant.quibble}")
 
     # Check for LRGs
     hgvs_accession, variation = my_variant.quibble.split(":")
@@ -486,10 +509,10 @@ def uncertain_positions(my_variant, validator):
     elif ")_(" not in my_variant.quibble and not "?" in my_variant.quibble:
         if ")(" in my_variant.quibble:
             raise InvalidRangeError("Invalid range submitted, missing underscore between stated uncertain positions")
+        logger.info(f"Uncertain Position route 2 for {my_variant.quibble}")
         accession, _sep, var_type_and_posedit = my_variant.quibble.partition(':')
         var_type, _sep ,position_and_edit = var_type_and_posedit.partition(".(")
         position_1, variation = position_and_edit.split(")")
-        v1 = f"{accession}:{var_type}.{position_1}="
         my_variant.reftype = f":{var_type}."
         try:
             if var_type == 'p':
@@ -502,6 +525,8 @@ def uncertain_positions(my_variant, validator):
                 edit = validator.hp.parse_dna_edit(variation)
                 eq_edit = validator.hp.parse_dna_edit('=')
             start, _sep, end = position_1.partition('_')
+            if end == "":
+                end = start
             parsed_v1 = hgvs_obj_from_existing_edit(
                     accession,
                     var_type,
@@ -598,6 +623,7 @@ def uncertain_positions(my_variant, validator):
             my_variant.output_type_flag = "gene"
 
     else:
+        logger.info(f"looking for fuzzy ends in {my_variant.quibble}")
         fuzzy_ends(my_variant, validator)
     return
 
