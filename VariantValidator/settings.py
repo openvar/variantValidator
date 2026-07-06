@@ -1,10 +1,17 @@
 import os
 from configparser import ConfigParser
 
-CONFIG_DIR = os.path.join(os.path.expanduser('~'), '.variantvalidator')
-
 config = ConfigParser()
-config.read(CONFIG_DIR)
+
+def get_config_dir():
+    if 'VARIANTVALIDATOR_TEST_CONFIG' in os.environ:
+        return os.environ['VARIANTVALIDATOR_TEST_CONFIG']
+
+    return os.path.join(
+        os.path.expanduser('~'),
+        '.variantvalidator'
+    )
+
 
 # ----------------------------------------
 # DEFAULT LOG FILE

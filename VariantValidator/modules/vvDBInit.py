@@ -1,9 +1,25 @@
 import random
+import time
+import logging
+
+logger = logging.getLogger(__name__)
+
 try:
     import mariadb
+    MariaDBConnectionPool = mariadb.ConnectionPool
+    MariaDBProgrammingError = mariadb.ProgrammingError
 except ModuleNotFoundError:
-    import mysql.connector
+    mariadb = None
+    MariaDBConnectionPool = None
+
+    class MariaDBProgrammingError(Exception):
+        """Fallback exception when mariadb is unavailable."""
+        pass
+
+try:
     from mysql.connector.pooling import MySQLConnectionPool
+except ModuleNotFoundError:
+    MySQLConnectionPool = None
 
 
 class Mixin:
@@ -17,71 +33,107 @@ class Mixin:
         self.init_db()
 
     def __del__(self):
-        if self.pool:
+        if getattr(self, "pool", None):
             self.pool = None
 
     def init_db(self):
         """
         Initialise MySQL or MariaDB connection pool.
+
         NOTE:
         - We keep default unicode behaviour for ALL VV modules.
         - The dbSNP loader overrides cursor behaviour only for itself.
         """
-        try:
-            # MySQL connection pool (default VV behaviour)
-            self.pool = mysql.connector.pooling.MySQLConnectionPool(
-                pool_size=5,
-                **self.dbConfig
-            )
 
-        except NameError:
-            # MariaDB fallback pool
-            ran_num = random.random()
-            name_my_pool = f"pool{ran_num}"
+        # Prefer MySQL Connector/Python when available.
+        if MySQLConnectionPool is not None:
+            self.pool = MySQLConnectionPool(
+                pool_size=5,
+                **self.dbConfig,
+            )
+            return
+
+        # Otherwise fall back to MariaDB.
+        if MariaDBConnectionPool is not None:
+            pool_kwargs = {
+                "pool_size": 5,
+                "pool_reset_connection": False,
+                "host": self.dbConfig["host"],
+                "user": self.dbConfig["user"],
+                "port": int(self.dbConfig["port"]),
+                "password": self.dbConfig["password"],
+                "database": self.dbConfig["database"],
+            }
 
             try:
-                self.pool = mariadb.ConnectionPool(
-                    pool_size=5,
-                    pool_name=name_my_pool,
-                    pool_reset_connection=False,
-                    host=self.dbConfig['host'],
-                    user=self.dbConfig['user'],
-                    port=int(self.dbConfig['port']),
-                    password=self.dbConfig['password'],
-                    database=self.dbConfig['database']
+                self.pool = MariaDBConnectionPool(
+                    pool_name=f"pool{random.random()}",
+                    **pool_kwargs,
                 )
 
-            except mariadb.ProgrammingError:
-                # Second fallback attempt with new pool name
-                ran_num = random.random()
-                name_my_pool = f"pool{ran_num}"
-                self.pool = mariadb.ConnectionPool(
-                    pool_size=5,
-                    pool_name=name_my_pool,
-                    pool_reset_connection=False,
-                    host=self.dbConfig['host'],
-                    user=self.dbConfig['user'],
-                    port=int(self.dbConfig['port']),
-                    password=self.dbConfig['password'],
-                    database=self.dbConfig['database']
+            except MariaDBProgrammingError:
+                # Retry with a different pool name.
+                self.pool = MariaDBConnectionPool(
+                    pool_name=f"pool{random.random()}",
+                    **pool_kwargs,
                 )
+
+            return
+
+        raise ModuleNotFoundError(
+            "Neither mysql.connector nor mariadb is installed."
+        )
+
+    import time
 
     def get_conn(self):
         """
-        Get a connection from the pool.
+        Get a live connection from the pool with retry + backoff.
+
+        Handles:
+        - stale pooled connections
+        - MySQL timeouts
+        - transient network issues
         """
-        try:
-            conn = self.pool.get_connection()
-        except Exception:
-            self.init_db()
-            conn = self.pool.get_connection()
-        return conn
+        delays = [0, 0.5, 2, 5]
+
+        last_exception = None
+
+        for delay in delays:
+            if delay:
+                time.sleep(delay)
+
+            try:
+                conn = self.pool.get_connection()
+
+                # Critical: ensure connection is alive
+                try:
+                    conn.ping(reconnect=True, attempts=1, delay=0)
+                except Exception:
+                    # Drop and retry
+                    conn.close()
+                    raise
+
+                return conn
+
+            except Exception as e:
+                last_exception = e
+
+                # Rebuild pool on failure
+                self.init_db()
+
+                logger.exception(
+                    "Database connection failed health check; retrying with fresh connection"
+                )
+
+        raise last_exception
 
     def get_cursor(self, conn):
         """
         Default VV cursor:
         - Unicode/UTF-8
         - Buffered
+
         dbSNP loader will override this independently.
         """
         try:

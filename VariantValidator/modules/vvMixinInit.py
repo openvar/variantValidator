@@ -23,7 +23,7 @@ import re
 import logging
 from .vvDatabase import Database
 from . import utils
-from VariantValidator.settings import CONFIG_DIR
+from VariantValidator import settings
 from VariantValidator.version import __version__
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
         VVPosEdit
@@ -66,7 +66,18 @@ class Mixin:
 
         # Load the configuration file.
         config = ConfigParser()
-        config.read(CONFIG_DIR)
+        config.read(settings.get_config_dir())
+
+        print("CONFIG PATH:", settings.get_config_dir())
+        print("READ:", config.read(settings.get_config_dir()))
+        print("SECTIONS:", config.sections())
+
+        if os.path.exists(settings.get_config_dir()):
+            print("FILE EXISTS")
+            with open(settings.get_config_dir()) as fh:
+                print(fh.read())
+        else:
+            print("FILE DOES NOT EXIST")
 
         # Handle databases
         self.entrez_email = config["Entrez"]["email"]
@@ -231,10 +242,8 @@ class Mixin:
                                                                 )
 
     def __del__(self):
-        try:
-            del self.db
-        except AttributeError:
-            pass
+        if getattr(self, "pool", None):
+            self.pool = None
 
     def my_config(self):
         """

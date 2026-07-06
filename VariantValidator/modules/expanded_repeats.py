@@ -817,9 +817,11 @@ class TandemRepeats:
 def convert_tandem(variant, validator, build, my_all):
     "convenience function to encapsulate TandemRepeats->VV integration"
     try:
+        logger.info(f"parse_repeat_variant from {variant} which is a {type(variant)} from the my_variant object")
         expanded_variant = TandemRepeats.parse_repeat_variant(
                 variant.quibble, build, my_all, validator)
     except AttributeError:
+        logger.info(f"parse_repeat_variant from {variant} which is a {type(variant)} passed as a string")
         expanded_variant = TandemRepeats.parse_repeat_variant(
                 variant, build, my_all, validator)
 
