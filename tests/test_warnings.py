@@ -1451,6 +1451,21 @@ class TestVVGapWarnings(TestCase):
             "The following versions of the requested transcript are available in our database: NM_000088.2|NM_000088.3|NM_000088.4"
         ]
 
+    def test_n_gap_regression(self):
+        variant = "chr1:156354355C>G"
+        results = self.vv.validate(variant, 'GRCh37', '["NR_046115.2", "NR_146765.2"]', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert results[ "NR_046115.2:n.1447_1448insG"]['validation_warnings'] == [
+            "This is not a valid HGVS variant description, because no reference sequence ID has been provided",
+            "Submitted description does not represent a true variant because it is an artefact of aligning NR_146765.2 with NC_000001.10 (genome build GRCh37)",
+            "NR_046115.2 contains 1 fewer bases between n.1448_1449 than NC_000001.10"
+        ]
+        assert results["NR_146765.2:n.1649_1650insG"]["validation_warnings"] == [
+            "This is not a valid HGVS variant description, because no reference sequence ID has been provided",
+            "Submitted description does not represent a true variant because it is an artefact of aligning NR_146765.2 with NC_000001.10 (genome build GRCh37)",
+            "NR_146765.2 contains 1 fewer bases between n.1650_1651 than NC_000001.10"
+        ]
+
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
 #

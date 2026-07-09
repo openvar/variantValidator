@@ -68,16 +68,11 @@ class Mixin:
         config = ConfigParser()
         config.read(settings.get_config_dir())
 
-        print("CONFIG PATH:", settings.get_config_dir())
-        print("READ:", config.read(settings.get_config_dir()))
-        print("SECTIONS:", config.sections())
-
         if os.path.exists(settings.get_config_dir()):
-            print("FILE EXISTS")
-            with open(settings.get_config_dir()) as fh:
-                print(fh.read())
+            logger.info(f"Configuration file loaded from {settings.get_config_dir()}")
         else:
-            print("FILE DOES NOT EXIST")
+            logger.error(f"Configuration file not found, creating new one")
+            raise InitialisationError("Configuration file not found, please create a new one at %s" % settings.get_config_dir())
 
         # Handle databases
         self.entrez_email = config["Entrez"]["email"]
