@@ -12,6 +12,9 @@ def get_config_dir():
         '.variantvalidator'
     )
 
+# Read config
+config.read(get_config_dir())
+
 
 # ----------------------------------------
 # DEFAULT LOG FILE
