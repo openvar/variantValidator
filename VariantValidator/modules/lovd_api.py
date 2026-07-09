@@ -64,6 +64,10 @@ def lovd_syntax_check(variant_description, do_lovd_check=True, is_a_gene=False):
 
     json_data = None  # Ensure json_data is always defined
 
+    if ":p." in variant_description:
+        raise LovdApiFlowException(f"Protein-level variant descriptions are not supported: {variant_description}")
+    elif ":r." in variant_description:
+        raise LovdApiFlowException(f"RNA-level variant descriptions are not supported: {variant_description}")
     try:
         json_data = run_lovd_checker_cli(variant_description, is_a_gene=is_a_gene)
         if "lovd_api_error" in json_data:  # Fallback if CLI fails

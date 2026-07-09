@@ -26,6 +26,32 @@ class TestLOVDApi(TestCase):
         result = lovd_api.run_lovd_checker_cli(variant)
         self.assertEqual(result, expected_output)
 
+    def test_lovd_syntax_check_protein_variant(self):
+        with self.assertRaises(
+                lovd_api.LovdApiFlowException
+        ) as err:
+            lovd_api.lovd_syntax_check(
+                "NM_000059.4:p.(Arg117His)"
+            )
+
+        self.assertIn(
+            "Protein-level variant descriptions are not supported",
+            str(err.exception),
+        )
+
+    def test_lovd_syntax_check_rna_variant(self):
+        with self.assertRaises(
+                lovd_api.LovdApiFlowException
+        ) as err:
+            lovd_api.lovd_syntax_check(
+                "NM_000059.4:r.123a>g"
+            )
+
+        self.assertIn(
+            "RNA-level variant descriptions are not supported",
+            str(err.exception),
+        )
+
     @patch("VariantValidator.modules.lovd_api.lovd_syntax_checker.run_hgvs_checker")
     def test_run_lovd_checker_cli_failure(self, mock_run_hgvs_checker):
         """Test CLI checker returning an error."""

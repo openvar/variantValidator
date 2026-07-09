@@ -23,8 +23,7 @@ import re
 import logging
 from .vvDatabase import Database
 from . import utils
-from VariantValidator import settings
-from VariantValidator.version import __version__
+from VariantValidator import settings, version
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
         VVPosEdit
 
@@ -123,12 +122,9 @@ class Mixin:
                                       + db_version[0])
 
         # Set up versions
-        self.version = __version__
-        if re.match(r'^\d+\.\d+\.\d+$', __version__) is not None:
-            self.releasedVersion = True
-            _is_released_version = True
-        else:
-            self.releasedVersion = False
+        self.version = version.__version__
+        self.releasedVersion = version._is_released_version
+
         self.hgvsVersion = vvhgvs.__version__
 
         # Set up for test mode
