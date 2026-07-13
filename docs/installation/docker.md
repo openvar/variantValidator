@@ -175,7 +175,7 @@ pip install .
 ## Install the LOVD syntax checker
 
 ```bash
-python -m VariantValidator.bin.setup_lovd_syntax_checker
+python-api -m VariantValidator.bin.setup_lovd_syntax_checker
 ```
 
 VariantValidator is now installed and ready to use.

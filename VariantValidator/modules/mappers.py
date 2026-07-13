@@ -251,7 +251,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict, batch_list)
                             primary_assembly=variant.primary_assembly, order=variant.order,
                             selected_assembly=variant.selected_assembly, reformat_output=variant.reformat_output,
                             expanded_repeat=variant.expanded_repeat)
-            # since we already fetched the exon mappings etc and python uses just a pointer for this set map_dat
+            # since we already fetched the exon mappings etc and python-api uses just a pointer for this set map_dat
             query.map_dat = variant.map_dat
             batch_list.append(query)
             logger.info("Submitting new variant with format %s", str(c_description))

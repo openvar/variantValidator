@@ -1,134 +1,43 @@
-# VariantValidator
+# VariantValidator Documentation
+[![VariantValidator CI](https://github.com/openvar/variantValidator/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/openvar/variantValidator/actions/workflows/ci.yml) [![codecov](https://codecov.io/github/openvar/variantValidator/graph/badge.svg?token=QWTxw5kiY4)](https://codecov.io/github/openvar/variantValidator)
 
-[![VariantValidator CI](https://github.com/openvar/variantValidator/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/openvar/variantValidator/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/github/openvar/variantValidator/graph/badge.svg?token=QWTxw5kiY4)](https://codecov.io/github/openvar/variantValidator)
+Welcome to the VariantValidator documentation.
 
-VariantValidator uses a combination of unit, integration, functional and regression testing. New features and bug fixes are accompanied by regression tests where practical. The test suite is designed to provide confidence in production behaviour rather than simply maximise statement coverage.
+VariantValidator is an open-source software suite for validating, mapping, normalising and formatting genetic sequence variant descriptions according to the recommendations of the Human Genome Variation Society (HGVS).
 
----
+The software is designed for researchers, clinical scientists, diagnostic laboratories, bioinformaticians and software developers working with genomic variation.
 
-## About
+In addition to validating standard HGVS sequence variant descriptions, VariantValidator recognises many commonly encountered non-HGVS formats, legacy representations and common formatting mistakes. Where possible, these are automatically converted into valid HGVS sequence variant descriptions with informative warnings describing any corrections made.
 
-VariantValidator is an open-source software suite for validating, mapping, normalising and formatting genetic sequence variant descriptions according to the Human Genome Variation Society (HGVS) recommendations.
-
-VariantValidator helps users navigate the complexities of HGVS nomenclature. Where possible, common formatting mistakes are recognised and corrected automatically. When an unambiguous correction cannot be made, informative validation errors and guidance are returned to help users produce standards-compliant variant descriptions.
-
-In addition to validation, VariantValidator accurately maps between genomic and transcript reference sequences, projects variants across supported genome assemblies, and converts between HGVS sequence variant descriptions and Variant Call Format (VCF) representations.
-
-VariantValidator interfaces with, and substantially extends, the functionality provided by the Biocommons `hgvs` package for parsing, formatting and manipulating sequence variants.
-
-VariantValidator is available through:
-
-- the [VariantValidator web interface](https://variantvalidator.org/)
-- the [VariantValidator REST API](https://rest.variantvalidator.org/)
-- direct installation as a local Python package
-
-Complete installation instructions and user documentation are available in the **docs/** directory and through the published documentation site.
+The VariantValidator software suite also provides tools for variant formatting, transcript discovery and selection, and reference sequence retrieval.
 
 ---
 
-## Community Driven
+## Documentation
 
-<img src="https://github.com/openvar/VVweb/blob/master/static/img/Our_Community.png?raw=true" align="left"/>
+The documentation is organised into two main sections.
 
-[Image by Rosaria](https://www.instagram.com/2drosaria/?hl=en-gb)
+### Installation
 
-VariantValidator is a community-driven project whose continued development is shaped by its users.
+Install, configure and verify VariantValidator.
 
-We follow an agile development model and actively encourage feedback from researchers, clinicians, educators and software developers. Many new features originate directly from community requests and real-world diagnostic or research workflows.
+Topics include:
 
-If you discover a bug, have a feature request, or would like to suggest an improvement, please contact us via our dedicated support page or open a GitHub Issue. Community feedback plays a central role in planning future development and helps ensure that VariantValidator continues to meet the needs of the rapidly evolving genomics community.
+- Linux and macOS installation
+- Windows installation using WSL2
+- Docker Quick Start
+- Full Docker deployment
+- Configuration
+- Installation verification
+- Troubleshooting
 
----
-
-## Features
-
-VariantValidator provides comprehensive support for validating, mapping and formatting genetic sequence variant descriptions.
-
-Key features include:
-
-- Validation of HGVS sequence variant descriptions against current HGVS recommendations.
-- Recognition and correction of many commonly encountered non-HGVS and legacy variant formats.
-- Accurate mapping between genomic, transcript and protein reference sequences.
-- Support for RefSeq, Ensembl and Locus Reference Genomic (LRG) reference sequences.
-- Projection of variants between supported genome assemblies.
-- Conversion between HGVS sequence variant descriptions and Variant Call Format (VCF).
-- Flexible transcript selection using MANE, RefSeq, Ensembl and user-defined transcript sets.
-- Reference sequence retrieval from supported HGVS sequence variant descriptions.
-- Gene transcript discovery using `gene2transcripts`.
-- Batch processing via the command-line interface, Python API, REST API and web interface.
-
-VariantValidator is suitable for interactive use, automated analysis pipelines, diagnostic workflows and software integration.
-
-Further information is available in the User Manual located in the `docs/` directory or via the published documentation.
+→ [Installation Guide](installation/index.md)
 
 ---
 
-## User Manual
+### User Manual
 
-Documentation is available for all major VariantValidator tools.
-
-- VariantValidator
-- VariantFormatter
-- gene2transcripts
-- hgvs2reference
-
-The User Manual also includes reference documentation covering:
-
-- Supported input formats
-- Output formats
-- Transcript selection
-- Error messages and diagnostic guidance
-
----
-
-## Installation
-
-VariantValidator supports three installation methods.
-
-### Quick Start (Recommended)
-
-The recommended installation method uses Docker to install the required backend databases while installing VariantValidator locally using the supplied Conda environment.
-
-This approach provides a fully featured local installation with minimal setup and is recommended for most users.
-
-### Full Docker Installation
-
-The complete VariantValidator software stack, including the application and all required databases, can be deployed entirely using Docker containers.
-
-This approach is recommended for users who simply wish to deploy and run VariantValidator.
-
-### Native Installation
-
-VariantValidator can also be installed directly on Linux and macOS using the supplied Conda environment.
-
-This approach provides maximum flexibility for developers and advanced users who wish to manage all software components locally.
-
-Complete installation instructions are available in:
-
-- [Documentation Home](docs/index.md)
-- [Installation Guide](docs/installation/index.md)
-- [Docker Installation Guide](docs/installation/docker.md)
-- [Windows Installation Guide](docs/installation/installation_windows.md)
-
----
-
-### Getting Started
-
-If you are new to VariantValidator, we recommend the following workflow:
-
-1. Follow the **Quick Start** installation guide.
-2. Configure your installation using the interactive configuration utility.
-3. Verify the installation by running the test suite.
-4. Explore the User Manual for examples and supported workflows.
-5. Begin validating variants using the CLI, Python API, REST API or web interface.
-
-
-## User Documentation
-
-Comprehensive user documentation is provided in the `docs/` directory.
-
-The documentation is also hosted at https://openvar.github.io/variantValidator/
+Learn how to use VariantValidator and the accompanying tools through the command-line interface and Python API.
 
 Topics include:
 
@@ -139,26 +48,26 @@ Topics include:
 - Supported input formats
 - Output formats
 - Transcript selection
-- Installation and configuration
+- Python API
+- Command-line tools
 
-The complete documentation can be accessed from:
-
-- [Documentation Home](docs/index.md)
-- [User Manual](docs/user-manual/index.md)
-- [MkDocs](https://openvar.github.io/variantValidator/)
+→ [User Manual](user-manual/index.md)
 
 ---
 
-## How to Contribute
+## Community
 
-VariantValidator is a community-driven open-source project, and contributions are always welcome.
+VariantValidator is a community-driven open-source project.
 
-Whether you wish to report a bug, suggest a new feature, improve the documentation or contribute code, please refer to the project's contribution guidelines before getting started.
+Bug reports, feature requests and suggestions for improvements are welcomed. Many new features originate directly from feedback from researchers, clinicians and diagnostic laboratories using VariantValidator in research and clinical practice.
 
-- [Contributing Guide](CONTRIBUTING.md)
-- [GitHub Issues](https://github.com/openvar/variantValidator/issues)
+If you encounter a problem or have a suggestion:
 
-Bug reports, feature requests and pull requests are all greatly appreciated.
+- Search the existing GitHub Issues.
+- Open a new GitHub Issue to report a bug or request a feature.
+- Contact the development team via the VariantValidator support page.
+
+---
 
 ---
 
@@ -225,7 +134,7 @@ Freeman PJ, Wagstaff JF, Fokkema IFAC, *et al.* **Standardizing variant naming i
 
 VariantValidator is released under the terms of the GNU Affero General Public License version 3 (AGPL-3.0).
 
-See [LICENSE.txt](LICENSE.txt) for the full license text.
+See [LICENSE.txt](https://github.com/openvar/variantValidator/blob/master/LICENSE.txt) for the full license text.
 
 > Copyright (C) 2016–2026 VariantValidator Contributors
 

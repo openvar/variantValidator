@@ -31489,6 +31489,14 @@ class TestVariantsAuto(TestCase):
         results = self.vv.validate('NG_007400.1(NM_000088.3):c.589G>T', 'GRCh38', 'all', liftover_level=True).format_as_dict(test=True)
         assert "NM_000088.3:c.589G>T" in results.keys()
 
+    def test_regression_dup(self):
+        results = self.vv.validate('GRCh38:chr15:44672451:A:T', 'GRCh38', 'mane',
+                                   liftover_level=True).format_as_dict(test=True)
+        assert "NM_001387263.1:c.452T>A" in results.keys()
+        assert results["NM_001387263.1:c.452T>A"]["validation_warnings"] ==  [
+            "This is not a valid HGVS variant description, because no reference sequence ID has been provided"
+        ]
+
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

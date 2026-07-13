@@ -1,5 +1,6 @@
 from VariantFormatter import simpleVariantFormatter
 import VariantValidator
+import pytest
 
 
 class TestVFvariantsTranscriptSelection(object):
@@ -103,6 +104,42 @@ class TestVFvariantsTranscriptSelection(object):
             'NC_000007.14:g.140924703T>C']['hgvs_t_and_p'].keys()
         assert 'NM_001378467.1' not in results['NC_000007.14:g.140924703T>C'][
             'NC_000007.14:g.140924703T>C']['hgvs_t_and_p'].keys()
+
+    def test_format_keyword_arguments(self):
+        formatter = simpleVariantFormatter.SimpleVariantFormatter()
+        formatter.validator = self.vfo
+
+        results = formatter.format(
+            variant="NC_000005.10:g.140114829del",
+            genome_build="GRCh38",
+            transcript_model="refseq",
+            select_transcripts="all",
+            liftover=True,
+        )
+
+        assert "NC_000005.10:g.140114829del" in results
+
+    def test_format_missing_variant_keyword(self):
+        formatter = simpleVariantFormatter.SimpleVariantFormatter()
+        formatter.validator = self.vfo
+
+        with pytest.raises(
+                simpleVariantFormatter.FormatterSubmissionError,
+                match="Variant is required"):
+            formatter.format(
+                genome_build="GRCh38",
+            )
+
+    def test_format_missing_genome_keyword(self):
+        formatter = simpleVariantFormatter.SimpleVariantFormatter()
+        formatter.validator = self.vfo
+
+        with pytest.raises(
+                simpleVariantFormatter.FormatterSubmissionError,
+                match="Genome build is required"):
+            formatter.format(
+                variant="NC_000005.10:g.140114829del",
+            )
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

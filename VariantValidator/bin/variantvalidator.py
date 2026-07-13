@@ -746,8 +746,8 @@ def run_validation(
     )
 
     result = validator.validate(
-        batch_variant=request,
-        selected_assembly=args.genome,
+        variant=request,
+        genome=args.genome,
         select_transcripts=(
             json.dumps(args.select_transcripts)
             if isinstance(args.select_transcripts, list)

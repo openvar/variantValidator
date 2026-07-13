@@ -1,0 +1,64 @@
+site_name: VariantValidator
+site_description: Validate, normalise, map and format genetic sequence variant descriptions
+site_url: https://variantvalidator.org
+repo_name: openvar/variantValidator
+repo_url: https://github.com/openvar/variantValidator
+
+docs_dir: docs
+
+theme:
+  name: material
+  language: en
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+
+nav:
+  - Home: index.md
+
+  - Installation:
+      - Overview: installation/index.md
+      - Linux & macOS: installation/installation.md
+      - Windows: installation/installation_windows.md
+      - Docker: installation/docker.md
+      - Configuration CLI: installation/configuration_cli.md
+      - Troubleshooting: installation/configuration_troubleshooting.md
+
+  - User Manual:
+      - Overview: user-manual/index.md
+
+      - VariantValidator:
+          - CLI: user-manual/cli/variantvalidator_cli.md
+          - Python API: user-manual/python-api/variantvalidator_python.md
+
+      - VariantFormatter:
+          - CLI: user-manual/cli/variantformatter_cli.md
+          - Python API: user-manual/python-api/variantformatter_python.md
+
+      - gene2transcripts:
+          - CLI: user-manual/cli/gene2transcripts_cli.md
+          - Python API: user-manual/python-api/gene2transcripts_python.md
+
+      - hgvs2reference:
+          - Python API: user-manual/python-api/hgvs2reference_python.md
+
+      - Reference:
+          - Supported Input Formats: user-manual/reference/supported_inputs.md
+          - Output Formats: user-manual/reference/output_formats.md
+          - Transcript Selection: user-manual/reference/transcript_selection.md
+          - Errors and Error Codes: user-manual/reference/errors_and_error_codes.md
+
+plugins:
+  - search
+
+copyright: >
+  Copyright © 2016–2026 VariantValidator Contributors

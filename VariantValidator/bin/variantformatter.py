@@ -629,7 +629,7 @@ def run_formatting(
     )
 
     result = formatter.format(
-        batch_input=batch_input,
+        variant=batch_input,
         genome_build=args.genome,
         transcript_model=args.transcript_model,
         specify_transcripts=(

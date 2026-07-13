@@ -310,7 +310,7 @@ def test_run_formatting():
 
     assert "17-50198002-C-A" in result
 
-    assert formatter.kwargs["batch_input"] == (
+    assert formatter.kwargs["variant"] == (
         '["17-50198002-C-A"]'
     )
 

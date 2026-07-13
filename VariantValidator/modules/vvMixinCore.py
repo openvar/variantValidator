@@ -35,6 +35,9 @@ from vvhgvs.edit import AASub
 
 logger = logging.getLogger(__name__)
 
+class ValidatorSubmissionError(Exception):
+    pass
+
 class Mixin(vvMixinConverters.Mixin):
     """
     This module contains the main function for variant validator.
@@ -46,18 +49,18 @@ class Mixin(vvMixinConverters.Mixin):
         self.lovd_syntax_check = None
 
     def validate(self,
-                 batch_variant,
-                 selected_assembly,
-                 select_transcripts,
+                 variant=None,
+                 genome=None,
+                 select_transcripts="all",
                  transcript_set=None,
                  liftover_level=False,
                  lovd_syntax_check=False,
                  shorthand_vcf=False):
         """
         This is the main validator function.
-        :param batch_variant: A string containing the variant to be validated
-        :param selected_assembly: The version of the genome assembly to use.
-        :param select_transcripts: Can be an array of different transcripts, or 'all'
+        :param variant: A string containing the variant to be validated
+        :param genome: The version of the genome assembly to use.
+        :param transcripts: Can be an array of different transcripts, or 'all'
         :param liftover_level: True or None or primary - liftover to different gene/genome builds or not
         Selecting multiple transcripts will lead to a multiple variant outputs.
         :param transcript_set: 'refseq' or 'ensembl'
@@ -65,9 +68,27 @@ class Mixin(vvMixinConverters.Mixin):
         :param shorthand_vcf: True or False
         :return:
         """
+
+        #  Validate required arguments and map to the legacy variable names used internally.
+        if variant is None:
+            raise ValidatorSubmissionError(
+                "ValidatorSubmissionError: No variant descriptions submitted."
+            )
+        batch_variant = variant
+
+        if genome is None:
+            raise ValidatorSubmissionError(
+                "ValidatorSubmissionError: No genome build submitted."
+            )
+        selected_assembly = genome
+
+        if transcript_set is None:
+            transcript_set = "refseq"
+
+
         logger.debug("Running validate with inputs %s and assembly %s", batch_variant, selected_assembly)
 
-        if transcript_set == "refseq" or transcript_set is None:
+        if transcript_set == "refseq":
             self.alt_aln_method = 'splign'
         elif transcript_set == "ensembl":
             self.alt_aln_method = 'genebuild'
@@ -1715,9 +1736,61 @@ class Mixin(vvMixinConverters.Mixin):
             )
             raise fn.VariantValidatorError("Validation error") from e
 
-    def gene2transcripts(self, query, validator=False, bypass_web_searches=False, select_transcripts=None,
-                         transcript_set="refseq", genome_build=None, batch_output=False, bypass_genomic_spans=False,
+    def gene2transcripts(self,
+                         query=None,
+                         validator=None,
+                         bypass_web_searches=False,
+                         select_transcripts=None,
+                         transcript_set="refseq",
+                         genome_build=None,
+                         batch_output=False,
+                         bypass_genomic_spans=False,
                          lovd_syntax_check=False):
+        """
+        Retrieve transcript information for a gene symbol, transcript accession, or
+        HGNC identifier.
+
+        Parameters
+        ----------
+        query : str
+            A gene symbol, transcript accession, HGNC identifier, JSON array of
+            queries, or the path to a file containing one query per line.
+
+        validator : VariantValidator.Validator, optional
+            An existing Validator instance to use. If omitted, the current instance
+            (`self`) is used.
+
+        bypass_web_searches : bool, optional
+            Disable HGNC web lookups.
+
+        select_transcripts : str, optional
+            Transcript selection strategy or JSON array of transcript identifiers.
+
+        transcript_set : {"refseq", "ensembl"}, optional
+            Transcript database to use. Defaults to ``"refseq"``.
+
+        genome_build : str, optional
+            Reference genome assembly used when genomic span information is requested.
+
+        batch_output : bool, optional
+            Return batch-formatted output.
+
+        bypass_genomic_spans : bool, optional
+            Do not calculate or include genomic span and alignment information.
+
+        lovd_syntax_check : bool, optional
+            Enable LOVD HGVS syntax checking.
+
+        Returns
+        -------
+        dict
+            Transcript information matching the supplied query.
+        """
+
+        #  Map to legacy variable naming
+        if query is None:
+            raise ValidatorSubmissionError("No gene symbol submitted.")
+        validator = self if validator is None else validator
 
         try:
             gene_symbols = json.loads(query)
@@ -1756,60 +1829,102 @@ class Mixin(vvMixinConverters.Mixin):
 
     def hgvs2ref(self, query):
         """
-        Fetch reference sequence from a HGVS variant description
-        :param query:
-        :return:
+        Return the reference sequence corresponding to an HGVS variant description.
+
+        Supported HGVS variant types
+        ----------------------------
+        - Genomic (`g.`)
+        - Coding DNA (`c.`)
+        - Non-coding transcript (`n.`)
+
+        Coding DNA variants are internally converted to their equivalent `n.`
+        coordinates before the reference sequence is retrieved.
+
+        Limitations
+        -----------
+        - RNA (`r.`), protein (`p.`) and mitochondrial (`m.`) variants are not
+          currently supported.
+        - Fully intronic transcript variants are not supported because the
+          corresponding reference sequence cannot be represented unambiguously.
+          A warning is returned requesting the use of a genomic (`g.`) variant
+          instead.
+        - Partially intronic variants return only the exonic and/or UTR sequence,
+          together with an appropriate warning.
+
+        Parameters
+        ----------
+        query : str
+            HGVS sequence variant description.
+
+        Returns
+        -------
+        dict
+            Dictionary containing:
+
+            - ``variant`` : submitted HGVS description.
+            - ``start_position`` : HGVS start position.
+            - ``end_position`` : HGVS end position.
+            - ``sequence`` : retrieved reference sequence.
+            - ``warning`` : non-fatal warning, if applicable.
+            - ``error`` : error message if the sequence could not be retrieved.
         """
-        logger.debug('Fetching reference sequence for ' + query)
-        # Dictionary to store the data
-        reference = {'variant': query,
-                     'start_position': '',
-                     'end_position': '',
-                     'warning': '',
-                     'sequence': '',
-                     'error': ''}
-        # Step 1: parse the query. Dictionary the parse error if parsing fails
+        logger.debug("Fetching reference sequence for %s", query)
+
+        reference = {
+            "variant": query,
+            "start_position": "",
+            "end_position": "",
+            "warning": "",
+            "sequence": "",
+            "error": "",
+        }
+
+        # Parse the HGVS description
         try:
             input_hgvs_query = self.hp.parse_hgvs_variant(query)
-        except Exception as e:
-            reference['error'] = str(e)
+        except Exception as exc:
+            reference["error"] = str(exc)
             return reference
-        # Step 2: If the variant is a c., it needs to transferred to n.
+
+        # Convert coding variants to transcript coordinates where possible
         try:
             hgvs_query = self.vm.c_to_n(input_hgvs_query)
-        except:
+        except Exception:
             hgvs_query = input_hgvs_query
 
-        # For transcript reference sequences
-        if hgvs_query.type == 'c' or hgvs_query.type == 'n':
-            # Step 4: Check for intronic sequence
-            if hgvs_query.posedit.pos.start.offset != 0 and hgvs_query.posedit.pos.end.offset != 0:
-                reference['warning'] = 'Intronic sequence variation: Use genomic reference sequence'
+        # Transcript-specific handling
+        if hgvs_query.type in ("c", "n"):
+            if (
+                    hgvs_query.posedit.pos.start.offset != 0
+                    and hgvs_query.posedit.pos.end.offset != 0
+            ):
+                reference["warning"] = (
+                    "Intronic sequence variation: use a genomic (g.) reference sequence."
+                )
                 return reference
 
-            elif hgvs_query.posedit.pos.start.offset != 0 or hgvs_query.posedit.pos.end.offset != 0:
-                reference['warning'] = 'Partial intronic sequence variation: Returning exonic and/or UTR sequence only'
+            if (
+                    hgvs_query.posedit.pos.start.offset != 0
+                    or hgvs_query.posedit.pos.end.offset != 0
+            ):
+                reference["warning"] = (
+                    "Partial intronic sequence variation: returning exonic and/or UTR sequence only."
+                )
 
-        elif hgvs_query.type != 'g' and hgvs_query.type != 'p':
-            return reference
-
-        # Step 3: split the variant description into the parts required for seqfetching
         accession = hgvs_query.ac
         start = hgvs_query.posedit.pos.start.base - 1
         end = hgvs_query.posedit.pos.end.base
 
-        # Step 5: try and fetch the sequence using SeqFetcher. Dictionary an error if this fails
         try:
             sequence = self.sf.fetch_seq(accession, start, end)
-        except Exception as e:
-            reference['error'] = str(e)
-            logger.info(str(e))
+        except Exception as exc:
+            reference["error"] = str(exc)
+            logger.info(str(exc))
         else:
-            reference['start_position'] = str(input_hgvs_query.posedit.pos.start)
-            reference['end_position'] = str(input_hgvs_query.posedit.pos.end)
-            reference['sequence'] = sequence
+            reference["start_position"] = str(input_hgvs_query.posedit.pos.start)
+            reference["end_position"] = str(input_hgvs_query.posedit.pos.end)
+            reference["sequence"] = sequence
 
-        # Return the resulting reference sequence and error message
         return reference
 
     def _get_transcript_info(self, variant):
