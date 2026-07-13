@@ -29,7 +29,7 @@ RUN pip install -e .
 COPY configuration/docker.ini /root/.variantvalidator
 
 # Setup the LOVD Syntax checker
-RUN python-api -m VariantValidator.bin.setup_lovd_syntax_checker
+RUN python -m VariantValidator.bin.setup_lovd_syntax_checker
 
 # Set entrypoint
 ENTRYPOINT []

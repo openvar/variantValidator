@@ -1582,7 +1582,7 @@ class Mixin(vvMixinInit.Mixin):
         hgvs_object.type = 'c'
         edit = hgvs_object.posedit.edit
         ## uppercase and switch U to T
-        # Note we need the try except format because if edit.ref: fails in older python-api versions for some reason
+        # Note we need the try except format because if edit.ref: fails in older python versions for some reason
         try:
             edit.ref = edit.ref.upper().replace('U', 'T')
         except AttributeError:

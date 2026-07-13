@@ -92,7 +92,7 @@ class Variant(object):
             self.quibble.encode('ascii')
             return True
         except UnicodeEncodeError or UnicodeDecodeError:
-            # Will catch errors raised by python-api 2 and python-api 3
+            # Will catch errors raised by python 2 and python 3
             return False
 
     def get_non_ascii(self):
