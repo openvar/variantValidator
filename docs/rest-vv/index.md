@@ -78,11 +78,7 @@ Access requests for the original REST VariantValidator repository may also be ma
 
 # How to cite VariantValidator
 
-If VariantValidator contributes to your research or publication, please cite the appropriate VariantValidator publication(s).
-
-The latest citation information is available in the project repository:
-
-https://github.com/openvar/VariantValidator#cite-us
+If you use VariantValidator in your research, please [cite the appropriate VariantValidator publication(s)](https://github.com/openvar/VariantValidator#cite-us).
 
 ---
 

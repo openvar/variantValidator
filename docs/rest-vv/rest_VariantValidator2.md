@@ -45,7 +45,7 @@ The documentation includes:
 
 Official REST VariantValidator2 documentation:
 
-https://openvar.github.io/rest_variantValidator2/
+[https://openvar.github.io/rest_variantValidator2/](https://openvar.github.io/rest_variantValidator2/)
 
 ---
 
@@ -66,11 +66,7 @@ The following VariantValidator documentation may also be useful:
 
 # How to cite VariantValidator
 
-If VariantValidator contributes to your research or publication, please cite the appropriate VariantValidator publication(s).
-
-The latest citation information is available in the project repository:
-
-https://github.com/openvar/VariantValidator#cite-us
+If you use VariantValidator in your research, please [cite the appropriate VariantValidator publication(s)](https://github.com/openvar/VariantValidator#cite-us).
 
 ---
 

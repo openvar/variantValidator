@@ -16,7 +16,7 @@ To request access:
 
 1. Follow the account request process described in the REST VariantValidator access guide:
 
-   https://github.com/openvar/rest_variantValidator2/blob/main/docs/access.md
+   [https://github.com/openvar/rest_variantValidator2/blob/main/docs/access.md](https://github.com/openvar/rest_variantValidator2/blob/main/docs/access.md)
 
 2. Once your request has been submitted, email **admin@variantvalidator.org** so that your account can be reviewed and activated.
 
@@ -122,11 +122,7 @@ The following documentation may also be useful when developing applications that
 
 # How to cite VariantValidator
 
-If VariantValidator contributes to your research or publication, please cite the appropriate VariantValidator publication(s).
-
-The latest citation information is available in the project repository:
-
-https://github.com/openvar/VariantValidator#cite-us
+If you use VariantValidator in your research, please [cite the appropriate VariantValidator publication(s)](https://github.com/openvar/VariantValidator#cite-us).
 
 ---
 

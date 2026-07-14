@@ -76,11 +76,7 @@ These reference pages explain accepted variant description formats, transcript s
 
 # How to cite VariantValidator
 
-If VVweb contributes to your research, please cite the appropriate VariantValidator publication(s).
-
-The latest citation information is available in the project repository:
-
-https://github.com/openvar/VariantValidator#cite-us
+If you use VariantValidator in your research, please [cite the appropriate VariantValidator publication(s)](https://github.com/openvar/VariantValidator#cite-us).
 
 ---
 

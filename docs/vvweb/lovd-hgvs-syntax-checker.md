@@ -12,7 +12,7 @@ VariantValidator incorporates the LOVD HGVS Syntax Checker within several of its
 
 The LOVD HGVS Syntax Checker is available at:
 
-https://lovd.nl/HGVS/
+[https://lovd.nl/HGVS/](https://lovd.nl/HGVS/)
 
 No installation or account is required.
 
@@ -51,9 +51,9 @@ The LOVD HGVS Syntax Checker is documented by the LOVD project.
 
 Official resources include:
 
-- Website: https://lovd.nl/HGVS/
-- REST API (Swagger): https://api.lovd.nl/swagger/
-- GitHub repository: https://github.com/LOVDnl/HGVS-syntax-checker
+- Website: [https://lovd.nl/HGVS/](https://lovd.nl/HGVS/)
+- REST API (Swagger): [https://api.lovd.nl/swagger/](https://api.lovd.nl/swagger/)
+- GitHub repository: [https://github.com/LOVDnl/HGVS-syntax-checker](https://github.com/LOVDnl/HGVS-syntax-checker)
 
 ---
 
@@ -63,9 +63,9 @@ If the LOVD HGVS Syntax Checker contributes to your research or publication, ple
 
 > Fokkema IF, Kroon M, López Hernández JA, Asscheman D, Lugtenburg I, Hoogenboom J, den Dunnen JT. **The LOVD3 platform: efficient genome-wide sharing of genetic variants.** *European Journal of Human Genetics* (2021). https://doi.org/10.1038/s41431-021-00959-x. :contentReference[oaicite:0]{index=0}
 
-If VariantValidator also contributes to your work through its integration of the LOVD HGVS Syntax Checker or other VariantValidator functionality, please also cite the appropriate VariantValidator publication(s).
+# How to cite VariantValidator
 
-The latest VariantValidator citation information is available in the project repository:
+If you use VariantValidator in your research, please [cite the appropriate VariantValidator publication(s)](https://github.com/openvar/VariantValidator#cite-us).
 
-https://github.com/openvar/VariantValidator#cite-us
+
 
