@@ -35,17 +35,19 @@ Complete installation instructions and user documentation are available in the *
 
 *Image by [Rosaria](https://www.instagram.com/2drosaria/?hl=en-gb).*
 
-VariantValidator is shaped by its community. We work closely with researchers, clinicians, educators, and bioinformaticians to ensure the platform continues to meet the needs of real-world genomic research and clinical practice.
+VariantValidator is a community-driven, open-source project developed in close collaboration with researchers, clinicians, diagnostic laboratories, educators and software developers across the international genomics community.
 
-We follow an agile development approach, releasing new features regularly and continually improving the platform based on community feedback. Many of the features available in VariantValidator today originated from suggestions made by users, while bug reports and feature requests help us prioritise future development.
+We actively collaborate with complementary community resources to improve the interpretation, standardisation and exchange of genomic variant data. In particular, we work closely with the **LOVD (Leiden Open Variation Database)** development team, jointly developing and integrating software components that improve HGVS nomenclature support and the interoperability of genomic variant interpretation tools. This collaborative approach helps reduce duplicated effort, encourages shared standards, and benefits the wider genomics community.
+
+We follow an agile development approach, releasing new features regularly and continually improving the platform based on community feedback. Many of the features available in VariantValidator today originated from suggestions made by users, while bug reports, feature requests and collaborations with partner projects help us prioritise future development.
 
 If you discover a bug, have an idea for a new feature, or simply think something could work better, we'd love to hear from you. You can:
 
-* Search existing issues on [GitHub](https://github.com/openvar/VariantValidator/issues).
+* Search existing issues on GitHub.
 * Open a new GitHub issue to report a bug or request a feature.
-* Contact the development team through our [support page](https://variantvalidator.org/help/contact/).
+* Contact the development team through our support page.
 
-Community feedback plays a vital role in the continued development of VariantValidator, helping us ensure the software keeps pace with the rapidly evolving field of genomic medicine.
+Community engagement and collaboration with partner projects play a vital role in the continued development of VariantValidator, helping us ensure the software keeps pace with the rapidly evolving field of genomic medicine.
 
 
 ---

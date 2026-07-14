@@ -30,6 +30,7 @@ nav:
       - Validator: vvweb/validator.md
       - Batch Validator: vvweb/batch_validator.md
       - Gene2Transcripts: vvweb/gene2transcripts.md
+      - LOVD HGVS Syntax Checker: vvweb/lovd-hgvs-syntax-checker.md
 
   - Installation:
       - Overview: installation/index.md
@@ -54,6 +55,10 @@ nav:
           - CLI: user-manual/cli/gene2transcripts_cli.md
           - Python API: user-manual/python-api/gene2transcripts_python.md
 
+      - LOVD HGVS Syntax Checker:
+          - CLI: user-manual/cli/lovd-hgvs-syntax-checker-cli.md
+          - Python API: user-manual/python-api/lovd-hgvs-syntax-checker-python.md
+
       - hgvs2reference:
           - Python API: user-manual/python-api/hgvs2reference_python.md
 
@@ -67,6 +72,7 @@ nav:
       - Overview: rest-vv/index.md
       - REST VariantValidator: rest-vv/rest_VariantValidator.md
       - REST VariantValidator2 (SHAIP): rest-vv/rest_VariantValidator2.md
+      - LOVD HGVS Syntax Checker: rest-vv/lovd-hgvs-syntax-checker.md
 
 plugins:
   - search
