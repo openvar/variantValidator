@@ -1,0 +1,11 @@
+Input	Warnings	HGVS_transcript	HGVS_RefSeqGene	HGVS_LRG	HGVS_LRG_transcript	HGVS_Predicted_Protein	HGVS_Genomic_GRCh37	GRCh37_CHR	GRCh37_POS	GRCh37_ID	GRCh37_REF	GRCh37_ALT	HGVS_Genomic_GRCh38	GRCh38_CHR	GRCh38_POS	GRCh38_ID	GRCh38_REF	GRCh38_ALT	Gene_Symbol	HGNC_Gene_ID	Transcript_description	Alt_genomic_loci
+NM_000088.3:c.589C>T	NM_000088.3:c.589C>T: Variant reference (C) does not agree with reference sequence (G)
+NC_000071.10:g.48275363C>A	Failed to fetch NC_000071.10 from SeqRepo (/local/VariantValidator/seqrepo/2018-08-21) (Alias NC_000071.10 (namespace: None))
+NG_007400.2:g.8638G>T	Failed to fetch NG_007400.2 from SeqRepo (/local/VariantValidator/seqrepo/2018-08-21) (Alias NG_007400.2 (namespace: None))
+LRG_1:g.8638G>N	LRG_1:g.8638G>N automapped to NG_007400.1:g.8638G>N	NM_000088.3:c.589G>N	NG_007400.1:g.8638G>N	LRG_1:g.8638G>N	LRG_1t1:c.589G>N	NP_000079.2(LRG_1p1):p.(Gly197Xaa)	NC_000017.10:g.48275363C>N	17	48275363	.	C	N	NC_000017.11:g.50198002C>N	17	50198002	.	C	N	COL1A1	HGNC:2197	Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA
+LRG_1t3:c.589G>T	No transcript definition for (tx_ac=LRG_1t3)
+17-50198002-G-A	NC_000017.11:g.50198002G>A: Variant reference (G) does not agree with reference sequence (C)
+chr17:550198002C>A	NC_000017.11:g.550198002C>A: Variant reference (C) does not agree with reference sequence ()
+COL5A1:c.5071A>T	HGVS variant nomenclature does not allow the use of a gene symbol (COL5A1) in place of a valid reference sequence: Re-submit COL5A1:c.5071A>T and specify transcripts from the following: select_transcripts=NM_000093.4|NM_001278074.1|NM_000093.3
+NM_000088.3:c.589GG>CT	NM_000088.3:c.589GG>CT automapped to NM_000088.3:c.589_590delGGinsCT	NM_000088.3:c.589_590delinsCT	NG_007400.1:g.8638_8639delinsCT	LRG_1:g.8638_8639delinsCT	LRG_1t1:c.589_590delinsCT	NP_000079.2(LRG_1p1):p.(Gly197Leu)	NC_000017.10:g.48275362_48275363delinsAG	17	48275362	.	CC	AG	NC_000017.11:g.50198001_50198002delinsAG	17	50198001	.	CC	AG	COL1A1	HGNC:2197	Homo sapiens collagen type I alpha 1 chain (COL1A1), mRNA
+NM_000500.7:c.-107-19C>T	Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence is not HGVS-compliant. Instead re-submit NC_000006.12:g.32038297C>T

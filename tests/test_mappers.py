@@ -51,7 +51,7 @@ class TestMappersFunctional(TestCase):
         print(json.dumps(result, sort_keys=True, indent=4, separators=(',', ': ')))
         assert result["NM_000086.2:c.790+1_790+533del"]["validation_warnings"] ==  [
             "ExonBoundaryError: Position c.791-802 has been updated to position to 790+532 ensuring correct HGVS numbering for transcript NM_000086.2",
-            "NM_000086.2:c.790_790+532del normalized to NM_000086.2:c.790+1_790+533del"
+            "VariantNormalizationWarning: NM_000086.2:c.790_790+532del normalized to NM_000086.2:c.790+1_790+533del"
         ]
 
     def test_issue518_two_reverse_boundaries(self):
@@ -97,7 +97,7 @@ class TestMappersFunctional(TestCase):
         )
         print(json.dumps(result, sort_keys=True, indent=4, separators=(',', ': ')))
         assert result["validation_warning_1"]["validation_warnings"] == [
-            "Interval end position 453 < interval start position 543"
+            "IntervalOrderError: Interval end position 453 < interval start position 543"
         ]
 
     def test_issue518_reverse_end_only(self):

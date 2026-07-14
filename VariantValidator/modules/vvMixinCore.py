@@ -141,7 +141,7 @@ class Mixin(vvMixinConverters.Mixin):
 
             # split the batch queries into a list
             try:
-                batch_queries = json.loads(batch_variant)
+                batch_queries = json.loads(str(batch_variant))
             except json.decoder.JSONDecodeError:
                 batch_queries = [batch_variant]
             if isinstance(batch_queries, int):
@@ -1458,6 +1458,7 @@ class Mixin(vvMixinConverters.Mixin):
                 term_2 = "%s automapped to" % str(hgvs_tx_variant)
                 term_3 = "%s automapped to" % str(hgvs_genomic_variant)
 
+                logger.info(f"Raw Warnings {variant_warnings}")
                 for vt in variant.warnings:
                     vt = str(vt)
 
@@ -1477,46 +1478,61 @@ class Mixin(vvMixinConverters.Mixin):
                     # Do not warn transcript not part of build if it's not the relevant transcript
                     if "is not part of genome build" in vt and term not in vt:
                         continue
+
                     # Do not warn transcript cannot be mapped to build if it's not the relevant transcript
                     elif "cannot be mapped directly to genome build" in vt and term not in vt:
                         continue
-                    #  Do not warn a transcript update is available for the most recent transcript
+
+                    # Do not warn transcript updates for the selected transcript
                     elif term in vt and "A more recent version of the selected reference sequence" in vt:
                         vt = vt.split(": ")
                         vt = ": ".join([vt[0], vt[1]])
                         variant_warnings.append(vt)
 
                     elif "expected a letter" in vt:
-                        variant_warnings.append("InvalidVariantError: Accepted formats are HGVS, pseudoVCF. "
-                                                "Refer to the examples provided at https://variantvalidator."
-                                                "org/service/validate/ for more information.")
+                        variant_warnings.append(
+                            "InvalidVariantError: Accepted formats are HGVS, pseudoVCF. "
+                            "Refer to the examples provided at https://variantvalidator.org/"
+                            "service/validate/ for more information."
+                        )
 
-                    # Remove spurious updates away form the correct output
+                    # Remove spurious updates away from the correct output
                     elif (term_2 in vt and hgvs_tx_variant) or (term_3 in vt and hgvs_genomic_variant):
                         continue
-                    # Suppress "RefSeqGene record not available"
+
+                    # Suppress RefSeqGene warnings
                     elif "RefSeqGene record not available" in vt:
                         continue
-                    # convert SeqRepo errors into a more user friendly form
-                    elif vt.startswith('Failed to fetch') and 'SeqRepo' in vt:
+
+                    # Convert SeqRepo errors into a more user friendly form
+                    elif vt.startswith("Failed to fetch") and "SeqRepo" in vt:
                         acc = vt.split()[3]
                         vt = (
-                                f"Failed to find {acc} in our sequence store: This may mean that "+
-                                "the sequence has been mistyped, or it may be missing from our "+
-                                "data, possibly due to being either deprecated or yet to be added.")
+                            f"Failed to find {acc} in our sequence store: "
+                            "This may mean that the sequence has been mistyped, or it may be "
+                            "missing from our data, possibly due to being either deprecated "
+                            "or yet to be added."
+                        )
                         variant_warnings.append(vt)
-                    elif 'NP_' in vt and 'transcript' in vt:
+
+                    elif "NP_" in vt and "transcript" in vt:
                         continue
+
                     elif "Xaa" in vt:
                         vt = vt.replace("Xaa", "Ter")
                         variant_warnings.append(vt)
+
                     elif "automapped to" in vt:
                         vt = re.sub(r"(del|dup)[A-Z]+", r"\1", vt)
                         variant_warnings.append(vt)
                         continue
+
                     else:
                         variant_warnings.append(vt)
-                variant.warnings = variant_warnings
+
+                # Apply standard warning/error codes and any standard wording updates
+                variant.warnings = fn.normalise_warning_codes(variant_warnings)
+                logger.info(f"Cleaned Warnings {variant_warnings}")
 
                 # Reformat as required to add back variation that would/does get lost on mapping
                 if variant.reformat_output is not False:

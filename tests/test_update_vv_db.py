@@ -247,20 +247,11 @@ def test_count_ng_nc_returns_none():
     assert uv.count_ng_nc("hello world") is None
 
 
-def test_count_ng_nc_comment():
+def test_count_ng_nc_comment_b():
     assert uv.count_ng_nc("# NC_000001 NG_000001") == "failed"
 
 
-def test_count_ng_nc_rejected():
-    line = (
-        "NC_000001\tRefSeq\tmatch\t1\t2\t.\t+\t.\t"
-        "ID=x;Target=NG_000001.1 1 2 +"
-    )
-
-    assert uv.count_ng_nc(line) == "rejected"
-
-
-def test_count_ng_nc_bad_columns():
+def test_count_ng_nc_bad_columns_b():
     line = (
         "NC_000001\tRefSeq\tmatch\t1\t2\t.\t+\t.\t"
         "ID=x;Target=NG_000001.1 1 2 +;gap_count=0"

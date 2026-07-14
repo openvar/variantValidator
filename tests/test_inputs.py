@@ -31494,8 +31494,9 @@ class TestVariantsAuto(TestCase):
                                    liftover_level=True).format_as_dict(test=True)
         assert "NM_001387263.1:c.452T>A" in results.keys()
         assert results["NM_001387263.1:c.452T>A"]["validation_warnings"] ==  [
-            "This is not a valid HGVS variant description, because no reference sequence ID has been provided"
-        ]
+            'ReferenceSequenceError: This is not a valid HGVS variant description, because no reference sequence ID '
+            'has been provided']
+
 
 
 # <LICENSE>

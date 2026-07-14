@@ -1,4 +1,6 @@
-# VariantValidator
+# VariantValidator <img src="/static/img/logos/VV_logo.png" height="60" align="right"/>
+
+
 
 [![VariantValidator CI](https://github.com/openvar/variantValidator/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/openvar/variantValidator/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/github/openvar/variantValidator/graph/badge.svg?token=QWTxw5kiY4)](https://codecov.io/github/openvar/variantValidator)
@@ -29,15 +31,22 @@ Complete installation instructions and user documentation are available in the *
 
 ## Community Driven
 
-<img src="https://github.com/openvar/VVweb/blob/master/static/img/Our_Community.png?raw=true" align="left"/>
+<img src="/static/img/Our_Community.png" align="left"/>
 
-[Image by Rosaria](https://www.instagram.com/2drosaria/?hl=en-gb)
+*Image by [Rosaria](https://www.instagram.com/2drosaria/?hl=en-gb).*
 
-VariantValidator is a community-driven project whose continued development is shaped by its users.
+VariantValidator is shaped by its community. We work closely with researchers, clinicians, educators, and bioinformaticians to ensure the platform continues to meet the needs of real-world genomic research and clinical practice.
 
-We follow an agile development model and actively encourage feedback from researchers, clinicians, educators and software developers. Many new features originate directly from community requests and real-world diagnostic or research workflows.
+We follow an agile development approach, releasing new features regularly and continually improving the platform based on community feedback. Many of the features available in VariantValidator today originated from suggestions made by users, while bug reports and feature requests help us prioritise future development.
 
-If you discover a bug, have a feature request, or would like to suggest an improvement, please contact us via our dedicated support page or open a GitHub Issue. Community feedback plays a central role in planning future development and helps ensure that VariantValidator continues to meet the needs of the rapidly evolving genomics community.
+If you discover a bug, have an idea for a new feature, or simply think something could work better, we'd love to hear from you. You can:
+
+* Search existing issues on [GitHub](https://github.com/openvar/VariantValidator/issues).
+* Open a new GitHub issue to report a bug or request a feature.
+* Contact the development team through our [support page](https://variantvalidator.org/help/contact/).
+
+Community feedback plays a vital role in the continued development of VariantValidator, helping us ensure the software keeps pace with the rapidly evolving field of genomic medicine.
+
 
 ---
 
@@ -235,6 +244,6 @@ See [LICENSE.txt](LICENSE.txt) for the full license text.
 
 **VariantValidator was originally developed at the University of Leicester (2016–2019). It is now maintained and developed by the University of Manchester, with continued hosting and development contributions from the University of Leicester.**
 
-<img src="https://github.com/i3hsInnovation/resources/blob/master/images/UoM_logo.jpg?raw=true" width="40%" align="left"/>
-<img src="https://github.com/i3hsInnovation/resources/blob/master/images/UoL-Logo-Full-Colour.png?raw=true" width="40%" align="right" />
+<img src="/static/img/logos/Manchester_logo.png" width="40%" align="left"/>
+<img src="/static/img/logos/uniofleicesterlogo.png" width="40%" align="right" />
 <br clear="both"/>

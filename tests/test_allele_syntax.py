@@ -72,7 +72,7 @@ class TestAlleleSyntax(TestCase):
         variant = 'NC_000023.10(LRG_199t1):c.[976-20T>A;976-17_976-1dup]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert "Reference sequence LRG_199t1 updated to NM_004006.2" in results[
+        assert "ReferenceSequenceError: Reference sequence LRG_199t1 updated to NM_004006.2" in results[
             "validation_warning_1"]["validation_warnings"]
         assert "ExonBoundaryError: Position c.976-17 does not correspond with an exon boundary " \
                "for transcript NM_004006.2" in results[
@@ -97,8 +97,7 @@ class TestAlleleSyntax(TestCase):
         variant = 'LRG_199t1:c.[76A>C];[0]'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert ("LRG_199t1:c.[76A>C];[0] automapped to equivalent RefSeq record NM_004006.2:c.[76A>C];[0]" in
-                results["NM_004006.2:c.76A>C"]["validation_warnings"])
+        assert results["NM_004006.2:c.76A>C"]["validation_warnings"] ==  ['VariantMappingWarning: LRG_199t1:c.[76A>C];[0] automapped to equivalent RefSeq record NM_004006.2:c.[76A>C];[0]', 'AlleleExtractionWarning: The allelic description is syntactically correct and all possible variant descriptions have been extracted.', 'AlleleValidationWarning: Each variant is validated independently and users must update the original description accordingly based on these validations', 'TranscriptVersionWarning: A more recent version of the selected reference sequence NM_004006.2 is available for genome build GRCh38 (NM_004006.3)']
         assert len(results) == 3
         assert "NM_004006.2:c.76A>C" in results.keys()
 

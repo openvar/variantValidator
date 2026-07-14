@@ -15,7 +15,7 @@ class TestWarnings(TestCase):
         variant = 'ENST00000376372.9:r.235_236insGCCCACCCACCTGCCAG'
         results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
-        assert 'The IUPAC RNA alphabet dictates that RNA variants must use the character u in place of t' in \
+        assert 'RnaAlphabetError: The IUPAC RNA alphabet dictates that RNA variants must use the character u in place of t' in \
                results['validation_warning_1']['validation_warnings']
 
     def test_issue_169(self):
@@ -29,21 +29,21 @@ class TestWarnings(TestCase):
         variant = 'NC_000023.11(ENST00000357033.9):c.8810A>G' # Unlike the RefSeq test ENST seq always matches the genome (in theory)
         results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
-        assert 'ENST00000357033.9:c.8810A>G: Variant reference (A) does not agree with reference sequence (G)' in \
+        assert 'ReferenceMismatchError: ENST00000357033.9:c.8810A>G: Variant reference (A) does not agree with reference sequence (G)' in \
                results['validation_warning_1']['validation_warnings'][0]
 
     def test_issue_180a(self):
         variant = 'NC_000017.10:g.41232400_41236235del383'
         results = self.vv.validate(variant, 'hg19', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
-        assert 'Length implied by coordinates must equal sequence deletion length' in \
+        assert 'InvalidRangeError: Length implied by coordinates must equal sequence deletion length' in \
                results['validation_warning_1']['validation_warnings'][0]
 
     def test_issue_180b(self):
         variant = 'NC_000017.11(ENST00000357654.9):c.4186-1642_4358-983del10'
         results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
-        assert 'Length implied by coordinates must equal sequence deletion length' in \
+        assert 'InvalidRangeError: Length implied by coordinates must equal sequence deletion length' in \
                results['validation_warning_1']['validation_warnings']
 
     def test_issue_180b1(self):
@@ -58,7 +58,7 @@ class TestWarnings(TestCase):
         variant = 'NC_000017.11(ENST00000225964.10):c.589-1del2'
         results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
-        assert 'Length implied by coordinates must equal sequence deletion length' in \
+        assert 'InvalidRangeError: Length implied by coordinates must equal sequence deletion length' in \
                results['validation_warning_1']['validation_warnings'][0]
 
     def test_issue_195a(self):
@@ -74,14 +74,14 @@ class TestWarnings(TestCase):
         variant = 'ENST00000396884.8:c.850_877dup27'
         results = self.vv.validate(variant, 'hg38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
-        assert 'Length implied by coordinates must equal sequence duplication length' in \
+        assert 'InvalidRangeError: Length implied by coordinates must equal sequence duplication length' in \
                results['validation_warning_1']['validation_warnings'][0]
 
     def test_issue_216b(self):
         variant = 'ENST00000396884.8:c.850_877dup28'
         results = self.vv.validate(variant, 'hg38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
-        assert 'Trailing digits are not permitted in HGVS variant descriptions' in \
+        assert 'VariantSyntaxError: Trailing digits are not permitted in HGVS variant descriptions' in \
                results['ENST00000396884.8:c.850_877dup']['validation_warnings'][0]
 
     def test_issue_239(self):
@@ -96,14 +96,14 @@ class TestWarnings(TestCase):
         variant = 'ENST00000225964.10:C.589G>T'
         results = self.vv.validate(variant, 'GRCh38', 'all', liftover_level='primary', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
-        assert ('Reference type incorrectly stated in the variant description ENST00000225964.10:C.589G>T Valid '
+        assert ('ReferenceTypeError: Reference type incorrectly stated in the variant description ENST00000225964.10:C.589G>T Valid '
                 'types are g,c,n,r, or p') in \
                results['ENST00000225964.10:c.589G>T']['validation_warnings'][0]
 
         variant = 'enst00000225964.10:c.589G>T'
         results = self.vv.validate(variant, 'GRCh38', 'all', liftover_level='primary', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
-        assert 'characters being in the wrong case' in \
+        assert 'InvalidCaseError: This is not a valid HGVS description because characters are in the wrong case. Please check the use of upper- and lowercase characters.' in \
                results['ENST00000225964.10:c.589G>T']['validation_warnings'][0]
 
 
@@ -111,19 +111,19 @@ class TestWarnings(TestCase):
         variant = 'ENST00000396884.8:c.483ins'
         results = self.vv.validate(variant, 'GRCh38', 'all', liftover_level='primary', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
-        assert 'The inserted sequence must be provided for insertions or deletion-insertions' in \
+        assert 'InsertionSequenceError: The inserted sequence must be provided for insertions or deletion-insertions' in \
                results['validation_warning_1']['validation_warnings'][0]
-        assert 'An insertion must be provided with the two positions between which the insertion has taken place' in \
+        assert 'InsertionLengthError: An insertion must be provided with the two positions between which the insertion has taken place' in \
                results['validation_warning_1']['validation_warnings'][1]
 
     def test_issue_359_b(self):
         variant = 'ENST00000396884.8:c.483ins(10)'
         results = self.vv.validate(variant, 'GRCh38', 'all', liftover_level='primary', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
-        assert 'The length of the variant is not formatted following the HGVS guidelines. Please rewrite e.g. (10) ' \
+        assert 'InsertionLengthError: The length of the variant is not formatted following the HGVS guidelines. Please rewrite e.g. (10) ' \
                'to N[10]' in \
                results['validation_warning_1']['validation_warnings'][0]
-        assert 'An insertion must be provided with the two positions between which the insertion has taken place' in \
+        assert 'InsertionLengthError: An insertion must be provided with the two positions between which the insertion has taken place' in \
                results['validation_warning_1']['validation_warnings'][1]
 
     def test_issue_359_c(self):
@@ -284,23 +284,23 @@ class TestWarnings(TestCase):
         results = self.vv.validate(variant, 'GRCh38', 'all', liftover_level='primary', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
         assert results['validation_warning_1']['validation_warnings'] == [
-            "The amino acid at position 175 of ENSP00000269305.4 is R not H",
-            "The amino acid at position 178 of ENSP00000269305.4 is H not V"
+            "AminoMismatchError: The amino acid at position 175 of ENSP00000269305.4 is R not H",
+            "AminoMismatchError: The amino acid at position 178 of ENSP00000269305.4 is H not V"
         ]
 
         variant = 'ENSP00000269305.4:p.H175delinsX'
         results = self.vv.validate(variant, 'GRCh38', 'all', liftover_level='primary', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
         assert results['validation_warning_1']['validation_warnings'] == [
-            "The amino acid at position 175 of ENSP00000269305.4 is R not H"
+            "AminoMismatchError: The amino acid at position 175 of ENSP00000269305.4 is R not H"
         ]
 
         variant = 'ENSP00000269305.4:p.R175_H178delinsX'
         results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
         assert results['validation_warning_1']['validation_warnings'] == [
-            "Protein level variant descriptions are not fully supported due to redundancy in the genetic code",
-            "ENSP00000269305.4:p.Arg175_His178delinsTer is HGVS compliant and contains a valid reference amino acid description"
+            "ProteinSupportWarning: Protein level variant descriptions are not fully supported due to redundancy in the genetic code",
+            "ProteinSupportWarning: ENSP00000269305.4:p.Arg175_His178delinsTer is HGVS compliant and contains a valid reference amino acid description"
         ]
         assert results['validation_warning_1'][
                    'hgvs_predicted_protein_consequence']["tlr"] == "ENSP00000269305.4:p.Arg175_His178delinsXaa"
@@ -309,8 +309,8 @@ class TestWarnings(TestCase):
         results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
         assert results['validation_warning_1']['validation_warnings'] == [
-            "Protein level variant descriptions are not fully supported due to redundancy in the genetic code",
-            "ENSP00000269305.4:p.Arg175delinsTer is HGVS compliant and contains a valid reference amino acid description"
+            "ProteinSupportWarning: Protein level variant descriptions are not fully supported due to redundancy in the genetic code",
+            "ProteinSupportWarning: ENSP00000269305.4:p.Arg175delinsTer is HGVS compliant and contains a valid reference amino acid description"
         ]
         assert results['validation_warning_1'][
                    'hgvs_predicted_protein_consequence']["tlr"] == "ENSP00000269305.4:p.Arg175delinsXaa"
@@ -321,7 +321,7 @@ class TestWarnings(TestCase):
 
         print(results)
         assert results['validation_warning_1']['validation_warnings'] == [
-            "ENST00000318312.12:c.1779+7A>G auto-mapped to ENST00000318312.12:c.*4A>G",
+            "VariantMappingWarning: ENST00000318312.12:c.1779+7A>G auto-mapped to ENST00000318312.12:c.*4A>G",
             "ReferenceMismatchError: ENST00000318312.12:c.*4A>G: Variant reference (A) does not agree with reference sequence (C)"
         ]
 
@@ -331,8 +331,8 @@ class TestWarnings(TestCase):
 
         print(results)
         assert results['validation_warning_1']['validation_warnings'] == [
-            "Protein level variant descriptions are not fully supported due to redundancy in the genetic code",
-            "ENSP00000269305.4:p.? is HGVS compliant and contains a valid reference amino acid description"
+            "ProteinSupportWarning: Protein level variant descriptions are not fully supported due to redundancy in the genetic code",
+            "ProteinSupportWarning: ENSP00000269305.4:p.? is HGVS compliant and contains a valid reference amino acid description"
         ]
 
     def test_issue_518a(self):
@@ -399,14 +399,12 @@ class TestWarnings(TestCase):
         variant = 'ENST00000225964.10:g.2559del'
         results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
-        assert "Transcript reference sequence input as genomic (g.) reference sequence. " \
-               "Did you mean ENST00000225964.10:c.2559del?" in \
-               results['validation_warning_1']['validation_warnings']
+        assert results['validation_warning_1']['validation_warnings'] == ['ReferenceTypeError: Transcript reference sequence input as genomic (g.) reference sequence. Did you mean ENST00000225964.10:c.2559del?']
 
         variant = 'ENST00000225964.10:g.2559+54_2560del'
         results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
-        assert "Transcript reference sequence input as genomic (g.) reference sequence. " \
+        assert "ReferenceTypeError: Transcript reference sequence input as genomic (g.) reference sequence. " \
                "Did you mean ENST00000225964.10:c.2559+54_2560del?" in \
                results['validation_warning_1']['validation_warnings']
 
@@ -414,7 +412,7 @@ class TestWarnings(TestCase):
         variant = 'ENST00000225964.10:p.(Gly197Cys)'
         results = self.vv.validate(variant, 'GRCh38', 'all', transcript_set="ensembl").format_as_dict(test=True)
         print(results)
-        assert "Using a nucleotide reference sequence (NM_ NR_ NG_ NC_) to specify protein-level (p.) " \
+        assert "ReferenceTypeError: Using a nucleotide reference sequence (NM_ NR_ NG_ NC_) to specify protein-level (p.) " \
                "variation is not HGVS compliant. Please select an appropriate protein reference sequence (NP_)" in \
                results['validation_warning_1']['validation_warnings']
 

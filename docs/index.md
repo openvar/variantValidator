@@ -1,5 +1,7 @@
 # VariantValidator Documentation
-[![VariantValidator CI](https://github.com/openvar/variantValidator/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/openvar/variantValidator/actions/workflows/ci.yml) [![codecov](https://codecov.io/github/openvar/variantValidator/graph/badge.svg?token=QWTxw5kiY4)](https://codecov.io/github/openvar/variantValidator)
+
+[![VariantValidator CI](https://github.com/openvar/variantValidator/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/openvar/variantValidator/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/github/openvar/variantValidator/graph/badge.svg?token=QWTxw5kiY4)](https://codecov.io/github/openvar/variantValidator)
 
 Welcome to the VariantValidator documentation.
 
@@ -13,13 +15,31 @@ The VariantValidator software suite also provides tools for variant formatting, 
 
 ---
 
-## Documentation
+## Getting started
 
-The documentation is organised into two main sections.
+The VariantValidator documentation is organised according to how you intend to use VariantValidator. Choose the guide that best matches your workflow.
 
-### Installation
+### I'm using the VariantValidator website
 
-Install, configure and verify VariantValidator.
+If you use VariantValidator through your web browser, the **Web Interface Guide** is the best place to start. It is intended for clinicians, researchers, laboratory scientists and other users who do not need to install VariantValidator or write Python code.
+
+**Most users should begin with this guide.**
+
+Topics include:
+
+- Single Variant Validator
+- Batch Validator
+- Gene2Transcripts
+- Creating an account
+- Downloading and interpreting results
+
+→ [Web Interface Guide](vvweb/index.md)
+
+---
+
+### I'm installing VariantValidator
+
+If you plan to install VariantValidator locally or deploy your own instance, see the **Installation Guide**.
 
 Topics include:
 
@@ -35,9 +55,9 @@ Topics include:
 
 ---
 
-### User Manual
+### I'm developing with VariantValidator
 
-Learn how to use VariantValidator and the accompanying tools through the command-line interface and Python API.
+If you are using VariantValidator in scripts, pipelines or software development, see the **User Manual**.
 
 Topics include:
 
@@ -48,26 +68,35 @@ Topics include:
 - Supported input formats
 - Output formats
 - Transcript selection
+- Errors and error codes
 - Python API
 - Command-line tools
 
 → [User Manual](user-manual/index.md)
 
----
+If you are developing applications or services that communicate with VariantValidator programmatically, see the REST API Guide.
 
-## Community
-
-VariantValidator is a community-driven open-source project.
-
-Bug reports, feature requests and suggestions for improvements are welcomed. Many new features originate directly from feedback from researchers, clinicians and diagnostic laboratories using VariantValidator in research and clinical practice.
-
-If you encounter a problem or have a suggestion:
-
-- Search the existing GitHub Issues.
-- Open a new GitHub Issue to report a bug or request a feature.
-- Contact the development team via the VariantValidator support page.
+→ [REST API Guide](rest-vv/index.md)
 
 ---
+
+## Community Driven
+
+<img src="/static/img/Our_Community.png" align="left"/>
+
+*Image by [Rosaria](https://www.instagram.com/2drosaria/?hl=en-gb).*
+
+VariantValidator is shaped by its community. We work closely with researchers, clinicians, educators, and bioinformaticians to ensure the platform continues to meet the needs of real-world genomic research and clinical practice.
+
+We follow an agile development approach, releasing new features regularly and continually improving the platform based on community feedback. Many of the features available in VariantValidator today originated from suggestions made by users, while bug reports and feature requests help us prioritise future development.
+
+If you discover a bug, have an idea for a new feature, or simply think something could work better, we'd love to hear from you. You can:
+
+* Search existing issues on [GitHub](https://github.com/openvar/VariantValidator/issues).
+* Open a new GitHub issue to report a bug or request a feature.
+* Contact the development team through our [support page](https://variantvalidator.org/help/contact/).
+
+Community feedback plays a vital role in the continued development of VariantValidator, helping us ensure the software keeps pace with the rapidly evolving field of genomic medicine.
 
 ---
 
@@ -144,6 +173,6 @@ See [LICENSE.txt](https://github.com/openvar/variantValidator/blob/master/LICENS
 
 **VariantValidator was originally developed at the University of Leicester (2016–2019). It is now maintained and developed by the University of Manchester, with continued hosting and development contributions from the University of Leicester.**
 
-<img src="https://github.com/i3hsInnovation/resources/blob/master/images/UoM_logo.jpg?raw=true" width="40%" align="left"/>
-<img src="https://github.com/i3hsInnovation/resources/blob/master/images/UoL-Logo-Full-Colour.png?raw=true" width="40%" align="right" />
+<img src="/static/img/logos/Manchester_logo.png" width="40%" align="left"/>
+<img src="/static/img/logos/uniofleicesterlogo.png" width="40%" align="right" />
 <br clear="both"/>

@@ -94,7 +94,7 @@ class TestVVMixinConvertersFunctional(TestCase):
     def test_allele_repeat_only(self):
         result = self.validate("NM_000088.3:c.[589-1G[3]]")
 
-        result["validation_warning_1"]["validation_warnings"] == ['RepeatSyntaxError: Ensure that the repeated sequence is included between the variant position and the number of repeat units, e.g. g.1_3ACT[20]']
+        assert result["validation_warning_1"]["validation_warnings"] == ['RepeatSyntaxError: Ensure that the repeated sequence is included between the variant position and the number of repeat units, e.g. g.1_3ACT[20]']
 
     def test_allele_repeat_single_base_intronic_ordered(self):
         result = self.validate("NM_000088.3:c.[589-1G[3];600C>A]")
@@ -145,7 +145,7 @@ class TestVVMixinConvertersFunctional(TestCase):
         result = self.validate("LRG1:g.[50198003C>A];[50198023A>T]")
 
         assert result["validation_warning_1"]["validation_warnings"] == [
-            "LRG1 updated to LRG_1: LRG_1:g.[50198003C>A];[50198023A>T] automapped to equivalent RefSeq recordNG_007400.1:g.[50198003C>A];[50198023A>T]",
+            "VariantMappingWarning: LRG1 updated to LRG_1: LRG_1:g.[50198003C>A];[50198023A>T] automapped to equivalent RefSeq recordNG_007400.1:g.[50198003C>A];[50198023A>T]",
             "ReferenceMismatchError: NG_007400.1:g.50198003C>A: Variant reference (C) does not agree with reference sequence ()"
         ]
 

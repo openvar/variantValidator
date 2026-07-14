@@ -25,10 +25,16 @@ markdown_extensions:
 nav:
   - Home: index.md
 
+  - Web Interface (VVweb):
+      - Overview: vvweb/index.md
+      - Validator: vvweb/validator.md
+      - Batch Validator: vvweb/batch_validator.md
+      - Gene2Transcripts: vvweb/gene2transcripts.md
+
   - Installation:
       - Overview: installation/index.md
       - Linux & macOS: installation/installation.md
-      - Windows: installation/installation_windows.md
+      - Windows (WSL2): installation/installation_windows.md
       - Docker: installation/docker.md
       - Configuration CLI: installation/configuration_cli.md
       - Troubleshooting: installation/configuration_troubleshooting.md
@@ -44,7 +50,7 @@ nav:
           - CLI: user-manual/cli/variantformatter_cli.md
           - Python API: user-manual/python-api/variantformatter_python.md
 
-      - gene2transcripts:
+      - Gene2Transcripts:
           - CLI: user-manual/cli/gene2transcripts_cli.md
           - Python API: user-manual/python-api/gene2transcripts_python.md
 
@@ -53,9 +59,14 @@ nav:
 
       - Reference:
           - Supported Input Formats: user-manual/reference/supported_inputs.md
-          - Output Formats: user-manual/reference/output_formats.md
           - Transcript Selection: user-manual/reference/transcript_selection.md
+          - Output Formats: user-manual/reference/output_formats.md
           - Errors and Error Codes: user-manual/reference/errors_and_error_codes.md
+
+  - REST API:
+      - Overview: rest-vv/index.md
+      - REST VariantValidator: rest-vv/rest_VariantValidator.md
+      - REST VariantValidator2 (SHAIP): rest-vv/rest_VariantValidator2.md
 
 plugins:
   - search
