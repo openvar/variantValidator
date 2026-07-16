@@ -555,6 +555,14 @@ class Mixin:
         # Continue processing
         no_start_err = 'ProteinTranslationError: Unable to generate protein variant description '+\
                 'due to the sequence missing an accepted start codon.'
+        # Make the variant
+        posedit = PosEdit(
+            pos=Interval(),  # empty interval start means ''
+            edit="?",  # empty ref and alt means '='
+            uncertain=False)
+        hgvs_protein = vvhgvs.sequencevariant.SequenceVariant(ac=associated_protein_accession,
+                                                              type='p', posedit=posedit)
+        hgvs_transcript_to_hgvs_protein['hgvs_protein'] = hgvs_protein
         if prot_ref_seq == 'error':
             hgvs_transcript_to_hgvs_protein['error'] = no_start_err.replace(
                     'the sequence','the reference sequence')

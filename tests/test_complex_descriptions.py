@@ -257,7 +257,7 @@ class TestComplexDescriptionsFunctional(TestCase):
 
         self.assertEqual(
             data["hgvs_predicted_protein_consequence"]["tlr"],
-            "",
+            "NP_000537.3:p.?",
         )
 
 
