@@ -31486,11 +31486,11 @@ class TestVariantsAuto(TestCase):
         }
 
     def test_issue_gapping_810a(self):
-        results = self.vv.validate('NC_000009.11:g.95237065_95237068dup', 'GRCh37', 'NM_017680.6', liftover_level=True).format_as_dict(test=True)
-        assert "NM_017680.6:c.115_116insGATGATG" in results.keys()
+        results = self.vv.validate('NC_000009.11:g.95237066_95237068dup', 'GRCh37', 'NM_017680.6', liftover_level=True).format_as_dict(test=True)
+        assert "NM_017680.6:c.147_152dup" in results.keys()
         # Shows shorter variant round trips back to NC_000009.11:g.95237065_95237068dup
-        assert results["NM_017680.6:c.115_116insGATGATG"]["primary_assembly_loci"]["grch37"]["hgvs_genomic_description"] == "NC_000009.11:g.95237065_95237068dup"
-        assert results["NM_017680.6:c.115_116insGATGATG"]["primary_assembly_loci"]["grch38"]["hgvs_genomic_description"] == "NC_000009.12:g.92474783_92474786dup"
+        assert results["NM_017680.6:c.147_152dup"]["primary_assembly_loci"]["grch37"]["hgvs_genomic_description"] == "NC_000009.11:g.95237066_95237068dup"
+        assert results["NM_017680.6:c.147_152dup"]["primary_assembly_loci"]["grch38"]["hgvs_genomic_description"] == "NC_000009.12:g.92474784_92474786dup"
 
 
     def test_issue_gapping_810b(self):
@@ -31542,6 +31542,26 @@ class TestVariantsAuto(TestCase):
                 }
             }
         }
+
+    def test_issue_gapping_810_antisense1(self):
+        results = self.vv.validate('NC_000004.11:g.140651607_140651612dupTGCTGC', 'GRCh37', 'NM_018717.4',
+                                   liftover_level=True).format_as_dict(test=True)
+        assert "NM_018717.4:c.2293_2301dup" in results.keys()
+        # Shows antisense version also round trips
+        assert results["NM_018717.4:c.2293_2301dup"]["primary_assembly_loci"]["grch37"][
+                   "hgvs_genomic_description"] == "NC_000004.11:g.140651607_140651612dup"
+        assert results["NM_018717.4:c.2293_2301dup"]["primary_assembly_loci"]["grch38"][
+                   "hgvs_genomic_description"] == "NC_000004.12:g.139730453_139730458dup"
+
+    def test_issue_gapping_810_antisense2(self):
+        results = self.vv.validate('NC_000004.11:g.140651610_140651612dupTGC', 'GRCh37', 'NM_018717.4',
+                                   liftover_level=True).format_as_dict(test=True)
+        assert "NM_018717.4:c.2296_2301dup" in results.keys()
+        # Shows shorter antisense version also round trips
+        assert results["NM_018717.4:c.2296_2301dup"]["primary_assembly_loci"]["grch37"][
+                   "hgvs_genomic_description"] == "NC_000004.11:g.140651610_140651612dup"
+        assert results["NM_018717.4:c.2296_2301dup"]["primary_assembly_loci"]["grch38"][
+                   "hgvs_genomic_description"] == "NC_000004.12:g.139730456_139730458dup"
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
