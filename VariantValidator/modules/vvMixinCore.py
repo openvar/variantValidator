@@ -53,7 +53,7 @@ class Mixin(vvMixinConverters.Mixin):
                  genome=None,
                  select_transcripts="all",
                  transcript_set=None,
-                 liftover_level=False,
+                 liftover_level=True,
                  lovd_syntax_check=False,
                  shorthand_vcf=False):
         """
@@ -81,6 +81,19 @@ class Mixin(vvMixinConverters.Mixin):
                 "ValidatorSubmissionError: No genome build submitted."
             )
         selected_assembly = genome
+
+        # Normalise REST/API input
+        if liftover_level in (True, "True", 1):
+            liftover_level = True
+        elif liftover_level in (False, "False", 0):
+            liftover_level = None
+
+        # Validate
+        if liftover_level not in (True, None, "primary"):
+            raise ValidatorSubmissionError(
+                f"liftover_level '{liftover_level}' is not supported. "
+                "Use True, False, None or 'primary'."
+            )
 
         if transcript_set is None:
             transcript_set = "refseq"

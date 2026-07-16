@@ -53,15 +53,15 @@ The following argument is always required.
 
 Commonly used command-line options include:
 
-| Option | Description |
-|---------|-------------|
-| `-g`, `--genome` | Specify the reference genome assembly (e.g. `GRCh37` or `GRCh38`). |
-| `-t`, `--select-transcripts` | Restrict the returned transcript representations. |
-| `--transcript-model` | Select the transcript database (`refseq`, `ensembl` or `all`). |
-| `--check-only` | Validate genomic HGVS syntax without transcript or protein mapping. |
-| `--liftover` | Generate equivalent genomic representations on compatible genome assemblies. |
-| `-o`, `--output` | Write the results to a file. |
-| `--help` | Display the command help message. |
+| Option                       | Description                                                                 |
+|------------------------------|-----------------------------------------------------------------------------|
+| `-g`, `--genome`             | Specify the reference genome assembly (e.g. `GRCh37` or `GRCh38`).          |
+| `-t`, `--select-transcripts` | Restrict the returned transcript representations.                           |
+| `--transcript-model`         | Select the transcript database (`refseq`, `ensembl` or `all`).              |
+| `--check-only`               | Validate genomic HGVS syntax without transcript or protein mapping.         |
+| `-l`, `--liftover-level`      | Generate equivalent genomic representations on alternate genome assemblies. |
+| `-o`, `--output`             | Write the results to a file.                                                |
+| `--help`                     | Display the command help message.                                           |
 
 ---
 
@@ -69,14 +69,14 @@ Commonly used command-line options include:
 
 Unless otherwise specified, VariantFormatter uses the following defaults.
 
-| Setting | Default |
-|---------|---------|
-| Genome assembly | `GRCh38` |
-| Transcript selection | `mane_select` |
-| Transcript database | `refseq` |
-| Genomic syntax checking only | Disabled |
-| Liftover | Disabled |
-| Output format | JSON |
+| Setting | Default                    |
+|---------|----------------------------|
+| Genome assembly | `GRCh38`                   |
+| Transcript selection | `mane_select`              |
+| Transcript database | `refseq`                   |
+| Genomic syntax checking only | Disabled                   |
+| Liftover | Enabled                    |
+| Output format | JSON                       |
 | Output destination | Standard output (`stdout`) |
 
 These defaults can be overridden using the appropriate command-line options described below and demonstrated in the examples.
@@ -282,14 +282,19 @@ variantformatter \
 
 ### Generate lifted-over genomic representations
 
-The `--liftover` option includes equivalent genomic representations on compatible genome assemblies.
+The `--liftover-level` option includes equivalent genomic representations on alternate genome assemblies.
 
 ```bash
 variantformatter \
     --variant "NC_000017.11:g.50198002C>A" \
     --genome GRCh38 \
-    --liftover
+    --liftover-level
 ```
+Usage
+
+| Parameter | Type            | Required | Description |
+|----------|-----------------|----------|-------------|
+| liftover_level | string or bool  | No | Controls genomic liftover. `True` performs full liftover, `primary` excludes alternative scaffolds, and `False` disables liftover. Defaults to `True`. |
 
 ---
 

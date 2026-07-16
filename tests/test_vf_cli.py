@@ -297,7 +297,7 @@ def test_run_formatting():
         transcript_model="refseq",
         select_transcripts="mane_select",
         check_only=False,
-        liftover=False,
+        liftover_level="false",
     )
 
     result = variantformatter.run_formatting(
@@ -314,15 +314,15 @@ def test_run_formatting():
         '["17-50198002-C-A"]'
     )
 
-    assert formatter.kwargs["genome_build"] == "GRCh38"
+    assert formatter.kwargs["genome"] == "GRCh38"
 
     assert formatter.kwargs["transcript_model"] == "refseq"
 
-    assert formatter.kwargs["specify_transcripts"] == "mane_select"
+    assert formatter.kwargs["select_transcripts"] == "mane_select"
 
     assert formatter.kwargs["checkOnly"] is False
 
-    assert formatter.kwargs["liftover"] is False
+    assert formatter.kwargs["liftover_level"] is False
 
 
 def test_run_formatting_transcript_list():
@@ -337,7 +337,7 @@ def test_run_formatting_transcript_list():
             "NM_001278074.1",
         ],
         check_only=True,
-        liftover=True,
+        liftover_level="true",
     )
 
     variantformatter.run_formatting(
@@ -349,14 +349,14 @@ def test_run_formatting_transcript_list():
     )
 
     assert (
-        formatter.kwargs["specify_transcripts"]
+        formatter.kwargs["select_transcripts"]
         ==
         '["NM_000093.4", "NM_001278074.1"]'
     )
 
     assert formatter.kwargs["checkOnly"] is True
 
-    assert formatter.kwargs["liftover"] is True
+    assert formatter.kwargs["liftover_level"] is True
 
 
 def test_main_success(tmp_path, monkeypatch):

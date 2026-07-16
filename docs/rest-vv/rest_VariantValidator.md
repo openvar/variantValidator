@@ -16,7 +16,7 @@ To request access:
 
 1. Follow the account request process described in the REST VariantValidator access guide:
 
-   [https://github.com/openvar/rest_variantValidator2/blob/main/docs/access.md](https://github.com/openvar/rest_variantValidator2/blob/main/docs/access.md)
+   [https://github.com/openvar/rest_variantValidator/blob/master/docs/Account.md](https://github.com/openvar/rest_variantValidator/blob/master/docs/Account.md)
 
 2. Once your request has been submitted, email **admin@variantvalidator.org** so that your account can be reviewed and activated.
 
@@ -29,8 +29,6 @@ Once your account has been approved, you will receive the credentials required t
 REST VariantValidator provides an interactive Swagger interface describing all available endpoints, required parameters and example requests.
 
 The Swagger interface also reports the currently deployed software versions together with the transcript annotation and sequence repository releases used by the service.
-
-*Insert Swagger screenshot.*
 
 ---
 

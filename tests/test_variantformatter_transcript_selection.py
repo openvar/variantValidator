@@ -111,10 +111,10 @@ class TestVFvariantsTranscriptSelection(object):
 
         results = formatter.format(
             variant="NC_000005.10:g.140114829del",
-            genome_build="GRCh38",
+            genome="GRCh38",
             transcript_model="refseq",
             select_transcripts="all",
-            liftover=True,
+            liftover_level=True,
         )
 
         assert "NC_000005.10:g.140114829del" in results
@@ -127,7 +127,7 @@ class TestVFvariantsTranscriptSelection(object):
                 simpleVariantFormatter.FormatterSubmissionError,
                 match="Variant is required"):
             formatter.format(
-                genome_build="GRCh38",
+                genome="GRCh38",
             )
 
     def test_format_missing_genome_keyword(self):

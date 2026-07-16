@@ -94,7 +94,7 @@ Check genomic syntax only
 
 Generate lifted-over genomic representations
 
-    variantformatter -v "NC_000017.10:g.48275363C>A" --liftover
+    variantformatter -v "NC_000017.10:g.48275363C>A" --liftover-level true
 
 
 Input formats
@@ -462,12 +462,31 @@ Choices
     )
 
     formatting.add_argument(
-        "--liftover",
-        action="store_true",
-        help=(
-            "Generate equivalent representations "
-            "on compatible genome assemblies."
-        ),
+        "-l",
+        "--liftover-level",
+        default="true",
+        choices=[
+            "true",
+            "false",
+            "primary",
+        ],
+        metavar="LEVEL",
+        help="""
+    Control genomic liftover output.
+
+    Choices
+
+        true
+            Include both primary assemblies and alternate loci.
+
+        primary
+            Include both primary assemblies only.
+
+        false
+            Include only the submitted genome build.
+
+    (default: %(default)s)
+    """,
     )
 
     #
@@ -608,8 +627,8 @@ def run_formatting(
     )
 
     LOGGER.info(
-        "Liftover             : %s",
-        args.liftover,
+        "Liftover level       : %s",
+        args.liftover_level,
     )
 
     LOGGER.info(
@@ -628,17 +647,23 @@ def run_formatting(
         len(variants),
     )
 
+    liftover_level = {
+        "true": True,
+        "false": False,
+        "primary": "primary",
+    }[args.liftover_level.lower()]
+
     result = formatter.format(
         variant=batch_input,
-        genome_build=args.genome,
+        genome=args.genome,
         transcript_model=args.transcript_model,
-        specify_transcripts=(
+        select_transcripts=(
             json.dumps(args.select_transcripts)
             if isinstance(args.select_transcripts, list)
             else args.select_transcripts
         ),
         checkOnly=args.check_only,
-        liftover=args.liftover,
+        liftover_level=liftover_level,
     )
 
     LOGGER.debug(

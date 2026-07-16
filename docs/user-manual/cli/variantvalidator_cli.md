@@ -60,7 +60,8 @@ Commonly used command-line options include:
 | `-g`, `--genome`             | Specify the reference genome assembly (e.g. `GRCh37` or `GRCh38`). |
 | `-t`, `--select-transcripts` | Restrict the output to selected transcripts. |
 | `--transcript-set`           | Select a predefined transcript set. |
-| `-f`, `--output-format`             | Specify the output format. |
+| `-f`, `--output-format`      | Specify the output format. |
+| `-l`, `--liftover-level`      | Generate equivalent genomic representations on alternate genome assemblies. |
 | `-o`, `--output`             | Write the results to a file. |
 | `-m`, `--meta`               | Include metadata in the output. |
 | `--help`                     | Display the command help message. |
@@ -262,6 +263,23 @@ variantvalidator \
     --genome GRCh38 \
     --select-transcripts '["NM_000088.3","NM_000088.4"]'
 ```
+
+---
+
+### Generate lifted-over genomic representations
+
+The `--liftover-level` option includes equivalent genomic representations on alternate genome assemblies.
+
+```bash
+variantformatter \
+    --variant "NC_000017.11:g.50198002C>A" \
+    --genome GRCh38 \
+    --liftover-level
+```
+
+| Parameter | Type            | Required | Description |
+|----------|-----------------|----------|-------------|
+| liftover_level | string or bool  | No | Controls genomic liftover. `True` performs full liftover, `primary` excludes alternative scaffolds, and `False` disables liftover. Defaults to `True`. |
 
 ---
 

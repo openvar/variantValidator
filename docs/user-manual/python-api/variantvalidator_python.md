@@ -67,7 +67,7 @@ validate(
     genome=None,
     select_transcripts="all",
     transcript_set=None,
-    liftover_level=False,
+    liftover_level=True,
     lovd_syntax_check=False,
     shorthand_vcf=False
 )
@@ -93,13 +93,20 @@ The following arguments are required when calling the `validate()` method.
 
 The following optional arguments control validation behaviour.
 
-| Argument | Default | Description |
-|----------|---------|-------------|
-| `transcripts` | `"all"` | Transcript selection strategy or a JSON array of transcript identifiers. |
-| `transcript_set` | `None` | Select the transcript database (`refseq` or `ensembl`). `None` defaults to `refseq`. |
-| `liftover_level` | `False` | Enable additional liftover processing. |
-| `lovd_syntax_check` | `False` | Enable LOVD HGVS syntax checking. |
-| `shorthand_vcf` | `False` | Enable shorthand VCF parsing. |
+| Argument | Default | Description                                                                          |
+|----------|---------|--------------------------------------------------------------------------------------|
+| `transcripts` | `"all"` | Transcript selection strategy or a JSON array of transcript identifiers.             |
+| `transcript_set` | `None`  | Select the transcript database (`refseq` or `ensembl`). `None` defaults to `refseq`. |
+| `liftover_level` | `True`  | Enable additional liftover to available genome builds.                               |
+| `lovd_syntax_check` | `False` | Enable LOVD HGVS syntax checking.                                                    |
+| `shorthand_vcf` | `False` | Enable shorthand VCF parsing.                                                        |
+
+
+Usage of liftover_level
+
+| Parameter | Type            | Required | Description |
+|----------|-----------------|----------|-------------|
+| liftover_level | string or bool  | No | Controls genomic liftover. `True` performs full liftover, `primary` excludes alternative scaffolds, and `False` disables liftover. Defaults to `True`. |
 
 ---
 

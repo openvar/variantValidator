@@ -85,6 +85,12 @@ The following optional arguments control formatting behaviour.
 | `checkOnly` | `False` | Validate genomic HGVS syntax only without transcript or protein mapping. |
 | `liftover` | `False` | Generate equivalent genomic representations on compatible genome assemblies. |
 
+Usage of liftover_level
+
+| Parameter | Type            | Required | Description |
+|----------|-----------------|----------|-------------|
+| liftover_level | string or bool  | No | Controls genomic liftover. `True` performs full liftover, `primary` excludes alternative scaffolds, and `False` disables liftover. Defaults to `True`. |
+
 ---
 
 ## Default Behaviour

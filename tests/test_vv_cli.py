@@ -531,7 +531,8 @@ def test_no_liftover(monkeypatch, capsys):
         capsys,
         "-v",
         GRCH38_GENOMIC,
-        "--no-liftover",
+        "--liftover-level",
+        "false",
     )
 
     assert results["flag"] == "gene_variant"
