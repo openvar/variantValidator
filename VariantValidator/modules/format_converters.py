@@ -14,11 +14,13 @@ from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
 
 logger = logging.getLogger(__name__)
 
+class GeneSymbolFormatError(Exception):
+    pass
 
-def initial_format_conversions(variant, validator, select_transcripts_dict_plus_version):
+def initial_format_conversions(variant, validator, select_transcripts_dict_plus_version, batch_list):
 
     # VCF type 1
-    toskip = vcf2hgvs_stage1(variant, validator)
+    toskip = vcf2hgvs_stage1(variant, batch_list)
     if toskip:
         return True
 
@@ -28,23 +30,24 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
     if toskip:
         return True
 
-    toskip = gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version)
+    toskip = gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version, batch_list)
     if toskip:
         return True
 
     # NG_:c. or NC_:c.
-    toskip = refseq_catch(variant, validator, select_transcripts_dict_plus_version)
+    toskip = refseq_catch(variant, validator, select_transcripts_dict_plus_version, batch_list)
     if toskip:
         return True
 
     # Find not_sub type in input e.g. GGGG>G
-    toskip = vcf2hgvs_stage4(variant, validator)
+    toskip = vcf2hgvs_stage4(variant, batch_list)
     if toskip:
         return True
 
     # Extract variants from HGVS allele descriptions
     # http://varnomen.hgvs.org/recommendations/DNA/variant/alleles/
-    toskip = allele_parser(variant, validator, validator)
+    logger.info("Try find allele syntax in %s", variant.quibble)
+    toskip = allele_parser(variant, validator, validator, batch_list)
     if toskip:
         return True
 
@@ -71,6 +74,7 @@ def initial_format_conversions(variant, validator, select_transcripts_dict_plus_
 
     # Expanded repeat->delins code can not handle Uncertain positions yet
     # also does hgvs object conversion if it triggers
+    logger.info("Try find Expanded Repeat syntax in %s", variant.quibble)
     if type(variant.quibble) is str: # not Uncertain
         toskip = convert_expanded_repeat(variant, validator)
         if toskip:
@@ -153,7 +157,7 @@ def final_hgvs_convert(variant,validator):
     return False
 
 
-def vcf2hgvs_stage1(variant, validator):
+def vcf2hgvs_stage1(variant, batch_list):
     """
     VCF2HGVS stage 1. converts chr-pos-ref-alt into chr:posRef>Alt
     The output format is a common mistake caused by inaccurate conversion of
@@ -218,8 +222,8 @@ def vcf2hgvs_stage1(variant, validator):
                           primary_assembly=variant.primary_assembly, order=variant.order)
         query_b = Variant(variant.original, quibble=input_b, warnings=variant.warnings,
                           primary_assembly=variant.primary_assembly, order=variant.order)
-        validator.batch_list.append(query_a)
-        validator.batch_list.append(query_b)
+        batch_list.append(query_a)
+        batch_list.append(query_b)
         logger.info("Submitting new variant with format %s", input_a)
         skipvar = True
     elif vcf_data[3]:
@@ -392,7 +396,7 @@ def vcf2hgvs_stage2(variant, validator):
     return skipvar
 
 
-def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version):
+def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version, batch_list):
     """
     Searches for gene symbols that have been used as reference sequence
     identifiers. Provides a sufficiently repremanding warning, but also provides
@@ -404,14 +408,18 @@ def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version):
     """
     skipvar = False
     query_a_symbol, _sep, tx_edit = variant.quibble.partition(':')
+    logger.info(f"Extracted query_a_symbol: {query_a_symbol}")
     if not (query_a_symbol[:3] in ['NC_','NW_','NM_','NR_','NG_','LRG'] or
             query_a_symbol[:4].startswith('ENST')
             ) and tx_edit[:2] in ['c.','n.']:
         try:
+            if "(" in query_a_symbol and ")" in query_a_symbol:
+                variant.warnings.append(f"ReferenceSequenceError: {query_a_symbol} is an invalid reference sequence identifier")
+                raise GeneSymbolFormatError(f"{query_a_symbol} contains parentheses, which is not allowed in gene symbols.")
             is_it_a_gene = validator.db.get_hgnc_symbol(query_a_symbol)
             if is_it_a_gene == 'none':
-                variant.warnings.append(chr_num + ' is not part of genome build ' + validator.selected_assembly)
-                logger.info(chr_num + ' is not part of genome build ' + validator.selected_assembly)
+                variant.warnings.append(f"{query_a_symbol} identified as the reference sequence for {variant.quibble} and is not a valid, and is also not a valid gene symbol")
+                logger.info(f"{query_a_symbol} identified as the reference sequence for {variant.quibble} and is not a valid, and is also not a valid gene symbol")
                 skipvar = True
             else:
                 uta_symbol = validator.db.get_uta_symbol(is_it_a_gene)
@@ -450,7 +458,7 @@ def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version):
                         query = Variant(variant.original, quibble=refreshed_description,
                                         warnings=variant.warnings, primary_assembly=variant.primary_assembly,
                                         order=variant.order)
-                        validator.batch_list.append(query)
+                        batch_list.append(query)
                         logger.info('HGVS variant nomenclature does not allow the use of a gene symbol (' +
                                     query_a_symbol + ') in place of a valid reference sequence')
                         logger.info("Submitting new variant with format %s", refreshed_description)
@@ -471,7 +479,7 @@ def gene_symbol_catch(variant, validator, select_transcripts_dict_plus_version):
     return skipvar
 
 
-def refseq_catch(variant, validator, select_transcripts_dict_plus_version):
+def refseq_catch(variant, validator, select_transcripts_dict_plus_version, batch_list):
     """
     Similar to the GENE_SYMBOL:c. n. types function, but spots RefSeqGene or
     Chromosomal reference sequence identifiers used in the context of c. variant
@@ -488,7 +496,6 @@ def refseq_catch(variant, validator, select_transcripts_dict_plus_version):
         # implicitly insist on GenomicReferenceID(TranscriptReferenceID) *not*
         # GenomicReferenceID(GeneID)(TranscriptReferenceID)
         curr_query_a_ref_seq = ''
-        query_a_tx_seq = ''
         tx_seq_found = False
         while '(' in query_a_seq and not tx_seq_found:
             query_a_seq_test, _sep, query_a_tx_seq = query_a_seq.partition('(')
@@ -557,7 +564,7 @@ def refseq_catch(variant, validator, select_transcripts_dict_plus_version):
                             logger.info('NG_:c.PositionVariation descriptions should not be used unless a transcript '
                                         'reference sequence has also been provided e.g. NG_(NM_):c.PositionVariation. '
                                         'Resubmitting corrected version.')
-                            validator.batch_list.append(query)
+                            batch_list.append(query)
                             logger.info("Submitting new variant with format %s", refreshed_description)
                     else:
                         variant.warnings.append('A transcript reference sequence has not been provided e.g. '
@@ -583,6 +590,18 @@ def refseq_catch(variant, validator, select_transcripts_dict_plus_version):
                     'A transcript reference sequence has not been provided e.g. NC_(NM_):c.PositionVariation. '
                     'Unable to predict available transcripts because chromosomal position is not specified')
                 skipvar = True
+            elif curr_query_a_ref_seq and not tx_seq_found:
+                genomic_prefix = curr_query_a_ref_seq.split('_', 1)[0]
+
+                variant.warnings.append(
+                    f'A transcript reference sequence has not been provided e.g. '
+                    f'{genomic_prefix}_(NM_):c.PositionVariation'
+                )
+                logger.info(
+                    f'A transcript reference sequence has not been provided e.g. '
+                    f'{genomic_prefix}_(NM_):c.PositionVariation'
+                )
+                skipvar = True
         except Exception as e:
             logger.debug("Except passed, %s", e)
 
@@ -590,7 +609,7 @@ def refseq_catch(variant, validator, select_transcripts_dict_plus_version):
     return skipvar
 
 
-def vcf2hgvs_stage4(variant, validator):
+def vcf2hgvs_stage4(variant, batch_list):
     """
     VCF2HGVS conversion step 4 has two purposes
     1. VCF is frequently inappropriately converted into HGVS like descriptions
@@ -636,7 +655,7 @@ def vcf2hgvs_stage4(variant, validator):
                         query = Variant(variant.original, quibble=refreshed_description,
                                         warnings=variant.warnings, primary_assembly=variant.primary_assembly,
                                         order=variant.order)
-                        validator.batch_list.append(query)
+                        batch_list.append(query)
                         logger.info('Multiple ALT sequences detected. Auto-submitting all possible combinations.')
                         logger.info("Submitting new variant with format %s", refreshed_description)
                     skipvar = True
@@ -716,6 +735,7 @@ def convert_expanded_repeat(my_variant, validator):
     """
     Waiting for HGVS nomenclature changes
     """
+    logger.info(f"Checking my variant: {my_variant.quibble} for expanded repats in format_converters")
     try:
         has_ex_repeat = expanded_repeats.convert_tandem(my_variant, validator, my_variant.primary_assembly,
                                                  "all")
@@ -952,7 +972,7 @@ def remap_intronic(hgvs_transy, hgvs_genomic, variant, validator):
     except AttributeError:
         pass
 
-def allele_parser(variant, validation, validator):
+def allele_parser(variant, validation, validator, batch_list):
     """
     HGVS allele string parsing function Occurance #1
     Takes a single HGVS allele description and separates each allele into a
@@ -965,17 +985,28 @@ def allele_parser(variant, validation, validator):
     caution = ''
     ac_part, _sep, var = variant.quibble.partition(':')
     is_digit, _sep, end = var.partition('[')
-    if (var[:3] in ['g.[','c.[','n.[',':r.['] and ';' in var) or (
-            is_digit[:2] in ['g.','c.','n.',':r.'] and ';' in end and is_digit[2:].isdigit()
-            ) or ('(;)' in var):
+    if (var[:3] in ['g.[', 'c.[', 'n.[', 'm.[', 'r.['] and ';' in var) or (
+            is_digit[:2] in ['g.', 'c.', 'n.', 'm.', 'r.'] and ';' in end and is_digit[2:].isdigit()
+        ) or ('(;)' in var):
         # Edit compound descriptions
         genomic_ref = intronic_converter(variant, validator, skip_check=True)
+        # Determine whether a genomic reference has already been supplied.
+        #
+        # Path 1:
+        # intronic_converter() could not derive a genomic reference, so use the
+        # submitted accession if it is already a genomic RefSeq accession
+        # (NC_, NG_, NT_ or NW_).
+        #
+        # Path 2:
+        # intronic_converter() successfully derived a genomic reference from the
+        # submitted transcript/gene accession. Use it if it is a supported genomic
+        # RefSeq accession.
         if genomic_ref is None:
-            if 'NC_' in ac_part:
+            if re.match(r'^(NC|NG|NT|NW)_', ac_part):
                 genomic_reference = ac_part
             else:
                 genomic_reference = False
-        elif 'NC_' in genomic_ref or 'NG_' in genomic_ref:
+        elif re.match(r'^(NC|NG|NT|NW)_', genomic_ref):
             genomic_reference = genomic_ref
         else:
             genomic_reference = False
@@ -1026,6 +1057,8 @@ def allele_parser(variant, validation, validator):
                     logger.info(caution)
             else:
                 pass
+
+        logger.info("Try allele extraction")
         try:
             # Submit to allele extraction function
             try:
@@ -1038,6 +1071,8 @@ def allele_parser(variant, validation, validator):
                 return True
             except AlleleSyntaxError as e:
                 variant.warnings.append(str(e))
+                # import traceback
+                # traceback.print_exc()
                 return True
 
             variant.warnings.append('The alleleic description is in the correct syntax and all possible variant '
@@ -1049,7 +1084,7 @@ def allele_parser(variant, validation, validator):
             for allele in alleles:
                 query = Variant(variant.original, quibble=allele, warnings=variant.warnings, write=True,
                                 primary_assembly=variant.primary_assembly, order=variant.order)
-                validation.batch_list.append(query)
+                batch_list.append(query)
                 logger.info("Submitting new variant with format %s", allele)
             variant.write = False
             return True
@@ -1460,6 +1495,16 @@ def uncertain_pos(variant, validator):
                     # traceback.print_exc()
                     return True
                 except complex_descriptions.InvalidRangeError as e:
+                    variant.warnings.append(str(e))
+                    # import traceback
+                    # traceback.print_exc()
+                    return True
+                except complex_descriptions.FuzzyPositionError as e:
+                    variant.warnings.append(str(e))
+                    # import traceback
+                    # traceback.print_exc()
+                    return True
+                except complex_descriptions.FuzzyRangeError as e:
                     variant.warnings.append(str(e))
                     # import traceback
                     # traceback.print_exc()

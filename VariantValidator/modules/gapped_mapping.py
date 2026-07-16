@@ -2,7 +2,6 @@ import copy
 import re
 import logging
 import vvhgvs.exceptions
-
 from . import hgvs_utils
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj, hgvs_dup_to_delins
 from VariantValidator.modules.variant import TranscriptMapData
@@ -178,6 +177,8 @@ def immediate_round_trip_gap_ins_handling(
     elif orig_hgvs_coding.posedit.edit.type == 'ins': # implicitly genomic != ins
         if orig_hgvs_coding.type == 'c':
             n_orig_hgvs_coding = no_norm_evm.c_to_n(orig_hgvs_coding)
+        else:
+            n_orig_hgvs_coding = orig_hgvs_coding
         stored_ac = False
         if orig_hgvs_coding.rel_ac != orig_hgvs_genomic.ac:
             stored_ac = orig_hgvs_coding.rel_ac

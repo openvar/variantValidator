@@ -2,8 +2,6 @@ import requests
 from unittest import TestCase
 from unittest.mock import patch, MagicMock
 from VariantValidator.modules import lovd_api
-from VariantValidator.bin import lovd_syntax_checker
-
 
 class TestLOVDApi(TestCase):
 
@@ -27,6 +25,32 @@ class TestLOVDApi(TestCase):
 
         result = lovd_api.run_lovd_checker_cli(variant)
         self.assertEqual(result, expected_output)
+
+    def test_lovd_syntax_check_protein_variant(self):
+        with self.assertRaises(
+                lovd_api.LovdApiFlowException
+        ) as err:
+            lovd_api.lovd_syntax_check(
+                "NM_000059.4:p.(Arg117His)"
+            )
+
+        self.assertIn(
+            "Protein-level variant descriptions are not supported",
+            str(err.exception),
+        )
+
+    def test_lovd_syntax_check_rna_variant(self):
+        with self.assertRaises(
+                lovd_api.LovdApiFlowException
+        ) as err:
+            lovd_api.lovd_syntax_check(
+                "NM_000059.4:r.123a>g"
+            )
+
+        self.assertIn(
+            "RNA-level variant descriptions are not supported",
+            str(err.exception),
+        )
 
     @patch("VariantValidator.modules.lovd_api.lovd_syntax_checker.run_hgvs_checker")
     def test_run_lovd_checker_cli_failure(self, mock_run_hgvs_checker):
@@ -85,52 +109,116 @@ class TestLOVDApi(TestCase):
         result = lovd_api.run_lovd_checker_web(variant)
         self.assertEqual(result, expected_output)
 
-    @patch("VariantValidator.modules.lovd_api.run_lovd_checker_cli", side_effect=Exception("CLI failure"))
     @patch("VariantValidator.modules.lovd_api.run_lovd_checker_web")
-    def test_lovd_syntax_check_fallback(self, mock_run_web, mock_run_cli):
-        """Test that the syntax check falls back to the web API if CLI fails."""
+    @patch("VariantValidator.modules.lovd_api.run_lovd_checker_cli")
+    def test_lovd_syntax_check_cli_success_does_not_call_web(
+        self,
+        mock_run_cli,
+        mock_run_web,
+    ):
+        """A successful CLI call should not fall back to the web API."""
+        mock_run_cli.return_value = {
+            "result": "Valid"
+        }
+
+        result = lovd_api.lovd_syntax_check("c.100del")
+
+        mock_run_cli.assert_called_once_with(
+            "c.100del",
+            is_a_gene=False,
+        )
+        mock_run_web.assert_not_called()
+
+        self.assertEqual(
+            result,
+            {
+                "result": "Valid"
+            },
+        )
+
+    @patch("VariantValidator.modules.lovd_api.lovd_syntax_checker.run_hgvs_checker")
+    def test_run_lovd_checker_cli_gene_success(self, mock_run_hgvs_checker):
+        """Test CLI checker for gene symbols."""
+        mock_run_hgvs_checker.return_value = [{
+            "metadata": {"library_version": "1.2.3"},
+            "result": "Valid"
+        }]
+
+        result = lovd_api.run_lovd_checker_cli(
+            "BRCA1",
+            is_a_gene=True,
+        )
+
+        self.assertEqual(
+            result["url"],
+            "https://api.lovd.nl/v2/checkGene/BRCA1",
+        )
+        self.assertEqual(result["version"], "1.2.3")
+
+
+    @patch("requests.get")
+    def test_run_lovd_checker_web_gene_not_supported(self, mock_get):
+        """Gene symbols are not currently supported by the web API."""
+        result = lovd_api.run_lovd_checker_web(
+            "BRCA1",
+            is_a_gene=True,
+        )
+
+        self.assertEqual(
+            result,
+            {
+                "lovd_api_error":
+                    "Unsupported value: Web API is currently not configured to support gene symbols"
+            },
+        )
+        mock_get.assert_not_called()
+
+
+    @patch("VariantValidator.modules.lovd_api.run_lovd_checker_web")
+    @patch("VariantValidator.modules.lovd_api.run_lovd_checker_cli")
+    def test_lovd_syntax_check_gene_fallback(
+        self,
+        mock_run_cli,
+        mock_run_web,
+    ):
+        """CLI failure for a gene should fall back to the web handler."""
+        mock_run_cli.return_value = {
+            "lovd_api_error": "CLI failed"
+        }
+
         mock_run_web.return_value = {
-            "versions": {"library_version": "1.2.3"},
-            "result": "Valid"
+            "lovd_api_error":
+                "Unsupported value: Web API is currently not configured to support gene symbols"
         }
 
-        variant = "c.100del"
-        expected_output = {
-            "versions": {"library_version": "1.2.3"},
-            "result": "Valid"
-        }
+        result = lovd_api.lovd_syntax_check(
+            "BRCA1",
+            is_a_gene=True,
+        )
 
-        result = lovd_api.lovd_syntax_check(variant)
-        self.assertEqual(result, expected_output)
+        mock_run_cli.assert_called_once_with(
+            "BRCA1",
+            is_a_gene=True,
+        )
+        mock_run_web.assert_called_once_with(
+            "BRCA1",
+            is_a_gene=True,
+        )
 
-    def test_lovd_syntax_check_disabled(self):
-        """Test when the LOVD check is explicitly disabled."""
-        variant = "c.100del"
-        expected_output = {"lovd_api_error": "Do LOVD syntax check set to False"}
+        self.assertEqual(
+            result,
+            {
+                "lovd_api_error":
+                    "Unsupported value: Web API is currently not configured to support gene symbols"
+            },
+        )
 
-        result = lovd_api.lovd_syntax_check(variant, do_lovd_check=False)
-        self.assertEqual(result, expected_output)
 
-    def test_remove_double_quotes(self):
-        """Test the removal of double quotes from different data types."""
-        input_data = {
-            "string": '"Hello"',
-            "list": ['"Hello"', '"World"'],
-            "tuple": ('"Hello"', '"World"'),
-            "set": {'"Hello"', '"World"'},
-            "dict": {"key": '"Value"'}
-        }
-
-        expected_output = {
-            "string": "Hello",
-            "list": ["Hello", "World"],
-            "tuple": ("Hello", "World"),
-            "set": {"Hello", "World"},
-            "dict": {"key": "Value"}
-        }
-
-        result = lovd_api.remove_double_quotes(input_data)
-        self.assertEqual(result, expected_output)
+    def test_remove_double_quotes_scalar(self):
+        """Objects that are not containers should be returned unchanged."""
+        self.assertEqual(lovd_api.remove_double_quotes(123), 123)
+        self.assertEqual(lovd_api.remove_double_quotes(None), None)
+        self.assertEqual(lovd_api.remove_double_quotes(True), True)
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

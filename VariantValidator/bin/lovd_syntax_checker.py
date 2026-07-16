@@ -5,12 +5,11 @@ import threading
 import importlib.resources as pkg_resources
 import os
 from configparser import ConfigParser
-
-CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".variantvalidator")
+from VariantValidator import settings
 
 # Load config
 config = ConfigParser()
-config.read(CONFIG_DIR)
+config.read(settings.get_config_dir())
 
 # PHP binary path
 PHP_PATH = "php"

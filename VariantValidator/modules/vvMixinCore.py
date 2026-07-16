@@ -4,7 +4,6 @@ import vvhgvs.normalizer
 from vvhgvs.enums import Datum
 from vvhgvs.location import Interval
 from vvhgvs.sequencevariant import SequenceVariant
-from vvhgvs.posedit import PosEdit
 import re
 import copy
 import sys
@@ -30,6 +29,9 @@ from VariantValidator.modules.seq_state_to_expanded_repeat import\
         convert_seq_state_to_expanded_repeat
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
         unset_hgvs_obj_ref, to_vv_hgvs
+from vvhgvs.location import AAPosition
+from vvhgvs.posedit import PosEdit
+from vvhgvs.edit import AASub
 
 logger = logging.getLogger(__name__)
 
@@ -123,15 +125,16 @@ class Mixin(vvMixinConverters.Mixin):
                 batch_queries = [batch_variant]
             if isinstance(batch_queries, int):
                 batch_queries = [str(batch_queries)]
+
             # Turn each variant into a dictionary. The dictionary will be compiled during validation
-            self.batch_list = []
+            batch_list = []
             for queries in batch_queries:
                 if isinstance(queries, int):
                     queries = str(queries)
                     queries = str(queries)
                 queries = queries.strip()
                 query = Variant(queries)
-                self.batch_list.append(query)
+                batch_list.append(query)
                 logger.info("Submitting variant with format %s", queries)
 
             # Create List to carry batch data output
@@ -151,8 +154,8 @@ class Mixin(vvMixinConverters.Mixin):
             flag : mitochondrial
             """
 
-            logger.debug("Batch list length " + str(len(self.batch_list)))
-            for my_variant in self.batch_list:
+            logger.debug("Batch list length " + str(len(batch_list)))
+            for my_variant in batch_list:
 
                 # Create Normalizers
                 my_variant.hn = vvhgvs.normalizer.Normalizer(self.hdp,
@@ -389,8 +392,10 @@ class Mixin(vvMixinConverters.Mixin):
                             my_variant.warnings.append("Reference sequence type o. should only be used for circular "
                                                        "reference sequences that are not mitochondrial. Instead use m.")
                     try:
-                        toskip = format_converters.initial_format_conversions(my_variant, self,
-                                                                              select_transcripts_dict_plus_version)
+                        toskip = format_converters.initial_format_conversions(my_variant,
+                                                                              self,
+                                                                              select_transcripts_dict_plus_version,
+                                                                              batch_list)
 
                     except vvhgvs.exceptions.HGVSError as e:
                         # import traceback
@@ -427,23 +432,37 @@ class Mixin(vvMixinConverters.Mixin):
                             continue
 
                         except vvhgvs.exceptions.HGVSParseError as e:
-                            if re.search("ins\d+$", my_variant.quibble):
-                                my_variant.warnings.append("The length of the variant is not formatted following the "
-                                                           "HGVS guidelines. Please rewrite e.g. '10' to 'N[10]'"
-                                                           "(where N is an unknown nucleotide)")
-                                try:
-                                    if "_" not in my_variant.quibble.split(":")[1] and \
-                                            "del" not in my_variant.quibble.split(":")[1]:
-                                        my_variant.warnings.append("An insertion must be provided with the two "
-                                                                   "positions between which the insertion has taken "
-                                                                   "place")
-                                except IndexError:
-                                    pass
-                                continue
-                            else:
-                                my_variant.warnings.append(str(e))
-                                logger.info(str(e))
-                                continue
+
+                            # This code path appears to be obsolete.
+                            #
+                            # Malformed insertions such as "...ins10" are now detected earlier in
+                            # use_checking.py. Functional tests covering these variants produce the
+                            # expected warnings before this HGVSParseError handler is reached, and
+                            # coverage plus temporary logging indicate this branch is currently
+                            # unreachable.
+                            #
+                            # Retained here temporarily for reference until it is confirmed that no
+                            # callers can bypass use_checking.py.
+
+                            # if re.search("ins\d+$", my_variant.quibble):
+                            #     logger.info(f"pattern 'ins\d+$' isentified in {my_variant.quibble}")
+                            #     my_variant.warnings.append("The length of the variant is not formatted following the "
+                            #                                "HGVS guidelines. Please rewrite e.g. '10' to 'N[10]'"
+                            #                                "(where N is an unknown nucleotide)")
+                            #     try:
+                            #         if "_" not in my_variant.quibble.split(":")[1] and \
+                            #                 "del" not in my_variant.quibble.split(":")[1]:
+                            #             my_variant.warnings.append("An insertion must be provided with the two "
+                            #                                        "positions between which the insertion has taken "
+                            #                                        "place")
+                            #     except IndexError:
+                            #         pass
+                            #     continue
+                            # else:
+
+                            my_variant.warnings.append(str(e))
+                            logger.info(str(e))
+                            continue
 
                         # Other issues to collect, for example, the specified position in NC_ does not agree with g.
                         # See issue #176
@@ -454,6 +473,7 @@ class Mixin(vvMixinConverters.Mixin):
                                 continue
 
                         if 'base start position must be <= end position' in str(e):
+                            logger.info(f"{e}")
                             toskip = None
                         else:
                             my_variant.warnings.append(str(e))
@@ -689,7 +709,7 @@ class Mixin(vvMixinConverters.Mixin):
                     # Now start mapping from genome to transcripts
                     if my_variant.reftype == ':g.':
                         try:
-                            toskip = mappers.gene_to_transcripts(my_variant, self, select_transcripts_dict)
+                            toskip = mappers.gene_to_transcripts(my_variant, self, select_transcripts_dict, batch_list)
                         except IndexError:
                             my_variant.output_type_flag = 'warning'
                             error = '%s cannot be validated in the context of genome build %s, ' \
@@ -737,6 +757,8 @@ class Mixin(vvMixinConverters.Mixin):
                         my_variant.warnings.append(error)
                         exc_type, exc_value, last_traceback = sys.exc_info()
                         logger.error(str(exc_type) + " " + str(exc_value))
+                        import traceback
+                        traceback.print_exc()
                         continue
 
             # Outside the for loop
@@ -744,16 +766,16 @@ class Mixin(vvMixinConverters.Mixin):
             logger.debug("End of 1st for loop - Finalising formatting")
 
             # order the rows
-            by_order = sorted(self.batch_list, key=lambda x: x.order)
+            by_order = sorted(batch_list, key=lambda x: x.order)
             for variant in by_order:
                 ###############################################################
                 # Runtime information and errors at warning and above only!!! #
                 ###############################################################
 
-                structure_loop_variant  = (f"Structure loop for variant {variant.original}, "
-                                           f"genome build {selected_assembly}, "
-                                           f"reference set {transcript_set}, "
-                                           f"select transcripts: {select_transcripts}")
+                structure_loop_variant = (f"Structure loop for variant {variant.original}, "
+                                          f"genome build {selected_assembly}, "
+                                          f"reference set {transcript_set}, "
+                                          f"select transcripts: {select_transcripts}")
 
                 logger.warning(structure_loop_variant)
 
@@ -923,6 +945,9 @@ class Mixin(vvMixinConverters.Mixin):
                         chrY = True
                 if chrX is True and chrY is True:
                     par = True
+                    variant.warnings.append('ParRegionWarning: Variant is located in a pseudoautosomal region (PAR) of '
+                                            'the X and Y chromosomes, so the Y context description has been moved to '
+                                            'alt_genomic_loci')
 
                 for alt_gen_var in multi_gen_vars:
                     if 'NC_' in alt_gen_var.ac:
@@ -1071,6 +1096,7 @@ class Mixin(vvMixinConverters.Mixin):
 
                                 if re.search("[A-Z][a-z][a-z]1[A-Z][a-z][a-z]", str(
                                     predicted_protein_variant.posedit)):
+                                    logger.info(f"{predicted_protein_variant} maps to the initialisation amino acid.")
                                     cp_warnings = []
                                     for each_warning in variant.warnings:
                                         if "is HGVS compliant and contains a valid reference " \
@@ -1086,20 +1112,41 @@ class Mixin(vvMixinConverters.Mixin):
                                             cp_warnings.append(
                                                     f"Variant {predicted_protein_variant} affects the initiation amino acid"
                                                     f" so is better described as {cp_format_p}")
+
                                             predicted_protein_variant = vvhgvs.sequencevariant.SequenceVariant(
-                                                    ac=predicted_protein_variant.ac,
-                                                    type='p',
-                                                    posedit="({aa_1}1?)")
+                                                ac=predicted_protein_variant.ac,
+                                                type="p",
+                                                posedit=PosEdit(
+                                                    pos=AAPosition(
+                                                        base=1,
+                                                        aa=fn.three_to_one(aa_1),  # "Met" -> "M"
+                                                    ),
+                                                    edit=AASub(
+                                                        alt="?"
+                                                    ),
+                                                    uncertain=True,
+                                                ),
+                                            )
                                             variant.warnings = cp_warnings
 
+                                        logger.info(f"Warnings updated to {variant.warnings}")
+
                                 # Set formatted tlr
-                                predicted_protein_variant_dict['tlr'] = \
-                                        predicted_protein_variant.format({
-                                            'max_ref_length': 0})
-                                predicted_protein_variant_dict['slr']= \
-                                        predicted_protein_variant.format({
-                                            'max_ref_length': 0,
-                                            'p_3_letter':False})
+                                try:
+                                    predicted_protein_variant_dict['tlr'] = \
+                                            predicted_protein_variant.format({
+                                                'max_ref_length': 0})
+                                    predicted_protein_variant_dict['slr']= \
+                                            predicted_protein_variant.format({
+                                                'max_ref_length': 0,
+                                                'p_3_letter':False})
+                                except Exception as e:
+                                    print("AWOOOOOOOOOGA")
+                                    print(predicted_protein_variant)
+                                    import traceback
+                                    traceback.print_exc()
+
+
                                 # set LRG outputs
                                 if format_lrg is not None:
                                     predicted_protein_variant_dict["lrg_tlr"] = \
@@ -1635,12 +1682,14 @@ class Mixin(vvMixinConverters.Mixin):
                     vcf["alt"] = hgvs.posedit.edit.type.upper()
                     return vcf
 
-                for gen in variant.primary_assembly_loci.keys():
-                    variant.primary_assembly_loci[gen]['vcf'] = _vcf_abrv(
-                            variant.primary_assembly_loci[gen][hgd],
-                            variant.primary_assembly_loci[gen]['vcf'])
-                    variant.primary_assembly_loci[gen][hgd] = \
-                        variant.primary_assembly_loci[gen][hgd].format({'max_ref_length': 0})
+
+                if variant.primary_assembly_loci is not None:
+                    for gen in variant.primary_assembly_loci.keys():
+                        variant.primary_assembly_loci[gen]['vcf'] = _vcf_abrv(
+                                variant.primary_assembly_loci[gen][hgd],
+                                variant.primary_assembly_loci[gen]['vcf'])
+                        variant.primary_assembly_loci[gen][hgd] = \
+                            variant.primary_assembly_loci[gen][hgd].format({'max_ref_length': 0})
 
                 for loc in variant.alt_genomic_loci:
                     for gen in loc.keys():
@@ -1768,7 +1817,7 @@ class Mixin(vvMixinConverters.Mixin):
         Collect transcript information from a non-genomic variant.
         Should only be called during the validator process
         """
-        logger.debug("Looking for transcript info")
+        logger.info("Entered _get_transcript_info")
         hgvs_vt = variant.hgvs_formatted
         try:
             self.hdp.get_tx_identity_info(str(hgvs_vt.ac))

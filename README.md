@@ -1,5 +1,9 @@
 # VariantValidator
-[![codecov](https://codecov.io/github/openvar/variantValidator/graph/badge.svg?token=QWTxw5kiY4)](https://codecov.io/github/openvar/variantValidator)
+[![VariantValidator CI](https://github.com/openvar/variantValidator/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/openvar/variantValidator/actions/workflows/ci.yml) [![codecov](https://codecov.io/github/openvar/variantValidator/graph/badge.svg?token=QWTxw5kiY4)](https://codecov.io/github/openvar/variantValidator)
+
+VariantValidator uses a combination of unit, integration and regression testing. New features and bug fixes are accompanied by regression tests where practical. The test suite is designed to provide confidence in production behaviour rather than simply maximise statement coverage.
+
+---
 
 ## About
 
@@ -41,7 +45,6 @@ Alternatively, genomic sequence variation can be projected onto a specified sing
 Projection of sequence variations between reference sequences takes account of discrepancies between genomic and transcript reference sequences, thus ensuring an accurate prediction of the effect on encoded proteins for every gene.
 
 For sequence variations falling within the open reading frames of genes, VariantValidator automatically projects sequence variants via the transcript reference sequence onto genome builds GRCh38, GRCh37, hg38 and hg19 (HGVS format and VCF components), including projection onto relevant Alternative genomic reference sequences, the composition of which varies between patched GRC genome builds and static hg genome builds
-
 
 ## License
 
@@ -113,15 +116,9 @@ VariantValidator is a community resource and we represent a diverse range of use
 
 ***To accurately cite us, please use both of the follwoing***
 
-1. Freeman, P.J., Wagstaff, J.F., Fokkema, I.F.A.C. et al. Standardizing variant naming in literature with VariantValidator to increase diagnostic rates. Nat Genet (2024).
+Freeman, P. J., Hart, R. K., Gretton, L. J., Brookes, A. J., & Dalgleish, R. (2018). VariantValidator: Accurate validation, mapping and formatting of sequence variation descriptions. Human Mutation, 39, 61–68. https://doi.org/10.1002/humu.23348
 
-[https://doi.org/10.1038/s41588-024-01938-w](https://doi.org/10.1038/s41588-024-01938-w)
-
-2. Freeman PJ, Hart RK, Gretton LJ, Brookes AJ, Dalgleish R (2018) VariantValidator: Accurate validation, mapping, and formatting of sequence variation descriptions. Hum Mutat. 39(1) 61-68.
-
-[PubMed: 28967166](https://www.ncbi.nlm.nih.gov/pubmed/28967166)
-
-[DOI: 10.1002/humu.23348](https://doi.org/10.1002/humu.23348)
+Freeman, P. J., Wagstaff, J. F., Fokkema, I. F. A. C., et al. (2024). Standardizing variant naming in literature with VariantValidator to increase diagnostic rates. Nature Genetics, 56, 2284–2286. https://doi.org/10.1038/s41588-024-01938-w
 
 ## Pre-requisites for local installation
 
@@ -150,7 +147,8 @@ For installation instructions please see [INSTALLATION.md](https://github.com/op
 ## Operation Manuals
 
 **VariantValidator Python library**
-Please see [MANUAL.md](docs/MANUAL.md). Note that the latest version is not compatible with previous releases.
+Please see [MANUAL.md](docs/MANUAL.md). 
+Note that the latest version is not compatible with previous releases.
 
 **VariantValidator REST API**
 please see [MANUAL.md](https://github.com/openvar/rest_variantValidator/blob/master/docs/MANUAL.md)
@@ -160,7 +158,7 @@ Please refer to [CONTRIBUTING.md](https://github.com/openvar/variantValidator/bl
 
 ## Acknowledgements
 
-**VariantValidator was developed at the University of Leicester. It is now maintained and developed by the University of Manchester and is hosted (with ongoing development contributions) by the University of Leicester**
+**VariantValidator was developed at the University of Leicester (2016-2019). It is now maintained and developed by the University of Manchester and is hosted (with ongoing development contributions) by the University of Leicester**
 
 <img src="https://github.com/i3hsInnovation/resources/blob/master/images/UoM_logo.jpg?raw=true" width="40%" align="left"/>
 <img src="https://github.com/i3hsInnovation/resources/blob/master/images/UoL-Logo-Full-Colour.png?raw=true" width="40%" align="right" />

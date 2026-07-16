@@ -62,15 +62,11 @@ classifiers = [
 "Bug Reports" = "https://github.com/openvar/variantValidator/issues"
 "Say Thanks!" = "https://www.buymeacoffee.com/VariantValidatr"
 
-[scripts]
-update_vdb = "bin/update_vdb:main"
-variant_validator = "bin/variant_validator:main"
-vv_configure = "bin/vv_configure:main"
-lovd_syntax_checker = "bin/lovd_syntax_checker.py"
-
-data = [
-    { include = "configuration", glob = "configuration/default.ini" },
-]
+[project.scripts]
+variantvalidator-configure = "VariantValidator.bin.vv_configure:main"
+variantvalidator = "VariantValidator.bin.variantvalidator:main"
+variantformatter = "VariantValidator.bin.variantformatter:main"
+gene2transcripts = "VariantValidator.bin.gene2transcripts:main"
 
 [tool.setuptools_scm]
 

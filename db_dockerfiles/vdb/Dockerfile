@@ -1,10 +1,10 @@
 # Should run on all processors
 FROM ubuntu/mysql:8.0-22.04_beta
 
-ENV MYSQL_RANDOM_ROOT_PASSWORD yes
-ENV MYSQL_DATABASE validator
-ENV MYSQL_USER vvadmin
-ENV MYSQL_PASSWORD var1ant
+ENV MYSQL_RANDOM_ROOT_PASSWORD=yes
+ENV MYSQL_DATABASE=validator
+ENV MYSQL_USER=vvadmin
+ENV MYSQL_PASSWORD=var1ant
 
 RUN apt-get update && apt-get install -y \
     wget
@@ -13,7 +13,7 @@ RUN rm -rf /var/lib/apt/lists/*
 
 # Set the max_connections directly in the my.cnf
 RUN echo '[mysqld]' >> /etc/mysql/my.cnf && \
-    echo 'max_connections=250' >> /etc/mysql/my.cnf
+    echo 'max_connections=1000' >> /etc/mysql/my.cnf
 
 RUN wget https://data.variantvalidator.org/vvdata/validator/validator_2025_03.sql.gz -O /docker-entrypoint-initdb.d/validator_2025_03.sql.gz
 

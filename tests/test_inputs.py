@@ -30532,7 +30532,7 @@ class TestVariantsAuto(TestCase):
             'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_007400.1',
             'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_1.xml'}
 
-    def test_variant180(self):
+    def test_variant180Ori(self):
         variant = 'GRCh37:17:48275363:C:A'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
@@ -30978,7 +30978,7 @@ class TestVariantsAuto(TestCase):
         assert 'NP_065184.2:p.(U127=)' in \
                results['NM_020451.2:c.379_381=']['hgvs_predicted_protein_consequence']['slr']
 
-    def test_issue_503c(self):
+    def test_issue_503d(self):
         variant = 'NM_020451.2:c.379T>A'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
@@ -31252,9 +31252,11 @@ class TestVariantsAuto(TestCase):
         # Test a pair of variants that regressed (but get fixed during later development) due to
         # getting assigned a start coordinate after their end during processing, which crashes VV.
         variant = 'chr20:g.63316576A>G'
-        results = self.vv.validate(variant, 'GRCh38','all')
+        results = self.vv.validate(variant, 'GRCh38','mane_select').format_as_dict(test=True)
+        assert "NM_020882.4:c.2548A>G" in results.keys()
         variant = 'chrX:g.70259255G>A'
-        results = self.vv.validate(variant, 'GRCh38','all')
+        results = self.vv.validate(variant, 'GRCh38','mane_select').format_as_dict(test=True)
+        assert "NM_002565.4:c.370C>T" in results.keys()
 
     def test_unc_pos_exon_crash(self):
         # Test for uncertain position variant that caused a crash in exon mapping due to (* start
@@ -31298,8 +31300,8 @@ class TestVariantsAuto(TestCase):
             "refseqgene": "https://www.ncbi.nlm.nih.gov/nuccore/NG_029236.1" }
 
         assert results["intergenic_variant_1"]["validation_warnings"] == [
-            "No individual transcripts have been identified that fully overlap the described variation in the genomic sequence. Large variants might span one or more genes and are currently only described at the genome (g.) level.",
-            "Mapping unavailable for RefSeqGene NG_029236.1:g.501delG using alignment method = splign"
+            "TranscriptIdentificationWarning: No individual transcripts have been identified that fully overlap the described variation in the genomic sequence. Large variants might span one or more genes and are currently only described at the genome (g.) level.",
+            "TranscriptIdentificationWarning: Mapping unavailable for RefSeqGene NG_029236.1:g.501delG using alignment method = splign"
         ]
 
 
@@ -31562,6 +31564,11 @@ class TestVariantsAuto(TestCase):
                    "hgvs_genomic_description"] == "NC_000004.11:g.140651610_140651612dup"
         assert results["NM_018717.4:c.2296_2301dup"]["primary_assembly_loci"]["grch38"][
                    "hgvs_genomic_description"] == "NC_000004.12:g.139730456_139730458dup"
+
+    def test_refseq_catch_workflow(self):
+        results = self.vv.validate('NG_007400.1(NM_000088.3):c.589G>T', 'GRCh38', 'all', liftover_level=True).format_as_dict(test=True)
+        assert "NM_000088.3:c.589G>T" in results.keys()
+
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

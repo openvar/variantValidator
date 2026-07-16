@@ -23,8 +23,7 @@ import re
 import logging
 from .vvDatabase import Database
 from . import utils
-from VariantValidator.settings import CONFIG_DIR
-from VariantValidator.version import __version__
+from VariantValidator import settings, version
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj,\
         VVPosEdit
 
@@ -66,7 +65,13 @@ class Mixin:
 
         # Load the configuration file.
         config = ConfigParser()
-        config.read(CONFIG_DIR)
+        config.read(settings.get_config_dir())
+
+        if os.path.exists(settings.get_config_dir()):
+            logger.info(f"Configuration file loaded from {settings.get_config_dir()}")
+        else:
+            logger.error(f"Configuration file not found, creating new one")
+            raise InitialisationError("Configuration file not found, please create a new one at %s" % settings.get_config_dir())
 
         # Handle databases
         self.entrez_email = config["Entrez"]["email"]
@@ -117,12 +122,9 @@ class Mixin:
                                       + db_version[0])
 
         # Set up versions
-        self.version = __version__
-        if re.match(r'^\d+\.\d+\.\d+$', __version__) is not None:
-            self.releasedVersion = True
-            _is_released_version = True
-        else:
-            self.releasedVersion = False
+        self.version = version.__version__
+        self.releasedVersion = version._is_released_version
+
         self.hgvsVersion = vvhgvs.__version__
 
         # Set up for test mode
@@ -192,7 +194,6 @@ class Mixin:
         self.selected_assembly = None
         self.select_transcripts = None
         self.alt_aln_method = None
-        self.batch_list = []
 
     # Create additional normalizers
     def create_additional_normalizers_and_mappers(self):
@@ -232,10 +233,8 @@ class Mixin:
                                                                 )
 
     def __del__(self):
-        try:
-            del self.db
-        except AttributeError:
-            pass
+        if getattr(self, "pool", None):
+            self.pool = None
 
     def my_config(self):
         """

@@ -615,22 +615,19 @@ def pvcf_to_hgvs(query, selected_assembly, normalization_direction, reverse_norm
                         end_pos = base + '+' + str(new_offset)
                     else:
                         end_pos = int(start_pos) + (len(delete) - 1)
-                except:
-                    not_delins = not_sub
+                except Exception as e:
+                    error = str(e)
+                    raise PseudoVCF2HGVSError(error)
+
                 # Parse into hgvs object
                 try:
                     hgvs_not_delins = hgvs_delins_parts_to_hgvs_obj(
                             ref_ac, ref_type, start_pos,
                             delete, insert,
-                            ends=end_pos)
+                            end=end_pos)
                 except vvhgvs.exceptions.HGVSError as e:
-                    # Sort out multiple ALTS from VCF inputs
-                    if re.search("([GATCgatc]+)>([GATCgatc]+),([GATCgatc]+)", not_delins):
-                        error = 'Multiple ALTs not supported by this function'
-                        raise PseudoVCF2HGVSError(error)
-                    else:
-                        error = str(e)
-                        raise PseudoVCF2HGVSError(error)
+                    error = str(e)
+                    raise PseudoVCF2HGVSError(error)
 
                 # HGVS will deal with the errors
                 hgvs_object = hgvs_not_delins

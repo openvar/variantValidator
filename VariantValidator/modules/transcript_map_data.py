@@ -1,5 +1,6 @@
 import copy
 import logging
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -141,15 +142,49 @@ class TranscriptMapData():
                     "provider (hdp) for use as a data source")
         if tx_ac not in self.exon_data:
             self.exon_data[tx_ac] = {}
+
         if alt_ac not in self.exon_data[tx_ac]:
             if alt_aln_method:
                 aln_method = alt_aln_method
             else:
-                aln_method = self.map_type(tx_ac,alt_ac)
-            self.exon_data[tx_ac][alt_ac] = cur_hdp.get_tx_exons(
-                    tx_ac,alt_ac,aln_method)
+                aln_method = self.map_type(tx_ac, alt_ac)
+
+            max_retries = 3
+            retry_delay = 0.2
+
+            for attempt in range(1, max_retries + 1):
+                try:
+                    self.exon_data[tx_ac][alt_ac] = cur_hdp.get_tx_exons(
+                        tx_ac,
+                        alt_ac,
+                        aln_method,
+                    )
+                    break
+
+                except KeyError as e:
+                    logger.warning(
+                        f"Attempt {attempt}/{max_retries}: "
+                        f"Failed get_tx_exons "
+                        f"tx_ac={tx_ac} "
+                        f"alt_ac={alt_ac} "
+                        f"aln_method={aln_method} "
+                        f"key_error={e}"
+                    )
+
+                    if attempt == max_retries:
+                        logger.exception(
+                            f"Failed get_tx_exons after {max_retries} retries "
+                            f"tx_ac={tx_ac} "
+                            f"alt_ac={alt_ac} "
+                            f"aln_method={aln_method}"
+                        )
+                        raise
+
+                    time.sleep(retry_delay)
+
         if alt_ac not in self.exon_data[tx_ac]:
             return []
+
         return self.exon_data[tx_ac][alt_ac]
 
     def tx_exons(self, tx_ac, alt_ac, alt_aln_method, hdp=None):

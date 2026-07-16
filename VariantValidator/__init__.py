@@ -4,6 +4,8 @@ from .version import __version__
 
 from .validator import Validator
 
+logger.configure_logging()
+
 __all__ = ["Validator"]
 
 # <LICENSE>

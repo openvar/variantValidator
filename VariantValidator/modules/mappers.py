@@ -21,7 +21,7 @@ class MappersError(Exception):
 class TranscriptMappingError(Exception):
     pass
 
-def gene_to_transcripts(variant, validator, select_transcripts_dict):
+def gene_to_transcripts(variant, validator, select_transcripts_dict, batch_list):
     logger.info(f"Mapping {variant.hgvs_formatted} to transcripts")
     g_query = variant.hgvs_formatted
     # set hdp for exon mapping fetch before first use
@@ -118,7 +118,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
     """
     # Keep error messages consistent with later by pre-storing
     no_tx_found_error = (
-        "No individual transcripts have been identified that fully overlap the "
+        "TranscriptIdentificationWarning: No individual transcripts have been identified that fully overlap the "
         "described variation in the genomic sequence. Large variants might span"
         " one or more genes and are currently only described at the genome (g.)"
         " level.")
@@ -155,7 +155,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                 variant.output_type_flag = 'intergenic'
                 # set genomic and where available RefSeqGene outputs
                 variant.warnings.append(no_tx_found_error)
-                error = 'Mapping unavailable for RefSeqGene ' + str(variant.hgvs_formatted) + \
+                error = 'TranscriptIdentificationWarning: Mapping unavailable for RefSeqGene ' + str(variant.hgvs_formatted) + \
                         ' using alignment method = ' + validator.alt_aln_method
                 variant.warnings.append(error)
                 variant.genomic_r = variant.hgvs_formatted
@@ -172,10 +172,10 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                 query = Variant(variant.original, quibble=genomic_input, warnings=variant.warnings,
                                 primary_assembly=variant.primary_assembly, order=variant.order,
                                 selected_assembly=variant.selected_assembly)
-                validator.batch_list.append(query)
+                batch_list.append(query)
                 logger.info('Submitting new variant with format %s', genomic_input)
             else:
-                error = 'Mapping unavailable for RefSeqGene ' + str(variant.hgvs_formatted) + \
+                error = 'TranscriptIdentificationWarning: Mapping unavailable for RefSeqGene ' + str(variant.hgvs_formatted) + \
                         ' using alignment method = ' + validator.alt_aln_method
                 variant.warnings.append(error)
                 logger.info(str(error))
@@ -205,11 +205,11 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                         rsg_data = ['']
 
                     if validator.select_transcripts not in ['all', 'raw', 'select', 'mane_select', 'mane']:
-                        error = (f'None of the specified transcripts ({validator.select_transcripts}) '
+                        error = (f'TranscriptSelectionError: None of the specified transcripts ({validator.select_transcripts}) '
                                  f'fully overlap the described variation in '
                                  f'the genomic sequence. Try selecting one of the default options')
                     elif validator.select_transcripts not in ['raw'] and unrestricted_map_found:
-                        error = ('Transcripts were found but the current transcript type limitation (of '
+                        error = ('TranscriptSelectionError: Transcripts were found but the current transcript type limitation (of '
                                  f'{validator.select_transcripts}) removed all transcripts that overlap '
                                  'the described variation in the genomic sequence. You may want to try '
                                  'selecting less restrictive setting for this variant.')
@@ -255,7 +255,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict):
                             expanded_repeat=variant.expanded_repeat)
             # since we already fetched the exon mappings etc and python uses just a pointer for this set map_dat
             query.map_dat = variant.map_dat
-            validator.batch_list.append(query)
+            batch_list.append(query)
             logger.info("Submitting new variant with format %s", str(c_description))
 
         # Call next description
@@ -289,8 +289,15 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             "mane" not in validator.select_transcripts and "refseqgene" not in validator.select_transcripts:
         if tx_ac not in list(select_transcripts_dict_plus_version.keys()):
             # By marking it as Do Not Write and continuing through the validation loop
-            variant.write = False
-            return True
+            if ":g." not in variant.original:
+                error = (f"TranscriptSelectionError: Variant {variant.hgvs_formatted} is not in the list of "
+                       f"transcripts selected for validation {validator.select_transcripts}")
+                logger.info(error)
+                variant.warnings.append(error)
+                raise MappersError(error)
+            else:
+                variant.write = False
+                return True
 
     # Se rec_var to '' so it can be updated later
     rec_var = ''
