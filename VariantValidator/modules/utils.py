@@ -1282,7 +1282,7 @@ WARNING_CODE_MAP = {
     "Length implied by coordinates must equal":
         ("InvalidRangeError", None),
 
-    "Position ":
+    "exon boundary ":
         ("ExonBoundaryError", None),
 
     "is not known to be compatible with variant type":
@@ -1441,18 +1441,36 @@ WARNING_CODE_MAP = {
 # Compile once at import
 _ALREADY_CODED = re.compile(r"^[A-Z][A-Za-z0-9]+(?:Error|Warning|Info): ")
 
-# Longest strings first (done once)
-_WARNING_LOOKUPS = tuple(
-    sorted(
-        WARNING_CODE_MAP.items(),
-        key=lambda x: len(x[0]),
-        reverse=True,
-    )
+# Longest strings first
+_sorted = sorted(
+    WARNING_CODE_MAP.items(),
+    key=lambda x: len(x[0]),
+    reverse=True,
+)
+
+# Heuristic:
+# Warnings beginning with an uppercase letter are assumed to match the
+# start of the warning string. Warnings beginning with a lowercase letter
+# are assumed to occur within the warning text.
+_PREFIX_LOOKUPS = tuple(
+    item for item in _sorted
+    if item[0][0].isupper()
+)
+
+_SUBSTRING_LOOKUPS = tuple(
+    item for item in _sorted
+    if item[0][0].islower()
 )
 
 
 def normalise_warning_codes(warnings):
-    """Apply standard VV warning/error codes."""
+    """Apply standard VV warning/error codes.
+
+    As a compromise for performance, warning lookups are pre-split at import
+    into prefix and substring searches. This reduces the number of substring
+    (`in`) comparisons during normal operation while avoiding the maintenance
+    overhead of manually maintaining two lookup tables.
+    """
 
     output = []
 
@@ -1464,17 +1482,28 @@ def normalise_warning_codes(warnings):
             output.append(warning)
             continue
 
-        for search, (code, replacement) in _WARNING_LOOKUPS:
-            if search in warning:
+        # Fast prefix lookups
+        for search, (code, replacement) in _PREFIX_LOOKUPS:
+            if warning.startswith(search):
                 if replacement is None:
                     output.append(f"{code}: {warning}")
                 else:
                     output.append(f"{code}: {replacement}")
                 break
         else:
-            output.append(warning)
+            # Slower substring lookups
+            for search, (code, replacement) in _SUBSTRING_LOOKUPS:
+                if search in warning:
+                    if replacement is None:
+                        output.append(f"{code}: {warning}")
+                    else:
+                        output.append(f"{code}: {replacement}")
+                    break
+            else:
+                output.append(warning)
 
     return output
+
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
