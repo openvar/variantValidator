@@ -31485,7 +31485,23 @@ class TestVariantsAuto(TestCase):
             }
         }
 
-    def test_issue_gapping_810(self):
+    def test_issue_gapping_810a(self):
+        results = self.vv.validate('NC_000009.11:g.95237065_95237068dup', 'GRCh37', 'NM_017680.6', liftover_level=True).format_as_dict(test=True)
+        assert "NM_017680.6:c.115_116insGATGATG" in results.keys()
+        # Shows shorter variant round trips back to NC_000009.11:g.95237065_95237068dup
+        assert results["NM_017680.6:c.115_116insGATGATG"]["primary_assembly_loci"]["grch37"]["hgvs_genomic_description"] == "NC_000009.11:g.95237065_95237068dup"
+        assert results["NM_017680.6:c.115_116insGATGATG"]["primary_assembly_loci"]["grch38"]["hgvs_genomic_description"] == "NC_000009.12:g.92474783_92474786dup"
+
+
+    def test_issue_gapping_810b(self):
+        results = self.vv.validate('NC_000009.11:g.95237060_95237068dup', 'GRCh37', 'NM_017680.6', liftover_level=True).format_as_dict(test=True)
+        assert "NM_017680.6:c.141_152dup" in results.keys()
+        # Shows longer variant round trips back to NC_000009.11:g.95237060_95237068dup
+        assert results["NM_017680.6:c.141_152dup"]["primary_assembly_loci"]["grch37"]["hgvs_genomic_description"] == "NC_000009.11:g.95237060_95237068dup"
+        assert results["NM_017680.6:c.141_152dup"]["primary_assembly_loci"]["grch38"]["hgvs_genomic_description"] == "NC_000009.12:g.92474778_92474786dup"
+
+
+    def test_issue_gapping_810c(self):
         results = self.vv.validate('NC_000009.11:g.95237063_95237068dup', 'GRCh37', 'NM_017680.6', liftover_level=True).format_as_dict(test=True)
         assert "NM_017680.6:c.144_152dup" in results.keys()
         assert results["NM_017680.6:c.144_152dup"]["primary_assembly_loci"] ==  {

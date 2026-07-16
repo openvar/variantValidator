@@ -2,7 +2,6 @@ import copy
 import re
 import logging
 import vvhgvs.exceptions
-from sqlparse.utils import offset
 
 from . import hgvs_utils
 from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj, hgvs_dup_to_delins
