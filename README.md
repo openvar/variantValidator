@@ -31,7 +31,7 @@ Complete installation instructions and user documentation are available in the *
 
 ## Community Driven
 
-<img src="/static/img/Our_Community.png" align="left"/>
+<img src="/docs/static/img/Our_Community.png" align="left"/>
 
 *Image by [Rosaria](https://www.instagram.com/2drosaria/?hl=en-gb).*
 
@@ -246,6 +246,6 @@ See [LICENSE.txt](LICENSE.txt) for the full license text.
 
 **VariantValidator was originally developed at the University of Leicester (2016–2019). It is now maintained and developed by the University of Manchester, with continued hosting and development contributions from the University of Leicester.**
 
-<img src="/static/img/logos/Manchester_logo.png" width="40%" align="left"/>
-<img src="/static/img/logos/uniofleicesterlogo.png" width="40%" align="right" />
+<img src="/docs/static/img/logos/Manchester_logo.png" width="40%" align="left"/>
+<img src="/docs/static/img/logos/uniofleicesterlogo.png" width="40%" align="right" />
 <br clear="both"/>
