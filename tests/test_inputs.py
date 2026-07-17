@@ -30532,7 +30532,7 @@ class TestVariantsAuto(TestCase):
             'refseqgene': 'https://www.ncbi.nlm.nih.gov/nuccore/NG_007400.1',
             'lrg': 'http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_1.xml'}
 
-    def test_variant180(self):
+    def test_variant180Ori(self):
         variant = 'GRCh37:17:48275363:C:A'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
@@ -30978,7 +30978,7 @@ class TestVariantsAuto(TestCase):
         assert 'NP_065184.2:p.(U127=)' in \
                results['NM_020451.2:c.379_381=']['hgvs_predicted_protein_consequence']['slr']
 
-    def test_issue_503c(self):
+    def test_issue_503d(self):
         variant = 'NM_020451.2:c.379T>A'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
@@ -31252,9 +31252,11 @@ class TestVariantsAuto(TestCase):
         # Test a pair of variants that regressed (but get fixed during later development) due to
         # getting assigned a start coordinate after their end during processing, which crashes VV.
         variant = 'chr20:g.63316576A>G'
-        results = self.vv.validate(variant, 'GRCh38','all')
+        results = self.vv.validate(variant, 'GRCh38','mane_select').format_as_dict(test=True)
+        assert "NM_020882.4:c.2548A>G" in results.keys()
         variant = 'chrX:g.70259255G>A'
-        results = self.vv.validate(variant, 'GRCh38','all')
+        results = self.vv.validate(variant, 'GRCh38','mane_select').format_as_dict(test=True)
+        assert "NM_002565.4:c.370C>T" in results.keys()
 
     def test_unc_pos_exon_crash(self):
         # Test for uncertain position variant that caused a crash in exon mapping due to (* start
@@ -31485,9 +31487,106 @@ class TestVariantsAuto(TestCase):
             }
         }
 
+    def test_issue_gapping_810a(self):
+        results = self.vv.validate('NC_000009.11:g.95237066_95237068dup', 'GRCh37', 'NM_017680.6', liftover_level=True).format_as_dict(test=True)
+        assert "NM_017680.6:c.147_152dup" in results.keys()
+        # Shows shorter variant round trips back to NC_000009.11:g.95237065_95237068dup
+        assert results["NM_017680.6:c.147_152dup"]["primary_assembly_loci"]["grch37"]["hgvs_genomic_description"] == "NC_000009.11:g.95237066_95237068dup"
+        assert results["NM_017680.6:c.147_152dup"]["primary_assembly_loci"]["grch38"]["hgvs_genomic_description"] == "NC_000009.12:g.92474784_92474786dup"
+
+
+    def test_issue_gapping_810b(self):
+        results = self.vv.validate('NC_000009.11:g.95237060_95237068dup', 'GRCh37', 'NM_017680.6', liftover_level=True).format_as_dict(test=True)
+        assert "NM_017680.6:c.141_152dup" in results.keys()
+        # Shows longer variant round trips back to NC_000009.11:g.95237060_95237068dup
+        assert results["NM_017680.6:c.141_152dup"]["primary_assembly_loci"]["grch37"]["hgvs_genomic_description"] == "NC_000009.11:g.95237060_95237068dup"
+        assert results["NM_017680.6:c.141_152dup"]["primary_assembly_loci"]["grch38"]["hgvs_genomic_description"] == "NC_000009.12:g.92474778_92474786dup"
+
+
+    def test_issue_gapping_810c(self):
+        results = self.vv.validate('NC_000009.11:g.95237063_95237068dup', 'GRCh37', 'NM_017680.6', liftover_level=True).format_as_dict(test=True)
+        assert "NM_017680.6:c.144_152dup" in results.keys()
+        assert results["NM_017680.6:c.144_152dup"]["primary_assembly_loci"] ==  {
+            "grch37": {
+                "hgvs_genomic_description": "NC_000009.11:g.95237063_95237068dup",
+                "vcf": {
+                    "alt": "CTCATCA",
+                    "chr": "9",
+                    "pos": "95237024",
+                    "ref": "C"
+                }
+            },
+            "grch38": {
+                "hgvs_genomic_description": "NC_000009.12:g.92474781_92474786dup",
+                "vcf": {
+                    "alt": "CTCATCA",
+                    "chr": "9",
+                    "pos": "92474742",
+                    "ref": "C"
+                }
+            },
+            "hg19": {
+                "hgvs_genomic_description": "NC_000009.11:g.95237063_95237068dup",
+                "vcf": {
+                    "alt": "CTCATCA",
+                    "chr": "chr9",
+                    "pos": "95237024",
+                    "ref": "C"
+                }
+            },
+            "hg38": {
+                "hgvs_genomic_description": "NC_000009.12:g.92474781_92474786dup",
+                "vcf": {
+                    "alt": "CTCATCA",
+                    "chr": "chr9",
+                    "pos": "92474742",
+                    "ref": "C"
+                }
+            }
+        }
+
+    def test_issue_gapping_810_antisense1(self):
+        results = self.vv.validate('NC_000004.11:g.140651607_140651612dupTGCTGC', 'GRCh37', 'NM_018717.4',
+                                   liftover_level=True).format_as_dict(test=True)
+        assert "NM_018717.4:c.2293_2301dup" in results.keys()
+        # Shows antisense version also round trips
+        assert results["NM_018717.4:c.2293_2301dup"]["primary_assembly_loci"]["grch37"][
+                   "hgvs_genomic_description"] == "NC_000004.11:g.140651607_140651612dup"
+        assert results["NM_018717.4:c.2293_2301dup"]["primary_assembly_loci"]["grch38"][
+                   "hgvs_genomic_description"] == "NC_000004.12:g.139730453_139730458dup"
+
+    def test_issue_gapping_810_antisense2(self):
+        results = self.vv.validate('NC_000004.11:g.140651610_140651612dupTGC', 'GRCh37', 'NM_018717.4',
+                                   liftover_level=True).format_as_dict(test=True)
+        assert "NM_018717.4:c.2296_2301dup" in results.keys()
+        # Shows shorter antisense version also round trips
+        assert results["NM_018717.4:c.2296_2301dup"]["primary_assembly_loci"]["grch37"][
+                   "hgvs_genomic_description"] == "NC_000004.11:g.140651610_140651612dup"
+        assert results["NM_018717.4:c.2296_2301dup"]["primary_assembly_loci"]["grch38"][
+                   "hgvs_genomic_description"] == "NC_000004.12:g.139730456_139730458dup"
+
     def test_refseq_catch_workflow(self):
         results = self.vv.validate('NG_007400.1(NM_000088.3):c.589G>T', 'GRCh38', 'all', liftover_level=True).format_as_dict(test=True)
         assert "NM_000088.3:c.589G>T" in results.keys()
+
+    def test_regression_dup(self):
+        results = self.vv.validate('GRCh38:chr15:44672451:A:T', 'GRCh38', 'mane',
+                                   liftover_level=True).format_as_dict(test=True)
+        assert "NM_001387263.1:c.452T>A" in results.keys()
+        assert results["NM_001387263.1:c.452T>A"]["validation_warnings"] ==  [
+            'ReferenceSequenceError: This is not a valid HGVS variant description, because no reference sequence ID '
+            'has been provided']
+
+    def test_regression_start_lost_translation(self):
+        results = self.vv.validate('NM_001006935.3:c.-13_4delGGGAAATCTCGACATGG', 'GRCh38', 'all',
+                                   liftover_level=True).format_as_dict(test=True)
+        assert "NM_001006935.3:c.-13_4del" in results.keys()
+        assert results["NM_001006935.3:c.-13_4del"]["validation_warnings"] ==  [
+            "VariantSyntaxError: Removing redundant reference bases from variant description",
+            "ProteinTranslationError: Unable to generate protein variant description due to the sequence missing an accepted start codon."
+        ]
+        assert results["NM_001006935.3:c.-13_4del"]["hgvs_predicted_protein_consequence"]["slr"] ==  "NP_001006936.1:p.?"
+        assert results["NM_001006935.3:c.-13_4del"]["hgvs_predicted_protein_consequence"]["tlr"] ==  "NP_001006936.1:p.?"
 
 
 # <LICENSE>

@@ -1,28 +1,42 @@
-#Git ignorance file for variant validator
-#Testing script
+# VariantValidator .gitignore
+
+# Development scripts
 VariantValidator/vvTest.py
-#pycs
-VariantValidator/**/*.pyc
-build
-.idea
-dist
-variantValidator.egg-info
+
+# Python bytecode
+*.pyc
+__pycache__/
+
+# Build artefacts
+build/
+dist/
+variantValidator.egg-info/
+VariantValidator.egg-info/
+.eggs/
+
+# IDEs
+.idea/
+
+# Test and coverage output
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
 VariantValidator/testing/outputs*
+
+# MkDocs
+site/
+
+# macOS
 .DS_Store
 
-# backedup files after 2to3 conversion
+# Temporary files
 *.bak
-.eggs
-Users
-*.sql
-*.pyc
 temp.py
 
-#ignore databases
-seqrepo/*
-.eggs/*
-tests/*/*.pyc
-/VariantValidator.egg-info/*
+# Local databases
+seqrepo/
+Users/
+*.sql
 validator_2021-07-21.sql
 VVTA_2021_2_noseq.psql.gz
-

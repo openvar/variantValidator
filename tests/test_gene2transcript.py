@@ -1,6 +1,7 @@
 import unittest
 import re
 import VariantValidator
+from VariantValidator.modules.vvMixinCore import ValidatorSubmissionError
 
 
 class TestGene2Transcripts(unittest.TestCase):
@@ -254,6 +255,23 @@ class TestGene2Transcripts(unittest.TestCase):
         assert output['hgnc'] == 'HGNC:26255'
         assert 'transcripts' in output
 
+    def test_keyword_arguments(self):
+
+        results = self.vv.gene2transcripts(
+            query="COL1A1",
+        )
+
+        self.assertEqual(results["current_symbol"], "COL1A1")
+
+    def test_missing_query_keyword(self):
+
+        with self.assertRaises(ValidatorSubmissionError) as err:
+            self.vv.gene2transcripts()
+
+        self.assertEqual(
+            str(err.exception),
+            "No gene symbol submitted.",
+        )
 
 
 # <LICENSE>

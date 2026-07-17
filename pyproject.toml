@@ -67,6 +67,7 @@ variantvalidator-configure = "VariantValidator.bin.vv_configure:main"
 variantvalidator = "VariantValidator.bin.variantvalidator:main"
 variantformatter = "VariantValidator.bin.variantformatter:main"
 gene2transcripts = "VariantValidator.bin.gene2transcripts:main"
+lovd-hgvs-syntax-checker = "VariantValidator.bin.lovd_hgvs_syntax_checker:main"
 
 [tool.setuptools_scm]
 

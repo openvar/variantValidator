@@ -130,6 +130,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict, batch_list)
     if len(rel_var):
         unrestricted_map_found = True
         gap_mapper = gapped_mapping.GapMapper(variant, validator)
+        logger.info(f"relevant variants pre gapping: {rel_var}")
         try:
             var_dat, nw_rel_var = gap_mapper.gapped_g_to_c(rel_var, select_transcripts_dict)
         except Exception as e:
@@ -138,6 +139,7 @@ def gene_to_transcripts(variant, validator, select_transcripts_dict, batch_list)
                                          f"{variant.hgvs_formatted} to available transcripts")
 
         rel_var = nw_rel_var
+        logger.info(f"relevant variants post gapping: {rel_var}")
 
     if len(rel_var) == 0:
         # Check for NG_
@@ -987,7 +989,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     return False
 
 
-def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=False):
+def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=None):
     warnings = ''
     rec_var = ''
 

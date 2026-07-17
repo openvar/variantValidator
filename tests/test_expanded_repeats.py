@@ -1084,13 +1084,7 @@ class TestExpandedRepeatRefSeqGenomic(TestCase):
             "hgvs_genomic_description"] == "NC_000023.10:g.33362724_33362725insAAAAAAAAAAAAAAAA"
         assert results["intergenic_variant_1"]['hgvs_refseqgene_variant']\
             == 'NG_012232.1:g.6_7insTTTTTTTTTTTTTTTT'
-        assert results["intergenic_variant_1"]["validation_warnings"] == [
-            "ExpandedRepeatWarning: NG_012232.1:g.3_6T[20] should only be used as an annotation for"
-            " the core HGVS descriptions provided",
-            'NG_012232.1:g.6_7insTTTTTTTTTTTTTTTT automapped to genome position '
-            'NC_000023.10:g.33362724_33362725insAAAAAAAAAAAAAAAA',
-            'TranscriptIdentificationWarning: No individual transcripts have been identified that fully overlap the described variation in the genomic sequence. Large variants might span one or more genes and are currently only described at the genome (g.) level.'
-        ]
+        assert results["intergenic_variant_1"]["validation_warnings"] == ['ExpandedRepeatWarning: NG_012232.1:g.3_6T[20] should only be used as an annotation for the core HGVS descriptions provided', 'GenomeMappingWarning: NG_012232.1:g.6_7insTTTTTTTTTTTTTTTT automapped to genome position NC_000023.10:g.33362724_33362725insAAAAAAAAAAAAAAAA', 'TranscriptIdentificationWarning: No individual transcripts have been identified that fully overlap the described variation in the genomic sequence. Large variants might span one or more genes and are currently only described at the genome (g.) level.']
 
     def test_RSG_genomic_single_position_to_span(self):
         """
@@ -1101,7 +1095,7 @@ class TestExpandedRepeatRefSeqGenomic(TestCase):
         print(results)
         assert results["intergenic_variant_1"]["primary_assembly_loci"]["grch37"][
                 "hgvs_genomic_description"] == "NC_000023.10:g.33362724_33362725insAAAAAAAAAAAAAAAA"
-        assert results['intergenic_variant_1']["validation_warnings"] ==  ['ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NG_012232.1:g.4T[20]. The corrected description is NG_012232.1:g.3_6T[20]', 'ExpandedRepeatWarning: NG_012232.1:g.3_6T[20] should only be used as an annotation for the core HGVS descriptions provided', 'NG_012232.1:g.6_7insTTTTTTTTTTTTTTTT automapped to genome position NC_000023.10:g.33362724_33362725insAAAAAAAAAAAAAAAA', 'TranscriptIdentificationWarning: No individual transcripts have been identified that fully overlap the described variation in the genomic sequence. Large variants might span one or more genes and are currently only described at the genome (g.) level.']
+        assert results['intergenic_variant_1']["validation_warnings"] ==  ['ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NG_012232.1:g.4T[20]. The corrected description is NG_012232.1:g.3_6T[20]', 'ExpandedRepeatWarning: NG_012232.1:g.3_6T[20] should only be used as an annotation for the core HGVS descriptions provided', 'GenomeMappingWarning: NG_012232.1:g.6_7insTTTTTTTTTTTTTTTT automapped to genome position NC_000023.10:g.33362724_33362725insAAAAAAAAAAAAAAAA', 'TranscriptIdentificationWarning: No individual transcripts have been identified that fully overlap the described variation in the genomic sequence. Large variants might span one or more genes and are currently only described at the genome (g.) level.']
 
     def test_incorrect_RSG_genomic_range(self):
         """
@@ -1278,7 +1272,8 @@ class TestExpandedRepeaLocusReferenceGenomic(TestCase):
         print(results)
         assert results["intergenic_variant_1"]["primary_assembly_loci"]["grch37"][
                 "hgvs_genomic_description"] == "NC_000023.10:g.33362724_33362725insAAAAAAAAAAAAAAAA"
-        assert results['intergenic_variant_1']["validation_warnings"] == ['ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description LRG_199:g.4T[20]. The corrected description is NG_012232.1:g.3_6T[20]', 'ExpandedRepeatWarning: NG_012232.1:g.3_6T[20] should only be used as an annotation for the core HGVS descriptions provided', 'NG_012232.1:g.6_7insTTTTTTTTTTTTTTTT automapped to genome position NC_000023.10:g.33362724_33362725insAAAAAAAAAAAAAAAA', 'TranscriptIdentificationWarning: No individual transcripts have been identified that fully overlap the described variation in the genomic sequence. Large variants might span one or more genes and are currently only described at the genome (g.) level.']
+        assert results['intergenic_variant_1']["validation_warnings"] == ['ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description LRG_199:g.4T[20]. The corrected description is NG_012232.1:g.3_6T[20]', 'ExpandedRepeatWarning: NG_012232.1:g.3_6T[20] should only be used as an annotation for the core HGVS descriptions provided', 'GenomeMappingWarning: NG_012232.1:g.6_7insTTTTTTTTTTTTTTTT automapped to genome position NC_000023.10:g.33362724_33362725insAAAAAAAAAAAAAAAA', 'TranscriptIdentificationWarning: No individual transcripts have been identified that fully overlap the described variation in the genomic sequence. Large variants might span one or more genes and are currently only described at the genome (g.) level.']
+
 
     def test_incorrect_LRG_genomic_range(self):
         """

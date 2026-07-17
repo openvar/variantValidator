@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 LO_CACHE = {}
 
 def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, validator,
-             specify_tx=False, liftover_level=False, g_to_g=False, gap_map=False, vfo=False,
+             specify_tx=False, liftover_level=None, g_to_g=False, gap_map=False, vfo=False,
              specified_tx_variant=False, genomic_data_w_vcf=False, force_pyliftover=False,
              map_dat = False):
     """
@@ -41,7 +41,7 @@ def liftover(hgvs_genomic, build_from, build_to, hn, reverse_normalizer, evm, va
     :param evm:
     :param validator: Validator obj
     :param specify_tx: Specify a specific transcript = False or str(transcript_ID)
-    :param liftover_level: False or 'primary'
+    :param liftover_level: None or 'primary'
     :param g_to_g: True or False
     :param gap_map: True or VariantFormatter gap_map function passed (Required for VariantFormatter methods only)
     :param vfo: False or VariantFormatter VFO object passed

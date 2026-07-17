@@ -16,7 +16,7 @@ class TestWarnings(TestCase):
         variant = 'NM_007075.3:r.235_236insGCCCACCCACCTGCCAG'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert 'The IUPAC RNA alphabet dictates that RNA variants must use the character u in place of t' in \
+        assert 'RnaAlphabetError: The IUPAC RNA alphabet dictates that RNA variants must use the character u in place of t' in \
                results['validation_warning_1']['validation_warnings']
 
     def test_issue_169(self):
@@ -97,7 +97,7 @@ class TestWarnings(TestCase):
         variant = 'nm_000088.3:c.589G>T'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
-        assert 'characters being in the wrong case' in \
+        assert 'InvalidCaseError:' in \
                results['NM_000088.3:c.589G>T']['validation_warnings'][0]
 
     def test_issue_338b(self):
@@ -107,7 +107,7 @@ class TestWarnings(TestCase):
         assert results['validation_warning_1']['validation_warnings'] == [
             "InvalidReferenceError: HGVS variant nomenclature does not allow the use of a gene symbol (MYBPC3) in place of a valid reference sequence",
             "Edit type Ins should be in the lower case, i.e. ins",
-            "Insertion length must be 1 e.g. 2373_2374insG"
+            "InsertionLengthError: Insertion length must be 1 e.g. 2373_2374insG"
         ]
 
     def test_issue_338c(self):
@@ -117,7 +117,7 @@ class TestWarnings(TestCase):
         assert results['validation_warning_1']['validation_warnings'] == [
             "InvalidReferenceError: HGVS variant nomenclature does not allow the use of a gene symbol (COL1A1) in place of a valid reference sequence",
             "Edit type Ins should be in the lower case, i.e. ins",
-            "Insertion length must be 1 e.g. 589-2_589-1insG"
+            "InsertionLengthError: Insertion length must be 1 e.g. 589-2_589-1insG"
         ]
 
     def test_issue_338d(self):
@@ -127,7 +127,7 @@ class TestWarnings(TestCase):
         assert results['validation_warning_1']['validation_warnings'] == [
             "InvalidReferenceError: HGVS variant nomenclature does not allow the use of a gene symbol (COL1A1) in place of a valid reference sequence",
             "Edit type Ins should be in the lower case, i.e. ins",
-            "Insertion length must be 1 e.g. 642+1_642+2insG"
+            "InsertionLengthError: Insertion length must be 1 e.g. 642+1_642+2insG"
         ]
 
     def test_issue_338d1(self):
@@ -135,28 +135,28 @@ class TestWarnings(TestCase):
         results = self.vv.validate(variant, 'GRCh38', 'NM_000088.4', liftover_level='primary').format_as_dict(test=True)
         print(results)
         assert results['validation_warning_1']['validation_warnings'] == [
-            "Insertion length must be 1 e.g. 48275363_48275364insC"
+            "InsertionLengthError: Insertion length must be 1 e.g. 48275363_48275364insC"
         ]
 
     def test_issue_338e(self):
         variant = 'lrg_1t1:c.589G>T'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
-        assert 'characters being in the wrong case' in \
+        assert 'InvalidCaseError:' in \
                results['NM_000088.3:c.589G>T']['validation_warnings'][0]
 
     def test_issue_338f(self):
         variant = 'lrg_1T1:c.589G>T'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
-        assert 'characters being in the wrong case' in \
+        assert 'InvalidCaseError:' in \
                results['NM_000088.3:c.589G>T']['validation_warnings'][0]
 
     def test_issue_338g(self):
         variant = 'LRG_1T1:c.589G>T'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
-        assert 'characters being in the wrong case' in \
+        assert 'InvalidCaseError:' in \
                results['NM_000088.3:c.589G>T']['validation_warnings'][0]
 
     def test_issue_338h(self):
@@ -188,61 +188,61 @@ class TestWarnings(TestCase):
         variant = 'NM_001371623.1:c.483ins'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
-        assert 'The inserted sequence must be provided for insertions or deletion-insertions' in \
+        assert 'InsertionSequenceError: The inserted sequence must be provided for insertions or deletion-insertions' in \
                results['validation_warning_1']['validation_warnings'][0]
-        assert 'An insertion must be provided with the two positions between which the insertion has taken place' in \
+        assert 'InsertionLengthError: An insertion must be provided with the two positions between which the insertion has taken place' in \
                results['validation_warning_1']['validation_warnings'][1]
 
         variant = 'NM_001371623.1:c.483ins(10)'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
-        assert 'The length of the variant is not formatted following the HGVS guidelines. Please rewrite e.g. (10) ' \
+        assert 'InsertionLengthError: The length of the variant is not formatted following the HGVS guidelines. Please rewrite e.g. (10) ' \
                'to N[10]' in \
                results['validation_warning_1']['validation_warnings'][0]
-        assert 'An insertion must be provided with the two positions between which the insertion has taken place' in \
+        assert 'InsertionLengthError: An insertion must be provided with the two positions between which the insertion has taken place' in \
                results['validation_warning_1']['validation_warnings'][1]
 
         variant = 'NM_001371623.1:c.483ins10'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
-        assert 'The length of the variant is not formatted following the HGVS guidelines. Please rewrite e.g. 10 ' \
+        assert 'InsertionLengthError: The length of the variant is not formatted following the HGVS guidelines. Please rewrite e.g. 10 ' \
                'to N[10]' in \
                results['validation_warning_1']['validation_warnings'][0]
-        assert 'An insertion must be provided with the two positions between which the insertion has taken place' in \
+        assert 'InsertionLengthError: An insertion must be provided with the two positions between which the insertion has taken place' in \
                results['validation_warning_1']['validation_warnings'][1]
 
         variant = 'NM_001371623.1:c.483insA[10]'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
-        assert 'NM_001371623.1:c.483insA[10] may also be written as NM_001371623.1:c.483insAAAAAAAAAA' in \
+        assert 'AlternativeRepresentationWarning: NM_001371623.1:c.483insA[10] may also be written as NM_001371623.1:c.483insAAAAAAAAAA' in \
                results['validation_warning_1']['validation_warnings'][0]
-        assert 'An insertion must be provided with the two positions between which the insertion has taken place' in \
+        assert 'InsertionLengthError: An insertion must be provided with the two positions between which the insertion has taken place' in \
                results['validation_warning_1']['validation_warnings'][1]
-        assert 'Insertion length must be 1 e.g. 483_484insAAAAAAAAAA' in \
+        assert 'InsertionLengthError: Insertion length must be 1 e.g. 483_484insAAAAAAAAAA' in \
                results['validation_warning_1']['validation_warnings'][2]
 
         variant = 'NM_001371623.1:c.483delinsA[10]'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
-        assert 'NM_001371623.1:c.483delinsA[10] may also be written as NM_001371623.1:c.483delinsAAAAAAAAAA' in \
+        assert 'AlternativeRepresentationWarning: NM_001371623.1:c.483delinsA[10] may also be written as NM_001371623.1:c.483delinsAAAAAAAAAA' in \
                results['NM_001371623.1:c.483_484insAAAAAAAAA']['validation_warnings'][0]
 
         variant = 'NM_001371623.1:c.483_484insA[10]'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
-        assert 'NM_001371623.1:c.483_484insA[10] may also be written as NM_001371623.1:c.483_484insAAAAAAAAAA' in \
+        assert 'AlternativeRepresentationWarning: NM_001371623.1:c.483_484insA[10] may also be written as NM_001371623.1:c.483_484insAAAAAAAAAA' in \
                results['NM_001371623.1:c.483_484insAAAAAAAAAA']['validation_warnings'][0]
 
         variant = 'NM_001371623.1:c.483_484ins[A[10];T]'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
-        assert 'NM_001371623.1:c.483_484ins[A[10];T] may also be written as NM_001371623.1:c.483_484insAAAAAAAAAAT' in \
+        assert 'AlternativeRepresentationWarning: NM_001371623.1:c.483_484ins[A[10];T] may also be written as NM_001371623.1:c.483_484insAAAAAAAAAAT' in \
                results['NM_001371623.1:c.483_484insAAAAAAAAAAT']['validation_warnings'][0]
 
         variant = 'NM_001371623.1:c.483_484delins[A[10];T]'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
-        assert 'NM_001371623.1:c.483_484delins[A[10];T] may also be written as ' \
+        assert 'AlternativeRepresentationWarning: NM_001371623.1:c.483_484delins[A[10];T] may also be written as ' \
                'NM_001371623.1:c.483_484delinsAAAAAAAAAAT' in \
                results['NM_001371623.1:c.484delinsAAAAAAAAAT']['validation_warnings'][0]
 
@@ -260,7 +260,7 @@ class TestWarnings(TestCase):
         assert 'The length of the variant is not formatted following the HGVS guidelines. Please rewrite (20_10) to ' \
                'N[(10_20)]' in \
                results['validation_warning_1']['validation_warnings'][0]
-        assert 'An insertion must be provided with the two positions between which the insertion has taken place' in \
+        assert 'InsertionLengthError: An insertion must be provided with the two positions between which the insertion has taken place' in \
                results['validation_warning_1']['validation_warnings'][1]
 
         variant = 'NM_001371623.1:c.483ins[(20_20)]'
@@ -269,7 +269,7 @@ class TestWarnings(TestCase):
         assert 'The length of the variant is not formatted following the HGVS guidelines. Please rewrite ' \
                '(20_20) to N[(20)]' in \
                results['validation_warning_1']['validation_warnings'][0]
-        assert 'An insertion must be provided with the two positions between which the insertion has taken place' in \
+        assert 'InsertionLengthError: An insertion must be provided with the two positions between which the insertion has taken place' in \
                results['validation_warning_1']['validation_warnings'][1]
 
         variant = 'NM_001371623.1:c.483_484ins[(10_20)]'
@@ -282,50 +282,92 @@ class TestWarnings(TestCase):
         variant = 'NM_001371623.1:c.483ins[(10_20)]'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
-        assert 'An insertion must be provided with the two positions between which the insertion has taken place' in \
+        assert 'InsertionLengthError: An insertion must be provided with the two positions between which the insertion has taken place' in \
                results['validation_warning_1']['validation_warnings'][0]
 
     def test_issue_360(self):
-        result = simpleVariantFormatter.format('NC_012920.1:g.100del', 'GRCh37', 'refseq', None, False, True)
-        assert "The given reference sequence (NC_012920.1) does not match the DNA type (g). For NC_012920.1, " \
-               "please use (m). For g. variants, please use a linear genomic reference sequence" in \
-               result["NC_012920.1:g.100del"]["NC_012920.1:g.100del"]["genomic_variant_error"]
+        # Mitochondrial references must use m., not g.
+        result = simpleVariantFormatter.format(
+            'NC_012920.1:g.100del',
+            'GRCh37',
+            'refseq',
+            None,
+            False,
+            True
+        )
+        assert (
+                "The given reference sequence (NC_012920.1) does not match the DNA type (g). "
+                "For NC_012920.1, please use (m). For g. variants, please use a linear genomic reference sequence"
+                in result["NC_012920.1:g.100del"]["NC_012920.1:g.100del"]["genomic_variant_error"]
+        )
 
-        result = simpleVariantFormatter.format('NC_012920.1:g.100del', 'hg19', 'refseq', None, False, True)
-        assert "NC_012920.1 is not associated with genome build hg19, instead use genome build GRCh37" in \
-               result["NC_012920.1:g.100del"]["NC_012920.1:g.100del"]["genomic_variant_error"]
+        # The DNA type error is more fundamental than the genome-build error, so it
+        # should be reported first regardless of the supplied genome build.
+        result = simpleVariantFormatter.format(
+            'NC_012920.1:g.100del',
+            'hg19',
+            'refseq',
+            None,
+            False,
+            True
+        )
+        assert (
+                "does not match the DNA type (g)" in
+                result["NC_012920.1:g.100del"]["NC_012920.1:g.100del"]["genomic_variant_error"]
+        )
 
-        result = simpleVariantFormatter.format('NC_012920.1:m.1011C>T', 'GRCh37', 'refseq', None, False, True)
-        assert "grch37" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"]["hgvs_t_and_p"][
-            "intergenic"]["primary_assembly_loci"].keys()
-        assert "grch38" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"]["hgvs_t_and_p"][
-            "intergenic"]["primary_assembly_loci"].keys()
-        assert "hg38" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"]["hgvs_t_and_p"][
-            "intergenic"]["primary_assembly_loci"].keys()
-        assert "hg19" not in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"]["hgvs_t_and_p"][
-            "intergenic"]["primary_assembly_loci"].keys()
+        result = simpleVariantFormatter.format(
+            'NC_012920.1:m.1011C>T',
+            'GRCh37',
+            'refseq',
+            None,
+            False,
+            True
+        )
+        assert "grch37" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"][
+            "hgvs_t_and_p"]["intergenic"]["primary_assembly_loci"].keys()
+        assert "grch38" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"][
+            "hgvs_t_and_p"]["intergenic"]["primary_assembly_loci"].keys()
+        assert "hg38" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"][
+            "hgvs_t_and_p"]["intergenic"]["primary_assembly_loci"].keys()
+        assert "hg19" not in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"][
+            "hgvs_t_and_p"]["intergenic"]["primary_assembly_loci"].keys()
 
-        result = simpleVariantFormatter.format('NC_012920.1:m.1011C>T', 'GRCh38', 'refseq', None, False, True)
-        assert "grch37" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"]["hgvs_t_and_p"][
-            "intergenic"]["primary_assembly_loci"].keys()
-        assert "grch38" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"]["hgvs_t_and_p"][
-            "intergenic"]["primary_assembly_loci"].keys()
-        assert "hg38" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"]["hgvs_t_and_p"][
-            "intergenic"]["primary_assembly_loci"].keys()
-        assert "hg19" not in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"]["hgvs_t_and_p"][
-            "intergenic"]["primary_assembly_loci"].keys()
+        result = simpleVariantFormatter.format(
+            'NC_012920.1:m.1011C>T',
+            'GRCh38',
+            'refseq',
+            None,
+            False,
+            True
+        )
+        assert "grch37" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"][
+            "hgvs_t_and_p"]["intergenic"]["primary_assembly_loci"].keys()
+        assert "grch38" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"][
+            "hgvs_t_and_p"]["intergenic"]["primary_assembly_loci"].keys()
+        assert "hg38" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"][
+            "hgvs_t_and_p"]["intergenic"]["primary_assembly_loci"].keys()
+        assert "hg19" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"][
+            "hgvs_t_and_p"]["intergenic"]["primary_assembly_loci"].keys()
 
-        result = simpleVariantFormatter.format('NC_012920.1:m.1011C>T', 'hg38', 'refseq', None, False, True)
-        assert "grch37" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"]["hgvs_t_and_p"][
-            "intergenic"]["primary_assembly_loci"].keys()
-        assert "grch38" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"]["hgvs_t_and_p"][
-            "intergenic"]["primary_assembly_loci"].keys()
-        assert "hg38" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"]["hgvs_t_and_p"][
-            "intergenic"]["primary_assembly_loci"].keys()
-        assert "hg19" not in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"]["hgvs_t_and_p"][
-            "intergenic"]["primary_assembly_loci"].keys()
+        result = simpleVariantFormatter.format(
+            'NC_012920.1:m.1011C>T',
+            'hg38',
+            'refseq',
+            None,
+            False,
+            True
+        )
+        assert "grch37" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"][
+            "hgvs_t_and_p"]["intergenic"]["primary_assembly_loci"].keys()
+        assert "grch38" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"][
+            "hgvs_t_and_p"]["intergenic"]["primary_assembly_loci"].keys()
+        assert "hg38" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"][
+            "hgvs_t_and_p"]["intergenic"]["primary_assembly_loci"].keys()
+        assert "hg19" in result["NC_012920.1:m.1011C>T"]["NC_012920.1:m.1011C>T"][
+            "hgvs_t_and_p"]["intergenic"]["primary_assembly_loci"].keys()
 
-    def test_issue_360(self):
+    def test_issue_360a(self):
         variant = 'NC_012920.1:g.100del'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
@@ -333,14 +375,14 @@ class TestWarnings(TestCase):
                "please use (m). For g. variants, please use a linear genomic reference sequence" in \
                results['mitochondrial_variant_1']['validation_warnings'][0]
 
-    def test_issue_360a(self):
+    def test_issue_360b(self):
         variant = 'NC_012920.1:g.100del'
         results = self.vv.validate(variant, 'hg19', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
         assert "NC_012920.1 is not associated with genome build hg19, instead use genome build GRCh37" in \
                results['mitochondrial_variant_1']['validation_warnings'][0]
 
-    def test_issue_360b(self):
+    def test_issue_360c(self):
         variant = 'NC_001807.4:g.100del'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
@@ -351,7 +393,7 @@ class TestWarnings(TestCase):
         variant = 'M:m.1000_100del'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
-        assert 'This is not a valid HGVS variant description, because no reference sequence ID has been provided, ' \
+        assert 'ReferenceSequenceError: This is not a valid HGVS variant description, because no reference sequence ID has been provided, ' \
                'instead use NC_012920.1:m.1000_100del' in \
                results['validation_warning_1']['validation_warnings'][0]
         assert 'The variant positions are valid but we cannot normalize variants spanning the origin of ' \
@@ -361,7 +403,7 @@ class TestWarnings(TestCase):
         variant = 'chr1:g.100000del'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
-        assert 'This is not a valid HGVS variant description, because no reference sequence ID has been provided' in \
+        assert 'ReferenceSequenceError: This is not a valid HGVS variant description, because no reference sequence ID has been provided' in \
                results['intergenic_variant_1']['validation_warnings'][0]
 
     def test_issue_352(self):
@@ -390,23 +432,23 @@ class TestWarnings(TestCase):
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
         assert results['validation_warning_1']['validation_warnings'] == [
-            "The amino acid at position 175 of NP_001119590.1 is H not R",
-            "The amino acid at position 178 of NP_001119590.1 is V not H"
+            "AminoMismatchError: The amino acid at position 175 of NP_001119590.1 is H not R",
+            "AminoMismatchError: The amino acid at position 178 of NP_001119590.1 is V not H"
         ]
 
         variant = 'NP_001119590.1:p.R175delinsX'
         results = self.vv.validate(variant, 'GRCh37', 'all', liftover_level='primary').format_as_dict(test=True)
         print(results)
         assert results['validation_warning_1']['validation_warnings'] == [
-            "The amino acid at position 175 of NP_001119590.1 is H not R"
+            "AminoMismatchError: The amino acid at position 175 of NP_001119590.1 is H not R"
         ]
 
         variant = 'NP_001119590.1:p.H175_V178delinsX'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
         assert results['validation_warning_1']['validation_warnings'] == [
-            "Protein level variant descriptions are not fully supported due to redundancy in the genetic code",
-            "NP_001119590.1:p.His175_Val178delinsTer is HGVS compliant and contains a valid reference amino acid "
+            "ProteinSupportWarning: Protein level variant descriptions are not fully supported due to redundancy in the genetic code",
+            "ProteinSupportWarning: NP_001119590.1:p.His175_Val178delinsTer is HGVS compliant and contains a valid reference amino acid "
             "description"
         ]
         assert results['validation_warning_1'][
@@ -417,8 +459,8 @@ class TestWarnings(TestCase):
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
         assert results['validation_warning_1']['validation_warnings'] == [
-            "Protein level variant descriptions are not fully supported due to redundancy in the genetic code",
-            "NP_001119590.1:p.His175delinsTer is HGVS compliant and contains a valid reference amino acid description"
+            "ProteinSupportWarning: Protein level variant descriptions are not fully supported due to redundancy in the genetic code",
+            "ProteinSupportWarning: NP_001119590.1:p.His175delinsTer is HGVS compliant and contains a valid reference amino acid description"
         ]
         assert results['validation_warning_1'][
                    'hgvs_predicted_protein_consequence']["tlr"] == "NP_001119590.1:p.His175delinsXaa"
@@ -438,7 +480,7 @@ class TestWarnings(TestCase):
 
         print(results)
         assert results['validation_warning_1']['validation_warnings'] == [
-            "NM_024649.4:c.1779+7A>G auto-mapped to NM_024649.4:c.*4A>G",
+            "VariantMappingWarning: NM_024649.4:c.1779+7A>G auto-mapped to NM_024649.4:c.*4A>G",
             "ReferenceMismatchError: NM_024649.4:c.*4A>G: Variant reference (A) does not agree with reference sequence (C)"
         ]
 
@@ -448,8 +490,8 @@ class TestWarnings(TestCase):
 
         print(results)
         assert results['validation_warning_1']['validation_warnings'] == [
-            "Protein level variant descriptions are not fully supported due to redundancy in the genetic code",
-            "NP_000483.3:p.? is HGVS compliant and contains a valid reference amino acid description"
+            "ProteinSupportWarning: Protein level variant descriptions are not fully supported due to redundancy in the genetic code",
+            "ProteinSupportWarning: NP_000483.3:p.? is HGVS compliant and contains a valid reference amino acid description"
         ]
 
     def test_issue_518a(self):
@@ -475,14 +517,14 @@ class TestWarnings(TestCase):
         variant = 'NM_000088.4:g.2559del'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "Transcript reference sequence input as genomic (g.) reference sequence. " \
+        assert "ReferenceTypeError: Transcript reference sequence input as genomic (g.) reference sequence. " \
                "Did you mean NM_000088.4:c.2559del?" in \
                results['validation_warning_1']['validation_warnings']
 
         variant = 'NM_000088.4:g.2559+54_2560del'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "Transcript reference sequence input as genomic (g.) reference sequence. " \
+        assert "ReferenceTypeError: Transcript reference sequence input as genomic (g.) reference sequence. " \
                "Did you mean NM_000088.4:c.2559+54_2560del?" in \
                results['validation_warning_1']['validation_warnings']
 
@@ -490,15 +532,14 @@ class TestWarnings(TestCase):
         variant = 'NR_111987.1:c.3633-2T>A'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "Non-coding transcript reference sequence input as coding (c.) reference sequence. " \
-               "Did you mean NR_111987.1:n.3633-2T>A?" in \
+        assert "ReferenceTypeError: Non-coding transcript reference sequence input as coding (c.) reference sequence. Did you mean NR_111987.1:n.3633-2T>A?" in \
                results['validation_warning_1']['validation_warnings']
 
     def test_p_with_tc_ref(self):
         variant = 'NM_000088.3:p.(Gly197Cys)'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "Using a nucleotide reference sequence (NM_ NR_ NG_ NC_) to specify protein-level (p.) " \
+        assert "ReferenceTypeError: Using a nucleotide reference sequence (NM_ NR_ NG_ NC_) to specify protein-level (p.) " \
                "variation is not HGVS compliant. Please select an appropriate protein reference sequence (NP_)" in \
                results['validation_warning_1']['validation_warnings']
 
@@ -506,9 +547,9 @@ class TestWarnings(TestCase):
         variant = 'NC_000005.9:g.(90136803_90144453)_(90159675_90261231)dup'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "Uncertain positions are not fully supported, however the syntax is valid" in \
+        assert "UncertainPositionWarning: Uncertain positions are not fully supported, however the syntax is valid" in \
                results['NM_032119.4:c.(17019+1_17020-1)_(17856+1_17857-1)dup']['validation_warnings']
-        assert ("Only a single transcript can be processed, updating to select. Where no select transcript is identified "
+        assert ("TranscriptSelectionWarning: Only a single transcript can be processed, updating to select. Where no select transcript is identified "
                 "a suitable transcript will be used") in \
                results['NM_032119.4:c.(17019+1_17020-1)_(17856+1_17857-1)dup']['validation_warnings']
         assert results['NM_032119.4:c.(17019+1_17020-1)_(17856+1_17857-1)dup'][
@@ -521,7 +562,7 @@ class TestWarnings(TestCase):
         variant = 'NM_006138.4:n.(1_20)_(30_36)del'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "Coding transcript reference sequence input as non-coding transcript (n.) reference sequence. " \
+        assert "ReferenceTypeError: Coding transcript reference sequence input as non-coding transcript (n.) reference sequence. " \
                "Did you mean NM_006138.4:c.(1_20)_(30_36)del?" in \
                results['validation_warning_1']['validation_warnings']
 
@@ -529,7 +570,7 @@ class TestWarnings(TestCase):
         variant = 'NM_006138.4:c.(1_20)_(30_36)del'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "Uncertain positions are not fully supported, however the syntax is valid" in \
+        assert "UncertainPositionWarning: Uncertain positions are not fully supported, however the syntax is valid" in \
                results['NM_006138.4:c.(1_20)_(30_36)del']['validation_warnings']
         assert results['NM_006138.4:c.(1_20)_(30_36)del']['hgvs_transcript_variant'] == "NM_006138.4:c.(1_20)_(30_36)del"
         assert results['NM_006138.4:c.(1_20)_(30_36)del'][
@@ -540,7 +581,7 @@ class TestWarnings(TestCase):
         variant = 'NM_032119.3:c.(17019+1_17020-1)_(17856+1_17857-1)dup'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "Uncertain positions are not fully supported, however the syntax is valid" in \
+        assert "UncertainPositionWarning: Uncertain positions are not fully supported, however the syntax is valid" in \
                results['NM_032119.3:c.(17019+1_17020-1)_(17856+1_17857-1)dup']['validation_warnings']
         assert results['NM_032119.3:c.(17019+1_17020-1)_(17856+1_17857-1)dup'][
                    'hgvs_transcript_variant'] == "NM_032119.3:c.(17019+1_17020-1)_(17856+1_17857-1)dup"
@@ -552,74 +593,71 @@ class TestWarnings(TestCase):
         variant = 'NC_000005.9:g.(90159675_90261231)_(90136803_90144453)dup'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "Position 90159675_90261231 is > or overlaps 90136803_90144453" in results[
+        assert "OverlappingPositionError: Position 90159675_90261231 is > or overlaps 90136803_90144453" in results[
             'validation_warning_1']["validation_warnings"]
 
     def test_uncertain_6(self):
         variant = 'LRG_199t1:c.(6278_6293-1)_(7542+49_757000005)dup'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
-        print(results)
-        assert "Variant coordinate is out of the bound of CDS region (CDS length : 11058)" in results[
-            'validation_warning_1']["validation_warnings"]
+        print(results['validation_warning_1']["validation_warnings"])
+        assert results['validation_warning_1']["validation_warnings"] == ['UncertainPositionWarning: Uncertain positions are not fully supported, however the syntax is valid', 'UncertainConversionError: Validation of NM_004006.2:c.7542+49_757000005dup - Variant coordinate is out of the bound of CDS region (CDS length : 11058)']
 
     def test_uncertain_fuzzy_1(self):
         variant = 'NC_000002.12:g.(?_187315204)_(192885646_?)del'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "Fuzzy/unknown variant start and end positions in submitted variant description" in results[
+        assert "FuzzyRangeError: Fuzzy/unknown variant start and end positions in submitted variant description" in results[
             'validation_warning_1']["validation_warnings"]
-        assert "Uncertain positions are not fully supported, however the syntax is valid" in results[
+        assert "UncertainPositionWarning: Uncertain positions are not fully supported, however the syntax is valid" in results[
             'validation_warning_1']["validation_warnings"]
 
     def test_uncertain_fuzzy_1a(self):
         variant = 'NC_000002.12:g.(?_192885646)_(187315204_?)del'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "Fuzzy/unknown variant start and end positions in submitted variant description" in results[
-            'validation_warning_1']["validation_warnings"]
-        assert "Uncertain positions are not fully supported, however the start position is > the end position" in results[
-            'validation_warning_1']["validation_warnings"]
+        assert results['validation_warning_1']["validation_warnings"] == [
+            'InvalidRangeError: Uncertain positions are not fully supported, however the start position is > the end '
+            'position', 'FuzzyRangeError: Fuzzy/unknown variant start and end positions in submitted variant description']
 
     def test_uncertain_fuzzy_2(self):
         variant = 'NC_000002.12:g.(187314204_187315204)_(192885646_?)dup'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "Fuzzy/unknown variant end position in submitted variant description" in results[
+        assert "FuzzyPositionError: Fuzzy/unknown variant end position in submitted variant description" in results[
             'validation_warning_1']["validation_warnings"]
-        assert "Uncertain positions are not fully supported, however the syntax is valid" in results[
+        assert "UncertainPositionWarning: Uncertain positions are not fully supported, however the syntax is valid" in results[
             'validation_warning_1']["validation_warnings"]
 
     def test_uncertain_fuzzy_2a(self):
         variant = 'NC_000002.12:g.(187315204_187314204)_(192885646_?)dup'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "Fuzzy/unknown variant end position in submitted variant description" in results[
-            'validation_warning_1']["validation_warnings"]
-        assert "Uncertain positions are not fully supported, however the provided positions are out of order" in results[
-            'validation_warning_1']["validation_warnings"]
+        assert results['validation_warning_1']["validation_warnings"] == [
+            'InvalidRangeError: Uncertain positions are not fully supported, however the provided positions are out '
+            'of order', 'FuzzyPositionError: Fuzzy/unknown variant end position in submitted variant description']
+
 
     def test_uncertain_fuzzy_2b(self):
         variant = 'NC_000002.12:g.(187314204_187315204)_(187315104_?)dup'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "Fuzzy/unknown variant end position in submitted variant description" in results[
-            'validation_warning_1']["validation_warnings"]
-        assert "Uncertain positions are not fully supported, however the provided positions are out of order" in \
-               results[
-                   'validation_warning_1']["validation_warnings"]
+        assert results['validation_warning_1']["validation_warnings"] == [
+            'InvalidRangeError: Uncertain positions are not fully supported, however the provided positions are out of '
+            'order', 'FuzzyPositionError: Fuzzy/unknown variant end position in submitted variant description']
 
-    def test_uncertain_6(self):
+
+    def test_uncertain_6a(self):
         variant = 'NC_000005.9:g.(90144453_90136803)_(90159675_90261231)dup'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "base start position must be <= end position in position 90144453_90136803" in results[
+        assert "IntervalOrderError: base start position must be <= end position in position 90144453_90136803" in results[
             'validation_warning_1']["validation_warnings"]
 
     def test_uncertain_7(self):
         variant = 'NC_000003.12:g.(63912602_63912844)insN[15]'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "NC_000003.12:g.(63912602_63912844)insN[15] may also be written as " \
+        assert "AlternativeRepresentationWarning: NC_000003.12:g.(63912602_63912844)insN[15] may also be written as " \
                "NC_000003.12:g.(63912602_63912844)insNNNNNNNNNNNNNNN" in results[
             'NM_001377405.1:c.(4_246)insNNNNNNNNNNNNNNN']["validation_warnings"]
         assert results['NM_001377405.1:c.(4_246)insNNNNNNNNNNNNNNN'][
@@ -632,7 +670,7 @@ class TestWarnings(TestCase):
         variant = 'NC_000003.12:g.(63912602_63912844)delN[15]'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "NC_000003.12:g.(63912602_63912844)delN[15] may also be written as " \
+        assert "AlternativeRepresentationWarning: NC_000003.12:g.(63912602_63912844)delN[15] may also be written as " \
                "NC_000003.12:g.(63912602_63912844)delNNNNNNNNNNNNNNN" in results[
             'NM_001377405.1:c.(4_246)delNNNNNNNNNNNNNNN']["validation_warnings"]
         assert results['NM_001377405.1:c.(4_246)delNNNNNNNNNNNNNNN'][
@@ -645,7 +683,7 @@ class TestWarnings(TestCase):
         variant = 'NM_001377405.1:c.(4_246)delN[15]'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "NM_001377405.1:c.(4_246)delN[15] may also be written as " \
+        assert "AlternativeRepresentationWarning: NM_001377405.1:c.(4_246)delN[15] may also be written as " \
                "NM_001377405.1:c.(4_246)delNNNNNNNNNNNNNNN" in results[
             'NM_001377405.1:c.(4_246)delNNNNNNNNNNNNNNN']["validation_warnings"]
         assert results['NM_001377405.1:c.(4_246)delNNNNNNNNNNNNNNN'][
@@ -658,7 +696,7 @@ class TestWarnings(TestCase):
         variant = 'NM_001377405.1:c.(4_246)insN[15]'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "NM_001377405.1:c.(4_246)insN[15] may also be written as " \
+        assert "AlternativeRepresentationWarning: NM_001377405.1:c.(4_246)insN[15] may also be written as " \
                "NM_001377405.1:c.(4_246)insNNNNNNNNNNNNNNN" in results[
             'NM_001377405.1:c.(4_246)insNNNNNNNNNNNNNNN']["validation_warnings"]
         assert results['NM_001377405.1:c.(4_246)insNNNNNNNNNNNNNNN'][
@@ -671,7 +709,7 @@ class TestWarnings(TestCase):
         variant = 'NM_001256214.2:c.(2727+1_2728-1)(2858+1_2859-1)'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert "Invalid range submitted, missing underscore between stated uncertain positions" in results[
+        assert "InvalidRangeError: Invalid range submitted, missing underscore between stated uncertain positions" in results[
             'validation_warning_1']["validation_warnings"]
 
     def test_alleles_1(self):
@@ -734,7 +772,7 @@ class TestWarnings(TestCase):
         variant = 'chr11g.108121787G>A'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "Unable to identify a colon (:) in the variant description chr11g.108121787G>A. A colon is required in " \
+        assert "VariantSyntaxError: Unable to identify a colon (:) in the variant description chr11g.108121787G>A. A colon is required in " \
                "HGVS variant descriptions to separate the reference accession from the reference type i.e. " \
                "<accession>:<type>. e.g. :c." in results[
             'validation_warning_1']["validation_warnings"]
@@ -743,7 +781,7 @@ class TestWarnings(TestCase):
         variant = 'LRG_199p1:p.(Met1Ala)'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "Variant NP_003997.1:p.(Met1Ala) affects the initiation amino acid so is better " \
+        assert "'InitiationCodonWarning: Variant NP_003997.1:p.(Met1Ala) affects the initiation amino acid so is better " \
                "described as NP_003997.1:p.(Met1?)" in results[
                 'validation_warning_1']["validation_warnings"]
 
@@ -751,7 +789,7 @@ class TestWarnings(TestCase):
         variant = 'LRG_199p1:p.Met1Ala'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
-        assert "Variant NP_003997.1:p.Met1Ala affects the initiation amino acid so is better " \
+        assert "'InitiationCodonWarning: Variant NP_003997.1:p.Met1Ala affects the initiation amino acid so is better " \
                "described as NP_003997.1:p.(Met1?)" in results[
                 'validation_warning_1']["validation_warnings"]
 
@@ -767,8 +805,8 @@ class TestWarnings(TestCase):
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
         assert results['validation_warning_1']["validation_warnings"] == [
-            "The transcript NM_032790.1 is not in our database. Please check the transcript ID",
-            "The following versions of the requested transcript are available in our database: "
+            "TranscriptMissingError: The transcript NM_032790.1 is not in our database. Please check the transcript ID",
+            "TranscriptVersionWarning: The following versions of the requested transcript are available in our database: "
             "NM_032790.2|NM_032790.3|NM_032790.4"
         ]
 
@@ -1186,31 +1224,29 @@ class TestVVGapWarnings(TestCase):
         variant = 'chr17:g.7578554_7578555delinsCC'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert "This is not a valid HGVS variant description, because no reference sequence ID has been provided" in \
+        assert "ReferenceSequenceError: This is not a valid HGVS variant description, because no reference sequence ID has been provided" in \
                results['NM_001276761.3:c.259T>G']['validation_warnings']
 
     def test_vv_series_17a(self):
         variant = '12345'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert ("InvalidVariantError: Accepted formats are HGVS, pseudoVCF. Refer to the examples provided at "
-                "https://variantvalidator.org/service/validate/ for more information.") in \
+        assert ('InvalidVariantError: VariantValidator operates on variant descriptions, but this variant "12345" only contains numeric characters (and possibly numeric associated punctuation), so can not be analysed. Did you enter this incorrectly, for example entering a gene ID without specifying the actual variation? If so, try our genes to transcripts tool https://variantvalidator.org/service/gene2trans/') in \
                results['validation_warning_1']['validation_warnings']
         variant = 12345
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert ("InvalidVariantError: Accepted formats are HGVS, pseudoVCF. Refer to the examples provided at "
-                "https://variantvalidator.org/service/validate/ for more information.") in \
+        assert ('InvalidVariantError: VariantValidator operates on variant descriptions, but this variant "12345" only contains numeric characters (and possibly numeric associated punctuation), so can not be analysed. Did you enter this incorrectly, for example entering a gene ID without specifying the actual variation? If so, try our genes to transcripts tool https://variantvalidator.org/service/gene2trans/') in \
                results['validation_warning_1']['validation_warnings']
 
     def test_vv_series_18(self):
         variant = 'NR_033955.2:r.164c>a'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert "Invalid variant type for non-coding transcript. Instead use n." in \
+        assert "NonCodingTranscriptError: Invalid variant type for non-coding transcript. Instead use n." in \
                results['validation_warning_1']['validation_warnings']
 
-    def test_vv_series_17(self):
+    def test_vv_series_17b(self):
         variant = 'NM_000086.2(CLN3):c.791-802_1056+1445del'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
@@ -1218,7 +1254,7 @@ class TestVVGapWarnings(TestCase):
                "numbering for transcript NM_000086.2" in \
                results['NM_000086.2:c.790+532_1056+1445del']['validation_warnings']
 
-    def test_vv_series_17a(self):
+    def test_vv_series_17c(self):
         variant = 'NM_000088.4:c.2559_2559+54del'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
@@ -1226,7 +1262,7 @@ class TestVVGapWarnings(TestCase):
                "numbering for transcript NM_000088.4" in \
                results['NM_000088.4:c.2559_2560-35del']['validation_warnings']
 
-    def test_vv_series_17b(self):
+    def test_vv_series_17d(self):
         variant = 'NM_000086.2:c.790_791-802del'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
@@ -1234,7 +1270,7 @@ class TestVVGapWarnings(TestCase):
                "numbering for transcript NM_000086.2" in \
                results['NM_000086.2:c.790+1_790+533del']['validation_warnings']
 
-    def test_vv_series_17c(self):
+    def test_vv_series_17e(self):
         variant = 'NM_000088.4:c.2559+54_2560del'
         results = self.vv.validate(variant, 'GRCh38', 'all').format_as_dict(test=True)
         print(results)
@@ -1315,7 +1351,7 @@ class TestVVGapWarnings(TestCase):
         print(results)
         assert results['NM_005159.5:c.809-30_809-13del']['validation_warnings'] == [
             "VariantSyntaxError: Whitespace removed from variant description NM_005159.5 (ACTC1): c.809-58_809-13delinsTG[14]",
-            "NM_005159.5(ACTC1):c.809-58_809-13delinsTG[14] may also be written as NM_005159.5(ACTC1):c.809-58_809-13delinsTGTGTGTGTGTGTGTGTGTGTGTGTGTG",
+            "AlternativeRepresentationWarning: NM_005159.5(ACTC1):c.809-58_809-13delinsTG[14] may also be written as NM_005159.5(ACTC1):c.809-58_809-13delinsTGTGTGTGTGTGTGTGTGTGTGTGTGTG",
             "VariantSyntaxError: Removing redundant gene symbol ACTC1 from variant description"
         ]
 
@@ -1331,21 +1367,19 @@ class TestVVGapWarnings(TestCase):
     def test_replace_colon_gene_symbol_and_tx(self):
         variant = 'ZIC2c.1434_1456dup'
         results = self.vv.validate(variant, 'GRCh38', 'mane', transcript_set="refseq").format_as_dict(test=True)
-        print(results)
+        print(results['NM_007129.5:c.1434_1456dup']['validation_warnings'])
         assert results['NM_007129.5:c.1434_1456dup']['validation_warnings'] == [
-            "VariantSyntaxError: Unable to identify a colon (:) in the variant description ZIC2c.1434_1456dup. A colon is required in HGVS variant descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. e.g. :c.",
-            "InvalidReferenceError: HGVS variant nomenclature does not allow the use of a gene symbol (ZIC2) in place of a valid reference sequence",
-            "This not a valid HGVS description, due to characters being in the wrong case. Please check the use of upper- and lowercase characters.",
-            "The current status of LRG_1157 is pending therefore changes may be made to the LRG reference sequence"
-        ]
+            'VariantSyntaxError: Unable to identify a colon (:) in the variant description ZIC2c.1434_1456dup. A colon is required in HGVS variant descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. e.g. :c.',
+            'InvalidReferenceError: HGVS variant nomenclature does not allow the use of a gene symbol (ZIC2) in place of a valid reference sequence', 'InvalidCaseError: This is not a valid HGVS description because characters are in the wrong case. Please check the use of upper- and lowercase characters.',
+            'LrgStatusWarning: The current status of LRG_1157 is pending therefore changes may be made to the LRG reference sequence']
         results = self.vv.validate(variant, 'GRCh38', 'mane_select', transcript_set="refseq").format_as_dict(test=True)
-        print(results)
+        print(results["NM_007129.5:c.1434_1456dup"]["validation_warnings"])
         assert results['NM_007129.5:c.1434_1456dup']['validation_warnings'] == [
-            "VariantSyntaxError: Unable to identify a colon (:) in the variant description ZIC2c.1434_1456dup. A colon is required in HGVS variant descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. e.g. :c.",
-            "InvalidReferenceError: HGVS variant nomenclature does not allow the use of a gene symbol (ZIC2) in place of a valid reference sequence",
-            "This not a valid HGVS description, due to characters being in the wrong case. Please check the use of upper- and lowercase characters.",
-            "The current status of LRG_1157 is pending therefore changes may be made to the LRG reference sequence"
-        ]
+            'VariantSyntaxError: Unable to identify a colon (:) in the variant description ZIC2c.1434_1456dup. A colon is required in HGVS variant descriptions to separate the reference accession from the reference type i.e. <accession>:<type>. e.g. :c.',
+            'InvalidReferenceError: HGVS variant nomenclature does not allow the use of a gene symbol (ZIC2) in place of a valid reference sequence',
+            'InvalidCaseError: This is not a valid HGVS description because characters are in the wrong case. Please check the use of upper- and lowercase characters.',
+            'LrgStatusWarning: The current status of LRG_1157 is pending therefore changes may be made to the LRG reference sequence']
+
 
     def test_text_only(self):
         variant = 'PLIN4'
@@ -1362,8 +1396,8 @@ class TestVVGapWarnings(TestCase):
         assert results['ENST00000332351.3:c.1098+1G>A']['validation_warnings'] ==  [
             "ReferenceSequenceError: WT1(ENST00000332351.3) is an invalid reference sequence identifier",
             "VariantSyntaxError: Stripping unnecessary characters from WT1(ENST00000332351.3):c.1098+1G>A and updating to ENST00000332351.3:c.1098+1G>A",
-            "ENST00000332351.3:c.1098+1G>A is not part of genome build GRCh38",
-            "ENST00000332351.3:c.1098+1G>A cannot be mapped directly to genome build GRCh38, did you mean GRCh37?"
+            "GenomeReferenceWarning: ENST00000332351.3:c.1098+1G>A is not part of genome build GRCh38",
+            "GenomeMismatchWarning: ENST00000332351.3:c.1098+1G>A cannot be mapped directly to genome build GRCh38, did you mean GRCh37?"
         ]
 
     def test_issue_698a(self):
@@ -1423,13 +1457,13 @@ class TestVVGapWarnings(TestCase):
         variant = 'NP_000079.2:p.(Met1Cys)'
         results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="refseq").format_as_dict(test=True)
         print(results)
-        assert "Variant NP_000079.2:p.(Met1Cys) affects the initiation amino acid so is better described as NP_000079.2:p.(Met1?)" in results['validation_warning_1']['validation_warnings']
+        assert "InitiationCodonWarning: Variant NP_000079.2:p.(Met1Cys) affects the initiation amino acid so is better described as NP_000079.2:p.(Met1?)" in results['validation_warning_1']['validation_warnings']
 
     def test_start_greater_than_end(self):
         variant = 'NM_000546.6:c.101_100insT'
         results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="refseq").format_as_dict(test=True)
         print(results)
-        assert "Interval end position 100 < interval start position 101" in results['validation_warning_1']['validation_warnings']
+        assert "IntervalOrderError: Interval end position 100 < interval start position 101" in results['validation_warning_1']['validation_warnings']
 
     def test_old_transcript_version_a(self):
         variant = 'NM_000088.2:c.589G>T'
@@ -1437,9 +1471,9 @@ class TestVVGapWarnings(TestCase):
         print(results)
         assert results['NM_000088.2:c.589G>T']['validation_warnings'] ==  [
             "TranscriptVersionWarning: A more recent version of the selected reference sequence NM_000088.2 is available for genome build GRCh37 (NM_000088.4)",
-            "NM_000088.2:c.589G>T is not part of genome build GRCh37",
-            "NM_000088.2:c.589G>T cannot be mapped directly to genome build GRCh37",
-            "See alternative genomic loci or alternative genome builds for aligned genomic positions"
+            "GenomeReferenceWarning: NM_000088.2:c.589G>T is not part of genome build GRCh37",
+            "GenomeMismatchWarning: NM_000088.2:c.589G>T cannot be mapped directly to genome build GRCh37",
+            "GenomeReferenceWarning: See alternative genomic loci or alternative genome builds for aligned genomic positions"
         ]
 
     def test_old_transcript_version_b(self):
@@ -1447,8 +1481,8 @@ class TestVVGapWarnings(TestCase):
         results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="refseq").format_as_dict(test=True)
         print(results)
         assert results['validation_warning_1']['validation_warnings'] ==  [
-            "The transcript NM_000088.1 is not in our database. Please check the transcript ID",
-            "The following versions of the requested transcript are available in our database: NM_000088.2|NM_000088.3|NM_000088.4"
+            "TranscriptMissingError: The transcript NM_000088.1 is not in our database. Please check the transcript ID",
+            "TranscriptVersionWarning: The following versions of the requested transcript are available in our database: NM_000088.2|NM_000088.3|NM_000088.4"
         ]
 
     def test_n_gap_regression(self):
@@ -1456,12 +1490,12 @@ class TestVVGapWarnings(TestCase):
         results = self.vv.validate(variant, 'GRCh37', '["NR_046115.2", "NR_146765.2"]', transcript_set="refseq").format_as_dict(test=True)
         print(results)
         assert results[ "NR_046115.2:n.1447_1448insG"]['validation_warnings'] == [
-            "This is not a valid HGVS variant description, because no reference sequence ID has been provided",
+            "ReferenceSequenceError: This is not a valid HGVS variant description, because no reference sequence ID has been provided",
             "Submitted description does not represent a true variant because it is an artefact of aligning NR_146765.2 with NC_000001.10 (genome build GRCh37)",
             "NR_046115.2 contains 1 fewer bases between n.1448_1449 than NC_000001.10"
         ]
         assert results["NR_146765.2:n.1649_1650insG"]["validation_warnings"] == [
-            "This is not a valid HGVS variant description, because no reference sequence ID has been provided",
+            "ReferenceSequenceError: This is not a valid HGVS variant description, because no reference sequence ID has been provided",
             "Submitted description does not represent a true variant because it is an artefact of aligning NR_146765.2 with NC_000001.10 (genome build GRCh37)",
             "NR_146765.2 contains 1 fewer bases between n.1650_1651 than NC_000001.10"
         ]
