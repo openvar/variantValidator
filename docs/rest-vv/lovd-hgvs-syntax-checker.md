@@ -67,3 +67,10 @@ If the LOVD HGVS Syntax Checker contributes to your research or publication, ple
 
 If you use VariantValidator in your research, please [cite the appropriate VariantValidator publication(s)](https://github.com/openvar/VariantValidator#cite-us).
 
+## Acknowledgements
+
+**VariantValidator was originally developed at the University of Leicester (2016–2019). It is now maintained and developed by the University of Manchester, with continued hosting and development contributions from the University of Leicester.**
+
+<img src="../static/img/logos/Manchester_logo.png" width="40%" align="left"/>
+<img src="../static/img/logos/uniofleicesterlogo.png" width="40%" align="right" />
+<br clear="both"/>

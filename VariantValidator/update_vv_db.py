@@ -125,12 +125,26 @@ def update_refseq(dbcnx):
     grch38 = grch38.decode()
     grch38_align_data = grch38.strip().split('\n')
 
-    # Download data for GRCh37 alignments, this is optional at best, and lacking a current good
-    # data-source is hard disabled for now
-    #grch37 = requests.get(
-    #    'http://ftp.ncbi.nih.gov/refseq/H_sapiens/RefSeqGene/GCF_000001405.25_refseqgene_alignments.gff3')
-    #grch37_align_data = grch37.text.strip().split('\n')
-    grch37_align_data = []
+    # Download data for GRCh37 alignments. Unlike GRCh38, GRCh37 is no longer
+    # updated so we use the fixed GCF_000001405.25_GRCh37.p13 assembly.
+    base_url = (
+        'https://ftp.ncbi.nlm.nih.gov/genomes/refseq/vertebrate_mammalian/'
+        'Homo_sapiens/all_assembly_versions/'
+        'GCF_000001405.25_GRCh37.p13/'
+    )
+
+    ncbi_web_resp = requests.get(base_url)
+    ncbi_web_resp.raise_for_status()
+    ncbi_web_resp = re.findall(r"href=[\"'][^\"']+[\"']", ncbi_web_resp.text)
+    ncbi_web_resp = list(filter(
+        lambda x: 'GCF_000001405.25_GRCh37.p13' in x and '_genomic.gff.gz' in x,
+        ncbi_web_resp))
+
+    grch37 = requests.get(base_url + ncbi_web_resp[0][6:-1])
+    grch37.raise_for_status()
+    grch37 = gzip.decompress(grch37.content)
+    grch37 = grch37.decode()
+    grch37_align_data = grch37.strip().split('\n')
 
     # Open Lists
     # rsg_data = open(os.path.join(ROOT, 'gene_RefSeqGene'), 'r')
