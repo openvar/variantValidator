@@ -841,6 +841,670 @@ class ObsoleteSeqError(Exception):
 class ExonMappingError(Exception):
     pass
 
+WARNING_CODE_MAP = {
+
+    # ========================================================================
+    # Syntax
+    # ========================================================================
+
+    "Unable to identify a colon":
+        ("VariantSyntaxError", None),
+
+    "Unable to identify a dot":
+        ("VariantSyntaxError", None),
+
+    "Removing redundant gene symbol":
+        ("VariantSyntaxError", None),
+
+    "Removing redundant reference bases":
+        ("VariantSyntaxError", None),
+
+    "This not a valid HGVS description, due to characters being in the wrong case":
+        ("InvalidCaseError",
+         "This is not a valid HGVS description because characters are in the wrong case. "
+         "Please check the use of upper- and lowercase characters."),
+
+    "Trailing digits are not permitted in":
+        ("VariantSyntaxError", None),
+
+    "Refer to http://varnomen.hgvs.org":
+        ("VariantSyntaxError", None),
+
+    # ========================================================================
+    # Reference sequences / genome build
+    # ========================================================================
+
+    "no reference sequence ID has been provided":
+        ("ReferenceSequenceError", None),
+
+    "Reference sequence ":
+        ("ReferenceSequenceError", None),
+
+    "Reference type incorrectly stated":
+        ("ReferenceTypeError", None),
+
+    "invalid reference sequence identifier":
+        ("ReferenceSequenceError", None),
+
+    "is not a valid, and is also not a valid gene symbol":
+        ("InvalidReferenceError", None),
+
+    "HGVS variant nomenclature does not allow the use of a gene symbol":
+        ("InvalidReferenceError", None),
+
+    "A transcript reference sequence has not been provided":
+        ("TranscriptReferenceError", None),
+
+    "Multiple genomic reference sequences have been provided":
+        ("ReferenceSequenceError", None),
+
+    "apparent Transcript Reference ID was not recognised":
+        ("TranscriptReferenceError", None),
+
+    "is not part of genome build":
+        ("GenomeReferenceWarning", None),
+
+    "cannot be mapped directly to genome build":
+        ("GenomeMismatchWarning", None),
+
+    "Validation will fail if the selected chromosome reference sequence":
+        ("GenomeMismatchWarning",
+         "The selected chromosome reference sequence may not correspond to the selected genome build."),
+
+    "did you mean GRCh":
+        ("GenomeBuildWarning", None),
+
+    "See alternative genomic loci":
+        ("GenomeReferenceWarning", None),
+
+    # ========================================================================
+    # RNA
+    # ========================================================================
+
+    "RNA sequence must be lower-case":
+        ("RnaAlphabetError", None),
+
+    "RNA sequence contains Uracil":
+        ("RnaAlphabetError",
+         "RNA sequence contains thymine (T). RNA descriptions must use uracil (U)."),
+
+    "The IUPAC RNA alphabet dictates":
+        ("RnaAlphabetError", None),
+
+    "The variant type for an RNA description must be r.":
+        ("VariantSyntaxError", None),
+
+    "Invalid variant type for non-coding transcript. Instead use n.":
+        ("NonCodingTranscriptError", None),
+
+    "Intronic descriptions are only valid in the context of a c. description":
+        ("IntronicVariantError", None),
+
+    # ========================================================================
+    # Transcript
+    # ========================================================================
+
+    "not in our database":
+        ("TranscriptMissingError", None),
+
+    "versions of the requested transcript are available":
+        ("TranscriptVersionWarning", None),
+
+    "A more recent version of the selected reference sequence":
+        ("TranscriptVersionWarning", None),
+
+    "No individual transcripts have been identified":
+        ("TranscriptIdentificationWarning", None),
+
+    "Mapping unavailable for RefSeqGene":
+        ("TranscriptMappingError", None),
+
+    "Transcript ":
+        ("TranscriptDataError", None),
+
+    "Required information for ":
+        ("TranscriptDataError", None),
+
+    "Universal Transcript Archive":
+        ("TranscriptDataError", None),
+
+    "Query gene2transcripts":
+        ("TranscriptSuggestionWarning", None),
+
+    "None of the specified transcripts":
+        ("TranscriptSelectionError", None),
+
+    "Transcripts were found but the current transcript type limitation":
+        ("TranscriptSelectionWarning", None),
+
+    # ========================================================================
+    # Mapping / normalisation
+    # ========================================================================
+
+    "automapped to genome position":
+        ("GenomeMappingWarning", None),
+
+    "automapped to":
+        ("VariantMappingWarning", None),
+
+    "normalized to":
+        ("VariantNormalizationWarning", None),
+
+    "mapped to":
+        ("ReferenceMismatchWarning", None),
+
+    "No relevant genomic mapping options":
+        ("TranscriptMappingError", None),
+
+    "Full alignment data between the specified transcript reference sequence":
+        ("AlignmentDataWarning", None),
+
+    "Alignment is incomplete":
+        ("AlignmentDataWarning", None),
+
+    "Suspected incomplete alignment between transcript":
+        ("AlignmentDataWarning", None),
+
+    "This coding sequence variant description spans at least one intron":
+        ("IntronSpanningWarning", None),
+
+    "Automap is unable to correct the input exon/intron boundary coordinates":
+        ("ExonBoundaryError", None),
+
+    # ========================================================================
+    # Alleles
+    # ========================================================================
+
+    "The alleleic description is in the correct syntax":
+        ("AlleleExtractionWarning",
+         "The allelic description is syntactically correct and all possible variant descriptions have been extracted."),
+
+    "Each variant is validated independently":
+        ("AlleleValidationWarning", None),
+
+    # ========================================================================
+    # Protein
+    # ========================================================================
+
+    "Protein level variant descriptions are not fully supported":
+        ("ProteinSupportWarning", None),
+
+    "Cannot identify an in-frame Termination codon in the reference mRNA sequence":
+        ("TranscriptTypeError", None),
+
+    "Cannot identify an in-frame Termination codon in the variant mRNA sequence":
+        ("ProteinTranslationWarning", None),
+
+    "is HGVS compliant and contains a valid reference amino acid description":
+        ("ProteinSupportWarning", None),
+
+    "contains a valid reference amino acid description":
+        ("ProteinTranslationInfo", None),
+
+    "The amino acid at position":
+        ("AminoMismatchError", None),
+
+    "affects the initiation amino acid":
+        ("InitiationCodonWarning", None),
+
+    # ========================================================================
+    # Insertions
+    # ========================================================================
+
+    "The inserted sequence must be provided":
+        ("InsertionSequenceError", None),
+
+    "Insertion length must be 1":
+        ("InsertionLengthError", None),
+
+    "An insertion must be provided with the two positions between which the insertion has taken place":
+        ("InsertionLengthError", None),
+
+    # ========================================================================
+    # Expanded repeats
+    # ========================================================================
+
+    "The coordinates for the repeat region are stated incorrectly":
+        ("ExpandedRepeatError", None),
+
+    "should only be used as an annotation for the core HGVS descriptions provided":
+        ("ExpandedRepeatWarning", None),
+
+    # ========================================================================
+    # VCF
+    # ========================================================================
+
+    "Conversions are no longer valid HGVS Sequence Variant Descriptions":
+        ("LegacySyntaxError", None),
+
+    "Insufficient or incorrect VCF elements provided":
+        ("VcfFormatError", None),
+
+    "Not stating ALT bases is ambiguous":
+        ("AmbiguousVcfWarning", None),
+
+    "VariantValidator has output both alternatives":
+        ("AmbiguousVcfWarning", None),
+
+    "CNV identified, and mapped to":
+        ("VcfConversionWarning", None),
+
+    "Multiple ALT sequences detected":
+        ("MultipleAlleleWarning", None),
+
+    # ========================================================================
+    # LRG
+    # ========================================================================
+
+    "updated to equivalent RefSeq record":
+        ("LrgMappingWarning", None),
+
+    "updated to RefSeq record":
+        ("LrgMappingWarning", None),
+
+    "is pending therefore changes may be made":
+        ("LrgStatusWarning", None),
+
+    # ========================================================================
+    # Mitochondrial
+    # ========================================================================
+
+    "is not associated with genome build hg19":
+        ("MitochondrialBuildError", None),
+
+    "is not associated with genome build GRCh37":
+        ("MitochondrialBuildError", None),
+
+    "does not match the DNA type (g).":
+        ("MitochondrialReferenceError", None),
+
+    # ========================================================================
+    # HGVS normalizer
+    # ========================================================================
+
+    "Unsupported normalization of protein level variants":
+        ("ProteinNormalizationError", None),
+
+    "Unsupported normalization of conversion variants":
+        ("ConversionNormalizationError", None),
+
+    "Normalization of intronic variants is not supported":
+        ("IntronicVariantError", None),
+
+    "Unsupported normalization of variants spanning the exon-intron boundary":
+        ("ExonBoundaryError", None),
+
+    "No mapping info available for":
+        ("TranscriptMappingError", None),
+
+    "No identity info available for":
+        ("TranscriptDataError", None),
+
+    "Variant span is outside sequence bounds":
+        ("OutOfBoundsError", None),
+
+    # ========================================================================
+    # HGVS validator
+    # ========================================================================
+
+    "Cannot validate sequence of an intronic variant":
+        ("IntronicValidationWarning", None),
+
+    "Variant reference (":
+        ("ReferenceMismatchError", None),
+
+    "does not agree with reference sequence":
+        ("ReferenceMismatchError", None),
+
+    "Variant coordinate is out of the bound of CDS region":
+        ("CDSBoundaryError", None),
+
+    "No transcript data for accession":
+        ("TranscriptDataError", None),
+
+    # ========================================================================
+    # HGVS VariantMapper
+    # ========================================================================
+
+    "Expected a g. variant; got":
+        ("VariantTypeError", None),
+
+    "Expected a c. or n. variant; got":
+        ("VariantTypeError", None),
+
+    "Expected a cDNA (c.); got":
+        ("VariantTypeError", None),
+
+    "Expected a cDNA (c.) variant; got":
+        ("VariantTypeError", None),
+
+    "Expected n. variant; got":
+        ("VariantTypeError", None),
+
+    "Only NARefAlt/Dup/Inv types are currently implemented":
+        ("UnsupportedEditError", None),
+
+    "Can only update references for type c, g, m, n, r":
+        ("ReferenceUpdateError", None),
+
+    "Getting altered sequence for":
+        ("SequenceGenerationError", None),
+
+    # ========================================================================
+    # HGVS AssemblyMapper
+    # ========================================================================
+
+    "Expected a coding (c.) or non-coding (n.) variant; got":
+        ("VariantTypeError", None),
+
+    "No alignments for":
+        ("TranscriptMappingError", None),
+
+    "non-pseudoautosomal region":
+        ("MultipleAlignmentError", None),
+
+    "likely pseudoautosomal region":
+        ("PseudoautosomalRegionWarning", None),
+
+    "in_par_assume=":
+        ("PseudoautosomalRegionError", None),
+
+    # ========================================================================
+    # HGVS TranscriptMapper
+    # ========================================================================
+
+    "No transcript info":
+        ("TranscriptDataError", None),
+
+    "No transcript exons":
+        ("TranscriptMappingError", None),
+
+    "No transcript identity info":
+        ("TranscriptDataError", None),
+
+    "CDS start_i and end_i must be both defined or both undefined":
+        ("TranscriptDataError", None),
+
+    "CDS is undefined for":
+        ("NonCodingTranscriptError", None),
+
+    "The given coordinate is outside the bounds of the reference sequence":
+        ("OutOfBoundsError", None),
+
+    # ========================================================================
+    # Internal
+    # ========================================================================
+
+    "If the following error message does not address the issue":
+        ("InternalValidationError", None),
+
+    # ========================================================================
+    # Uncertain / fuzzy positions
+    # ========================================================================
+
+    "Uncertain positions are not fully supported, however the syntax is valid":
+        ("UncertainPositionWarning", None),
+
+    "Uncertain positions are not fully supported, however the start position is > the end position":
+        ("InvalidRangeError", None),
+
+    "Uncertain positions are not fully supported, however the provided positions are out of order":
+        ("InvalidRangeError", None),
+
+    "Selected transcript does not span the entire range of the genomic variation":
+        ("TranscriptRangeWarning", None),
+
+    "Only a single transcript can be processed, updating to select":
+        ("TranscriptSelectionWarning", None),
+
+    "Only a single transcript can be processed, updating to Select":
+        ("TranscriptSelectionWarning", None),
+
+    # ========================================================================
+    # Fuzzy position exceptions
+    # ========================================================================
+
+    "Fuzzy/unknown variant start and end positions":
+        ("FuzzyRangeError", None),
+
+    "Fuzzy/unknown variant start position":
+        ("FuzzyPositionError", None),
+
+    "Fuzzy/unknown variant end position":
+        ("FuzzyPositionError", None),
+
+    "Invalid range submitted, missing underscore":
+        ("InvalidRangeError", None),
+
+    "is an invalid range for accession":
+        ("InvalidRangeError", None),
+
+    "Length implied by coordinates must equal":
+        ("InvalidRangeError", None),
+
+    "exon boundary ":
+        ("ExonBoundaryError", None),
+
+    "is not known to be compatible with variant type":
+        ("IncompatibleTypeError", None),
+
+    "base start position must be <= end position":
+        ("IntervalOrderError", None),
+
+
+
+    # ========================================================================
+    # Use checking
+    # ========================================================================
+
+    "VariantValidator operates on variant descriptions, but":
+        ("InvalidVariantError", None),
+
+    "is a concatenation of":
+        ("VariantSyntaxError", None),
+
+    "HGVS descriptions contain a single colon":
+        ("VariantSyntaxError", None),
+
+    "Illegal addition of the invalid characters":
+        ("VariantSyntaxError", None),
+
+    "The format(s)":
+        ("VariantSyntaxError", None),
+
+    "lacks the . character between":
+        ("VariantSyntaxError", None),
+
+    "Stripping unnecessary characters":
+        ("VariantSyntaxError", None),
+
+    "is not in an accepted format":
+        ("InvalidVariantError", None),
+
+    "An insertion must be provided with the two positions":
+        ("InsertionPositionError", None),
+
+    "The length of the variant is not formatted following the HGVS guidelines":
+        ("InsertionLengthError", None),
+
+    "may also be written as":
+        ("AlternativeRepresentationWarning", None),
+
+    "Base substitution (>) submitted with a reference sequence range":
+        ("VariantSyntaxError", None),
+
+    "Transcript reference sequence input as genomic":
+        ("ReferenceTypeError", None),
+
+    "Non-coding transcript reference sequence input as coding":
+        ("ReferenceTypeError", None),
+
+    "Protein reference sequence input as Nucleotide":
+        ("ReferenceTypeError", None),
+
+    "Coding transcript reference sequence input as non-coding":
+        ("ReferenceTypeError", None),
+
+    "Using a nucleotide reference sequence (NM_ NR_ NG_ NC_)":
+        ("ReferenceTypeError", None),
+
+    "NG_:c.PositionVariation descriptions should not be used":
+        ("ReferenceTypeError", None),
+
+    "The variant positions are valid but we cannot normalize variants spanning the origin of circular reference sequences":
+        ("CircularReferenceWarning", None),
+
+    "Using a transcript reference sequence to specify a variant position that lies outside of the reference sequence":
+        ("TranscriptCoordinateError", None),
+
+    "Cannot map":
+        ("TranscriptMappingError", None),
+
+    "Interval start position":
+        ("IntervalOrderError", None),
+
+    "Interval end position":
+        ("IntervalOrderError", None),
+
+    "The given coordinate is outside the boundaries of reference sequence":
+        ("OutOfBoundsError", None),
+
+    "UncertainSequenceError:":
+        ("UncertainSequenceError", None),
+
+    # ========================================================================
+    # Additional use checking
+    # ========================================================================
+
+    "contains only numeric characters":
+        ("NumericInputError", None),
+
+    "contains only alphanumeric characters":
+        ("IncompleteVariantError", None),
+
+    "auto-corrected":
+        ("AutoCorrectionWarning", None),
+
+    "updated to":
+        ("AutoCorrectionWarning", None),
+
+    "contains uncertainty":
+        ("UncertainVariantWarning", None),
+
+    "outside the reference sequence is not HGVS-compliant":
+        ("TranscriptCoordinateError", None),
+
+    "spanning the origin of circular reference sequences":
+        ("CircularReferenceWarning", None),
+
+    "auto-mapped to":
+        ("VariantMappingWarning", None),
+
+    # ========================================================================
+    # Mixin converters
+    # ========================================================================
+
+    "No available t_to_g liftover":
+        ("TranscriptMappingError", None),
+
+    "no g. mapping options available":
+        ("TranscriptMappingError", None),
+
+    "Unable to identify a relevant transcript for":
+        ("TranscriptIdentificationError", None),
+
+    "AlleleVariantError:":
+        ("AlleleVariantError", None),
+
+    "AlleleSyntaxError:":
+        ("AlleleSyntaxError", None),
+
+    # ========================================================================
+    # Expanded repeats
+    # ========================================================================
+
+    "RepeatSyntaxError:":
+        ("RepeatSyntaxError", None),
+
+    "ExonBoundaryError:":
+        ("ExonBoundaryError", None),
+
+    # ========================================================================
+    # Overlapping position
+    # ========================================================================
+    "is > or overlaps":
+        ("OverlappingPositionError", None),
+
+    }
+
+
+# Compile once at import
+_ALREADY_CODED = re.compile(r"^[A-Z][A-Za-z0-9]+(?:Error|Warning|Info): ")
+
+# Longest strings first
+_sorted = sorted(
+    WARNING_CODE_MAP.items(),
+    key=lambda x: len(x[0]),
+    reverse=True,
+)
+
+# Heuristic:
+# Warnings beginning with an uppercase letter are assumed to match the
+# start of the warning string. Warnings beginning with a lowercase letter
+# are assumed to occur within the warning text.
+_PREFIX_LOOKUPS = tuple(
+    item for item in _sorted
+    if item[0][0].isupper()
+)
+
+_SUBSTRING_LOOKUPS = tuple(
+    item for item in _sorted
+    if item[0][0].islower()
+)
+
+
+def normalise_warning_codes(warnings):
+    """Apply standard VV warning/error codes.
+
+    As a compromise for performance, warning lookups are pre-split at import
+    into prefix and substring searches. This reduces the number of substring
+    (`in`) comparisons during normal operation while avoiding the maintenance
+    overhead of manually maintaining two lookup tables.
+    """
+
+    output = []
+
+    for warning in warnings:
+        warning = str(warning)
+
+        # Already coded
+        if _ALREADY_CODED.match(warning):
+            output.append(warning)
+            continue
+
+        # Fast prefix lookups
+        for search, (code, replacement) in _PREFIX_LOOKUPS:
+            if warning.startswith(search):
+                if replacement is None:
+                    output.append(f"{code}: {warning}")
+                else:
+                    output.append(f"{code}: {replacement}")
+                break
+        else:
+            # Slower substring lookups
+            for search, (code, replacement) in _SUBSTRING_LOOKUPS:
+                if search in warning:
+                    if replacement is None:
+                        output.append(f"{code}: {warning}")
+                    else:
+                        output.append(f"{code}: {replacement}")
+                    break
+            else:
+                output.append(warning)
+
+    return output
+
+
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors
 #

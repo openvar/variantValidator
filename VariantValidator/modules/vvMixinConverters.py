@@ -1411,8 +1411,11 @@ class Mixin(vvMixinInit.Mixin):
             hgvs_genomic.posedit.pos.start.base = hgvs_genomic.posedit.pos.start.base + 1
             hgvs_genomic.posedit.pos.end.base = hgvs_genomic.posedit.pos.end.base - 1
             hgvs_genomic.posedit.edit.ref = hgvs_genomic.posedit.edit.ref[1:-1]
-            if hgvs_genomic.posedit.edit.alt is not None:
-                hgvs_genomic.posedit.edit.alt = hgvs_genomic.posedit.edit.alt[1:-1]
+            try:
+                if hgvs_genomic.posedit.edit.alt is not None:
+                    hgvs_genomic.posedit.edit.alt = hgvs_genomic.posedit.edit.alt[1:-1]
+            except AttributeError:
+                pass
         elif expand_out and (
                 len(hgvs_genomic.posedit.edit.ref) != (len(stored_hgvs_c.posedit.edit.ref) + 2)):  # >= 3:
             if len(hgvs_genomic.posedit.edit.ref) == 2:

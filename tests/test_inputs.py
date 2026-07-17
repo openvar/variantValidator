@@ -31569,6 +31569,25 @@ class TestVariantsAuto(TestCase):
         results = self.vv.validate('NG_007400.1(NM_000088.3):c.589G>T', 'GRCh38', 'all', liftover_level=True).format_as_dict(test=True)
         assert "NM_000088.3:c.589G>T" in results.keys()
 
+    def test_regression_dup(self):
+        results = self.vv.validate('GRCh38:chr15:44672451:A:T', 'GRCh38', 'mane',
+                                   liftover_level=True).format_as_dict(test=True)
+        assert "NM_001387263.1:c.452T>A" in results.keys()
+        assert results["NM_001387263.1:c.452T>A"]["validation_warnings"] ==  [
+            'ReferenceSequenceError: This is not a valid HGVS variant description, because no reference sequence ID '
+            'has been provided']
+
+    def test_regression_start_lost_translation(self):
+        results = self.vv.validate('NM_001006935.3:c.-13_4delGGGAAATCTCGACATGG', 'GRCh38', 'all',
+                                   liftover_level=True).format_as_dict(test=True)
+        assert "NM_001006935.3:c.-13_4del" in results.keys()
+        assert results["NM_001006935.3:c.-13_4del"]["validation_warnings"] ==  [
+            "VariantSyntaxError: Removing redundant reference bases from variant description",
+            "ProteinTranslationError: Unable to generate protein variant description due to the sequence missing an accepted start codon."
+        ]
+        assert results["NM_001006935.3:c.-13_4del"]["hgvs_predicted_protein_consequence"]["slr"] ==  "NP_001006936.1:p.?"
+        assert results["NM_001006935.3:c.-13_4del"]["hgvs_predicted_protein_consequence"]["tlr"] ==  "NP_001006936.1:p.?"
+
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

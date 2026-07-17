@@ -989,7 +989,7 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
     return False
 
 
-def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=False):
+def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=None):
     warnings = ''
     rec_var = ''
 

@@ -440,13 +440,31 @@ Choices
     )
 
     validation.add_argument(
-        "--no-liftover",
-        dest="liftover_level",
-        action="store_false",
-        default=True,
-        help=(
-            "Disable liftover between genome builds."
-        ),
+        "-l",
+        "--liftover-level",
+        default="true",
+        choices=[
+            "true",
+            "false",
+            "primary",
+        ],
+        metavar="LEVEL",
+        help="""
+    Control genomic liftover output.
+
+    Choices
+
+        true
+            Include both primary assemblies and alternate loci.
+
+        primary
+            Include both primary assemblies only.
+
+        false
+            Include only the submitted genome build.
+
+    (default: %(default)s)
+    """,
     )
 
     validation.add_argument(
@@ -745,16 +763,26 @@ def run_validation(
         len(variants),
     )
 
+    #
+    # Normalise liftover level
+    #
+
+    liftover_level = {
+        "true": True,
+        "false": False,
+        "primary": "primary",
+    }[args.liftover_level.lower()]
+
     result = validator.validate(
-        batch_variant=request,
-        selected_assembly=args.genome,
+        variant=request,
+        genome=args.genome,
         select_transcripts=(
             json.dumps(args.select_transcripts)
             if isinstance(args.select_transcripts, list)
             else args.select_transcripts
         ),
         transcript_set=args.transcript_set,
-        liftover_level=args.liftover_level,
+        liftover_level=liftover_level,
         lovd_syntax_check=args.lovd_syntax_check,
         shorthand_vcf=args.shorthand_vcf,
     )

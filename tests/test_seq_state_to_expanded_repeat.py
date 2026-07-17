@@ -213,7 +213,7 @@ class TestExpandedRepeatConversion(unittest.TestCase):
             result = convert_seq_state_to_expanded_repeat(
                     variant, validator=self.validator, known_repeat_unit='GCA')
 
-    def test_intronic_coding_sense_strand(self):
+    def test_intronic_coding_sense_strand_b(self):
         # test that bad attempts to map, specifically like those caused by
         # changed intronic sequence mappings fail as expected
         variant = self.validator.hp.parse(

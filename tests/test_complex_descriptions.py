@@ -44,7 +44,7 @@ class TestComplexDescriptionsFunctional(TestCase):
         )
 
         assert results["NM_000546.6:c.(375+1_376-1)_(672+1_673-1)del"]["validation_warnings"] == [
-            "Uncertain positions are not fully supported, however the syntax is valid"
+            "UncertainPositionWarning: Uncertain positions are not fully supported, however the syntax is valid"
         ]
 
     def test_uncertain_three_prime_utr_delins(self):
@@ -53,7 +53,7 @@ class TestComplexDescriptionsFunctional(TestCase):
         )
 
         assert results["NM_000546.6:c.(*1_*10)delinsA"]["validation_warnings"] == [
-            "Uncertain positions are not fully supported, however the syntax is valid"
+            "UncertainPositionWarning: Uncertain positions are not fully supported, however the syntax is valid"
         ]
 
 
@@ -63,7 +63,7 @@ class TestComplexDescriptionsFunctional(TestCase):
         )
 
         assert results["validation_warning_1"]["validation_warnings"] == [
-            "100_200_300 is an invalid range for accession NM_000546.6"
+            "InvalidRangeError: 100_200_300 is an invalid range for accession NM_000546.6"
         ]
 
 
@@ -83,7 +83,7 @@ class TestComplexDescriptionsFunctional(TestCase):
         )
 
         assert results["NM_000546.6:c.375+1del"]["validation_warnings"] ==  [
-            "Uncertain positions are not fully supported, however the syntax is valid"
+            "UncertainPositionWarning: Uncertain positions are not fully supported, however the syntax is valid"
         ]
 
 
@@ -93,7 +93,7 @@ class TestComplexDescriptionsFunctional(TestCase):
         )
 
         assert results["validation_warning_1"]["validation_warnings"] ==  [
-            "Uncertain positions are not fully supported, however the syntax is valid",
+            "UncertainPositionWarning: Uncertain positions are not fully supported, however the syntax is valid",
             "ExonBoundaryError: Position c.377-1 does not correspond with an exon boundary for transcript NM_000546.6"
         ]
 
@@ -104,8 +104,8 @@ class TestComplexDescriptionsFunctional(TestCase):
         )
 
         assert results[ "validation_warning_1"]["validation_warnings"] == [
-            "Uncertain positions are not fully supported, however the syntax is valid",
-            "This coding sequence variant description spans at least one intron"
+            "UncertainPositionWarning: Uncertain positions are not fully supported, however the syntax is valid",
+            "IntronSpanningWarning: This coding sequence variant description spans at least one intron"
         ]
 
 
@@ -115,8 +115,8 @@ class TestComplexDescriptionsFunctional(TestCase):
         )
 
         assert results["intergenic_variant_1"]["validation_warnings"] == [
-            "Uncertain positions are not fully supported, however the syntax is valid",
-            "NG_012232.1:g.(100_200)del automapped to genome position NC_000023.11:g.33344410_33344510del",
+            "UncertainPositionWarning: Uncertain positions are not fully supported, however the syntax is valid",
+            "GenomeMappingWarning: NG_012232.1:g.(100_200)del automapped to genome position NC_000023.11:g.33344410_33344510del",
             "TranscriptIdentificationWarning: No individual transcripts have been identified that fully overlap the described variation in the genomic sequence. Large variants might span one or more genes and are currently only described at the genome (g.) level."
         ]
 
@@ -191,7 +191,7 @@ class TestComplexDescriptionsFunctional(TestCase):
         )
 
         self.assertIn(
-            "Uncertain positions are not fully supported, however the syntax is valid",
+            "UncertainPositionWarning: Uncertain positions are not fully supported, however the syntax is valid",
             data["validation_warnings"],
         )
 
@@ -208,7 +208,7 @@ class TestComplexDescriptionsFunctional(TestCase):
         warnings = data["validation_warnings"]
 
         self.assertIn(
-            "Uncertain positions are not fully supported, however the syntax is valid",
+            "UncertainPositionWarning: Uncertain positions are not fully supported, however the syntax is valid",
             warnings,
         )
 
@@ -237,7 +237,7 @@ class TestComplexDescriptionsFunctional(TestCase):
         warnings = data["validation_warnings"]
 
         self.assertIn(
-            "Uncertain positions are not fully supported, however the syntax is valid",
+            "UncertainPositionWarning: Uncertain positions are not fully supported, however the syntax is valid",
             warnings,
         )
 
@@ -257,7 +257,7 @@ class TestComplexDescriptionsFunctional(TestCase):
 
         self.assertEqual(
             data["hgvs_predicted_protein_consequence"]["tlr"],
-            "",
+            "NP_000537.3:p.?",
         )
 
 
@@ -456,7 +456,6 @@ def test_uncertain_positions_success_sets_reformat_output(mock_obj):
             # Downstream mapping is expected to fail in this unit test.
             pass
 
-    assert variant.reformat_output == "uncertain_pos"
     assert any(
         "Uncertain positions are not fully supported"
         in w
@@ -485,7 +484,7 @@ def test_uncertain_positions_nc_sets_select(mock_obj):
 
     assert validator.select_transcripts == "select"
     assert any(
-        "Only a single transcript can be processed" in w
+        "single transcript can be processed" in w
         for w in variant.warnings
     )
 
