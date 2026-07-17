@@ -5,6 +5,7 @@ repo_name: openvar/variantValidator
 repo_url: https://github.com/openvar/variantValidator
 
 docs_dir: docs
+use_directory_urls: false
 
 theme:
   name: material

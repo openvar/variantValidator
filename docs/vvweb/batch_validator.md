@@ -1,4 +1,5 @@
-[<img src="/static/img/logos/VV_logo.png?raw=true" width="20%" />](https://variantvalidator.org/)
+<img src="../static/img/logos/VV_logo.png" width="20%" />
+
 # VariantValidator Batch Validator
 
 The VariantValidator Batch Validator allows multiple variant descriptions to be validated in a single submission through the VariantValidator web interface. It is designed for validating lists of variants generated from research, diagnostic, and clinical workflows.
@@ -22,7 +23,7 @@ The Validator can be accessed from the VVweb home page by:
 
 - selecting **Try it out** on the **Batch Validator** card; 
 
-<img src="/static/img/Batch_Validator.png" width="40%" align="left"/>
+<img src="../static/img/Batch_Validator.png" width="40%" align="left"/>
 
 <br clear="both"/>
 
@@ -215,6 +216,6 @@ If you use VariantValidator in your research, please [cite the appropriate Varia
 
 **VariantValidator was originally developed at the University of Leicester (2016–2019). It is now maintained and developed by the University of Manchester, with continued hosting and development contributions from the University of Leicester.**
 
-<img src="/static/img/logos/Manchester_logo.png" width="40%" align="left"/>
-<img src="/static/img/logos/uniofleicesterlogo.png" width="40%" align="right" />
+<img src="../static/img/logos/Manchester_logo.png" width="40%" align="left"/>
+<img src="../static/img/logos/uniofleicesterlogo.png" width="40%" align="right" />
 <br clear="both"/>
