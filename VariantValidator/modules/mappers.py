@@ -770,7 +770,6 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                 hgvs_coding = new_hgvs_coding
             hgvs_genomic = new_hgvs_genomic
 
-
     # OBTAIN THE RefSeqGene coordinates
     # Attempt 1 = UTA
     sequences_for_tx = variant.map_dat.mapping_options(hgvs_coding.ac)
@@ -1046,12 +1045,54 @@ def final_tx_to_multiple_genomic(variant, validator, tx_variant, liftover_level=
             hgvs_alt_genomic = validator.myvm_t_to_g(variant.hgvs_coding, alt_chr, variant.no_norm_evm,
                                                      variant.hn, variant.map_dat)
 
+            # --- Gap Mapping Final ---
             # Loop out gap code under these circumstances!
             if variant.map_dat.is_gapped_map(variant.hgvs_coding.ac,hgvs_alt_genomic.ac,validator):
                 # warn on gap_compensation for
                 gap_mapper = gapped_mapping.GapMapper(variant, validator)
                 hgvs_alt_genomic, hgvs_coding = gap_mapper.g_to_t_gap_compensation_version3(
                     hgvs_alt_genomic, variant.hgvs_coding, ori, alt_chr, rec_var)
+
+                # Update gap warnings
+                if "Submitted description does not represent" not in str(variant.warnings):
+
+                    # Check assembly
+                    if "NC_" in hgvs_alt_genomic.ac and seq_data.to_chr_num_refseq(hgvs_alt_genomic.ac, variant.primary_assembly) is not None:
+                        make_gap_warnings = gap_mapper.make_gap_warnings(hgvs_coding.ac, hgvs_alt_genomic.ac, variant.primary_assembly)
+                        make_gap_warnings["gapped_alignment_warning"] = make_gap_warnings[
+                            "gapped_alignment_warning"].replace(
+                            "Submitted description does not represent a true variant because it is an artefact of aligning",
+                            "GappedAlignmentWarning: Variation described in the context of an imperfect alignment of")
+                        variant.warnings.append(make_gap_warnings["gapped_alignment_warning"])
+                        variant.warnings.append(make_gap_warnings["auto_info"])
+
+                    elif "NC_" in variant.original and ":g." in variant.original:
+                        original_g_ac = variant.original.split(":g.")[0]
+                        if seq_data.to_chr_num_refseq(original_g_ac, variant.primary_assembly) is None:
+                            make_gap_warnings = gap_mapper.make_gap_warnings(hgvs_coding.ac, original_g_ac,
+                                                                             variant.primary_assembly)
+                            make_gap_warnings["gapped_alignment_warning"] = make_gap_warnings[
+                                "gapped_alignment_warning"].replace(
+                                "Submitted description does not represent a true variant because it is an artefact of aligning",
+                                "GappedAlignmentWarning: Variation described in the context of an imperfect alignment of")
+                            variant.warnings.append(make_gap_warnings["gapped_alignment_warning"])
+                            variant.warnings.append(make_gap_warnings["auto_info"])
+
+                    elif match := re.match(r"(?:chr)?\d+[-:]", variant.original, re.IGNORECASE):
+                        chromosome = match.group()
+                        chromosome = chromosome.replace("-", "")
+                        chromosome = chromosome.replace(":", "")
+                        original_g_ac = seq_data.to_accession(chromosome, variant.primary_assembly)
+                        make_gap_warnings = gap_mapper.make_gap_warnings(hgvs_coding.ac, original_g_ac,
+                                                                         variant.primary_assembly)
+                        make_gap_warnings["gapped_alignment_warning"] = make_gap_warnings[
+                            "gapped_alignment_warning"].replace(
+                            "Submitted description does not represent a true variant because it is an artefact of aligning",
+                            "GappedAlignmentWarning: Variation described in the context of an imperfect alignment of")
+                        variant.warnings.append(make_gap_warnings["gapped_alignment_warning"])
+                        variant.warnings.append(make_gap_warnings["auto_info"])
+
+                # Continue
                 logger.info(f"gap_compensation_3 done for {variant.hgvs_coding} mapped to {hgvs_alt_genomic}")
                 variant.hgvs_coding = hgvs_coding
                 logger.info(f"hgvs_coding updated to {hgvs_coding}")
