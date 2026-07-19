@@ -418,10 +418,7 @@ class TestCVariantsExpanded(TestCase):
         print(results)
         assert results["NM_002111.8:c.54_116GCA[21]"]["primary_assembly_loci"]["grch37"][
             "hgvs_genomic_description"] == "NC_000004.11:g.3076606_3076662GCA[21]"
-        assert results["NM_002111.8:c.54_116GCA[21]"]["validation_warnings"] ==  [
-            "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NM_002111.8:c.54GCA[21]. The corrected description is NM_002111.8:c.54_116GCA[21]",
-            "ExpandedRepeatWarning: NM_002111.8:c.54_116GCA[21] should only be used as an annotation for the core HGVS descriptions provided"
-        ]
+        assert results["NM_002111.8:c.54_116GCA[21]"]["validation_warnings"] ==  ['ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description NM_002111.8:c.54GCA[21]. The corrected description is NM_002111.8:c.54_116GCA[21]', 'ExpandedRepeatWarning: NM_002111.8:c.54_116GCA[21] should only be used as an annotation for the core HGVS descriptions provided', 'GappedAlignmentWarning: Variation described in the context of an imperfect alignment of NM_002111.8 with NC_000004.11 (genome build GRCh37)', 'GappedAlignmentWarning: NM_002111.8 contains 6 extra bases between c.51_58 than NC_000004.11']
 
     def test_antisense_intron_range(self):
         variant = 'NM_000088.3:c.589-1_590G[3]'
@@ -735,10 +732,10 @@ class TestTranscriptVariantsExpandedNvsC(TestCase):
         print(results)
         assert results["validation_warning_1"]["validation_warnings"] == [
             'RepeatSyntaxError: The provided repeat sequence T does not match the reference '
-            'sequence C at the given position 2_2 of reference sequence NM_022167.4'
+            'sequence C at the given position 4_4 of reference sequence NM_022167.4'
         ]
 
-    def test_5_utr_single_pos_incorrect_c(self):
+    def test_5_utr_single_pos_incorrect_c1(self):
         variant = 'NM_022167.4:c.-13T[3]'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
@@ -1361,10 +1358,7 @@ class TestExpandedRepeaLocusReferenceGenomic(TestCase):
         print(results)
         assert results["NM_002111.8:c.54_116GCA[21]"]["primary_assembly_loci"]["grch37"][
             "hgvs_genomic_description"] == "NC_000004.11:g.3076606_3076662GCA[21]"
-        assert results["NM_002111.8:c.54_116GCA[21]"]["validation_warnings"] ==   [
-            "ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description LRG_763t1:c.54GCA[21]. The corrected description is NM_002111.8:c.54_116GCA[21]",
-            "ExpandedRepeatWarning: NM_002111.8:c.54_116GCA[21] should only be used as an annotation for the core HGVS descriptions provided"
-        ]
+        assert results["NM_002111.8:c.54_116GCA[21]"]["validation_warnings"] ==    ['ExpandedRepeatError: The coordinates for the repeat region are stated incorrectly in the submitted description LRG_763t1:c.54GCA[21]. The corrected description is NM_002111.8:c.54_116GCA[21]', 'ExpandedRepeatWarning: NM_002111.8:c.54_116GCA[21] should only be used as an annotation for the core HGVS descriptions provided', 'GappedAlignmentWarning: Variation described in the context of an imperfect alignment of NM_002111.8 with NC_000004.11 (genome build GRCh37)', 'GappedAlignmentWarning: NM_002111.8 contains 6 extra bases between c.51_58 than NC_000004.11']
 
 
 if __name__ == "__main__":

@@ -915,28 +915,28 @@ class TestVFGapWarnings(TestCase):
                                                                  'GRCh37', 'refseq', None, False, True, testing=True)
         print(results)
         assert 'NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG=' in results.keys()
-        assert 'NM_001083585.1 contains 25 fewer bases between c.*344_*345 than NC_000017.10' in results[
+        assert 'GappedAlignmentWarning: NM_001083585.1 contains 25 fewer bases between c.*344_*345 than NC_000017.10' in results[
             'NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG=']['NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG=']['hgvs_t_and_p'][
             'NM_001083585.1']['gap_statement']
-        assert 'NM_001083585.2 contains 25 fewer bases between c.*344_*345 than NC_000017.10' in results[
+        assert 'GappedAlignmentWarning: NM_001083585.2 contains 25 fewer bases between c.*344_*345 than NC_000017.10' in results[
             'NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG=']['NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG=']['hgvs_t_and_p'][
             'NM_001083585.2']['gap_statement']
-        assert 'NM_001083585.3 contains 25 fewer bases between c.*369_*370 than NC_000017.10' in results[
+        assert 'GappedAlignmentWarning: NM_001083585.3 contains 25 fewer bases between c.*369_*370 than NC_000017.10' in results[
             'NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG=']['NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG=']['hgvs_t_and_p'][
             'NM_001083585.3']['gap_statement']
-        assert 'NM_001291581.1 contains 25 fewer bases between c.*344_*345 than NC_000017.10' in results[
+        assert 'GappedAlignmentWarning: NM_001291581.1 contains 25 fewer bases between c.*344_*345 than NC_000017.10' in results[
             'NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG=']['NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG=']['hgvs_t_and_p'][
             'NM_001291581.1']['gap_statement']
-        assert 'NM_001291581.2 contains 25 fewer bases between c.*369_*370 than NC_000017.10' in results[
+        assert 'GappedAlignmentWarning: NM_001291581.2 contains 25 fewer bases between c.*369_*370 than NC_000017.10' in results[
             'NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG=']['NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG=']['hgvs_t_and_p'][
             'NM_001291581.2']['gap_statement']
-        assert 'NM_004703.4 contains 25 fewer bases between c.*344_*345 than NC_000017.10' in results[
+        assert 'GappedAlignmentWarning: NM_004703.4 contains 25 fewer bases between c.*344_*345 than NC_000017.10' in results[
             'NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG=']['NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG=']['hgvs_t_and_p'][
             'NM_004703.4']['gap_statement']
-        assert 'NM_004703.5 contains 25 fewer bases between c.*344_*345 than NC_000017.10' in results[
+        assert 'GappedAlignmentWarning: NM_004703.5 contains 25 fewer bases between c.*344_*345 than NC_000017.10' in results[
             'NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG=']['NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG=']['hgvs_t_and_p'][
             'NM_004703.5']['gap_statement']
-        assert 'NM_004703.6 contains 25 fewer bases between c.*369_*370 than NC_000017.10' in results[
+        assert 'GappedAlignmentWarning: NM_004703.6 contains 25 fewer bases between c.*369_*370 than NC_000017.10' in results[
             'NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG=']['NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG=']['hgvs_t_and_p'][
             'NM_004703.6']['gap_statement']
 
@@ -945,34 +945,44 @@ class TestVFGapWarnings(TestCase):
                                                                  'GRCh37', 'refseq', None, False, True, testing=True)
         print(results)
         assert 'NC_000012.11:g.122064777C>A' in results.keys()
-        assert 'NM_032790.3 contains 6 fewer bases between c.126_127 than NC_000012.11' in results[
+        assert 'GappedAlignmentWarning: NM_032790.3 contains 6 fewer bases between c.126_127 than NC_000012.11' in results[
             'NC_000012.11:g.122064777C>A']['NC_000012.11:g.122064777C>A']['hgvs_t_and_p'][
             'NM_032790.3']['gap_statement']
+
+    def test_vf_series_6a_regression(self):
+        results = simpleVariantFormatter.format('NC_000012.11:g.122064700del',
+                                                                 'GRCh37', 'refseq', None, False, True, testing=True)
+        print(results)
+        assert results['NC_000012.11:g.122064700del']["NC_000012.11:g.122064700del"]['hgvs_t_and_p'][
+            'NM_032790.4']['gap_statement'] == "GappedAlignmentWarning: NM_032790.4 contains 6 fewer bases between c.137_138 than NC_000012.11"
+        assert results['NC_000012.11:g.122064700del']["NC_000012.11:g.122064700del"]['hgvs_t_and_p'][
+            'NM_032790.4']['gapped_alignment_warning'] == "GappedAlignmentWarning: Variation described in the context of an imperfect alignment of NM_032790.4 with NC_000012.11 (genome build GRCh37)"
+
 
     def test_vf_series_7(self):
         results = simpleVariantFormatter.format('NC_000002.11:g.95847041_95847043GCG=',
                                                                  'GRCh37', 'refseq', None, False, True, testing=True)
         print(results)
         assert 'NC_000002.11:g.95847041_95847043GCG=' in results.keys()
-        assert 'NM_001017396.1 contains 3 fewer bases between c.341_342 than NC_000002.11' in results[
+        assert 'GappedAlignmentWarning: NM_001017396.1 contains 3 fewer bases between c.341_342 than NC_000002.11' in results[
             'NC_000002.11:g.95847041_95847043GCG=']['NC_000002.11:g.95847041_95847043GCG=']['hgvs_t_and_p'][
             'NM_001017396.1']['gap_statement']
-        assert 'NM_001017396.2 contains 3 fewer bases between c.341_342 than NC_000002.11' in results[
+        assert 'GappedAlignmentWarning: NM_001017396.2 contains 3 fewer bases between c.341_342 than NC_000002.11' in results[
             'NC_000002.11:g.95847041_95847043GCG=']['NC_000002.11:g.95847041_95847043GCG=']['hgvs_t_and_p'][
             'NM_001017396.2']['gap_statement']
-        assert 'NM_001282398.1 contains 3 fewer bases between c.353_354 than NC_000002.11' in results[
+        assert 'GappedAlignmentWarning: NM_001282398.1 contains 3 fewer bases between c.353_354 than NC_000002.11' in results[
             'NC_000002.11:g.95847041_95847043GCG=']['NC_000002.11:g.95847041_95847043GCG=']['hgvs_t_and_p'][
             'NM_001282398.1']['gap_statement']
-        assert 'NM_001291604.1 contains 3 fewer bases between c.227_228 than NC_000002.11' in results[
+        assert 'GappedAlignmentWarning: NM_001291604.1 contains 3 fewer bases between c.227_228 than NC_000002.11' in results[
             'NC_000002.11:g.95847041_95847043GCG=']['NC_000002.11:g.95847041_95847043GCG=']['hgvs_t_and_p'][
             'NM_001291604.1']['gap_statement']
-        assert 'NM_001291605.1 contains 3 fewer bases between c.506_507 than NC_000002.11' in results[
+        assert 'GappedAlignmentWarning: NM_001291605.1 contains 3 fewer bases between c.506_507 than NC_000002.11' in results[
             'NC_000002.11:g.95847041_95847043GCG=']['NC_000002.11:g.95847041_95847043GCG=']['hgvs_t_and_p'][
             'NM_001291605.1']['gap_statement']
-        assert 'NM_021088.2 contains 3 fewer bases between c.467_468 than NC_000002.11' in results[
+        assert 'GappedAlignmentWarning: NM_021088.2 contains 3 fewer bases between c.467_468 than NC_000002.11' in results[
             'NC_000002.11:g.95847041_95847043GCG=']['NC_000002.11:g.95847041_95847043GCG=']['hgvs_t_and_p'][
             'NM_021088.2']['gap_statement']
-        assert 'NM_021088.3 contains 3 fewer bases between c.467_468 than NC_000002.11' in results[
+        assert 'GappedAlignmentWarning: NM_021088.3 contains 3 fewer bases between c.467_468 than NC_000002.11' in results[
             'NC_000002.11:g.95847041_95847043GCG=']['NC_000002.11:g.95847041_95847043GCG=']['hgvs_t_and_p'][
             'NM_021088.3']['gap_statement']
 
@@ -980,13 +990,13 @@ class TestVFGapWarnings(TestCase):
         results = simpleVariantFormatter.format('NC_000003.11:g.14561629_14561630insG',
                                                 'GRCh37', 'refseq', None, False, True, testing=True)
         print(results)
-        assert 'NM_001080423.2 contains 1 extra bases between c.1308_1310 than NC_000003.11' in results[
+        assert 'GappedAlignmentWarning: NM_001080423.2 contains 1 extra bases between c.1308_1310 than NC_000003.11' in results[
             'NC_000003.11:g.14561629_14561630insG']['NC_000003.11:g.14561629_14561630insG']['hgvs_t_and_p'][
             'NM_001080423.2']['gap_statement']
-        assert 'NM_001080423.3 contains 1 extra bases between c.1017_1019 than NC_000003.11' in results[
+        assert 'GappedAlignmentWarning: NM_001080423.3 contains 1 extra bases between c.1017_1019 than NC_000003.11' in results[
             'NC_000003.11:g.14561629_14561630insG']['NC_000003.11:g.14561629_14561630insG']['hgvs_t_and_p'][
             'NM_001080423.3']['gap_statement']
-        assert 'NM_001080423.4 contains 1 extra bases between c.1019_1021 than NC_000003.11' in results[
+        assert 'GappedAlignmentWarning: NM_001080423.4 contains 1 extra bases between c.1019_1021 than NC_000003.11' in results[
             'NC_000003.11:g.14561629_14561630insG']['NC_000003.11:g.14561629_14561630insG']['hgvs_t_and_p'][
             'NM_001080423.4']['gap_statement']
 
@@ -995,7 +1005,7 @@ class TestVFGapWarnings(TestCase):
                                                 'GRCh37', 'refseq', None, False, True, testing=True)
         print(results)
         assert 'NC_000004.11:g.140811117C>A' in results.keys()
-        assert 'NM_018717.4 contains 3 fewer bases between c.2276_2277, and 12 fewer bases between c.1467_1468 ' \
+        assert 'GappedAlignmentWarning: NM_018717.4 contains 3 fewer bases between c.2276_2277, and 12 fewer bases between c.1467_1468 ' \
                'than NC_000004.11' in results[
             'NC_000004.11:g.140811117C>A']['NC_000004.11:g.140811117C>A']['hgvs_t_and_p'][
             'NM_018717.4']['gap_statement']
@@ -1005,10 +1015,10 @@ class TestVFGapWarnings(TestCase):
                                                 'GRCh37', 'refseq', None, False, True, testing=True)
         print(results)
         assert 'NC_000009.11:g.136132908_136132909TA=' in results.keys()
-        assert 'NM_020469.2 contains 1 extra bases between c.260_262 than NC_000009.11' in results[
+        assert 'GappedAlignmentWarning: NM_020469.2 contains 1 extra bases between c.260_262 than NC_000009.11' in results[
             'NC_000009.11:g.136132908_136132909TA=']['NC_000009.11:g.136132908_136132909TA=']['hgvs_t_and_p'][
             'NM_020469.2']['gap_statement']
-        assert 'NM_020469.3 contains 22 extra bases between c.*756_*757, and 2 extra bases between c.*797_*798, ' \
+        assert 'GappedAlignmentWarning: NM_020469.3 contains 22 extra bases between c.*756_*757, and 2 extra bases between c.*797_*798, ' \
                'and 110 extra bases between c.*840_*841, and 2 extra bases between c.*4648_*4649, and 1 extra ' \
                'bases between c.260_262 than NC_000009.11' in results[
             'NC_000009.11:g.136132908_136132909TA=']['NC_000009.11:g.136132908_136132909TA=']['hgvs_t_and_p'][
@@ -1058,145 +1068,159 @@ class TestVVGapWarnings(TestCase):
         variant = 'NC_000004.11:g.140811117C>A'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert "NM_018717.4 contains 3 fewer bases between c.2276_2277, and 12 fewer bases between c.1467_1468 than NC_000004.11" in \
+        assert "GappedAlignmentWarning: NM_018717.4 contains 3 fewer bases between c.2276_2277, and 12 fewer bases between c.1467_1468 than NC_000004.11" in \
                results['NM_018717.4:c.1472_1473insTCAGCAGCAGCA']['validation_warnings']
 
     def test_vv_series_2(self):
         variant = 'NC_000008.10:g.24811072C>T'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert "NM_006158.5 contains 1 fewer bases between c.1413_1414 than NC_000008.10" in \
+        assert "GappedAlignmentWarning: NM_006158.5 contains 1 fewer bases between c.1413_1414 than NC_000008.10" in \
                results['NM_006158.5:c.1407delinsAC']['validation_warnings']
-        assert "NM_006158.4 contains 1 fewer bases between c.1407_1408 than NC_000008.10" in \
+        assert "GappedAlignmentWarning: NM_006158.4 contains 1 fewer bases between c.1407_1408 than NC_000008.10" in \
                results['NM_006158.4:c.1407delinsAC']['validation_warnings']
-        assert "NM_006158.3 contains 1 fewer bases between c.1407_1408 than NC_000008.10" in \
+        assert "GappedAlignmentWarning: NM_006158.3 contains 1 fewer bases between c.1407_1408 than NC_000008.10" in \
                results['NM_006158.3:c.1407delinsAC']['validation_warnings']
 
     def test_vv_series_3(self):
         variant = 'NC_000015.9:g.72105933del'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert "NM_016346.4 contains 1 fewer bases between c.951_952 than NC_000015.9" in \
+        assert "GappedAlignmentWarning: NM_016346.4 contains 1 fewer bases between c.951_952 than NC_000015.9" in \
                results['NM_016346.4:c.951_952=']['validation_warnings']
-        assert "NM_016346.3 contains 1 fewer bases between c.947_948 than NC_000015.9" in \
+        assert "GappedAlignmentWarning: NM_016346.3 contains 1 fewer bases between c.947_948 than NC_000015.9" in \
                results['NM_016346.3:c.947_948=']['validation_warnings']
-        assert "NM_016346.2 contains 1 fewer bases between c.947_948 than NC_000015.9" in \
+        assert "GappedAlignmentWarning: NM_016346.2 contains 1 fewer bases between c.947_948 than NC_000015.9" in \
                results['NM_016346.2:c.947_948=']['validation_warnings']
-        assert "NM_014249.4 contains 1 fewer bases between c.951_952 than NC_000015.9" in \
+        assert "GappedAlignmentWarning: NM_014249.4 contains 1 fewer bases between c.951_952 than NC_000015.9" in \
                results['NM_014249.4:c.951_952=']['validation_warnings']
-        assert "NM_014249.3 contains 1 fewer bases between c.947_948 than NC_000015.9" in \
+        assert "GappedAlignmentWarning: NM_014249.3 contains 1 fewer bases between c.947_948 than NC_000015.9" in \
                results['NM_014249.3:c.947_948=']['validation_warnings']
-        assert "NM_014249.2 contains 1 fewer bases between c.947_948 than NC_000015.9" in \
+        assert "GappedAlignmentWarning: NM_014249.2 contains 1 fewer bases between c.947_948 than NC_000015.9" in \
                results['NM_014249.2:c.947_948=']['validation_warnings']
+
+    def test_vv_regression_gap_warning_on_gap_miss_1(self):
+        variant = "NM_016346.4:c.900del"
+        results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
+        assert results['NM_016346.4:c.900del']['validation_warnings'] == [
+            "GappedAlignmentWarning: Variation described in the context of an imperfect alignment of NM_016346.4 with NC_000015.9 (genome build GRCh37)",
+            "GappedAlignmentWarning: NM_016346.4 contains 1 fewer bases between c.951_952 than NC_000015.9"
+        ]
+        variant = "NC_000015.9:g.72105881del"
+        results = self.vv.validate(variant, 'GRCh37', 'NM_016346.4').format_as_dict(test=True)
+        assert results['NM_016346.4:c.900del']['validation_warnings'] == [
+            "GappedAlignmentWarning: Variation described in the context of an imperfect alignment of NM_016346.4 with NC_000015.9 (genome build GRCh37)",
+            "GappedAlignmentWarning: NM_016346.4 contains 1 fewer bases between c.951_952 than NC_000015.9"
+        ]
 
     def test_vv_series_4(self):
         variant = 'NC_000019.9:g.41123095dup'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert "NM_003573.2 contains 1 extra bases between c.3122_3124 than NC_000019.9" in \
+        assert "GappedAlignmentWarning: NM_003573.2 contains 1 extra bases between c.3122_3124 than NC_000019.9" in \
                results['NM_003573.2:c.3122_3124=']['validation_warnings']
-        assert "NM_001042545.2 contains 1 extra bases between c.3034_3036 than NC_000019.9" in \
+        assert "GappedAlignmentWarning: NM_001042545.2 contains 1 extra bases between c.3034_3036 than NC_000019.9" in \
                results['NM_001042545.2:c.3033_3036=']['validation_warnings']
-        assert "NM_001042545.1 contains 1 extra bases between c.3032_3034 than NC_000019.9" in \
+        assert "GappedAlignmentWarning: NM_001042545.1 contains 1 extra bases between c.3032_3034 than NC_000019.9" in \
                results['NM_001042545.1:c.3032_3034=']['validation_warnings']
-        assert "NM_001042544.1 contains 1 extra bases between c.3233_3235 than NC_000019.9" in \
+        assert "GappedAlignmentWarning: NM_001042544.1 contains 1 extra bases between c.3233_3235 than NC_000019.9" in \
                results['NM_001042544.1:c.3233_3235=']['validation_warnings']
 
     def test_vv_series_5(self):
         variant = 'NC_000017.10:g.5286863_5286889AGTGTTTGGAATTTTCTGTTCATATAG='
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert "NM_004703.6 contains 25 fewer bases between c.*369_*370 than NC_000017.10" in \
+        assert "GappedAlignmentWarning: NM_004703.6 contains 25 fewer bases between c.*369_*370 than NC_000017.10" in \
                results['NM_004703.6:c.*344_*368dup']['validation_warnings']
-        assert "NM_004703.5 contains 25 fewer bases between c.*344_*345 than NC_000017.10" in \
+        assert "GappedAlignmentWarning: NM_004703.5 contains 25 fewer bases between c.*344_*345 than NC_000017.10" in \
                results['NM_004703.5:c.*344_*368dup']['validation_warnings']
-        assert "NM_004703.4 contains 25 fewer bases between c.*344_*345 than NC_000017.10" in \
+        assert "GappedAlignmentWarning: NM_004703.4 contains 25 fewer bases between c.*344_*345 than NC_000017.10" in \
                results['NM_004703.4:c.*344_*368dup']['validation_warnings']
-        assert "NM_001291581.2 contains 25 fewer bases between c.*369_*370 than NC_000017.10" in \
+        assert "GappedAlignmentWarning: NM_001291581.2 contains 25 fewer bases between c.*369_*370 than NC_000017.10" in \
                results['NM_001291581.2:c.*344_*368dup']['validation_warnings']
-        assert "NM_001291581.1 contains 25 fewer bases between c.*344_*345 than NC_000017.10" in \
+        assert "GappedAlignmentWarning: NM_001291581.1 contains 25 fewer bases between c.*344_*345 than NC_000017.10" in \
                results['NM_001291581.1:c.*344_*368dup']['validation_warnings']
-        assert "NM_001083585.3 contains 25 fewer bases between c.*369_*370 than NC_000017.10" in \
+        assert "GappedAlignmentWarning: NM_001083585.3 contains 25 fewer bases between c.*369_*370 than NC_000017.10" in \
                results['NM_001083585.3:c.*344_*368dup']['validation_warnings']
-        assert "NM_001083585.2 contains 25 fewer bases between c.*344_*345 than NC_000017.10" in \
+        assert "GappedAlignmentWarning: NM_001083585.2 contains 25 fewer bases between c.*344_*345 than NC_000017.10" in \
                results['NM_001083585.2:c.*344_*368dup']['validation_warnings']
-        assert "NM_001083585.1 contains 25 fewer bases between c.*344_*345 than NC_000017.10" in \
+        assert "GappedAlignmentWarning: NM_001083585.1 contains 25 fewer bases between c.*344_*345 than NC_000017.10" in \
                results['NM_001083585.1:c.*344_*368dup']['validation_warnings']
 
     def test_vv_series_6(self):
         variant = 'NC_000012.11:g.122064777C>A'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert "NM_032790.3 contains 6 fewer bases between c.126_127 than NC_000012.11" in \
+        assert "GappedAlignmentWarning: NM_032790.3 contains 6 fewer bases between c.126_127 than NC_000012.11" in \
                results['NM_032790.3:c.129_130insACACCG']['validation_warnings']
 
     def test_vv_series_7(self):
         variant = 'NC_000002.11:g.95847041_95847043GCG='
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert "NM_021088.3 contains 3 fewer bases between c.467_468 than NC_000002.11" in \
+        assert "GappedAlignmentWarning: NM_021088.3 contains 3 fewer bases between c.467_468 than NC_000002.11" in \
                results['NM_021088.3:c.471_473dup']['validation_warnings']
-        assert "NM_021088.2 contains 3 fewer bases between c.467_468 than NC_000002.11" in \
+        assert "GappedAlignmentWarning: NM_021088.2 contains 3 fewer bases between c.467_468 than NC_000002.11" in \
                results['NM_021088.2:c.471_473dup']['validation_warnings']
-        assert "NM_001291605.1 contains 3 fewer bases between c.506_507 than NC_000002.11" in \
+        assert "GappedAlignmentWarning: NM_001291605.1 contains 3 fewer bases between c.506_507 than NC_000002.11" in \
                results['NM_001291605.1:c.510_512dup']['validation_warnings']
-        assert "NM_001291604.1 contains 3 fewer bases between c.227_228 than NC_000002.11" in \
+        assert "GappedAlignmentWarning: NM_001291604.1 contains 3 fewer bases between c.227_228 than NC_000002.11" in \
                results['NM_001291604.1:c.231_233dup']['validation_warnings']
-        assert "NM_001282398.1 contains 3 fewer bases between c.353_354 than NC_000002.11" in \
+        assert "GappedAlignmentWarning: NM_001282398.1 contains 3 fewer bases between c.353_354 than NC_000002.11" in \
                results['NM_001282398.1:c.357_359dup']['validation_warnings']
-        assert "NM_001017396.2 contains 3 fewer bases between c.341_342 than NC_000002.11" in \
+        assert "GappedAlignmentWarning: NM_001017396.2 contains 3 fewer bases between c.341_342 than NC_000002.11" in \
                results['NM_001017396.2:c.345_347dup']['validation_warnings']
-        assert "NM_001017396.1 contains 3 fewer bases between c.341_342 than NC_000002.11" in \
+        assert "GappedAlignmentWarning: NM_001017396.1 contains 3 fewer bases between c.341_342 than NC_000002.11" in \
                results['NM_001017396.1:c.345_347dup']['validation_warnings']
 
     def test_vv_series_8(self):
         variant = 'NC_000003.11:g.14561629_14561630insG'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert "NM_001080423.4 contains 1 extra bases between c.1019_1021 than NC_000003.11" in \
+        assert "GappedAlignmentWarning: NM_001080423.4 contains 1 extra bases between c.1019_1021 than NC_000003.11" in \
                results['NM_001080423.4:c.1019_1021=']['validation_warnings']
-        assert "NM_001080423.3 contains 1 extra bases between c.1017_1019 than NC_000003.11" in \
+        assert "GappedAlignmentWarning: NM_001080423.3 contains 1 extra bases between c.1017_1019 than NC_000003.11" in \
                results['NM_001080423.3:c.1017_1020=']['validation_warnings']
-        assert "NM_001080423.2 contains 1 extra bases between c.1308_1310 than NC_000003.11" in \
+        assert "GappedAlignmentWarning: NM_001080423.2 contains 1 extra bases between c.1308_1310 than NC_000003.11" in \
                results['NM_001080423.2:c.1308_1311=']['validation_warnings']
 
     def test_vv_series_9(self):
         variant = 'NC_000004.11:g.140811117C>A'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert "NM_018717.4 contains 3 fewer bases between c.2276_2277, and 12 fewer bases between c.1467_1468 than NC_000004.11" in \
+        assert "GappedAlignmentWarning: NM_018717.4 contains 3 fewer bases between c.2276_2277, and 12 fewer bases between c.1467_1468 than NC_000004.11" in \
                results['NM_018717.4:c.1472_1473insTCAGCAGCAGCA']['validation_warnings']
 
     def test_vv_series_10(self):
         variant = 'NC_000009.11:g.136132908_136132909TA='
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert "NM_020469.3 contains 22 extra bases between c.*756_*757, and 2 extra bases between c.*797_*798, and 110 extra bases between c.*840_*841, and 2 extra bases between c.*4648_*4649, and 1 extra bases between c.260_262 than NC_000009.11" in \
+        assert "GappedAlignmentWarning: NM_020469.3 contains 22 extra bases between c.*756_*757, and 2 extra bases between c.*797_*798, and 110 extra bases between c.*840_*841, and 2 extra bases between c.*4648_*4649, and 1 extra bases between c.260_262 than NC_000009.11" in \
                results['NM_020469.3:c.261del']['validation_warnings']
-        assert "NM_020469.2 contains 1 extra bases between c.260_262 than NC_000009.11" in \
+        assert "GappedAlignmentWarning: NM_020469.2 contains 1 extra bases between c.260_262 than NC_000009.11" in \
                results['NM_020469.2:c.261del']['validation_warnings']
 
     def test_vv_series_11(self):
         variant = 'NC_000019.10:g.50378563_50378564insTAC'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert "NM_007121.5 contains 3 extra bases between c.514_518 than NC_000019.10" in \
+        assert "GappedAlignmentWarning: NM_007121.5 contains 3 extra bases between c.514_518 than NC_000019.10" in \
                results['NM_007121.5:c.515A>T']['validation_warnings']
-        assert "NM_001256647.1 contains 3 extra bases between c.223_227 than NC_000019.10" in \
+        assert "GappedAlignmentWarning: NM_001256647.1 contains 3 extra bases between c.223_227 than NC_000019.10" in \
                results['NM_001256647.1:c.224A>T']['validation_warnings']
 
     def test_vv_series_12(self):
         variant = 'NC_000007.13:g.149476664_149476666delinsTC'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert "NR_163594.1 contains 1 extra bases between n.1129_1131, and 1 fewer bases between n.11675_11676 than NC_000007.13" in \
+        assert "GappedAlignmentWarning: NR_163594.1 contains 1 extra bases between n.1129_1131, and 1 fewer bases between n.11675_11676 than NC_000007.13" in \
                results['NR_163594.1:n.1122_1124delinsT']['validation_warnings']
 
     def test_vv_series_13(self):
         variant = 'NC_000004.12:g.139889957_139889968del'
         results = self.vv.validate(variant, 'GRCh37', 'all').format_as_dict(test=True)
         print(results)
-        assert "NM_018717.4 contains 3 fewer bases between c.2276_2277, and 12 fewer bases between c.1467_1468 than NC_000004.12" in \
+        assert "GappedAlignmentWarning: NM_018717.4 contains 3 fewer bases between c.2276_2277, and 12 fewer bases between c.1467_1468 than NC_000004.12" in \
                results['NM_018717.4:c.1466_1468=']['validation_warnings']
 
     def test_vv_series_14(self):
@@ -1469,12 +1493,7 @@ class TestVVGapWarnings(TestCase):
         variant = 'NM_000088.2:c.589G>T'
         results = self.vv.validate(variant, 'GRCh37', 'all', transcript_set="refseq").format_as_dict(test=True)
         print(results)
-        assert results['NM_000088.2:c.589G>T']['validation_warnings'] ==  [
-            "TranscriptVersionWarning: A more recent version of the selected reference sequence NM_000088.2 is available for genome build GRCh37 (NM_000088.4)",
-            "GenomeReferenceWarning: NM_000088.2:c.589G>T is not part of genome build GRCh37",
-            "GenomeMismatchWarning: NM_000088.2:c.589G>T cannot be mapped directly to genome build GRCh37",
-            "GenomeReferenceWarning: See alternative genomic loci or alternative genome builds for aligned genomic positions"
-        ]
+        assert results['NM_000088.2:c.589G>T']['validation_warnings'] ==  ['TranscriptVersionWarning: A more recent version of the selected reference sequence NM_000088.2 is available for genome build GRCh37 (NM_000088.4)', 'GenomeReferenceWarning: NM_000088.2:c.589G>T is not part of genome build GRCh37', 'GenomeMismatchWarning: NM_000088.2:c.589G>T cannot be mapped directly to genome build GRCh37', 'GenomeReferenceWarning: See alternative genomic loci or alternative genome builds for aligned genomic positions']
 
     def test_old_transcript_version_b(self):
         variant = 'NM_000088.1:c.589G>T'
@@ -1491,13 +1510,41 @@ class TestVVGapWarnings(TestCase):
         print(results)
         assert results[ "NR_046115.2:n.1447_1448insG"]['validation_warnings'] == [
             "ReferenceSequenceError: This is not a valid HGVS variant description, because no reference sequence ID has been provided",
-            "Submitted description does not represent a true variant because it is an artefact of aligning NR_146765.2 with NC_000001.10 (genome build GRCh37)",
-            "NR_046115.2 contains 1 fewer bases between n.1448_1449 than NC_000001.10"
+            "GappedAlignmentWarning: Submitted description does not represent a true variant because it is an artefact of aligning NR_146765.2 with NC_000001.10 (genome build GRCh37)",
+            "GappedAlignmentWarning: NR_046115.2 contains 1 fewer bases between n.1448_1449 than NC_000001.10"
         ]
         assert results["NR_146765.2:n.1649_1650insG"]["validation_warnings"] == [
             "ReferenceSequenceError: This is not a valid HGVS variant description, because no reference sequence ID has been provided",
-            "Submitted description does not represent a true variant because it is an artefact of aligning NR_146765.2 with NC_000001.10 (genome build GRCh37)",
-            "NR_146765.2 contains 1 fewer bases between n.1650_1651 than NC_000001.10"
+            "GappedAlignmentWarning: Submitted description does not represent a true variant because it is an artefact of aligning NR_146765.2 with NC_000001.10 (genome build GRCh37)",
+            "GappedAlignmentWarning: NR_146765.2 contains 1 fewer bases between n.1650_1651 than NC_000001.10"
+        ]
+
+    def test_issue_810_regression_a(self):
+        variant = 'NC_000019.10:g.39911082dup'
+        results = self.vv.validate(variant, 'GRCh38', 'NM_003890.3', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert results['NM_003890.3:c.4468dup']['validation_warnings'] ==  ['GappedAlignmentWarning: Variation described in the context of an imperfect alignment of NM_003890.3 with NC_000019.10 (genome build GRCh38)', 'GappedAlignmentWarning: NM_003890.3 contains 504 extra bases between c.6504_7009, and 6 fewer bases between c.7037_7038, and 1 fewer bases between c.7046_7047, and 1 fewer bases between c.7061_7062, and 2 fewer bases between c.7066_7067, and 10 extra bases between c.7079_7090, and 1584 extra bases between c.4905_6490, and 2 fewer bases between c.6498_6499, and 414 extra bases between c.4476_4891, and 1 fewer bases between c.4895_4896, and 498 extra bases between c.3969_4468, and 564 extra bases between c.3396_3961, and 3 fewer bases between c.3961_3962 than NC_000019.10']
+
+    def test_issue_810_regression_b(self):
+        variant = 'NC_000019.10:g.39911082dup'
+        results = self.vv.validate(variant, 'GRCh37', 'NM_003890.3', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert results['NM_003890.3:c.4468dup']['validation_warnings'] ==  ['GappedAlignmentWarning: Variation described in the context of an imperfect alignment of NM_003890.3 with NC_000019.10 (genome build GRCh37)', 'GappedAlignmentWarning: NM_003890.3 contains 504 extra bases between c.6504_7009, and 6 fewer bases between c.7037_7038, and 1 fewer bases between c.7046_7047, and 1 fewer bases between c.7061_7062, and 2 fewer bases between c.7066_7067, and 10 extra bases between c.7079_7090, and 1584 extra bases between c.4905_6490, and 2 fewer bases between c.6498_6499, and 414 extra bases between c.4476_4891, and 1 fewer bases between c.4895_4896, and 498 extra bases between c.3969_4468, and 564 extra bases between c.3396_3961, and 3 fewer bases between c.3961_3962 than NC_000019.10']
+
+    def test_issue_810_regression_c(self):
+        variant = '19-39911082-C-C'
+        results = self.vv.validate(variant, 'GRCh38', 'NM_003890.3', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert results['NM_003890.3:c.4468=']['validation_warnings'] == ['GappedAlignmentWarning: Variation described in the context of an imperfect alignment of NM_003890.3 with NC_000019.10 (genome build GRCh38)', 'GappedAlignmentWarning: NM_003890.3 contains 504 extra bases between c.6504_7009, and 6 fewer bases between c.7037_7038, and 1 fewer bases between c.7046_7047, and 1 fewer bases between c.7061_7062, and 2 fewer bases between c.7066_7067, and 10 extra bases between c.7079_7090, and 1584 extra bases between c.4905_6490, and 2 fewer bases between c.6498_6499, and 414 extra bases between c.4476_4891, and 1 fewer bases between c.4895_4896, and 498 extra bases between c.3969_4468, and 564 extra bases between c.3396_3961, and 3 fewer bases between c.3961_3962 than NC_000019.10']
+
+    def test_issue_810_regression_d(self):
+        variant = 'chr19:39911082:C:C'
+        results = self.vv.validate(variant, 'GRCh38', 'NM_003890.3', transcript_set="refseq").format_as_dict(test=True)
+        print(results)
+        assert results['NM_003890.3:c.4468=']['validation_warnings'] == [
+            "ReferenceSequenceError: This is not a valid HGVS variant description, because no reference sequence ID has been provided",
+            "GappedAlignmentWarning: Variation described in the context of an imperfect alignment of NM_003890.3 with NC_000019.10 (genome build GRCh38)",
+            "GappedAlignmentWarning: NM_003890.3 contains 504 extra bases between c.6504_7009, and 6 fewer bases between c.7037_7038, and 1 fewer bases between c.7046_7047, and 1 fewer bases between c.7061_7062, and 2 fewer bases between c.7066_7067, and 10 extra bases between c.7079_7090, and 1584 extra bases between c.4905_6490, and 2 fewer bases between c.6498_6499, and 414 extra bases between c.4476_4891, and 1 fewer bases between c.4895_4896, and 498 extra bases between c.3969_4468, and 564 extra bases between c.3396_3961, and 3 fewer bases between c.3961_3962 than NC_000019.10"
         ]
 
 # <LICENSE>

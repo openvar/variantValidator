@@ -789,10 +789,9 @@ class Mixin(vvMixinConverters.Mixin):
                                  f"website at https://hgvs-nomenclature.org/stable/. For additional assistance "
                                  f"contact us at https://variantvalidator.org/help/contact/")
                         my_variant.warnings.append(error)
-                        exc_type, exc_value, last_traceback = sys.exc_info()
-                        logger.error(str(exc_type) + " " + str(exc_value))
-                        import traceback
-                        traceback.print_exc()
+                        logger.exception(error)
+                        # import traceback
+                        # traceback.print_exc()
                         continue
 
             # Outside the for loop
@@ -1174,11 +1173,8 @@ class Mixin(vvMixinConverters.Mixin):
                                             predicted_protein_variant.format({
                                                 'max_ref_length': 0,
                                                 'p_3_letter':False})
-                                except Exception as e:
-                                    print("AWOOOOOOOOOGA")
-                                    print(predicted_protein_variant)
-                                    import traceback
-                                    traceback.print_exc()
+                                except Exception:
+                                    logger.exception("Unable to format protein variants.")
 
 
                                 # set LRG outputs

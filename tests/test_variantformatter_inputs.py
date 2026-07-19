@@ -19,7 +19,7 @@ class TestVFvariantsAuto(object):
         assert 'NC_000019.10:g.50378563_50378564insTAC' in results.keys()
         assert results['NC_000019.10:g.50378563_50378564insTAC']['p_vcf'] is None
         assert results['NC_000019.10:g.50378563_50378564insTAC']['g_hgvs'] is None
-        assert results['NC_000019.10:g.50378563_50378564insTAC']['genomic_variant_error'] == 'chromosome ID NC_000019.10 is not associated with genome build GRCh37'
+        assert results['NC_000019.10:g.50378563_50378564insTAC']['genomic_variant_error'] == 'GenomeReferenceWarning: Chromosome ID NC_000019.10 is not associated with genome build GRCh37'
         assert results['NC_000019.10:g.50378563_50378564insTAC']['hgvs_t_and_p'] is None
 
     def test_variant2(self):
@@ -30,7 +30,7 @@ class TestVFvariantsAuto(object):
         assert '11-5248232-A-T' in results.keys()
         assert results['11-5248232-A-T']['p_vcf'] is None
         assert results['11-5248232-A-T']['g_hgvs'] is None
-        assert results['11-5248232-A-T']['genomic_variant_error'] == 'NC_000011.9:g.5248232A>T: Variant reference (A) does not agree with reference sequence (T)'
+        assert results['11-5248232-A-T']['genomic_variant_error'] == 'ReferenceMismatchError: NC_000011.9:g.5248232A>T: Variant reference (A) does not agree with reference sequence (T)'
         assert results['11-5248232-A-T']['hgvs_t_and_p'] is None
 
     def test_variant3(self):
@@ -6667,7 +6667,7 @@ class TestVFvariantsAuto(object):
         assert '14-105246588-TCT-T' in results.keys()
         assert results['14-105246588-TCT-T']['p_vcf'] is None
         assert results['14-105246588-TCT-T']['g_hgvs'] is None
-        assert results['14-105246588-TCT-T']['genomic_variant_error'] == 'NC_000014.9:g.105246588_105246590delTCTinsT: Variant reference (TCT) does not agree with reference sequence (GCC)'
+        assert results['14-105246588-TCT-T']['genomic_variant_error'] == 'ReferenceMismatchError: NC_000014.9:g.105246588_105246590delTCTinsT: Variant reference (TCT) does not agree with reference sequence (GCC)'
         assert results['14-105246588-TCT-T']['hgvs_t_and_p'] is None
 
     def test_variant239(self):

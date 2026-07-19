@@ -7,6 +7,9 @@ from VariantValidator.modules.hgvs_utils import hgvs_delins_parts_to_hgvs_obj, h
 from VariantValidator.modules.variant import TranscriptMapData
 from VariantValidator.modules.utils import simple_dna_revcomp
 
+# Add missing import - Was never imported
+# from VariantValidator.modules.hgvs_utils import hgvs_obj_from_existing_edit
+
 logger = logging.getLogger(__name__)
 
 # New function for handling insertion type gapped mappings, relies on, and should only trigger with
@@ -1144,13 +1147,16 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     hgvs_refreshed_variant = self.edit_output(hgvs_refreshed_variant, saved_hgvs_coding)
 
                     # Send to empty nw_rel_var
-                    if hgvs_refreshed_variant.posedit.edit.type == "delins" and \
-                            hgvs_refreshed_variant.posedit.edit.alt == "":
-                        hgvs_refreshed_variant = hgvs_obj_from_existing_edit(
-                                hgvs_refreshed_variant.ac,
-                                hgvs_refreshed_variant.type,
-                                hgvs_refreshed_variant.posedit.pos,
-                                '',hgvs_refreshed_variant.posedit.edit.ref)
+                    # Never used because module was not imported
+
+                    # if hgvs_refreshed_variant.posedit.edit.type == "delins" and \
+                    #         hgvs_refreshed_variant.posedit.edit.alt == "":
+                    #     hgvs_refreshed_variant = hgvs_obj_from_existing_edit(
+                    #             hgvs_refreshed_variant.ac,
+                    #             hgvs_refreshed_variant.type,
+                    #             hgvs_refreshed_variant.posedit.pos,
+                    #             '',hgvs_refreshed_variant.posedit.edit.ref)
+
                     nw_rel_var.append(hgvs_refreshed_variant)
 
                 # Otherwise these variants need to be set
@@ -3266,13 +3272,15 @@ it is an artefact of aligning %s with %s (genome build %s)""" % (tx_ac, gen_ac, 
                     "Unsupported normalization of variants spanning the UTR-exon boundary" in error:
                 hgvs_refreshed_variant = saved_hgvs_coding
 
-                if hgvs_refreshed_variant.posedit.edit.type == 'delins' and \
-                        hgvs_refreshed_variant.posedit.edit.alt == "":
-                    hgvs_refreshed_variant = hgvs_obj_from_existing_edit(
-                            hgvs_refreshed_variant.ac,
-                            hgvs_refreshed_variant.type,
-                            hgvs_refreshed_variant.posedit.pos,
-                            hgvs_refreshed_variant.posedit.edit.ref,'')
+                # Never used because module was not imported
+
+                # if hgvs_refreshed_variant.posedit.edit.type == 'delins' and \
+                #         hgvs_refreshed_variant.posedit.edit.alt == "":
+                #     hgvs_refreshed_variant = hgvs_obj_from_existing_edit(
+                #             hgvs_refreshed_variant.ac,
+                #             hgvs_refreshed_variant.type,
+                #             hgvs_refreshed_variant.posedit.pos,
+                #             hgvs_refreshed_variant.posedit.edit.ref,'')
 
         return hgvs_refreshed_variant
 

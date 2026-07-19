@@ -959,8 +959,8 @@ WARNING_CODE_MAP = {
     "Mapping unavailable for RefSeqGene":
         ("TranscriptMappingError", None),
 
-    "Transcript ":
-        ("TranscriptDataError", None),
+    # "Transcript ":
+    #     ("TranscriptDataError", None),
 
     "Required information for ":
         ("TranscriptDataError", None),
@@ -1010,6 +1010,15 @@ WARNING_CODE_MAP = {
 
     "Automap is unable to correct the input exon/intron boundary coordinates":
         ("ExonBoundaryError", None),
+
+    "fewer bases between":
+        ("GappedAlignmentWarning", None),
+
+    "extra bases between":
+        ("GappedAlignmentWarning", None),
+
+    "Submitted description does not represent a true variant":
+        ("GappedAlignmentWarning", None),
 
     # ========================================================================
     # Alleles
