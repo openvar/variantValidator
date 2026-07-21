@@ -464,6 +464,7 @@ def test_update_gene_stable_identifiers_missing_optional_fields(
     assert result == {
         "map_loc": None,
         "gene_name": None,
+        'hgnc_id': 'HGNC:1',
         "prev": None,
     }
 
@@ -1417,6 +1418,67 @@ def test_update_transcript_info_record_enst_without_hgnc(
 
     assert variant["db_xref"]["hgnc"] is None
 
+@patch("VariantValidator.modules.vvDatabase.utils.ensembl_tark")
+@patch("VariantValidator.modules.vvDatabase.utils.ensembl_rest")
+def test_update_transcript_info_record_enst_empty_tark_results(
+    mock_ensembl_rest,
+    mock_ensembl_tark,
+):
+    db = make_db()
+
+    validator = MagicMock()
+
+    lookup = {
+        "record": {
+            "version": 6,
+            "display_name": "GENE-001",
+            "is_canonical": 0,
+            "Parent": "ENSG1",
+            "seq_region_name": "1",
+            "start": 10,
+            "end": 20,
+        }
+    }
+
+    ccds = []
+    gene = {"record": []}
+
+    mock_ensembl_rest.side_effect = [
+        lookup,
+        ccds,
+        gene,
+    ]
+
+    # ENST00000521367.6 returns no TARK results.
+    # This triggers IndexError on tark_json["results"][0].
+    mock_ensembl_tark.return_value = {
+        "record": {
+            "results": []
+        }
+    }
+
+    db.update_gene_stable_identifiers = MagicMock(
+        return_value=None
+    )
+    db.in_entries = MagicMock(
+        return_value={"none": "none"}
+    )
+    db.insert = MagicMock()
+
+    db.update_transcript_info_record(
+        "ENST00000521367.6",
+        validator,
+        genome_build="GRCh38",
+        test=True,
+    )
+
+    variant = json.loads(
+        db.insert.call_args.args[1][2]
+    )
+
+    assert variant["mane_select"] is False
+    assert variant["mane_plus_clinical"] is False
+
 @patch("VariantValidator.modules.vvDatabase.json.dumps", side_effect=lambda x: x)
 def test_update_transcript_info_record_hgnc_data_added(mock_json):
     db = make_db()
@@ -1483,6 +1545,7 @@ def test_previous_symbol_already_missing():
         pass
 
     assert variant == {}
+
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

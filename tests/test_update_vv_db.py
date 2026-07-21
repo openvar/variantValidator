@@ -412,6 +412,299 @@ def test_update_refseq_single_valid_mapping(mock_get, mock_decompress, fake_db):
     assert written[9] == "1234"
     assert written[10] == "GENE1"
 
+@patch("VariantValidator.update_vv_db.gzip.decompress")
+@patch("VariantValidator.update_vv_db.requests.get")
+def test_update_refseq_missing_lookup_uses_entrez(
+    mock_get,
+    mock_decompress,
+    fake_db,
+):
+    mock_get.side_effect = [
+        MagicMock(
+            text="0\t1234\tGENE1\tNG_999999.1"
+        ),
+        MagicMock(
+            text='href="GCF_000001405.40_GRCh38.p14/"',
+            raise_for_status=MagicMock(),
+        ),
+        MagicMock(
+            text='href="GCF_000001405.40_GRCh38.p14_genomic.gff.gz"',
+            raise_for_status=MagicMock(),
+        ),
+        MagicMock(
+            content=b"dummy",
+            raise_for_status=MagicMock(),
+        ),
+    ]
+
+    mock_decompress.return_value = (
+        b"NC_000001.11\tRefSeq\tmatch\t100\t200\t.\t+\t."
+        b"\tID=x;Target=NG_000001.1 1 100 +;gap_count=0"
+    )
+
+    feature = MagicMock()
+    feature.qualifiers = {
+        "gene": ["GENE1"],
+        "db_xref": [
+            "GeneID:1234",
+            "Something:else",
+            "HGNC:5678",
+        ],
+    }
+
+    record = MagicMock()
+    record.features = [feature]
+
+    with patch.object(
+        uv.validator,
+        "entrez_efetch",
+        return_value=record,
+    ):
+        uv.update_refseq(fake_db)
+
+    written = fake_db.update_refseqgene_loci.call_args.args[0]
+
+    assert written[0] == "NG_000001.1"
+    assert written[9] == "5678"
+    assert written[10] == "GENE1"
+
+
+@patch("VariantValidator.update_vv_db.gzip.decompress")
+@patch("VariantValidator.update_vv_db.requests.get")
+def test_update_refseq_entrez_hgnc_index_fallback(
+    mock_get,
+    mock_decompress,
+    fake_db,
+):
+    mock_get.side_effect = [
+        MagicMock(
+            text="0\t1234\tGENE1\tNG_999999.1"
+        ),
+        MagicMock(
+            text='href="GCF_000001405.40_GRCh38.p14/"',
+            raise_for_status=MagicMock(),
+        ),
+        MagicMock(
+            text='href="GCF_000001405.40_GRCh38.p14_genomic.gff.gz"',
+            raise_for_status=MagicMock(),
+        ),
+        MagicMock(
+            content=b"dummy",
+            raise_for_status=MagicMock(),
+        ),
+    ]
+
+    mock_decompress.return_value = (
+        b"NC_000001.11\tRefSeq\tmatch\t100\t200\t.\t+\t."
+        b"\tID=x;Target=NG_000001.1 1 100 +;gap_count=0"
+    )
+
+    feature = MagicMock()
+    feature.qualifiers = {
+        "gene": ["GENE1"],
+        "db_xref": [
+            "GeneID:1234",
+            "HGNC:5678",
+        ],
+    }
+
+    record = MagicMock()
+    record.features = [feature]
+
+    with patch.object(
+        uv.validator,
+        "entrez_efetch",
+        return_value=record,
+    ):
+        uv.update_refseq(fake_db)
+
+    written = fake_db.update_refseqgene_loci.call_args.args[0]
+
+    assert written[9] == "5678"
+    assert written[10] == "GENE1"
+
+
+@patch("VariantValidator.update_vv_db.gzip.decompress")
+@patch("VariantValidator.update_vv_db.requests.get")
+def test_update_refseq_entrez_geneid_fallback(
+    mock_get,
+    mock_decompress,
+    fake_db,
+):
+    mock_get.side_effect = [
+        MagicMock(
+            text="0\t1234\tGENE1\tNG_999999.1"
+        ),
+        MagicMock(
+            text='href="GCF_000001405.40_GRCh38.p14/"',
+            raise_for_status=MagicMock(),
+        ),
+        MagicMock(
+            text='href="GCF_000001405.40_GRCh38.p14_genomic.gff.gz"',
+            raise_for_status=MagicMock(),
+        ),
+        MagicMock(
+            content=b"dummy",
+            raise_for_status=MagicMock(),
+        ),
+    ]
+
+    mock_decompress.return_value = (
+        b"NC_000001.11\tRefSeq\tmatch\t100\t200\t.\t+\t."
+        b"\tID=x;Target=NG_000001.1 1 100 +;gap_count=0"
+    )
+
+    feature = MagicMock()
+    feature.qualifiers = {
+        "gene": ["GENE1"],
+        "db_xref": [
+            "GeneID:1234",
+        ],
+    }
+
+    record = MagicMock()
+    record.features = [feature]
+
+    with patch.object(
+        uv.validator,
+        "entrez_efetch",
+        return_value=record,
+    ):
+        uv.update_refseq(fake_db)
+
+    written = fake_db.update_refseqgene_loci.call_args.args[0]
+
+    assert written[9] == "1234"
+    assert written[10] == "GENE1"
+
+@patch("VariantValidator.update_vv_db.gzip.decompress")
+@patch("VariantValidator.update_vv_db.requests.get")
+def test_update_refseq_entrez_regulatory_loc_fallback(
+    mock_get,
+    mock_decompress,
+    fake_db,
+):
+    mock_get.side_effect = [
+        MagicMock(
+            text="0\t1234\tGENE1\tNG_999999.1"
+        ),
+        MagicMock(
+            text='href="GCF_000001405.40_GRCh38.p14/"',
+            raise_for_status=MagicMock(),
+        ),
+        MagicMock(
+            text='href="GCF_000001405.40_GRCh38.p14_genomic.gff.gz"',
+            raise_for_status=MagicMock(),
+        ),
+        MagicMock(
+            content=b"dummy",
+            raise_for_status=MagicMock(),
+        ),
+    ]
+
+    mock_decompress.return_value = (
+        b"NC_000001.11\tRefSeq\tmatch\t100\t200\t.\t+\t."
+        b"\tID=x;Target=NG_000001.1 1 100 +;gap_count=0"
+    )
+
+    feature = MagicMock()
+    feature.type = "regulatory"
+    feature.qualifiers = {
+        "db_xref": [
+            "GeneID:1234",
+        ],
+        "note": [
+            "GRCh38 regulatory region"
+        ],
+    }
+
+    record = MagicMock()
+    record.description = "Example regulatory region (LOC12345)"
+    record.features = [feature]
+
+    with patch.object(
+        uv.validator,
+        "entrez_efetch",
+        return_value=record,
+    ):
+        uv.update_refseq(fake_db)
+
+    written = fake_db.update_refseqgene_loci.call_args.args[0]
+
+    assert written[0] == "NG_000001.1"
+    assert written[9] == "1234"
+    assert written[10] == "LOC12345"
+
+@patch("VariantValidator.update_vv_db.VariantValidator.modules.seq_data.to_accession")
+@patch("VariantValidator.update_vv_db.gzip.decompress")
+@patch("VariantValidator.update_vv_db.requests.get")
+def test_update_refseq_entrez_regulatory_grch37_fallback(
+    mock_get,
+    mock_decompress,
+    mock_to_accession,
+    fake_db,
+):
+    mock_get.side_effect = [
+        MagicMock(
+            text="0\t1234\tGENE1\tNG_999999.1"
+        ),
+        MagicMock(
+            text='href="GCF_000001405.40_GRCh38.p14/"',
+            raise_for_status=MagicMock(),
+        ),
+        MagicMock(
+            text='href="GCF_000001405.40_GRCh38.p14_genomic.gff.gz"',
+            raise_for_status=MagicMock(),
+        ),
+        MagicMock(
+            content=b"dummy",
+            raise_for_status=MagicMock(),
+        ),
+    ]
+
+    mock_decompress.return_value = (
+        b"NC_000001.11\tRefSeq\tmatch\t100\t200\t.\t+\t."
+        b"\tID=x;Target=NG_000001.1 1 100 +;gap_count=0"
+    )
+
+    mock_to_accession.return_value = "NC_000001.10"
+
+    feature = MagicMock()
+    feature.type = "regulatory"
+    feature.qualifiers = {
+        "db_xref": [
+            "GeneID:1234",
+        ],
+        "note": [
+            "Mapped to GRCh37"
+        ],
+    }
+
+    record = MagicMock()
+    record.description = "Example regulatory region (LOC12345)"
+    record.features = [feature]
+
+    with patch.object(
+        uv.validator,
+        "entrez_efetch",
+        return_value=record,
+    ):
+        uv.update_refseq(fake_db)
+
+    written = fake_db.update_refseqgene_loci.call_args.args[0]
+
+    assert written[0] == "NG_000001.1"
+    assert written[1] == "NC_000001.10"
+    assert written[2] == "GRCh37"
+    assert written[9] == "1234"
+    assert written[10] == "LOC12345"
+
+    mock_to_accession.assert_called_once_with(
+        "1",
+        "GRCh37",
+    )
+
+
 
 # <LICENSE>
 # Copyright (C) 2016-2026 VariantValidator Contributors

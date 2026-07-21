@@ -91,6 +91,11 @@ def hgnc_rest(path):
 
             if r.status_code == 200:
                 data['record'] = r.json()
+                success = (
+                    "Data returned by genenames.org: "
+                    "URL=%s: Status=%s" % (url, r.status_code)
+                )
+                logger.warning(success)
                 return data
 
             if r.status_code not in retry_status:
@@ -184,6 +189,11 @@ def ensembl_rest(id, endpoint, genome, options=False):
 
             if r.status_code == 200:
                 data['record'] = r.json()
+                success = (
+                        "Data returned by Ensembl Rest: "
+                        "URL=%s: Status=%s" % (url, r.status_code)
+                )
+                logger.warning(success)
                 return data
 
             if r.status_code not in retry_status:
@@ -260,6 +270,11 @@ def ensembl_tark(id, endpoint, options=False):
 
             if r.status_code == 200:
                 data['record'] = r.json()
+                success = (
+                    "Data returned by Ensembl Tark: "
+                    "URL=%s: Status=%s" % (url, r.status_code)
+                )
+                logger.warning(success)
                 return data
 
             if r.status_code not in retry_status:

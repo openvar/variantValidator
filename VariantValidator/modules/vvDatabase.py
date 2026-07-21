@@ -161,9 +161,11 @@ class Database(vvDBInsert.Mixin):
             except KeyError:
                 name = None
 
-            hgnc_data = {"map_loc": maploc,
-                         "gene_name": name,
-                         "prev": prev
+            hgnc_data = {
+                "map_loc": maploc,
+                "gene_name": name,
+                "prev": prev,
+                "hgnc_id": hgnc_id
             }
 
             return hgnc_data
@@ -243,7 +245,10 @@ class Database(vvDBInsert.Mixin):
                                                      endpoint="/api/transcript/stable_id_with_version/")
                     tark_json = tark_record['record']
 
-                    mane_type = tark_json['results'][0].get('mane_transcript_type')
+                    try:
+                        mane_type = tark_json['results'][0].get('mane_transcript_type')
+                    except IndexError:
+                        mane_type = None
 
                     if mane_type == "MANE SELECT":
                         mane_select = True
@@ -272,6 +277,7 @@ class Database(vvDBInsert.Mixin):
                                "refseq_select": False}
 
                 else:
+                    logger.warning(f"Version Mismatch for {enst_accession} version={enst_version} and record version={str(ens_json['version'])}")
                     warning = "Ensembl transcript %s is not identified in the Ensembl APIs" % accession
                     raise utils.DatabaseConnectionError(warning)
             except TypeError:
