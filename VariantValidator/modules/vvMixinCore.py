@@ -6,7 +6,6 @@ from vvhgvs.location import Interval
 from vvhgvs.sequencevariant import SequenceVariant
 import re
 import copy
-import sys
 import logging
 import json
 import time

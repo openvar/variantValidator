@@ -467,11 +467,13 @@ def structure_checks_c(variant, validator):
     if '*' in str(variant.input_parses) or 'c.-' in str(variant.input_parses):
         # Catch variation in UTRs
         # These should be in the sequence so can be directly validated. Need to pass to n.
+        logger.info(f"Check datum definition for variant {variant.input_parses}")
         try:
             validator.vr.validate(variant.input_parses)
         except vvhgvs.exceptions.HGVSError as e:
             error = str(e)
             if 'datums is ill-defined' in error:
+                logger.info(f"The specified datum is ill-defined for variant {variant.input_parses}")
                 called_ref = variant.input_parses.posedit.edit.ref
 
                 try:
@@ -582,12 +584,14 @@ def structure_checks_c(variant, validator):
         # Intronic positions in UTRs
         if re.search(r'\d-\d', str(variant.input_parses)) or re.search(r'\d\+\d', str(variant.input_parses)):
             # Can we go c-g-c
+            logger.info(f"check UTR boundaries for variant {variant.input_parses}")
             try:
                 to_genome = validator.myevm_t_to_g(variant.input_parses, variant.no_norm_evm,
                                                    variant.primary_assembly, variant.hn, variant)
                 to_tx = variant.evm.g_to_t(to_genome, variant.input_parses.ac)
             except vvhgvs.exceptions.HGVSInvalidIntervalError as e:
                 error = str(e)
+                logger.info(f"check UTR boundaries for variant {variant.input_parses}: error {error}")
                 if 'bounds' in error:
                     try:
                         identity_info = validator.hdp.get_tx_identity_info(variant.input_parses.ac)
@@ -632,6 +636,7 @@ def structure_checks_c(variant, validator):
                                 + fn.valstr(report_gen)
                     except Exception as e:
                         logger.debug("Except passed, %s", e)
+
                 variant.warnings.append(error)
                 logger.info(error)
                 return True

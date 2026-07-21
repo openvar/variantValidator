@@ -3,7 +3,7 @@ import re
 import copy
 import vvhgvs.exceptions
 import logging
-from . import hgvs_utils
+from . import hgvs_utils, hgvs_position_utils
 from .variant import Variant
 from . import seq_data
 from . import utils as fn
@@ -277,12 +277,12 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         obj = variant.hgvs_formatted
     tx_ac = obj.ac
 
-    quibble_input = str(variant.quibble)
     quibble_input_hgvs_obj = variant.quibble
     if isinstance(quibble_input_hgvs_obj, str):
-       quibble_input_hgvs_obj = validator.hp.parse_hgvs_variant(variant.quibble)
-    formatted_variant = str(variant.hgvs_formatted)
+        quibble_input_hgvs_obj = validator.hp.parse_hgvs_variant(variant.quibble)
+
     out_hgvs_obj = variant.hgvs_formatted
+
     # Do we keep it?
     if (validator.select_transcripts != 'all' and validator.select_transcripts != 'raw') \
             and "select" not in validator.select_transcripts and \
@@ -350,11 +350,16 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         logger.info(str(errors))
         return True
 
-
-    plus = re.compile(r"\d\+\d")  # finds digit + digit
-    minus = re.compile(r"\d-\d")  # finds digit - digit
-
-    if plus.search(quibble_input) or minus.search(quibble_input):
+    if (
+            hgvs_position_utils.position_is_intronic(
+                quibble_input_hgvs_obj,
+                check_start=True
+            )
+            or hgvs_position_utils.position_is_intronic(
+        quibble_input_hgvs_obj,
+        check_end=True
+    )
+    ):
         if 'error' in str(to_g):
             if validator.alt_aln_method != 'genebuild':
                 error = "If the following error message does not address the issue and the problem persists please " \
@@ -389,17 +394,23 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                             logger.info(error)
 
             # Insertions at exon boundaries are miss-handled by vm.g_to_t
-            if (obj.posedit.edit.type == 'ins' and
-                obj.posedit.pos.start.offset == 0 and
-                obj.posedit.pos.end.offset != 0) or (obj.posedit.edit.type == 'ins' and
-                                                     obj.posedit.pos.start.offset != 0 and
-                                                     obj.posedit.pos.end.offset == 0):
-                formatted_variant = str(obj)
+            if (
+                    obj.posedit.edit.type == 'ins'
+                    and (
+                    (
+                            not hgvs_position_utils.position_is_intronic(obj, check_start=True)
+                            and hgvs_position_utils.position_is_intronic(obj, check_end=True)
+                    )
+                    or (
+                            hgvs_position_utils.position_is_intronic(obj, check_start=True)
+                            and not hgvs_position_utils.position_is_intronic(obj, check_end=True)
+                    )
+            )
+            ):
                 out_hgvs_obj = obj
             else:
                 try:
                     out_hgvs_obj = validator.myevm_g_to_t(variant.evm, to_g, tx_ac)
-                    formatted_variant = str(out_hgvs_obj)
                 except vvhgvs.exceptions.HGVSError as e:
                     if "Alignment is incomplete" in str(e):
                         to_g = hgvs_utils.incomplete_alignment_mapping_t_to_g(validator, variant)
@@ -411,11 +422,19 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                         else:
                             variant.hgvc_genomic = to_g
                             out_hgvs_obj = validator.vm.g_to_t(to_g, tx_ac)
-                            formatted_variant = str(out_hgvs_obj)
 
-    elif ':g.' in quibble_input:
-        if plus.search(formatted_variant) or minus.search(formatted_variant):
-            to_g = validator.genomic(out_hgvs_obj, variant.no_norm_evm, variant.primary_assembly, variant)
+
+    elif quibble_input_hgvs_obj.type == 'g':
+        if (
+                hgvs_position_utils.position_is_intronic(out_hgvs_obj, check_start=True)
+                or hgvs_position_utils.position_is_intronic(out_hgvs_obj, check_end=True)
+        ):
+            to_g = validator.genomic(
+                out_hgvs_obj,
+                variant.no_norm_evm,
+                variant.primary_assembly,
+                variant
+            )
             if 'error' in str(to_g):
                 if validator.alt_aln_method != 'genebuild':
                     error = "If the following error message does not address the issue and the problem persists " \
@@ -432,18 +451,28 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                     return True
         else:
             # Insertions at exon boundaries are miss-handled by vm.g_to_t
-            if (obj.posedit.edit.type == 'ins' and
-                obj.posedit.pos.start.offset == 0 and
-                obj.posedit.pos.end.offset != 0) or (obj.posedit.edit.type == 'ins' and
-                                                     obj.posedit.pos.start.offset != 0 and
-                                                     obj.posedit.pos.end.offset == 0):
+            if (
+                    obj.posedit.edit.type == 'ins'
+                    and (
+                    (
+                            not hgvs_position_utils.position_is_intronic(obj, check_start=True)
+                            and hgvs_position_utils.position_is_intronic(obj, check_end=True)
+                    )
+                    or (
+                            hgvs_position_utils.position_is_intronic(obj, check_start=True)
+                            and not hgvs_position_utils.position_is_intronic(obj, check_end=True)
+                    )
+            )
+            ):
                 out_hgvs_obj = obj
-                formatted_variant = str(obj)
             else:
                 # Normalize was I believe to replace ref. Mapping does this anyway
                 # to_g = hn.normalize(to_g)
-                out_hgvs_obj = validator.myevm_g_to_t(variant.evm, to_g, tx_ac)
-                formatted_variant = str(out_hgvs_obj)
+                out_hgvs_obj = validator.myevm_g_to_t(
+                    variant.evm,
+                    to_g,
+                    tx_ac
+                )
 
     else:
         # Normalize the variant
@@ -451,7 +480,6 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             h_variant = variant.hn.normalize(obj)
         except vvhgvs.exceptions.HGVSUnsupportedOperationError as error:
             if 'Unsupported normalization of variants spanning the exon-intron boundary' in str(error):
-                formatted_variant = formatted_variant
                 caution = 'This coding sequence variant description spans at least one intron'
                 variant.warnings.extend([caution])
                 logger.info(caution)
@@ -459,7 +487,6 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             logger.info(str(e))
         else:
             out_hgvs_obj = h_variant
-            formatted_variant = str(h_variant)
 
         error = validator.validateHGVS(out_hgvs_obj)
         if error == 'false':
@@ -471,28 +498,27 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
             logger.info(str(error))
             return True
 
-    # Tackle the plus intronic offset
-    cck = False
-    if plus.search(quibble_input):
-        # Regular expression catches the start of the interval only based on .00+00 pattern
-        inv_start = re.compile(r"\.\d+\+\d")
-        inv_end = re.compile(r"_\d+\+\d")
-        if inv_start.search(quibble_input) or inv_end.search(quibble_input):
-            cck = True
-    if minus.search(quibble_input):
-        # Regular expression catches the start of the interval only based on .00-00 pattern
-        inv_start = re.compile(r"\.\d+-\d")
-        inv_end = re.compile(r"_\d+-\d")
-        if inv_start.search(quibble_input) or inv_end.search(quibble_input):
-            cck = True
+    # Tackle intronic offsets
+    cck = (
+            hgvs_position_utils.position_is_intronic(
+                quibble_input_hgvs_obj,
+                check_start=True
+            )
+            or
+            hgvs_position_utils.position_is_intronic(
+                quibble_input_hgvs_obj,
+                check_end=True
+            )
+    )
 
     # COORDINATE CHECKER
     # hgvs will handle incorrect coordinates so need to automap errors
     # Make sure any input intronic coordinates are correct
     # Get the desired transcript
+
     if cck:
         # This should only ever hit coding variants (RNA has been converted to c by now)
-        if 'del' in formatted_variant:
+        if out_hgvs_obj.posedit.edit.type in ('del', 'delins'):
             if out_hgvs_obj.type == 'c':
                 coding = out_hgvs_obj
             elif quibble_input_hgvs_obj.type == 'c':
@@ -543,41 +569,67 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                 # If this is a boundary issue with a valid boundary stated, but incorrect intronic numbering we can
                 # Refer to https://github.com/openvar/variantValidator/issues/518
                 can_we_autocorrect = False
-                if ("-" in str(test.posedit.pos.start) and "+" in str(post_var.posedit.pos.start) and
-                    post_var.posedit.pos.start.base == test.posedit.pos.start.base - 1) or \
-                        ("+" in str(test.posedit.pos.start) and "-" in str(post_var.posedit.pos.start) and
-                         post_var.posedit.pos.start.base == test.posedit.pos.start.base + 1) or \
-                        ("-" in str(test.posedit.pos.end) and "+" in str(post_var.posedit.pos.end) and
-                         post_var.posedit.pos.end.base == test.posedit.pos.end.base - 1) or \
-                        ("+" in str(test.posedit.pos.end) and "-" in str(post_var.posedit.pos.end) and
-                             post_var.posedit.pos.end.base == test.posedit.pos.end.base + 1):
+                if (
+                        (
+                            hgvs_position_utils.offset_is_negative(test, check_start=True)
+                            and hgvs_position_utils.offset_is_positive(post_var, check_start=True)
+                            and post_var.posedit.pos.start.base == test.posedit.pos.start.base - 1
+                        )
+                        or (
+                            hgvs_position_utils.offset_is_positive(test, check_start=True)
+                            and hgvs_position_utils.offset_is_negative(post_var, check_start=True)
+                            and post_var.posedit.pos.start.base == test.posedit.pos.start.base + 1
+                )
+                        or (
+                            hgvs_position_utils.offset_is_negative(test, check_end=True)
+                            and hgvs_position_utils.offset_is_positive(post_var, check_end=True)
+                            and post_var.posedit.pos.end.base == test.posedit.pos.end.base - 1
+                )
+                        or (
+                            hgvs_position_utils.offset_is_positive(test, check_end=True)
+                            and hgvs_position_utils.offset_is_negative(post_var, check_end=True)
+                            and post_var.posedit.pos.end.base == test.posedit.pos.end.base + 1
+                )
+                ):
                     can_we_autocorrect = True
+
                     if post_var.posedit.pos.start.base != test.posedit.pos.start.base:
                         caution = "ExonBoundaryError: Position c.%s has been updated to position to %s ensuring " \
-                                  "correct HGVS numbering for transcript %s" % (str(test.posedit.pos.start),
-                                                                                str(post_var.posedit.pos.start),
-                                                                                test.ac)
+                                  "correct HGVS numbering for transcript %s" % (
+                                      str(test.posedit.pos.start),
+                                      str(post_var.posedit.pos.start),
+                                      test.ac
+                                  )
                         variant.warnings.extend([caution])
+
                     if post_var.posedit.pos.end.base != test.posedit.pos.end.base:
                         caution = "ExonBoundaryError: Position c.%s has been updated to position to %s ensuring " \
-                                  "correct HGVS numbering for transcript %s" % (str(test.posedit.pos.end),
-                                                                                str(post_var.posedit.pos.end),
-                                                                                test.ac)
+                                  "correct HGVS numbering for transcript %s" % (
+                                      str(test.posedit.pos.end),
+                                      str(post_var.posedit.pos.end),
+                                      test.ac
+                                  )
                         variant.warnings.extend([caution])
 
                 # Pass and raise
                 if can_we_autocorrect is False:
                     if post_var.posedit.pos.start != test.posedit.pos.start:
                         caution = "ExonBoundaryError: Position c.%s does not correspond with an exon boundary for " \
-                              "transcript %s" % (test.posedit.pos.start, test.ac)
+                                  "transcript %s" % (
+                                      test.posedit.pos.start,
+                                      test.ac
+                                  )
                     elif post_var.posedit.pos.end != test.posedit.pos.end:
                         caution = "ExonBoundaryError: Position c.%s does not correspond with an exon boundary for " \
-                              "transcript %s" % (test.posedit.pos.end, test.ac)
+                                  "transcript %s" % (
+                                      test.posedit.pos.end,
+                                      test.ac
+                                  )
+
                     variant.warnings.extend([caution])
                     raise MappersError(caution)
 
         else:  # del not in formatted_variant
-
             if out_hgvs_obj.type == 'c':
                 coding = out_hgvs_obj
             elif quibble_input_hgvs_obj.type == 'c':
@@ -609,46 +661,74 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
                 logger.info(f"{pre_var} mapped to {post_var}")
 
             test = quibble_input_hgvs_obj
+
             if post_var.posedit.pos.start.base != test.posedit.pos.start.base or \
                     post_var.posedit.pos.end.base != test.posedit.pos.end.base:
 
                 # If this is a boundary issue with a valid boundary stated, but incorrect intronic numbering we can
                 # Refer to https://github.com/openvar/variantValidator/issues/518
                 can_we_autocorrect = False
-                if ("-" in str(test.posedit.pos.start) and "+" in str(post_var.posedit.pos.start) and
-                    post_var.posedit.pos.start.base == test.posedit.pos.start.base - 1) or \
-                        ("+" in str(test.posedit.pos.start) and "-" in str(post_var.posedit.pos.start) and
-                         post_var.posedit.pos.start.base == test.posedit.pos.start.base + 1) or \
-                        ("-" in str(test.posedit.pos.end) and "+" in str(post_var.posedit.pos.end) and
-                         post_var.posedit.pos.end.base == test.posedit.pos.end.base - 1) or \
-                        ("+" in str(test.posedit.pos.end) and "-" in str(post_var.posedit.pos.end) and
-                             post_var.posedit.pos.end.base == test.posedit.pos.end.base + 1):
+                if (
+                        (
+                            hgvs_position_utils.offset_is_negative(test, check_start=True)
+                            and hgvs_position_utils.offset_is_positive(post_var, check_start=True)
+                            and post_var.posedit.pos.start.base == test.posedit.pos.start.base - 1
+                        )
+                        or (
+                            hgvs_position_utils.offset_is_positive(test, check_start=True)
+                            and hgvs_position_utils.offset_is_negative(post_var, check_start=True)
+                            and post_var.posedit.pos.start.base == test.posedit.pos.start.base + 1
+                )
+                        or (
+                            hgvs_position_utils.offset_is_negative(test, check_end=True)
+                            and hgvs_position_utils.offset_is_positive(post_var, check_end=True)
+                            and post_var.posedit.pos.end.base == test.posedit.pos.end.base - 1
+                )
+                        or (
+                            hgvs_position_utils.offset_is_positive(test, check_end=True)
+                            and hgvs_position_utils.offset_is_negative(post_var, check_end=True)
+                            and post_var.posedit.pos.end.base == test.posedit.pos.end.base + 1
+                )
+                ):
                     can_we_autocorrect = True
+
                     if post_var.posedit.pos.start.base != test.posedit.pos.start.base:
                         caution = "ExonBoundaryError: Position c.%s has been updated to position to %s ensuring " \
-                                  "correct HGVS numbering for transcript %s" % (str(test.posedit.pos.start),
-                                                                                str(post_var.posedit.pos.start),
-                                                                                test.ac)
+                                  "correct HGVS numbering for transcript %s" % (
+                                      str(test.posedit.pos.start),
+                                      str(post_var.posedit.pos.start),
+                                      test.ac
+                                  )
                         variant.warnings.extend([caution])
+
                     if post_var.posedit.pos.end.base != test.posedit.pos.end.base:
                         caution = "ExonBoundaryError: Position c.%s has been updated to position to %s ensuring " \
-                                  "correct HGVS numbering for transcript %s" % (str(test.posedit.pos.end),
-                                                                                str(post_var.posedit.pos.end),
-                                                                                test.ac)
+                                  "correct HGVS numbering for transcript %s" % (
+                                      str(test.posedit.pos.end),
+                                      str(post_var.posedit.pos.end),
+                                      test.ac
+                                  )
                         variant.warnings.extend([caution])
 
                 # Pass and raise
                 if can_we_autocorrect is False:
                     if post_var.posedit.pos.start != test.posedit.pos.start:
                         caution = "ExonBoundaryError: Position c.%s does not correspond with an exon boundary for " \
-                              "transcript %s" % (test.posedit.pos.start, test.ac)
+                                  "transcript %s" % (
+                                      test.posedit.pos.start,
+                                      test.ac
+                                  )
                     elif post_var.posedit.pos.end != test.posedit.pos.end:
                         caution = "ExonBoundaryError: Position c.%s does not correspond with an exon boundary for " \
-                              "transcript %s" % (test.posedit.pos.end, test.ac)
+                                  "transcript %s" % (
+                                      test.posedit.pos.end,
+                                      test.ac
+                                  )
+
                     variant.warnings.extend([caution])
                     raise MappersError(caution)
 
-    elif ':g.' not in quibble_input:
+    elif quibble_input_hgvs_obj.type != 'g':
         query = out_hgvs_obj
         test = quibble_input_hgvs_obj
 
@@ -899,12 +979,21 @@ def transcripts_to_gene(variant, validator, select_transcripts_dict_plus_version
         logger.debug("Except passed, %s", e)
 
     # Final protein check, i.e. does the output make sense
-    # We are looking for exonic c. descriptioms labelled as p.?
+    # We are looking for exonic c. descriptions labelled as p.?
     # This code is triggered by variant NM_000088.3:c.589-1GG>G
     # Note, this will not correct read-through stop codons, but it will try!
-    if hgvs_coding.posedit.pos.start.offset == 0 and hgvs_coding.posedit.pos.start.offset == 0 and \
-            '?' in str(hgvs_protein):
-        protein_dict = validator.myc_to_p(hgvs_coding, variant.evm, re_to_p=False, hn=variant.hn)
+    if (
+            not hgvs_position_utils.position_is_intronic(hgvs_coding, check_start=True)
+            and not hgvs_position_utils.position_is_intronic(hgvs_coding, check_end=True)
+            and hgvs_protein != ''
+            and hgvs_protein.posedit.uncertain
+    ):
+        protein_dict = validator.myc_to_p(
+            hgvs_coding,
+            variant.evm,
+            re_to_p=False,
+            hn=variant.hn
+        )
         if protein_dict['error'] == '' or protein_dict['error'].startswith('ProteinTranslationInfo:'):
             hgvs_protein = protein_dict['hgvs_protein']
             if protein_dict['error']:

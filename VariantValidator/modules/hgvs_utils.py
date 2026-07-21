@@ -8,6 +8,7 @@ import re
 import copy
 from . import seq_data
 from . import utils
+from . import hgvs_position_utils
 
 # Import Biopython modules
 from Bio.Seq import Seq
@@ -353,7 +354,7 @@ def hgvs_obj_from_existing_edit(ref_ac,ref_type, starts, edit,
                  for "starts".
     returns: hgvs variant object (not normalised)
     """
-    if isinstance(starts, Interval):
+    if isinstance(starts, (BaseOffsetInterval, Interval)):
         return vvhgvs.sequencevariant.SequenceVariant(
                 ac=ref_ac,
                 type=ref_type,
@@ -385,7 +386,7 @@ def hgvs_obj_from_existing_edit(ref_ac,ref_type, starts, edit,
     if end:
         ends = int(end)
     else:
-        ends = int(starts) + len(edit.ref), -1
+        ends = int(starts) + len(edit.ref) - 1
     return vvhgvs.sequencevariant.SequenceVariant(
             ac=ref_ac,
             type=ref_type,
@@ -724,28 +725,24 @@ def hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf, extra_flank
         alt = hgvs_del_seq_w_pre_base[0]
 
     # inv
+    # inv
     elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'inv':
         end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
         start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
         adj_start = start - 1
-        start = start
-        try:
-            ins_seq = reverse_normalized_hgvs_genomic.posedit.edit.alt
-        except:
-            ins_seq = ''
-        else:
-            if str(ins_seq) == 'None':
-                ins_seq = ''
-                # Recover sequences
-        vcf_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, end)
+
+        # Recover sequences
+        vcf_del_seq = sf.fetch_seq(
+            str(reverse_normalized_hgvs_genomic.ac),
+            adj_start,
+            end
+        )
+
         # Assemble
         pos = str(start)
         ref = vcf_del_seq
-        alt = ins_seq
-        if 'inv' in str(reverse_normalized_hgvs_genomic.posedit):
-            my_seq = Seq(vcf_del_seq)
-            # alt = bs + str(my_seq.reverse_complement())
-            alt = str(my_seq.reverse_complement())
+        my_seq = Seq(vcf_del_seq)
+        alt = str(my_seq.reverse_complement())
 
     # Delins
     elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'delins':
@@ -758,7 +755,7 @@ def hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf, extra_flank
         except:
             ins_seq = ''
         else:
-            if str(ins_seq) == 'None':
+            if ins_seq is None:
                 ins_seq = ''
                 # Recover sequences
         vcf_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, end)
@@ -939,26 +936,19 @@ def report_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
         end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
         start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
         adj_start = start - 1
-        start = start
-        try:
-            ins_seq = reverse_normalized_hgvs_genomic.posedit.edit.alt
-        except:
-            ins_seq = ''
-        else:
-            if str(ins_seq) == 'None':
-                ins_seq = ''
+
         # Recover sequences
-        vcf_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, end)
+        vcf_del_seq = sf.fetch_seq(
+            str(reverse_normalized_hgvs_genomic.ac),
+            adj_start,
+            end
+        )
+
         # Assemble
         pos = str(start)
-        # pos = str(start-1)
-        # ref = bs + vcf_del_seq
         ref = vcf_del_seq
-        alt = ins_seq
-        if reverse_normalized_hgvs_genomic.posedit.edit.type == 'inv':
-            my_seq = Seq(vcf_del_seq)
-            # alt = bs + str(my_seq.reverse_complement())
-            alt = str(my_seq.reverse_complement())
+        my_seq = Seq(vcf_del_seq)
+        alt = str(my_seq.reverse_complement())
 
     # Delins
     elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'delins':
@@ -971,7 +961,7 @@ def report_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
         except:
             ins_seq = ''
         else:
-            if str(ins_seq) == 'None':
+            if ins_seq is None:
                 ins_seq = ''
         # Recover sequences
         vcf_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, end)
@@ -1079,26 +1069,19 @@ def pos_lock_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
         end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
         start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
         adj_start = start - 1
-        start = start
-        try:
-            ins_seq = reverse_normalized_hgvs_genomic.posedit.edit.alt
-        except:
-            ins_seq = ''
-        else:
-            if str(ins_seq) == 'None':
-                ins_seq = ''
+
         # Recover sequences
-        vcf_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, end)
+        vcf_del_seq = sf.fetch_seq(
+            str(reverse_normalized_hgvs_genomic.ac),
+            adj_start,
+            end
+        )
+
         # Assemble
         pos = str(start)
-        # pos = str(start-1)
-        # ref = bs + vcf_del_seq
         ref = vcf_del_seq
-        alt = ins_seq
-        if 'inv' in str(reverse_normalized_hgvs_genomic.posedit):
-            my_seq = Seq(vcf_del_seq)
-            # alt = bs + str(my_seq.reverse_complement())
-            alt = str(my_seq.reverse_complement())
+        my_seq = Seq(vcf_del_seq)
+        alt = str(my_seq.reverse_complement())
 
     # Delins
     elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'delins':
@@ -1111,7 +1094,7 @@ def pos_lock_hgvs2vcf(hgvs_genomic, primary_assembly, reverse_normalizer, sf):
         except:
             ins_seq = ''
         else:
-            if str(ins_seq) == 'None':
+            if ins_seq is None:
                 ins_seq = ''
         # Recover sequences
         vcf_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, end)
@@ -1384,20 +1367,15 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
         except:
             ins_seq = ''
         else:
-            if str(ins_seq) == 'None':
+            if ins_seq is None:
                 ins_seq = ''
         # Recover sequences
         vcf_del_seq = sf.fetch_seq(str(normalized_hgvs_genomic.ac), adj_start, end)
         # Assemble
         pos = str(start)
-        # pos = str(start-1)
-        # ref = bs + vcf_del_seq
         ref = vcf_del_seq
-        alt = ins_seq
-        if normalized_hgvs_genomic.posedit.edit.type == 'inv':
-            my_seq = Seq(vcf_del_seq)
-            # alt = bs + str(my_seq.reverse_complement())
-            alt = str(my_seq.reverse_complement())
+        my_seq = Seq(vcf_del_seq)
+        alt = str(my_seq.reverse_complement())
 
     # Delins
     elif normalized_hgvs_genomic.posedit.edit.type == 'delins':
@@ -1410,7 +1388,7 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
         except:
             ins_seq = ''
         else:
-            if str(ins_seq) == 'None':
+            if ins_seq is None:
                 ins_seq = ''
         # Recover sequences
         vcf_del_seq = sf.fetch_seq(str(normalized_hgvs_genomic.ac), adj_start, end)
@@ -1713,19 +1691,29 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                             # Ensure merged variant is not in a "non-intron" if mapped back to n.
                             if merged_variant is not False:
                                 try:
-                                    if (merged_variant.posedit.pos.start.offset != 0
-                                            or merged_variant.posedit.pos.start.offset != 0):
+                                    if (
+                                            hgvs_position_utils.position_is_intronic(merged_variant, check_start=True)
+                                            or hgvs_position_utils.position_is_intronic(merged_variant, check_end=True)
+                                    ):
                                         # Try from normalized genomic
                                         pre_merged_variant = hn.normalize(pre_merged_variant)
                                         test_merged_variant = vm.g_to_n(pre_merged_variant, tx_ac)
-                                        if (test_merged_variant.posedit.pos.start.offset == 0
-                                                and test_merged_variant.posedit.pos.start.offset == 0):
+                                        if (
+                                                not hgvs_position_utils.position_is_intronic(test_merged_variant,
+                                                                                             check_start=True)
+                                                and not hgvs_position_utils.position_is_intronic(test_merged_variant,
+                                                                                                 check_end=True)
+                                        ):
                                             merged_variant = pre_merged_variant
                                         else:
                                             pre_merged_variant = reverse_normalizer.normalize(pre_merged_variant)
                                             test_merged_variant = vm.g_to_n(pre_merged_variant, tx_ac)
-                                            if (test_merged_variant.posedit.pos.start.offset == 0
-                                                    and test_merged_variant.posedit.pos.start.offset == 0):
+                                            if (
+                                                    not hgvs_position_utils.position_is_intronic(test_merged_variant,
+                                                                                                 check_start=True)
+                                                    and not hgvs_position_utils.position_is_intronic(
+                                                test_merged_variant, check_end=True)
+                                            ):
                                                 merged_variant = pre_merged_variant
                                     # Map back to n.
                                     if "g" in merged_variant.type:
@@ -1907,8 +1895,10 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                             # Ensure merged variant is not in a "non-intron" if mapped back to n.
                             if merged_variant is not False:
                                 try:
-                                    if (merged_variant.posedit.pos.start.offset != 0
-                                            or merged_variant.posedit.pos.end.offset != 0):
+                                    if (
+                                            hgvs_position_utils.position_is_intronic(merged_variant, check_start=True)
+                                            or hgvs_position_utils.position_is_intronic(merged_variant, check_end=True)
+                                    ):
                                         # Try from normalized genomic
                                         try:
                                             pre_merged_variant = hn.normalize(pre_merged_variant)
@@ -1916,14 +1906,22 @@ def hard_right_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, 
                                             pass
                                         test_merged_variant = vm.g_to_n(pre_merged_variant, tx_ac)
 
-                                        if (test_merged_variant.posedit.pos.start.offset == 0
-                                                and test_merged_variant.posedit.pos.start.offset == 0):
-                                            merged_variant = test_merged_variant
+                                        if (
+                                                not hgvs_position_utils.position_is_intronic(test_merged_variant,
+                                                                                             check_start=True)
+                                                and not hgvs_position_utils.position_is_intronic(test_merged_variant,
+                                                                                                 check_end=True)
+                                        ):
+                                            merged_variant = pre_merged_variant
                                         else:
                                             pre_merged_variant = reverse_normalizer.normalize(pre_merged_variant)
                                             test_merged_variant = vm.g_to_n(pre_merged_variant, tx_ac)
-                                            if (test_merged_variant.posedit.pos.start.offset == 0
-                                                    and test_merged_variant.posedit.pos.start.offset == 0):
+                                            if (
+                                                    not hgvs_position_utils.position_is_intronic(test_merged_variant,
+                                                                                                 check_start=True)
+                                                    and not hgvs_position_utils.position_is_intronic(
+                                                test_merged_variant, check_end=True)
+                                            ):
                                                 merged_variant = pre_merged_variant
                                     # Map back to n.
                                     if "g" in merged_variant.type:
@@ -2055,30 +2053,24 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
         alt = hgvs_del_seq_w_pre_base[0]
 
     # inv
+    # inv
     elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'inv':
         end = int(reverse_normalized_hgvs_genomic.posedit.pos.end.base)
         start = int(reverse_normalized_hgvs_genomic.posedit.pos.start.base)
         adj_start = start - 1
-        start = start
-        try:
-            ins_seq = reverse_normalized_hgvs_genomic.posedit.edit.alt
-        except:
-            ins_seq = ''
-        else:
-            if str(ins_seq) == 'None':
-                ins_seq = ''
+
         # Recover sequences
-        vcf_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, end)
+        vcf_del_seq = sf.fetch_seq(
+            str(reverse_normalized_hgvs_genomic.ac),
+            adj_start,
+            end
+        )
+
         # Assemble
         pos = str(start)
-        # pos = str(start-1)
-        # ref = bs + vcf_del_seq
         ref = vcf_del_seq
-        alt = ins_seq
-        if reverse_normalized_hgvs_genomic.posedit.edit.type == 'inv':
-            my_seq = Seq(vcf_del_seq)
-            # alt = bs + str(my_seq.reverse_complement())
-            alt = str(my_seq.reverse_complement())
+        my_seq = Seq(vcf_del_seq)
+        alt = str(my_seq.reverse_complement())
 
     # Delins
     elif reverse_normalized_hgvs_genomic.posedit.edit.type == 'delins':
@@ -2091,7 +2083,7 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
         except:
             ins_seq = ''
         else:
-            if str(ins_seq) == 'None':
+            if ins_seq is None:
                 ins_seq = ''
         # Recover sequences
         vcf_del_seq = sf.fetch_seq(str(reverse_normalized_hgvs_genomic.ac), adj_start, end)
@@ -2353,22 +2345,32 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
                             # Ensure merged variant is not in a "non-intron" if mapped back to n.
                             if merged_variant is not False:
                                 try:
-                                    if (merged_variant.posedit.pos.start.offset != 0
-                                            or merged_variant.posedit.pos.end.offset != 0):
+                                    if (
+                                            hgvs_position_utils.position_is_intronic(merged_variant, check_start=True)
+                                            or hgvs_position_utils.position_is_intronic(merged_variant, check_end=True)
+                                    ):
                                         # Try from normalized genomic
                                         try:
                                             pre_merged_variant = hn.normalize(pre_merged_variant)
                                         except vvhgvs.exceptions.HGVSError:
                                             pass
                                         test_merged_variant = vm.g_to_n(pre_merged_variant, tx_ac)
-                                        if (test_merged_variant.posedit.pos.start.offset == 0
-                                                and test_merged_variant.posedit.pos.start.offset == 0):
+                                        if (
+                                                not hgvs_position_utils.position_is_intronic(test_merged_variant,
+                                                                                             check_start=True)
+                                                and not hgvs_position_utils.position_is_intronic(test_merged_variant,
+                                                                                                 check_end=True)
+                                        ):
                                             merged_variant = test_merged_variant
                                         else:
                                             pre_merged_variant = reverse_normalizer.normalize(pre_merged_variant)
                                             test_merged_variant = vm.g_to_n(pre_merged_variant, tx_ac)
-                                            if (test_merged_variant.posedit.pos.start.offset == 0
-                                                    and test_merged_variant.posedit.pos.start.offset == 0):
+                                            if (
+                                                    not hgvs_position_utils.position_is_intronic(test_merged_variant,
+                                                                                                 check_start=True)
+                                                    and not hgvs_position_utils.position_is_intronic(
+                                                test_merged_variant, check_end=True)
+                                            ):
                                                 merged_variant = pre_merged_variant
                                     # Map back to n.
                                     if "g" in merged_variant.type:
@@ -2421,7 +2423,10 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
 
                     # In transcript gaps, this can push us fully into the gap
                     try:
-                        if map_back.posedit.pos.start.offset != 0 and map_back.posedit.pos.start.offset != 0:
+                        if (
+                                hgvs_position_utils.position_is_intronic(map_back, check_start=True)
+                                and hgvs_position_utils.position_is_intronic(map_back, check_end=True)
+                        ):
                             needs_a_push = False
                             push_pos_by = push_pos_by + 1
                             break
@@ -2579,19 +2584,29 @@ def hard_left_hgvs2vcf(hgvs_genomic, primary_assembly, hn, reverse_normalizer, s
                             # Ensure merged variant is not in a "non-intron" if mapped back to n.
                             if merged_variant is not False:
                                 try:
-                                    if (merged_variant.posedit.pos.start.offset != 0
-                                            or merged_variant.posedit.pos.start.offset != 0):
+                                    if (
+                                            hgvs_position_utils.position_is_intronic(merged_variant, check_start=True)
+                                            or hgvs_position_utils.position_is_intronic(merged_variant, check_end=True)
+                                    ):
                                         # Try from normalized genomic
                                         pre_merged_variant = hn.normalize(pre_merged_variant)
                                         test_merged_variant = vm.g_to_n(pre_merged_variant, tx_ac)
-                                        if (test_merged_variant.posedit.pos.start.offset == 0
-                                                and test_merged_variant.posedit.pos.start.offset == 0):
+                                        if (
+                                                not hgvs_position_utils.position_is_intronic(test_merged_variant,
+                                                                                             check_start=True)
+                                                and not hgvs_position_utils.position_is_intronic(test_merged_variant,
+                                                                                                 check_end=True)
+                                        ):
                                             merged_variant = pre_merged_variant
                                         else:
                                             pre_merged_variant = reverse_normalizer.normalize(pre_merged_variant)
                                             test_merged_variant = vm.g_to_n(pre_merged_variant, tx_ac)
-                                            if (test_merged_variant.posedit.pos.start.offset == 0
-                                                    and test_merged_variant.posedit.pos.start.offset == 0):
+                                            if (
+                                                    not hgvs_position_utils.position_is_intronic(test_merged_variant,
+                                                                                                 check_start=True)
+                                                    and not hgvs_position_utils.position_is_intronic(
+                                                test_merged_variant, check_end=True)
+                                            ):
                                                 merged_variant = pre_merged_variant
 
                                     # Map back to n.

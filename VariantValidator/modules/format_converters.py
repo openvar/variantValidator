@@ -735,7 +735,7 @@ def convert_expanded_repeat(my_variant, validator):
     """
     Waiting for HGVS nomenclature changes
     """
-    logger.info(f"Checking my variant: {my_variant.quibble} for expanded repats in format_converters")
+    logger.info(f"Checking my variant: {my_variant.quibble} for expanded repeats in format_converters")
     try:
         has_ex_repeat = expanded_repeats.convert_tandem(my_variant, validator, my_variant.primary_assembly,
                                                  "all")
